@@ -22,11 +22,15 @@ import { SegmentedControl } from '../components/SegmentedControl';
 import { ScrollArea } from '../components/ScrollArea';
 import { Command } from '../components/Command';
 import { DataTable } from '../components/DataTable';
+import { Lightbox } from '../components/Lightbox';
+import { TableOfContents } from '../components/TableOfContents';
 import { Splitter } from '../layout/Splitter';
+import { AppFrame } from '../layout/AppFrame';
 import { Slider } from '../form/Slider';
 import { PinInput } from '../form/PinInput';
 import { ColorPicker } from '../form/ColorPicker';
 import { ColorInput } from '../form/ColorInput';
+import { PasswordInput } from '../form/PasswordInput';
 import { DateInput } from '../form/DateInput';
 import { TimeInput } from '../form/TimeInput';
 import { DateTimeInput } from '../form/DateTimeInput';
@@ -86,6 +90,18 @@ const cases: Array<[string, React.ReactElement]> = [
     </Splitter>,
   ],
   [
+    // It reads the width in a layout effect, to know which state the burger
+    // toggles.
+    'AppFrame',
+    <AppFrame key="app-frame" defaultNavOpen>
+      <AppFrame.Header>
+        <AppFrame.Burger />
+      </AppFrame.Header>
+      <AppFrame.Nav>Nav</AppFrame.Nav>
+      <AppFrame.Main>Main</AppFrame.Main>
+    </AppFrame>,
+  ],
+  [
     'Command',
     <Command
       key="command"
@@ -103,6 +119,15 @@ const cases: Array<[string, React.ReactElement]> = [
     />,
   ],
   [
+    // Open, so the viewer and its image render on the server too.
+    'Lightbox',
+    <Lightbox
+      key="lightbox"
+      defaultOpen
+      items={[{ src: '/a.jpg', alt: 'Harbour at dusk' }]}
+    />,
+  ],
+  [
     // Selectable, for its checkboxes, and responsive, for its ScrollArea.
     'DataTable',
     <DataTable
@@ -114,6 +139,15 @@ const cases: Array<[string, React.ReactElement]> = [
       isResponsive
     />,
   ],
+  [
+    // Its scroll spy keeps its callback through useLatestRef.
+    'TableOfContents',
+    <TableOfContents
+      key="table-of-contents"
+      items={[{ id: 'intro', label: 'Intro' }]}
+      onCurrentChange={() => {}}
+    />,
+  ],
   ['Slider', <Slider key="slider" label="Volume" />],
   ['PinInput', <PinInput key="pin" label="Code" defaultValue="12" />],
   [
@@ -121,6 +155,10 @@ const cases: Array<[string, React.ReactElement]> = [
     <ColorPicker key="color" label="Color" alpha swatches={['red']} />,
   ],
   ['ColorInput', <ColorInput key="color-input" label="Color" />],
+  [
+    'PasswordInput',
+    <PasswordInput key="password" label="Password" defaultValue="x" />,
+  ],
   ['DateInput', <DateInput key="date" label="Date" />],
   ['TimeInput', <TimeInput key="time" label="Time" />],
   ['DateTimeInput', <DateTimeInput key="datetime" label="When" />],

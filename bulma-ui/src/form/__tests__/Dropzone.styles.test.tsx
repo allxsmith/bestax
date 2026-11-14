@@ -238,6 +238,8 @@ describe('Dropzone styles', () => {
 
 describe('a rendered Dropzone with Bulma', () => {
   let sheet: HTMLStyleElement;
+  // A hook keeps Vitest's 10s default rather than `testTimeout`, and loading
+  // all of Bulma can take longer than that on a loaded machine.
   beforeAll(() => {
     const bulma = fs.readFileSync(
       path.join(
@@ -252,7 +254,7 @@ describe('a rendered Dropzone with Bulma', () => {
     // one in the middle.
     sheet.textContent = (bulma + compile('')).replace(/@charset "UTF-8";/g, '');
     document.head.appendChild(sheet);
-  });
+  }, 30_000);
   afterAll(() => {
     sheet.remove();
   });

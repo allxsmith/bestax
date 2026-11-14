@@ -110,7 +110,8 @@ export interface DataTableProps<TRow>
   /**
    * Shows a page of skeleton rows under the header in place of the rows,
    * and marks the table busy. For data on its way, as from a server with
-   * `manual`.
+   * `manual`. A skeleton row is as tall as a row of one line of text, so rows
+   * of text replace it without the table changing height.
    */
   loading?: boolean;
   /**
@@ -270,6 +271,7 @@ export const DataTable = forwardRef(function DataTableRender<TRow>(
   const toolbarClass = usePrefixedClassNames('data-table-toolbar');
   const actionsClass = usePrefixedClassNames('data-table-actions');
   const emptyClass = usePrefixedClassNames('data-table-empty');
+  const skeletonClass = usePrefixedClassNames('data-table-skeleton');
 
   const nameId = useId();
   const hasCaption = isShown(caption);
@@ -393,7 +395,7 @@ export const DataTable = forwardRef(function DataTableRender<TRow>(
       <Tr key={index} aria-hidden="true">
         {Array.from({ length: columnCount }, (__, cell) => (
           <Td key={cell}>
-            <Skeleton variant="lines" lines={1} />
+            <Skeleton variant="lines" lines={1} className={skeletonClass} />
           </Td>
         ))}
       </Tr>

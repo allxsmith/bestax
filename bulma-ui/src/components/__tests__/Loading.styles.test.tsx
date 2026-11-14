@@ -171,6 +171,7 @@ const SETS: Record<string, string[]> = {
   ],
   'box-sizing': ['box-sizing'],
   opacity: ['opacity'],
+  '--bulma-loading-icon-border-width': ['--bulma-loading-icon-border-width'],
 };
 
 /** Classes, attributes and pseudo-classes, then elements, as one number. */
@@ -357,6 +358,49 @@ describe.each([
       unmount();
     }
   );
+
+  it.each([
+    ['small', '0.2em'],
+    ['medium', '0.3em'],
+    ['large', '0.375em'],
+  ] as const)(
+    'rings a %s spinner at the width its own variable sets',
+    (size, width) => {
+      // Each size set the ring's width from its Sass value, so setting
+      // `--bulma-loading-icon-border-width-<size>` on `.loading`, where the
+      // API page says to, changed nothing.
+      const found = rulesOf(compile(prefix));
+      const { icon, unmount } = iconOf({ size });
+      expect(
+        winning(found, icon, '--bulma-loading-icon-border-width', false)
+      ).toEqual({
+        property: '--bulma-loading-icon-border-width',
+        value: `var(--bulma-loading-icon-border-width-${size})`,
+      });
+      // `.loading` declares that variable, with the width the size had.
+      const root = icon.closest(`.${prefix}loading`)!;
+      const declared = found
+        .filter(({ media, selector }) => !media && root.matches(selector))
+        .flatMap(({ declarations }) => declarations)
+        .filter(
+          ({ property }) =>
+            property === `--bulma-loading-icon-border-width-${size}`
+        );
+      expect(declared.map(({ value }) => value)).toEqual([width]);
+      unmount();
+    }
+  );
+
+  it('leaves the default spinner the width `.loading` declares', () => {
+    // It sets no width of its own, so it inherits
+    // `--bulma-loading-icon-border-width` from `.loading`, as before.
+    const found = rulesOf(compile(prefix));
+    const { icon, unmount } = iconOf({});
+    expect(
+      winning(found, icon, '--bulma-loading-icon-border-width', false)
+    ).toBeNull();
+    unmount();
+  });
 
   it('keeps every border on the spinner inside the forced-colors block', () => {
     // A border drawn, that is: the icon's `border-radius` makes the circle

@@ -12,7 +12,7 @@
 [![npm provenance](https://img.shields.io/badge/npm-provenance-3fb950.svg)](https://www.npmjs.com/package/@allxsmith/bestax-bulma#provenance)
 [![Security policy](https://img.shields.io/badge/security-policy-blue.svg)](https://github.com/allxsmith/bestax/blob/main/SECURITY.md)
 
-TypeScript-first React component library for the **Bulma v1** CSS framework — 80+ fully typed, tree-shakeable components, including extras like Carousel, Dialog, Sidebar, Steps, and date/time pickers.
+TypeScript-first React component library for the **Bulma v1** CSS framework — 110+ fully typed, tree-shakeable components, including extras like Carousel, Dialog, Sidebar, Steps, and date/time pickers.
 
 **Requires React `^18 || ^19`.** Bulma v1 is the only runtime dependency and installs automatically.
 
@@ -104,14 +104,14 @@ import { Theme } from '@allxsmith/bestax-bulma';
 
 - **Supports the latest Bulma v1.x**
   Other React Bulma libraries are stuck on Bulma 0.9.4 — bestax-bulma is built for the future.
-- **80+ components**
+- **110+ components**
   All of Bulma v1, plus extras: Carousel, Dialog, Sidebar, Steps, Autocomplete, Taginput, DateInput/TimeInput/DateTimeInput pickers, and more. (Migrating from v2? Snackbar merged into [Toast](https://bestax.io/docs/api/components/toast).)
 - **Dark mode & theming built in**
   `Theme colorMode`, `--bulma-*` variable overrides, and prefixed-class builds via `ConfigProvider`.
 - **Just one dependency: Bulma**
   Every Bulma library depends on it — we ship it automatically. Clean install, fewer security concerns.
 - **Tree-shakeable ESM**
-  Import only what you use; your bundler drops the rest. A CJS build is there for `require`.
+  Import only what you use; your bundler drops the rest. Modular Sass does the same for CSS, and a CJS build is there for `require`.
 - **99% unit test coverage**
   Enforced in CI by the [Vitest config](https://github.com/allxsmith/bestax/blob/main/bulma-ui/vitest.config.ts) — not just claimed.
 - **100% TypeScript**

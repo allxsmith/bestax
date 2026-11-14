@@ -30,7 +30,12 @@ export interface PanelProps
    * `aria-labelledby` pointing at the `id` of its `Panel.Heading`.
    */
   as?: 'nav' | 'article' | 'section' | 'aside' | 'div';
-  /** Bulma color modifier for the panel. */
+  /**
+   * Bulma color modifier for the panel. With none, the heading takes the
+   * text color, with its title in the page background's color so it reads on
+   * both schemes. On the dark scheme that title color comes from bestax's
+   * stylesheets: Bulma's CSS alone writes it white on light gray there.
+   */
   color?:
     | 'primary'
     | 'link'

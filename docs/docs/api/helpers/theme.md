@@ -27,9 +27,14 @@ import { Theme } from '@allxsmith/bestax-bulma';
 ```tsx
 function BasicThemeCustomization() {
   return (
-    <Theme primaryH="270" primaryS="100%" primaryL="50%">
+    <Theme
+      primaryH="262"
+      primaryS="52%"
+      primaryL="56%"
+      bulmaVars={{ '--bulma-primary-invert-l': '100%' }}
+    >
       <Box p="4">
-        <Button color="primary">Purple Primary Button</Button>
+        <Button color="primary">Violet Primary Button</Button>
       </Box>
     </Theme>
   );
@@ -41,9 +46,15 @@ function BasicThemeCustomization() {
 ```tsx
 function GlobalTheme() {
   return (
-    <Theme isRoot={true} primaryH="270" primaryS="100%" primaryL="50%">
+    <Theme
+      isRoot={true}
+      primaryH="262"
+      primaryS="52%"
+      primaryL="56%"
+      bulmaVars={{ '--bulma-primary-invert-l': '100%' }}
+    >
       <div>
-        <Button color="primary">Global Purple Theme</Button>
+        <Button color="primary">Global Violet Theme</Button>
         <Button color="info">Info Button</Button>
       </div>
     </Theme>
@@ -207,8 +218,13 @@ function LocalTheme() {
     <div>
       <Button color="primary">Standard Primary</Button>
 
-      <Theme primaryH="120" primaryS="100%" primaryL="40%">
-        <Button color="primary">Green Primary</Button>
+      <Theme
+        primaryH="158"
+        primaryS="64%"
+        primaryL="30%"
+        bulmaVars={{ '--bulma-primary-invert-l': '100%' }}
+      >
+        <Button color="primary">Emerald Primary</Button>
       </Theme>
 
       <Button color="primary">Standard Primary Again</Button>
@@ -221,14 +237,27 @@ function LocalTheme() {
 
 ```tsx
 function SunsetTheme() {
+  // Amber, coral, rose and violet on warm neutrals. A new color keeps the
+  // label lightness the stylesheet was built with, so each sets its own.
   const sunsetTheme = {
-    '--bulma-scheme-h': '18',
-    '--bulma-scheme-s': '90%',
-    '--bulma-light-l': '85%',
-    '--bulma-dark-l': '20%',
-    '--bulma-primary-h': '25',
-    '--bulma-primary-s': '85%',
-    '--bulma-primary-l': '55%',
+    '--bulma-scheme-h': '24',
+    '--bulma-scheme-s': '22%',
+    '--bulma-primary-h': '12',
+    '--bulma-primary-s': '76%',
+    '--bulma-primary-l': '44%',
+    '--bulma-primary-invert-l': '100%',
+    '--bulma-link-h': '340',
+    '--bulma-link-s': '62%',
+    '--bulma-link-l': '48%',
+    '--bulma-link-invert-l': '100%',
+    '--bulma-info-h': '262',
+    '--bulma-info-s': '52%',
+    '--bulma-info-l': '56%',
+    '--bulma-info-invert-l': '100%',
+    '--bulma-warning-h': '38',
+    '--bulma-warning-s': '95%',
+    '--bulma-warning-l': '54%',
+    '--bulma-warning-invert-l': '10%',
   };
 
   return (
@@ -314,41 +343,42 @@ function SpacingTheme() {
 
 ```tsx
 function ForestTheme() {
+  // Pine, lake, fern, ochre and berry on cool green neutrals
   const forestScheme = {
-    schemeH: '150', // forest green hue
-    schemeS: '50%',
-    lightL: '80%',
-    lightInvertL: '20%',
-    darkL: '18%',
-    darkInvertL: '85%',
-    softL: '55%',
-    boldL: '35%',
-    primaryH: '160',
-    primaryS: '60%',
-    primaryL: '45%',
-    linkH: '155',
+    schemeH: '140',
+    schemeS: '16%',
+    primaryH: '152',
+    primaryS: '50%',
+    primaryL: '32%',
+    linkH: '195',
     linkS: '65%',
-    linkL: '40%',
-    successH: '120',
-    successS: '70%',
-    successL: '45%',
-    warningH: '45',
+    linkL: '34%',
+    successH: '95',
+    successS: '40%',
+    successL: '33%',
+    warningH: '36',
     warningS: '85%',
-    warningL: '55%',
-    dangerH: '355',
-    dangerS: '75%',
-    dangerL: '50%',
-    hoverBackgroundLDelta: '4%',
-    activeBackgroundLDelta: '8%',
+    warningL: '52%',
+    dangerH: '352',
+    dangerS: '60%',
+    dangerL: '48%',
+  };
+  // The label lightnesses have no named prop, so they go through bulmaVars
+  const forestLabels = {
+    '--bulma-primary-invert-l': '100%',
+    '--bulma-link-invert-l': '100%',
+    '--bulma-success-invert-l': '100%',
+    '--bulma-warning-invert-l': '10%',
+    '--bulma-danger-invert-l': '100%',
   };
 
   return (
-    <Theme {...forestScheme} isRoot>
+    <Theme {...forestScheme} bulmaVars={forestLabels} isRoot>
       <Box p="4">
         <Title>Forest Theme</Title>
         <Button color="primary">Forest Primary</Button>
+        <Button color="link">Link</Button>
         <Button color="success">Success</Button>
-        <Button color="info">Info</Button>
         <Button color="warning">Warning</Button>
         <Button color="danger">Danger</Button>
       </Box>
@@ -363,16 +393,18 @@ function ForestTheme() {
 function StyledTheme() {
   return (
     <Theme
-      className="custom-theme-wrapper"
-      primaryH="45"
-      primaryS="100%"
-      primaryL="50%"
+      className="has-background-primary-soft has-text-primary-bold"
+      primaryH="40"
+      primaryS="92%"
+      primaryL="52%"
+      bulmaVars={{ '--bulma-primary-invert-l': '10%' }}
       p="5"
       m="3"
+      radius="large"
       textAlign="centered"
     >
-      <Title>Styled Theme Container</Title>
-      <Button color="primary">Styled Button</Button>
+      <Title>Amber Panel</Title>
+      <Button color="primary">Amber Primary</Button>
     </Theme>
   );
 }
@@ -383,17 +415,24 @@ function StyledTheme() {
 ```tsx
 function NestedThemes() {
   return (
-    <Theme primaryH="210" primaryS="60%" primaryL="45%" p="4">
-      <Title>Outer Theme (Blue)</Title>
-      <Button color="primary">Blue Primary</Button>
+    <Theme
+      primaryH="218"
+      primaryS="52%"
+      primaryL="48%"
+      bulmaVars={{ '--bulma-primary-invert-l': '100%' }}
+      p="4"
+    >
+      <Title>Outer Theme (Ink Blue)</Title>
+      <Button color="primary">Ink Blue Primary</Button>
 
-      <Theme primaryH="120" primaryS="70%" primaryL="40%" p="3" mt="4">
+      {/* Sets only the trio: the white label comes from the outer Theme */}
+      <Theme primaryH="160" primaryS="45%" primaryL="32%" p="3" mt="4">
         <Title size="4">Inner Theme (Green)</Title>
         <Button color="primary">Green Primary</Button>
       </Theme>
 
       <Button color="primary" mt="3">
-        Blue Primary Again
+        Ink Blue Primary Again
       </Button>
     </Theme>
   );
@@ -406,7 +445,13 @@ function NestedThemes() {
 function PrefixedTheme() {
   return (
     <ConfigProvider classPrefix="bestax-">
-      <Theme primaryH="300" primaryS="80%" primaryL="50%" isRoot>
+      <Theme
+        primaryH="236"
+        primaryS="55%"
+        primaryL="58%"
+        bulmaVars={{ '--bulma-primary-invert-l': '100%' }}
+        isRoot
+      >
         <Button color="primary">Prefixed & Themed Button</Button>
       </Theme>
     </ConfigProvider>
@@ -479,6 +524,7 @@ typed API, so move it to `bulmaVars`:
   primaryS="73%"
   primaryL="44%"
   bulmaVars={{
+    '--bulma-primary-invert-l': '100%',
     '--bulma-radius': '2px',
     '--bulma-radius-small': '1px',
     '--bulma-family-primary': '"IBM Plex Sans", system-ui, sans-serif',
@@ -518,7 +564,12 @@ You can set the scheme and color variables in two ways:
 1. **Named Props** (recommended where one exists):
 
    ```tsx
-   <Theme primaryH="270" primaryS="100%" primaryL="50%">
+   <Theme
+     primaryH="262"
+     primaryS="52%"
+     primaryL="56%"
+     bulmaVars={{ '--bulma-primary-invert-l': '100%' }} // the label has no named prop
+   >
      <App />
    </Theme>
    ```
@@ -528,9 +579,10 @@ You can set the scheme and color variables in two ways:
    ```tsx
    <Theme
      bulmaVars={{
-       '--bulma-primary-h': '270',
-       '--bulma-primary-s': '100%',
-       '--bulma-primary-l': '50%',
+       '--bulma-primary-h': '262',
+       '--bulma-primary-s': '52%',
+       '--bulma-primary-l': '56%',
+       '--bulma-primary-invert-l': '100%',
        '--bulma-block-spacing': '2rem',
      }}
    >
@@ -541,9 +593,10 @@ You can set the scheme and color variables in two ways:
 3. **Combined** (props take precedence over bulmaVars):
    ```tsx
    <Theme
-     primaryH="270" // This takes precedence
+     primaryH="262" // This takes precedence
      bulmaVars={{
        '--bulma-primary-h': '180', // This is overridden
+       '--bulma-primary-invert-l': '100%',
        '--bulma-block-spacing': '2rem',
      }}
    >
@@ -561,8 +614,9 @@ to typecheck, so a typo in it is silently dropped; annotate it with
 
 ```tsx
 <Theme
-  primaryH="270"
+  primaryH="262"
   bulmaVars={{
+    '--bulma-primary-invert-l': '100%',
     '--bulma-block-spacing': '2rem', // start typing '--bulma-' to list the rest
   }}
 >

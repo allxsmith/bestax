@@ -230,8 +230,8 @@ edition is turnkey.
 ## What the series is
 
 **"The State of React"** is a dated, honest snapshot comparing bestax against the other
-mainstream React component libraries (Mantine, MUI, Chakra UI, shadcn/ui, React-Bootstrap, and
-react-bulma-components). Each edition is a point-in-time capture; we publish a fresh one on a
+mainstream React component libraries (Ant Design, Mantine, MUI, Chakra UI, shadcn/ui,
+React-Bootstrap, and react-bulma-components). Each edition is a point-in-time capture; we publish a fresh one on a
 roughly **monthly** cadence rather than editing an old post.
 
 The full matrix lives on a docs page, where readers filter it by library and feature group.
@@ -288,7 +288,8 @@ These files back every edition:
    - **Record a correction** when a cell's mark was wrong in the last edition, rather than
      changed by the library since. That can happen any time between editions, so do it in the
      PR that fixes the cell: add the cell to `corrections` under a fix with the last edition's
-     `reviewed` date (the live `lastReviewed` until the bump below), the PR number (fill it in
+     `reviewed` date (the newest snapshot's `reviewed`; that matches the live `lastReviewed`
+     until a review moves the sheet ahead of the last edition), the PR number (fill it in
      once the PR is open), and the mark the fix gives the cell (`full`, `partial` or `none`).
      The edition's changes table then shows that cell as a correction, not a change. If a
      release moves the cell again before the edition, leave the entry be: the mark no longer
@@ -300,6 +301,15 @@ These files back every edition:
    - Fix or extend the per-library link resolvers/override maps as needed. **bestax** cells are
      internal `/docs/api/...` links (validated by the build); competitor links are best-effort deep
      links with a per-library fallback — improve a fallback → deep link when you confirm a stable URL.
+   - **Adding a library** (Ant Design joined in November 2026): give it a `libs` entry with the
+     next free `idx` (display order is the array order, not `idx`), a link resolver, and a cell
+     in every row, and update the tuple comment above `categories`. Fill every row from that
+     library's own docs, as a new column has no edition to be corrected against. The changes
+     table shows the new column unhighlighted, since the previous snapshot has nothing to compare
+     it with, so the post introduces the column in its own section and links the compare page
+     filtered to it (`?libs=bestax,<id>`). Name it wherever the series lists its libraries:
+     the paragraph above, the compare page's companion-package rule, and the
+     react-bulma-components migration guide's tip.
    - **Bump `lastReviewed`** to the review date (`YYYY-MM-DD`).
 2. **Snapshot it** with `pnpm --filter @allxsmith/bestax-docs snapshot:comparison {YYYY-MM}`.
    It refuses to overwrite an existing snapshot; pass `--force` while the edition is still a

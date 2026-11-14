@@ -120,7 +120,7 @@
           "name": "color",
           "type": "TagColor",
           "default": null,
-          "description": "Bulma color modifier for the tag.",
+          "description": "Bulma color modifier for the tag. `light` takes the light color's own text from bestax's stylesheets. With Bulma's CSS alone, a light tag's text inherits the color around it, which on a dark page is hard to read.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -138,7 +138,7 @@
           "name": "isLight",
           "type": "boolean",
           "default": "false",
-          "description": "Use the light color variant.",
+          "description": "Use the light color variant. The light color has none, so `color=\"light\"` with `isLight` looks the same as without it.",
           "required": false,
           "inherited": false,
           "deprecated": false

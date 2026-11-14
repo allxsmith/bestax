@@ -9,6 +9,7 @@ import React, {
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
+import { isElementOf } from '../helpers/elementType';
 import { omitAttrs } from '../helpers/anchorAttrs';
 import { buttonType } from '../helpers/buttonType';
 import { inertProps } from '../helpers/inertProps';
@@ -288,7 +289,7 @@ export const MenuItem = forwardRef(function MenuItem(
   const labelChildren: React.ReactNode[] = [];
   const nestedMenuLists: React.ReactNode[] = [];
   React.Children.forEach(children, child => {
-    if (React.isValidElement(child) && child.type === MenuList) {
+    if (isElementOf(child, MenuList)) {
       nestedMenuLists.push(child);
     } else {
       labelChildren.push(child);

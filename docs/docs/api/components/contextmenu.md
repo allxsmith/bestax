@@ -317,36 +317,19 @@ function example() {
 ### Where the Menu Goes
 
 The menu renders through [`Portal`](../helpers/portal.md), into the
-[`portalContainer`](../helpers/config.md#where-portaled-content-goes) a `ConfigProvider` sets, or at
-the end of the trigger's own document's `<body>`, which is an iframe's when the trigger is in one. It
+[`portalContainer`](../helpers/config.md#where-portaled-content-goes) a `ConfigProvider` sets, else
+the overlay it's in that takes its popups, such as a `Modal`, else at the end of the trigger's own
+document's `<body>`, which is an iframe's when the trigger is in one. It
 opens below and to the right of the point, flips above or to the left of it where there's no room,
 and moves in until it's inside the viewport where it fits on neither side. A menu taller than the
 viewport scrolls inside. It doesn't follow the trigger: scrolling, resizing the window and the window
 losing focus close it.
 
-Inside a `Modal` or a shadow root, point `portalContainer` at an element inside it. A `Modal` hides
-the rest of the page from screen readers that honor `aria-modal`, which would include a menu at the
-end of `<body>`, and a shadow root's styles don't reach outside it.
-
-```tsx
-function RenameDialog({ active, onClose }) {
-  const [overlays, setOverlays] = useState<HTMLElement | null>(null);
-
-  return (
-    <Modal active={active} onClose={onClose}>
-      <ConfigProvider portalContainer={overlays ?? undefined}>
-        <ContextMenu
-          aria-label="Actions for report.pdf"
-          trigger={<Box tabIndex={0}>report.pdf</Box>}
-        >
-          <ContextMenu.Item as="button">Rename</ContextMenu.Item>
-        </ContextMenu>
-      </ConfigProvider>
-      <div ref={setOverlays} />
-    </Modal>
-  );
-}
-```
+A dialog hides the rest of the page from screen readers that honor its `aria-modal`, which would
+include a menu at the end of `<body>`, so a menu opened inside one goes into it. Inside a shadow
+root, point `portalContainer` at an element inside it, since the shadow root's styles don't reach
+outside it. The [ConfigProvider page](../helpers/config.md#where-portaled-content-goes) has an
+example.
 
 ### Theming the Menu
 
@@ -365,8 +348,10 @@ selector that has both of its classes. Its own variables, listed under
 ### Compound (dot-notation) usage
 
 `ContextMenu.Item` and `ContextMenu.Divider` are `Dropdown.Item` and `Dropdown.Divider`, the same
-components, so items written for a `Dropdown` work in a `ContextMenu` unchanged and the whole menu
-comes from the one import.
+components, exported as `DropdownItem` and `DropdownDivider`. Items written for a `Dropdown` work
+in a `ContextMenu` unchanged, and the whole menu comes from the one import. A Next.js Server
+Component imports `DropdownItem` and `DropdownDivider`, because the dotted names are `undefined`
+there.
 
 ```tsx live
 <ContextMenu

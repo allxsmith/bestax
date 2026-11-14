@@ -84,6 +84,17 @@ $hover-card-animation-duration: 0.15s !default;
   &.#{iv.$class-prefix}is-top-right {
     right: 0;
   }
+  // With no `position`, the card lines up with the trigger's inline start,
+  // so a trigger at the start of a right-to-left line doesn't push it off the
+  // screen. A corner the caller names stays physical. Portaled, the
+  // component sets the edge inline instead. `:where()` keeps this at the
+  // corner rules' weight, so a theme's own placement still wins.
+  &.#{iv.$class-prefix}is-start-aligned:where(
+      :not(.#{iv.$class-prefix}is-portal):dir(rtl)
+    ) {
+    left: auto;
+    right: 0;
+  }
 
   // Portaled: fixed to the viewport at the trigger's edge, which the
   // component sets inline, so only the gap comes from here.

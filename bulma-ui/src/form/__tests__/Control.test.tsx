@@ -12,26 +12,6 @@ vi.mock('../../elements/Icon', () => ({
   ),
 }));
 
-// Mock useBulmaClasses to avoid Bulma dependencies here
-vi.mock('../../helpers/useBulmaClasses', () => ({
-  useBulmaClasses: () => ({
-    bulmaHelperClasses: 'bulma-helpers',
-    rest: {},
-  }),
-  validColors: [
-    'primary',
-    'link',
-    'info',
-    'success',
-    'warning',
-    'danger',
-    'black',
-    'dark',
-    'light',
-    'white',
-  ],
-}));
-
 describe('Control', () => {
   it('renders children', () => {
     render(<Control>My Control</Control>);
@@ -57,7 +37,7 @@ describe('Control', () => {
 
   it('applies Bulma control classes', () => {
     const { container } = render(
-      <Control isLoading isExpanded size="large" className="extra">
+      <Control isLoading isExpanded size="large" className="extra" mt="2">
         Y
       </Control>
     );
@@ -67,7 +47,47 @@ describe('Control', () => {
     expect(el).toHaveClass('is-expanded');
     expect(el).toHaveClass('is-large');
     expect(el).toHaveClass('extra');
-    expect(el).toHaveClass('bulma-helpers');
+    expect(el).toHaveClass('mt-2');
+  });
+
+  it('turns helper props into classes and writes none of them as attributes', () => {
+    // It spread the props it was given, helper props included, beside what
+    // useBulmaClasses left, so each one also landed on the element as an
+    // attribute (`textweight="bold"`) and React warned about it.
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    render(
+      <Control
+        mt="3"
+        px="2"
+        textWeight="bold"
+        textAlign="centered"
+        display="flex"
+        justifyContent="center"
+        data-testid="control"
+        aria-label="Search"
+        id="search-control"
+        style={{ minWidth: '10rem' }}
+      >
+        Z
+      </Control>
+    );
+    const el = screen.getByTestId('control');
+    expect(el).toHaveClass(
+      'mt-3',
+      'px-2',
+      'has-text-weight-bold',
+      'has-text-centered',
+      'is-flex',
+      'is-justify-content-center'
+    );
+    expect(el.getAttributeNames().sort()).toEqual(
+      ['aria-label', 'class', 'data-testid', 'id', 'style'].sort()
+    );
+    expect(el).toHaveAttribute('aria-label', 'Search');
+    expect(el).toHaveAttribute('id', 'search-control');
+    expect(el.style.minWidth).toBe('10rem');
+    expect(error).not.toHaveBeenCalled();
+    error.mockRestore();
   });
 
   it('adds has-icons-left and renders left icon via iconLeftName shortcut', () => {
@@ -193,11 +213,14 @@ describe('Control', () => {
 
   it('handles textColor and bgColor props safely', () => {
     render(
-      <Control textColor="danger" bgColor="white">
+      <Control textColor="danger" bgColor="white" data-testid="control">
         Colors
       </Control>
     );
-    expect(screen.getByText('Colors')).toBeInTheDocument();
+    const el = screen.getByTestId('control');
+    expect(el).toHaveClass('has-text-danger', 'has-background-white');
+    expect(el).not.toHaveAttribute('textColor');
+    expect(el).not.toHaveAttribute('bgColor');
   });
 
   it('does not render icons if icon names/props are missing', () => {
@@ -256,6 +279,7 @@ describe('Control', () => {
       expect(control).toHaveClass('bulma-control');
       expect(control).toHaveClass('bulma-is-loading');
       expect(control).toHaveClass('bulma-is-expanded');
+      expect(control).toHaveClass('bulma-m-2');
     });
 
     it('works without prefix', () => {
@@ -267,6 +291,7 @@ describe('Control', () => {
       const control = screen.getByTestId('control');
       expect(control).toHaveClass('control');
       expect(control).toHaveClass('is-loading');
+      expect(control).toHaveClass('p-3');
     });
   });
 });

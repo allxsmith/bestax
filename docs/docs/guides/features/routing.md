@@ -95,23 +95,18 @@ submit, a confirmation). For plain external URLs, no router is needed:
 
 ## Active-route styling
 
-`Navbar.Item` and `Menu.Item` both take an `active` boolean — drive it from the router.
-`Menu.Item` also sets `aria-current="page"` when it's active, so assistive tech hears which item is
-current. `Navbar.Item` only adds `is-active`, so pass `aria-current` on it too, as the
-`react-router` starter's navbar does:
+`Navbar.Item` and `Menu.Item` both take an `active` boolean for you to drive from the router.
+Both set `aria-current="page"` on the element `as` renders while `active` is true, so assistive
+tech hears which item is current with nothing more to pass. An `aria-current` you pass wins, even
+`undefined`, so `aria-current="location"` or `aria-current={false}` still work.
 
 ```tsx
-<Navbar.Item
-  as={Link}
-  to="/about"
-  active={pathname === '/about'}
-  aria-current={pathname === '/about' ? 'page' : undefined}
->
+<Navbar.Item as={Link} to="/about" active={pathname === '/about'}>
   About
 </Navbar.Item>
 ```
 
-The same with `Menu.Item`, which needs no `aria-current` of its own:
+The same with `Menu.Item`:
 
 ```tsx
 import { Link, useLocation } from 'react-router';

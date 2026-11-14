@@ -14,7 +14,7 @@ The `Reveal` component animates its content into view as it scrolls into the vie
 
 <!-- /bestax:generated overview -->
 
-It's a lightweight, CSS-driven wrapper for "fade/slide/zoom in on scroll" effects on landing pages — no animation runtime dependency required.
+It's a CSS-driven wrapper for "fade/slide/zoom in on scroll" effects on landing pages — no animation runtime dependency required.
 
 Accessibility and progressive enhancement are built in, not opt-in:
 

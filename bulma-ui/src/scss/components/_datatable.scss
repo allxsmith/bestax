@@ -1,8 +1,9 @@
 // Bestax Extras - DataTable Styles
 // DataTable renders Bulma's own table, checkboxes and pager, which Bulma and
 // the Checkbox partial style. This adds what Bulma has no class for: the
-// toolbar above the table, the button a sortable header holds, and the
-// indicator that shows which way it sorts.
+// toolbar above the table, the button a sortable header holds, the
+// indicator that shows which way it sorts, and the height of a loading
+// row's skeleton lines.
 //
 // The sort button is styled on its own class rather than inside
 // `.data-table`, so a table built from `useDataTable`'s props, with no
@@ -117,6 +118,17 @@ $-descending: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' 
   &:focus-visible {
     @include extras-focus-outline;
   }
+}
+
+// While `loading`, each cell holds one skeleton line. Bulma draws a skeleton
+// line half a line of text tall, which left a loading row shorter than the
+// row that replaces it, so the table jumped when the data came. This one is
+// a line of the cell's text tall, as Stat's loading Skeleton is a line of its
+// figure. The extra class outranks Bulma's rule whichever sheet loads first,
+// and a browser without `lh` keeps Bulma's height.
+.#{iv.$class-prefix}data-table-skeleton.#{iv.$class-prefix}skeleton-lines
+  > div {
+  height: 1lh;
 }
 
 // The sorted header says which way in `aria-sort`, so the indicator reads it

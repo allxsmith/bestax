@@ -559,7 +559,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
   Level: {
     status: 'mapped',
     target: 'Level',
-    props: { hasTextColor: TEXT_COLOR_OK, isMobile: {} },
+    props: { hasTextColor: TEXT_COLOR_OK, isMobile: {}, tag: TAG_AS },
   },
   LevelItem: {
     status: 'mapped',

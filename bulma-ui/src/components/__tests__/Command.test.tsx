@@ -14,6 +14,7 @@ import {
   type CommandAction,
 } from '../Command';
 import { Modal } from '../Modal';
+import { Popover } from '../Popover';
 import { Sidebar } from '../Sidebar';
 import { ConfigProvider } from '../../helpers/Config';
 import { resetDevWarnings } from '../../helpers/devWarnings';
@@ -1072,6 +1073,40 @@ describe('Command.Dialog', () => {
     } finally {
       target.remove();
     }
+  });
+
+  it('hands a callback ref the dialog box, and null once it closes', () => {
+    const seen: (HTMLDivElement | null)[] = [];
+    const ref = (node: HTMLDivElement | null) => {
+      seen.push(node);
+    };
+    const { rerender } = render(
+      <Command.Dialog open actions={ACTIONS} ref={ref} />
+    );
+    expect(seen).toEqual([dialog()]);
+    rerender(<Command.Dialog open={false} actions={ACTIONS} ref={ref} />);
+    expect(seen).toEqual([expect.any(HTMLDivElement), null]);
+  });
+
+  it('portals a popup inside it into the dialog box', () => {
+    // The Modal around it is `role="presentation"`, so its root is outside
+    // what `aria-modal` leaves to screen readers.
+    render(
+      <Command.Dialog defaultOpen>
+        <Command.Input />
+        <Popover
+          trigger={<button type="button">Scope</button>}
+          ariaLabel="Search scope"
+          appendToBody
+          defaultOpen
+        >
+          Everything
+        </Popover>
+      </Command.Dialog>
+    );
+    expect(
+      screen.getByRole('dialog', { name: 'Search scope' }).parentElement
+    ).toBe(screen.getByRole('dialog', { name: 'Commands' }));
   });
 
   it('takes parts as well as actions', () => {

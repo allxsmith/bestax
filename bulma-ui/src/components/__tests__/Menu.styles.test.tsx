@@ -1,11 +1,12 @@
-// `_menu.scss` adds two things to Bulma's menu: the look of `Menu.Section`
-// (#1172), and, in forced colors, a bar in the system's Highlight color on
-// the active item, since forced colors replaces Bulma's fill and text color
-// (#1094). jsdom evaluates no media query and never loads the partial on its
-// own, so these compile it, with no prefix and under one, read its rules off
-// the sheet, and check their selectors land on the elements Menu renders.
-// jsdom leaves `var()` unresolved, so a value that reads a variable is
-// compared as written.
+// `_menu.scss` adds to Bulma's menu: items aligned to the start of the line,
+// so a right-to-left page puts their text at the right (#1462), the look of
+// `Menu.Section` (#1172), and, in forced colors, a bar in the system's
+// Highlight color on the active item, since forced colors replaces Bulma's
+// fill and text color (#1094). jsdom evaluates no media query and never loads
+// the partial on its own, so these compile it, with no prefix and under one,
+// read its rules off the sheet, and check their selectors land on the
+// elements Menu renders. jsdom leaves `var()` unresolved, so a value that
+// reads a variable is compared as written.
 import * as sass from 'sass';
 import fs from 'fs';
 import path from 'path';
@@ -112,9 +113,33 @@ function declarations(found: Found[], selector: string) {
 const FORCED = '@media (forced-colors: active)';
 const REDUCED = '@media (prefers-reduced-motion: reduce)';
 
-/** The rules for the items Bulma draws, which only forced colors changes. */
+/** The rules for the items Bulma draws. */
 const itemRulesOf = (found: Found[]) =>
   found.filter(({ rule }) => /menu-list/.test(rule.selectorText));
+
+/** The item rules inside forced colors. */
+const forcedItemRulesOf = (found: Found[]) =>
+  itemRulesOf(found).filter(({ within }) => within.join() === FORCED);
+
+/**
+ * Specificity as [ids, classes, types]. A functional pseudo-class is refused,
+ * since none of the rules compared here has one.
+ */
+function specificity(selector: string): number[] {
+  if (/:[\w-]+\(/.test(selector)) {
+    throw new Error(`${selector} has a functional pseudo-class to rank`);
+  }
+  return [
+    (selector.match(/#[\w-]+/g) ?? []).length,
+    (selector.match(/\.[\w-]+|\[[^\]]*\]|:[\w-]+/g) ?? []).length,
+    (selector.match(/(?:^|[\s>+~])[a-z][\w-]*/gi) ?? []).length,
+  ];
+}
+
+const outranks = (a: number[], b: number[]) => {
+  const at = a.findIndex((n, i) => n !== b[i]);
+  return at >= 0 && a[at] > b[at];
+};
 
 describe.each([
   ['no prefix', ''],
@@ -126,16 +151,102 @@ describe.each([
     item => `.${prefix}menu-list ${item}`
   );
 
+  describe('the items right to left', () => {
+    const align = itemRulesOf(found).filter(({ within }) => !within.length);
+    const bulma = allRulesOf(
+      fs.readFileSync(path.join(BULMA, 'css', 'bulma.css'), 'utf8')
+    );
+
+    /** Renders each kind of item, and returns them by their text. */
+    const renderItems = () => {
+      const { getByText } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Menu>
+            <Menu.List>
+              <Menu.Item href="#a">
+                Dashboard
+                <Menu.List>
+                  <Menu.Item href="#b">Nested</Menu.Item>
+                </Menu.List>
+              </Menu.Item>
+              <Menu.Item as="button">Filter</Menu.Item>
+              <li>
+                <span className={`${prefix}menu-item`}>Hand-written</span>
+              </li>
+            </Menu.List>
+          </Menu>
+        </ConfigProvider>
+      );
+      return ['Dashboard', 'Nested', 'Filter', 'Hand-written'].map(text =>
+        getByText(text)
+      );
+    };
+
+    it('aligns every item to the start of the line, outside any media query', () => {
+      expect(align).toHaveLength(1);
+      const [{ rule }] = align;
+      expect(rule.selectorText.split(/,\s*/)).toEqual(
+        items.map(item => item.replace(' ', `.${prefix}menu-list `))
+      );
+      expect(declarationsOf(rule)).toEqual(['text-align: start']);
+    });
+
+    it('reaches every item Menu renders, nested and as a button, and a hand-written one', () => {
+      const [{ rule }] = align;
+      for (const item of renderItems()) {
+        expect([item.textContent, item.matches(rule.selectorText)]).toEqual([
+          item.textContent,
+          true,
+        ]);
+      }
+    });
+
+    it('outranks Bulma’s left alignment whichever stylesheet loads first', () => {
+      const [{ rule }] = align;
+      const ours = rule.selectorText.split(/,\s*/);
+      // Bulma's selectors, under the prefix these items render with.
+      const theirs = bulma
+        .filter(({ rule: r }) => propertiesOf(r).includes('text-align'))
+        .flatMap(({ rule: r }) =>
+          r.selectorText.split(/,\s*/).map(sel => ({
+            selector: sel.replace(/\.([\w-]+)/g, `.${prefix}$1`),
+            value: r.style.getPropertyValue('text-align'),
+          }))
+        );
+      const elements = renderItems();
+      const beaten = elements.flatMap(item => {
+        const mine = ours.filter(sel => item.matches(sel));
+        return theirs
+          .filter(({ selector }) => item.matches(selector))
+          .map(({ selector, value }) => {
+            expect(
+              mine.some(sel =>
+                outranks(specificity(sel), specificity(selector))
+              )
+            ).toBe(true);
+            return `${item.textContent}: ${value}`;
+          });
+      });
+      // Bulma aligns every one of them, so the comparison isn't empty.
+      expect(beaten).toEqual(
+        ['Dashboard', 'Nested', 'Filter', 'Hand-written'].map(
+          text => `${text}: left`
+        )
+      );
+    });
+  });
+
   describe('the active item in forced colors', () => {
-    it('writes the item rules inside forced colors only, so nothing changes outside it', () => {
+    it('writes the other item rules inside forced colors only, so nothing else changes outside it', () => {
       expect(itemRulesOf(found).map(({ within }) => within)).toEqual([
+        [],
         [FORCED],
         [FORCED],
       ]);
     });
 
     it('reserves the bar on every item, so marking one moves no label', () => {
-      const [every, current] = itemRulesOf(found).map(({ rule }) => rule);
+      const [every, current] = forcedItemRulesOf(found).map(({ rule }) => rule);
       // In Canvas, the color forced colors gives the item's background, so
       // the bar doesn't show until an item is marked.
       expect(every.selectorText.split(/,\s*/)).toEqual(items);
@@ -165,7 +276,7 @@ describe.each([
     });
 
     it('reserves the bar on every item Menu.Item renders, and colors only the active ones', () => {
-      const [every, current] = itemRulesOf(found).map(({ rule }) => rule);
+      const [every, current] = forcedItemRulesOf(found).map(({ rule }) => rule);
       const { getByText } = render(
         <ConfigProvider classPrefix={prefix}>
           <Menu>
@@ -201,7 +312,7 @@ describe.each([
     });
 
     it('leaves a section heading out of the bar, since it isn’t an item', () => {
-      const [every] = itemRulesOf(found).map(({ rule }) => rule);
+      const [every] = forcedItemRulesOf(found).map(({ rule }) => rule);
       const { getByRole } = render(
         <ConfigProvider classPrefix={prefix}>
           <Menu>

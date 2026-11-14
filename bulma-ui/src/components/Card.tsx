@@ -5,6 +5,7 @@ import {
   prefixedClassNames,
 } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
+import { isElementOf } from '../helpers/elementType';
 import {
   type AnchorOnlyAttributes,
   ANCHOR_ONLY_ATTRS,
@@ -74,19 +75,17 @@ export interface CardProps
  * @returns {boolean} True if any child is a Card compound component.
  */
 const hasCompoundComponents = (children: React.ReactNode): boolean => {
-  return React.Children.toArray(children).some(child => {
-    if (!React.isValidElement(child)) return false;
-
-    // Direct comparison with our compound component functions
-    return (
-      child.type === CardHeader ||
-      child.type === CardContent ||
-      child.type === CardImage ||
-      child.type === CardFooter ||
-      child.type === CardFooterItem ||
-      child.type === CardHeaderIcon
-    );
-  });
+  return React.Children.toArray(children).some(child =>
+    isElementOf(
+      child,
+      CardHeader,
+      CardContent,
+      CardImage,
+      CardFooter,
+      CardFooterItem,
+      CardHeaderIcon
+    )
+  );
 };
 
 /**
@@ -423,7 +422,7 @@ export interface CardHeaderIconProps
  * @param {CardHeaderProps} props - Props for the CardHeader component.
  * @returns {JSX.Element} The rendered card header.
  */
-const CardHeader: React.FC<CardHeaderProps> = ({
+const CardHeaderComponent: React.FC<CardHeaderProps> = ({
   className,
   children,
   centered,
@@ -440,11 +439,8 @@ const CardHeader: React.FC<CardHeaderProps> = ({
   });
 
   // Check if children contains a CardHeaderTitle component
-  const hasHeaderTitle = React.Children.toArray(children).some(
-    child =>
-      React.isValidElement(child) &&
-      typeof child.type === 'function' &&
-      child.type === CardHeaderTitle
+  const hasHeaderTitle = React.Children.toArray(children).some(child =>
+    isElementOf(child, CardHeaderTitle)
   );
 
   const headerClasses = usePrefixedClassNames('card-header');
@@ -479,7 +475,7 @@ const CardHeader: React.FC<CardHeaderProps> = ({
  * @param {CardHeaderTitleProps} props - Props for the CardHeaderTitle component.
  * @returns {JSX.Element} The rendered card header title.
  */
-const CardHeaderTitle: React.FC<CardHeaderTitleProps> = ({
+export const CardHeaderTitle: React.FC<CardHeaderTitleProps> = ({
   as = 'div',
   className,
   children,
@@ -518,7 +514,7 @@ const CardHeaderTitle: React.FC<CardHeaderTitleProps> = ({
  * @param {CardHeaderIconProps} props - Props for the CardHeaderIcon component.
  * @returns {JSX.Element} The rendered card header icon button.
  */
-const CardHeaderIcon: React.FC<CardHeaderIconProps> = ({
+export const CardHeaderIcon: React.FC<CardHeaderIconProps> = ({
   className,
   children,
   color,
@@ -559,7 +555,7 @@ const CardHeaderIcon: React.FC<CardHeaderIconProps> = ({
  * @param {CardImageProps} props - Props for the CardImage component.
  * @returns {JSX.Element} The rendered card image container.
  */
-const CardImage: React.FC<CardImageProps> = ({
+export const CardImage: React.FC<CardImageProps> = ({
   className,
   children,
   color,
@@ -593,7 +589,7 @@ const CardImage: React.FC<CardImageProps> = ({
  * @param {CardContentProps} props - Props for the CardContent component.
  * @returns {JSX.Element} The rendered card content container.
  */
-const CardContent: React.FC<CardContentProps> = ({
+export const CardContent: React.FC<CardContentProps> = ({
   className,
   children,
   color,
@@ -627,7 +623,7 @@ const CardContent: React.FC<CardContentProps> = ({
  * @param {CardFooterProps} props - Props for the CardFooter component.
  * @returns {JSX.Element} The rendered card footer.
  */
-const CardFooter: React.FC<CardFooterProps> = ({
+export const CardFooter: React.FC<CardFooterProps> = ({
   className,
   children,
   color,
@@ -661,7 +657,7 @@ const CardFooter: React.FC<CardFooterProps> = ({
  * @param {CardFooterItemProps} props - Props for the CardFooterItem component.
  * @returns {JSX.Element} The rendered card footer item.
  */
-const CardFooterItem: React.FC<CardFooterItemProps> = ({
+export const CardFooterItem: React.FC<CardFooterItemProps> = ({
   as = 'span',
   className,
   children,
@@ -726,17 +722,21 @@ const CardFooterItem: React.FC<CardFooterItemProps> = ({
   );
 };
 
-// Attach nested Title and Icon components to CardHeader
-const CardHeaderCompound = withSubComponents(CardHeader, {
-  Title: CardHeaderTitle,
-  Icon: CardHeaderIcon,
-});
+// Export the compound, not the bare function, so `CardHeader.Title` typechecks.
+export const CardHeader = withSubComponents(
+  CardHeaderComponent,
+  {
+    Title: CardHeaderTitle,
+    Icon: CardHeaderIcon,
+  },
+  'CardHeader'
+);
 
 /** Card component with Header, Image, Content, Footer, and FooterItem sub-components. */
 export const Card = withSubComponents(
   CardComponent,
   {
-    Header: CardHeaderCompound,
+    Header: CardHeader,
     Image: CardImage,
     Content: CardContent,
     Footer: CardFooter,

@@ -10,7 +10,7 @@ full sequence. Conventions live in the folder `CLAUDE.md`s; templates in
 |                  | Stock Bulma (in the Bulma v1 spec)     | Extra / "Beyond Bulma"                                            |
 | ---------------- | -------------------------------------- | ----------------------------------------------------------------- |
 | Prerequisite     | —                                      | Issue discussion first (component proposal)                       |
-| SCSS             | **None** — Bulma provides the CSS      | Partial required (register-vars pattern)                          |
+| SCSS             | **None** — Bulma provides the CSS      | A partial (register-vars pattern) when it needs styles of its own |
 | Homepage listing | `docs/src/data/componentCategories.js` | `docs/src/components/EnhancedAddons/index.js` + SVG in `icons.js` |
 
 Before building anything: scan `skills/bestax-custom-component/references/component-catalog.md`
@@ -26,8 +26,8 @@ for an existing component or synonym. If one fits, use or extend it.
       `ConfigProvider classPrefix` test (pattern: `Reveal.test.tsx`)
 - [ ] `bulma-ui/src/<folder>/Foo.stories.tsx` — import types from `@storybook/react-vite`;
       `tags: ['autodocs']`; a `description` on every argType; no inline `style={{}}`
-- [ ] _(extras only)_ `bulma-ui/src/scss/<folder>/_foo.scss` + `@use 'foo';` in that folder's
-      `_index.scss` — see `bulma-ui/src/scss/CLAUDE.md`
+- [ ] _(extras with styles of their own)_ `bulma-ui/src/scss/<folder>/_foo.scss` + `@use 'foo';`
+      in that folder's `_index.scss` — see `bulma-ui/src/scss/CLAUDE.md`
 - [ ] `docs/docs/api/<folder>/foo.md` — mirror `docs/docs/api/components/avatar.md`;
       frontmatter `title:` = the exact exported name (the catalog generator parses it).
       Write the **Usage / Accessibility / Related Components / Additional Resources**

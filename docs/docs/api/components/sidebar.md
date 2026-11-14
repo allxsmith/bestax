@@ -23,7 +23,14 @@ It's ideal for mobile navigation, settings panels, or any content that should ov
 <!-- bestax:generated import -->
 
 ```tsx
-import { Sidebar } from '@allxsmith/bestax-bulma';
+import {
+  Sidebar,
+  SidebarHeader,
+  SidebarTitle,
+  SidebarClose,
+  SidebarBody,
+  SidebarFooter,
+} from '@allxsmith/bestax-bulma';
 ```
 
 <!-- /bestax:generated import -->
@@ -314,9 +321,40 @@ function example() {
 
 ---
 
+### Popups in the Sidebar
+
+A popup in the sidebar that portals, such as a `Popover` or a date picker with `appendToBody`, goes
+to the end of the page, and an open sidebar draws over it. To show it above, wrap the popup in a
+[`ConfigProvider`](../helpers/config.md#where-portaled-content-goes) whose `portalContainer` is an
+element of your own outside the sidebar that stacks above it. A nested provider replaces the outer
+one's settings, so repeat any you set there, such as a `classPrefix`.
+
+```tsx
+function FiltersSidebar({ isOpen, onClose }) {
+  const [popups, setPopups] = useState<HTMLElement | null>(null);
+
+  return (
+    <>
+      <Sidebar isOpen={isOpen} onClose={onClose}>
+        <Sidebar.Body>
+          <ConfigProvider portalContainer={popups ?? undefined}>
+            <DateInput label="From" appendToBody />
+          </ConfigProvider>
+        </Sidebar.Body>
+      </Sidebar>
+      {/* Outside the sidebar: position: relative and a z-index above the sidebar's */}
+      <div ref={setPopups} className="popups-over-sidebar" />
+    </>
+  );
+}
+```
+
+With an overlay, the sidebar's `aria-modal` still hides a popup there from screen readers that
+honor it.
+
 ### Compound (dot-notation) usage
 
-`Sidebar.Header`, `Sidebar.Title`, `Sidebar.Close`, `Sidebar.Body`, and `Sidebar.Footer` are all statics on `Sidebar`, so the whole panel can be composed from the single `Sidebar` import.
+`Sidebar.Header`, `Sidebar.Title`, `Sidebar.Close`, `Sidebar.Body`, and `Sidebar.Footer` are all statics on `Sidebar`, so the whole panel can be composed from the single `Sidebar` import. The same parts are named exports: `SidebarHeader`, `SidebarTitle`, `SidebarClose`, `SidebarBody`, and `SidebarFooter`. Each is the same component as the dotted name. A Next.js Server Component imports the named export, because the dotted name is `undefined` there.
 
 ```tsx live
 function example() {
@@ -373,7 +411,7 @@ When `canCancel` is true, the sidebar can be closed by:
 - Escape key closes the sidebar by default. One Escape closes the topmost overlay only: a [Modal](./modal.md) or [Dialog](./dialog.md) opened over the sidebar closes first, and the sidebar on the next Escape. A sidebar opened over a Modal closes before it
 - A sidebar on top that can't close on Escape, with `escapeClose` or `canCancel` off, still keeps the key from the overlays under it. A [Toast](./toast.md) waits until no overlay is open
 - A popup open inside it, such as a Dropdown menu or a date picker's calendar, takes the first Escape, and the next one closes the sidebar. A popup of your own does the same by calling `preventDefault()` on the Escape it closes on, as the [Modal](./modal.md#accessibility) page explains.
-- Body scroll is prevented when the sidebar is open with an overlay, through the ref-counted lock shared with `Modal`, `Dialog` and `Loading` — so closing one overlay never unlocks the page underneath another that is still open
+- The page doesn't scroll while the sidebar is open with an overlay, through the ref-counted lock shared with [`Modal`](./modal.md#accessibility), `Dialog` and `Loading`, so closing one overlay never unlocks the page underneath another that is still open
 
 ---
 
@@ -406,12 +444,12 @@ Use the Sidebar with a Menu component for building navigation drawers in mobile-
 | `width`        | `string`                                            | `'260px'` | Custom width of the sidebar.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | `isFullwidth`  | `boolean`                                           | `false`   | Sidebar takes full width (mobile-style).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `fullWidth`    | `boolean`                                           | `false`   | **Deprecated.** Use `isFullwidth` instead — `isFullwidth` wins if both are set. Sidebar takes full width (mobile-style).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `overlay`      | `boolean`                                           | `true`    | Show an overlay behind the sidebar, which makes it modal: it gets `aria-modal="true"`, locks body scroll, and keeps Tab and Shift+Tab inside it while it is the topmost modal overlay. A Modal or Dialog opened over it, even one rendered inside it, holds Tab until it closes. Without an overlay the sidebar isn't modal and holds no Tab: on the page, Tab moves in and out of it freely, and opened over a Modal, it leaves the Modal holding Tab, and focus, while still taking Escape first. Whether the sidebar takes focus is decided as it opens: changing this while it's open moves the Tab trap, not focus. Default: true.                                               |
+| `overlay`      | `boolean`                                           | `true`    | Show an overlay behind the sidebar, which makes it modal: it gets `aria-modal="true"`, locks page scroll, and keeps Tab and Shift+Tab inside it while it is the topmost modal overlay. A Modal or Dialog opened over it, even one rendered inside it, holds Tab until it closes. Without an overlay the sidebar isn't modal and holds no Tab: on the page, Tab moves in and out of it freely, and opened over a Modal, it leaves the Modal holding Tab, and focus, while still taking Escape first. Whether the sidebar takes focus is decided as it opens: changing this while it's open moves the Tab trap, not focus. Default: true.                                               |
 | `overlayClose` | `boolean`                                           | `true`    | Close sidebar when overlay is clicked. Default: true.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `escapeClose`  | `boolean`                                           | `true`    | Close sidebar on Escape key. Only the topmost open overlay responds, whichever Modal, Dialog, Sidebar or full-page Loading opened last, so Escape closes one layer at a time. The sidebar marks the Escape it closes on as used with `preventDefault()`, and a Toast waits until no overlay is open. Turned off, a sidebar on top still keeps Escape from the layers under it. A popup inside it, such as a Dropdown's menu or a date picker's calendar, takes its own Escape first, and so does content that calls `preventDefault()` on it. Default: true.                                                                                                                          |
 | `canCancel`    | `boolean`                                           | `true`    | Allow closing the sidebar. Default: true.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `children`     | `React.ReactNode`                                   | —         | Content to display in the sidebar.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `inline`       | `boolean`                                           | `false`   | Renders inline instead of using a portal.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `children`     | `React.ReactNode`                                   | —         | Content to display in the sidebar. A popup in it that portals, such as a Popover's or a date picker's panel with `appendToBody`, goes to the end of the page and renders under an open sidebar. To show it above, wrap the popup in a `ConfigProvider` whose `portalContainer` is an element of your own outside the sidebar that stacks above it, such as one with `position: relative` and a higher `z-index`. With an overlay, the sidebar's `aria-modal` still hides the popup there from screen readers that honor it.                                                                                                                                                           |
+| `inline`       | `boolean`                                           | `false`   | Renders inline instead of using a portal. Without it, the sidebar renders inline on the server and while hydrating, moving into the portal once the client takes over, so hydration matches.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | `className`    | `string`                                            | —         | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | `ref`          | `React.Ref<HTMLElement>`                            | —         | Ref forwarded to the sidebar element.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `...`          | All standard HTML attributes and Bulma helper props | —         | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |

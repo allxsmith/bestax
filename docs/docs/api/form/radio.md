@@ -214,18 +214,20 @@ Keep the label text inside the `Radio` when you shrink the circle. The whole lab
 
 `Radio` registers these variables on its own `.styled-radio` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
 
-| CSS Variable                        | Sass Variable                | Default                    |
-| ----------------------------------- | ---------------------------- | -------------------------- |
-| `--bulma-radio-size`                | `$radio-size`                | `1.25em`                   |
-| `--bulma-radio-border-width`        | `$radio-border-width`        | `2px`                      |
-| `--bulma-radio-border-color`        | `$radio-border-color`        | `var(--bulma-text-weak)`   |
-| `--bulma-radio-background`          | `$radio-background`          | `transparent`              |
-| `--bulma-radio-dot-color`           | `$radio-dot-color`           | `var(--bulma-scheme-main)` |
-| `--bulma-radio-active-color`        | `$radio-active-color`        | `var(--bulma-primary)`     |
-| `--bulma-radio-label-gap`           | `$radio-label-gap`           | `0.5em`                    |
-| `--bulma-radio-focus-shadow-size`   | `$radio-focus-shadow-size`   | `0 0 0 0.125em`            |
-| `--bulma-radio-transition-duration` | `$radio-transition-duration` | `var(--bulma-duration)`    |
+| CSS Variable                        | Sass Variable                | Default                           |
+| ----------------------------------- | ---------------------------- | --------------------------------- |
+| `--bulma-radio-size`                | `$radio-size`                | `1.25em`                          |
+| `--bulma-radio-border-width`        | `$radio-border-width`        | `2px`                             |
+| `--bulma-radio-border-color`        | `$radio-border-color`        | `var(--bulma-text-weak)`          |
+| `--bulma-radio-background`          | `$radio-background`          | `transparent`                     |
+| `--bulma-radio-dot-color`           | `$radio-dot-color`           | `var(--bulma-radio-active-color)` |
+| `--bulma-radio-active-color`        | `$radio-active-color`        | `var(--bulma-primary)`            |
+| `--bulma-radio-label-gap`           | `$radio-label-gap`           | `0.5em`                           |
+| `--bulma-radio-focus-shadow-size`   | `$radio-focus-shadow-size`   | `0 0 0 0.125em`                   |
+| `--bulma-radio-transition-duration` | `$radio-transition-duration` | `var(--bulma-duration)`           |
 
 <!-- /bestax:generated cssvars -->
 
 `--bulma-radio-size` has a floor: the circle doesn't render smaller than 24px, whatever the variable says. [Circle Size](#circle-size) says why, and how to go below it.
+
+**Focus shadow size:** `--bulma-radio-focus-shadow-size` (`$radio-focus-shadow-size`) is registered, and nothing reads it, so setting it changes nothing. The keyboard focus ring is a `2px` outline in `--bulma-radio-active-color`, with no shadow for a size to apply to. It stays registered so a Sass build that configures it keeps compiling.

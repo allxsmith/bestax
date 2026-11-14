@@ -19,7 +19,7 @@ const meta: Meta<typeof Steps> = {
     docs: {
       description: {
         component:
-          'A multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow. Supports step numbers, icons, navigation buttons, and multiple layouts.',
+          'A multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow. Supports step numbers, icons, navigation buttons, and multiple layouts.\n\n**Timeline or Steps?** Steps is a journey the user moves through themselves, such as a wizard or a checkout. It renders a `<ul role="list">` of steps with `aria-current="step"` on the current one and a check mark in place of the number on a completed one. A `clickable` step is a `<button>` that calls `onStepClick`, and `hasNavigation` adds Previous and Next buttons. A [Timeline](?path=/docs/components-timeline--docs) is a record of what happened, or the progress of something that moves along on its own: an `<ol role="list">` with a heading per event, its states read as words, and nothing to click.',
       },
     },
   },

@@ -19,7 +19,7 @@ import { Toast } from '../components/Toast';
 import { Loading } from '../components/Loading';
 
 afterEach(() => {
-  document.body.style.overflow = '';
+  document.documentElement.style.overflow = '';
 });
 
 /** Escape where focus is, as the keyboard sends it. */

@@ -3,8 +3,9 @@ import { Link, Outlet, useLocation } from 'react-router';
 import { Navbar } from '@allxsmith/bestax-bulma';
 
 // Every page shares this navbar. Each item renders the router's Link through
-// `as`, and `active` and `aria-current` follow the location, as the routing
-// guide shows: https://bestax.io/docs/guides/features/routing
+// `as`, and `active` follows the location, which also sets
+// `aria-current="page"`, as the routing guide shows:
+// https://bestax.io/docs/guides/features/routing
 const PAGES = [
   { to: '/', label: 'Home' },
   { to: '/about', label: 'About' },
@@ -35,7 +36,6 @@ function Layout() {
                 as={Link}
                 to={to}
                 active={pathname === to}
-                aria-current={pathname === to ? 'page' : undefined}
                 onClick={closeMenu}
               >
                 {label}

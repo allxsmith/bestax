@@ -162,7 +162,7 @@ Create nested ordered lists with different numbering types.
 
 ### Compound (dot-notation) usage
 
-`ListItem` is also available as `OrderedList.Item`, so a list can be composed from the single `OrderedList` import.
+`ListItem` is `OrderedList.Item`, so a list can be composed from the single `OrderedList` import or from `ListItem` on its own. A Next.js Server Component imports `ListItem`, because `OrderedList.Item` is `undefined` there.
 
 ```tsx live
 <Content>

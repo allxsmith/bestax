@@ -113,7 +113,7 @@ Use the `Delete` component inside a `Notification` to provide a dismiss action f
 
 ```tsx live
 <Notification color="primary">
-  <Delete bgColor="warning" ariaLabel="Close notification" />
+  <Delete ariaLabel="Close notification" />
   <Paragraph>This is a primary notification with a delete button.</Paragraph>
 </Notification>
 ```

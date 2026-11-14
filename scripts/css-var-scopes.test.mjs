@@ -31,10 +31,13 @@
  * The API-page half reads the rows each page is rendered from
  * (`cssVarRows`), which `check:conformance` already holds the committed
  * pages to, and checks every row the page presents as global against the
- * stylesheet, and every other Bulma row the other way. The renderer half
+ * stylesheet, and every other Bulma row the other way. A global row from this
+ * repo's own SCSS is checked against the library's built extras,
+ * `bulma-ui/dist/extras.css`, by the same rule. The renderer half
  * checks that a row whose scope differs from the page's lead is always
  * marked, because a missing marker states the lead's scope for that row.
  */
+import { existsSync, readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { relative, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -66,6 +69,18 @@ const API_DIR = join(REPO, 'docs', 'docs', 'api');
 
 const homes = variableHomes(bulmaCss());
 const reaches = name => reachesFromAncestor(homes.get(name));
+
+const EXTRAS_CSS = join(REPO, 'bulma-ui', 'dist', 'extras.css');
+
+/** The library's own compiled extras, or an actionable failure. */
+function extrasCss() {
+  assert.ok(
+    existsSync(EXTRAS_CSS),
+    "bulma-ui/dist/extras.css is absent, so the rows from this repo's SCSS " +
+      'cannot be checked against it. Build first, or run `pnpm all`.'
+  );
+  return readFileSync(EXTRAS_CSS, 'utf8');
+}
 
 // --- the rule, pinned to what the browser does ------------------------------
 
@@ -185,15 +200,20 @@ describe('API pages say where each Bulma variable can be set', () => {
   it('call a variable global only when Bulma declares it on :root', () => {
     let checked = 0;
     const wrong = [];
+    // Read only once a page has a global row from this repo's SCSS.
+    let extrasHomes;
     for (const { page, rows } of pages) {
       for (const row of rows.filter(r => r.scope === 'global')) {
         checked++;
         if (row.pkg !== 'bulma') {
-          wrong.push(
-            `${page}: ${row.cssVar} comes from this repo's own SCSS, which ` +
-              'this check has no compiled copy of. Extend it to read the ' +
-              'built extras before calling one of those global.'
-          );
+          extrasHomes ??= variableHomes(extrasCss());
+          if (!extrasHomes.get(row.cssVar)?.onHost) {
+            wrong.push(
+              `${page}: ${row.cssVar} is presented as global, but the ` +
+                "library's compiled extras declare it only on component " +
+                'selectors, so a value set above never reaches it.'
+            );
+          }
         } else if (!homes.get(row.cssVar)?.onHost) {
           wrong.push(
             `${page}: ${row.cssVar} is presented as global (settable from ` +

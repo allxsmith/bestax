@@ -2,9 +2,11 @@
 // row from tablet up. The form components that render a Field of their own
 // hand it their control and their message side by side, so the message sat
 // beside the control rather than under it. `_field.scss` gives that message
-// a line of its own, which jsdom never loads and can't lay out, so these
-// compile the partial, with no prefix and under one, read its rules off the
-// sheet, and resolve which ones match the markup each component renders.
+// a line of its own, and keeps a horizontal label's text against its control
+// on a right-to-left page (#1511). jsdom never loads the partial and can't
+// lay it out, so these compile it, with no prefix and under one, read its
+// rules off the sheet, and resolve which ones match the markup each
+// component renders.
 import * as sass from 'sass';
 import path from 'path';
 import React from 'react';
@@ -180,14 +182,21 @@ describe.each([
     expect(declared(help, 'flex-basis')).toEqual([]);
   });
 
-  it('changes nothing in a browser without :has()', () => {
+  it('changes nothing about the message in a browser without :has()', () => {
     // Such a browser drops every rule whose selector uses `:has()`. A
     // full-width message left behind in a row that doesn't wrap would
-    // squeeze the control, so no rule may stand without it.
-    expect(RULES.length).toBeGreaterThan(0);
-    for (const { selector } of RULES) {
+    // squeeze the control, so no message rule may stand without it.
+    const message = RULES.filter(({ selector }) =>
+      selector.includes(`${prefix}field-body`)
+    );
+    expect(message.length).toBeGreaterThan(0);
+    for (const { selector } of message) {
       expect(selector).toContain(':has(');
     }
+    // The label's rule is the only other one.
+    expect(
+      RULES.filter(r => !message.includes(r)).map(({ selector }) => selector)
+    ).toEqual([`.${prefix}field-label.${prefix}field-label`]);
   });
 
   describe("beside Bulma's own field rules", () => {
@@ -270,6 +279,55 @@ describe.each([
       const [first, second] = Array.from(body.children);
       expect(resolve(first, 'margin-inline-end')).toBe('0.75rem');
       expect(resolve(second, 'margin-inline-end')).toBe('0px');
+    });
+
+    it('aligns a horizontal label to the end, against its control, from tablet up', () => {
+      // Bulma's `right` does the same left to right, and pushes the text
+      // away from the control right to left, where the label sits to its
+      // right. The partial comes first here, so this is its specificity.
+      for (const ui of [
+        <Field key="f" horizontal label="Email">
+          <Control>
+            <Input />
+          </Control>
+        </Field>,
+        <Input key="i" horizontal label="Email" />,
+        <Checkboxes key="c" horizontal label="Chores">
+          <Checkbox value="bed">Make the bed</Checkbox>
+        </Checkboxes>,
+      ]) {
+        const { container, unmount } = render(
+          <ConfigProvider classPrefix={prefix}>{ui}</ConfigProvider>
+        );
+        const label = container.querySelector(`.${prefix}field-label`)!;
+        expect(label).not.toBeNull();
+        expect(resolve(label, 'text-align')).toBe('end');
+        unmount();
+      }
+      // Bulma's rule, which this outranks.
+      expect(
+        BOTH.filter(
+          ({ selector, style }) =>
+            selector === `.${prefix}field-label` &&
+            style.getPropertyValue('text-align')
+        ).map(({ style }) => style.getPropertyValue('text-align'))
+      ).toEqual(['right']);
+    });
+
+    it('leaves the label on a phone to Bulma, where it sits above its control', () => {
+      // Below tablet Bulma sets no alignment on the label, so it starts
+      // where the line does. The partial's rule sits in Bulma's own tablet
+      // query and nowhere else.
+      const ours = RULES.filter(({ selector }) =>
+        selector.includes('field-label')
+      );
+      const bulmaTablet = BOTH.filter(
+        ({ selector, style }) =>
+          selector === `.${prefix}field-label` &&
+          style.getPropertyValue('text-align')
+      ).map(({ media }) => media);
+      expect(ours.map(({ media }) => media)).toEqual(bulmaTablet);
+      expect(bulmaTablet[0]).toContain('min-width: 769px');
     });
 
     it('leaves a Numberinput with no message to Bulma', () => {

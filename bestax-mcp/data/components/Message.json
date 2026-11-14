@@ -42,7 +42,7 @@
   "related": ["Notification", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-message--primary",
   "summary": "The `Message` component provides Bulma's flexible notice/message box for your Bulma React UI.",
-  "import": "import { Message } from '@allxsmith/bestax-bulma';",
+  "import": "import { Message, MessageHeader, MessageBody } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/components/Message.tsx",
   "rootClass": "message",
   "parts": [
@@ -120,7 +120,7 @@
           "name": "children",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Body content for the message.",
+          "description": "Body content for the message, wrapped in a `.message-body`. Children that include a `Message.Header` or `Message.Body` aren't wrapped: they render as the article's own children, after the header `title` and `onClose` make.",
           "required": false,
           "inherited": false,
           "deprecated": false

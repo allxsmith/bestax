@@ -54,7 +54,12 @@ export interface BulmaOtherProps {
    * container.
    */
   overlay?: boolean;
-  /** Interaction behavior (e.g., 'unselectable', 'clickable'). */
+  /**
+   * Interaction behavior: `unselectable` stops text selection
+   * (`is-unselectable`), and `clickable` shows the pointer cursor
+   * (`is-clickable`). It adds no role, no tab stop and no keyboard handling,
+   * so an element people click should be a `<button>` or a link.
+   */
   interaction?: (typeof validInteractions)[number];
   /** Cursor style (e.g., 'pointer', 'help'). */
   cursor?: (typeof validCursors)[number];

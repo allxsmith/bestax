@@ -157,7 +157,7 @@ const BASELINE = join(HERE, 'conformance-baseline.json');
 // Plural group containers of "Beyond Bulma" extras are not listed as homepage
 // cards (owner call on #257: Avatar yes, Avatars no). The guide page still
 // lists them.
-const HOME_EXEMPT = new Set(['Avatars', 'Collapses']);
+const HOME_EXEMPT = new Set(['Avatars', 'Collapses', 'Stats']);
 
 // Legacy API pages missing `## Accessibility`. New pages must have it.
 const ACCESSIBILITY_EXEMPT = new Set([
@@ -503,6 +503,19 @@ async function checkDocsGenerated() {
  * problem it defers.
  */
 const ORPHAN_EXEMPT = new Map([
+  [
+    'bulma-ui/src/scss/elements/_button.scss',
+    're-sets button-border-width, a Bulma variable Button already ' +
+      'documents, inside a forced-colors media query, on a doubled color ' +
+      'class with :not() the attribution walk cannot place. It registers ' +
+      'nothing of its own to claim, so this stays until it does',
+  ],
+  [
+    'bulma-ui/src/scss/elements/_tag.scss',
+    're-sets tag-color-l, a Bulma variable Tag already documents, on a ' +
+      'doubled color class with :not() the attribution walk cannot place. ' +
+      'It registers nothing of its own to claim, so this stays until it does',
+  ],
   [
     'bulma-ui/src/scss/form/_picker-popover.scss',
     'shared picker chrome owned by no single component; needs an ownership ' +
@@ -2034,9 +2047,9 @@ async function checkInlineStyle(updateBaseline) {
     if (n > allowed) {
       violations.push(
         `${file} has ${n} inline style={{}} (baseline allows ${allowed}). ` +
-          `Use Bulma helper props instead: Block/Box with display="flex", ` +
-          `flexDirection, alignItems, justifyContent, m*/p* spacing, and ` +
-          `gap between the children.`
+          `Use Bulma helper props instead: Stack, Group, Center or Flex ` +
+          `for layout, with alignItems, justifyContent and gap between the ` +
+          `children, and m*/p* spacing.`
       );
     }
   }

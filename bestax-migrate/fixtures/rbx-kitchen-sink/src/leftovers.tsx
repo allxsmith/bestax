@@ -102,6 +102,8 @@ export const Leftovers = ({ where }: { where: "left" | "right" }) => (
 
     {/* Bulma v1 has no rule for the `.heading` label this rendered */}
     <Heading>Followers</Heading>
+    {/* and the element it rendered, which the codemod can't read */}
+    <Heading as={where === "left" ? "h2" : "h3"}>Following</Heading>
 
     {/* bestax's Title renders the heading its size names, and this one is unreadable */}
     <Title size={where === "left" ? 3 : 4}>a dynamic size</Title>

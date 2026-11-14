@@ -14,6 +14,7 @@ import {
   classTableViolations,
   unknownComponents,
   collect,
+  flexContainerViolations,
   guardViolations,
   render,
   replacementFrom,
@@ -342,6 +343,73 @@ describe('collect', () => {
       'isFullwidth'
     );
     assert.ok(textAlias.has('Box'));
+  });
+
+  it('reads the flex containers off the tables the extractor flags', () => {
+    // A part counts by its own path, so a compound part can be one too.
+    const { flexContainers } = collect({
+      exportedModules: () =>
+        new Map(['Box', 'Card', 'Content'].map(n => [n, {}])),
+      extractComponent: name => ({
+        tables: [
+          {
+            path: name,
+            ...(name === 'Content' ? { flexContainer: true } : {}),
+            rows: [
+              ...(name === 'Box'
+                ? [
+                    {
+                      name: 'isFullWidth',
+                      deprecated: true,
+                      deprecationNote: 'Use `isFullwidth` instead.',
+                    },
+                    { name: 'isFullwidth', description: 'Full width.' },
+                  ]
+                : []),
+              ...aliasRows(name),
+            ],
+          },
+          ...(name === 'Card'
+            ? [{ path: 'Card.Content', flexContainer: true, rows: [] }]
+            : []),
+        ],
+      }),
+    });
+    assert.deepEqual([...flexContainers].sort(), ['Card.Content', 'Content']);
+  });
+});
+
+describe('the flex container set', () => {
+  it('refuses a set that lost an anchor, naming it', () => {
+    assert.deepEqual(
+      flexContainerViolations(new Set(['Center', 'Flex', 'Group', 'Stack'])),
+      []
+    );
+    const one = flexContainerViolations(new Set(['Center', 'Flex', 'Group']));
+    assert.equal(one.length, 1);
+    assert.match(
+      one[0],
+      /^Stack no longer carries `@flexContainer` on its props/
+    );
+    assert.match(one[0], /on it, which render/);
+    const two = flexContainerViolations(new Set(['Center', 'Flex']));
+    assert.match(
+      two[0],
+      /^Group, Stack no longer carry `@flexContainer` on their/
+    );
+    assert.match(two[0], /on them, which render/);
+  });
+
+  it('renders the set sorted, and an empty one by default', () => {
+    const base = { deprecated: new Map(), textAlias: new Set(['Box']) };
+    assert.match(
+      render({ ...base, flexContainers: new Set(['Stack', 'Flex']) }),
+      /FLEX_CONTAINER_ELEMENTS: readonly string\[\] = \[\n {2}"Flex",\n {2}"Stack",\n\];/
+    );
+    assert.match(
+      render(base),
+      /FLEX_CONTAINER_ELEMENTS: readonly string\[\] = \[\n\n\];/
+    );
   });
 });
 

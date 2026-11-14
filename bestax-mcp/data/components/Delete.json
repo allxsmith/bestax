@@ -24,7 +24,7 @@
     },
     {
       "title": "In a Notification",
-      "code": "<Notification color=\"primary\">\n  <Delete bgColor=\"warning\" ariaLabel=\"Close notification\" />\n  <Paragraph>This is a primary notification with a delete button.</Paragraph>\n</Notification>"
+      "code": "<Notification color=\"primary\">\n  <Delete ariaLabel=\"Close notification\" />\n  <Paragraph>This is a primary notification with a delete button.</Paragraph>\n</Notification>"
     },
     {
       "title": "In a Message Header",

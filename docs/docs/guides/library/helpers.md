@@ -303,7 +303,7 @@ More examples and full property coverage are available in [usebulmaclasses.md](.
 Use the `interaction` prop.
 
 ```tsx live
-<Box interaction="clickable">Clickable Box</Box>
+<Box interaction="clickable">This box shows a pointer cursor.</Box>
 ```
 
 #### is-relative

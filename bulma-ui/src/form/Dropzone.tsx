@@ -14,7 +14,10 @@ import {
 } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useConfig } from '../helpers/Config';
-import { useNumberFormat, NumberFormatter } from '../helpers/localeFormat';
+import {
+  useScopedNumberFormat,
+  NumberFormatFunction,
+} from '../helpers/localeFormat';
 import { StatusRegion } from '../helpers/statusRegion';
 import { warnOnce } from '../helpers/devWarnings';
 import { Delete } from '../elements/Delete';
@@ -267,7 +270,7 @@ const sizeUnits = [
  */
 const formatFileSize = (
   bytes: number,
-  formatNumber: NumberFormatter | null
+  formatNumber: NumberFormatFunction | null
 ): string => {
   for (const [unit, factor, symbol] of sizeUnits) {
     if (bytes >= factor) {
@@ -418,7 +421,7 @@ export const Dropzone = forwardRef<HTMLInputElement, DropzoneProps>(
       [ref]
     );
 
-    const formatNumber = useNumberFormat();
+    const formatNumber = useScopedNumberFormat();
     const tokens = acceptTokens(accept);
     const sizeText = (bytes: number) => formatFileSize(bytes, formatNumber);
     const countText = (count: number) =>

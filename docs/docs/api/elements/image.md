@@ -122,10 +122,12 @@ The `Image` component can wrap arbitrary children, such as iframes, to provide r
     src="https://www.youtube.com/embed/YE7VzlLtp-4"
     frameBorder="0"
     allowFullScreen
-    title="Sample YouTube Video"
+    title="Big Buck Bunny"
   />
 </Image>
 ```
+
+The video is Big Buck Bunny, © 2008 Blender Foundation (www.bigbuckbunny.org), shared under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) and embedded from Blender's own YouTube channel.
 
 ### With Custom Child
 

@@ -6,7 +6,7 @@ import { FEATURES } from '@site/src/components/HomepageFeatures/features';
 import useInView from '@site/src/components/HomepageFeatures/useInView';
 import styles from './styles.module.css';
 
-const [BULMA, LIGHTWEIGHT, DEVELOPER] = FEATURES;
+const [BULMA, TREE_SHAKING, DEVELOPER] = FEATURES;
 
 /**
  * What the Bulma v1 card's little settings window walks through. The window is
@@ -333,9 +333,9 @@ export default function FeaturesBento({ focusOnMount = false }) {
           <Card className={styles.half} delay="200ms">
             <div className={styles.halfInner}>
               <ShakeDemo />
-              <span className={styles.kicker}>{LIGHTWEIGHT.kicker}</span>
-              <h3 className={styles.cardTitle}>{LIGHTWEIGHT.title}</h3>
-              <p className={styles.cardText}>{LIGHTWEIGHT.description}</p>
+              <span className={styles.kicker}>{TREE_SHAKING.kicker}</span>
+              <h3 className={styles.cardTitle}>{TREE_SHAKING.title}</h3>
+              <p className={styles.cardText}>{TREE_SHAKING.description}</p>
             </div>
           </Card>
           <Card className={styles.half} delay="320ms">

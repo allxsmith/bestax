@@ -3,16 +3,19 @@
 // #701 and the mobile overrides wrote names no rule used. These compile the
 // real SCSS and check what it actually does.
 import { render } from '@testing-library/react';
-import { compileSheet } from '../../__tests__/compile-scss';
+import { compileScss, compileSheet } from '../../__tests__/compile-scss';
+import { ConfigProvider } from '../../helpers/Config';
 import { TimeInput } from '../TimeInput';
 
 let styleEl: HTMLStyleElement;
 
+// A hook keeps Vitest's 10s default rather than `testTimeout`, and
+// sass-embedded's start can take longer than that on a loaded machine.
 beforeAll(() => {
   styleEl = document.createElement('style');
   styleEl.textContent = compileSheet('form/_timeinput.scss');
   document.head.appendChild(styleEl);
-});
+}, 30_000);
 
 afterAll(() => {
   styleEl.remove();
@@ -206,5 +209,50 @@ describe('TimeInput mobile overrides', () => {
     const set = mobileCustomProperties(styleEl.sheet as CSSStyleSheet);
     expect(set.length).toBeGreaterThan(0);
     expect(unread(set)).toEqual([]);
+  });
+});
+
+describe('TimeInput read-only wheels', () => {
+  // A read-only wheel turns for nothing, so its items shouldn't offer a hover
+  // fill or a hand. Taking the pointer off them does both.
+  const pointer = (container: Element, prefix = '') =>
+    Array.from(
+      container.querySelectorAll(`.${prefix}timeinput-wheel-item`),
+      item => getComputedStyle(item).pointerEvents
+    );
+
+  it('takes the pointer off the items of a read-only wheel only', () => {
+    const { container } = render(
+      <>
+        <div>
+          <TimeInput inline readOnly />
+        </div>
+        <div>
+          <TimeInput inline />
+        </div>
+      </>
+    );
+    const [readOnly, editable] = Array.from(container.children);
+    expect(new Set(pointer(readOnly))).toEqual(new Set(['none']));
+    expect(pointer(editable)).not.toContain('none');
+  });
+
+  it('does it under a class prefix too', () => {
+    const prefixed = document.createElement('style');
+    prefixed.textContent = compileScss(
+      `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: 'bestax-');
+       @use 'form/timeinput';`
+    );
+    document.head.appendChild(prefixed);
+    try {
+      const { container } = render(
+        <ConfigProvider classPrefix="bestax-">
+          <TimeInput inline readOnly />
+        </ConfigProvider>
+      );
+      expect(new Set(pointer(container, 'bestax-'))).toEqual(new Set(['none']));
+    } finally {
+      prefixed.remove();
+    }
   });
 });

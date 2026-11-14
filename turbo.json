@@ -48,6 +48,7 @@
       "outputs": ["dist/**", "build/**"]
     },
     "@allxsmith/bestax-docs#test": {
+      "dependsOn": ["@allxsmith/bestax-bulma#build"],
       "inputs": [
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/create-bestax/templates/vite-ts/**",
@@ -56,6 +57,7 @@
       ]
     },
     "@allxsmith/bestax-docs#test:coverage": {
+      "dependsOn": ["@allxsmith/bestax-bulma#build"],
       "inputs": [
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/create-bestax/templates/vite-ts/**",

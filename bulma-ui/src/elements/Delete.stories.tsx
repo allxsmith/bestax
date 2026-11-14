@@ -1,5 +1,6 @@
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { Delete } from './Delete';
+import { Notification } from './Notification';
 import {
   validColors,
   validSizes,
@@ -149,20 +150,19 @@ export const InTag: Story = {
 
 export const InNotification: Story = {
   render: ({ onClick, ...args }) => (
-    <div className="notification is-primary">
+    <Notification color="primary">
       <Delete onClick={onClick} {...args} />
-      <p>This is a primary notification with a delete button.</p>
-    </div>
+      This is a primary notification with a delete button.
+    </Notification>
   ),
   args: {
     ariaLabel: 'Close notification',
-    bgColor: 'warning',
   },
   parameters: {
     docs: {
       description: {
         story:
-          'Delete component used within a Bulma Notification to close it, with a custom background color.',
+          "Delete component used within a Notification to close it. Bulma's translucent delete suits any notification color, so it needs no color of its own.",
       },
     },
   },

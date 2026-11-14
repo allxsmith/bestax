@@ -62,7 +62,7 @@ export const Default: StoryObj<typeof Level> = {
 // Centered Level
 export const CenteredLevel: StoryObj<typeof Level> = {
   render: () => (
-    <Level>
+    <Level as="div">
       <Level.Item hasTextCentered>
         <div>
           <Paragraph
@@ -86,7 +86,7 @@ export const CenteredLevel: StoryObj<typeof Level> = {
           >
             Following
           </Paragraph>
-          <Title as="p">6789</Title>
+          <Title as="p">6,789</Title>
         </div>
       </Level.Item>
       <Level.Item hasTextCentered>
@@ -112,7 +112,7 @@ export const CenteredLevel: StoryObj<typeof Level> = {
           >
             Likes
           </Paragraph>
-          <Title as="p">9876</Title>
+          <Title as="p">9,876</Title>
         </div>
       </Level.Item>
     </Level>
@@ -145,7 +145,7 @@ export const LevelCenteredMenu: StoryObj<typeof Level> = {
 // Mobile Level
 export const MobileLevel: StoryObj<typeof Level> = {
   render: () => (
-    <Level isMobile>
+    <Level as="div" isMobile>
       <Level.Item hasTextCentered>
         <div>
           <Paragraph
@@ -169,7 +169,7 @@ export const MobileLevel: StoryObj<typeof Level> = {
           >
             Following
           </Paragraph>
-          <Title as="p">4567</Title>
+          <Title as="p">4,567</Title>
         </div>
       </Level.Item>
       <Level.Item hasTextCentered>
@@ -195,7 +195,7 @@ export const MobileLevel: StoryObj<typeof Level> = {
           >
             Likes
           </Paragraph>
-          <Title as="p">9876</Title>
+          <Title as="p">9,876</Title>
         </div>
       </Level.Item>
     </Level>

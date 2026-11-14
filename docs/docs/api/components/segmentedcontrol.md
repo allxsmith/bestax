@@ -39,7 +39,10 @@ reset and validation, and has the browser's own keyboard.
 <!-- bestax:generated import -->
 
 ```tsx
-import { SegmentedControl } from '@allxsmith/bestax-bulma';
+import {
+  SegmentedControl,
+  SegmentedControlSegment,
+} from '@allxsmith/bestax-bulma';
 ```
 
 <!-- /bestax:generated import -->
@@ -267,8 +270,10 @@ and `onChange` doesn't fire.
 
 ### Compound (dot-notation) usage
 
-`SegmentedControl.Segment` is the only way to write a segment, so every example here is already
-dot notation. The row can come from data like any other list.
+Every example here writes a segment as `SegmentedControl.Segment`. The same part is a named
+export, `SegmentedControlSegment`, the same component as the dotted name. A Next.js Server
+Component imports `SegmentedControlSegment`, because `SegmentedControl.Segment` is `undefined`
+there. The row can come from data like any other list.
 
 ```tsx live
 function example() {

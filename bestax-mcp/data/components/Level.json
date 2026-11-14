@@ -11,7 +11,7 @@
     },
     {
       "title": "Centered Level (Statistics)",
-      "code": "<Level>\n  <Level.Item hasTextCentered>\n    <Block>\n      <Paragraph\n        textSize=\"7\"\n        textTransform=\"uppercase\"\n        textWeight=\"semibold\"\n        mb=\"1\"\n      >\n        Posts\n      </Paragraph>\n      <Title as=\"p\">1,234</Title>\n    </Block>\n  </Level.Item>\n  <Level.Item hasTextCentered>\n    <Block>\n      <Paragraph\n        textSize=\"7\"\n        textTransform=\"uppercase\"\n        textWeight=\"semibold\"\n        mb=\"1\"\n      >\n        Following\n      </Paragraph>\n      <Title as=\"p\">6789</Title>\n    </Block>\n  </Level.Item>\n  <Level.Item hasTextCentered>\n    <Block>\n      <Paragraph\n        textSize=\"7\"\n        textTransform=\"uppercase\"\n        textWeight=\"semibold\"\n        mb=\"1\"\n      >\n        Followers\n      </Paragraph>\n      <Title as=\"p\">123K</Title>\n    </Block>\n  </Level.Item>\n  <Level.Item hasTextCentered>\n    <Block>\n      <Paragraph\n        textSize=\"7\"\n        textTransform=\"uppercase\"\n        textWeight=\"semibold\"\n        mb=\"1\"\n      >\n        Likes\n      </Paragraph>\n      <Title as=\"p\">9876</Title>\n    </Block>\n  </Level.Item>\n</Level>"
+      "code": "<Level as=\"div\">\n  <Level.Item hasTextCentered>\n    <Block>\n      <Paragraph\n        textSize=\"7\"\n        textTransform=\"uppercase\"\n        textWeight=\"semibold\"\n        mb=\"1\"\n      >\n        Posts\n      </Paragraph>\n      <Title as=\"p\">1,234</Title>\n    </Block>\n  </Level.Item>\n  <Level.Item hasTextCentered>\n    <Block>\n      <Paragraph\n        textSize=\"7\"\n        textTransform=\"uppercase\"\n        textWeight=\"semibold\"\n        mb=\"1\"\n      >\n        Following\n      </Paragraph>\n      <Title as=\"p\">6,789</Title>\n    </Block>\n  </Level.Item>\n  <Level.Item hasTextCentered>\n    <Block>\n      <Paragraph\n        textSize=\"7\"\n        textTransform=\"uppercase\"\n        textWeight=\"semibold\"\n        mb=\"1\"\n      >\n        Followers\n      </Paragraph>\n      <Title as=\"p\">123K</Title>\n    </Block>\n  </Level.Item>\n  <Level.Item hasTextCentered>\n    <Block>\n      <Paragraph\n        textSize=\"7\"\n        textTransform=\"uppercase\"\n        textWeight=\"semibold\"\n        mb=\"1\"\n      >\n        Likes\n      </Paragraph>\n      <Title as=\"p\">9,876</Title>\n    </Block>\n  </Level.Item>\n</Level>"
     },
     {
       "title": "Centered Level Menu",
@@ -19,14 +19,14 @@
     },
     {
       "title": "Mobile Level",
-      "code": "<Level isMobile>\n  <Level.Item hasTextCentered>\n    <Block>\n      <Paragraph\n        textSize=\"7\"\n        textTransform=\"uppercase\"\n        textWeight=\"semibold\"\n        mb=\"1\"\n      >\n        Posts\n      </Paragraph>\n      <Title as=\"p\">1,234</Title>\n    </Block>\n  </Level.Item>\n  <Level.Item hasTextCentered>\n    <Block>\n      <Paragraph\n        textSize=\"7\"\n        textTransform=\"uppercase\"\n        textWeight=\"semibold\"\n        mb=\"1\"\n      >\n        Following\n      </Paragraph>\n      <Title as=\"p\">4567</Title>\n    </Block>\n  </Level.Item>\n  <Level.Item hasTextCentered>\n    <Block>\n      <Paragraph\n        textSize=\"7\"\n        textTransform=\"uppercase\"\n        textWeight=\"semibold\"\n        mb=\"1\"\n      >\n        Followers\n      </Paragraph>\n      <Title as=\"p\">123K</Title>\n    </Block>\n  </Level.Item>\n  <Level.Item hasTextCentered>\n    <Block>\n      <Paragraph\n        textSize=\"7\"\n        textTransform=\"uppercase\"\n        textWeight=\"semibold\"\n        mb=\"1\"\n      >\n        Likes\n      </Paragraph>\n      <Title as=\"p\">9876</Title>\n    </Block>\n  </Level.Item>\n</Level>"
+      "code": "<Level as=\"div\" isMobile>\n  <Level.Item hasTextCentered>\n    <Block>\n      <Paragraph\n        textSize=\"7\"\n        textTransform=\"uppercase\"\n        textWeight=\"semibold\"\n        mb=\"1\"\n      >\n        Posts\n      </Paragraph>\n      <Title as=\"p\">1,234</Title>\n    </Block>\n  </Level.Item>\n  <Level.Item hasTextCentered>\n    <Block>\n      <Paragraph\n        textSize=\"7\"\n        textTransform=\"uppercase\"\n        textWeight=\"semibold\"\n        mb=\"1\"\n      >\n        Following\n      </Paragraph>\n      <Title as=\"p\">4,567</Title>\n    </Block>\n  </Level.Item>\n  <Level.Item hasTextCentered>\n    <Block>\n      <Paragraph\n        textSize=\"7\"\n        textTransform=\"uppercase\"\n        textWeight=\"semibold\"\n        mb=\"1\"\n      >\n        Followers\n      </Paragraph>\n      <Title as=\"p\">123K</Title>\n    </Block>\n  </Level.Item>\n  <Level.Item hasTextCentered>\n    <Block>\n      <Paragraph\n        textSize=\"7\"\n        textTransform=\"uppercase\"\n        textWeight=\"semibold\"\n        mb=\"1\"\n      >\n        Likes\n      </Paragraph>\n      <Title as=\"p\">9,876</Title>\n    </Block>\n  </Level.Item>\n</Level>"
     },
     {
       "title": "Compound (dot-notation) usage",
       "code": "<Level>\n  <Level.Left>\n    <Level.Item>\n      <Title as=\"p\" size=\"5\">\n        <strong>All Posts</strong>\n      </Title>\n    </Level.Item>\n  </Level.Left>\n  <Level.Right>\n    <Level.Item as=\"p\">\n      <a>Published</a>\n    </Level.Item>\n    <Level.Item as=\"p\">\n      <Button color=\"success\" as=\"a\">\n        New\n      </Button>\n    </Level.Item>\n  </Level.Right>\n</Level>"
     }
   ],
-  "accessibility": "- The root `Level` renders as a semantic `<nav>` for grouping and navigation.\n- Items can be rendered as `<div>`, `<p>`, or `<a>`. Use `as=\"a\"` for links, and provide clear text or accessible labels.\n- Use Bulma helper props for spacing and color to improve contrast and readability.\n\n:::note\nFor best accessibility, use semantic elements for headings/content within items, and ensure interactive elements (like `Button` or links) are focusable and labeled.\n:::",
+  "accessibility": "- `Level` renders a `<nav>` by default, as Bulma's markup does. A `nav` is a navigation landmark, which a screen reader user can list and jump to, so keep it for a row of links. A row that isn't navigation, such as the statistics above, takes `as=\"div\"`, which adds no landmark. `as=\"header\"` suits a level that opens a section and `as=\"footer\"` one that closes it.\n- Items can be rendered as `<div>`, `<p>`, or `<a>`. Use `as=\"a\"` for links, and provide clear text or accessible labels.\n- Use Bulma helper props for spacing and color to improve contrast and readability.\n\n:::note\nFor best accessibility, use semantic elements for headings/content within items, and ensure interactive elements (like `Button` or links) are focusable and labeled.\n:::",
   "related": ["Button", "Field", "Input", "Title", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/layout-level--default",
   "summary": "The `Level` component provides a flexible horizontal layout for your Bulma React UI, perfect for aligning items on the left and right, distributing items evenly, or centering statistics and controls.",
@@ -39,6 +39,15 @@
       "summary": "The `Level` component provides a flexible horizontal layout for your Bulma React UI, perfect for aligning items on the left and right, distributing items evenly, or centering statistics and controls.",
       "component": null,
       "props": [
+        {
+          "name": "as",
+          "type": "'nav' | 'div' | 'header' | 'footer'",
+          "default": "'nav'",
+          "description": "HTML element to render (default: `nav`, as in Bulma's markup). A `nav` is a `navigation` landmark, so keep it for a row of links. A row that is not navigation, such as figures or a toolbar, takes `div`, which is no landmark. `header` suits a level that opens a section and `footer` one that closes it. A `header` is a `banner` landmark, and a `footer` a `contentinfo` one, only when no `section`, `article`, `aside`, `nav` or `main` is around it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
         {
           "name": "isMobile",
           "type": "boolean",

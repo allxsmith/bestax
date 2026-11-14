@@ -166,6 +166,18 @@ $combobox-sizes: (
     right: 0;
   }
 
+  // With no `position`, the menu lines up with the field's inline start, so
+  // a menu wider than a field at the start of a right-to-left line doesn't
+  // hang off the screen. A corner the caller names stays physical.
+  // Portaled, the component sets the edge inline instead. `:where()` keeps
+  // this at the corner rules' weight, so a theme's own placement still wins.
+  &.#{iv.$class-prefix}is-start-aligned:where(
+      :not(.#{iv.$class-prefix}is-portal):dir(rtl)
+    ) {
+    left: auto;
+    right: 0;
+  }
+
   // Portaled: fixed to the viewport at the field's edge, which the component
   // sets inline with the field's width, so only the gap comes from here.
   &.#{iv.$class-prefix}is-portal {

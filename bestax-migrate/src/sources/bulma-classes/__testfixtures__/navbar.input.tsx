@@ -20,7 +20,9 @@ export function SiteNavbar() {
       </div>
       <div id="navbarBasicExample" className="navbar-menu">
         <div className="navbar-start">
-          <a className="navbar-item">Home</a>
+          <a className="navbar-item is-active" aria-current="page">
+            Home
+          </a>
           <a className="navbar-item">Documentation</a>
           <div className="navbar-item has-dropdown is-hoverable">
             <a className="navbar-link">More</a>
@@ -59,7 +61,7 @@ export function DarkNavbar() {
         <div className="navbar-start has-text-weight-bold">
           <div className="navbar-item has-dropdown is-hoverable">
             <div className="navbar-dropdown">
-              <a className="navbar-item">About</a>
+              <a className="navbar-item is-active">About</a>
               <hr className="navbar-divider my-0 site-divider" />
               <a className="navbar-item">Jobs</a>
             </div>

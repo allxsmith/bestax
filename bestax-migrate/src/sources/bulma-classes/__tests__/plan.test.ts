@@ -1180,6 +1180,44 @@ describe('plan', () => {
       ]);
     });
 
+    // `.heading` and `.number` were Bulma 0.9 elements of their own, and
+    // `is-variable` turned on a `.columns`' gap: each stays where it is,
+    // converted or not, and says it styles nothing now.
+    it('flags the 0.9 label, badge and gap switch where they stay', () => {
+      expect(plan(facts('p', 'heading'))).toEqual({
+        conversion: null,
+        todos: [
+          {
+            rule: 'legacy:heading',
+            message: expect.stringContaining('textTransform="uppercase"'),
+          },
+        ],
+      });
+      const label = plan(facts('span', 'heading has-text-grey'));
+      expect(label.conversion).toMatchObject({
+        target: 'Span',
+        className: 'heading',
+      });
+      expect(label.todos.map(todo => todo.rule)).toEqual(['legacy:heading']);
+      expect(plan(facts('span', 'number')).todos).toEqual([
+        {
+          rule: 'legacy:number',
+          message: expect.stringContaining('a rule of your own'),
+        },
+      ]);
+      const columns = plan(facts('div', 'columns is-variable is-2'));
+      expect(columns.conversion).toMatchObject({
+        target: 'Columns',
+        className: 'is-variable',
+      });
+      expect(columns.todos).toEqual([
+        {
+          rule: 'legacy:is-variable',
+          message: expect.stringContaining('`gap` prop'),
+        },
+      ]);
+    });
+
     it('keeps a family beside a root it converts as markup, and flags it', () => {
       expect(plan(facts('div', 'dropdown box'))).toEqual({
         conversion: null,
@@ -1383,6 +1421,39 @@ describe('plan', () => {
         expect(conversion?.props).toContainEqual(['textColor', 'white']);
         expect(conversion?.className).toBeNull();
       }
+    });
+
+    it("makes an item's is-active active only beside an aria-current of its own", () => {
+      // `active` writes aria-current="page" unless the item has its own.
+      // Without one the class stays a class, which renders the same.
+      expect(
+        plan(facts('a', 'navbar-item is-active', { 'aria-current': 'page' }))
+      ).toMatchObject({
+        conversion: { props: [['active', true]], className: null },
+        todos: [],
+      });
+      expect(plan(facts('a', 'navbar-item is-active'))).toMatchObject({
+        conversion: { props: [], className: 'is-active' },
+        todos: [],
+      });
+      // A `.has-dropdown` container too, where the class opens the dropdown.
+      expect(
+        plan(facts('div', 'navbar-item has-dropdown is-active')).conversion
+      ).toMatchObject({
+        props: [['as', 'div']],
+        className: 'has-dropdown is-active',
+      });
+      // Under a condition too: without one, it stays in the call.
+      const conditional = (attributes: Record<string, string>) =>
+        plan(
+          facts('a', 'navbar-item', attributes, {
+            conditional: [['is-active']],
+          })
+        ).conversion?.conditional;
+      expect(conditional({ 'aria-current': 'page' })).toEqual([
+        ['active', 'is-active'],
+      ]);
+      expect(conditional({})).toBeUndefined();
     });
 
     it('leaves the burger and the dropdown trigger to a person', () => {
@@ -2152,6 +2223,34 @@ describe('plan', () => {
         expect(
           plan(facts(tag, className)).todos.map(todo => todo.rule)
         ).toEqual([rule]);
+      }
+    });
+  });
+
+  describe('Level', () => {
+    it('converts on the tags its `as` takes', () => {
+      for (const tag of ['div', 'header', 'footer']) {
+        expect(plan(facts(tag, 'level is-mobile')).conversion).toMatchObject({
+          target: 'Level',
+          props: [
+            ['as', tag],
+            ['isMobile', true],
+          ],
+        });
+      }
+      // Its default tag converts with no `as`.
+      expect(plan(facts('nav', 'level')).conversion?.props).toEqual([]);
+      // Reaching a <div> through `as` beats a class whose component can't.
+      expect(plan(facts('div', 'section level')).conversion?.target).toBe(
+        'Level'
+      );
+    });
+
+    it('still refuses a tag outside them', () => {
+      for (const tag of ['section', 'aside']) {
+        expect(plan(facts(tag, 'level')).todos.map(todo => todo.rule)).toEqual([
+          'tag:Level',
+        ]);
       }
     });
   });

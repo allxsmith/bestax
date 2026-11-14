@@ -43,8 +43,29 @@ function body(rules: Map<string, string>, selector: string): string {
 }
 
 describe('TreeSelect styles', () => {
+  it('lets a panel in place inherit the root, where a value set on the root or through className reaches it', () => {
+    // No rule gives a panel that isn't portaled a value of its own, which
+    // would beat what it inherits from the root it sits in.
+    for (const [selector, declarations] of PLAIN) {
+      // A rule that sets one of the variables, not one that reads them.
+      if (!/(^|;\s*)--bulma-tree-select-[\w-]+:/.test(declarations)) continue;
+      for (const part of selector.split(', ')) {
+        if (part.startsWith('.tree-select-panel')) {
+          expect(part).toMatch(
+            /^\.tree-select-panel\.is-(portal|small|medium|large)$/
+          );
+        }
+      }
+    }
+  });
+
+  it('gives a portaled panel, outside the root, its own copy of the defaults', () => {
+    const root = body(PLAIN, '.tree-select, .tree-select-panel.is-portal');
+    expect(root).toContain('--bulma-tree-select-search-gap: 0.5rem');
+  });
+
   it('registers its variables on the root and on a portaled panel', () => {
-    const vars = body(PLAIN, '.tree-select, .tree-select-panel');
+    const vars = body(PLAIN, '.tree-select, .tree-select-panel.is-portal');
     for (const name of [
       'panel-max-height',
       'search-gap',
@@ -63,7 +84,7 @@ describe('TreeSelect styles', () => {
   });
 
   it('starts the chevron from root tokens, since the input variables live on the field', () => {
-    const vars = body(PLAIN, '.tree-select, .tree-select-panel');
+    const vars = body(PLAIN, '.tree-select, .tree-select-panel.is-portal');
     expect(vars).toContain(
       '--bulma-tree-select-chevron-width: var(--bulma-control-height)'
     );

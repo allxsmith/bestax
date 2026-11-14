@@ -432,6 +432,40 @@ dark hero, a brand banner) must pin its content's colors too: filled buttons
 (`color="light"`, or `color="primary" isInverted`) and explicit text colors — not thin
 outlined buttons or scheme-derived defaults, which wash out when the surrounding scheme flips.
 
+## Fixed Elements While an Overlay Is Open
+
+An overlay that locks the page's scrolling, such as a [`Modal`](../../api/components/modal.md), a
+`Sidebar` with its overlay or a full-page `Loading`, takes the page's scrollbar away and pads
+`<html>` by the room it took, so the page doesn't shift. An element fixed to the window is placed
+against the window, which grows by that room, so the padding doesn't reach it, and an element fixed
+to the right edge would move by the scrollbar's width. A `fixed` Navbar, the toast and notification
+stacks and an `Affix` make up for it, and your own fixed elements can too.
+
+While the lock is on, it sets the room it padded on `<html>` as `--bulma-scroll-lock-offset-right`,
+or `--bulma-scroll-lock-offset-left` where the scrollbar was on the left. Add it to the element's
+offset on that side, with a `0px` fallback for when no lock is on:
+
+```css
+.chat-launcher {
+  position: fixed;
+  bottom: 1rem;
+  right: calc(1rem + var(--bulma-scroll-lock-offset-right, 0px));
+}
+
+.cookie-bar {
+  position: fixed;
+  bottom: 0;
+  left: var(--bulma-scroll-lock-offset-left, 0px);
+  right: var(--bulma-scroll-lock-offset-right, 0px);
+}
+```
+
+The sides are physical, left and right, whatever the text's direction: an element fixed to the
+window's right edge reads the `-right` one on a right-to-left page too. Neither is set while no lock
+is on, or where the scrollbar takes no room, as with overlay scrollbars, so the fallback applies and
+nothing moves. The lock writes them and removes them when the last overlay closes, so read them and
+leave setting them to it.
+
 ## Best Practices
 
 ### Organization

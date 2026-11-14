@@ -5,20 +5,19 @@ allowed-tools: Read, Bash(pnpm all), Bash(pnpm run:*), Bash(pnpm exec:*), Bash(g
 
 # /pre-pr — gate + self-review before opening a PR
 
-1. Run `pnpm all` (build, typecheck, test+coverage, bundle:stats, lint,
-   format:check, storybook build). If it fails, report the failing task and
-   stop — fix before reviewing.
+1. Run `pnpm all` (the pre-PR chain listed under Commands in `CLAUDE.md`).
+   If it fails, report the failing task and stop: fix it before reviewing.
 2. Read the working diff (`git status`, `git diff main...HEAD` plus any
-   uncommitted changes). If the diff touches `bulma-ui/src` components,
-   stories, SCSS, or `skills/`, review it against the checklist in
+   uncommitted changes). Check every diff against "Finishing a change" in
+   the root `CLAUDE.md`, and against the `CLAUDE.md` in each directory the
+   diff touches. If it adds a component, also review it against
    `CONTRIBUTING-COMPONENTS.md` (repo root — Read it), focusing on what CI
    can NOT catch:
    - prop-level changes without matching story/docs/skills updates
    - missing listing surfaces (guide page section, homepage card — step 2)
    - skills sync for themeable or shared-helper changes (step 3)
-     For diffs that don't touch components (docs-only, tooling, workflows),
-     SKIP the component checklist and just review the diff generally.
-     Always check commit message type/scope (`feat|fix|perf|refactor|style`
-     need scope `bulma-ui|docs|create-bestax`).
+     Always check each commit's type and scope: a scope-gated type needs a
+     scope from `RELEASE_SCOPES` in `commitlint.config.js`, and a change to
+     more than one package needs a commit per package.
 3. Report a short summary: gate result, then each checklist gap with the
    file to touch. Do not fix anything — this command only reviews.

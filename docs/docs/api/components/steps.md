@@ -278,6 +278,29 @@ In a right-to-left page the steps run from the right, and the lines and the labe
 
 ---
 
+## Timeline or Steps?
+
+Both draw markers joined by a line, and `Steps` can look a lot like a [`Timeline`](./timeline.md)
+that marks progress. They're for different things, and they render different markup:
+
+- **What it's for:** `Steps` is a journey the user moves through themselves, such as a wizard or a
+  checkout. A `Timeline` is a record of what happened, such as an order's history or a changelog,
+  or, with `active`, the progress of something that moves along on its own and is reported to the
+  user, such as a parcel on its way.
+- **What it renders:** `Steps` is a `<ul role="list">` of steps, each label in a `<p>`, with
+  `aria-current="step"` on the current step and a check mark in place of the number on a completed
+  one. A `clickable` step puts its marker and label in a `<button>` that calls `onStepClick`, and
+  `hasNavigation` adds Previous and Next buttons, so the user can move back and forth. A `Timeline`
+  is an `<ol role="list">` of events, each title a heading at the `titleAs` level and each time in a
+  `<time>` when you pass `dateTime`. Its markers are hidden from assistive tech. With `active`, the
+  current item has `aria-current="step"` and the others end in the words "completed", "upcoming" or
+  "in progress". Nothing in it is a control.
+
+If the user is going through it, use `Steps`. If it tells them what happened, or how far something
+has got, use a `Timeline`.
+
+---
+
 ## Accessibility
 
 - The active step has `aria-current="step"`, on its list item, or on its button when it's clickable

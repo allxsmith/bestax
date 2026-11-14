@@ -136,6 +136,20 @@ describe('Navbar', () => {
     expect(nav).toHaveAttribute('aria-label', 'main-nav');
   });
 
+  it('names the nav main navigation by default, and an undefined aria-label removes it', () => {
+    const { rerender } = render(<Navbar data-testid="navbar">Test</Navbar>);
+    expect(screen.getByTestId('navbar')).toHaveAttribute(
+      'aria-label',
+      'main navigation'
+    );
+    rerender(
+      <Navbar data-testid="navbar" aria-label={undefined}>
+        Test
+      </Navbar>
+    );
+    expect(screen.getByTestId('navbar')).not.toHaveAttribute('aria-label');
+  });
+
   it('does not pass Bulma-specific props to nav', () => {
     render(
       <Navbar
@@ -416,6 +430,18 @@ describe('Navbar.Item', () => {
       expect(screen.getByRole('button')).toHaveAttribute('type', 'button');
     });
 
+    it('marks an active button as the current page, on the button', () => {
+      render(
+        <Navbar.Item as="button" active data-testid="button">
+          Filter
+        </Navbar.Item>
+      );
+      const button = screen.getByTestId('button');
+      expect(button.tagName).toBe('BUTTON');
+      expect(button).toHaveAttribute('aria-current', 'page');
+      expect(button).toHaveAttribute('type', 'button');
+    });
+
     it('sets no type on an item that is not a button', () => {
       const Custom = (props: ComponentProps<'a'>) => <a {...props} />;
       render(
@@ -433,6 +459,104 @@ describe('Navbar.Item', () => {
       expect(screen.getByTestId('span')).not.toHaveAttribute('type');
       expect(screen.getByTestId('custom')).not.toHaveAttribute('type');
     });
+  });
+});
+
+describe('current page', () => {
+  // `active` is how a navbar marks the page you're on, and a class alone
+  // tells assistive tech nothing (#1338). The attribute goes on the element
+  // `as` renders, the one a screen reader announces.
+  const CustomLink = ({
+    to,
+    ...rest
+  }: { to: string } & ComponentProps<'a'>) => (
+    <a href={to} data-testid="custom-link" {...rest} />
+  );
+
+  it('marks an active item as the current page', () => {
+    render(
+      <>
+        <Navbar.Item href="#a" data-testid="plain">
+          Home
+        </Navbar.Item>
+        <Navbar.Item href="#b" active data-testid="current">
+          About
+        </Navbar.Item>
+      </>
+    );
+    expect(screen.getByTestId('current')).toHaveAttribute(
+      'aria-current',
+      'page'
+    );
+    expect(screen.getByTestId('current')).toHaveClass('is-active');
+    expect(screen.getByTestId('plain')).not.toHaveAttribute('aria-current');
+    expect(screen.getByTestId('plain')).not.toHaveClass('is-active');
+  });
+
+  it('marks a custom component the same way', () => {
+    render(
+      <Navbar.Item as={CustomLink} to="/about" active>
+        About
+      </Navbar.Item>
+    );
+    expect(screen.getByTestId('custom-link')).toHaveAttribute(
+      'aria-current',
+      'page'
+    );
+  });
+
+  it('lets a caller’s own aria-current win', () => {
+    render(
+      <>
+        <Navbar.Item
+          href="#intro"
+          active
+          aria-current="location"
+          data-testid="location"
+        >
+          Introduction
+        </Navbar.Item>
+        <Navbar.Item href="#b" active aria-current={false} data-testid="off">
+          About
+        </Navbar.Item>
+      </>
+    );
+    expect(screen.getByTestId('location')).toHaveAttribute(
+      'aria-current',
+      'location'
+    );
+    // "false" is how ARIA says not current, which is what turning it off means.
+    expect(screen.getByTestId('off')).toHaveAttribute('aria-current', 'false');
+  });
+
+  it('lets a caller’s aria-current decide even when it’s undefined', () => {
+    // Nothing goes wrong when the attribute is left off, so the caller's
+    // value decides outright. bestax-migrate converts `is-active` to `active`
+    // only beside an `aria-current` of the element's own, and a value that is
+    // undefined at run time has to render nothing there, as it did on the <a>.
+    const spread: { 'aria-current'?: 'page' } = {
+      'aria-current': undefined,
+    };
+    render(
+      <Navbar.Item href="#b" active data-testid="current" {...spread}>
+        About
+      </Navbar.Item>
+    );
+    expect(screen.getByTestId('current')).not.toHaveAttribute('aria-current');
+    expect(screen.getByTestId('current')).toHaveClass('is-active');
+  });
+
+  it('passes a caller’s aria-current through on an item that isn’t active', () => {
+    render(
+      <Navbar.Item href="#intro" aria-current="location" data-testid="item">
+        Introduction
+      </Navbar.Item>
+    );
+    expect(screen.getByTestId('item')).toHaveAttribute(
+      'aria-current',
+      'location'
+    );
+    expect(screen.getByTestId('item')).not.toHaveClass('is-active');
   });
 });
 
@@ -519,6 +643,11 @@ describe('Navbar.Burger', () => {
     // would leave it unnamed. It falls back like a missing one.
     render(<Navbar.Burger data-testid="burger" aria-label="" />);
     expect(screen.getByTestId('burger')).toHaveAttribute('aria-label', 'menu');
+  });
+
+  it('leaves aria-expanded off for null, whatever active says', () => {
+    render(<Navbar.Burger active aria-expanded={null} data-testid="burger" />);
+    expect(screen.getByTestId('burger')).not.toHaveAttribute('aria-expanded');
   });
 
   it('lets an explicit type and aria-expanded win', () => {

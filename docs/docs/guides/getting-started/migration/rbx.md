@@ -78,8 +78,9 @@ in place:
 - **Structure** — rbx's badge and tooltip _helper props_ become real wrapping components
   (`<Button tooltip="Hi" />` → `<Tooltip label="Hi"><Button /></Tooltip>`), `Select.Container`
   and `Image.Container` fold onto the component they wrap, and `Help`/`Label` become the plain
-  Bulma markup bestax expects. `Heading` becomes the plain `<p className="heading">` rbx rendered,
-  with a TODO: Bulma v1 has no rule for `.heading`, so restyle the label with helper props
+  Bulma markup bestax expects. A component that becomes plain markup is the element rbx rendered,
+  its default or the tag a literal `as` names. `Heading` becomes one with `className="heading"` and
+  a TODO: Bulma v1 has no rule for `.heading`, so restyle the label with helper props
   (`<Paragraph textSize="7" textTransform="uppercase" textWeight="semibold" mb="1">`).
 - **Stylesheets** — Bulma 0.9-era `@import` lines become `@use "bulma/sass" with (…)`. The
   `bulma-badge` / `bulma-divider` / `bulma-pageloader` / `bulma-tooltip` CSS imports are kept,

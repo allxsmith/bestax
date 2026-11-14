@@ -53,6 +53,29 @@ const rulesFor = (selector: string) =>
       rule.selectorText.split(',').some(part => part.trim() === selector)
   );
 
+/**
+ * Every style rule in the compiled sheet, with the at-rules it sits in
+ * (`@media (forced-colors: active)`), outermost first. jsdom evaluates no
+ * media query, so a forced-colors rule is read here rather than computed.
+ */
+const allRules = () => {
+  const out: { rule: CSSStyleRule; within: string[] }[] = [];
+  const walk = (list: CSSRuleList, within: string[]) => {
+    for (const rule of Array.from(list)) {
+      if (rule instanceof CSSStyleRule) {
+        out.push({ rule, within });
+      } else if ('cssRules' in rule) {
+        walk((rule as CSSGroupingRule).cssRules, [
+          ...within,
+          rule.cssText.split('{')[0].trim(),
+        ]);
+      }
+    }
+  };
+  walk(styleEl.sheet!.cssRules, []);
+  return out;
+};
+
 /** Shows it the way the pointer does, so it is open rather than only active. */
 const hoverOpen = () => {
   const event = new MouseEvent('pointerover', { bubbles: true });
@@ -220,5 +243,41 @@ describe('Tooltip styles under a class prefix', () => {
     expect(getComputedStyle(content()).top).toBe(
       'calc(100% + var(--bulma-tooltip-arrow-size) + var(--bulma-tooltip-arrow-margin))'
     );
+  });
+
+  describe('in forced colors', () => {
+    /** The declarations of the one forced-colors rule for `selector`. */
+    const forcedRule = (selector: string) => {
+      const found = allRules().filter(
+        ({ rule, within }) =>
+          within.length === 1 &&
+          within[0] === '@media (forced-colors: active)' &&
+          rule.selectorText === selector
+      );
+      expect(found).toHaveLength(1);
+      return found[0].rule.style;
+    };
+
+    // A system color is compared without its case.
+    it('outlines the box in the system text color', () => {
+      const box = forcedRule('.bestax-tooltip-content');
+      expect(box.getPropertyValue('outline').toLowerCase()).toBe(
+        '1px solid canvastext'
+      );
+    });
+
+    // Forced colors paints every side of the arrow's border, which makes it a
+    // square. Opting out keeps its transparent sides, and the side that points
+    // takes the background variable.
+    it('opts the arrow out and points it in the system text color', () => {
+      const arrow = forcedRule('.bestax-tooltip-content::before');
+      expect(arrow.getPropertyValue('forced-color-adjust')).toBe('none');
+      expect(
+        arrow
+          .getPropertyValue('--bulma-tooltip-background')
+          .trim()
+          .toLowerCase()
+      ).toBe('canvastext');
+    });
   });
 });

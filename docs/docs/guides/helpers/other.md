@@ -553,6 +553,8 @@ The interaction helpers control user interaction behavior with elements, particu
 
 These helpers are useful for improving user experience by preventing unwanted text selection or indicating clickable elements.
 
+`clickable` shows the pointer cursor. It adds no role, no tab stop and no keyboard handling, so a clickable element still has to be a `<button>` or a link, or hold one.
+
 ### Interaction Examples
 
 ```tsx
@@ -594,7 +596,9 @@ function InteractionExamples() {
         </Card.Header>
         <Card.Content>
           <Content mb="3">
-            Hover over the elements below to see cursor changes:
+            Hover over the boxes below to see the cursor change. A click
+            anywhere on a clickable box does what its button does, and the
+            button is what a keyboard or a screen reader reaches.
           </Content>
 
           <Box display="flex" flexDirection="column" gap="2">
@@ -605,7 +609,9 @@ function InteractionExamples() {
               interaction="clickable"
               onClick={() => alert('Clicked!')}
             >
-              This box shows a pointer cursor and is clickable
+              This box shows a pointer cursor and is clickable{' '}
+              {/* No handler of its own: its click bubbles to the box. */}
+              <Button size="small">Click me</Button>
             </Box>
 
             <Box
@@ -616,7 +622,8 @@ function InteractionExamples() {
               textTransform="uppercase"
               onClick={() => alert('Also clicked!')}
             >
-              This box is clickable with uppercase text
+              This box is clickable with uppercase text{' '}
+              <Button size="small">Click me too</Button>
             </Box>
 
             <Box bgColor="light" p="3">
@@ -696,7 +703,7 @@ The `pos` prop sets CSS `position`. It is named `pos` because several components
 | `pos="sticky"`    | `is-position-sticky`   | `position: sticky`   |
 | `relative={true}` | `is-relative`          | `position: relative` |
 
-The helpers set `position` and nothing else, so an element that is `absolute`, `fixed` or `sticky` still takes its offsets (`top`, `right`, …) from your own CSS. A sticky element does nothing until it has one. Beside `overlay`, which sets the offsets to 0, see [Overlay in the useBulmaClasses reference](/docs/api/helpers/usebulmaclasses#overlay).
+The helpers set `position` and nothing else, so an element that is `absolute`, `fixed` or `sticky` still takes its offsets (`top`, `right`, …) from your own CSS. A sticky element does nothing until it has one. Beside `overlay`, which sets the offsets to 0, see [Overlay in the useBulmaClasses reference](/docs/api/helpers/usebulmaclasses#overlay). For content fixed to a corner of the screen, such as a floating button, use [`Affix`](/docs/api/components/affix), which brings the offsets, the safe-area insets and a place in the stacking order.
 
 ### Position Examples
 
@@ -886,7 +893,7 @@ function CombinedHelpersExample() {
 
 1. **Use sparingly**: These helpers solve specific problems - don't overuse them
 2. **Combine thoughtfully**: Many helpers work well together but consider the overall design
-3. **Consider accessibility**: Some helpers like `unselectable` can impact accessibility
+3. **Consider accessibility**: `clickable` adds no role, no tab stop and no keyboard handling, so a clickable element still has to be a `<button>` or a link, or hold one. Other helpers, like `unselectable`, can impact accessibility too
 4. **Test interactions**: Always test clickable elements and overlays across different devices
 5. **Use semantic markup**: Combine helpers with appropriate semantic HTML elements
 
@@ -898,29 +905,31 @@ function CombinedHelpersExample() {
 // Modal backdrop
 <Box overlay={true} bgColor="dark" style={{ opacity: 0.5 }} />
 
-// Clickable card
+// Clickable card: a click anywhere does what its button does, and the button
+// is what a keyboard or a screen reader reaches
 <Card interaction="clickable" onClick={handleClick}>
   <Card.Content interaction="unselectable">
     Non-selectable content
+    {/* No handler of its own: its click bubbles to the card. */}
+    <Button size="small" mt="2">
+      Open
+    </Button>
   </Card.Content>
 </Card>
 
-// Image gallery item with positioning
-<Box relative>
-  <Image src="..." radius="radiusless" />
-  <Box overlay={true} interaction="clickable" onClick={openLightbox} />
-</Box>
+// Image gallery item: a real button that opens a Lightbox at its photo
+<Lightbox items={photos}>
+  <Lightbox.Trigger index={0}>
+    <Image src={photos[0].src} alt={photos[0].alt} radius="radiusless" />
+  </Lightbox.Trigger>
+</Lightbox>
 
-// Floating action button
-<Button
-  color="primary"
-  radius="rounded"
-  shadow="shadowless"
-  pos="fixed"
-  style={{ bottom: '20px', right: '20px' }}
->
-  +
-</Button>
+// Floating action button, fixed to a corner by Affix
+<Affix>
+  <Button color="primary" radius="rounded" aria-label="Add">
+    +
+  </Button>
+</Affix>
 
 // Layout with floated sidebar and clearfix
 <Box clearfix>

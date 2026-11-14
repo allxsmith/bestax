@@ -25,7 +25,10 @@ import { useAutoLabelId } from './useAutoLabelId';
  * name on that `Field`.
  *
  * @helperProps Helper props go on the `.colorinput` `<div>`, with
- * `className`. The other attributes go on the text `<input>`.
+ * `className`, except that the background helpers go on the text `<input>`,
+ * and the text helpers on both, since Bulma's `.input` sets its own
+ * background and font, and the popover inside the `<div>` takes the text
+ * ones. The other attributes go on the `<input>`.
  * @extraProp {string} [name] - Form field name. The field submits the text it shows, the value in `format`, or nothing when it's empty.
  * @extraProp {boolean} [required=false] - Marks the field required, so an empty one fails the form's constraint validation.
  * @extraProp {React.Ref<HTMLInputElement>} [ref] - Forwarded to the text `<input>`.

@@ -4,8 +4,11 @@ TypeScript-first React component library for Bulma v1 (`@allxsmith/bestax-bulma`
 scaffolder (`create-bestax`), and the Docusaurus source of https://bestax.io. pnpm + Turborepo
 monorepo.
 
-- **Contributing to this repo?** Read [`CLAUDE.md`](CLAUDE.md) — toolchain, commands, quality
-  gates, and commit conventions. It applies to all agents, not just Claude.
+- **Contributing to this repo?** Read [`CLAUDE.md`](CLAUDE.md) for the toolchain, commands,
+  quality gates and commit conventions. It applies to all agents, not just Claude. Before each
+  commit, go through its "Finishing a change" list, and read the `CLAUDE.md` in every directory
+  on the path to a file you change: some tools load only the ones on the path to where they
+  started.
 - **Using the library?** Fetch https://bestax.io/llms.txt (curated docs index) or
   https://bestax.io/llms-full.txt (complete docs in one file). Every docs page is also served
   as raw markdown — see https://bestax.io/docs/guides/llms.

@@ -21,7 +21,10 @@ $radio-border-width: 2px !default;
 // scheme's surfaces in light and dark. `border` falls well short of it.
 $radio-border-color: cv.getVar("text-weak") !default;
 $radio-background: transparent !default;
-$radio-dot-color: cv.getVar("scheme-main") !default;
+// The dot takes the ring's color unless a theme sets its own. It's declared
+// on the same element as `radio-active-color`, so the color variants and the
+// selected-row rule below, which set that one, carry through to the dot.
+$radio-dot-color: cv.getVar("radio-active-color") !default;
 $radio-active-color: cv.getVar("primary") !default;
 $radio-label-gap: 0.5em !default;
 $radio-focus-shadow-size: 0 0 0 0.125em !default;
@@ -116,7 +119,7 @@ $radio-transition-duration: cv.getVar("duration") !default;
       width: 50%;
       height: 50%;
       border-radius: 50%;
-      background-color: cv.getVar("radio-active-color");
+      background-color: cv.getVar("radio-dot-color");
       opacity: 0;
       transform: translate(-50%, -50%) scale(0.5);
       transition-property: opacity, transform;

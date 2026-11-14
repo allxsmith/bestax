@@ -50,6 +50,12 @@ export interface TimeWheelsProps {
   size?: 'small' | 'medium' | 'large';
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   disabled?: boolean;
+  /**
+   * Show the value and take no input that changes it. Each wheel keeps its
+   * tab stop and carries `aria-readonly`, and the arrow keys between columns
+   * still move focus, but no key, scroll, drag or click turns a wheel.
+   */
+  readOnly?: boolean;
   className?: string;
   id?: string;
   labels?: PickerLabels;
@@ -118,6 +124,8 @@ interface WheelProps<T> {
   visibleCount: number;
   itemHeight: number;
   disabled?: boolean;
+  /** Keep the tab stop but take no input that turns the wheel. */
+  readOnly?: boolean;
   size?: 'small' | 'medium' | 'large';
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   onFocusPrev?: () => void;
@@ -156,6 +164,7 @@ const WheelInner = <T,>(
     visibleCount,
     itemHeight,
     disabled,
+    readOnly,
     size,
     color,
     onFocusPrev,
@@ -168,6 +177,9 @@ const WheelInner = <T,>(
   ref: React.Ref<WheelHandle>
 ) => {
   const { classPrefix } = useConfig();
+  // Disabled or read-only, nothing the user does turns the wheel. Only
+  // disabled takes it out of the tab order and dims it.
+  const locked = disabled || readOnly;
   const N = values.length;
   const half = Math.floor(visibleCount / 2);
   const containerHeight = visibleCount * itemHeight;
@@ -292,8 +304,8 @@ const WheelInner = <T,>(
     () => ({
       focus: () => rootRef.current?.focus(),
       startDrag: (pointerId: number, clientY: number) => {
-        /* istanbul ignore next: the empty-space forwarder (sole caller) already returns on the same disabled prop */
-        if (disabled) return;
+        /* istanbul ignore next: the empty-space forwarder (sole caller) already returns on the same flags */
+        if (locked) return;
         cancelRaf();
         if (audioTickEnabledRef.current) unlockAudioTick();
         const now =
@@ -318,7 +330,7 @@ const WheelInner = <T,>(
         setIsDragging(true);
       },
     }),
-    [disabled, cancelRaf]
+    [locked, cancelRaf]
   );
 
   // Resolve a virtualIdx into an actual values[] index (modulo wrap if `wrap`).
@@ -392,11 +404,11 @@ const WheelInner = <T,>(
 
   const moveBy = useCallback(
     (delta: number) => {
-      if (disabled) return;
+      if (locked) return;
       cancelRaf();
       commitPosition(Math.round(positionRef.current) + delta);
     },
-    [disabled, cancelRaf, commitPosition]
+    [locked, cancelRaf, commitPosition]
   );
 
   // The keys are a spinbutton's: up raises the value and down lowers it. The
@@ -424,13 +436,13 @@ const WheelInner = <T,>(
           break;
         case 'Home':
           e.preventDefault();
-          if (disabled) break;
+          if (locked) break;
           cancelRaf();
           commitPosition(0);
           break;
         case 'End':
           e.preventDefault();
-          if (disabled) break;
+          if (locked) break;
           cancelRaf();
           commitPosition(N - 1);
           break;
@@ -450,7 +462,7 @@ const WheelInner = <T,>(
     },
     [
       moveBy,
-      disabled,
+      locked,
       commitPosition,
       cancelRaf,
       N,
@@ -537,7 +549,7 @@ const WheelInner = <T,>(
   // events per swipe; without accumulation a single gesture flies the wheel.
   useEffect(() => {
     const el = rootRef.current;
-    if (!el || disabled) return undefined;
+    if (!el || locked) return undefined;
     const SCROLL_STEP_PX = 60;
     const QUIET_MS = 250;
     let accumulated = 0;
@@ -569,7 +581,7 @@ const WheelInner = <T,>(
       el.removeEventListener('wheel', onWheel);
       if (resetTimer) clearTimeout(resetTimer);
     };
-  }, [moveBy, disabled]);
+  }, [moveBy, locked]);
 
   // Pointer drag.
   // We DELAY capturing the pointer until the user moves more than
@@ -578,7 +590,7 @@ const WheelInner = <T,>(
   // the user pressed (so single-clicks on neighbouring items would no-op).
   const DRAG_THRESHOLD_PX = 4;
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (disabled) return;
+    if (locked) return;
     cancelRaf();
     if (audioTickEnabledRef.current) {
       // Resume the AudioContext from inside the user gesture so the first
@@ -693,6 +705,7 @@ const WheelInner = <T,>(
       aria-valuemax={N - 1}
       aria-valuenow={toActual(virtualIdx)}
       aria-valuetext={ariaText}
+      aria-readonly={readOnly || undefined}
       tabIndex={disabled ? -1 : 0}
       className={rootClass}
       style={{ height: containerHeight }}
@@ -777,6 +790,7 @@ export const TimeWheels: React.FC<TimeWheelsProps> = ({
   size,
   color,
   disabled,
+  readOnly,
   className,
   id,
   labels,
@@ -970,7 +984,7 @@ export const TimeWheels: React.FC<TimeWheelsProps> = ({
   const onWheelsContainerPointerDown = (
     e: React.PointerEvent<HTMLDivElement>
   ) => {
-    if (disabled) return;
+    if (disabled || readOnly) return;
     // If the pointerdown landed on a real wheel column, the wheel's own
     // handler takes over — don't double-dispatch.
     if ((e.target as HTMLElement).closest(`.${wheelSingleClass}`)) return;
@@ -997,9 +1011,13 @@ export const TimeWheels: React.FC<TimeWheelsProps> = ({
   };
 
   return (
+    // A time reads left to right in the locales that mirror the page, the
+    // same as PinInput's boxes. Otherwise the wheels reverse and 10:30
+    // reads 30 : 10.
     <div
       id={id}
       className={classNames(rootClass, className)}
+      dir="ltr"
       aria-disabled={disabled}
     >
       <div
@@ -1017,6 +1035,7 @@ export const TimeWheels: React.FC<TimeWheelsProps> = ({
           visibleCount={visibleCount}
           itemHeight={itemHeight}
           disabled={disabled}
+          readOnly={readOnly}
           size={size}
           color={color}
           wrap
@@ -1039,6 +1058,7 @@ export const TimeWheels: React.FC<TimeWheelsProps> = ({
           visibleCount={visibleCount}
           itemHeight={itemHeight}
           disabled={disabled}
+          readOnly={readOnly}
           size={size}
           color={color}
           wrap
@@ -1063,6 +1083,7 @@ export const TimeWheels: React.FC<TimeWheelsProps> = ({
               visibleCount={visibleCount}
               itemHeight={itemHeight}
               disabled={disabled}
+              readOnly={readOnly}
               size={size}
               color={color}
               wrap
@@ -1085,6 +1106,7 @@ export const TimeWheels: React.FC<TimeWheelsProps> = ({
             visibleCount={visibleCount}
             itemHeight={itemHeight}
             disabled={disabled}
+            readOnly={readOnly}
             size={size}
             color={color}
             onCommit={onCommit}

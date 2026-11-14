@@ -199,11 +199,14 @@ interface TreeSelectBaseProps
   /** Rounds the field's corners (Bulma's `is-rounded`). */
   isRounded?: boolean;
   /**
-   * Where the panel opens, relative to the field, as on the pickers.
+   * Where the panel opens against the field, as on the pickers. Left out, it
+   * opens below and lines up with the field's start edge, which is its right
+   * edge on a right-to-left page. A corner you pass stays physical, so
+   * `bottom-left` lines up the left edges either way.
    * @defaultValue 'bottom-left'
    */
   position?: PickerPosition;
-  /** Renders the panel through a portal, into a `ConfigProvider`'s `portalContainer`, `document.body` by default. */
+  /** Renders the panel through a portal, into a `ConfigProvider`'s `portalContainer`, else the overlay it's in that takes its popups, such as a `Modal`, else `document.body`. */
   appendToBody?: boolean;
   /** The visible and accessible strings, in your app's language. */
   labels?: TreeSelectLabels;
@@ -251,9 +254,9 @@ export interface TreeSelectSingleProps extends TreeSelectBaseProps {
    * @defaultValue true
    */
   closeOnSelect?: boolean;
-  /** @internal Read with the checkbox modes only. */
+  /** Read with the checkbox modes only. */
   checkedStrategy?: never;
-  /** @internal Read with the checkbox modes only. */
+  /** Read with the checkbox modes only. */
   ariaCloseLabel?: never;
 }
 
@@ -296,9 +299,9 @@ export interface TreeSelectCheckboxProps extends TreeSelectBaseProps {
   checkedStrategy?: TreeSelectCheckedStrategy;
   /** Names each tag's button, in place of "Remove" and the item's label, as on Combobox. */
   ariaCloseLabel?: string;
-  /** @internal Read with `'single'` only. */
+  /** Read with `'single'` only. */
   parentsSelectable?: never;
-  /** @internal Read with `'single'` only: the panel stays open while boxes are checked. */
+  /** Read with `'single'` only: the panel stays open while boxes are checked. */
   closeOnSelect?: never;
 }
 

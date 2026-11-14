@@ -14,7 +14,10 @@ import {
 import { useConfig, useIconLibrary } from '../helpers/Config';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { isEventInside } from '../helpers/shadowDom';
-import { useLocaleMatcher, useNumberFormat } from '../helpers/localeFormat';
+import {
+  useLocaleMatcher,
+  useScopedNumberFormat,
+} from '../helpers/localeFormat';
 import {
   useInsideField,
   useInsideControl,
@@ -282,7 +285,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
     const { classPrefix } = useConfig();
     const defaultIconLibrary = useIconLibrary();
-    const formatNumber = useNumberFormat();
+    const formatNumber = useScopedNumberFormat();
     const matchText = useLocaleMatcher();
     const resolvedLibrary = iconLibraryProp || defaultIconLibrary || 'fa';
     const pcn = (

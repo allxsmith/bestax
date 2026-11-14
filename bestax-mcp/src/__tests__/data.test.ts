@@ -70,6 +70,11 @@ describe('resolveName', () => {
     ['InputBase', 'Input'],
     ['<carouselitem />', 'Carousel'],
     ['Thead', 'Table'],
+    // So does a hook, function or constant its import line gives (#1465).
+    ['useDataTable', 'DataTable'],
+    ['usedatatable', 'DataTable'],
+    ['toast', 'Toast'],
+    ['validColors', 'Valid value constants'],
   ])('resolves %s to %s', async (input, expected) => {
     expect(await resolveName(input)).toBe(expected);
   });
@@ -90,19 +95,38 @@ describe('documentedExport', () => {
     });
   });
 
+  it('names the section of a name that is no part, with no path', async () => {
+    const found = await documentedExport('useDataTable');
+    expect(found).toMatchObject({
+      name: 'useDataTable',
+      entry: { component: 'DataTable', section: 'The useDataTable Hook' },
+    });
+    expect(found?.entry).not.toHaveProperty('path');
+  });
+
   it('is null for a component with an entry of its own, and for a dot-path', async () => {
     expect(await documentedExport('Input')).toBeNull();
     expect(await documentedExport('Table.Thead')).toBeNull();
   });
 
+  // The function `toast` and the component `Toast` differ only in letter case, so
+  // a name spelled as the index spells it wins, and a catalog entry wins in any
+  // other letter case (#1465).
   it('never shadows a catalog entry', async () => {
     const catalog = await loadCatalog();
-    const names = new Set(catalog.components.map(c => c.name.toLowerCase()));
-    expect(
-      Object.keys(catalog.documentedWith).filter(n =>
-        names.has(n.toLowerCase())
-      )
-    ).toEqual([]);
+    const entries = new Map(
+      catalog.components.map(c => [c.name.toLowerCase(), c.name])
+    );
+    const twins = Object.keys(catalog.documentedWith).filter(n =>
+      entries.has(n.toLowerCase())
+    );
+    expect(twins).toEqual(expect.arrayContaining(['toast']));
+    for (const name of twins) {
+      const entry = entries.get(name.toLowerCase())!;
+      expect(await documentedExport(entry)).toBeNull();
+      expect(await documentedExport(entry.toUpperCase())).toBeNull();
+      expect(await documentedExport(name)).toMatchObject({ name });
+    }
   });
 });
 

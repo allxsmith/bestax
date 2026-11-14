@@ -4,15 +4,23 @@
 // replaces all three with the system's, so the current page looks like every
 // other page there. This draws it in Highlight and HighlightText, the pair the
 // system keeps for a selection, the way the themed Checkbox marks a checked
-// box. `forced-color-adjust: none` keeps them. Outside forced colors it
-// changes nothing.
+// box. `forced-color-adjust: none` keeps them. Outside forced colors those
+// colors change nothing.
 //
 // It reads the classes Bulma highlights, `is-current` and its other name
 // `is-selected`, so a hand-written current link gets it too, and so does
 // `DataTable`'s pager, which is a `Pagination`. Two classes outrank Bulma's
 // colors for a link, wherever the two stylesheets load.
+//
+// Bulma's control mixin also sets `outline: none` on `:focus-visible`, which
+// outranks Bulma's own link ring, so a keyboard user sees only the hover
+// shade. The rules below bring that outline back. The `.pagination` ancestor
+// outranks the mixin's `outline: none` whichever stylesheet loads first.
+// `:focus-visible` keeps the ring off a mouse click, and an item without
+// keyboard focus looks as it does now.
 
 @use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
 
 @media (forced-colors: active) {
   .#{iv.$class-prefix}pagination-link.#{iv.$class-prefix}is-current,
@@ -22,4 +30,25 @@
     border-color: Highlight;
     color: HighlightText;
   }
+}
+
+.#{iv.$class-prefix}pagination .#{iv.$class-prefix}pagination-previous:focus-visible,
+.#{iv.$class-prefix}pagination .#{iv.$class-prefix}pagination-next:focus-visible,
+.#{iv.$class-prefix}pagination .#{iv.$class-prefix}pagination-link:focus-visible {
+  outline-color: hsl(
+    cv.getVar('focus-h'),
+    cv.getVar('focus-s'),
+    cv.getVar('focus-l')
+  );
+  outline-style: cv.getVar('focus-style');
+  outline-width: cv.getVar('focus-width');
+  outline-offset: cv.getVar('focus-offset');
+}
+
+// The current page is filled with the link color, which the focus color
+// matches by default, so its ring takes the page's text color, inside the fill.
+.#{iv.$class-prefix}pagination .#{iv.$class-prefix}pagination-link.#{iv.$class-prefix}is-current:focus-visible,
+.#{iv.$class-prefix}pagination .#{iv.$class-prefix}pagination-link.#{iv.$class-prefix}is-selected:focus-visible {
+  outline-color: currentColor;
+  outline-offset: calc(-2 * #{cv.getVar('focus-width')});
 }

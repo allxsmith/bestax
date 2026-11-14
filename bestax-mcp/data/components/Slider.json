@@ -58,7 +58,7 @@
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Volume\"\n      labelProps={{ htmlFor: 'volume-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"volume-up\">\n            <Slider\n              id=\"volume-field-control\"\n              defaultValue={50}\n              color=\"primary\"\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
-  "accessibility": "- Uses native `<input type=\"range\">` element\n- The `label` prop, or the label of a `Field` the slider sits in, names its input.\n- In range mode the label starts each thumb's name, so `<Slider range label=\"Price range\" />` announces \"Price range Minimum value\" and \"Price range Maximum value\". Each thumb points `aria-labelledby` at the label and at a hidden span holding its own text, because an `aria-label` would outrank the label. The label's `for` still lands on the low thumb, so clicking the label focuses it.\n- `ariaLabel` wins over the label. In range mode each entry is that thumb's whole name, with no label in front, and an empty entry counts as unset.\n- An `aria-label` or `aria-labelledby` you pass straight to a range Slider names the whole Slider, so it takes the label's place at the start of both thumbs' names: `<Slider range aria-label=\"Budget\" />` announces \"Budget Minimum value\" and \"Budget Maximum value\". An `ariaLabel` entry still wins for its own thumb. To keep a label out of the thumbs' names altogether, pass `aria-labelledby={undefined}`, and they stay \"Minimum value\" and \"Maximum value\".\n- A `Field` label you wire by hand with `labelProps={{ htmlFor }}`, as in a horizontal form, gets no generated id, so give it one of your own there as well, as in `labelProps={{ htmlFor: 'price', id: 'price-label' }}`, and it starts both thumbs' names the same way. Without that `id` it reaches a range Slider only through its `for`, which the thumbs' default `aria-label` outranks, so they stay \"Minimum value\" and \"Maximum value\".\n- Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes\n- Fully keyboard accessible with arrow keys\n- Focus states clearly visible",
+  "accessibility": "- Uses native `<input type=\"range\">` element\n- The `label` prop, or the label of a `Field` the slider sits in, names its input.\n- In range mode the label starts each thumb's name, so `<Slider range label=\"Price range\" />` announces \"Price range Minimum value\" and \"Price range Maximum value\". Each thumb points `aria-labelledby` at the label and at a hidden span holding its own text, because an `aria-label` would outrank the label. The label's `for` still lands on the low thumb, so clicking the label focuses it.\n- `ariaLabel` wins over the label. In range mode each entry is that thumb's whole name, with no label in front, and an empty entry counts as unset.\n- An `aria-label` or `aria-labelledby` you pass straight to a range Slider names the whole Slider, so it takes the label's place at the start of both thumbs' names: `<Slider range aria-label=\"Budget\" />` announces \"Budget Minimum value\" and \"Budget Maximum value\". An `ariaLabel` entry still wins for its own thumb. To keep a label out of the thumbs' names altogether, pass `aria-labelledby={undefined}`, and they stay \"Minimum value\" and \"Maximum value\".\n- A `Field` label you wire by hand with `labelProps={{ htmlFor }}`, as in a horizontal form, gets no generated id, so give it one of your own there as well, as in `labelProps={{ htmlFor: 'price', id: 'price-label' }}`, and it starts both thumbs' names the same way. Without that `id` it reaches a range Slider only through its `for`, which the thumbs' default `aria-label` outranks, so they stay \"Minimum value\" and \"Maximum value\".\n- In forced colors (Windows' contrast themes) the track and its fill would disappear, since they're painted as a gradient. bestax's styles paint the fill in the system's highlight color and the rest of the track in its text color there, both in the color for disabled text while the slider is disabled, so the track shows how far it's filled.\n- Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes\n- Fully keyboard accessible with arrow keys\n- Focus states clearly visible\n- On a right-to-left page the native range mirrors, and the fill, the tick marks and the value bubble follow it, so a value of 25 fills from the right. A vertical slider still fills from the bottom.\n- In forced colors (Windows' contrast themes) the value bubble takes the page's own background, and every side of its arrow would be painted, drawing it as a square. bestax's styles outline the bubble in the system's text color there, and keep the arrow a triangle in that color, pointing at the thumb whichever side the bubble sits on.",
   "related": ["Numberinput", "Progress"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-slider",
   "summary": "The `Slider` component provides a range slider input for selecting values within a range.",
@@ -108,19 +108,19 @@
           "deprecated": false
         },
         {
-          "name": "minDistance",
-          "type": "number",
-          "default": "0",
-          "description": "Minimum distance between thumbs in range mode.",
+          "name": "ariaLabel",
+          "type": "string | [string, string]",
+          "default": null,
+          "description": "ARIA label(s) for the slider thumb(s), which win over a label, the Slider's own or a surrounding `Field`'s. In range mode each entry is that thumb's whole name, and a thumb without one is named \"Minimum value\" or \"Maximum value\", after whatever names the Slider: a label, or in its place an `aria-label` or `aria-labelledby` given to the Slider, as in \"Budget Minimum value\" and \"Budget Maximum value\". An `aria-labelledby` set to `undefined` keeps every label out of both names.",
           "required": false,
           "inherited": true,
           "deprecated": false
         },
         {
-          "name": "ariaLabel",
-          "type": "string | [string, string]",
-          "default": null,
-          "description": "ARIA label(s) for the slider thumb(s), which win over a label, the Slider's own or a surrounding `Field`'s. In range mode each entry is that thumb's whole name, and a thumb without one is named \"Minimum value\" or \"Maximum value\", after whatever names the Slider: a label, or in its place an `aria-label` or `aria-labelledby` given to the Slider, as in \"Budget Minimum value\" and \"Budget Maximum value\". An `aria-labelledby` set to `undefined` keeps every label out of both names.",
+          "name": "minDistance",
+          "type": "number",
+          "default": "0",
+          "description": "Minimum distance between thumbs in range mode.",
           "required": false,
           "inherited": true,
           "deprecated": false

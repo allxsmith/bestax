@@ -102,7 +102,7 @@ Now that you have bestax-bulma running:
 
 → [Browse all components](/docs/category/elements)
 
-- 80+ React components
+- 110+ React components
 - Full Bulma v1 support
 - Live examples and API docs
 

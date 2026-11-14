@@ -199,7 +199,7 @@
           "name": "loading",
           "type": "boolean",
           "default": "false",
-          "description": "Shows a page of skeleton rows under the header in place of the rows, and marks the table busy. For data on its way, as from a server with `manual`.",
+          "description": "Shows a page of skeleton rows under the header in place of the rows, and marks the table busy. For data on its way, as from a server with `manual`. A skeleton row is as tall as a row of one line of text, so rows of text replace it without the table changing height.",
           "required": false,
           "inherited": false,
           "deprecated": false

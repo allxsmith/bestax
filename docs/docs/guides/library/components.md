@@ -174,6 +174,30 @@ A box whose content scrolls inside it, on the browser's own scrollbars made thin
 
 ---
 
+### TableOfContents
+
+A long page's sections as links in Bulma's menu look, marking the one being read; this one lists every component under Navigation on this page. [View full documentation.](../../api/components/tableofcontents.md)
+
+```tsx live
+<TableOfContents
+  offset={68}
+  labels={{ title: 'Navigation components' }}
+  items={[
+    { id: 'breadcrumb', label: 'Breadcrumb' },
+    { id: 'navbar', label: 'Navbar' },
+    { id: 'tabs', label: 'Tabs' },
+    { id: 'segmentedcontrol', label: 'SegmentedControl' },
+    { id: 'steps', label: 'Steps' },
+    { id: 'timeline', label: 'Timeline' },
+    { id: 'scrollarea', label: 'ScrollArea' },
+    { id: 'tableofcontents', label: 'TableOfContents' },
+    { id: 'pagination', label: 'Pagination' },
+  ]}
+/>
+```
+
+---
+
 ### Pagination
 
 A flexible, composable pagination navigation for lists or multi-page content. [View full documentation.](../../api/components/pagination.md)
@@ -488,6 +512,45 @@ An overlapping (or `spaced`) group of `Avatar`s that clamps to `max` and renders
 
 ---
 
+### Lightbox
+
+Images shown one at a time in a modal viewer, opened from a `Lightbox.Trigger` button around each thumbnail, with previous and next, a counter, captions and zoom, and focus back on the thumbnail when it closes. [View full documentation.](../../api/components/lightbox.md)
+
+```tsx live
+function example() {
+  const photos = [
+    {
+      src: '/img/carousel/carousel-banner-1.jpg',
+      alt: 'Vibrant galaxy with purple and gold tones',
+    },
+    {
+      src: '/img/carousel/carousel-banner-2.jpg',
+      alt: 'Milky Way over silhouetted mountains',
+    },
+    {
+      src: '/img/carousel/carousel-banner-3.jpg',
+      alt: 'Starry night sky over mountain silhouettes',
+    },
+  ];
+
+  return (
+    <Lightbox items={photos}>
+      <Columns isMobile>
+        {photos.map((photo, i) => (
+          <Column key={photo.src} size="one-third">
+            <Lightbox.Trigger index={i}>
+              <Image as="div" src={photo.src} alt={photo.alt} size="4by3" />
+            </Lightbox.Trigger>
+          </Column>
+        ))}
+      </Columns>
+    </Lightbox>
+  );
+}
+```
+
+---
+
 ## Overlays
 
 ### Modal
@@ -677,6 +740,30 @@ function LoadingExample() {
         Loading data...
       </Loading>
     </div>
+  );
+}
+```
+
+---
+
+### Affix
+
+Content fixed to a corner of the screen while the page scrolls under it, such as a floating button, a chat launcher or a feedback tab, kept clear of a phone's home indicator. It sits over the page's content and under its navbar, static or fixed, its menus, popovers, the Sidebar, the modals, Tooltip and Toast. It's fixed to the browser window, so show it and look at the bottom-left corner. [View full documentation.](../../api/components/affix.md)
+
+```tsx live
+function example() {
+  const [shown, setShown] = useState(false);
+  return (
+    <>
+      <Button onClick={() => setShown(!shown)}>
+        {shown ? 'Hide the feedback tab' : 'Show the feedback tab'}
+      </Button>
+      {shown && (
+        <Affix position="bottom-left">
+          <Button color="primary">Feedback</Button>
+        </Affix>
+      )}
+    </>
   );
 }
 ```

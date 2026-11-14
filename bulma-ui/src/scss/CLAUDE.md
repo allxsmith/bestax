@@ -1,9 +1,10 @@
 # scss/ — styles for the bestax "extras"
 
-**Only extras get SCSS.** Components that are stock Bulma (Button, Card, Navbar, …) ship no CSS
+**Only extras get SCSS.** Components that are stock Bulma (Box, Card, Modal, …) ship no CSS
 of their own — Bulma provides it. A partial exists only for components that extend beyond Bulma
 (Carousel, Collapse, Dialog, the extended form inputs, …) — or that extend a stock component
-(e.g. `_tabs.scss` adds vertical Tabs). The `_index.scss` files are the authoritative inventory.
+(e.g. `_tabs.scss` adds vertical Tabs, `_navbar.scss` keeps the burger's bars in forced
+colors). The `_index.scss` files are the authoritative inventory.
 
 ## Structure
 
@@ -14,8 +15,14 @@ of their own — Bulma provides it. A partial exists only for components that ex
 - `_variables.scss` — `$extras-*` tokens derived from Bulma's HSL channel vars (`--bulma-primary-h/s/l`)
 - `_mixins.scss` — shared mixins: `extras-transition`, `extras-focus-outline` (a11y), `extras-sr-only`.
   It loads no Bulma module, since tests compile it with only this folder on the load path
+- `_color-classes.scss` — `extras-color-classes`, the modifier class of each color in Bulma's
+  `$colors`, as a list for a `:not()` that skips an element carrying another color; it reads
+  Bulma's `$colors`, which is why it isn't in `_mixins.scss`
 - `_selected-row.scss` — `extras-selected-table-cell`, the cells Checkbox's and Radio's
-  selected-row rules share; it reads Bulma's `$colors`, which is why it isn't in `_mixins.scss`
+  selected-row rules share, built on `extras-color-classes`
+- `_input-trigger.scss` — `extras-input-trigger`, a button laid over an input's right edge, which
+  the date and time pickers' launcher and PasswordInput's toggle share; it reads Bulma's class
+  prefix and variables, so it isn't in `_mixins.scss` either
 - `versions/` — the flavor builds: `bestax-prefixed`, `bestax-no-helpers`, `bestax-no-dark-mode`,
   `bestax-no-helpers-prefixed`. A new partial is included by all of them automatically (they reuse
   the same `_index` imports), but must **work** under each — especially the prefixed build.
@@ -62,6 +69,11 @@ Rules the pattern encodes:
   dark-mode bug.
 - **Reuse `extras-*` mixins** for transitions, focus outlines, and screen-reader-only content
   instead of re-rolling them (focus style consistency is an a11y requirement).
+- **A part fixed to an edge of the window adds the scroll lock's room on that side**
+  (`$extras-scroll-lock-offset-left` or `-right`, from `_variables.scss`) to its offset there, as
+  `_affix.scss` and `_toast.scss` do. While an overlay locks the page, the window grows by the
+  room the page's scrollbar had and the lock pads `<html>` by it, which a fixed box doesn't see,
+  so without it the part moves by the scrollbar's width.
 - New CSS variables should be documented in
   `skills/bestax-theming/references/css-variables.md`, and the component's rows added to
   `skills/bestax-theming/references/themeable-components.md`, in the same PR.
@@ -73,3 +85,25 @@ Rules the pattern encodes:
   CSS & Sass Variables section, which is how LinkButton shipped its variables invisibly
   (#464). The orphan rule in `check:conformance` now fails on a partial that no component
   claims, so the miss is loud, but the fix is still yours to make.
+
+## A partial that adjusts stock Bulma
+
+Some partials change a stock component rather than add one (`elements/_button.scss`,
+`components/_pagination.scss`, `components/_menu.scss`). They follow the pattern above, plus:
+
+- **Outrank Bulma whichever stylesheet loads first.** An app may load `extras.css` before or
+  after Bulma, so match Bulma's selector and add one class or ancestor (`.button.button`,
+  `.pagination .pagination-link`), and test both load orders.
+- **Check every case the selector reaches.** A loop over Bulma's `$colors` also reaches `text`,
+  which `LinkButton` uses by default. A rule for one state can erase another state's only cue: a
+  border at rest in forced colors is the same border Bulma draws for focus. List the variants,
+  sizes and states the rule touches, and check each.
+- **Forced colors:** scope the rule to `@media (forced-colors: active)`, paint with system colors
+  (`CanvasText`, `ButtonText`), and put `forced-color-adjust: none` only on the smallest element
+  that needs it, so everything else keeps the user's palette.
+- **Name the `@use`.** Docs that show the partial beside the Bulma module it adjusts load it
+  `as bestax-<name>`, since Sass refuses two `@use` lines with the same name.
+- `ORPHAN_EXEMPT` in `scripts/check-conformance.mjs` is for a partial no component can claim. Its
+  reason says why that stays true, not which issue added it.
+- A new partial also means updating every page that lists the partials: see "Finishing a change"
+  in the root `CLAUDE.md`.

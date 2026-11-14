@@ -137,6 +137,7 @@ const OWN_CLASSES = [
   'is-bottom-right',
   'is-top-left',
   'is-top-right',
+  'is-start-aligned',
 ];
 
 describe.each([
@@ -452,6 +453,44 @@ describe.each([
     const empty = getComputedStyle(getByTestId('empty'));
     expect(empty.color).toBe('var(--bulma-combobox-empty-color)');
     expect(empty.fontSize).toBe('var(--bulma-combobox-item-size)');
+  });
+
+  it('puts the default menu at the right edge right to left, and a named corner where it says', () => {
+    // jsdom maps no `dir` to `direction`, which the placement reads.
+    load('[dir="rtl"] { direction: rtl; }', compile(prefix));
+    document.documentElement.setAttribute('dir', 'rtl');
+    try {
+      const { unmount, getByTestId } = renderOpen();
+      const byDefault = getComputedStyle(getByTestId('panel'));
+      expect(byDefault.right).toBe('0px');
+      expect(byDefault.left).toBe('auto');
+      unmount();
+      const named = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Combobox label="Produce" defaultOpen position="bottom-left">
+            <Combobox.Input />
+            <Combobox.Menu data-testid="named">
+              <Combobox.List>
+                <Combobox.Item value="apple">Apple</Combobox.Item>
+              </Combobox.List>
+            </Combobox.Menu>
+          </Combobox>
+        </ConfigProvider>
+      );
+      const style = getComputedStyle(named.getByTestId('named'));
+      expect(style.left).toBe('0px');
+      expect(style.right).toBe('auto');
+    } finally {
+      document.documentElement.removeAttribute('dir');
+    }
+  });
+
+  it('puts the default menu at the left edge left to right', () => {
+    load(compile(prefix));
+    const { getByTestId } = renderOpen();
+    const style = getComputedStyle(getByTestId('panel'));
+    expect(style.left).toBe('0px');
+    expect(style.right).toBe('auto');
   });
 
   it('puts an inline list in the flow under the field, scrolling past its height', () => {

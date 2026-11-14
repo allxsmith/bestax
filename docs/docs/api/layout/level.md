@@ -85,12 +85,16 @@ This example shows the `Level` component with `Level.Left` and `Level.Right` sub
 
 ### Centered Level (Statistics)
 
-This example demonstrates using the `Level` component to create a centered statistics display. Each `Level.Item` in this example is centered and contains a small label and a value, making it suitable for displaying key metrics or statistics.
+This example demonstrates using the `Level` component to create a centered statistics display. Each `Level.Item` in this example is centered and contains a small label and a value, making it suitable for displaying key metrics or statistics. A row of figures isn't navigation, so the level renders a `<div>` with `as="div"` rather than its default `<nav>`.
 
 Bulma 0.9 drew that label with a `heading` class, which Bulma v1 dropped, so the label here is a `Paragraph` made small, uppercase, and semibold with helper props.
 
+:::tip
+For a row of figures in an app, reach for [`Stats`](../elements/stats.md) instead. Nothing in a level ties a value to its label, while `Stats` makes the row one description list, and each [`Stat`](../elements/stat.md) writes its number the way the locale does.
+:::
+
 ```tsx live
-<Level>
+<Level as="div">
   <Level.Item hasTextCentered>
     <Block>
       <Paragraph
@@ -114,7 +118,7 @@ Bulma 0.9 drew that label with a `heading` class, which Bulma v1 dropped, so the
       >
         Following
       </Paragraph>
-      <Title as="p">6789</Title>
+      <Title as="p">6,789</Title>
     </Block>
   </Level.Item>
   <Level.Item hasTextCentered>
@@ -140,7 +144,7 @@ Bulma 0.9 drew that label with a `heading` class, which Bulma v1 dropped, so the
       >
         Likes
       </Paragraph>
-      <Title as="p">9876</Title>
+      <Title as="p">9,876</Title>
     </Block>
   </Level.Item>
 </Level>
@@ -176,10 +180,10 @@ This example shows how to create a centered navigation menu using the `Level` co
 
 ### Mobile Level
 
-This example demonstrates the `Level` component's mobile layout. A level stacks its items vertically below tablet by default; setting the `isMobile` prop keeps them laid out horizontally on mobile too.
+This example demonstrates the `Level` component's mobile layout. A level stacks its items vertically below tablet by default; setting the `isMobile` prop keeps them laid out horizontally on mobile too. Like the statistics above, these figures aren't navigation, so the level takes `as="div"`.
 
 ```tsx live
-<Level isMobile>
+<Level as="div" isMobile>
   <Level.Item hasTextCentered>
     <Block>
       <Paragraph
@@ -203,7 +207,7 @@ This example demonstrates the `Level` component's mobile layout. A level stacks 
       >
         Following
       </Paragraph>
-      <Title as="p">4567</Title>
+      <Title as="p">4,567</Title>
     </Block>
   </Level.Item>
   <Level.Item hasTextCentered>
@@ -229,7 +233,7 @@ This example demonstrates the `Level` component's mobile layout. A level stacks 
       >
         Likes
       </Paragraph>
-      <Title as="p">9876</Title>
+      <Title as="p">9,876</Title>
     </Block>
   </Level.Item>
 </Level>
@@ -267,7 +271,7 @@ This example demonstrates the `Level` component's mobile layout. A level stacks 
 
 ## Accessibility
 
-- The root `Level` renders as a semantic `<nav>` for grouping and navigation.
+- `Level` renders a `<nav>` by default, as Bulma's markup does. A `nav` is a navigation landmark, which a screen reader user can list and jump to, so keep it for a row of links. A row that isn't navigation, such as the statistics above, takes `as="div"`, which adds no landmark. `as="header"` suits a level that opens a section and `as="footer"` one that closes it.
 - Items can be rendered as `<div>`, `<p>`, or `<a>`. Use `as="a"` for links, and provide clear text or accessible labels.
 - Use Bulma helper props for spacing and color to improve contrast and readability.
 
@@ -301,15 +305,16 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Level
 
 <!-- bestax:generated props -->
 
-| Prop        | Type                                                                    | Default | Description                                                                                                    |
-| ----------- | ----------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------- |
-| `isMobile`  | `boolean`                                                               | `false` | Keeps the level horizontal on mobile (Bulma `is-mobile`). Without it the level stacks vertically below tablet. |
-| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma color modifier for the level.                                                                            |
-| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma background color helper.                                                                                 |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma text color helper.                                                                                       |
-| `className` | `string`                                                                | —       | Additional CSS classes.                                                                                        |
-| `children`  | `React.ReactNode`                                                       | —       | Level content (`Level.Left`, `Level.Right`, `Level.Item`).                                                     |
-| `...`       | All standard HTML attributes and Bulma helper props                     | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                              |
+| Prop        | Type                                                                    | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ----------- | ----------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `as`        | `'nav'` \| `'div'` \| `'header'` \| `'footer'`                          | `'nav'` | HTML element to render (default: `nav`, as in Bulma's markup). A `nav` is a `navigation` landmark, so keep it for a row of links. A row that is not navigation, such as figures or a toolbar, takes `div`, which is no landmark. `header` suits a level that opens a section and `footer` one that closes it. A `header` is a `banner` landmark, and a `footer` a `contentinfo` one, only when no `section`, `article`, `aside`, `nav` or `main` is around it. |
+| `isMobile`  | `boolean`                                                               | `false` | Keeps the level horizontal on mobile (Bulma `is-mobile`). Without it the level stacks vertically below tablet.                                                                                                                                                                                                                                                                                                                                                 |
+| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma color modifier for the level.                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma background color helper.                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma text color helper.                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `className` | `string`                                                                | —       | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `children`  | `React.ReactNode`                                                       | —       | Level content (`Level.Left`, `Level.Right`, `Level.Item`).                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `...`       | All standard HTML attributes and Bulma helper props                     | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                              |
 
 **Subcomponents:**
 

@@ -41,7 +41,7 @@ These components automatically stack vertically on mobile:
     </Column>
   </Columns>
 
-  <Level>
+  <Level as="div">
     <LevelLeft>
       <LevelItem>Left content</LevelItem>
     </LevelLeft>
@@ -68,7 +68,7 @@ Use the `isMobile` property to maintain horizontal layout even on mobile devices
     </Column>
   </Columns>
 
-  <Level isMobile>
+  <Level as="div" isMobile>
     <LevelLeft>
       <LevelItem>Left</LevelItem>
     </LevelLeft>

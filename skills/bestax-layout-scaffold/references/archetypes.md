@@ -19,54 +19,41 @@ app".
 **Skeleton:**
 
 ```tsx
-const [open, setOpen] = useState(false); // controls the burger + mobile menu
-
-<>
-  {/* fixed="top" requires <html class="has-navbar-fixed-top"> — set it in index.html */}
-  <Navbar fixed="top" color="dark">
-    <Navbar.Brand>
-      <Navbar.Item href="#">Brand</Navbar.Item>
-      <Navbar.Burger
-        active={open}
-        onClick={() => setOpen(o => !o)}
-        aria-label="menu"
-      />
-    </Navbar.Brand>
-    <Navbar.Menu active={open}>
-      <Navbar.End>
-        <Navbar.Item href="#">Account</Navbar.Item>
-      </Navbar.End>
-    </Navbar.Menu>
-  </Navbar>
-
-  <Container fluid>
-    <Columns>
-      <Column size={3} sizeWidescreen={2}>
-        <Menu>
-          <Menu.Label>General</Menu.Label>
-          <Menu.List>
-            <Menu.Item active href="#">
-              Dashboard
-            </Menu.Item>
-            <Menu.Item href="#">Customers</Menu.Item>
-          </Menu.List>
-        </Menu>
-      </Column>
-      <Column>
-        <Section>{/* main content */}</Section>
-      </Column>
-    </Columns>
-  </Container>
-</>;
+<AppFrame>
+  <AppFrame.Header>
+    <Navbar color="dark" aria-label="Site">
+      <Navbar.Brand>
+        <Navbar.Item href="#">Brand</Navbar.Item>
+        <AppFrame.Burger />
+      </Navbar.Brand>
+    </Navbar>
+  </AppFrame.Header>
+  <AppFrame.Nav>
+    <Menu>
+      <Menu.Label>General</Menu.Label>
+      <Menu.List>
+        <Menu.Item active href="#">
+          Dashboard
+        </Menu.Item>
+        <Menu.Item href="#">Customers</Menu.Item>
+      </Menu.List>
+    </Menu>
+  </AppFrame.Nav>
+  <AppFrame.Main>
+    <Section>{/* main content */}</Section>
+  </AppFrame.Main>
+</AppFrame>
 ```
 
-**Required:** add `has-navbar-fixed-top` to `<html>` — statically in `index.html`; an effect
-(`examples/app-shell.tsx`) only for a conditionally-mounted navbar — so content is not hidden
-behind the fixed navbar.
+**Required:** `AppFrame` goes at the top of the app, not inside a `<main>`: it renders the page's
+`<main>` itself, and its header and footer are the page's landmarks only at the top. The `Navbar`
+in its header is not `fixed`, and `<html>` gets no `has-navbar-fixed-top`: the header sticks on its
+own. `AppFrame.Burger` in `Navbar.Brand` replaces `Navbar.Burger`, with no state to wire.
 
-**Responsive:** the navbar collapses to a burger on mobile (`Navbar.Burger` + `Navbar.Menu active`).
-The sidebar and content columns sit side by side on tablet and up, and stack (menu above content)
-on mobile.
+**Responsive:** from desktop up the menu is a column beside the page that stays in view as the
+page scrolls, and the burger collapses it. Below desktop the same menu is a drawer the burger
+opens. Bulma hides `Navbar.Menu` below desktop, so links it would hold go in the menu column as
+well, or leave `Navbar.Menu` out.
 
 ---
 
@@ -300,7 +287,7 @@ load, show a `Skeleton` or a `Loader` instead, so the empty state doesn't flash 
 
 ## Combining archetypes
 
-Archetypes nest. An "admin dashboard with a product list" is **App shell** whose main `Column`
-holds a **Card grid**. A "settings page inside the app" is **App shell** whose main column holds a
-**Centered** panel. Pick the outer archetype from the dominant intent, then place another inside
+Archetypes nest. An "admin dashboard with a product list" is **App shell** whose `AppFrame.Main`
+holds a **Card grid**. A "settings page inside the app" is **App shell** whose `AppFrame.Main` holds
+a **Centered** panel. Pick the outer archetype from the dominant intent, then place another inside
 its content area.

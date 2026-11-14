@@ -1,0 +1,321 @@
+{
+  "name": "CopyButton",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/copybutton",
+  "docsUrl": "https://bestax.io/docs/api/elements/copybutton",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<CopyButton value=\"https://bestax.io\" />"
+    },
+    {
+      "title": "Icon-Only",
+      "code": "<Buttons>\n  <CopyButton value=\"key_8f3a2c1e9b\" showLabel={false} />\n  <CopyButton value=\"key_8f3a2c1e9b\" showLabel={false} isRounded />\n  <CopyButton value=\"key_8f3a2c1e9b\" showLabel={false} size=\"small\" />\n</Buttons>"
+    },
+    {
+      "title": "Your Own Words",
+      "code": "<Buttons>\n  <CopyButton\n    value=\"BESTAX-2026\"\n    color=\"primary\"\n    labels={{\n      copy: 'Copy code',\n      copied: 'Code copied',\n      copiedStatus: 'Invite code copied',\n    }}\n  />\n  <CopyButton\n    value=\"https://bestax.io\"\n    labels={{\n      copy: 'Copier',\n      copied: 'Copié',\n      copiedStatus: 'Copié dans le presse-papiers',\n      failedStatus: 'Impossible de copier dans le presse-papiers',\n    }}\n  />\n</Buttons>"
+    },
+    {
+      "title": "Colors and Sizes",
+      "code": "<>\n  <Buttons>\n    <CopyButton value=\"primary\" color=\"primary\" />\n    <CopyButton value=\"link\" color=\"link\" isLight />\n    <CopyButton value=\"dark\" color=\"dark\" isOutlined />\n    <CopyButton value=\"text\" color=\"text\" />\n  </Buttons>\n  <Buttons>\n    <CopyButton value=\"small\" size=\"small\" />\n    <CopyButton value=\"medium\" size=\"medium\" />\n    <CopyButton value=\"medium\" size=\"medium\" showLabel={false} />\n    <CopyButton value=\"large\" size=\"large\" showLabel={false} isRounded />\n  </Buttons>\n</>"
+    },
+    {
+      "title": "How Long \"Copied\" Stays",
+      "code": "<Buttons>\n  <CopyButton value=\"https://bestax.io\" duration={4000} />\n  <CopyButton value=\"https://bestax.io\" duration={0} />\n</Buttons>"
+    },
+    {
+      "title": "A Copy Field",
+      "code": "function ShareLink() {\n  const id = React.useId();\n  const helpId = `${id}-help`;\n  const inputRef = React.useRef<HTMLInputElement>(null);\n  // Counts the failed copies in a row, so each one moves focus.\n  const [failures, setFailures] = useState(0);\n  const link = 'https://bestax.io/docs/api/elements/copybutton';\n\n  // Focus the field once its description is in the page, so a screen\n  // reader reads the instruction with the field.\n  useEffect(() => {\n    if (failures === 0) return;\n    inputRef.current?.focus();\n    inputRef.current?.select();\n  }, [failures]);\n\n  return (\n    <Field label=\"Share link\" labelProps={{ htmlFor: id }}>\n      <Field hasAddons>\n        <Control isExpanded>\n          <Input\n            ref={inputRef}\n            id={id}\n            value={link}\n            readOnly\n            aria-describedby={failures > 0 ? helpId : undefined}\n          />\n        </Control>\n        <Control>\n          <CopyButton\n            value={link}\n            labels={{ failedStatus: \"Couldn't copy the link\" }}\n            onCopiedChange={() => setFailures(0)}\n            onCopyError={() => setFailures(count => count + 1)}\n          />\n        </Control>\n      </Field>\n      {failures > 0 && (\n        <p id={helpId} className=\"help is-danger\">\n          Couldn't copy automatically. The link is selected, so copy it from the\n          field.\n        </p>\n      )}\n    </Field>\n  );\n}"
+    },
+    {
+      "title": "Beside a Command",
+      "code": "<Paragraph p=\"5\">\n  <Code mr=\"2\">pnpm create bestax@latest</Code>\n  <Tooltip label=\"Copies the install command\" position=\"bottom\">\n    <CopyButton\n      value=\"pnpm create bestax@latest\"\n      showLabel={false}\n      size=\"small\"\n      labels={{ copy: 'Copy the command' }}\n    />\n  </Tooltip>\n</Paragraph>"
+    },
+    {
+      "title": "In a Table",
+      "code": "function Keys() {\n  const keys = [\n    { name: 'Production', key: 'prod_4f8a1c' },\n    { name: 'Staging', key: 'test_9b2e7d' },\n  ];\n\n  return (\n    <Table>\n      <Thead>\n        <Tr>\n          <Th>Name</Th>\n          <Th>Key</Th>\n          <Th>\n            <Span visibility=\"sr-only\">Copy</Span>\n          </Th>\n        </Tr>\n      </Thead>\n      <Tbody>\n        {keys.map(row => (\n          <Tr key={row.key}>\n            <Td>{row.name}</Td>\n            <Td>\n              <Code>{row.key}</Code>\n            </Td>\n            <Td>\n              <CopyButton\n                value={row.key}\n                showLabel={false}\n                size=\"small\"\n                labels={{\n                  copy: `Copy the ${row.name} key`,\n                  copiedStatus: `${row.name} key copied`,\n                }}\n              />\n            </Td>\n          </Tr>\n        ))}\n      </Tbody>\n    </Table>\n  );\n}"
+    },
+    {
+      "title": "Knowing When It Copied",
+      "code": "function example() {\n  const [log, setLog] = useState<string[]>([]);\n  const add = (line: string) => setLog(lines => [line, ...lines].slice(0, 4));\n\n  return (\n    <>\n      <CopyButton\n        value=\"https://bestax.io\"\n        onCopiedChange={copied => add(`onCopiedChange(${copied})`)}\n        onCopyError={error => add(`onCopyError: ${error.message}`)}\n      />\n      <Paragraph mt=\"3\">{log.join(', ') || 'Nothing copied yet.'}</Paragraph>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Stopping a Copy",
+      "code": "function example() {\n  const [agreed, setAgreed] = useState(false);\n\n  return (\n    <>\n      <Checkbox checked={agreed} onChange={e => setAgreed(e.target.checked)}>\n        I'll keep this key secret\n      </Checkbox>\n      <CopyButton\n        ml=\"3\"\n        value=\"key_8f3a2c1e9b\"\n        labels={{ copy: 'Copy key', copied: 'Key copied' }}\n        onClick={event => {\n          if (!agreed) event.preventDefault();\n        }}\n      />\n    </>\n  );\n}"
+    },
+    {
+      "title": "Disabled",
+      "code": "<CopyButton value=\"https://bestax.io\" isDisabled />"
+    }
+  ],
+  "accessibility": "- **The name follows the words:** with its label shown, the button has no `aria-label`, so its name\n  is the text on it, \"Copy\" and then \"Copied\", and a voice control user can say what they see\n  ([WCAG 2.5.3](https://www.w3.org/WAI/WCAG22/Understanding/label-in-name.html)).\n- **The result is announced:** a change to a focused button's label isn't read out by every screen\n  reader and browser pairing, so each copy, and each failure, is also a polite `role=\"status\"`\n  message\n  ([WCAG 4.1.3](https://www.w3.org/WAI/WCAG22/Understanding/status-messages.html), technique\n  [ARIA22](https://www.w3.org/WAI/WCAG22/Techniques/aria/ARIA22)). The region is in the page from\n  hydration, well before any click, and is visually hidden. It's portaled to the end of the page,\n  or to a `ConfigProvider`'s `portalContainer`, so it isn't a child of the button's `Control` or\n  `Buttons` row. Inside an open modal dialog (`aria-modal=\"true\"`), such as a `Modal`, a `Dialog`\n  or a `Sidebar` with an overlay, it goes inside the dialog instead, since a screen reader ignores\n  a live region behind one. It moves there when the button takes focus or a click. A copy repeated\n  while the button still reads \"Copied\" is announced again.\n- **Icon-only, it's still named:** `labels.copy` is its `aria-label` in both states, since there are\n  no words to follow, and only the glyph swaps. Give it a name that says what it copies when there\n  are several on a page (\"Copy the Production key\").\n- **The glyphs are decorative:** both render `aria-hidden=\"true\"`; the label and the status carry the\n  meaning.\n- **Failures aren't hidden:** a copy that didn't happen never shows \"Copied\".\n- **Keyboard and focus:** it's a native `<button type=\"button\">`, so <kbd>Enter</kbd> and\n  <kbd>Space</kbd> copy, focus stays on it, and it never submits the form it sits in.\n- **Forced colors:** the glyphs are drawn in `currentColor`, so they take the system's button text\n  color.",
+  "related": [
+    "Button",
+    "Code",
+    "Control",
+    "Field",
+    "IconButton",
+    "Tooltip",
+    "useBulmaClasses",
+    "useClipboard"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-copybutton--default",
+  "summary": "The `CopyButton` component renders a button that copies a piece of text to the clipboard, says \"Copied\" for a moment, and announces the result. It's a `Button` with a copy icon and \"Copy\", and takes everything `Button` takes. A click writes `value` through the Clipboard API, or through the older copy command where that's missing or refused, and reports a failure rather than showing \"Copied\". Each outcome is announced through a polite status region portaled out of the button's place, so it stays the last child of a `Control` or `Buttons`: into the open modal dialog the button is in, otherwise where `Portal` puts portaled content (the `ConfigProvider`'s `portalContainer`, or the end of the page). With `showLabel={false}` it's an `IconButton`. For a trigger of your own, use `useClipboard`, which it's built on.",
+  "import": "import { CopyButton } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/CopyButton.tsx",
+  "rootClass": null,
+  "parts": [
+    {
+      "path": "CopyButton",
+      "summary": "The `CopyButton` component renders a button that copies a piece of text to the clipboard, says \"Copied\" for a moment, and announces the result. It's a `Button` with a copy icon and \"Copy\", and takes everything `Button` takes. A click writes `value` through the Clipboard API, or through the older copy command where that's missing or refused, and reports a failure rather than showing \"Copied\". Each outcome is announced through a polite status region portaled out of the button's place, so it stays the last child of a `Control` or `Buttons`: into the open modal dialog the button is in, otherwise where `Portal` puts portaled content (the `ConfigProvider`'s `portalContainer`, or the end of the page). With `showLabel={false}` it's an `IconButton`. For a trigger of your own, use `useClipboard`, which it's built on.",
+      "component": null,
+      "props": [
+        {
+          "name": "value",
+          "type": "string",
+          "default": null,
+          "description": "The text it copies. This is not the `<button>`'s form value, which it doesn't render.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "duration",
+          "type": "number",
+          "default": "2000",
+          "description": "How long the \"Copied\" label stays, in milliseconds. Another copy restarts it. `0` turns the reset off, as Toast's `0` turns off its auto-close, so \"Copied\" stays until a later copy fails. A missing or `NaN` value uses the default, a negative one ends it at once, and `Infinity`, or anything longer than the longest delay `setTimeout` takes (about 24.8 days), is that longest delay.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "showLabel",
+          "type": "boolean",
+          "default": "true",
+          "description": "Shows the label beside the icon, which is then the button's name: it carries no `aria-label`, so the name reads \"Copy\" and then \"Copied\" as the words on it do. Turned off, it's a square icon-only button named by `labels.copy` through `aria-label` in both states, and only the glyph changes. An `aria-label` you pass yourself names it in either form.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "{ copy?: string; copied?: string; copiedStatus?: string; failedStatus?: string }",
+          "default": null,
+          "description": "Translations for the label and the announcements.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onCopiedChange",
+          "type": "(copied: boolean) => void",
+          "default": null,
+          "description": "Called with `true` after each copy that worked, a repeat included, and with `false` when `duration` runs out or a later copy fails.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onCopyError",
+          "type": "(error: Error) => void",
+          "default": null,
+          "description": "Called when neither the Clipboard API nor the fallback could write. A copy field can select its text from here, so the reader can copy it themselves.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'white' | 'light' | 'dark' | 'black' | 'text' | 'ghost'",
+          "default": null,
+          "description": "Bulma color variant for the button. `ghost` renders a link-like button; `text` renders a minimal text-only button.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of the button.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isLight",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies a lighter color variant.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button rounded.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isLoading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Displays a loading spinner, with everything inside the button hidden behind it, in forced colors (Windows' contrast themes) too. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn. Bulma alone hides only the label, so the rest needs bestax's CSS loaded.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isStatic",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button non-interactive.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFullwidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button full-width.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFullWidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button full-width.",
+          "required": false,
+          "inherited": true,
+          "deprecated": true,
+          "deprecationNote": "Use `isFullwidth` instead — `isFullwidth` wins if both are set."
+        },
+        {
+          "name": "isOutlined",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies outlined styling (requires color).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isInverted",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies inverted styling (requires color).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFocused",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies focused styling (visual only).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isActive",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies active styling (visual only), with no `aria-pressed`. For a button that stays pressed, use `ToggleButton`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isHovered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies hovered styling (visual only).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isDisabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies disabled styling.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Custom class name.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "type",
+          "type": "'button' | 'submit' | 'reset'",
+          "default": "button",
+          "description": "`button` unless you pass `submit` or `reset`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onClick",
+          "type": "React.MouseEventHandler<HTMLButtonElement>",
+          "default": null,
+          "description": "Runs before the copy. An `onClick` that calls `preventDefault()` stops the copy, and neither `onCopiedChange` nor `onCopyError` fires.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLButtonElement>",
+          "default": null,
+          "description": "Ref forwarded to the `<button>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <button> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [],
+  "cssVarsFrom": "Button"
+}

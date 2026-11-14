@@ -395,6 +395,70 @@ describe('DateInput', () => {
       expect(document.activeElement).toHaveTextContent('17');
       expect(document.activeElement).toHaveAttribute('tabindex', '0');
     });
+
+    describe('disabled and readOnly', () => {
+      /** The cell for `day` of the month on show. */
+      const day = (n: number) =>
+        Array.from(
+          document.querySelectorAll<HTMLButtonElement>('[role="gridcell"]')
+        ).find(
+          c =>
+            !c.className.includes('is-other-month') && c.textContent === `${n}`
+        )!;
+      const pickEverything = (grid: HTMLElement) => {
+        fireEvent.click(day(20));
+        fireEvent.keyDown(grid, { key: 'Enter' });
+        fireEvent.keyDown(grid, { key: ' ' });
+      };
+
+      it('picks nothing when disabled, and still submits', () => {
+        const onChange = vi.fn();
+        const { container, getByRole } = render(
+          <form>
+            <DateInput
+              inline
+              disabled
+              name="day"
+              defaultValue={new Date(2024, 5, 15)}
+              onChange={onChange}
+            />
+          </form>
+        );
+        const grid = getByRole('grid');
+        expect(grid).toHaveAttribute('aria-disabled', 'true');
+        expect(day(20)).toBeDisabled();
+        expect(getByRole('button', { name: 'Next month' })).toBeDisabled();
+        pickEverything(grid);
+        expect(onChange).not.toHaveBeenCalled();
+        expect(day(15)).toHaveAttribute('aria-selected', 'true');
+        // What a form receives is unchanged: the hidden input still posts.
+        const data = new FormData(container.querySelector('form')!);
+        expect(Array.from(data.entries())).toEqual([['day', '2024-06-15']]);
+      });
+
+      it('picks nothing but still submits when readOnly', () => {
+        const onChange = vi.fn();
+        const { container, getByRole } = render(
+          <form>
+            <DateInput
+              inline
+              readOnly
+              name="day"
+              defaultValue={new Date(2024, 5, 15)}
+              onChange={onChange}
+            />
+          </form>
+        );
+        const grid = getByRole('grid');
+        expect(grid).toHaveAttribute('aria-readonly', 'true');
+        expect(day(20)).toBeEnabled();
+        pickEverything(grid);
+        expect(onChange).not.toHaveBeenCalled();
+        expect(day(15)).toHaveAttribute('aria-selected', 'true');
+        const data = new FormData(container.querySelector('form')!);
+        expect(Array.from(data.entries())).toEqual([['day', '2024-06-15']]);
+      });
+    });
   });
 
   describe('Mobile native fallback', () => {

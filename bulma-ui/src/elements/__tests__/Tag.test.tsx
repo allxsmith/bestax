@@ -53,6 +53,24 @@ describe('Tag Component', () => {
     expect(tag).toHaveClass('tag is-primary is-light');
   });
 
+  // The light color's class is the same key as isLight's (#1464).
+  test('applies is-light for color="light"', () => {
+    render(<Tag {...defaultProps} color="light" />);
+    expect(screen.getByText('Test Tag')).toHaveClass('tag is-light');
+  });
+
+  test('applies is-light once for color="light" with isLight', () => {
+    render(<Tag {...defaultProps} color="light" isLight />);
+    expect(screen.getByText('Test Tag').className).toBe('tag is-light');
+  });
+
+  test('applies is-light for color="light" on the delete-button render path', () => {
+    render(<Tag {...defaultProps} isDelete color="light" />);
+    expect(screen.getByRole('button', { name: 'Delete tag' })).toHaveClass(
+      'tag is-delete is-light'
+    );
+  });
+
   test('does not apply is-light by default', () => {
     render(<Tag {...defaultProps} color="primary" />);
     const tag = screen.getByText('Test Tag');

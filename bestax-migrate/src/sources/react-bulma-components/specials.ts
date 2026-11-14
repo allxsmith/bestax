@@ -31,8 +31,10 @@ import {
   keepTitleLevel,
   makeStripModifierProps,
   mergeClassName,
+  modifierClass,
   applyIconProps,
   parseIconClasses,
+  plainTag,
   type SpecialHandler,
   type SpecialResult,
 } from '../_shared/specials-utils.js';
@@ -154,7 +156,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
   },
 
   /**
-   * Heading → Title / SubTitle / plain `.heading` paragraph, matching RBC's
+   * Heading → Title / SubTitle / plain `.heading` label, matching RBC's
    * `title: !subtitle && !heading` / `subtitle: subtitle` — the *value* of
    * each prop picks the target, not merely whether it was passed. Any
    * statically-known literal resolves to a fixed truthiness at codemod time
@@ -200,35 +202,57 @@ const SPECIALS: Record<string, SpecialHandler> = {
         ctx,
         path,
         'prop:heading',
-        '`heading` has a dynamic value; when truthy it renders a plain `<p className="heading">` instead of Title/SubTitle — resolve by hand'
+        '`heading` has a dynamic value; when truthy it renders a plain element with `className="heading"` (an `<h1>` unless `renderAs` names another) instead of Title/SubTitle — resolve by hand'
       );
     }
 
-    // A truthy literal `heading` collapses to a plain `.heading` paragraph —
-    // but only when `subtitle` isn't a dynamic value the collapse would drop.
-    // A truthy *literal* `subtitle` is safe to collapse: RBC applies its class
-    // independently, so it rides along on the paragraph as `heading subtitle`
-    // (dropping it would be the same silent loss the dynamic guard prevents).
+    // A truthy literal `heading` collapses to the plain `.heading` label RBC
+    // rendered — but only when `subtitle` isn't a dynamic value the collapse
+    // would drop. A truthy *literal* `subtitle` is safe to collapse: RBC
+    // applies its class independently, so it rides along on the label as
+    // `heading subtitle` (dropping it would be the same silent loss the
+    // dynamic guard prevents). RBC rendered `renderAs`, an <h1> by default,
+    // and wrote `size` and `weight` as `is-<size>` and
+    // `has-text-weight-<weight>`, so the label keeps all three. `spaced` goes:
+    // RBC wrote `is-spaced` only without `subtitle`, and Bulma styles it only
+    // on a `.title`.
     if (headingTruthy && !subtitleDynamic) {
-      flagDroppedHeading(ctx, path, 'p');
+      const tag = plainTag(ctx, path, element, 'renderAs', 'h1', 'Heading');
+      flagDroppedHeading(ctx, path, tag);
       removeAttr(element, headingAttr);
+      const sized = modifierClass(
+        ctx,
+        path,
+        element,
+        'size',
+        subtitleTruthy ? 'heading subtitle' : 'heading',
+        'Heading'
+      );
       const className = mergeClassName(
         ctx,
         path,
         element,
-        subtitleTruthy ? 'heading subtitle' : 'heading',
+        modifierClass(
+          ctx,
+          path,
+          element,
+          'weight',
+          sized,
+          'Heading',
+          'has-text-weight-'
+        ),
         'Heading'
       );
       // The seventh hand-built plain rewrite in this file, and the one that
       // does not go through `keptAttrs` -- so it needs the cleanup by name or
-      // `<Heading renderAs="a" href="/x">` lands an `href` on the `<p>`.
-      dropLinkAttrsForPlainTag(ctx, path, element, 'p', 'Heading');
+      // `<Heading renderAs="span" href="/x">` lands an `href` on the `<span>`.
+      dropLinkAttrsForPlainTag(ctx, path, element, tag, 'Heading');
       const consumed = new Set(
         stripModifierProps(
           ctx,
           path,
           attributesOf(element).filter(
-            a => !['size', 'weight', 'spaced', 'subtitle'].includes(a.name.name)
+            a => !['spaced', 'subtitle'].includes(a.name.name)
           ),
           'Heading'
         )
@@ -238,7 +262,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       );
       const replacement = plainElement(
         ctx.j,
-        'p',
+        tag,
         className,
         rest,
         element.children ?? []
@@ -516,8 +540,9 @@ const SPECIALS: Record<string, SpecialHandler> = {
     return { handledProps: ['multiline'] };
   },
 
-  /** Form.Label → plain <label className="label">. */
+  /** Form.Label → plain <label className="label">, or its `renderAs`. */
   'plain-label'(ctx, path, element) {
+    const tag = plainTag(ctx, path, element, 'renderAs', 'label', 'Form.Label');
     const sizeAttr = findAttr(element, 'size');
     let className: string | undefined = 'label';
     if (sizeAttr) {
@@ -536,16 +561,17 @@ const SPECIALS: Record<string, SpecialHandler> = {
       }
     }
     className = mergeClassName(ctx, path, element, className, 'Form.Label');
-    const rest = keptAttrs(ctx, path, element, 'Form.Label', 'label');
+    const rest = keptAttrs(ctx, path, element, 'Form.Label', tag);
     path.replace(
-      plainElement(ctx.j, 'label', className, rest, element.children ?? [])
+      plainElement(ctx.j, tag, className, rest, element.children ?? [])
     );
     ctx.dirty = true;
     return { replaced: true };
   },
 
-  /** Form.Help → plain <p className="help is-{color}">. */
+  /** Form.Help → plain <p className="help is-{color}">, or its `renderAs`. */
   'plain-help'(ctx, path, element) {
+    const tag = plainTag(ctx, path, element, 'renderAs', 'p', 'Form.Help');
     const colorAttr = findAttr(element, 'color');
     let className: string | undefined = 'help';
     if (colorAttr) {
@@ -564,9 +590,9 @@ const SPECIALS: Record<string, SpecialHandler> = {
       }
     }
     className = mergeClassName(ctx, path, element, className, 'Form.Help');
-    const rest = keptAttrs(ctx, path, element, 'Form.Help', 'p');
+    const rest = keptAttrs(ctx, path, element, 'Form.Help', tag);
     path.replace(
-      plainElement(ctx.j, 'p', className, rest, element.children ?? [])
+      plainElement(ctx.j, tag, className, rest, element.children ?? [])
     );
     ctx.dirty = true;
     return { replaced: true };
@@ -631,12 +657,13 @@ const SPECIALS: Record<string, SpecialHandler> = {
     return {};
   },
 
-  /** RBC Loader is a plain <div class="loader"> — keep exactly that. */
+  /** RBC Loader is a plain <div class="loader">, or its `renderAs`. */
   'plain-loader'(ctx, path, element) {
+    const tag = plainTag(ctx, path, element, 'renderAs', 'div', 'Loader');
     const className = mergeClassName(ctx, path, element, 'loader', 'Loader');
-    const rest = keptAttrs(ctx, path, element, 'Loader', 'div');
+    const rest = keptAttrs(ctx, path, element, 'Loader', tag);
     path.replace(
-      plainElement(ctx.j, 'div', className, rest, element.children ?? [])
+      plainElement(ctx.j, tag, className, rest, element.children ?? [])
     );
     ctx.dirty = true;
     return { replaced: true };
@@ -683,8 +710,12 @@ const SPECIALS: Record<string, SpecialHandler> = {
     return {};
   },
 
-  /** Panel.Tabs.Tab → plain <a> (bestax Panel.Tabs children are anchors). */
+  /**
+   * Panel.Tabs.Tab → plain <a>, or its `renderAs` (bestax Panel.Tabs
+   * children are plain elements).
+   */
   'panel-tab'(ctx, path, element) {
+    const tag = plainTag(ctx, path, element, 'renderAs', 'a', 'Panel.Tabs.Tab');
     const activeAttr = findAttr(element, 'active');
     let className: string | undefined;
     if (activeAttr) {
@@ -702,15 +733,20 @@ const SPECIALS: Record<string, SpecialHandler> = {
       removeAttr(element, activeAttr);
     }
     className = mergeClassName(ctx, path, element, className, 'Panel.Tabs.Tab');
-    const rest = keptAttrs(ctx, path, element, 'Panel.Tabs.Tab', 'a');
+    const rest = keptAttrs(ctx, path, element, 'Panel.Tabs.Tab', tag);
     path.replace(
-      plainElement(ctx.j, 'a', className, rest, element.children ?? [])
+      plainElement(ctx.j, tag, className, rest, element.children ?? [])
     );
     ctx.dirty = true;
     return { replaced: true };
   },
 
-  /** Breadcrumb.Item → <li className="is-active"><a href>…</a></li>. */
+  /**
+   * Breadcrumb.Item → <li className="is-active"><a href>…</a></li>. RBC
+   * rendered the item as its `renderAs`, an <li> by default, with the
+   * children inside. The <li> gets the anchor of Bulma's breadcrumb markup;
+   * an item that rendered another element is written as that element.
+   */
   'breadcrumb-item'(ctx, path, element) {
     const j = ctx.j;
     const activeAttr = findAttr(element, 'active');
@@ -730,6 +766,20 @@ const SPECIALS: Record<string, SpecialHandler> = {
     }
     liClass = mergeClassName(ctx, path, element, liClass, 'Breadcrumb.Item');
     const children = element.children ?? [];
+    const tag = plainTag(
+      ctx,
+      path,
+      element,
+      'renderAs',
+      'li',
+      'Breadcrumb.Item'
+    );
+    if (tag !== 'li') {
+      const rest = keptAttrs(ctx, path, element, 'Breadcrumb.Item', tag);
+      path.replace(plainElement(j, tag, liClass, rest, children));
+      ctx.dirty = true;
+      return { replaced: true };
+    }
     const solidChildren = children.filter(
       (c: any) => !(c.type === 'JSXText' && c.value.trim() === '')
     );
@@ -838,6 +888,14 @@ const SPECIALS: Record<string, SpecialHandler> = {
       ctx.dirty = true;
       return { replaced: true };
     }
+    const tag = plainTag(
+      ctx,
+      path,
+      element,
+      'renderAs',
+      'div',
+      'Table.Container'
+    );
     const className = mergeClassName(
       ctx,
       path,
@@ -845,18 +903,18 @@ const SPECIALS: Record<string, SpecialHandler> = {
       'table-container',
       'Table.Container'
     );
-    const rest = keptAttrs(ctx, path, element, 'Table.Container', 'div');
+    const rest = keptAttrs(ctx, path, element, 'Table.Container', tag);
     path.replace(
-      plainElement(ctx.j, 'div', className, rest, element.children ?? [])
+      plainElement(ctx.j, tag, className, rest, element.children ?? [])
     );
     ctx.dirty = true;
     return { replaced: true };
   },
 
   /**
-   * RBC Tabs.Tab renders its own anchor; bestax Tabs.Item is the bare <li>
-   * and Bulma styles `.tabs li a` — wrap the children in an <a> unless one
-   * is already there.
+   * RBC Tabs.Tab renders its own anchor, its `renderAs`; bestax Tabs.Item is
+   * the bare <li> and Bulma styles `.tabs li a` — wrap the children in that
+   * element unless an <a> is already there.
    */
   'tab-item'(ctx, path, element) {
     const children = element.children ?? [];
@@ -870,6 +928,8 @@ const SPECIALS: Record<string, SpecialHandler> = {
       solid[0].openingElement.name.type === 'JSXIdentifier' &&
       solid[0].openingElement.name.name === 'a';
     if (alreadyAnchor) return {};
+    const tag = plainTag(ctx, path, element, 'renderAs', 'a', 'Tabs.Tab');
+    dropLinkAttrsForPlainTag(ctx, path, element, tag, 'Tabs.Tab');
     const anchorKept = new Set(
       stripModifierProps(
         ctx,
@@ -895,7 +955,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       }
     }
     element.children = [
-      plainElement(ctx.j, 'a', undefined, anchorAttrs, children),
+      plainElement(ctx.j, tag, undefined, anchorAttrs, children),
     ];
     ctx.dirty = true;
     return {};

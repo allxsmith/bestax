@@ -67,6 +67,22 @@ describe('useInertSiblings', () => {
     expect(inert(before, after)).toEqual([false, false]);
   });
 
+  it('leaves the element it is told to keep reachable', () => {
+    const { loading, backdrop, before } = page(
+      '<div id="before"></div><div id="loading"></div><div id="backdrop"></div>'
+    );
+    const { rerender } = renderHook(
+      ({ active }) =>
+        useInertSiblings({ current: loading }, active, false, {
+          current: backdrop,
+        }),
+      { initialProps: { active: true } }
+    );
+    expect(inert(before, backdrop)).toEqual([true, false]);
+    rerender({ active: false });
+    expect(inert(before, backdrop)).toEqual([false, false]);
+  });
+
   it('puts them back on unmount', () => {
     const { loading, before } = page(
       '<div id="before"></div><div id="loading"></div>'

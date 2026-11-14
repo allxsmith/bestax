@@ -2,8 +2,8 @@
 /**
  * Write the ESLint plugin's component metadata from the library's own TSDoc.
  *
- * Two of the plugin's rules need to know things only the library knows, and
- * both go stale the moment a prop is renamed:
+ * Several of the plugin's rules need to know things only the library knows,
+ * and each goes stale the moment a prop is renamed:
  *
  *   no-deprecated-props   which props carry `@deprecated`, and what replaces
  *                         them. The replacement is not a separate field — it
@@ -15,6 +15,11 @@
  *                         button. Getting that backwards is the whole point of
  *                         the rule, so the set is read from the TSDoc sentence
  *                         the library states it in, never hand-listed.
+ *   no-inert-flex-props   which elements are flex containers by their own
+ *                         CSS, so the flex container props render on them with
+ *                         no `display` prop. Read from the `@flexContainer`
+ *                         tag on an element's props type or one of its bases,
+ *                         which the extractor reports as `flexContainer`.
  *   no-bulma-component-class
  *                         which Bulma classes name a bestax component. That is
  *                         not the library's knowledge but bestax-migrate's:
@@ -95,6 +100,37 @@ const TEXT_ALIAS_MARKER = /Text color alias/i;
  * addition needs no edit here, while a rewording of one of these fails loudly.
  */
 const TEXT_ALIAS_ANCHORS = ['Box', 'Card', 'Content'];
+
+/**
+ * Elements that must stay in the flex container set, which the extractor
+ * reads off the `@flexContainer` tag (`flexContainer` on a table). Without
+ * one, `no-inert-flex-props` would report every `alignItems` written on it,
+ * which renders. Names rather than a count, so a new flex container needs no
+ * edit here.
+ */
+const FLEX_CONTAINER_ANCHORS = ['Center', 'Flex', 'Group', 'Stack'];
+
+/**
+ * What would make the flex container set wrong to write: an anchor missing,
+ * which would have `no-inert-flex-props` report props that render.
+ *
+ * @param {Set<string>} flexContainers
+ */
+export function flexContainerViolations(flexContainers) {
+  const missing = FLEX_CONTAINER_ANCHORS.filter(n => !flexContainers.has(n));
+  return missing.length
+    ? [
+        `${missing.join(', ')} no longer ${
+          missing.length === 1 ? 'carries' : 'carry'
+        } \`@flexContainer\` on ${
+          missing.length === 1 ? 'its' : 'their'
+        } props, so no-inert-flex-props would report the flex props written ` +
+          `on ${missing.length === 1 ? 'it' : 'them'}, which render. If the ` +
+          'tag moved on purpose, update FLEX_CONTAINER_ANCHORS here in the ' +
+          'same change.',
+      ]
+    : [];
+}
 
 /**
  * `Use \`isFullwidth\` instead — …` → `isFullwidth`.
@@ -397,10 +433,13 @@ export function collect(deps = {}) {
   const knownProps = new Map();
   /** element paths whose `color` is a text alias */
   const textAlias = new Set();
+  /** element paths that are flex containers by their own CSS */
+  const flexContainers = new Set();
 
   for (const name of names) {
     const info = readComponent(name, { markdown: false });
     for (const table of info.tables ?? []) {
+      if (table.flexContainer) flexContainers.add(table.path);
       // Every element's own prop names, so a replacement or a rewrite target
       // can be checked against what the element actually declares.
       knownProps.set(table.path, new Set((table.rows ?? []).map(r => r.name)));
@@ -433,10 +472,20 @@ export function collect(deps = {}) {
   if (violations.length) throw new Error(violations.join('\n'));
   // Every element path the library documents, compound parts included, so
   // the class table can be held to real JSX names (`Hero.Body`, not just `Hero`).
-  return { deprecated, textAlias, elements: new Set(knownProps.keys()) };
+  return {
+    deprecated,
+    textAlias,
+    flexContainers,
+    elements: new Set(knownProps.keys()),
+  };
 }
 
-export function render({ deprecated, textAlias, classes = [] }) {
+export function render({
+  deprecated,
+  textAlias,
+  flexContainers = new Set(),
+  classes = [],
+}) {
   const entries = [...deprecated.entries()].sort(([a], [b]) =>
     a < b ? -1 : a > b ? 1 : 0
   );
@@ -489,6 +538,19 @@ ${rows.join('\n')}
  */
 export const TEXT_ALIAS_COLOR_ELEMENTS: readonly string[] = [
 ${[...textAlias]
+  .sort()
+  .map(n => `  ${JSON.stringify(n)},`)
+  .join('\n')}
+];
+
+/**
+ * Elements that are flex containers by their own CSS, so the flex container
+ * props (\`alignItems\`, \`justifyContent\` and the rest) render on them with
+ * no \`display\` prop, unless a \`display\` prop makes them something else.
+ * Read from the \`@flexContainer\` tag on each one's props type or its bases.
+ */
+export const FLEX_CONTAINER_ELEMENTS: readonly string[] = [
+${[...flexContainers]
   .sort()
   .map(n => `  ${JSON.stringify(n)},`)
   .join('\n')}
@@ -572,7 +634,10 @@ export async function build(deps = {}) {
   const violations = classTableViolations(classes, exportedModules());
   if (violations.length) throw new Error(violations.join('\n'));
   const tables = collect();
-  const unknown = unknownComponents(classes, tables.elements);
+  const unknown = [
+    ...unknownComponents(classes, tables.elements),
+    ...flexContainerViolations(tables.flexContainers),
+  ];
   if (unknown.length) throw new Error(unknown.join('\n'));
   const out = render({ ...tables, classes: classes.entries });
   const prettier = require('prettier');

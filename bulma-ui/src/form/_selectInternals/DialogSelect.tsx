@@ -88,6 +88,7 @@ export interface DialogSelectProps
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   size?: 'small' | 'medium' | 'large';
   isRounded?: boolean;
+  /** Left out, the panel lines up with the field's start edge. */
   position?: PickerPosition;
   appendToBody?: boolean;
   /** Holds the field, which focus goes back to. */
@@ -174,7 +175,7 @@ export function DialogSelect({
   color,
   size,
   isRounded,
-  position = 'bottom-left',
+  position,
   appendToBody = false,
   inputRef,
   fieldRef,

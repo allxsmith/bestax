@@ -36,11 +36,20 @@ export interface TagProps
     Omit<BulmaClassesProps, 'color'> {
   /** Additional CSS classes to apply. */
   className?: string;
-  /** Bulma color modifier for the tag. */
+  /**
+   * Bulma color modifier for the tag.
+   *
+   * `light` takes the light color's own text from bestax's stylesheets. With
+   * Bulma's CSS alone, a light tag's text inherits the color around it, which
+   * on a dark page is hard to read.
+   */
   color?: TagColor;
   /** Tag size. */
   size?: TagSize;
-  /** Use the light color variant. */
+  /**
+   * Use the light color variant. The light color has none, so
+   * `color="light"` with `isLight` looks the same as without it.
+   */
   isLight?: boolean;
   /** Renders a rounded tag. */
   isRounded?: boolean;
@@ -88,7 +97,9 @@ export const Tag: React.FC<TagProps> = ({
   const bulmaClasses = usePrefixedClassNames('tag', {
     [`is-${color}`]: color && validTagColors.includes(color),
     [`is-${size}`]: size && size !== 'normal' && validTagSizes.includes(size),
-    'is-light': isLight,
+    // The light color's own class is this key too, and this one comes later,
+    // so it has to set the class for `light` as well or it erases it.
+    'is-light': isLight || color === 'light',
     'is-rounded': isRounded,
     'is-delete': isDelete,
     'is-hoverable': isHoverable,

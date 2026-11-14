@@ -155,6 +155,11 @@ afterEach(async () => {
   await fs.remove(workDir);
 });
 
+/** A source file's code, without the comments that explain it. */
+function withoutLineComments(source: string): string {
+  return source.replace(/^\s*\/\/.*$/gm, '');
+}
+
 async function scaffold(template: string): Promise<string> {
   const target = path.join(workDir, template);
   await projectCreator.copyTemplate(template, target);
@@ -669,6 +674,20 @@ describe.each([
       expect(fs.existsSync(path.join(target, `src/router.${ext}`))).toBe(false);
     });
 
+    // `active` sets `aria-current="page"` on a `Navbar.Item` itself (#1338),
+    // and TanStack sets it on its own links, so no file writes it by hand.
+    it('leaves aria-current to Navbar.Item and the router', async () => {
+      const target = await scaffold(directory);
+      await projectCreator.setupRouter(target, template);
+      for (const file of files) {
+        const code = withoutLineComments(await read(target, file));
+        expect({ file, written: /\baria-current=/.test(code) }).toEqual({
+          file,
+          written: false,
+        });
+      }
+    });
+
     it('uses no helper prop in the files it adds, so a no-helpers flavor renders them as written', async () => {
       const target = await scaffold(directory);
       await projectCreator.setupRouter(target, template);
@@ -784,6 +803,14 @@ describe.each([
     expect(layout).toMatch(
       /<body>\n\s*<Script type="module" src="https:\/\/unpkg\.com\/ionicons@8\.0\.13\/dist\/ionicons\/ionicons\.esm\.js" \/>/
     );
+  });
+
+  // `active` sets `aria-current="page"` on a `Navbar.Item` itself (#1338).
+  it('leaves aria-current to Navbar.Item', async () => {
+    const target = await scaffold(template);
+    const navigation = await read(target, `src/Navigation.${ext}`);
+    expect(navigation).toContain('active={pathname === href}');
+    expect(withoutLineComments(navigation)).not.toMatch(/\baria-current=/);
   });
 
   it('keeps the About page a Server Component, using no dotted part', async () => {

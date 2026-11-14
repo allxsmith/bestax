@@ -96,8 +96,10 @@ overrides:
   # Every entry below carries its own marker; this prose annotates nothing.
   # bestax:review 2026-11-13 — quarterly sweep
   # Force the patched serialize-javascript (transitive via Docusaurus webpack
-  # plugins) — <=7.0.2 has an RCE advisory (GHSA-5c6j-r48x-rmvq).
-  serialize-javascript: '>=7.0.3'
+  # plugins) — <=7.0.2 has an RCE advisory (GHSA-5c6j-r48x-rmvq). Floor raised
+  # to 7.1.3 for a low-severity follow-up advisory against <7.1.3; 7.1.3
+  # (2026-10-22) is past the cooldown.
+  serialize-javascript: '>=7.1.3'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched sharp (transitive via wrangler>miniflare, CI-only deploy
   # tooling with its native build blocked above) — high libvips CVEs. Floor
@@ -156,10 +158,12 @@ overrides:
   # Force patched fast-uri under ajv@8 (transitive via commitlint, webpack's
   # schema-utils, the eslint toolchain and the MCP SDK) for its high
   # advisories. The floor is the newest fix on the 3.x line: 3.1.7 patches
-  # GHSA-qw65-cvwx-89v3 and GHSA-58mr-gqgx-xq4g. Scoped to the affected 3.x
-  # major, since each major gets its own backport. Prune once the ajv chain
-  # resolves to >=3.1.7 on its own.
-  'fast-uri@3': '>=3.1.7 <4'
+  # GHSA-qw65-cvwx-89v3 and GHSA-58mr-gqgx-xq4g. Floor raised to 3.1.9 for a
+  # later batch of low and moderate advisories against >=3.0.0 <3.1.9; 3.1.9
+  # (2026-10-19) is past the cooldown. Scoped to the affected 3.x major, since
+  # each major gets its own backport. Prune once the ajv chain resolves to
+  # >=3.1.9 on its own.
+  'fast-uri@3': '>=3.1.9 <4'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched undici 7.x (transitive via semantic-release/github and
   # wrangler>miniflare: release and CI-deploy tooling, never published output)
@@ -305,24 +309,36 @@ overrides:
   # reaches it. 2.14.2 (2026-10-06) is past the cooldown, so no exclude entry
   # is needed. Prune once that chain resolves to >=2.14.2 without the force.
   'launch-editor@<2.14.2': '>=2.14.2'
+  # bestax:review 2026-12-01 — drop once @docusaurus/mdx-loader resolves to
+  # >=2.0.3 itself; re-resolve and leave it out if the version is unchanged.
+  # Force patched image-size (transitive via @docusaurus/mdx-loader, docs build
+  # only) for the two high DoS advisories GHSA-w3rx-r6r6-pgpr and
+  # GHSA-5p2g-fcmc-qvqq, which were audit exceptions until 2.0.3 published
+  # (2026-09-14). mdx-loader asks for ^2.0.2, so this stays inside its range.
+  'image-size@2': '>=2.0.3 <3'
+  # bestax:review 2026-12-01 — drop once express@4 admits qs >=6.16.0
+  # Force patched qs under the Docusaurus dev server's express@4, which asks for
+  # ~6.15.1, for three moderate advisories against >=2.2.5 <6.16.0. Dev-only,
+  # never shipped. The copy under the MCP SDK's express@5 already resolves past
+  # the floor. Unbounded-lower because the advisory has a single patched floor;
+  # capped below 7 so a future major is never forced in.
+  'qs@<6.16.0': '>=6.16.0 <7'
+  # bestax:review 2026-12-01 — drop once sockjs or webpack-dev-server stops
+  # pinning uuid 8
+  # Force patched uuid under webpack-dev-server>sockjs (the Docusaurus dev
+  # server, dev-only) for a moderate advisory against <11.1.1. sockjs asks for
+  # ^8.3.2 and only calls uuid.v4(); 11.x still ships a CommonJS entry with v4,
+  # so the require keeps working. Capped at 11.x: 12 and later are the lines to
+  # vet separately.
+  'uuid@<11.1.1': '>=11.1.1 <12'
 
 # --- Audit exceptions (no patched release exists) ---
 
-# image-size <=2.0.2 carries two high DoS advisories (infinite loops in the
-# ICNS, JXL, and HEIF parsers): GHSA-w3rx-r6r6-pgpr and GHSA-5p2g-fcmc-qvqq.
-# GitHub lists no patched release for either (`first_patched_version: null`;
-# the ">=2.0.3" in audit output is unpublished) and npm's latest is still
-# 2.0.2, so there is no version an override could force. Exposure is confined
-# to the docs build: Docusaurus's mdx-loader sizes images from this repo's own
-# tree, never untrusted input. Remove both entries and re-run
-# `pnpm audit --audit-level=high` once a patched image-size publishes and the
-# Docusaurus chain resolves to it.
-#
 # braces <=3.0.3 carries a high stack-exhaustion DoS through deeply nested
 # patterns (GHSA-vfj7-8cjw-p6xm), and http-cache-semantics <=4.2.0 a high
 # advisory where max-stale handling can serve one user's cached response to
 # another (GHSA-ch52-4w7c-c8xp). GitHub lists no patched release for either,
-# so again there is nothing to force. No published package depends on either.
+# so there is nothing to force. No published package depends on either.
 # braces arrives through glob tooling (micromatch, chokidar and fast-glob,
 # under semantic-release and Docusaurus), which only ever expands patterns
 # written in this repo. http-cache-semantics arrives through Docusaurus's update-notifier,
@@ -330,11 +346,6 @@ overrides:
 # re-run `pnpm audit --audit-level=high` once its package publishes a fix.
 auditConfig:
   ignoreGhsas:
-    # bestax:review 2026-11-13 — quarterly sweep. The review is "has image-size
-    # published a fix yet", not "can we drop this".
-    - GHSA-w3rx-r6r6-pgpr
-    # bestax:review 2026-11-13 — quarterly sweep; second image-size advisory
-    - GHSA-5p2g-fcmc-qvqq
     # bestax:review 2026-11-13 — quarterly sweep; has braces published a fix
     - GHSA-vfj7-8cjw-p6xm
     # bestax:review 2026-11-13 — quarterly sweep; has http-cache-semantics

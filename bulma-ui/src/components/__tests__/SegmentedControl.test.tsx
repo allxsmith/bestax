@@ -7,6 +7,7 @@ import { createPortal } from 'react-dom';
 import { hydrateRoot } from 'react-dom/client';
 import {
   SegmentedControl,
+  SegmentedControlSegment,
   type SegmentedControlColor,
   type SegmentedControlProps,
 } from '../SegmentedControl';
@@ -964,7 +965,22 @@ describe('SegmentedControl', () => {
 
   describe('Compound components', () => {
     it('attaches Segment as a static', () => {
-      expect(SegmentedControl.Segment).toBeDefined();
+      expect(SegmentedControl.Segment).toBe(SegmentedControlSegment);
+    });
+
+    it('renders through the named export', () => {
+      render(
+        <SegmentedControl aria-label="Billing" defaultValue="yearly">
+          <SegmentedControlSegment value="monthly">
+            Monthly
+          </SegmentedControlSegment>
+          <SegmentedControlSegment value="yearly">
+            Yearly
+          </SegmentedControlSegment>
+        </SegmentedControl>
+      );
+      expect(radio('Yearly')).toHaveAttribute('aria-checked', 'true');
+      expect(radio('Monthly')).toHaveAttribute('aria-checked', 'false');
     });
 
     it('renders through the dot path', () => {

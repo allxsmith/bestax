@@ -17,6 +17,7 @@ import { flattenChildren } from '../helpers/flattenChildren';
 import { warnOnce } from '../helpers/devWarnings';
 import { useLocaleMatcher, type TextMatcher } from '../helpers/localeFormat';
 import { isModalOverlayOpen } from '../helpers/overlayStack';
+import { PortalScope } from '../helpers/portal';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
 import {
   ComboboxEngine,
@@ -140,7 +141,7 @@ export interface CommandActionsProps extends CommandBaseProps {
    * @defaultValue 'No results'
    */
   empty?: React.ReactNode;
-  /** @internal With `actions`, the Command renders its own parts. */
+  /** With `actions`, the Command renders its own parts. */
   children?: never;
 }
 
@@ -154,13 +155,13 @@ export interface CommandPartsProps extends CommandBaseProps {
    * with a warning in development.
    */
   children?: React.ReactNode;
-  /** @internal Built from parts, the app renders the items. */
+  /** Built from parts, the app renders the items. */
   actions?: never;
-  /** @internal Built from parts, the app filters. */
+  /** Built from parts, the app filters. */
   filter?: never;
-  /** @internal Built from parts, `Command.Input` takes the placeholder. */
+  /** Built from parts, `Command.Input` takes the placeholder. */
   placeholder?: never;
-  /** @internal Built from parts, `Command.Empty` is the empty message. */
+  /** Built from parts, `Command.Empty` is the empty message. */
   empty?: never;
 }
 
@@ -1287,6 +1288,18 @@ export const CommandDialog = forwardRef<HTMLDivElement, CommandDialogProps>(
 
     const dialogClass = usePrefixedClassNames('command-dialog');
 
+    // The box, as state, for the popups inside to portal into. It's what
+    // carries `aria-modal`, rather than the Modal's root around it.
+    const [scopeNode, setScopeNode] = useState<HTMLDivElement | null>(null);
+    const dialogRef = useCallback(
+      (node: HTMLDivElement | null) => {
+        setScopeNode(node);
+        if (typeof ref === 'function') ref(node);
+        else if (ref) ref.current = node;
+      },
+      [ref]
+    );
+
     if (!open) return null;
 
     const close = () => setOpen(false);
@@ -1298,23 +1311,25 @@ export const CommandDialog = forwardRef<HTMLDivElement, CommandDialogProps>(
     return (
       <Modal isActive onClose={close} role="presentation" portal={portal}>
         <Modal.Background onClick={close} />
-        <CommandRoot
-          {...(props as CommandProps)}
-          ref={ref}
-          className={classNames(dialogClass, className)}
-          label={label}
-          query={query}
-          onQueryChange={setQuery}
-          onSelect={run}
-          role="dialog"
-          aria-modal="true"
-          aria-label={
-            ariaLabelledBy === undefined
-              ? ariaLabel || label || defaultLabel
-              : ariaLabel
-          }
-          aria-labelledby={ariaLabelledBy}
-        />
+        <PortalScope node={scopeNode}>
+          <CommandRoot
+            {...(props as CommandProps)}
+            ref={dialogRef}
+            className={classNames(dialogClass, className)}
+            label={label}
+            query={query}
+            onQueryChange={setQuery}
+            onSelect={run}
+            role="dialog"
+            aria-modal="true"
+            aria-label={
+              ariaLabelledBy === undefined
+                ? ariaLabel || label || defaultLabel
+                : ariaLabel
+            }
+            aria-labelledby={ariaLabelledBy}
+          />
+        </PortalScope>
       </Modal>
     );
   }

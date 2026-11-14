@@ -260,15 +260,21 @@ export const CompoundComponentsMinimal: Story = {
 
 export const MixedApproach: Story = {
   render: () => (
-    <Card header="Prop-based header" textColor="primary" m="3">
-      <Card.Content className="has-background-light">
-        <p>You can mix prop-based and compound component approaches!</p>
+    <Card header="Prop-based header" m="3">
+      <Card.Content>
+        <p>You can mix the prop-based and compound approaches.</p>
         <p>
-          This card uses the header prop but compound components for content.
+          This card sets its header with the header prop and builds its content
+          and footer from compound parts.
         </p>
       </Card.Content>
       <Card.Footer>
-        <Card.FooterItem>Mixed approach example</Card.FooterItem>
+        <Card.FooterItem as="a" href="#save">
+          Save
+        </Card.FooterItem>
+        <Card.FooterItem as="a" href="#cancel">
+          Cancel
+        </Card.FooterItem>
       </Card.Footer>
     </Card>
   ),
@@ -276,7 +282,7 @@ export const MixedApproach: Story = {
     docs: {
       description: {
         story:
-          'Shows how you can mix the traditional prop-based API with compound components for maximum flexibility.',
+          'Shows the prop-based header beside compound parts for the content and footer, in one card.',
       },
     },
   },

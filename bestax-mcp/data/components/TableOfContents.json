@@ -1,0 +1,141 @@
+{
+  "name": "TableOfContents",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/tableofcontents",
+  "docsUrl": "https://bestax.io/docs/api/components/tableofcontents",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<Columns>\n  <Column>\n    <Content>\n      <h2 id=\"install\">Install</h2>\n      <p>Add the package and import its stylesheet once.</p>\n      <h2 id=\"usage\">Usage</h2>\n      <h3 id=\"props\">Props</h3>\n      <h3 id=\"examples\">Examples</h3>\n      <h2 id=\"faq\">FAQ</h2>\n    </Content>\n  </Column>\n  <Column size=\"one-quarter\">\n    <TableOfContents\n      isSticky\n      items={[\n        { id: 'install', label: 'Install' },\n        {\n          id: 'usage',\n          label: 'Usage',\n          children: [\n            { id: 'props', label: 'Props' },\n            { id: 'examples', label: 'Examples' },\n          ],\n        },\n        { id: 'faq', label: 'FAQ' },\n      ]}\n    />\n  </Column>\n</Columns>"
+    },
+    {
+      "title": "Basic Usage",
+      "code": "<TableOfContents\n  offset={68}\n  items={[\n    {\n      id: 'usage',\n      label: 'Usage',\n      children: [\n        { id: 'basic-usage', label: 'Basic Usage' },\n        {\n          id: 'a-sticky-header-and-smooth-scrolling',\n          label: 'A Sticky Header and Smooth Scrolling',\n        },\n        {\n          id: 'reporting-the-current-section',\n          label: 'Reporting the Current Section',\n        },\n        { id: 'the-usescrollspy-hook', label: 'The useScrollSpy Hook' },\n        { id: 'translations', label: 'Translations' },\n      ],\n    },\n    { id: 'which-section-is-current', label: 'Which Section Is Current' },\n    { id: 'accessibility', label: 'Accessibility' },\n  ]}\n/>"
+    },
+    {
+      "title": "Reporting the Current Section",
+      "code": "function example() {\n  const [current, setCurrent] = useState<string | null>(null);\n  return (\n    <>\n      <Paragraph textWeight=\"semibold\">\n        Reading: {current ?? 'nothing yet'}\n      </Paragraph>\n      <TableOfContents\n        offset={68}\n        onCurrentChange={setCurrent}\n        items={[\n          { id: 'usage', label: 'Usage' },\n          { id: 'which-section-is-current', label: 'Which Section Is Current' },\n          { id: 'accessibility', label: 'Accessibility' },\n          { id: 'related-components', label: 'Related Components' },\n        ]}\n      />\n    </>\n  );\n}"
+    },
+    {
+      "title": "The useScrollSpy Hook",
+      "code": "function example() {\n  const sections = [\n    { id: 'usage', label: 'Usage' },\n    { id: 'which-section-is-current', label: 'Which Section Is Current' },\n    { id: 'accessibility', label: 'Accessibility' },\n  ];\n  const current = useScrollSpy({\n    ids: sections.map(section => section.id),\n    offset: 68,\n  });\n  return (\n    <Menu aria-label=\"This page\">\n      <Menu.List>\n        {sections.map(section => (\n          <Menu.Item\n            key={section.id}\n            href={`#${section.id}`}\n            active={current === section.id}\n            aria-current={current === section.id ? 'location' : undefined}\n          >\n            {section.label}\n          </Menu.Item>\n        ))}\n      </Menu.List>\n    </Menu>\n  );\n}"
+    },
+    {
+      "title": "Translations",
+      "code": "<TableOfContents\n  offset={68}\n  labels={{ title: 'Sur cette page' }}\n  items={[\n    { id: 'usage', label: 'Utilisation' },\n    {\n      id: 'accessibility',\n      label: (\n        <>\n          Accessibilité <Tag color=\"info\">a11y</Tag>\n        </>\n      ),\n    },\n  ]}\n/>"
+    }
+  ],
+  "accessibility": "- **A named landmark:** it's a `<nav>`, named by its visible title through `aria-labelledby`, so a\n  screen reader's list of landmarks tells it apart from the site's main navigation. Change the name\n  with `labels.title`.\n- **Real links:** each entry is an `<a href=\"#id\">`, so it works before hydration, opens in a new\n  tab, and can be shared. Following one is the browser's own jump, so the next Tab moves on from the\n  section the reader picked, where a scripted scroll would send it back to the list.\n- **One current link:** the current link alone has `aria-current=\"location\"`, ARIA's token for where\n  you are within a page, never `page`, since the page hasn't changed, and never on more than one\n  link.\n- **Lists stay lists:** each `MenuList` restates `role=\"list\"`, which Bulma's list reset strips in\n  Safari.\n- **Not hidden under a sticky header:** with `scroll-padding-top` on the page, a jump lands below\n  the header, as WCAG's Focus Not Obscured asks. With `isSticky`, the list keeps room around its\n  links for a focus ring, which its scrolling would clip otherwise.\n- **No motion of its own:** smooth scrolling is your page's CSS, inside\n  `prefers-reduced-motion: no-preference`, and the list scrolls itself instantly.\n- **Forced colors:** the current link keeps Menu's bar in the system's Highlight color, since forced\n  colors replaces Bulma's fill.",
+  "related": ["Columns", "Menu", "Reveal", "Steps", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-tableofcontents--default",
+  "summary": "The `TableOfContents` component lists a long page's sections as links in Bulma's menu look, and marks the one being read. It's a `<nav>` named by its title, holding `MenuList` and `MenuItem` links to each `#id`, rendered in full on the server. `useScrollSpy` picks the current section, and its link alone gets `is-active` and `aria-current=\"location\"`. Use the hook on its own to mark the section in view somewhere else, such as an app's nav `Menu`.",
+  "import": "import { TableOfContents, useScrollSpy } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/TableOfContents.tsx",
+  "rootClass": "table-of-contents",
+  "parts": [
+    {
+      "path": "TableOfContents",
+      "summary": "The `TableOfContents` component lists a long page's sections as links in Bulma's menu look, and marks the one being read. It's a `<nav>` named by its title, holding `MenuList` and `MenuItem` links to each `#id`, rendered in full on the server. `useScrollSpy` picks the current section, and its link alone gets `is-active` and `aria-current=\"location\"`. Use the hook on its own to mark the section in view somewhere else, such as an app's nav `Menu`.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "items",
+          "type": "{ id: string; label: React.ReactNode; children?: TableOfContentsItem[] }[]",
+          "default": null,
+          "description": "**Required.** The sections, in page order, as links to their ids. Each link is a plain `<a href=\"#id\">`, so following one is the browser's own jump: put `scroll-padding-top` on the page to land clear of a sticky header, and smooth scrolling, if you want it, in page CSS inside `@media (prefers-reduced-motion: no-preference)`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onCurrentChange",
+          "type": "(id: string | null) => void",
+          "default": null,
+          "description": "Called with the current section's id when it changes, or `null` above the first section. Never called on the server or before hydration.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "offset",
+          "type": "number",
+          "default": null,
+          "description": "Pixels from the viewport's top where a section counts as reached. Unset, it's the page's `scroll-padding-top`, so the highlight agrees with where a jump lands under a sticky header.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isSticky",
+          "type": "boolean",
+          "default": "false",
+          "description": "Sticks to the top of the viewport as the page scrolls, at `--bulma-table-of-contents-sticky-top`, and scrolls itself when it's taller than the viewport. Adds `is-sticky`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "{ title?: string }",
+          "default": null,
+          "description": "The visible strings, in your app's language.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLElement>",
+          "default": null,
+          "description": "Ref forwarded to the `<nav>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard HTML attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-table-of-contents-sticky-top",
+      "sass": "$table-of-contents-sticky-top",
+      "default": "var(--bulma-block-spacing)",
+      "scope": "root"
+    }
+  ],
+  "cssVarsFrom": "Menu"
+}

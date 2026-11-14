@@ -1,0 +1,146 @@
+.main {
+  max-width: 40rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 1rem 1.25rem 2rem;
+  text-align: center;
+}
+
+/* The logo's hex, as a plate behind the mark. Same shape as the hero rings. */
+.mark {
+  width: 112px;
+  height: 112px;
+  margin: 0 auto 1.5rem;
+  display: grid;
+  place-items: center;
+  background: rgba(30, 107, 153, 0.12);
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+}
+
+[data-theme='dark'] .mark {
+  background: rgba(53, 144, 195, 0.2);
+}
+
+.mark img {
+  width: 72px;
+  height: 72px;
+}
+
+.title {
+  margin: 0 0 0.75rem;
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--ifm-heading-color);
+}
+
+.lead {
+  margin: 0 auto;
+  max-width: 34rem;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.lead + .lead {
+  margin-top: 0.35rem;
+}
+
+.hint {
+  margin: 1.25rem auto 0;
+  max-width: 34rem;
+  color: var(--ifm-font-color-base);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 2rem;
+  text-align: left;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  height: 100%;
+  padding: 1.15rem 1.25rem;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 16px;
+  background: var(--ifm-background-surface-color);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.card:hover {
+  border-color: var(--ifm-color-primary);
+  color: inherit;
+  text-decoration: none;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+
+[data-theme='dark'] .card {
+  border-color: var(--ifm-color-emphasis-300);
+  background: var(--ifm-color-emphasis-100);
+}
+
+/* Outranks the dark-mode border, so a hovered card still turns the primary color. */
+[data-theme='dark'] .card:hover {
+  border-color: var(--ifm-color-primary);
+}
+
+.cardLabel {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ifm-heading-color);
+}
+
+.cardDetail {
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.92rem;
+}
+
+.search {
+  margin: 1.75rem 0 0;
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.95rem;
+}
+
+.search kbd {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.85em;
+  padding: 0.1em 0.4em;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  background: var(--ifm-color-emphasis-100);
+  color: var(--ifm-font-color-base);
+}
+
+@media screen and (max-width: 600px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+
+  .card:hover {
+    transform: none;
+  }
+}

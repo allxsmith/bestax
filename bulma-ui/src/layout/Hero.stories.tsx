@@ -8,7 +8,8 @@ import SubTitle from '../elements/SubTitle';
 import Container from '../layout/Container';
 import { Button } from '../elements/Button';
 import { Icon } from '../elements/Icon';
-import Image from '../elements/Image';
+import { Span } from '../elements/Span';
+import logo from '../../images/logo.svg';
 
 const meta: Meta<typeof Hero> = {
   title: 'Layout/Hero',
@@ -205,6 +206,17 @@ export const FullHeight: StoryObj<typeof Hero> = {
   ),
 };
 
+// The bestax logo and name, the brand the docs site's navbar shows. The name
+// takes the navbar item's color, which a hero sets to read on its own color.
+const BestaxBrand = () => (
+  <Navbar.Item href="#">
+    <img src={logo} alt="" width="28" height="28" />
+    <Span textWeight="bold" textSize="5">
+      Bestax
+    </Span>
+  </Navbar.Item>
+);
+
 // FullHeight with Navbar story
 export const FullHeightWithNavbar: StoryObj<typeof Hero> = {
   name: 'FullHeight with Navbar',
@@ -212,6 +224,9 @@ export const FullHeightWithNavbar: StoryObj<typeof Hero> = {
     <>
       <Navbar>
         <Container>
+          <Navbar.Brand>
+            <BestaxBrand />
+          </Navbar.Brand>
           <Navbar.Menu id="navMenu">
             <Navbar.Start>
               <Navbar.Item as="a">Getting Started</Navbar.Item>
@@ -220,7 +235,7 @@ export const FullHeightWithNavbar: StoryObj<typeof Hero> = {
             </Navbar.Start>
             <Navbar.End>
               <Navbar.Item as="span">
-                <Button color="primary" isInverted as="a" mx="2">
+                <Button color="primary" as="a" mx="2">
                   Github
                 </Button>
               </Navbar.Item>
@@ -248,9 +263,7 @@ export const FullHeightWithHeadBodyFoot: StoryObj<typeof Hero> = {
         <Navbar>
           <Container>
             <Navbar.Brand>
-              <Navbar.Item as="a">
-                <Image src="/img/bestax-type-white.svg" alt="Bestax" mx="2" />
-              </Navbar.Item>
+              <BestaxBrand />
               <span className="navbar-burger" data-target="navbarMenuHeroA">
                 <span></span>
                 <span></span>

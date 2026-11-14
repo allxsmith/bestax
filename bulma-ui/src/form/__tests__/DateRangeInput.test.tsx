@@ -1098,6 +1098,56 @@ describe('DateRangeInput', () => {
       const { container } = render(<DateRangeInputBase inline id="stay" />);
       expect(container.querySelector('#stay-popover')).toHaveClass('dateinput');
     });
+
+    it('picks nothing when disabled, and still submits', () => {
+      const onChange = vi.fn();
+      const { container } = render(
+        <form>
+          <DateRangeInput
+            inline
+            disabled
+            name="stay"
+            defaultValue={[june(10), june(13)]}
+            onChange={onChange}
+          />
+        </form>
+      );
+      expect(screen.getByRole('grid')).toHaveAttribute('aria-disabled', 'true');
+      fireEvent.click(cell(20));
+      fireEvent.click(cell(22));
+      expect(onChange).not.toHaveBeenCalled();
+      // What a form receives is unchanged: the hidden inputs still post.
+      const data = new FormData(container.querySelector('form')!);
+      expect(Array.from(data.entries())).toEqual([
+        ['stay[start]', '2024-06-10'],
+        ['stay[end]', '2024-06-13'],
+      ]);
+    });
+
+    it('picks nothing but still submits when readOnly', () => {
+      const onChange = vi.fn();
+      const { container } = render(
+        <form>
+          <DateRangeInput
+            inline
+            readOnly
+            name="stay"
+            defaultValue={[june(10), june(13)]}
+            onChange={onChange}
+          />
+        </form>
+      );
+      expect(screen.getByRole('grid')).toHaveAttribute('aria-readonly', 'true');
+      fireEvent.click(cell(20));
+      fireEvent.click(cell(22));
+      fireEvent.keyDown(screen.getByRole('grid'), { key: 'Enter' });
+      expect(onChange).not.toHaveBeenCalled();
+      const data = new FormData(container.querySelector('form')!);
+      expect(Array.from(data.entries())).toEqual([
+        ['stay[start]', '2024-06-10'],
+        ['stay[end]', '2024-06-13'],
+      ]);
+    });
   });
 
   describe('native inputs', () => {

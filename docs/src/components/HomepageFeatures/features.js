@@ -13,10 +13,10 @@ export const FEATURES = [
     chips: ['bulma 1.x', 'dark mode'],
   },
   {
-    key: 'lightweight',
-    title: 'Lightweight and Efficient',
+    key: 'treeShaking',
+    title: 'Ship Only What You Use',
     description:
-      'Lean runtime: the entire library is ~65KB min+gzip of JS, and tree-shakeable ESM means your app ships only what it imports. Styles are your call — pick a prebuilt Bulma CSS flavor or trim further with modular Sass. Just one dependency: Bulma.',
+      'Tree-shakeable ESM means your app ships only the components it imports. Styles work the same way: pick a prebuilt Bulma CSS flavor or build just the Sass partials you need. Just one dependency: Bulma.',
     kicker: 'ESM · tree-shakeable',
     chips: ['ESM', 'tree-shakeable'],
   },

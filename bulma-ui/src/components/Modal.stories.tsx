@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { Modal, ModalProps } from './Modal';
 import { Box } from '../elements/Box';
+import { Paragraph } from '../elements/Paragraph';
+import { Title } from '../elements/Title';
 
 const declarationLatin = `Quando in cursu rerum humanarum fit ut populus aliquis dissolvere vincula politica quae eum cum alio coniunxerunt, et inter potestates terrae, statum separatam et aequalem, ad quem Iura Naturae et Dei Naturalis eum ius habere concedunt, rationabile decus postulat ut causas separationis declarent.`;
 
@@ -73,10 +75,12 @@ export const ModalCardFooterOnly: StoryObj<ModalProps> = {
 export const ModalContent: StoryObj<ModalProps> = {
   render: () => (
     <ControlledModal>
-      <div style={{ background: '#fff', padding: 24, borderRadius: 4 }}>
-        <h3 className="title is-4">Custom Content</h3>
-        <p>{declarationLatin}</p>
-      </div>
+      <Box>
+        <Title as="h3" textSize="4">
+          Custom Content
+        </Title>
+        <Paragraph>{declarationLatin}</Paragraph>
+      </Box>
     </ControlledModal>
   ),
 };
@@ -85,10 +89,12 @@ export const ModalContent: StoryObj<ModalProps> = {
 export const ModalContentExplicit: StoryObj<ModalProps> = {
   render: () => (
     <ControlledModal type="content">
-      <div style={{ background: '#fff', padding: 24, borderRadius: 4 }}>
-        <h3 className="title is-4">Explicit Content Modal</h3>
-        <p>{declarationLatin}</p>
-      </div>
+      <Box>
+        <Title as="h3" textSize="4">
+          Explicit Content Modal
+        </Title>
+        <Paragraph>{declarationLatin}</Paragraph>
+      </Box>
     </ControlledModal>
   ),
 };
@@ -154,12 +160,12 @@ const CompoundModalContentComponent = () => {
       >
         <Modal.Background onClick={closeModal} />
         <Modal.Content>
-          <div style={{ background: '#fff', padding: 24, borderRadius: 4 }}>
-            <h3 className="title is-4" id="compound-content-modal-title">
+          <Box>
+            <Title as="h3" textSize="4" id="compound-content-modal-title">
               Compound Component Content Modal
-            </h3>
-            <p>{declarationLatin}</p>
-          </div>
+            </Title>
+            <Paragraph>{declarationLatin}</Paragraph>
+          </Box>
         </Modal.Content>
         <Modal.Close variant="floating" />
       </Modal>

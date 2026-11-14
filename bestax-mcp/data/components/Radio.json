@@ -142,7 +142,7 @@
     {
       "css": "--bulma-radio-dot-color",
       "sass": "$radio-dot-color",
-      "default": "var(--bulma-scheme-main)",
+      "default": "var(--bulma-radio-active-color)",
       "scope": "root"
     },
     {

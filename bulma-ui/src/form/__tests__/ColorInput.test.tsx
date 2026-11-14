@@ -480,6 +480,15 @@ describe('ColorInput', () => {
       expect(field()).toHaveAttribute('aria-invalid', 'true');
     });
 
+    // The danger color's class is the same key as the invalid mark's.
+    it('renders the danger color, with or without invalid text', () => {
+      render(<ColorInput color="danger" />);
+      expect(field()).toHaveClass('is-danger');
+      fireEvent.change(field(), { target: { value: 'nope' } });
+      expect(field()).toHaveClass('is-danger');
+      expect(field()).toHaveAttribute('aria-invalid', 'true');
+    });
+
     it('keeps an aria-invalid of its own', () => {
       render(<ColorInput aria-invalid="true" />);
       expect(field()).toHaveAttribute('aria-invalid', 'true');

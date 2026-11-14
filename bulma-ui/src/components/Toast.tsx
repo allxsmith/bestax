@@ -15,7 +15,7 @@ import {
 } from '../helpers/classNames';
 import { useClassPrefix } from '../helpers/Config';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { usePortalContainer } from '../helpers/portal';
+import { Portal, usePortalContainer, usePortalProp } from '../helpers/portal';
 import { LocalePortalScope } from '../helpers/LocaleProvider';
 import { groupIntoPositionStacks } from '../helpers/positionStacks';
 import { useLatestRef } from '../helpers/useLatestRef';
@@ -90,7 +90,9 @@ export interface ToastProps
    */
   container?: string | HTMLElement;
   /**
-   * Renders inline instead of using a portal. Through `toast.show()`, a toast
+   * Renders inline instead of using a portal. Without it, a toast renders
+   * inline on the server and while hydrating, moving into the portal once the
+   * client takes over, so hydration matches. Through `toast.show()`, a toast
    * already renders inline in `ToastContainer`'s stack for its position, and
    * `inline` keeps one with a `container` in that stack too.
    */
@@ -139,7 +141,10 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
     ref
   ) => {
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
-    const resolveContainer = usePortalContainer();
+    // A portal has no server-rendered counterpart, so the toast renders in
+    // place on the server and while hydrating, and moves into its portal
+    // once the client takes over, as Modal's `portal` does.
+    const portal = usePortalProp(container || true);
     const [isVisible, setIsVisible] = useState(true);
     const [isPaused, setIsPaused] = useState(false);
     const toastRef = useRef<HTMLDivElement | null>(null);
@@ -349,17 +354,11 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
       return toastElement;
     }
 
-    const toastContent = <div className={containerClasses}>{toastElement}</div>;
-
-    if (typeof document !== 'undefined') {
-      const target = resolveContainer(container);
-      return createPortal(
-        <LocalePortalScope target={target}>{toastContent}</LocalePortalScope>,
-        target
-      );
-    }
-
-    return null;
+    return (
+      <Portal disabled={!portal.isPortaled} container={portal.container}>
+        <div className={containerClasses}>{toastElement}</div>
+      </Portal>
+    );
   }
 );
 

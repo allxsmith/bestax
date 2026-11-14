@@ -67,6 +67,7 @@ const AS_UNION_TABLE = {
   'Hero.Foot': ['div', 'footer', 'nav'],
   'Hero.Head': ['div', 'header', 'nav'],
   Image: ['figure', 'div', 'p'],
+  Level: ['nav', 'div', 'header', 'footer'],
   'Level.Item': ['div', 'p', 'a'],
   Media: ['article', 'div'],
   'Media.Left': ['figure', 'div'],

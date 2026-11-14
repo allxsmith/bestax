@@ -14,7 +14,7 @@ mechanically.
 
 :::tip See how they compare
 For a capability-by-capability comparison of bestax against react-bulma-components and the other
-major React libraries (Mantine, MUI, Chakra, shadcn/ui, React-Bootstrap), see the latest edition of
+major React libraries (Ant Design, Mantine, MUI, Chakra, shadcn/ui, React-Bootstrap), see the latest edition of
 [**The State of React**](/blog/tags/state-of-react).
 :::
 
@@ -45,12 +45,14 @@ in place:
   `Form.Textarea` → `TextArea`, `Card.Footer.Item` → `Card.FooterItem`, `Hero.Footer` →
   `Hero.Foot`, `Panel.Header` → `Panel.Heading`, `Heading` → `Title`/`SubTitle` by prop value
   (`subtitle={true}` → `SubTitle`, `subtitle={false}`/absent → `Title`, and a truthy `heading` →
-  a plain `<p className="heading">` with a TODO, since Bulma v1 has no rule for that class; a
+  the plain element RBC rendered, an `<h1>` or a literal `renderAs`, with `className="heading"`
+  and its `size` and `weight` classes, plus a TODO, since Bulma v1 has no rule for `heading`; a
   dynamic `subtitle`/`heading` value is left in place with a `TODO(bestax-migrate)`, and its
   `size` becomes `textSize` wherever bestax's `size`, which picks the heading level, would change
   the element RBC rendered),
   `Level.Side align="right"` → `Level.Right`, `Loader` → a plain `<div className="loader">`.
-- **Props** — `renderAs` → `as` (where supported), boolean modifiers gain their bestax prefixes
+- **Props** — `renderAs` → `as` (where supported, and the element itself where a component becomes
+  plain markup), boolean modifiers gain their bestax prefixes
   (`loading` → `isLoading`, `fullwidth` → `isFullwidth`), numeric spacing and text sizes become
   string unions (`textSize={4}` → `textSize="4"`), and values are remapped
   (`textAlign="center"` → `"centered"`, `state="hover"` → `isHovered`).

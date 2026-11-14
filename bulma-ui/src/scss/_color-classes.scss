@@ -1,0 +1,27 @@
+// Bestax Extras - Bulma's color classes
+// A function for the partials that name Bulma's color modifiers, so each one
+// reads the same list. It reads Bulma's `$colors`, so it lives here rather
+// than in `_mixins.scss`, which compiles with no Bulma to load.
+
+@use 'sass:list';
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/derived-variables' as dv;
+
+// The modifier class of each color in Bulma's `$colors` map, custom colors
+// included, as a comma-separated list to put in a selector, usually a
+// `:not()`. Bulma's colored elements loop over that map, so a rule can skip
+// an element that carries any of their colors. A name passed in `$except` is
+// left out of the list.
+@function extras-color-classes($except...) {
+  $classes: ();
+  @each $name, $color in dv.$colors {
+    @if not list.index($except, $name) {
+      $classes: list.append(
+        $classes,
+        '.#{iv.$class-prefix}is-#{$name}',
+        $separator: comma
+      );
+    }
+  }
+  @return $classes;
+}

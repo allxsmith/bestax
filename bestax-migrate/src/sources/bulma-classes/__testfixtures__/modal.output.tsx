@@ -1,6 +1,6 @@
 import { Button, Buttons, Delete, Modal } from "@allxsmith/bestax-bulma";
 export function Dialogs() {
-  // TODO(bestax-migrate): `.modal` stays as markup: bestax `Modal` writes a `data-testid` of its own over the one it's given, and adds dialog attributes and focus handling, so rebuild the root with it by hand; its parts convert on their own
+  // TODO(bestax-migrate): `.modal` stays as markup: bestax `Modal` writes `data-testid="modal"` when it's given none, and adds dialog attributes and focus handling, so rebuild the root with it by hand; its parts convert on their own
   return (
     <section>
       <div className="modal">

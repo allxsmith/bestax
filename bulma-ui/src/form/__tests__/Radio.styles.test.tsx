@@ -157,9 +157,29 @@ describe.each([
     );
     expect(resolve(check, 'opacity', { pseudo: '::before' })).toBe('1');
     expect(resolve(check, 'background-color', { pseudo: '::before' })).toBe(
-      'var(--bulma-radio-active-color)'
+      'var(--bulma-radio-dot-color)'
     );
   });
+
+  it.each([
+    ['by default', {}, 'var(--bulma-primary)'],
+    ['with a color', { color: 'danger' }, 'var(--bulma-danger)'],
+  ] as const)(
+    'gives the dot the ring color %s, unless a theme sets its own',
+    (_name, props, ring) => {
+      // `--bulma-radio-dot-color` was registered and documented while the
+      // dot read the ring's color, so setting it changed nothing. It
+      // defaults to the ring's color, declared on the same element that a
+      // color variant sets the ring's on, so a radio looks as it did.
+      const label = renderRadio({ checked: true, ...props }).querySelector(
+        `.${prefix}styled-radio`
+      ) as HTMLElement;
+      expect(resolve(label, '--bulma-radio-dot-color')).toBe(
+        'var(--bulma-radio-active-color)'
+      );
+      expect(resolve(label, '--bulma-radio-active-color')).toBe(ring);
+    }
+  );
 
   it('sets the label a gap from the circle, on its side in either direction', () => {
     // The row mirrors on a right-to-left page, so a physical margin-left
@@ -260,15 +280,18 @@ describe.each([
     );
 
     it('draws its ring and its dot in the row colors', () => {
-      // The ring and the dot both read `radio-active-color`, which is what
-      // the row hands the radio.
-      const check = labelIn('row', radio({ checked: true })).querySelector(
-        `.${prefix}check`
-      ) as HTMLElement;
+      // The ring reads `radio-active-color`, which is what the row hands the
+      // radio, and the dot reads `radio-dot-color`, which defaults to it on
+      // the same element.
+      const label = labelIn('row', radio({ checked: true }));
+      const check = label.querySelector(`.${prefix}check`) as HTMLElement;
       expect(resolve(check, 'border-color')).toBe(
         'var(--bulma-radio-active-color)'
       );
       expect(resolve(check, 'background-color', { pseudo: '::before' })).toBe(
+        'var(--bulma-radio-dot-color)'
+      );
+      expect(resolve(label, '--bulma-radio-dot-color')).toBe(
         'var(--bulma-radio-active-color)'
       );
     });

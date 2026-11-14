@@ -153,18 +153,20 @@ A `grouped` or `hasAddons` Field names none of the controls it holds, and a plac
 disappears once the user types, so each input above carries an `aria-label`. For a visible
 label instead, see the last item below.
 
+A show-password button is not an addon recipe: use `PasswordInput`, whose button sits inside
+the field. Never put it in `iconRight`, since Bulma gives control icons `pointer-events: none`
+and a click on one lands on the input.
+
 Recipes built on addons, each written out in full in the docs:
 
-- **Password reveal** ([docs](https://bestax.io/docs/api/form/input#password-reveal)): the
-  toggle is a `Button` in its own addon `Control`, never `iconRight`. Bulma gives control icons
-  `pointer-events: none`, so a click on one lands on the input. The button takes
-  `type="button"`, a fixed `aria-label` ("Show password") and `aria-pressed`, and switches the
-  input's `type` between `password` and `text`.
-- **Copy button** ([docs](https://bestax.io/docs/api/form/input#copy-button)): a read-only input
-  and a `Button` calling `navigator.clipboard.writeText`. The clipboard is missing outside secure
-  contexts and the write can be refused, so catch the failure, select the text, and say so in a
-  `role="alert"` region. Confirm success in a `role="status"` region. Mount both regions empty,
-  before their text arrives.
+- **Copy field** ([docs](https://bestax.io/docs/api/form/input#copy-button)): a read-only input
+  and a `CopyButton value={text}` in the second `Control`. It writes, falls back where the Clipboard
+  API is missing, reads "Copied" and announces the result itself, from a region it portals out of
+  the `Control`. For a failure, keep `labels.failedStatus` short and put the instruction ("the link is
+  selected, so copy it from the field") in a help line under the field that is the input's
+  `aria-describedby`, not another live region. Count failures in `onCopyError`, and focus and
+  select the input in an effect on that count, so focus arrives once the description is in the
+  page and a screen reader reads it with the field. `onCopiedChange` clears the count.
 - **Split button** ([docs](https://bestax.io/docs/api/components/dropdown#split-button)): a
   `Button` and a `Dropdown` in `Field hasAddons`, one `Control` each. `Buttons hasAddons` does
   not join the Dropdown's trigger. Keep the default color, since the trigger takes no `color`.

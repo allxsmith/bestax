@@ -1,0 +1,36 @@
+// Bestax Extras - IconButton Styles
+// Bulma keeps a button whose only child is an `.icon` square at every size,
+// so IconButton needs no CSS for that. Bulma's `is-rounded` adds horizontal
+// padding to a rounded button, though, which around one icon makes a pill a
+// little wider than it is tall. The first rule takes that padding back, so a
+// rounded IconButton is a circle the size of its square. A rounded `Button`
+// keeps Bulma's pill, since the rule needs IconButton's own class.
+//
+// The second takes away the underline Bulma gives a `text` button, and a
+// `ghost` one on hover, which would run under a font icon's glyph.
+//
+// The circle reads Bulma's button variables, so a theme that changes them
+// changes it too, and neither rule registers variables of its own. Bulma's
+// CSS can land on either side of this partial, as `_loader.scss` says, so
+// each selector outranks the Bulma rule it overrides by its classes: the
+// first has three to Bulma's two in `.button.is-rounded`, and the second
+// names its last class twice, as `_delete.scss` does, to outrank
+// `.button.is-ghost:hover` too.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+.#{iv.$class-prefix}button.#{iv.$class-prefix}icon-button.#{iv.$class-prefix}is-rounded {
+  padding-inline: calc(
+    #{cv.getVar('button-padding-horizontal')} -
+      #{cv.getVar('button-border-width')}
+  );
+}
+
+.#{iv.$class-prefix}button.#{iv.$class-prefix}icon-button.#{iv.$class-prefix}icon-button {
+  &,
+  &:hover,
+  &.#{iv.$class-prefix}is-hovered {
+    text-decoration: none;
+  }
+}

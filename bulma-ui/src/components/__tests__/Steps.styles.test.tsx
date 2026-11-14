@@ -633,3 +633,37 @@ describe.each([
     });
   });
 });
+
+// The phone layouts switch at Bulma's tablet breakpoint, so a build that
+// configures `$tablet` moves them with the rest of the page (#1628).
+describe('the Steps partial with a configured $tablet', () => {
+  const at = (tablet: string) =>
+    sass.compileString(
+      `@use 'bulma/sass/utilities/initial-variables' with ($tablet: ${tablet});
+       @use 'components/steps';`,
+      {
+        loadPaths: [SCSS, path.dirname(BULMA)],
+        quietDeps: true,
+        logger: sass.Logger.silent,
+      }
+    ).css;
+  const phoneQueries = (css: string) => [
+    ...new Set(
+      rulesOf(css)
+        .filter(
+          ({ selector }) =>
+            selector === '.steps.is-minimal .steps-content' ||
+            selector === '.steps.is-compact .steps-title'
+        )
+        .map(({ media }) => media)
+    ),
+  ];
+
+  it.each([
+    ['769px', 'screen and (max-width: 768px)'],
+    ['1024px', 'screen and (max-width: 1023px)'],
+    ['600px', 'screen and (max-width: 599px)'],
+  ])('switches to the phone layouts below a $tablet of %s', (tablet, query) => {
+    expect(phoneQueries(at(tablet))).toEqual([query]);
+  });
+});

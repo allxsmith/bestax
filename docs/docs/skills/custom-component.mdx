@@ -56,11 +56,11 @@ scope; in your app, import it from wherever you saved it.
 ```tsx live
 function example() {
   return (
-    <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap' }}>
+    <Group alignItems="stretch" gap="2.5">
       <ProfileCard
         name="Ada Lovelace"
         role="Mathematician & Writer"
-        imageSrc="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Ada_Lovelace_portrait.jpg/330px-Ada_Lovelace_portrait.jpg"
+        imageSrc="/img/portrait-ada-lovelace.jpg"
       >
         English mathematician who worked on Charles Babbage's proposed
         Analytical Engine. She was the first to recognise that the machine had
@@ -70,17 +70,19 @@ function example() {
       <ProfileCard
         name="Alan Turing"
         role="Computer Scientist"
-        imageSrc="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Alan_Turing_Aged_16.jpg/330px-Alan_Turing_Aged_16.jpg"
+        imageSrc="/img/portrait-alan-turing.jpg"
       >
         British mathematician and logician who formalised the concepts of
         algorithm and computation with the Turing machine. His wartime
         codebreaking at Bletchley Park helped shorten the Second World War, and
         he is widely considered the father of theoretical computer science.
       </ProfileCard>
-    </div>
+    </Group>
   );
 }
 ```
+
+Both portraits are in the public domain: [Ada Lovelace](https://commons.wikimedia.org/wiki/File:Ada_Lovelace_portrait.jpg), a watercolor from about 1840 possibly by Alfred Edward Chalon, and [Alan Turing at 16](https://commons.wikimedia.org/wiki/File:Alan_Turing_Aged_16.jpg), a passport photo from 1928 or 1929 possibly by Arthur Reginald Chaffin.
 
 ### Generated code
 

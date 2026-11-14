@@ -27,7 +27,7 @@ The Figure component is a thin wrapper around the HTML `<figure>` element with a
 <!-- bestax:generated import -->
 
 ```tsx
-import { Figure } from '@allxsmith/bestax-bulma';
+import { Figure, FigureCaption } from '@allxsmith/bestax-bulma';
 ```
 
 <!-- /bestax:generated import -->
@@ -113,7 +113,7 @@ Use Figure to wrap code blocks with captions.
 
 ### Compound (dot-notation) usage
 
-The `Caption` subcomponent is only exposed as the `Figure.Caption` static, so a captioned figure needs just the single `Figure` import.
+`FigureCaption` is the same component as `Figure.Caption`, so a captioned figure can come from the single `Figure` import or from `FigureCaption` on its own. A Next.js Server Component imports `FigureCaption`, because `Figure.Caption` is `undefined` there.
 
 ```tsx live
 <Figure>

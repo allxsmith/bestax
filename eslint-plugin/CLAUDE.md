@@ -107,7 +107,8 @@ color="primary" />` became `<Box color="bogus" textColor="primary" />`,
 
 ## Component metadata
 
-Two things the rules need are read from the library rather than restated:
+What the rules need to know about the components is read from the library
+rather than restated:
 
 - Deprecated props and their replacements. The replacement is not a separate
   field — it is parsed out of the note, which the library phrases `Use \`X\`
@@ -115,8 +116,19 @@ Two things the rules need are read from the library rather than restated:
 - Which elements treat `color` as a text alias rather than a filled variant.
   Read from the TSDoc sentence the library states it in, so `Button` and `Hero`
   (which have real `is-<color>` modifiers) stay out of it.
+- Which elements are flex containers by their own CSS (`FLEX_CONTAINER_ELEMENTS`),
+  so `no-inert-flex-props` takes their container props as rendering with no
+  `display` prop. Read from an `@flexContainer` tag on an element's props type
+  or one of its bases, which the API-docs extractor reports; Stack, Group,
+  Center and Flex get it from the shared `LayoutOwnProps` in
+  `bulma-ui/src/helpers/stackLayout.tsx`. A new component that is a flex
+  container by its own stylesheet, as they are (they pass
+  `{ flexContainer: true }` to `useBulmaClasses`), needs the tag on its props
+  too, or the rule reports props that render. The generator anchors Stack,
+  Group, Center and Flex by name, so removing or moving the tag off
+  `LayoutOwnProps` fails `gen:eslint-meta` rather than emptying the set.
 
-Both are keyed by the JSX element name as written, so a compound part is
+Each is keyed by the JSX element name as written, so a compound part is
 `"Navbar.Brand"`. That distinction is load-bearing: `<Buttons>` takes a text
 alias, `<Buttons.Button>` takes a real variant.
 

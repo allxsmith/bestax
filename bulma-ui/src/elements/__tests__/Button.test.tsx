@@ -72,6 +72,44 @@ describe('Button Component', () => {
     expect(button).toHaveClass('button', 'is-text');
   });
 
+  // The light color's class is the same key as isLight's (#1464).
+  describe('the light color', () => {
+    it('applies is-light for color="light"', () => {
+      render(<Button color="light">Light</Button>);
+      expect(screen.getByRole('button')).toHaveClass('button', 'is-light');
+    });
+
+    it('applies it once with isLight too', () => {
+      render(
+        <Button color="light" isLight>
+          Light
+        </Button>
+      );
+      expect(screen.getByRole('button').className).toBe('button is-light');
+    });
+
+    it('keeps isLight on another color', () => {
+      render(
+        <Button color="primary" isLight>
+          Light
+        </Button>
+      );
+      expect(screen.getByRole('button')).toHaveClass('is-primary', 'is-light');
+    });
+
+    it('applies the class prefix to it', () => {
+      render(
+        <ConfigProvider classPrefix="bestax-">
+          <Button color="light">Light</Button>
+        </ConfigProvider>
+      );
+      expect(screen.getByRole('button')).toHaveClass(
+        'bestax-button',
+        'bestax-is-light'
+      );
+    });
+  });
+
   describe('as="a" anchor rendering', () => {
     it('renders as <a> with correct classes and href', () => {
       render(

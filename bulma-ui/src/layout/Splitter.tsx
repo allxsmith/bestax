@@ -16,6 +16,7 @@ import {
 } from '../helpers/useBulmaClasses';
 import { flattenChildren } from '../helpers/flattenChildren';
 import { withSubComponents } from '../helpers/withSubComponents';
+import { isElementOf } from '../helpers/elementType';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { warnOnce } from '../helpers/devWarnings';
 import {
@@ -217,7 +218,7 @@ SplitterPane.displayName = 'Splitter.Pane';
 type PaneElement = React.ReactElement<SplitterPaneProps>;
 
 const isPane = (child: React.ReactNode): child is PaneElement =>
-  React.isValidElement(child) && child.type === SplitterPane;
+  isElementOf(child, SplitterPane);
 
 /** The bounds with pane `i`'s changed, for a move that mustn't snap it shut. */
 const withBound = (

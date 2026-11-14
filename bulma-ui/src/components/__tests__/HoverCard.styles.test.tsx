@@ -8,6 +8,7 @@ import * as sass from 'sass';
 import path from 'path';
 import type { ComponentProps } from 'react';
 import { render } from '@testing-library/react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { HoverCard } from '../HoverCard';
 import { ConfigProvider } from '../../helpers/Config';
 
@@ -88,6 +89,52 @@ describe('HoverCard styles under a class prefix', () => {
     expect(style.width).toBe('max-content');
     expect(style.maxWidth).toBe('var(--bulma-hover-card-max-width)');
     expect(style.whiteSpace).toBe('normal');
+  });
+
+  it('puts the default card at the right edge right to left, and a named corner where it says', () => {
+    // jsdom maps no `dir` to `direction`, which the placement reads.
+    const rtl = document.createElement('style');
+    rtl.textContent = '[dir="rtl"] { direction: rtl; }';
+    document.head.appendChild(rtl);
+    document.documentElement.setAttribute('dir', 'rtl');
+    try {
+      const { unmount } = renderPrefixed();
+      const byDefault = getComputedStyle(card());
+      expect(byDefault.right).toBe('0px');
+      expect(byDefault.left).not.toBe('0px');
+      unmount();
+      renderPrefixed({ position: 'bottom-left' });
+      const named = getComputedStyle(card());
+      expect(named.left).toBe('0px');
+      expect(named.right).not.toBe('0px');
+    } finally {
+      document.documentElement.removeAttribute('dir');
+      rtl.remove();
+    }
+  });
+
+  it('puts a card open on first paint at the right edge right to left, before any effect', () => {
+    // Server markup, so no effect has read the direction: the stylesheet
+    // alone has to place it.
+    const page = document.createElement('div');
+    page.setAttribute('dir', 'rtl');
+    page.innerHTML = renderToStaticMarkup(
+      <ConfigProvider classPrefix="bestax-">
+        <HoverCard trigger={<a href="#ada">Ada</a>} defaultOpen>
+          Content
+        </HoverCard>
+      </ConfigProvider>
+    );
+    document.body.appendChild(page);
+    try {
+      const style = getComputedStyle(
+        page.querySelector('.bestax-hover-card-content')!
+      );
+      expect(style.right).toBe('0px');
+      expect(style.left).not.toBe('0px');
+    } finally {
+      page.remove();
+    }
   });
 
   it('places an inline top-right card above the trigger, on its right edge', () => {

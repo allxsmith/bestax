@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { marginGap, useAnchoredPosition } from '../useAnchoredPosition';
 import type { PickerPosition } from '../../form/_pickerInternals/pickerTypes';
 
@@ -180,51 +180,58 @@ describe('useAnchoredPosition with matchWidth', () => {
   });
 });
 
-describe('followContent', () => {
-  /** A fixed panel above an anchor at 500 to 520px, as tall as its `data-height`. */
-  const Above = ({
-    height,
+/** A fixed panel above an anchor at 500 to 520px, as tall as its `data-height`. */
+const Above = ({
+  height,
+  followContent,
+  panelKey,
+}: {
+  height: number;
+  followContent?: boolean;
+  /** A new key replaces the panel element, as a portal that moves does. */
+  panelKey?: string;
+}) => {
+  const anchorRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const resolved = useAnchoredPosition(anchorRef, panelRef, {
+    active: true,
+    position: 'top-left',
+    fixed: true,
+    offset: 0,
     followContent,
-  }: {
-    height: number;
-    followContent?: boolean;
-  }) => {
-    const anchorRef = useRef<HTMLButtonElement>(null);
-    const panelRef = useRef<HTMLDivElement>(null);
-    const resolved = useAnchoredPosition(anchorRef, panelRef, {
-      active: true,
-      position: 'top-left',
-      fixed: true,
-      offset: 0,
-      followContent,
-    });
-    return (
-      <>
-        <button ref={anchorRef}>anchor</button>
-        <div ref={panelRef} data-height={height} />
-        <output>{resolved.top}</output>
-      </>
-    );
-  };
+  });
+  return (
+    <>
+      <button ref={anchorRef}>anchor</button>
+      <div key={panelKey} ref={panelRef} data-height={height} />
+      <output>{resolved.top}</output>
+    </>
+  );
+};
 
+/** Gives `Above`'s anchor and panel their rects, the panel's from `data-height`. */
+const mockRects = () =>
+  vi
+    .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+    .mockImplementation(function (this: HTMLElement) {
+      const button = this.tagName === 'BUTTON';
+      const height = button ? 20 : Number(this.dataset.height);
+      return {
+        top: button ? 500 : 0,
+        bottom: button ? 520 : height,
+        left: 0,
+        right: 100,
+        width: 100,
+        height,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+      } as DOMRect;
+    });
+
+describe('followContent', () => {
   beforeEach(() => {
-    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
-      function (this: HTMLElement) {
-        const button = this.tagName === 'BUTTON';
-        const height = button ? 20 : Number(this.dataset.height);
-        return {
-          top: button ? 500 : 0,
-          bottom: button ? 520 : height,
-          left: 0,
-          right: 100,
-          width: 100,
-          height,
-          x: 0,
-          y: 0,
-          toJSON: () => ({}),
-        } as DOMRect;
-      }
-    );
+    mockRects();
   });
 
   afterEach(() => {
@@ -238,11 +245,121 @@ describe('followContent', () => {
     expect(screen.getByRole('status')).toHaveTextContent('420');
   });
 
-  it('keeps the placement it opened with by default', () => {
+  it('measures nothing after a render by default', () => {
     const { rerender } = render(<Above height={200} />);
     expect(screen.getByRole('status')).toHaveTextContent('300');
     rerender(<Above height={80} />);
     expect(screen.getByRole('status')).toHaveTextContent('300');
+  });
+});
+
+describe('following the panel and the anchor', () => {
+  /** A ResizeObserver the tests fire by hand. */
+  class MockResizeObserver {
+    static instances: MockResizeObserver[] = [];
+    observed: Element[] = [];
+    disconnected = false;
+    constructor(private callback: ResizeObserverCallback) {
+      MockResizeObserver.instances.push(this);
+    }
+    observe(target: Element) {
+      this.observed.push(target);
+    }
+    unobserve(target: Element) {
+      this.observed = this.observed.filter(watched => watched !== target);
+    }
+    disconnect() {
+      this.disconnected = true;
+    }
+    /** Reports a change in size, as the browser does after layout. */
+    fire() {
+      this.callback([], this as unknown as ResizeObserver);
+    }
+  }
+  const observer = () =>
+    MockResizeObserver.instances[MockResizeObserver.instances.length - 1];
+
+  let rects: ReturnType<typeof mockRects>;
+  beforeEach(() => {
+    vi.useFakeTimers();
+    rects = mockRects();
+    MockResizeObserver.instances = [];
+    (window as { ResizeObserver?: unknown }).ResizeObserver =
+      MockResizeObserver;
+  });
+
+  afterEach(() => {
+    delete (window as { ResizeObserver?: unknown }).ResizeObserver;
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  const panel = () => document.querySelector('[data-height]') as HTMLElement;
+  const nextFrame = () => act(() => vi.advanceTimersToNextFrame());
+
+  it('follows its own content changing size, in the next frame', () => {
+    render(<Above height={200} />);
+    expect(screen.getByRole('status')).toHaveTextContent('300');
+
+    // Nothing renders: the content grew by itself, as a loaded image does.
+    panel().dataset.height = '80';
+    act(() => observer().fire());
+    expect(screen.getByRole('status')).toHaveTextContent('300');
+    nextFrame();
+    expect(screen.getByRole('status')).toHaveTextContent('420');
+  });
+
+  it('watches the anchor as well as the panel, and lets go as it closes', () => {
+    const { unmount } = render(<Above height={200} />);
+    expect(observer().observed).toEqual([screen.getByRole('button'), panel()]);
+    unmount();
+    expect(observer().disconnected).toBe(true);
+  });
+
+  it('watches a panel that replaces the one it opened with, from the next measurement', () => {
+    // A portal moving to another target remounts the panel, as one that
+    // opens with the dialog it's in does, and nothing renders the hook.
+    const { rerender } = render(<Above height={200} panelKey="first" />);
+    const first = panel();
+    rerender(<Above height={200} panelKey="second" />);
+    const second = panel();
+    expect(second).not.toBe(first);
+
+    // The anchor's first report, after layout, measures again. Compared by
+    // identity: the two panels are equal nodes.
+    act(() => observer().fire());
+    nextFrame();
+    const [anchor, watched, ...rest] = observer().observed;
+    expect(anchor).toBe(screen.getByRole('button'));
+    expect(watched).toBe(second);
+    expect(rest).toHaveLength(0);
+  });
+
+  it('measures once a frame, however many scrolls, resizes and size changes ask', () => {
+    render(<Above height={200} />);
+    rects.mockClear();
+
+    act(() => {
+      fireEvent.scroll(window);
+      fireEvent.scroll(window);
+      fireEvent(window, new Event('resize'));
+      observer().fire();
+    });
+    expect(rects).not.toHaveBeenCalled();
+    nextFrame();
+    // One measurement reads the anchor and the panel once each.
+    expect(rects).toHaveBeenCalledTimes(2);
+  });
+
+  it('drops the frame it asked for when it closes', () => {
+    const { unmount } = render(<Above height={200} />);
+    rects.mockClear();
+    act(() => {
+      fireEvent.scroll(window);
+    });
+    unmount();
+    nextFrame();
+    expect(rects).not.toHaveBeenCalled();
   });
 });
 

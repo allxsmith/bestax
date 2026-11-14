@@ -80,16 +80,21 @@ const above = (el: Element): Element | undefined =>
  * @param active - Whether what's beside it is inert.
  * @param wholePage - Whether that goes for the whole page rather than only
  * the element's siblings.
+ * @param except - Ref to an element beside it to leave reachable too, such
+ * as the overlay's own backdrop, which has to take the presses that close
+ * it rather than let them through to what's under it.
  */
 export function useInertSiblings(
   ref: RefObject<Element | null>,
   active: boolean,
-  wholePage: boolean
+  wholePage: boolean,
+  except?: RefObject<Element | null>
 ): void {
   useEffect(() => {
     const el = ref.current;
     if (!active || !el) return undefined;
     const doc = el.ownerDocument;
+    const keep = except?.current;
 
     const held: Element[] = [];
     for (
@@ -97,7 +102,9 @@ export function useInertSiblings(
       node && node !== doc.body;
       node = wholePage ? above(node) : undefined
     ) {
-      held.push(...siblingsOf(node).filter(hold));
+      held.push(
+        ...siblingsOf(node).filter(sibling => sibling !== keep && hold(sibling))
+      );
     }
 
     // Focus this takes away, to hand back later. It's looked up as `el`'s
@@ -113,5 +120,5 @@ export function useInertSiblings(
       held.forEach(release);
       if (doc.activeElement === doc.body) taken?.focus();
     };
-  }, [ref, active, wholePage]);
+  }, [ref, active, wholePage, except]);
 }

@@ -2,9 +2,11 @@
 // Import all element partials here
 
 // Element Components
+@use 'button';
 @use 'colorswatch';
 @use 'delete';
 @use 'descriptionlist';
+@use 'iconbutton';
 @use 'kbd';
 @use 'linkbutton';
 @use 'loader';
@@ -12,3 +14,5 @@
 @use 'progress';
 @use 'ringprogress';
 @use 'skeleton';
+@use 'stat';
+@use 'tag';

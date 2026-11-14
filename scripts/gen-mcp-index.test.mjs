@@ -24,10 +24,13 @@ import {
   build,
   bulmaClassTable,
   helperImport,
+  importedNames,
+  importSection,
   orderDeclarers,
   proseComponentInfo,
   readSkills,
   reportFailure,
+  sectionPurpose,
   standaloneTables,
 } from './gen-mcp-index.mjs';
 import { sectionSpans } from './lib/api-page.mjs';
@@ -652,7 +655,7 @@ function brokenStorybookLinks(text, ids) {
     ...text.matchAll(/https:\/\/bestax\.io\/storybook\/\?path=[^\s)"\\]+/g),
   ].map(m => m[0]);
   return {
-    count: urls.length,
+    urls,
     broken: urls.filter(url => {
       const id = url.match(/[?&]path=\/(?:story|docs)\/([^&#]+)/)?.[1];
       return !id || !ids.has(id);
@@ -672,10 +675,10 @@ test('every Storybook link in the index and the docs opens a story that exists',
   assert.ok(ids.has('elements-button--default'), 'story ids were not derived');
   const broken = [];
 
-  let inIndex = 0;
+  const inIndex = new Set();
   for (const [name, record] of components) {
     const found = brokenStorybookLinks(JSON.stringify(record), ids);
-    inIndex += found.count;
+    found.urls.forEach(url => inIndex.add(url));
     broken.push(...found.broken.map(url => `index ${name}: ${url}`));
   }
   // An extraction that broke would empty the field on every record at once, and
@@ -687,7 +690,7 @@ test('every Storybook link in the index and the docs opens a story that exists',
   );
 
   const docs = join(REPO, 'docs', 'docs');
-  let onPages = 0;
+  const onPages = new Set();
   for (const entry of await readdir(docs, {
     recursive: true,
     withFileTypes: true,
@@ -695,11 +698,19 @@ test('every Storybook link in the index and the docs opens a story that exists',
     if (!entry.isFile() || !/\.mdx?$/.test(entry.name)) continue;
     const file = join(entry.parentPath, entry.name);
     const found = brokenStorybookLinks(await readFile(file, 'utf8'), ids);
-    onPages += found.count;
+    found.urls.forEach(url => onPages.add(url));
     const page = file.slice(REPO.length + 1);
     broken.push(...found.broken.map(url => `${page}: ${url}`));
   }
-  assert.ok(onPages >= inIndex, 'the docs pages were not read');
+  // Each link in the index was copied from a page, so a page holds each one.
+  // Compared as sets: a helper's record carries its page's link twice, once as
+  // the record's `storybook` and once in the prose it keeps, so a count of
+  // links in the index outgrows the pages' count by one for each helper.
+  assert.deepEqual(
+    [...inIndex].filter(url => !onPages.has(url)),
+    [],
+    'the docs pages were not read'
+  );
 
   assert.deepEqual(broken, []);
 });
@@ -924,7 +935,7 @@ test('exports documented with a component reach the index as its parts (#1150, #
   );
   assert.equal(part('Dialog', 'DialogContainer').noProps, true);
   // A name with a page of its own, or a part already, is no extra.
-  for (const name of ['Dropdown', 'Table', 'Columns']) {
+  for (const name of ['Dropdown', 'Table', 'Columns', 'Card', 'Modal']) {
     assert.ok(
       components.get(name).parts.every(p => !p.standalone),
       `${name} grew a standalone part`
@@ -962,6 +973,9 @@ test('every export documented with a component is found by its name', () => {
     ['NavbarItem', 'Navbar', 'Navbar.Item'],
     ['MenuItem', 'Menu', 'Menu.Item'],
     ['TabsContent', 'Tabs', 'Tabs.Content'],
+    // Also when the page imports it beside its parent.
+    ['CardHeader', 'Card', 'Card.Header'],
+    ['ModalCard', 'Modal', 'Modal.Card'],
   ]) {
     assert.deepEqual(
       [documentedWith[name]?.component, documentedWith[name]?.path],
@@ -972,8 +986,11 @@ test('every export documented with a component is found by its name', () => {
   const titles = new Set(catalog.components.map(c => c.name));
   for (const [name, { component, path }] of Object.entries(documentedWith)) {
     assert.ok(!titles.has(name), `${name} has a catalog entry of its own`);
+    // One that is no part is a name the record's import line gives.
     assert.ok(
-      components.get(component).parts.some(p => p.path === path),
+      path
+        ? components.get(component).parts.some(p => p.path === path)
+        : importedNames(components.get(component).import).includes(name),
       `${name}: ${component} has no part ${path}`
     );
   }
@@ -982,6 +999,166 @@ test('every export documented with a component is found by its name', () => {
     [...keys].sort((a, b) => (a < b ? -1 : 1)),
     keys
   );
+});
+
+// What an import line gives beside its component that is no part: a hook, a
+// function or a constant, with the section of the page that documents it (#1465).
+test('every name an import line gives is a catalog entry or documented with one', () => {
+  const { documentedWith } = catalog;
+  for (const [name, component, section] of [
+    ['useAppFrame', 'AppFrame', 'A Toggle of Your Own'],
+    ['useIsHydrated', 'ClientOnly', 'useIsHydrated'],
+    ['useConfig', 'ConfigProvider', 'useConfig'],
+    ['useDataTable', 'DataTable', 'The useDataTable Hook'],
+    ['useLocale', 'LocaleProvider', 'useLocale'],
+    ['useNumberFormat', 'NumberFormatter', 'The useNumberFormat Hook'],
+    ['useScrollSpy', 'TableOfContents', 'The useScrollSpy Hook'],
+    ['toast', 'Toast', 'Programmatic API'],
+    ['dialog', 'Dialog', 'Programmatic API'],
+    ['notification', 'Notification', 'Programmatic API'],
+    ['validColors', 'Valid value constants', undefined],
+  ]) {
+    const { purpose, ...where } = documentedWith[name];
+    assert.deepEqual(
+      where,
+      { component, ...(section ? { section } : {}) },
+      name
+    );
+    // What its section says first, and nothing for one with no section (#1579).
+    assert.equal(purpose === '', section === undefined, name);
+  }
+  assert.equal(
+    documentedWith.useDataTable.purpose,
+    '`useDataTable` takes the same columns, data and state options as ' +
+      '`DataTable` and returns the table.'
+  );
+  assert.equal(
+    documentedWith.toast.purpose,
+    'For showing toasts from anywhere in your app, use the programmatic API.'
+  );
+  // A hook its page documents but its import line leaves out is not one.
+  assert.equal(documentedWith.useClassPrefix, undefined);
+  const titles = new Set(catalog.components.map(c => c.name));
+  for (const [name, record] of components) {
+    for (const id of importedNames(record.import)) {
+      assert.ok(
+        titles.has(id) || Object.hasOwn(documentedWith, id),
+        `${name}'s import line gives ${id}, which nothing answers for`
+      );
+    }
+  }
+});
+
+test('importedNames reads the identifiers an import line gives', () => {
+  assert.deepEqual(
+    importedNames(
+      "import {\n  DataTable,\n  useDataTable,\n  type Row,\n} from '@allxsmith/bestax-bulma';"
+    ),
+    ['DataTable', 'useDataTable']
+  );
+  assert.deepEqual(importedNames("import Bestax from 'x';"), []);
+});
+
+test('importSection names a heading, else an example, else a section whose code calls it', () => {
+  const lines = [
+    '# Page',
+    '## Usage',
+    '```tsx',
+    '## useThing in a fence',
+    '```',
+    '### Using the toast',
+    '#### useThing, too deep',
+    '### The useThing Hook',
+  ];
+  assert.equal(importSection(lines, [], 'useThing'), 'The useThing Hook');
+  // A mention in an example's text is no call; a call and a method call are.
+  const examples = [
+    { title: 'Words', code: '<p>Raise a toast here</p>' },
+    { title: 'Calls', code: "toast.show({ message: 'Hi' })" },
+    { title: 'Hook', code: 'const frame = useFrame();' },
+  ];
+  assert.equal(importSection(['# Page'], examples, 'toast'), 'Calls');
+  assert.equal(importSection(['# Page'], examples, 'useFrame'), 'Hook');
+  assert.equal(importSection(lines, examples, 'dialog'), null);
+  // Else the first `##` section whose code calls it, not a `##` in a fence or
+  // code before the first heading.
+  const page = [
+    '```ts',
+    '## Not a heading',
+    'dialog.alert()',
+    '```',
+    '## Import',
+    '```tsx',
+    "import { Dialog, dialog } from '@allxsmith/bestax-bulma';",
+    '```',
+    '## Programmatic API',
+    '### Setup',
+    '```tsx',
+    "await dialog.confirm({ message: 'Sure?' });",
+    '```',
+  ];
+  assert.equal(importSection(page, examples, 'dialog'), 'Programmatic API');
+  // A `$` in a name is matched as itself.
+  assert.equal(importSection(['## The $store'], [], '$store'), 'The $store');
+});
+
+test('sectionPurpose reads the first sentence under the section', () => {
+  const lines = [
+    '## Usage',
+    '### The useThing Hook',
+    '',
+    '```tsx',
+    'useThing();',
+    '```',
+    '',
+    '`useThing` returns the thing the nearest provider holds, and',
+    'nothing outside one. It reads the context once.',
+    '',
+    'More prose.',
+    '### Empty',
+    '',
+    '```tsx',
+    'useOther();',
+    '```',
+    '### Passing It',
+    '',
+    'Pass it as the first argument:',
+    '#### Nested',
+    '',
+    'A deeper heading names its own sentence for an example title.',
+  ];
+  assert.equal(
+    sectionPurpose(lines, 'The useThing Hook'),
+    '`useThing` returns the thing the nearest provider holds, and nothing ' +
+      'outside one.'
+  );
+  // A section that opens with code alone, or names no heading, has none.
+  assert.equal(sectionPurpose(lines, 'Empty'), '');
+  assert.equal(sectionPurpose(lines, 'Not here'), '');
+  // A lead-in to code ends as a sentence, and an example title's last part
+  // names its heading.
+  assert.equal(
+    sectionPurpose(lines, 'Passing It'),
+    'Pass it as the first argument.'
+  );
+  assert.equal(
+    sectionPurpose(lines, 'Passing It › Nested'),
+    'A deeper heading names its own sentence for an example title.'
+  );
+  // A `####` title that repeats is read under the `###` the example names.
+  const repeated = [
+    '### First',
+    '#### Basic',
+    'The first basic section says this about the first heading.',
+    '### Second',
+    '#### Basic',
+    'The second basic section says this about the second heading.',
+  ];
+  assert.equal(
+    sectionPurpose(repeated, 'Second › Basic'),
+    'The second basic section says this about the second heading.'
+  );
+  assert.equal(sectionPurpose(repeated, 'Third › Basic'), '');
 });
 
 test('every component the barrel exports is a catalog entry or documented with one', () => {
@@ -1107,6 +1284,8 @@ test('the class table names what styles a class Bulma 1 lacks, and who renders a
   assert.ok(!Object.hasOwn(byHand, 'div'));
   // A root class of bestax's own, and none of Bulma's.
   assert.equal(ownClasses.carousel, 'Carousel');
+  // Group renders `stack` too and sorts first, but Stack is its namesake.
+  assert.equal(ownClasses.stack, 'Stack');
   const v1 = new Set(vocabulary);
   assert.deepEqual(
     Object.keys(ownClasses).filter(token => v1.has(token)),

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Slider } from './Slider';
 import { Field } from './Field';
 import { Control } from './Control';
+import { LocaleProvider } from '../helpers/LocaleProvider';
 
 const meta: Meta<typeof Slider> = {
   title: 'Form/Slider',
@@ -864,6 +865,18 @@ export const WithFieldControlWrapper: Story = {
         </Field>
       </Field.Body>
     </Field>
+  ),
+};
+
+/**
+ * On a right-to-left page the fill, the marks and the value bubble start
+ * from the right, as the native range does.
+ */
+export const RightToLeft: Story = {
+  render: () => (
+    <LocaleProvider locale="ar" dir="rtl">
+      <Slider label="مستوى" defaultValue={25} showOutput />
+    </LocaleProvider>
   ),
 };
 

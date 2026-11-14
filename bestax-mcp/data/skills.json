@@ -6,18 +6,18 @@
       "promptName": "custom-component",
       "dir": "bestax-custom-component",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 13964 },
+        { "id": "api", "file": "references/api.md", "bytes": 16863 },
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
-          "bytes": 24040
+          "bytes": 27101
         },
         {
           "id": "library-contributor",
           "file": "references/library-contributor.md",
-          "bytes": 22089
+          "bytes": 23858
         },
-        { "id": "patterns", "file": "references/patterns.md", "bytes": 4601 }
+        { "id": "patterns", "file": "references/patterns.md", "bytes": 4632 }
       ],
       "examples": [
         { "id": "stat-card", "file": "examples/stat-card.tsx", "bytes": 3734 }
@@ -29,8 +29,8 @@
       "promptName": "form",
       "dir": "bestax-form",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 30231 },
-        { "id": "patterns", "file": "references/patterns.md", "bytes": 9835 }
+        { "id": "api", "file": "references/api.md", "bytes": 35256 },
+        { "id": "patterns", "file": "references/patterns.md", "bytes": 10001 }
       ],
       "examples": []
     },
@@ -59,16 +59,16 @@
         {
           "id": "archetypes",
           "file": "references/archetypes.md",
-          "bytes": 10260
+          "bytes": 10090
         },
         {
           "id": "layout-components",
           "file": "references/layout-components.md",
-          "bytes": 18956
+          "bytes": 25559
         }
       ],
       "examples": [
-        { "id": "app-shell", "file": "examples/app-shell.tsx", "bytes": 2758 },
+        { "id": "app-shell", "file": "examples/app-shell.tsx", "bytes": 2412 },
         { "id": "card-grid", "file": "examples/card-grid.tsx", "bytes": 2673 },
         { "id": "centered", "file": "examples/centered.tsx", "bytes": 1416 },
         {
@@ -93,7 +93,7 @@
         {
           "id": "bloomer-prop-map",
           "file": "references/bloomer/prop-map.md",
-          "bytes": 26906
+          "bytes": 27258
         },
         {
           "id": "bloomer-unmappables",
@@ -103,17 +103,17 @@
         {
           "id": "bulma-classes-component-map",
           "file": "references/bulma-classes/component-map.md",
-          "bytes": 32702
+          "bytes": 32883
         },
         {
           "id": "bulma-classes-prop-map",
           "file": "references/bulma-classes/prop-map.md",
-          "bytes": 39110
+          "bytes": 39438
         },
         {
           "id": "bulma-classes-unmappables",
           "file": "references/bulma-classes/unmappables.md",
-          "bytes": 66953
+          "bytes": 68235
         },
         {
           "id": "css-migration",
@@ -128,27 +128,27 @@
         {
           "id": "rbx-prop-map",
           "file": "references/rbx/prop-map.md",
-          "bytes": 15747
+          "bytes": 16399
         },
         {
           "id": "rbx-unmappables",
           "file": "references/rbx/unmappables.md",
-          "bytes": 16581
+          "bytes": 16759
         },
         {
           "id": "react-bulma-components-component-map",
           "file": "references/react-bulma-components/component-map.md",
-          "bytes": 16562
+          "bytes": 19962
         },
         {
           "id": "react-bulma-components-prop-map",
           "file": "references/react-bulma-components/prop-map.md",
-          "bytes": 8367
+          "bytes": 8545
         },
         {
           "id": "react-bulma-components-unmappables",
           "file": "references/react-bulma-components/unmappables.md",
-          "bytes": 14098
+          "bytes": 15443
         }
       ],
       "examples": []
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 16800
+          "bytes": 21424
         }
       ],
       "examples": []
@@ -176,12 +176,12 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 67459
+          "bytes": 77190
         },
         {
           "id": "themeable-components",
           "file": "references/themeable-components.md",
-          "bytes": 31444
+          "bytes": 40286
         }
       ],
       "examples": [

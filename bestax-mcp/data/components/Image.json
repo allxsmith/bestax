@@ -31,7 +31,7 @@
     },
     {
       "title": "With Iframe",
-      "code": "<Image size=\"16by9\">\n  <iframe\n    className=\"has-ratio\"\n    width=\"640\"\n    height=\"360\"\n    src=\"https://www.youtube.com/embed/YE7VzlLtp-4\"\n    frameBorder=\"0\"\n    allowFullScreen\n    title=\"Sample YouTube Video\"\n  />\n</Image>"
+      "code": "<Image size=\"16by9\">\n  <iframe\n    className=\"has-ratio\"\n    width=\"640\"\n    height=\"360\"\n    src=\"https://www.youtube.com/embed/YE7VzlLtp-4\"\n    frameBorder=\"0\"\n    allowFullScreen\n    title=\"Big Buck Bunny\"\n  />\n</Image>"
     },
     {
       "title": "With Custom Child",

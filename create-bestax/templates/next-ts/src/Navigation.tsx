@@ -8,8 +8,9 @@ import { Navbar } from '@allxsmith/bestax-bulma';
 
 // Every page shares this navbar, from the root layout. It keeps the menu's
 // open state, so it's a client component. Each item renders Next's Link
-// through `as`, and `active` and `aria-current` follow the path, as the
-// routing guide shows: https://bestax.io/docs/guides/features/routing
+// through `as`, and `active` follows the path, which also sets
+// `aria-current="page"`, as the routing guide shows:
+// https://bestax.io/docs/guides/features/routing
 const PAGES = [
   { href: '/', label: 'Home' },
   { href: '/about', label: 'About' },
@@ -44,7 +45,6 @@ export default function Navigation() {
               as={NextLink}
               href={href}
               active={pathname === href}
-              aria-current={pathname === href ? 'page' : undefined}
               onClick={closeMenu}
             >
               {label}

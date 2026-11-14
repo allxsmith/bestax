@@ -8,7 +8,8 @@ import React, {
   useState,
 } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
-import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useFieldHelperClasses } from '../helpers/useFieldHelperClasses';
 import {
   PickerPosition,
   DayOfWeek,
@@ -72,6 +73,13 @@ const SKIPPED_SEGMENTS: Record<
 /**
  * Props for the raw DateInput base. Use the higher-level `DateInput` for
  * Field/Control composition; `DateInputBase` is the input + popover only.
+ *
+ * @helperProps Helper props go on the `.dateinput-container` `<div>`, with
+ * `className` and the other attributes, except that the background helpers
+ * go on the `<input>`, and the text helpers on both, since Bulma's `.input`
+ * sets its own background and font, and the popover inside the `<div>`
+ * takes the text ones. Inline they all go on the `<div>`, and on the native
+ * mobile input, on the `<input>`.
  */
 export interface DateInputBaseProps
   extends
@@ -109,9 +117,17 @@ export interface DateInputBaseProps
   min?: Date;
   /** Latest selectable date. */
   max?: Date;
-  /** Disable the input. */
+  /**
+   * Disable the input. An `inline` calendar disables its days and header
+   * buttons, but its hidden input still submits the value, where a disabled
+   * input submits nothing.
+   */
   disabled?: boolean;
-  /** Make the input read-only. */
+  /**
+   * Make the input read-only. An `inline` calendar still moves through the
+   * dates by key and by its header, but a click, Enter or Space picks
+   * nothing.
+   */
   readOnly?: boolean;
   /** Placeholder text for the input. */
   placeholder?: string;
@@ -159,7 +175,14 @@ export interface DateInputBaseProps
    * the two can differ.
    */
   locale?: string;
-  /** Render the calendar inline (no popover). */
+  /**
+   * Render the calendar inline (no popover).
+   * On a server-rendered page it marks today once the page hydrates, by
+   * the browser's clock rather than the server's. With no `value` or
+   * `defaultValue` it opens on the month the clock reads, and around the end
+   * of a month the server's clock and the browser's can read different
+   * months, so give it a date both render the same.
+   */
   inline?: boolean;
   /**
    * Use `<input type="date">` on coarse-pointer + small-viewport devices. At
@@ -184,11 +207,18 @@ export interface DateInputBaseProps
   openOnFocus?: boolean;
   /** Close the popover after a date is selected. */
   closeOnSelect?: boolean;
-  /** Popover anchor position relative to the input. */
+  /**
+   * Where the popover opens against the field. Left out, it opens below and
+   * lines up with the field's start edge, which is its right edge when the
+   * picker reads right to left. A corner you pass stays physical, so
+   * `bottom-left` lines up the left edges either way.
+   * @defaultValue 'bottom-left'
+   */
   position?: PickerPosition;
   /**
    * Render the popover through a portal, into the `portalContainer` a
-   * `ConfigProvider` sets, `document.body` by default.
+   * `ConfigProvider` sets, else the overlay it's in that takes its popups,
+   * such as a `Modal`, else `document.body`.
    */
   appendToBody?: boolean;
   /**
@@ -223,7 +253,10 @@ export interface DateInputBaseProps
    * on the day the week does. With them, an unset `firstDayOfWeek` stays
    * Sunday even inside a `LocaleProvider`, so names written Sunday first keep
    * matching their columns; to start on the locale's day, set
-   * `firstDayOfWeek` too and list the names from that day.
+   * `firstDayOfWeek` too and list the names from that day. They also name
+   * the columns for assistive technology. Without them each column is named
+   * by its full weekday in the picker's locale, which a server-rendered
+   * calendar adds once the page hydrates.
    */
   dayNames?: string[];
   /** Override the 12 month-name labels. */
@@ -276,7 +309,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       popover = true,
       openOnFocus = true,
       closeOnSelect = true,
-      position = 'bottom-left',
+      position,
       appendToBody = false,
       color,
       size,
@@ -358,7 +391,16 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     const reactId = useId();
     const popoverId = id ? `${id}-popover` : `picker-${reactId}`;
 
-    const { bulmaHelperClasses, rest: cleanRest } = useBulmaClasses(rest);
+    // The field takes the background and text helpers, since Bulma's `.input`
+    // sets its own background and font. The container keeps the rest, and the
+    // text helpers too where a popover inside it takes them.
+    const {
+      bulmaHelperClasses,
+      backgroundClasses,
+      textClasses,
+      otherClasses,
+      rest: cleanRest,
+    } = useFieldHelperClasses(rest);
 
     const { shouldUseNative } = useNativeMobilePicker({
       force: mobileNative === 'auto' ? undefined : mobileNative,
@@ -621,6 +663,8 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
         id={inline ? popoverId : `${popoverId}-cal`}
         autoFocusCell={open}
         labels={labels}
+        disabled={disabled}
+        readOnly={readOnly}
       />
     );
 
@@ -649,7 +693,12 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     return (
       <div
         ref={containerRef}
-        className={classNames(containerClass, bulmaHelperClasses, className)}
+        className={classNames(
+          containerClass,
+          otherClasses,
+          textClasses,
+          className
+        )}
         {...localeScope.rootAttrs}
         {...cleanRest}
       >
@@ -661,7 +710,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
           aria-expanded={open}
           aria-controls={popoverId}
           autoComplete="off"
-          className={inputClass}
+          className={classNames(inputClass, textClasses, backgroundClasses)}
           value={text}
           placeholder={placeholder}
           disabled={disabled}

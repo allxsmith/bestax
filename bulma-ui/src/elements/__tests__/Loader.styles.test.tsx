@@ -417,15 +417,33 @@ function matches(selector: string, el: Element, pseudo: string): boolean {
   }
 }
 
-/** Specificity of a plain compound selector; functional pseudos are refused. */
+/**
+ * Specificity of a selector. `:not()` and `:is()` count as their most
+ * specific argument and `:where()` as nothing, as Selectors 4 has it; any
+ * other functional pseudo is refused.
+ */
 function specificity(selector: string): [number, number, number] {
-  if (selector.includes('(')) {
+  let inner = [0, 0, 0];
+  const plain = selector.replace(
+    /:(not|is|where)\(([^()]*)\)/g,
+    (_, name: string, args: string) => {
+      if (name !== 'where') {
+        const most = args
+          .split(',')
+          .map(arg => specificity(arg.trim()))
+          .reduce((a, b) => (beats(b, a) ? b : a));
+        inner = inner.map((n, i) => n + most[i]);
+      }
+      return '';
+    }
+  );
+  if (plain.includes('(')) {
     throw new Error(
       `${selector} styles a spinner and has a functional pseudo-class, which ` +
         'this test does not rank. Extend `specificity` before trusting a result.'
     );
   }
-  const stripped = selector.replace(/\[[^\]]*\]/g, '.x');
+  const stripped = plain.replace(/\[[^\]]*\]/g, '.x');
   const ids = (stripped.match(/#[\w-]+/g) ?? []).length;
   const classes = (
     stripped.match(/\.[\w-]+|(?<!:):(?!after|before)[\w-]+/g) ?? []
@@ -433,7 +451,7 @@ function specificity(selector: string): [number, number, number] {
   const types =
     (stripped.match(/(?:^|[\s>+~])[a-zA-Z][\w-]*/g) ?? []).length +
     (PSEUDO.test(stripped) ? 1 : 0);
-  return [ids, classes, types];
+  return [ids + inner[0], classes + inner[1], types + inner[2]];
 }
 
 const beats = (a: number[], b: number[]) => {
@@ -533,24 +551,35 @@ function moves(
 
 /**
  * The plainest element a selector matches: each compound becomes an element
- * with exactly its tag and classes, nested in the one before it. A selector
- * that takes more than that fails here rather than being skipped, so no
- * animation goes unchecked.
+ * with exactly its tag and classes, nested in the one before it, or placed
+ * after it for `+` and `~`. A class inside `:not()` is one the element must
+ * not have, so it's left off. A selector that takes more than that fails
+ * here rather than being skipped, so no animation goes unchecked.
  */
 function witness(selector: string): { el: Element; pseudo: string } {
   const found = PSEUDO.exec(selector);
   const base = found ? selector.slice(0, found.index) : selector;
   let el: Element = document.createElement('div');
-  for (const part of base.split(/[\s>]+/).filter(Boolean)) {
+  let combinator = ' ';
+  for (const part of base.trim().split(/\s*([>+~])\s*|\s+/)) {
+    if (!part) continue;
+    if (/^[>+~]$/.test(part)) {
+      combinator = part;
+      continue;
+    }
+    const compound = part.replace(/:not\([^)]*\)/g, '');
     // Only a progress bar with no value is `:indeterminate`.
     const tag =
-      /^[a-zA-Z][\w-]*/.exec(part)?.[0] ??
-      (part.includes(':indeterminate') ? 'progress' : 'div');
+      /^[a-zA-Z][\w-]*/.exec(compound)?.[0] ??
+      (compound.includes(':indeterminate') ? 'progress' : 'div');
     const next = document.createElement(tag);
-    for (const [, name] of part.matchAll(/\.([\w-]+)/g)) {
+    for (const [, name] of compound.matchAll(/\.([\w-]+)/g)) {
       next.classList.add(name);
     }
-    el = el.appendChild(next);
+    if (combinator === '+' || combinator === '~') el.after(next);
+    else el.appendChild(next);
+    el = next;
+    combinator = ' ';
   }
   let built = false;
   try {
@@ -1505,27 +1534,31 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
       rules.filter(
         rule => rule.forcedColorsOnly && rule.selectors.includes(selector)
       );
-    const base = focus(`.${prefix}button.${prefix}is-loading:focus-visible`);
-    expect(base.map(rule => rule.values.outline?.value)).toEqual([
-      '2px solid CanvasText',
-    ]);
-    expect(base[0].values['outline-offset']?.value).toBe('2px');
-    expect(
-      focus(`button.${prefix}button.${prefix}is-loading:focus-visible`).map(
-        rule => rule.values['outline-color']?.value
-      )
-    ).toEqual(['ButtonText']);
-    expect(
-      focus(`a[href].${prefix}button.${prefix}is-loading:focus-visible`).map(
-        rule => rule.values['outline-color']?.value
-      )
-    ).toEqual(['LinkText']);
-    for (const variant of ['is-ghost', 'is-text', 'is-outlined']) {
+    // From the keyboard, or from `isFocused`, which forced colors outlines
+    // on every button.
+    for (const state of [':focus-visible', `.${prefix}is-focused`]) {
+      const base = focus(`.${prefix}button.${prefix}is-loading${state}`);
+      expect(base.map(rule => rule.values.outline?.value)).toEqual([
+        '2px solid CanvasText',
+      ]);
+      expect(base[0].values['outline-offset']?.value).toBe('2px');
       expect(
-        focus(
-          `.${prefix}button.${prefix}${variant}.${prefix}is-loading:focus-visible`
-        ).map(rule => rule.values['outline-color']?.value)
-      ).toEqual(['CanvasText']);
+        focus(`button.${prefix}button.${prefix}is-loading${state}`).map(
+          rule => rule.values['outline-color']?.value
+        )
+      ).toEqual(['ButtonText']);
+      expect(
+        focus(`a[href].${prefix}button.${prefix}is-loading${state}`).map(
+          rule => rule.values['outline-color']?.value
+        )
+      ).toEqual(['LinkText']);
+      for (const variant of ['is-ghost', 'is-text', 'is-outlined']) {
+        expect(
+          focus(
+            `.${prefix}button.${prefix}${variant}.${prefix}is-loading${state}`
+          ).map(rule => rule.values['outline-color']?.value)
+        ).toEqual(['CanvasText']);
+      }
     }
     // And no system color outside forced colors, anywhere in the sheet: one
     // there would show in every theme, not just a contrast one.

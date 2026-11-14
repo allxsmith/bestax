@@ -19,6 +19,16 @@ export interface LevelProps
   extends
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /**
+   * HTML element to render (default: `nav`, as in Bulma's markup). A `nav` is
+   * a `navigation` landmark, so keep it for a row of links. A row that is not
+   * navigation, such as figures or a toolbar, takes `div`, which is no
+   * landmark. `header` suits a level that opens a section and `footer` one
+   * that closes it. A `header` is a `banner` landmark, and a `footer` a
+   * `contentinfo` one, only when no `section`, `article`, `aside`, `nav` or
+   * `main` is around it.
+   */
+  as?: 'nav' | 'div' | 'header' | 'footer';
   /** Keeps the level horizontal on mobile (Bulma `is-mobile`). Without it
    * the level stacks vertically below tablet. */
   isMobile?: boolean;
@@ -43,6 +53,7 @@ export interface LevelProps
  * @see {@link https://bulma.io/documentation/layout/level/ | Bulma Level documentation}
  */
 const LevelComponent: React.FC<LevelProps> = ({
+  as: Tag = 'nav',
   isMobile,
   className,
   children,
@@ -61,9 +72,9 @@ const LevelComponent: React.FC<LevelProps> = ({
   });
   const levelClasses = classNames(mainClass, bulmaHelperClasses, className);
   return (
-    <nav className={levelClasses} {...rest}>
+    <Tag className={levelClasses} {...rest}>
       {children}
-    </nav>
+    </Tag>
   );
 };
 

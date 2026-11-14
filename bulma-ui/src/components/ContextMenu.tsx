@@ -2,8 +2,7 @@ import React, { cloneElement, useEffect, useRef, useState } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
-import { Portal } from '../helpers/portal';
-import { useConfig } from '../helpers/Config';
+import { Portal, usePopupContainer } from '../helpers/portal';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { getDeepestActiveElement, isEventInside } from '../helpers/shadowDom';
 import { warnOnce } from '../helpers/devWarnings';
@@ -129,14 +128,15 @@ function chain<E>(
  *
  * Shift+F10 and the context menu key open it too, where the browser fires
  * `contextmenu` for them, which Windows and Linux do. The menu is Dropdown's
- * markup, portaled into the `portalContainer` a `ConfigProvider` sets, or
- * the end of the trigger's own document's `<body>`, so it never has server
- * markup. It opens below and to the right of the point, flips above or to
+ * markup, portaled, so it never has server markup: into the
+ * `portalContainer` a `ConfigProvider` sets, else the overlay it's in that
+ * takes its popups, such as a `Modal`, where screen readers that honor its
+ * `aria-modal` reach it, else the end of the trigger's own document's
+ * `<body>`. It opens below and to the right of the point, flips above or to
  * the left where there's no room, moves in where it fits neither way, and
  * scrolls inside when it's taller than the viewport. It doesn't follow the
- * trigger, since scrolling closes it. Inside a `Modal` or a shadow root,
- * point `portalContainer` inside it, so screen readers that honor
- * `aria-modal` reach the menu and the shadow root's styles apply.
+ * trigger, since scrolling closes it. Inside a shadow root, point
+ * `portalContainer` inside it, so the shadow root's styles apply.
  *
  * Opening moves focus to the first enabled item. The arrow keys, Home, End
  * and typing move between items, and Enter and Space activate one. Escape,
@@ -171,7 +171,7 @@ const ContextMenuComponent: React.FC<ContextMenuProps> = ({
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
-  const { portalContainer } = useConfig();
+  const popupContainer = usePopupContainer();
   const [menu, setMenu] = useState<OpenMenu | null>(null);
   // Turning `disabled` on closes it.
   if (disabled && menu) setMenu(null);
@@ -348,7 +348,7 @@ const ContextMenuComponent: React.FC<ContextMenuProps> = ({
     <>
       {clonedTrigger}
       {menu && (
-        <Portal container={portalContainer || menu.doc.body}>
+        <Portal container={popupContainer || menu.doc.body}>
           <div
             ref={boxRef}
             className={boxClasses}

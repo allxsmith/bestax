@@ -1753,3 +1753,42 @@ describe('Toast Queue', () => {
     expect(calls).toHaveLength(1);
   });
 });
+
+describe('Toast hydration', () => {
+  it('hydrates a toast in place, then moves it into its portal', async () => {
+    const app = (
+      <main>
+        <Toast message="Saved" duration={0} />
+      </main>
+    );
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(app);
+    document.body.appendChild(container);
+
+    // The server renders it in place, so the hydrating render has markup to
+    // match.
+    expect(container.querySelector('.toast-container')).not.toBeNull();
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const onRecoverableError = vi.fn();
+    let unmountRoot = () => {};
+    try {
+      await act(async () => {
+        const root = hydrateRoot(container, app, { onRecoverableError });
+        unmountRoot = () => root.unmount();
+      });
+
+      expect(onRecoverableError).not.toHaveBeenCalled();
+      expect(errorSpy).not.toHaveBeenCalled();
+      // Then it moved into document.body.
+      expect(container.querySelector('.toast-container')).toBeNull();
+      const shown = document.body.querySelector('.toast-container');
+      expect(shown?.parentElement).toBe(document.body);
+      expect(screen.getByRole('alert')).toHaveTextContent('Saved');
+    } finally {
+      await act(async () => unmountRoot());
+      errorSpy.mockRestore();
+      container.remove();
+    }
+  });
+});

@@ -191,9 +191,9 @@ export const Loading: React.FC<LoadingProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [active, canCancel, hasOnCancel, onCancelRef, isTopmost]);
 
-  // Prevent body scroll when full page loading is active. Ref-counted through
-  // the shared helper so an overlapping Modal/Dialog/Sidebar doesn't have its
-  // lock cleared when this one releases.
+  // Lock the page's scrolling when full page loading is active. Ref-counted
+  // through the shared helper so an overlapping Modal/Dialog/Sidebar doesn't
+  // have its lock cleared when this one releases.
   useScrollLock(isFullPage && active);
 
   if (!active) {

@@ -530,7 +530,7 @@ export const ShoppingCart: Story = {
             )}
           </Sidebar.Body>
           <Sidebar.Footer>
-            <Level mb="3">
+            <Level as="div" mb="3">
               <Level.Left>
                 <Strong>Total:</Strong>
               </Level.Left>

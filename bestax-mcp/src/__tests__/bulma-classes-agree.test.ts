@@ -412,6 +412,8 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
     expect(compare(cases)).toEqual([]);
   });
 
+  // This sweep and the one with no tag are the longest here, and a loaded
+  // machine has run each past the config's 30s, so they get longer.
   it('on each root with each helper, and on the plain tags bestax wraps', () => {
     const cases: Array<[string, string[]]> = [];
     for (const [root, entry] of mapped) {
@@ -421,7 +423,7 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
       for (const helper of helpers) cases.push([tag, [helper]]);
     }
     expect(compare(cases)).toEqual([]);
-  });
+  }, 90_000);
 
   it('on every pair of the helpers whose props drop or rewrite each other', () => {
     const beside = Object.entries(table.helpers)
@@ -702,6 +704,7 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
     }
   });
 
+  // Its timeout is longer than the config's, as the helper sweep's is.
   it('with no tag, on the tag the component renders by itself', () => {
     const mismatches: string[] = [];
     const check = (tag: string, tokens: string[]) => {
@@ -752,7 +755,7 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
     expect({ count: mismatches.length, first: mismatches.slice(0, 5) }).toEqual(
       { count: 0, first: [] }
     );
-  });
+  }, 90_000);
 
   it('on seeded mixes of roots, modifiers, helpers and other classes', () => {
     const next = random(744);

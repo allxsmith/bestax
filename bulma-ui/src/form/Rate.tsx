@@ -7,7 +7,7 @@ import {
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { Icon } from '../elements/Icon';
 import { useClassPrefix, useIconLibrary } from '../helpers/Config';
-import { useNumberFormat } from '../helpers/localeFormat';
+import { useScopedNumberFormat } from '../helpers/localeFormat';
 import {
   useInsideField,
   useInsideControl,
@@ -222,7 +222,7 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
       callerProps: props,
     });
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
-    const formatNumber = useNumberFormat();
+    const formatNumber = useScopedNumberFormat();
     const starBaseId = useId();
     const [internalValue, setInternalValue] = useState(defaultValue);
     const [hoverValue, setHoverValue] = useState<number | null>(null);

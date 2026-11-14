@@ -1,21 +1,24 @@
 // `_datatable.scss` draws the toolbar, the sort button and its indicator,
-// which jsdom never loads and whose pseudo-element and forced-colors rules it
-// never computes. These compile the partial, with no prefix and under one,
-// read its rules off the sheet, and resolve which one wins on the markup a
-// DataTable renders, the way a browser with forced colors on (or off) would.
+// and sizes a loading row's skeleton lines, which jsdom never loads and whose
+// pseudo-element and forced-colors rules it never computes. These compile the
+// partial, with no prefix and under one, read its rules off the sheet, and
+// resolve which one wins on the markup a DataTable renders, the way a browser
+// with forced colors on (or off) would.
 import * as sass from 'sass';
 import path from 'path';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { DataTable, type DataTableColumn } from '../DataTable';
+import { Skeleton } from '../../elements/Skeleton';
 import { ConfigProvider } from '../../helpers/Config';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 const BULMA = path.dirname(require.resolve('bulma/package.json'));
 
-const compile = (prefix: string) =>
+/** The partial, after the other modules named, as an app's sheets might load. */
+const compile = (prefix: string, modules = ['components/datatable']) =>
   sass.compileString(
     `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
-     @use 'components/datatable';`,
+     ${modules.map(name => `@use '${name}';`).join('\n')}`,
     {
       loadPaths: [SCSS, path.dirname(BULMA)],
       quietDeps: true,
@@ -205,6 +208,35 @@ describe.each([
       expect(shape).toMatch(/^url\("data:image\/svg\+xml,/);
     }
   });
+
+  // Bulma's skeleton line is half a line of text, so a loading row was
+  // shorter than the row that replaced it (#1545).
+  it.each([
+    ['after', ['bulma/sass/base/skeleton', 'components/datatable']],
+    ['before', ['components/datatable', 'bulma/sass/base/skeleton']],
+  ])(
+    'makes a loading cell’s skeleton line a line of text tall, loaded %s Bulma’s',
+    (_order, modules) => {
+      const rules = rulesOf(compile(prefix, modules));
+      const lineIn = (container: HTMLElement) =>
+        container.querySelector(`.${prefix}skeleton-lines > div`)!;
+      const table = render(
+        <ConfigProvider classPrefix={prefix}>
+          <DataTable caption="Rows" columns={columns} data={[]} loading />
+        </ConfigProvider>
+      ).container;
+      expect(resolveIn(rules, lineIn(table), 'height')).toBe('1lh');
+      // A Skeleton anywhere else keeps Bulma's line.
+      const elsewhere = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Skeleton variant="lines" lines={1} />
+        </ConfigProvider>
+      ).container;
+      expect(resolveIn(rules, lineIn(elsewhere), 'height')).toBe(
+        'var(--bulma-skeleton-line-height)'
+      );
+    }
+  );
 
   it('paints the indicator in a system color in forced colors', () => {
     renderTable();

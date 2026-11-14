@@ -19,30 +19,31 @@ export const PrefixedBulma = () => (
     <Title size="3">Prefixed Bulma Components</Title>
     <p>
       This demonstrates using ConfigProvider with{' '}
-      <code>classPrefix=&quot;bulma-&quot;</code> to add the &quot;bulma-&quot;
-      prefix to all component CSS classes. This is useful when integrating Bulma
-      with other CSS frameworks or when you need to namespace Bulma classes to
-      avoid conflicts.
+      <code>classPrefix=&quot;bestax-&quot;</code> to add the
+      &quot;bestax-&quot; prefix to all component CSS classes. Pair it with
+      bestax&apos;s prefixed stylesheet,{' '}
+      <code>versions/bestax-prefixed.css</code>, which is built with the same
+      prefix. This is useful when integrating Bulma with other CSS frameworks or
+      when you need to namespace Bulma classes to avoid conflicts.
     </p>
 
     <Notification color="info" mt="4">
       <strong>Tip:</strong> Open your browser&apos;s developer tools and inspect
       the DOM elements below. You&apos;ll see that all Bulma CSS classes have
-      the &quot;bulma-&quot; prefix applied (e.g., &quot;bulma-box&quot;,
-      &quot;bulma-title&quot;, &quot;bulma-button&quot;,
-      &quot;bulma-notification&quot;).
+      the &quot;bestax-&quot; prefix applied (e.g., &quot;bestax-box&quot;,
+      &quot;bestax-title&quot; and &quot;bestax-button&quot;).
     </Notification>
 
-    <ConfigProvider classPrefix="bulma-">
+    <ConfigProvider classPrefix="bestax-">
       <Box mt="4" p="4">
         <Title size="4">Prefixed Components</Title>
         <p>
           All components inside this ConfigProvider will have their CSS classes
-          prefixed with &quot;bulma-&quot;. This allows you to use Bulma
+          prefixed with &quot;bestax-&quot;. This allows you to use Bulma
           alongside other CSS frameworks without class name conflicts.
         </p>
         <Button color="primary" mt="3">
-          Bulma-Prefixed Button
+          Prefixed Button
         </Button>
       </Box>
     </ConfigProvider>

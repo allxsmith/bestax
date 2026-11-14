@@ -385,10 +385,28 @@ export function referencePointer(record: ComponentRecord): string {
  * `Navbar.Brand` with Navbar's own table and no word about the switch (#935).
  */
 export interface PartFocus {
-  /** The dot-path as asked. */
+  /** The dot-path, as the record it names a part of spells it. */
   wanted: string;
   /** The part it names, or null when it names none. */
   part: Part | null;
+  /**
+   * The dot-path as asked, when it ran through a static that is a component
+   * of its own: `Stats.Stat.Label`, for `Stat.Label` (#1480).
+   */
+  asked?: string;
+}
+
+/**
+ * What a dot-path that ran through a static that is a component of its own
+ * names: `Stats.Stat` is `Stat`, so `Stats.Stat.Label` is `Stat.Label`. Each
+ * step keeps the rest of the path, so the static is the path as asked less
+ * the segments after the component's name.
+ */
+export function throughLine(asked: string, path: string): string {
+  const [component, ...rest] = path.split('.');
+  const segments = asked.split('.');
+  const via = segments.slice(0, segments.length - rest.length).join('.');
+  return `\`${via}\` is \`${component}\`, so \`${asked}\` is \`${path}\`.`;
 }
 
 /**
@@ -435,15 +453,56 @@ export function partLists(record: ComponentRecord): string[] {
   return out;
 }
 
+/**
+ * Where a name documented with a record but no part of it is (#1465): a hook,
+ * function or constant the record's import line gives beside it, such as
+ * `useDataTable`. It names the section of the page that documents it, when the
+ * index has one, and the call that returns that section, or the page itself.
+ */
+export function documentedLine(
+  name: string,
+  section: string | undefined,
+  record: ComponentRecord
+): string {
+  const inExamples =
+    section !== undefined &&
+    record.examples.some(
+      e => e.title === section || e.title.startsWith(`${section} › `)
+    );
+  const call = inExamples
+    ? `\`get_examples({ component: "${record.name}", query: ` +
+      `${JSON.stringify(section)} })\``
+    : record.doc
+      ? `\`get_component({ name: "${record.name}", include: ["reference"] })\``
+      : null;
+  return (
+    `\`${name}\` is documented with \`${record.name}\`` +
+    (section ? `, in the section "${section}"` : '') +
+    (call
+      ? `, which ${call} returns.`
+      : `, on its page: ${attributed(record.docsUrl)}.`)
+  );
+}
+
 export function renderComponent(
   record: ComponentRecord,
   include: string[],
   focus?: PartFocus,
-  { hasEntry }: Pick<PartOptions, 'hasEntry'> = {}
+  {
+    hasEntry,
+    lead,
+  }: Pick<PartOptions, 'hasEntry'> & {
+    /** A line for under the heading: what the name asked for is to the record. */
+    lead?: string;
+  } = {}
 ): string {
   const part =
     focus?.part && focus.part !== record.parts[0] ? focus.part : null;
   const out: string[] = [`# ${part ? part.path : record.name}`];
+  if (lead) out.push(lead);
+  if (focus?.asked) {
+    out.push(throughLine(focus.asked, focus.part?.path ?? focus.wanted));
+  }
   if (part?.standalone) {
     out.push(
       `${standaloneLine(part, record.name)} The props are its own; any ` +

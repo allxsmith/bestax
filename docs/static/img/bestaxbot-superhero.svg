@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="1024" height="1024">
+  <!--
+    bestaxbot as a superhero, the bot's GitHub avatar. The bot reuses the shapes
+    and colors of docs/src/components/BestaxBot, so it matches the homepage.
+    bestaxbot-superhero.png is this file captured at 1024x1024 in a browser.
+  -->
+  <defs>
+    <radialGradient id="sky" cx="58%" cy="40%" r="75%">
+      <stop offset="0" stop-color="#1d3a60"/>
+      <stop offset="0.55" stop-color="#0b1d38"/>
+      <stop offset="1" stop-color="#071226"/>
+    </radialGradient>
+    <pattern id="hive" width="17.32" height="30" patternUnits="userSpaceOnUse">
+      <g fill="none" stroke="#2f5d8f" stroke-width="0.7">
+        <path id="hx" d="M0 -10 8.66 -5 8.66 5 0 10 -8.66 5 -8.66 -5Z"/>
+        <use href="#hx" x="17.32"/>
+        <use href="#hx" x="8.66" y="15"/>
+        <use href="#hx" y="30"/>
+        <use href="#hx" x="17.32" y="30"/>
+      </g>
+    </pattern>
+    <radialGradient id="hiveFade" cx="50%" cy="50%" r="60%">
+      <stop offset="0.25" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="1"/>
+    </radialGradient>
+    <mask id="hiveMask"><rect width="200" height="200" fill="url(#hiveFade)"/></mask>
+    <clipPath id="body"><rect x="23" y="64" width="54" height="46" rx="16"/></clipPath>
+  </defs>
+
+  <rect width="200" height="200" fill="url(#sky)"/>
+  <rect width="200" height="200" fill="url(#hive)" opacity="0.35" mask="url(#hiveMask)"/>
+
+  <!-- speed lines, trailing down and left along the flight path -->
+  <g stroke="#7cc4ef" stroke-linecap="round" opacity="0.5">
+    <path d="M58 150 40 173" stroke-width="2.2"/>
+    <path d="M86 160 72 178" stroke-width="1.6"/>
+    <path d="M36 136 24 151" stroke-width="1.4"/>
+    <path d="M106 150 96 163" stroke-width="1.2"/>
+  </g>
+
+  <!-- twinkles -->
+  <g fill="#ffe39a">
+    <path d="M160 40l1.6 4.4 4.4 1.6-4.4 1.6-1.6 4.4-1.6-4.4-4.4-1.6 4.4-1.6z"/>
+    <path d="M40 58l1.1 3 3 1.1-3 1.1-1.1 3-1.1-3-3-1.1 3-1.1z" opacity="0.8"/>
+    <path d="M168 150l1 2.6 2.6 1-2.6 1-1 2.6-1-2.6-2.6-1 2.6-1z" opacity="0.7"/>
+  </g>
+  <g fill="#bdd7e7" opacity="0.7">
+    <circle cx="28" cy="34" r="1"/><circle cx="132" cy="22" r="0.9"/>
+    <circle cx="182" cy="86" r="1"/><circle cx="74" cy="22" r="0.8"/>
+    <circle cx="118" cy="178" r="0.9"/>
+  </g>
+
+  <g transform="translate(50 33) scale(1.08)">
+    <!-- everything below the neck leans back into the flight -->
+    <g transform="rotate(38 50 62)">
+      <!-- cape -->
+      <path d="M31 62 Q23 92 7 126 Q18 119 28 128 Q39 120 50 130 Q61 120 72 128 Q82 119 93 126 Q77 92 69 62Z" fill="#a8322a"/>
+      <path d="M31 62 Q25 92 11 124 Q20 117 29 125 Q39 117 50 127 Q61 117 71 125 Q80 117 89 124 Q75 92 69 62Z" fill="#e0473c"/>
+      <!-- wings -->
+      <g fill="#bfe0f5" fill-opacity="0.55" stroke="#eaf6ff" stroke-width="1.4">
+        <ellipse cx="16" cy="62" rx="15" ry="8.5" transform="rotate(-28 16 62)"/>
+        <ellipse cx="84" cy="62" rx="15" ry="8.5" transform="rotate(28 84 62)"/>
+      </g>
+      <!-- stinger -->
+      <path d="M44 106 50 118 56 106Z" fill="#1c1408" stroke="#1c1408" stroke-width="2" stroke-linejoin="round"/>
+      <!-- chassis -->
+      <g clip-path="url(#body)">
+        <rect x="23" y="64" width="54" height="46" rx="16" fill="#f4bf4f"/>
+        <rect x="23" y="70" width="54" height="7" fill="#1c1408"/>
+        <rect x="23" y="95" width="54" height="7" fill="#1c1408"/>
+      </g>
+      <!-- the other arm, held at his side -->
+      <path d="M27 74Q18 84 21 96" fill="none" stroke="#c9d6e3" stroke-width="6" stroke-linecap="round"/>
+      <g transform="rotate(-12 22 101)">
+        <rect x="16" y="95.5" width="12" height="11" rx="4.5" fill="#e8eef5" stroke="#b6c6d6" stroke-width="1.5"/>
+        <path d="M19.8 102.5v3.2M24.2 102.5v3.2" stroke="#b6c6d6" stroke-width="1.3" stroke-linecap="round"/>
+      </g>
+      <!-- the hexagon, now a chest shield -->
+      <polygon points="50,79.5 56,83 56,90 50,93.5 44,90 44,83" fill="#e0473c" stroke="#1c1408" stroke-width="1.8" stroke-linejoin="round"/>
+    </g>
+
+    <!-- neck -->
+    <rect x="42" y="57" width="16" height="9" rx="3" fill="#9fb3c8" transform="rotate(28 50 62)"/>
+
+    <!-- head, tilted less so he looks up where he is going -->
+    <g transform="rotate(18 50 62)">
+      <path d="M40 21Q35 12 29 8M60 21Q65 12 71 8" fill="none" stroke="#9fb3c8" stroke-width="2.6" stroke-linecap="round"/>
+      <circle cx="29" cy="7.5" r="4.4" fill="#f4bf4f"/>
+      <circle cx="71" cy="7.5" r="4.4" fill="#f4bf4f"/>
+      <rect x="21" y="17" width="58" height="44" rx="17" fill="#e8eef5" stroke="#b6c6d6" stroke-width="2"/>
+      <circle cx="21" cy="39" r="4.2" fill="#9fb3c8"/>
+      <circle cx="79" cy="39" r="4.2" fill="#9fb3c8"/>
+      <rect x="28.5" y="25" width="43" height="28" rx="11" fill="#0b1d38"/>
+      <g fill="#7cc4ef">
+        <rect x="37" y="32.5" width="7" height="9.5" rx="3.5"/>
+        <rect x="56" y="32.5" width="7" height="9.5" rx="3.5"/>
+      </g>
+      <path d="M44 46.5Q50 51 56 46.5" fill="none" stroke="#7cc4ef" stroke-width="2.2" stroke-linecap="round"/>
+      <circle cx="34" cy="47" r="2.3" fill="#f4bf4f" opacity="0.75"/>
+      <circle cx="66" cy="47" r="2.3" fill="#f4bf4f" opacity="0.75"/>
+    </g>
+
+    <!-- the raised arm, fist to the sky -->
+    <path d="M65 80Q98 72 106 30" fill="none" stroke="#c9d6e3" stroke-width="6" stroke-linecap="round"/>
+    <g transform="translate(5 -16) rotate(12 102 40)">
+      <rect x="95" y="33" width="14" height="13" rx="5.5" fill="#e8eef5" stroke="#b6c6d6" stroke-width="1.6"/>
+      <path d="M99.5 33.8v4.4M104.5 33.8v4.4" stroke="#b6c6d6" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M95.8 41.5h5.5" stroke="#b6c6d6" stroke-width="1.5" stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>

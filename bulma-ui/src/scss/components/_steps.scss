@@ -3,6 +3,7 @@
 
 @use "bulma/sass/utilities/initial-variables" as iv;
 @use "bulma/sass/utilities/css-variables" as cv;
+@use "bulma/sass/utilities/mixins" as mx;
 @use '../variables' as *;
 @use '../mixins' as *;
 
@@ -451,8 +452,9 @@ button.#{iv.$class-prefix}steps-link {
   margin-top: cv.getVar("steps-navigation-margin-top");
 }
 
-// Mobile modes
-@include extras-mobile {
+// Mobile modes, below Bulma's tablet breakpoint, so a build that moves
+// `$tablet` moves them too
+@include mx.mobile {
   .#{iv.$class-prefix}steps.#{iv.$class-prefix}is-minimal {
     .#{iv.$class-prefix}steps-content {
       display: none;
