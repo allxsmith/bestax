@@ -321,10 +321,12 @@ describe('AppFrame styles', () => {
         });
       });
 
-      it('hides with a column collapsed out of view, unless a drag or the keyboard still holds it, and then sits at the window’s edge', () => {
+      it('hides with a column collapsed out of view, unless a drag or focus still holds it, and then sits at the window’s edge', () => {
         const shut = `${root}.is-nav-collapsed > .app-frame-nav:not(.is-rail) + .app-frame-handle`;
+        // Any focus, a pointer's too: a drag that shuts the column focused
+        // the handle, which mustn't drop that focus as it hides.
         expect(
-          find(PLAIN, `${shut}:not(.is-active):not(:focus-visible)`, [media])
+          find(PLAIN, `${shut}:not(.is-active):not(:focus)`, [media])
         ).toEqual({ display: 'none' });
         expect(find(PLAIN, shut, [media])).toEqual({ translate: '50%' });
         expect(find(PLAIN, `${shut}:dir(rtl)`, [media])).toEqual({

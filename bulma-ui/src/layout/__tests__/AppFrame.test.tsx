@@ -2349,7 +2349,7 @@ describe('AppFrame.Nav resizable', () => {
     pointer(handle(), 'pointerup', 340);
   });
 
-  it('opens a column collapsed to its rail when the drag passes half the minimum', () => {
+  it('opens a column collapsed to its rail when the drag passes halfway from the rail to the minimum', () => {
     mockViewport(DESKTOP);
     const onNavCollapsedChange = vi.fn();
     render(
@@ -2361,13 +2361,34 @@ describe('AppFrame.Nav resizable', () => {
     );
     expect(nav()).toHaveClass('is-rail');
     laidOut(64);
+    // Halfway from the 4rem rail to 12rem is 128px.
     pointer(handle(), 'pointerdown', 64);
-    pointer(handle(), 'pointermove', 80);
-    expect(onNavCollapsedChange).not.toHaveBeenCalled();
     pointer(handle(), 'pointermove', 120);
+    expect(onNavCollapsedChange).not.toHaveBeenCalled();
+    pointer(handle(), 'pointermove', 140);
     expect(onNavCollapsedChange).toHaveBeenLastCalledWith(false);
     expect(widthOf()).toBe('192px');
-    pointer(handle(), 'pointerup', 120);
+    pointer(handle(), 'pointerup', 140);
+  });
+
+  it('keeps a rail as wide as half the minimum collapsed through a small move', () => {
+    mockViewport(DESKTOP);
+    const onNavCollapsedChange = vi.fn();
+    render(
+      <ResizeFrame
+        defaultNavCollapsed
+        onNavCollapsedChange={onNavCollapsedChange}
+        nav={{ rail: true, minWidth: '6rem' }}
+      />
+    );
+    laidOut(64);
+    // Half of 6rem is 48px, under the 64px rail; halfway to it is 80px.
+    pointer(handle(), 'pointerdown', 64);
+    pointer(handle(), 'pointermove', 66);
+    expect(onNavCollapsedChange).not.toHaveBeenCalled();
+    pointer(handle(), 'pointermove', 90);
+    expect(onNavCollapsedChange).toHaveBeenLastCalledWith(false);
+    pointer(handle(), 'pointerup', 90);
   });
 
   it('collapses on Enter and brings the column back at the width it had, with no width keys while it’s shut', () => {

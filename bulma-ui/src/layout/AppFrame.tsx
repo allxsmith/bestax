@@ -36,7 +36,7 @@ import type { MenuRail } from '../helpers/menuRail';
 import { NavbarBurger } from '../components/Navbar';
 import type { NavbarBurgerProps } from '../components/Navbar';
 import { Tooltip } from '../components/Tooltip';
-import { lengthToPx, ResizeHandle } from '../helpers/resizeHandle';
+import { lengthToPx, remPxOf, ResizeHandle } from '../helpers/resizeHandle';
 import { Delete } from '../elements/Delete';
 import type { ContainerBreakpoint } from './Container';
 
@@ -254,18 +254,17 @@ export interface AppFrameNavProps
    * that drags or keys its width between `minWidth` and `maxWidth`. It's a
    * focusable separator named by the nav's own name and controlling the nav,
    * read as "Sections, separator, 256". Arrow keys move it by `step`, ten
-   * times as far with Shift, mirrored right to left; Home and End go to the
-   * limits.
-   * Dragging below half of `minWidth` collapses the column, to the rail when
-   * it has one, and dragging it back out past that point opens it at
-   * `minWidth`. Enter collapses it and brings it back at the width it had,
-   * and a double click resets it to `defaultWidth` and expands it. The
-   * collapses go through `onNavCollapsedChange`, the state the burger sets.
-   * Collapsed, the handle's value is the rail's width, or 0 without a rail,
-   * which is where its range starts. The handle hides while the column is
-   * collapsed out of view, and the
-   * burger brings it back, unless the keyboard has it, so Enter brings it
-   * back too. A development build warns about a `width` with no
+   * times as far with Shift, mirrored right to left; Home and End go to
+   * `minWidth` and `maxWidth`. Dragging it below halfway from its collapsed
+   * width to `minWidth` collapses the column, to the rail when it has one,
+   * and dragging it back out past that point opens it at `minWidth`. Enter
+   * collapses it and brings it back at the width it had, and a double click
+   * resets it to `defaultWidth` and expands it. The collapses go through
+   * `onNavCollapsedChange`, the state the burger sets. Collapsed, the
+   * handle's value is the rail's width, or 0 without a rail, which is where
+   * its range starts. The handle hides while the column is collapsed out of
+   * view, and the burger brings it back, unless it has focus, so Enter
+   * brings it back too. A development build warns about a `width` with no
    * `onWidthChange`, since the handle couldn't move it.
    */
   resizable?: boolean;
@@ -753,9 +752,7 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
     const [metrics, setMetrics] = useState<Metrics>(DEFAULT_METRICS);
     const refreshMetrics = () => {
       const nav = navRef.current!;
-      const rem = parseFloat(
-        getComputedStyle(nav.ownerDocument.documentElement).fontSize
-      );
+      const rem = remPxOf(nav);
       // The widths as the nav has them, so a class or a style on it that sets
       // either counts. While the nav has a width of its own, its variable is
       // that width, so the default under it comes from the frame.
@@ -818,9 +815,11 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
 
     // A drag moves the column's edge from the width the column has as the
     // drag starts, not its box, which can be part way through a transition,
-    // or, collapsed out of view, still its old width. Below half of the
-    // minimum it collapses, and back out past that it opens again. The width
-    // doesn't animate while the pointer has it.
+    // or, collapsed out of view, still its old width. Below halfway from
+    // its collapsed width to the minimum it collapses, and back out past
+    // that it opens again: halfway, so a rail as wide as half the minimum
+    // doesn't open on the first move. The width doesn't animate while the
+    // pointer has it.
     const [resizing, setResizing] = useState(false);
     const dragRef = useRef({
       start: 0,
@@ -837,7 +836,8 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
     const dragBy = (moved: number) => {
       const drag = dragRef.current;
       const next = drag.start + moved;
-      const shut = next < limitsOf(drag.metrics).min / 2;
+      const shut =
+        next < (shutOf(drag.metrics) + limitsOf(drag.metrics).min) / 2;
       if (shut !== drag.shut) {
         drag.shut = shut;
         setCollapsed(shut);

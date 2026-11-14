@@ -434,10 +434,11 @@ html:has(.#{iv.$class-prefix}app-frame) {
   }
 
   // Collapsed out of view, the column has no edge to drag, so its handle
-  // hides, unless a drag that just shut it still holds the pointer, or the
-  // keyboard has it, where Enter just shut it and brings it back. Shown, it
-  // sits at the window's edge, moved in by the half that would be off it,
-  // which takes no room either.
+  // hides, unless a drag that just shut it still holds the pointer, or it
+  // has focus: from the keyboard, where Enter just shut it and brings it
+  // back, or from the drag that shut it, so focus isn't dropped to the page.
+  // Shown, it sits at the window's edge, moved in by the half that would be
+  // off it, which takes no room either.
   &.#{iv.$class-prefix}is-nav-collapsed
     > .#{iv.$class-prefix}app-frame-nav:not(.#{iv.$class-prefix}is-rail)
     + .#{iv.$class-prefix}app-frame-handle {
@@ -447,7 +448,7 @@ html:has(.#{iv.$class-prefix}app-frame) {
       translate: -50%;
     }
 
-    &:not(.#{iv.$class-prefix}is-active):not(:focus-visible) {
+    &:not(.#{iv.$class-prefix}is-active):not(:focus) {
       display: none;
     }
   }
