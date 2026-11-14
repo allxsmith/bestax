@@ -67,6 +67,8 @@ export const Default: Story = {
         <Steps
           value={1}
           items={[{ label: 'السلة' }, { label: 'الشحن' }, { label: 'الدفع' }]}
+          completedLabel="مكتملة"
+          upcomingLabel="قادمة"
           mb="5"
         />
         <Popover
@@ -100,6 +102,8 @@ export const Chinese: Story = {
         <Steps
           value={1}
           items={[{ label: '购物车' }, { label: '配送' }, { label: '付款' }]}
+          completedLabel="已完成"
+          upcomingLabel="未开始"
           mb="5"
         />
         <Stat
@@ -133,6 +137,8 @@ export const Japanese: Story = {
             { label: 'お届け先' },
             { label: 'お支払い' },
           ]}
+          completedLabel="完了"
+          upcomingLabel="未着手"
           mb="5"
         />
         <Stat
