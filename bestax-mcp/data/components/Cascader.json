@@ -81,7 +81,7 @@
         },
         {
           "name": "id",
-          "type": "string",
+          "type": "React.HTMLAttributes<HTMLDivElement>['id']",
           "default": null,
           "description": "The field's `id`, which the label then points at. The panel's is this one with `-panel` after it.",
           "required": false,
@@ -90,7 +90,7 @@
         },
         {
           "name": "aria-label",
-          "type": "string",
+          "type": "React.AriaAttributes['aria-label']",
           "default": null,
           "description": "Names the field, and the panel and its first column, in place of a `label`.",
           "required": false,
@@ -99,7 +99,7 @@
         },
         {
           "name": "aria-labelledby",
-          "type": "string",
+          "type": "React.AriaAttributes['aria-labelledby']",
           "default": null,
           "description": "The ids of what names the field, and the panel and its first column, in place of a `label`.",
           "required": false,
@@ -108,7 +108,7 @@
         },
         {
           "name": "aria-describedby",
-          "type": "string",
+          "type": "React.AriaAttributes['aria-describedby']",
           "default": null,
           "description": "The ids of what describes the field.",
           "required": false,
@@ -218,7 +218,7 @@
           "name": "searchable",
           "type": "boolean",
           "default": "false",
-          "description": "Puts a search box at the top of the panel. While it has text, the columns give way to a list of matching paths, leaves only unless `parentsSelectable`. A printable key on the field opens the panel with it in the box, and the search empties when the panel closes.",
+          "description": "Puts a search box at the top of the panel. While it has text, the columns give way to a list of matching paths, leaves only unless `parentsSelectable`. A printable key on the field opens the panel with it in the box.",
           "required": false,
           "inherited": false,
           "deprecated": false

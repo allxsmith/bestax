@@ -530,6 +530,31 @@ describe('Cascader', () => {
       expect(option('Beta')).toHaveFocus();
     });
 
+    it("keeps the first column apart from a parent whose value is ''", () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        render(
+          <Cascader
+            label="City"
+            data={[
+              {
+                value: '',
+                label: 'Anywhere',
+                children: [{ value: 'b', label: 'Beta' }],
+              },
+            ]}
+          />
+        );
+        open();
+        press('ArrowRight');
+        expect(lists()).toEqual(['City', 'Anywhere']);
+        expect(option('Beta')).toHaveFocus();
+        expect(errorSpy).not.toHaveBeenCalled();
+      } finally {
+        errorSpy.mockRestore();
+      }
+    });
+
     it('moves into a column open already with Right, at its selected item', () => {
       render(<City defaultValue="munich" />);
       open();

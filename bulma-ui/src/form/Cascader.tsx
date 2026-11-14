@@ -121,13 +121,13 @@ export interface CascaderProps
    */
   label?: React.ReactNode;
   /** The field's `id`, which the label then points at. The panel's is this one with `-panel` after it. */
-  id?: string;
+  id?: React.HTMLAttributes<HTMLDivElement>['id'];
   /** Names the field, and the panel and its first column, in place of a `label`. */
-  'aria-label'?: string;
+  'aria-label'?: React.AriaAttributes['aria-label'];
   /** The ids of what names the field, and the panel and its first column, in place of a `label`. */
-  'aria-labelledby'?: string;
+  'aria-labelledby'?: React.AriaAttributes['aria-labelledby'];
   /** The ids of what describes the field. */
-  'aria-describedby'?: string;
+  'aria-describedby'?: React.AriaAttributes['aria-describedby'];
   /** The picked node's value when you hold the state, or `null` for none. Picking then only calls `onChange`. */
   value?: string | null;
   /** The node picked to begin with, when the Cascader holds its own state. */
@@ -179,7 +179,7 @@ export interface CascaderProps
    * Puts a search box at the top of the panel. While it has text, the
    * columns give way to a list of matching paths, leaves only unless
    * `parentsSelectable`. A printable key on the field opens the panel with
-   * it in the box, and the search empties when the panel closes.
+   * it in the box.
    */
   searchable?: boolean;
   /** The search text when you hold the state. */
@@ -596,7 +596,10 @@ export const Cascader = forwardRef<HTMLInputElement, CascaderProps>(
     // that matches the text on any of its labels, or the app's `filter`.
     const matchText = useLocaleMatcher();
     const typed = searchable ? query.trim() : '';
-    const paths = useMemo(() => treePaths(data), [data]);
+    const paths = useMemo(
+      () => (searchable ? treePaths(data) : []),
+      [searchable, data]
+    );
     const matches = useMemo(() => {
       if (!typed) return [];
       const hit = (text: string) =>
@@ -776,7 +779,8 @@ export const Cascader = forwardRef<HTMLInputElement, CascaderProps>(
               >
                 {engine.columns.map((column, at) => (
                   <CascaderList
-                    key={column.parent?.value ?? ''}
+                    // Apart from every node's value, `''` included.
+                    key={column.parent ? `node:${column.parent.value}` : 'top'}
                     context={context}
                     column={column}
                     at={at}
