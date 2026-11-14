@@ -1,6 +1,7 @@
 import React, { createRef, useRef, useState } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
+import { createPortal } from 'react-dom';
 import { hydrateRoot } from 'react-dom/client';
 import {
   FloatButton,
@@ -671,6 +672,17 @@ describe('FloatButton.SpeedDial', () => {
     expect(menu()).toBeNull();
   });
 
+  it('counts a press in content it portals elsewhere as inside', () => {
+    render(
+      <FloatButton.SpeedDial aria-label="Create" defaultOpen>
+        <FloatButton aria-label="Note" icon="note-sticky" />
+        {createPortal(<button>Portaled</button>, document.body)}
+      </FloatButton.SpeedDial>
+    );
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'Portaled' }));
+    expect(menu()).not.toBeNull();
+  });
+
   it('is controlled by open and onOpenChange', () => {
     const Controlled = () => {
       const [open, setOpen] = useState(true);
@@ -1105,7 +1117,11 @@ describe('FloatButton.BackToTop', () => {
 
   it('jumps at once when the user prefers reduced motion', () => {
     const matchMedia = window.matchMedia;
-    window.matchMedia = vi.fn().mockReturnValue({ matches: true });
+    window.matchMedia = vi.fn().mockReturnValue({
+      matches: true,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    });
     try {
       render(<FloatButton.BackToTop />);
       flush();

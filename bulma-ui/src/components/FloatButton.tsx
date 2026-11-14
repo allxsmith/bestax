@@ -31,9 +31,10 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { warnOnce } from '../helpers/devWarnings';
 import { hasText, iconFromProp, iconOf } from '../helpers/iconGlyph';
 import type { PolymorphicComponent } from '../helpers/polymorphic';
-import { getActiveElementInTree, isEventInside } from '../helpers/shadowDom';
+import { getActiveElementInTree } from '../helpers/shadowDom';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
+import { useControlled } from '../helpers/useControlled';
 import { chain, useHoverOpen } from '../helpers/useHoverOpen';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { useLatestRef } from '../helpers/useLatestRef';
@@ -43,6 +44,8 @@ import {
   MENU_ITEM_SELECTOR,
   useMenuKeys,
 } from '../helpers/useMenuKeys';
+import { useOutsidePress } from '../helpers/useOutsidePress';
+import { usePrefersReducedMotion } from '../helpers/usePrefersReducedMotion';
 import { withSubComponents } from '../helpers/withSubComponents';
 
 /** A FloatButton's size; unset, it's Bulma's normal button, 40px across. */
@@ -462,16 +465,11 @@ export const FloatButtonSpeedDial = forwardRef<
     directionProp ?? (position.startsWith('top') ? 'down' : 'up');
   const sideways = direction === 'left' || direction === 'right';
 
-  const isControlled = controlledOpen !== undefined;
-  const [internalOpen, setInternalOpen] = useState(defaultOpen);
-  const open = controlledOpen ?? internalOpen;
-  const requestOpen = useCallback(
-    (next: boolean) => {
-      onOpenChange?.(next);
-      if (!isControlled) setInternalOpen(next);
-    },
-    [isControlled, onOpenChange]
-  );
+  const [open, setOwnOpen] = useControlled(controlledOpen, defaultOpen);
+  const requestOpen = (next: boolean) => {
+    onOpenChange?.(next);
+    setOwnOpen(next);
+  };
 
   const baseId = useId();
   const triggerId = `${baseId}-trigger`;
@@ -556,21 +554,17 @@ export const FloatButtonSpeedDial = forwardRef<
     triggerRef.current?.focus();
   }, [open]);
 
-  // Read when a press lands outside, so the listener stays put while
-  // `requestOpen` changes identity with `onOpenChange`.
-  const closeRef = useLatestRef(() => requestOpen(false));
-  useEffect(() => {
-    if (!open) return undefined;
-    const doc = (rootRef.current as HTMLDivElement).ownerDocument;
-    const handlePointerDown = (e: PointerEvent) => {
-      // A press moves focus its own way, so a Tab before it no longer
-      // decides what the next blur does.
-      tabbedRef.current = false;
-      if (!isEventInside(e, rootRef.current)) closeRef.current();
-    };
-    doc.addEventListener('pointerdown', handlePointerDown);
-    return () => doc.removeEventListener('pointerdown', handlePointerDown);
-  }, [open, closeRef]);
+  // A press outside closes it. A press anywhere moves focus its own way, so
+  // a Tab before it no longer decides what the next blur does.
+  const markInsidePress = useOutsidePress(rootRef, open, () => {
+    tabbedRef.current = false;
+    requestOpen(false);
+  });
+  const handlePointerDownCapture = (e: React.PointerEvent<HTMLDivElement>) => {
+    tabbedRef.current = false;
+    markInsidePress(e);
+    rest.onPointerDownCapture?.(e);
+  };
 
   // Hover opens it only with `openOnHover`, and only for the pointer. Off,
   // the hook is told the dial is closed, so it adds no Escape listener of
@@ -726,6 +720,7 @@ export const FloatButtonSpeedDial = forwardRef<
       className={classNames(dialClasses, bulmaHelperClasses, className)}
       {...rest}
       {...hoverProps}
+      onPointerDownCapture={handlePointerDownCapture}
     >
       {trigger}
       {open && (
@@ -926,6 +921,7 @@ export const FloatButtonBackToTop = forwardRef<
   ref
 ) {
   const hydrated = useIsHydrated();
+  const reducedMotion = usePrefersReducedMotion();
   const [shown, setShown] = useState(false);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   // Not `is-active`, which is Bulma's pressed button.
@@ -969,12 +965,11 @@ export const FloatButtonBackToTop = forwardRef<
     const doc = e.currentTarget.ownerDocument;
     const win = doc.defaultView as Window;
     const scroller = scrollerOf(scrollContainer, doc);
-    // Read now, since the browser's smooth scroll animates under reduced
-    // motion too.
-    const reduce = win.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    // The browser's smooth scroll animates under reduced motion too, so the
+    // preference is read here.
     (scroller ?? win).scrollTo({
       top: 0,
-      behavior: reduce ? 'instant' : 'smooth',
+      behavior: reducedMotion ? 'instant' : 'smooth',
     });
     const target =
       moveFocus === true
