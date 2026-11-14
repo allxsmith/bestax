@@ -64,6 +64,8 @@ export interface Typeahead {
   type: (char: string) => string;
   /** Forgets what has been typed, so the next character starts a new search. */
   reset: () => void;
+  /** Whether a search is under way: something typed and not yet forgotten. */
+  typing: () => boolean;
 }
 
 /**
@@ -98,6 +100,7 @@ export function useTypeahead(): Typeahead {
       typed.timer = setTimeout(reset, TYPEAHEAD_TIMEOUT);
       return typed.text;
     };
-    return { type, reset };
+    const typing = () => typedRef.current.text !== '';
+    return { type, reset, typing };
   }, []);
 }

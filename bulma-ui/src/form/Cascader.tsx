@@ -560,6 +560,7 @@ export const Cascader = forwardRef<HTMLInputElement, CascaderProps>(
     const keys = useMenuKeys({
       itemSelector: '[role="option"]',
       disabledReachable: true,
+      spaceJoinsSearch: true,
     });
     const region = useLoadRegion(
       labels?.loadingAnnouncement,

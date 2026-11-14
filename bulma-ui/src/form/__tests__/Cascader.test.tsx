@@ -11,6 +11,7 @@ import { ConfigProvider } from '../../helpers/Config';
 import { LocaleProvider } from '../../helpers/LocaleProvider';
 import { resetDevWarnings } from '../../helpers/devWarnings';
 import { announceDelay } from '../../helpers/statusRegion';
+import { TYPEAHEAD_TIMEOUT } from '../../helpers/typeahead';
 
 const PLACES: TreeItemData[] = [
   {
@@ -443,6 +444,36 @@ describe('Cascader', () => {
       open();
       press('h');
       expect(option('Hamburg')).toHaveFocus();
+    });
+
+    it('takes Space into a type-ahead search under way, and picks with it otherwise', () => {
+      vi.useFakeTimers();
+      try {
+        const onChange = vi.fn();
+        render(
+          <Cascader
+            label="City"
+            onChange={onChange}
+            data={[
+              { value: 'nwk', label: 'Newark' },
+              { value: 'ny', label: 'New York' },
+              { value: 'nh', label: 'New Hampshire' },
+            ]}
+          />
+        );
+        open();
+        for (const k of ['n', 'e', 'w', ' ', 'h']) press(k);
+        expect(option('New Hampshire')).toHaveFocus();
+        expect(onChange).not.toHaveBeenCalled();
+        expect(dialog()).not.toBeNull();
+        act(() => {
+          vi.advanceTimersByTime(TYPEAHEAD_TIMEOUT);
+        });
+        press(' ');
+        expect(onChange).toHaveBeenCalledWith('nh');
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it('closes the columns after one whose selection moves', () => {

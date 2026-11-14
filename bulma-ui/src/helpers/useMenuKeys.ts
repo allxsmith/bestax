@@ -62,6 +62,12 @@ export interface MenuKeysOptions {
    * @defaultValue false
    */
   disabledReachable?: boolean;
+  /**
+   * Space joins a type-ahead search under way, so "new y" reaches "New
+   * York", and activates the focused item only when nothing has been typed.
+   * @defaultValue false
+   */
+  spaceJoinsSearch?: boolean;
 }
 
 /** What `useMenuKeys` returns. */
@@ -101,18 +107,22 @@ export interface MenuKeys {
  * Items are `MENU_ITEM_SELECTOR` matches, and disabled ones are skipped by
  * all of the above. Escape and Tab are left to the menu's owner, since what
  * closing means is up to it, and so is any other key. `options` makes the
- * items another selector's matches, such as a listbox's options, and can
- * keep disabled items reachable.
+ * items another selector's matches, such as a listbox's options, can keep
+ * disabled items reachable, and can let Space join a search under way.
  *
  * @function useMenuKeys
- * @param options - Another kind of item, and whether disabled ones are reached.
+ * @param options - Another kind of item, whether disabled ones are reached,
+ * and whether Space joins a search.
  * @returns The `keydown` handler for the menu element, and a way to forget
  * what has been typed.
  */
 export function useMenuKeys(options: MenuKeysOptions = {}): MenuKeys {
   const typeahead = useTypeahead();
-  const { itemSelector = MENU_ITEM_SELECTOR, disabledReachable = false } =
-    options;
+  const {
+    itemSelector = MENU_ITEM_SELECTOR,
+    disabledReachable = false,
+    spaceJoinsSearch = false,
+  } = options;
 
   return useMemo<MenuKeys>(() => {
     const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
@@ -147,6 +157,10 @@ export function useMenuKeys(options: MenuKeysOptions = {}): MenuKeys {
         case 'Enter':
         case ' ': {
           if (current < 0 || event.defaultPrevented) return;
+          // Typed as a character, below.
+          if (event.key === ' ' && spaceJoinsSearch && typeahead.typing()) {
+            break;
+          }
           const item = items[current];
           // A disabled item the arrows reach does nothing, and Space doesn't
           // scroll the page.
@@ -183,5 +197,5 @@ export function useMenuKeys(options: MenuKeysOptions = {}): MenuKeys {
       typeaheadMatch(items, typeahead.type(event.key), current)?.focus();
     };
     return { onKeyDown, reset: typeahead.reset };
-  }, [typeahead, itemSelector, disabledReachable]);
+  }, [typeahead, itemSelector, disabledReachable, spaceJoinsSearch]);
 }

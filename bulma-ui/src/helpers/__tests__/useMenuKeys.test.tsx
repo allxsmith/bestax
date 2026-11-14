@@ -565,6 +565,49 @@ describe('useMenuKeys', () => {
       expect(onPick).toHaveBeenCalledWith('Oceania');
     });
 
+    it('lets Space join a search under way with spaceJoinsSearch, and act once typing pauses', () => {
+      const onPick = vi.fn();
+      const States = ({ joins }: { joins: boolean }) => {
+        const keys = useMenuKeys({
+          itemSelector: '[role="option"]',
+          spaceJoinsSearch: joins,
+        });
+        return (
+          <ul role="listbox" aria-label="States" onKeyDown={keys.onKeyDown}>
+            {['Newark', 'New York', 'New Hampshire'].map(name => (
+              <li
+                key={name}
+                role="option"
+                aria-selected={false}
+                tabIndex={-1}
+                onClick={() => onPick(name)}
+              >
+                {name}
+              </li>
+            ))}
+          </ul>
+        );
+      };
+      const { unmount } = render(<States joins />);
+      option('Newark').focus();
+      for (const key of ['n', 'e', 'w', ' ', 'h']) {
+        expect(press(key)).toBe(false);
+      }
+      expect(option('New Hampshire')).toHaveFocus();
+      expect(onPick).not.toHaveBeenCalled();
+      advance(TYPEAHEAD_TIMEOUT);
+      press(' ');
+      expect(onPick).toHaveBeenCalledWith('New Hampshire');
+      unmount();
+      onPick.mockClear();
+      // Without it, Space acts on the focused item mid-search, as a menu's does.
+      render(<States joins={false} />);
+      option('Newark').focus();
+      press('n');
+      press(' ');
+      expect(onPick).toHaveBeenCalledWith('New York');
+    });
+
     it('leaves a key alone on an item of another kind', () => {
       render(<List onPick={() => {}} />);
       const other = screen.getByRole('menuitem', { name: 'Not an option' });

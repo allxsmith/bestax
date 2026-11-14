@@ -395,7 +395,8 @@ edge. A `position` you pass stays physical.
 - **Each column** is a `listbox` with one tab stop and real focus on its `option`s. The first is
   named as the panel is, and each one after it by the label of the item that opened it. Up, Down,
   Home, End and type-ahead move within a column, and type-ahead starts over in each column it
-  comes into. Right opens the next column and moves into it, Left goes back, and the two swap on a
+  comes into. Space typed while a search is under way joins it, so "new y" reaches "New York",
+  and picks or opens only when nothing has been typed. Right opens the next column and moves into it, Left goes back, and the two swap on a
   right-to-left page. Disabled items are reachable and `aria-disabled`, and Right moves into a
   column at its item on the open path even when that one is disabled.
 - **The picked node's path is `aria-selected`,** and drawn filled, its items `is-checked` as
