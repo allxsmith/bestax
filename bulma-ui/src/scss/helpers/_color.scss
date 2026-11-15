@@ -1,0 +1,71 @@
+// Bestax Extras - Color helper styles
+// Bulma's `has-text-<color>` helper, which `textColor` and the `color` helper
+// prop render, paints text in the color's own lightness. Bulma also works out
+// a lightness for each color's text on the page, `--bulma-<color>-on-scheme-l`,
+// one for each scheme: it starts from the color and steps it lighter on the
+// dark scheme, or darker on the light one, until the text reads on the page's
+// background. The helper doesn't use it, so on the dark scheme a dark color's
+// text is hard to read there: bestax's blue primary, and Bulma's link color.
+//
+// This gives the helper whichever of the two lightnesses is lighter, at rest
+// and in the hover, focus and active colors Bulma gives a link or a button
+// with the helper. On the dark scheme that's the on-scheme one wherever the
+// color doesn't read on its own. On the light scheme Bulma only ever steps a
+// color darker for its on-scheme lightness, so the helper keeps the color's
+// own there.
+//
+// The lighter text is for the dark page. On a surface that stays light on both
+// schemes, such as `has-background-white`, `has-background-light` or a color's
+// `-light` shade, it has less contrast than the color's own, and the color's
+// `-dark` shade (`colorShade="dark"`) is the one that reads there.
+//
+// White, black, light and dark are left out. They're fixed shades for text on
+// a surface of another color, such as white text on a primary hero, where they
+// stay the same on both schemes. So is `text`, the scheme's own text color,
+// which each scheme already sets.
+//
+// Bulma's helper rules are `!important`, so these are too, and each names the
+// class twice to outrank Bulma's whichever stylesheet loads first.
+
+@use 'sass:list';
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+@use 'bulma/sass/utilities/derived-variables' as dv;
+
+$-left-alone: ('white', 'black', 'light', 'dark', 'text');
+
+@each $name, $color in dv.$colors {
+  @if not list.index($-left-alone, $name) {
+    $class: '#{iv.$class-prefix}#{iv.$helpers-has-prefix}text-#{$name}';
+    $h: cv.getVar($name, '', '-h');
+    $s: cv.getVar($name, '', '-s');
+    $l: max(
+      #{cv.getVar($name, '', '-l')},
+      #{cv.getVar($name, '', '-on-scheme-l')}
+    );
+
+    .#{$class}.#{$class} {
+      color: hsl(#{$h}, #{$s}, #{$l}) !important;
+    }
+
+    a.#{$class}.#{$class},
+    button.#{$class}.#{$class} {
+      &:hover,
+      &:focus-visible {
+        color: hsl(
+          #{$h},
+          #{$s},
+          calc(#{$l} + #{cv.getVar('hover-color-l-delta')})
+        ) !important;
+      }
+
+      &:active {
+        color: hsl(
+          #{$h},
+          #{$s},
+          calc(#{$l} + #{cv.getVar('active-color-l-delta')})
+        ) !important;
+      }
+    }
+  }
+}

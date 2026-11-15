@@ -55,8 +55,30 @@ export function substitute(value: string, vars: Vars): string {
   });
 }
 
-/** An opaque `hsl()` or `hsla()` color's sRGB channels, from 0 to 1. */
-function rgbOf(color: string): number[] {
+/**
+ * `color` with each `max()` and `calc()` of percentages worked out, as a
+ * browser does.
+ */
+function evaluate(color: string): string {
+  const next = color
+    .replace(
+      /max\(\s*(-?[\d.]+)%\s*,\s*(-?[\d.]+)%\s*\)/g,
+      (_, a: string, b: string) => `${Math.max(Number(a), Number(b))}%`
+    )
+    .replace(
+      /calc\(\s*(-?[\d.]+)%\s*([+-])\s*(-?[\d.]+)%\s*\)/g,
+      (_, a: string, op: string, b: string) =>
+        `${Number(a) + (op === '+' ? 1 : -1) * Number(b)}%`
+    );
+  return next === color ? color : evaluate(next);
+}
+
+/**
+ * An opaque `hsl()` or `hsla()` color's sRGB channels, from 0 to 1, with any
+ * `max()` or `calc()` of percentages in it worked out.
+ */
+function rgbOf(value: string): number[] {
+  const color = evaluate(value);
   const match =
     /^hsla?\(\s*([\d.]+)(?:deg)?\s*,\s*([\d.]+)%\s*,\s*([\d.]+)%\s*(?:,\s*1\s*)?\)$/.exec(
       color
