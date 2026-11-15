@@ -39,8 +39,13 @@ const bulmaHelper = (color: string) =>
   `hsl(var(--bulma-${color}-h), var(--bulma-${color}-s), var(--bulma-${color}-l))`;
 
 /** The partial's lightness: the lighter of the two. */
+/**
+ * The partial's lightness: on a dark page the lighter of the two, and on a
+ * white one the color's own, through a cap that grows with the page's
+ * distance from white.
+ */
 const lighter = (color: string) =>
-  `max(var(--bulma-${color}-l), var(--bulma-${color}-on-scheme-l))`;
+  `max(var(--bulma-${color}-l), min(var(--bulma-${color}-on-scheme-l), var(--bulma-${color}-l) + (100% - var(--bulma-scheme-main-l)) * 2))`;
 
 /** The partial's helper. */
 const adjusted = (color: string) =>
@@ -191,9 +196,12 @@ describe("the text color helper's contrast in bestax.css", () => {
       schemes[scheme]
     );
 
-  /** The contrast of `value`, resolved on `scheme`, on the page. */
-  const onPage = (scheme: string, value: string) =>
-    contrast(substitute(value, schemes[scheme]), page(scheme));
+  /**
+   * The contrast of `value`, resolved on `scheme` with `own` set over it, on
+   * the page.
+   */
+  const onPage = (scheme: string, value: string, own: Vars = {}) =>
+    contrast(substitute(value, { ...schemes[scheme], ...own }), page(scheme));
 
   /** The color bestax.css gives a Paragraph with `textColor`. */
   const bestax = (color: string) => {
@@ -220,6 +228,27 @@ describe("the text color helper's contrast in bestax.css", () => {
   it.each(ADJUSTED)('keeps %s as it was on the light scheme', color => {
     expect(onPage('light', bestax(color))).toBe(
       onPage('light', bulmaHelper(color))
+    );
+  });
+
+  // A Theme can set a color's trio at runtime and leave its on-scheme
+  // lightness at the build's, which is then lighter than a dark new color.
+  const olive = {
+    '--bulma-primary-h': '60',
+    '--bulma-primary-s': '100%',
+    '--bulma-primary-l': '20%',
+  };
+
+  it('keeps a darker primary set at runtime as dark on the light scheme', () => {
+    expect(onPage('light', bestax('primary'), olive)).toBe(
+      onPage('light', bulmaHelper('primary'), olive)
+    );
+  });
+
+  it('lifts a darker primary set at runtime on the dark scheme', () => {
+    expect(onPage('dark', bulmaHelper('primary'), olive)).toBeLessThan(4.5);
+    expect(onPage('dark', bestax('primary'), olive)).toBeGreaterThanOrEqual(
+      4.5
     );
   });
 
