@@ -45,7 +45,9 @@ $slider-tick-height: 1rem !default;
 $slider-tick-color: cv.getVar("grey-light") !default;
 $slider-tick-opacity: 0.5 !default;
 $slider-tick-label-font-size: 0.75rem !default;
-$slider-tick-label-color: cv.getVar("text-light") !default;
+// text-weak follows the scheme; text-light is a fixed light gray that the
+// light scheme's white all but hides.
+$slider-tick-label-color: cv.getVar("text-weak") !default;
 // Vertical
 $slider-vertical-height: 200px !default;
 
@@ -308,12 +310,20 @@ $slider-vertical-height: 200px !default;
   }
   width: cv.getVar("slider-tick-width");
   height: cv.getVar("slider-tick-height");
-  background: cv.getVar("slider-tick-color");
-  opacity: cv.getVar("slider-tick-opacity");
   top: calc(-1 * cv.getVar("slider-tick-height") / 2);
 
+  // The line is drawn on its own layer, so its opacity doesn't dim the label
+  // the tick holds.
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: cv.getVar("slider-tick-color");
+    opacity: cv.getVar("slider-tick-opacity");
+  }
+
   // Hide the tick line at endpoints but keep labels visible
-  &.#{iv.$class-prefix}is-endpoint {
+  &.#{iv.$class-prefix}is-endpoint::before {
     background: transparent;
   }
 }
@@ -700,7 +710,7 @@ $slider-vertical-height: 200px !default;
     }
   }
 
-  .#{iv.$class-prefix}slider-tick {
+  .#{iv.$class-prefix}slider-tick::before {
     background: ButtonText;
   }
 
