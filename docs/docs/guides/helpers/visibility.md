@@ -653,8 +653,8 @@ function OtherVisibilityExamples() {
       </Title>
 
       <Content mb="4">
-        <strong>Hidden vs Invisible:</strong> Both make elements not visible,
-        but they still take up space in the layout.
+        <strong>Hidden vs Invisible:</strong> Both make elements not visible;
+        only invisible keeps its space in the layout.
       </Content>
 
       <Box display="flex" mb="4">

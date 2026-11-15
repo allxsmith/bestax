@@ -1063,7 +1063,7 @@ export const GenericDisplayViewport: Story = {
           <p>
             <strong>Solution:</strong> Use viewport-specific properties like{' '}
             <code>
-              displayMobile=&quot;none&quot; displayTablet=&quot;flex&quot;
+              displayMobile=&quot;none&quot; displayTabletOnly=&quot;flex&quot;
               displayDesktop=&quot;block&quot;
             </code>{' '}
             instead.
