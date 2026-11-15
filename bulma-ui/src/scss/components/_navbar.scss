@@ -17,9 +17,31 @@
 // place the navbar, Bulma's or an app's, and Bulma sets none on a navbar, so
 // this needs no weight over Bulma's rules. `:where()` keeps it at none, so a
 // margin an app gives its navbar still wins.
+//
+// A navbar in a colored hero: Bulma's hero sets the colors its navbar's
+// items take at rest, on hover and when active (`--bulma-navbar-item-color`,
+// `-item-hover-background-color`, `-item-hover-color`,
+// `-item-active-background-color` and `-item-active-color`), but Bulma's
+// navbar reads only the first. So a hovered item took the scheme's fill
+// under the hero's text, the active item and the burger took the link
+// color, and the menu the burger opens kept the scheme's background under
+// the hero's text. Below, the items read the hero's hover and active colors,
+// the burger and a tab's underline and active text take the hero's text
+// color, the dropdown link's arrow takes the link's own text color, and the
+// menu the burger opens, with the dropdown's rows in it, takes the hero's
+// background and text. A bold hero's menu on a phone takes the hero's own
+// gradient, where Bulma's runs through the hero's text color. Where the
+// dropdown is a box of its own its items keep Bulma's colors, and a tab
+// keeps its clear fill. A navbar with a color of its own keeps Bulma's look.
+// The item rules weigh one class over Bulma's, so they win wherever Bulma's
+// CSS loads. Once Bulma's navbar reads the hero's variables, this restates
+// it and can go.
 
 @use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+@use 'bulma/sass/utilities/mixins' as mx;
 @use '../variables' as *;
+@use '../color-classes' as *;
 
 @media (forced-colors: active) {
   .#{iv.$class-prefix}navbar-burger.#{iv.$class-prefix}navbar-burger span {
@@ -35,4 +57,97 @@
   ) {
   margin-left: $extras-scroll-lock-offset-left;
   margin-right: $extras-scroll-lock-offset-right;
+}
+
+// A navbar with no color of its own in a hero with one. The colors are
+// Bulma's `$colors`, which its hero loops over unless an app narrows
+// `$hero-colors`.
+$-hero-navbar: '.#{iv.$class-prefix}hero:is(#{extras-color-classes()}) .#{iv.$class-prefix}navbar:not(#{extras-color-classes()})';
+
+#{$-hero-navbar} {
+  @include cv.register-vars(
+    (
+      'navbar-burger-color': #{cv.getVar('navbar-item-color')},
+      // The arrow is the dropdown link's own `::after`, so `currentColor`
+      // keeps it in the link's text color at rest, hovered or active.
+      'navbar-dropdown-arrow': currentColor,
+      'navbar-tab-hover-border-bottom-color': #{cv.getVar('navbar-item-color')},
+      'navbar-tab-active-color': #{cv.getVar('navbar-item-color')},
+      'navbar-tab-active-border-bottom-color': #{cv.getVar('navbar-item-color')},
+      'navbar-background-color':
+        hsl(
+          #{cv.getVar('hero-h')},
+          #{cv.getVar('hero-s')},
+          #{cv.getVar('hero-background-l')}
+        ),
+    )
+  );
+
+  // Where the menu opens under the burger, the dropdown's rows sit in it.
+  @include mx.touch {
+    @include cv.register-vars(
+      (
+        'navbar-dropdown-item-h': #{cv.getVar('hero-h')},
+        'navbar-dropdown-item-s': #{cv.getVar('hero-s')},
+        'navbar-dropdown-item-background-l': #{cv.getVar('hero-background-l')},
+        'navbar-dropdown-item-color-l': #{cv.getVar('hero-color-l')},
+      )
+    );
+  }
+}
+
+// Bulma gives a bold hero's menu on a phone a gradient whose middle stop is
+// the hero's text color, which the menu's items are drawn in. This draws the
+// gradient `.hero.is-bold` draws, with the hero's background in the middle,
+// from the hue, saturation and lightness offsets Bulma's hero registers.
+@include mx.mobile {
+  .#{iv.$class-prefix}hero.#{iv.$class-prefix}is-bold:is(#{extras-color-classes()})
+    .#{iv.$class-prefix}navbar:not(#{extras-color-classes()})
+    .#{iv.$class-prefix}navbar-menu {
+    background-image: linear-gradient(
+      141deg,
+      hsl(
+          calc(#{cv.getVar('hero-h')} - #{cv.getVar('hero-gradient-h-offset')}),
+          calc(#{cv.getVar('hero-s')} + #{cv.getVar('hero-gradient-s-offset')}),
+          calc(
+            #{cv.getVar('hero-background-l')} +
+              #{cv.getVar('hero-gradient-l-offset')}
+          )
+        )
+        0%,
+      hsl(
+          #{cv.getVar('hero-h')},
+          #{cv.getVar('hero-s')},
+          #{cv.getVar('hero-background-l')}
+        )
+        71%,
+      hsl(
+          calc(#{cv.getVar('hero-h')} + #{cv.getVar('hero-gradient-h-offset')}),
+          calc(#{cv.getVar('hero-s')} - #{cv.getVar('hero-gradient-s-offset')}),
+          calc(
+            #{cv.getVar('hero-background-l')} -
+              #{cv.getVar('hero-gradient-l-offset')}
+          )
+        )
+        100%
+    );
+  }
+}
+
+:where(#{$-hero-navbar})
+  :is(
+    a.#{iv.$class-prefix}navbar-item:where(
+        :not(.#{iv.$class-prefix}is-tab, .#{iv.$class-prefix}navbar-dropdown *)
+      ),
+    .#{iv.$class-prefix}navbar-link
+  ) {
+  &:is(:focus, :focus-within, :hover, :active) {
+    background-color: cv.getVar('navbar-item-hover-background-color');
+    color: cv.getVar('navbar-item-hover-color');
+  }
+
+  &:is(.#{iv.$class-prefix}is-active, .#{iv.$class-prefix}is-selected) {
+    background-color: cv.getVar('navbar-item-active-background-color');
+    color: cv.getVar('navbar-item-active-color');
+  }
 }

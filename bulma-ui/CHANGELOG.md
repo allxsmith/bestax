@@ -1,3 +1,16 @@
+## [5.68.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.68.2...@allxsmith/bestax-bulma@5.68.3) (2026-11-15)
+
+
+### Bug Fixes
+
+* **bulma-ui:** keep a colored Panel's active block readable on both schemes ([3dde5fe](https://github.com/allxsmith/bestax/commit/3dde5fe3fa22c4a77a5132c3f580f9280a7de01d)), closes [#1688](https://github.com/allxsmith/bestax/issues/1688)
+* **bulma-ui:** write the time wheels' hours and minutes in the locale's digits ([ef35c31](https://github.com/allxsmith/bestax/commit/ef35c31b50d392a6a589af65cd4a8d1a56686afa)), closes [#1685](https://github.com/allxsmith/bestax/issues/1685)
+
+
+### Features
+
+* **bestax-migrate:** turn colorVariant="light" into isLight on Button, Notification and Tag ([6a98bdf](https://github.com/allxsmith/bestax/commit/6a98bdfd2e7ca45f572369135d810f036885f50a)), closes [#1732](https://github.com/allxsmith/bestax/issues/1732)
+
 ## [5.68.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.68.1...@allxsmith/bestax-bulma@5.68.2) (2026-11-15)
 
 

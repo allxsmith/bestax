@@ -526,6 +526,16 @@ function example() {
   takes focus. bestax's styles keep its bars visible in the system's button text color. That rule
   ships in `bestax.css` and `extras.css`, not in Bulma's own stylesheet, and an
   [`AppFrame`](../layout/appframe.md)'s burger gets it too.
+- **In a colored [`Hero`](../layout/hero.md):** Bulma's hero sets the colors its navbar's items
+  take on hover and when active, but Bulma's navbar doesn't read them, so a focused or hovered
+  item took the scheme's fill under the hero's text, and the active item and the burger took the
+  link color. For a `Navbar` with no `color` of its own, bestax's styles draw a focused, hovered or
+  active item in the hero's text color with the hero's background color as its text, the burger
+  and a tab in the hero's text color, and the dropdown arrow in its link's text color. The menu the
+  burger opens, and the dropdown's rows in it, take the hero's background and text, except an
+  active row, which keeps Bulma's selected look, and on a phone a bold hero's menu takes the hero's
+  own gradient. Where `Navbar.DropdownMenu` is a box of its own, on a desktop, its links keep
+  Bulma's colors. That rule ships in `bestax.css` and `extras.css`, not in Bulma's own stylesheet.
 
 :::note
 There's no arrow-key roving between navbar items and no outside-click handling for

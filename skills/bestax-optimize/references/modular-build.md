@@ -147,9 +147,10 @@ Notes:
   ```
 
 - The `navbar` partial **extends** stock Bulma navbar (it keeps the burger's bars in
-  ButtonText in forced colors, where Chromium paints them in the page's Canvas color, and keeps a
-  `fixed` navbar in place while an overlay locks the page's scrolling), so an app using `Navbar`
-  needs both, in either order. `AppFrame.Burger` renders `Navbar.Burger`, so a build with one
+  ButtonText in forced colors, where Chromium paints them in the page's Canvas color, keeps a
+  `fixed` navbar in place while an overlay locks the page's scrolling, and draws a navbar in a
+  colored `Hero` in the hero's colors, where Bulma's draws its active item and burger in the link
+  color), so an app using `Navbar` needs both, in either order. `AppFrame.Burger` renders `Navbar.Burger`, so a build with one
   wants this partial too:
 
   ```scss
@@ -158,8 +159,9 @@ Notes:
   ```
 
 - The `panel` partial **extends** stock Bulma panel (it keeps the heading of a panel with no
-  `color` readable on the dark scheme, where Bulma writes it white on light gray), so an app
-  using `Panel` needs both, in either order:
+  `color` readable on the dark scheme, where Bulma writes it white on light gray, and the text
+  of a colored panel's active block and tab readable on both schemes), so an app using `Panel` needs both,
+  in either order:
 
   ```scss
   @use 'bulma/sass/components/panel';

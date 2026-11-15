@@ -42,6 +42,9 @@ export function Elements() {
             <Button text state="active" submit>
               Plain
             </Button>
+            <Button color="info" colorVariant="light">
+              Light
+            </Button>
             <Button remove />
           </Button.Group>
         </Block>
@@ -50,7 +53,7 @@ export function Elements() {
         </Notification>
         <Progress value={45} max={100} color="info" size="small" />
         <Table.Container>
-          <Table size="fullwidth" striped bordered hoverable>
+          <Table size="fullwidth" striped bordered hoverable textColor="info">
             <thead>
               <tr>
                 <th>Package</th>

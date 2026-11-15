@@ -754,6 +754,26 @@ item's or a section's. The heading itself reads Bulma's label variables (`--bulm
 `--bulma-menu-section-chevron-duration`, `--bulma-menu-section-chevron-size`,
 `--bulma-menu-section-gap`
 
+### Navbar
+
+In a colored `Hero`, a navbar with no `color` of its own takes the hero's colors.
+`--bulma-navbar-burger-color`, `--bulma-navbar-tab-active-color`,
+`--bulma-navbar-tab-active-border-bottom-color` and `--bulma-navbar-tab-hover-border-bottom-color`
+are `--bulma-navbar-item-color` there, the hero's text color, and `--bulma-navbar-dropdown-arrow` is
+`currentColor`, so the arrow follows its link's text at rest, hovered and active. `--bulma-navbar-background-color`,
+which shows there only as the background of the menu the burger opens, is the hero's background,
+and the dropdown's rows in that menu take the hero's hue, background and text through
+`--bulma-navbar-dropdown-item-h`, `-s`, `-background-l` and `-color-l`. They're declared on the
+navbar inside the hero with a selector three classes heavier than `.navbar`, so set them on the
+navbar through `style`, or with a heavier selector. The items' hover and active colors are Bulma's
+hero variables, `--bulma-navbar-item-hover-background-color` and the rest.
+
+`--bulma-navbar-background-color`, `--bulma-navbar-burger-color`, `--bulma-navbar-dropdown-arrow`,
+`--bulma-navbar-dropdown-item-background-l`, `--bulma-navbar-dropdown-item-color-l`,
+`--bulma-navbar-dropdown-item-h`, `--bulma-navbar-dropdown-item-s`,
+`--bulma-navbar-tab-active-border-bottom-color`, `--bulma-navbar-tab-active-color`,
+`--bulma-navbar-tab-hover-border-bottom-color`
+
 ### Notification
 
 `--bulma-notification-delete-padding-inline-end` is the end padding of a notification with a close
@@ -786,6 +806,13 @@ page background's lightness, which reads on the text color on both schemes. A co
 its title color from its own color, and something inside a panel that reads
 `--bulma-text-invert-l` gets the panel's value. To change only the title,
 `--bulma-panel-heading-color-l` on the panel is Bulma's own.
+
+Bulma points its `--bulma-panel-block-active-color` and `--bulma-panel-tab-active-color` at
+`--bulma-link-active`, which it never defines, so the active block and tab inherit the panel's
+color. In a colored Panel, `.panel.is-<color>.has-text-<color>`, the partial gives the active
+block and tab a fallback for the two, the color at its on-scheme lightness
+(`--bulma-<color>-on-scheme-l`), which reads on the page on both schemes. A value of your own for
+either, set on the panel, still wins.
 
 `--bulma-text-invert-l`
 

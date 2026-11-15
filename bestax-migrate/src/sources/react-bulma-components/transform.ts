@@ -46,6 +46,7 @@ import {
   prefersTabs,
   resolvesToBinding,
 } from '../_shared/imports.js';
+import { applyColorVariant } from './color-variant.js';
 import { flattenResponsiveProps } from './responsive.js';
 import { RESPONSIVE_KINDS, runSpecial } from './specials.js';
 
@@ -435,6 +436,7 @@ export default function transform(
         applyPropAction(ctx, path, element, attr, action);
       }
     }
+    applyColorVariant(ctx, path, element, target, handled);
     applyBackgroundColor(ctx, path, element, target, handled);
     applyTextColor(ctx, path, element, target, handled);
     applyUniversalProps(ctx, path, element, handled, UNIVERSAL_PROPS);
