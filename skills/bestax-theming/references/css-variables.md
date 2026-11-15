@@ -364,8 +364,10 @@ border is Bulma's own.
 `--bulma-carousel-indicator-background`, `--bulma-carousel-indicator-background-active`,
 `--bulma-carousel-indicator-background-hover`, `--bulma-carousel-indicator-bar-height`,
 `--bulma-carousel-indicator-bar-height-mobile`, `--bulma-carousel-indicator-bar-width`,
-`--bulma-carousel-indicator-bar-width-mobile`, `--bulma-carousel-indicator-circle-size`,
-`--bulma-carousel-indicator-gap`, `--bulma-carousel-indicator-gap-mobile`,
+`--bulma-carousel-indicator-bar-width-mobile`, `--bulma-carousel-indicator-border-color`,
+`--bulma-carousel-indicator-border-color-hover`, `--bulma-carousel-indicator-border-width`,
+`--bulma-carousel-indicator-circle-size`, `--bulma-carousel-indicator-gap`,
+`--bulma-carousel-indicator-gap-mobile`, `--bulma-carousel-indicator-line-border-width`,
 `--bulma-carousel-indicator-line-height`, `--bulma-carousel-indicator-line-height-mobile`,
 `--bulma-carousel-indicator-line-radius`, `--bulma-carousel-indicator-line-width`,
 `--bulma-carousel-indicator-line-width-mobile`, `--bulma-carousel-indicator-size`,
@@ -673,6 +675,18 @@ color whatever these say.
 `--bulma-fieldset-legend-padding`, `--bulma-fieldset-legend-size`,
 `--bulma-fieldset-legend-spacing`, `--bulma-fieldset-legend-weight`, `--bulma-fieldset-padding`,
 `--bulma-fieldset-padding-top`, `--bulma-fieldset-radius`, `--bulma-fieldset-spacing`
+
+### FloatButton
+
+The shadow and the duration are declared on the button, `.button.float-button`, and the speed
+dial's gap and duration again on `.float-button-speed-dial`, whose actions fade in apart from any
+one button. `FloatButtons` declares its gap on `.float-buttons`. The shadow starts at Bulma's
+`--bulma-shadow` and gives way to Bulma's focus ring while the button has focus. The colors,
+sizes and border are the button's, `--bulma-button-*`, and the corner, its offsets and the z-index
+are Affix's, `--bulma-affix-*`.
+
+`--bulma-float-button-actions-gap`, `--bulma-float-button-shadow`,
+`--bulma-float-button-transition-duration`, `--bulma-float-buttons-gap`
 
 ### HoverCard
 
