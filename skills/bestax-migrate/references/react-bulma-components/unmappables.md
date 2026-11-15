@@ -307,7 +307,7 @@ Where the codemod produced a plain element (`Form.Label` → `<label>`, `Breadcr
 Re-express them as classes: `m={2}` → `className="m-2"`, `textAlign="center"` →
 `className="has-text-centered"`.
 
-## `prop:display` — a base display beside a per-viewport one
+## `prop:display-base` — a base display beside a per-viewport one
 
 bestax leaves a base `display` out once any per-viewport display prop (`displayMobile` and the rest)
 is set, so the codemod keeps the base value as the class it stood for, in `className`, where the

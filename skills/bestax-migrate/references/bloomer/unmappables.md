@@ -343,7 +343,7 @@ Any prop whose value the codemod cannot read — `isColor={c}`, `isNext={n}`, `h
 `tag={t}`, `isTransparent={t}`, `isFullHeight={f}`, `isNormal={n}` — is either renamed as-is (when the rename is unconditional) or flagged with the
 specific prop to set. The comment names it.
 
-## `prop:display` — a base display beside a per-viewport one
+## `prop:display-base` — a base display beside a per-viewport one
 
 bestax leaves a base `display` out once any per-viewport display prop (`displayMobile` and the rest)
 is set, so the codemod keeps the base value as the class it stood for, in `className`, where the

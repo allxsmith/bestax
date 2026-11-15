@@ -45,7 +45,7 @@ declares every Bulma viewport, including `touch` and the `-only` ones, so nothin
 | `isHidden={['mobile', 'widescreen-only']}`                     | `visibilityMobile="hidden" visibilityWidescreenOnly="hidden"`    |
 
 A plain display beside a per-viewport one stays its class in `className` (`is-inline-block`),
-since bestax leaves `display` out once a per-viewport display prop is set; see `prop:display` in
+since bestax leaves `display` out once a per-viewport display prop is set; see `prop:display-base` in
 [unmappables.md](unmappables.md). Two entries that land on the same prop, a dynamic value, or a
 viewport bestax does not know get a TODO; the bloomer prop is always removed, because bestax has no `isDisplay`/`isHidden` and a
 leftover would be a type error rather than a no-op.
