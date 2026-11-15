@@ -930,6 +930,30 @@ describe('Calendar', () => {
       ).toBeInTheDocument();
     });
 
+    it("writes every month's heading and days in the locale's digits", () => {
+      const names = Array.from({ length: 12 }, (_, m) => `M${m + 1}`);
+      const { container, rerender } = render(
+        <Calendar locale="ar-EG" monthsToShow={2} defaultMonth={NOV_2026} />
+      );
+      const second = gridNames(container)[1];
+      expect(second).toMatch(/٢٠٢٦$/);
+      expect(second).not.toMatch(/[0-9]/);
+      expect(
+        within(grids(container)[1])
+          .getAllByRole('gridcell')
+          .map(cell => cell.textContent)
+      ).toContain('٣١');
+      rerender(
+        <Calendar
+          locale="ar-EG"
+          monthsToShow={2}
+          defaultMonth={NOV_2026}
+          monthNames={names}
+        />
+      );
+      expect(gridNames(container)).toEqual(['M11 ٢٠٢٦', 'M12 ٢٠٢٦']);
+    });
+
     it('rounds monthsToShow down, and reads less than two as one', () => {
       const { container, rerender } = render(
         <Calendar monthsToShow={2.7} defaultMonth={NOV_2026} />
