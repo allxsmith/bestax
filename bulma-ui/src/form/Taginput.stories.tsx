@@ -686,32 +686,28 @@ export const FormIntegration: Story = {
 
     return (
       <form onSubmit={handleSubmit} style={{ maxWidth: '500px' }}>
-        <div className="field">
-          <label className="label">Skills</label>
-          <div className="control">
-            <Taginput
-              data={[
-                'JavaScript',
-                'TypeScript',
-                'React',
-                'Node.js',
-                'Python',
-                'Go',
-                'Rust',
-              ]}
-              placeholder="Add your skills..."
-              onChange={setSkills}
-            />
-          </div>
-          <p className="help">Type to search or add new skills</p>
-        </div>
-        <div className="field">
-          <div className="control">
+        <Taginput
+          label="Skills"
+          message="Type to search or add new skills"
+          data={[
+            'JavaScript',
+            'TypeScript',
+            'React',
+            'Node.js',
+            'Python',
+            'Go',
+            'Rust',
+          ]}
+          placeholder="Add your skills..."
+          onChange={setSkills}
+        />
+        <Field>
+          <Control>
             <Button type="submit" color="primary">
               Submit
             </Button>
-          </div>
-        </div>
+          </Control>
+        </Field>
       </form>
     );
   },

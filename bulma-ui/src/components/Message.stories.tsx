@@ -142,7 +142,7 @@ export const CompoundUsage: StoryObj = {
     <Message color="info">
       <Message.Header>
         <p>Compound Component Message</p>
-        <Delete />
+        <Delete aria-label="delete" />
       </Message.Header>
       <Message.Body>
         <p>
@@ -186,7 +186,7 @@ export const CompoundHeaderOnly: StoryObj = {
     <Message color="warning">
       <Message.Header>
         <p>Header-only message</p>
-        <Delete />
+        <Delete aria-label="delete" />
       </Message.Header>
     </Message>
   ),
