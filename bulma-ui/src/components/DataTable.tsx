@@ -397,7 +397,9 @@ export const DataTable = forwardRef(function DataTableRender<TRow>(
     );
     body = Array.from({ length: size ?? 5 }, (_, index) => (
       <Tr key={index} aria-hidden="true">
-        {selectable && <Td>{line}</Td>}
+        {/* The checkbox column holds no line, which would be wider than the
+            checkbox it waits for, so the column keeps its width. */}
+        {selectable && <Td isNarrow />}
         {/* Each line sits where its column will put the value. A row
             header's is a Th, since a table aligns a header cell's text as
             it aligns a header's. */}

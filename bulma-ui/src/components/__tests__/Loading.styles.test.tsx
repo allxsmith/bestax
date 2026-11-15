@@ -180,6 +180,7 @@ const SETS: Record<string, string[]> = {
   ],
   'box-sizing': ['box-sizing'],
   opacity: ['opacity'],
+  color: ['color'],
   '--bulma-loading-icon-border-width': ['--bulma-loading-icon-border-width'],
 };
 
@@ -399,6 +400,53 @@ describe.each([
       unmount();
     }
   );
+
+  it('writes the cancel button in the scheme’s text colors, which read on both schemes', () => {
+    const found = rulesOf(compile(prefix));
+    const { container, unmount } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <Loading active canCancel onCancel={() => {}}>
+          Loading data
+        </Loading>
+      </ConfigProvider>
+    );
+    const cancel = container.querySelector(`.${prefix}loading-cancel`)!;
+    expect(winning(found, cancel, 'color', false)?.value).toBe(
+      'var(--bulma-loading-cancel-color)'
+    );
+    const root = cancel.closest(`.${prefix}loading`)!;
+    const declared = (name: string) =>
+      found
+        .filter(({ media, selector }) => !media && root.matches(selector))
+        .flatMap(({ declarations }) => declarations)
+        .filter(({ property }) => property === name)
+        .map(({ value }) => value);
+    // Not `text-light`, a fixed light gray that reads at about 1.3:1 on the
+    // light scheme's white. `text` and `text-strong` follow the scheme.
+    expect(declared('--bulma-loading-cancel-color')).toEqual([
+      'var(--bulma-text)',
+    ]);
+    expect(declared('--bulma-loading-cancel-hover-color')).toEqual([
+      'var(--bulma-text-strong)',
+    ]);
+    expect(declared('--bulma-loading-cancel-hover-border-color')).toEqual([
+      'var(--bulma-border-hover)',
+    ]);
+    // jsdom matches no :hover, so the hover rule is read off the sheet.
+    const hover = found.filter(
+      ({ media, selector }) =>
+        !media && selector === `.${prefix}loading-cancel:hover`
+    );
+    expect(
+      hover
+        .flatMap(({ declarations }) => declarations)
+        .map(({ property, value }) => `${property}: ${value}`)
+    ).toEqual([
+      'border-color: var(--bulma-loading-cancel-hover-border-color)',
+      'color: var(--bulma-loading-cancel-hover-color)',
+    ]);
+    unmount();
+  });
 
   it('leaves the default spinner the width `.loading` declares', () => {
     // It sets no width of its own, so it inherits

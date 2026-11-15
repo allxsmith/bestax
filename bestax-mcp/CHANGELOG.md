@@ -1,3 +1,61 @@
+## [1.18.51](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.50...bestax-mcp@1.18.51) (2026-11-15)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** leave a TODO on textColor where the target takes none ([48775e9](https://github.com/allxsmith/bestax/commit/48775e9d850c39d515d86aec29087251dc580095)), closes [#1767](https://github.com/allxsmith/bestax/issues/1767)
+* **bestax-migrate:** name Tag in the colorVariant TODO among the components with isLight ([c60b243](https://github.com/allxsmith/bestax/commit/c60b2436422da7a86e85e83e87bf112c5b89b02a)), closes [#1681](https://github.com/allxsmith/bestax/issues/1681)
+* **bestax-migrate:** read Menu.Item's new icon prop as its own ([8e1403a](https://github.com/allxsmith/bestax/commit/8e1403ac041103660ec0c448f84a063ea75c2273))
+* **bulma-ui:** close a Tooltip as it's disabled, and leave its trigger unlinked while it is ([0d85d53](https://github.com/allxsmith/bestax/commit/0d85d53380ddca3412a1b0e3a9262a57c8176bec))
+* **bulma-ui:** draw Loading's spinner in colors that stand out from the page ([23cc4e0](https://github.com/allxsmith/bestax/commit/23cc4e002faf3b11ef39a3ab81c02901f7820bfb)), closes [#1636](https://github.com/allxsmith/bestax/issues/1636) [#1679](https://github.com/allxsmith/bestax/issues/1679)
+* **bulma-ui:** draw the breakpoint sr-only classes the viewport visibility props write ([dd3bbf8](https://github.com/allxsmith/bestax/commit/dd3bbf869d22210336ca25418d5be142dc5b6e7c)), closes [#1744](https://github.com/allxsmith/bestax/issues/1744)
+* **bulma-ui:** draw Timeline's markers in colors that stand out from the page ([7131c24](https://github.com/allxsmith/bestax/commit/7131c24935af26775e9be6986bdea7296f73e522)), closes [#1636](https://github.com/allxsmith/bestax/issues/1636) [#1672](https://github.com/allxsmith/bestax/issues/1672)
+* **bulma-ui:** drop a rail section's aria-expanded only while a collapse is undecided ([b151381](https://github.com/allxsmith/bestax/commit/b1513819fbe12e2e802bc26e6b9e30cea7a1f146))
+* **bulma-ui:** find an anchor's shadow roots again at each measurement ([32e0b60](https://github.com/allxsmith/bestax/commit/32e0b6064b8855756a0df289941e6e5b8024f252))
+* **bulma-ui:** follow an anchor slotted into a scrolling web component, and the anchor that's found ([885a719](https://github.com/allxsmith/bestax/commit/885a7193f4e41247ce705235ca4161e575df25df))
+* **bulma-ui:** follow an anchored panel's trigger on a scroll inside a shadow root ([c0dae00](https://github.com/allxsmith/bestax/commit/c0dae00b443d3baaaac1fd8e525aafeccf3f395f)), closes [#1691](https://github.com/allxsmith/bestax/issues/1691)
+* **bulma-ui:** give a Menu.Section's list a menu-section-list class, and hide it in the rail by it ([61dd74d](https://github.com/allxsmith/bestax/commit/61dd74d36794bcbd15a5235534f8bcbafe5a5cc4))
+* **bulma-ui:** give redeclared id and aria-* props their inherited types ([9ea9fb1](https://github.com/allxsmith/bestax/commit/9ea9fb1e7d66368258609d2a85064bcb14ee5525)), closes [#1677](https://github.com/allxsmith/bestax/issues/1677)
+* **bulma-ui:** give the rail only to the nav's own Menu, not a Menu opened from it ([266dc5e](https://github.com/allxsmith/bestax/commit/266dc5efaa137ee4071444b24a83fe73a72e8a45))
+* **bulma-ui:** give the rail to the Menus inside the nav, as the page lays them out ([abf5ff0](https://github.com/allxsmith/bestax/commit/abf5ff068ce325151ed333843bacb4dbac8501d8))
+* **bulma-ui:** keep a selectable DataTable's checkbox column narrow while loading ([953e1eb](https://github.com/allxsmith/bestax/commit/953e1ebd8221a7df083e660c61d32fea8ce326fd)), closes [#1727](https://github.com/allxsmith/bestax/issues/1727)
+* **bulma-ui:** keep a Tag in a table cell from making its row taller ([19a46f2](https://github.com/allxsmith/bestax/commit/19a46f2a60bd619a81e4ac07251ca0690ae968e2))
+* **bulma-ui:** keep portaled menus out of the rail, and measure it as the window resizes ([b8ef8ab](https://github.com/allxsmith/bestax/commit/b8ef8ab11012a2e4e9fea268e508bb1310d9f2ec))
+* **bulma-ui:** keep the calendar heading's year in plain digits with no locale ([0434064](https://github.com/allxsmith/bestax/commit/0434064ae6077f8f8c6bd7d482fa8fc8be1a458e)), closes [#1631](https://github.com/allxsmith/bestax/issues/1631)
+* **bulma-ui:** keep the rail's tooltips closed in the wide column and the drawer ([9ecf79f](https://github.com/allxsmith/bestax/commit/9ecf79ff8360575d74094ab00682d9d8bf589865))
+* **bulma-ui:** leave a rail section's aria-expanded off until the frame knows its mode ([e8f98d9](https://github.com/allxsmith/bestax/commit/e8f98d9a383709e48aa97fae396c6684b8da982d))
+* **bulma-ui:** leave is-rail off the nav while it's a drawer ([0c88896](https://github.com/allxsmith/bestax/commit/0c88896a4bf4b77104a433bcf0be5bb569c218b3))
+* **bulma-ui:** let a collapsed rail taller than the window scroll with the page ([f8a4b5f](https://github.com/allxsmith/bestax/commit/f8a4b5f6576d3dd139c25ff1890d6d04a1a9aaae))
+* **bulma-ui:** let the breakpoint sr-only classes outrank Bulma's helpers in any order ([5568e2a](https://github.com/allxsmith/bestax/commit/5568e2a6bc8e6ce575149bd6f776c3b90c0133e5)), closes [#1744](https://github.com/allxsmith/bestax/issues/1744)
+* **bulma-ui:** look for a Menu in the collapsed rail only in development ([9f15446](https://github.com/allxsmith/bestax/commit/9f154467c6ca65c39c4733d9c61101ab3fd4c6bf))
+* **bulma-ui:** make Slider's mark labels and TreeSelect's chevron readable on the light scheme ([76b58d3](https://github.com/allxsmith/bestax/commit/76b58d3d910338ad32f815e8fab7911845d4ffc7)), closes [#1756](https://github.com/allxsmith/bestax/issues/1756)
+* **bulma-ui:** make the Switch's circle follow a pinned scheme ([f435c1e](https://github.com/allxsmith/bestax/commit/f435c1e93050cf8cf5d1b07f20d43b2606424104))
+* **bulma-ui:** measure the rail before paint against the small viewport, afresh each collapse ([ebd7461](https://github.com/allxsmith/bestax/commit/ebd7461cb823ed118723a515031c8754bc94189e))
+* **bulma-ui:** move focus out of what the rail hides as the column collapses ([324c545](https://github.com/allxsmith/bestax/commit/324c5458c44ea59bc847716f498098f65da12c2f))
+* **bulma-ui:** number the calendar's days and years in the locale's digits ([ea84143](https://github.com/allxsmith/bestax/commit/ea841437b5b19e346e75d66babbee0617107c914)), closes [#1632](https://github.com/allxsmith/bestax/issues/1632)
+* **bulma-ui:** open a Dropdown on its first item for a click with no pointer behind it ([bf573e2](https://github.com/allxsmith/bestax/commit/bf573e24b194dc574ed6afd6a63eabc4deeb35f0)), closes [#1706](https://github.com/allxsmith/bestax/issues/1706)
+* **bulma-ui:** open a Dropdown on its first item only for a click the browser dispatched ([0d0eef6](https://github.com/allxsmith/bestax/commit/0d0eef6b2e48edefe425855c461c7cd0007d871b))
+* **bulma-ui:** place DataTable's loading lines where each column aligns its values ([8016a9c](https://github.com/allxsmith/bestax/commit/8016a9c0017a25766403fc64d3b1a8c9f6dfb8b8)), closes [#1633](https://github.com/allxsmith/bestax/issues/1633)
+* **bulma-ui:** read a Menu.Item or Menu.Section icon string as an Icon name, as TreeView.Item does ([7e48cd6](https://github.com/allxsmith/bestax/commit/7e48cd681ce29fdb08d6aae0262a208da2c6e1df))
+* **bulma-ui:** read the rail tooltips' side again when the locale's direction changes ([627d90c](https://github.com/allxsmith/bestax/commit/627d90cb909f607c783fb1835124c874f3963bd0))
+* **bulma-ui:** say a completed or upcoming step's state in words for assistive tech ([d9915d0](https://github.com/allxsmith/bestax/commit/d9915d0177daf0ae0f765ae96b86b025f0fc0ebc)), closes [#1635](https://github.com/allxsmith/bestax/issues/1635)
+* **bulma-ui:** share one helper that moves focus out of what the rail hides ([7671fe7](https://github.com/allxsmith/bestax/commit/7671fe7a789c6944de997bf6f97bb0f225a71df5))
+* **bulma-ui:** size a section's icon in AppFrame's rail like the items' icons ([20b4c40](https://github.com/allxsmith/bestax/commit/20b4c409d9e857fd7668bfad6db0eaea41f880eb))
+* **bulma-ui:** space both Menu icons with one gap, and give menu-section-gap back to the chevron ([4a38c77](https://github.com/allxsmith/bestax/commit/4a38c77ab33bdbd771150abd640426b9ef4fb77f))
+* **bulma-ui:** take the rail's fallback tabindex off a nav that can't take focus ([ddacd3a](https://github.com/allxsmith/bestax/commit/ddacd3ab854a89ee86a7f2b4fe68d2d743fbf5bc))
+* **bulma-ui:** warn about a rail item or section without an icon ([c30d9db](https://github.com/allxsmith/bestax/commit/c30d9db5bdb44baf560a6d1169ded29d7399972f))
+* **bulma-ui:** write Loading's Cancel label in the scheme's text color, so it reads on light ([7a825ba](https://github.com/allxsmith/bestax/commit/7a825ba50d5b86bb33bd4995d52c9ff054ca5257)), closes [#1705](https://github.com/allxsmith/bestax/issues/1705)
+* **docs:** load the prefixed stylesheet into a preview whose example imports it ([84c896e](https://github.com/allxsmith/bestax/commit/84c896e7b09bdd6d712a35d0cb561210cc63a4eb)), closes [#1658](https://github.com/allxsmith/bestax/issues/1658)
+* **docs:** show a live example's site images when it opens in a sandbox ([4b78f05](https://github.com/allxsmith/bestax/commit/4b78f05a7906cdcf7c9ffd500f8d27d2b030a87b)), closes [#1697](https://github.com/allxsmith/bestax/issues/1697)
+
+
+### Features
+
+* **bulma-ui:** add an icon to Menu.Item and Menu.Section ([944438b](https://github.com/allxsmith/bestax/commit/944438ba2bcf2a2b5b899ea3042568207e54a936)), closes [#1432](https://github.com/allxsmith/bestax/issues/1432)
+* **bulma-ui:** add AppFrame.Nav rail, a column that collapses to its icons ([b767c3c](https://github.com/allxsmith/bestax/commit/b767c3ce68dbaa19eaa2e4987e2b57a7675588d2)), closes [#1432](https://github.com/allxsmith/bestax/issues/1432)
+* **bulma-ui:** add Tooltip describesTrigger, and the menu and hover options FloatButton needs ([46c27d7](https://github.com/allxsmith/bestax/commit/46c27d7167a601d0f4cd880649bac3fc6996eaf9))
+* **bulma-ui:** add Tooltip disabled, which keeps it closed without remounting the trigger ([3093880](https://github.com/allxsmith/bestax/commit/3093880ab88f989c05e05f0805532338c014af66))
+
 ## [1.18.50](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.49...bestax-mcp@1.18.50) (2026-11-14)
 
 

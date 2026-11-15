@@ -120,13 +120,13 @@ $-descending: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' 
   }
 }
 
-// While `loading`, each cell holds one skeleton line. Bulma draws a skeleton
-// line half a line of text tall, which left a loading row shorter than the
-// row that replaces it, so the table jumped when the data came. This one is
-// a line of the cell's text tall, as Stat's loading Skeleton is a line of its
-// figure. A browser without `lh` keeps Bulma's shorter line, and the row is
-// still a line of text tall, as the line sits in one. The extra class
-// outranks Bulma's rules whichever sheet loads first.
+// While `loading`, each data cell holds one skeleton line. Bulma draws a
+// skeleton line half a line of text tall, which left a loading row shorter
+// than the row that replaces it, so the table jumped when the data came.
+// This one is a line of the cell's text tall, as Stat's loading Skeleton is a
+// line of its figure. A browser without `lh` keeps Bulma's shorter line, and
+// the row is still a line of text tall, as the line sits in one. The extra
+// class outranks Bulma's rules whichever sheet loads first.
 //
 // The cell takes its column's `align`, and the line sits where the value
 // will. Bulma lays the lines out as a column of flex items, which the cell's
