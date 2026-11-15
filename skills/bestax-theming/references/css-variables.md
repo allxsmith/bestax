@@ -176,7 +176,7 @@ Bulma's Sass with the color (`@use 'bulma/sass' with ($primary: …)`), which co
 
 `textColor="<c>"` alone renders `has-text-<c>`. On a dark page bestax's stylesheets give it the
 lighter of the trio's lightness and the on-scheme one, for each color they were built with but
-`white`, `black`, `light` and `dark`, and on a light page the trio's own, so text in a light color
+`white`, `black`, `light`, `dark` and `text`, and on a light page the trio's own, so text in a light color
 on a light page takes `colorShade="on-scheme"` as well. On the dark page a trio set without its
 on-scheme lightness comes out at the build's on-scheme lightness where that's the lighter one.
 Text on a surface that stays light on both schemes (`bgColor="white"`, `"light"` or a color's
