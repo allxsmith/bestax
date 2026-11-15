@@ -1,5 +1,5 @@
-// Skills → Examples → Custom Component: the ProfileCard produced by following
-// the bestax-custom-component skill.
+// Skills → Custom Component: the ProfileCard produced by following the
+// bestax-custom-component skill.
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ProfileCard } from './ProfileCard';
 import { ExampleMeta } from './ExampleMeta';
