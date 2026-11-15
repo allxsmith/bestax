@@ -1124,6 +1124,27 @@ trigger and the tooltip past what the pointer can cross on its own, so give the 
 `--bulma-tooltip-multiline-width`, `--bulma-tooltip-padding`, `--bulma-tooltip-radius`,
 `--bulma-tooltip-z-index`
 
+### Tour
+
+Declared on the root, `.tour`, which holds the overlay and the current step, so a `className` or
+`style` on `Tour` reaches every step, and one on a `Tour.Step` reaches that step's panel alone. The
+overlay and the spotlight read theirs from `.tour`, so set `--bulma-tour-overlay-*`,
+`--bulma-tour-spotlight-*` and `--bulma-tour-z-index` on `Tour`. The step
+takes Popover's look from the same Bulma tokens Popover's panel reads, since `--bulma-popover-*`
+is declared on Popover's own panel and doesn't reach a step. `--bulma-tour-overlay-background` is
+Bulma's modal backdrop color at half its strength. `--bulma-tour-spotlight-padding` grows the
+spotlight past the target's edge, and the step sits `--bulma-tour-step-offset` past that.
+
+`--bulma-tour-overlay-background`, `--bulma-tour-progress-color`,
+`--bulma-tour-spotlight-padding`, `--bulma-tour-spotlight-radius`,
+`--bulma-tour-step-background`, `--bulma-tour-step-body-padding`,
+`--bulma-tour-step-border-color`, `--bulma-tour-step-border-width`,
+`--bulma-tour-step-color`, `--bulma-tour-step-footer-gap`, `--bulma-tour-step-footer-padding`,
+`--bulma-tour-step-header-color`, `--bulma-tour-step-header-gap`,
+`--bulma-tour-step-header-padding`,
+`--bulma-tour-step-header-weight`, `--bulma-tour-step-max-width`, `--bulma-tour-step-offset`,
+`--bulma-tour-step-radius`, `--bulma-tour-step-shadow`, `--bulma-tour-z-index`
+
 ### TreeSelect
 
 Declared on the root, `.tree-select`, and on a portaled panel, `.tree-select-panel`, which sits

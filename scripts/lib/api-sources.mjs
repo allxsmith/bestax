@@ -351,6 +351,7 @@ export const SCSS_SOURCES = {
   Tooltip: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_tooltip.scss' },
   ],
+  Tour: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_tour.scss' }],
   Tr: [],
   TreeSelect: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
