@@ -740,6 +740,28 @@ describe('Tour', () => {
       expect(next()).toHaveFocus();
     });
 
+    it('sends Tab from Next to the first control inside a target in a shadow root', () => {
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const shadow = host.attachShadow({ mode: 'open' });
+      const panel = document.createElement('div');
+      panel.dataset.rect = '100 100 300 100';
+      const first = document.createElement('button');
+      first.textContent = 'First';
+      panel.appendChild(first);
+      shadow.appendChild(panel);
+      render(
+        <Tour defaultOpen overlay={false}>
+          <Tour.Step target={panel} title="Panel">
+            A panel of controls in a web component.
+          </Tour.Step>
+        </Tour>
+      );
+      expect(press('Tab')).toBe(false);
+      expect(shadow.activeElement).toBe(first);
+      host.remove();
+    });
+
     it('portals a popup in a modal step into the step, and leaves one in a non-modal step in <body>', () => {
       const WithPopover = ({ overlay }: { overlay: boolean }) => (
         <Tour open overlay={overlay}>

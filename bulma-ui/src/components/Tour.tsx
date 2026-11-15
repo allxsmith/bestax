@@ -236,7 +236,8 @@ export interface TourStepProps
   children?: React.ReactNode;
   /**
    * The side of the target the panel sits on. It flips to the opposite side
-   * when it doesn't fit, and stays inside the viewport.
+   * when it doesn't fit, or to a side across when neither does, as beside a
+   * target on a phone, and stays inside the viewport.
    * @defaultValue 'bottom'
    */
   position?: TourStepPosition;
@@ -671,7 +672,7 @@ function TourPanel({
     if (e.key === 'Tab' && !e.shiftKey && !tour.modal && target) {
       if (from === nextRef.current) {
         focusTabStop(target);
-        if (target.contains(target.ownerDocument.activeElement)) {
+        if (target.contains(getActiveElementInTree(target))) {
           e.preventDefault();
         }
       }
