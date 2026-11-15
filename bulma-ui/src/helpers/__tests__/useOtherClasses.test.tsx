@@ -184,7 +184,7 @@ describe('useOtherClasses', () => {
     );
 
     it.each(combos)(
-      'writes one class per axis for %o',
+      'writes one class per axis for overflow $overflow, x $overflowX, y $overflowY',
       ({ overflow, overflowX, overflowY }) => {
         const classes = renderUseOtherClasses({
           overflow,

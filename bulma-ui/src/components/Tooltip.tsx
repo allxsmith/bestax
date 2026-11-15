@@ -131,6 +131,17 @@ export interface TooltipProps
    * @defaultValue true
    */
   describesTrigger?: boolean;
+  /**
+   * Keeps the tooltip closed, and leaves its trigger as it is: hover,
+   * keyboard focus and a tap don't open it, and one that's open closes. For
+   * a tooltip that applies only some of the time, without unmounting the
+   * trigger, which would drop its focus. While it's disabled the trigger's
+   * `aria-describedby` doesn't point at it, so a screen reader doesn't read
+   * a tooltip that's kept closed. Turned off again, it opens on the next
+   * hover or focus. `active` still shows it.
+   * @defaultValue false
+   */
+  disabled?: boolean;
   /** Additional classes for the tooltip element. */
   tooltipClassName?: string;
 }
@@ -188,6 +199,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
   closeDelay = 0,
   openOnTap = false,
   describesTrigger = true,
+  disabled = false,
   children,
   className,
   tooltipClassName,
@@ -205,6 +217,14 @@ export const Tooltip: React.FC<TooltipProps> = ({
     ...attrs
   } = rest;
   const [isVisible, setIsVisible] = useState(false);
+  // Disabling it closes it, which lets go of its Escape and of the pointer
+  // and focus that held it, so enabling it again opens nothing until a new
+  // hover or focus. Set while rendering, so it's closed in the same commit.
+  const [wasDisabled, setWasDisabled] = useState(disabled);
+  if (disabled !== wasDisabled) {
+    setWasDisabled(disabled);
+    if (disabled) setIsVisible(false);
+  }
   const [resolvedPosition, setResolvedPosition] = useState<
     Exclude<TooltipPosition, 'auto'>
   >(position === 'auto' ? 'top' : position);
@@ -214,9 +234,11 @@ export const Tooltip: React.FC<TooltipProps> = ({
   const tooltipId = `${useId()}-tooltip`;
 
   // Only a single element can be given the link, and a fragment takes no
-  // props of its own. A tooltip that doesn't describe its trigger gives none.
+  // props of its own. A tooltip that doesn't describe its trigger gives none,
+  // and neither does one that's disabled.
   const linkable =
     describesTrigger &&
+    !disabled &&
     isValidElement<{ 'aria-describedby'?: string }>(children) &&
     children.type !== Fragment;
 
@@ -226,7 +248,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
   // element that took it. After every commit, since the children can change,
   // and only in development.
   useEffect(() => {
-    if (!isDev() || !describesTrigger) return;
+    if (!isDev() || !describesTrigger || disabled) return;
     const stop = triggerTabStop(
       wrapperRef.current as HTMLSpanElement,
       contentRef.current as HTMLSpanElement
@@ -251,8 +273,12 @@ export const Tooltip: React.FC<TooltipProps> = ({
     // The pointer and focus as they are. `active` shows it on top of that, so
     // dropping `active` leaves it shown while the pointer or focus holds it.
     // An ask to close can come while it's already hidden, which is no change.
+    // An ask to open while it's disabled is turned down, so nothing measures
+    // it.
     open: isVisible,
-    onOpenChange: setIsVisible,
+    onOpenChange: next => {
+      if (!next || !disabled) setIsVisible(next);
+    },
     openDelay: delay,
     closeDelay,
     // The wrapper stands in for the trigger. It holds only the children and

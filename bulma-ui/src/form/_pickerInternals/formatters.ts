@@ -362,11 +362,18 @@ export function getDayNames(
   return out;
 }
 
+/**
+ * Locale-aware month names, January to December, from the Gregorian calendar
+ * the pickers' grid uses, whatever calendar the locale uses by default.
+ */
 export function getMonthNames(
   locale: string | undefined,
   length: 'short' | 'long' = 'long'
 ): string[] {
-  const fmt = new Intl.DateTimeFormat(locale, { month: length });
+  const fmt = new Intl.DateTimeFormat(locale, {
+    calendar: 'gregory',
+    month: length,
+  });
   const out: string[] = [];
   for (let i = 0; i < 12; i++) {
     out.push(fmt.format(new Date(2021, i, 1)));

@@ -75,7 +75,7 @@ describe('resolveName', () => {
     ['usedatatable', 'DataTable'],
     ['toast', 'Toast'],
     ['validColors', 'Valid value constants'],
-  ])('resolves %s to %s', async (input, expected) => {
+  ])('resolves %j to %j', async (input, expected) => {
     expect(await resolveName(input)).toBe(expected);
   });
 

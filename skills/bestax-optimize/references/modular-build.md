@@ -211,6 +211,9 @@ Notes:
 - `CopyButton` is a Bulma button holding an icon and a label, with no partial of its own, so an app
   using it needs `bulma/sass/elements/button` and `bulma/sass/elements/icon`. With
   `showLabel={false}` it's an `IconButton`, so add `iconbutton` for a rounded one to be a circle.
+- `AppFrame.Nav rail` shows each label of its rail in a `Tooltip`, so an app with a rail needs
+  `scss/components/tooltip` next to `scss/layout/appframe`, plus Menu's two partials (above),
+  which set the menu's icons.
 - `ContextMenu`'s menu is Bulma's dropdown markup, so an app using it needs
   `bulma/sass/components/dropdown` next to `scss/components/contextmenu`.
 - `Lightbox`'s viewer is Bulma's modal, with Bulma buttons for its controls and a `Loader` for a

@@ -218,6 +218,37 @@ whatever the trigger does, so turn it on only for a trigger with no tap action o
 
 ---
 
+### Disabled
+
+`disabled` keeps the tooltip closed for as long as it's set, for a tooltip that applies only some
+of the time. Its trigger stays mounted, so focus on it isn't dropped, as it would be if you rendered
+the trigger without its `Tooltip`. While it's disabled, the trigger's `aria-describedby` doesn't
+point at the tooltip, so a screen reader doesn't read one that never shows. Turned off again, it
+opens on the next hover or focus.
+
+```tsx live
+function example() {
+  const [disabled, setDisabled] = useState(true);
+  return (
+    <>
+      <Block>
+        <Checkbox
+          checked={disabled}
+          onChange={e => setDisabled(e.target.checked)}
+        >
+          Disable the tooltip
+        </Checkbox>
+      </Block>
+      <Tooltip label="Saves a copy" disabled={disabled}>
+        <Button>Save</Button>
+      </Tooltip>
+    </>
+  );
+}
+```
+
+---
+
 ### On Icons
 
 Tooltips on icon-only buttons. A tooltip describes its trigger rather than naming it, so each
@@ -245,25 +276,6 @@ function example() {
 
 Tooltip wraps its trigger in a `<span>`, so these sit in a plain `Buttons` row rather than one
 with `hasAddons`, whose joined corners go by where each button sits among its siblings.
-
-### Showing the Name
-
-A tooltip that shows an icon button's own name, for sighted users who can't tell what the icon
-means, would be read twice as its description. `describesTrigger={false}` turns the link off: the
-trigger's `aria-describedby` is left as it is, the tooltip is hidden from assistive technology,
-and a screen reader hears the name once. It still shows on hover and keyboard focus.
-[`FloatButton`](./floatbutton.md) shows its name this way.
-
-```tsx live
-<Buttons p="6">
-  <Tooltip label="Delete" describesTrigger={false} position="bottom">
-    <IconButton icon="trash" aria-label="Delete" />
-  </Tooltip>
-  <Tooltip label="Edit" describesTrigger={false} position="bottom">
-    <IconButton icon="pen" aria-label="Edit" />
-  </Tooltip>
-</Buttons>
-```
 
 ---
 
@@ -362,6 +374,12 @@ And around it:
   trigger doesn't carry the link, or there isn't one.
 - A tooltip describes and doesn't name, so give an icon-only trigger a name of its own, such as an
   `IconButton`'s `aria-label`, as [On Icons](#on-icons) does.
+- With `describesTrigger` off, the tooltip shows a name the trigger already has, as the labels of
+  an [AppFrame](../layout/appframe.md) icon rail and a [FloatButton](./floatbutton.md) do. The trigger's `aria-describedby` is left as it
+  is and the tooltip is `aria-hidden`, so a screen reader reads the name once. It still shows on
+  hover and keyboard focus, and Escape still hides it.
+- While it's `disabled`, the tooltip stays closed and the trigger's `aria-describedby` doesn't point
+  at it, so a screen reader doesn't read a tooltip that never shows.
 - The `dashed` style provides a visual cue that more information is available.
 - **Forced colors:** forced colors (Windows' contrast themes) gives the tooltip the page's own
   background and paints every side of the arrow, so the box would read as loose text and the arrow
@@ -401,6 +419,7 @@ And around it:
 | `closeDelay`       | `number`                                                                                                 | `0`     | How long the tooltip stays after the pointer and focus have left the trigger and the tooltip, in milliseconds. The pointer can move from the trigger onto a shown tooltip without one, across the default gap. A theme that raises `--bulma-tooltip-arrow-size` or `--bulma-tooltip-arrow-margin` widens the gap past what the pointer can cross on its own, so give it a `closeDelay` long enough to cross the rest.                                                                                                                                                                                                                                                                                                                        |
 | `openOnTap`        | `boolean`                                                                                                | `false` | Show the tooltip with a tap on a touch screen. Touch has no hover, so without this a phone or tablet never shows it. With it, a tap on the trigger shows it at once, and it stays until another tap on the trigger or the tooltip, a tap anywhere else, or Escape. The tap still does whatever the trigger does, so turn this on only for a trigger with no tap action of its own. Mouse and pen work the same either way.                                                                                                                                                                                                                                                                                                                   |
 | `describesTrigger` | `boolean`                                                                                                | `true`  | Whether the tooltip is its trigger's description. Turn it off for a tooltip that only shows the name the trigger already has, such as an icon button's `aria-label`, so a screen reader doesn't read the name twice. Off, the trigger's `aria-describedby` is left as it is, the tooltip is hidden from assistive technology with `aria-hidden`, and there's no warning about a trigger that can't carry the link. It still shows on hover and keyboard focus.                                                                                                                                                                                                                                                                               |
+| `disabled`         | `boolean`                                                                                                | `false` | Keeps the tooltip closed, and leaves its trigger as it is: hover, keyboard focus and a tap don't open it, and one that's open closes. For a tooltip that applies only some of the time, without unmounting the trigger, which would drop its focus. While it's disabled the trigger's `aria-describedby` doesn't point at it, so a screen reader doesn't read a tooltip that's kept closed. Turned off again, it opens on the next hover or focus. `active` still shows it.                                                                                                                                                                                                                                                                  |
 | `tooltipClassName` | `string`                                                                                                 | —       | Additional classes for the tooltip element.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `children`         | `React.ReactNode`                                                                                        | —       | The element that triggers the tooltip. Its `aria-describedby` points at the tooltip, after any ids it already had, so a screen reader reads the tooltip as its description when it takes focus, even while the tooltip is hidden. That takes a single element which passes `aria-describedby` on to its DOM node, as native elements and bestax components do, and takes focus itself, such as a button, a link or a `Span` with `tabIndex={0}`: something focusable inside it doesn't get the link, and text, a fragment or several elements get none. A development build warns when the first element Tab reaches in the trigger doesn't carry the link, or there isn't one. With `describesTrigger` off, there's no link and no warning. |
 | `className`        | `string`                                                                                                 | —       | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
