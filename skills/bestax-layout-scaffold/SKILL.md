@@ -229,6 +229,10 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   default a step is modal over a dimmed page, so its body says what the target is; give
   `overlay={false}` (on the tour or one step) when the user should try the control. The app
   opens it and stores what `onFinish` and `onOpenChange` say: it doesn't remember who's seen it.
+  A "what's new" step takes `cover={<img src="…" alt="" />}`, and a footer of its own is
+  `footer` (on the tour, or one step) built from `Tour.Skip`, `Tour.Back`, `Tour.Next` and
+  `Tour.Progress`, with `useTour()` for anything else in it: not a hand-written row of buttons
+  that changes the step.
 - Link lists (footer nav, sidebars): a bare `UnorderedList` of `ListItem`s is already
   marker-less and flush — Bulma's reset unstyles `ul` — so no prop or CSS is needed;
   bullets appear only inside `Content`.
