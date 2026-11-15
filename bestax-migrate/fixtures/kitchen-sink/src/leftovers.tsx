@@ -17,6 +17,7 @@ import {
   Media,
   Menu,
   Modal,
+  Notification,
   Pagination,
   Tag,
   Tile,
@@ -50,6 +51,7 @@ export function Leftovers() {
       <Button color="grey-light" isSelected colorVariant="light">
         Shade color
       </Button>
+      <Notification backgroundColor="info">No background color prop</Notification>
       <Block touch={{ display: 'block' }} untilWidescreen={{ textSize: 5 }} renderAs="section">
         Touch-only helpers
       </Block>

@@ -1076,6 +1076,11 @@ scales them all.
 `--bulma-timeline-time-color`, `--bulma-timeline-time-size`, `--bulma-timeline-title-color`,
 `--bulma-timeline-title-weight`
 
+In a colored `Notification`, a timeline with no color sets its neutral, active and icon colors to
+the Notification's text color and its marker and icon backgrounds to the Notification's
+background, unless it's on a Box or a Card there. To retheme one there, set these on the timeline
+itself, through its `style` or a class loaded after bestax's stylesheet, or give it a `color`.
+
 ### Toast
 
 `--bulma-toast-action-hover-opacity`, `--bulma-toast-action-radius`,
