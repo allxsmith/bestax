@@ -214,10 +214,16 @@ Bulma's `link`. A color is only seen, so say what it means in the words too.
 ```
 
 In a colored `Notification`, the titles and the times take the Notification's own text color, the
-way Bulma's titles do there. The markers keep theirs, so on a background in the progress color,
-give the timeline a `color` that stands out from it. The rings and the pending loader are filled
-with the page's color, from `--bulma-timeline-marker-background`, which you can set on the
-timeline to match what's behind it.
+way Bulma's titles do there. So do the markers of a timeline with no `color`, and their rings, the
+pending loader and the icon circles are filled with the Notification's background. A `color` on
+the timeline or on an item is kept, so in a colored Notification set one only if it stands out
+from the Notification's color. Elsewhere the rings and the loader are filled with the page's color,
+from `--bulma-timeline-marker-background`, which you can set on the timeline to match what's
+behind it. A timeline on a Box or a Card inside a colored Notification keeps the page's look, since
+those are surfaces of their own. On any other surface of its own there, such as a wrapper with a
+`bgColor`, set `--bulma-timeline-marker-background` and `--bulma-timeline-marker-icon-background`
+on the timeline, through its `style` or a class loaded after bestax's stylesheet, to that
+surface's color.
 
 ### A Busy Feed
 
@@ -357,9 +363,10 @@ Both draw markers joined by a line, and a `Timeline` with `active` can look a lo
   assistive tech. With `active`, the current item has `aria-current="step"` and the others end in
   the words "completed", "upcoming" or "in progress". Nothing in it is a control. `Steps` is a
   `<ul role="list">` of steps, each label in a `<p>`, with `aria-current="step"` on the current
-  step and a check mark in place of the number on a completed one. A `clickable` step puts its
-  marker and label in a `<button>` that calls `onStepClick`, and `hasNavigation` adds Previous and
-  Next buttons, so the user can move back and forth.
+  step, a check mark in place of the number on a completed one, and the word "completed" or
+  "upcoming" after each of the others. A `clickable` step puts its marker and label in a
+  `<button>` that calls `onStepClick`, and `hasNavigation` adds Previous and Next buttons, so the
+  user can move back and forth.
 
 If the user is going through it, use `Steps`. If it tells them what happened, or how far something
 has got, use a `Timeline`.
@@ -379,6 +386,12 @@ has got, use a `Timeline`.
   progress", in visually hidden text, so its heading reads "Packed completed". Set the words in
   your app's language with `completedLabel`, `upcomingLabel` and `pendingLabel`. Each state has a
   shape of its own as well as a color.
+- **Contrast:** a marker with no `color`, in a record or not reached yet, is Bulma's `text-weak`,
+  and progress and a `color` are drawn in the color's on-scheme lightness, the one Bulma adjusts
+  for text on the scheme's background. A marker's ring or dot clears WCAG 1.4.11's 3:1 against
+  Bulma's page background in light and dark mode. When a `Theme` changes a color's hue,
+  saturation or lightness, set that color's on-scheme lightness with it, as
+  [Label and Text Lightnesses](../helpers/theme.md#label-and-text-lightnesses) shows.
 - **Decoration:** the markers are hidden from assistive tech, an `Icon` with an `ariaLabel`
   included, and the line is drawn by CSS. Say what a color or an icon means in the title.
 - **The time:** a screen reader mostly reads the text, so the time's words carry the whole date.
@@ -386,6 +399,9 @@ has got, use a `Timeline`.
   speak it.
 - **Motion:** the pending ring turns, and stands still for users who ask for less motion. Its open
   shape is the cue either way.
+- **In a colored Notification:** a timeline with no `color` draws its markers in the
+  Notification's text color, as its titles are, so there its states differ by their shapes and by
+  the line, which is drawn in that color up to the current item. A `color` you set is kept.
 - **Forced colors:** every line, dot, ring and halo is a border or an outline, so in Windows high
   contrast mode they keep their shapes, and the pending ring stays open.
 - **Not interactive and not live:** it has no tab stop and no keys, and links or buttons in an
@@ -431,7 +447,7 @@ has got, use a `Timeline`.
 | `pending`        | `React.ReactNode`                                                               | —               | What's under way, as a last item after the children: its title, read with `pendingLabel`. Write it as words that say so ("Out for delivery").                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `align`          | `'start'` \| `'end'` \| `'alternate'`                                           | `'start'`       | `start`: the rail at the start of the line. `end`: at the end, with the text against it. `alternate`: down the middle, the items taking turns and each time across the rail; below Bulma's tablet breakpoint it's `start`.                                                                                                                                                                                                                                                                                                                                                                               |
 | `titleAs`        | `'h2'` \| `'h3'` \| `'h4'` \| `'h5'` \| `'h6'` \| `'p'`                         | `'h2'`          | What every item's title renders as: a heading at the level under the heading the timeline sits beneath, or `p` for a busy feed.                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| `color`          | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —               | The markers' color, and the color of progress with `active`. Neutral without it, and Bulma's `link` for progress. The markers are hidden from assistive tech, so say what a color means in the words too.                                                                                                                                                                                                                                                                                                                                                                                                |
+| `color`          | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —               | The markers' color, and the color of progress with `active`. Neutral without it, and Bulma's `link` for progress. Drawn in the color's on-scheme shade, the one Bulma adjusts to read on the page in either scheme, so a pale color such as `warning` is darker on a light page. The markers are hidden from assistive tech, so say what a color means in the words too. In a colored Notification, leave it off: the markers then take the Notification's text color, as the titles do, while a color you set is kept even where it doesn't stand out from the Notification's.                          |
 | `completedLabel` | `string`                                                                        | `'completed'`   | Read after a completed item's title, visually hidden. In your app's language.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `upcomingLabel`  | `string`                                                                        | `'upcoming'`    | Read after an upcoming item's title, visually hidden. In your app's language.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `pendingLabel`   | `string`                                                                        | `'in progress'` | Read after the pending item's title, visually hidden. In your app's language.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
@@ -453,7 +469,7 @@ has got, use a `Timeline`.
 | `time`      | `React.ReactNode`                                                               | —       | When it happened, as the reader sees it: "14 October 2026", "2 hours ago". Put the whole date in the words, since screen readers mostly read the text.                                                                                            |
 | `dateTime`  | `string`                                                                        | —       | The same moment for machines, as HTML's `datetime` takes it: "2026-10-14", "2026-10-14T08:12", "2026-10". With it, `time` renders in a `<time>`. Keep it the same moment as `time`, since some readers speak it.                                  |
 | `icon`      | `React.ReactNode`                                                               | —       | A picture in the marker. A string is an `Icon` name, drawn from the icon library `ConfigProvider` sets, and anything else renders as it is. Without it, the marker is a dot. It's hidden from assistive tech, so what it means goes in the title. |
-| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | This item's marker color, over the root's. Say what it means in the words too.                                                                                                                                                                    |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | This item's marker color, over the root's, in the color's on-scheme shade. Say what it means in the words too.                                                                                                                                    |
 | `children`  | `React.ReactNode`                                                               | —       | Anything else about the event, under the title and the time, as written.                                                                                                                                                                          |
 | `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper.                                                                                                                                                                                                                                |
 | `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color helper.                                                                                                                                                                                                                          |
@@ -470,29 +486,29 @@ has got, use a `Timeline`.
 
 `Timeline` registers these variables on its own `.timeline` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
 
-| CSS Variable                              | Sass Variable                      | Default                                     |
-| ----------------------------------------- | ---------------------------------- | ------------------------------------------- |
-| `--bulma-timeline-gap`                    | `$timeline-gap`                    | `1.5em`                                     |
-| `--bulma-timeline-content-gap`            | `$timeline-content-gap`            | `0.25em`                                    |
-| `--bulma-timeline-rail-size`              | `$timeline-rail-size`              | `2em`                                       |
-| `--bulma-timeline-rail-size-icon`         | `$timeline-rail-size-icon`         | `3em`                                       |
-| `--bulma-timeline-rail-center`            | —                                  | `calc(var(--bulma-timeline-rail-size) / 2)` |
-| `--bulma-timeline-line-width`             | `$timeline-line-width`             | `max(2px, 0.125em)`                         |
-| `--bulma-timeline-line-color`             | `$timeline-line-color`             | `var(--bulma-border)`                       |
-| `--bulma-timeline-dot-size`               | `$timeline-dot-size`               | `0.75em`                                    |
-| `--bulma-timeline-marker-size`            | `$timeline-marker-size`            | `2em`                                       |
-| `--bulma-timeline-pending-size`           | `$timeline-pending-size`           | `1em`                                       |
-| `--bulma-timeline-neutral-color`          | `$timeline-neutral-color`          | `var(--bulma-border-hover)`                 |
-| `--bulma-timeline-marker-color`           | —                                  | `var(--bulma-timeline-neutral-color)`       |
-| `--bulma-timeline-active-color`           | `$timeline-active-color`           | `var(--bulma-link)`                         |
-| `--bulma-timeline-marker-background`      | `$timeline-marker-background`      | `var(--bulma-scheme-main)`                  |
-| `--bulma-timeline-marker-icon-background` | `$timeline-marker-icon-background` | `var(--bulma-background)`                   |
-| `--bulma-timeline-marker-icon-color`      | `$timeline-marker-icon-color`      | `var(--bulma-text-weak)`                    |
-| `--bulma-timeline-halo-offset`            | `$timeline-halo-offset`            | `0.1875em`                                  |
-| `--bulma-timeline-pending-duration`       | `$timeline-pending-duration`       | `1s`                                        |
-| `--bulma-timeline-title-color`            | `$timeline-title-color`            | `var(--bulma-text-strong)`                  |
-| `--bulma-timeline-title-weight`           | `$timeline-title-weight`           | `var(--bulma-weight-semibold)`              |
-| `--bulma-timeline-time-color`             | `$timeline-time-color`             | `var(--bulma-text-weak)`                    |
-| `--bulma-timeline-time-size`              | `$timeline-time-size`              | `0.875em`                                   |
+| CSS Variable                              | Sass Variable                      | Default                                                                        |
+| ----------------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------ |
+| `--bulma-timeline-gap`                    | `$timeline-gap`                    | `1.5em`                                                                        |
+| `--bulma-timeline-content-gap`            | `$timeline-content-gap`            | `0.25em`                                                                       |
+| `--bulma-timeline-rail-size`              | `$timeline-rail-size`              | `2em`                                                                          |
+| `--bulma-timeline-rail-size-icon`         | `$timeline-rail-size-icon`         | `3em`                                                                          |
+| `--bulma-timeline-rail-center`            | —                                  | `calc(var(--bulma-timeline-rail-size) / 2)`                                    |
+| `--bulma-timeline-line-width`             | `$timeline-line-width`             | `max(2px, 0.125em)`                                                            |
+| `--bulma-timeline-line-color`             | `$timeline-line-color`             | `var(--bulma-border)`                                                          |
+| `--bulma-timeline-dot-size`               | `$timeline-dot-size`               | `0.75em`                                                                       |
+| `--bulma-timeline-marker-size`            | `$timeline-marker-size`            | `2em`                                                                          |
+| `--bulma-timeline-pending-size`           | `$timeline-pending-size`           | `1em`                                                                          |
+| `--bulma-timeline-neutral-color`          | `$timeline-neutral-color`          | `var(--bulma-text-weak)`                                                       |
+| `--bulma-timeline-marker-color`           | —                                  | `var(--bulma-timeline-neutral-color)`                                          |
+| `--bulma-timeline-active-color`           | `$timeline-active-color`           | `hsl(var(--bulma-link-h), var(--bulma-link-s), var(--bulma-link-on-scheme-l))` |
+| `--bulma-timeline-marker-background`      | `$timeline-marker-background`      | `var(--bulma-scheme-main)`                                                     |
+| `--bulma-timeline-marker-icon-background` | `$timeline-marker-icon-background` | `var(--bulma-background)`                                                      |
+| `--bulma-timeline-marker-icon-color`      | `$timeline-marker-icon-color`      | `var(--bulma-text-weak)`                                                       |
+| `--bulma-timeline-halo-offset`            | `$timeline-halo-offset`            | `0.1875em`                                                                     |
+| `--bulma-timeline-pending-duration`       | `$timeline-pending-duration`       | `1s`                                                                           |
+| `--bulma-timeline-title-color`            | `$timeline-title-color`            | `var(--bulma-text-strong)`                                                     |
+| `--bulma-timeline-title-weight`           | `$timeline-title-weight`           | `var(--bulma-weight-semibold)`                                                 |
+| `--bulma-timeline-time-color`             | `$timeline-time-color`             | `var(--bulma-text-weak)`                                                       |
+| `--bulma-timeline-time-size`              | `$timeline-time-size`              | `0.875em`                                                                      |
 
 <!-- /bestax:generated cssvars -->

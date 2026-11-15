@@ -86,7 +86,8 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   since a context menu is only a shortcut),
   `Steps value={i}/onStepClick items={[{label, icon?}]}` for a journey the user moves through,
   such as a wizard or a checkout (child form is `Steps.Step`, not `Steps.Item`; a record of
-  what happened is `Timeline`). `Reveal cascade` staggers only its **direct children** — to
+  what happened is `Timeline`; in another language, set `completedLabel` and `upcomingLabel`,
+  the words read after each completed or upcoming step). `Reveal cascade` staggers only its **direct children** — to
   stagger a grid, put `<Reveal delay={i * 80}>` inside each `Cell`, not around the container.
 - **An empty list, table or search with no results is `EmptyState`**, not a hand-built `Box`
   of `Icon`, `Title` and `Buttons isCentered`:
@@ -220,6 +221,14 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `onOpenChange`, with `aria-keyshortcuts` on the button. The same list inline, in a page or a
   Popover, is `Command`. For server results, build it from parts: `Command.Input`, then
   `Command.List` of `Command.Item`s, or `Command.Empty`, filtered from `onQueryChange`.
+- **A first-visit walkthrough, a "what's new" pass or a "Take the tour" button is `Tour`**, not
+  a `Modal` per step or a `Popover` moved by hand:
+  `<Tour open={open} onOpenChange={setOpen} onFinish={…}>` with a
+  `<Tour.Step target={ref} title="Filters">` per step, its body as children.
+  A target is a ref, an element or a selector, and a step without one sits in the middle. By
+  default a step is modal over a dimmed page, so its body says what the target is; give
+  `overlay={false}` (on the tour or one step) when the user should try the control. The app
+  opens it and stores what `onFinish` and `onOpenChange` say: it doesn't remember who's seen it.
 - Link lists (footer nav, sidebars): a bare `UnorderedList` of `ListItem`s is already
   marker-less and flush — Bulma's reset unstyles `ul` — so no prop or CSS is needed;
   bullets appear only inside `Content`.
@@ -238,7 +247,9 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   wrap content in `Span textColor="grey"`). Set the app-wide icon library once with
   `<ConfigProvider iconLibrary="…">` at the root rather than `library` on every `<Icon>`. An app
   in another language, or a right-to-left one, also gets `lang` and `dir` on `<html>` and a
-  `<LocaleProvider locale="…">` at the root, so overlays and date pickers follow it.
+  `<LocaleProvider locale="…">` at the root, so overlays and date pickers follow it. Words a
+  component reads to assistive tech stay English until its label props set them (`Steps`'
+  `completedLabel` and `upcomingLabel`, for one).
 - **Alternating section bands are a prop, not CSS: `bgColor="scheme-main-bis"` on every
   other `Section` (next band `scheme-main-ter`).** The scheme values render as a
   dark-mode-safe inline `background-color: var(--bulma-scheme-*)` — zero custom CSS — and
