@@ -83,6 +83,9 @@
  *                        run ids in a guide (a workflow comment may cite the
  *                        run that justified a flip); a count lives in a
  *                        command and evidence on the issue (#643)
+ *   image-hosts          no story, docs page or skill has a URL on a
+ *                        placeholder or stock-photo host, the templates
+ *                        check's IMAGE_HOSTS (#1700)
  */
 import { readFile, readdir, writeFile, access } from 'node:fs/promises';
 import { join, relative, dirname, isAbsolute, extname, sep } from 'node:path';
@@ -137,6 +140,7 @@ import {
   findExpired,
 } from './lib/bypass-annotations.mjs';
 import { scanFragileProse, describeHit } from './lib/fragile-prose.mjs';
+import { imageHostUrls } from './lib/template-images.mjs';
 import {
   compareVersions,
   versionRegressionProblems,
@@ -509,6 +513,15 @@ const ORPHAN_EXEMPT = new Map([
       'documents, inside a forced-colors media query, on a doubled color ' +
       'class with :not() the attribution walk cannot place. It registers ' +
       'nothing of its own to claim, so this stays until it does',
+  ],
+  [
+    'bulma-ui/src/scss/components/_navbar.scss',
+    're-sets Bulma variables Navbar already documents (the burger, the ' +
+      'dropdown arrow, the tab colors, the menu background and the ' +
+      "dropdown's row colors) on a " +
+      "colored hero's navbar, a selector the attribution walk cannot " +
+      'place. It registers nothing of its own to claim, so this stays ' +
+      'until it does',
   ],
   [
     'bulma-ui/src/scss/elements/_tag.scss',
@@ -4049,18 +4062,20 @@ async function claudeMdFiles(dir, out = []) {
   return out;
 }
 
+/** `fn(dir)` when `dir` exists, and nothing when it does not. */
+async function ifPresent(dir, fn) {
+  try {
+    await access(dir);
+  } catch {
+    return [];
+  }
+  return fn(dir);
+}
+
 // `root` is injectable so scripts/fragile-prose.test.mjs can walk a temporary
 // tree and prove the target set (and every exclusion) rather than only the
 // scanner.
 export async function checkFragileProse(root = REPO) {
-  const ifPresent = async (dir, fn) => {
-    try {
-      await access(dir);
-    } catch {
-      return [];
-    }
-    return fn(dir);
-  };
   const targets = [
     ...(
       await ifPresent(root ? join(root, '.github') : root, async d => [
@@ -4081,6 +4096,51 @@ export async function checkFragileProse(root = REPO) {
     const rel = relative(root, file).split('\\').join('/');
     const hits = scanFragileProse(await readFile(file, 'utf8'), { kind });
     for (const hit of hits) violations.push(describeHit(rel, hit));
+  }
+  return violations;
+}
+
+// A picture in a story, a docs page or a skill comes from a file the repo
+// keeps, or for an agent following a skill, from the reader's own app. A URL
+// on a placeholder or stock-photo host is a hot-link that can change or
+// disappear and records nothing about whose picture it is (#1700). The host
+// list is the templates check's IMAGE_HOSTS; a credit link to a photo's page
+// is on another host. Each area lists the files it reads and says where a
+// picture there comes from instead.
+const DOCS_IMAGE_FIX = 'use a picture the site serves from docs/static/img';
+const IMAGE_HOST_AREAS = [
+  {
+    // The files bulma-ui/.storybook/main.ts loads as stories.
+    dir: ['bulma-ui', 'src'],
+    list: d => mdFiles(d, /\.(mdx|stories\.(jsx?|mjs|tsx?))$/),
+    fix: 'import a picture from bulma-ui/images and credit it in bulma-ui/images/LICENSE.md',
+  },
+  { dir: ['docs', 'docs'], list: docFiles, fix: DOCS_IMAGE_FIX },
+  { dir: ['docs', 'src'], list: d => mdFiles(d, /./), fix: DOCS_IMAGE_FIX },
+  {
+    dir: ['skills'],
+    list: d => mdFiles(d, /./),
+    fix: "point it at a file the reader's app serves itself, and say to replace it",
+  },
+];
+
+// `root` is injectable so scripts/image-hosts.test.mjs can walk a temporary
+// tree and prove which files the rule reads, not only the URL matcher.
+export async function checkImageHosts(root = REPO) {
+  const violations = [];
+  for (const { dir, list, fix } of IMAGE_HOST_AREAS) {
+    for (const file of await ifPresent(join(root, ...dir), d => list(d))) {
+      const rel = relative(root, file).split(sep).join('/');
+      (await readFile(file, 'utf8')).split(/\r?\n/).forEach((line, i) => {
+        for (const url of imageHostUrls(line)) {
+          violations.push(
+            `${rel}:${i + 1} has ${url}, on a placeholder or stock-photo ` +
+              `host (IMAGE_HOSTS in scripts/lib/template-images.mjs). For a ` +
+              `picture, ${fix}.`
+          );
+        }
+      });
+    }
   }
   return violations;
 }
@@ -4975,6 +5035,7 @@ const CHECKS = {
   'telemetry-allowlists': checkTelemetryAllowlists,
   'docs-api-urls': checkDocsApiUrls,
   'fragile-prose': checkFragileProse,
+  'image-hosts': checkImageHosts,
   'turbo-tasks': checkTurboTasks,
   'peer-ranges': checkPeerRanges,
   'version-regression': null, // handled below (takes the flag)

@@ -104,8 +104,8 @@ function FloatExamples() {
         <Card.Content>
           <Content>
             <Image
-              src="https://bulma.io/assets/images/placeholders/256x256.png"
-              alt="Article image"
+              src="/img/carousel/carousel-banner-1-1by1.jpg"
+              alt="Vibrant galaxy with purple and gold tones"
               float="left"
               mr="3"
               mb="3"
@@ -220,7 +220,7 @@ function OverlayExamples() {
             <Box
               style={{
                 backgroundImage:
-                  'url(https://bulma.io/assets/images/placeholders/640x480.png)',
+                  'url(/img/carousel/carousel-banner-3-4by3.jpg)',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 height: '100%',
@@ -399,8 +399,8 @@ function BorderRadiusExamples() {
               Rounded Box
             </Box>
             <Image
-              src="https://bulma.io/assets/images/placeholders/128x128.png"
-              alt="Rounded image"
+              src="/img/carousel/carousel-banner-3-1by1.jpg"
+              alt="Starry night sky over mountain silhouettes"
               style={{ width: '64px', height: '64px', borderRadius: '8px' }}
             />
           </Box>
@@ -449,8 +449,8 @@ function BorderRadiusExamples() {
               Square Box
             </Box>
             <Image
-              src="https://bulma.io/assets/images/placeholders/128x128.png"
-              alt="Square image"
+              src="/img/carousel/carousel-banner-3-1by1.jpg"
+              alt="Starry night sky over mountain silhouettes"
               radius="radiusless"
               style={{ width: '64px', height: '64px' }}
             />
@@ -831,8 +831,8 @@ function CombinedHelpersExample() {
           <Box pos="relative" style={{ height: '300px' }}>
             {/* Product image */}
             <Image
-              src="https://bulma.io/assets/images/placeholders/400x300.png"
-              alt="Product"
+              src="/img/carousel/carousel-banner-1-4by3.jpg"
+              alt="Vibrant galaxy with purple and gold tones"
               style={{
                 width: '100%',
                 height: '200px',

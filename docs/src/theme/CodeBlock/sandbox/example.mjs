@@ -331,6 +331,27 @@ function importLine(defaultName, names, from) {
 }
 
 /**
+ * Points the example's images from the docs site's `static/img` at the site.
+ * On the page a root-relative path such as `'/img/logo.svg'` resolves against
+ * the site, and in a sandbox against the sandbox's own address, which has no
+ * `img` folder, so the module writes the path resolved against `pageUrl`, as
+ * the page resolved it. The buttons pass the page's address on the site the
+ * docs build names (`siteConfig.url`), so an image a pull request adds shows in
+ * its sandboxes once it's deployed there. A path counts where it opens a
+ * string or a CSS `url(`, which is where the page's own examples write one,
+ * so a regex literal or text that only mentions `/img/` is left as written.
+ * The fence a reader copies keeps its path.
+ *
+ * @param {string} code
+ * @param {string} pageUrl The docs page the example came from.
+ * @returns {string}
+ */
+export function withSiteImages(code, pageUrl) {
+  const images = new URL('/img/', pageUrl).href;
+  return code.replace(/(?<=['"`]|\burl\(\s*)\/img\//g, images);
+}
+
+/**
  * @param {string} code The example as written in the docs fence, or as a
  *   reader has since edited it.
  * @param {object} options
@@ -339,7 +360,8 @@ function importLine(defaultName, names, from) {
  *   bare, such as `useState`.
  * @param {string[]} [options.docsOnlyNames] Scope names that exist only in the
  *   docs site. An example using one cannot run anywhere else.
- * @param {string} [options.sourceUrl] The docs page, linked from the header.
+ * @param {string} [options.sourceUrl] The docs page, linked from the header,
+ *   and the address the example's site images load from (`withSiteImages`).
  * @returns {{ source: string, libraryImports: string[] } | null} `null` when
  *   the example depends on a docs-only name.
  */
@@ -354,7 +376,8 @@ export function toExampleModule(
     .map(line => line.trim())
     .filter(line => line.startsWith('import type '));
   const body = stripModuleLines(code).trim();
-  const component = toComponentModule(body);
+  const module = toComponentModule(body);
+  const component = sourceUrl ? withSiteImages(module, sourceUrl) : module;
   const { referenced, declared } = scan(component);
   const uses = name => referenced.has(name) && !declared.has(name);
 

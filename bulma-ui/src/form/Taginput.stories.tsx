@@ -3,6 +3,8 @@ import React, { useState, useCallback } from 'react';
 import { Taginput, TaginputTag } from './Taginput';
 import { Field } from './Field';
 import { Control } from './Control';
+import { Button } from '../elements/Button';
+import { Buttons } from '../elements/Buttons';
 
 const meta: Meta<typeof Taginput> = {
   title: 'Form/Taginput',
@@ -649,14 +651,14 @@ export const Controlled: Story = {
 
     return (
       <div style={{ maxWidth: '500px' }}>
-        <div className="buttons mb-4">
-          <button className="button is-small" onClick={handleAdd}>
+        <Buttons mb="4">
+          <Button size="small" onClick={handleAdd}>
             Add Tag
-          </button>
-          <button className="button is-small is-danger" onClick={handleClear}>
+          </Button>
+          <Button size="small" color="danger" onClick={handleClear}>
             Clear All
-          </button>
-        </div>
+          </Button>
+        </Buttons>
         <Taginput
           value={tags}
           onChange={setTags}
@@ -684,32 +686,28 @@ export const FormIntegration: Story = {
 
     return (
       <form onSubmit={handleSubmit} style={{ maxWidth: '500px' }}>
-        <div className="field">
-          <label className="label">Skills</label>
-          <div className="control">
-            <Taginput
-              data={[
-                'JavaScript',
-                'TypeScript',
-                'React',
-                'Node.js',
-                'Python',
-                'Go',
-                'Rust',
-              ]}
-              placeholder="Add your skills..."
-              onChange={setSkills}
-            />
-          </div>
-          <p className="help">Type to search or add new skills</p>
-        </div>
-        <div className="field">
-          <div className="control">
-            <button type="submit" className="button is-primary">
+        <Taginput
+          label="Skills"
+          message="Type to search or add new skills"
+          data={[
+            'JavaScript',
+            'TypeScript',
+            'React',
+            'Node.js',
+            'Python',
+            'Go',
+            'Rust',
+          ]}
+          placeholder="Add your skills..."
+          onChange={setSkills}
+        />
+        <Field>
+          <Control>
+            <Button type="submit" color="primary">
               Submit
-            </button>
-          </div>
-        </div>
+            </Button>
+          </Control>
+        </Field>
       </form>
     );
   },
@@ -819,9 +817,9 @@ export const WithName: Story = {
           placeholder="Add a tag…"
         />
         <div style={{ marginTop: '1rem' }}>
-          <button type="submit" className="button is-primary">
+          <Button type="submit" color="primary">
             Submit
-          </button>
+          </Button>
         </div>
         {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
       </form>

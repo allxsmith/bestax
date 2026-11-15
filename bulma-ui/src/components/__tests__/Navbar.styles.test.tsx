@@ -13,7 +13,9 @@ import fs from 'fs';
 import path from 'path';
 import { render } from '@testing-library/react';
 import { Navbar } from '../Navbar';
+import { Hero } from '../../layout/Hero';
 import { ConfigProvider } from '../../helpers/Config';
+import { cascade, customProperty } from '../../__tests__/css-cascade';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 
@@ -286,18 +288,41 @@ describe('the Navbar partial', () => {
     'keeps the burger in forced colors and a fixed navbar’s lock margins at no weight, with %s, naming only prefixed classes',
     (_label, prefix) => {
       const rules = rulesOf(compile(prefix));
-      expect(rules.map(rule => [rule.selector, rule.context])).toEqual([
+      expect(
+        rules.slice(0, 2).map(rule => [rule.selector, rule.context])
+      ).toEqual([
         [`.${prefix}navbar-burger.${prefix}navbar-burger span`, [FORCED]],
         [
           `:where(.${prefix}navbar.${prefix}is-fixed-top, .${prefix}navbar.${prefix}is-fixed-bottom)`,
           [],
         ],
       ]);
+      // The rest are the colored hero's navbar, at the top level but for the
+      // menu's rows under the burger and a bold hero's menu on a phone.
+      expect(rules.slice(2).map(rule => rule.context)).toEqual([
+        [],
+        ['@media screen and (max-width: 1023px)'],
+        ['@media screen and (max-width: 768px)'],
+        [],
+        [],
+      ]);
+      for (const { selector } of rules.slice(2)) {
+        expect(selector).toMatch(
+          new RegExp(
+            `^(:where\\()?\\.${prefix}hero(\\.${prefix}is-bold)?:is\\(`
+          )
+        );
+      }
       expect(rules[0].declarations).toEqual({
         'forced-color-adjust': 'none',
         'background-color': 'ButtonText',
       });
       expect(rules[1].declarations).toEqual(LOCK_MARGINS);
+      // A class written bare matches nothing in a prefixed build.
+      const classes = rules.flatMap(({ selector }) =>
+        Array.from(selector.matchAll(/\.(-?[_a-zA-Z][\w-]*)/g), m => m[1])
+      );
+      expect(classes.filter(name => !name.startsWith(prefix))).toEqual([]);
     }
   );
 
@@ -342,5 +367,266 @@ describe('the Navbar partial', () => {
       'utf8'
     );
     expect(index).toMatch(/^@use 'navbar';$/m);
+  });
+});
+
+// Bulma's hero sets the colors its navbar's items take on hover and when
+// active, but Bulma's navbar reads only their rest color, so in a colored hero
+// the active item and the burger came out in the link color, a hovered item
+// in the scheme's fill under the hero's text, and the menu the burger opens in
+// the scheme's background (#1641). The partial reads the hero's colors there.
+// jsdom has no hover, and the partial styles focus with it, so focus stands
+// in.
+describe('a navbar in a colored hero', () => {
+  describe.each([
+    ['the partial after Bulma', '', () => bulmaCss() + compile()],
+    ['the partial before Bulma', '', () => compile() + bulmaCss()],
+    [
+      'a prefixed build, the partial after Bulma',
+      'bulma-',
+      () => bulmaCss('versions/bulma-prefixed.css') + compile('bulma-'),
+    ],
+    [
+      'a prefixed build, the partial before Bulma',
+      'bulma-',
+      () => compile('bulma-') + bulmaCss('versions/bulma-prefixed.css'),
+    ],
+  ])('with %s', (_order, prefix, sheet) => {
+    const css = sheet();
+    const partial = compile(prefix);
+
+    /**
+     * A navbar in a Hero, with an active item, a plain one, a tab and a
+     * dropdown, and an item placed straight in the navbar.
+     */
+    const heroNavbar = (
+      color?: 'primary' | 'warning' | 'white' | 'dark',
+      navbarColor?: 'dark'
+    ) => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Hero color={color}>
+            <Hero.Head>
+              <Navbar aria-label="Site" color={navbarColor}>
+                <Navbar.Item as="a" href="#loose" active>
+                  Loose
+                </Navbar.Item>
+                <Navbar.Brand>
+                  <Navbar.Burger />
+                </Navbar.Brand>
+                <Navbar.Menu>
+                  <Navbar.Start>
+                    <Navbar.Item as="a" href="#active" active>
+                      Active
+                    </Navbar.Item>
+                    <Navbar.Item as="a" href="#plain">
+                      Plain
+                    </Navbar.Item>
+                    <Navbar.Item
+                      as="a"
+                      href="#tab"
+                      className={`${prefix}is-tab`}
+                    >
+                      Tab
+                    </Navbar.Item>
+                    <Navbar.Dropdown hoverable>
+                      <Navbar.Link>More</Navbar.Link>
+                      <Navbar.DropdownMenu>
+                        <Navbar.Item as="a" href="#inside">
+                          Inside
+                        </Navbar.Item>
+                        <div>
+                          <Navbar.Item as="a" href="#deeper">
+                            Deeper
+                          </Navbar.Item>
+                          <a className={`${prefix}navbar-link`} href="#sublink">
+                            Sub
+                          </a>
+                        </div>
+                      </Navbar.DropdownMenu>
+                    </Navbar.Dropdown>
+                  </Navbar.Start>
+                </Navbar.Menu>
+              </Navbar>
+            </Hero.Head>
+          </Hero>
+        </ConfigProvider>
+      );
+      const find = (selector: string) =>
+        container.querySelector(selector) as HTMLElement;
+      return {
+        navbar: find(`.${prefix}navbar`),
+        loose: find('[href="#loose"]'),
+        active: find('[href="#active"]'),
+        plain: find('[href="#plain"]'),
+        tab: find('[href="#tab"]'),
+        link: find(`.${prefix}navbar-link`),
+        inside: find('[href="#inside"]'),
+        deeper: find('[href="#deeper"]'),
+        sublink: find('[href="#sublink"]'),
+      };
+    };
+
+    /** `property` on `el`, as the rules of `from` resolve it. */
+    const style = (el: Element, property: string, from = css) =>
+      cascade(
+        el,
+        from,
+        [property],
+        (declared, name) => declared.getPropertyValue(name) || undefined
+      );
+
+    it.each(['primary', 'warning', 'white', 'dark'] as const)(
+      'draws the active item in a %s hero’s active colors',
+      color => {
+        const { active, loose } = heroNavbar(color);
+        for (const el of [active, loose]) {
+          expect(style(el, 'background-color')).toBe(
+            'var(--bulma-navbar-item-active-background-color)'
+          );
+          expect(style(el, 'color')).toBe(
+            'var(--bulma-navbar-item-active-color)'
+          );
+        }
+      }
+    );
+
+    it('draws a focused item and a dropdown link in the hero’s hover colors', () => {
+      const { plain, link, sublink } = heroNavbar('primary');
+      for (const el of [plain, link, sublink]) {
+        el.tabIndex = 0;
+        el.focus();
+        expect(el).toHaveFocus();
+        expect(style(el, 'background-color')).toBe(
+          'var(--bulma-navbar-item-hover-background-color)'
+        );
+        expect(style(el, 'color')).toBe('var(--bulma-navbar-item-hover-color)');
+      }
+    });
+
+    it('leaves the items inside a dropdown, however deep, and a tab to Bulma', () => {
+      // A dropdown on a large screen is a box of its own, and a tab draws no
+      // fill, so the partial sets nothing on them, focused or active.
+      const { inside, deeper, tab } = heroNavbar('primary');
+      for (const el of [inside, deeper, tab]) {
+        el.classList.add(`${prefix}is-active`);
+        el.focus();
+        expect(el).toHaveFocus();
+        for (const property of ['background-color', 'color']) {
+          expect(style(el, property, partial)).toBeUndefined();
+        }
+      }
+    });
+
+    it('gives the burger, the dropdown arrow, a tab and the phone menu the hero’s colors', () => {
+      const { navbar } = heroNavbar('primary');
+      // The arrow is the link's own `::after`, so it follows the link's text
+      // at rest, hovered and active, staying visible on the fill.
+      expect(customProperty(navbar, css, '--bulma-navbar-dropdown-arrow')).toBe(
+        'currentColor'
+      );
+      for (const name of [
+        '--bulma-navbar-burger-color',
+        '--bulma-navbar-tab-hover-border-bottom-color',
+        '--bulma-navbar-tab-active-color',
+        '--bulma-navbar-tab-active-border-bottom-color',
+      ]) {
+        expect(customProperty(navbar, css, name)).toBe(
+          'var(--bulma-navbar-item-color)'
+        );
+      }
+      expect(
+        customProperty(navbar, css, '--bulma-navbar-background-color')
+      ).toMatch(
+        /^hsl\(var\(--bulma-hero-h\), ?var\(--bulma-hero-s\), ?var\(--bulma-hero-background-l\)\)$/
+      );
+    });
+
+    it('gives the dropdown’s rows in the phone menu the hero’s colors', () => {
+      // On a phone the dropdown's rows sit in the open menu, which now takes
+      // the hero's background, so they take its colors too. jsdom evaluates
+      // no media query, so this reads the block itself.
+      const { navbar } = heroNavbar('primary');
+      const touch = rulesOf(partial).filter(
+        rule =>
+          rule.context.join(' ') === '@media screen and (max-width: 1023px)' &&
+          matches(navbar, rule.selector)
+      );
+      expect(touch.map(rule => rule.declarations)).toEqual([
+        {
+          '--bulma-navbar-dropdown-item-h': 'var(--bulma-hero-h)',
+          '--bulma-navbar-dropdown-item-s': 'var(--bulma-hero-s)',
+          '--bulma-navbar-dropdown-item-background-l':
+            'var(--bulma-hero-background-l)',
+          '--bulma-navbar-dropdown-item-color-l': 'var(--bulma-hero-color-l)',
+        },
+      ]);
+    });
+
+    it('draws a bold hero’s phone menu in the hero’s own gradient', () => {
+      // Bulma's runs through the hero's text color, which the menu's items
+      // are drawn in. jsdom evaluates no media query, so this reads the block.
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Hero color="primary" className={`${prefix}is-bold`}>
+            <Hero.Head>
+              <Navbar aria-label="Site">
+                <Navbar.Menu active />
+              </Navbar>
+            </Hero.Head>
+          </Hero>
+        </ConfigProvider>
+      );
+      const menu = container.querySelector(
+        `.${prefix}navbar-menu`
+      ) as HTMLElement;
+      const mobile = rulesOf(partial).filter(
+        rule =>
+          rule.context.join(' ') === '@media screen and (max-width: 768px)' &&
+          matches(menu, rule.selector)
+      );
+      expect(mobile.map(rule => rule.declarations)).toEqual([
+        {
+          'background-image':
+            'linear-gradient(141deg, ' +
+            'hsl(calc(var(--bulma-hero-h) - var(--bulma-hero-gradient-h-offset)), ' +
+            'calc(var(--bulma-hero-s) + var(--bulma-hero-gradient-s-offset)), ' +
+            'calc(var(--bulma-hero-background-l) + var(--bulma-hero-gradient-l-offset))) 0%, ' +
+            'hsl(var(--bulma-hero-h), var(--bulma-hero-s), var(--bulma-hero-background-l)) 71%, ' +
+            'hsl(calc(var(--bulma-hero-h) + var(--bulma-hero-gradient-h-offset)), ' +
+            'calc(var(--bulma-hero-s) - var(--bulma-hero-gradient-s-offset)), ' +
+            'calc(var(--bulma-hero-background-l) - var(--bulma-hero-gradient-l-offset))) 100%)',
+        },
+      ]);
+      // A hero that isn't bold keeps the plain background.
+      const plainMenu = heroNavbar('primary').navbar.querySelector(
+        `.${prefix}navbar-menu`
+      ) as Element;
+      expect(
+        rulesOf(partial).filter(
+          rule => rule.context.length && matches(plainMenu, rule.selector)
+        )
+      ).toEqual([]);
+    });
+
+    it('leaves a navbar in a hero with no color, or with a color of its own, to Bulma', () => {
+      for (const { navbar, active } of [
+        heroNavbar(),
+        heroNavbar('primary', 'dark'),
+      ]) {
+        expect(style(active, 'background-color', partial)).toBeUndefined();
+        for (const name of [
+          '--bulma-navbar-burger-color',
+          '--bulma-navbar-background-color',
+        ]) {
+          expect(customProperty(navbar, partial, name)).toBeUndefined();
+        }
+        expect(
+          rulesOf(partial).filter(
+            rule => rule.context.length && matches(navbar, rule.selector)
+          )
+        ).toEqual([]);
+      }
+    });
   });
 });
