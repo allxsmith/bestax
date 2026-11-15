@@ -673,12 +673,24 @@ describe('FloatButton.SpeedDial', () => {
     expect(menu()).toBeNull();
   });
 
-  it('opens on the nearest action for a click with no pointer behind it, as a screen reader sends', () => {
+  it('opens on the nearest action for a click with no pointer behind it, as a screen reader can send', () => {
     render(<Dial />);
     fireEvent.click(dialTrigger(), { detail: 0 });
     expect(action('Note')).toHaveFocus();
     fireEvent.click(dialTrigger(), { detail: 0 });
     expect(menu()).toBeNull();
+    expect(dialTrigger()).toHaveFocus();
+  });
+
+  it('hands focus back to the trigger when a pointer closes it with focus in the menu', () => {
+    render(<Dial />);
+    dialTrigger().focus();
+    press('Enter');
+    expect(action('Note')).toHaveFocus();
+    // Safari doesn't focus a button it clicks, so focus is still on the action.
+    fireEvent.click(dialTrigger(), { detail: 1 });
+    expect(menu()).toBeNull();
+    expect(dialTrigger()).toHaveFocus();
   });
 
   it('counts a press in content it portals elsewhere as inside', () => {
