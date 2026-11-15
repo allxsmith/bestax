@@ -23,6 +23,7 @@ import type {
   PickerLabels,
 } from './_pickerInternals/pickerTypes';
 import {
+  addMonths,
   clampDate,
   floorMin,
   startOfDay,
@@ -68,8 +69,9 @@ interface CalendarBaseProps
   /**
    * The month on show to begin with, when the Calendar holds its own state.
    * Unset, it's the month of `value` (a range's start), or else today's,
-   * moved inside `min` and `max`. On a server render today is the server's,
-   * so give this, `month` or a picked `value` there.
+   * moved inside `min` and `max`, and with `monthsToShow` the first month
+   * of a page they hold whole. On a server render today is the server's, so
+   * give this, `month` or a picked `value` there.
    */
   defaultMonth?: Date;
   /**
@@ -348,12 +350,28 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
     // Nothing before year 1 is in range, as in HTML's date inputs.
     const lowerBound = useMemo(() => floorMin(min), [min]);
 
-    const [month, setOwnMonth] = useControlled<Date>(
-      monthProp,
-      startOfMonth(
-        defaultMonth ?? valueStart ?? clampDate(new Date(), lowerBound, max)
-      )
-    );
+    // The first month on show, held here unless `month` is given: a
+    // `defaultMonth` as given, else the month of the value or of today, as
+    // the first of a page that `min` and `max` hold whole, the way the grid
+    // pages, so a page past `max` is never the first one on show.
+    const firstMonth = () => {
+      if (defaultMonth) return startOfMonth(defaultMonth);
+      const start = startOfMonth(
+        valueStart ?? clampDate(new Date(), lowerBound, max)
+      );
+      const count =
+        granularity === 'day' &&
+        monthsToShow > 1 &&
+        Number.isFinite(monthsToShow)
+          ? Math.floor(monthsToShow)
+          : 1;
+      if (!max || count === 1) return start;
+      const lastFirst = addMonths(startOfMonth(max), 1 - count);
+      const fitted = start > lastFirst ? lastFirst : start;
+      const floor = startOfMonth(lowerBound);
+      return fitted < floor ? floor : fitted;
+    };
+    const [month, setOwnMonth] = useControlled<Date>(monthProp, firstMonth());
 
     // The day the keys move from: the value, else the month on show. The
     // grid keeps it on the months on show, so a value in another month reads
@@ -373,8 +391,13 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
       setFocusedDate(startingFocus());
     }
     // Bounds that change after mount pull the focused day back inside them.
+    // A day already inside them stays the same Date, so bounds written inline
+    // cost no extra render.
     useEffect(() => {
-      setFocusedDate(prev => clampDate(prev, lowerBound, max));
+      setFocusedDate(prev => {
+        const next = clampDate(prev, lowerBound, max);
+        return next.getTime() === prev.getTime() ? prev : next;
+      });
     }, [lowerBound, max]);
 
     const handleMonthChange = useCallback(

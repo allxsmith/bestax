@@ -898,6 +898,49 @@ describe('Calendar', () => {
       expect(gridNames(container)).toEqual(['November 2026', 'December 2026']);
     });
 
+    it('opens on a page that max holds whole', () => {
+      const { container, unmount } = render(
+        <Calendar
+          locale="en-US"
+          monthsToShow={2}
+          defaultValue={new Date(2026, 11, 10)}
+          max={new Date(2026, 11, 31)}
+        />
+      );
+      expect(gridNames(container)).toEqual(['November 2026', 'December 2026']);
+      expect(screen.getByRole('button', { name: 'Next month' })).toBeDisabled();
+      unmount();
+      // min wins where the bounds leave less than a page.
+      const second = render(
+        <Calendar
+          locale="en-US"
+          monthsToShow={3}
+          defaultValue={new Date(2026, 11, 10)}
+          min={new Date(2026, 10, 5)}
+          max={new Date(2026, 11, 31)}
+        />
+      );
+      expect(gridNames(second.container)).toEqual([
+        'November 2026',
+        'December 2026',
+        'January 2027',
+      ]);
+      second.unmount();
+      // A defaultMonth is shown as given.
+      const third = render(
+        <Calendar
+          locale="en-US"
+          monthsToShow={2}
+          defaultMonth={new Date(2026, 11, 1)}
+          max={new Date(2026, 11, 31)}
+        />
+      );
+      expect(gridNames(third.container)).toEqual([
+        'December 2026',
+        'January 2027',
+      ]);
+    });
+
     it('pages no further than min and max allow a whole page', () => {
       const { container } = render(
         <Calendar
