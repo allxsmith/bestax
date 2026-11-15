@@ -290,7 +290,8 @@ hold the month on show, so load each month's data in `onMonthChange` and set `lo
 arrives. `monthsToShow` sets months side by side, and `isFullwidth` stretches the days to the
 container. Name it with `aria-label` or `aria-labelledby`. On a server-rendered page give it a
 `month`, a `defaultMonth` or a picked `value`, since without one the first month comes from the
-clock.
+clock, and a `locale` (or a `LocaleProvider` around it), since without one the month and weekday
+names come in the server's language on the server.
 
 ```tsx
 const [month, setMonth] = useState(new Date(2026, 10, 1));
