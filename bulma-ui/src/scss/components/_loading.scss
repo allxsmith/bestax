@@ -25,11 +25,13 @@ $loading-icon-spin-color: cv.getVar("grey-light") !default;
 $loading-text-color: cv.getVar("text") !default;
 $loading-text-size: cv.getVar("size-normal") !default;
 $loading-content-gap: 1rem !default;
-$loading-cancel-color: cv.getVar("text-light") !default;
+// Text colors that follow the scheme: `text-light` is a fixed light gray,
+// which on the light scheme's white is unreadable.
+$loading-cancel-color: cv.getVar("text") !default;
 $loading-cancel-border-color: cv.getVar("border") !default;
 $loading-cancel-background: cv.getVar("scheme-main") !default;
-$loading-cancel-hover-color: cv.getVar("text") !default;
-$loading-cancel-hover-border-color: cv.getVar("text-light") !default;
+$loading-cancel-hover-color: cv.getVar("text-strong") !default;
+$loading-cancel-hover-border-color: cv.getVar("border-hover") !default;
 $loading-cancel-radius: cv.getVar("radius") !default;
 $loading-cancel-size: cv.getVar("size-small") !default;
 $loading-animation-duration: 0.75s !default;
