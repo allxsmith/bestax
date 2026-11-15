@@ -456,6 +456,8 @@ function isFullyVisible(element: HTMLElement): boolean {
     node && node !== doc.body && node !== doc.documentElement;
     node = flatParent(node) as Element | null
   ) {
+    // An ancestor with no box, as a slot is by default, clips nothing.
+    if (node.getClientRects().length === 0) continue;
     const { overflowX, overflowY } = getComputedStyle(node);
     const clips = /auto|scroll|hidden|clip/.test(`${overflowX} ${overflowY}`);
     if (clips && !inside(node.getBoundingClientRect())) return false;

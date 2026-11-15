@@ -133,9 +133,10 @@ export function shadowRootsAround(node: Node | null | undefined): ShadowRoot[] {
  * Listens for `type` on the shadow roots a node is rendered in, as
  * `shadowRootsAround` finds them, for an event that isn't composed, such as
  * `scroll`, which a listener on the window never hears from inside one.
- * `follow` moves the listener when those roots change, as they do for
- * another node or once a component around it gets its shadow root, and
- * `stop` takes it off them all.
+ * `follow` finds the node's roots again and moves the listener when they've
+ * changed, so a caller that calls it at each measurement keeps up with
+ * another node, or with a component around it that got its shadow root
+ * since. `stop` takes the listener off them all.
  *
  * @param type - The event to listen for.
  * @param listener - What runs on it.

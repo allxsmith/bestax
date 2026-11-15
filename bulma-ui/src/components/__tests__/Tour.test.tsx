@@ -1606,6 +1606,34 @@ describe('Tour', () => {
       host.remove();
     });
 
+    it('takes a slot with no box for no clip, whatever its overflow', () => {
+      const scrollIntoView = scrollTo();
+      const host = document.createElement('div');
+      const shadow = host.attachShadow({ mode: 'open' });
+      // A slot draws no box of its own, so overflow doesn't apply to it.
+      const slot = document.createElement('slot');
+      slot.style.overflowY = 'hidden';
+      slot.dataset.rect = '0 0 0 0';
+      // On the slot alone: a spy would reach every element's.
+      Object.defineProperty(slot, 'getClientRects', {
+        value: () => [] as unknown as DOMRectList,
+      });
+      shadow.appendChild(slot);
+      const slotted = document.createElement('button');
+      slotted.dataset.rect = '100 100 50 20';
+      host.appendChild(slotted);
+      document.body.appendChild(host);
+      render(
+        <Tour defaultOpen>
+          <Tour.Step target={slotted} title="Slotted">
+            In plain view.
+          </Tour.Step>
+        </Tour>
+      );
+      expect(scrollIntoView).not.toHaveBeenCalled();
+      host.remove();
+    });
+
     it('scrolls a target in a shadow root that a scrolling ancestor around its host cuts off', () => {
       const scrollIntoView = scrollTo();
       const scroller = document.createElement('div');
