@@ -49,8 +49,8 @@ export interface MyComponentProps
   extends
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'color'> {
-  color?: MyComponentColor;
-  size?: 'small' | 'medium' | 'large'; // element size union — never the spacing 'validSizes' constant ('0'…'6'|'auto')
+  color?: MyComponentColor | undefined; // an HTML attribute's name, so it takes undefined as React's does
+  size?: 'small' | 'medium' | 'large' | undefined; // element size union — never the spacing 'validSizes' constant ('0'…'6'|'auto')
   isActive?: boolean;
 }
 
