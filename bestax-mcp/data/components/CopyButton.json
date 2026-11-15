@@ -77,7 +77,7 @@
           "type": "string",
           "default": null,
           "description": "The text it copies. This is not the `<button>`'s form value, which it doesn't render.",
-          "required": false,
+          "required": true,
           "inherited": false,
           "deprecated": false
         },

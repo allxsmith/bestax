@@ -699,6 +699,35 @@ test('a branch that forbids a prop adds nothing to its row (#1460)', () => {
   );
 });
 
+test('a required prop is marked, in the table and as a field (#1754)', () => {
+  // The table leads its description with the mark, the way it leads a
+  // deprecated prop's.
+  assert.match(row('Dropdown', 'label').description, /^\*\*Required\.\*\* /);
+  assert.doesNotMatch(row('Dropdown', 'className').description, /Required/);
+  // The structured row says it in a field and leaves the text alone.
+  const label = row('Dropdown', 'label', { markdown: false });
+  assert.equal(label.required, true);
+  assert.doesNotMatch(label.description, /Required/);
+  assert.equal(
+    row('Dropdown', 'className', { markdown: false }).required,
+    false
+  );
+  // Required means required in every branch of a union props type: Combobox
+  // built from parts takes no `data`, and its data branches forbid `children`.
+  assert.equal(row('Combobox', 'data', { markdown: false }).required, false);
+  assert.equal(
+    row('Combobox', 'children', { markdown: false }).required,
+    false
+  );
+  assert.equal(row('TreeSelect', 'data', { markdown: false }).required, true);
+  // A polymorphic component's own props, read through its generic alias.
+  const item = extractComponent('Menu', { markdown: false }).tables.find(
+    t => t.path === 'Menu.Item'
+  );
+  assert.equal(item.rows.find(r => r.name === 'children').required, true);
+  assert.equal(item.rows.find(r => r.name === 'active').required, false);
+});
+
 test('structured mode leaks no markdown into any documented component', () => {
   // The whole point of the mode. A single escaped cell anywhere reaches an
   // agent as literal backticks in a type it is about to write into source.

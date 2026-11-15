@@ -69,7 +69,7 @@
           "type": "React.ReactNode",
           "default": null,
           "description": "Menu content (labels, lists, items, etc).",
-          "required": false,
+          "required": true,
           "inherited": false,
           "deprecated": false
         }
@@ -97,7 +97,7 @@
           "type": "React.ReactNode",
           "default": null,
           "description": "Label content.",
-          "required": false,
+          "required": true,
           "inherited": false,
           "deprecated": false
         }
@@ -125,7 +125,7 @@
           "type": "React.ReactNode",
           "default": null,
           "description": "List items.",
-          "required": false,
+          "required": true,
           "inherited": false,
           "deprecated": false
         }
@@ -172,7 +172,7 @@
           "type": "React.ReactNode",
           "default": null,
           "description": "Item content and optional nested MenuList.",
-          "required": false,
+          "required": true,
           "inherited": false,
           "deprecated": false
         },
@@ -282,7 +282,7 @@
           "type": "React.ReactNode",
           "default": null,
           "description": "**Required.** The section's heading, drawn like `Menu.Label` inside the button that opens and closes it. Keep links and buttons out of it, since it's inside one.",
-          "required": false,
+          "required": true,
           "inherited": false,
           "deprecated": false
         },
@@ -300,7 +300,7 @@
           "type": "React.ReactNode",
           "default": null,
           "description": "The `Menu.List` of links the section shows while it's open. The section itself goes directly in `Menu`, beside its labels and lists: inside a `Menu.Item` it would render inside the item's link, and inside a `Menu.List` it wouldn't be a list item.",
-          "required": false,
+          "required": true,
           "inherited": false,
           "deprecated": false
         },

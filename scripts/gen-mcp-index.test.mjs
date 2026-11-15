@@ -90,6 +90,28 @@ test('no markdown escaping leaks into props', () => {
   }
 });
 
+test('a prop says whether a caller must pass it (#1754)', () => {
+  const props = (name, path) =>
+    Object.fromEntries(
+      components
+        .get(name)
+        .parts.find(p => p.path === path)
+        .props.map(p => [p.name, p.required])
+    );
+  const dropdown = props('Dropdown', 'Dropdown');
+  assert.equal(dropdown.label, true);
+  assert.equal(dropdown.className, false);
+  // Required in every branch of a union props type, and only then: Combobox
+  // takes `data` in its data branches and not when built from parts.
+  assert.equal(props('TreeSelect', 'TreeSelect').data, true);
+  assert.equal(props('Combobox', 'Combobox').data, false);
+  // Structured descriptions carry no table markup for it.
+  const label = components
+    .get('Dropdown')
+    .parts[0].props.find(p => p.name === 'label');
+  assert.ok(!label.description.startsWith('**Required.**'), label.description);
+});
+
 test('compound families keep every dot-path, including table-less subs', () => {
   const navbar = components.get('Navbar');
   const paths = navbar.parts.map(p => p.path);

@@ -746,7 +746,7 @@ function propRow(r) {
     type: r.type,
     default: r.default ?? null,
     description: collapse(r.description),
-    required: false,
+    required: Boolean(r.required),
     inherited: Boolean(r.inherited),
     deprecated: Boolean(r.deprecated),
     ...(r.deprecationNote ? { deprecationNote: r.deprecationNote } : {}),

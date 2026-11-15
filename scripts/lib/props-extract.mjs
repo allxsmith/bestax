@@ -1727,11 +1727,12 @@ export function unnameablePropsError(impl, ifaceName, fn) {
  * @param {object} [opts]
  * @param {number} [opts.depth] Page depth below docs/docs/api, for relative links.
  * @param {boolean} [opts.markdown=true] Render cells for a markdown table —
- *   backticked types, page-relative links for the shared value unions, and a
- *   `**Deprecated.**` prefix folded into the description. Pass `false` for a
- *   structured consumer (the MCP index): plain type text, and `deprecated` /
- *   `deprecationNote` / `valuesRef` as their own row fields. Defaults to `true`
- *   so the docs generator's output is unaffected.
+ *   backticked types, page-relative links for the shared value unions, and
+ *   `**Required.**` and `**Deprecated.**` prefixes folded into the
+ *   description. Pass `false` for a structured consumer (the MCP index): plain
+ *   type text, and `deprecated` / `deprecationNote` / `valuesRef` as their own
+ *   row fields. A row carries `required` in both modes. Defaults to `true` so
+ *   the docs generator's output is unaffected.
  * @returns {{name, tsdoc, rootClass, varPrefix, tables: [{path, rows, catchAll: {text, helpers, helperPropsNote?}|null, extraProps, flexContainer?}]}}
  */
 export function extractComponent(
@@ -2037,6 +2038,30 @@ export function extractComponent(
     rows.length = 0;
     rows.push(...byName.values());
 
+    // Whether a caller must pass each prop (#1754): required in every member
+    // of the props type, a union's included. The checker answers it, so a
+    // branch that leaves a prop out, or forbids it, makes the prop optional,
+    // which the rows above can't tell apart. A table marks a required row the
+    // way it marks a deprecated one, in front of its description.
+    const propsType =
+      ts.isInterfaceDeclaration(decl) || ts.isTypeAliasDeclaration(decl)
+        ? checker.getDeclaredTypeOfSymbol(
+            checker.getSymbolAtLocation(decl.name)
+          )
+        : checker.getTypeAtLocation(decl);
+    const branches = propsType.isUnion() ? propsType.types : [propsType];
+    for (const row of rows) {
+      row.required = branches.every(branch => {
+        const prop = branch.getProperty(row.name);
+        return Boolean(prop) && !(prop.flags & ts.SymbolFlags.Optional);
+      });
+      if (markdown && row.required) {
+        row.description = ['**Required.**', row.description]
+          .filter(Boolean)
+          .join(' ');
+      }
+    }
+
     // The React props every component inherits and that the hand-written tables
     // named again and again — className on 18 pages, ref on 13, children on 5.
     // The catch-all row technically covers them, but a reader scanning for
@@ -2070,6 +2095,7 @@ export function extractComponent(
           type: tick(shown),
           default: null,
           description,
+          required: false,
           synthetic: true,
         });
       }
@@ -2102,6 +2128,7 @@ export function extractComponent(
           type: m[1] ? splitUnion(m[1]).map(tick).join(' | ') : '',
           default: m[3] ? m[3].trim() : null,
           description: m[4].replace(/\s+/g, ' ').trim(),
+          required: false,
         });
       }
     }

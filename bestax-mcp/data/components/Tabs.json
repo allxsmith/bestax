@@ -274,7 +274,7 @@
           "type": "number",
           "default": null,
           "description": "**Required.** Tab index for matching with content.",
-          "required": false,
+          "required": true,
           "inherited": false,
           "deprecated": false
         },
@@ -458,7 +458,7 @@
           "type": "number",
           "default": null,
           "description": "**Required.** Tab index for matching with content.",
-          "required": false,
+          "required": true,
           "inherited": false,
           "deprecated": false
         },

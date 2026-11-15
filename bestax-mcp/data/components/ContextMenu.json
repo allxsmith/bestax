@@ -63,7 +63,7 @@
           "type": "React.ReactElement",
           "default": null,
           "description": "The element a right-click, Shift+F10, the context menu key or a long press opens the menu from: a table row, a card, an image. It's cloned, not wrapped, so a row stays a row, which means it has to be a single element that passes `className` and the `onContextMenu`, `onPointerDown`, `onPointerMove`, `onPointerUp`, `onPointerCancel` and `onTouchEnd` handlers to its DOM node. Its own handlers for those run first, and one that calls `preventDefault()` on `contextmenu` keeps the menu closed. A `ContextMenu` inside it opens instead of this one. It gets no ARIA and no tab stop, since it can be any element and a right-click isn't an activation. Keyboard users reach it through something focusable inside it, such as the row's own `Dropdown` button, or a `tabIndex={0}` you give it, and press Shift+F10 or the context menu key there. It gets `-webkit-touch-callout: none`, so iOS doesn't put its own callout for a link or an image over the menu. A long press still selects text the way it does anywhere, so give a region where it shouldn't `interaction=\"unselectable\"`.",
-          "required": false,
+          "required": true,
           "inherited": false,
           "deprecated": false
         },
@@ -72,7 +72,7 @@
           "type": "React.ReactNode",
           "default": null,
           "description": "The menu's items: `ContextMenu.Item` and `ContextMenu.Divider`, the same components as `Dropdown.Item` and `Dropdown.Divider`. Every action in it needs a visible way in as well, such as a `Dropdown` on the same row: nothing tells a screen reader user the menu is there, and on macOS only VoiceOver opens it from the keyboard.",
-          "required": false,
+          "required": true,
           "inherited": false,
           "deprecated": false
         },
