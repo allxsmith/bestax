@@ -154,10 +154,12 @@ $rate-pop-scale: 1.2 !default;
     stroke-width: cv.getVar("rate-edge-width");
   }
 
-  // A font icon has no edge, so a filled glyph is the edge's color itself.
-  &:hover:not(.#{iv.$class-prefix}is-active) > .#{iv.$class-prefix}icon,
-  &.#{iv.$class-prefix}is-active > .#{iv.$class-prefix}icon,
-  &.#{iv.$class-prefix}is-hovered > .#{iv.$class-prefix}icon {
+  // A font icon (`iconName`) has no edge, so a filled glyph is the edge's
+  // color itself. It's found by a class of its own, as the built-in star is,
+  // so a custom icon built on `Icon` is drawn as given.
+  &:hover:not(.#{iv.$class-prefix}is-active) > .#{iv.$class-prefix}rate-glyph,
+  &.#{iv.$class-prefix}is-active > .#{iv.$class-prefix}rate-glyph,
+  &.#{iv.$class-prefix}is-hovered > .#{iv.$class-prefix}rate-glyph {
     color: cv.getVar("rate-color-edge");
   }
 }

@@ -5,6 +5,7 @@ import { Rate, RateIconProps } from '../Rate';
 import { Field } from '../Field';
 import { Control } from '../Control';
 import { ConfigProvider } from '../../helpers/Config';
+import { Icon } from '../../elements/Icon';
 
 /**
  * Helper: stub `getBoundingClientRect` on every `.rate-item` span so
@@ -732,6 +733,28 @@ describe('Rate', () => {
       );
       expect(container.querySelector('.bestax-rate-star')).toBeNull();
       expect(screen.getAllByTestId('own')).toHaveLength(5);
+    });
+
+    it('marks a font icon’s glyph for the stylesheet’s edge, and leaves a custom icon built on Icon unmarked', () => {
+      const { container, rerender } = render(
+        <ConfigProvider classPrefix="bestax-">
+          <Rate defaultValue={2} iconName="star" />
+        </ConfigProvider>
+      );
+      expect(
+        container.querySelectorAll(
+          '.bestax-rate-item > .bestax-icon.bestax-rate-glyph'
+        )
+      ).toHaveLength(5);
+      rerender(
+        <ConfigProvider classPrefix="bestax-">
+          <Rate defaultValue={2} customIcon={() => <Icon name="heart" />} />
+        </ConfigProvider>
+      );
+      expect(
+        container.querySelectorAll('.bestax-rate-item > .bestax-icon')
+      ).toHaveLength(5);
+      expect(container.querySelector('.bestax-rate-glyph')).toBeNull();
     });
 
     it('Home key works with precision', () => {

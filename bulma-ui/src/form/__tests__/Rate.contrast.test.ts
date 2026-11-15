@@ -111,8 +111,14 @@ describe.each([
       expect(declared(star, 'stroke-width')).toBe(
         'var(--bulma-rate-edge-width)'
       );
-      // A font icon's own glyph, not the empty half of a partly filled one.
-      expect(declared(`${item}${state} > ${p('icon')}`, 'color')).toBe(edge);
+      // A font icon's own glyph, not the empty half of a partly filled one,
+      // nor a custom icon built on `Icon`.
+      expect(declared(`${item}${state} > ${p('rate-glyph')}`, 'color')).toBe(
+        edge
+      );
+      expect(declared(`${item}${state} > ${p('icon')}`, 'color')).toBe(
+        undefined
+      );
     }
   });
 

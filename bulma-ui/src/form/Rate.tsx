@@ -421,6 +421,7 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
       if (iconName) {
         return (
           <Icon
+            className={prefixedClassNames(classPrefix, 'rate-glyph')}
             name={iconName}
             library={resolvedLibrary}
             variant={iconVariant}
