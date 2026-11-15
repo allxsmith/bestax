@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useRef, useState } from 'react';
+import skye from '../../images/sample-skye-4by3.jpg';
 import { Tour, useTour } from './Tour';
 import { Box } from '../elements/Box';
 import { Button } from '../elements/Button';
@@ -342,15 +343,7 @@ export const CoverAndFooter: Story = {
             </>
           }
         >
-          <Tour.Step
-            title="The new editor"
-            cover={
-              <img
-                src="https://bulma.io/assets/images/placeholders/400x300.png"
-                alt=""
-              />
-            }
-          >
+          <Tour.Step title="The new editor" cover={<img src={skye} alt="" />}>
             The editor now saves as you type.
           </Tour.Step>
           <Tour.Step

@@ -1701,6 +1701,90 @@ describe('Tour', () => {
       expect(scrollIntoView).toHaveBeenCalledTimes(1);
     });
 
+    it('moves the spotlight with a target that scrolls inside a shadow root', () => {
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const shadow = host.attachShadow({ mode: 'open' });
+      const scroller = document.createElement('div');
+      const inner = document.createElement('button');
+      inner.dataset.rect = '100 100 80 30';
+      scroller.appendChild(inner);
+      shadow.appendChild(scroller);
+      render(
+        <Tour defaultOpen>
+          <Tour.Step target={inner} title="Inner">
+            In a web component that scrolls.
+          </Tour.Step>
+        </Tour>
+      );
+      const spotlightY = () =>
+        (document.querySelector('.tour-spotlight') as SVGElement).style.y;
+      expect(spotlightY()).toBe(
+        'calc(100px - var(--bulma-tour-spotlight-padding))'
+      );
+      inner.dataset.rect = '40 100 80 30';
+      // Not composed, so a listener on the window never hears it.
+      act(() => {
+        scroller.dispatchEvent(new Event('scroll'));
+      });
+      expect(spotlightY()).toBe(
+        'calc(40px - var(--bulma-tour-spotlight-padding))'
+      );
+      host.remove();
+    });
+
+    it('scrolls a target that a web component’s scrolling element around its slot cuts off', () => {
+      const scrollIntoView = scrollTo();
+      const host = document.createElement('div');
+      const shadow = host.attachShadow({ mode: 'open' });
+      const scroller = document.createElement('div');
+      scroller.dataset.rect = '0 0 300 300';
+      scroller.style.overflowY = 'auto';
+      scroller.appendChild(document.createElement('slot'));
+      shadow.appendChild(scroller);
+      const slotted = document.createElement('button');
+      slotted.dataset.rect = '400 100 50 20';
+      host.appendChild(slotted);
+      document.body.appendChild(host);
+      render(
+        <Tour defaultOpen>
+          <Tour.Step target={slotted} title="Slotted">
+            Below the scroller's edge.
+          </Tour.Step>
+        </Tour>
+      );
+      expect(scrollIntoView).toHaveBeenCalledTimes(1);
+      host.remove();
+    });
+
+    it('takes a slot with no box for no clip, whatever its overflow', () => {
+      const scrollIntoView = scrollTo();
+      const host = document.createElement('div');
+      const shadow = host.attachShadow({ mode: 'open' });
+      // A slot draws no box of its own, so overflow doesn't apply to it.
+      const slot = document.createElement('slot');
+      slot.style.overflowY = 'hidden';
+      slot.dataset.rect = '0 0 0 0';
+      // On the slot alone: a spy would reach every element's.
+      Object.defineProperty(slot, 'getClientRects', {
+        value: () => [] as unknown as DOMRectList,
+      });
+      shadow.appendChild(slot);
+      const slotted = document.createElement('button');
+      slotted.dataset.rect = '100 100 50 20';
+      host.appendChild(slotted);
+      document.body.appendChild(host);
+      render(
+        <Tour defaultOpen>
+          <Tour.Step target={slotted} title="Slotted">
+            In plain view.
+          </Tour.Step>
+        </Tour>
+      );
+      expect(scrollIntoView).not.toHaveBeenCalled();
+      host.remove();
+    });
+
     it('scrolls a target in a shadow root that a scrolling ancestor around its host cuts off', () => {
       const scrollIntoView = scrollTo();
       const scroller = document.createElement('div');

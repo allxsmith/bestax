@@ -1,3 +1,66 @@
+## [5.68.4](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.68.3...@allxsmith/bestax-bulma@5.68.4) (2026-11-15)
+
+
+### Bug Fixes
+
+* **bulma-ui:** draw a navbar in a colored Hero in the hero's colors ([a0c7e11](https://github.com/allxsmith/bestax/commit/a0c7e11cdfeb486fa1719eb07cc221b3a422d192))
+* **bulma-ui:** write the 12-hour time wheel's AM and PM in the locale's words ([18defff](https://github.com/allxsmith/bestax/commit/18defffcc0ccdf518103577aa861a64a35e9b43e)), closes [#1787](https://github.com/allxsmith/bestax/issues/1787)
+
+
+### Features
+
+* **bestax-migrate:** turn textColor into color on Table, Menu and Dropdown ([efb69ef](https://github.com/allxsmith/bestax/commit/efb69efc7be9c85bfd25432e3fa28151d71f8cd3)), closes [#1767](https://github.com/allxsmith/bestax/issues/1767) [#1781](https://github.com/allxsmith/bestax/issues/1781)
+
+## [5.68.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.68.2...@allxsmith/bestax-bulma@5.68.3) (2026-11-15)
+
+
+### Bug Fixes
+
+* **bulma-ui:** keep a colored Panel's active block readable on both schemes ([3dde5fe](https://github.com/allxsmith/bestax/commit/3dde5fe3fa22c4a77a5132c3f580f9280a7de01d)), closes [#1688](https://github.com/allxsmith/bestax/issues/1688)
+* **bulma-ui:** write the time wheels' hours and minutes in the locale's digits ([ef35c31](https://github.com/allxsmith/bestax/commit/ef35c31b50d392a6a589af65cd4a8d1a56686afa)), closes [#1685](https://github.com/allxsmith/bestax/issues/1685)
+
+
+### Features
+
+* **bestax-migrate:** turn colorVariant="light" into isLight on Button, Notification and Tag ([6a98bdf](https://github.com/allxsmith/bestax/commit/6a98bdfd2e7ca45f572369135d810f036885f50a)), closes [#1732](https://github.com/allxsmith/bestax/issues/1732)
+
+## [5.68.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.68.1...@allxsmith/bestax-bulma@5.68.2) (2026-11-15)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** give backgroundColor the prop each target takes, or a TODO ([f1acbdd](https://github.com/allxsmith/bestax/commit/f1acbdd1623b7d4961be2518269479303b38712e)), closes [#1735](https://github.com/allxsmith/bestax/issues/1735)
+* **bulma-ui:** draw a Timeline's markers in a colored Notification's text color ([04c2d53](https://github.com/allxsmith/bestax/commit/04c2d53b851b4ff7a1f0aa60f9a00c84b83bd18f)), closes [#1710](https://github.com/allxsmith/bestax/issues/1710)
+* **docs:** open an example that imports a prefixed build with that build in its sandbox ([fec1113](https://github.com/allxsmith/bestax/commit/fec1113a19def15ced928ce4e8063bb2ee3cabf9)), closes [#1741](https://github.com/allxsmith/bestax/issues/1741)
+
+## [5.68.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.68.0...@allxsmith/bestax-bulma@5.68.1) (2026-11-15)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** leave a TODO on textColor where the target takes none ([48775e9](https://github.com/allxsmith/bestax/commit/48775e9d850c39d515d86aec29087251dc580095)), closes [#1767](https://github.com/allxsmith/bestax/issues/1767)
+* **bestax-migrate:** name Tag in the colorVariant TODO among the components with isLight ([c60b243](https://github.com/allxsmith/bestax/commit/c60b2436422da7a86e85e83e87bf112c5b89b02a)), closes [#1681](https://github.com/allxsmith/bestax/issues/1681)
+* **bulma-ui:** draw Loading's spinner in colors that stand out from the page ([23cc4e0](https://github.com/allxsmith/bestax/commit/23cc4e002faf3b11ef39a3ab81c02901f7820bfb)), closes [#1636](https://github.com/allxsmith/bestax/issues/1636) [#1679](https://github.com/allxsmith/bestax/issues/1679)
+* **bulma-ui:** draw the breakpoint sr-only classes the viewport visibility props write ([dd3bbf8](https://github.com/allxsmith/bestax/commit/dd3bbf869d22210336ca25418d5be142dc5b6e7c)), closes [#1744](https://github.com/allxsmith/bestax/issues/1744)
+* **bulma-ui:** draw Timeline's markers in colors that stand out from the page ([7131c24](https://github.com/allxsmith/bestax/commit/7131c24935af26775e9be6986bdea7296f73e522)), closes [#1636](https://github.com/allxsmith/bestax/issues/1636) [#1672](https://github.com/allxsmith/bestax/issues/1672)
+* **bulma-ui:** find an anchor's shadow roots again at each measurement ([32e0b60](https://github.com/allxsmith/bestax/commit/32e0b6064b8855756a0df289941e6e5b8024f252))
+* **bulma-ui:** follow an anchor slotted into a scrolling web component, and the anchor that's found ([885a719](https://github.com/allxsmith/bestax/commit/885a7193f4e41247ce705235ca4161e575df25df))
+* **bulma-ui:** follow an anchored panel's trigger on a scroll inside a shadow root ([c0dae00](https://github.com/allxsmith/bestax/commit/c0dae00b443d3baaaac1fd8e525aafeccf3f395f)), closes [#1691](https://github.com/allxsmith/bestax/issues/1691)
+* **bulma-ui:** give redeclared id and aria-* props their inherited types ([9ea9fb1](https://github.com/allxsmith/bestax/commit/9ea9fb1e7d66368258609d2a85064bcb14ee5525)), closes [#1677](https://github.com/allxsmith/bestax/issues/1677)
+* **bulma-ui:** keep a selectable DataTable's checkbox column narrow while loading ([953e1eb](https://github.com/allxsmith/bestax/commit/953e1ebd8221a7df083e660c61d32fea8ce326fd)), closes [#1727](https://github.com/allxsmith/bestax/issues/1727)
+* **bulma-ui:** keep a Tag in a table cell from making its row taller ([19a46f2](https://github.com/allxsmith/bestax/commit/19a46f2a60bd619a81e4ac07251ca0690ae968e2))
+* **bulma-ui:** keep the calendar heading's year in plain digits with no locale ([0434064](https://github.com/allxsmith/bestax/commit/0434064ae6077f8f8c6bd7d482fa8fc8be1a458e)), closes [#1631](https://github.com/allxsmith/bestax/issues/1631)
+* **bulma-ui:** let the breakpoint sr-only classes outrank Bulma's helpers in any order ([5568e2a](https://github.com/allxsmith/bestax/commit/5568e2a6bc8e6ce575149bd6f776c3b90c0133e5)), closes [#1744](https://github.com/allxsmith/bestax/issues/1744)
+* **bulma-ui:** make Slider's mark labels and TreeSelect's chevron readable on the light scheme ([76b58d3](https://github.com/allxsmith/bestax/commit/76b58d3d910338ad32f815e8fab7911845d4ffc7)), closes [#1756](https://github.com/allxsmith/bestax/issues/1756)
+* **bulma-ui:** number the calendar's days and years in the locale's digits ([ea84143](https://github.com/allxsmith/bestax/commit/ea841437b5b19e346e75d66babbee0617107c914)), closes [#1632](https://github.com/allxsmith/bestax/issues/1632)
+* **bulma-ui:** open a Dropdown on its first item for a click with no pointer behind it ([bf573e2](https://github.com/allxsmith/bestax/commit/bf573e24b194dc574ed6afd6a63eabc4deeb35f0)), closes [#1706](https://github.com/allxsmith/bestax/issues/1706)
+* **bulma-ui:** open a Dropdown on its first item only for a click the browser dispatched ([0d0eef6](https://github.com/allxsmith/bestax/commit/0d0eef6b2e48edefe425855c461c7cd0007d871b))
+* **bulma-ui:** place DataTable's loading lines where each column aligns its values ([8016a9c](https://github.com/allxsmith/bestax/commit/8016a9c0017a25766403fc64d3b1a8c9f6dfb8b8)), closes [#1633](https://github.com/allxsmith/bestax/issues/1633)
+* **bulma-ui:** say a completed or upcoming step's state in words for assistive tech ([d9915d0](https://github.com/allxsmith/bestax/commit/d9915d0177daf0ae0f765ae96b86b025f0fc0ebc)), closes [#1635](https://github.com/allxsmith/bestax/issues/1635)
+* **bulma-ui:** write Loading's Cancel label in the scheme's text color, so it reads on light ([7a825ba](https://github.com/allxsmith/bestax/commit/7a825ba50d5b86bb33bd4995d52c9ff054ca5257)), closes [#1705](https://github.com/allxsmith/bestax/issues/1705)
+* **docs:** load the prefixed stylesheet into a preview whose example imports it ([84c896e](https://github.com/allxsmith/bestax/commit/84c896e7b09bdd6d712a35d0cb561210cc63a4eb)), closes [#1658](https://github.com/allxsmith/bestax/issues/1658)
+* **docs:** show a live example's site images when it opens in a sandbox ([4b78f05](https://github.com/allxsmith/bestax/commit/4b78f05a7906cdcf7c9ffd500f8d27d2b030a87b)), closes [#1697](https://github.com/allxsmith/bestax/issues/1697)
+
 # [5.68.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.67.13...@allxsmith/bestax-bulma@5.68.0) (2026-11-14)
 
 

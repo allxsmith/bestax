@@ -203,6 +203,7 @@ search results, "a grid of cards".
           <Card
             flexGrow="1"
             image={item.image}
+            imageAlt={item.name}
             header={item.name}
             footer={item.price} // Card wraps footer items in .card-footer-item itself
           >
@@ -225,6 +226,11 @@ against the column's auto height). Alternatively
 build the whole grid with `Grid`/`Cell` (`<Grid isFixed fixedColsMobile={1} fixedColsTablet={2}
 fixedColsDesktop={3} gap={4}>`) — CSS Grid keeps cells equal-height for free; see the
 `Grid / Cell` section in `layout-components.md`.
+
+**Images:** `item.image` is the URL of a picture the app serves itself, such as a file under
+`public/`, with `imageAlt` naming the item. Don't point it at a placeholder or stock-photo service
+such as picsum.photos: what it serves can change or disappear, and nothing records whose photo it
+is. When the user has no pictures yet, use paths to the files they'll add and tell them which.
 
 **Nothing to show:** when the collection is empty, or a search or a filter matches nothing,
 render an `EmptyState` in the grid's place rather than composing one from `Box`, `Icon` and

@@ -14,24 +14,13 @@ import { Columns } from '../columns/Columns';
 import { Column } from '../columns/Column';
 import SubTitle from '../elements/SubTitle';
 import { LocaleProvider } from '../helpers/LocaleProvider';
-
-// The stories load their photos from Picsum, which serves photos from
-// Unsplash, cropped to the size asked for. Each one is free to use under the
-// Unsplash License (https://unsplash.com/license), as its Unsplash page says.
-// The credit beside each Picsum id is the one on that page, which can spell a
-// name differently from Picsum's own `/id/<id>/info`.
-// - 1015: Oleksii Topolianskyi, Preikestolen, Forsand, Norway,
-//   https://unsplash.com/photos/-oWyJoSqBRM
-// - 1016: Philippe Wuyts, Kings Canyon, Petermann, Australia,
-//   https://unsplash.com/photos/_h7aBovKia4
-// - 1018: Andrew Ridley, Quiraing, Portree, United Kingdom,
-//   https://unsplash.com/photos/Kt5hRENuotI
-// - 1019: Patrick Fore, Fort Ebey State Park, Coupeville, United States,
-//   https://unsplash.com/photos/V6s1cmE39XM
-// - 1039: Andrew Coelho, Salt Creek Falls, United States,
-//   https://unsplash.com/photos/VB-w_3dnyvI
-// - 1043: Christian Joudrey, Yosemite National Park, United States,
-//   https://unsplash.com/photos/mWRR1xj95hg
+// Credits and licenses for the pictures: ../../images/LICENSE.md
+import fjord from '../../images/sample-fjord-3by2.jpg';
+import kingsCanyon from '../../images/sample-kings-canyon-3by2.jpg';
+import skye from '../../images/sample-skye-3by2.jpg';
+import fortEbey from '../../images/sample-fort-ebey-3by2.jpg';
+import saltCreekFalls from '../../images/sample-salt-creek-falls-3by2.jpg';
+import yosemite from '../../images/sample-yosemite-3by2.jpg';
 
 const meta: Meta<typeof Carousel> = {
   title: 'Components/Carousel',
@@ -266,12 +255,7 @@ export const Autoplay: Story = {
  */
 export const WithImages: Story = {
   render: function WithImagesExample() {
-    const images = [
-      'https://picsum.photos/id/1018/800/400',
-      'https://picsum.photos/id/1015/800/400',
-      'https://picsum.photos/id/1019/800/400',
-      'https://picsum.photos/id/1016/800/400',
-    ];
+    const images = [skye, fjord, fortEbey, kingsCanyon];
 
     return (
       <Block p="5">
@@ -415,11 +399,7 @@ export const IndicatorInsidePlain: Story = {
  */
 export const OverlayArrows: Story = {
   render: function OverlayArrowsExample() {
-    const images = [
-      'https://picsum.photos/id/1018/800/400',
-      'https://picsum.photos/id/1015/800/400',
-      'https://picsum.photos/id/1019/800/400',
-    ];
+    const images = [skye, fjord, fortEbey];
     return (
       <Block p="5">
         <Carousel overlayControls>
@@ -578,8 +558,8 @@ export const Controlled: Story = {
 /**
  * Several cards in view: three on desktop, two on tablet and one on mobile.
  * A step moves one card, and the indicators mark where the view can start.
- * Each photo fills a 16:9 `Image` frame, so the cards line up whatever shape
- * the photos are.
+ * Each photo is stretched to fill a 16:9 `Image` frame, so the cards line up
+ * whatever shape the photos are.
  */
 export const SeveralInView: Story = {
   args: {
@@ -593,32 +573,32 @@ export const SeveralInView: Story = {
       {
         title: 'Garden Room',
         description: 'A queen bed and doors onto the garden.',
-        image: 'https://picsum.photos/id/1018/800/500',
+        image: skye,
       },
       {
         title: 'Harbor Suite',
         description: 'A sitting room with a view of the boats.',
-        image: 'https://picsum.photos/id/1015/800/500',
+        image: fjord,
       },
       {
         title: 'Loft',
         description: 'Under the eaves, with a reading nook.',
-        image: 'https://picsum.photos/id/1019/800/500',
+        image: fortEbey,
       },
       {
         title: 'Courtyard Twin',
         description: 'Two beds, a desk and a quiet courtyard.',
-        image: 'https://picsum.photos/id/1016/800/500',
+        image: kingsCanyon,
       },
       {
         title: 'Terrace Room',
         description: 'A private terrace for breakfast outside.',
-        image: 'https://picsum.photos/id/1039/800/500',
+        image: saltCreekFalls,
       },
       {
         title: 'Family Suite',
         description: 'Two rooms and space for a cot.',
-        image: 'https://picsum.photos/id/1043/800/500',
+        image: yosemite,
       },
     ];
 
@@ -647,8 +627,9 @@ export const SeveralInView: Story = {
     );
   },
   play: async ({ canvasElement }) => {
-    // The photos are 16:10, so one that kept its own height would run past
-    // its frame and over the card's title (#1166).
+    // The photos are 3:2, taller than their 16:9 frames, so one that kept
+    // its own height would run past its frame and over the card's title
+    // (#1166). A frame the same shape as its photo would hide that.
     const frames = canvasElement.querySelectorAll('.image.is-16by9');
     await expect(frames.length).toBeGreaterThan(0);
     for (const frame of Array.from(frames)) {
@@ -670,22 +651,22 @@ export const CardContent: Story = {
       {
         title: 'Mountain Retreat',
         description: 'Escape to the mountains and enjoy nature.',
-        image: 'https://picsum.photos/id/1018/800/400',
+        image: skye,
       },
       {
         title: 'Beach Paradise',
         description: 'Relax on pristine beaches with crystal-clear water.',
-        image: 'https://picsum.photos/id/1015/800/400',
+        image: fjord,
       },
       {
         title: 'City Adventure',
         description: 'Explore vibrant urban landscapes and culture.',
-        image: 'https://picsum.photos/id/1019/800/400',
+        image: fortEbey,
       },
       {
         title: 'Forest Haven',
         description: 'Discover the tranquility of ancient forests.',
-        image: 'https://picsum.photos/id/1016/800/400',
+        image: kingsCanyon,
       },
     ];
 

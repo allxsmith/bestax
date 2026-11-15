@@ -74,7 +74,7 @@ export interface AutocompleteProps
     [key: string]: unknown;
   };
   /** Applied to the inner text input (the labellable control), not the wrapper div. */
-  id?: string;
+  id?: React.HTMLAttributes<HTMLElement>['id'];
   /**
    * The options data to display (required). The list shows the options that
    * contain what's typed, ignoring case, and inside a `LocaleProvider` with a

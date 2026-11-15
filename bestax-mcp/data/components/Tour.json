@@ -31,7 +31,7 @@
     },
     {
       "title": "A Cover",
-      "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Button onClick={() => setOpen(true)}>What's new</Button>\n      <Tour open={open} onOpenChange={setOpen}>\n        <Tour.Step\n          title=\"The new editor\"\n          cover={\n            <img\n              src=\"https://bulma.io/assets/images/placeholders/400x300.png\"\n              alt=\"\"\n            />\n          }\n        >\n          The editor now saves as you type.\n        </Tour.Step>\n      </Tour>\n    </>\n  );\n}"
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Button onClick={() => setOpen(true)}>What's new</Button>\n      <Tour open={open} onOpenChange={setOpen}>\n        <Tour.Step\n          title=\"The new editor\"\n          cover={<img src=\"/img/carousel/carousel-banner-1-4by3.jpg\" alt=\"\" />}\n        >\n          The editor now saves as you type.\n        </Tour.Step>\n      </Tour>\n    </>\n  );\n}"
     },
     {
       "title": "A Footer of Your Own",
@@ -355,7 +355,7 @@
           "name": "isLight",
           "type": "boolean",
           "default": "false",
-          "description": "Applies a lighter color variant.",
+          "description": "Applies the light variant of a colored button, such as `primary`'s. Bulma gives the grayscale colors none, so with no `color`, or with `white` or `black`, `isLight` gives the light button, as `color=\"light\"` does, and `light` or `dark` with `isLight` looks the same as without it.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -558,7 +558,7 @@
           "name": "isLight",
           "type": "boolean",
           "default": "false",
-          "description": "Applies a lighter color variant.",
+          "description": "Applies the light variant of a colored button, such as `primary`'s. Bulma gives the grayscale colors none, so with no `color`, or with `white` or `black`, `isLight` gives the light button, as `color=\"light\"` does, and `light` or `dark` with `isLight` looks the same as without it.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -761,7 +761,7 @@
           "name": "isLight",
           "type": "boolean",
           "default": "false",
-          "description": "Applies a lighter color variant.",
+          "description": "Applies the light variant of a colored button, such as `primary`'s. Bulma gives the grayscale colors none, so with no `color`, or with `white` or `black`, `isLight` gives the light button, as `color=\"light\"` does, and `light` or `dark` with `isLight` looks the same as without it.",
           "required": false,
           "inherited": true,
           "deprecated": false

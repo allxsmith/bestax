@@ -8,6 +8,7 @@ import {
   type ToastType,
 } from './Toast';
 import { Button } from '../elements/Button';
+import { Buttons } from '../elements/Buttons';
 
 const meta: Meta<typeof Toast> = {
   title: 'Components/Toast',
@@ -149,7 +150,7 @@ export const Types: Story = {
 
     return (
       <div style={{ padding: '2rem' }}>
-        <div className="buttons">
+        <Buttons>
           {types.map(type => (
             <Button
               key={type}
@@ -160,7 +161,7 @@ export const Types: Story = {
               {type}
             </Button>
           ))}
-        </div>
+        </Buttons>
         {active && (
           <Toast
             message={`This is a ${active} toast`}
@@ -192,7 +193,7 @@ export const Positions: Story = {
 
     return (
       <div style={{ padding: '2rem' }}>
-        <div className="buttons">
+        <Buttons>
           {positions.map(pos => (
             <Button
               key={pos}
@@ -202,7 +203,7 @@ export const Positions: Story = {
               {pos}
             </Button>
           ))}
-        </div>
+        </Buttons>
         {activePosition && (
           <Toast
             message={`Toast at ${activePosition}`}
@@ -238,7 +239,7 @@ export const WithActionButton: Story = {
           The <code>actionType</code> prop colors the{' '}
           <strong>action button</strong>:
         </p>
-        <div className="buttons">
+        <Buttons>
           {types.map(t => (
             <Button
               key={t}
@@ -249,7 +250,7 @@ export const WithActionButton: Story = {
               actionType=&quot;{t}&quot;
             </Button>
           ))}
-        </div>
+        </Buttons>
         {current && (
           <Toast
             message={`Action button is ${current}-colored`}
@@ -408,7 +409,7 @@ export const NonDismissible: Story = {
     return (
       <div style={{ padding: '2rem' }}>
         <ToastContainer position="top-right" />
-        <div className="buttons">
+        <Buttons>
           <Button
             color="primary"
             onClick={() => {
@@ -437,7 +438,7 @@ export const NonDismissible: Story = {
           >
             Close Programmatically
           </Button>
-        </div>
+        </Buttons>
         <p className="mt-4 help">
           Click the toast — nothing happens. Use the button to close it via{' '}
           <code>toast.close(id)</code>.
@@ -455,7 +456,7 @@ export const ProgrammaticAPI: Story = {
     return (
       <div style={{ padding: '2rem' }}>
         <ToastContainer position="top-right" />
-        <div className="buttons">
+        <Buttons>
           <Button
             onClick={() =>
               toast.show({ message: 'Default toast', duration: 3000 })
@@ -507,7 +508,7 @@ export const ProgrammaticAPI: Story = {
           <Button color="danger" onClick={() => toast.closeAll()}>
             Close All
           </Button>
-        </div>
+        </Buttons>
       </div>
     );
   },
@@ -526,7 +527,7 @@ export const QueuedToasts: Story = {
         <p className="mb-4">
           Queued toasts display one at a time. Non-queued toasts stack normally.
         </p>
-        <div className="buttons">
+        <Buttons>
           <Button
             color="primary"
             onClick={() => {
@@ -577,7 +578,7 @@ export const QueuedToasts: Story = {
           <Button color="danger" onClick={() => toast.closeAll()}>
             Close All
           </Button>
-        </div>
+        </Buttons>
       </div>
     );
   },

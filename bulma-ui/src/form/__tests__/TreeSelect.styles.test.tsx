@@ -91,6 +91,30 @@ describe('TreeSelect styles', () => {
     expect(vars).not.toContain('--bulma-input-');
   });
 
+  it.each([
+    ['no prefix', PLAIN, ''],
+    ['a class prefix', PREFIXED, 'bestax-'],
+  ])(
+    'draws the chevron in colors that follow the scheme, with %s',
+    (_label, sheet, x) => {
+      const vars = body(
+        sheet,
+        `.${x}tree-select, .${x}tree-select-panel.${x}is-portal`
+      );
+      // Not text-light, a fixed light gray at about 1.3:1 on the light
+      // scheme's white.
+      expect(vars).toContain(
+        '--bulma-tree-select-chevron-color: var(--bulma-text-weak)'
+      );
+      expect(vars).toContain(
+        '--bulma-tree-select-chevron-hover-color: var(--bulma-text)'
+      );
+      expect(body(sheet, `.${x}tree-select-chevron`)).toContain(
+        'color: var(--bulma-tree-select-chevron-color)'
+      );
+    }
+  );
+
   it('places the chevron and the clear button at the inline end, whatever the direction', () => {
     const chevron = body(PLAIN, '.tree-select-chevron');
     expect(chevron).toContain('inset-inline-end: 0');
