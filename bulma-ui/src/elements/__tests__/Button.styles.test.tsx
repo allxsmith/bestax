@@ -326,7 +326,7 @@ describe('colored buttons in forced colors', () => {
     ).toEqual(
       COLORS.filter(name => !fixed.includes(name)).map(name => [
         '',
-        `.button.is-${name}.is-outlined`,
+        `.button.is-${name}.is-outlined:not(.is-inverted)`,
       ])
     );
   });
@@ -492,6 +492,17 @@ describe('outlined buttons on the dark scheme', () => {
       expect(lightnessOf(outlinedOf(color), css())).toBe(
         `var(--bulma-${color}-l)`
       );
+    });
+
+    it("leaves an inverted outlined button's lightness at Bulma's", () => {
+      const { container } = render(
+        <Button color="link" isOutlined isInverted>
+          Go
+        </Button>
+      );
+      const button = container.querySelector('button') as HTMLElement;
+      expect(button).toHaveClass('is-outlined', 'is-inverted');
+      expect(lightnessOf(button, css())).toBe('var(--bulma-link-l)');
     });
 
     it("leaves a filled button's lightness at Bulma's", () => {

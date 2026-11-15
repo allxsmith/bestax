@@ -102,7 +102,9 @@
 //
 // White, black, light and dark are left out: they're fixed shades for a
 // button on a surface of another color, such as a white outlined button on a
-// primary hero. So is `text`, which is a text button, not an outlined one.
+// primary hero. So is `text`, which is a text button, not an outlined one,
+// and so is an inverted outlined button, whose fill is the color's invert and
+// whose border sits on that fill rather than on the page.
 //
 // The rule names the color and `is-outlined`, which outranks Bulma's
 // `.button.is-<color>`, where it sets the lightness, whichever stylesheet
@@ -113,7 +115,9 @@ $-outlined-left-alone: ('white', 'black', 'light', 'dark', 'text');
   @if not list.index($-outlined-left-alone, $name) {
     $own: cv.getVar($name, '', '-l');
 
-    .#{iv.$class-prefix}button.#{iv.$class-prefix}is-#{$name}.#{iv.$class-prefix}is-outlined {
+    .#{iv.$class-prefix}button.#{iv.$class-prefix}is-#{$name}.#{iv.$class-prefix}is-outlined:not(
+        .#{iv.$class-prefix}is-inverted
+      ) {
       @include cv.register-var(
         'button-l',
         max(
