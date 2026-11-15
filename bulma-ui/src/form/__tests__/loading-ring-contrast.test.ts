@@ -12,7 +12,7 @@
 // disabled.
 import fs from 'fs';
 import path from 'path';
-import { SCSS, compileSheet } from '../../__tests__/compile-scss';
+import { SCSS, compileScss, compileSheet } from '../../__tests__/compile-scss';
 import { rulesOf } from '../../__tests__/css-cascade';
 import {
   contrast,
@@ -192,3 +192,15 @@ describe.each(SHEETS.filter(sheet => !sheet.bringsBulma))(
     });
   }
 );
+
+describe('bulma-defaults in a modular build', () => {
+  it('names the variable with the build’s own `$cssvars-prefix`, as Bulma reads it', () => {
+    const css = compileScss(
+      `@use 'bulma/sass/utilities' with ($cssvars-prefix: 'my-');
+       @use 'bulma-defaults';
+       @include bulma-defaults.rules;`
+    );
+    expect(css).toMatch(/--my-loading-color:\s*var\(--my-text-weak\)/);
+    expect(css).not.toMatch(/--bulma-loading-color/);
+  });
+});
