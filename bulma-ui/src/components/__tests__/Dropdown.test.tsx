@@ -1058,6 +1058,36 @@ describe('Dropdown keyboard navigation', () => {
     expect(screen.getByText('First')).toHaveFocus();
   });
 
+  test('a click with no pointer behind it opens the menu on the first item, as Enter does, and closes it again', () => {
+    render(
+      <Dropdown label="Menu">
+        <DropdownItem>First</DropdownItem>
+        <DropdownItem>Second</DropdownItem>
+      </Dropdown>
+    );
+    const button = screen.getByRole('button', { name: /menu/i });
+    // A screen reader's browse mode activates a button with a click whose
+    // detail is 0.
+    fireEvent.click(button, { detail: 0 });
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+    expect(screen.getByText('First')).toHaveFocus();
+    fireEvent.click(button, { detail: 0 });
+    expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+  });
+
+  test("a pointer's click opens the menu with focus left where it was", () => {
+    render(
+      <Dropdown label="Menu">
+        <DropdownItem>First</DropdownItem>
+      </Dropdown>
+    );
+    const button = screen.getByRole('button', { name: /menu/i });
+    act(() => button.focus());
+    fireEvent.click(button, { detail: 1 });
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+    expect(button).toHaveFocus();
+  });
+
   test('ArrowDown while open moves focus to the first item', () => {
     render(
       <Dropdown label="Menu" active>

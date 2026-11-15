@@ -247,6 +247,9 @@ function SplitButton() {
   submit it. Pass `type="submit"` or `type="reset"` and yours is used instead; any other value
   renders `type="button"`.
 - Pressing outside an open menu closes it.
+- A click with no pointer behind it, as a screen reader's browse mode sends when you activate the
+  trigger, opens the menu and focuses the first item, as <kbd>Enter</kbd> does. A pointer's click
+  opens it and leaves focus on the trigger.
 
 The keyboard follows the [WAI-ARIA Menu Button pattern](https://www.w3.org/WAI/ARIA/apg/patterns/menu-button/).
 Unlike the pattern's menu items, each item is also a tab stop, so <kbd>Tab</kbd> from the
