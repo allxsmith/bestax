@@ -255,6 +255,8 @@ describe('rbx kitchen-sink e2e', () => {
     expect(rules).toContain('prop:as');
     expect(rules).toContain('prop:href');
     expect(rules).toContain('prop:target');
+    // A target that takes no background color prop keeps a TODO.
+    expect(rules).toContain('prop:backgroundColor');
     // A group size bestax does not take, or cannot be read, stays a TODO.
     expect(rules).toContain('prop:size');
     // So does a Title size it cannot read, which bestax would turn into a level.
