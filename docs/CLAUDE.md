@@ -108,8 +108,9 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
 - **A live example opens in StackBlitz and CodeSandbox** from the two buttons beside its copy
   button (`src/theme/CodeBlock/SandboxButtons`, builders in `src/theme/CodeBlock/sandbox/`).
   The project is built in the reader's browser when they click, from the code in the editor:
-  the fence becomes an `App.tsx` with exactly the imports it uses, inside the create-bestax
-  `vite-ts` template (StackBlitz; CodeSandbox gets a Create React App layout), installing the library release this build read or a later compatible one.
+  the fence becomes an `App.tsx` with exactly the imports it uses, its `/img/...` paths in
+  strings and CSS `url()`s pointed at the site since a sandbox has no `static/img`, inside the
+  create-bestax `vite-ts` template (StackBlitz; CodeSandbox gets a Create React App layout), installing the library release this build read or a later compatible one.
   Nothing is published ahead of time and a fence needs no marker. A component that exists only
   in this site goes in `DOCS_ONLY_NAMES` in `src/theme/CodeBlock/sandbox/scope-names.mjs` and
   gets its value in the `pick` call in `src/theme/CodeBlock/scope.js`: an example using one
