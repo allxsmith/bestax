@@ -1,13 +1,23 @@
-import React, { createRef, useRef, useState } from 'react';
+import React, { createRef, useEffect, useRef, useState } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { renderToStaticMarkup, renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
-import { Tour, TourStep } from '../Tour';
+import {
+  Tour,
+  TourBack,
+  TourNext,
+  TourProgress,
+  TourSkip,
+  TourStep,
+  useTour,
+} from '../Tour';
 import { Controlled as ControlledStory } from '../Tour.stories';
-import type { TourProps } from '../Tour';
+import type { TourProps, TourState } from '../Tour';
 import { Modal } from '../Modal';
 import { Popover } from '../Popover';
+import { Buttons } from '../../elements/Buttons';
 import { ConfigProvider } from '../../helpers/Config';
+import { useClientLayoutEffect } from '../../helpers/useClientLayoutEffect';
 import { LocaleProvider } from '../../helpers/LocaleProvider';
 import { resetDevWarnings } from '../../helpers/devWarnings';
 
@@ -71,6 +81,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.restoreAllMocks();
   Reflect.deleteProperty(root, 'clientWidth');
   Reflect.deleteProperty(root, 'clientHeight');
@@ -174,6 +185,51 @@ function Controlled(props: Partial<TourProps>) {
         }}
       />
     </>
+  );
+}
+
+type TourActions = Pick<TourState, 'next' | 'back' | 'skip'>;
+
+/** Hands the step's actions on to app code, which may call them later. */
+function KeepActions({ onKeep }: { onKeep: (actions: TourActions) => void }) {
+  const { next, back, skip } = useTour() as TourState;
+  useEffect(() => onKeep({ next, back, skip }), [onKeep, next, back, skip]);
+  return null;
+}
+
+/** A controlled tour on its second step, whose footer hands its actions on. */
+function KeptTour(props: {
+  onKeep: (actions: TourActions) => void;
+  onChange: (value: number) => void;
+  onOpenChange: (open: boolean) => void;
+  onFinish: () => void;
+}) {
+  const [open, setOpen] = useState(true);
+  const [value, setValue] = useState(1);
+  return (
+    <Tour
+      open={open}
+      onOpenChange={o => {
+        props.onOpenChange(o);
+        setOpen(o);
+      }}
+      value={value}
+      onChange={v => {
+        props.onChange(v);
+        setValue(v);
+      }}
+      onFinish={props.onFinish}
+      footer={
+        <>
+          <KeepActions onKeep={props.onKeep} />
+          <Tour.Skip />
+        </>
+      }
+    >
+      <Tour.Step title="One">1</Tour.Step>
+      <Tour.Step title="Two">2</Tour.Step>
+      <Tour.Step title="Three">3</Tour.Step>
+    </Tour>
   );
 }
 
@@ -911,6 +967,24 @@ describe('Tour', () => {
       }
     );
 
+    it('leaves the arrows to a clip with controls, as a cover may hold', () => {
+      render(
+        <Tour defaultOpen defaultValue={1}>
+          <Tour.Step title="One">1</Tour.Step>
+          <Tour.Step
+            title="Two"
+            cover={<video controls tabIndex={0} aria-label="Clip" />}
+          >
+            2
+          </Tour.Step>
+        </Tour>
+      );
+      screen.getByLabelText('Clip').focus();
+      expect(press('ArrowLeft')).toBe(true);
+      expect(press('ArrowRight')).toBe(true);
+      expect(screen.getByRole('dialog', { name: 'Two' })).toBeVisible();
+    });
+
     it('leaves the arrows to a text field, a control that uses them, and a nested dialog', () => {
       const onChange = vi.fn();
       render(
@@ -1617,6 +1691,819 @@ describe('Tour', () => {
     });
   });
 
+  describe('custom layouts', () => {
+    it('puts a cover above the header, keyed to its step, and none without one', () => {
+      render(
+        <Tour defaultOpen>
+          <Tour.Step title="New editor" cover={<img src="editor.png" alt="" />}>
+            Saves as you type.
+          </Tour.Step>
+          <Tour.Step title="No cover" cover={[false, null]}>
+            Plain.
+          </Tour.Step>
+        </Tour>
+      );
+      const cover = dialog().firstElementChild as HTMLElement;
+      expect(cover).toHaveClass('tour-step-cover');
+      expect(cover.querySelector('img')).toHaveAttribute('src', 'editor.png');
+      expect(cover.nextElementSibling).toHaveClass('tour-step-header');
+      fireEvent.click(next());
+      expect(dialog().querySelector('.tour-step-cover')).toBeNull();
+    });
+
+    it('takes the tour’s footer for every step, a step’s own over it, and none for null', () => {
+      render(
+        <Tour
+          defaultOpen
+          footer={
+            <>
+              <Tour.Progress />
+              <Buttons>
+                <Tour.Next />
+              </Buttons>
+            </>
+          }
+        >
+          <Tour.Step title="One">1</Tour.Step>
+          <Tour.Step
+            title="Two"
+            footer={
+              <>
+                <Tour.Skip>Not now</Tour.Skip>
+                <Tour.Next>Onward</Tour.Next>
+              </>
+            }
+          >
+            2
+          </Tour.Step>
+          <Tour.Step title="Three" footer={null}>
+            3
+          </Tour.Step>
+        </Tour>
+      );
+      const footer = () => dialog().querySelector('.tour-step-footer');
+      expect(footer()).toHaveTextContent('Step 1 of 3Next');
+      expect(screen.queryByRole('button', { name: 'Skip' })).toBeNull();
+      fireEvent.click(next());
+      expect(footer()).toHaveTextContent(/^Not nowOnward$/);
+      fireEvent.click(screen.getByRole('button', { name: 'Onward' }));
+      expect(screen.getByRole('dialog', { name: 'Three' })).toBeVisible();
+      expect(footer()).toBeNull();
+    });
+
+    it('acts through each part, labelled from labels unless it has children', () => {
+      const onChange = vi.fn();
+      const onFinish = vi.fn();
+      const onOpenChange = vi.fn();
+      render(
+        <Tour
+          defaultOpen
+          defaultValue={1}
+          onChange={onChange}
+          onFinish={onFinish}
+          onOpenChange={onOpenChange}
+          labels={{ back: 'Previous', skip: 'Later' }}
+          footer={
+            <>
+              <Tour.Skip />
+              <Tour.Back />
+              <Tour.Next>Onward</Tour.Next>
+            </>
+          }
+        >
+          <Tour.Step title="One">1</Tour.Step>
+          <Tour.Step title="Two">2</Tour.Step>
+        </Tour>
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Previous' }));
+      expect(onChange).toHaveBeenLastCalledWith(0);
+      expect(screen.queryByRole('button', { name: 'Previous' })).toBeNull();
+      fireEvent.click(screen.getByRole('button', { name: 'Onward' }));
+      expect(onChange).toHaveBeenLastCalledWith(1);
+      fireEvent.click(screen.getByRole('button', { name: 'Onward' }));
+      expect(onFinish).toHaveBeenCalledTimes(1);
+      expect(onOpenChange).toHaveBeenLastCalledWith(false);
+    });
+
+    it('lets a part’s own onClick keep it from acting', () => {
+      const onChange = vi.fn();
+      const onOpenChange = vi.fn();
+      const stop = (e: React.MouseEvent) => e.preventDefault();
+      const ran = vi.fn();
+      render(
+        <Tour
+          defaultOpen
+          defaultValue={1}
+          onChange={onChange}
+          onOpenChange={onOpenChange}
+          footer={
+            <>
+              <Tour.Skip onClick={stop} />
+              <Tour.Back onClick={stop}>Back</Tour.Back>
+              <Tour.Next onClick={stop} />
+              <Tour.Next onClick={ran} type="submit">
+                Also next
+              </Tour.Next>
+            </>
+          }
+        >
+          <Tour.Step title="One">1</Tour.Step>
+          <Tour.Step title="Two">2</Tour.Step>
+          <Tour.Step title="Three">3</Tour.Step>
+        </Tour>
+      );
+      for (const name of ['Skip', 'Back', 'Next']) {
+        fireEvent.click(screen.getByRole('button', { name }));
+      }
+      expect(onChange).not.toHaveBeenCalled();
+      expect(onOpenChange).not.toHaveBeenCalled();
+      const also = screen.getByRole('button', { name: 'Also next' });
+      expect(also).toHaveAttribute('type', 'submit');
+      fireEvent.click(also);
+      expect(ran).toHaveBeenCalled();
+      expect(onChange).toHaveBeenCalledWith(2);
+    });
+
+    it('takes helper props, a class and its own text on Tour.Progress', () => {
+      render(
+        <Tour
+          defaultOpen
+          footer={
+            <Tour.Progress className="mine" textWeight="bold" mr="2">
+              Almost there
+            </Tour.Progress>
+          }
+        >
+          <Tour.Step title="One">1</Tour.Step>
+        </Tour>
+      );
+      expect(screen.getByText('Almost there')).toHaveClass(
+        'tour-progress',
+        'mine',
+        'has-text-weight-bold',
+        'mr-2'
+      );
+    });
+
+    it('acts on the step a part shows on, from the part’s own layout effect', () => {
+      const onChange = vi.fn();
+      // Moves on as soon as it shows, as a step that only waits for
+      // something already done would.
+      const AutoNext = () => {
+        const { next } = useTour() as NonNullable<ReturnType<typeof useTour>>;
+        useClientLayoutEffect(() => next(), [next]);
+        return null;
+      };
+      render(
+        <Tour defaultOpen onChange={onChange}>
+          <Tour.Step title="One">1</Tour.Step>
+          <Tour.Step title="Two">
+            <AutoNext />
+          </Tour.Step>
+          <Tour.Step title="Three">3</Tour.Step>
+        </Tour>
+      );
+      fireEvent.click(next());
+      expect(onChange.mock.calls).toEqual([[1], [2]]);
+      expect(screen.getByRole('dialog', { name: 'Three' })).toBeVisible();
+    });
+
+    it('does nothing from an action a part handed on, once the tour has ended', () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+      const onChange = vi.fn();
+      const onFinish = vi.fn();
+      const onOpenChange = vi.fn();
+      let kept: TourActions | undefined;
+      const props = {
+        onKeep: (actions: TourActions) => {
+          kept = actions;
+        },
+        onChange,
+        onFinish,
+        onOpenChange,
+      };
+      // A timer the app set with the actions, which fires after the end.
+      const later = () =>
+        setTimeout(() => {
+          const actions = kept as TourActions;
+          actions.next();
+          actions.back();
+          actions.skip();
+        }, 1000);
+
+      const { unmount } = render(<KeptTour {...props} />);
+      later();
+      fireEvent.click(screen.getByRole('button', { name: 'Skip' }));
+      expect(onOpenChange).toHaveBeenCalledTimes(1);
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+      expect(onChange).not.toHaveBeenCalled();
+      expect(onFinish).not.toHaveBeenCalled();
+      expect(onOpenChange).toHaveBeenCalledTimes(1);
+      expect(screen.queryByRole('dialog')).toBeNull();
+      unmount();
+
+      // Nor once the tour has gone from the page.
+      const { unmount: unmountAgain } = render(<KeptTour {...props} />);
+      later();
+      unmountAgain();
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+      expect(onChange).not.toHaveBeenCalled();
+      expect(onOpenChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps useTour’s object while the step stays, so an effect can depend on it', () => {
+      const runs = vi.fn();
+      const Watcher = () => {
+        const tour = useTour();
+        useEffect(() => runs(tour?.value), [tour]);
+        return null;
+      };
+      const tree = (className?: string) => (
+        <Tour
+          defaultOpen
+          className={className}
+          footer={
+            <>
+              <Watcher />
+              <Tour.Next />
+            </>
+          }
+        >
+          <Tour.Step title="One">1</Tour.Step>
+          <Tour.Step title="Two">2</Tour.Step>
+        </Tour>
+      );
+      const { rerender } = render(tree());
+      rerender(tree('again'));
+      expect(runs.mock.calls).toEqual([[0]]);
+      fireEvent.click(next());
+      expect(runs.mock.calls).toEqual([[0], [1]]);
+    });
+
+    it('keeps useTour’s actions from render to render, acting on the step the tour is on', () => {
+      const onChange = vi.fn();
+      const onFinish = vi.fn();
+      const runs = vi.fn();
+      const Keeper = () => {
+        const tour = useTour() as NonNullable<ReturnType<typeof useTour>>;
+        // The actions as the first render handed them out.
+        const [first] = useState(tour);
+        const { next, back, skip } = tour;
+        useEffect(() => runs(), [next, back, skip]);
+        return (
+          <>
+            <button type="button" onClick={first.next}>
+              Kept next
+            </button>
+            <button type="button" onClick={first.back}>
+              Kept back
+            </button>
+          </>
+        );
+      };
+      render(
+        <Tour
+          defaultOpen
+          onChange={onChange}
+          onFinish={onFinish}
+          footer={<Keeper />}
+        >
+          <Tour.Step title="One">1</Tour.Step>
+          <Tour.Step title="Two">2</Tour.Step>
+          <Tour.Step title="Three">3</Tour.Step>
+        </Tour>
+      );
+      const kept = (name: string) =>
+        screen.getByRole('button', { name: `Kept ${name}` });
+      fireEvent.click(kept('next'));
+      expect(onChange).toHaveBeenLastCalledWith(1);
+      fireEvent.click(kept('next'));
+      expect(onChange).toHaveBeenLastCalledWith(2);
+      fireEvent.click(kept('back'));
+      expect(onChange).toHaveBeenLastCalledWith(1);
+      fireEvent.click(kept('next'));
+      expect(runs).toHaveBeenCalledTimes(1);
+      fireEvent.click(kept('next'));
+      expect(onFinish).toHaveBeenCalledTimes(1);
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
+
+    it('renders nothing for a part outside a tour, where useTour is null', () => {
+      const Probe = () => <output>{String(useTour())}</output>;
+      const { container } = render(
+        <>
+          <TourSkip />
+          <TourBack />
+          <TourNext />
+          <TourProgress />
+          <Probe />
+        </>
+      );
+      expect(container.querySelectorAll('button, span')).toHaveLength(0);
+      expect(screen.getByRole('status')).toHaveTextContent('null');
+    });
+
+    it('hands a custom part the step, the total and the actions through useTour', () => {
+      const onChange = vi.fn();
+      const onOpenChange = vi.fn();
+      const Custom = () => {
+        const tour = useTour() as NonNullable<ReturnType<typeof useTour>>;
+        return (
+          <>
+            <span>{`${tour.value + 1}/${tour.total}`}</span>
+            <button type="button" onClick={tour.back}>
+              Custom back
+            </button>
+            <button type="button" onClick={tour.next}>
+              Custom next
+            </button>
+            <button type="button" onClick={tour.skip}>
+              Custom skip
+            </button>
+          </>
+        );
+      };
+      render(
+        <Tour
+          defaultOpen
+          onChange={onChange}
+          onOpenChange={onOpenChange}
+          footer={<Custom />}
+        >
+          <Tour.Step title="One">1</Tour.Step>
+          <Tour.Step title="Two">2</Tour.Step>
+        </Tour>
+      );
+      expect(screen.getByText('1/2')).toBeVisible();
+      fireEvent.click(screen.getByRole('button', { name: 'Custom back' }));
+      expect(onChange).not.toHaveBeenCalled();
+      fireEvent.click(screen.getByRole('button', { name: 'Custom next' }));
+      expect(screen.getByText('2/2')).toBeVisible();
+      fireEvent.click(screen.getByRole('button', { name: 'Custom back' }));
+      expect(onChange).toHaveBeenLastCalledWith(0);
+      fireEvent.click(screen.getByRole('button', { name: 'Custom skip' }));
+      expect(onOpenChange).toHaveBeenCalledWith(false);
+    });
+
+    it('starts focus on a footer’s first control without a Next, and comes back there when the control used goes', () => {
+      render(
+        <Tour
+          defaultOpen
+          defaultValue={1}
+          footer={
+            <>
+              <Tour.Back />
+              <Tour.Skip />
+            </>
+          }
+        >
+          <Tour.Step title="One">1</Tour.Step>
+          <Tour.Step title="Two">2</Tour.Step>
+        </Tour>
+      );
+      const back = screen.getByRole('button', { name: 'Back' });
+      expect(back).toHaveFocus();
+      fireEvent.click(back);
+      expect(screen.getByRole('button', { name: 'Skip' })).toHaveFocus();
+    });
+
+    it('passes over a disabled Next for the footer’s first control, then the body’s, then the step’s first', () => {
+      const { unmount } = render(
+        <Tour
+          defaultOpen
+          footer={
+            <>
+              <Tour.Skip />
+              <Tour.Next disabled />
+            </>
+          }
+        >
+          <Tour.Step title="One">1</Tour.Step>
+        </Tour>
+      );
+      expect(screen.getByRole('button', { name: 'Skip' })).toHaveFocus();
+      unmount();
+      const { unmount: unmountAgain } = render(
+        <Tour defaultOpen footer={<Tour.Next disabled />}>
+          <Tour.Step title="One">
+            <a href="#more">More</a>
+          </Tour.Step>
+        </Tour>
+      );
+      expect(screen.getByRole('link', { name: 'More' })).toHaveFocus();
+      unmountAgain();
+      render(
+        <Tour defaultOpen footer={<Tour.Next disabled />}>
+          <Tour.Step title="One">1</Tour.Step>
+        </Tour>
+      );
+      expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus();
+    });
+
+    it('starts on, and presses, the Next and Back that show, past ones a responsive layout hides', () => {
+      const onChange = vi.fn();
+      const wide = vi.fn();
+      render(
+        <Tour
+          defaultOpen
+          defaultValue={1}
+          onChange={onChange}
+          footer={
+            <>
+              <Tour.Skip />
+              <Tour.Back hidden onClick={wide}>
+                Wide back
+              </Tour.Back>
+              <Tour.Back>Narrow back</Tour.Back>
+              <Tour.Next hidden onClick={wide}>
+                Wide next
+              </Tour.Next>
+              <Tour.Next>Narrow next</Tour.Next>
+            </>
+          }
+        >
+          <Tour.Step title="One">1</Tour.Step>
+          <Tour.Step title="Two">2</Tour.Step>
+          <Tour.Step title="Three">3</Tour.Step>
+        </Tour>
+      );
+      expect(screen.getByRole('button', { name: 'Narrow next' })).toHaveFocus();
+      press('ArrowLeft');
+      expect(onChange).toHaveBeenLastCalledWith(0);
+      press('ArrowRight');
+      expect(onChange).toHaveBeenLastCalledWith(1);
+      expect(wide).not.toHaveBeenCalled();
+    });
+
+    it('presses the Next and Back that show, past ones hidden by visibility or inert', () => {
+      const onChange = vi.fn();
+      const hiddenPart = vi.fn();
+      render(
+        <Tour
+          defaultOpen
+          defaultValue={1}
+          onChange={onChange}
+          footer={
+            <>
+              <Tour.Back style={{ visibility: 'hidden' }} onClick={hiddenPart}>
+                Hidden back
+              </Tour.Back>
+              <Tour.Back>Back</Tour.Back>
+              <div inert>
+                <Tour.Next onClick={hiddenPart}>Inert next</Tour.Next>
+              </div>
+              <Tour.Next>Next</Tour.Next>
+            </>
+          }
+        >
+          <Tour.Step title="One">1</Tour.Step>
+          <Tour.Step title="Two">2</Tour.Step>
+          <Tour.Step title="Three">3</Tour.Step>
+        </Tour>
+      );
+      expect(screen.getByRole('button', { name: 'Next' })).toHaveFocus();
+      press('ArrowLeft');
+      expect(onChange).toHaveBeenLastCalledWith(0);
+      press('ArrowRight');
+      expect(onChange).toHaveBeenLastCalledWith(1);
+      expect(hiddenPart).not.toHaveBeenCalled();
+    });
+
+    it('starts on the close button when the step has no Next and no control in its footer or body, past a cover', () => {
+      render(
+        <Tour defaultOpen footer={null}>
+          <Tour.Step
+            title="Clip"
+            cover={<video controls tabIndex={0} aria-label="Clip" />}
+          >
+            Plain text.
+          </Tour.Step>
+        </Tour>
+      );
+      expect(screen.getByRole('button', { name: 'Close' })).toHaveFocus();
+    });
+
+    it('finds only its own step’s parts, past those of a tour rendered inside the step', () => {
+      const onChange = vi.fn();
+      const onInnerChange = vi.fn();
+      const inner = (
+        <Tour
+          defaultOpen
+          portal={false}
+          overlay={false}
+          onChange={onInnerChange}
+          footer={<Tour.Next>Inner next</Tour.Next>}
+        >
+          <Tour.Step title="Inner one">a</Tour.Step>
+          <Tour.Step title="Inner two">b</Tour.Step>
+        </Tour>
+      );
+      const { unmount } = render(
+        <Tour
+          defaultOpen
+          onChange={onChange}
+          footer={
+            <>
+              <Tour.Back>Outer back</Tour.Back>
+              <Tour.Next>Outer next</Tour.Next>
+            </>
+          }
+        >
+          <Tour.Step title="One">{inner}</Tour.Step>
+          <Tour.Step title="Two">{inner}</Tour.Step>
+          <Tour.Step title="Three">3</Tour.Step>
+        </Tour>
+      );
+      expect(screen.getByRole('button', { name: 'Outer next' })).toHaveFocus();
+      press('ArrowRight');
+      expect(onChange).toHaveBeenLastCalledWith(1);
+      press('ArrowLeft');
+      expect(onChange).toHaveBeenLastCalledWith(0);
+      expect(onInnerChange).not.toHaveBeenCalled();
+      unmount();
+
+      // Without a Next of its own, the step starts in its own footer.
+      render(
+        <Tour defaultOpen footer={<Tour.Skip>Outer skip</Tour.Skip>}>
+          <Tour.Step title="One">{inner}</Tour.Step>
+        </Tour>
+      );
+      expect(screen.getByRole('button', { name: 'Outer skip' })).toHaveFocus();
+    });
+
+    it('passes over a disabled Next when Back goes, and finds the first enabled Next of two', () => {
+      const { unmount } = render(
+        <Tour
+          defaultOpen
+          defaultValue={1}
+          footer={
+            <>
+              <Tour.Back />
+              <Tour.Skip />
+              <Tour.Next disabled />
+            </>
+          }
+        >
+          <Tour.Step title="One">1</Tour.Step>
+          <Tour.Step title="Two">2</Tour.Step>
+        </Tour>
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+      expect(screen.getByRole('button', { name: 'Skip' })).toHaveFocus();
+      unmount();
+      render(
+        <Tour
+          defaultOpen
+          defaultValue={1}
+          footer={
+            <>
+              <Tour.Back />
+              <Tour.Next disabled>Wait</Tour.Next>
+              <Tour.Next>Go</Tour.Next>
+            </>
+          }
+        >
+          <Tour.Step title="One">1</Tour.Step>
+          <Tour.Step title="Two">2</Tour.Step>
+          <Tour.Step title="Three">3</Tour.Step>
+        </Tour>
+      );
+      const go = screen.getByRole('button', { name: 'Go' });
+      expect(go).toHaveFocus();
+      fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+      expect(go).toHaveFocus();
+    });
+
+    it.each([
+      ['without a Next', () => <Tour.Skip />],
+      [
+        'with a disabled Next',
+        () => (
+          <>
+            <Tour.Skip />
+            <Tour.Next disabled />
+          </>
+        ),
+      ],
+    ])(
+      'moves focus to the first control of a footer %s when the step turns modal',
+      (_, makeFooter) => {
+        const footer = makeFooter();
+        const Mixed = ({ value }: { value: number }) => (
+          <>
+            <button type="button" id="page-button" data-rect="100 100 80 30">
+              On the page
+            </button>
+            <Tour open value={value} footer={footer}>
+              <Tour.Step title="Try it" overlay={false}>
+                Use the page.
+              </Tour.Step>
+              <Tour.Step title="Look">The page waits.</Tour.Step>
+            </Tour>
+          </>
+        );
+        const { rerender } = render(<Mixed value={0} />);
+        screen.getByRole('button', { name: 'On the page' }).focus();
+        rerender(<Mixed value={1} />);
+        expect(screen.getByRole('button', { name: 'Skip' })).toHaveFocus();
+      }
+    );
+
+    it('presses the step’s Next and Back for the arrows, so their onClick runs', () => {
+      const onChange = vi.fn();
+      const onNext = vi.fn();
+      const onBack = vi.fn();
+      render(
+        <Tour
+          defaultOpen
+          defaultValue={1}
+          onChange={onChange}
+          footer={
+            <>
+              <Tour.Back onClick={onBack} />
+              <Tour.Next onClick={onNext} />
+            </>
+          }
+        >
+          <Tour.Step title="One">1</Tour.Step>
+          <Tour.Step title="Two">2</Tour.Step>
+          <Tour.Step title="Three">3</Tour.Step>
+        </Tour>
+      );
+      expect(press('ArrowRight')).toBe(false);
+      expect(onNext).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenLastCalledWith(2);
+      // Next reads Done on the last step, and an arrow never finishes.
+      expect(press('ArrowRight')).toBe(true);
+      expect(onNext).toHaveBeenCalledTimes(1);
+      press('ArrowLeft');
+      expect(onBack).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenLastCalledWith(1);
+    });
+
+    const prevent = (e: React.MouseEvent) => e.preventDefault();
+    it.each([
+      [
+        'a disabled Next and Back',
+        () => (
+          <>
+            <Tour.Back disabled />
+            <Tour.Next disabled />
+          </>
+        ),
+      ],
+      [
+        'a Next and Back whose onClick prevents',
+        () => (
+          <>
+            <Tour.Back onClick={prevent} />
+            <Tour.Next onClick={prevent} />
+          </>
+        ),
+      ],
+      [
+        'an aria-disabled Next and Back',
+        () => (
+          <>
+            <Tour.Back aria-disabled="true" />
+            <Tour.Next aria-disabled="true" />
+          </>
+        ),
+      ],
+      [
+        // A loading or static Bulma button holds off a pointer this way.
+        'a Next and Back a pointer can’t press',
+        () => (
+          <>
+            <Tour.Back style={{ pointerEvents: 'none' }} />
+            <Tour.Next style={{ pointerEvents: 'none' }} />
+          </>
+        ),
+      ],
+      ['a footer without Next or Back', () => <Tour.Skip />],
+      ['footer={null}', () => null],
+    ])('ignores the arrows with %s', (_, makeFooter) => {
+      const footer = makeFooter();
+      const onChange = vi.fn();
+      const onOpenChange = vi.fn();
+      render(
+        <Tour
+          defaultOpen
+          defaultValue={1}
+          onChange={onChange}
+          onOpenChange={onOpenChange}
+          footer={footer}
+        >
+          <Tour.Step title="One">1</Tour.Step>
+          <Tour.Step title="Two">2</Tour.Step>
+          <Tour.Step title="Three">3</Tour.Step>
+        </Tour>
+      );
+      press('ArrowRight');
+      press('ArrowLeft');
+      expect(onChange).not.toHaveBeenCalled();
+      expect(onOpenChange).not.toHaveBeenCalled();
+      expect(screen.getByRole('dialog', { name: 'Two' })).toBeVisible();
+    });
+
+    it('without the overlay, sends Tab to the target from the footer’s last control, wherever Next is', () => {
+      render(
+        <Page
+          defaultOpen
+          overlay={false}
+          defaultValue={1}
+          footer={
+            <>
+              <Tour.Next />
+              <Tour.Skip />
+            </>
+          }
+        />
+      );
+      // Next isn't last here: the browser takes Tab on to Skip.
+      expect(press('Tab')).toBe(true);
+      screen.getByRole('button', { name: 'Skip' }).focus();
+      expect(press('Tab')).toBe(false);
+      expect(screen.getByRole('button', { name: 'Filters' })).toHaveFocus();
+    });
+
+    it('without the overlay, sends Tab to the target from focus past the step’s last stop', () => {
+      render(
+        <Page
+          defaultOpen
+          overlay={false}
+          defaultValue={1}
+          footer={
+            <>
+              <Tour.Next />
+              <span tabIndex={-1}>Not a stop</span>
+            </>
+          }
+        />
+      );
+      screen.getByText('Not a stop').focus();
+      expect(press('Tab')).toBe(false);
+      expect(screen.getByRole('button', { name: 'Filters' })).toHaveFocus();
+    });
+
+    it('without the overlay, reads focus in a shadow root, sending Tab to the target only from the last stop', () => {
+      const Shadowed = () => (
+        <span
+          data-testid="host"
+          ref={node => {
+            if (node && !node.shadowRoot) {
+              node.attachShadow({ mode: 'open' }).innerHTML =
+                '<button type="button">Inside</button>';
+            }
+          }}
+        />
+      );
+      const inner = () =>
+        screen
+          .getByTestId('host')
+          .shadowRoot?.querySelector('button') as HTMLButtonElement;
+      const { unmount } = render(
+        <Page
+          defaultOpen
+          overlay={false}
+          defaultValue={1}
+          footer={
+            <>
+              <Shadowed />
+              <Tour.Next />
+            </>
+          }
+        />
+      );
+      // React reports the host as the key's target, but focus is inside it,
+      // with Next still to come.
+      inner().focus();
+      expect(press('Tab')).toBe(true);
+      expect((inner().getRootNode() as ShadowRoot).activeElement).toBe(inner());
+      unmount();
+      render(
+        <Page
+          defaultOpen
+          overlay={false}
+          defaultValue={1}
+          footer={
+            <>
+              <Tour.Next />
+              <Shadowed />
+            </>
+          }
+        />
+      );
+      inner().focus();
+      expect(press('Tab')).toBe(false);
+      expect(screen.getByRole('button', { name: 'Filters' })).toHaveFocus();
+    });
+  });
+
   describe('props, refs and the portal', () => {
     it('puts the root’s helper props and attributes on .tour, and the step’s on its panel', () => {
       const onFocus = vi.fn();
@@ -1677,6 +2564,40 @@ describe('Tour', () => {
       expect(cleanup).toHaveBeenCalledTimes(1);
     });
 
+    it('forwards a ref on Tour.Skip, Tour.Back and Tour.Next to the button, objects and callbacks alike', () => {
+      const skipRef = createRef<HTMLButtonElement>();
+      const backRef = createRef<HTMLButtonElement>();
+      const seen: Array<HTMLButtonElement | null> = [];
+      const { unmount } = render(
+        <Tour
+          defaultOpen
+          defaultValue={1}
+          footer={
+            <>
+              <Tour.Skip ref={skipRef} />
+              <Tour.Back ref={backRef} />
+              <Tour.Next ref={node => void seen.push(node)} />
+            </>
+          }
+        >
+          <Tour.Step title="One">1</Tour.Step>
+          <Tour.Step title="Two">2</Tour.Step>
+        </Tour>
+      );
+      expect(skipRef.current).toBe(
+        screen.getByRole('button', { name: 'Skip' })
+      );
+      expect(backRef.current).toBe(
+        screen.getByRole('button', { name: 'Back' })
+      );
+      expect(seen[0]).toBe(next());
+      // A ref on Next doesn't take where focus starts away.
+      expect(next()).toHaveFocus();
+      unmount();
+      expect(skipRef.current).toBeNull();
+      expect(seen[seen.length - 1]).toBeNull();
+    });
+
     it('renders in place with portal={false}, and into a container a selector names', () => {
       const { container, unmount } = render(
         <Page defaultOpen portal={false} />
@@ -1733,6 +2654,17 @@ describe('Tour', () => {
       expect(dialog()).toBeVisible();
       expect(error).not.toHaveBeenCalled();
       host.remove();
+    });
+  });
+
+  describe('Compound components', () => {
+    it('attaches the step and the footer’s parts as statics', () => {
+      expect(Tour.Step).toBe(TourStep);
+      expect(Tour.Skip).toBe(TourSkip);
+      expect(Tour.Back).toBe(TourBack);
+      expect(Tour.Next).toBe(TourNext);
+      expect(Tour.Progress).toBe(TourProgress);
+      expect(Tour.displayName).toBe('Tour');
     });
   });
 });

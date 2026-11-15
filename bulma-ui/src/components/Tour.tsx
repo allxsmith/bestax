@@ -5,6 +5,7 @@ import React, {
   useContext,
   useEffect,
   useId,
+  useInsertionEffect,
   useMemo,
   useRef,
   useState,
@@ -21,7 +22,12 @@ import { useIsHydrated } from '../helpers/useIsHydrated';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { useScrollLock } from '../helpers/scrollLock';
 import { useOverlayEscape, useOverlayStack } from '../helpers/overlayStack';
-import { focusTabStop, trapTab } from '../helpers/useFocusTrap';
+import {
+  focusTabStop,
+  isRenderedAndEnabled,
+  tabLeaves,
+  trapTab,
+} from '../helpers/useFocusTrap';
 import { useOverlayFocus } from '../helpers/useOverlayFocus';
 import { useInertSiblings } from '../helpers/useInertSiblings';
 import { useOutsidePress } from '../helpers/useOutsidePress';
@@ -34,7 +40,8 @@ import { useScopedNumberFormat } from '../helpers/localeFormat';
 import { spokenText, visuallyHidden } from '../helpers/statusRegion';
 import { getActiveElementInTree, parentInPage } from '../helpers/shadowDom';
 import { warnOnce } from '../helpers/devWarnings';
-import { Button } from '../elements/Button';
+import { buttonType } from '../helpers/buttonType';
+import { Button, ButtonOwnProps } from '../elements/Button';
 import { Buttons } from '../elements/Buttons';
 import { Delete } from '../elements/Delete';
 
@@ -160,8 +167,9 @@ export interface TourProps
    * page inert and still, and Tab held in the step. With `false`, a step is
    * a non-modal dialog, as a `Popover` is, and the page and its target stay
    * usable, from the keyboard too: focus moves in and back, Tab from the
-   * step's last control, Next, goes on to the target (its first control, or
-   * the target itself when it takes focus), Shift+Tab goes where the browser
+   * step's last control, Next in the default footer, goes on to the target
+   * (its first control, or the target itself when it takes focus), Shift+Tab
+   * goes where the browser
    * sends it, and Escape ends the tour while focus is in the step. A
    * `Tour.Step` can set its own, and a step that turns modal while focus is
    * out on the page takes focus.
@@ -204,6 +212,18 @@ export interface TourProps
   titleAs?: TourTitleElement;
   /** The words the tour writes. */
   labels?: TourLabels;
+  /**
+   * Every step's footer, in place of the default: Skip and the progress line
+   * at the start, Back and Next at the end. Build it from `Tour.Skip`,
+   * `Tour.Back`, `Tour.Next` and `Tour.Progress`, which act on the tour from
+   * wherever they sit in the step. ArrowRight and ArrowLeft press the step's
+   * `Tour.Next` and `Tour.Back`, swapped under right-to-left text, so one
+   * that's disabled, loading or `aria-disabled`, or whose `onClick`
+   * prevents, holds for the keys too, and a step without one ignores its
+   * key. A step's own `footer` wins, and
+   * `null` leaves the steps without one.
+   */
+  footer?: React.ReactNode;
 }
 
 /**
@@ -246,6 +266,54 @@ export interface TourStepProps
    * @defaultValue the tour's
    */
   overlay?: boolean;
+  /**
+   * Media above the header, such as an image or a short clip, which fills
+   * the step's width. Give an image the `alt` it needs, which is `""` when
+   * the body already says what it shows, and don't autoplay motion when the
+   * user asks for less of it.
+   */
+  cover?: React.ReactNode;
+  /**
+   * This step's footer, in place of the tour's `footer` or the default one.
+   * `null` leaves the step without one.
+   */
+  footer?: React.ReactNode;
+}
+
+/**
+ * Props for Tour.Skip, Tour.Back and Tour.Next: the props of a `Button`
+ * rendered as a `<button>`.
+ * @extraProp {'button' | 'submit' | 'reset'} [type='button'] - Button type. Defaults to `'button'`, so a part inside a form doesn't submit it. The arrow keys press Next and Back as a click does, so one given `'submit'` submits its form on an arrow key too.
+ * @extraProp {React.MouseEventHandler<HTMLButtonElement>} [onClick] - Runs before the part acts on the tour. Call `preventDefault()` to keep it from acting.
+ */
+export interface TourButtonProps
+  extends
+    ButtonOwnProps,
+    Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, keyof ButtonOwnProps> {}
+
+/**
+ * Props for Tour.Progress, the progress line, on its `<span>`.
+ */
+export interface TourProgressProps
+  extends
+    Omit<React.HTMLAttributes<HTMLSpanElement>, 'color'>,
+    Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /** What the line says, in place of `labels.progress`. */
+  children?: React.ReactNode;
+}
+
+/** What `useTour()` hands a part of a custom step. */
+export interface TourState {
+  /** The current step's index. */
+  value: number;
+  /** How many steps the tour has. */
+  total: number;
+  /** Goes to the next step, and finishes the tour on the last. */
+  next: () => void;
+  /** Goes to the step before. Does nothing on the first. */
+  back: () => void;
+  /** Ends the tour without finishing it, as Skip does. */
+  skip: () => void;
 }
 
 /** Where a step's target is on the screen. */
@@ -464,7 +532,8 @@ const showsSomething = (node: React.ReactNode): boolean =>
  */
 const usesArrows = (element: Element): boolean =>
   element.matches(
-    'input, select, textarea, [contenteditable]:not([contenteditable="false"])'
+    'input, select, textarea, audio[controls], video[controls], ' +
+      '[contenteditable]:not([contenteditable="false"])'
   ) ||
   !['', 'button', 'link', 'dialog'].includes(
     element.getAttribute('role') ?? ''
@@ -526,19 +595,69 @@ interface TourContextValue {
   /** The progress line for the current step. */
   progress: string;
   stepRef: React.MutableRefObject<HTMLDivElement | null>;
-  nextRef: React.RefObject<HTMLButtonElement | null>;
   /** The target the step points at, on the page with a box, or `null`. */
   target: HTMLElement | null;
   markInsidePress: (event: React.PointerEvent) => void;
-  /** Shows another step. */
-  goTo: (index: number) => void;
   /** Next's action: the next step, or the end of the tour on the last. */
   next: () => void;
+  /** Back's action: the step before, or nothing on the first. */
+  back: () => void;
   /** Ends the tour without finishing it. */
   skip: () => void;
+  /** The tour's own `footer`, in place of the default one. */
+  footer: React.ReactNode;
+  /** What `useTour()` returns, kept while the step and total stay. */
+  state: TourState;
 }
 
 const TourContext = createContext<TourContextValue | null>(null);
+
+/** A part of a step the tour finds in its panel when it needs it. */
+type TourPart =
+  'step' | 'skip' | 'back' | 'next' | 'header' | 'body' | 'footer';
+
+/**
+ * The step's part, found in its panel now by the `data-tour-part` each sets:
+ * the first of its kind that belongs to this step rather than to a tour
+ * rendered inside it, has a box, is shown and enabled the way the focus
+ * trap reads a tab stop (not `inert`, `visibility: hidden` or disabled), and
+ * takes a press: not `aria-disabled` and not `pointer-events: none`, which
+ * is how a loading or static Bulma button holds off a pointer. Focus starts
+ * on the Next it finds, and the arrows press its Next and Back, so neither
+ * reaches one a layout hides or a pointer couldn't press.
+ */
+const findPart = (panel: HTMLElement, part: TourPart): HTMLElement | null =>
+  Array.from(
+    panel.querySelectorAll<HTMLElement>(`[data-tour-part="${part}"]`)
+  ).find(
+    el =>
+      el.closest('[data-tour-part="step"]') === panel &&
+      el.getClientRects().length > 0 &&
+      isRenderedAndEnabled(el, panel) &&
+      el.getAttribute('aria-disabled') !== 'true' &&
+      getComputedStyle(el).pointerEvents !== 'none'
+  ) ?? null;
+
+/**
+ * Moves focus to where a step starts: its Next, else the first control in
+ * its footer, then in its body, then in its header, which holds the close
+ * button, and last anywhere in it. A Next that won't take focus is passed
+ * over.
+ */
+function focusStart(panel: HTMLElement): void {
+  const holds = (part: HTMLElement) =>
+    part.contains(getActiveElementInTree(panel));
+  const next = findPart(panel, 'next');
+  next?.focus();
+  if (next && holds(next)) return;
+  for (const name of ['footer', 'body', 'header'] as const) {
+    const region = findPart(panel, name);
+    if (!region) continue;
+    focusTabStop(region);
+    if (holds(region)) return;
+  }
+  focusTabStop(panel);
+}
 
 /**
  * The dimmed page with a hole cut around the target: an SVG mask, which
@@ -573,6 +692,148 @@ function TourOverlay({ box }: { box: TargetBox | null }) {
   );
 }
 
+/**
+ * A `Button` that ends the tour early, labelled `labels.skip` unless it has children.
+ *
+ * @function
+ * @param {TourButtonProps} props - Props for the Tour.Skip component.
+ * @returns {JSX.Element | null} The button inside a step, else nothing.
+ */
+export const TourSkip = forwardRef<HTMLButtonElement, TourButtonProps>(
+  ({ onClick, color = 'text', children, ...props }, ref) => {
+    const tour = useContext(TourContext);
+    if (!tour) return null;
+    return (
+      <Button
+        {...props}
+        ref={ref}
+        color={color}
+        type={buttonType(props.type)}
+        data-tour-part="skip"
+        onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+          onClick?.(e);
+          if (!e.defaultPrevented) tour.skip();
+        }}
+      >
+        {showsSomething(children) ? children : tour.words.skip}
+      </Button>
+    );
+  }
+);
+
+TourSkip.displayName = 'Tour.Skip';
+
+/**
+ * A `Button` to the step before, labelled `labels.back` unless it has children. It renders nothing on the first step, and ArrowLeft in the step, ArrowRight under right-to-left text, presses it.
+ *
+ * @function
+ * @param {TourButtonProps} props - Props for the Tour.Back component.
+ * @returns {JSX.Element | null} The button inside a step after the first, else nothing.
+ */
+export const TourBack = forwardRef<HTMLButtonElement, TourButtonProps>(
+  ({ onClick, children, ...props }, ref) => {
+    const tour = useContext(TourContext);
+    if (!tour || tour.index === 0) return null;
+    return (
+      <Button
+        {...props}
+        ref={ref}
+        type={buttonType(props.type)}
+        data-tour-part="back"
+        onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+          onClick?.(e);
+          if (!e.defaultPrevented) tour.back();
+        }}
+      >
+        {showsSomething(children) ? children : tour.words.back}
+      </Button>
+    );
+  }
+);
+
+TourBack.displayName = 'Tour.Back';
+
+/**
+ * A `Button` to the next step, labelled `labels.next`, or `labels.done` on the last step, where it finishes the tour, unless it has children. Focus starts on it as a step opens, and ArrowRight in the step, ArrowLeft under right-to-left text, presses it, except on the last step.
+ *
+ * @function
+ * @param {TourButtonProps} props - Props for the Tour.Next component.
+ * @returns {JSX.Element | null} The button inside a step, else nothing.
+ */
+export const TourNext = forwardRef<HTMLButtonElement, TourButtonProps>(
+  ({ onClick, color = 'primary', children, ...props }, ref) => {
+    const tour = useContext(TourContext);
+    if (!tour) return null;
+    const { next, words } = tour;
+    const label = tour.index === tour.total - 1 ? words.done : words.next;
+    return (
+      <Button
+        {...props}
+        ref={ref}
+        color={color}
+        type={buttonType(props.type)}
+        data-tour-part="next"
+        onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+          onClick?.(e);
+          if (!e.defaultPrevented) next();
+        }}
+      >
+        {showsSomething(children) ? children : label}
+      </Button>
+    );
+  }
+);
+
+TourNext.displayName = 'Tour.Next';
+
+/**
+ * The progress line, "Step 2 of 5" by default, from `labels.progress`.
+ *
+ * @function
+ * @param {TourProgressProps} props - Props for the Tour.Progress component.
+ * @returns {JSX.Element | null} The line inside a step, else nothing.
+ */
+export const TourProgress: React.FC<TourProgressProps> = ({
+  className,
+  children,
+  ...props
+}) => {
+  const tour = useContext(TourContext);
+  const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+  const progressClass = usePrefixedClassNames('tour-progress');
+  if (!tour) return null;
+  return (
+    <span
+      className={classNames(progressClass, bulmaHelperClasses, className)}
+      {...rest}
+    >
+      {showsSomething(children) ? children : tour.progress}
+    </span>
+  );
+};
+
+TourProgress.displayName = 'Tour.Progress';
+
+/**
+ * The tour's state and actions, for a part of a custom step: the step, the
+ * total, and Next's, Back's and Skip's actions. The actions keep their
+ * identity from render to render and act on the step the tour is on when
+ * they're called, and the object itself changes only when the step or the
+ * total does, so a dependency list can name it. `null` outside a step.
+ *
+ * @function useTour
+ * @returns {TourState | null} The tour's state inside a step, else `null`.
+ *
+ * @example
+ * function StepCount() {
+ *   const tour = useTour();
+ *   return tour ? <Tag>{tour.value + 1}/{tour.total}</Tag> : null;
+ * }
+ */
+export function useTour(): TourState | null {
+  return useContext(TourContext)?.state ?? null;
+}
+
 interface TourPanelProps extends TourStepProps {
   tour: TourContextValue;
   forwardedRef: React.ForwardedRef<HTMLDivElement>;
@@ -585,6 +846,8 @@ function TourPanel({
   target: _target,
   position: _position,
   overlay: _overlay,
+  cover,
+  footer,
   title,
   children,
   className,
@@ -626,24 +889,26 @@ function TourPanel({
     }
   }, [named]);
 
-  // After a step change: focus stays on the control used, and goes to Next
-  // when that control has gone, as Back does on the first step. The status
+  // After a step change: focus stays on the control used, and goes where
+  // the step starts when that control has gone, as Back does on the first
+  // step: its Next, else the footer's first control, then the body's, then
+  // the close button, as focusStart has it. The status
   // line then says where the tour is, since a dialog whose name changes
   // isn't announced again.
   const [said, setSaid] = useState('');
-  const { stepId, progress, nextRef } = tour;
+  const { stepId, progress } = tour;
   const shownStepRef = useRef(stepId);
   const ariaLabel = rest['aria-label'];
   useEffect(() => {
     if (shownStepRef.current === stepId) return;
     shownStepRef.current = stepId;
-    const doc = (stepRef.current as HTMLDivElement).ownerDocument;
-    if (doc.activeElement === doc.body) {
-      (nextRef.current as HTMLButtonElement).focus();
+    const panel = stepRef.current as HTMLDivElement;
+    if (panel.ownerDocument.activeElement === panel.ownerDocument.body) {
+      focusStart(panel);
     }
     const name = titleRef.current ? spokenText(titleRef.current) : ariaLabel;
     setSaid(name ? `${progress}: ${name}` : progress);
-  }, [stepId, progress, ariaLabel, nextRef, stepRef]);
+  }, [stepId, progress, ariaLabel, stepRef]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     onKeyDown?.(e);
@@ -664,13 +929,14 @@ function TourPanel({
       }
       return;
     }
-    // Without the overlay, Tab from Next, the step's last control, goes on
-    // to the target rather than past the end of the page, where the step's
-    // portal sits. A target with nothing that takes focus leaves the key to
-    // the browser.
+    // Without the overlay, a Tab that would leave the step, from its last
+    // control, Next in the default footer, goes on to the target rather than
+    // past the end of the page, where the step's portal sits. It asks what
+    // a focus trap asks before it wraps. A target with nothing that takes
+    // focus leaves the key to the browser.
     const { target } = tour;
     if (e.key === 'Tab' && !e.shiftKey && !tour.modal && target) {
-      if (from === nextRef.current) {
+      if (tabLeaves(e.currentTarget)) {
         focusTabStop(target);
         if (target.contains(getActiveElementInTree(target))) {
           e.preventDefault();
@@ -683,15 +949,20 @@ function TourPanel({
     if ((e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') || usesArrows(from)) {
       return;
     }
+    // The arrows press the step's own Next and Back, so one that's disabled,
+    // loading or aria-disabled, or whose onClick prevents, holds for the keys
+    // too, and a step without one ignores the key. On the last step Next would finish the tour,
+    // which a key never does.
     const rtl = getComputedStyle(e.currentTarget).direction === 'rtl';
-    const to = (e.key === 'ArrowRight') !== rtl ? index + 1 : index - 1;
-    if (to < 0 || to >= total) return;
+    const forward = (e.key === 'ArrowRight') !== rtl;
+    if (forward && index === total - 1) return;
+    const part = findPart(e.currentTarget, forward ? 'next' : 'back');
+    if (!part) return;
     e.preventDefault();
-    tour.goTo(to);
+    part.click();
   };
 
   const TitleTag = tour.titleAs;
-  const last = index === total - 1;
   const panelClass = usePrefixedClassNames('tour-step', {
     'is-centered': placement.side === 'center',
     [`is-${placement.side}`]: placement.side !== 'center',
@@ -700,7 +971,24 @@ function TourPanel({
   const titleClass = usePrefixedClassNames('tour-step-title');
   const bodyClass = usePrefixedClassNames('tour-step-body');
   const footerClass = usePrefixedClassNames('tour-step-footer');
-  const progressClass = usePrefixedClassNames('tour-progress');
+  const coverClass = usePrefixedClassNames('tour-step-cover');
+  // The step's own footer, else the tour's, else the default, which is built
+  // from the same parts a custom one is.
+  const footerContent =
+    footer !== undefined ? (
+      footer
+    ) : tour.footer !== undefined ? (
+      tour.footer
+    ) : (
+      <>
+        <TourSkip />
+        <TourProgress />
+        <Buttons>
+          <TourBack />
+          <TourNext />
+        </Buttons>
+      </>
+    );
 
   return (
     <div
@@ -720,6 +1008,7 @@ function TourPanel({
       style={{ ...style, top: placement.top, left: placement.left }}
       role="dialog"
       aria-modal={tour.modal ? 'true' : undefined}
+      data-tour-part="step"
       tabIndex={-1}
       onKeyDown={handleKeyDown}
       onPointerDownCapture={e => {
@@ -728,7 +1017,12 @@ function TourPanel({
       }}
     >
       <PortalScope node={tour.modal ? panel : undefined}>
-        <div className={headerClass}>
+        {showsSomething(cover) && (
+          <div key={`cover-${stepId}`} className={coverClass}>
+            {cover}
+          </div>
+        )}
+        <div className={headerClass} data-tour-part="header">
           {hasTitle && (
             <TitleTag
               ref={titleRef as React.Ref<HTMLHeadingElement>}
@@ -740,30 +1034,19 @@ function TourPanel({
           )}
           <Delete ariaLabel={words.close} onClick={tour.skip} />
         </div>
-        <div key={stepId} id={bodyId} className={bodyClass}>
+        <div
+          key={stepId}
+          id={bodyId}
+          className={bodyClass}
+          data-tour-part="body"
+        >
           {children}
         </div>
-        <div className={footerClass}>
-          <Button type="button" color="text" onClick={tour.skip}>
-            {words.skip}
-          </Button>
-          <span className={progressClass}>{progress}</span>
-          <Buttons>
-            {index > 0 && (
-              <Button type="button" onClick={() => tour.goTo(index - 1)}>
-                {words.back}
-              </Button>
-            )}
-            <Button
-              ref={nextRef}
-              type="button"
-              color="primary"
-              onClick={tour.next}
-            >
-              {last ? words.done : words.next}
-            </Button>
-          </Buttons>
-        </div>
+        {showsSomething(footerContent) && (
+          <div className={footerClass} data-tour-part="footer">
+            {footerContent}
+          </div>
+        )}
       </PortalScope>
       {/* In the step from the start, so a change to it is announced, and in
           the dialog, where a screen reader that hides the page around a
@@ -830,6 +1113,7 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
       portal = true,
       titleAs = 'h2',
       labels,
+      footer,
       className,
       ...props
     },
@@ -897,7 +1181,6 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
       [ref]
     );
     const stepRef = useRef<HTMLDivElement | null>(null);
-    const nextRef = useRef<HTMLButtonElement | null>(null);
 
     const { element: target, box } = useTourTarget(
       rootRef,
@@ -943,6 +1226,56 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
 
     const close = () => requestOpen(false);
 
+    // Next's, Back's and Skip's actions read the step as they're called and
+    // keep their identity, so one a part keeps acts on the step the tour is
+    // on, and an effect depending on one doesn't run again on every render.
+    // What they read is updated in an insertion effect, which runs before
+    // any layout effect, so a part's layout effect on the commit that shows
+    // a step acts on that step. They do nothing while the tour is closed or
+    // gone, so a timer a part left running can't finish or reopen it.
+    const latestRef = useRef({
+      shown,
+      index,
+      total,
+      requestValue,
+      onFinish,
+      close,
+    });
+    useInsertionEffect(() => {
+      latestRef.current = {
+        shown,
+        index,
+        total,
+        requestValue,
+        onFinish,
+        close,
+      };
+      return () => {
+        latestRef.current = { ...latestRef.current, shown: false };
+      };
+    });
+    const next = useCallback(() => {
+      const now = latestRef.current;
+      if (!now.shown) return;
+      if (now.index < now.total - 1) {
+        now.requestValue(now.index + 1);
+        return;
+      }
+      now.onFinish?.();
+      now.close();
+    }, []);
+    const back = useCallback(() => {
+      const now = latestRef.current;
+      if (now.shown && now.index > 0) now.requestValue(now.index - 1);
+    }, []);
+    const skip = useCallback(() => {
+      if (latestRef.current.shown) latestRef.current.close();
+    }, []);
+    const state = useMemo<TourState>(
+      () => ({ value: index, total, next, back, skip }),
+      [index, total, next, back, skip]
+    );
+
     // A modal step joins the stack of open overlays, so Escape and Tab go to
     // whatever is on top: a Modal opened from a step holds both until it
     // closes. A non-modal step stays out of it, as a Popover does, and takes
@@ -960,7 +1293,7 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
     useOverlayFocus(stepRef, shown, {
       modal,
       remountKey: container,
-      initialFocus: nextRef,
+      initialFocus: focusStart,
     });
 
     // A modal step holds Tab and Shift+Tab while it's the topmost modal
@@ -983,7 +1316,7 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
       if (!modal) return;
       const panel = stepRef.current as HTMLDivElement;
       if (!panel.contains(getActiveElementInTree(panel))) {
-        (nextRef.current as HTMLButtonElement).focus();
+        focusStart(panel);
       }
     }, [modal]);
 
@@ -1036,19 +1369,13 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
       },
       progress,
       stepRef,
-      nextRef,
       target,
       markInsidePress,
-      goTo: requestValue,
-      next: () => {
-        if (index < total - 1) {
-          requestValue(index + 1);
-          return;
-        }
-        onFinish?.();
-        close();
-      },
-      skip: close,
+      next,
+      back,
+      skip,
+      footer,
+      state,
     };
 
     return (
@@ -1071,7 +1398,17 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
 
 TourRoot.displayName = 'Tour';
 
-/** Tour with its Step sub-component. */
-export const Tour = withSubComponents(TourRoot, { Step: TourStep }, 'Tour');
+/** Tour with its Step part and the parts of a step's footer. */
+export const Tour = withSubComponents(
+  TourRoot,
+  {
+    Step: TourStep,
+    Skip: TourSkip,
+    Back: TourBack,
+    Next: TourNext,
+    Progress: TourProgress,
+  },
+  'Tour'
+);
 
 export default Tour;

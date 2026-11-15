@@ -101,6 +101,12 @@ const UNRENDERED = new Map([
       'server render has nothing',
   ],
   ['Tour.Step', 'it renders only as the current step of an open Tour'],
+  // A footer's parts put both on the one element they render, a Button or
+  // the progress line's <span>, as the Tour tests show.
+  ...['Skip', 'Back', 'Next', 'Progress'].map(part => [
+    `Tour.${part}`,
+    'it renders only inside a step of an open Tour',
+  ]),
 ]);
 
 /** Every opening tag in some markup, with its attributes and classes. */
