@@ -935,14 +935,17 @@ describe('Calendar', () => {
       const { container, rerender } = render(
         <Calendar locale="ar-EG" monthsToShow={2} defaultMonth={NOV_2026} />
       );
-      const second = gridNames(container)[1];
-      expect(second).toMatch(/٢٠٢٦$/);
-      expect(second).not.toMatch(/[0-9]/);
-      expect(
-        within(grids(container)[1])
-          .getAllByRole('gridcell')
-          .map(cell => cell.textContent)
-      ).toContain('٣١');
+      for (const name of gridNames(container)) {
+        expect(name).toMatch(/٢٠٢٦$/);
+        expect(name).not.toMatch(/[0-9]/);
+      }
+      for (const grid of grids(container)) {
+        expect(
+          within(grid)
+            .getAllByRole('gridcell')
+            .map(cell => cell.textContent)
+        ).toContain('٣٠');
+      }
       rerender(
         <Calendar
           locale="ar-EG"
@@ -952,6 +955,28 @@ describe('Calendar', () => {
         />
       );
       expect(gridNames(container)).toEqual(['M11 ٢٠٢٦', 'M12 ٢٠٢٦']);
+    });
+
+    it('keeps plain digits in every heading with no locale, whatever the runtime writes', () => {
+      // This stands in for a runtime whose own locale is Egyptian Arabic, as
+      // a reader's browser can be while the server's isn't.
+      const DateTimeFormat = Intl.DateTimeFormat;
+      const dates = vi
+        .spyOn(Intl, 'DateTimeFormat')
+        .mockImplementation(function (
+          locales?: Intl.LocalesArgument,
+          options?: Intl.DateTimeFormatOptions
+        ) {
+          return new DateTimeFormat(locales ?? 'ar-EG', options);
+        } as typeof Intl.DateTimeFormat);
+      try {
+        const { container } = render(
+          <Calendar monthsToShow={2} defaultMonth={NOV_2026} />
+        );
+        expect(gridNames(container)).toEqual(['نوفمبر 2026', 'ديسمبر 2026']);
+      } finally {
+        dates.mockRestore();
+      }
     });
 
     it('rounds monthsToShow down, and reads less than two as one', () => {
