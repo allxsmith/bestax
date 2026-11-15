@@ -2,11 +2,17 @@
 
 All images sourced from [Unsplash](https://unsplash.com) under the [Unsplash License](https://unsplash.com/license).
 
-| File                  | Photographer      | Unsplash Photo ID                                      |
-| --------------------- | ----------------- | ------------------------------------------------------ |
-| carousel-banner-1.jpg | Jeremy Thomas     | [4dpAqfTbvKA](https://unsplash.com/photos/4dpAqfTbvKA) |
-| carousel-banner-2.jpg | Filip Kvasnak     | [UeRIcbTthwE](https://unsplash.com/photos/UeRIcbTthwE) |
-| carousel-banner-3.jpg | Vincentiu Solomon | [ln5drpv_ImI](https://unsplash.com/photos/ln5drpv_ImI) |
+| File                       | Photographer      | Unsplash Photo ID                                      |
+| -------------------------- | ----------------- | ------------------------------------------------------ |
+| carousel-banner-1.jpg      | Jeremy Thomas     | [4dpAqfTbvKA](https://unsplash.com/photos/4dpAqfTbvKA) |
+| carousel-banner-2.jpg      | Filip Kvasnak     | [UeRIcbTthwE](https://unsplash.com/photos/UeRIcbTthwE) |
+| carousel-banner-3.jpg      | Vincentiu Solomon | [ln5drpv_ImI](https://unsplash.com/photos/ln5drpv_ImI) |
+| carousel-banner-1-3by2.jpg | Jeremy Thomas     | [4dpAqfTbvKA](https://unsplash.com/photos/4dpAqfTbvKA) |
+| carousel-banner-2-3by2.jpg | Filip Kvasnak     | [UeRIcbTthwE](https://unsplash.com/photos/UeRIcbTthwE) |
+| carousel-banner-3-3by2.jpg | Vincentiu Solomon | [ln5drpv_ImI](https://unsplash.com/photos/ln5drpv_ImI) |
+
+Each `-3by2` file is a 3:2 crop of the banner with the same number, for examples that show pictures
+in an even row.
 
 ## Unsplash License Summary
 
