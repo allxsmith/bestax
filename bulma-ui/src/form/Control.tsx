@@ -91,7 +91,7 @@ export interface ControlBaseProps
 type ControlProps =
   | ({
       /** Element type for the control (`div` by default). */
-      as?: 'div';
+      as?: 'div' | undefined;
     } & ControlBaseProps & {
         /** Ref for the control element. */
         ref?: React.Ref<HTMLDivElement>;

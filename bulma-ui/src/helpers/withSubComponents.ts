@@ -12,7 +12,7 @@
  * sub-components keep whatever displayName they declare themselves.
  */
 export function withSubComponents<
-  Base extends { displayName?: string },
+  Base extends { displayName?: string | undefined },
   Subs extends Record<string, unknown>,
 >(base: Base, subs: Subs, displayName?: string): Base & Subs {
   const compound = Object.assign(base, subs) as Base & Subs;

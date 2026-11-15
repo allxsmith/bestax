@@ -8,18 +8,16 @@
  *
  * The check asks the compiler rather than reading the declarations: with that
  * option on, it resolves every `*Props` type the library exports, a generic
- * one at its defaults (or at `INSTANTIATE` when it has none) and a union one
- * member by member, and looks at each optional prop bulma-ui declares under
- * one of those names. That reaches a prop wherever it's declared: an
- * interface's own, one from a base, a member of the alias itself (`as?: T`).
- * A prop typed `never` forbids it on purpose and passes. Names React declares
- * only for one element (`DialogHTMLAttributes`' `onClose`) are outside it.
+ * one at its defaults (or at `INSTANTIATE` when it has none), and the props of
+ * every component it exports, so a private props type can't hide one. Union
+ * props go member by member. It looks at each optional prop bulma-ui declares
+ * under one of those names, wherever it's declared: an interface's own, one
+ * from a base, a member of an alias (`as?: T`). A prop typed `never` forbids
+ * it on purpose and passes. Names React declares only for one element
+ * (`DialogHTMLAttributes`' `onClose`) are outside it.
  *
  * The fixture then compiles a few of them the way a caller writes them, to
- * show the rule is the compiler's. It checks props types rather than JSX for
- * the compounds: compiled from source with the option on, a compound built by
- * `withSubComponents` loses its call signature, which the declarations a
- * caller gets don't.
+ * show the rule is the compiler's.
  */
 import path from 'path';
 import * as ts from 'typescript';
@@ -38,23 +36,43 @@ const INSTANTIATE: Record<string, string> = {
 function walk() {
   const fixture = path.join(__dirname, 'exported-props.fixture.tsx');
   const index = path.resolve(__dirname, '../index.ts');
-  // The export names first, from a program over the index alone.
+  // The export names first, from a program over the index alone: the props
+  // types, and the components, whose props a private props type can't hide.
   const named = programWith(index, ts.sys.readFile(index)!);
-  const names = named.program
-    .getTypeChecker()
-    .getExportsOfModule(
-      named.program.getTypeChecker().getSymbolAtLocation(named.file)!
-    )
+  const namedChecker = named.program.getTypeChecker();
+  const exports = namedChecker.getExportsOfModule(
+    namedChecker.getSymbolAtLocation(named.file)!
+  );
+  const names = exports
     .map(s => s.name)
     .filter(name => /Props$/.test(name))
+    .sort();
+  const components = exports
+    .filter(s => {
+      const target =
+        s.flags & ts.SymbolFlags.Alias ? namedChecker.getAliasedSymbol(s) : s;
+      if (!/^[A-Z]/.test(s.name) || !(target.flags & ts.SymbolFlags.Value))
+        return false;
+      const type = namedChecker.getTypeOfSymbol(target);
+      return (
+        type.getCallSignatures().length > 0 ||
+        type.getConstructSignatures().length > 0
+      );
+    })
+    .map(s => s.name)
     .sort();
 
   const source = [
     "import type * as React from 'react';",
     `import type { ${names.join(', ')} } from '../index';`,
+    `import { ${components.join(', ')} } from '../index';`,
     'export type DomAttributes = React.AllHTMLAttributes<HTMLElement>;',
     ...names.map(
       name => `export type Of${name} = ${name}${INSTANTIATE[name] ?? ''};`
+    ),
+    ...components.map(
+      name =>
+        `export type OfComponent${name} = React.ComponentProps<typeof ${name}>;`
     ),
   ].join('\n');
   const { program, file } = programWith(fixture, source, OPTIONS);
@@ -110,6 +128,7 @@ function walk() {
   }
   return {
     names,
+    components,
     diagnostics,
     domNames,
     checked,
@@ -163,12 +182,17 @@ describe('props under an attribute name React declares, with exactOptionalProper
     found = walk();
   }, 60_000);
 
-  it('resolves every exported props type, and finds what to check', () => {
-    // A generic with no default and nothing in INSTANTIATE resolves to an
-    // error type with no props, so it would pass unchecked.
+  it('resolves every exported props type and component, and finds what to check', () => {
+    // A generic with no default and nothing in INSTANTIATE, or a component
+    // whose props don't resolve, gives an error type with no props, so it
+    // would pass unchecked.
     expect(found.diagnostics).toEqual([]);
     expect(found.names).toEqual(
       expect.arrayContaining(['ButtonProps', 'InputProps', 'TreeSelectProps'])
+    );
+    // Control's props type is private, and so are Delete's and Content's.
+    expect(found.components).toEqual(
+      expect.arrayContaining(['Control', 'Delete', 'Content', 'Dropdown'])
     );
     expect([...found.domNames]).toEqual(
       expect.arrayContaining(['className', 'aria-label', 'color', 'as'])
@@ -177,6 +201,7 @@ describe('props under an attribute name React declares, with exactOptionalProper
     expect(checked).toMatch(/Button\.tsx:\d+ className/);
     expect(checked).toMatch(/Slider\.tsx:\d+ value/);
     expect(checked).toMatch(/polymorphic\.ts:\d+ as/);
+    expect(checked).toMatch(/Control\.tsx:\d+ as/);
   });
 
   it('leaves none that refuses undefined', () => {
