@@ -395,14 +395,14 @@ subcomponents (`Card.Header` + `.Title`/`.Icon`, `Card.Image`, `Card.Content`, `
 components as the dotted names. A Next.js Server Component imports the parts by name, since a
 dotted name is `undefined` there.
 
-| Prop                            | Type                                                  |
-| ------------------------------- | ----------------------------------------------------- |
-| `header`                        | `ReactNode`                                           |
-| `image`                         | `string` (URL) or `ReactNode`                         |
-| `imageAlt`                      | `string`: describe the picture, or `""` if decorative |
-| `footer`                        | `ReactNode \| ReactNode[]`                            |
-| `hasShadow`                     | `boolean` (default `true`)                            |
-| `headerCentered` / `headerIcon` | `boolean` / `ReactNode`                               |
+| Prop                            | Type                                                                                             |
+| ------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `header`                        | `ReactNode`                                                                                      |
+| `image`                         | `string` (URL) or `ReactNode`                                                                    |
+| `imageAlt`                      | `string` (default `"Card image"`): for an image URL, describe the picture, or `""` if decorative |
+| `footer`                        | `ReactNode \| ReactNode[]`                                                                       |
+| `hasShadow`                     | `boolean` (default `true`)                                                                       |
+| `headerCentered` / `headerIcon` | `boolean` / `ReactNode`                                                                          |
 
 `Card.Header.Title` and `Card.FooterItem` both take an `as` prop for Bulma's own card markup —
 `Card.Header.Title` renders `div` by default (`as="p"` or a heading `h2`-`h4` also work), and

@@ -162,7 +162,7 @@
           "name": "image",
           "type": "React.ReactNode | string",
           "default": null,
-          "description": "Card image node or image src string. An image URL renders an `<img>` whose alternate text is `imageAlt`.",
+          "description": "Card image node or image src string. An image URL renders an `<img>` whose alternate text is `imageAlt`, or \"Card image\" without it.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -171,7 +171,7 @@
           "name": "imageAlt",
           "type": "string",
           "default": "'Card image'",
-          "description": "Alternate text for the `<img>` an image URL renders. Describe what the picture shows, or pass `\"\"` for a decorative one so screen readers skip it. Without it, the image's alternate text is \"Card image\", which tells a screen reader nothing about the picture. A node passed as `image` takes its own `alt`.",
+          "description": "Alternate text for the `<img>` an image URL renders. Describe what the picture shows, or pass `\"\"` for a decorative one so screen readers skip it. Without it, the image's alternate text is \"Card image\", which tells a screen reader nothing about the picture. A node passed as `image` takes its own `alt`, and `imageAlt` doesn't reach it.",
           "required": false,
           "inherited": false,
           "deprecated": false

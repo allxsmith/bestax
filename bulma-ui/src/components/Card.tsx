@@ -63,7 +63,7 @@ export interface CardProps
   footer?: React.ReactNode | React.ReactNode[];
   /**
    * Card image node or image src string. An image URL renders an `<img>`
-   * whose alternate text is `imageAlt`.
+   * whose alternate text is `imageAlt`, or "Card image" without it.
    */
   image?: React.ReactNode | string;
   /**
@@ -71,7 +71,7 @@ export interface CardProps
    * picture shows, or pass `""` for a decorative one so screen readers skip
    * it. Without it, the image's alternate text is "Card image", which tells
    * a screen reader nothing about the picture. A node passed as `image`
-   * takes its own `alt`.
+   * takes its own `alt`, and `imageAlt` doesn't reach it.
    *
    * @defaultValue 'Card image'
    */
