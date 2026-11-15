@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.67.13"
+    "version": "5.68.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -1360,7 +1360,7 @@
       "slug": "components/steps",
       "import": "import { Steps } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 27,
+      "propCount": 29,
       "exampleCount": 10
     },
     {
