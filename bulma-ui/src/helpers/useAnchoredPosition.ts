@@ -50,8 +50,9 @@ export interface UseAnchoredPositionOptions {
    * coordinates read the anchor's direction.
    *
    * A side centers the panel along that side of the anchor, flips it to the
-   * opposite side when it doesn't fit there and does on the other, and keeps
-   * a fixed panel inside the viewport. Unlike a corner, a side's `left` and
+   * opposite side when it doesn't fit there and does on the other, tries the
+   * two sides across when neither does (the end first), and keeps a fixed
+   * panel inside the viewport. Unlike a corner, a side's `left` and
    * `right` are read against the anchor's writing direction. `center` puts
    * a fixed panel in the middle of the viewport and needs no anchor, for a
    * panel whose anchor is missing.
@@ -144,7 +145,8 @@ const clampTo = (value: number, max: number): number =>
 /**
  * Places a panel on a side of the anchor. The side asked for is turned into
  * the one on the screen, then flipped when the panel doesn't fit there and
- * does on the other. A fixed panel is centered along the side and moved into
+ * does on the other, or moved to a side across, the end first, when it fits
+ * on neither. With no room anywhere it stays on the side asked for. A fixed panel is centered along the side and moved into
  * the viewport, with `styledGap` counted as the margin its stylesheet puts on
  * the side facing the anchor, which the coordinates leave out. The viewport
  * is the root element's client area, which a fixed box resolves against, so
@@ -173,10 +175,16 @@ function placeOnSide(
     left: rect.left - gap - width,
     right: clientWidth - rect.right - gap - width,
   };
+  const across: AnchoredSide[] =
+    onScreen === 'top' || onScreen === 'bottom'
+      ? rtl
+        ? ['left', 'right']
+        : ['right', 'left']
+      : ['bottom', 'top'];
   const side =
-    room[onScreen] < 0 && room[oppositeSide[onScreen]] >= 0
-      ? oppositeSide[onScreen]
-      : onScreen;
+    [onScreen, oppositeSide[onScreen], ...across].find(
+      candidate => room[candidate] >= 0
+    ) ?? onScreen;
   if (!fixed) return { position: side };
 
   // Where the panel's box lands once the stylesheet's margin moves it,

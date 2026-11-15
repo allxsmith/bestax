@@ -572,12 +572,28 @@ describe('useAnchoredPosition on a side', () => {
     expect(read()).toEqual({ position: 'left', top: 735, left: 796 });
   });
 
-  it('stays on the side asked for when neither has room, inside the viewport', () => {
-    // As tall as the client area, so there's no room above or below it, and
-    // centered under it the panel would start 40px off the left edge.
-    anchor = { top: 0, left: -40, width: 100, height: 800 };
+  it('stays on the side asked for when no side has room, inside the viewport', () => {
+    // As tall as the client area and nearly as wide, so there's no room
+    // above, below or beside it, and centered under it the panel would start
+    // 40px off the left edge.
+    anchor = { top: 0, left: -40, width: 1000, height: 800 };
     render(<Side position="bottom" />);
-    expect(read()).toEqual({ position: 'bottom', top: 750, left: 0 });
+    expect(read()).toEqual({ position: 'bottom', top: 750, left: 410 });
+  });
+
+  it('goes to a side across, the end first, when neither side of its axis has room', () => {
+    // As tall as the client area: no room above or below, so it goes to the
+    // end, the right, and under right-to-left text to the left.
+    anchor = { top: 0, left: 400, width: 100, height: 800 };
+    const first = render(<Side position="bottom" />);
+    expect(read().position).toBe('right');
+    first.unmount();
+    const { rerender } = render(<Side position="bottom" rtl />);
+    expect(read().position).toBe('left');
+    // Beside a wide target, as on a phone, it goes below it.
+    anchor = { top: 300, left: 50, width: 900, height: 40 };
+    rerender(<Side position="right" />);
+    expect(read()).toEqual({ position: 'bottom', top: 344, left: 450 });
   });
 
   it('counts the stylesheet’s gap for the fit and leaves it out of the coordinates', () => {
@@ -593,10 +609,11 @@ describe('useAnchoredPosition on a side', () => {
 
   it('keeps the gap when the panel is moved back inside the viewport', () => {
     // Pushed past the bottom edge below the anchor, the panel is moved up to
-    // end at 800 once its 10px margin has moved it down.
-    anchor = { top: 0, left: 400, width: 100, height: 800 };
+    // end at 800 once its 10px margin has moved it down. The anchor fills
+    // the client area, so no side has room.
+    anchor = { top: 0, left: 0, width: 1000, height: 800 };
     render(<Side position="bottom" styledGap={() => 10} />);
-    expect(read()).toEqual({ position: 'bottom', top: 740, left: 400 });
+    expect(read()).toEqual({ position: 'bottom', top: 740, left: 450 });
   });
 
   it('centers a panel in the viewport without an anchor, kept inside it', () => {

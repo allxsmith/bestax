@@ -110,8 +110,9 @@ the screen, smoothly, or instantly when the user asks for less motion, and the s
 ### Placement
 
 `position` puts a step on the `bottom` (the default), `top`, `left` or `right` of its target. A
-step flips to the other side when it doesn't fit and stays inside the window. `left` and `right`
-are the start and the end of the line, so they swap under right-to-left text.
+step flips to the other side when it doesn't fit, goes to a side across when neither fits, as beside a
+target on a phone, and stays inside the window. `left` and `right` are the start and the end of
+the line, so they swap under right-to-left text.
 
 ```tsx live
 function example() {
@@ -387,7 +388,7 @@ leaves it in `<body>`, under the tour, so keep such content in place inside a no
 | `target`    | `TourTarget`                                           | —            | The element the step points at. Without one, or while it isn't on the page or has no box (in a closed Collapse or a hidden tab panel), the step is centered. A target that turns up later, or gets a box, is found then. A development build warns about a missing target, once for each selector. |
 | `title`     | `React.ReactNode`                                      | —            | The title, which names the step's dialog. A step without one needs an `aria-label`, and a development build warns when it has neither.                                                                                                                                                             |
 | `children`  | `React.ReactNode`                                      | —            | The body, which describes the step's dialog. Say what the target is: a modal step leaves it out of reach, and the spotlight says nothing to a screen reader.                                                                                                                                       |
-| `position`  | `'top'` \| `'bottom'` \| `'left'` \| `'right'`         | `'bottom'`   | The side of the target the panel sits on. It flips to the opposite side when it doesn't fit, and stays inside the viewport.                                                                                                                                                                        |
+| `position`  | `'top'` \| `'bottom'` \| `'left'` \| `'right'`         | `'bottom'`   | The side of the target the panel sits on. It flips to the opposite side when it doesn't fit, or to a side across when neither does, as beside a target on a phone, and stays inside the viewport.                                                                                                  |
 | `overlay`   | `boolean`                                              | `the tour's` | This step's own `overlay`, in place of the tour's.                                                                                                                                                                                                                                                 |
 | `className` | `string`                                               | —            | Additional CSS classes.                                                                                                                                                                                                                                                                            |
 | `ref`       | `React.Ref<HTMLDivElement>`                            | —            | Forwarded to the underlying element.                                                                                                                                                                                                                                                               |

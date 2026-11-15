@@ -239,7 +239,7 @@
           "name": "position",
           "type": "'top' | 'bottom' | 'left' | 'right'",
           "default": "'bottom'",
-          "description": "The side of the target the panel sits on. It flips to the opposite side when it doesn't fit, and stays inside the viewport.",
+          "description": "The side of the target the panel sits on. It flips to the opposite side when it doesn't fit, or to a side across when neither does, as beside a target on a phone, and stays inside the viewport.",
           "required": false,
           "inherited": false,
           "deprecated": false
