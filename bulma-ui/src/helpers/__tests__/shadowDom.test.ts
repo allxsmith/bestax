@@ -126,7 +126,7 @@ describe('shadowDom helpers', () => {
       otherHost.remove();
     });
 
-    it('listens on the shadow roots of several nodes at once, each once', () => {
+    it('listens on the shadow roots of several nodes at once, and moves nothing for the same roots', () => {
       const otherHost = document.createElement('div');
       const other = otherHost.attachShadow({ mode: 'open' });
       const there = document.createElement('div');
@@ -138,6 +138,13 @@ describe('shadowDom helpers', () => {
       shadowRoot.dispatchEvent(new Event('scroll'));
       other.dispatchEvent(new Event('scroll'));
       expect(heard).toHaveBeenCalledTimes(2);
+      // A node listed twice, or the same roots in another order, adds no
+      // listener and takes none off.
+      const added = vi.spyOn(shadowRoot, 'addEventListener');
+      const removed = vi.spyOn(shadowRoot, 'removeEventListener');
+      scrolls.follow(there, inner, inner);
+      expect(added).not.toHaveBeenCalled();
+      expect(removed).not.toHaveBeenCalled();
       scrolls.stop();
       otherHost.remove();
     });

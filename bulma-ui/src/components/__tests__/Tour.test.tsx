@@ -3026,30 +3026,38 @@ describe('Tour', () => {
       expect(beacon('Filters').style.top).toBe('170px');
     });
 
-    it('moves a beacon with a target that scrolls inside a shadow root', () => {
-      const host = document.createElement('div');
-      document.body.appendChild(host);
-      const shadow = host.attachShadow({ mode: 'open' });
-      const scroller = document.createElement('div');
-      const inner = document.createElement('button');
-      inner.dataset.rect = '100 100 80 30';
-      scroller.appendChild(inner);
-      shadow.appendChild(scroller);
+    it('moves each beacon with a target that scrolls inside its own shadow root', () => {
+      const inShadow = (top: number) => {
+        const host = document.createElement('div');
+        document.body.appendChild(host);
+        const scroller = document.createElement('div');
+        const inner = document.createElement('button');
+        inner.dataset.rect = `${top} 100 80 30`;
+        scroller.appendChild(inner);
+        host.attachShadow({ mode: 'open' }).appendChild(scroller);
+        return { host, scroller, inner };
+      };
+      const first = inShadow(100);
+      const second = inShadow(200);
       render(
         <Tour mode="beacon" defaultOpen>
-          <Tour.Step target={inner} title="Inner">
-            In a web component that scrolls.
+          <Tour.Step target={first.inner} title="First">
+            In one web component.
+          </Tour.Step>
+          <Tour.Step target={second.inner} title="Second">
+            In another.
           </Tour.Step>
         </Tour>
       );
-      expect(beacon('Inner').style.top).toBe('100px');
-      inner.dataset.rect = '40 100 80 30';
+      expect(beacon('Second').style.top).toBe('200px');
+      second.inner.dataset.rect = '140 100 80 30';
       // Not composed, so a listener on the window never hears it.
       act(() => {
-        scroller.dispatchEvent(new Event('scroll'));
+        second.scroller.dispatchEvent(new Event('scroll'));
       });
-      expect(beacon('Inner').style.top).toBe('40px');
-      host.remove();
+      expect(beacon('Second').style.top).toBe('140px');
+      first.host.remove();
+      second.host.remove();
     });
 
     it('measures its beacons once a frame, however many changes ask in it', () => {
