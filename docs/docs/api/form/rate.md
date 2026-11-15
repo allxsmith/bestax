@@ -333,7 +333,7 @@ function RateFormDemo() {
 - Full keyboard navigation with arrow keys
 - Home/End keys jump to 0/max values
 - `disabled` sets `aria-disabled` on the group and on every star, so a screen reader announces them as unavailable, and takes the group out of the tab order
-- The stars hold 3:1 against the page on both schemes. An empty star is the scheme's weak text color. A filled star, and one the pointer would fill, keeps its gold, or the `color`'s own shade, inside an edge in the warning color or the `color`, in its on-scheme lightness, which carries the contrast. A font icon (`iconName`) has no edge, so a filled one is drawn in that edge color. The built-in star also tells a filled star from an empty one by its shape, solid or an outline
+- The stars hold 3:1 against the page on both schemes. An empty star is the scheme's weak text color. A filled star, and one the pointer would fill, keeps its gold, or the `color`'s own shade, inside an edge in the warning color or the `color`, in its on-scheme lightness, which carries the contrast. A font icon (`iconName`) has no edge, so a filled one is drawn in that edge color. The built-in star also tells a filled star from an empty one by its shape, solid or an outline.
 
 ---
 
