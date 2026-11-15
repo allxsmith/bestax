@@ -6,9 +6,26 @@
 @use "bulma/sass/utilities/css-variables" as cv;
 
 // Rate-specific SCSS variables
-$rate-color-inactive: cv.getVar("grey-light") !default;
+// The stars show the value, so each holds 3:1 against the page on both
+// schemes (#1714). An empty star is the scheme's weak text color. A filled
+// star, or one the pointer would fill, keeps its gold, or a color's own
+// shade, and the edge around it carries the contrast: the warning color, or
+// the `color`, in its on-scheme lightness, which Bulma darkens on a light
+// scheme and lightens on a dark one until it reads on the page. It's put
+// together from the color's hue, saturation and that lightness, as Bulma's
+// own `-on-scheme` helpers do, so a Theme that sets them around the stars
+// reaches it. A font icon has no edge to draw, so its glyph takes that color.
+$rate-color-inactive: cv.getVar("text-weak") !default;
 $rate-color-active: hsl(48, 100%, 50%) !default;
 $rate-color-hover: hsl(48, 100%, 67%) !default;
+$rate-color-edge: hsl(
+  #{cv.getVar("warning-h")},
+  #{cv.getVar("warning-s")},
+  #{cv.getVar("warning-on-scheme-l")}
+) !default;
+// A star's edge: a filled star's, and an empty star's outline, so a half
+// star's filled half sits on its empty one's.
+$rate-edge-width: 2px !default;
 $rate-icon-size: 1.5em !default;
 $rate-icon-size-small: 1em !default;
 $rate-icon-size-medium: 2em !default;
@@ -34,6 +51,8 @@ $rate-pop-scale: 1.2 !default;
       "rate-color-inactive": #{$rate-color-inactive},
       "rate-color-active": #{$rate-color-active},
       "rate-color-hover": #{$rate-color-hover},
+      "rate-color-edge": #{$rate-color-edge},
+      "rate-edge-width": #{$rate-edge-width},
       "rate-icon-size": #{$rate-icon-size},
       "rate-icon-size-small": #{$rate-icon-size-small},
       "rate-icon-size-medium": #{$rate-icon-size-medium},
@@ -118,6 +137,48 @@ $rate-pop-scale: 1.2 !default;
     color: cv.getVar("rate-color-hover");
     transform: scale(1.1);
   }
+
+  // The built-in star's outline, empty or not, is the edge's width.
+  > .#{iv.$class-prefix}rate-star {
+    stroke-width: cv.getVar("rate-edge-width");
+  }
+
+  // The built-in star, filled or one the pointer would fill, in its gold
+  // with an edge that reads on the page. Its empty outline turns solid. A
+  // custom icon is drawn as given.
+  &:hover:not(.#{iv.$class-prefix}is-active) > .#{iv.$class-prefix}rate-star,
+  &.#{iv.$class-prefix}is-active > .#{iv.$class-prefix}rate-star,
+  &.#{iv.$class-prefix}is-hovered > .#{iv.$class-prefix}rate-star {
+    fill: currentColor;
+    stroke: cv.getVar("rate-color-edge");
+    stroke-width: cv.getVar("rate-edge-width");
+  }
+
+  // A font icon has no edge, so a filled glyph is the edge's color itself.
+  &:hover:not(.#{iv.$class-prefix}is-active) > .#{iv.$class-prefix}icon,
+  &.#{iv.$class-prefix}is-active > .#{iv.$class-prefix}icon,
+  &.#{iv.$class-prefix}is-hovered > .#{iv.$class-prefix}icon {
+    color: cv.getVar("rate-color-edge");
+  }
+}
+
+// A star the value only partly fills: its filled part drawn as a filled star
+// is, in the hover color while the pointer would fill it, and its empty part
+// as an empty star, whatever the pointer does.
+.#{iv.$class-prefix}rate-star-fill {
+  fill: cv.getVar("rate-color-active");
+  stroke: cv.getVar("rate-color-edge");
+  stroke-width: cv.getVar("rate-edge-width");
+}
+
+.#{iv.$class-prefix}rate-item:hover .#{iv.$class-prefix}rate-star-fill,
+.#{iv.$class-prefix}rate-item.#{iv.$class-prefix}is-hovered .#{iv.$class-prefix}rate-star-fill {
+  fill: cv.getVar("rate-color-hover");
+}
+
+.#{iv.$class-prefix}rate-star-empty {
+  stroke: cv.getVar("rate-color-inactive");
+  stroke-width: cv.getVar("rate-edge-width");
 }
 
 // Partial fill (precision < 1)
@@ -138,7 +199,7 @@ $rate-pop-scale: 1.2 !default;
   left: 0;
   overflow: hidden;
   width: var(--rate-fill-percent, 100%);
-  color: cv.getVar("rate-color-active");
+  color: cv.getVar("rate-color-edge");
 }
 
 // Score display
@@ -269,27 +330,51 @@ $rate-pop-scale: 1.2 !default;
   }
 }
 
-// Color variants
+// Color variants: the color's own shade filled, and its on-scheme lightness
+// at the edge.
 @each $name in "primary", "link", "info", "success", "warning", "danger" {
   .#{iv.$class-prefix}rate.#{iv.$class-prefix}is-#{$name} {
     @include cv.register-vars(
       (
         "rate-color-active": #{cv.getVar($name)},
         "rate-color-hover": #{cv.getVar("#{$name}-light")},
+        "rate-color-edge":
+          #{hsl(
+            cv.getVar($name, "", "-h"),
+            cv.getVar($name, "", "-s"),
+            cv.getVar($name, "", "-on-scheme-l")
+          )},
       )
     );
   }
 }
 
-// High Contrast Mode support
+// High Contrast Mode support. A star's edge, and a font icon drawn in it,
+// follow the star's own system color, and a partly filled star's halves, the
+// built-in star's or a font icon's, the filled and the empty star's.
 @media (forced-colors: active) {
   .#{iv.$class-prefix}rate {
     .#{iv.$class-prefix}rate-item {
+      @include cv.register-var("rate-color-edge", currentColor);
       color: ButtonText;
 
       &.#{iv.$class-prefix}is-active {
         color: Highlight;
       }
+    }
+
+    // Important, over the hover fill, whose rules rank higher.
+    .#{iv.$class-prefix}rate-star-fill {
+      fill: Highlight !important;
+      stroke: Highlight !important;
+    }
+
+    .#{iv.$class-prefix}rate-star-empty {
+      stroke: ButtonText;
+    }
+
+    .#{iv.$class-prefix}rate-icon-fg {
+      color: Highlight;
     }
 
     &:focus-visible {

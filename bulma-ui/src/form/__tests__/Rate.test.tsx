@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { Rate, RateIconProps } from '../Rate';
 import { Field } from '../Field';
 import { Control } from '../Control';
+import { ConfigProvider } from '../../helpers/Config';
 
 /**
  * Helper: stub `getBoundingClientRect` on every `.rate-item` span so
@@ -679,6 +680,23 @@ describe('Rate', () => {
       expect(clipPaths.length).toBeGreaterThan(0);
     });
 
+    it('marks the filled part of a partly filled star, so the stylesheet draws it as a filled star', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bestax-">
+          <Rate defaultValue={3.5} precision={0.5} />
+        </ConfigProvider>
+      );
+      const fill = container.querySelector('path.bestax-rate-star-fill');
+      // The one in the 4th star, clipped to its half, over its empty outline.
+      expect(container.querySelectorAll('.bestax-rate-star-fill')).toHaveLength(
+        1
+      );
+      expect(fill).toHaveAttribute('clip-path');
+      expect(fill?.previousElementSibling).toHaveClass(
+        'bestax-rate-star-empty'
+      );
+    });
+
     it('clips each Rate’s partly filled star with a clip of its own', () => {
       const { container } = render(
         <>
@@ -696,6 +714,24 @@ describe('Rate', () => {
         const id = path.getAttribute('clip-path')!.slice(5, -1);
         expect(svg.querySelector('clipPath')!.id).toBe(id);
       }
+    });
+
+    it('marks the built-in star for the stylesheet’s edge, and leaves a custom icon unmarked', () => {
+      const { container, rerender } = render(
+        <ConfigProvider classPrefix="bestax-">
+          <Rate defaultValue={2} />
+        </ConfigProvider>
+      );
+      expect(container.querySelectorAll('svg.bestax-rate-star')).toHaveLength(
+        5
+      );
+      rerender(
+        <ConfigProvider classPrefix="bestax-">
+          <Rate defaultValue={2} customIcon={() => <svg data-testid="own" />} />
+        </ConfigProvider>
+      );
+      expect(container.querySelector('.bestax-rate-star')).toBeNull();
+      expect(screen.getAllByTestId('own')).toHaveLength(5);
     });
 
     it('Home key works with precision', () => {

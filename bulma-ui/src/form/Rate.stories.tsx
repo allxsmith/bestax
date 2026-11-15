@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Rate } from './Rate';
 import { Field } from './Field';
 import { Control } from './Control';
+import { Block } from '../elements/Block';
 
 const meta: Meta<typeof Rate> = {
   title: 'Form/Rate',
@@ -29,6 +30,58 @@ export const Default: Story = {
   args: {
     defaultValue: 3,
   },
+};
+
+/**
+ * A half-filled value with no color and with each color, in a font icon, and
+ * at each size. A filled star keeps its own color and takes an edge in the
+ * color's on-scheme lightness, which reads on the page on both schemes, and
+ * an empty one is the scheme's weak text color. A font icon has no edge, so
+ * a filled one is drawn in that edge color.
+ */
+export const Colors: Story = {
+  render: () => (
+    <>
+      {(
+        [
+          undefined,
+          'primary',
+          'link',
+          'info',
+          'success',
+          'warning',
+          'danger',
+        ] as const
+      ).map(color => (
+        <Block key={color ?? 'none'}>
+          <Rate
+            color={color}
+            defaultValue={3.5}
+            precision={0.5}
+            aria-label={color ?? 'No color'}
+          />
+        </Block>
+      ))}
+      <Block>
+        <Rate
+          iconName="star"
+          defaultValue={3.5}
+          precision={0.5}
+          aria-label="Font icon"
+        />
+      </Block>
+      {(['small', 'medium', 'large'] as const).map(size => (
+        <Block key={size}>
+          <Rate
+            size={size}
+            defaultValue={3.5}
+            precision={0.5}
+            aria-label={size}
+          />
+        </Block>
+      ))}
+    </>
+  ),
 };
 
 // ============================================================
