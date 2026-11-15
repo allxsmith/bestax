@@ -74,7 +74,7 @@ export interface TaginputProps
     [key: string]: unknown;
   };
   /** Applied to the inner text input (the labellable control), not the wrapper div. */
-  id?: string;
+  id?: React.HTMLAttributes<HTMLElement>['id'];
   /** The current tags (controlled). */
   value?: TaginputTag[];
   /** Default tags (uncontrolled). */

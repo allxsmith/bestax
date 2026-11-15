@@ -238,6 +238,39 @@ describe.each([
     }
   );
 
+  // The line sat at the start of a cell whose column aligns its values to
+  // the end, as Bulma's flex column ignores text alignment (#1633).
+  it.each([
+    ['after', ['bulma/sass/base/skeleton', 'components/datatable']],
+    ['before', ['components/datatable', 'bulma/sass/base/skeleton']],
+  ])(
+    'makes a loading cell’s line an inline block, which the cell’s text alignment places, loaded %s Bulma’s',
+    (_order, modules) => {
+      const rules = rulesOf(compile(prefix, modules));
+      const table = render(
+        <ConfigProvider classPrefix={prefix}>
+          <DataTable caption="Rows" columns={columns} data={[]} loading />
+        </ConfigProvider>
+      ).container;
+      const skeleton = table.querySelector(`.${prefix}data-table-skeleton`)!;
+      const line = skeleton.querySelector(':scope > div')!;
+      expect(resolveIn(rules, skeleton, 'display')).toBe('block');
+      expect(resolveIn(rules, line, 'display')).toBe('inline-block');
+      // On the top of its line, so it adds no room under it.
+      expect(resolveIn(rules, line, 'vertical-align')).toBe('top');
+      // A Skeleton anywhere else keeps Bulma's column of lines.
+      const elsewhere = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Skeleton variant="lines" lines={1} />
+        </ConfigProvider>
+      ).container.querySelector(`.${prefix}skeleton-lines`)!;
+      expect(resolveIn(rules, elsewhere, 'display')).toBe('flex');
+      expect(
+        resolveIn(rules, elsewhere.querySelector(':scope > div')!, 'display')
+      ).toBeUndefined();
+    }
+  );
+
   it('paints the indicator in a system color in forced colors', () => {
     renderTable();
     const button = screen.getByRole('button', { name: 'Name' });

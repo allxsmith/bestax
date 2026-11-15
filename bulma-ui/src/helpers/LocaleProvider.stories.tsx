@@ -53,10 +53,10 @@ const Settings = () => {
 
 /**
  * An Arabic section. The wrapper carries `dir="rtl"` and `lang="ar-EG"`, so
- * Steps lays out from the right, the calendar names its days in Arabic and
- * starts the week on Saturday, and the Popover's panel, portaled to the end
- * of `document.body`, reads right to left too. Change `locale` or `dir` to
- * see each follow.
+ * Steps lays out from the right, the calendar names and numbers its days in
+ * Arabic and starts the week on Saturday, and the Popover's panel, portaled
+ * to the end of `document.body`, reads right to left too. Change `locale` or
+ * `dir` to see each follow.
  */
 export const Default: Story = {
   args: { locale: 'ar-EG' },

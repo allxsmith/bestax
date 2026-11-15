@@ -1,12 +1,13 @@
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { Card } from './Card';
 import { Icon } from '../elements/Icon';
+import { Button } from '../elements/Button';
+import { Image } from '../elements/Image';
+// Credits and licenses for the pictures: ../../images/LICENSE.md
+import skye from '../../images/sample-skye-4by3.jpg';
 
 const DECLARATION_LATIN =
   'Quando in rerum natura cursu fit ut populus aliquis inter nationes terrae statum separatum et aequalem, ad quem iure naturali et naturae Deo habendum vocantur, sibi vindicare velit, debetur erga opiniones humani generis ut causas, quae eos ad secessionem impellunt, declaret.';
-
-const TEST_IMAGE =
-  'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80';
 
 const meta: Meta<typeof Card> = {
   title: 'Components/Card',
@@ -88,6 +89,11 @@ const meta: Meta<typeof Card> = {
       control: 'text',
       description: 'Image URL or React node for card image',
     },
+    imageAlt: {
+      control: 'text',
+      description:
+        'Alternate text for the image a URL renders: describe the picture, or leave it empty for a decorative one',
+    },
     children: {
       control: 'text',
       description: 'Card body content',
@@ -102,8 +108,8 @@ type Story = StoryObj<typeof Card>;
 export const Default: Story = {
   args: {
     header: 'Card Header',
-    image: TEST_IMAGE,
-    imageAlt: 'Beautiful forest',
+    image: skye,
+    imageAlt: 'A road winding between green hills and cliffs',
     children: DECLARATION_LATIN,
     footer: (
       <>
@@ -146,15 +152,15 @@ export const WithFooter: Story = {
 export const WithImage: Story = {
   args: {
     children: DECLARATION_LATIN,
-    image: TEST_IMAGE,
-    imageAlt: 'Beautiful forest',
+    image: skye,
+    imageAlt: 'A road winding between green hills and cliffs',
   },
 };
 
 export const ImageOnly: Story = {
   args: {
-    image: TEST_IMAGE,
-    imageAlt: 'Beautiful forest',
+    image: skye,
+    imageAlt: 'A road winding between green hills and cliffs',
   },
 };
 
@@ -210,19 +216,21 @@ export const CompoundUsage: Story = {
         </Card.Header.Icon>
       </Card.Header>
       <Card.Image>
-        <figure className="image is-4by3">
-          <img src={TEST_IMAGE} alt="Beautiful forest" />
-        </figure>
+        <Image
+          src={skye}
+          alt="A road winding between green hills and cliffs"
+          size="4by3"
+        />
       </Card.Image>
       <Card.Content>
         <div className="content">{DECLARATION_LATIN}</div>
       </Card.Content>
       <Card.Footer>
         <Card.FooterItem>
-          <button className="button is-primary">Save</button>
+          <Button color="primary">Save</Button>
         </Card.FooterItem>
         <Card.FooterItem>
-          <button className="button">Cancel</button>
+          <Button>Cancel</Button>
         </Card.FooterItem>
       </Card.Footer>
     </Card>

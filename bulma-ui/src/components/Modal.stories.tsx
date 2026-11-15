@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { Modal, ModalProps } from './Modal';
 import { Box } from '../elements/Box';
+import { Button } from '../elements/Button';
+import { Buttons } from '../elements/Buttons';
 import { Paragraph } from '../elements/Paragraph';
 import { Title } from '../elements/Title';
 
@@ -22,7 +24,7 @@ const ControlledModal = (props: ModalProps) => {
   const [open, setOpen] = useState(true);
   return (
     <>
-      <button onClick={() => setOpen(true)}>Show Modal</button>
+      <Button onClick={() => setOpen(true)}>Show Modal</Button>
       <Modal {...props} active={open} onClose={() => setOpen(false)}>
         {props.children}
       </Modal>
@@ -31,20 +33,34 @@ const ControlledModal = (props: ModalProps) => {
 };
 
 // modal-card with title and footer
+const ModalCardComponent = () => {
+  const [open, setOpen] = useState(true);
+  const closeModal = () => setOpen(false);
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Show Modal</Button>
+      <Modal
+        active={open}
+        onClose={closeModal}
+        modalCardTitle="Modal Card Title"
+        modalCardFoot={
+          <Buttons>
+            <Button color="success" onClick={closeModal}>
+              Save
+            </Button>
+            <Button onClick={closeModal}>Cancel</Button>
+          </Buttons>
+        }
+      >
+        {declarationLatin}
+      </Modal>
+    </>
+  );
+};
+
 export const ModalCard: StoryObj<ModalProps> = {
-  render: () => (
-    <ControlledModal
-      modalCardTitle="Modal Card Title"
-      modalCardFoot={
-        <>
-          <button className="button is-success">Save</button>
-          <button className="button">Cancel</button>
-        </>
-      }
-    >
-      {declarationLatin}
-    </ControlledModal>
-  ),
+  render: () => <ModalCardComponent />,
 };
 
 // modal-card with only title
@@ -59,13 +75,7 @@ export const ModalCardTitleOnly: StoryObj<ModalProps> = {
 // modal-card with only footer
 export const ModalCardFooterOnly: StoryObj<ModalProps> = {
   render: () => (
-    <ControlledModal
-      modalCardFoot={
-        <>
-          <button className="button is-success">Save</button>
-        </>
-      }
-    >
+    <ControlledModal modalCardFoot={<Button color="success">Save</Button>}>
       {declarationLatin}
     </ControlledModal>
   ),
@@ -113,7 +123,7 @@ const CompoundModalCardComponent = () => {
 
   return (
     <>
-      <button onClick={() => setOpen(true)}>Show Modal</button>
+      <Button onClick={() => setOpen(true)}>Show Modal</Button>
       {/* Escape and Modal.Close call onClose, the background its own onClick. */}
       <Modal
         isActive={open}
@@ -130,10 +140,12 @@ const CompoundModalCardComponent = () => {
           </Modal.Card.Head>
           <Modal.Card.Body>{declarationLatin}</Modal.Card.Body>
           <Modal.Card.Foot>
-            <button className="button is-success">Save</button>
-            <button className="button" onClick={closeModal}>
-              Cancel
-            </button>
+            <Buttons>
+              <Button color="success" onClick={closeModal}>
+                Save
+              </Button>
+              <Button onClick={closeModal}>Cancel</Button>
+            </Buttons>
           </Modal.Card.Foot>
         </Modal.Card>
       </Modal>
@@ -152,7 +164,7 @@ const CompoundModalContentComponent = () => {
 
   return (
     <>
-      <button onClick={() => setOpen(true)}>Show Modal</button>
+      <Button onClick={() => setOpen(true)}>Show Modal</Button>
       <Modal
         isActive={open}
         onClose={closeModal}
@@ -177,17 +189,17 @@ export const CompoundModalContent: StoryObj<ModalProps> = {
   render: () => <CompoundModalContentComponent />,
 };
 
-// Portal — renders into document.body instead of inline
+// Portal: renders into document.body instead of inline
 const PortalModalComponent = () => {
   const [open, setOpen] = useState(true);
   return (
     <Box className="is-clipped">
       <p>
         This wrapper clips overflowing content (Bulma&apos;s{' '}
-        <code>is-clipped</code>) — a non-portaled modal would be confined here,
-        but the portaled one below escapes to <code>document.body</code>.
+        <code>is-clipped</code>), so a modal rendered in place would be confined
+        here. The one below is portaled to <code>document.body</code> instead.
       </p>
-      <button onClick={() => setOpen(true)}>Show Portaled Modal</button>
+      <Button onClick={() => setOpen(true)}>Show Portaled Modal</Button>
       <Modal
         active={open}
         onClose={() => setOpen(false)}
@@ -204,8 +216,8 @@ export const Portal: StoryObj<ModalProps> = {
   render: () => <PortalModalComponent />,
 };
 
-// Forwarded ref — the root `.modal` div, used here for focus management:
-// on open, focus is moved to the first focusable control inside the modal.
+// Forwarded ref: the root `.modal` div, used here for focus management. On
+// open, focus moves to the first Button inside the modal, Save.
 const ForwardedRefModalComponent = () => {
   const modalRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(true);
@@ -218,19 +230,19 @@ const ForwardedRefModalComponent = () => {
 
   return (
     <>
-      <button onClick={() => setOpen(true)}>Show Modal</button>
+      <Button onClick={() => setOpen(true)}>Show Modal</Button>
       <Modal
         ref={modalRef}
         active={open}
         onClose={closeModal}
         modalCardTitle="Focus Managed Modal"
         modalCardFoot={
-          <>
-            <button className="button is-success">Save</button>
-            <button className="button" onClick={closeModal}>
-              Cancel
-            </button>
-          </>
+          <Buttons>
+            <Button color="success" onClick={closeModal}>
+              Save
+            </Button>
+            <Button onClick={closeModal}>Cancel</Button>
+          </Buttons>
         }
       >
         {declarationLatin}

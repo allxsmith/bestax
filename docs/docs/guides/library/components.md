@@ -227,8 +227,8 @@ A Bulma-styled card with optional header, image, content, and footer. [View full
 ```tsx live
 <Card
   header="Card Header"
-  image="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80"
-  imageAlt="Beautiful forest"
+  image="/img/carousel/carousel-banner-1-4by3.jpg"
+  imageAlt="Vibrant galaxy with purple and gold tones"
   footer={[
     <span key="save" className="card-footer-item">
       Save
@@ -763,6 +763,35 @@ function example() {
           <Button color="primary">Feedback</Button>
         </Affix>
       )}
+    </>
+  );
+}
+```
+
+---
+
+### Tour
+
+A walk through an interface, one element at a time: each `Tour.Step` is a dialog pointing at its `target`, over a dimmed page with a spotlight on the target, or without the overlay as a non-modal dialog that leaves the page usable. Done on the last step calls `onFinish`, apart from Skip and Escape. [View full documentation.](../../api/components/tour.md)
+
+```tsx live
+function TourExample() {
+  const [open, setOpen] = React.useState(false);
+  const filtersRef = React.useRef<HTMLButtonElement>(null);
+  return (
+    <>
+      <Buttons>
+        <Button ref={filtersRef}>Filters</Button>
+        <Button color="primary" onClick={() => setOpen(true)}>
+          Take the tour
+        </Button>
+      </Buttons>
+      <Tour open={open} onOpenChange={setOpen}>
+        <Tour.Step title="Welcome">A quick look around the list.</Tour.Step>
+        <Tour.Step target={filtersRef} title="Filters">
+          The Filters button narrows the list by status and owner.
+        </Tour.Step>
+      </Tour>
     </>
   );
 }
