@@ -119,9 +119,12 @@ type Story = StoryObj<typeof Tour>;
 
 /**
  * A first-visit tour of a small toolbar, opened from a button. Use the
- * controls to try the overlay, the dismissal options and beacon mode.
+ * controls to try the overlay and the dismissal options. Beacons, which
+ * close only with the tour, have a story of their own.
  */
 export const Default: Story = {
+  // Its opener has no way to close a beacon tour.
+  argTypes: { mode: { control: false } },
   render: function DefaultTour(args) {
     const [open, setOpen] = useState(false);
     const filtersRef = useRef<HTMLButtonElement>(null);

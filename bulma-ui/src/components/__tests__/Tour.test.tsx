@@ -2997,6 +2997,44 @@ describe('Tour', () => {
       expect(beacon('Export').style.left).toBe('880px');
     });
 
+    it('keeps a focused beacon, and its place, when a step is added before it', () => {
+      const step = (name: string, target: string) => (
+        <Tour.Step key={name} target={target} title={name}>
+          {name}
+        </Tour.Step>
+      );
+      const { rerender } = render(
+        <Tips defaultOpen>
+          {[step('Filters', '#filters'), step('Export', '#export')]}
+        </Tips>
+      );
+      const exportBeacon = beacon('Export');
+      exportBeacon.focus();
+      rerender(
+        <Tips defaultOpen>
+          {[
+            step('Opener', '#opener'),
+            step('Filters', '#filters'),
+            step('Export', '#export'),
+          ]}
+        </Tips>
+      );
+      expect(beacon('Export')).toBe(exportBeacon);
+      expect(exportBeacon).toHaveFocus();
+      expect(exportBeacon.style.left).toBe('880px');
+    });
+
+    it('leaves focus in a step that turns guided while its tip shows', () => {
+      const { rerender } = render(<Tips defaultOpen />);
+      fireEvent.click(beacon('Filters'));
+      fireEvent.click(next());
+      expect(beacon('Filters')).toHaveFocus();
+      fireEvent.click(beacon('Export'));
+      expect(next()).toHaveFocus();
+      rerender(<Tips defaultOpen mode="guided" />);
+      expect(dialog()).toContainElement(document.activeElement as HTMLElement);
+    });
+
     it('closes a tip the value opened when its step moves, as one a beacon opened', () => {
       const onChange = vi.fn();
       const three = (names: string[]) =>
