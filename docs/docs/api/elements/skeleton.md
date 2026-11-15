@@ -73,7 +73,7 @@ The `lines` variant of the `Skeleton` component renders multiple line placeholde
 
 ### Skeleton Examples from useBulmaClasses.stories.tsx
 
-These show how the `skeleton` Bulma helper can be applied to various components using the `skeleton` prop and `useBulmaClasses`. The skeleton state toggles on an interval in Storybook.
+These show how the `skeleton` Bulma helper can be applied to various components using the `skeleton` prop and `useBulmaClasses`.
 
 #### Skeleton Button
 
