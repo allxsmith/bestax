@@ -75,5 +75,8 @@ listings that `docs/docs/guides/distribution.md` names under "What goes stale".
   because agents copy them into that scaffold and its build runs `tsc` first. Under its
   automatic JSX runtime and `noUnusedLocals`, a default `import React` that nothing reads
   fails that build, so import only what the file uses.
+- A skill's example points an image at a file the reader's app serves itself, never at a
+  placeholder or stock-photo host, since an agent copies the URL into the user's app
+  (`check:conformance --only=image-hosts`).
 - Storybook renders agent-generated showcases of these skills from
   `bulma-ui/src/skill-examples/` — update those when a skill's canonical example changes.

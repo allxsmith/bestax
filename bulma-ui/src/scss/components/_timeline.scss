@@ -15,6 +15,7 @@
 @use "bulma/sass/utilities/initial-variables" as iv;
 @use "bulma/sass/utilities/css-variables" as cv;
 @use "bulma/sass/utilities/mixins" as mx;
+@use "../color-classes" as *;
 
 $timeline-gap: 1.5em !default;
 $timeline-content-gap: 0.25em !default;
@@ -27,8 +28,19 @@ $timeline-dot-size: 0.75em !default;
 $timeline-marker-size: 2em !default;
 // Bulma's loader is 1em across.
 $timeline-pending-size: 1em !default;
-$timeline-neutral-color: cv.getVar("border-hover") !default;
-$timeline-active-color: cv.getVar("link") !default;
+// A marker with no color, in a record or not reached yet: the scheme's weak
+// text color, which stands out from the page on either scheme.
+$timeline-neutral-color: cv.getVar("text-weak") !default;
+// Progress, and the markers of a color (below): the color's on-scheme
+// lightness, which Bulma darkens on a light scheme and lightens on a dark one
+// until it reads on the page. Put together from the color's hue, saturation and
+// that lightness, the way Bulma's `-on-scheme` helper classes do, so a Theme
+// that sets them around the timeline reaches it.
+$timeline-active-color: hsl(
+  cv.getVar("link-h"),
+  cv.getVar("link-s"),
+  cv.getVar("link-on-scheme-l")
+) !default;
 // The fill behind a ring, the loader and an icon, so the line doesn't show
 // through them: the page's own color.
 $timeline-marker-background: cv.getVar("scheme-main") !default;
@@ -286,7 +298,7 @@ $timeline-time-size: 0.875em !default;
   border-width: cv.getVar("timeline-line-width");
 
   &.#{iv.$class-prefix}is-icon {
-    color: cv.getVar("text-weak");
+    color: cv.getVar("timeline-neutral-color");
   }
 }
 
@@ -347,12 +359,18 @@ $timeline-time-size: 0.875em !default;
 // ---- Colors, after the states, so an item's own color wins -----------------
 
 @each $name in "primary", "link", "info", "success", "warning", "danger" {
+  $on-scheme: hsl(
+    cv.getVar("#{$name}-h"),
+    cv.getVar("#{$name}-s"),
+    cv.getVar("#{$name}-on-scheme-l")
+  );
+
   .#{iv.$class-prefix}timeline.#{iv.$class-prefix}is-#{$name},
   .#{iv.$class-prefix}timeline-item.#{iv.$class-prefix}is-#{$name} {
     @include cv.register-vars(
       (
-        "timeline-marker-color": #{cv.getVar($name)},
-        "timeline-active-color": #{cv.getVar($name)},
+        "timeline-marker-color": #{$on-scheme},
+        "timeline-active-color": #{$on-scheme},
         "timeline-marker-icon-background":
           hsl(
             #{cv.getVar($name, "", "-h")},
@@ -368,4 +386,39 @@ $timeline-time-size: 0.875em !default;
       )
     );
   }
+}
+
+// ---- In a colored Notification, after the colors ---------------------------
+
+// The page's colors don't stand out from a colored Notification either, so
+// there a timeline with no color of its own draws its markers in the
+// Notification's text color too, and fills its rings, its loader and its icon
+// circles with the Notification's background. A color on the timeline or on
+// an item is kept, since whoever set it chose it. A Box or a Card inside the
+// Notification is a surface of its own, in the page's colors, so a timeline
+// on one keeps the page's look. The rule weighs what `.timeline` does, so it
+// wins over that by coming later, and a class that sets these variables on a
+// timeline still wins over it from a later sheet.
+$-own-surfaces: (
+  '.#{iv.$class-prefix}notification .#{iv.$class-prefix}box .#{iv.$class-prefix}timeline',
+  '.#{iv.$class-prefix}notification .#{iv.$class-prefix}card .#{iv.$class-prefix}timeline'
+);
+
+:where(.#{iv.$class-prefix}notification:is(#{extras-color-classes()}))
+  .#{iv.$class-prefix}timeline:where(:not(#{extras-color-classes()}, #{$-own-surfaces})) {
+  $background: hsl(
+    cv.getVar("notification-h"),
+    cv.getVar("notification-s"),
+    cv.getVar("notification-background-l")
+  );
+
+  @include cv.register-vars(
+    (
+      "timeline-neutral-color": currentColor,
+      "timeline-active-color": currentColor,
+      "timeline-marker-background": #{$background},
+      "timeline-marker-icon-background": #{$background},
+      "timeline-marker-icon-color": currentColor,
+    )
+  );
 }

@@ -205,7 +205,7 @@
         },
         {
           "name": "id",
-          "type": "string",
+          "type": "React.HTMLAttributes<HTMLElement>['id']",
           "default": null,
           "description": "`id` for the wrapping `<li>`.",
           "required": false,

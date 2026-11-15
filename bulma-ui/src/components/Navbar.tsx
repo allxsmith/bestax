@@ -366,7 +366,7 @@ export interface NavbarBurgerProps
    * the button unnamed.
    * @defaultValue 'menu'
    */
-  'aria-label'?: string;
+  'aria-label'?: React.AriaAttributes['aria-label'];
   /**
    * Expanded state for assistive technology. It follows `active` unless you
    * pass `true` or `false`, and `null` leaves it off, for a burger whose
@@ -374,7 +374,7 @@ export interface NavbarBurgerProps
    * still follows `active`.
    * @defaultValue active
    */
-  'aria-expanded'?: boolean | null;
+  'aria-expanded'?: boolean | null | undefined;
   /** Click handler. */
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
 }

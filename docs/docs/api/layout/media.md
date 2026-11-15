@@ -46,7 +46,7 @@ This example demonstrates the `Media` component with its subcomponents: `Media.L
     <Image
       as="p"
       size="64x64"
-      src="https://bulma.io/assets/images/placeholders/128x128.png"
+      src="/img/carousel/carousel-banner-1-1by1.jpg"
       alt=""
     />
   </Media.Left>
@@ -108,7 +108,7 @@ This example shows the `Media` component used with form inputs. The `Media.Conte
     <Image
       as="p"
       size="64x64"
-      src="https://bulma.io/assets/images/placeholders/128x128.png"
+      src="/img/carousel/carousel-banner-1-1by1.jpg"
       alt=""
     />
   </Media.Left>
@@ -146,7 +146,7 @@ Demonstrates the `Media` component's ability to nest for threaded comments or re
     <Image
       as="p"
       size="64x64"
-      src="https://bulma.io/assets/images/placeholders/128x128.png"
+      src="/img/carousel/carousel-banner-1-1by1.jpg"
       alt=""
     />
   </Media.Left>
@@ -177,7 +177,7 @@ Demonstrates the `Media` component's ability to nest for threaded comments or re
         <Image
           as="p"
           size="48x48"
-          src="https://bulma.io/assets/images/placeholders/96x96.png"
+          src="/img/carousel/carousel-banner-2-1by1.jpg"
           alt=""
         />
       </Media.Left>
@@ -215,7 +215,7 @@ Demonstrates the `Media` component's ability to nest for threaded comments or re
         <Image
           as="p"
           size="48x48"
-          src="https://bulma.io/assets/images/placeholders/96x96.png"
+          src="/img/carousel/carousel-banner-3-1by1.jpg"
           alt=""
         />
       </Media.Left>
@@ -258,7 +258,7 @@ In this variation, a button is placed below the input area within the `Media.Con
     <Image
       as="p"
       size="64x64"
-      src="https://bulma.io/assets/images/placeholders/128x128.png"
+      src="/img/carousel/carousel-banner-1-1by1.jpg"
       alt=""
     />
   </Media.Left>
@@ -289,7 +289,7 @@ In this variation, a button is placed below the input area within the `Media.Con
     <Image
       as="p"
       size="64x64"
-      src="https://bulma.io/assets/images/placeholders/128x128.png"
+      src="/img/carousel/carousel-banner-1-1by1.jpg"
       alt=""
     />
   </Media.Left>

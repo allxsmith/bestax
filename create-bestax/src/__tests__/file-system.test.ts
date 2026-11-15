@@ -120,6 +120,18 @@ describe('file-system', () => {
       const result = await isDirectoryEmpty('/test/path');
       expect(result).toBe(false);
     });
+
+    it('should return false for directory with hidden files only', async () => {
+      (
+        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
+      ).mockReturnValue(true);
+      (
+        fs.default.readdirSync as MockedFunction<typeof fs.readdirSync>
+      ).mockReturnValue(['.gitignore', '.DS_Store'] as unknown);
+
+      const result = await isDirectoryEmpty('/path/to/dir');
+      expect(result).toBe(false);
+    });
   });
 
   describe('listDirectoryEntries', () => {
@@ -412,53 +424,6 @@ describe('file-system', () => {
         },
         { spaces: 2 }
       );
-    });
-  });
-
-  describe('isDirectoryEmpty', () => {
-    it('should return true for non-existent directory', async () => {
-      (
-        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
-      ).mockReturnValue(false);
-
-      const result = await isDirectoryEmpty('/path/to/dir');
-      expect(result).toBe(true);
-    });
-
-    it('should return true for empty directory', async () => {
-      (
-        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
-      ).mockReturnValue(true);
-      (
-        fs.default.readdirSync as MockedFunction<typeof fs.readdirSync>
-      ).mockReturnValue([] as unknown);
-
-      const result = await isDirectoryEmpty('/path/to/dir');
-      expect(result).toBe(true);
-    });
-
-    it('should return false for directory with files', async () => {
-      (
-        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
-      ).mockReturnValue(true);
-      (
-        fs.default.readdirSync as MockedFunction<typeof fs.readdirSync>
-      ).mockReturnValue(['file.txt'] as unknown);
-
-      const result = await isDirectoryEmpty('/path/to/dir');
-      expect(result).toBe(false);
-    });
-
-    it('should return false for directory with hidden files only', async () => {
-      (
-        fs.default.existsSync as MockedFunction<typeof fs.existsSync>
-      ).mockReturnValue(true);
-      (
-        fs.default.readdirSync as MockedFunction<typeof fs.readdirSync>
-      ).mockReturnValue(['.gitignore', '.DS_Store'] as unknown);
-
-      const result = await isDirectoryEmpty('/path/to/dir');
-      expect(result).toBe(false);
     });
   });
 

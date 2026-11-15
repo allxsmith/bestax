@@ -106,6 +106,7 @@ const BESTAX = {
   Timeline: 'components/timeline',
   Toast: 'components/toast',
   Tooltip: 'components/tooltip',
+  Tour: 'components/tour',
   TreeView: 'components/treeview',
   Autocomplete: 'form/autocomplete',
   Checkbox: 'form/checkbox',
@@ -2175,7 +2176,7 @@ export const categories = [
         0,
       ],
       ['Anchored positioning primitive', 0, 0, 'Overlay', 'Popper', 0, 0, 0, 0],
-      ['Product tour', 0, 'Tour', 0, 0, 0, 0, 0, 'Tour'],
+      ['Product tour', 'Tour', 'Tour', 0, 0, 0, 0, 0, 'Tour'],
     ],
   },
   {
