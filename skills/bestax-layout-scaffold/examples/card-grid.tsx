@@ -22,47 +22,51 @@ interface Product {
   blurb: string;
 }
 
+// Each `image` is a photo the app serves itself (in a Vite app, a file under
+// `public/images/products/`). Replace these paths with your own pictures.
+// Don't point `image` at a placeholder or stock-photo service: what it
+// serves can change or disappear, and nothing records whose photo it is.
 const PRODUCTS: Product[] = [
   {
     id: 1,
     name: 'Aurora Lamp',
     price: '$48',
-    image: 'https://picsum.photos/seed/1/600/400',
+    image: '/images/products/aurora-lamp.jpg',
     blurb: 'Warm ambient light.',
   },
   {
     id: 2,
     name: 'Drift Chair',
     price: '$220',
-    image: 'https://picsum.photos/seed/2/600/400',
+    image: '/images/products/drift-chair.jpg',
     blurb: 'Ergonomic and airy.',
   },
   {
     id: 3,
     name: 'Stone Mug',
     price: '$18',
-    image: 'https://picsum.photos/seed/3/600/400',
+    image: '/images/products/stone-mug.jpg',
     blurb: 'Hand-thrown ceramic.',
   },
   {
     id: 4,
     name: 'Field Notebook',
     price: '$12',
-    image: 'https://picsum.photos/seed/4/600/400',
+    image: '/images/products/field-notebook.jpg',
     blurb: 'Pocket-sized, lined.',
   },
   {
     id: 5,
     name: 'Trail Bottle',
     price: '$26',
-    image: 'https://picsum.photos/seed/5/600/400',
+    image: '/images/products/trail-bottle.jpg',
     blurb: 'Insulated steel.',
   },
   {
     id: 6,
     name: 'Linen Throw',
     price: '$64',
-    image: 'https://picsum.photos/seed/6/600/400',
+    image: '/images/products/linen-throw.jpg',
     blurb: 'Soft, breathable.',
   },
 ];

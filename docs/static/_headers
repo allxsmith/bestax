@@ -25,6 +25,14 @@
 /llms-full.txt
   Cache-Control: public, max-age=0, must-revalidate
 
+# Live examples load these images by their site address inside StackBlitz and
+# CodeSandbox projects too (the sandbox converter's withSiteImages). A preview
+# that is cross-origin isolated without credentialless COEP loads a picture
+# from another origin only when it says it may be embedded there. Pages gives a
+# path the headers of every rule it matches, so these keep /*'s as well.
+/img/*
+  Cross-Origin-Resource-Policy: cross-origin
+
 # HTML and everything else unhashed: always revalidate.
 /*
   Cache-Control: public, max-age=0, must-revalidate

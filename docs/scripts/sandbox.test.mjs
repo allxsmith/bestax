@@ -16,8 +16,12 @@ import { fileURLToPath } from 'node:url';
 import {
   blankNonCode,
   toExampleModule,
+  withSiteImages,
 } from '../src/theme/CodeBlock/sandbox/example.mjs';
-import { stripModuleLines } from '../src/theme/CodeBlock/sandbox/moduleLines.mjs';
+import {
+  importedStylesheets,
+  stripModuleLines,
+} from '../src/theme/CodeBlock/sandbox/moduleLines.mjs';
 import {
   ICON_LIBRARIES,
   SANDBOX_TYPESCRIPT,
@@ -81,6 +85,27 @@ describe('stripModuleLines', () => {
       'export default A;',
     ].join('\n');
     assert.equal(stripModuleLines(code), 'function A() {}');
+  });
+});
+
+describe('importedStylesheets', () => {
+  it('lists the stylesheets an example imports for their effect, in order', () => {
+    const code = [
+      "import { ConfigProvider } from '@allxsmith/bestax-bulma';",
+      "import '@allxsmith/bestax-bulma/versions/bestax-prefixed.css';",
+      "  import './theme.css' ; // the app's own",
+      "import styles from './module.css';",
+      "import '@allxsmith/bestax-bulma/versions/bestax-prefixed.css';",
+      'const note = "import \'./not-a-line.css\';";',
+    ].join('\n');
+    assert.deepEqual(importedStylesheets(code), [
+      '@allxsmith/bestax-bulma/versions/bestax-prefixed.css',
+      './theme.css',
+    ]);
+  });
+
+  it('is empty for an example that imports no stylesheet', () => {
+    assert.deepEqual(importedStylesheets('<Box>Hi</Box>'), []);
   });
 });
 
@@ -253,6 +278,57 @@ describe('toExampleModule', () => {
     assert.match(source, / {4}\/\/ Try editing this code!\n {4}<Box \/>/);
     const named = convert('// note\nfunction A() { return <Box />; }');
     assert.match(named.source, /\n\nexport default A;\n$/);
+  });
+
+  it("points the site's images at the docs site, and leaves other paths", () => {
+    const code = [
+      'function Example() {',
+      "  const photos = [{ src: '/img/carousel/a.jpg' }];",
+      '  const n = 2;',
+      '  return (',
+      '    <Block>',
+      '      <img src="/img/logo.svg" alt="" />',
+      '      <img src={`/img/b-${n}.jpg`} alt="" />',
+      '      <img src="/images/c.png" alt="" />',
+      '      <img src="https://example.com/img/d.png" alt="" />',
+      "      <Box style={{ backgroundImage: 'url(/img/f.jpg)' }} />",
+      "      <Box style={{ backgroundImage: 'url( /img/h.jpg)' }} />",
+      '      <p>Put pictures in (/img/), one per {/img/.source.length} slashes</p>',
+      '      <Box style={{ backgroundImage: \'url("/img/g.jpg")\' }} />',
+      '      <img src={photos[0].src} alt="" />',
+      '    </Block>',
+      '  );',
+      '}',
+    ].join('\n');
+    const { source } = toExampleModule(code, {
+      ...OPTIONS,
+      sourceUrl: 'https://bestax.io/docs/api/elements/image',
+    });
+    assert.match(
+      source,
+      /\{ src: 'https:\/\/bestax\.io\/img\/carousel\/a\.jpg' \}/
+    );
+    assert.match(source, /src="https:\/\/bestax\.io\/img\/logo\.svg"/);
+    assert.match(source, /src=\{`https:\/\/bestax\.io\/img\/b-\$\{n\}\.jpg`\}/);
+    assert.match(source, /src="\/images\/c\.png"/);
+    assert.match(source, /src="https:\/\/example\.com\/img\/d\.png"/);
+    assert.match(source, /'url\(https:\/\/bestax\.io\/img\/f\.jpg\)'/);
+    assert.match(source, /'url\( https:\/\/bestax\.io\/img\/h\.jpg\)'/);
+    // Text and a regex literal that only mention the folder are left alone.
+    assert.match(source, /in \(\/img\/\), one per \{\/img\/\.source/);
+    assert.match(source, /'url\("https:\/\/bestax\.io\/img\/g\.jpg"\)'/);
+    // With no page to resolve against, the path is left as written.
+    assert.match(
+      toExampleModule(code, OPTIONS).source,
+      /src="\/img\/logo\.svg"/
+    );
+  });
+
+  it('resolves site images against the page URL it is given', () => {
+    assert.equal(
+      withSiteImages("'/img/a.svg'", 'https://preview.bestax.io/docs/x'),
+      "'https://preview.bestax.io/img/a.svg'"
+    );
   });
 
   it('returns null for an example that uses a docs-only component', () => {
