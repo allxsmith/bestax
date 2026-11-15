@@ -75,7 +75,12 @@ interface SliderBaseProps
   step?: number;
   /** Size variant. */
   size?: SliderSize;
-  /** Color variant. */
+  /**
+   * Color variant. The keyboard focus ring around the thumb takes the color's
+   * `-on-scheme` variant, the shade Bulma adjusts to read on the page in
+   * either scheme, so a pale color such as `warning` is drawn darker on a
+   * light page.
+   */
   color?: SliderColor;
   /** Use rounded track ends. */
   isRounded?: boolean;

@@ -67,7 +67,12 @@ export interface RadioProps
       'size' | 'type' | 'color'
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'> {
-  /** Color of the radio button. */
+  /**
+   * Color of the radio button. A checked ring and dot take the color's
+   * `-on-scheme` variant, the shade Bulma adjusts to read on the page in
+   * either scheme, so a pale color such as `warning` is drawn darker on a
+   * light page.
+   */
   color?: (typeof radioColors)[number];
   /** Size of the radio button. */
   size?: (typeof radioSizes)[number];

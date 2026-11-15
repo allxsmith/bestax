@@ -66,7 +66,12 @@ export interface SwitchProps
       'size' | 'type' | 'color'
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'> {
-  /** Color variant for the switch. */
+  /**
+   * Color variant for the switch. The track when on takes the color's
+   * `-on-scheme` variant, the shade Bulma adjusts to read on the page in
+   * either scheme, so a pale color such as `warning` is drawn darker on a
+   * light page.
+   */
   color?: (typeof switchColors)[number];
   /** Size of the switch. */
   size?: (typeof switchSizes)[number];
@@ -78,7 +83,10 @@ export interface SwitchProps
   isOutlined?: boolean;
   /** Right-to-left layout (label on left). */
   isRtl?: boolean;
-  /** Color when the switch is in the off/passive state. */
+  /**
+   * Color when the switch is in the off/passive state. The track takes the
+   * color's `-on-scheme` variant, as `color` does.
+   */
   passiveType?: (typeof switchColors)[number];
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
