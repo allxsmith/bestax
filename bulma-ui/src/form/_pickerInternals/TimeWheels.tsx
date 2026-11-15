@@ -28,6 +28,7 @@ import {
   mergeLabels,
 } from './pickerTypes';
 import { setTimeOfDay } from './dateUtils';
+import { getDateNumberFormat } from './formatters';
 import { tickHaptic as fireTickHaptic } from './haptics';
 import { playAudioTick, unlockAudioTick } from './audioTick';
 
@@ -59,6 +60,11 @@ export interface TimeWheelsProps {
   className?: string;
   id?: string;
   labels?: PickerLabels;
+  /**
+   * The locale the wheels write their hours, minutes and seconds in, with
+   * its digits. Unset, they keep plain digits.
+   */
+  locale?: string;
   /** Number of items visible at once (must be odd). Default 5. */
   visibleCount?: number;
   /** Item height in px. Default 32. */
@@ -97,8 +103,6 @@ function nextValid(
   }
   return start;
 }
-
-const pad2 = (n: number): string => String(n).padStart(2, '0');
 
 interface WheelHandle {
   focus: () => void;
@@ -794,12 +798,15 @@ export const TimeWheels: React.FC<TimeWheelsProps> = ({
   className,
   id,
   labels,
+  locale,
   visibleCount = 5,
   itemHeight = 32,
   audioTick = false,
   onCommit,
 }) => {
   const t = mergeLabels(labels);
+  // Two digits in the locale's own, as the calendar writes its numbers.
+  const pad = useMemo(() => getDateNumberFormat(locale, 2), [locale]);
 
   const rootClass = usePrefixedClassNames('timeinput', {
     [`is-${color}`]: !!color,
@@ -1030,7 +1037,7 @@ export const TimeWheels: React.FC<TimeWheelsProps> = ({
           values={hourValues}
           index={hourIndex}
           onChange={onHourIndex}
-          formatLabel={pad2}
+          formatLabel={pad}
           ariaLabel={t.hours}
           visibleCount={visibleCount}
           itemHeight={itemHeight}
@@ -1053,7 +1060,7 @@ export const TimeWheels: React.FC<TimeWheelsProps> = ({
           values={minuteValues}
           index={minuteIndex}
           onChange={onMinuteIndex}
-          formatLabel={pad2}
+          formatLabel={pad}
           ariaLabel={t.minutes}
           visibleCount={visibleCount}
           itemHeight={itemHeight}
@@ -1078,7 +1085,7 @@ export const TimeWheels: React.FC<TimeWheelsProps> = ({
               values={secondValues}
               index={secondIndex}
               onChange={onSecondIndex}
-              formatLabel={pad2}
+              formatLabel={pad}
               ariaLabel={t.seconds}
               visibleCount={visibleCount}
               itemHeight={itemHeight}

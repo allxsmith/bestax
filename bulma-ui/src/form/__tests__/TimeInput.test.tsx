@@ -6,6 +6,7 @@ import { Field } from '../Field';
 import { Control } from '../Control';
 import { TimeInputBase } from '../TimeInputBase';
 import { ConfigProvider } from '../../helpers/Config';
+import { LocaleProvider } from '../../helpers/LocaleProvider';
 import { __resetAudioTickForTest } from '../_pickerInternals/audioTick';
 import { makeDate } from '../_pickerInternals/dateUtils';
 
@@ -2220,6 +2221,99 @@ describe('TimeInput before year 1', () => {
       fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
       expect(handler).not.toHaveBeenCalled();
       unmount();
+    }
+  });
+});
+
+describe('TimeInput wheels in a locale', () => {
+  /** Each wheel's current value as it reads, by the wheel's name. */
+  const wheelText = (getByRole: (role: string, o: object) => HTMLElement) =>
+    ['hours', 'minutes', 'seconds'].map(name =>
+      getByRole('spinbutton', { name }).getAttribute('aria-valuetext')
+    );
+
+  it.each([
+    ['en-US', ['09', '05', '07']],
+    // Arabic-Indic digits, and the extended ones Persian writes.
+    ['ar-EG', ['٠٩', '٠٥', '٠٧']],
+    ['fa-IR', ['۰۹', '۰۵', '۰۷']],
+    ['ja-JP', ['09', '05', '07']],
+    // A -u-nu- extension picks the digits.
+    ['ar-EG-u-nu-latn', ['09', '05', '07']],
+    ['en-US-u-nu-arab', ['٠٩', '٠٥', '٠٧']],
+  ])('writes the hours, minutes and seconds as %s does', (locale, text) => {
+    const { getByRole, container } = render(
+      <TimeInput
+        inline
+        aria-label="Time"
+        locale={locale}
+        enableSeconds
+        defaultValue={at(9, 5, 7)}
+      />
+    );
+    expect(wheelText(getByRole)).toEqual(text);
+    // The items read the same as the wheel's value.
+    const items = Array.from(
+      container.querySelectorAll('.timeinput-wheel-item')
+    ).map(item => item.textContent);
+    expect(items).toContain(text[0]);
+  });
+
+  it("takes a LocaleProvider's locale", () => {
+    const { getByRole } = render(
+      <LocaleProvider locale="ar-EG">
+        <TimeInput inline aria-label="Time" defaultValue={at(9, 5)} />
+      </LocaleProvider>
+    );
+    expect(
+      getByRole('spinbutton', { name: 'hours' }).getAttribute('aria-valuetext')
+    ).toBe('٠٩');
+  });
+
+  it('pads a 12-hour wheel and leaves the field in its own format', () => {
+    const { getByRole, container } = render(
+      <TimeInput
+        inline
+        aria-label="Time"
+        locale="ar-EG"
+        hourFormat="12"
+        name="start"
+        defaultValue={at(13, 5)}
+      />
+    );
+    expect(
+      getByRole('spinbutton', { name: 'hours' }).getAttribute('aria-valuetext')
+    ).toBe('٠١');
+    // The value it submits keeps Latin digits.
+    expect(
+      (container.querySelector('input[name="start"]') as HTMLInputElement).value
+    ).toBe('13:05');
+  });
+
+  it('keeps plain digits with no locale, whatever the runtime writes', () => {
+    // A server and a browser can write numbers differently, so with no
+    // locale to agree on the wheels write plain digits. Any number Intl
+    // wrote here would come out as ٩. (`format` is a getter that hands back
+    // a bound function.)
+    const numbers = vi
+      .spyOn(
+        Intl.NumberFormat.prototype as { format: unknown },
+        'format',
+        'get'
+      )
+      .mockReturnValue(() => '٩');
+    try {
+      const { getByRole } = render(
+        <TimeInput inline aria-label="Time" defaultValue={at(9, 5)} />
+      );
+      expect(
+        getByRole('spinbutton', { name: 'hours' }).getAttribute(
+          'aria-valuetext'
+        )
+      ).toBe('09');
+      expect(numbers).not.toHaveBeenCalled();
+    } finally {
+      numbers.mockRestore();
     }
   });
 });

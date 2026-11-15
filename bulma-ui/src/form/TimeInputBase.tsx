@@ -134,9 +134,10 @@ export interface TimeInputBaseProps
    */
   parse?: (s: string) => Date | null;
   /**
-   * BCP-47 locale tag for Intl formatting. Unset, it is the `locale` of a
+   * BCP-47 locale tag for Intl formatting and the digits the wheels write
+   * their hours, minutes and seconds in. Unset, it is the `locale` of a
    * `LocaleProvider` around the picker, and with neither, `Intl` uses the
-   * runtime's own locale.
+   * runtime's own locale and the wheels keep plain digits.
    */
   locale?: string;
   /** Render the spinner inline (no popover). */
@@ -560,6 +561,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
           // the id they released with.
           id={inline ? popoverId : `${popoverId}-time`}
           labels={labels}
+          locale={locale}
           itemHeight={wheelItemHeight}
           audioTick={effectiveAudioTick}
           onCommit={() => setOpen(false)}
