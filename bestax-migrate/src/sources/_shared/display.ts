@@ -13,7 +13,8 @@
  * bulma-classes source keeps one. The flex container props render only beside
  * a flex `display` prop, so when the base value was the flex display and no
  * per-viewport one is, they go into `className` the same way. A value bestax
- * doesn't take is left where it was, as the source left it.
+ * doesn't take is left where it was, as the source left it: the lists are the
+ * class map's, which its value-union test holds to bestax-bulma's constants.
  *
  * Where a per-viewport display, the base value, the `className` or a
  * container prop it would move is dynamic, or a spread could replace the
@@ -22,13 +23,13 @@
 
 import type { ASTPath } from 'jscodeshift';
 import {
-  validAlignContents,
-  validAlignItems,
-  validDisplays,
-  validFlexDirections,
-  validFlexWraps,
-  validJustifyContents,
-} from '@allxsmith/bestax-bulma/constants';
+  ALIGN_CONTENTS,
+  ALIGN_ITEMS,
+  DISPLAYS,
+  FLEX_DIRECTIONS,
+  FLEX_WRAPS,
+  JUSTIFY_CONTENTS,
+} from '../bulma-classes/class-map.js';
 import {
   addTodo,
   findAttr,
@@ -51,17 +52,17 @@ const VIEWPORT_DISPLAYS = Object.values(VIEWPORT_SUFFIX).map(
 const displayClass = (value: string): string | undefined =>
   value === 'none'
     ? 'is-hidden'
-    : (validDisplays as readonly string[]).includes(value)
+    : (DISPLAYS as readonly string[]).includes(value)
       ? `is-${value}`
       : undefined;
 
 /** The flex container props: the class prefix, and the values bestax takes. */
 const FLEX_CONTAINER: Record<string, [string, readonly string[]]> = {
-  flexDirection: ['is-flex-direction-', validFlexDirections],
-  flexWrap: ['is-flex-wrap-', validFlexWraps],
-  justifyContent: ['is-justify-content-', validJustifyContents],
-  alignContent: ['is-align-content-', validAlignContents],
-  alignItems: ['is-align-items-', validAlignItems],
+  flexDirection: ['is-flex-direction-', FLEX_DIRECTIONS],
+  flexWrap: ['is-flex-wrap-', FLEX_WRAPS],
+  justifyContent: ['is-justify-content-', JUSTIFY_CONTENTS],
+  alignContent: ['is-align-content-', ALIGN_CONTENTS],
+  alignItems: ['is-align-items-', ALIGN_ITEMS],
 };
 
 const isFlex = (value: string) => value === 'flex' || value === 'inline-flex';
@@ -82,7 +83,7 @@ export function keepBaseDisplay(
     addTodo(
       ctx,
       path,
-      'prop:display',
+      'prop:display-base',
       `bestax leaves \`display\` out beside a per-viewport display prop; ${message}`
     );
 

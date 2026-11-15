@@ -120,7 +120,7 @@ describe('keepBaseDisplay', () => {
   ])('changes nothing and leaves a TODO for %s', (_, written) => {
     const { out, rules } = run(written);
     expect(attrs(out)).toBe(`<Box ${written}`);
-    expect(rules).toEqual(['prop:display']);
+    expect(rules).toEqual(['prop:display-base']);
     expect(out).toContain('TODO(bestax-migrate): bestax leaves `display` out');
   });
 
