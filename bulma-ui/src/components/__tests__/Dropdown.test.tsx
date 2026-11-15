@@ -1058,7 +1058,7 @@ describe('Dropdown keyboard navigation', () => {
     expect(screen.getByText('First')).toHaveFocus();
   });
 
-  test('a click with no pointer behind it opens the menu on the first item, as Enter does, and closes it again', () => {
+  test("a script's click opens the menu with focus left where it was", () => {
     render(
       <Dropdown label="Menu">
         <DropdownItem>First</DropdownItem>
@@ -1066,13 +1066,19 @@ describe('Dropdown keyboard navigation', () => {
       </Dropdown>
     );
     const button = screen.getByRole('button', { name: /menu/i });
-    // A screen reader's browse mode activates a button with a click whose
-    // detail is 0.
+    act(() => button.focus());
+    // A script's click() has no pointer behind it either (detail 0), but
+    // the browser didn't dispatch it, so it moves no focus. Only a trusted
+    // one, as a screen reader's browse mode can send, opens on the first
+    // item, which jsdom can't dispatch.
     fireEvent.click(button, { detail: 0 });
     expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
-    expect(screen.getByText('First')).toHaveFocus();
-    fireEvent.click(button, { detail: 0 });
+    expect(button).toHaveFocus();
+    act(() => button.click());
     expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+    act(() => button.click());
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+    expect(button).toHaveFocus();
   });
 
   test("a pointer's click opens the menu with focus left where it was", () => {
