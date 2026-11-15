@@ -1,4 +1,4 @@
-import React, { createRef, useRef, useState } from 'react';
+import React, { createRef, forwardRef, useRef, useState } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { createPortal } from 'react-dom';
@@ -383,18 +383,22 @@ describe('FloatButtons', () => {
   });
 });
 
-/** A dial with three actions that log what runs. */
-const Dial = ({
-  log = [],
-  ...props
-}: Partial<React.ComponentProps<typeof FloatButtonSpeedDial>> & {
-  log?: string[];
-}) => (
+/**
+ * A dial with three actions that log what runs. It forwards its ref, since
+ * React 18 doesn't pass `ref` to a function component as a prop.
+ */
+const Dial = forwardRef<
+  HTMLDivElement,
+  Partial<React.ComponentProps<typeof FloatButtonSpeedDial>> & {
+    log?: string[];
+  }
+>(({ log = [], ...props }, ref) => (
   <FloatButton.SpeedDial
     aria-label="Create"
     icon="plus"
     data-testid="dial"
     {...(props as object)}
+    ref={ref}
   >
     <FloatButton
       aria-label="Note"
@@ -412,7 +416,8 @@ const Dial = ({
       onClick={() => log.push('event')}
     />
   </FloatButton.SpeedDial>
-);
+));
+Dial.displayName = 'Dial';
 
 const dialTrigger = () =>
   screen.getByRole('button', { name: 'Create' }) as HTMLButtonElement;

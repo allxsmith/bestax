@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, userEvent, within } from 'storybook/test';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 import { FloatButton } from './FloatButton';
 import { FloatButtons } from './FloatButtons';
 import { Badge } from './Badge';
@@ -207,7 +207,10 @@ export const SpeedDial: Story = {
     await expect(canvas.queryByRole('menu')).toBeNull();
     trigger.focus();
     await userEvent.keyboard('{Enter}');
-    await expect(canvas.getByRole('menu', { name: 'Create' })).toBeVisible();
+    // The actions fade in from opacity 0 as they mount.
+    await waitFor(() =>
+      expect(canvas.getByRole('menu', { name: 'Create' })).toBeVisible()
+    );
     await expect(canvas.getByRole('menuitem', { name: 'Note' })).toHaveFocus();
     await userEvent.keyboard('{Escape}');
     await expect(canvas.queryByRole('menu')).toBeNull();
