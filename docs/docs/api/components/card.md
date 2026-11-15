@@ -48,8 +48,8 @@ To create a flexible content block, use the `Card` component with optional `head
 ```tsx live
 <Card
   header="Card Header"
-  image="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80"
-  imageAlt="Beautiful forest"
+  image="/img/carousel/carousel-banner-1-4by3.jpg"
+  imageAlt="Vibrant galaxy with purple and gold tones"
   footer={[
     <Card.FooterItem key="save">Save</Card.FooterItem>,
     <Card.FooterItem key="cancel">Cancel</Card.FooterItem>,
@@ -96,8 +96,8 @@ Set the `image` and `imageAlt` props to display a card with only an image. This 
 
 ```tsx live
 <Card
-  image="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80"
-  imageAlt="Beautiful forest"
+  image="/img/carousel/carousel-banner-1-4by3.jpg"
+  imageAlt="Vibrant galaxy with purple and gold tones"
 />
 ```
 
@@ -109,8 +109,8 @@ Combine the `image`, `imageAlt`, and `children` props to display a card with an 
 
 ```tsx live
 <Card
-  image="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80"
-  imageAlt="Beautiful forest"
+  image="/img/carousel/carousel-banner-1-4by3.jpg"
+  imageAlt="Vibrant galaxy with purple and gold tones"
 >
   Quando in rerum natura cursu fit ut populus aliquis inter nationes terrae...
 </Card>
@@ -166,8 +166,8 @@ Combine multiple props such as `header`, `textColor`, `bgColor`, `m`, `p`, `text
       <Icon library="fa" name="bolt" textColor="warning" ariaLabel="Pro" />
     </button>
   }
-  image="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80"
-  imageAlt="Dashboard analytics"
+  image="/img/carousel/carousel-banner-3-4by3.jpg"
+  imageAlt="Starry night sky over mountain silhouettes"
   m="3"
   textAlign="centered"
   hasShadow
@@ -207,8 +207,8 @@ import { Icon, Image } from '@allxsmith/bestax-bulma';
   </Card.Header>
   <Card.Image>
     <Image
-      src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80"
-      alt="Beautiful forest"
+      src="/img/carousel/carousel-banner-1-4by3.jpg"
+      alt="Vibrant galaxy with purple and gold tones"
       size="4by3"
     />
   </Card.Image>
