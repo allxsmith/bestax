@@ -1,5 +1,6 @@
 // Tag Styles
-// Bulma already styles the tag; this gives the light color back its own text
+// Bulma already styles the tag; this gives the light color back its own text,
+// and keeps a tag in a table cell from making its row taller
 
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
@@ -26,4 +27,24 @@
       'tag-color-l': #{cv.getVar('light-invert-l')},
     )
   );
+}
+
+// A tag in a table cell. Bulma's tag is an `inline-flex` box on the text's
+// baseline, as tall as a line of body text, so the room the line keeps under
+// its baseline makes the cell's line, and its row, a little taller than a row
+// of plain text. At the bottom of the line it fits a line of body text, and
+// in larger text its label still lands near the text's baseline. A tag made
+// larger, with a size or a text size, is taller than the line and grows it
+// either way, so it keeps the baseline. The rule is all `:where()`, so it
+// weighs nothing: Bulma's `.title .tag` and `.subtitle .tag`, which center a
+// tag in a heading, and any rule an app writes for a tag still win.
+:where(.#{iv.$class-prefix}table td, .#{iv.$class-prefix}table th)
+  :where(
+    .#{iv.$class-prefix}tag:not(
+        .#{iv.$class-prefix}is-medium,
+        .#{iv.$class-prefix}is-large,
+        [class*='#{iv.$class-prefix}is-size-']
+      )
+  ) {
+  vertical-align: bottom;
 }
