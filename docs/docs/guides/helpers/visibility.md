@@ -636,7 +636,7 @@ Each visibility value (`'hidden'`, `'sr-only'`, `'invisible'`) can be scoped to 
 </Box>
 ```
 
-Bulma draws `is-sr-only` at every width only, so `'sr-only'` at a breakpoint (`visibilityTablet="sr-only"`, which writes `is-sr-only-tablet`) comes from bestax's own `helpers/visibility` partial, in `bestax.css`, its prefixed flavors and `extras.css`. The `no-helpers` flavors leave it out with the rest of the helpers.
+Bulma draws `is-sr-only` at every width only, so `'sr-only'` at a breakpoint (`visibilityTablet="sr-only"`, which writes `is-sr-only-tablet`) comes from bestax's own `helpers/visibility` partial, in `bestax.css`, `extras.css` and every flavor but the no-helpers ones, which leave it out with the rest of the helpers.
 
 ### Other Visibility Examples
 

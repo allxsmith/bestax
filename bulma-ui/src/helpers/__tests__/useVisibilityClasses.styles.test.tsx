@@ -3,16 +3,12 @@
 // `scss/helpers/_visibility.scss` draws those. This compiles the partial
 // beside Bulma's own visibility helpers and holds each breakpoint's class to
 // Bulma's `is-sr-only` declarations, inside the query Bulma gives that
-// breakpoint's `is-hidden` class, with and without a class prefix.
-import * as sass from 'sass';
-import path from 'path';
+// breakpoint's `is-hidden` class, with and without a class prefix. Each class
+// is doubled, so it outranks Bulma's `!important` helpers (`p-3`,
+// `is-relative`) whichever sheet loads first, and the published sheets are
+// read for where it ships.
 import { validViewports } from '../bulmaClassHelpers';
-import { compileSheet } from '../../__tests__/compile-scss';
-
-const LOAD_PATHS = [
-  path.resolve(__dirname, '../../scss'),
-  path.resolve(__dirname, '../../../../node_modules'),
-];
+import { compileScss, compileSheet } from '../../__tests__/compile-scss';
 
 /** The rules a stylesheet holds, read the way a browser reads it. */
 function rulesOf(css: string): CSSRuleList {
@@ -58,17 +54,17 @@ describe.each(['', 'bestax-'])(
       ? `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');\n`
       : '';
     const rules = rulesOf(
-      sass.compileString(
-        `${configure}@use 'bulma/sass/helpers/visibility';\n@use 'helpers/visibility' as bestax-visibility;`,
-        { loadPaths: LOAD_PATHS, quietDeps: true, logger: sass.Logger.silent }
-      ).css
+      compileScss(
+        `${configure}@use 'bulma/sass/helpers/visibility';\n@use 'helpers/visibility' as bestax-visibility;`
+      )
     );
     const bulmaSrOnly = find(rules, `.${prefix}is-sr-only`)!;
 
     it.each(validViewports)(
-      'draws is-sr-only-%s as Bulma draws is-sr-only, in its breakpoint',
+      'draws is-sr-only-%s as Bulma draws is-sr-only, in its breakpoint, doubled',
       viewport => {
-        const ours = find(rules, `.${prefix}is-sr-only-${viewport}`);
+        const name = `.${prefix}is-sr-only-${viewport}`;
+        const ours = find(rules, `${name}${name}`);
         const hidden = find(rules, `.${prefix}is-hidden-${viewport}`)!;
         expect(ours).toBeDefined();
         expect(ours!.media).toBe(hidden.media);
@@ -81,22 +77,14 @@ describe.each(['', 'bestax-'])(
   }
 );
 
-it('ships them in bestax.css, extras.css and the prefixed flavor, and not without helpers', () => {
-  for (const sheet of ['bestax.scss', 'extras.scss']) {
-    expect(
-      find(rulesOf(compileSheet(sheet)), '.is-sr-only-tablet')
-    ).toBeDefined();
-  }
-  expect(
-    find(
-      rulesOf(compileSheet('versions/bestax-prefixed.scss')),
-      '.bestax-is-sr-only-tablet'
-    )
-  ).toBeDefined();
-  expect(
-    find(
-      rulesOf(compileSheet('versions/bestax-no-helpers.scss')),
-      '.is-sr-only-tablet'
-    )
-  ).toBeUndefined();
+it.each([
+  ['bestax.scss', '', true],
+  ['extras.scss', '', true],
+  ['versions/bestax-prefixed.scss', 'bestax-', true],
+  ['versions/bestax-no-dark-mode.scss', '', true],
+  ['versions/bestax-no-helpers.scss', '', false],
+  ['versions/bestax-no-helpers-prefixed.scss', 'bestax-', false],
+])('%s ships them: %s%s', (sheet, prefix, ships) => {
+  const name = `.${prefix}is-sr-only-tablet`;
+  expect(compileSheet(sheet).includes(`${name}${name}`)).toBe(ships);
 });

@@ -114,6 +114,16 @@ Notes:
   @use '@allxsmith/bestax-bulma/scss/components/tabs' as bestax-tabs;
   ```
 
+- The `visibility` helpers partial **extends** stock Bulma's visibility helpers: it draws
+  `is-sr-only` at each breakpoint, which Bulma draws at every width only and the viewport
+  visibility props write for `'sr-only'` (`visibilityTablet="sr-only"`). An app using those
+  needs both:
+
+  ```scss
+  @use 'bulma/sass/helpers/visibility';
+  @use '@allxsmith/bestax-bulma/scss/helpers/visibility' as bestax-visibility;
+  ```
+
 - The `menu` partial **extends** stock Bulma menu (it draws `Menu.Section`'s heading and chevron,
   starts each item's text at the right on a right-to-left page, and keeps the active item marked
   in forced colors, Windows' contrast themes), so an app using

@@ -10,9 +10,10 @@
 
 // Bulma's `is-sr-only`, declaration for declaration, so a breakpoint's class
 // does what the plain one does. Not `extras-sr-only`, whose declarations
-// aren't `!important`: like Bulma's helpers, these have to outrank the
-// element's own padding and border whichever stylesheet loads first.
-@mixin sr-only {
+// aren't `!important`: these have to outrank the element's own padding and
+// border, and Bulma's helpers (`p-3`, `is-relative`, `is-overflow-visible`)
+// too, which are `!important` as well.
+@mixin -sr-only {
   border: none !important;
   clip: rect(0, 0, 0, 0) !important;
   height: 0.01em !important;
@@ -23,58 +24,60 @@
   width: 0.01em !important;
 }
 
-$sr-only: '#{iv.$class-prefix}#{iv.$helpers-prefix}sr-only';
+// Each class is doubled, so it outranks Bulma's one-class helpers whichever
+// stylesheet loads first and wherever a flavor puts this partial.
+$-sr-only: '#{iv.$class-prefix}#{iv.$helpers-prefix}sr-only';
 
 @include mx.mobile {
-  .#{$sr-only}-mobile {
-    @include sr-only;
+  .#{$-sr-only}-mobile.#{$-sr-only}-mobile {
+    @include -sr-only;
   }
 }
 
 @include mx.tablet {
-  .#{$sr-only}-tablet {
-    @include sr-only;
+  .#{$-sr-only}-tablet.#{$-sr-only}-tablet {
+    @include -sr-only;
   }
 }
 
 @include mx.tablet-only {
-  .#{$sr-only}-tablet-only {
-    @include sr-only;
+  .#{$-sr-only}-tablet-only.#{$-sr-only}-tablet-only {
+    @include -sr-only;
   }
 }
 
 @include mx.touch {
-  .#{$sr-only}-touch {
-    @include sr-only;
+  .#{$-sr-only}-touch.#{$-sr-only}-touch {
+    @include -sr-only;
   }
 }
 
 @include mx.desktop {
-  .#{$sr-only}-desktop {
-    @include sr-only;
+  .#{$-sr-only}-desktop.#{$-sr-only}-desktop {
+    @include -sr-only;
   }
 }
 
 @include mx.desktop-only {
-  .#{$sr-only}-desktop-only {
-    @include sr-only;
+  .#{$-sr-only}-desktop-only.#{$-sr-only}-desktop-only {
+    @include -sr-only;
   }
 }
 
 @include mx.widescreen {
-  .#{$sr-only}-widescreen {
-    @include sr-only;
+  .#{$-sr-only}-widescreen.#{$-sr-only}-widescreen {
+    @include -sr-only;
   }
 }
 
 @include mx.widescreen-only {
-  .#{$sr-only}-widescreen-only {
-    @include sr-only;
+  .#{$-sr-only}-widescreen-only.#{$-sr-only}-widescreen-only {
+    @include -sr-only;
   }
 }
 
 @include mx.fullhd {
-  .#{$sr-only}-fullhd {
-    @include sr-only;
+  .#{$-sr-only}-fullhd.#{$-sr-only}-fullhd {
+    @include -sr-only;
   }
 }
