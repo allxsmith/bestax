@@ -42,6 +42,9 @@ export function Elements() {
             <Button text state="active" submit>
               Plain
             </Button>
+            <Button color="info" colorVariant="light">
+              Light
+            </Button>
             <Button remove />
           </Button.Group>
         </Block>
