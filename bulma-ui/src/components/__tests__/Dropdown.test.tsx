@@ -1,5 +1,6 @@
 import type { MockInstance } from 'vitest';
 import { createRef, useState } from 'react';
+import type React from 'react';
 import {
   render,
   screen,
@@ -1058,6 +1059,44 @@ describe('Dropdown keyboard navigation', () => {
     expect(screen.getByText('First')).toHaveFocus();
   });
 
+  test('a click the browser dispatched with no pointer behind it opens the menu on the first item, as Enter does', () => {
+    render(
+      <Dropdown label="Menu">
+        <DropdownItem disabled>First</DropdownItem>
+        <DropdownItem>Second</DropdownItem>
+      </Dropdown>
+    );
+    const button = screen.getByRole('button', { name: /menu/i });
+    // jsdom marks every event it dispatches untrusted, so the trigger's own
+    // click handler, which React keeps on the node, gets the event a
+    // screen reader's activation can bring: trusted, with detail 0.
+    const propsKey = Object.keys(button).find(key =>
+      key.startsWith('__reactProps$')
+    ) as string;
+    // Read on each call, since the handler changes with every render.
+    const click = (isTrusted: boolean) =>
+      act(() =>
+        (
+          button as unknown as Record<
+            string,
+            { onClick: (e: React.MouseEvent<HTMLButtonElement>) => void }
+          >
+        )[propsKey].onClick({
+          detail: 0,
+          nativeEvent: { isTrusted },
+        } as unknown as React.MouseEvent<HTMLButtonElement>)
+      );
+    click(true);
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+    expect(screen.getByText('Second')).toHaveFocus();
+    act(() => button.focus());
+    click(true);
+    expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+    click(false);
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+    expect(button).toHaveFocus();
+  });
+
   test("a script's click opens the menu with focus left where it was", () => {
     render(
       <Dropdown label="Menu">
@@ -1068,9 +1107,7 @@ describe('Dropdown keyboard navigation', () => {
     const button = screen.getByRole('button', { name: /menu/i });
     act(() => button.focus());
     // A script's click() has no pointer behind it either (detail 0), but
-    // the browser didn't dispatch it, so it moves no focus. Only a trusted
-    // one, as a screen reader's browse mode can send, opens on the first
-    // item, which jsdom can't dispatch.
+    // the browser didn't dispatch it, so it moves no focus.
     fireEvent.click(button, { detail: 0 });
     expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
     expect(button).toHaveFocus();
