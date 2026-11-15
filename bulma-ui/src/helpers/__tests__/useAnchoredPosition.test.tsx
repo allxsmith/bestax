@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { marginGap, useAnchoredPosition } from '../useAnchoredPosition';
 import type { PickerPosition } from '../../form/_pickerInternals/pickerTypes';
@@ -374,7 +375,61 @@ describe('following the panel and the anchor', () => {
     expect(listen).toHaveBeenCalledWith('scroll', expect.any(Function), {
       capture: true,
     });
+    rects.mockClear();
+    act(() => {
+      fireEvent.scroll(scroller);
+    });
+    nextFrame();
+    expect(rects).not.toHaveBeenCalled();
     host.remove();
+  });
+
+  it('moves its listener to the shadow root of an anchor that replaces the old one', () => {
+    const roots = ['first', 'second'].map(() => {
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const shadow = host.attachShadow({ mode: 'open' });
+      const scroller = document.createElement('div');
+      shadow.appendChild(scroller);
+      return { host, scroller };
+    });
+    // The anchor renders into one root or the other; each render measures.
+    const Moving = ({ into }: { into: number }) => {
+      const anchorRef = useRef<HTMLButtonElement>(null);
+      const panelRef = useRef<HTMLDivElement>(null);
+      useAnchoredPosition(anchorRef, panelRef, {
+        active: true,
+        position: 'top-left',
+        fixed: true,
+        followContent: true,
+      });
+      return (
+        <>
+          {createPortal(
+            <button key={into} ref={anchorRef}>
+              anchor
+            </button>,
+            roots[into].scroller
+          )}
+          <div ref={panelRef} data-height={200} />
+        </>
+      );
+    };
+    const { rerender } = render(<Moving into={0} />);
+    rerender(<Moving into={1} />);
+    rects.mockClear();
+
+    act(() => {
+      fireEvent.scroll(roots[0].scroller);
+    });
+    nextFrame();
+    expect(rects).not.toHaveBeenCalled();
+    act(() => {
+      fireEvent.scroll(roots[1].scroller);
+    });
+    nextFrame();
+    expect(rects).toHaveBeenCalledTimes(2);
+    for (const { host } of roots) host.remove();
   });
 
   it('measures again on a scroll inside a component its anchor is slotted into', () => {

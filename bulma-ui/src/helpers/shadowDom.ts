@@ -94,11 +94,11 @@ export const flatParent = (node: Node): Node | null =>
 
 /**
  * The shadow roots `node` is rendered in: the one each of its ancestors in
- * the flattened tree sits in, its own first, so the shadow root of a
- * component it's slotted into counts too. An event that isn't composed, such
- * as `scroll`, stays in the shadow root it happens in, so a listener on the
- * window or the document never hears a scroll inside one. Listen on these as
- * well.
+ * the flattened tree sits in, its own first, so the open shadow root of a
+ * component it's slotted into counts too. A closed one hides its slots, so
+ * it doesn't. An event that isn't composed, such as `scroll`, stays in the
+ * shadow root it happens in, so a listener on the window or the document
+ * never hears a scroll inside one. Listen on these as well.
  *
  * @param node - An element of the component, or nothing while it is unmounted.
  * @returns The shadow roots around `node`, innermost first, or none.

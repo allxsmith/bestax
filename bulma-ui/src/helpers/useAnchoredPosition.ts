@@ -172,23 +172,28 @@ export function useAnchoredPosition(
     // does, so each measurement watches the one that's there now.
     let watched: HTMLElement | null = null;
     // A scroll inside a shadow root doesn't reach the window, so the shadow
-    // roots the anchor is rendered in are listened on too: the anchor's as
-    // it's found, and again for another anchor that takes its place.
-    let rooted: HTMLElement | null = null;
+    // roots the anchor is rendered in are listened on too, as each
+    // measurement finds them: another anchor, or a component around it that
+    // gets its shadow root later, changes them.
     let roots: ShadowRoot[] = [];
     const listenAround = (anchor: HTMLElement) => {
-      if (anchor === rooted) return;
+      const now = shadowRootsAround(anchor);
+      if (
+        now.length === roots.length &&
+        now.every((root, i) => root === roots[i])
+      ) {
+        return;
+      }
       for (const root of roots) {
         root.removeEventListener('scroll', schedule, { capture: true });
       }
-      roots = shadowRootsAround(anchor);
+      roots = now;
       for (const root of roots) {
         root.addEventListener('scroll', schedule, {
           passive: true,
           capture: true,
         });
       }
-      rooted = anchor;
     };
     const update = () => {
       const anchor = anchorRef.current;
