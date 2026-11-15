@@ -150,8 +150,12 @@ function readOptions(
 const numberFormats = new Map<string, Intl.NumberFormat>();
 const MOST_NUMBER_FORMATS = 200;
 
-/** The `Intl.NumberFormat` for `locale` and `options`, built once. */
-function numberFormatFor(
+/**
+ * The `Intl.NumberFormat` for `locale` and `options`, built once. INTERNAL,
+ * for code that has its locale already, as the pickers' calendar does, which
+ * writes its days and years with it.
+ */
+export function numberFormatFor(
   locale: string | undefined,
   options: Intl.NumberFormatOptions | undefined
 ): Intl.NumberFormat {

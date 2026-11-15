@@ -254,6 +254,8 @@ describe('rbx kitchen-sink e2e', () => {
     // which nothing here asserted — so deleting them cost no coverage.
     expect(rules).toContain('prop:as');
     expect(rules).toContain('prop:href');
+    // A target that takes no textColor prop keeps a TODO.
+    expect(rules).toContain('prop:textColor');
     expect(rules).toContain('prop:target');
     // A target that takes no background color prop keeps a TODO.
     expect(rules).toContain('prop:backgroundColor');

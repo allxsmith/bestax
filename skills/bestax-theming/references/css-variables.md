@@ -103,10 +103,10 @@ was given. A trio set at runtime leaves them as they were, so when a new color r
 darker than the built one, which a change of hue or saturation can do as well as a change of
 lightness, set them too:
 
-| Variable                  | What reads it                                                                                                                |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `--bulma-<c>-invert-l`    | the label on a solid `<c>` surface: `Button`, `Tag` and `Notification` with `color="<c>"`, a colored `Hero` or `Navbar`, …   |
-| `--bulma-<c>-on-scheme-l` | `<c>` text on the page: `textColor="<c>" colorShade="on-scheme"`, a colored `Message`'s body, a field's colored help text, … |
+| Variable                  | What reads it                                                                                                                                                           |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--bulma-<c>-invert-l`    | the label on a solid `<c>` surface: `Button`, `Tag` and `Notification` with `color="<c>"`, a colored `Hero` or `Navbar`, …                                              |
+| `--bulma-<c>-on-scheme-l` | `<c>` text on the page: `textColor="<c>" colorShade="on-scheme"`, a colored `Message`'s body, a field's colored help text, `Steps`' and `Timeline`'s colored markers, … |
 
 For `link`, the on-scheme lightness is also every link on the page (`--bulma-link-text`), so a new
 link color that reads lighter than Bulma's own leaves the page's links pale.
@@ -1053,8 +1053,10 @@ Declared on the root, `.timeline`. The states and the color classes set
 and `--bulma-timeline-active-color` rather than those two. `--bulma-timeline-marker-background`
 fills the upcoming rings and the pending loader, and a reached icon marker's tint is mixed into
 it. It's the page's color by default, so it hides the line behind them. A record's icon circles
-take `--bulma-timeline-marker-icon-background`, which the color classes set. Every size is in
-`em`, so `textSize` scales them all.
+take `--bulma-timeline-marker-icon-background`, which the color classes set. A color class, and
+the default progress color, read the color's hue, saturation and `--bulma-<c>-on-scheme-l`, so a
+new trio for that color wants its on-scheme lightness too. Every size is in `em`, so `textSize`
+scales them all.
 
 `--bulma-timeline-active-color`, `--bulma-timeline-content-gap`, `--bulma-timeline-dot-size`,
 `--bulma-timeline-gap`, `--bulma-timeline-halo-offset`, `--bulma-timeline-line-color`,
@@ -1094,9 +1096,10 @@ trigger and the tooltip past what the pointer can cross on its own, so give the 
 
 Declared on the root, `.tree-select`, and on a portaled panel, `.tree-select-panel`, which sits
 outside it. They draw the chevron and the clear button on the field, set the panel's height and
-space the search box over the tree. The chevron's defaults are the tokens Bulma's input icon variables
-start from (`control-height`, `text-light`, `text-weak`, `link`), since Bulma registers those on
-the field and its Control. The panel is the picker popover, above, and the tree in it is a
+space the search box over the tree. The chevron's defaults start from root tokens
+(`control-height`, `text-weak`, `text` on hover, `link` while focused), since Bulma registers its
+input variables on the field and its Control. Its colors follow the scheme rather than Bulma's
+input icon color, `text-light`, a fixed light gray that the light scheme's white all but hides. The panel is the picker popover, above, and the tree in it is a
 `TreeView`, below, so `--bulma-picker-popover-*` and `--bulma-tree-view-*` theme them here too.
 The panel is at least as wide as the field, in place through the picker popover's own rule and
 portaled through the field's width set inline.

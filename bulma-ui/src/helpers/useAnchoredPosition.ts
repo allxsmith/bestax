@@ -3,6 +3,7 @@ import { useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import type { PickerPosition } from '../form/_pickerInternals/pickerTypes';
 import { useClientLayoutEffect } from './useClientLayoutEffect';
+import { shadowRootsAround } from './shadowDom';
 
 /** A corner of the anchor the panel opens from, once `auto` is resolved. */
 export type AnchoredCorner = Exclude<PickerPosition, 'auto'>;
@@ -118,9 +119,9 @@ const samePosition = (a: AnchoredPosition, b: AnchoredPosition): boolean =>
  * Places a floating panel against its anchor: resolves `auto` to a corner
  * and, for a panel fixed to the viewport, works out its coordinates. It
  * measures again on resize, on any scroll of the anchor's window (an
- * iframe's, when the anchor renders into one), and when the panel or the
- * anchor changes size, so a fixed panel follows its anchor and its own
- * content. Those measure once in the next frame, however many arrive before
+ * iframe's, when the anchor renders into one) or of a shadow root it's
+ * rendered in, and when the panel or the anchor changes size, so a fixed
+ * panel follows its anchor and its own content. Those measure once in the next frame, however many arrive before
  * it. With `followContent` it also measures after each render. A
  * measurement that changes nothing doesn't render again. A panel that's
  * replaced while it's open, as a portal moving to another target replaces
@@ -170,10 +171,35 @@ export function useAnchoredPosition(
     // remounts the panel, as a popup that opens with the dialog it's in
     // does, so each measurement watches the one that's there now.
     let watched: HTMLElement | null = null;
+    // A scroll inside a shadow root doesn't reach the window, so the shadow
+    // roots the anchor is rendered in are listened on too, as each
+    // measurement finds them: another anchor, or a component around it that
+    // gets its shadow root later, changes them.
+    let roots: ShadowRoot[] = [];
+    const listenAround = (anchor: HTMLElement) => {
+      const now = shadowRootsAround(anchor);
+      if (
+        now.length === roots.length &&
+        now.every((root, i) => root === roots[i])
+      ) {
+        return;
+      }
+      for (const root of roots) {
+        root.removeEventListener('scroll', schedule, { capture: true });
+      }
+      roots = now;
+      for (const root of roots) {
+        root.addEventListener('scroll', schedule, {
+          passive: true,
+          capture: true,
+        });
+      }
+    };
     const update = () => {
       const anchor = anchorRef.current;
       const panel = panelRef.current;
       if (!anchor || !panel) return;
+      listenAround(anchor);
       if (panel !== watched) {
         if (watched) resizes?.unobserve(watched);
         resizes?.observe(panel);
@@ -243,6 +269,9 @@ export function useAnchoredPosition(
       resizes?.disconnect();
       view.removeEventListener('resize', schedule);
       view.removeEventListener('scroll', schedule, { capture: true });
+      for (const root of roots) {
+        root.removeEventListener('scroll', schedule, { capture: true });
+      }
     };
   }, [
     active,

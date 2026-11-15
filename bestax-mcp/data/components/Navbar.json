@@ -454,7 +454,7 @@
         },
         {
           "name": "aria-label",
-          "type": "string",
+          "type": "React.AriaAttributes['aria-label']",
           "default": "'menu'",
           "description": "Accessible name. Pass your own to replace it. An empty one, or a spread carrying `'aria-label': undefined`, keeps the default rather than leaving the button unnamed.",
           "required": false,
@@ -463,7 +463,7 @@
         },
         {
           "name": "aria-expanded",
-          "type": "boolean | null",
+          "type": "boolean | null | undefined",
           "default": "active",
           "description": "Expanded state for assistive technology. It follows `active` unless you pass `true` or `false`, and `null` leaves it off, for a burger whose state isn't known yet; a spread carrying `'aria-expanded': undefined` still follows `active`.",
           "required": false,
