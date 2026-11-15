@@ -295,7 +295,9 @@ export const MAPPING: Record<string, ComponentMapping> = {
     target: 'Dropdown',
     props: {
       label: {},
-      color: {},
+      color: {
+        todo: "react-bulma-components colored the dropdown's trigger button with it, and bestax's Dropdown has no prop for that: its own `color` is the text color helper on the root, so remove it",
+      },
       hoverable: {},
       right: {},
       up: {},
