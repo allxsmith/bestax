@@ -124,8 +124,8 @@ as for a feature. CI catches some of these and not others, so a green run doesn'
   `skills/CLAUDE.md` and the rest). Some agent tools load only the ones on the path to the
   directory they started in, so open them yourself.
 - **Edited a skill, an API docs page or a TSDoc comment:** run `pnpm format`, then `pnpm gen`,
-  and commit what they rewrite. `bestax-mcp/data/skills.json` records each skill file's size, so
-  formatting after `gen` leaves it stale.
+  and commit what they rewrite. `gen` reads the API pages' examples as `format` leaves them, so
+  formatting after `gen` can leave what it wrote stale.
 - **Added an SCSS partial:** register it in its folder's `_index.scss`, then update everything
   that lists the partials or shows a modular build: `skills/bestax-optimize/references/modular-build.md`
   (the inventory, which stock components have a partial, and the starter's worked example), the
