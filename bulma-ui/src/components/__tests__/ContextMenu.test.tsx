@@ -1159,6 +1159,24 @@ describe('ContextMenu', () => {
       expect(menu()).toBeNull();
     });
 
+    it('closes on a scroll inside the shadow root it opened in', () => {
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const shadow = host.attachShadow({ mode: 'open' });
+      const scroller = document.createElement('div');
+      const container = document.createElement('div');
+      scroller.appendChild(container);
+      shadow.appendChild(scroller);
+      render(<FileMenu />, { container });
+      const inShadow = shadow.querySelector('[data-region]') as HTMLElement;
+      contextMenu(inShadow);
+      expect(menu()).toBeInTheDocument();
+      // Not composed, so a listener on the document never hears it.
+      fireEvent.scroll(scroller);
+      expect(menu()).toBeNull();
+      host.remove();
+    });
+
     it.each([
       ['resizing the window', () => fireEvent(window, new Event('resize'))],
       ['the window losing focus', () => fireEvent(window, new Event('blur'))],
