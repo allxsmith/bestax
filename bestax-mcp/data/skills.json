@@ -143,12 +143,12 @@
         {
           "id": "react-bulma-components-prop-map",
           "file": "references/react-bulma-components/prop-map.md",
-          "bytes": 8545
+          "bytes": 8543
         },
         {
           "id": "react-bulma-components-unmappables",
           "file": "references/react-bulma-components/unmappables.md",
-          "bytes": 15443
+          "bytes": 15700
         }
       ],
       "examples": []
