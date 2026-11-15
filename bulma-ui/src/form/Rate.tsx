@@ -457,8 +457,9 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
         );
       }
 
-      // Default SVG with clipPath for partial fill
-      const clipId = `rate-clip-${iconIndex}`;
+      // Default SVG with clipPath for partial fill. The id is this Rate's, so
+      // another Rate on the page can't take its clip.
+      const clipId = `${starBaseId}-clip-${iconIndex}`;
       return (
         <svg
           xmlns="http://www.w3.org/2000/svg"
