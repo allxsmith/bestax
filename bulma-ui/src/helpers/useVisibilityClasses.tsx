@@ -18,7 +18,11 @@ export interface BulmaVisibilityProps
   /**
    * Hides the element. `'hidden'` takes it off the page, `'invisible'` hides it
    * and keeps its space, and `'sr-only'` (screen reader only) hides it visually
-   * while screen readers still read it.
+   * while screen readers still read it. `'hidden'` writes Bulma's
+   * `is-hidden`, which comes before the display classes in Bulma's
+   * stylesheet, so beside a display prop such as `display="flex"` or
+   * `displayTablet="flex"` the element shows wherever that display applies.
+   * To hide it there, set the display prop to `'none'` instead.
    */
   visibility?: (typeof validVisibilities)[number];
   /** Visibility on mobile, up to 768px. */

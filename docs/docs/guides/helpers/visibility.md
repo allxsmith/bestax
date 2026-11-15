@@ -617,6 +617,10 @@ Additional visibility utilities for specific use cases.
 | `visibility="sr-only"`   | `is-sr-only`   | Only visible to screen readers          |
 | `visibility="invisible"` | `is-invisible` | Element is invisible but takes up space |
 
+`is-hidden` comes before the display classes in Bulma's stylesheet, so `visibility="hidden"` beside a
+display property such as `display="flex"` leaves the element showing wherever that display applies.
+To hide it there, set the display property to `'none'` instead.
+
 ### Viewport-Specific Visibility Properties
 
 Each visibility value (`'hidden'`, `'sr-only'`, `'invisible'`) can be scoped to a specific breakpoint using these viewport-specific props. Unlike the generic `visibility` + `viewport` pair, these can be combined on a single element to describe different behavior per viewport.
