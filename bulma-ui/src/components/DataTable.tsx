@@ -393,8 +393,11 @@ export const DataTable = forwardRef(function DataTableRender<TRow>(
   if (loading) {
     body = Array.from({ length: size ?? 5 }, (_, index) => (
       <Tr key={index} aria-hidden="true">
-        {Array.from({ length: columnCount }, (__, cell) => (
-          <Td key={cell}>
+        {/* The checkbox column holds no line, which would be wider than the
+            checkbox it waits for, so the column keeps its width. */}
+        {selectable && <Td isNarrow />}
+        {table.columns.map(column => (
+          <Td key={column.id}>
             <Skeleton variant="lines" lines={1} className={skeletonClass} />
           </Td>
         ))}

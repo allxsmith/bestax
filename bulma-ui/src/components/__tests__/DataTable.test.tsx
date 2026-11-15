@@ -1166,7 +1166,12 @@ describe('DataTable', () => {
       expect(rows[0]).toHaveAttribute('aria-hidden', 'true');
       expect(
         rows[0].querySelectorAll('td .skeleton-lines.data-table-skeleton')
-      ).toHaveLength(4);
+      ).toHaveLength(3);
+      // The checkbox column holds no line, which would be wider than the
+      // checkbox, so the column keeps its width.
+      const checkboxCell = rows[0].querySelector('td')!;
+      expect(checkboxCell).toHaveClass('is-narrow');
+      expect(checkboxCell).toBeEmptyDOMElement();
       expect(screen.getAllByRole('columnheader')).toHaveLength(4);
       // The rows it would select aren't on screen.
       expect(screen.getByRole('checkbox')).toBeDisabled();
