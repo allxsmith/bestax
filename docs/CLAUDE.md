@@ -81,6 +81,9 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   has nowhere to go, so move it out first. A `###` heading that is not one of the component's
   sub-components (`### TaginputTag`) ends the region rather than being swallowed by it.
 - No inline `style={{}}` in examples — use `Block`/helper props.
+- An example's picture is one the site serves from `static/img`.
+  `check:conformance --only=image-hosts` fails on a docs page, or a file under `src/`, with a
+  URL on a placeholder or stock-photo host.
 - Code examples must compile against the current library API; when a component changes, its
   docs page changes in the same PR (CONTRIBUTING requires docs before approval).
 - **`jsx` and `tsx` fences are linted** with the ESLint plugin's `recommended` rules, in
@@ -104,12 +107,20 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   preview's styles. A `ConfigProvider` the example nests replaces that setting rather than
   adding to it, and its portaled content lands unstyled in `document.body` with every gate
   green. In an example that portals, don't nest one, or give it a `portalContainer`: an element
-  the example renders, or the preview's own, read with `useConfig()`.
+  the example renders, or the preview's own, read with `useConfig()`. Every preview loads
+  `bestax.css`, and an example's import lines are dropped. An example that imports the
+  prefixed build gets that stylesheet in its own preview as well, after `bestax.css`.
+  `FENCE_STYLESHEETS` in `src/components/ShadowPreview/shadowStyles.js` lists the builds that
+  load this way, and says which builds can.
 - **A live example opens in StackBlitz and CodeSandbox** from the two buttons beside its copy
   button (`src/theme/CodeBlock/SandboxButtons`, builders in `src/theme/CodeBlock/sandbox/`).
   The project is built in the reader's browser when they click, from the code in the editor:
-  the fence becomes an `App.tsx` with exactly the imports it uses, inside the create-bestax
-  `vite-ts` template (StackBlitz; CodeSandbox gets a Create React App layout), installing the library release this build read or a later compatible one.
+  the fence becomes an `App.tsx` with exactly the imports it uses, its `/img/...` paths in
+  strings and CSS `url()`s pointed at the site since a sandbox has no `static/img`, inside the
+  create-bestax `vite-ts` template (StackBlitz; CodeSandbox gets a Create React App layout), installing the library release this build read or a later compatible one.
+  An example that imports a prefixed build opens with the library stylesheets it imports in place
+  of the template's `bestax.css` (`librarySheetsIn` in `sandbox/projects.mjs`, which says how that
+  differs from the page's preview).
   Nothing is published ahead of time and a fence needs no marker. A component that exists only
   in this site goes in `DOCS_ONLY_NAMES` in `src/theme/CodeBlock/sandbox/scope-names.mjs` and
   gets its value in the `pick` call in `src/theme/CodeBlock/scope.js`: an example using one

@@ -223,6 +223,8 @@ describe('kitchen-sink e2e', () => {
     expect(rules).toContain('component:Tile');
     expect(rules).toContain('responsive');
     expect(rules).toContain('prop:colorVariant');
+    expect(rules).toContain('prop:backgroundColor');
+    expect(rules).toContain('prop:textColor');
     expect(rules).toContain('prop:value');
     expect(rules).toContain('prop:showFirstLast');
     expect(rules).toContain('prop:remove');

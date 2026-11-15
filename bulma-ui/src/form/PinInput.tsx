@@ -76,7 +76,7 @@ export interface PinInputProps
     [key: string]: unknown;
   };
   /** Applied to the input that holds the code (the labellable control), not the row of boxes. */
-  id?: string;
+  id?: React.HTMLAttributes<HTMLElement>['id'];
   /** How many characters the code has. Each gets a box, and it is the input's `maxLength`. */
   length?: number;
   /** The code (controlled). Only its first `length` characters are shown and submitted. */

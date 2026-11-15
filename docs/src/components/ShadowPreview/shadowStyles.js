@@ -28,6 +28,7 @@ import rawMaterialIconsStyles from '!!raw-loader!material-icons/iconfont/materia
 import rawMaterialSymbolsStyles from '!!raw-loader!material-symbols/index.css';
 // Docs-only Skill Example styles (ProfileCard) — not part of the shipped CSS bundle.
 import rawProfileCardStyles from '!!raw-loader!@site/src/components/SkillExamples/profilecard.css';
+import { importedStylesheets } from '@site/src/theme/CodeBlock/sandbox/moduleLines.mjs';
 import { preprocessBulmaStyles, toHost } from './hostStyles.mjs';
 
 /**
@@ -151,8 +152,8 @@ export const ioniconStyles = `
 // belong to. Something an example portals from inside one of these overlays,
 // such as an `appendToBody` panel or a toast, then sits under it, so give it a
 // `portalContainer` inside the overlay. Bulma declares `--bulma-modal-z` on
-// `.modal` itself, so that's where this sets it, and being the last sheet is
-// what wins.
+// `.modal` itself, so that's where this sets it, and coming after bestax.css
+// is what wins.
 export const overlayLayerStyles = `
   .modal { --bulma-modal-z: calc(var(--ifm-z-index-fixed, 200) + 40); }
   .sidebar-background { z-index: calc(var(--ifm-z-index-fixed, 200) + 39); }
@@ -184,6 +185,81 @@ export function supportsConstructableStyleSheets() {
     typeof CSSStyleSheet !== 'undefined' &&
     typeof CSSStyleSheet.prototype.replaceSync === 'function'
   );
+}
+
+/** The prefixed build's text, fetched when a preview first needs it. */
+const loadPrefixed = () =>
+  import('!!raw-loader!@allxsmith/bestax-bulma/dist/versions/bestax-prefixed.css');
+
+/**
+ * The library's other builds an example can import, keyed by each path the
+ * library exports it under. The previews load bestax.css, and the prefixed
+ * build's classes match nothing in it, so an example that imports it gets that
+ * sheet too, after bestax.css. That adds a build's rules rather than swapping
+ * bestax.css out, so it suits a build whose classes bestax.css doesn't have,
+ * not one that shares them and leaves some out (no-helpers, no-dark-mode).
+ * Each is fetched and parsed the first time a preview on the page
+ * needs it, and goes into that preview's shadow root only, so other previews
+ * and other pages don't carry it. Any other stylesheet an example imports is
+ * dropped, as the import lines are.
+ */
+const FENCE_STYLESHEETS = {
+  '@allxsmith/bestax-bulma/versions/bestax-prefixed.css': loadPrefixed,
+  '@allxsmith/bestax-bulma/dist/versions/bestax-prefixed.css': loadPrefixed,
+};
+
+/** Each FENCE_STYLESHEETS loader a preview has called, as it loads. */
+const fenceStyles = new Map();
+
+/**
+ * The FENCE_STYLESHEETS entries `code` imports, in its order, one path per
+ * build.
+ *
+ * @param {string} code
+ * @returns {string[]}
+ */
+export function fenceStylesheetsIn(code) {
+  const loaders = new Set();
+  return importedStylesheets(code).filter(path => {
+    const load = Object.prototype.hasOwnProperty.call(FENCE_STYLESHEETS, path)
+      ? FENCE_STYLESHEETS[path]
+      : null;
+    if (!load || loaders.has(load)) return false;
+    loaders.add(load);
+    return true;
+  });
+}
+
+/**
+ * Loads one FENCE_STYLESHEETS entry, readied for a shadow root like
+ * bestax.css. Resolves to one parsed sheet that every preview importing it
+ * shares, or, where constructable stylesheets don't exist, to its text for a
+ * `<style>` element. A failed load is forgotten, so the next preview to ask
+ * loads it again.
+ *
+ * @param {string} path
+ * @returns {Promise<{ css: string | null, sheet: CSSStyleSheet | null }>}
+ */
+export function loadFenceStylesheet(path) {
+  const load = FENCE_STYLESHEETS[path];
+  if (!fenceStyles.has(load)) {
+    const loading = load()
+      .then(({ default: raw }) => {
+        const css = preprocessBulmaStyles(raw);
+        if (!supportsConstructableStyleSheets()) {
+          return { css, sheet: null };
+        }
+        const sheet = new CSSStyleSheet();
+        sheet.replaceSync(css);
+        return { css: null, sheet };
+      })
+      .catch(error => {
+        fenceStyles.delete(load);
+        throw error;
+      });
+    fenceStyles.set(load, loading);
+  }
+  return fenceStyles.get(load);
 }
 
 let sharedStyleSheets = null;

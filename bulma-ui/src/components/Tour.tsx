@@ -38,7 +38,11 @@ import {
 import type { AnchoredSide } from '../helpers/useAnchoredPosition';
 import { useScopedNumberFormat } from '../helpers/localeFormat';
 import { spokenText, visuallyHidden } from '../helpers/statusRegion';
-import { getActiveElementInTree, parentInPage } from '../helpers/shadowDom';
+import {
+  flatParent,
+  getActiveElementInTree,
+  listenInShadowRoots,
+} from '../helpers/shadowDom';
 import { warnOnce } from '../helpers/devWarnings';
 import { buttonType } from '../helpers/buttonType';
 import { Button, ButtonOwnProps } from '../elements/Button';
@@ -421,9 +425,17 @@ function useTourTarget(
       typeof ResizeObserver === 'undefined'
         ? null
         : new ResizeObserver(() => schedule());
+    // A scroll inside a shadow root doesn't reach the window, so the shadow
+    // roots the target is rendered in are listened on too, as each
+    // measurement finds them.
+    const shadowScrolls = listenInShadowRoots('scroll', () => schedule(), {
+      passive: true,
+      capture: true,
+    });
     const update = () => {
       frame = 0;
       const candidate = findTarget(target, scope);
+      shadowScrolls.follow(candidate);
       if (candidate !== watched) {
         if (watched) sizes?.unobserve(watched);
         if (candidate) sizes?.observe(candidate);
@@ -483,6 +495,7 @@ function useTourTarget(
       observer.disconnect();
       view.removeEventListener('scroll', schedule, { capture: true });
       view.removeEventListener('resize', schedule);
+      shadowScrolls.stop();
     };
   }, [active, target, stepId, rootRef]);
 
@@ -507,10 +520,12 @@ function isFullyVisible(element: HTMLElement): boolean {
     return false;
   }
   for (
-    let node = parentInPage(element);
+    let node = flatParent(element) as Element | null;
     node && node !== doc.body && node !== doc.documentElement;
-    node = parentInPage(node)
+    node = flatParent(node) as Element | null
   ) {
+    // An ancestor with no box, as a slot is by default, clips nothing.
+    if (node.getClientRects().length === 0) continue;
     const { overflowX, overflowY } = getComputedStyle(node);
     const clips = /auto|scroll|hidden|clip/.test(`${overflowX} ${overflowY}`);
     if (clips && !inside(node.getBoundingClientRect())) return false;

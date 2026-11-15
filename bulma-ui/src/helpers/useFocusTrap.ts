@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import { useIsHydrated } from './useIsHydrated';
-import { getDeepestActiveElement } from './shadowDom';
+import { flatParent, getDeepestActiveElement } from './shadowDom';
 
 /**
  * Whether `el` is editable while its parent is not, which makes it an editing
@@ -67,19 +67,6 @@ export function isTabbableKind(el: Element): boolean {
       return isEditingHost(el);
   }
 }
-
-/**
- * The node's parent in the flattened tree, the one the browser renders and
- * tabs through: the slot it is assigned to, else its parent, else the host of
- * the shadow root it tops, and nothing above the document. A closed shadow
- * root hides its slots (`assignedSlot` reads `null` under one), so a child of
- * its host goes straight to the host, whether a slot takes it or not.
- */
-const flatParent = (node: Node): Node | null =>
-  (node as Element).assignedSlot ??
-  node.parentElement ??
-  (node.parentNode as ShadowRoot | null)?.host ??
-  null;
 
 /**
  * The element's children in the flattened tree, in the order they render: a
