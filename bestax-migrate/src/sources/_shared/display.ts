@@ -17,8 +17,9 @@
  * class map's, which its value-union test holds to bestax-bulma's constants.
  *
  * Where a per-viewport display, the base value, the `className` or a
- * container prop it would move is dynamic, or a spread could replace the
- * `className`, it changes nothing and leaves a TODO naming what to move.
+ * container prop it would move is dynamic, or a spread could replace one of
+ * them or the `className`, it changes nothing and leaves a TODO naming what to
+ * move.
  */
 
 import type { ASTPath } from 'jscodeshift';
@@ -134,13 +135,19 @@ export function keepBaseDisplay(
   const { j } = ctx;
   const attributes = element.openingElement.attributes;
   const className = findAttr(element, 'className');
-  const at = className ? attributes.indexOf(className) : -1;
+  // A spread after any prop this reads could replace it, and with no
+  // `className` any spread could bring one the new class would override.
+  const read = [display, ...perViewport, ...container, className].filter(
+    Boolean
+  );
+  const first = Math.min(...read.map(attr => attributes.indexOf(attr)));
   if (
     attributes.some(
-      (attr: any, i: number) => attr.type === 'JSXSpreadAttribute' && i > at
+      (attr: any, i: number) =>
+        attr.type === 'JSXSpreadAttribute' && (!className || i > first)
     )
   ) {
-    refuse('a spread could replace the `className`');
+    refuse('a spread could replace them or the `className`');
     return;
   }
   if (className) {

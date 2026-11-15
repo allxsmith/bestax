@@ -116,6 +116,14 @@ describe('keepBaseDisplay', () => {
       'a spread after the className',
       'className="card" {...p} display="block" displayMobile="flex"',
     ],
+    [
+      'a spread after the display, before the className',
+      'display="flex" {...p} className="card" displayMobile="block"',
+    ],
+    [
+      'a spread after a per-viewport display',
+      'className="card" displayMobile="flex" {...p} display="block"',
+    ],
     ['a dynamic base display', 'display={p.d} displayMobile="flex"'],
   ])('changes nothing and leaves a TODO for %s', (_, written) => {
     const { out, rules } = run(written);
