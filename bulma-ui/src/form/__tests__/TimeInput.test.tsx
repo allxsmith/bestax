@@ -2290,6 +2290,20 @@ describe('TimeInput wheels in a locale', () => {
     ).toBe('13:05');
   });
 
+  it('pads plain digits for a tag Intl refuses', () => {
+    const { getByRole } = render(
+      <TimeInput
+        inline
+        aria-label="Time"
+        locale="en_US"
+        defaultValue={at(9, 5)}
+      />
+    );
+    expect(
+      getByRole('spinbutton', { name: 'hours' }).getAttribute('aria-valuetext')
+    ).toBe('09');
+  });
+
   it('keeps plain digits with no locale, whatever the runtime writes', () => {
     // A server and a browser can write numbers differently, so with no
     // locale to agree on the wheels write plain digits. Any number Intl
