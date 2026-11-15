@@ -87,7 +87,7 @@
         },
         {
           "name": "id",
-          "type": "string",
+          "type": "React.HTMLAttributes<HTMLElement>['id']",
           "default": null,
           "description": "Applied to the input that holds the code (the labellable control), not the row of boxes.",
           "required": false,

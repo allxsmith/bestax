@@ -391,3 +391,52 @@ describe.each([
     expect(outlined).toEqual([]);
   });
 });
+
+// A mark's label is text that gives a value, so it needs 4.5:1 on both
+// schemes. text-light, which it had, is a fixed light gray at about 1.3:1 on
+// the light scheme's white, and the tick's opacity halved it further.
+describe.each([
+  ['no prefix', ''],
+  ['a class prefix', 'bestax-'],
+])('Slider mark labels, with %s', (_label, prefix) => {
+  const sheet = sass.compileString(
+    `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+     @use 'form/slider';`,
+    {
+      loadPaths: [SCSS, NODE_MODULES],
+      quietDeps: true,
+      logger: sass.Logger.silent,
+    }
+  ).css;
+  const p = (name: string) => `\\.${prefix}${name}`;
+  const block = (selector: string, within = sheet) =>
+    within.match(new RegExp(`(?:^|\\n)\\s*${selector}\\s*\\{([^}]*)\\}`))?.[1];
+  const forced = sheet.slice(sheet.indexOf('@media (forced-colors: active)'));
+
+  it('write in a text color that follows the scheme', () => {
+    expect(sheet).toContain(
+      '--bulma-slider-tick-label-color: var(--bulma-text-weak)'
+    );
+    expect(block(p('slider-tick-label'))).toContain(
+      'color: var(--bulma-slider-tick-label-color)'
+    );
+  });
+
+  it('keep the tick line’s opacity off the label the tick holds', () => {
+    // An opacity on the tick would dim its label with it, whatever the
+    // label's own color, so the line is drawn on the tick's ::before.
+    expect(block(p('slider-tick'))).not.toMatch(/opacity|background/);
+    const line = block(`${p('slider-tick')}::before`)!;
+    expect(line).toContain('background: var(--bulma-slider-tick-color)');
+    expect(line).toContain('opacity: var(--bulma-slider-tick-opacity)');
+    expect(block(`${p('slider-tick')}${p('is-endpoint')}::before`)).toContain(
+      'background: transparent'
+    );
+  });
+
+  it('paint the tick line in the system text color in forced colors', () => {
+    expect(block(`${p('slider-tick')}::before`, forced)).toContain(
+      'background: ButtonText'
+    );
+  });
+});

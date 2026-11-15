@@ -38,7 +38,7 @@ export const UNIVERSAL_PROPS: Record<string, PropAction> = {
   backgroundColor: { rename: 'bgColor' },
   textColor: {},
   colorVariant: {
-    todo: "no direct equivalent; use isLight (Button/Notification) or a color shade like bgColor='primary' backgroundColorShade='90'",
+    todo: "no direct equivalent; for 'light', use isLight (Button/Notification/Tag) or a color shade like bgColor='primary' backgroundColorShade='90'",
   },
   // TypographyProps
   textSize: { numberToString: true },
@@ -120,6 +120,18 @@ export const RESPONSIVE_BREAKPOINTS: Record<string, string | null> = {
 };
 
 const activeKept: Record<string, PropAction> = { active: {} };
+
+/**
+ * The targets whose bestax component renders `is-light` from `isLight`, the
+ * class react-bulma-components renders for `colorVariant="light"`.
+ * `color-variant.ts` converts a literal `light` there; everything else keeps
+ * the universal `colorVariant` TODO.
+ */
+export const IS_LIGHT_TARGETS: readonly string[] = [
+  'Button',
+  'Notification',
+  'Tag',
+];
 
 export const MAPPING: Record<string, ComponentMapping> = {
   Block: { status: 'mapped', target: 'Block' },
