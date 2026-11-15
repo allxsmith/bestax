@@ -9,7 +9,9 @@ export function lengthToPx(
   remPx: number
 ): number | null {
   if (typeof length === 'number') return length;
-  const match = /^\s*(\d*\.?\d+)\s*(px|rem)\s*$/.exec(length ?? '');
+  // The number's two shapes don't overlap, so a long run of digits that
+  // doesn't match fails in one pass.
+  const match = /^\s*(\d+(?:\.\d+)?|\.\d+)\s*(px|rem)\s*$/.exec(length ?? '');
   if (!match) return null;
   return parseFloat(match[1]) * (match[2] === 'rem' ? remPx : 1);
 }

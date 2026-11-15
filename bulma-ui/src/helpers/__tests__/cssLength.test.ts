@@ -8,6 +8,14 @@ describe('lengthToPx', () => {
     expect(lengthToPx('30vw', 16)).toBeNull();
     expect(lengthToPx(undefined, 16)).toBeNull();
   });
+
+  it('takes a number with or without a whole part, and nothing looser', () => {
+    expect(lengthToPx('.5rem', 16)).toBe(8);
+    expect(lengthToPx('0.5rem', 16)).toBe(8);
+    expect(lengthToPx('1.rem', 16)).toBeNull();
+    expect(lengthToPx('1..5px', 16)).toBeNull();
+    expect(lengthToPx(`${'0'.repeat(5000)}x`, 16)).toBeNull();
+  });
 });
 
 describe('remPxOf', () => {

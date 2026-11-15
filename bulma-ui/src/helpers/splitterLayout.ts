@@ -35,7 +35,7 @@ export function limitToPercent(
 ): number | null {
   if (limit === undefined) return null;
   if (typeof limit === 'number') return limit;
-  const percent = /^\s*(\d*\.?\d+)\s*%?\s*$/.exec(limit);
+  const percent = /^\s*(\d+(?:\.\d+)?|\.\d+)\s*%?\s*$/.exec(limit);
   if (percent) return parseFloat(percent[1]);
   const px = lengthToPx(limit, remPx);
   if (px === null || !length) return null;
