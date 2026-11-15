@@ -1167,13 +1167,14 @@ describe('DataTable', () => {
       expect(
         cells.map(cell => `${cell.tagName.toLowerCase()} ${cell.className}`)
       ).toEqual([
-        'td ',
+        'td is-narrow',
         'th ',
         'td ',
         'td has-text-right',
         'td has-text-centered',
       ]);
-      for (const cell of cells) {
+      // Every data cell holds a line; the checkbox column holds none.
+      for (const cell of cells.slice(1)) {
         expect(cell.querySelector('.data-table-skeleton')).not.toBeNull();
       }
     });
@@ -1193,7 +1194,12 @@ describe('DataTable', () => {
         rows[0].querySelectorAll(
           ':scope > * > .skeleton-lines.data-table-skeleton'
         )
-      ).toHaveLength(4);
+      ).toHaveLength(3);
+      // The checkbox column holds no line, which would be wider than the
+      // checkbox, so the column keeps its width.
+      const checkboxCell = rows[0].querySelector('td')!;
+      expect(checkboxCell).toHaveClass('is-narrow');
+      expect(checkboxCell).toBeEmptyDOMElement();
       expect(screen.getAllByRole('columnheader')).toHaveLength(4);
       // The rows it would select aren't on screen.
       expect(screen.getByRole('checkbox')).toBeDisabled();

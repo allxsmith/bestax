@@ -277,6 +277,7 @@ When `canCancel` is true, the loading can be cancelled by:
 - Has `aria-busy="true"` to indicate loading status
 - Has `aria-label="Loading"` for the loading container
 - Cancel button has proper `aria-label` for accessibility
+- The Cancel button's label defaults to the scheme's text color (`--bulma-loading-cancel-color` is `var(--bulma-text)`), so it reads on the light and dark schemes alike
 - Escape key support for cancelling (when `canCancel` is true). An Escape that closed a popup on the page, such as a Dropdown menu or a date picker's calendar, doesn't cancel
 - A full-page loading takes its turn for Escape with [Modal](./modal.md), [Dialog](./dialog.md) and [Sidebar](./sidebar.md), since it covers them: one Escape goes to whichever opened last. Shown over an open Modal, it cancels on the first Escape and the Modal closes on the next. While it's on top, even when it can't be cancelled, the Modal under it doesn't close on Escape or hold Tab
 - A loading inside a container covers only that container, so it cancels on Escape once no Modal, Dialog, Sidebar or full-page loading is open
@@ -323,33 +324,33 @@ When `canCancel` is true, the loading can be cancelled by:
 
 `Loading` registers these variables on its own `.loading` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
 
-| CSS Variable                                | Sass Variable                        | Default                    |
-| ------------------------------------------- | ------------------------------------ | -------------------------- |
-| `--bulma-loading-overlay-background`        | `$loading-overlay-background`        | `var(--bulma-scheme-main)` |
-| `--bulma-loading-overlay-opacity`           | `$loading-overlay-opacity`           | `0.7`                      |
-| `--bulma-loading-overlay-fullpage-opacity`  | `$loading-overlay-fullpage-opacity`  | `0.8`                      |
-| `--bulma-loading-overlay-opacity-light`     | `$loading-overlay-opacity-light`     | `0.4`                      |
-| `--bulma-loading-overlay-opacity-dark`      | `$loading-overlay-opacity-dark`      | `0.85`                     |
-| `--bulma-loading-overlay-opacity-opaque`    | `$loading-overlay-opacity-opaque`    | `1`                        |
-| `--bulma-loading-icon-size`                 | `$loading-icon-size`                 | `4.5em`                    |
-| `--bulma-loading-icon-size-small`           | `$loading-icon-size-small`           | `3em`                      |
-| `--bulma-loading-icon-size-medium`          | `$loading-icon-size-medium`          | `6em`                      |
-| `--bulma-loading-icon-size-large`           | `$loading-icon-size-large`           | `7.5em`                    |
-| `--bulma-loading-icon-border-width`         | `$loading-icon-border-width`         | `0.25em`                   |
-| `--bulma-loading-icon-border-width-small`   | `$loading-icon-border-width-small`   | `0.2em`                    |
-| `--bulma-loading-icon-border-width-medium`  | `$loading-icon-border-width-medium`  | `0.3em`                    |
-| `--bulma-loading-icon-border-width-large`   | `$loading-icon-border-width-large`   | `0.375em`                  |
-| `--bulma-loading-icon-spin-color`           | `$loading-icon-spin-color`           | `var(--bulma-text-weak)`   |
-| `--bulma-loading-text-color`                | `$loading-text-color`                | `var(--bulma-text)`        |
-| `--bulma-loading-text-size`                 | `$loading-text-size`                 | `var(--bulma-size-normal)` |
-| `--bulma-loading-content-gap`               | `$loading-content-gap`               | `1rem`                     |
-| `--bulma-loading-cancel-color`              | `$loading-cancel-color`              | `var(--bulma-text-light)`  |
-| `--bulma-loading-cancel-border-color`       | `$loading-cancel-border-color`       | `var(--bulma-border)`      |
-| `--bulma-loading-cancel-background`         | `$loading-cancel-background`         | `var(--bulma-scheme-main)` |
-| `--bulma-loading-cancel-hover-color`        | `$loading-cancel-hover-color`        | `var(--bulma-text)`        |
-| `--bulma-loading-cancel-hover-border-color` | `$loading-cancel-hover-border-color` | `var(--bulma-text-light)`  |
-| `--bulma-loading-cancel-radius`             | `$loading-cancel-radius`             | `var(--bulma-radius)`      |
-| `--bulma-loading-cancel-size`               | `$loading-cancel-size`               | `var(--bulma-size-small)`  |
-| `--bulma-loading-animation-duration`        | `$loading-animation-duration`        | `0.75s`                    |
+| CSS Variable                                | Sass Variable                        | Default                     |
+| ------------------------------------------- | ------------------------------------ | --------------------------- |
+| `--bulma-loading-overlay-background`        | `$loading-overlay-background`        | `var(--bulma-scheme-main)`  |
+| `--bulma-loading-overlay-opacity`           | `$loading-overlay-opacity`           | `0.7`                       |
+| `--bulma-loading-overlay-fullpage-opacity`  | `$loading-overlay-fullpage-opacity`  | `0.8`                       |
+| `--bulma-loading-overlay-opacity-light`     | `$loading-overlay-opacity-light`     | `0.4`                       |
+| `--bulma-loading-overlay-opacity-dark`      | `$loading-overlay-opacity-dark`      | `0.85`                      |
+| `--bulma-loading-overlay-opacity-opaque`    | `$loading-overlay-opacity-opaque`    | `1`                         |
+| `--bulma-loading-icon-size`                 | `$loading-icon-size`                 | `4.5em`                     |
+| `--bulma-loading-icon-size-small`           | `$loading-icon-size-small`           | `3em`                       |
+| `--bulma-loading-icon-size-medium`          | `$loading-icon-size-medium`          | `6em`                       |
+| `--bulma-loading-icon-size-large`           | `$loading-icon-size-large`           | `7.5em`                     |
+| `--bulma-loading-icon-border-width`         | `$loading-icon-border-width`         | `0.25em`                    |
+| `--bulma-loading-icon-border-width-small`   | `$loading-icon-border-width-small`   | `0.2em`                     |
+| `--bulma-loading-icon-border-width-medium`  | `$loading-icon-border-width-medium`  | `0.3em`                     |
+| `--bulma-loading-icon-border-width-large`   | `$loading-icon-border-width-large`   | `0.375em`                   |
+| `--bulma-loading-icon-spin-color`           | `$loading-icon-spin-color`           | `var(--bulma-text-weak)`    |
+| `--bulma-loading-text-color`                | `$loading-text-color`                | `var(--bulma-text)`         |
+| `--bulma-loading-text-size`                 | `$loading-text-size`                 | `var(--bulma-size-normal)`  |
+| `--bulma-loading-content-gap`               | `$loading-content-gap`               | `1rem`                      |
+| `--bulma-loading-cancel-color`              | `$loading-cancel-color`              | `var(--bulma-text)`         |
+| `--bulma-loading-cancel-border-color`       | `$loading-cancel-border-color`       | `var(--bulma-border)`       |
+| `--bulma-loading-cancel-background`         | `$loading-cancel-background`         | `var(--bulma-scheme-main)`  |
+| `--bulma-loading-cancel-hover-color`        | `$loading-cancel-hover-color`        | `var(--bulma-text-strong)`  |
+| `--bulma-loading-cancel-hover-border-color` | `$loading-cancel-hover-border-color` | `var(--bulma-border-hover)` |
+| `--bulma-loading-cancel-radius`             | `$loading-cancel-radius`             | `var(--bulma-radius)`       |
+| `--bulma-loading-cancel-size`               | `$loading-cancel-size`               | `var(--bulma-size-small)`   |
+| `--bulma-loading-animation-duration`        | `$loading-animation-duration`        | `0.75s`                     |
 
 <!-- /bestax:generated cssvars -->
