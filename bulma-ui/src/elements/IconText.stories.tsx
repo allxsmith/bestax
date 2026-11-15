@@ -6,6 +6,7 @@ import {
   validSizes,
   validTextSizes,
 } from '../helpers/useBulmaClasses';
+import { Button } from './Button';
 
 const meta: Meta<typeof IconText> = {
   title: 'Elements/IconText',
@@ -80,11 +81,11 @@ export const WithLargeIcon: Story = {
 
 export const InButton: Story = {
   render: ({ iconProps, children, ...args }) => (
-    <button className="button is-primary">
+    <Button color="primary">
       <IconText iconProps={iconProps} {...args}>
         {children}
       </IconText>
-    </button>
+    </Button>
   ),
   args: {
     iconProps: {

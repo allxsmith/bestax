@@ -178,10 +178,29 @@ bestax `Button` colors are the semantic set + `text`/`ghost`. For shades use
 
 ## `colorVariant` / Hero `gradient` / Hero `halfheight` (`prop:size`)
 
-- `colorVariant="light"` → `isLight` where supported (Button, Notification), otherwise a
-  shade: `bgColor="primary" backgroundColorShade="90"`.
+- `colorVariant="light"` on a `Notification`, a `Tag` or a `Button` that stays one (not
+  `remove`, which becomes `Delete`) becomes `isLight`, unless a spread after it could override
+  it. Any other case is flagged: react-bulma-components rendered the value as the `is-light` or
+  `is-dark` class, so add that class to `className`, or use a shade such as
+  `bgColor="primary" backgroundColorShade="90"`.
 - Bulma v1 removed `is-bold` hero gradients — delete `gradient` or restyle with CSS.
 - `halfheight` has no bestax size; use `size="medium"` or a CSS height.
+
+## `prop:backgroundColor` — a component with no background color prop
+
+`backgroundColor` becomes `bgColor`, or stays `backgroundColor` on a component that takes only
+that. `Notification`, `Table` and its parts, `Tabs`, `Checkbox`, `Radio`, `Progress`, the
+`Modal.Card` parts and the other components that take neither keep it as written with a TODO:
+move the color to a `has-background-*` class in `className`.
+
+## `prop:textColor` — a component with no `textColor` prop
+
+`textColor` carries over as written, and becomes `color` on `Table` (and its `Thead`, `Tbody` and `Tfoot`), `Menu` and its parts, and `Dropdown` and its `Item`, whose `color` sets the
+text, when the value is one of bestax's color names. On the other components with no `textColor`,
+such as `Tag`, `Tabs`, `Hero`, `Progress`, `Breadcrumb`, `Input`, `Select`, `TextArea`, `File` and the `Modal.Card` parts, it stays with a TODO: move the color to a
+`has-text-*` class in `className`. On the components where it becomes `color`, it also stays with a
+TODO where the element already sets `color` or has a spread, or the value is dynamic, a shade or
+`text`: use `color` with `colorShade` for a shade, or the class.
 
 ## A size bestax doesn't take (`prop:size` on `Button.Group` and `Message`)
 

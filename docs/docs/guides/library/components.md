@@ -227,8 +227,8 @@ A Bulma-styled card with optional header, image, content, and footer. [View full
 ```tsx live
 <Card
   header="Card Header"
-  image="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80"
-  imageAlt="Beautiful forest"
+  image="/img/carousel/carousel-banner-1-4by3.jpg"
+  imageAlt="Vibrant galaxy with purple and gold tones"
   footer={[
     <span key="save" className="card-footer-item">
       Save

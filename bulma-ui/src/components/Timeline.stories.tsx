@@ -459,29 +459,19 @@ export const InContainers: Story = {
           </Column>
         </Columns>
         <Columns isMultiline>
-          {(['info', 'success', 'warning', 'danger'] as const).map(color => (
-            <Column key={color} size="one-third">
-              <Notification color={color}>
-                <Timeline titleAs="h3" active={1} pending="Out for delivery">
-                  {stages(2)}
-                </Timeline>
-              </Notification>
-            </Column>
-          ))}
-          <Column size="one-third">
-            {/* Progress is link by default, which disappears on a link
-                Notification, so this one takes a color that stands out. */}
-            <Notification color="link">
-              <Timeline
-                titleAs="h3"
-                color="warning"
-                active={1}
-                pending="Out for delivery"
-              >
-                {stages(2)}
-              </Timeline>
-            </Notification>
-          </Column>
+          {/* With no color of its own, a timeline takes the Notification's
+              text color, so it reads on each of them, link included. */}
+          {(['info', 'success', 'warning', 'danger', 'link'] as const).map(
+            color => (
+              <Column key={color} size="one-third">
+                <Notification color={color}>
+                  <Timeline titleAs="h3" active={1} pending="Out for delivery">
+                    {stages(2)}
+                  </Timeline>
+                </Notification>
+              </Column>
+            )
+          )}
         </Columns>
       </>
     );

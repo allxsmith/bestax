@@ -3,6 +3,7 @@ import { useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import type { PickerPosition } from '../form/_pickerInternals/pickerTypes';
 import { useClientLayoutEffect } from './useClientLayoutEffect';
+import { shadowRootsAround } from './shadowDom';
 
 /** A corner of the anchor the panel opens from, once `auto` is resolved. */
 export type AnchoredCorner = Exclude<PickerPosition, 'auto'>;
@@ -146,9 +147,10 @@ const clampTo = (value: number, max: number): number =>
  * Places a panel on a side of the anchor. The side asked for is turned into
  * the one on the screen, then flipped when the panel doesn't fit there and
  * does on the other, or moved to a side across, the end first, when it fits
- * on neither. With no room anywhere it stays on the side asked for. A fixed panel is centered along the side and moved into
- * the viewport, with `styledGap` counted as the margin its stylesheet puts on
- * the side facing the anchor, which the coordinates leave out. The viewport
+ * on neither. With no room anywhere it stays on the side asked for. A fixed
+ * panel is centered along the side and moved into the viewport, with
+ * `styledGap` counted as the margin its stylesheet puts on the side facing
+ * the anchor, which the coordinates leave out. The viewport
  * is the root element's client area, which a fixed box resolves against, so
  * a classic scrollbar doesn't hide the panel's edge.
  */
@@ -250,9 +252,9 @@ const samePosition = (a: AnchoredPosition, b: AnchoredPosition): boolean =>
  * or a side to the one that fits, and, for a panel fixed to the viewport,
  * works out its coordinates. It
  * measures again on resize, on any scroll of the anchor's window (an
- * iframe's, when the anchor renders into one), and when the panel or the
- * anchor changes size, so a fixed panel follows its anchor and its own
- * content. Those measure once in the next frame, however many arrive before
+ * iframe's, when the anchor renders into one) or of a shadow root it's
+ * rendered in, and when the panel or the anchor changes size, so a fixed
+ * panel follows its anchor and its own content. Those measure once in the next frame, however many arrive before
  * it. With `followContent` it also measures after each render. A
  * measurement that changes nothing doesn't render again. A panel that's
  * replaced while it's open, as a portal moving to another target replaces
@@ -312,6 +314,30 @@ export function useAnchoredPosition(
       resizes?.observe(panel);
       watched = panel;
     };
+    // A scroll inside a shadow root doesn't reach the window, so the shadow
+    // roots the anchor is rendered in are listened on too, as each
+    // measurement finds them: another anchor, or a component around it that
+    // gets its shadow root later, changes them.
+    let roots: ShadowRoot[] = [];
+    const listenAround = (anchor: HTMLElement) => {
+      const now = shadowRootsAround(anchor);
+      if (
+        now.length === roots.length &&
+        now.every((root, i) => root === roots[i])
+      ) {
+        return;
+      }
+      for (const root of roots) {
+        root.removeEventListener('scroll', schedule, { capture: true });
+      }
+      roots = now;
+      for (const root of roots) {
+        root.addEventListener('scroll', schedule, {
+          passive: true,
+          capture: true,
+        });
+      }
+    };
     const update = () => {
       const anchor = anchorRef.current;
       const panel = panelRef.current;
@@ -323,6 +349,7 @@ export function useAnchoredPosition(
         return;
       }
       if (!anchor) return;
+      listenAround(anchor);
       watch(panel);
       const rect = anchor.getBoundingClientRect();
       const measured = panel.getBoundingClientRect();
@@ -404,6 +431,9 @@ export function useAnchoredPosition(
       resizes?.disconnect();
       view.removeEventListener('resize', schedule);
       view.removeEventListener('scroll', schedule, { capture: true });
+      for (const root of roots) {
+        root.removeEventListener('scroll', schedule, { capture: true });
+      }
     };
   }, [
     active,

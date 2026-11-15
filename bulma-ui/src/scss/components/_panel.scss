@@ -17,8 +17,10 @@
 // load in. Something inside a panel that reads `text-invert` itself, such as
 // the `has-text-text-invert` helper, gets the same value.
 
+@use 'sass:list';
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
+@use 'bulma/sass/utilities/derived-variables' as dv;
 
 $panel-text-invert-l: cv.getVar('scheme-main-l') !default;
 
@@ -28,4 +30,48 @@ $panel-text-invert-l: cv.getVar('scheme-main-l') !default;
       'text-invert-l': #{$panel-text-invert-l},
     )
   );
+}
+
+// Bulma colors a panel's active block and active tab from
+// `--bulma-panel-block-active-color` and `--bulma-panel-tab-active-color`,
+// which read `--bulma-link-active`. Bulma never defines that, so their text
+// inherits the panel's. Panel's `color` puts the color's text helper on the
+// panel as well as its modifier, so in a colored Panel that text is the
+// color's own lightness on the page's background, which for many colors
+// doesn't read: a light panel's active block is near white on white.
+//
+// This gives the active block and active tab of a panel with both classes a
+// fallback for those two variables: the color at its on-scheme lightness, the
+// one Bulma picks for that color's text on the page, so it reads on the page
+// on either scheme. A variable that reads an undefined one has no value, so
+// the fallback applies until either variable, or `--bulma-link-active`, is
+// given one, and a value of your own still wins. A panel with the modifier
+// alone, as Bulma writes one, inherits the page's text and is left as it is.
+// Black is left out: Bulma's on-scheme black is black on the dark scheme too,
+// so the rule wouldn't change it. So is `text`, which isn't one of Panel's
+// colors. The active block's icon and the active tab's underline keep the
+// color's own lightness.
+//
+// Each rule names the panel, its two color classes and Bulma's selector for
+// the block or tab, which outranks Bulma's rule whichever stylesheet loads
+// first.
+$-active-left-alone: ('black', 'text');
+
+@each $name, $color in dv.$colors {
+  @if not list.index($-active-left-alone, $name) {
+    $panel: '.#{iv.$class-prefix}panel.#{iv.$class-prefix}is-#{$name}.#{iv.$class-prefix}#{iv.$helpers-has-prefix}text-#{$name}';
+    $active: hsl(
+      #{cv.getVar($name, '', '-h')},
+      #{cv.getVar($name, '', '-s')},
+      #{cv.getVar($name, '', '-on-scheme-l')}
+    );
+
+    #{$panel} .#{iv.$class-prefix}panel-block.#{iv.$class-prefix}is-active {
+      color: var(#{cv.buildVarName('panel-block-active-color')}, #{$active});
+    }
+
+    #{$panel} .#{iv.$class-prefix}panel-tabs a.#{iv.$class-prefix}is-active {
+      color: var(#{cv.buildVarName('panel-tab-active-color')}, #{$active});
+    }
+  }
 }

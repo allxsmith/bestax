@@ -325,6 +325,10 @@ Bulma pages often put the hero classes on landmarks: `<main class="hero">` for a
 - `as` renders the hero as `div`, `main`, `header`, `footer`, `article` or `aside` instead, `Hero.Head` as `header` or `nav`, and `Hero.Foot` as `footer` or `nav`; each takes that element's landmark role. Keep one visible `main` per page, and don't put a `header` or `footer` inside another one.
 - `Hero.Body` renders a `<div>` for layout; use accessible children/content.
 - Use headings (`<Title>`, `<SubTitle>`) for best screen reader support.
+- A `Navbar` with no `color` of its own, in a hero with one, draws its focused, hovered and active
+  items and its burger in the hero's colors;
+  [Navbar's Accessibility section](../components/navbar.md#accessibility) says what bestax adds to
+  Bulma there.
 
 :::note
 When using fullheight or fullheight-with-navbar, ensure your layout remains keyboard navigable and visually accessible.
