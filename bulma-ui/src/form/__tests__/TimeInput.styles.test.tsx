@@ -256,3 +256,121 @@ describe('TimeInput read-only wheels', () => {
     }
   });
 });
+
+describe('TimeInput AM/PM wheel width', () => {
+  // A locale's words for AM and PM can run longer than two digits, as Nepali's
+  // पूर्वाह्न does, and the wheel cut them off at both ends. The width itself
+  // needs a browser's layout; these check the rules that give it.
+  const check = (container: Element, prefix = '') => {
+    const wheels = Array.from(
+      container.querySelectorAll(`.${prefix}timeinput-wheel`)
+    );
+    const ampm = wheels[wheels.length - 1];
+    expect(ampm).toHaveClass(`${prefix}is-fitted`);
+    // The size still sets the width, and the words set the least width.
+    expect(getComputedStyle(ampm).width).toBe('40px');
+    expect(getComputedStyle(ampm).minWidth).toBe('max-content');
+    const sizers = ampm.querySelectorAll(`.${prefix}timeinput-wheel-sizer`);
+    // The words are in attributes, which the stylesheet draws, so the page's
+    // text holds each once, as its item.
+    expect(Array.from(sizers, s => s.getAttribute('data-label'))).toEqual([
+      '午前',
+      '午後',
+    ]);
+    for (const sizer of Array.from(sizers)) {
+      expect(sizer).toBeEmptyDOMElement();
+      const style = getComputedStyle(sizer);
+      expect({
+        height: style.height,
+        visibility: style.visibility,
+        whiteSpace: style.whiteSpace,
+        paddingInline: style.getPropertyValue('padding-inline'),
+        letterSpacing: style.letterSpacing,
+        wordSpacing: style.wordSpacing,
+        textTransform: style.textTransform,
+        textIndent: style.textIndent,
+      }).toEqual({
+        height: '0px',
+        visibility: 'hidden',
+        whiteSpace: 'nowrap',
+        // The band's corner radius, capped at the gap between wheels, so a
+        // pill radius such as 9999px can't stretch the wheel.
+        paddingInline:
+          'min(var(--bulma-timeinput-wheel-radius), var(--bulma-timeinput-wheel-gap))',
+        letterSpacing: 'normal',
+        wordSpacing: 'normal',
+        textTransform: 'none',
+        textIndent: '0px',
+      });
+    }
+    // The number wheels keep their width and size nothing.
+    for (const wheel of wheels.slice(0, -1)) {
+      expect(wheel).not.toHaveClass(`${prefix}is-fitted`);
+      expect(getComputedStyle(wheel).minWidth).not.toBe('max-content');
+      expect(wheel.querySelector(`.${prefix}timeinput-wheel-sizer`)).toBeNull();
+    }
+  };
+
+  it('grows to the longest word, keeping its size as the least width', () => {
+    const { container } = render(
+      <TimeInput inline hourFormat="12" locale="ja-JP" size="small" />
+    );
+    check(container);
+  });
+
+  it('does it under a class prefix too', () => {
+    const prefixed = document.createElement('style');
+    prefixed.textContent = compileScss(
+      `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: 'bestax-');
+       @use 'form/timeinput';`
+    );
+    document.head.appendChild(prefixed);
+    try {
+      const { container } = render(
+        <ConfigProvider classPrefix="bestax-">
+          <TimeInput inline hourFormat="12" locale="ja-JP" size="small" />
+        </ConfigProvider>
+      );
+      check(container, 'bestax-');
+    } finally {
+      prefixed.remove();
+    }
+  });
+
+  it.each(['', 'bestax-'])(
+    'measures the words at the items’ size on a phone, prefix %j',
+    prefix => {
+      // jsdom doesn't apply media queries, so this reads the phone block.
+      const sheet = document.createElement('style');
+      sheet.textContent = compileScss(
+        `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+         @use 'form/timeinput';`
+      );
+      document.head.appendChild(sheet);
+      try {
+        const sizes = new Map<string, string>();
+        for (const rule of Array.from(
+          (sheet.sheet as CSSStyleSheet).cssRules
+        )) {
+          if (!(rule instanceof CSSMediaRule)) continue;
+          if (!/max-width/.test(rule.media.mediaText)) continue;
+          for (const inner of Array.from(rule.cssRules)) {
+            if (!(inner instanceof CSSStyleRule)) continue;
+            for (const selector of inner.selectorText.split(',')) {
+              if (inner.style.fontSize) {
+                sizes.set(selector.trim(), inner.style.fontSize);
+              }
+            }
+          }
+        }
+        // On the wheel, so its items and its copies, which inherit it,
+        // measure and draw at one size.
+        expect(sizes.get(`.${prefix}timeinput-wheel`)).toBe('1.1rem');
+        expect(sizes.get(`.${prefix}timeinput-wheel-item`)).toBeUndefined();
+        expect(sizes.get(`.${prefix}timeinput-wheel-sizer`)).toBeUndefined();
+      } finally {
+        sheet.remove();
+      }
+    }
+  );
+});
