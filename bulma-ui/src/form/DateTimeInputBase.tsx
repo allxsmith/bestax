@@ -158,10 +158,10 @@ export interface DateTimeInputBaseProps
    */
   parse?: (s: string) => Date | null;
   /**
-   * BCP-47 locale tag for day/month names, the digits the calendar numbers
-   * its days and years in, and Intl formatting. Unset, it is the `locale` of
-   * a `LocaleProvider` around the picker, and with neither, `Intl` uses the
-   * runtime's own locale and the calendar numbers its days and years in plain
+   * BCP-47 locale tag for day/month names, the digits the calendar and the
+   * time wheels write their numbers in, and Intl formatting. Unset, it is the
+   * `locale` of a `LocaleProvider` around the picker, and with neither, `Intl`
+   * uses the runtime's own locale and the calendar and the wheels keep plain
    * digits. On a server render that locale is the server's, so an `inline`
    * calendar rendered there names its days in the server's language and the
    * browser's own render names them in the browser's: give it a locale, here
@@ -792,6 +792,7 @@ export const DateTimeInputBase = forwardRef<
                 disabled={disabled || readOnly}
                 id={timeWheelsId}
                 labels={labels}
+                locale={locale}
                 itemHeight={wheelItemHeight}
                 audioTick={effectiveAudioTick}
                 // Enter on a wheel commits the time, which the wheels already
