@@ -42,11 +42,10 @@ export interface ButtonOwnProps extends Omit<
   /** Size of the button. */
   size?: 'small' | 'normal' | 'medium' | 'large';
   /**
-   * Applies a lighter color variant. `primary`, `link`, `info`, `success`,
-   * `warning` and `danger` have one, and the rest don't: with no `color`, or
-   * with `white` or `black`, `isLight` gives the light button, as
-   * `color="light"` does, and `light`, `dark`, `text` and `ghost` look the
-   * same as without it.
+   * Applies the light variant of a colored button, such as `primary`'s.
+   * Bulma gives the grayscale colors none, so with no `color`, or with
+   * `white` or `black`, `isLight` gives the light button, as `color="light"`
+   * does, and `light` or `dark` with `isLight` looks the same as without it.
    */
   isLight?: boolean;
   /** Makes the button rounded. */
