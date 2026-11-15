@@ -38,11 +38,10 @@ export function compilerOptions(
 }
 
 /**
- * Every error `source` gets as the file at `fixture`, read as TSX, with
- * `extra` over the compiler options: its line, from 0, and its message,
- * flattened.
+ * The program over `source` as the file at `fixture`, read as TSX, with
+ * `extra` over the compiler options, and that file in it.
  */
-export function errorsOf(
+export function programWith(
   fixture: string,
   source: string,
   extra: ts.CompilerOptions = {}
@@ -58,7 +57,20 @@ export function errorsOf(
   const fileExists = host.fileExists.bind(host);
   host.fileExists = file => path.resolve(file) === target || fileExists(file);
   const program = ts.createProgram([target], options, host);
-  const file = program.getSourceFile(target)!;
+  return { program, file: program.getSourceFile(target)! };
+}
+
+/**
+ * Every error `source` gets as the file at `fixture`, read as TSX, with
+ * `extra` over the compiler options: its line, from 0, and its message,
+ * flattened.
+ */
+export function errorsOf(
+  fixture: string,
+  source: string,
+  extra: ts.CompilerOptions = {}
+) {
+  const { program, file } = programWith(fixture, source, extra);
   return [
     ...program.getSyntacticDiagnostics(file),
     ...program.getSemanticDiagnostics(file),

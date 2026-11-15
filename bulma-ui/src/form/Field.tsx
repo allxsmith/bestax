@@ -44,11 +44,12 @@ export interface FieldProps
   /** Text color for the field. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Bulma color for the field. */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color for the field. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Field content. */
   children?: React.ReactNode;
 }
@@ -61,15 +62,16 @@ export interface FieldLabelProps
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Size for the field label. */
-  size?: 'small' | 'normal' | 'medium' | 'large';
+  size?: 'small' | 'normal' | 'medium' | 'large' | undefined;
   /** Text color for the label. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Bulma color for the label. */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color for the label. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Field label content. */
   children?: React.ReactNode;
 }
@@ -84,11 +86,12 @@ export interface FieldBodyProps
   /** Text color for the field body. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Bulma color for the field body. */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color for the field body. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Field body content. */
   children?: React.ReactNode;
 }

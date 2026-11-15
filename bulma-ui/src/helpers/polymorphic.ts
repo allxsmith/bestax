@@ -104,7 +104,7 @@ export type PolymorphicProps<
         Exclude<keyof Own, Forwarded> | 'as'
       > & {
         /** The element or component to render. */
-        as?: T;
+        as?: T | undefined;
       }
   : never;
 

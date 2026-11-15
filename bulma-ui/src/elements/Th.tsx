@@ -15,7 +15,7 @@ export interface ThProps
     Omit<React.ThHTMLAttributes<HTMLTableCellElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * Text alignment for the header cell ('left', 'right', 'centered').
    * Without it, `bestax.css` and its variants align a header to the start of
@@ -36,9 +36,9 @@ export interface ThProps
    * `style`. A `style` passed as well keeps it, and a `width` that `style`
    * sets wins.
    */
-  width?: string | number;
+  width?: string | number | undefined;
   /** Bulma color modifier for the header cell. */
-  color?: TableColor;
+  color?: TableColor | undefined;
   /** Table header cell content. */
   children?: React.ReactNode;
 }

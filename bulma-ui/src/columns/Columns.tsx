@@ -30,11 +30,12 @@ export interface ColumnsProps
       'color' | 'backgroundColor' | 'columnGap' | 'rowGap'
     > {
   /** Additional CSS classes for the columns container. */
-  className?: string;
+  className?: string | undefined;
   /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Bulma color modifier for all columns. */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color for all columns. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Horizontally center columns within the container. */

@@ -46,7 +46,7 @@ export interface DropdownProps
   /** Dropdown menu items and dividers. */
   children: React.ReactNode;
   /** Additional CSS classes for root. */
-  className?: string;
+  className?: string | undefined;
   /** Additional CSS classes for the dropdown menu. */
   menuClassName?: string;
   /** Whether the dropdown is open (controlled). */
@@ -58,7 +58,7 @@ export interface DropdownProps
   /** Open on hover instead of click. */
   hoverable?: boolean;
   /** Disables the dropdown trigger. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Callback when dropdown active state changes. */
   onActiveChange?: (active: boolean) => void;
   /** Close dropdown when a menu item is clicked, or activated with Enter or Space. */
@@ -428,9 +428,9 @@ export interface DropdownItemOwnProps extends BulmaClassesProps {
   /** Whether the item is active. */
   active?: boolean;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Marks the item as disabled; disabled items are skipped during keyboard navigation. Use with `as="button"` for a native disabled control, or pair with `aria-disabled` on a link. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Item content. */
   children?: React.ReactNode;
 }
@@ -465,7 +465,7 @@ export type DropdownItemProps<
      * `'button'` renders `type="button"` unless you pass `type="submit"` or `type="reset"`, so
      * an item inside a form does not submit it.
      */
-    as?: T;
+    as?: T | undefined;
   };
 
 /**

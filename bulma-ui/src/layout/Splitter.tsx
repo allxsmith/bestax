@@ -46,7 +46,7 @@ export interface SplitterPaneProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * What the pane is, such as "Files". It names the handle that speaks for
    * this pane, which is announced as "Files, separator, 25". That's the
@@ -54,7 +54,7 @@ export interface SplitterPaneProps
    * beside that handle, can collapse. A development build warns when a
    * handle's pane has none.
    */
-  label?: string;
+  label?: string | undefined;
   /**
    * Its starting size, in percent of the room the panes share. Panes without
    * one share what's left equally, and a total over 100 is scaled down.
@@ -110,7 +110,7 @@ export interface SplitterProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * `Splitter.Pane`s, two or more, each a direct child, with Fragments
    * opened up. A handle goes between each pair. Changing which panes there
@@ -126,13 +126,13 @@ export interface SplitterProps
    * The splitter's height. A number is pixels, and a string any CSS length.
    * A vertical splitter needs a height to split.
    */
-  height?: number | string;
+  height?: number | string | undefined;
   /**
    * Each pane's size, in percent, in order, adding up to 100. With it, the
    * sizes are yours: update them from `onSizesChange`. Without it, each
    * pane starts at its `defaultSize`.
    */
-  sizes?: number[];
+  sizes?: number[] | undefined;
   /**
    * Called with every pane's size, in percent, whenever they change: on
    * each step of a drag or a key, on a collapse and on a reset.
@@ -142,7 +142,7 @@ export interface SplitterProps
    * How far an arrow key moves a handle, in percent. Shift moves ten times
    * as far.
    */
-  step?: number;
+  step?: number | undefined;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color helper. */

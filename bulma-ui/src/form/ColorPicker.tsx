@@ -181,7 +181,7 @@ export interface ColorPickerAreaProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**
@@ -392,7 +392,7 @@ export interface ColorPickerSliderProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
 }
 
 interface ChannelSliderProps extends ColorPickerSliderProps {
@@ -559,7 +559,7 @@ export interface ColorPickerSwatchesProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * The colors to offer, in place of the picker's own `swatches`: a list,
    * or `"bulma"` for the page's theme colors.
@@ -779,7 +779,7 @@ export interface ColorPickerInputProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**
@@ -890,7 +890,7 @@ export interface ColorPickerProps
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'>,
     FormFieldProps {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Field label naming the picker's group, through `aria-labelledby`. Dropped inside an outer `Field`, whose own label names it instead. An `aria-label` or `aria-labelledby` you set wins over either. */
   label?: React.ReactNode;
   /** Props for the label element. An explicit `id` here is used as the `aria-labelledby` target instead of a generated one; any `htmlFor` is ignored (a group label names the group, never a single control). */
@@ -904,14 +904,14 @@ export interface ColorPickerProps
    * last color it could. A value it gave you comes back without moving the
    * thumbs, and a gray or black keeps the hue and saturation the user had.
    */
-  value?: string;
+  value?: string | undefined;
   /** The color to start with, uncontrolled. Black without one. */
-  defaultValue?: string;
+  defaultValue?: string | undefined;
   /**
    * Called with the color, in `format`, as it changes: on every step of a
    * drag, and on a key, a swatch, a typed value or the eye dropper.
    */
-  onChange?: (value: string) => void;
+  onChange?: ((value: string) => void) | undefined;
   /**
    * Called with the color, in `format`, once a change is done: when a drag
    * ends, and with `onChange` for a key, a swatch, a typed value or the eye
@@ -951,11 +951,11 @@ export interface ColorPickerProps
    */
   eyeDropper?: boolean;
   /** Disables every part. A disabled `Fieldset` around it does too. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Form field name. When set, a hidden input carries the value. */
-  name?: string;
+  name?: string | undefined;
   /** The id of the form the hidden input belongs to. */
-  form?: string;
+  form?: string | undefined;
   /** The strings it says, each with an English default. */
   labels?: ColorPickerLabels;
   /**

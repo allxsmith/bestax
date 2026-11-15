@@ -74,7 +74,7 @@ export type GroupProps<T extends LayoutElement = LayoutElement> =
        * restates `role="list"`, which Bulma's list reset takes away in Safari.
        * @defaultValue 'div'
        */
-      as?: T;
+      as?: T | undefined;
     };
 
 /**

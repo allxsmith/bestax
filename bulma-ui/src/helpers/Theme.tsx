@@ -1051,7 +1051,7 @@ export interface ThemeProps extends Omit<
    * Additional CSS classes for the wrapper div. A root Theme (`isRoot`) has no
    * wrapper, so there this does nothing, and says so in development.
    */
-  className?: string;
+  className?: string | undefined;
   /**
    * Inject the variables globally at `:root` instead of scoping them to a
    * wrapper div. Default: false.

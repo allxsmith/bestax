@@ -17,9 +17,9 @@ export interface AvatarsProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Show only the first `max` children, replacing the overflow with a "+N" surplus avatar. A single overflow avatar is shown directly rather than as a pointless "+1". */
-  max?: number;
+  max?: number | undefined;
   /** Uniform size applied to every child `Avatar` (and the surplus avatar). */
   size?: AvatarProps['size'];
   /** Uniform shape applied to every child `Avatar` (and the surplus avatar); a child's own `shape` wins when this is unset. */

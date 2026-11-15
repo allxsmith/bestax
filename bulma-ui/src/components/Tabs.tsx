@@ -124,7 +124,7 @@ export interface TabsProps
   /** Tab alignment. */
   align?: 'centered' | 'right' | 'left';
   /** Tab size. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Tabs expand to fill the horizontal space. */
   isFullwidth?: boolean;
   /** Tabs expand to fill the horizontal space. @deprecated Use `isFullwidth` instead — `isFullwidth` wins if both are set. */
@@ -155,9 +155,10 @@ export interface TabsProps
     | 'black'
     | 'dark'
     | 'light'
-    | 'white';
+    | 'white'
+    | undefined;
   /** Controlled active tab index. */
-  value?: number;
+  value?: number | undefined;
   /**
    * Callback when active tab changes. Called with the tab's `index` when a
    * `Tabs.Tab` is activated: clicked, or Enter or Space pressed on it.
@@ -165,9 +166,9 @@ export interface TabsProps
    * activation is manual: focus moves freely and the selected tab changes
    * only when the user picks one.
    */
-  onChange?: (index: number) => void;
+  onChange?: ((index: number) => void) | undefined;
   /** Initial active tab index (uncontrolled). */
-  defaultValue?: number;
+  defaultValue?: number | undefined;
   /**
    * Renders tabs vertically. With a `Tabs.Content`, the tab list is also
    * marked `aria-orientation="vertical"` and ArrowUp and ArrowDown move focus
@@ -184,7 +185,7 @@ export interface TabsProps
   /** Makes tabs take up the full width equally. */
   expanded?: boolean;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Tab list and tab items. */
   children?: React.ReactNode;
 }
@@ -401,7 +402,7 @@ const TabsComponent: React.FC<TabsProps> = ({
  */
 export interface TabListProps extends React.HTMLAttributes<HTMLUListElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Tab elements. */
   children?: React.ReactNode;
 }
@@ -456,7 +457,7 @@ export interface TabProps extends Omit<
    * the tab list's tab stop. The bestax extras styles also dim it and turn
    * off its hover.
    */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Icon name for the tab. */
   icon?: string;
   /** Icon library to use. */
@@ -468,7 +469,7 @@ export interface TabProps extends Omit<
   /** Additional icon modifiers. */
   iconFeatures?: string | string[];
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Tab label content. */
   children?: React.ReactNode;
 }
@@ -617,11 +618,11 @@ export interface TabItemProps extends React.LiHTMLAttributes<HTMLLIElement> {
   /** Whether the tab is active. */
   active?: boolean;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Tab content. */
   children?: React.ReactNode;
   /** Click handler. */
-  onClick?: React.MouseEventHandler<HTMLLIElement>;
+  onClick?: React.MouseEventHandler<HTMLLIElement> | undefined;
 }
 
 /**
@@ -660,7 +661,7 @@ export const TabItem: React.FC<TabItemProps> = ({
  */
 export interface TabsContentProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** TabContentItem elements. */
   children?: React.ReactNode;
 }
@@ -698,7 +699,7 @@ export interface TabContentItemProps extends React.HTMLAttributes<HTMLDivElement
   /** **Required.** Tab index for matching with content. */
   index: number;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Panel content. */
   children?: React.ReactNode;
 }

@@ -114,7 +114,7 @@ export interface TreeViewProps
    * Read with `single` only. Picking an item then only calls
    * `onSelectedChange`, and nothing changes until you pass the new value.
    */
-  selected?: string | null;
+  selected?: string | null | undefined;
   /** The item selected to begin with, when the tree holds its own state. Read with `single` only. */
   defaultSelected?: string | null;
   /**
@@ -130,9 +130,9 @@ export interface TreeViewProps
    * a disabled item is checked only by its own value. In
    * `checkbox-independent`, a value checks its own item and nothing else.
    */
-  checked?: string[];
+  checked?: string[] | undefined;
   /** The values checked to begin with, when the tree holds its own state. Read with `checkbox` and `checkbox-independent` only. */
-  defaultChecked?: string[];
+  defaultChecked?: string[] | undefined;
   /**
    * Called after a check or an uncheck. In `checkbox`, with every item that
    * now shows checked, parents included, plus any earlier value that matches
@@ -152,7 +152,7 @@ export interface TreeViewProps
   /** Called with the new list whenever an item opens or closes, `*` included. */
   onExpandedChange?: (expanded: string[]) => void;
   /** The text size, as Bulma's menu sizes it. The rows, the indent and the chevron scale with it. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** What the row in a loading item's group says. In your app's language. */
   loadingLabel?: string;
   /** The Retry button's text on a failed load's row. In your app's language. */
@@ -228,7 +228,7 @@ export interface TreeViewItemProps extends Omit<
    * reader finds it, but never selected, checked, opened or closed. One
    * that's already open stays open.
    */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
 }
 
 /**

@@ -13,7 +13,7 @@ import {
  */
 export interface BulmaColorProps {
   /** Text color class (e.g., 'primary', 'info'). */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /** Text color shade suffix (e.g., '00', 'invert'). */
   colorShade?: (typeof validColorShades)[number];
   /** Background color class (e.g., 'primary', 'info'). */

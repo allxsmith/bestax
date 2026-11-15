@@ -183,7 +183,7 @@ export interface AppFrameNavProps
    * strip of backdrop. A number is pixels, and a string any CSS length. It
    * writes `--bulma-app-frame-nav-width`, 16rem by default.
    */
-  width?: number | string;
+  width?: number | string | undefined;
   /**
    * Shows a backdrop behind the drawer and makes it modal: Tab stays inside,
    * the page scroll locks, and the rest of the frame is inert, while what
@@ -277,7 +277,7 @@ export interface AppFrameAsideProps
    * page. A number is pixels, and a string any CSS length. It writes
    * `--bulma-app-frame-aside-width`, 20rem by default.
    */
-  width?: number | string;
+  width?: number | string | undefined;
 }
 
 /**

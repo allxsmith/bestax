@@ -27,7 +27,7 @@ export interface CollapseProps
    * Collapse that sets `open` stays yours: the group neither overrides it nor
    * closes it when another item opens.
    */
-  open?: boolean;
+  open?: boolean | undefined;
   /** Initial open state for uncontrolled usage. Ignored inside a `Collapses` group, whose `defaultValue` decides. */
   defaultOpen?: boolean;
   /** Called when the trigger opens the Collapse. Fires only while the Collapse keeps its own state: not when `open` is set, and not when a `Collapses` group manages it. `onOpenChange` reports in every mode. */

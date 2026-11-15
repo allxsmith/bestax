@@ -229,7 +229,7 @@ export interface DataTableStateOptions<TRow> {
    * The selected rows' ids when you hold them. They stay selected while the
    * search, a filter or the page hides them.
    */
-  selected?: string[];
+  selected?: string[] | undefined;
   /** The rows selected to begin with, by id, when the table holds them. */
   defaultSelected?: string[];
   /** Called with every selected id after a checkbox changes. */
@@ -339,14 +339,14 @@ export interface DataTableSearchProps {
 /** The props `getHeaderCellProps` gives a column's `Th`. */
 export interface DataTableHeaderCellProps {
   scope: 'col';
-  'aria-sort'?: DataTableSortDirection;
+  'aria-sort'?: DataTableSortDirection | undefined;
   isAligned?: TableAlignment;
-  width?: string | number;
+  width?: string | number | undefined;
 }
 
 /** The props `getCellProps` gives a row's `Td`, or its `Th` for the row header. */
 export interface DataTableCellProps {
-  scope?: 'row';
+  scope?: 'row' | undefined;
   isAligned?: TableAlignment;
 }
 
@@ -355,7 +355,7 @@ export interface DataTableCheckboxProps {
   'aria-label': string;
   checked: boolean;
   indeterminate?: boolean;
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   onChange: () => void;
 }
 

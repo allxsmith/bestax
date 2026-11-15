@@ -67,14 +67,14 @@ export interface CheckboxCardProps
    */
   hasIndicator?: boolean;
   /** The color of the checkbox and of a checked card's edge. */
-  color?: (typeof checkboxCardColors)[number];
+  color?: (typeof checkboxCardColors)[number] | undefined;
   /**
    * Text color helper, on the card. The title and the children take it, and
    * the description keeps its own color.
    */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Whether the card is disabled. A disabled card dims, takes no clicks, and leaves the Tab order. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /**
    * Shows the mixed state, as in a "Select all" card when some of what it
    * covers is checked. It's a look and an announcement only: `checked` is
@@ -98,7 +98,7 @@ export interface CheckboxCardProps
    * declares the active color again on `.checkbox-card.is-<color>`, which
    * ties that selector, so leave `color` unset when a class sets it.
    */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**

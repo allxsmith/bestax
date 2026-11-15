@@ -33,13 +33,13 @@ export interface BreadcrumbProps
     Omit<React.HTMLAttributes<HTMLElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Alignment of the breadcrumb (`is-centered`, `is-right`). */
   alignment?: BreadcrumbAlignment;
   /** Type of separator between breadcrumb items. */
   separator?: BreadcrumbSeparator;
   /** Breadcrumb size. */
-  size?: BreadcrumbSize;
+  size?: BreadcrumbSize | undefined;
   /** Breadcrumb items (`<li>`s with `<a>` or `<span>`). */
   children?: React.ReactNode;
 }

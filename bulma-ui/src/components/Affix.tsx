@@ -18,7 +18,7 @@ export interface AffixProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** What stays in the corner. */
   children?: React.ReactNode;
   /**

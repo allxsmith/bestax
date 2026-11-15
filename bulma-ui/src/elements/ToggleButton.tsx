@@ -70,7 +70,7 @@ export interface ToggleButtonProps
    * as a plain button already is. Of the rest, a pale one such as `warning`
    * changes less than the default `link`.
    */
-  color?: ToggleButtonColor;
+  color?: ToggleButtonColor | undefined;
   /**
    * The label, which stays the same in both states: a screen reader announces
    * whether it's pressed, so "Mute" stays "Mute". An icon can swap, but an

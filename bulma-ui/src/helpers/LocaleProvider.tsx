@@ -55,7 +55,7 @@ export interface LocaleProviderProps
    * The direction, whatever the locale. Unset, it follows this provider's
    * `locale`, else an outer provider's direction, else the page's.
    */
-  dir?: TextDirection;
+  dir?: TextDirection | undefined;
   /** The part of the app it covers. */
   children?: React.ReactNode;
 }

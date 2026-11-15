@@ -48,16 +48,16 @@ export interface ScrollAreaProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color' | 'role' | 'tabIndex'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes for the outer frame. */
-  className?: string;
+  className?: string | undefined;
   /** Inline styles for the outer frame. */
-  style?: React.CSSProperties;
+  style?: React.CSSProperties | undefined;
   /** What scrolls. */
   children?: React.ReactNode;
   /**
    * The area's height. A number is pixels, and a string is any CSS length
    * (`"20rem"`, `"50vh"`, `"100%"`).
    */
-  height?: number | string;
+  height?: number | string | undefined;
   /**
    * The height it grows to with its content, then scrolls past. A number is
    * pixels. Use it in place of `height` for an area that's only as tall as

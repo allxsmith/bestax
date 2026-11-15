@@ -57,19 +57,19 @@ export interface NumberinputProps
     [key: string]: unknown;
   };
   /** Controlled value. */
-  value?: number;
+  value?: number | undefined;
   /** Default value for uncontrolled usage. */
-  defaultValue?: number;
+  defaultValue?: number | undefined;
   /** Minimum allowed value. */
-  min?: number;
+  min?: number | undefined;
   /** Maximum allowed value. */
-  max?: number;
+  max?: number | undefined;
   /** Step increment (default: 1). */
-  step?: number;
+  step?: number | undefined;
   /** Size variant. */
-  size?: NumberinputSize;
+  size?: NumberinputSize | undefined;
   /** Color variant for buttons. */
-  color?: NumberinputColor;
+  color?: NumberinputColor | undefined;
   /** Color of the input field itself. */
   inputColor?: NumberinputInputColor;
   /** Position of +/- buttons. */
@@ -90,7 +90,7 @@ export interface NumberinputProps
   /** Style variant for the control buttons. */
   variant?: NumberinputVariant;
   /** Whether the input is disabled. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Whether the input can be typed in. */
   editable?: boolean;
   /**
@@ -105,7 +105,7 @@ export interface NumberinputProps
   /** Enables exponential step increments when holding buttons. */
   exponential?: boolean;
   /** Callback when value changes. */
-  onChange?: (value: number) => void;
+  onChange?: ((value: number) => void) | undefined;
 }
 
 const ArrowDropUp = () => (

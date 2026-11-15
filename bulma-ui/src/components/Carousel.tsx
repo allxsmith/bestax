@@ -115,7 +115,7 @@ export interface CarouselProps
    * swipe or a change of width does.
    * @defaultValue 0
    */
-  value?: number;
+  value?: number | undefined;
   /**
    * Enable auto-play: one step (`itemsToScroll` items) per `interval`.
    * Without `repeat` it stops at the last position. It waits while the
@@ -268,7 +268,7 @@ export interface CarouselProps
    * Called with the index of the first item in view when an arrow, an arrow
    * key, an indicator, a swipe or autoplay moves the carousel.
    */
-  onChange?: (value: number) => void;
+  onChange?: ((value: number) => void) | undefined;
   /** CarouselItem children. */
   children?: React.ReactNode;
 }

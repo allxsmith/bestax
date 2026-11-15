@@ -141,7 +141,7 @@ interface TreeSelectBaseProps
    */
   onExpandedChange?: (expanded: string[]) => void;
   /** Whether the panel is open, controlled: opening and closing then only call `onOpenChange`. */
-  open?: boolean;
+  open?: boolean | undefined;
   /** The panel is open to begin with. */
   defaultOpen?: boolean;
   /** Called with the new state when the panel opens or closes. */
@@ -173,19 +173,19 @@ interface TreeSelectBaseProps
   /** Renders a row's content in place of its label. The field and the tags still show the label. */
   itemTemplate?: (item: TreeItemData) => React.ReactNode;
   /** What the field shows while nothing is picked. */
-  placeholder?: string;
+  placeholder?: string | undefined;
   /** A form field name. A hidden input posts the value, or one per value in the checkbox modes. */
-  name?: string;
+  name?: string | undefined;
   /** The id of the form the hidden inputs belong to, when it isn't an ancestor. */
-  form?: string;
+  form?: string | undefined;
   /**
    * A value is needed: the field is `aria-required`, and the form won't
    * submit while nothing is picked. The browser's message points at the
    * field, which shows focus, and the next key goes to it.
    */
-  required?: boolean;
+  required?: boolean | undefined;
   /** The field can't be used: it can't be focused or opened, its tags lose their buttons, and its hidden inputs don't post. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /**
    * Shows a clear button at the field's inline end while something it can
    * take off is picked. It leaves checked disabled items, which no control
@@ -193,9 +193,10 @@ interface TreeSelectBaseProps
    */
   clearable?: boolean;
   /** Bulma color modifier for the field. */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** The field's size, which the tree in the panel follows. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Rounds the field's corners (Bulma's `is-rounded`). */
   isRounded?: boolean;
   /**
@@ -229,9 +230,9 @@ export interface TreeSelectSingleProps extends TreeSelectBaseProps {
    * In `'checkbox'` a parent's value checks its whole branch, so the list any
    * `checkedStrategy` gives checks the same boxes.
    */
-  value?: string | null;
+  value?: string | null | undefined;
   /** The value to begin with, when TreeSelect holds its own state: a value or `null`, or a list in the checkbox modes. */
-  defaultValue?: string | null;
+  defaultValue?: string | null | undefined;
   /**
    * Called with the new value: in `'single'` the picked item's value, or
    * `null` when it's cleared, and in the checkbox modes the new list, after a
@@ -240,7 +241,7 @@ export interface TreeSelectSingleProps extends TreeSelectBaseProps {
    * `defaultValue` as it was given, or with `null` or `[]` when you hold
    * the value, for you to set.
    */
-  onChange?: (value: string | null) => void;
+  onChange?: ((value: string | null) => void) | undefined;
   /**
    * A parent's row picks the parent. `false` makes the row, Enter and Space
    * open it instead, so only leaves are picked.
@@ -271,16 +272,16 @@ export interface TreeSelectCheckboxProps extends TreeSelectBaseProps {
    * value checks its whole branch, so the list any `checkedStrategy` gives
    * checks the same boxes.
    */
-  value?: string[];
+  value?: string[] | undefined;
   /** The values checked to begin with, when TreeSelect holds its own state. */
-  defaultValue?: string[];
+  defaultValue?: string[] | undefined;
   /**
    * Called with the new list after a check, an uncheck, a tag's button or
    * the clear button, shaped by `checkedStrategy`, and after a reset of the
    * field's form, with `defaultValue` as given, or `[]` when you hold the
    * value.
    */
-  onChange?: (value: string[]) => void;
+  onChange?: ((value: string[]) => void) | undefined;
   /**
    * What a checked branch puts in the value, in `'checkbox'`: `'child'` its
    * leaves, `'parent'` its topmost checked item, `'all'` every checked item,

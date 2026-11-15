@@ -30,7 +30,7 @@ export interface CardProps
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Text color for the card. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
@@ -39,7 +39,8 @@ export interface CardProps
    * `textColor`, which takes precedence when both are set; use `bgColor` for
    * a colored surface.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /**
    * Background color for the card. `scheme-*` values render as a
    * dark-mode-safe inline `background-color: var(--bulma-scheme-*)` instead
@@ -232,13 +233,13 @@ export interface CardHeaderProps
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Bulma color modifier (text color helper). */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Text color helper; wins over `color` when both are set. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Header content. Wrap in Card.Header.Title for Bulma styling. */
   children?: React.ReactNode;
   /** Whether to center the header title text. */
@@ -253,13 +254,13 @@ export interface CardImageProps
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Bulma color modifier (text color helper). */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Text color helper; wins over `color` when both are set. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Image content (e.g. a `<figure>` with an `<img>`). */
   children?: React.ReactNode;
 }
@@ -272,13 +273,13 @@ export interface CardContentProps
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Bulma color modifier (text color helper). */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Text color helper; wins over `color` when both are set. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Card body content. */
   children?: React.ReactNode;
 }
@@ -291,13 +292,13 @@ export interface CardFooterProps
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Bulma color modifier (text color helper). */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Text color helper; wins over `color` when both are set. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Footer content, typically Card.FooterItem elements. */
   children?: React.ReactNode;
 }
@@ -367,15 +368,15 @@ export interface CardFooterItemProps
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Element type to render (default: `span`). Bulma's own card markup uses `a`. */
-  as?: 'span' | 'a' | 'button';
+  as?: 'span' | 'a' | 'button' | undefined;
   /** Bulma color modifier (text color helper). */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Text color helper; wins over `color` when both are set. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Footer item content (link, button, text, etc.). */
   children?: React.ReactNode;
 }
@@ -390,15 +391,15 @@ export interface CardHeaderTitleProps
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Element type to render (default: `div`). Bulma's own card markup uses `p`; a heading suits a title that should read as one. */
-  as?: 'div' | 'p' | 'h2' | 'h3' | 'h4';
+  as?: 'div' | 'p' | 'h2' | 'h3' | 'h4' | undefined;
   /** Bulma color modifier (text color helper). */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Text color helper; wins over `color` when both are set. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Title text content. */
   children?: React.ReactNode;
   /** Whether to center the title text. */
@@ -415,13 +416,13 @@ export interface CardHeaderIconProps
     React.ButtonHTMLAttributes<HTMLButtonElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Bulma color modifier (text color helper). */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Text color helper; wins over `color` when both are set. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Icon content (e.g. an icon element). */
   children?: React.ReactNode;
 }

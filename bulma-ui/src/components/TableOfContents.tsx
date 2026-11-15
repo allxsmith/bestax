@@ -47,7 +47,7 @@ export interface TableOfContentsProps
     Omit<React.HTMLAttributes<HTMLElement>, 'color' | 'children'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * **Required.** The sections, in page order, as links to their ids. Each
    * link is a plain `<a href="#id">`, so following one is the browser's own

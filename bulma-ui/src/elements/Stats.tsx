@@ -23,7 +23,7 @@ export interface StatsProps
     Omit<React.HTMLAttributes<HTMLDListElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** `Stat`s, one per figure, and nothing else: they're the groups of its `<dl>`. */
   children?: React.ReactNode;
   /**

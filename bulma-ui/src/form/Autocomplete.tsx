@@ -83,16 +83,16 @@ export interface AutocompleteProps
    */
   data: AutocompleteItem[] | string[];
   /** The current input value (controlled). */
-  value?: string;
+  value?: string | undefined;
   /**
    * Does nothing: Autocomplete doesn't read it.
    *
    * @deprecated Nothing reads it, and `onSelect` is what reports a pick. It
    * will be removed in the next major version.
    */
-  selected?: AutocompleteItem | string | null;
+  selected?: AutocompleteItem | string | null | undefined;
   /** Placeholder text for the input. */
-  placeholder?: string;
+  placeholder?: string | undefined;
   /** Object property to use as the display field. */
   field?: string;
   /**
@@ -132,25 +132,26 @@ export interface AutocompleteProps
    */
   loading?: boolean;
   /** Whether the input is disabled. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Enables infinite scroll detection in the dropdown. */
   checkInfiniteScroll?: boolean;
   /** Distance in pixels from the bottom to trigger `onInfiniteScroll`. */
   infiniteScrollDistance?: number;
   /** Input color variant. */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Size variant. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Form field name. Forwarded to the inner `<input>`. */
-  name?: string;
+  name?: string | undefined;
   /** Optional id of the form the input belongs to. */
-  form?: string;
+  form?: string | undefined;
   /** Marks the field as required for native HTML form validation. */
-  required?: boolean;
+  required?: boolean | undefined;
   /** Callback when input value changes. */
-  onInput?: (value: string) => void;
+  onInput?: ((value: string) => void) | undefined;
   /** Callback when item is selected. */
-  onSelect?: (item: AutocompleteItem | string | null) => void;
+  onSelect?: ((item: AutocompleteItem | string | null) => void) | undefined;
   /** Callback when dropdown active state changes. */
   onActiveChange?: (active: boolean) => void;
   /** Callback when scrolled to bottom (infinite scroll). */

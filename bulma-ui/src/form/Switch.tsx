@@ -67,9 +67,9 @@ export interface SwitchProps
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'> {
   /** Color variant for the switch. */
-  color?: (typeof switchColors)[number];
+  color?: (typeof switchColors)[number] | undefined;
   /** Size of the switch. */
-  size?: (typeof switchSizes)[number];
+  size?: (typeof switchSizes)[number] | undefined;
   /** Use rounded switch style. */
   isRounded?: boolean;
   /** Use thin switch style. */

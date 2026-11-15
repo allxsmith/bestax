@@ -36,19 +36,19 @@ export interface RadiosProps
     [key: string]: unknown;
   };
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Form field name shared by every Radio in the group (via context). */
-  name?: string;
+  name?: string | undefined;
   /** Currently-selected value (controlled mode). */
-  value?: string;
+  value?: string | undefined;
   /** Initial selected value (uncontrolled mode). */
-  defaultValue?: string;
+  defaultValue?: string | undefined;
   /**
    * Fires when the selection changes; receives the value picked. Passed
    * without `value` or `defaultValue`, it still has the group manage the
    * selection, starting from the radio with `defaultChecked`.
    */
-  onChange?: (value: string) => void;
+  onChange?: ((value: string) => void) | undefined;
   /** Radio elements to render in the group. */
   children: React.ReactNode;
   /**
@@ -63,7 +63,7 @@ export interface RadiosProps
    * before. `div`, the default, renders the group as it always has.
    * @defaultValue 'div'
    */
-  as?: 'div' | 'fieldset';
+  as?: 'div' | 'fieldset' | undefined;
 }
 
 /**

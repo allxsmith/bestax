@@ -15,15 +15,15 @@ export interface MediaProps
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Element type for the root Media container. */
-  as?: 'article' | 'div';
+  as?: 'article' | 'div' | undefined;
   /** Bulma color modifier. */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /** Bulma background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Bulma text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Content inside the media container. */
   children?: React.ReactNode;
 }
@@ -68,15 +68,15 @@ export interface MediaLeftProps
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Element type to render. */
-  as?: 'figure' | 'div';
+  as?: 'figure' | 'div' | undefined;
   /** Bulma color modifier. */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Content. */
   children?: React.ReactNode;
 }
@@ -120,13 +120,13 @@ export interface MediaContentProps
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Bulma color modifier. */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Content. */
   children?: React.ReactNode;
 }
@@ -172,13 +172,13 @@ export interface MediaRightProps
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Bulma color modifier. */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Content. */
   children?: React.ReactNode;
 }

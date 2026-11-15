@@ -14,7 +14,7 @@ export interface DividerProps
     React.HTMLAttributes<HTMLHRElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
 }

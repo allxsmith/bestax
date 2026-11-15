@@ -14,7 +14,7 @@ export interface TrProps
     Omit<React.HTMLAttributes<HTMLTableRowElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * Whether the row is selected (adds Bulma's is-selected class). It's a look
    * only: it says nothing to assistive tech, so pair it with a checkbox named
@@ -27,7 +27,7 @@ export interface TrProps
    */
   isSelected?: boolean;
   /** Bulma color modifier for the table row. */
-  color?: TableColor;
+  color?: TableColor | undefined;
   /** Table row content (cells). */
   children?: React.ReactNode;
 }

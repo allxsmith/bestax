@@ -22,7 +22,7 @@ export interface ColorSwatchProps
     Omit<React.HTMLAttributes<HTMLSpanElement>, 'color' | 'role'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * The color it shows: any CSS color, such as `#1e6b99`,
    * `hsl(202, 67%, 36%)` or `var(--bulma-primary)`. A see-through color
@@ -34,9 +34,9 @@ export interface ColorSwatchProps
    * name in place of `color` as written. A `var()` reads as nothing useful,
    * so a development build warns when one has no name.
    */
-  label?: string;
+  label?: string | undefined;
   /** The swatch's size. */
-  size?: (typeof validColorSwatchSizes)[number];
+  size?: (typeof validColorSwatchSizes)[number] | undefined;
   /** Draws a circle in place of a rounded square. */
   isRounded?: boolean;
   /**

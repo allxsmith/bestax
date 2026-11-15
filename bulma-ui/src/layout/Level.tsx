@@ -28,18 +28,18 @@ export interface LevelProps
    * `contentinfo` one, only when no `section`, `article`, `aside`, `nav` or
    * `main` is around it.
    */
-  as?: 'nav' | 'div' | 'header' | 'footer';
+  as?: 'nav' | 'div' | 'header' | 'footer' | undefined;
   /** Keeps the level horizontal on mobile (Bulma `is-mobile`). Without it
    * the level stacks vertically below tablet. */
   isMobile?: boolean;
   /** Bulma color modifier for the level. */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /** Bulma background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Bulma text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Level content (`Level.Left`, `Level.Right`, `Level.Item`). */
   children?: React.ReactNode;
 }
@@ -86,13 +86,13 @@ export interface LevelLeftProps
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Bulma color modifier. */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Content. */
   children?: React.ReactNode;
 }
@@ -134,13 +134,13 @@ export interface LevelRightProps
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Bulma color modifier. */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Content. */
   children?: React.ReactNode;
 }
@@ -216,17 +216,17 @@ export interface LevelItemProps
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Element type to render. */
-  as?: 'div' | 'p' | 'a';
+  as?: 'div' | 'p' | 'a' | undefined;
   /** Center the text in the item. */
   hasTextCentered?: boolean;
   /** Bulma color modifier. */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Content. */
   children?: React.ReactNode;
 }
