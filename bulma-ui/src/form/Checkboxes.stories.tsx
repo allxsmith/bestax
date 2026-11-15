@@ -5,6 +5,7 @@ import Checkbox from './Checkbox';
 import Checkboxes from './Checkboxes';
 import { Field } from './Field';
 import { Control } from './Control';
+import { Button } from '../elements/Button';
 
 const meta: Meta<typeof Checkboxes> = {
   title: 'Form/Checkboxes',
@@ -177,9 +178,9 @@ export const WithName: Story = {
           <Checkbox value="svelte">Svelte</Checkbox>
         </Checkboxes>
         <div style={{ marginTop: '1rem' }}>
-          <button type="submit" className="button is-primary">
+          <Button type="submit" color="primary">
             Submit
-          </button>
+          </Button>
         </div>
         {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
       </form>
@@ -228,9 +229,9 @@ export const WithNameThroughWrappers: Story = {
           <CheckboxCard value="analytics" label="Analytics" />
         </Checkboxes>
         <div style={{ marginTop: '1rem' }}>
-          <button type="submit" className="button is-primary">
+          <Button type="submit" color="primary">
             Submit
-          </button>
+          </Button>
         </div>
         {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
       </form>

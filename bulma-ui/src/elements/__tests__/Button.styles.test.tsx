@@ -15,9 +15,14 @@
 import * as sass from 'sass';
 import path from 'path';
 import { render } from '@testing-library/react';
-import { Button } from '../Button';
+import { Button, type ButtonProps } from '../Button';
 import { LinkButton } from '../LinkButton';
 import { ConfigProvider } from '../../helpers/Config';
+import {
+  bulmaCss,
+  compilePartial,
+  customProperty,
+} from '../../__tests__/css-cascade';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 const NODE_MODULES = path.resolve(__dirname, '../../../../node_modules');
@@ -392,5 +397,67 @@ describe('colored buttons in forced colors', () => {
         declarations: { '--bulma-button-border-width': '1px' },
       }))
     );
+  });
+});
+
+// Bulma's button nests no light variant in its grayscale colors. With
+// isLight, a button of one of them, or of no color, takes the light color's
+// class as well, and the cascade between the two decides the look, which
+// isLight's description says (#1678). These resolve the button's custom
+// properties across Bulma's CSS and the partial with `css-cascade.ts`.
+describe('isLight on a grayscale color', () => {
+  const sheets = (prefix = '') =>
+    prefix
+      ? bulmaCss('versions/bulma-prefixed.css') +
+        compilePartial('elements/button', prefix)
+      : bulmaCss() + compilePartial('elements/button');
+  const buttonOf = (props: ButtonProps, prefix = '') =>
+    render(
+      <ConfigProvider classPrefix={prefix || undefined}>
+        <Button {...props}>Save</Button>
+      </ConfigProvider>
+    ).container.querySelector(`.${prefix}button`)!;
+  /** The variables a color sets on a button, as the rules of `css` resolve them. */
+  const looksOf = (el: Element, css: string) =>
+    Object.fromEntries(
+      ['h', 's', 'l', 'background-l', 'border-l', 'color-l'].map(name => [
+        name,
+        customProperty(el, css, `--bulma-button-${name}`),
+      ])
+    );
+  /** What `.button.is-<name>` sets those variables to. */
+  const colorOf = (name: string) => ({
+    h: `var(--bulma-${name}-h)`,
+    s: `var(--bulma-${name}-s)`,
+    l: `var(--bulma-${name}-l)`,
+    'background-l': `var(--bulma-${name}-l)`,
+    'border-l': `var(--bulma-${name}-l)`,
+    'color-l': `var(--bulma-${name}-invert-l)`,
+  });
+
+  describe.each(['', 'bulma-'])("with the class prefix '%s'", prefix => {
+    it("gives white, black, light and no color the light button's look", () => {
+      const css = sheets(prefix);
+      for (const color of [undefined, 'white', 'black', 'light'] as const) {
+        const el = buttonOf({ color, isLight: true }, prefix);
+        expect(el).toHaveClass(`${prefix}is-light`);
+        expect(looksOf(el, css)).toEqual(colorOf('light'));
+      }
+    });
+
+    it("leaves a dark button the dark button's look", () => {
+      const el = buttonOf({ color: 'dark', isLight: true }, prefix);
+      expect(el).toHaveClass(`${prefix}is-dark`, `${prefix}is-light`);
+      expect(looksOf(el, sheets(prefix))).toEqual(colorOf('dark'));
+    });
+
+    it('gives a palette color its light variant', () => {
+      const el = buttonOf({ color: 'primary', isLight: true }, prefix);
+      expect(looksOf(el, sheets(prefix))).toEqual({
+        ...colorOf('primary'),
+        'background-l': 'var(--bulma-light-l)',
+        'color-l': 'var(--bulma-primary-light-invert-l)',
+      });
+    });
   });
 });

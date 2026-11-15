@@ -28,6 +28,7 @@ import {
   mergeLabels,
 } from './pickerTypes';
 import { setTimeOfDay } from './dateUtils';
+import { getDateNumberFormat, getDayPeriodNames } from './formatters';
 import { tickHaptic as fireTickHaptic } from './haptics';
 import { playAudioTick, unlockAudioTick } from './audioTick';
 
@@ -59,6 +60,12 @@ export interface TimeWheelsProps {
   className?: string;
   id?: string;
   labels?: PickerLabels;
+  /**
+   * The locale the wheels write their hours, minutes and seconds in, with
+   * its digits, and AM and PM in, with its words for them. Unset, they keep
+   * plain digits and AM and PM.
+   */
+  locale?: string;
   /** Number of items visible at once (must be odd). Default 5. */
   visibleCount?: number;
   /** Item height in px. Default 32. */
@@ -98,8 +105,6 @@ function nextValid(
   return start;
 }
 
-const pad2 = (n: number): string => String(n).padStart(2, '0');
-
 interface WheelHandle {
   focus: () => void;
   /**
@@ -120,6 +125,13 @@ interface WheelProps<T> {
   onChange: (nextIndex: number) => void;
   formatLabel: (v: T) => string;
   formatAriaText?: (v: T) => string;
+  /**
+   * The labels are words rather than digits. A word can run longer than two
+   * digits, so the wheel grows to fit its longest, and it can run right to
+   * left, so each item takes its own direction inside the wheels'
+   * left-to-right row.
+   */
+  wordLabels?: boolean;
   ariaLabel: string;
   visibleCount: number;
   itemHeight: number;
@@ -160,6 +172,7 @@ const WheelInner = <T,>(
     onChange,
     formatLabel,
     formatAriaText,
+    wordLabels = false,
     ariaLabel,
     visibleCount,
     itemHeight,
@@ -670,7 +683,9 @@ const WheelInner = <T,>(
     [`is-${size}`]: !!size,
     'is-disabled': disabled,
     'is-dragging': isDragging,
+    'is-fitted': wordLabels,
   });
+  const sizerClass = prefixedClassNames(classPrefix, 'timeinput-wheel-sizer');
   const itemClass = (selected: boolean) =>
     prefixedClassNames(classPrefix, 'timeinput-wheel-item', {
       'is-selected': selected,
@@ -715,6 +730,19 @@ const WheelInner = <T,>(
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
+      {/* The items are laid out absolutely, so they size nothing. A hidden
+          copy of each word sets the least width the wheel takes instead. The
+          stylesheet draws the word from data-label, so the page's text holds
+          each word once, as the item. */}
+      {wordLabels &&
+        values.map((v, i) => (
+          <span
+            key={i}
+            className={sizerClass}
+            data-label={formatLabel(v)}
+            aria-hidden="true"
+          />
+        ))}
       {/* Stationary selection band — sits at the centre of the viewport while
           items slide through it, like the iOS native picker. The ref lets
           `playBandPulse` animate scale + brightness on each item tick. */}
@@ -747,6 +775,9 @@ const WheelInner = <T,>(
             // aria-valuetext, so the items are pointer targets only.
             aria-hidden="true"
             tabIndex={-1}
+            // The wheels sit in a left-to-right row, so a word written right
+            // to left, such as Persian's ق.ظ., takes its own direction.
+            dir={wordLabels ? 'auto' : undefined}
             className={itemClass(selected)}
             style={{
               position: 'absolute',
@@ -794,12 +825,17 @@ export const TimeWheels: React.FC<TimeWheelsProps> = ({
   className,
   id,
   labels,
+  locale,
   visibleCount = 5,
   itemHeight = 32,
   audioTick = false,
   onCommit,
 }) => {
   const t = mergeLabels(labels);
+  // Two digits in the locale's own, as the calendar writes its numbers.
+  const pad = useMemo(() => getDateNumberFormat(locale, 2), [locale]);
+  // The wheel's values stay AM and PM, which it shows in the locale's words.
+  const [amName, pmName] = useMemo(() => getDayPeriodNames(locale), [locale]);
 
   const rootClass = usePrefixedClassNames('timeinput', {
     [`is-${color}`]: !!color,
@@ -1030,7 +1066,7 @@ export const TimeWheels: React.FC<TimeWheelsProps> = ({
           values={hourValues}
           index={hourIndex}
           onChange={onHourIndex}
-          formatLabel={pad2}
+          formatLabel={pad}
           ariaLabel={t.hours}
           visibleCount={visibleCount}
           itemHeight={itemHeight}
@@ -1053,7 +1089,7 @@ export const TimeWheels: React.FC<TimeWheelsProps> = ({
           values={minuteValues}
           index={minuteIndex}
           onChange={onMinuteIndex}
-          formatLabel={pad2}
+          formatLabel={pad}
           ariaLabel={t.minutes}
           visibleCount={visibleCount}
           itemHeight={itemHeight}
@@ -1078,7 +1114,7 @@ export const TimeWheels: React.FC<TimeWheelsProps> = ({
               values={secondValues}
               index={secondIndex}
               onChange={onSecondIndex}
-              formatLabel={pad2}
+              formatLabel={pad}
               ariaLabel={t.seconds}
               visibleCount={visibleCount}
               itemHeight={itemHeight}
@@ -1101,7 +1137,8 @@ export const TimeWheels: React.FC<TimeWheelsProps> = ({
             values={['AM', 'PM']}
             index={ampmIndex}
             onChange={onAmpmIndex}
-            formatLabel={v => v}
+            formatLabel={v => (v === 'AM' ? amName : pmName)}
+            wordLabels
             ariaLabel={t.ampm}
             visibleCount={visibleCount}
             itemHeight={itemHeight}

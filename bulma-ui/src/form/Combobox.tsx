@@ -210,18 +210,18 @@ interface ComboboxDataBaseProps extends ComboboxBaseProps {
    * can a label of your own. Built from parts, it lands on `div.combobox`, so
    * give `Combobox.Input` the `id` instead.
    */
-  id?: string;
+  id?: React.HTMLAttributes<HTMLElement>['id'];
   /**
    * Names the field and the list, with `data`, in place of a `label`. Built
    * from parts, it lands on `div.combobox`, so put it on `Combobox.Input`.
    */
-  'aria-label'?: string;
+  'aria-label'?: React.AriaAttributes['aria-label'];
   /**
    * The ids of what names the field and the list, with `data`, in place of
    * a `label`. Built from parts, it lands on `div.combobox`, so put it on
    * `Combobox.Input`.
    */
-  'aria-labelledby'?: string;
+  'aria-labelledby'?: React.AriaAttributes['aria-labelledby'];
   /** With `data`, the Combobox renders its own parts. */
   children?: never;
 }

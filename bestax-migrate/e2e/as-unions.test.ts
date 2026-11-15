@@ -28,7 +28,7 @@ import {
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { typecheckTsx } from './support/typecheck-tsx.js';
+import { annotate, typecheckTsx } from './support/typecheck-tsx.js';
 import { sourceNames } from '../src/sources/registry.js';
 
 const packageRoot = path.join(
@@ -100,23 +100,6 @@ function buildSource(): string {
     '',
     'export {};',
   ].join('\n');
-}
-
-/**
- * tsc reports a row by line number, and a bare "Type 'false' does not satisfy
- * the constraint 'true'" says nothing about which component drifted. Quote
- * the generated line beside each diagnostic so the failure names the target.
- */
-function annotate(diagnostics: string, source: string): string {
-  const lines = source.split('\n');
-  return diagnostics
-    .split('\n')
-    .map(line => {
-      const at = /check\.tsx\((\d+),/.exec(line);
-      const row = at && lines[Number(at[1]) - 1];
-      return row ? `${line}\n    ↳ ${row.trim()}` : line;
-    })
-    .join('\n');
 }
 
 describe('AS_UNIONS matches the `as` each bestax component declares', () => {

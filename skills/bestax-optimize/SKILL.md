@@ -73,7 +73,8 @@ recommending it, grep the app's source for helper props on bestax components:
 
 …and for raw Bulma helper classes in `className` strings (`is-*`, `has-*`, `m*-*`, `p*-*`,
 `is-size-*`, `is-hidden*`, `is-flex*`, `is-gap-*`). **Any hit → do not use `no-helpers`**; fall back to
-`no-dark-mode` or Lever 2. The bestax extras helpers (`is-cursor-*`, sizing) are dropped too.
+`no-dark-mode` or Lever 2. The bestax extras helpers (`is-cursor-*`, sizing, and the breakpoint `is-sr-only-*` that
+`visibilityTablet="sr-only"` and the like write) are dropped too.
 
 ## Lever 2 — modular Sass build
 

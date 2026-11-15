@@ -103,10 +103,10 @@ was given. A trio set at runtime leaves them as they were, so when a new color r
 darker than the built one, which a change of hue or saturation can do as well as a change of
 lightness, set them too:
 
-| Variable                  | What reads it                                                                                                                |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `--bulma-<c>-invert-l`    | the label on a solid `<c>` surface: `Button`, `Tag` and `Notification` with `color="<c>"`, a colored `Hero` or `Navbar`, …   |
-| `--bulma-<c>-on-scheme-l` | `<c>` text on the page: `textColor="<c>" colorShade="on-scheme"`, a colored `Message`'s body, a field's colored help text, … |
+| Variable                  | What reads it                                                                                                                                                           |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--bulma-<c>-invert-l`    | the label on a solid `<c>` surface: `Button`, `Tag` and `Notification` with `color="<c>"`, a colored `Hero` or `Navbar`, …                                              |
+| `--bulma-<c>-on-scheme-l` | `<c>` text on the page: `textColor="<c>" colorShade="on-scheme"`, a colored `Message`'s body, a field's colored help text, `Steps`' and `Timeline`'s colored markers, … |
 
 For `link`, the on-scheme lightness is also every link on the page (`--bulma-link-text`), so a new
 link color that reads lighter than Bulma's own leaves the page's links pale.
@@ -754,6 +754,26 @@ item's or a section's. The heading itself reads Bulma's label variables (`--bulm
 `--bulma-menu-section-chevron-duration`, `--bulma-menu-section-chevron-size`,
 `--bulma-menu-section-gap`
 
+### Navbar
+
+In a colored `Hero`, a navbar with no `color` of its own takes the hero's colors.
+`--bulma-navbar-burger-color`, `--bulma-navbar-tab-active-color`,
+`--bulma-navbar-tab-active-border-bottom-color` and `--bulma-navbar-tab-hover-border-bottom-color`
+are `--bulma-navbar-item-color` there, the hero's text color, and `--bulma-navbar-dropdown-arrow` is
+`currentColor`, so the arrow follows its link's text at rest, hovered and active. `--bulma-navbar-background-color`,
+which shows there only as the background of the menu the burger opens, is the hero's background,
+and the dropdown's rows in that menu take the hero's hue, background and text through
+`--bulma-navbar-dropdown-item-h`, `-s`, `-background-l` and `-color-l`. They're declared on the
+navbar inside the hero with a selector three classes heavier than `.navbar`, so set them on the
+navbar through `style`, or with a heavier selector. The items' hover and active colors are Bulma's
+hero variables, `--bulma-navbar-item-hover-background-color` and the rest.
+
+`--bulma-navbar-background-color`, `--bulma-navbar-burger-color`, `--bulma-navbar-dropdown-arrow`,
+`--bulma-navbar-dropdown-item-background-l`, `--bulma-navbar-dropdown-item-color-l`,
+`--bulma-navbar-dropdown-item-h`, `--bulma-navbar-dropdown-item-s`,
+`--bulma-navbar-tab-active-border-bottom-color`, `--bulma-navbar-tab-active-color`,
+`--bulma-navbar-tab-hover-border-bottom-color`
+
 ### Notification
 
 `--bulma-notification-delete-padding-inline-end` is the end padding of a notification with a close
@@ -786,6 +806,13 @@ page background's lightness, which reads on the text color on both schemes. A co
 its title color from its own color, and something inside a panel that reads
 `--bulma-text-invert-l` gets the panel's value. To change only the title,
 `--bulma-panel-heading-color-l` on the panel is Bulma's own.
+
+Bulma points its `--bulma-panel-block-active-color` and `--bulma-panel-tab-active-color` at
+`--bulma-link-active`, which it never defines, so the active block and tab inherit the panel's
+color. In a colored Panel, `.panel.is-<color>.has-text-<color>`, the partial gives the active
+block and tab a fallback for the two, the color at its on-scheme lightness
+(`--bulma-<color>-on-scheme-l`), which reads on the page on both schemes. A value of your own for
+either, set on the panel, still wins.
 
 `--bulma-text-invert-l`
 
@@ -1055,8 +1082,10 @@ Declared on the root, `.timeline`. The states and the color classes set
 and `--bulma-timeline-active-color` rather than those two. `--bulma-timeline-marker-background`
 fills the upcoming rings and the pending loader, and a reached icon marker's tint is mixed into
 it. It's the page's color by default, so it hides the line behind them. A record's icon circles
-take `--bulma-timeline-marker-icon-background`, which the color classes set. Every size is in
-`em`, so `textSize` scales them all.
+take `--bulma-timeline-marker-icon-background`, which the color classes set. A color class, and
+the default progress color, read the color's hue, saturation and `--bulma-<c>-on-scheme-l`, so a
+new trio for that color wants its on-scheme lightness too. Every size is in `em`, so `textSize`
+scales them all.
 
 `--bulma-timeline-active-color`, `--bulma-timeline-content-gap`, `--bulma-timeline-dot-size`,
 `--bulma-timeline-gap`, `--bulma-timeline-halo-offset`, `--bulma-timeline-line-color`,
@@ -1068,6 +1097,11 @@ take `--bulma-timeline-marker-icon-background`, which the color classes set. Eve
 `--bulma-timeline-rail-center`, `--bulma-timeline-rail-size`, `--bulma-timeline-rail-size-icon`,
 `--bulma-timeline-time-color`, `--bulma-timeline-time-size`, `--bulma-timeline-title-color`,
 `--bulma-timeline-title-weight`
+
+In a colored `Notification`, a timeline with no color sets its neutral, active and icon colors to
+the Notification's text color and its marker and icon backgrounds to the Notification's
+background, unless it's on a Box or a Card there. To retheme one there, set these on the timeline
+itself, through its `style` or a class loaded after bestax's stylesheet, or give it a `color`.
 
 ### Toast
 
@@ -1092,13 +1126,35 @@ trigger and the tooltip past what the pointer can cross on its own, so give the 
 `--bulma-tooltip-multiline-width`, `--bulma-tooltip-padding`, `--bulma-tooltip-radius`,
 `--bulma-tooltip-z-index`
 
+### Tour
+
+Declared on the root, `.tour`, which holds the overlay and the current step, so a `className` or
+`style` on `Tour` reaches every step, and one on a `Tour.Step` reaches that step's panel alone. The
+overlay and the spotlight read theirs from `.tour`, so set `--bulma-tour-overlay-*`,
+`--bulma-tour-spotlight-*` and `--bulma-tour-z-index` on `Tour`. The step
+takes Popover's look from the same Bulma tokens Popover's panel reads, since `--bulma-popover-*`
+is declared on Popover's own panel and doesn't reach a step. `--bulma-tour-overlay-background` is
+Bulma's modal backdrop color at half its strength. `--bulma-tour-spotlight-padding` grows the
+spotlight past the target's edge, and the step sits `--bulma-tour-step-offset` past that.
+
+`--bulma-tour-overlay-background`, `--bulma-tour-progress-color`,
+`--bulma-tour-spotlight-padding`, `--bulma-tour-spotlight-radius`,
+`--bulma-tour-step-background`, `--bulma-tour-step-body-padding`,
+`--bulma-tour-step-border-color`, `--bulma-tour-step-border-width`,
+`--bulma-tour-step-color`, `--bulma-tour-step-footer-gap`, `--bulma-tour-step-footer-padding`,
+`--bulma-tour-step-header-color`, `--bulma-tour-step-header-gap`,
+`--bulma-tour-step-header-padding`,
+`--bulma-tour-step-header-weight`, `--bulma-tour-step-max-width`, `--bulma-tour-step-offset`,
+`--bulma-tour-step-radius`, `--bulma-tour-step-shadow`, `--bulma-tour-z-index`
+
 ### TreeSelect
 
 Declared on the root, `.tree-select`, and on a portaled panel, `.tree-select-panel`, which sits
 outside it. They draw the chevron and the clear button on the field, set the panel's height and
-space the search box over the tree. The chevron's defaults are the tokens Bulma's input icon variables
-start from (`control-height`, `text-light`, `text-weak`, `link`), since Bulma registers those on
-the field and its Control. The panel is the picker popover, above, and the tree in it is a
+space the search box over the tree. The chevron's defaults start from root tokens
+(`control-height`, `text-weak`, `text` on hover, `link` while focused), since Bulma registers its
+input variables on the field and its Control. Its colors follow the scheme rather than Bulma's
+input icon color, `text-light`, a fixed light gray that the light scheme's white all but hides. The panel is the picker popover, above, and the tree in it is a
 `TreeView`, below, so `--bulma-picker-popover-*` and `--bulma-tree-view-*` theme them here too.
 The panel is at least as wide as the field, in place through the picker popover's own rule and
 portaled through the field's width set inline.

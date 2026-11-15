@@ -10,7 +10,19 @@ import * as sass from 'sass';
 import path from 'path';
 import { render } from '@testing-library/react';
 import { Timeline } from '../Timeline';
+import { Notification } from '../../elements/Notification';
+import { Box } from '../../elements/Box';
+import { Card } from '../Card';
 import { ConfigProvider } from '../../helpers/Config';
+import { compileSheet } from '../../__tests__/compile-scss';
+import { bulmaCss, rulesOf as parseSheet } from '../../__tests__/css-cascade';
+import {
+  contrast,
+  schemesOf,
+  substitute,
+  varsOn,
+  type Vars,
+} from '../../__tests__/contrast';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 
@@ -190,8 +202,17 @@ describe.each([
         'is-success',
         'is-upcoming',
         'is-warning',
-        // Bulma's, for the colored Notification rule below.
+        // Bulma's, for the colored Notification rules below, which name each
+        // color a Notification takes.
+        'is-black',
+        'is-dark',
+        'is-light',
+        'is-text',
+        'is-white',
         'notification',
+        // And the surfaces of their own inside one, which that rule skips.
+        'box',
+        'card',
         'timeline',
         'timeline-content',
         'timeline-item',
@@ -487,9 +508,17 @@ describe.each([
 
   it('colors progress with link by default and the root’s or the item’s color over it', () => {
     const css = compile(prefix);
+    // Each color in its on-scheme lightness, put together on the timeline so
+    // a Theme around it reaches it (#1672).
+    const onScheme = (name: string) =>
+      `hsl(var(--bulma-${name}-h),var(--bulma-${name}-s),var(--bulma-${name}-on-scheme-l))`;
+    const bare = (value: string) => value.replace(/\s+/g, '');
     expect(
-      declarations(css, p('timeline'))['--bulma-timeline-active-color']
-    ).toBe('var(--bulma-link)');
+      bare(declarations(css, p('timeline'))['--bulma-timeline-active-color'])
+    ).toBe(onScheme('link'));
+    expect(
+      declarations(css, p('timeline'))['--bulma-timeline-neutral-color']
+    ).toBe('var(--bulma-text-weak)');
     for (const name of [
       'primary',
       'link',
@@ -502,19 +531,287 @@ describe.each([
         css,
         `${p('timeline')}${p(`is-${name}`)}, ${p('timeline-item')}${p(`is-${name}`)}`
       );
-      expect(color['--bulma-timeline-marker-color']).toBe(
-        `var(--bulma-${name})`
-      );
-      expect(color['--bulma-timeline-active-color']).toBe(
-        `var(--bulma-${name})`
-      );
+      expect(bare(color['--bulma-timeline-marker-color'])).toBe(onScheme(name));
+      expect(bare(color['--bulma-timeline-active-color'])).toBe(onScheme(name));
     }
-    // The colors come after the states, so an item's own color wins over its state.
-    const selectors = allRulesOf(css).map(({ rule }) => rule.selectorText);
+    // The colors come after the states, so an item's own color wins over its
+    // state. The rules for a colored Notification name both, and come last.
+    const selectors = allRulesOf(css)
+      .map(({ rule }) => rule.selectorText)
+      .filter(s => !s.includes(p('notification')));
     const lastState = selectors
       .map(s => s.includes(p('is-upcoming')))
       .lastIndexOf(true);
     const firstColor = selectors.findIndex(s => s.includes(p('is-primary')));
     expect(firstColor).toBeGreaterThan(lastState);
   });
+
+  // The page's colors don't stand out from a colored Notification, so there a
+  // timeline with no color takes the Notification's text color and fills its
+  // rings with its background (#1710). A color the caller set is kept.
+  describe('in a colored Notification', () => {
+    /** The variables the top-level rules in `css` matching `el` declare. */
+    const declaredOn = (css: string, el: Element) =>
+      varsOn(
+        allRulesOf(css)
+          .filter(({ within }) => within.length === 0)
+          .map(({ rule }) => rule),
+        selector => el.matches(selector)
+      );
+
+    it('draws a timeline with no color in the Notification’s text color', () => {
+      const css = compile(prefix);
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Notification color="info">
+            <Timeline active={0} data-testid="plain">
+              <Timeline.Item title="Packed" />
+              <Timeline.Item
+                title="Failed"
+                color="danger"
+                data-testid="colored-item"
+              />
+            </Timeline>
+            <Timeline active={0} color="warning" data-testid="colored">
+              <Timeline.Item title="Packed" />
+            </Timeline>
+          </Notification>
+          <Notification>
+            <Timeline active={0} data-testid="uncolored-note">
+              <Timeline.Item title="Packed" />
+            </Timeline>
+          </Notification>
+          <Notification color="info">
+            <Box>
+              <Timeline active={0} data-testid="on-a-box">
+                <Timeline.Item title="Packed" />
+              </Timeline>
+            </Box>
+            <Card>
+              <Timeline active={0} data-testid="on-a-card">
+                <Timeline.Item title="Packed" />
+              </Timeline>
+            </Card>
+          </Notification>
+          <Box>
+            <Notification color="info">
+              <Timeline active={0} data-testid="note-in-a-box">
+                <Timeline.Item title="Packed" />
+              </Timeline>
+            </Notification>
+          </Box>
+        </ConfigProvider>
+      );
+      const vars = (id: string) =>
+        declaredOn(css, container.querySelector(`[data-testid="${id}"]`)!);
+      const background =
+        'hsl(var(--bulma-notification-h),var(--bulma-notification-s),var(--bulma-notification-background-l))';
+      const bare = (value?: string) => value?.replace(/\s+/g, '');
+
+      const plain = vars('plain');
+      expect(plain['--bulma-timeline-neutral-color']).toBe('currentColor');
+      expect(plain['--bulma-timeline-active-color']).toBe('currentColor');
+      expect(plain['--bulma-timeline-marker-icon-color']).toBe('currentColor');
+      expect(bare(plain['--bulma-timeline-marker-background'])).toBe(
+        background
+      );
+      expect(bare(plain['--bulma-timeline-marker-icon-background'])).toBe(
+        background
+      );
+      // A color on the timeline is kept, and so is the page's look in a
+      // Notification with no color.
+      expect(vars('colored')['--bulma-timeline-active-color']).not.toBe(
+        'currentColor'
+      );
+      expect(vars('uncolored-note')['--bulma-timeline-active-color']).not.toBe(
+        'currentColor'
+      );
+      // A Box or a Card inside the Notification is a surface of its own, so a
+      // timeline on one keeps the page's look, while a colored Notification
+      // inside a Box is still the timeline's surface.
+      for (const id of ['on-a-box', 'on-a-card']) {
+        expect([id, vars(id)['--bulma-timeline-active-color']]).not.toEqual([
+          id,
+          'currentColor',
+        ]);
+      }
+      expect(vars('note-in-a-box')['--bulma-timeline-active-color']).toBe(
+        'currentColor'
+      );
+      // And so is an item's own, declared on the item over what it inherits.
+      expect(
+        bare(vars('colored-item')['--bulma-timeline-marker-color'])
+      ).toMatch(/--bulma-danger/);
+      // The rule weighs what `.timeline` does: the Notification and the
+      // colors it skips sit in `:where()`, so a later sheet's class that sets
+      // these variables on a timeline still wins.
+      const rule = allRulesOf(css).find(({ rule }) =>
+        rule.selectorText.includes(`${p('notification')}:is(`)
+      )!.rule;
+      expect(rule.selectorText).toMatch(
+        new RegExp(
+          `^:where\\(${p('notification').replace('.', '\\.')}:is\\(.+\\)\\) ${p('timeline').replace('.', '\\.')}:where\\(:not\\(.+\\)\\)$`
+        )
+      );
+    });
+  });
 });
+
+/** `css`'s top-level rules, compiled and parsed the first time they're read. */
+const once = (css: () => string) => {
+  let rules: CSSStyleRule[] | undefined;
+  return () => (rules ??= parseSheet(css()).rules);
+};
+
+/**
+ * The published sheets the two contrast suites below read, each compiled and
+ * parsed once for both. `extras.css` takes its colors from the app's Bulma,
+ * so it is read with Bulma's own.
+ */
+const CONTRAST_SHEETS: [string, string, () => CSSStyleRule[]][] = [
+  ['bestax.css', '', once(() => compileSheet('bestax.scss'))],
+  [
+    'bestax-prefixed.css',
+    'bestax-',
+    once(() => compileSheet('versions/bestax-prefixed.scss')),
+  ],
+  [
+    'extras.css on Bulma’s own colors',
+    '',
+    once(() => bulmaCss() + compileSheet('extras.scss')),
+  ],
+];
+
+// A colored Notification's text color against its background, which a
+// timeline with no color draws its markers on (#1710), resolved through a
+// whole published sheet in each scheme. A marker is a graphic, so it needs
+// 3:1.
+describe.each(CONTRAST_SHEETS)(
+  'Timeline in a colored Notification in %s',
+  (_name, prefix, sheet) => {
+    let schemes: ReturnType<typeof schemesOf>;
+    let note: (name: string, variant: string) => Vars;
+    let handsOver = false;
+    // A hook keeps Vitest's 10s default rather than `testTimeout`, and a whole
+    // sheet can take longer than that to compile on a loaded machine.
+    beforeAll(() => {
+      const rules = sheet();
+      schemes = schemesOf(rules);
+      const p = (name: string) => `.${prefix}${name}`;
+      // The markers take the Notification's text color only through the
+      // timeline's rule for it, so the measurements below hold only with it.
+      handsOver = rules.some(
+        rule =>
+          rule.selectorText.includes(`${p('notification')}:is(`) &&
+          rule.selectorText.includes(p('timeline')) &&
+          rule.style
+            .getPropertyValue('--bulma-timeline-neutral-color')
+            .trim() === 'currentColor'
+      );
+      note = (name, variant) => ({
+        ...varsOn(rules, p('notification')),
+        ...varsOn(rules, `${p('notification')}${p(`is-${name}`)}`),
+        ...(variant &&
+          varsOn(
+            rules,
+            `${p('notification')}${p(`is-${name}`)}${p(`is-${variant}`)}`
+          )),
+      });
+    }, 30_000);
+
+    // Bulma's light and dark shades work for the six theme colors. For white,
+    // black, light and dark it writes shade rules that read variables it
+    // never declares, so such a Notification loses its own text color, and
+    // its titles with it, whatever a timeline does there.
+    it.each([
+      ...['white', 'black', 'light', 'dark'].map(name => [name, '']),
+      ...['primary', 'link', 'info', 'success', 'warning', 'danger'].flatMap(
+        name => [
+          [name, ''],
+          [name, 'light'],
+          [name, 'dark'],
+        ]
+      ),
+    ])(
+      'draws the markers at 3:1 on a %s %s Notification, on both schemes',
+      (name, variant) => {
+        expect(handsOver).toBe(true);
+        const failures: string[] = [];
+        for (const [scheme, page] of Object.entries(schemes)) {
+          const vars = { ...page, ...note(name, variant) };
+          const ratio = contrast(
+            substitute(
+              'hsl(var(--bulma-notification-h), var(--bulma-notification-s), var(--bulma-notification-color-l))',
+              vars
+            ),
+            substitute(
+              'hsl(var(--bulma-notification-h), var(--bulma-notification-s), var(--bulma-notification-background-l))',
+              vars
+            )
+          );
+          if (ratio < 3) failures.push(`${scheme}: ${ratio.toFixed(2)}:1`);
+        }
+        expect(failures).toEqual([]);
+      }
+    );
+  }
+);
+
+// Every color a marker's ring or dot is drawn in, read off a whole published
+// sheet, resolved through the variables it declares in each scheme, the way a
+// browser does, and measured against the page (#1672). A marker is a graphic,
+// so it needs 3:1. `extras.css` takes its colors from the app's Bulma, so it
+// is measured with Bulma's own.
+describe.each(CONTRAST_SHEETS)(
+  'Timeline contrast in %s',
+  (_name, prefix, sheet) => {
+    let schemes: ReturnType<typeof schemesOf>;
+    /** The variables the timeline declares on itself, and with each color. */
+    let root: Vars;
+    let colored: (name: string) => Vars;
+    // A hook keeps Vitest's 10s default rather than `testTimeout`, and a whole
+    // sheet can take longer than that to compile on a loaded machine.
+    beforeAll(() => {
+      const rules = sheet();
+      schemes = schemesOf(rules);
+      root = varsOn(rules, `.${prefix}timeline`);
+      colored = name => varsOn(rules, `.${prefix}timeline.${prefix}is-${name}`);
+    }, 30_000);
+
+    it.each([
+      [
+        'a marker with no color, in a record or not reached yet',
+        () => root['--bulma-timeline-neutral-color'],
+      ],
+      ['progress with no color', () => root['--bulma-timeline-active-color']],
+      ...['primary', 'link', 'info', 'success', 'warning', 'danger'].flatMap(
+        (name): [string, () => string][] => [
+          [
+            `a ${name} marker`,
+            () => colored(name)['--bulma-timeline-marker-color'],
+          ],
+          [
+            `${name} progress`,
+            () => colored(name)['--bulma-timeline-active-color'],
+          ],
+        ]
+      ),
+    ] as [string, () => string][])(
+      'draws %s at 3:1 against the page, on both schemes',
+      (_what, read) => {
+        const value = read();
+        expect(value).toBeTruthy();
+        const failures: string[] = [];
+        for (const [scheme, page] of Object.entries(schemes)) {
+          const vars = { ...page, ...root };
+          const ratio = contrast(
+            substitute(value, vars),
+            substitute('var(--bulma-scheme-main)', vars)
+          );
+          if (ratio < 3) failures.push(`${scheme}: ${ratio.toFixed(2)}:1`);
+        }
+        expect(failures).toEqual([]);
+      }
+    );
+  }
+);

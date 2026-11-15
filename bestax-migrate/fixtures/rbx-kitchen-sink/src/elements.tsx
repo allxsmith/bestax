@@ -48,7 +48,7 @@ export const Elements = () => (
       <Progress color="danger" value={40} max={100} size="medium" />
       <Loader />
       <PageLoader active color="info" />
-      <Table bordered striped narrow hoverable fullwidth>
+      <Table bordered striped narrow hoverable fullwidth textColor="info">
         <Table.Head>
           <Table.Row>
             <Table.Heading>Name</Table.Heading>
