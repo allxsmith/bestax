@@ -60,13 +60,15 @@ It isn't the direction of the page: with no provider, or one that sets no direct
 
 ### A Right-to-Left Section
 
-A `locale` alone sets the direction of its script. Arabic reads right to left, so the wrapper gets `dir="rtl"` and `lang="ar-EG"`, and the steps lay out from the right.
+A `locale` alone sets the direction of its script. Arabic reads right to left, so the wrapper gets `dir="rtl"` and `lang="ar-EG"`, and the steps lay out from the right. The words a screen reader hears for each step's state come from `completedLabel` and `upcomingLabel`, so they're in Arabic too.
 
 ```tsx live
 <LocaleProvider locale="ar-EG">
   <Steps
     value={1}
     items={[{ label: 'السلة' }, { label: 'الشحن' }, { label: 'الدفع' }]}
+    completedLabel="مكتملة"
+    upcomingLabel="قادمة"
   />
 </LocaleProvider>
 ```

@@ -369,3 +369,11 @@ function example() {
 | `--bulma-switch-thin-circle-size`    | `$switch-thin-circle-size`    | `1.25em`                           |
 
 <!-- /bestax:generated cssvars -->
+
+The circle is `$switch-circle-color-light`, `var(--bulma-white-ter)` by default, a soft gray
+rather than white, when the OS prefers a light scheme or the switch sits in a light scheme pinned
+the way Bulma reads one: `data-theme="light"` or `.theme-light` on the switch or an element around
+it, `data-bestax-theme` and `.bestax-theme-light` in a prefixed build. `Theme`'s `colorMode` writes
+the attribute on `<html>`. A dark pin on the switch or anywhere around it gives
+`$switch-circle-color`, even with a light pin closer in. A `--bulma-switch-circle-color` set on the
+switch draws one color on every scheme.

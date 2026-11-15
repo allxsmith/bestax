@@ -19,10 +19,10 @@ import { resetDevWarnings } from '../../helpers/devWarnings';
 type PointerType = 'mouse' | 'pen' | 'touch';
 
 /**
- * jsdom has no PointerEvent, so build a MouseEvent and give it a
- * `pointerType`; React reads both off the native event. React makes
- * `onPointerEnter` and `onPointerLeave` out of `pointerover` and `pointerout`,
- * walking from the element the pointer left to the one it entered.
+ * A pointer event of `pointerType`, a mouse's unless told otherwise. React
+ * makes `onPointerEnter` and `onPointerLeave` out of `pointerover` and
+ * `pointerout`, walking from the element the pointer left to the one it
+ * entered.
  */
 const pointer = (
   el: Element,
@@ -32,13 +32,13 @@ const pointer = (
     relatedTarget = null,
   }: { pointerType?: PointerType; relatedTarget?: EventTarget | null } = {}
 ) => {
-  const event = new MouseEvent(type, {
+  const event = new PointerEvent(type, {
     bubbles: true,
     cancelable: true,
     composed: true,
     relatedTarget,
+    pointerType,
   });
-  Object.defineProperty(event, 'pointerType', { value: pointerType });
   fireEvent(el, event);
 };
 
@@ -1452,6 +1452,207 @@ describe('Tooltip', () => {
       }
       expect(warn).not.toHaveBeenCalled();
       expect(queries.mock.contexts).not.toContain(wrapper());
+    });
+  });
+
+  describe('with describesTrigger off', () => {
+    beforeEach(() => {
+      resetDevWarnings();
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+      resetDevWarnings();
+    });
+
+    it('leaves the trigger’s aria-describedby alone and hides the tooltip from assistive technology', () => {
+      render(
+        <Tooltip label="Delete" describesTrigger={false}>
+          <button aria-label="Delete" aria-describedby="own-hint">
+            <Icon name="trash" />
+          </button>
+        </Tooltip>
+      );
+      const button = screen.getByRole('button', { name: 'Delete' });
+      expect(button).toHaveAttribute('aria-describedby', 'own-hint');
+      expect(bubble()).toHaveAttribute('aria-hidden', 'true');
+      expect(bubble()).toHaveTextContent('Delete');
+    });
+
+    it('still shows on hover and on keyboard focus', () => {
+      render(
+        <Tooltip label="Delete" describesTrigger={false}>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      expect(trigger()).not.toHaveAttribute('aria-describedby');
+      hover(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+      unhover(trigger());
+      advance(0);
+      expect(wrapper()).not.toHaveClass('is-active');
+      keyboardFocus(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+    });
+
+    it('doesn’t warn about a trigger that can’t carry the link', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      render(
+        <Tooltip label="Delete" describesTrigger={false}>
+          <span>Hover me</span>
+        </Tooltip>
+      );
+      expect(warn).not.toHaveBeenCalled();
+    });
+
+    it('describes the trigger again when turned back on', () => {
+      const { rerender } = render(
+        <Tooltip label="Deletes it for good" describesTrigger={false}>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      rerender(
+        <Tooltip label="Deletes it for good">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      expect(trigger()).toHaveAttribute('aria-describedby', bubble().id);
+      expect(bubble()).not.toHaveAttribute('aria-hidden');
+    });
+  });
+
+  describe('disabled', () => {
+    it('doesn’t open on hover or keyboard focus, and measures nothing', () => {
+      const frame = vi.spyOn(window, 'requestAnimationFrame');
+      render(
+        <Tooltip label="Delete" disabled>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      hover(trigger());
+      advance(0);
+      expect(wrapper()).not.toHaveClass('is-active');
+      expect(wrapper()).not.toHaveClass('is-open');
+      unhover(trigger());
+      advance(0);
+      keyboardFocus(trigger());
+      advance(0);
+      expect(wrapper()).not.toHaveClass('is-active');
+      expect(frame).not.toHaveBeenCalled();
+      frame.mockRestore();
+    });
+
+    it('closes an open tooltip, which stays closed when enabled again until a new hover', () => {
+      const { rerender } = render(
+        <Tooltip label="Delete">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      hover(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active', 'is-open');
+      rerender(
+        <Tooltip label="Delete" disabled>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      expect(wrapper()).not.toHaveClass('is-active');
+      expect(wrapper()).not.toHaveClass('is-open');
+      // Enabled again with the pointer still on it: no new hover, no tooltip.
+      rerender(
+        <Tooltip label="Delete">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      advance(0);
+      expect(wrapper()).not.toHaveClass('is-active');
+      unhover(trigger());
+      advance(0);
+      hover(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+    });
+
+    it('stays closed when enabled again after keyboard focus held it', () => {
+      const { rerender } = render(
+        <Tooltip label="Delete">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      keyboardFocus(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+      rerender(
+        <Tooltip label="Delete" disabled>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      rerender(
+        <Tooltip label="Delete">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      advance(0);
+      expect(wrapper()).not.toHaveClass('is-active');
+      expect(trigger()).toHaveFocus();
+    });
+
+    it('doesn’t link the trigger to a tooltip it keeps closed, and links it again once enabled', () => {
+      const { rerender } = render(
+        <Tooltip label="Deletes it for good" disabled>
+          <button aria-describedby="own-hint">Hover me</button>
+        </Tooltip>
+      );
+      expect(trigger()).toHaveAttribute('aria-describedby', 'own-hint');
+      rerender(
+        <Tooltip label="Deletes it for good">
+          <button aria-describedby="own-hint">Hover me</button>
+        </Tooltip>
+      );
+      expect(trigger()).toHaveAttribute(
+        'aria-describedby',
+        `own-hint ${bubble().id}`
+      );
+    });
+
+    it('doesn’t warn about a trigger that can’t carry the link while disabled', () => {
+      resetDevWarnings();
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      render(
+        <Tooltip label="Delete" disabled>
+          <span>Hover me</span>
+        </Tooltip>
+      );
+      expect(warn).not.toHaveBeenCalled();
+      warn.mockRestore();
+    });
+
+    it('keeps the trigger mounted as it’s turned on and off', () => {
+      const { rerender } = render(
+        <Tooltip label="Delete">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      const button = trigger();
+      button.focus();
+      rerender(
+        <Tooltip label="Delete" disabled>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      expect(trigger()).toBe(button);
+      expect(button).toHaveFocus();
+    });
+
+    it('still shows with active', () => {
+      render(
+        <Tooltip label="Delete" disabled active>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      expect(wrapper()).toHaveClass('is-active');
     });
   });
 

@@ -315,7 +315,7 @@ describe('TreeSelect', () => {
       [' ', {}],
       ['ArrowDown', {}],
       ['ArrowDown', { altKey: true }],
-    ])('opens on %s', (k, init) => {
+    ])('opens on %j with %o', (k, init) => {
       render(<TreeSelect label="Place" data={PLACES} />);
       key(field(), k, init);
       expect(dialog()).not.toBeNull();
@@ -503,7 +503,7 @@ describe('TreeSelect', () => {
 
   describe("'single'", () => {
     it.each(['Enter', ' '])(
-      'picks with %s, closes and puts focus on the field',
+      'picks with %j, closes and puts focus on the field',
       k => {
         const onChange = vi.fn();
         render(<Held label="Place" data={PLACES} onChange={onChange} />);
