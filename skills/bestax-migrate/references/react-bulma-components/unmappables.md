@@ -309,15 +309,15 @@ Re-express them as classes: `m={2}` → `className="m-2"`, `textAlign="center"` 
 
 ## `prop:display` — a base display beside a per-viewport one
 
-bestax leaves a base `display` out once any per-viewport display prop (`displayMobile` and the
-rest) is set, so the codemod keeps the base value as the class it stood for, in `className`, where
-the `display` attribute was (`is-flex`, `is-hidden` for `none`). With a flex base and no
-per-viewport flex display, the flex container props (`justifyContent`, `alignItems` and the rest)
-render only beside a flex `display` prop, so they move into `className` too
-(`is-justify-content-center`). This TODO, whose message starts "bestax leaves `display` out
-beside a per-viewport display prop", is the case where nothing moves, because a per-viewport
-display, the `className` or a container prop is dynamic, or a spread could carry a `className` of
-its own:
+bestax leaves a base `display` out once any per-viewport display prop (`displayMobile` and the rest)
+is set, so the codemod keeps the base value as the class it stood for, in `className`, where the
+`display` attribute was (`is-flex`, `is-hidden` for `none`). With a flex base and no per-viewport
+flex display, the flex container props (`justifyContent`, `alignItems` and the rest) render only
+beside a flex `display` prop, so they move into `className` too (`is-justify-content-center`), and a
+container value bestax doesn't take stays where it was. This TODO, whose message starts "bestax
+leaves `display` out beside a per-viewport display prop", is the case where nothing moves, because a
+per-viewport display, the base value, the `className` or a container prop is dynamic, or a spread
+could replace the `className`:
 
 ```jsx
 <Box className={cls} display="flex" displayMobile="block" />
