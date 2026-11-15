@@ -3,6 +3,8 @@ import React, { useState, useCallback } from 'react';
 import { Taginput, TaginputTag } from './Taginput';
 import { Field } from './Field';
 import { Control } from './Control';
+import { Button } from '../elements/Button';
+import { Buttons } from '../elements/Buttons';
 
 const meta: Meta<typeof Taginput> = {
   title: 'Form/Taginput',
@@ -649,14 +651,14 @@ export const Controlled: Story = {
 
     return (
       <div style={{ maxWidth: '500px' }}>
-        <div className="buttons mb-4">
-          <button className="button is-small" onClick={handleAdd}>
+        <Buttons mb="4">
+          <Button size="small" onClick={handleAdd}>
             Add Tag
-          </button>
-          <button className="button is-small is-danger" onClick={handleClear}>
+          </Button>
+          <Button size="small" color="danger" onClick={handleClear}>
             Clear All
-          </button>
-        </div>
+          </Button>
+        </Buttons>
         <Taginput
           value={tags}
           onChange={setTags}
@@ -705,9 +707,9 @@ export const FormIntegration: Story = {
         </div>
         <div className="field">
           <div className="control">
-            <button type="submit" className="button is-primary">
+            <Button type="submit" color="primary">
               Submit
-            </button>
+            </Button>
           </div>
         </div>
       </form>
@@ -819,9 +821,9 @@ export const WithName: Story = {
           placeholder="Add a tag…"
         />
         <div style={{ marginTop: '1rem' }}>
-          <button type="submit" className="button is-primary">
+          <Button type="submit" color="primary">
             Submit
-          </button>
+          </Button>
         </div>
         {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
       </form>
