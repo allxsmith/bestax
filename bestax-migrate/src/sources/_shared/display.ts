@@ -2,26 +2,33 @@
  * Keeps a base `display` that a source wrote beside a per-viewport one.
  *
  * bestax leaves the base `display`'s class out once any per-viewport display
- * prop is set (`useVisibilityClasses` in bestax-bulma), so a source that
- * flattened `isDisplay={['inline-block', 'flex-desktop']}` or
+ * prop is set (`useVisibilityClasses` in bestax-bulma, which #1748 proposes to
+ * change in the next major), so a source that flattened
+ * `isDisplay={['inline-block', 'flex-desktop']}` or
  * `display="flex" mobile={{ display: 'block' }}` into `display` plus
  * `display<Viewport>` lost the base value: the source rendered
  * `is-inline-block is-flex-desktop`, and bestax only `is-flex-desktop`.
  *
- * So the base value stays the class it stood for, merged into `className`, as
- * the bulma-classes source keeps one. The flex container props render only
- * beside a flex `display` prop, so when the base value was the flex display
- * and no per-viewport one is, they go into `className` the same way.
+ * So the base value stays the class it stood for, in `className`, as the
+ * bulma-classes source keeps one. The flex container props render only beside
+ * a flex `display` prop, so when the base value was the flex display and no
+ * per-viewport one is, they go into `className` the same way. A value bestax
+ * doesn't take is left where it was, as the source left it.
  *
- * It reads only bestax's own display values, which the sources write from
- * their own (a value bestax doesn't take keeps the TODO its source gave it),
- * and a dynamic base value has its source's TODO already. Where a
- * per-viewport display, the `className` or a container prop it would move is
- * dynamic, or a spread could carry a `className` of its own, it changes
- * nothing and leaves a TODO.
+ * Where a per-viewport display, the base value, the `className` or a
+ * container prop it would move is dynamic, or a spread could replace the
+ * `className`, it changes nothing and leaves a TODO naming what to move.
  */
 
 import type { ASTPath } from 'jscodeshift';
+import {
+  validAlignContents,
+  validAlignItems,
+  validDisplays,
+  validFlexDirections,
+  validFlexWraps,
+  validJustifyContents,
+} from '@allxsmith/bestax-bulma/constants';
 import {
   addTodo,
   findAttr,
@@ -40,24 +47,21 @@ const VIEWPORT_DISPLAYS = Object.values(VIEWPORT_SUFFIX).map(
   suffix => `display${suffix}`
 );
 
-/** bestax's display values, and the class each writes. */
-const DISPLAY_CLASSES: Record<string, string> = {
-  block: 'is-block',
-  flex: 'is-flex',
-  inline: 'is-inline',
-  'inline-block': 'is-inline-block',
-  'inline-flex': 'is-inline-flex',
-  grid: 'is-grid',
-  none: 'is-hidden',
-};
+/** The class a bestax display value writes, or none for a value it doesn't take. */
+const displayClass = (value: string): string | undefined =>
+  value === 'none'
+    ? 'is-hidden'
+    : (validDisplays as readonly string[]).includes(value)
+      ? `is-${value}`
+      : undefined;
 
-/** The flex container props, and the class each value writes. */
-const FLEX_CONTAINER_CLASSES: Record<string, string> = {
-  flexDirection: 'is-flex-direction-',
-  flexWrap: 'is-flex-wrap-',
-  justifyContent: 'is-justify-content-',
-  alignContent: 'is-align-content-',
-  alignItems: 'is-align-items-',
+/** The flex container props: the class prefix, and the values bestax takes. */
+const FLEX_CONTAINER: Record<string, [string, readonly string[]]> = {
+  flexDirection: ['is-flex-direction-', validFlexDirections],
+  flexWrap: ['is-flex-wrap-', validFlexWraps],
+  justifyContent: ['is-justify-content-', validJustifyContents],
+  alignContent: ['is-align-content-', validAlignContents],
+  alignItems: ['is-align-items-', validAlignItems],
 };
 
 const isFlex = (value: string) => value === 'flex' || value === 'inline-flex';
@@ -73,8 +77,6 @@ export function keepBaseDisplay(
     findAttr(element, name)
   ).filter(Boolean);
   if (!perViewport.length) return;
-  const base = literalValueOf(display);
-  if (base.kind !== 'string' || !(base.value in DISPLAY_CLASSES)) return;
 
   const todo = (message: string) =>
     addTodo(
@@ -84,44 +86,66 @@ export function keepBaseDisplay(
       `bestax leaves \`display\` out beside a per-viewport display prop; ${message}`
     );
 
-  const values = perViewport.map(attr => literalValueOf(attr));
-  if (values.some(value => value.kind !== 'string')) {
-    todo(
-      `a per-viewport display is dynamic, so put the \`${DISPLAY_CLASSES[base.value]}\` class in \`className\` by hand where you need it`
-    );
+  const base = literalValueOf(display);
+  if (base.kind !== 'string') {
+    todo('put the class it stands for in `className` by hand');
     return;
   }
+  const baseClass = displayClass(base.value);
+  if (!baseClass) return;
 
-  const classes = [DISPLAY_CLASSES[base.value]];
-  const moved = [display];
+  // The container props that go with a flex base: every one written, since
+  // bestax drops all of them once no `display` prop is flex.
+  const values = perViewport.map(attr => literalValueOf(attr));
   const flexBeside = values.some(
     value => value.kind === 'string' && isFlex(value.value)
   );
-  if (isFlex(base.value) && !flexBeside) {
-    for (const [name, prefix] of Object.entries(FLEX_CONTAINER_CLASSES)) {
-      const attr = findAttr(element, name);
-      if (!attr) continue;
-      const value = literalValueOf(attr);
-      if (value.kind !== 'string') {
-        todo(
-          `\`display="${base.value}"\` would move into \`className\`, and \`${name}\` with it, but \`${name}\` is dynamic; move both by hand`
-        );
-        return;
-      }
-      classes.push(`${prefix}${value.value}`);
-      moved.push(attr);
+  const container =
+    isFlex(base.value) && !flexBeside
+      ? Object.keys(FLEX_CONTAINER)
+          .map(name => findAttr(element, name))
+          .filter(Boolean)
+      : [];
+  const moving = [display, ...container];
+  const names = moving.map(attr => `\`${attr.name.name}\``).join(', ');
+  const refuse = (why: string) =>
+    todo(`${why}, so move ${names} into \`className\` as classes by hand`);
+
+  if (values.some(value => value.kind !== 'string')) {
+    refuse('a per-viewport display is dynamic');
+    return;
+  }
+  const classes = [baseClass];
+  const moved = [display];
+  for (const attr of container) {
+    const value = literalValueOf(attr);
+    if (value.kind !== 'string') {
+      refuse(`\`${attr.name.name}\` is dynamic`);
+      return;
     }
+    const [prefix, allowed] = FLEX_CONTAINER[attr.name.name];
+    // bestax ignored a value it doesn't take, and the typecheck still flags it.
+    if (!allowed.includes(value.value)) continue;
+    classes.push(`${prefix}${value.value}`);
+    moved.push(attr);
   }
 
   const { j } = ctx;
+  const attributes = element.openingElement.attributes;
   const className = findAttr(element, 'className');
+  const at = className ? attributes.indexOf(className) : -1;
+  if (
+    attributes.some(
+      (attr: any, i: number) => attr.type === 'JSXSpreadAttribute' && i > at
+    )
+  ) {
+    refuse('a spread could replace the `className`');
+    return;
+  }
   if (className) {
     const value = literalValueOf(className);
     if (value.kind !== 'string') {
-      const names = moved.map(attr => `\`${attr.name.name}\``).join(', ');
-      todo(
-        `add \`${classes.join(' ')}\` to the dynamic \`className\` and remove ${names} by hand`
-      );
+      refuse('the `className` is dynamic');
       return;
     }
     const written = value.value.split(/\s+/).filter(Boolean);
@@ -132,14 +156,6 @@ export function keepBaseDisplay(
     className.value = jsxStringValue(j, merged.join(' '));
     for (const attr of moved) removeAttr(element, attr);
   } else {
-    const attributes = element.openingElement.attributes;
-    if (attributes.some((attr: any) => attr.type === 'JSXSpreadAttribute')) {
-      const names = moved.map(attr => `\`${attr.name.name}\``).join(', ');
-      todo(
-        `a spread may carry a \`className\`, so add \`${classes.join(' ')}\` to it and remove ${names} by hand`
-      );
-      return;
-    }
     // In the place of `display`.
     attributes[attributes.indexOf(display)] = makeAttr(
       j,

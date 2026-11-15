@@ -69,12 +69,21 @@ describe('keepBaseDisplay', () => {
 
   it('moves the flex container props with a flex base when no per-viewport display is flex', () => {
     const { out, rules } = run(
-      'display="flex" justifyContent="center" alignItems="end" flexDirection="column" flexWrap="wrap" alignContent="start" alignSelf="center" displayMobile="block"'
+      'display="flex" justifyContent="center" alignItems="end" flexDirection="column" flexWrap="wrap" alignContent="center" alignSelf="center" displayMobile="block"'
     );
     expect(attrs(out)).toBe(
-      '<Box className="is-flex is-flex-direction-column is-flex-wrap-wrap is-justify-content-center is-align-content-start is-align-items-end" alignSelf="center" displayMobile="block"'
+      '<Box className="is-flex is-flex-direction-column is-flex-wrap-wrap is-justify-content-center is-align-content-center is-align-items-end" alignSelf="center" displayMobile="block"'
     );
     expect(rules).toEqual([]);
+  });
+
+  it('leaves a container value bestax does not take where it was', () => {
+    const { out } = run(
+      'display="flex" alignContent="start" justifyContent="center" displayMobile="block"'
+    );
+    expect(attrs(out)).toBe(
+      '<Box className="is-flex is-justify-content-center" alignContent="start" displayMobile="block"'
+    );
   });
 
   it('leaves the container props to a per-viewport flex display', () => {
@@ -103,6 +112,11 @@ describe('keepBaseDisplay', () => {
       'a spread and no className',
       '{...p} display="block" displayMobile="flex"',
     ],
+    [
+      'a spread after the className',
+      'className="card" {...p} display="block" displayMobile="flex"',
+    ],
+    ['a dynamic base display', 'display={p.d} displayMobile="flex"'],
   ])('changes nothing and leaves a TODO for %s', (_, written) => {
     const { out, rules } = run(written);
     expect(attrs(out)).toBe(`<Box ${written}`);
@@ -110,22 +124,28 @@ describe('keepBaseDisplay', () => {
     expect(out).toContain('TODO(bestax-migrate): bestax leaves `display` out');
   });
 
-  it('names every prop to remove when the className is dynamic', () => {
-    const { out } = run(
-      'className={p.c} display="flex" justifyContent="center" displayMobile="block"'
-    );
-    expect(out).toContain(
-      'add `is-flex is-justify-content-center` to the dynamic `className` and remove `display`, `justifyContent` by hand'
+  it.each([
+    [
+      'className={p.c} display="flex" justifyContent="center" alignItems="center" displayMobile="block"',
+      'the `className` is dynamic',
+    ],
+    [
+      'display="flex" justifyContent={p.j} alignItems="center" displayMobile="block"',
+      '`justifyContent` is dynamic',
+    ],
+    [
+      'display="flex" justifyContent="center" alignItems="center" displayTablet={p.d}',
+      'a per-viewport display is dynamic',
+    ],
+  ])('names every prop that would move: %s', (written, why) => {
+    expect(run(written).out).toContain(
+      `${why}, so move \`display\`, \`justifyContent\`, \`alignItems\` into \`className\` as classes by hand`
     );
   });
 
   it.each([
     ['no per-viewport display', 'display="flex" justifyContent="center"'],
     ['no base display', 'displayMobile="flex"'],
-    [
-      'a dynamic base display, which its source flags',
-      'display={p.d} displayMobile="flex"',
-    ],
     [
       'a base value bestax does not take',
       'display="relative" displayMobile="flex"',
