@@ -27,8 +27,19 @@ $timeline-dot-size: 0.75em !default;
 $timeline-marker-size: 2em !default;
 // Bulma's loader is 1em across.
 $timeline-pending-size: 1em !default;
-$timeline-neutral-color: cv.getVar("border-hover") !default;
-$timeline-active-color: cv.getVar("link") !default;
+// A marker with no color, in a record or not reached yet: the scheme's weak
+// text color, which stands out from the page on either scheme.
+$timeline-neutral-color: cv.getVar("text-weak") !default;
+// Progress, and the markers of a color (below): the color's on-scheme
+// lightness, which Bulma darkens on a light scheme and lightens on a dark one
+// until it reads on the page. Put together from the color's hue, saturation and
+// that lightness, the way Bulma's `-on-scheme` helper classes do, so a Theme
+// that sets them around the timeline reaches it.
+$timeline-active-color: hsl(
+  cv.getVar("link-h"),
+  cv.getVar("link-s"),
+  cv.getVar("link-on-scheme-l")
+) !default;
 // The fill behind a ring, the loader and an icon, so the line doesn't show
 // through them: the page's own color.
 $timeline-marker-background: cv.getVar("scheme-main") !default;
@@ -286,7 +297,7 @@ $timeline-time-size: 0.875em !default;
   border-width: cv.getVar("timeline-line-width");
 
   &.#{iv.$class-prefix}is-icon {
-    color: cv.getVar("text-weak");
+    color: cv.getVar("timeline-neutral-color");
   }
 }
 
@@ -347,12 +358,18 @@ $timeline-time-size: 0.875em !default;
 // ---- Colors, after the states, so an item's own color wins -----------------
 
 @each $name in "primary", "link", "info", "success", "warning", "danger" {
+  $on-scheme: hsl(
+    cv.getVar("#{$name}-h"),
+    cv.getVar("#{$name}-s"),
+    cv.getVar("#{$name}-on-scheme-l")
+  );
+
   .#{iv.$class-prefix}timeline.#{iv.$class-prefix}is-#{$name},
   .#{iv.$class-prefix}timeline-item.#{iv.$class-prefix}is-#{$name} {
     @include cv.register-vars(
       (
-        "timeline-marker-color": #{cv.getVar($name)},
-        "timeline-active-color": #{cv.getVar($name)},
+        "timeline-marker-color": #{$on-scheme},
+        "timeline-active-color": #{$on-scheme},
         "timeline-marker-icon-background":
           hsl(
             #{cv.getVar($name, "", "-h")},

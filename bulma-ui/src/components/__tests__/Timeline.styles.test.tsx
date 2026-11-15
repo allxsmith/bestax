@@ -11,6 +11,15 @@ import path from 'path';
 import { render } from '@testing-library/react';
 import { Timeline } from '../Timeline';
 import { ConfigProvider } from '../../helpers/Config';
+import { compileSheet } from '../../__tests__/compile-scss';
+import { bulmaCss, rulesOf as parseSheet } from '../../__tests__/css-cascade';
+import {
+  contrast,
+  schemesOf,
+  substitute,
+  varsOn,
+  type Vars,
+} from '../../__tests__/contrast';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 
@@ -487,9 +496,17 @@ describe.each([
 
   it('colors progress with link by default and the root’s or the item’s color over it', () => {
     const css = compile(prefix);
+    // Each color in its on-scheme lightness, put together on the timeline so
+    // a Theme around it reaches it (#1672).
+    const onScheme = (name: string) =>
+      `hsl(var(--bulma-${name}-h),var(--bulma-${name}-s),var(--bulma-${name}-on-scheme-l))`;
+    const bare = (value: string) => value.replace(/\s+/g, '');
     expect(
-      declarations(css, p('timeline'))['--bulma-timeline-active-color']
-    ).toBe('var(--bulma-link)');
+      bare(declarations(css, p('timeline'))['--bulma-timeline-active-color'])
+    ).toBe(onScheme('link'));
+    expect(
+      declarations(css, p('timeline'))['--bulma-timeline-neutral-color']
+    ).toBe('var(--bulma-text-weak)');
     for (const name of [
       'primary',
       'link',
@@ -502,12 +519,8 @@ describe.each([
         css,
         `${p('timeline')}${p(`is-${name}`)}, ${p('timeline-item')}${p(`is-${name}`)}`
       );
-      expect(color['--bulma-timeline-marker-color']).toBe(
-        `var(--bulma-${name})`
-      );
-      expect(color['--bulma-timeline-active-color']).toBe(
-        `var(--bulma-${name})`
-      );
+      expect(bare(color['--bulma-timeline-marker-color'])).toBe(onScheme(name));
+      expect(bare(color['--bulma-timeline-active-color'])).toBe(onScheme(name));
     }
     // The colors come after the states, so an item's own color wins over its state.
     const selectors = allRulesOf(css).map(({ rule }) => rule.selectorText);
@@ -517,4 +530,72 @@ describe.each([
     const firstColor = selectors.findIndex(s => s.includes(p('is-primary')));
     expect(firstColor).toBeGreaterThan(lastState);
   });
+});
+
+// Every color a marker's ring or dot is drawn in, read off a whole published
+// sheet, resolved through the variables it declares in each scheme, the way a
+// browser does, and measured against the page (#1672). A marker is a graphic,
+// so it needs 3:1. `extras.css` takes its colors from the app's Bulma, so it
+// is measured with Bulma's own.
+describe.each([
+  ['bestax.css', '', () => compileSheet('bestax.scss')],
+  [
+    'bestax-prefixed.css',
+    'bestax-',
+    () => compileSheet('versions/bestax-prefixed.scss'),
+  ],
+  [
+    'extras.css on Bulma’s own colors',
+    '',
+    () => bulmaCss() + compileSheet('extras.scss'),
+  ],
+])('Timeline contrast in %s', (_name, prefix, sheet) => {
+  let schemes: ReturnType<typeof schemesOf>;
+  /** The variables the timeline declares on itself, and with each color. */
+  let root: Vars;
+  let colored: (name: string) => Vars;
+  // A hook keeps Vitest's 10s default rather than `testTimeout`, and a whole
+  // sheet can take longer than that to compile on a loaded machine.
+  beforeAll(() => {
+    const { rules } = parseSheet(sheet());
+    schemes = schemesOf(rules);
+    root = varsOn(rules, `.${prefix}timeline`);
+    colored = name => varsOn(rules, `.${prefix}timeline.${prefix}is-${name}`);
+  }, 30_000);
+
+  it.each([
+    [
+      'a marker with no color, in a record or not reached yet',
+      () => root['--bulma-timeline-neutral-color'],
+    ],
+    ['progress with no color', () => root['--bulma-timeline-active-color']],
+    ...['primary', 'link', 'info', 'success', 'warning', 'danger'].flatMap(
+      (name): [string, () => string][] => [
+        [
+          `a ${name} marker`,
+          () => colored(name)['--bulma-timeline-marker-color'],
+        ],
+        [
+          `${name} progress`,
+          () => colored(name)['--bulma-timeline-active-color'],
+        ],
+      ]
+    ),
+  ] as [string, () => string][])(
+    'draws %s at 3:1 against the page, on both schemes',
+    (_what, read) => {
+      const value = read();
+      expect(value).toBeTruthy();
+      const failures: string[] = [];
+      for (const [scheme, page] of Object.entries(schemes)) {
+        const vars = { ...page, ...root };
+        const ratio = contrast(
+          substitute(value, vars),
+          substitute('var(--bulma-scheme-main)', vars)
+        );
+        if (ratio < 3) failures.push(`${scheme}: ${ratio.toFixed(2)}:1`);
+      }
+      expect(failures).toEqual([]);
+    }
+  );
 });
