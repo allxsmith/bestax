@@ -293,7 +293,10 @@ describe('TimeInput AM/PM wheel width', () => {
         height: '0px',
         visibility: 'hidden',
         whiteSpace: 'nowrap',
-        paddingInline: 'var(--bulma-timeinput-wheel-radius)',
+        // The band's corner radius, capped at the gap between wheels, so a
+        // pill radius such as 9999px can't stretch the wheel.
+        paddingInline:
+          'min(var(--bulma-timeinput-wheel-radius), var(--bulma-timeinput-wheel-gap))',
         letterSpacing: 'normal',
         wordSpacing: 'normal',
         textTransform: 'none',

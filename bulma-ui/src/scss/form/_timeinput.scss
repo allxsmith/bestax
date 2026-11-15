@@ -275,16 +275,20 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
 }
 
 // Each copy measures its word as the selected item draws it, with the
-// band's corner radius on either side so the word clears the rounded ends.
-// The item is a button, which sets its own spacing, case and indent, so the
-// copy does too.
+// band's corner radius on either side so the word clears the rounded ends,
+// capped at the gap between wheels, since a theme can round the band into a
+// pill with a radius far larger than the band. The item is a button, which
+// sets its own spacing, case and indent, so the copy does too.
 .#{iv.$class-prefix}timeinput-wheel-sizer {
   display: block;
   height: 0;
   overflow: hidden;
   visibility: hidden;
   white-space: nowrap;
-  padding-inline: cv.getVar('timeinput-wheel-radius');
+  padding-inline: min(
+    #{cv.getVar('timeinput-wheel-radius')},
+    #{cv.getVar('timeinput-wheel-gap')}
+  );
   font-weight: cv.getVar('weight-semibold');
   letter-spacing: normal;
   word-spacing: normal;
