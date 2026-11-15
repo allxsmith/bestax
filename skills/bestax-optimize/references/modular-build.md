@@ -96,7 +96,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 `delete`, `descriptionlist`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`,
 `progress`, `ringprogress`, `skeleton`, `stat`, `tag`
 
-**Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `cursor`, `sizing`
+**Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `color`, `cursor`, `sizing`
 
 Notes:
 
@@ -304,6 +304,16 @@ not `flexbox` — `flexbox` holds only the alignment props. Verified failure mod
 @use 'bulma/sass/helpers/border'; // radius sizes (small/normal/large/rounded)
 @use 'bulma/sass/helpers/aspect-ratio'; // aspectRatio prop
 @use 'bulma/sass/helpers/other'; // interaction, radius="radiusless", shadow="shadowless"
+```
+
+With `bulma/sass/helpers/color`, include the `color` extras partial (`as bestax-color`) too. On
+the dark scheme it gives a color's text (`textColor`, `has-text-*`) the color's on-scheme
+lightness wherever that's the lighter one, so a dark color such as the bestax blue primary reads
+there. It doesn't depend on the order of the two `@use` lines:
+
+```scss
+@use 'bulma/sass/helpers/color';
+@use '@allxsmith/bestax-bulma/scss/helpers/color' as bestax-color;
 ```
 
 ## Procedure

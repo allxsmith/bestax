@@ -118,7 +118,7 @@
         {
           "id": "css-migration",
           "file": "references/css-migration.md",
-          "bytes": 10160
+          "bytes": 10180
         },
         {
           "id": "rbx-component-map",
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 21042
+          "bytes": 21511
         }
       ],
       "examples": []
@@ -176,7 +176,7 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 75590
+          "bytes": 76350
         },
         {
           "id": "themeable-components",
