@@ -285,9 +285,10 @@ Here the padding is tighter and the cards wrap sooner:
   card's color.
 - The selection never rests on color: the radio shows it, and the picked card's edge is twice as
   thick, with or without the radio.
-- Contrast: against the card, a picked edge in `primary` or `link` clears WCAG 1.4.11's 3:1 on a
-  light page, and in every color on a dark one. `info`, `success`, `warning` and `danger` fall
-  short on a light page, where the edge's width and the radio still show the selection.
+- Contrast: a picked card's edge, ring and dot are the primary color, or the `color`, in its
+  on-scheme lightness, which Bulma darkens on a light scheme and lightens on a dark one until it
+  reads on the page, so with the stylesheet's colors they hold WCAG 1.4.11's 3:1 against the card
+  on both schemes. A `Theme` that changes a color's hue sets its on-scheme lightness with it.
 - In forced colors (Windows contrast themes), Bulma's card loses its shadow, so the edge is a
   real border there: the system's text color, `Highlight` and still thicker when picked, and gray
   when disabled. The radio takes system colors as `Radio`'s does, and the focus outline is
@@ -326,7 +327,7 @@ Here the padding is tighter and the cards wrap sooner:
 | `description`  | `React.ReactNode`                                                               | —       | A line or two about the option, read after the name and the state. It's the radio's description when `title`, `aria-label` or `aria-labelledby` names it. Without one of those it's part of the name already, so it isn't read twice.                                                                                                                                                                                                                                                                                                                 |
 | `children`     | `React.ReactNode`                                                               | —       | Anything else in the card, after the description, such as a price. A label holds phrasing content only, so spans, images and links: a link works and doesn't pick the card, but a button or another input can't go inside a label at all. It isn't read when the radio takes focus, so put what a screen reader should hear in `title` and `description`.                                                                                                                                                                                             |
 | `hasIndicator` | `boolean`                                                                       | `true`  | Shows the radio at the start of the card. Without it, the card's edge alone shows the selection, and it's thicker when picked, so the selection never rests on color.                                                                                                                                                                                                                                                                                                                                                                                 |
-| `color`        | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | The color of the radio and of a picked card's edge.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `color`        | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | The color of the radio and of a picked card's edge. They take the color's `-on-scheme` variant, the shade Bulma adjusts to read on the page in either scheme, so a pale color such as `warning` is drawn darker on a light page.                                                                                                                                                                                                                                                                                                                      |
 | `textColor`    | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper, on the card. The title and the children take it, and the description keeps its own color.                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | `disabled`     | `boolean`                                                                       | `false` | Whether the card is disabled. A disabled card dims, takes no clicks, and the arrow keys skip it.                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | `className`    | `string`                                                                        | —       | Additional CSS classes, on the outer `<label>`, the card. That's the element that declares the `--bulma-radio-card-*` variables, and Bulma's `--bulma-card-*` ones, so a class is how to set one: `style` and the other input attributes go to the `<input>`. Name `.radio-card` beside your class in the selector, so it beats the card's own declaration whatever order the stylesheets load in. A `color` prop declares the active color again on `.radio-card.is-<color>`, which ties that selector, so leave `color` unset when a class sets it. |
@@ -345,24 +346,24 @@ Here the padding is tighter and the cards wrap sooner:
 
 `RadioCard` registers these variables on its own `.radio-card` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
 
-| CSS Variable                                | Sass Variable                        | Default                                                                 |
-| ------------------------------------------- | ------------------------------------ | ----------------------------------------------------------------------- |
-| `--bulma-radio-card-border-width`           | `$radio-card-border-width`           | `1px`                                                                   |
-| `--bulma-radio-card-border-color`           | `$radio-card-border-color`           | `var(--bulma-border)`                                                   |
-| `--bulma-radio-card-hover-border-color`     | `$radio-card-hover-border-color`     | `var(--bulma-border-hover)`                                             |
-| `--bulma-radio-card-checked-border-width`   | `$radio-card-checked-border-width`   | `2px`                                                                   |
-| `--bulma-radio-card-active-color`           | `$radio-card-active-color`           | `var(--bulma-primary)`                                                  |
-| `--bulma-radio-card-focus-color`            | `$radio-card-focus-color`            | `hsl(var(--bulma-focus-h), var(--bulma-focus-s), var(--bulma-focus-l))` |
-| `--bulma-radio-card-focus-width`            | `$radio-card-focus-width`            | `var(--bulma-focus-width)`                                              |
-| `--bulma-radio-card-focus-offset`           | `$radio-card-focus-offset`           | `2px`                                                                   |
-| `--bulma-radio-card-gap`                    | `$radio-card-gap`                    | `0.75em`                                                                |
-| `--bulma-radio-card-min-width`              | `$radio-card-min-width`              | `12rem`                                                                 |
-| `--bulma-radio-card-title-weight`           | `$radio-card-title-weight`           | `var(--bulma-weight-semibold)`                                          |
-| `--bulma-radio-card-description-color`      | `$radio-card-description-color`      | `var(--bulma-text-weak)`                                                |
-| `--bulma-radio-card-indicator-size`         | `$radio-card-indicator-size`         | `1.25em`                                                                |
-| `--bulma-radio-card-indicator-border-width` | `$radio-card-indicator-border-width` | `2px`                                                                   |
-| `--bulma-radio-card-indicator-border-color` | `$radio-card-indicator-border-color` | `var(--bulma-text-weak)`                                                |
-| `--bulma-radio-card-disabled-opacity`       | `$radio-card-disabled-opacity`       | `0.5`                                                                   |
-| `--bulma-radio-card-transition-duration`    | `$radio-card-transition-duration`    | `var(--bulma-duration)`                                                 |
+| CSS Variable                                | Sass Variable                        | Default                                                                                 |
+| ------------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------------- |
+| `--bulma-radio-card-border-width`           | `$radio-card-border-width`           | `1px`                                                                                   |
+| `--bulma-radio-card-border-color`           | `$radio-card-border-color`           | `var(--bulma-border)`                                                                   |
+| `--bulma-radio-card-hover-border-color`     | `$radio-card-hover-border-color`     | `var(--bulma-border-hover)`                                                             |
+| `--bulma-radio-card-checked-border-width`   | `$radio-card-checked-border-width`   | `2px`                                                                                   |
+| `--bulma-radio-card-active-color`           | `$radio-card-active-color`           | `hsl(var(--bulma-primary-h), var(--bulma-primary-s), var(--bulma-primary-on-scheme-l))` |
+| `--bulma-radio-card-focus-color`            | `$radio-card-focus-color`            | `hsl(var(--bulma-focus-h), var(--bulma-focus-s), var(--bulma-focus-l))`                 |
+| `--bulma-radio-card-focus-width`            | `$radio-card-focus-width`            | `var(--bulma-focus-width)`                                                              |
+| `--bulma-radio-card-focus-offset`           | `$radio-card-focus-offset`           | `2px`                                                                                   |
+| `--bulma-radio-card-gap`                    | `$radio-card-gap`                    | `0.75em`                                                                                |
+| `--bulma-radio-card-min-width`              | `$radio-card-min-width`              | `12rem`                                                                                 |
+| `--bulma-radio-card-title-weight`           | `$radio-card-title-weight`           | `var(--bulma-weight-semibold)`                                                          |
+| `--bulma-radio-card-description-color`      | `$radio-card-description-color`      | `var(--bulma-text-weak)`                                                                |
+| `--bulma-radio-card-indicator-size`         | `$radio-card-indicator-size`         | `1.25em`                                                                                |
+| `--bulma-radio-card-indicator-border-width` | `$radio-card-indicator-border-width` | `2px`                                                                                   |
+| `--bulma-radio-card-indicator-border-color` | `$radio-card-indicator-border-color` | `var(--bulma-text-weak)`                                                                |
+| `--bulma-radio-card-disabled-opacity`       | `$radio-card-disabled-opacity`       | `0.5`                                                                                   |
+| `--bulma-radio-card-transition-duration`    | `$radio-card-transition-duration`    | `var(--bulma-duration)`                                                                 |
 
 <!-- /bestax:generated cssvars -->

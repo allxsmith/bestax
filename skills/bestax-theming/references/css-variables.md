@@ -873,7 +873,9 @@ the label text inside the `Radio`, since the whole label is the click target.
 `--bulma-radio-card-transition-duration`
 
 The same as CheckboxCard's, on the `.radio-card` label, with a ring and a dot for the indicator and
-`--bulma-radio-card-min-width` for a `Radios` row.
+`--bulma-radio-card-min-width` for a `Radios` row. Its active color, which draws the picked edge,
+the ring and the dot, is the primary color, or the `color`, in its on-scheme lightness, which holds
+3:1 against the card on both schemes.
 
 ### Rate
 

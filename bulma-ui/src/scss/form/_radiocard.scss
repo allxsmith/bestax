@@ -19,9 +19,20 @@ $radio-card-hover-border-color: cv.getVar('border-hover') !default;
 // Twice the edge, so a picked card differs from the others by more than its
 // color (WCAG 1.4.1), with or without the indicator.
 $radio-card-checked-border-width: 2px !default;
-$radio-card-active-color: cv.getVar('primary') !default;
-// Bulma's focus color and width, which every color of card shares, since
-// some of the six fall short of 3:1 on a light page.
+// A picked card's edge, ring and dot show its state, so they hold 3:1 against
+// the card on both schemes (#1776): the primary color in its on-scheme
+// lightness, which Bulma darkens on a light scheme and lightens on a dark one
+// until it reads on the page, put together here from its hue, saturation and
+// that lightness, as Bulma's own `-on-scheme` helpers do, so a Theme around
+// the card reaches it. A `color` takes its own on-scheme lightness the same
+// way.
+$radio-card-active-color: hsl(
+  #{cv.getVar('primary-h')},
+  #{cv.getVar('primary-s')},
+  #{cv.getVar('primary-on-scheme-l')}
+) !default;
+// Bulma's focus color and width, which every color of card shares, so
+// keyboard focus looks the same on each.
 $radio-card-focus-color: hsl(
   cv.getVar('focus-h'),
   cv.getVar('focus-s'),
@@ -204,12 +215,18 @@ $-line-height: 1.5;
   color: cv.getVar('radio-card-description-color');
 }
 
-// Color variants
+// Color variants, each in the color's on-scheme lightness.
 @each $name in 'primary', 'link', 'info', 'success', 'warning', 'danger' {
+  $on-scheme: hsl(
+    cv.getVar($name, '', '-h'),
+    cv.getVar($name, '', '-s'),
+    cv.getVar($name, '', '-on-scheme-l')
+  );
+
   .#{iv.$class-prefix}radio-card.#{iv.$class-prefix}is-#{$name} {
     @include cv.register-vars(
       (
-        'radio-card-active-color': #{cv.getVar($name)},
+        'radio-card-active-color': #{$on-scheme},
       )
     );
   }

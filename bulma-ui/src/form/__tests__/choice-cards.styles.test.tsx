@@ -78,10 +78,32 @@ function find(rules: Rule[], selector: string, context: string[] = []) {
 
 const FORCED = ['@media (forced-colors: active)'];
 
+/**
+ * A color in its on-scheme lightness, the way the partials write a checked
+ * card's color (#1776).
+ */
+const onScheme = (name: string) =>
+  `hsl(var(--bulma-${name}-h), var(--bulma-${name}-s), var(--bulma-${name}-on-scheme-l))`;
+
+// RadioCard draws its picked state in each color's on-scheme lightness.
+// CheckboxCard keeps each color's base shade, which its `scheme-invert` check
+// mark reads on, until the next major (#1779).
 describe.each([
-  { kind: 'checkbox', partial: 'checkboxcard', group: 'checkboxes' },
-  { kind: 'radio', partial: 'radiocard', group: 'radios' },
-])('$partial styles', ({ kind, partial, group }) => {
+  {
+    kind: 'checkbox',
+    partial: 'checkboxcard',
+    group: 'checkboxes',
+    active: 'var(--bulma-primary)',
+    warning: { '--bulma-checkbox-card-active-color': 'var(--bulma-warning)' },
+  },
+  {
+    kind: 'radio',
+    partial: 'radiocard',
+    group: 'radios',
+    active: onScheme('primary'),
+    warning: { '--bulma-radio-card-active-color': onScheme('warning') },
+  },
+])('$partial styles', ({ kind, partial, group, active, warning }) => {
   const PLAIN = rulesOf(compile(partial, ''));
   const PREFIXED = rulesOf(compile(partial, 'bestax-'));
   const card = `.${kind}-card`;
@@ -99,7 +121,7 @@ describe.each([
       [`--bulma-${kind}-card-border-width`]: '1px',
       [`--bulma-${kind}-card-border-color`]: 'var(--bulma-border)',
       [`--bulma-${kind}-card-checked-border-width`]: '2px',
-      [`--bulma-${kind}-card-active-color`]: 'var(--bulma-primary)',
+      [`--bulma-${kind}-card-active-color`]: active,
       [`--bulma-${kind}-card-title-weight`]: 'var(--bulma-weight-semibold)',
       [`--bulma-${kind}-card-indicator-border-color`]: 'var(--bulma-text-weak)',
       [`--bulma-${kind}-card-transition-duration`]: 'var(--bulma-duration)',
@@ -199,10 +221,8 @@ describe.each([
     });
   });
 
-  it('sets the active color for each color class', () => {
-    expect(find(PLAIN, `${card}.is-warning`)).toEqual({
-      [`--bulma-${kind}-card-active-color`]: 'var(--bulma-warning)',
-    });
+  it('sets the checked colors for each color class', () => {
+    expect(find(PLAIN, `${card}.is-warning`)).toEqual(warning);
   });
 
   it('shares the row in its group, and drops Bulma card margin there and in a grid', () => {

@@ -65,7 +65,12 @@ export interface RadioCardProps
    * selection never rests on color.
    */
   hasIndicator?: boolean;
-  /** The color of the radio and of a picked card's edge. */
+  /**
+   * The color of the radio and of a picked card's edge. They take the color's
+   * `-on-scheme` variant, the shade Bulma adjusts to read on the page in
+   * either scheme, so a pale color such as `warning` is drawn darker on a
+   * light page.
+   */
   color?: (typeof radioCardColors)[number];
   /**
    * Text color helper, on the card. The title and the children take it, and
