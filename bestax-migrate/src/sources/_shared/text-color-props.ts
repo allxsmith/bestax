@@ -70,8 +70,9 @@ export const NO_TEXT_COLOR_TODO =
 
 /**
  * Leave a TODO on the element's `textColor` where `target` takes no such
- * prop, and mark it handled so the universal pass leaves it alone. A
- * component's own prop map runs first and wins, as it does for every prop.
+ * prop, and mark it handled so the universal pass leaves it alone. Should a
+ * component's own prop map ever claim `textColor`, it wins, as it does for
+ * every prop.
  */
 export function applyTextColor(
   ctx: TransformContext,
