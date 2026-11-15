@@ -89,6 +89,11 @@ const meta: Meta<typeof Card> = {
       control: 'text',
       description: 'Image URL or React node for card image',
     },
+    imageAlt: {
+      control: 'text',
+      description:
+        'Alternate text for the image a URL renders: describe the picture, or leave it empty for a decorative one',
+    },
     children: {
       control: 'text',
       description: 'Card body content',
