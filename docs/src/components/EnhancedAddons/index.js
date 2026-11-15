@@ -49,6 +49,12 @@ const ADDONS = [
     desc: 'Content fixed to a corner of the screen, such as a floating button, over the page and under its menus and modals.',
   },
   {
+    name: 'FloatButton',
+    icon: 'floatbutton',
+    link: '/docs/api/components/floatbutton',
+    desc: 'A round button floating in a corner for the main action, with a speed dial of related actions and back to top.',
+  },
+  {
     name: 'NumberFormatter',
     icon: 'numberformatter',
     link: '/docs/api/elements/numberformatter',

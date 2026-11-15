@@ -18,11 +18,19 @@ $splitter-handle-size-coarse: 1.5rem !default;
 $splitter-line-size: 1px !default;
 $splitter-line-color: cv.getVar("border") !default;
 $splitter-line-active-size: 2px !default;
-// bestax's blue: 5.7:1 on `scheme-main` in light and 3.2:1 in dark.
-$splitter-line-active-color: cv.getVar("primary") !default;
+// The primary color in its on-scheme lightness, which Bulma darkens on a
+// light scheme and lightens on a dark one until it reads on the page, so the
+// grip it paints while the handle is in use stays at 3:1 too (#1716).
+$splitter-line-active-color: hsl(
+  #{cv.getVar("primary-h")},
+  #{cv.getVar("primary-s")},
+  #{cv.getVar("primary-on-scheme-l")}
+) !default;
 $splitter-grip-length: 1.5rem !default;
 $splitter-grip-size: 0.25rem !default;
-$splitter-grip-color: cv.getVar("border-hover") !default;
+// The grip is what shows the handle can be dragged, so it holds 3:1 against
+// the page on both schemes (#1716).
+$splitter-grip-color: cv.getVar("text-weak") !default;
 $splitter-grip-radius: cv.getVar("radius-rounded") !default;
 
 .#{iv.$class-prefix}splitter {
@@ -150,6 +158,12 @@ $splitter-grip-radius: cv.getVar("radius-rounded") !default;
     border-block-start-width: cv.getVar("splitter-line-active-size");
     border-block-start-color: cv.getVar("splitter-line-active-color");
   }
+
+  &:hover::after,
+  &:focus-visible::after,
+  &.#{iv.$class-prefix}is-active::after {
+    border-block-color: cv.getVar("splitter-line-active-color");
+  }
 }
 
 // ---- Media ---------------------------------------------------------------------
@@ -167,15 +181,18 @@ $splitter-grip-radius: cv.getVar("radius-rounded") !default;
 }
 
 // The line and grip are borders, which forced colors keeps; the active one
-// takes the system's highlight.
+// takes the system's highlight, between stacked panes too.
 @media (forced-colors: active) {
-  .#{iv.$class-prefix}splitter-handle:hover::before,
-  .#{iv.$class-prefix}splitter-handle:focus-visible::before,
-  .#{iv.$class-prefix}splitter-handle.#{iv.$class-prefix}is-active::before,
-  .#{iv.$class-prefix}splitter-handle:hover::after,
-  .#{iv.$class-prefix}splitter-handle:focus-visible::after,
-  .#{iv.$class-prefix}splitter-handle.#{iv.$class-prefix}is-active::after {
-    border-color: Highlight;
+  .#{iv.$class-prefix}splitter-handle,
+  .#{iv.$class-prefix}splitter.#{iv.$class-prefix}is-vertical > .#{iv.$class-prefix}splitter-handle {
+    &:hover::before,
+    &:focus-visible::before,
+    &.#{iv.$class-prefix}is-active::before,
+    &:hover::after,
+    &:focus-visible::after,
+    &.#{iv.$class-prefix}is-active::after {
+      border-color: Highlight;
+    }
   }
 
   .#{iv.$class-prefix}splitter-handle:focus-visible {
