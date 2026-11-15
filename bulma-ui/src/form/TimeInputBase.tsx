@@ -134,10 +134,11 @@ export interface TimeInputBaseProps
    */
   parse?: (s: string) => Date | null;
   /**
-   * BCP-47 locale tag for Intl formatting and the digits the wheels write
-   * their hours, minutes and seconds in. Unset, it is the `locale` of a
-   * `LocaleProvider` around the picker, and with neither, `Intl` uses the
-   * runtime's own locale and the wheels keep plain digits.
+   * BCP-47 locale tag for Intl formatting, the digits the wheels write
+   * their hours, minutes and seconds in, and the words a 12-hour wheel shows
+   * for AM and PM. Unset, it is the `locale` of a `LocaleProvider` around
+   * the picker, and with neither, `Intl` uses the runtime's own locale and
+   * the wheels keep plain digits and AM and PM.
    */
   locale?: string;
   /** Render the spinner inline (no popover). */

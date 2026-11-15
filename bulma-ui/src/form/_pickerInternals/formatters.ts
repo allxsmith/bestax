@@ -378,6 +378,39 @@ export function getDateNumberFormat(
   }
 }
 
+/** What a 12-hour time is marked with when no locale says otherwise. */
+const PLAIN_DAY_PERIODS: [string, string] = ['AM', 'PM'];
+
+/**
+ * The words `locale` marks a 12-hour time with in the morning and in the
+ * afternoon, as `Intl` writes them: ص and م in Egyptian Arabic, 午前 and 午後
+ * in Japanese. With no locale they're AM and PM, as the time wheels always
+ * wrote them, rather than the runtime's words, which a server and a browser
+ * can disagree on. So are they for a tag `Intl` refuses, and in place of a
+ * word the locale's 12-hour time doesn't write.
+ */
+export function getDayPeriodNames(
+  locale: string | undefined
+): [string, string] {
+  if (!locale) return PLAIN_DAY_PERIODS;
+  try {
+    const format = new Intl.DateTimeFormat(locale, {
+      hour: 'numeric',
+      hour12: true,
+    });
+    const period = (hour: number, plain: string) =>
+      format
+        .formatToParts(new Date(2021, 0, 1, hour))
+        .find(part => part.type === 'dayPeriod')?.value ?? plain;
+    // Mid-morning and mid-afternoon, so a locale that names smaller parts
+    // of the day still gives its morning and afternoon words.
+    return [period(10, 'AM'), period(15, 'PM')];
+  } catch {
+    // A tag Intl refuses: the wheel keeps AM and PM rather than throw.
+    return PLAIN_DAY_PERIODS;
+  }
+}
+
 /**
  * Locale-aware day name labels in calendar order (Sunday → Saturday).
  * Caller rotates by `firstDayOfWeek`.
