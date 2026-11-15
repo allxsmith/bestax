@@ -36,7 +36,7 @@
     },
     {
       "title": "Custom Icons",
-      "code": "function example() {\n  const [rating, setRating] = useState(3);\n\n  const HeartIcon = ({ isActive }: { isActive: boolean }) => (\n    <svg\n      xmlns=\"http://www.w3.org/2000/svg\"\n      viewBox=\"0 0 24 24\"\n      fill={isActive ? 'currentColor' : 'none'}\n      stroke=\"currentColor\"\n      strokeWidth={isActive ? 0 : 2}\n      style={{ color: '#f14668' }}\n    >\n      <path d=\"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z\" />\n    </svg>\n  );\n\n  return (\n    <Rate\n      value={rating}\n      onChange={setRating}\n      customIcon={({ isActive }) => <HeartIcon isActive={isActive} />}\n      showScore\n    />\n  );\n}"
+      "code": "function example() {\n  const [rating, setRating] = useState(3);\n\n  const HeartIcon = ({ isActive }: { isActive: boolean }) => (\n    <svg\n      xmlns=\"http://www.w3.org/2000/svg\"\n      viewBox=\"0 0 24 24\"\n      fill={isActive ? 'currentColor' : 'none'}\n      stroke={isActive ? 'var(--bulma-rate-color-edge)' : 'currentColor'}\n      strokeWidth={2}\n    >\n      <path d=\"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z\" />\n    </svg>\n  );\n\n  return (\n    <Rate\n      value={rating}\n      onChange={setRating}\n      customIcon={({ isActive }) => <HeartIcon isActive={isActive} />}\n      color=\"danger\"\n      showScore\n    />\n  );\n}"
     },
     {
       "title": "Context-Aware Rendering › Default (with label)",
@@ -51,7 +51,7 @@
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Rating\"\n      labelProps={{ id: 'rating-label-control', htmlFor: undefined }}\n    >\n      <Field.Body>\n        <Field>\n          <Control>\n            <Rate aria-labelledby=\"rating-label-control\" defaultValue={3} />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
-  "accessibility": "- Uses `role=\"radiogroup\"` for the container\n- The `label` prop names the group via `aria-labelledby` (the rendered `<label>` gets an id — yours via `labelProps.id`, or a generated one); without a label the container falls back to `aria-label=\"Rating\"`. Inside a labeled `Field`, that `Field`'s label names the group the same way and replaces the fallback. An `aria-label` or `aria-labelledby` you set on the Rate yourself wins over either label\n- Each star has `role=\"radio\"` with `aria-checked`, and the star the value falls in is the checked one, so the value travels with it. A fractional value names that star by the value itself (\"3.5 stars\")\n- Focus stays on the group, which points `aria-activedescendant` at the checked star, so a screen reader announces it as the arrow keys change the value\n- Full keyboard navigation with arrow keys\n- Home/End keys jump to 0/max values\n- `disabled` sets `aria-disabled` on the group and on every star, so a screen reader announces them as unavailable, and takes the group out of the tab order",
+  "accessibility": "- Uses `role=\"radiogroup\"` for the container\n- The `label` prop names the group via `aria-labelledby` (the rendered `<label>` gets an id — yours via `labelProps.id`, or a generated one); without a label the container falls back to `aria-label=\"Rating\"`. Inside a labeled `Field`, that `Field`'s label names the group the same way and replaces the fallback. An `aria-label` or `aria-labelledby` you set on the Rate yourself wins over either label\n- Each star has `role=\"radio\"` with `aria-checked`, and the star the value falls in is the checked one, so the value travels with it. A fractional value names that star by the value itself (\"3.5 stars\")\n- Focus stays on the group, which points `aria-activedescendant` at the checked star, so a screen reader announces it as the arrow keys change the value\n- Full keyboard navigation with arrow keys\n- Home/End keys jump to 0/max values\n- `disabled` sets `aria-disabled` on the group and on every star, so a screen reader announces them as unavailable, and takes the group out of the tab order\n- The stars hold 3:1 against the page on both schemes. An empty star is the scheme's weak text color. A filled star, and one the pointer would fill, keeps its gold, or the `color`'s own shade, inside an edge in the warning color or the `color`, in its on-scheme lightness, which carries the contrast. A font icon (`iconName`) has no edge, so a filled one is drawn in that edge color. The built-in star also tells a filled star from an empty one by its shape, solid or an outline",
   "related": ["Input", "Slider"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-rate",
   "summary": "The `Rate` component provides a star/icon-based rating system.",
@@ -185,7 +185,7 @@
           "name": "customIcon",
           "type": "(props: RateIconProps) => React.ReactNode",
           "default": null,
-          "description": "Custom icon renderer.",
+          "description": "Custom icon renderer. The icon is drawn as you give it. A filled star's gold, or a `color`'s own shade, doesn't reach 3:1 against a light page on its own, so give a filled icon an edge in `--bulma-rate-color-edge`, as the built-in star has.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -212,7 +212,7 @@
           "name": "iconName",
           "type": "string",
           "default": null,
-          "description": "Custom icon name for the rating stars.",
+          "description": "Custom icon name for the rating stars. A font icon has no edge to draw, so a filled one is drawn in the edge's color, the warning color or the `color` in its on-scheme lightness, rather than gold. It's one glyph, so a filled star and an empty one differ by color alone; the built-in star, solid or an outline, or a `customIcon`, tells them apart by shape too.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -248,7 +248,7 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Color of the active rating icons.",
+          "description": "Color of the active rating icons: a filled star is the color's own shade, with an edge in its on-scheme lightness, which reads on the page on both schemes. Without it, a filled star is gold with a warning edge.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -345,7 +345,7 @@
     {
       "css": "--bulma-rate-color-inactive",
       "sass": "$rate-color-inactive",
-      "default": "var(--bulma-grey-light)",
+      "default": "var(--bulma-text-weak)",
       "scope": "root"
     },
     {
@@ -358,6 +358,18 @@
       "css": "--bulma-rate-color-hover",
       "sass": "$rate-color-hover",
       "default": "hsl(48, 100%, 67%)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-rate-color-edge",
+      "sass": "$rate-color-edge",
+      "default": "hsl(var(--bulma-warning-h), var(--bulma-warning-s), var(--bulma-warning-on-scheme-l))",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-rate-edge-width",
+      "sass": "$rate-edge-width",
+      "default": "2px",
       "scope": "root"
     },
     {
