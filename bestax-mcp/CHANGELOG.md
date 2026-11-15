@@ -1,3 +1,25 @@
+## [1.18.57](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.56...bestax-mcp@1.18.57) (2026-11-15)
+
+
+### Bug Fixes
+
+* **bulma-ui:** bring FloatButton's props, keys and refs in line with its siblings ([d4a4ddb](https://github.com/allxsmith/bestax/commit/d4a4ddbce98393b1de1b64a4b34567a178b05882))
+* **bulma-ui:** draw Carousel's resting indicators as rings at 3:1, and fill the current one ([ee111bc](https://github.com/allxsmith/bestax/commit/ee111bc6123fe1340a31a0c8bd5275ecc5650c37)), closes [#1716](https://github.com/allxsmith/bestax/issues/1716)
+* **bulma-ui:** draw Splitter's grip at 3:1 against the page, at rest and in use ([ed72284](https://github.com/allxsmith/bestax/commit/ed72284e0c81032b5781e19304375d936a56096d)), closes [#1716](https://github.com/allxsmith/bestax/issues/1716)
+* **bulma-ui:** hand focus back to a speed dial's trigger when a click on it closes the dial ([6872655](https://github.com/allxsmith/bestax/commit/687265569aa08312e9291ce859ca6ce6cc9f2c6b))
+* **bulma-ui:** line float buttons up on their corner's side in right-to-left text too ([9f153f9](https://github.com/allxsmith/bestax/commit/9f153f96326e910da58c98e12de0bd6adc87bc4f))
+* **bulma-ui:** move a speed dial's focus once its state answers, and leave a page's tabindex be ([5220b2e](https://github.com/allxsmith/bestax/commit/5220b2e73602df4649ed10e831a7e0c3fa3dc581))
+* **bulma-ui:** open a speed dial on its first action for a click with no pointer behind it ([10eb3f5](https://github.com/allxsmith/bestax/commit/10eb3f5cbd59e21e2e6fee237cd5e1d072a43a51))
+* **bulma-ui:** scroll the scroller back to top watches, and let its onClick cancel the scroll ([25bc7dc](https://github.com/allxsmith/bestax/commit/25bc7dc8715438ea77fa1b9f4f9a6c11a513a75d))
+* **bulma-ui:** unpress back to top, and keep a speed dial's keys, layout and tooltip in step ([7167ec3](https://github.com/allxsmith/bestax/commit/7167ec3a6692a6a319b1cc501f7c304d0adfc1ed))
+
+
+### Features
+
+* **bulma-ui:** add FloatButton, with FloatButtons, a speed dial and back to top ([91a76a9](https://github.com/allxsmith/bestax/commit/91a76a90ba026511b6593a84269f7693e2f4a532)), closes [#1434](https://github.com/allxsmith/bestax/issues/1434)
+* **bulma-ui:** add Tooltip describesTrigger, and the menu and hover options FloatButton needs ([a9f0058](https://github.com/allxsmith/bestax/commit/a9f00583af682c04d48cb9a8e8dc73882e40361d))
+* **bulma-ui:** let useMenuKeys read a horizontal menu's arrows as they point on the screen ([a8c5881](https://github.com/allxsmith/bestax/commit/a8c58813cac1dd4344fd05c37a22bf4ed7c85129))
+
 ## [1.18.56](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.55...bestax-mcp@1.18.56) (2026-11-15)
 
 
