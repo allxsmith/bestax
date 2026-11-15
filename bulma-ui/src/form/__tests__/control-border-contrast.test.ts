@@ -3,6 +3,9 @@
 // boundary that identifies a control (SC 1.4.11, non-text contrast) against
 // what is next to it, and the box has no fill of its own, so that is the
 // surface the form sits on. Bulma's `border` is far fainter than that (#1152).
+// A Switch that's off shows its track, and a Slider its track and its thumb's
+// ring around a fill in the page's color, so each of those holds 3:1 there
+// too (#1766).
 //
 // These read the default each partial gives its border, resolve it through
 // Bulma's themes, light and dark, and measure it against the scheme's
@@ -40,13 +43,26 @@ function belowThreeToOne(color: string, scheme: string): string[] {
 }
 
 describe.each([
-  ['Checkbox', 'form/checkbox', '.styled-checkbox', 'checkbox'],
-  ['Radio', 'form/radio', '.styled-radio', 'radio'],
-])("%s's unchecked border", (_name, partial, root, key) => {
+  [
+    "Checkbox's unchecked border",
+    'form/checkbox',
+    '.styled-checkbox',
+    'checkbox-border-color',
+  ],
+  [
+    "Radio's unchecked ring",
+    'form/radio',
+    '.styled-radio',
+    'radio-border-color',
+  ],
+  ["Switch's off track", 'form/switch', '.switch', 'switch-background'],
+  ["Slider's track", 'form/slider', '.slider', 'slider-track-color'],
+  ["Slider's thumb ring", 'form/slider', '.slider', 'slider-thumb-border'],
+])('%s', (_name, partial, root, key) => {
   const border = varsOn(
     rulesOf(compileSource(`@use '${partial}';`)).rules,
     root
-  )[`--bulma-${key}-border-color`];
+  )[`--bulma-${key}`];
 
   it('has a default', () => {
     expect(border).toMatch(/^var\(--bulma-[\w-]+\)$/);

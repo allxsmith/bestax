@@ -848,8 +848,11 @@ As with Checkbox, set these on a class you pass through `className`, with both c
 selector (`.styled-radio.my-radio`): `style` goes to the hidden `<input>`. A `color` prop
 declares `--bulma-radio-active-color` again on `.styled-radio.is-<color>`, which ties that
 selector, so leave `color` unset when a class sets it. The unchecked ring, `--bulma-radio-border-color`, defaults to `text-weak` for the same 3:1 boundary
-contrast. The checked dot, `--bulma-radio-dot-color`, defaults to `--bulma-radio-active-color`,
-so it follows the ring and a `color` prop until a class gives it a color of its own.
+contrast. The checked ring, `--bulma-radio-active-color`, defaults to the primary color, or the
+`color`, in its on-scheme lightness, which holds 3:1 against the page on both schemes; keep a
+replacement at 3:1 too. The checked dot, `--bulma-radio-dot-color`, defaults to
+`--bulma-radio-active-color`, so it follows the ring and a `color` prop until a class gives it a
+color of its own.
 
 `--bulma-radio-size` (default `1.25em`) can't take the circle below 24px: the stylesheet gives the
 `.check` circle a `min-width` and `min-height` of 24px, WCAG 2.2's minimum target size, so with
@@ -936,7 +939,8 @@ whatever these say.
 
 ### Slider
 
-`--bulma-slider-disabled-opacity`, `--bulma-slider-fill-color`,
+`--bulma-slider-disabled-opacity`, `--bulma-slider-fill-color`, `--bulma-slider-focus-color`,
+`--bulma-slider-focus-offset`, `--bulma-slider-focus-width`,
 `--bulma-slider-output-background`, `--bulma-slider-output-color`,
 `--bulma-slider-output-font-size`, `--bulma-slider-output-font-weight`, `--bulma-slider-radius`,
 `--bulma-slider-thumb-border`, `--bulma-slider-thumb-color`, `--bulma-slider-thumb-shadow`,
@@ -948,6 +952,14 @@ whatever these say.
 `--bulma-slider-track-height-large`, `--bulma-slider-track-height-medium`,
 `--bulma-slider-track-height-small`, `--bulma-slider-transition-duration`,
 `--bulma-slider-vertical-height`
+
+The track, `--bulma-slider-track-color`, and the thumb's ring, `--bulma-slider-thumb-border`,
+default to `text-weak`, which holds 3:1 against the page on both schemes. The thumb is filled with
+the page's color, so keep a replacement ring at 3:1. Keyboard focus draws a ring
+`--bulma-slider-focus-width` wide outside the thumb, past a gap of `--bulma-slider-focus-offset` in
+the page's color, in `--bulma-slider-focus-color`: the primary color, or the `color`, in its
+on-scheme lightness, which holds 3:1 against the page. A fill color of your own takes a focus
+color with it.
 
 ### Splitter
 
@@ -1003,6 +1015,11 @@ sets that change's color to the color's `-on-scheme` variable directly, so
 `--bulma-switch-height`, `--bulma-switch-label-gap`, `--bulma-switch-padding`,
 `--bulma-switch-radius`, `--bulma-switch-thin-circle-size`, `--bulma-switch-thin-height`,
 `--bulma-switch-transition-duration`, `--bulma-switch-width`
+
+The off track, `--bulma-switch-background`, defaults to `text-weak`, and the on track,
+`--bulma-switch-active-color`, to the primary color, or the `color`, in its on-scheme lightness.
+Each holds 3:1 against the page on both schemes, and the circle, `--bulma-switch-circle-color`,
+holds 3:1 on each; hold a replacement to the same.
 
 ### TableOfContents
 

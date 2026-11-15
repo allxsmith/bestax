@@ -22,6 +22,16 @@ const SCSS = path.resolve(__dirname, '../../scss');
 // The Bulma bulma-ui depends on, found through its package.json.
 const BULMA = path.dirname(require.resolve('bulma/package.json'));
 
+/**
+ * A color in its on-scheme lightness, the way the partial writes a checked
+ * radio's color (#1766).
+ */
+const onScheme = (name: string) =>
+  `hsl(var(--bulma-${name}-h),var(--bulma-${name}-s),var(--bulma-${name}-on-scheme-l))`;
+
+/** The color a checked radio takes with no `color`. */
+const PRIMARY = onScheme('primary');
+
 const compile = (prefix: string) =>
   sass.compileString(
     `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
@@ -162,8 +172,8 @@ describe.each([
   });
 
   it.each([
-    ['by default', {}, 'var(--bulma-primary)'],
-    ['with a color', { color: 'danger' }, 'var(--bulma-danger)'],
+    ['by default', {}, PRIMARY],
+    ['with a color', { color: 'danger' }, onScheme('danger')],
   ] as const)(
     'gives the dot the ring color %s, unless a theme sets its own',
     (_name, props, ring) => {
@@ -305,9 +315,7 @@ describe.each([
 
     it('keeps its own colors on a row that is not selected', () => {
       const label = labelIn('none', radio({ checked: true }));
-      expect(resolve(label, '--bulma-radio-active-color')).toBe(
-        'var(--bulma-primary)'
-      );
+      expect(resolve(label, '--bulma-radio-active-color')).toBe(PRIMARY);
     });
 
     // Anything that puts a surface of its own between the cell and the radio
@@ -321,9 +329,7 @@ describe.each([
       );
       expect(label.closest(`.${prefix}dropdown-content`)).not.toBeNull();
       expect(takesRowColors(label)).toBe(false);
-      expect(resolve(label, '--bulma-radio-active-color')).toBe(
-        'var(--bulma-primary)'
-      );
+      expect(resolve(label, '--bulma-radio-active-color')).toBe(PRIMARY);
     });
 
     // A cell with a color of its own paints its own background over the
@@ -352,9 +358,7 @@ describe.each([
         expect(header.parentElement).toHaveClass(`${prefix}is-${color}`);
         for (const label of [header, cell]) {
           expect(takesRowColors(label)).toBe(false);
-          expect(resolve(label, '--bulma-radio-active-color')).toBe(
-            'var(--bulma-primary)'
-          );
+          expect(resolve(label, '--bulma-radio-active-color')).toBe(PRIMARY);
         }
         expect(takesRowColors(plain)).toBe(true);
       }
@@ -383,9 +387,7 @@ describe.each([
           container.querySelectorAll<HTMLElement>(`.${prefix}styled-radio`)
         )) {
           expect(takesRowColors(label)).toBe(false);
-          expect(resolve(label, '--bulma-radio-active-color')).toBe(
-            'var(--bulma-primary)'
-          );
+          expect(resolve(label, '--bulma-radio-active-color')).toBe(PRIMARY);
         }
       }
     );

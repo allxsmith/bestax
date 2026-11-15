@@ -308,6 +308,7 @@ function example() {
 - Use the `children` prop to provide a visible label
 - For icon-only switches, provide an `aria-label` prop
 - The switch can be focused and toggled with keyboard (Space/Enter)
+- The track holds 3:1 against the page on both schemes, off and on, and the circle holds 3:1 against it. Off, the track is the scheme's weak text color, `--bulma-text-weak`, or a `passiveType` in its on-scheme lightness; on, it's the primary color, or the `color`, in its on-scheme lightness, which Bulma darkens on a light scheme and lightens on a dark one until it reads on the page. The circle's side of the track tells on from off, so the state isn't in color alone. A thin switch draws its circle in those colors over a track at half their strength, and an outlined one draws its edge and its circle in them.
 
 ---
 
@@ -351,22 +352,22 @@ function example() {
 
 `Switch` registers these variables on its own `.switch` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
 
-| CSS Variable                         | Sass Variable                 | Default                            |
-| ------------------------------------ | ----------------------------- | ---------------------------------- |
-| `--bulma-switch-width`               | `$switch-width`               | `2.75em`                           |
-| `--bulma-switch-height`              | `$switch-height`              | `1.5em`                            |
-| `--bulma-switch-padding`             | `$switch-padding`             | `0.1875em`                         |
-| `--bulma-switch-border-width`        | `$switch-border-width`        | `1px`                              |
-| `--bulma-switch-background`          | `$switch-background`          | `var(--bulma-grey-light)`          |
-| `--bulma-switch-circle-color`        | `$switch-circle-color`        | `var(--bulma-scheme-main)`         |
-| `--bulma-switch-active-color`        | `$switch-active-color`        | `var(--bulma-primary)`             |
-| `--bulma-switch-radius`              | `$switch-radius`              | `var(--bulma-radius-rounded)`      |
-| `--bulma-switch-label-gap`           | `$switch-label-gap`           | `0.5em`                            |
-| `--bulma-switch-transition-duration` | `$switch-transition-duration` | `var(--bulma-duration)`            |
-| `--bulma-switch-circle-shadow`       | `$switch-circle-shadow`       | `0 2px 3px rgba(10, 10, 10, 0.1)`  |
-| `--bulma-switch-focus-shadow`        | `$switch-focus-shadow`        | `0 0 0 0.125em rgba(0, 0, 0, 0.1)` |
-| `--bulma-switch-thin-height`         | `$switch-thin-height`         | `0.75em`                           |
-| `--bulma-switch-thin-circle-size`    | `$switch-thin-circle-size`    | `1.25em`                           |
+| CSS Variable                         | Sass Variable                 | Default                                                                                 |
+| ------------------------------------ | ----------------------------- | --------------------------------------------------------------------------------------- |
+| `--bulma-switch-width`               | `$switch-width`               | `2.75em`                                                                                |
+| `--bulma-switch-height`              | `$switch-height`              | `1.5em`                                                                                 |
+| `--bulma-switch-padding`             | `$switch-padding`             | `0.1875em`                                                                              |
+| `--bulma-switch-border-width`        | `$switch-border-width`        | `1px`                                                                                   |
+| `--bulma-switch-background`          | `$switch-background`          | `var(--bulma-text-weak)`                                                                |
+| `--bulma-switch-circle-color`        | `$switch-circle-color`        | `var(--bulma-scheme-main)`                                                              |
+| `--bulma-switch-active-color`        | `$switch-active-color`        | `hsl(var(--bulma-primary-h), var(--bulma-primary-s), var(--bulma-primary-on-scheme-l))` |
+| `--bulma-switch-radius`              | `$switch-radius`              | `var(--bulma-radius-rounded)`                                                           |
+| `--bulma-switch-label-gap`           | `$switch-label-gap`           | `0.5em`                                                                                 |
+| `--bulma-switch-transition-duration` | `$switch-transition-duration` | `var(--bulma-duration)`                                                                 |
+| `--bulma-switch-circle-shadow`       | `$switch-circle-shadow`       | `0 2px 3px rgba(10, 10, 10, 0.1)`                                                       |
+| `--bulma-switch-focus-shadow`        | `$switch-focus-shadow`        | `0 0 0 0.125em rgba(0, 0, 0, 0.1)`                                                      |
+| `--bulma-switch-thin-height`         | `$switch-thin-height`         | `0.75em`                                                                                |
+| `--bulma-switch-thin-circle-size`    | `$switch-thin-circle-size`    | `1.25em`                                                                                |
 
 <!-- /bestax:generated cssvars -->
 

@@ -14,11 +14,27 @@ $slider-thumb-size: 1.25rem !default;
 $slider-thumb-size-small: 1rem !default;
 $slider-thumb-size-medium: 1.5rem !default;
 $slider-thumb-size-large: 1.75rem !default;
-$slider-track-color: cv.getVar("border") !default;
+// The track shows the slider's extent, and the thumb is filled with the
+// page's color, so its ring is all that shows it. Both hold 3:1 against the
+// page on both schemes (#1766), in `text-weak`, as Checkbox's unchecked
+// border does.
+$slider-track-color: cv.getVar("text-weak") !default;
 $slider-fill-color: cv.getVar("primary") !default;
 $slider-thumb-color: cv.getVar("scheme-main") !default;
-$slider-thumb-border: cv.getVar("border") !default;
+$slider-thumb-border: cv.getVar("text-weak") !default;
 $slider-thumb-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !default;
+// Keyboard focus draws a solid ring outside the thumb, past a gap in the
+// page's color (#1766). The thumb's own ring holds 3:1 at rest, so focus
+// turning it another color would show by its hue alone. The focus ring holds
+// 3:1 against the page on both schemes: the primary color, or the `color`, in
+// its on-scheme lightness, put together as the fill's is.
+$slider-focus-color: hsl(
+  #{cv.getVar("primary-h")},
+  #{cv.getVar("primary-s")},
+  #{cv.getVar("primary-on-scheme-l")}
+) !default;
+$slider-focus-width: 2px !default;
+$slider-focus-offset: 2px !default;
 $slider-radius: cv.getVar("radius") !default;
 $slider-disabled-opacity: 0.5 !default;
 $slider-transition-duration: cv.getVar("duration") !default;
@@ -37,6 +53,11 @@ $slider-tick-label-color: cv.getVar("text-light") !default;
 // Vertical
 $slider-vertical-height: 200px !default;
 
+// The focus ring: a gap in the page's color, then the ring itself.
+$-focus-ring: 0 0 0 cv.getVar("slider-focus-offset") cv.getVar("scheme-main"),
+  0 0 0 calc(#{cv.getVar("slider-focus-offset")} + #{cv.getVar("slider-focus-width")})
+    cv.getVar("slider-focus-color");
+
 // Register CSS custom properties
 .#{iv.$class-prefix}slider {
   @include cv.register-vars(
@@ -54,6 +75,9 @@ $slider-vertical-height: 200px !default;
       "slider-thumb-color": #{$slider-thumb-color},
       "slider-thumb-border": #{$slider-thumb-border},
       "slider-thumb-shadow": #{$slider-thumb-shadow},
+      "slider-focus-color": #{$slider-focus-color},
+      "slider-focus-width": #{$slider-focus-width},
+      "slider-focus-offset": #{$slider-focus-offset},
       "slider-radius": #{$slider-radius},
       "slider-disabled-opacity": #{$slider-disabled-opacity},
       "slider-transition-duration": #{$slider-transition-duration},
@@ -177,6 +201,19 @@ $slider-vertical-height: 200px !default;
 
     &::-moz-range-thumb {
       border-color: cv.getVar("slider-fill-color");
+    }
+  }
+
+  // Keyboard focus, and not a pointer: the ring outside the thumb, in place of
+  // the halo above. Each engine's thumb is its own rule, since a selector list
+  // with the other engine's pseudo-element would be dropped whole.
+  &:focus-visible {
+    &::-webkit-slider-thumb {
+      box-shadow: $-focus-ring;
+    }
+
+    &::-moz-range-thumb {
+      box-shadow: $-focus-ring;
     }
   }
 
@@ -543,12 +580,19 @@ $slider-vertical-height: 200px !default;
   }
 }
 
-// Color variants
+// Color variants, the focus ring in the color's on-scheme lightness.
 @each $name in "primary", "link", "info", "success", "warning", "danger" {
+  $on-scheme: hsl(
+    cv.getVar($name, "", "-h"),
+    cv.getVar($name, "", "-s"),
+    cv.getVar($name, "", "-on-scheme-l")
+  );
+
   .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-#{$name} {
     @include cv.register-vars(
       (
         "slider-fill-color": #{cv.getVar($name)},
+        "slider-focus-color": #{$on-scheme},
       )
     );
   }
@@ -631,12 +675,14 @@ $slider-vertical-height: 200px !default;
     // The opt-out reaches the thumb too, and forced colors would have
     // dropped its shadows, the focus ring's included. Its border shows focus.
     &::-webkit-slider-thumb,
-    &:focus::-webkit-slider-thumb {
+    &:focus::-webkit-slider-thumb,
+    &:focus-visible::-webkit-slider-thumb {
       box-shadow: none;
     }
 
     &::-moz-range-thumb,
-    &:focus::-moz-range-thumb {
+    &:focus::-moz-range-thumb,
+    &:focus-visible::-moz-range-thumb {
       box-shadow: none;
     }
 

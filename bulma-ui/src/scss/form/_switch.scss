@@ -10,10 +10,23 @@ $switch-width: 2.75em !default;
 $switch-height: 1.5em !default;
 $switch-padding: 0.1875em !default;
 $switch-border-width: 1px !default;
-$switch-background: cv.getVar("grey-light") !default;
+// The track is what shows the switch and, with the circle's place on it,
+// whether it's on, so off and on it holds 3:1 against the page on both
+// schemes (#1766), and the circle holds 3:1 against it. Off, it takes
+// `text-weak`, as Checkbox's unchecked border does. On, it takes the primary
+// color in its on-scheme lightness, which Bulma darkens on a light scheme and
+// lightens on a dark one until it reads on the page, put together here from
+// its hue, saturation and that lightness, as Bulma's own `-on-scheme` helpers
+// do, so a Theme around the switch reaches it. A `color`, and a passive
+// color for the off track, take their own on-scheme lightness the same way.
+$switch-background: cv.getVar("text-weak") !default;
 $switch-circle-color: cv.getVar("scheme-main") !default;
 $switch-circle-color-light: cv.getVar("white-ter") !default;
-$switch-active-color: cv.getVar("primary") !default;
+$switch-active-color: hsl(
+  #{cv.getVar("primary-h")},
+  #{cv.getVar("primary-s")},
+  #{cv.getVar("primary-on-scheme-l")}
+) !default;
 $switch-radius: cv.getVar("radius-rounded") !default;
 $switch-label-gap: 0.5em !default;
 $switch-transition-duration: cv.getVar("duration") !default;
@@ -241,33 +254,37 @@ $switch-thin-circle-size: 1.25em !default;
   }
 }
 
-// Color variants
+// Color variants, and passive variants (the unchecked state's color), each
+// in the color's on-scheme lightness.
 @each $name in "primary", "link", "info", "success", "warning", "danger" {
+  $on-scheme: hsl(
+    cv.getVar($name, "", "-h"),
+    cv.getVar($name, "", "-s"),
+    cv.getVar($name, "", "-on-scheme-l")
+  );
+
   .#{iv.$class-prefix}switch.#{iv.$class-prefix}is-#{$name} {
     @include cv.register-vars(
       (
-        "switch-active-color": #{cv.getVar($name)},
+        "switch-active-color": #{$on-scheme},
       )
     );
   }
-}
 
-// Passive type variants (unchecked state color)
-@each $name in "primary", "link", "info", "success", "warning", "danger" {
   .#{iv.$class-prefix}switch.#{iv.$class-prefix}is-#{$name}-passive {
     .#{iv.$class-prefix}check {
-      background-color: cv.getVar($name);
-      border-color: cv.getVar($name);
+      background-color: $on-scheme;
+      border-color: $on-scheme;
     }
 
     // Outlined passive: transparent background, colored border and circle
     &.#{iv.$class-prefix}is-outlined {
       .#{iv.$class-prefix}check {
         background-color: transparent;
-        border-color: cv.getVar($name);
+        border-color: $on-scheme;
 
         &::before {
-          background-color: cv.getVar($name);
+          background-color: $on-scheme;
         }
       }
     }

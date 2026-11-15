@@ -8,10 +8,10 @@
 
 // The cells of a table that sit on Bulma's selected-row fill (`Tr
 // isSelected`, or a cell with `is-selected`), for a control drawn in the
-// primary color, which the fill is too. Name the step from the cell down to
-// the control in the content with a child combinator (`> .styled-checkbox`):
-// one inside a menu, a card or a table nested in the cell sits on that
-// surface's own background instead.
+// primary color's hue, which the fill is in too. Name the step from the cell
+// down to the control in the content with a child combinator
+// (`> .styled-checkbox`): one inside a menu, a card or a table nested in the
+// cell sits on that surface's own background instead.
 //
 // A cell with a color of its own (`Td color="white"`) paints its own
 // background over the row's, and so does every cell of a row with a color

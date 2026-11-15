@@ -136,9 +136,44 @@ describe.each([
   it('takes the thumb’s shadows off, which the opt-out would otherwise keep', () => {
     for (const pseudo of ['::-webkit-slider-thumb', '::-moz-range-thumb']) {
       expect(
-        value(`${input}${pseudo}, ${input}:focus${pseudo}`, 'box-shadow')
+        value(
+          `${input}${pseudo}, ${input}:focus${pseudo}, ${input}:focus-visible${pseudo}`,
+          'box-shadow'
+        )
       ).toEqual(['none']);
     }
+  });
+
+  // The thumb's ring holds 3:1 at rest (#1766), so focus turning it the fill's
+  // color would show by hue alone, and in Firefox that was all focus did. On
+  // keyboard focus each engine's thumb draws a solid ring outside its edge,
+  // past a gap in the page's color, in a rule of its own, since a list with
+  // the other engine's pseudo-element would be dropped whole.
+  it('rings the thumb on keyboard focus alone, in each engine', () => {
+    const ring =
+      '0 0 0 var(--bulma-slider-focus-offset) var(--bulma-scheme-main), 0 0 0 calc(var(--bulma-slider-focus-offset) + var(--bulma-slider-focus-width)) var(--bulma-slider-focus-color)';
+    const base = (selector: string, name: string) =>
+      rules
+        .filter(
+          ({ rule, within }) =>
+            !within && oneLine(rule.selectorText) === selector
+        )
+        .map(({ rule }) => rule.style.getPropertyValue(name).trim())
+        .filter(Boolean);
+    for (const pseudo of ['::-webkit-slider-thumb', '::-moz-range-thumb']) {
+      expect(base(`${input}:focus-visible${pseudo}`, 'box-shadow')).toEqual([
+        ring,
+      ]);
+    }
+    // The focus rule comes after the plain focus rule's halo, which it
+    // replaces, at the same specificity.
+    const at = (selector: string) =>
+      rules.findIndex(
+        ({ rule, within }) => !within && oneLine(rule.selectorText) === selector
+      );
+    expect(at(`${input}:focus::-webkit-slider-thumb`)).toBeLessThan(
+      at(`${input}:focus-visible::-webkit-slider-thumb`)
+    );
   });
 
   it('keeps a hovered thumb’s border at rest, so only focus turns it Highlight', () => {

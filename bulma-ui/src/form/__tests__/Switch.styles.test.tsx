@@ -191,9 +191,13 @@ describe.each([
     expect(
       resolve(trackOf({ isOutlined: true, checked: true }), 'border-color')
     ).toBe('var(--bulma-switch-active-color)');
+    // A passive color is drawn in its on-scheme lightness, as an on track is
+    // (#1766).
     expect(
       resolve(trackOf({ passiveType: 'danger' }), 'background-color')
-    ).toBe('var(--bulma-danger)');
+    ).toBe(
+      'hsl(var(--bulma-danger-h), var(--bulma-danger-s), var(--bulma-danger-on-scheme-l))'
+    );
   });
 
   it('sets the label a gap from the track, on the other side with isRtl', () => {
@@ -277,7 +281,9 @@ describe.each([
           trackOf({ isOutlined: true, passiveType: 'danger' }),
           'background-color'
         )
-      ).toBe('var(--bulma-danger)');
+      ).toBe(
+        'hsl(var(--bulma-danger-h), var(--bulma-danger-s), var(--bulma-danger-on-scheme-l))'
+      );
       expect(knob(trackOf({ isRounded: true }), 'border-radius')).toBe('50%');
     });
   });
