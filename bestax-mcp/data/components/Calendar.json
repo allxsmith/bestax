@@ -125,7 +125,7 @@
           "name": "defaultMonth",
           "type": "Date",
           "default": null,
-          "description": "The month on show to begin with, when the Calendar holds its own state. Unset, it's the month of `value` (a range's start), or else today's, moved inside `min` and `max`. On a server render today is the server's, so give this, `month` or a picked `value` there.",
+          "description": "The month on show to begin with, when the Calendar holds its own state. Unset, it's the month of `value` (a range's start), or else today's, moved inside `min` and `max`, and with `monthsToShow` the first month of a page they hold whole. On a server render today is the server's, so give this, `month` or a picked `value` there.",
           "required": false,
           "inherited": true,
           "deprecated": false
