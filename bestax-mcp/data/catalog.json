@@ -1558,8 +1558,8 @@
       "slug": "components/tour",
       "import": "import { Tour, useTour } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 85,
-      "exampleCount": 10
+      "propCount": 86,
+      "exampleCount": 11
     },
     {
       "name": "TreeSelect",
@@ -3286,6 +3286,12 @@
     "--bulma-tooltip-padding": ["Tooltip"],
     "--bulma-tooltip-radius": ["Tooltip"],
     "--bulma-tooltip-z-index": ["Tooltip"],
+    "--bulma-tour-beacon-animation-duration": ["Tour"],
+    "--bulma-tour-beacon-color": ["Tour"],
+    "--bulma-tour-beacon-ring-color": ["Tour"],
+    "--bulma-tour-beacon-ring-width": ["Tour"],
+    "--bulma-tour-beacon-size": ["Tour"],
+    "--bulma-tour-beacon-z-index": ["Tour"],
     "--bulma-tour-overlay-background": ["Tour"],
     "--bulma-tour-progress-color": ["Tour"],
     "--bulma-tour-spotlight-padding": ["Tour"],

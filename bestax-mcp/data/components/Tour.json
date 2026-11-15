@@ -42,11 +42,15 @@
       "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  function StepCount() {\n    const tour = useTour();\n    return tour ? <Tag>{`${tour.value + 1}/${tour.total}`}</Tag> : null;\n  }\n\n  return (\n    <>\n      <Button onClick={() => setOpen(true)}>Take the tour</Button>\n      <Tour\n        open={open}\n        onOpenChange={setOpen}\n        footer={\n          <>\n            <StepCount />\n            <Buttons>\n              <Tour.Skip />\n              <Tour.Next />\n            </Buttons>\n          </>\n        }\n      >\n        <Tour.Step title=\"One\">The first step.</Tour.Step>\n        <Tour.Step title=\"Two\">The second step.</Tour.Step>\n      </Tour>\n    </>\n  );\n}"
     },
     {
+      "title": "Beacons",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const [read, setRead] = useState<string[]>([]);\n  const [showing, setShowing] = useState<string[]>([]);\n  const filtersRef = React.useRef<HTMLButtonElement>(null);\n  const exportRef = React.useRef<HTMLButtonElement>(null);\n  const tips = [\n    {\n      id: 'filters',\n      target: filtersRef,\n      title: 'Filters',\n      body: 'Narrow the list by status and owner.',\n    },\n    {\n      id: 'export',\n      target: exportRef,\n      title: 'Export',\n      body: 'Download the rows you see as a CSV file.',\n    },\n  ];\n  const shown = tips.filter(tip => showing.includes(tip.id));\n\n  return (\n    <>\n      <Buttons>\n        <Button ref={filtersRef}>Filters</Button>\n        <Button ref={exportRef}>Export</Button>\n      </Buttons>\n      <Button\n        color=\"primary\"\n        onClick={() => {\n          if (!open) {\n            setShowing(\n              tips.filter(tip => !read.includes(tip.id)).map(tip => tip.id)\n            );\n          }\n          setOpen(!open);\n        }}\n      >\n        {open ? 'Hide tips' : 'Show tips'}\n      </Button>\n      <Tour\n        mode=\"beacon\"\n        open={open}\n        onChange={index => {\n          if (index >= 0) setRead(ids => [...ids, shown[index].id]);\n        }}\n      >\n        {shown.map(tip => (\n          <Tour.Step key={tip.id} target={tip.target} title={tip.title}>\n            {tip.body}\n          </Tour.Step>\n        ))}\n      </Tour>\n    </>\n  );\n}"
+    },
+    {
       "title": "Compound (dot-notation) usage",
       "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const searchRef = React.useRef<HTMLInputElement>(null);\n  const tips = [\n    { id: 'search', title: 'Search', body: 'Find any row by name.' },\n    { id: 'done', title: 'That’s it', body: 'Open this tour again any time.' },\n  ];\n\n  return (\n    <>\n      <Input ref={searchRef} label=\"Search\" />\n      <Button mt=\"3\" onClick={() => setOpen(true)}>\n        Show me\n      </Button>\n      <Tour open={open} onOpenChange={setOpen}>\n        {tips.map(tip => (\n          <Tour.Step\n            key={tip.id}\n            target={tip.id === 'search' ? searchRef : undefined}\n            title={tip.title}\n          >\n            {tip.body}\n          </Tour.Step>\n        ))}\n      </Tour>\n    </>\n  );\n}"
     }
   ],
-  "accessibility": "There's no WAI-ARIA pattern for a tour, so each step is a\n[dialog](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/), modal with the overlay and\nnon-modal without it:\n\n- A step is a `role=\"dialog\"`, named by its title through `aria-labelledby`, or by an `aria-label`\n  on the `Tour.Step`, and described by its body. A development build warns about a step with\n  neither a title nor a label.\n- With the overlay, the step has `aria-modal=\"true\"`, and the page under it is out of reach for\n  everyone: everything else on the page is `inert`, the page doesn't scroll, the overlay takes\n  every click, and Tab and Shift+Tab stay in the step. The target is out of reach too, so say in\n  the step's body what it is: the spotlight tells a screen reader nothing.\n- Without the overlay, nothing claims modality. The page and the target stay usable, by pointer\n  and keyboard alike: Tab from the step's last control moves focus to the target, to its first\n  control or the target itself when it takes focus, and Shift+Tab goes where the browser sends it. Escape ends the tour\n  while focus is in the step, so an Escape meant for a field on the page stays with it.\n- Opening moves focus to Next, or, on a step without one that takes focus, to the footer's first\n  control, else the body's, else the close button. Ending the tour hands focus back to whatever had it when the tour\n  opened. On a step change, focus stays on the control used, so Enter on Next keeps going, and\n  goes back to where the step starts when that control is gone, as Back is on the first step.\n- After each step change, a polite `role=\"status\"` line inside the step says where the tour is,\n  \"Step 2 of 5: Filters\", since a dialog whose name changes isn't announced again.\n- <kbd>ArrowRight</kbd> and <kbd>ArrowLeft</kbd> press the step's Next and Back while focus is in\n  the step, swapped under right-to-left text, but not from a text field, another control that\n  uses the arrows, or a dialog inside the step. A step whose Next or Back is missing, hidden or\n  disabled ignores that key, and nothing happens past either end: ArrowRight doesn't finish the\n  tour. The key presses the button as a click does, so a Next or Back given `type=\"submit\"`\n  submits its form.\n- Skip and the close button always end the tour, so a modal step is never a keyboard trap, and\n  <kbd>Escape</kbd> does too unless `closeOnEscape={false}`. A Modal or Dialog opened from a step\n  takes Escape and Tab until it closes.\n- The scroll to a target is the only motion: the spotlight and the step move with the target\n  rather than glide after it, and under `prefers-reduced-motion: reduce` the scroll is instant.\n- In forced colors, the overlay keeps dimming the page, since it's an SVG fill, the spotlight gets\n  a `Highlight` outline, and the step keeps its border.\n\nA tour sits at the modal layer, under toasts. In a modal step, a popup that renders through a portal\nof its own, such as a Popover with `appendToBody` or a picker's calendar, renders inside the step,\nas it does in a Modal, so it shows over the tour and stays reachable. A `ConfigProvider`'s\n`portalContainer` still comes first, there as in a Modal. A step without the overlay\nleaves it in `<body>`, under the tour, so keep such content in place inside a non-modal step.",
+  "accessibility": "There's no WAI-ARIA pattern for a tour, so each step is a\n[dialog](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/), modal with the overlay and\nnon-modal without it:\n\n- A step is a `role=\"dialog\"`, named by its title through `aria-labelledby`, or by an `aria-label`\n  on the `Tour.Step`, and described by its body. A development build warns about a step with\n  neither a title nor a label.\n- With the overlay, the step has `aria-modal=\"true\"`, and the page under it is out of reach for\n  everyone: everything else on the page is `inert`, the page doesn't scroll, the overlay takes\n  every click, and Tab and Shift+Tab stay in the step. The target is out of reach too, so say in\n  the step's body what it is: the spotlight tells a screen reader nothing.\n- Without the overlay, nothing claims modality. The page and the target stay usable, by pointer\n  and keyboard alike: Tab from the step's last control moves focus to the target, to its first\n  control or the target itself when it takes focus, and Shift+Tab goes where the browser sends it. Escape ends the tour\n  while focus is in the step, so an Escape meant for a field on the page stays with it.\n- Opening moves focus to Next, or, on a step without one that takes focus, to the footer's first\n  control, else the body's, else the close button. Ending the tour hands focus back to whatever had it when the tour\n  opened. On a step change, focus stays on the control used, so Enter on Next keeps going, and\n  goes back to where the step starts when that control is gone, as Back is on the first step.\n- After each step change, a polite `role=\"status\"` line inside the step says where the tour is,\n  \"Step 2 of 5: Filters\", since a dialog whose name changes isn't announced again.\n- <kbd>ArrowRight</kbd> and <kbd>ArrowLeft</kbd> press the step's Next and Back while focus is in\n  the step, swapped under right-to-left text, but not from a text field, another control that\n  uses the arrows, or a dialog inside the step. A step whose Next or Back is missing, hidden or\n  disabled ignores that key, and nothing happens past either end: ArrowRight doesn't finish the\n  tour. The key presses the button as a click does, so a Next or Back given `type=\"submit\"`\n  submits its form.\n- Skip and the close button always end the tour, so a modal step is never a keyboard trap, and\n  <kbd>Escape</kbd> does too unless `closeOnEscape={false}`. A Modal or Dialog opened from a step\n  takes Escape and Tab until it closes.\n- The scroll to a target is the only motion: the spotlight and the step move with the target\n  rather than glide after it, and under `prefers-reduced-motion: reduce` the scroll is instant.\n- With `mode=\"beacon\"`, the beacons are real `<button>`s with `aria-haspopup=\"dialog\"` and\n  `aria-expanded=\"false\"`, in one `role=\"group\"` named \"Tips\", in step order after the page's\n  content. Each is named \"Show tip\" and its step's title, has a hit area of at least 24 by 24\n  pixels, and stops pulsing under `prefers-reduced-motion: reduce`. Showing them moves no focus,\n  and closing a beacon's step hands focus back to its beacon.\n- In forced colors, the overlay keeps dimming the page, since it's an SVG fill, the spotlight gets\n  a `Highlight` outline, and the step keeps its border.\n\nA tour sits at the modal layer, under toasts. In a modal step, a popup that renders through a portal\nof its own, such as a Popover with `appendToBody` or a picker's calendar, renders inside the step,\nas it does in a Modal, so it shows over the tour and stays reachable. A `ConfigProvider`'s\n`portalContainer` still comes first, there as in a Modal. A step without the overlay\nleaves it in `<body>`, under the tour, so keep such content in place inside a non-modal step.",
   "related": [
     "LocaleProvider",
     "Modal",
@@ -97,7 +101,7 @@
           "name": "onOpenChange",
           "type": "(open: boolean) => void",
           "default": null,
-          "description": "Called with `false` when the tour ends: Skip, the close button, Escape, a click outside with `closeOnClickOutside`, or Done after `onFinish`.",
+          "description": "Called with `false` when the tour ends: Skip, the close button, Escape, a click outside with `closeOnClickOutside`, or Done after `onFinish`. With `mode=\"beacon\"` it never fires: those close only the open step, and the app owns `open`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -106,7 +110,7 @@
           "name": "value",
           "type": "number",
           "default": null,
-          "description": "The current step's index (controlled). An index past either end shows the nearest step, and a fraction is rounded down.",
+          "description": "The current step's index (controlled). In guided mode an index past either end shows the nearest step, and a fraction is rounded down. With `mode=\"beacon\"`, the open step's index, or `-1` while only the beacons show, as Timeline's `active` takes `-1` for none.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -114,7 +118,7 @@
         {
           "name": "defaultValue",
           "type": "number",
-          "default": "0",
+          "default": "0, or -1 with mode=\"beacon\"",
           "description": "The step it starts on (uncontrolled), and goes back to each time it opens.",
           "required": false,
           "inherited": false,
@@ -124,7 +128,7 @@
           "name": "onChange",
           "type": "(value: number) => void",
           "default": null,
-          "description": "Called with the new index when Back, Next or an arrow key changes the step.",
+          "description": "Called with the new index when Back, Next, an arrow key or a beacon changes the step, and with `-1` when a beacon's step closes, which it does when the step is removed, or moved by a step added or removed before it. So keep a beacon tour's list of steps fixed while the tips show, and drop read ones the next time they open.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -133,7 +137,7 @@
           "name": "onFinish",
           "type": "() => void",
           "default": null,
-          "description": "Called when Done on the last step finishes the tour, before `onOpenChange(false)`. Skip, the close button, Escape and a click outside don't call it.",
+          "description": "Called when Done on the last step finishes the tour, before `onOpenChange(false)`. Skip, the close button, Escape and a click outside don't call it, and with `mode=\"beacon\"`, where Done closes only the step, it never fires.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -151,7 +155,7 @@
           "name": "closeOnEscape",
           "type": "boolean",
           "default": "true",
-          "description": "Ends the tour on Escape. With the overlay, from anywhere, while no overlay opened over it, such as a Modal opened from a step, is on top. Without it, only while focus is in the step, so an Escape meant for the page stays with the page. A popup inside the step, and content that calls `preventDefault()` on the key, take it first.",
+          "description": "Ends the tour on Escape, or with `mode=\"beacon\"` closes the open step. With the overlay, from anywhere, while no overlay opened over it, such as a Modal opened from a step, is on top. Without it, only while focus is in the step, so an Escape meant for the page stays with the page. A popup inside the step, and content that calls `preventDefault()` on the key, take it first.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -160,7 +164,7 @@
           "name": "closeOnClickOutside",
           "type": "boolean",
           "default": "false",
-          "description": "Ends the tour on a press outside the step, the overlay included. Content the step renders through a portal counts as inside. Off by default, unlike Popover's: a tour is a sequence someone means to finish, and a stray click on the dimmed page, or on the page around a step without the overlay, shouldn't end it partway. Skip, the close button and Escape still end it.",
+          "description": "Ends the tour on a press outside the step, the overlay included. Content the step renders through a portal counts as inside. Off by default, unlike Popover's: a tour is a sequence someone means to finish, and a stray click on the dimmed page, or on the page around a step without the overlay, shouldn't end it partway. Skip, the close button and Escape still end it. With `mode=\"beacon\"`, a press outside closes the open step, as Escape does, and never ends the tour, and it's off there by default too, so with the default it does nothing.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -197,6 +201,15 @@
           "type": "React.ReactNode",
           "default": null,
           "description": "Every step's footer, in place of the default: Skip and the progress line at the start, Back and Next at the end. Build it from `Tour.Skip`, `Tour.Back`, `Tour.Next` and `Tour.Progress`, which act on the tour from wherever they sit in the step. ArrowRight and ArrowLeft press the step's `Tour.Next` and `Tour.Back`, swapped under right-to-left text, so one that's disabled, loading or `aria-disabled`, or whose `onClick` prevents, holds for the keys too, and a step without one ignores its key. A step's own `footer` wins, and `null` leaves the steps without one.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "mode",
+          "type": "'guided' | 'beacon'",
+          "default": "'guided'",
+          "description": "`guided` walks the steps in order. `beacon` puts a button on each target that opens its step, in any order, and keeps the buttons there until `open` turns `false`. The beacons sit in one group named by `labels.beacons`, in step order, after the page's own content in the Tab order, so order the steps as the page reads; a development build warns once when they aren't. A beacon sits over its target's top end corner and shows while its target is on the page, has a box and is in view. Opening one hides them all and opens its step, modal or not by `overlay`, and closing the step brings them back, with focus on its beacon while the step held it. A beacon's step has no Skip, Back or progress line, its Next reads Done and closes the step, and the arrow keys do nothing in it. Closing the tour while its step holds focus sends focus to the step's target. Removing a step removes its beacon, so an app can drop the tips a user has read; a tip whose step is removed or moved while it's open closes, with `onChange(-1)`. While only the beacons show, the tour sits under the app's navbar, sidebars, modals and dropdown menus; raise `--bulma-tour-beacon-z-index` for targets inside one.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -317,7 +330,7 @@
     },
     {
       "path": "Tour.Skip",
-      "summary": "A `Button` that ends the tour early, labelled `labels.skip` unless it has children.",
+      "summary": "A `Button` that ends the tour early, labelled `labels.skip` unless it has children. It renders nothing on a beacon's step.",
       "component": null,
       "props": [
         {
@@ -520,7 +533,7 @@
     },
     {
       "path": "Tour.Back",
-      "summary": "A `Button` to the step before, labelled `labels.back` unless it has children. It renders nothing on the first step, and ArrowLeft in the step, ArrowRight under right-to-left text, presses it.",
+      "summary": "A `Button` to the step before, labelled `labels.back` unless it has children. It renders nothing on the first step or on a beacon's step, and ArrowLeft in the step, ArrowRight under right-to-left text, presses it.",
       "component": null,
       "props": [
         {
@@ -723,7 +736,7 @@
     },
     {
       "path": "Tour.Next",
-      "summary": "A `Button` to the next step, labelled `labels.next`, or `labels.done` on the last step, where it finishes the tour, unless it has children. Focus starts on it as a step opens, and ArrowRight in the step, ArrowLeft under right-to-left text, presses it, except on the last step.",
+      "summary": "A `Button` to the next step, labelled `labels.next`, or `labels.done` on the last step, where it finishes the tour, unless it has children. On a beacon's step it reads `labels.done` and closes the step. Focus starts on it as a step opens, and ArrowRight in the step, ArrowLeft under right-to-left text, presses it, except on the last step and on a beacon's step.",
       "component": null,
       "props": [
         {
@@ -926,7 +939,7 @@
     },
     {
       "path": "Tour.Progress",
-      "summary": "The progress line, \"Step 2 of 5\" by default, from `labels.progress`.",
+      "summary": "The progress line, \"Step 2 of 5\" by default, from `labels.progress`. It renders nothing on a beacon's step.",
       "component": null,
       "props": [
         {
@@ -1072,6 +1085,42 @@
       "css": "--bulma-tour-progress-color",
       "sass": "$tour-progress-color",
       "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-beacon-size",
+      "sass": "$tour-beacon-size",
+      "default": "1.5rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-beacon-color",
+      "sass": "$tour-beacon-color",
+      "default": "var(--bulma-primary)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-beacon-ring-color",
+      "sass": "$tour-beacon-ring-color",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-beacon-ring-width",
+      "sass": "$tour-beacon-ring-width",
+      "default": "2px",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-beacon-animation-duration",
+      "sass": "$tour-beacon-animation-duration",
+      "default": "1.4s",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-beacon-z-index",
+      "sass": "$tour-beacon-z-index",
+      "default": "$extras-z-index-dropdown - 1",
       "scope": "root"
     }
   ]
