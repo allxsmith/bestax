@@ -270,12 +270,7 @@ function example() {
       <Tour open={open} onOpenChange={setOpen}>
         <Tour.Step
           title="The new editor"
-          cover={
-            <img
-              src="https://bulma.io/assets/images/placeholders/400x300.png"
-              alt=""
-            />
-          }
+          cover={<img src="/img/carousel/carousel-banner-1-4by3.jpg" alt="" />}
         >
           The editor now saves as you type.
         </Tour.Step>
