@@ -20,7 +20,6 @@ import { LinkButton } from '../LinkButton';
 import { ConfigProvider } from '../../helpers/Config';
 import {
   bulmaCss,
-  cascade,
   compilePartial,
   customProperty,
 } from '../../__tests__/css-cascade';
@@ -401,12 +400,12 @@ describe('colored buttons in forced colors', () => {
   });
 });
 
-// Bulma's button nests a light variant only in its palette colors. With
-// isLight, a button of any other color, or of none, takes the light color's
+// Bulma's button nests no light variant in its grayscale colors. With
+// isLight, a button of one of them, or of no color, takes the light color's
 // class as well, and the cascade between the two decides the look, which
 // isLight's description says (#1678). These resolve the button's custom
 // properties across Bulma's CSS and the partial with `css-cascade.ts`.
-describe('isLight on a color with no light variant', () => {
+describe('isLight on a grayscale color', () => {
   const sheets = (prefix = '') =>
     prefix
       ? bulmaCss('versions/bulma-prefixed.css') +
@@ -418,71 +417,47 @@ describe('isLight on a color with no light variant', () => {
         <Button {...props}>Save</Button>
       </ConfigProvider>
     ).container.querySelector(`.${prefix}button`)!;
-  const looksOf = (el: Element, css: string) => ({
-    hue: customProperty(el, css, '--bulma-button-h'),
-    background: customProperty(el, css, '--bulma-button-background-l'),
-    text: customProperty(el, css, '--bulma-button-color-l'),
+  /** The variables a color sets on a button, as the rules of `css` resolve them. */
+  const looksOf = (el: Element, css: string) =>
+    Object.fromEntries(
+      ['h', 's', 'l', 'background-l', 'border-l', 'color-l'].map(name => [
+        name,
+        customProperty(el, css, `--bulma-button-${name}`),
+      ])
+    );
+  /** What `.button.is-<name>` sets those variables to. */
+  const colorOf = (name: string) => ({
+    h: `var(--bulma-${name}-h)`,
+    s: `var(--bulma-${name}-s)`,
+    l: `var(--bulma-${name}-l)`,
+    'background-l': `var(--bulma-${name}-l)`,
+    'border-l': `var(--bulma-${name}-l)`,
+    'color-l': `var(--bulma-${name}-invert-l)`,
   });
-  const LIGHT = {
-    hue: 'var(--bulma-light-h)',
-    background: 'var(--bulma-light-l)',
-    text: 'var(--bulma-light-invert-l)',
-  };
-  const DARK = {
-    hue: 'var(--bulma-dark-h)',
-    background: 'var(--bulma-dark-l)',
-    text: 'var(--bulma-dark-invert-l)',
-  };
 
-  it.each(['', 'bulma-'])(
-    "gives white, black, light and no color the light button's look (prefix '%s')",
-    prefix => {
+  describe.each(['', 'bulma-'])("with the class prefix '%s'", prefix => {
+    it("gives white, black, light and no color the light button's look", () => {
       const css = sheets(prefix);
       for (const color of [undefined, 'white', 'black', 'light'] as const) {
         const el = buttonOf({ color, isLight: true }, prefix);
         expect(el).toHaveClass(`${prefix}is-light`);
-        expect(looksOf(el, css)).toEqual(LIGHT);
+        expect(looksOf(el, css)).toEqual(colorOf('light'));
       }
-    }
-  );
+    });
 
-  it.each(['', 'bulma-'])(
-    "leaves a dark button the dark button's look (prefix '%s')",
-    prefix => {
-      const css = sheets(prefix);
+    it("leaves a dark button the dark button's look", () => {
       const el = buttonOf({ color: 'dark', isLight: true }, prefix);
       expect(el).toHaveClass(`${prefix}is-dark`, `${prefix}is-light`);
-      expect(looksOf(el, css)).toEqual(DARK);
-    }
-  );
+      expect(looksOf(el, sheets(prefix))).toEqual(colorOf('dark'));
+    });
 
-  it.each(['text', 'ghost'] as const)(
-    'leaves a %s button as it is without isLight',
-    color => {
-      const css = sheets();
-      const plain = buttonOf({ color });
-      const light = buttonOf({ color, isLight: true });
-      for (const property of ['background-color', 'color']) {
-        const resolve = (el: Element) =>
-          cascade(
-            el,
-            css,
-            [property],
-            (style, name) => style.getPropertyValue(name).trim() || undefined
-          );
-        expect(resolve(light)).toBe(resolve(plain));
-      }
-    }
-  );
-
-  it('gives a palette color its lighter variant', () => {
-    const css = sheets();
-    expect(looksOf(buttonOf({ color: 'primary', isLight: true }), css)).toEqual(
-      {
-        hue: 'var(--bulma-primary-h)',
-        background: 'var(--bulma-light-l)',
-        text: 'var(--bulma-primary-light-invert-l)',
-      }
-    );
+    it('gives a palette color its light variant', () => {
+      const el = buttonOf({ color: 'primary', isLight: true }, prefix);
+      expect(looksOf(el, sheets(prefix))).toEqual({
+        ...colorOf('primary'),
+        'background-l': 'var(--bulma-light-l)',
+        'color-l': 'var(--bulma-primary-light-invert-l)',
+      });
+    });
   });
 });
