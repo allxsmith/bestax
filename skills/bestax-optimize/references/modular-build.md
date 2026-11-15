@@ -116,8 +116,8 @@ Notes:
 
 - The `visibility` helpers partial **extends** stock Bulma's visibility helpers: it draws
   `is-sr-only` at each breakpoint, which Bulma draws at every width only and the viewport
-  visibility props write for `'sr-only'` (`visibilityTablet="sr-only"`). An app using those
-  needs both:
+  visibility props write for `'sr-only'` (`visibilityTablet="sr-only"`). An app using those adds
+  it, in either order with Bulma's own visibility helpers when it uses them too:
 
   ```scss
   @use 'bulma/sass/helpers/visibility';
@@ -302,18 +302,20 @@ not `flexbox` — `flexbox` holds only the alignment props. Verified failure mod
 `visibility` and every `display="flex"` silently renders `block`.
 
 ```scss
-@use 'bulma/sass/helpers/spacing'; // m*/p* props
-@use 'bulma/sass/helpers/gap'; // gap/columnGap/rowGap/gapless props, Grid's gap props included
+// In Bulma's own order: its helpers are all !important with one class, so the
+// later one wins, and is-sr-only comes after spacing, overflow and position.
+@use 'bulma/sass/helpers/aspect-ratio'; // aspectRatio prop
+@use 'bulma/sass/helpers/border'; // radius sizes (small/normal/large/rounded)
 @use 'bulma/sass/helpers/color'; // color/backgroundColor props, has-text-*/has-background-*
+@use 'bulma/sass/helpers/flexbox'; // flex* alignment props (justifyContent/alignItems/flexGrow…) — NOT display="flex"
+@use 'bulma/sass/helpers/float'; // float/clearfix props
+@use 'bulma/sass/helpers/gap'; // gap/columnGap/rowGap/gapless props, Grid's gap props included
+@use 'bulma/sass/helpers/overflow'; // overflow/overflowX/overflowY props
+@use 'bulma/sass/helpers/position'; // pos/relative/overlay props
+@use 'bulma/sass/helpers/spacing'; // m*/p* props
 @use 'bulma/sass/helpers/typography'; // textSize/textAlign/textTransform/textWeight/fontFamily
 @use 'bulma/sass/helpers/visibility'; // display/visibility props incl. display="flex" (is-flex/is-block/is-hidden*)
 @use '@allxsmith/bestax-bulma/scss/helpers/visibility' as bestax-visibility; // visibility*="sr-only" at a breakpoint (is-sr-only-tablet…)
-@use 'bulma/sass/helpers/flexbox'; // flex* alignment props (justifyContent/alignItems/flexGrow…) — NOT display="flex"
-@use 'bulma/sass/helpers/float'; // float/clearfix props
-@use 'bulma/sass/helpers/overflow'; // overflow/overflowX/overflowY props
-@use 'bulma/sass/helpers/position'; // pos/relative/overlay props
-@use 'bulma/sass/helpers/border'; // radius sizes (small/normal/large/rounded)
-@use 'bulma/sass/helpers/aspect-ratio'; // aspectRatio prop
 @use 'bulma/sass/helpers/other'; // interaction, radius="radiusless", shadow="shadowless"
 ```
 
