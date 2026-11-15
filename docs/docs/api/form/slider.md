@@ -373,6 +373,7 @@ function SliderRangeFormDemo() {
 - An `aria-label` or `aria-labelledby` you pass straight to a range Slider names the whole Slider, so it takes the label's place at the start of both thumbs' names: `<Slider range aria-label="Budget" />` announces "Budget Minimum value" and "Budget Maximum value". An `ariaLabel` entry still wins for its own thumb. To keep a label out of the thumbs' names altogether, pass `aria-labelledby={undefined}`, and they stay "Minimum value" and "Maximum value".
 - A `Field` label you wire by hand with `labelProps={{ htmlFor }}`, as in a horizontal form, gets no generated id, so give it one of your own there as well, as in `labelProps={{ htmlFor: 'price', id: 'price-label' }}`, and it starts both thumbs' names the same way. Without that `id` it reaches a range Slider only through its `for`, which the thumbs' default `aria-label` outranks, so they stay "Minimum value" and "Maximum value".
 - In forced colors (Windows' contrast themes) the track and its fill would disappear, since they're painted as a gradient. bestax's styles paint the fill in the system's highlight color and the rest of the track in its text color there, both in the color for disabled text while the slider is disabled, so the track shows how far it's filled.
+- The fill holds 3:1 against the page on both schemes: the primary color, or the `color`, in its on-scheme lightness. The value bubble is filled with it, and its text, in the page's color, reads on it
 - Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes
 - Fully keyboard accessible with arrow keys
 - Focus states clearly visible
@@ -449,34 +450,34 @@ Use the `formatOutput` prop to display values with units like percentages, curre
 
 `Slider` registers these variables on its own `.slider` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
 
-| CSS Variable                          | Sass Variable                  | Default                          |
-| ------------------------------------- | ------------------------------ | -------------------------------- |
-| `--bulma-slider-track-height`         | `$slider-track-height`         | `0.5rem`                         |
-| `--bulma-slider-track-height-small`   | `$slider-track-height-small`   | `0.375rem`                       |
-| `--bulma-slider-track-height-medium`  | `$slider-track-height-medium`  | `0.625rem`                       |
-| `--bulma-slider-track-height-large`   | `$slider-track-height-large`   | `0.75rem`                        |
-| `--bulma-slider-thumb-size`           | `$slider-thumb-size`           | `1.25rem`                        |
-| `--bulma-slider-thumb-size-small`     | `$slider-thumb-size-small`     | `1rem`                           |
-| `--bulma-slider-thumb-size-medium`    | `$slider-thumb-size-medium`    | `1.5rem`                         |
-| `--bulma-slider-thumb-size-large`     | `$slider-thumb-size-large`     | `1.75rem`                        |
-| `--bulma-slider-track-color`          | `$slider-track-color`          | `var(--bulma-border)`            |
-| `--bulma-slider-fill-color`           | `$slider-fill-color`           | `var(--bulma-primary)`           |
-| `--bulma-slider-thumb-color`          | `$slider-thumb-color`          | `var(--bulma-scheme-main)`       |
-| `--bulma-slider-thumb-border`         | `$slider-thumb-border`         | `var(--bulma-border)`            |
-| `--bulma-slider-thumb-shadow`         | `$slider-thumb-shadow`         | `0 2px 4px rgba(0, 0, 0, 0.1)`   |
-| `--bulma-slider-radius`               | `$slider-radius`               | `var(--bulma-radius)`            |
-| `--bulma-slider-disabled-opacity`     | `$slider-disabled-opacity`     | `0.5`                            |
-| `--bulma-slider-transition-duration`  | `$slider-transition-duration`  | `var(--bulma-duration)`          |
-| `--bulma-slider-output-background`    | `$slider-output-background`    | `var(--bulma-slider-fill-color)` |
-| `--bulma-slider-output-color`         | `$slider-output-color`         | `var(--bulma-scheme-main)`       |
-| `--bulma-slider-output-font-size`     | `$slider-output-font-size`     | `var(--bulma-size-small)`        |
-| `--bulma-slider-output-font-weight`   | `$slider-output-font-weight`   | `var(--bulma-weight-medium)`     |
-| `--bulma-slider-tick-width`           | `$slider-tick-width`           | `2px`                            |
-| `--bulma-slider-tick-height`          | `$slider-tick-height`          | `1rem`                           |
-| `--bulma-slider-tick-color`           | `$slider-tick-color`           | `var(--bulma-grey-light)`        |
-| `--bulma-slider-tick-opacity`         | `$slider-tick-opacity`         | `0.5`                            |
-| `--bulma-slider-tick-label-font-size` | `$slider-tick-label-font-size` | `0.75rem`                        |
-| `--bulma-slider-tick-label-color`     | `$slider-tick-label-color`     | `var(--bulma-text-light)`        |
-| `--bulma-slider-vertical-height`      | `$slider-vertical-height`      | `200px`                          |
+| CSS Variable                          | Sass Variable                  | Default                                                                                 |
+| ------------------------------------- | ------------------------------ | --------------------------------------------------------------------------------------- |
+| `--bulma-slider-track-height`         | `$slider-track-height`         | `0.5rem`                                                                                |
+| `--bulma-slider-track-height-small`   | `$slider-track-height-small`   | `0.375rem`                                                                              |
+| `--bulma-slider-track-height-medium`  | `$slider-track-height-medium`  | `0.625rem`                                                                              |
+| `--bulma-slider-track-height-large`   | `$slider-track-height-large`   | `0.75rem`                                                                               |
+| `--bulma-slider-thumb-size`           | `$slider-thumb-size`           | `1.25rem`                                                                               |
+| `--bulma-slider-thumb-size-small`     | `$slider-thumb-size-small`     | `1rem`                                                                                  |
+| `--bulma-slider-thumb-size-medium`    | `$slider-thumb-size-medium`    | `1.5rem`                                                                                |
+| `--bulma-slider-thumb-size-large`     | `$slider-thumb-size-large`     | `1.75rem`                                                                               |
+| `--bulma-slider-track-color`          | `$slider-track-color`          | `var(--bulma-border)`                                                                   |
+| `--bulma-slider-fill-color`           | `$slider-fill-color`           | `hsl(var(--bulma-primary-h), var(--bulma-primary-s), var(--bulma-primary-on-scheme-l))` |
+| `--bulma-slider-thumb-color`          | `$slider-thumb-color`          | `var(--bulma-scheme-main)`                                                              |
+| `--bulma-slider-thumb-border`         | `$slider-thumb-border`         | `var(--bulma-border)`                                                                   |
+| `--bulma-slider-thumb-shadow`         | `$slider-thumb-shadow`         | `0 2px 4px rgba(0, 0, 0, 0.1)`                                                          |
+| `--bulma-slider-radius`               | `$slider-radius`               | `var(--bulma-radius)`                                                                   |
+| `--bulma-slider-disabled-opacity`     | `$slider-disabled-opacity`     | `0.5`                                                                                   |
+| `--bulma-slider-transition-duration`  | `$slider-transition-duration`  | `var(--bulma-duration)`                                                                 |
+| `--bulma-slider-output-background`    | `$slider-output-background`    | `var(--bulma-slider-fill-color)`                                                        |
+| `--bulma-slider-output-color`         | `$slider-output-color`         | `var(--bulma-scheme-main)`                                                              |
+| `--bulma-slider-output-font-size`     | `$slider-output-font-size`     | `var(--bulma-size-small)`                                                               |
+| `--bulma-slider-output-font-weight`   | `$slider-output-font-weight`   | `var(--bulma-weight-medium)`                                                            |
+| `--bulma-slider-tick-width`           | `$slider-tick-width`           | `2px`                                                                                   |
+| `--bulma-slider-tick-height`          | `$slider-tick-height`          | `1rem`                                                                                  |
+| `--bulma-slider-tick-color`           | `$slider-tick-color`           | `var(--bulma-grey-light)`                                                               |
+| `--bulma-slider-tick-opacity`         | `$slider-tick-opacity`         | `0.5`                                                                                   |
+| `--bulma-slider-tick-label-font-size` | `$slider-tick-label-font-size` | `0.75rem`                                                                               |
+| `--bulma-slider-tick-label-color`     | `$slider-tick-label-color`     | `var(--bulma-text-light)`                                                               |
+| `--bulma-slider-vertical-height`      | `$slider-vertical-height`      | `200px`                                                                                 |
 
 <!-- /bestax:generated cssvars -->

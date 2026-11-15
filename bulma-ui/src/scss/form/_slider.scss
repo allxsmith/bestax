@@ -15,7 +15,19 @@ $slider-thumb-size-small: 1rem !default;
 $slider-thumb-size-medium: 1.5rem !default;
 $slider-thumb-size-large: 1.75rem !default;
 $slider-track-color: cv.getVar("border") !default;
-$slider-fill-color: cv.getVar("primary") !default;
+// The fill shows the value, so it holds 3:1 against the page on both schemes
+// (#1714): the primary color in its on-scheme lightness, which Bulma darkens
+// on a light scheme and lightens on a dark one until it reads on the page,
+// put together here from its hue, saturation and that lightness, as Bulma's
+// own `-on-scheme` helpers do, so a Theme around the slider reaches it. A
+// `color` takes its own on-scheme lightness the same way. The value bubble
+// is filled with it, and its text in the page's color reads on it for the
+// same reason.
+$slider-fill-color: hsl(
+  #{cv.getVar("primary-h")},
+  #{cv.getVar("primary-s")},
+  #{cv.getVar("primary-on-scheme-l")}
+) !default;
 $slider-thumb-color: cv.getVar("scheme-main") !default;
 $slider-thumb-border: cv.getVar("border") !default;
 $slider-thumb-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !default;
@@ -543,12 +555,18 @@ $slider-vertical-height: 200px !default;
   }
 }
 
-// Color variants
+// Color variants, each in the color's on-scheme lightness.
 @each $name in "primary", "link", "info", "success", "warning", "danger" {
+  $on-scheme: hsl(
+    cv.getVar($name, "", "-h"),
+    cv.getVar($name, "", "-s"),
+    cv.getVar($name, "", "-on-scheme-l")
+  );
+
   .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-#{$name} {
     @include cv.register-vars(
       (
-        "slider-fill-color": #{cv.getVar($name)},
+        "slider-fill-color": #{$on-scheme},
       )
     );
   }
