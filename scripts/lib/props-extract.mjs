@@ -564,7 +564,7 @@ function interfaceShape(ts, decl) {
   for (const m of decl.members) {
     if (!ts.isPropertySignature(m) || !m.type || !m.name) return null;
     parts.push(
-      `${m.name.getText()}${m.questionToken ? '?' : ''}: ${m.type.getText()}`
+      `${m.name.getText()}${m.questionToken ? '?' : ''}: ${shownType(ts, m)}`
     );
   }
   return `{ ${parts.join('; ')} }`;
@@ -859,9 +859,39 @@ function typeParamConstraint(ts, member, name) {
   return null;
 }
 
-function renderTypeText(ts, member, aliases, linkBase, used, opts = {}) {
+/**
+ * A member's type as its source spells it, less the `undefined` of an optional
+ * prop. Props type themselves `T | undefined` so a caller with
+ * `exactOptionalPropertyTypes` on can pass `undefined` (#1707), and being
+ * optional already says a prop may be left out, so the table shows `T`. Only
+ * `undefined`, and only on an optional prop: `null`, and a required prop's
+ * `undefined`, are values a caller passes on purpose.
+ */
+function shownTypeNodes(ts, member) {
+  const node = member.type;
+  if (!member.questionToken || !ts.isUnionTypeNode(node)) return [node];
+  const kept = node.types.filter(
+    t => t.kind !== ts.SyntaxKind.UndefinedKeyword
+  );
+  return kept.length && kept.length < node.types.length ? kept : [node];
+}
+
+/**
+ * {@link shownTypeNodes} as source text. A function type left on its own loses
+ * the parentheses `| undefined` needed.
+ */
+function shownType(ts, member) {
+  const nodes = shownTypeNodes(ts, member);
+  if (nodes.length === 1 && ts.isParenthesizedTypeNode(nodes[0])) {
+    return nodes[0].type.getText();
+  }
+  return nodes.map(t => t.getText()).join(' | ');
+}
+
+/** A member's type as a props table prints it, one rendered union member at a time. */
+export function renderTypeText(ts, member, aliases, linkBase, used, opts = {}) {
   const { markdown = true, refs = null } = opts;
-  let text = member.type ? member.type.getText() : 'unknown';
+  let text = member.type ? shownType(ts, member) : 'unknown';
   text = text.replace(/\s+/g, ' ').trim();
 
   // Inline alias references PER UNION MEMBER, not just when the whole type is
@@ -930,6 +960,11 @@ function renderTypeText(ts, member, aliases, linkBase, used, opts = {}) {
   const seen = new Set();
   let members = parts.filter(p => !seen.has(p) && seen.add(p));
   if (members.length > 1) members = members.filter(p => p !== 'never');
+  // And the `undefined` that an expanded lookup or alias brings in, by this
+  // prop's optionality, as `shownTypeNodes` does for its own union.
+  if (member.questionToken && members.length > 1) {
+    members = members.filter(p => p !== 'undefined');
+  }
   if (
     members.length === 2 &&
     members.includes('false') &&
@@ -1429,9 +1464,11 @@ function memberRows(
     // are contradictory. A prop whose description says it controls the
     // component keeps an empty Default.
     const controlled = /\bcontrolled\b/i.test(jsdocText(ts, member));
+    const shown = member.type ? shownTypeNodes(ts, member) : [];
     const impliedFalse =
       member.questionToken &&
-      member.type?.kind === ts.SyntaxKind.BooleanKeyword &&
+      shown.length === 1 &&
+      shown[0].kind === ts.SyntaxKind.BooleanKeyword &&
       !controlled
         ? 'false'
         : null;

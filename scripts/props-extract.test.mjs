@@ -21,6 +21,7 @@ import {
   extractComponent,
   extractHelperProps,
   helperPropsNoteOf,
+  renderTypeText,
   topLevelInitializers,
   transparentPropWrapper,
   unsupportedPropWrapper,
@@ -697,6 +698,70 @@ test('a branch that forbids a prop adds nothing to its row (#1460)', () => {
     slider.indexOf('minDistance') > slider.indexOf('ariaLabel'),
     slider.join(', ')
   );
+});
+
+test("an optional prop's `undefined` stays out of its row, and `null` stays in (#1707)", () => {
+  // Props type themselves `T | undefined` so a caller with
+  // `exactOptionalPropertyTypes` on can pass `undefined`, and the row reads `T`.
+  assert.equal(row('Dropdown', 'className').type, '`string`');
+  const burger = extractComponent('Navbar', { markdown: false }).tables.find(
+    t => t.path === 'Navbar.Burger'
+  );
+  assert.equal(
+    burger.rows.find(r => r.name === 'aria-expanded').type,
+    'boolean | null'
+  );
+  assert.equal(
+    burger.rows.find(r => r.name === 'onClick').type,
+    'React.MouseEventHandler<HTMLButtonElement>'
+  );
+  // An optional `boolean | undefined` still documents its default as `false`,
+  // and a lookup type (`AvatarProps['size']`) prints the looked-up member the
+  // same way.
+  assert.equal(
+    row('Checkbox', 'disabled', { markdown: false }).default,
+    'false'
+  );
+  assert.ok(
+    !row('Avatars', 'size', { markdown: false }).type.includes('undefined'),
+    row('Avatars', 'size', { markdown: false }).type
+  );
+
+  // The rule itself, on members no component declares.
+  const { ts } = createProgram();
+  const sf = ts.createSourceFile(
+    'fixture.tsx',
+    [
+      'interface Fixture {',
+      '  optional?: string | undefined;',
+      '  nullable?: string | null | undefined;',
+      '  required: string | undefined;',
+      '  forbidden?: undefined;',
+      '  handler?: (() => void) | undefined;',
+      "  looked?: AvatarProps['size'];",
+      "  lookedRequired: AvatarProps['size'];",
+      '}',
+    ].join('\n'),
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX
+  );
+  const members = Object.fromEntries(
+    sf.statements[0].members.map(m => [m.name.getText(), m])
+  );
+  const render = name =>
+    renderTypeText(ts, members[name], new Map(), '', null, {
+      markdown: false,
+    });
+  assert.equal(render('optional'), 'string');
+  assert.equal(render('nullable'), 'string | null');
+  assert.equal(render('required'), 'string | undefined');
+  assert.equal(render('forbidden'), 'undefined');
+  assert.equal(render('handler'), '() => void');
+  // A lookup type copies the looked-up member's union, `undefined` and all,
+  // and the prop that holds it decides whether that shows.
+  assert.equal(render('looked'), 'AvatarSize | number');
+  assert.equal(render('lookedRequired'), 'AvatarSize | number | undefined');
 });
 
 test('structured mode leaks no markdown into any documented component', () => {
