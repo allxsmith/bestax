@@ -377,6 +377,26 @@ describe('following the panel and the anchor', () => {
     host.remove();
   });
 
+  it('measures again on a scroll inside a component its anchor is slotted into', () => {
+    // A scrolling element around a slot, the shape of a web component that
+    // scrolls what's put in it.
+    const host = document.createElement('div');
+    const shadow = host.attachShadow({ mode: 'open' });
+    shadow.innerHTML = '<div class="scroller"><slot></slot></div>';
+    const container = document.createElement('div');
+    host.appendChild(container);
+    document.body.appendChild(host);
+    render(<Above height={200} />, { container });
+    rects.mockClear();
+
+    act(() => {
+      fireEvent.scroll(shadow.querySelector('.scroller') as HTMLElement);
+    });
+    nextFrame();
+    expect(rects).toHaveBeenCalledTimes(2);
+    host.remove();
+  });
+
   it('drops the frame it asked for when it closes', () => {
     const { unmount } = render(<Above height={200} />);
     rects.mockClear();

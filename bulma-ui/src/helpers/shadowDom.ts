@@ -77,21 +77,44 @@ export function getDeepestActiveElement(
 }
 
 /**
- * The shadow roots `node` sits in, its own first and then each one around
- * that root's host. An event that isn't composed, such as `scroll`, stays in
- * the shadow root it happens in, so a listener on the window or the document
- * never hears a scroll inside one. Listen on these as well.
+ * The node's parent in the flattened tree, the one the browser renders and
+ * tabs through: the slot it is assigned to, else its parent, else the host of
+ * the shadow root it tops, and nothing above the document. A closed shadow
+ * root hides its slots (`assignedSlot` reads `null` under one), so a child of
+ * its host goes straight to the host, whether a slot takes it or not.
+ *
+ * @param node - The node to climb from.
+ * @returns Its parent in the flattened tree, or `null` at the top.
+ */
+export const flatParent = (node: Node): Node | null =>
+  (node as Element).assignedSlot ??
+  node.parentElement ??
+  (node.parentNode as ShadowRoot | null)?.host ??
+  null;
+
+/**
+ * The shadow roots `node` is rendered in: the one each of its ancestors in
+ * the flattened tree sits in, its own first, so the shadow root of a
+ * component it's slotted into counts too. An event that isn't composed, such
+ * as `scroll`, stays in the shadow root it happens in, so a listener on the
+ * window or the document never hears a scroll inside one. Listen on these as
+ * well.
  *
  * @param node - An element of the component, or nothing while it is unmounted.
  * @returns The shadow roots around `node`, innermost first, or none.
  */
 export function shadowRootsAround(node: Node | null | undefined): ShadowRoot[] {
   const roots: ShadowRoot[] = [];
-  let root = node?.getRootNode();
-  // A document fragment with a host is a shadow root, whichever window's.
-  while (root?.nodeType === 11 && 'host' in root) {
-    roots.push(root as ShadowRoot);
-    root = (root as ShadowRoot).host.getRootNode();
+  for (let at = node ?? null; at; at = flatParent(at)) {
+    const root = at.getRootNode();
+    // A document fragment with a host is a shadow root, whichever window's.
+    if (
+      root.nodeType === 11 &&
+      'host' in root &&
+      !roots.includes(root as ShadowRoot)
+    ) {
+      roots.push(root as ShadowRoot);
+    }
   }
   return roots;
 }

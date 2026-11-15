@@ -269,8 +269,9 @@ const ContextMenuComponent: React.FC<ContextMenuProps> = ({
     const closeOutside = (event: Event) => {
       if (!isEventInside(event, box)) setMenu(null);
     };
-    // A scroll inside a shadow root doesn't reach the document, so each one
-    // around what it opened on, and around the menu, is listened on too.
+    // A scroll inside a shadow root doesn't reach the document, so the ones
+    // the element it opened on and the menu are rendered in are listened on
+    // too.
     const scrolled = new Set<EventTarget>([
       doc,
       ...shadowRootsAround(triggerRef.current),

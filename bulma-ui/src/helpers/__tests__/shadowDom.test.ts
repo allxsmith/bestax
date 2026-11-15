@@ -109,6 +109,17 @@ describe('shadowDom helpers', () => {
       expect(shadowRootsAround(inner)).toEqual([shadowRoot]);
     });
 
+    it('lists the shadow root of a component a node is slotted into', () => {
+      const scrollerHost = document.createElement('div');
+      const scrollerRoot = scrollerHost.attachShadow({ mode: 'open' });
+      scrollerRoot.innerHTML = '<div><slot></slot></div>';
+      const slotted = document.createElement('button');
+      scrollerHost.appendChild(slotted);
+      document.body.appendChild(scrollerHost);
+      expect(shadowRootsAround(slotted)).toEqual([scrollerRoot]);
+      scrollerHost.remove();
+    });
+
     it('lists none for a node in the document, a detached one, or nothing', () => {
       expect(shadowRootsAround(outside)).toEqual([]);
       // An anchor has a `host` of its own, the URL's, and is no shadow root.
