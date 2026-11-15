@@ -1,3 +1,10 @@
+## [1.18.56](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.55...bestax-mcp@1.18.56) (2026-11-15)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** stop recording each skill file's size in the index ([e55eb3a](https://github.com/allxsmith/bestax/commit/e55eb3a88c7d5f0cb25801e0369f1cc49a57e8aa)), closes [#1801](https://github.com/allxsmith/bestax/issues/1801)
+
 ## [1.18.55](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.54...bestax-mcp@1.18.55) (2026-11-15)
 
 
