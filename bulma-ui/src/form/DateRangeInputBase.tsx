@@ -279,7 +279,7 @@ export interface DateRangeInputBaseProps
    */
   required?: boolean;
   /** Id of the start input. The end input takes `${id}-end`. */
-  id?: string;
+  id?: React.HTMLAttributes<HTMLElement>['id'];
 }
 
 /**

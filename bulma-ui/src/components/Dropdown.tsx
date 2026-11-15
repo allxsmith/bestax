@@ -68,7 +68,7 @@ export interface DropdownProps
    * which the trigger's `aria-controls` and the menu's `aria-labelledby` point
    * at. Without one, both ids come from `useId`.
    */
-  id?: string;
+  id?: React.HTMLAttributes<HTMLElement>['id'];
 }
 
 /**

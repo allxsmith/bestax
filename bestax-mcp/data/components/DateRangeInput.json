@@ -583,7 +583,7 @@
         },
         {
           "name": "id",
-          "type": "string",
+          "type": "React.HTMLAttributes<HTMLElement>['id']",
           "default": null,
           "description": "Id of the start input. The end input takes `${id}-end`.",
           "required": false,
@@ -982,7 +982,7 @@
         },
         {
           "name": "id",
-          "type": "string",
+          "type": "React.HTMLAttributes<HTMLElement>['id']",
           "default": null,
           "description": "Id of the start input. The end input takes `${id}-end`.",
           "required": false,
