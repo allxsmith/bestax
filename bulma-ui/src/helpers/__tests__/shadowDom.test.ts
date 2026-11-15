@@ -2,6 +2,7 @@ import {
   getActiveElementInTree,
   getDeepestActiveElement,
   isEventInside,
+  listenInShadowRoots,
   shadowRootsAround,
 } from '../shadowDom';
 
@@ -95,6 +96,34 @@ describe('shadowDom helpers', () => {
       nestedHost.attachShadow({ mode: 'open' }).appendChild(deep);
       deep.focus();
       expect(getActiveElementInTree(inner)).toBe(nestedHost);
+    });
+  });
+
+  describe('listenInShadowRoots', () => {
+    it('listens on the shadow roots a node is in, moves with them, and stops', () => {
+      const otherHost = document.createElement('div');
+      const other = otherHost.attachShadow({ mode: 'open' });
+      const there = document.createElement('div');
+      other.appendChild(there);
+      document.body.appendChild(otherHost);
+      const heard = vi.fn();
+      const scrolls = listenInShadowRoots('scroll', heard, {
+        passive: true,
+        capture: true,
+      });
+      const scroll = (root: ShadowRoot) =>
+        root.dispatchEvent(new Event('scroll'));
+      scrolls.follow(inner);
+      scroll(shadowRoot);
+      expect(heard).toHaveBeenCalledTimes(1);
+      scrolls.follow(there);
+      scroll(shadowRoot);
+      scroll(other);
+      expect(heard).toHaveBeenCalledTimes(2);
+      scrolls.stop();
+      scroll(other);
+      expect(heard).toHaveBeenCalledTimes(2);
+      otherHost.remove();
     });
   });
 

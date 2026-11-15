@@ -849,7 +849,7 @@ function DateTimeInputFormDemo() {
 - Roving `tabindex` keeps a single day focusable at a time, and focus moves with it, inline as in the popover. When the focused date is disabled, that cell is the nearest enabled day of the month.
 - A `disabled` inline panel puts `aria-disabled="true"` on its grid and disables every button in it. A `readOnly` one puts `aria-readonly="true"` there instead, and keeps its tab stop and keys.
 - Each time wheel uses `role="spinbutton"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`, whose text is the number as the wheel shows it, in the picker's locale's digits when it has a locale. The values drawn above and below are click targets hidden from assistive technology, which reads the value from the spinbutton.
-- In a 12-hour picker, AM/PM is one of those wheels, reading `AM` or `PM`, or the picker's locale's words for them when it has a locale. Its accessible name is `AM/PM` unless `labels.ampm` sets another.
+- In a 12-hour picker, AM/PM is one of those wheels, reading `AM` or `PM`, or the picker's locale's words for them when it has a locale, and it widens to fit a longer word. Its accessible name is `AM/PM` unless `labels.ampm` sets another.
 - The footer's confirm button exposes an accessible label (`Done`); the Reset button reverts your edits to the value the popover opened with, or on an `inline` picker, to the one described under [Inline](#inline).
 - Tab order walks from the calendar to the footer (Reset / ✓), and from the time wheels to the footer while they are open.
 - On a right-to-left page the launcher sits at the end of the line and the calendar icon at the start. The time wheels keep `dir="ltr"`.
