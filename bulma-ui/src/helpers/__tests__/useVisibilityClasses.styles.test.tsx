@@ -77,14 +77,26 @@ describe.each(['', 'bestax-'])(
   }
 );
 
-it.each([
-  ['bestax.scss', '', true],
-  ['extras.scss', '', true],
-  ['versions/bestax-prefixed.scss', 'bestax-', true],
-  ['versions/bestax-no-dark-mode.scss', '', true],
-  ['versions/bestax-no-helpers.scss', '', false],
-  ['versions/bestax-no-helpers-prefixed.scss', 'bestax-', false],
-])('%s ships them: %s%s', (sheet, prefix, ships) => {
-  const name = `.${prefix}is-sr-only-tablet`;
-  expect(compileSheet(sheet).includes(`${name}${name}`)).toBe(ships);
+describe.each([
+  ['bestax.scss', ''],
+  ['extras.scss', ''],
+  ['versions/bestax-prefixed.scss', 'bestax-'],
+  ['versions/bestax-no-dark-mode.scss', ''],
+])('%s', (sheet, prefix) => {
+  it('ships every breakpoint sr-only class, doubled', () => {
+    const css = compileSheet(sheet);
+    for (const viewport of validViewports) {
+      const name = `.${prefix}is-sr-only-${viewport}`;
+      expect(css).toContain(`${name}${name}`);
+    }
+  });
+});
+
+describe.each([
+  ['versions/bestax-no-helpers.scss'],
+  ['versions/bestax-no-helpers-prefixed.scss'],
+])('%s', sheet => {
+  it('leaves the breakpoint sr-only classes out with the other helpers', () => {
+    expect(compileSheet(sheet)).not.toMatch(/is-sr-only-/);
+  });
 });
