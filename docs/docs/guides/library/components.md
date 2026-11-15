@@ -770,6 +770,61 @@ function example() {
 
 ---
 
+### FloatButton
+
+A round icon button that floats in a corner of the screen, with its name as a tooltip, for the screen's main action. `FloatButton.SpeedDial` opens a few related actions, and `FloatButton.BackToTop` takes a long page back to the top and moves focus there. It's fixed to the browser window, so show it and look at the bottom-left corner. [View full documentation.](../../api/components/floatbutton.md)
+
+```tsx live
+function example() {
+  const [shown, setShown] = useState(false);
+  return (
+    <>
+      <Button onClick={() => setShown(!shown)}>
+        {shown ? 'Hide the speed dial' : 'Show the speed dial'}
+      </Button>
+      {shown && (
+        <FloatButton.SpeedDial
+          aria-label="Create"
+          icon="plus"
+          color="primary"
+          position="bottom-left"
+        >
+          <FloatButton aria-label="Note" icon="note-sticky" />
+          <FloatButton aria-label="Task" icon="check" />
+        </FloatButton.SpeedDial>
+      )}
+    </>
+  );
+}
+```
+
+---
+
+### FloatButtons
+
+Several float buttons stacked in one corner, top to bottom in the order you write them, so none covers another. [View full documentation.](../../api/components/floatbuttons.md)
+
+```tsx live
+function example() {
+  const [shown, setShown] = useState(false);
+  return (
+    <>
+      <Button onClick={() => setShown(!shown)}>
+        {shown ? 'Hide the stack' : 'Show the stack'}
+      </Button>
+      {shown && (
+        <FloatButtons position="bottom-left">
+          <FloatButton aria-label="Help" icon="question" />
+          <FloatButton aria-label="New message" icon="pen" color="primary" />
+        </FloatButtons>
+      )}
+    </>
+  );
+}
+```
+
+---
+
 ### Tour
 
 A walk through an interface, one element at a time: each `Tour.Step` is a dialog pointing at its `target`, over a dimmed page with a spotlight on the target, or without the overlay as a non-modal dialog that leaves the page usable. Done on the last step calls `onFinish`, apart from Skip and Escape. [View full documentation.](../../api/components/tour.md)
