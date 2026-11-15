@@ -118,7 +118,9 @@ export interface TourLabels {
    */
   progress?: (step: number, total: number) => string;
   /**
-   * A beacon's name, read before its step's title.
+   * A beacon's name, read before its step's title, or its `aria-label`.
+   * A step named only by `aria-labelledby` gives its beacon this alone,
+   * since what that points at isn't on the page while the beacons show.
    * @defaultValue 'Show tip'
    */
   beacon?: string;
@@ -263,7 +265,8 @@ export interface TourProps
    * `labels.beacons`, in step order, after the page's own content in the Tab
    * order, so order the steps as the page reads; a development build warns
    * once when they aren't. A beacon sits over its target's top end corner
-   * and shows while its target is on the page, has a box and is in view.
+   * and shows while its target is on the page, has a box and is in view,
+   * that corner included.
    * Opening one hides them all and opens its step, modal or not by
    * `overlay`, and closing the step brings them back, with focus on its
    * beacon while the step held it. A beacon's step has no Skip, Back or
@@ -599,14 +602,15 @@ const samePlaces = (
 /**
  * Where each step's beacon sits: over its target's top end corner, the right
  * one or, under right-to-left text, the left, or `null` for a step with no
- * target on the page with a box, or one that isn't in view. It runs for the
- * whole of a beacon tour, a step's open time included, so the beacons come
- * back where their targets are now, at once, for focus to go to one. The
- * targets are measured again, once a frame at most, on a render, a scroll, a
- * resize of the window, a change in a target's size or the body's, or any
- * change to the page outside the tour, as a step's target is. Whether a
- * target is in view comes from one IntersectionObserver on the viewport,
- * which counts clipping by a scrolling ancestor too.
+ * target on the page with a box, or one that isn't in view, or whose top end
+ * corner isn't. It runs for the whole of a beacon tour, a step's open time
+ * included, so the beacons come back where their targets are now, at once,
+ * for focus to go to one. The targets are measured again at once on a render
+ * that changes the steps or their targets, and once a frame at most on a
+ * scroll, a resize of the window, a change in a target's size or the body's,
+ * or any change to the page outside the tour, as a step's target is.
+ * Whether a target is in view comes from one IntersectionObserver on the
+ * viewport, which counts clipping by a scrolling ancestor too.
  */
 function useBeaconPlaces(
   rootRef: React.RefObject<HTMLDivElement | null>,
@@ -618,7 +622,13 @@ function useBeaconPlaces(
     () => new Set()
   );
   const stepsRef = useLatestRef(steps);
-  const scheduleRef = useRef<(() => void) | null>(null);
+  const updateRef = useRef<(() => void) | null>(null);
+  // The steps' keys and targets as last measured, so a render that changes
+  // them measures at once rather than a frame later, and each beacon is
+  // drawn at its own step's target.
+  const measuredRef = useRef<{ keys: unknown[]; targets: unknown[] } | null>(
+    null
+  );
 
   useClientLayoutEffect(() => {
     if (!active) return undefined;
@@ -674,18 +684,36 @@ function useBeaconPlaces(
         inView?.observe(element);
         watched.add(element);
       }
+      measuredRef.current = {
+        keys: stepsRef.current.map(step => step.key),
+        targets,
+      };
+      // A beacon sits on its target's top end corner, so that corner has to
+      // be in view as well as the target: a tall target scrolled partway
+      // past the top would put its beacon off the screen.
       const next = found.map(element => {
         if (!element || element.getClientRects().length === 0) return null;
         const rect = element.getBoundingClientRect();
         const rtl = getComputedStyle(element).direction === 'rtl';
-        return { element, top: rect.top, left: rtl ? rect.left : rect.right };
+        const top = rect.top;
+        const left = rtl ? rect.left : rect.right;
+        const corner = { top, left, bottom: top, right: left };
+        return isInView(element, corner) ? { element, top, left } : null;
       });
       setPlaces(prev => (samePlaces(prev, next) ? prev : next));
       // The warnings cost a walk of the steps, so a production build, which
       // drops them, skips it.
       if (!isDev()) return;
       targets.forEach((target, i) => {
-        if (next[i]) return;
+        if (target == null) {
+          warnOnce(
+            'Tour:beacon-no-target',
+            '[bestax-bulma] A Tour.Step in beacon mode has no target, so it ' +
+              'has no beacon.'
+          );
+          return;
+        }
+        if (found[i] && found[i].getClientRects().length > 0) return;
         warnOnce(
           `Tour:beacon-missing-target:${typeof target === 'string' ? target : ''}`,
           '[bestax-bulma] A Tour.Step in beacon mode has no target on the ' +
@@ -695,14 +723,20 @@ function useBeaconPlaces(
       });
       // Tab reaches the beacons in step order, which should be the order
       // the page reads in.
+      // Elements in separate trees, as in two shadow roots, have no order to
+      // compare.
       const placed = next.filter(place => place !== null);
       if (
-        placed.some(
-          (place, i) =>
-            i > 0 &&
-            placed[i - 1].element.compareDocumentPosition(place.element) &
-              Node.DOCUMENT_POSITION_PRECEDING
-        )
+        placed.some((place, i) => {
+          if (i === 0) return false;
+          const order = placed[i - 1].element.compareDocumentPosition(
+            place.element
+          );
+          return (
+            (order & Node.DOCUMENT_POSITION_PRECEDING) !== 0 &&
+            (order & Node.DOCUMENT_POSITION_DISCONNECTED) === 0
+          );
+        })
       ) {
         warnOnce(
           'Tour:beacon-order',
@@ -713,37 +747,64 @@ function useBeaconPlaces(
       }
     };
     const watch = watchPage(root, update);
-    scheduleRef.current = watch.schedule;
+    updateRef.current = update;
     update();
     return () => {
-      scheduleRef.current = null;
+      updateRef.current = null;
+      measuredRef.current = null;
       watch.stop();
       inView?.disconnect();
+      // Nothing held on to while the tour is closed, and nothing stale when
+      // it opens again.
+      setPlaces([]);
+      setOutOfView(new Set());
     };
   }, [active, rootRef, stepsRef]);
 
-  // A render can add, remove or reorder steps, or point one elsewhere.
+  // A render can add, remove or reorder steps, or point one elsewhere, and
+  // is measured at once when it does.
   useClientLayoutEffect(() => {
-    scheduleRef.current?.();
+    const measured = measuredRef.current;
+    if (
+      measured &&
+      sameItems(
+        measured.keys,
+        steps.map(step => step.key)
+      ) &&
+      sameItems(
+        measured.targets,
+        steps.map(step => step.props.target)
+      )
+    ) {
+      return;
+    }
+    updateRef.current?.();
   });
 
-  return useMemo(
-    () =>
-      steps.map((_, i) => {
-        const place = places[i] ?? null;
-        return place && !outOfView.has(place.element) ? place : null;
-      }),
-    [steps, places, outOfView]
-  );
+  return steps.map((_, i) => {
+    const place = places[i] ?? null;
+    return place && !outOfView.has(place.element) ? place : null;
+  });
 }
+
+/** Whether two lists hold the same items, in the same order. */
+const sameItems = (a: readonly unknown[], b: readonly unknown[]): boolean =>
+  a.length === b.length && a.every((item, i) => item === b[i]);
 
 /**
  * Whether all of `element` is in view: inside the viewport, and inside each
  * ancestor that clips what overflows it.
  */
-function isFullyVisible(element: HTMLElement): boolean {
+const isFullyVisible = (element: HTMLElement): boolean =>
+  isInView(element, element.getBoundingClientRect());
+
+/**
+ * Whether `rect`, a box on the screen at `element`, is in view: inside the
+ * viewport, and inside each ancestor of `element` that clips what overflows
+ * it.
+ */
+function isInView(element: HTMLElement, rect: Edges): boolean {
   const doc = element.ownerDocument;
-  const rect = element.getBoundingClientRect();
   const inside = (box: Edges) =>
     rect.top >= box.top &&
     rect.left >= box.left &&
@@ -1655,7 +1716,8 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
     });
 
     // A tip closes when the steps change under it. The key of the step a
-    // beacon opened is kept, with the value it opened at, and while the value
+    // beacon or the value opened is kept, with the value it opened at, and
+    // while the value
     // still names that index but the step there has another key, as when a
     // step before it is added or removed, or it's removed itself, the tip
     // closes: `-1`, through `onChange` too, once. The ref is cleared as it
@@ -1688,10 +1750,11 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
         return;
       }
       if (beacon && shown) {
-        shownTipRef.current = {
-          key: (step as React.ReactElement).key as React.Key,
-          target,
-        };
+        const key = (step as React.ReactElement).key as React.Key;
+        // A tip the value opened, as `defaultValue` or a controlled one does,
+        // is kept as one a beacon opened is.
+        if (!openedRef.current) openedRef.current = { key, value: requested };
+        shownTipRef.current = { key, target };
       }
     });
 

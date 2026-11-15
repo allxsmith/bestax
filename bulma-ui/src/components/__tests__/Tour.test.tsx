@@ -2954,7 +2954,7 @@ describe('Tour', () => {
         window.dispatchEvent(new Event('resize'));
         window.dispatchEvent(new Event('scroll'));
       });
-      expect(frames).toHaveLength(asked);
+      expect(frames).toHaveLength(asked + 1);
       const filters = document.getElementById('filters') as HTMLElement;
       filters.dataset.rect = '220 100 80 30';
       act(() => frames[frames.length - 1](0));
@@ -2962,7 +2962,89 @@ describe('Tour', () => {
       act(() => {
         window.dispatchEvent(new Event('scroll'));
       });
-      expect(frames).toHaveLength(asked + 1);
+      expect(frames).toHaveLength(asked + 2);
+    });
+
+    it('hides a beacon whose corner is out of view while part of its target shows', () => {
+      render(<Tips defaultOpen />);
+      // Scrolled so its top is above the viewport, and its top end corner,
+      // where the beacon sits, is off the screen.
+      document.getElementById('filters')!.dataset.rect = '-100 100 80 400';
+      act(() => {
+        window.dispatchEvent(new Event('scroll'));
+      });
+      expect(beacons().map(b => b.textContent)).toEqual(['Show tip Export']);
+    });
+
+    it('draws each beacon at its own step’s target in the render that reorders them', () => {
+      const frames: FrameRequestCallback[] = [];
+      vi.mocked(window.requestAnimationFrame).mockImplementation(callback => {
+        frames.push(callback);
+        return frames.length;
+      });
+      const two = [
+        <Tour.Step key="filters" target="#filters" title="Filters">
+          1
+        </Tour.Step>,
+        <Tour.Step key="export" target="#export" title="Export">
+          2
+        </Tour.Step>,
+      ];
+      const { rerender } = render(<Tips defaultOpen>{two}</Tips>);
+      rerender(<Tips defaultOpen>{[two[1], two[0]]}</Tips>);
+      // No frame has run: the render measured them.
+      expect(beacon('Filters').style.left).toBe('180px');
+      expect(beacon('Export').style.left).toBe('880px');
+    });
+
+    it('closes a tip the value opened when its step moves, as one a beacon opened', () => {
+      const onChange = vi.fn();
+      const three = (names: string[]) =>
+        names.map(name => (
+          <Tour.Step key={name} target="#filters" title={name}>
+            {name}
+          </Tour.Step>
+        ));
+      const { rerender } = render(
+        <Tips defaultOpen defaultValue={1} onChange={onChange}>
+          {three(['A', 'B', 'C'])}
+        </Tips>
+      );
+      expect(screen.getByRole('dialog', { name: 'B' })).toBeVisible();
+      rerender(
+        <Tips defaultOpen defaultValue={1} onChange={onChange}>
+          {three(['B', 'C'])}
+        </Tips>
+      );
+      expect(onChange).toHaveBeenCalledWith(-1);
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
+
+    it('warns about a step in beacon mode with no target as having none', () => {
+      render(
+        <Tips defaultOpen>
+          <Tour.Step title="Nowhere">No target.</Tour.Step>
+        </Tips>
+      );
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('has no target, so it has no beacon')
+      );
+    });
+
+    it('forgets which targets were out of view when the tour closes', () => {
+      const observer = withIntersectionObserver();
+      const { rerender } = render(<Tips open />);
+      observer().report(
+        document.getElementById('filters') as HTMLElement,
+        false
+      );
+      expect(beacons().map(b => b.textContent)).toEqual(['Show tip Export']);
+      rerender(<Tips open={false} />);
+      rerender(<Tips open />);
+      expect(beacons().map(b => b.textContent)).toEqual([
+        'Show tip Filters',
+        'Show tip Export',
+      ]);
     });
 
     it('hides a beacon while its target is out of view, and stops watching a target that goes', () => {
