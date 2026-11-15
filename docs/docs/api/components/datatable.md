@@ -465,8 +465,8 @@ function example() {
 busy (`aria-busy`). Once the search, a filter or the page has changed, the status message says
 "Loading" too. A skeleton row is as tall as a row of one line of text, so rows of text replace it
 without the table changing height, and each cell's line sits where its column's `align` puts the
-value. A row with something taller than a line of text in it, like a `Tag` or a `Button`, still
-grows when it arrives.
+value. A row with something taller than a line of text in it, like a `Button` or a medium or large
+`Tag`, still grows when it arrives.
 
 ```tsx live
 <DataTable
