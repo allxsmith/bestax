@@ -50,6 +50,13 @@ export interface ButtonOwnProps extends Omit<
    * behind it, in forced colors (Windows' contrast themes) too. Under
    * `prefers-reduced-motion: reduce` the spinner stops and stays drawn.
    * Bulma alone hides only the label, so the rest needs bestax's CSS loaded.
+   * The spinner takes the color the button's style gives its label (the
+   * text color on a LinkButton), with `isInverted`, `color="text"` and
+   * `color="ghost"` too, where Bulma alone draws an inverted button's in its
+   * own fill, a text one's near white, and an outlined or shaded ghost one's
+   * in a color that doesn't show. Where Bulma's disabled fill wins over the
+   * inverted one, on a colored disabled button or in a disabled fieldset, it
+   * keeps Bulma's, which shows on that fill.
    */
   isLoading?: boolean;
   /** Makes the button non-interactive. */

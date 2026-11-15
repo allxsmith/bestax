@@ -9,6 +9,7 @@ import path from 'path';
 import { render } from '@testing-library/react';
 import { Switch, type SwitchProps } from '../Switch';
 import { ConfigProvider } from '../../helpers/Config';
+import { withoutWhere } from '../../__tests__/selectors';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 
@@ -49,25 +50,6 @@ function rulesOf(source: string): Rule[] {
     walk((sheet.sheet as CSSStyleSheet).cssRules, '');
   } finally {
     sheet.remove();
-  }
-  return out;
-}
-
-/** `selector` without its `:where()` groups, which add no specificity. */
-function withoutWhere(selector: string): string {
-  let out = '';
-  for (let i = 0; i < selector.length;) {
-    if (!selector.startsWith(':where(', i)) {
-      out += selector[i++];
-      continue;
-    }
-    let depth = 0;
-    let j = i + ':where'.length;
-    for (; j < selector.length; j++) {
-      if (selector[j] === '(') depth++;
-      else if (selector[j] === ')' && --depth === 0) break;
-    }
-    i = j + 1;
   }
   return out;
 }

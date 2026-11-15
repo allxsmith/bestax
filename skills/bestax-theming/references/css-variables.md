@@ -226,7 +226,11 @@ modifier can declare the variable again on a more specific selector (`.delete.is
 lone class loses to and `style` does not. Each component's API page lists its variables under
 **CSS & Sass Variables** and says where Bulma declares them; the extras below follow the same
 rule. In forced colors a colored button's `--bulma-button-border-width` is `1px`, so it keeps an
-edge when the theme replaces its fill, and an outlined button or a `text` one keeps its own.
+edge when the theme replaces its fill, and an outlined button or a `text` one keeps its own. A
+loading button's ring is `--bulma-loading-color`, declared on each button in the color its style
+gives the label: Bulma's for a filled or outlined one, bestax's for an inverted, `text` or ghost
+one, which Bulma leaves out, and the text color on a LinkButton, whatever its `color`. Set it on
+the button to recolor the ring.
 
 ## Shadow — override the upstream token, not the derived one
 
@@ -720,7 +724,9 @@ so each follows the other until you set it apart. The fades and the zoom take Bu
 
 ### LinkButton
 
-Declared on the compound `.button.link-button` — see the compound-selector exception above.
+Declared on the compound `.button.link-button` — see the compound-selector exception above. A
+ghost one also sets `--bulma-loading-color` to its ghost color, so a loading one's ring matches its
+label.
 
 `--bulma-link-button-ghost-color`, `--bulma-link-button-ghost-hover-color`,
 `--bulma-link-button-transition-duration`, `--bulma-link-button-underline-offset`

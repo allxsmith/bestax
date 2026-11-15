@@ -507,8 +507,9 @@ const ORPHAN_EXEMPT = new Map([
     'bulma-ui/src/scss/elements/_button.scss',
     're-sets button-border-width, a Bulma variable Button already ' +
       'documents, inside a forced-colors media query, on a doubled color ' +
-      'class with :not() the attribution walk cannot place. It registers ' +
-      'nothing of its own to claim, so this stays until it does',
+      'class with :not() the attribution walk cannot place, and ' +
+      'loading-color, another, on the inverted, text and ghost styles. It ' +
+      'registers nothing of its own to claim, so this stays until it does',
   ],
   [
     'bulma-ui/src/scss/elements/_tag.scss',

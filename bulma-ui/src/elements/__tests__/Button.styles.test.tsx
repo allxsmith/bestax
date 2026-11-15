@@ -12,12 +12,19 @@
 // `forced-colors: active` only (#1458). An outlined button is left out of
 // that selector, which `matches` checks without a browser, and so is a text
 // button, which has no fill to lose.
+//
+// A loading button draws Bulma's ring in `--bulma-loading-color`, which Bulma
+// sets to a filled button's label color, and an outlined one's. The partial
+// sets it for the inverted, text and ghost styles to the color each draws its
+// label in, which Bulma leaves out, so the ring shows (#1772).
 import * as sass from 'sass';
+import type { ReactElement } from 'react';
 import path from 'path';
 import { render } from '@testing-library/react';
 import { Button } from '../Button';
 import { LinkButton } from '../LinkButton';
 import { ConfigProvider } from '../../helpers/Config';
+import { selectorsIn, withoutWhere } from '../../__tests__/selectors';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 const NODE_MODULES = path.resolve(__dirname, '../../../../node_modules');
@@ -93,6 +100,8 @@ const outlines = (rule: Rule) =>
   );
 const borders = (rule: Rule) =>
   '--bulma-button-border-width' in rule.declarations;
+/** Whether a rule sets a loading button's ring color. */
+const rings = (rule: Rule) => '--bulma-loading-color' in rule.declarations;
 
 /**
  * Bulma's button colors, the keys of `$colors` in the order it ships them,
@@ -139,10 +148,15 @@ function find(rules: Rule[], selector: string, context: string[] = []) {
 
 /**
  * A compound selector's weight in classes and pseudo-classes, which is all
- * these selectors are made of. `:not()` weighs what it holds.
+ * these selectors are made of. `:not()` weighs what it holds, and `:where()`
+ * nothing.
  */
 const weight = (selector: string) =>
-  (selector.replace(/:not\(/g, '(').match(/\.[\w-]+|:[\w-]+/g) ?? []).length;
+  (
+    withoutWhere(selector)
+      .replace(/:not\(/g, '(')
+      .match(/\.[\w-]+|:[\w-]+/g) ?? []
+  ).length;
 
 /** Whether a selector is the keyboard or forced focus state these draw. */
 const focused = (selector: string) =>
@@ -305,8 +319,10 @@ describe('colored buttons in forced colors', () => {
     );
   });
 
-  it('holds these borders and the focus outlines, and nothing else', () => {
-    expect(PLAIN.filter(rule => !outlines(rule) && !borders(rule))).toEqual([]);
+  it('holds these borders, the focus outlines and the loading rings, and nothing else', () => {
+    expect(
+      PLAIN.filter(rule => !outlines(rule) && !borders(rule) && !rings(rule))
+    ).toEqual([]);
   });
 
   it("loops over Bulma's colors, all but text", () => {
@@ -392,5 +408,217 @@ describe('colored buttons in forced colors', () => {
         declarations: { '--bulma-button-border-width': '1px' },
       }))
     );
+  });
+});
+
+describe('loading rings', () => {
+  // Each style, the selector list that sets its ring, and the rule Bulma
+  // paints its label in.
+  const STYLES = [
+    {
+      style: 'inverted',
+      selector:
+        '.button.is-inverted:where(:not(fieldset[disabled] *, [disabled]:is(.is-white, .is-black, .is-light, .is-dark, .is-primary, .is-link, .is-info, .is-success, .is-warning, .is-danger))), .button.is-inverted.is-outlined:where(:not(fieldset[disabled] *, [disabled]:is(.is-white, .is-black, .is-light, .is-dark, .is-primary, .is-link, .is-info, .is-success, .is-warning, .is-danger)))',
+      label: '.button.is-inverted',
+    },
+    {
+      style: 'text',
+      selector: '.button.is-text, .button.is-text.is-outlined',
+      label: '.button.is-text',
+    },
+    {
+      style: 'ghost',
+      selector: '.button.is-ghost, .button.is-ghost.is-outlined',
+      label: '.button.is-ghost',
+    },
+  ];
+
+  // The rule Bulma paints a style's label in. `.button.is-text` is also a
+  // color in Bulma's loop, which comes first and paints nothing.
+  const labelRule = (selector: string) => {
+    let found = -1;
+    BULMA.forEach((rule, index) => {
+      if (rule.selector === selector && 'color' in rule.declarations) {
+        found = index;
+      }
+    });
+    return found;
+  };
+
+  it('sets a ring color for these styles, and only them', () => {
+    expect(PLAIN.filter(rings).map(rule => rule.selector)).toEqual(
+      STYLES.map(({ selector }) => selector)
+    );
+    expect(PLAIN.filter(rings).every(rule => !rule.context.length)).toBe(true);
+  });
+
+  it.each(STYLES)(
+    'draws a loading $style button’s ring in the color Bulma paints its label',
+    ({ selector, label }) => {
+      expect(labelRule(label)).toBeGreaterThan(-1);
+      expect(find(PLAIN, selector)['--bulma-loading-color']).toBe(
+        BULMA[labelRule(label)].declarations.color
+      );
+    }
+  );
+
+  it("outranks each of Bulma's ring colors a button with that style also matches, whichever loads first", () => {
+    const theirs = BULMA.filter(rings).flatMap(rule =>
+      selectorsIn(rule.selector)
+    );
+    // On every button, and again on an outlined one.
+    expect(theirs).toEqual(['.button', '.button.is-outlined']);
+    for (const part of STYLES.flatMap(({ selector }) =>
+      selectorsIn(selector)
+    )) {
+      const element = document.createElement('button');
+      element.className = withoutWhere(part)
+        .split('.')
+        .filter(Boolean)
+        .join(' ');
+      for (const other of theirs.filter(o => element.matches(o))) {
+        expect([part, other, weight(part) > weight(other)]).toEqual([
+          part,
+          other,
+          true,
+        ]);
+      }
+    }
+  });
+
+  it('gives a text or ghost style the tie with inverted, as Bulma draws it over inverted', () => {
+    const order = (style: string) =>
+      PLAIN.findIndex(
+        rule =>
+          rule.selector ===
+          STYLES.find(entry => entry.style === style)!.selector
+      );
+    // A tie, which only holds while the inverted rule's guard weighs nothing.
+    // Read off the compiled rules.
+    const compiled = (style: string) =>
+      selectorsIn(
+        PLAIN.filter(rings).find(rule =>
+          rule.selector.includes(`.is-${style}`)
+        )!.selector
+      );
+    expect(compiled('inverted').map(weight)).toEqual(
+      compiled('text').map(weight)
+    );
+    expect(compiled('inverted').map(weight)).toEqual(
+      compiled('ghost').map(weight)
+    );
+    // `weight` reads classes alone, so check the guard is all in `:where()`:
+    // without it the selectors are the classes alone, as text's are.
+    expect(compiled('inverted').map(withoutWhere)).toEqual([
+      '.button.is-inverted',
+      '.button.is-inverted.is-outlined',
+    ]);
+    expect(order('text')).toBeGreaterThan(order('inverted'));
+    expect(order('ghost')).toBeGreaterThan(order('inverted'));
+    // Bulma's own label rules, in the same order.
+    expect(labelRule('.button.is-text')).toBeGreaterThan(
+      labelRule('.button.is-inverted')
+    );
+    expect(labelRule('.button.is-ghost')).toBeGreaterThan(
+      labelRule('.button.is-inverted')
+    );
+  });
+
+  it('gives a ghost LinkButton’s ring the text color its label has, over the ghost button’s', () => {
+    const link = rulesOf(compile(`@use 'elements/linkbutton';`));
+    const ghost = find(link, '.button.link-button.is-ghost');
+    expect(ghost['--bulma-loading-color']).toBe(
+      'var(--bulma-link-button-ghost-color)'
+    );
+    expect(ghost.color).toBe('var(--bulma-link-button-ghost-color)');
+    expect(weight('.button.link-button.is-ghost')).toBeGreaterThan(
+      weight('.button.is-ghost')
+    );
+  });
+
+  it('leaves a disabled inverted button to Bulma where its disabled fill wins, and only there', () => {
+    // Bulma's ring is the filled label's color, which shows on the disabled
+    // fill, where the inverted label takes the fill's own color. That's a
+    // colored disabled button, and any in a disabled fieldset. An uncolored
+    // disabled one keeps its inverted fill, so it keeps this ring.
+    const inverted = PLAIN.filter(rings).find(rule =>
+      rule.selector.includes('is-inverted')
+    )!;
+    const parts = selectorsIn(inverted.selector);
+    const { container } = render(
+      <>
+        <Button color="primary" isInverted isLoading disabled>
+          Disabled
+        </Button>
+        <fieldset disabled>
+          <Button isInverted isLoading>
+            In a fieldset
+          </Button>
+        </fieldset>
+        <Button isInverted isLoading disabled>
+          Uncolored
+        </Button>
+        <Button color="primary" isInverted isLoading>
+          Enabled
+        </Button>
+      </>
+    );
+    const [disabled, inFieldset, uncolored, enabled] = Array.from(
+      container.querySelectorAll('.button')
+    );
+    const matched = (el: Element) => parts.some(part => el.matches(part));
+    expect([
+      matched(disabled),
+      matched(inFieldset),
+      matched(uncolored),
+      matched(enabled),
+    ]).toEqual([false, false, true, true]);
+  });
+
+  it.each<[string, ReactElement]>([
+    [
+      'an inverted Button',
+      <Button key="x" color="primary" isInverted isLoading>
+        Save
+      </Button>,
+    ],
+    [
+      'a text Button',
+      <Button key="x" color="text" isLoading>
+        Save
+      </Button>,
+    ],
+    [
+      'an outlined ghost Button',
+      <Button key="x" color="ghost" isOutlined isLoading>
+        Save
+      </Button>,
+    ],
+    [
+      'a LinkButton',
+      <LinkButton key="x" isLoading>
+        Save
+      </LinkButton>,
+    ],
+    [
+      'an underline LinkButton',
+      <LinkButton key="x" variant="underline" isLoading>
+        Save
+      </LinkButton>,
+    ],
+    [
+      'a ghost LinkButton',
+      <LinkButton key="x" variant="ghost" isLoading>
+        Save
+      </LinkButton>,
+    ],
+  ])('matches %s', (_name, element) => {
+    const { container } = render(element);
+    const button = container.querySelector('.button')!;
+    expect(
+      PLAIN.filter(rings).some(rule =>
+        selectorsIn(rule.selector).some(part => button.matches(part))
+      )
+    ).toBe(true);
   });
 });

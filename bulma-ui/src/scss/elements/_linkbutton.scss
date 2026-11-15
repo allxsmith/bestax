@@ -34,6 +34,13 @@ $link-button-ghost-hover-color: cv.getVar("text-strong") !default;
 
   // Ghost variant: use default text color instead of link color, remove underline
   &.#{iv.$class-prefix}is-ghost {
+    // A loading one draws its ring in the same color, where `_button.scss`
+    // gives a ghost button the link color its label has.
+    @include cv.register-vars(
+      (
+        "loading-color": #{cv.getVar("link-button-ghost-color")},
+      )
+    );
     color: cv.getVar("link-button-ghost-color");
     text-decoration: none;
 

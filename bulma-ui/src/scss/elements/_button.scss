@@ -30,16 +30,21 @@
 // it. It has no fill to lose, and a border at rest would draw a box around a
 // link, so the loop leaves it out.
 //
+// A loading inverted, text or ghost button draws its ring in its label's
+// color, which Bulma leaves out (below).
+//
 // Bulma's CSS can land on either side of this partial, as `_loader.scss`
 // says, so each selector outranks Bulma's rule by its classes: the ghost rule
 // has three to the mixin's two, the forced colors outline names `.button`
 // twice, as `_delete.scss` does, and the border names the color class twice
 // to outrank Bulma's `.button.is-<color>`.
 
+@use 'sass:list';
 @use 'sass:map';
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
 @use 'bulma/sass/utilities/derived-variables' as dv;
+@use '../color-classes' as *;
 
 @mixin -focus-outline {
   outline-color: hsl(
@@ -55,6 +60,51 @@
 .#{iv.$class-prefix}button.#{iv.$class-prefix}is-ghost:focus-visible,
 .#{iv.$class-prefix}button.#{iv.$class-prefix}is-ghost.#{iv.$class-prefix}is-focused {
   @include -focus-outline;
+}
+
+// A loading button hides its label and draws Bulma's ring in its place, in
+// `--bulma-loading-color`. Bulma sets that on every button to a filled
+// button's label color, and on an outlined one to the outlined label's. The
+// other styles that paint their label in another color keep the filled one,
+// so the ring doesn't show: an inverted button's is its own fill, and a text
+// or ghost button's is a filled button's label with no fill behind it, near
+// white for `text`. These give each the color its style gives the label, as
+// Bulma does for outlined. Each selector outranks Bulma's `.button`, and with
+// `.is-outlined` Bulma's `.button.is-outlined`, whichever sheet loads first.
+// Bulma draws a text or ghost style over an inverted one, so those come
+// after and win the tie.
+//
+// Bulma's disabled fill wins over the inverted one on a colored button and in
+// a disabled fieldset, and the inverted label then takes the fill's own color
+// and vanishes, while Bulma's ring, in the filled label's color, shows on it.
+// So the inverted rule leaves those two to Bulma, and only those: an
+// uncolored disabled button keeps its inverted fill. `:where()` keeps the
+// guard from weighing anything, so a text or ghost style still wins the tie.
+$-ring-colors: (
+  'inverted': (
+    hsl(
+      #{cv.getVar('button-h')},
+      #{cv.getVar('button-s')},
+      #{cv.getVar('button-background-l')}
+    ),
+    ':where(:not(fieldset[disabled] *, [disabled]:is(#{extras-color-classes('text')})))',
+  ),
+  'text': (cv.getVar('button-text-color'), ''),
+  'ghost': (cv.getVar('button-ghost-color'), ''),
+);
+
+@each $style, $ring in $-ring-colors {
+  $color: list.nth($ring, 1);
+  $guard: list.nth($ring, 2);
+
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}is-#{$style}#{$guard},
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}is-#{$style}.#{iv.$class-prefix}is-outlined#{$guard} {
+    @include cv.register-vars(
+      (
+        'loading-color': #{$color},
+      )
+    );
+  }
 }
 
 @media (forced-colors: active) {
