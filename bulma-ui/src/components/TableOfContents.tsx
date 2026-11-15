@@ -49,7 +49,7 @@ export interface TableOfContentsProps
   /** Additional CSS classes to apply. */
   className?: string;
   /**
-   * **Required.** The sections, in page order, as links to their ids. Each
+   * The sections, in page order, as links to their ids. Each
    * link is a plain `<a href="#id">`, so following one is the browser's own
    * jump: put `scroll-padding-top` on the page to land clear of a sticky
    * header, and smooth scrolling, if you want it, in page CSS inside

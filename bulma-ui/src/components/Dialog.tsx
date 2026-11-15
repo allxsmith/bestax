@@ -23,11 +23,11 @@ export interface DialogProps
   extends
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'color'> {
-  /** Whether the dialog is open (required). */
+  /** Whether the dialog is open. */
   isOpen: boolean;
   /** Dialog title. */
   title?: string;
-  /** Dialog message/content (required). */
+  /** Dialog message/content. */
   message: string | React.ReactNode;
   /** The type/color of the dialog. Default: 'default'. */
   type?: DialogType;

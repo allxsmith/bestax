@@ -262,7 +262,7 @@
           "name": "value",
           "type": "string",
           "default": null,
-          "description": "**Required.** Identifies the item in `selected`, `checked` and `expanded`. Unique in the tree.",
+          "description": "Identifies the item in `selected`, `checked` and `expanded`. Unique in the tree.",
           "required": true,
           "inherited": false,
           "deprecated": false
@@ -271,7 +271,7 @@
           "name": "label",
           "type": "React.ReactNode",
           "default": null,
-          "description": "**Required.** What the row shows, and the item's name for assistive tech. Nothing in it should be a link or a button: a tree item does one thing, and nothing else in its row takes focus.",
+          "description": "What the row shows, and the item's name for assistive tech. Nothing in it should be a link or a button: a tree item does one thing, and nothing else in its row takes focus.",
           "required": true,
           "inherited": false,
           "deprecated": false

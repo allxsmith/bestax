@@ -281,7 +281,7 @@
           "name": "label",
           "type": "React.ReactNode",
           "default": null,
-          "description": "**Required.** The section's heading, drawn like `Menu.Label` inside the button that opens and closes it. Keep links and buttons out of it, since it's inside one.",
+          "description": "The section's heading, drawn like `Menu.Label` inside the button that opens and closes it. Keep links and buttons out of it, since it's inside one.",
           "required": true,
           "inherited": false,
           "deprecated": false

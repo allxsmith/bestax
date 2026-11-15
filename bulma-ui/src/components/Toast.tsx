@@ -43,7 +43,7 @@ export interface ToastProps
   extends
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'color'> {
-  /** The message to display (required). */
+  /** The message to display. */
   message: string;
   /** Color variant — colors the toast **background**. */
   type?: ToastType;

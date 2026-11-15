@@ -350,7 +350,7 @@ export interface SegmentedControlSegmentProps
       | 'aria-pressed'
     > {
   /**
-   * **Required.** What `onChange` reports when this segment is checked, and
+   * What `onChange` reports when this segment is checked, and
    * what the group's `value` and `defaultValue` name it by. Unique within the
    * group.
    */

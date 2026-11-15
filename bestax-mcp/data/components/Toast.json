@@ -51,7 +51,7 @@
           "name": "message",
           "type": "string",
           "default": null,
-          "description": "The message to display (required).",
+          "description": "The message to display.",
           "required": true,
           "inherited": false,
           "deprecated": false

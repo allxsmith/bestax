@@ -47,7 +47,7 @@
           "name": "isOpen",
           "type": "boolean",
           "default": null,
-          "description": "Whether the dialog is open (required).",
+          "description": "Whether the dialog is open.",
           "required": true,
           "inherited": false,
           "deprecated": false
@@ -65,7 +65,7 @@
           "name": "message",
           "type": "string | React.ReactNode",
           "default": null,
-          "description": "Dialog message/content (required).",
+          "description": "Dialog message/content.",
           "required": true,
           "inherited": false,
           "deprecated": false
