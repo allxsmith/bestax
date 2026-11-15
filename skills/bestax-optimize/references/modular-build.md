@@ -82,7 +82,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 `loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `steps`, `sidebar`,
 `toast`, `dialog`, `carousel`, `lightbox`, `tabs`, `menu`, `tableofcontents`, `reveal`, `avatar`, `avatars`,
 `badge`, `emptystate`, `timeline`, `treeview`, `scrollarea`, `command`, `datatable`,
-`pagination`, `affix`, `navbar`, `panel`
+`pagination`, `affix`, `navbar`, `panel`, `tour`
 
 **Layout** (`@allxsmith/bestax-bulma/scss/layout/<name>`): `appframe`, `splitter`, `stack`
 
@@ -96,7 +96,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 `delete`, `descriptionlist`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`,
 `progress`, `ringprogress`, `skeleton`, `stat`, `tag`
 
-**Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `cursor`, `sizing`
+**Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `cursor`, `sizing`, `visibility`
 
 Notes:
 
@@ -112,6 +112,16 @@ Notes:
   ```scss
   @use 'bulma/sass/components/tabs';
   @use '@allxsmith/bestax-bulma/scss/components/tabs' as bestax-tabs;
+  ```
+
+- The `visibility` helpers partial **extends** stock Bulma's visibility helpers: it draws
+  `is-sr-only` at each breakpoint, which Bulma draws at every width only and the viewport
+  visibility props write for `'sr-only'` (`visibilityTablet="sr-only"`). An app using those adds
+  it, in either order with Bulma's own visibility helpers when it uses them too:
+
+  ```scss
+  @use 'bulma/sass/helpers/visibility';
+  @use '@allxsmith/bestax-bulma/scss/helpers/visibility' as bestax-visibility;
   ```
 
 - The `menu` partial **extends** stock Bulma menu (it draws `Menu.Section`'s heading and chevron,
@@ -137,9 +147,10 @@ Notes:
   ```
 
 - The `navbar` partial **extends** stock Bulma navbar (it keeps the burger's bars in
-  ButtonText in forced colors, where Chromium paints them in the page's Canvas color, and keeps a
-  `fixed` navbar in place while an overlay locks the page's scrolling), so an app using `Navbar`
-  needs both, in either order. `AppFrame.Burger` renders `Navbar.Burger`, so a build with one
+  ButtonText in forced colors, where Chromium paints them in the page's Canvas color, keeps a
+  `fixed` navbar in place while an overlay locks the page's scrolling, and draws a navbar in a
+  colored `Hero` in the hero's colors, where Bulma's draws its active item and burger in the link
+  color), so an app using `Navbar` needs both, in either order. `AppFrame.Burger` renders `Navbar.Burger`, so a build with one
   wants this partial too:
 
   ```scss
@@ -148,8 +159,9 @@ Notes:
   ```
 
 - The `panel` partial **extends** stock Bulma panel (it keeps the heading of a panel with no
-  `color` readable on the dark scheme, where Bulma writes it white on light gray), so an app
-  using `Panel` needs both, in either order:
+  `color` readable on the dark scheme, where Bulma writes it white on light gray, and the text
+  of a colored panel's active block and tab readable on both schemes), so an app using `Panel` needs both,
+  in either order:
 
   ```scss
   @use 'bulma/sass/components/panel';
@@ -214,6 +226,9 @@ Notes:
 - `AppFrame.Nav rail` shows each label of its rail in a `Tooltip`, so an app with a rail needs
   `scss/components/tooltip` next to `scss/layout/appframe`, plus Menu's two partials (above),
   which set the menu's icons.
+- `Tour` draws a step's Skip, Back and Next as Bulma buttons and its close button as a delete
+  button, so an app using it needs `bulma/sass/elements/button`, `bulma/sass/elements/delete`
+  and the `delete` partial next to `scss/components/tour`.
 - `ContextMenu`'s menu is Bulma's dropdown markup, so an app using it needs
   `bulma/sass/components/dropdown` next to `scss/components/contextmenu`.
 - `Lightbox`'s viewer is Bulma's modal, with Bulma buttons for its controls and a `Loader` for a
@@ -242,9 +257,10 @@ Notes:
   or light notification. It doesn't depend on the order of the two `@use` lines either.
 - `Tag` is stock Bulma too (`bulma/sass/elements/tag`). The `tag` extras partial gives a light tag
   the light color's own text, where Bulma's module lets its text inherit the color around it, which
-  on the dark scheme leaves it hard to read. Include it (`as bestax-tag`) next to the Bulma module
-  in any build that shows a light tag. It doesn't depend on the order of the two `@use` lines
-  either.
+  on the dark scheme leaves it hard to read, and sets a normal-size tag in a table cell at the
+  bottom of its line, where Bulma's baseline makes the row taller than a row of text. Include it (`as bestax-tag`) next
+  to the Bulma module in any build that shows a light tag or a tag in a table. It doesn't depend on
+  the order of the two `@use` lines either.
 - `Delete` is stock Bulma too, and it's the close button of `Notification`, `Message`, `Toast`, a
   `Modal` card, `AppFrame`'s drawer and the tags of `Taginput`, `Combobox`, `Dropzone` and
   `TreeSelect`. Bulma draws it in `bulma/sass/elements/delete`, and the modules of the components
@@ -293,17 +309,20 @@ not `flexbox` — `flexbox` holds only the alignment props. Verified failure mod
 `visibility` and every `display="flex"` silently renders `block`.
 
 ```scss
-@use 'bulma/sass/helpers/spacing'; // m*/p* props
-@use 'bulma/sass/helpers/gap'; // gap/columnGap/rowGap/gapless props, Grid's gap props included
+// In Bulma's own order: its helpers are all !important with one class, so the
+// later one wins, and is-sr-only comes after spacing, overflow and position.
+@use 'bulma/sass/helpers/aspect-ratio'; // aspectRatio prop
+@use 'bulma/sass/helpers/border'; // radius sizes (small/normal/large/rounded)
 @use 'bulma/sass/helpers/color'; // color/backgroundColor props, has-text-*/has-background-*
-@use 'bulma/sass/helpers/typography'; // textSize/textAlign/textTransform/textWeight/fontFamily
-@use 'bulma/sass/helpers/visibility'; // display/visibility props incl. display="flex" (is-flex/is-block/is-hidden*)
 @use 'bulma/sass/helpers/flexbox'; // flex* alignment props (justifyContent/alignItems/flexGrow…) — NOT display="flex"
 @use 'bulma/sass/helpers/float'; // float/clearfix props
+@use 'bulma/sass/helpers/gap'; // gap/columnGap/rowGap/gapless props, Grid's gap props included
 @use 'bulma/sass/helpers/overflow'; // overflow/overflowX/overflowY props
 @use 'bulma/sass/helpers/position'; // pos/relative/overlay props
-@use 'bulma/sass/helpers/border'; // radius sizes (small/normal/large/rounded)
-@use 'bulma/sass/helpers/aspect-ratio'; // aspectRatio prop
+@use 'bulma/sass/helpers/spacing'; // m*/p* props
+@use 'bulma/sass/helpers/typography'; // textSize/textAlign/textTransform/textWeight/fontFamily
+@use 'bulma/sass/helpers/visibility'; // display/visibility props incl. display="flex" (is-flex/is-block/is-hidden*)
+@use '@allxsmith/bestax-bulma/scss/helpers/visibility' as bestax-visibility; // visibility*="sr-only" at a breakpoint (is-sr-only-tablet…)
 @use 'bulma/sass/helpers/other'; // interaction, radius="radiusless", shadow="shadowless"
 ```
 

@@ -175,3 +175,21 @@ export function typecheckTsx(source: string, label: string): TypecheckResult {
     removeDir(dir);
   }
 }
+
+/**
+ * tsc reports a row by line number, and a bare "Type 'false' does not satisfy
+ * the constraint 'true'" says nothing about which row drifted. Quote the line
+ * of `source` beside each diagnostic `typecheckTsx` returned for it, so a
+ * failure names its row.
+ */
+export function annotate(diagnostics: string, source: string): string {
+  const lines = source.split('\n');
+  return diagnostics
+    .split('\n')
+    .map(line => {
+      const at = /check\.tsx\((\d+),/.exec(line);
+      const row = at && lines[Number(at[1]) - 1];
+      return row ? `${line}\n    ↳ ${row.trim()}` : line;
+    })
+    .join('\n');
+}

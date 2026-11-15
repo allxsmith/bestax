@@ -498,6 +498,21 @@ const PROPS: Record<string, Record<string, unknown>> = {
     marks: [{ value: 50, label: '50' }],
     tooltip: 'always',
   },
+  // Open on its second step, so Back is swept with every part a step
+  // renders. Its steps have no target, so the step is centered with no
+  // spotlight; Tour.test.tsx sweeps the spotlight under a prefix.
+  Tour: {
+    defaultOpen: true,
+    defaultValue: 1,
+    children: [
+      <Library.Tour.Step key="one" title="One">
+        One
+      </Library.Tour.Step>,
+      <Library.Tour.Step key="two" title="Two">
+        Two
+      </Library.Tour.Step>,
+    ],
+  },
   // Checked, clearable, coloured, sized, rounded and open in place, with a
   // search box and a message, so the field's, the tags', the panel's and
   // the tree's classes are swept together.

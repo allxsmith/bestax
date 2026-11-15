@@ -77,6 +77,8 @@ const DOCS_ONLY_MODULE = join(
 );
 /** "Declared but never read" and "all imports in a declaration are unused". */
 const UNUSED = new Set([6133, 6192]);
+/** A docs page's address, as the sandbox buttons pass one. */
+const SANDBOX_PAGE = 'https://bestax.io/docs/';
 
 /**
  * The compiler options the vite-ts template compiles `src/` with, changed
@@ -279,6 +281,9 @@ export function checkSandboxes(pages, tools) {
         libraryExports: tools.libraryNames,
         reactNames: REACT_SCOPE_NAMES,
         docsOnlyNames: DOCS_ONLY_NAMES,
+        // A page address, as the buttons pass one, so the module checked is
+        // the one a sandbox gets, its site images pointed at the site.
+        sourceUrl: SANDBOX_PAGE,
       });
       if (!example) continue;
       modules.set(modulePath('sandbox_', file, fence), {
@@ -501,9 +506,11 @@ describe('every live example converts into a sandbox App.tsx that type-checks', 
       { ...tools, libraryNames: [...tools.libraryNames, 'Bogus'] }
     );
     assert.equal(found.length, 1, found.join('\n'));
+    // The module opens with the line naming its page and a blank one, as a
+    // sandbox's does, so the import is its third line.
     assert.match(
       found[0],
-      /^fixture\/bogus\.md:3: App\.tsx line 1: TS2305 .*'Bogus'/
+      /^fixture\/bogus\.md:3: App\.tsx line 3: TS2305 .*'Bogus'/
     );
   });
 

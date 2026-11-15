@@ -186,7 +186,6 @@ export interface Catalog {
 export interface SkillFile {
   id: string;
   file: string;
-  bytes: number;
 }
 
 export interface Skill {
