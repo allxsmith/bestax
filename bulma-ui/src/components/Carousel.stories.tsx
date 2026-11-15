@@ -15,6 +15,24 @@ import { Column } from '../columns/Column';
 import SubTitle from '../elements/SubTitle';
 import { LocaleProvider } from '../helpers/LocaleProvider';
 
+// The stories load their photos from Picsum, which serves photos from
+// Unsplash, cropped to the size asked for. Each one is free to use under the
+// Unsplash License (https://unsplash.com/license), as its Unsplash page says.
+// The credit beside each Picsum id is the one on that page, which can spell a
+// name differently from Picsum's own `/id/<id>/info`.
+// - 1015: Oleksii Topolianskyi, Preikestolen, Forsand, Norway,
+//   https://unsplash.com/photos/-oWyJoSqBRM
+// - 1016: Philippe Wuyts, Kings Canyon, Petermann, Australia,
+//   https://unsplash.com/photos/_h7aBovKia4
+// - 1018: Andrew Ridley, Quiraing, Portree, United Kingdom,
+//   https://unsplash.com/photos/Kt5hRENuotI
+// - 1019: Patrick Fore, Fort Ebey State Park, Coupeville, United States,
+//   https://unsplash.com/photos/V6s1cmE39XM
+// - 1039: Andrew Coelho, Salt Creek Falls, United States,
+//   https://unsplash.com/photos/VB-w_3dnyvI
+// - 1043: Christian Joudrey, Yosemite National Park, United States,
+//   https://unsplash.com/photos/mWRR1xj95hg
+
 const meta: Meta<typeof Carousel> = {
   title: 'Components/Carousel',
   component: Carousel,

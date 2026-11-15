@@ -254,8 +254,10 @@ describe('Card Component', () => {
     expect(img).toHaveAttribute('alt', 'Custom Alt');
   });
 
-  test.each([undefined, null, false, '', 0, []])(
-    'renders no footer when footer is %p',
+  // Each value sits in a row of its own, since in a flat table Vitest titles `[]` as
+  // `undefined`.
+  test.each([[undefined], [null], [false], [''], [0], [[]]])(
+    'renders no footer when footer is %o',
     footer => {
       const { container } = render(<Card footer={footer}>Test</Card>);
       expect(container.querySelector('.card-footer')).toBeNull();

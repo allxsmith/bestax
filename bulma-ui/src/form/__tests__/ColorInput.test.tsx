@@ -329,21 +329,8 @@ describe('ColorInput', () => {
         const { container, onChange, onChangeEnd } = setup({ format: 'hex' });
         open();
         const square = container.querySelector('.color-area') as HTMLElement;
-        // jsdom has no PointerEvent; a MouseEvent of the type carries the
-        // coordinates, and React reads the native event.
-        const press = (type: string, y: number) => {
-          const event = new MouseEvent(type, {
-            bubbles: true,
-            cancelable: true,
-            clientX: 0,
-            clientY: y,
-          });
-          Object.defineProperty(event, 'pointerId', { value: 1 });
-          Object.defineProperty(event, 'pointerType', { value: 'mouse' });
-          fireEvent(square, event);
-        };
-        press('pointerdown', 100);
-        press('pointerup', 100);
+        fireEvent.pointerDown(square, { clientY: 100, pointerType: 'mouse' });
+        fireEvent.pointerUp(square, { clientY: 100, pointerType: 'mouse' });
         expect(field()).toHaveValue('#000000');
         expect(onChange).toHaveBeenCalledWith('#000000');
         expect(onChangeEnd).toHaveBeenLastCalledWith('#000000');

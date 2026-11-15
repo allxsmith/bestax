@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, userEvent, within } from 'storybook/test';
 import { Tooltip } from './Tooltip';
 import { Button } from '../elements/Button';
 import { Buttons } from '../elements/Buttons';
@@ -8,11 +10,18 @@ import { Content } from '../elements/Content';
 import { Icon } from '../elements/Icon';
 import { Paragraph } from '../elements/Paragraph';
 import { Field } from '../form/Field';
+import { Checkbox } from '../form/Checkbox';
 import { Control } from '../form/Control';
 import { Input } from '../form/Input';
 import { Columns } from '../columns/Columns';
 import { Column } from '../columns/Column';
 import { Grid } from '../grid/Grid';
+// The sample picture is a crop of a photo published on Unsplash under the
+// Unsplash License (https://unsplash.com/license):
+// - sample-lioness.jpg: "A close-up portrait of a lioness with amber eyes
+//   looking forward", by Samuel Scrimshaw,
+//   https://unsplash.com/photos/sseiVD2XsOk
+import lioness from '../../images/sample-lioness.jpg';
 
 const meta: Meta<typeof Tooltip> = {
   title: 'Components/Tooltip',
@@ -93,6 +102,16 @@ const meta: Meta<typeof Tooltip> = {
       control: 'boolean',
       description:
         'Show the tooltip with a tap on a touch screen; only for a trigger with no tap action of its own',
+    },
+    disabled: {
+      control: 'boolean',
+      description:
+        'Keep the tooltip closed, and its trigger unlinked from it, without remounting the trigger',
+    },
+    describesTrigger: {
+      control: 'boolean',
+      description:
+        "Make the tooltip its trigger's description; turn it off for one that only repeats the trigger's own name, such as an icon button's aria-label",
     },
   },
 };
@@ -215,6 +234,40 @@ export const AlwaysActive: Story = {
       </Tooltip>
     </Box>
   ),
+};
+
+/**
+ * A tooltip that applies only some of the time. `disabled` keeps it closed,
+ * and its trigger unlinked from it, while the trigger stays mounted, so one
+ * that has focus keeps it. Turned off again, it opens on the next hover or
+ * focus.
+ */
+export const Disabled: Story = {
+  render: function DisabledExample() {
+    const [disabled, setDisabled] = useState(true);
+    return (
+      <Box p="6">
+        <Block>
+          <Checkbox
+            checked={disabled}
+            onChange={e => setDisabled(e.target.checked)}
+          >
+            Disable the tooltip
+          </Checkbox>
+        </Block>
+        <Tooltip label="Saves a copy" disabled={disabled}>
+          <Button>Save</Button>
+        </Tooltip>
+      </Box>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const save = canvas.getByRole('button', { name: 'Save' });
+    await expect(save).not.toHaveAttribute('aria-describedby');
+    await userEvent.click(canvas.getByRole('checkbox'));
+    await expect(save).toHaveAttribute('aria-describedby');
+  },
 };
 
 /**
@@ -561,8 +614,10 @@ export const DifferentTriggers: Story = {
       </Tooltip>
       <Tooltip label="Tooltip on image" cursor="pointer">
         <img
-          src="https://bulma.io/assets/images/placeholders/64x64.png"
-          alt="Example"
+          src={lioness}
+          alt="A lioness looking straight ahead"
+          width={64}
+          height={64}
           tabIndex={0}
         />
       </Tooltip>
