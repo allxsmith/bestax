@@ -1002,9 +1002,10 @@ export const Calendar: React.FC<CalendarProps> = ({
     customMonthNames
       ? `${customMonthNames[d.getMonth()]} ${formatNumber(d.getFullYear())}`
       : formatDate(d, locale ? MONTH_YEAR : MONTH_YEAR_PLAIN, locale);
-  // The year in the calendar's digits. It's read off the date rather than
-  // `focusedYear`, which the memos below depend on, since handing a value to
-  // a function the compiler can't see into marks it as one that may change.
+  // Over the month and year grids the label is the year, in the calendar's
+  // digits. It's read off the date rather than `focusedYear`, which the memos
+  // below depend on, since handing a value to a function the compiler can't
+  // see into marks it as one that may change.
   const monthLabel = isDayGranularity
     ? monthHeading(shownMonths[0])
     : formatNumber(focusedDate.getFullYear());
