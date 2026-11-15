@@ -254,6 +254,16 @@ const MONTH_YEAR: Intl.DateTimeFormatOptions = {
   month: 'long',
 };
 
+/**
+ * The heading with no locale, in plain digits like the calendar's other
+ * numbers then, rather than the runtime's, which a server and a browser can
+ * disagree on.
+ */
+const MONTH_YEAR_PLAIN: Intl.DateTimeFormatOptions = {
+  ...MONTH_YEAR,
+  numberingSystem: 'latn',
+};
+
 /** A range's pending start: its start, when it has no end. */
 const pendingStartOf = (range?: DateRangeValue): Date | null =>
   range?.[0] && !range[1] ? startOfDay(range[0]) : null;
@@ -757,7 +767,7 @@ export const Calendar: React.FC<CalendarProps> = ({
     ? yearText
     : customMonthNames
       ? `${customMonthNames[focusedDate.getMonth()]} ${yearText}`
-      : formatDate(focusedDate, MONTH_YEAR, locale);
+      : formatDate(focusedDate, locale ? MONTH_YEAR : MONTH_YEAR_PLAIN, locale);
 
   // As the selection surface the year list is where focus moves, so its
   // window stays centred on the year focused at mount: re-centring on every

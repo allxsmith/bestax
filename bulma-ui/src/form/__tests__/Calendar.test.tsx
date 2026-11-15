@@ -2535,9 +2535,18 @@ describe('Calendar numbers in a locale', () => {
 
   it('keeps plain digits with no locale, whatever the runtime writes', () => {
     // A server and a browser can write numbers differently, so with no
-    // locale to agree on the calendar asks Intl for none.
-    // `format` is a getter that hands back a bound function.
-    const format = vi
+    // locale to agree on the calendar writes plain digits. This stands in
+    // for a runtime whose own locale is Egyptian Arabic: dates are written
+    // in it, and any number would come out as ٩. (`format` is a getter that
+    // hands back a bound function.)
+    const DateTimeFormat = Intl.DateTimeFormat;
+    const dates = vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(function (
+      locales?: Intl.LocalesArgument,
+      options?: Intl.DateTimeFormatOptions
+    ) {
+      return new DateTimeFormat(locales ?? 'ar-EG', options);
+    } as typeof Intl.DateTimeFormat);
+    const numbers = vi
       .spyOn(
         Intl.NumberFormat.prototype as { format: unknown },
         'format',
@@ -2546,10 +2555,14 @@ describe('Calendar numbers in a locale', () => {
       .mockReturnValue(() => '٩');
     try {
       const { container } = render(<PeriodHarness />);
+      expect(heading(container)).toBe('يونيو 2024');
       expect(days(container)[14]).toBe('15');
-      expect(format).not.toHaveBeenCalled();
+      fireEvent.click(container.querySelector('[aria-haspopup="listbox"]')!);
+      expect(focusedYearOption(container).textContent).toBe('2024');
+      expect(numbers).not.toHaveBeenCalled();
     } finally {
-      format.mockRestore();
+      dates.mockRestore();
+      numbers.mockRestore();
     }
   });
 
