@@ -217,6 +217,7 @@ describe.each([
         'box',
         'card',
         'message',
+        'modal',
         'timeline',
         'timeline-content',
         'timeline-item',
@@ -462,29 +463,14 @@ describe.each([
     expect(offenders).toEqual([]);
   });
 
-  it('gives the title and the time a Notification’s or a colored Hero’s own text color', () => {
+  it('gives the title and the time a Notification’s own text color', () => {
     // Bulma does the same for its titles there, since the scheme's text
-    // colors don't read on a colored surface.
-    const colors = [
-      'white',
-      'black',
-      'light',
-      'dark',
-      'text',
-      'primary',
-      'link',
-      'info',
-      'success',
-      'warning',
-      'danger',
-    ]
-      .map(name => p(`is-${name}`))
-      .join(', ');
-    const hero = `${p('hero')}:is(${colors})`;
+    // colors don't read on a colored Notification. A colored Hero's come
+    // through the timeline's variables, below.
     expect(
       declarations(
         compile(prefix),
-        `${p('notification')} ${p('timeline-title')}, ${p('notification')} ${p('timeline-time')}, ${hero} ${p('timeline-title')}, ${hero} ${p('timeline-time')}`
+        `${p('notification')} ${p('timeline-title')}, ${p('notification')} ${p('timeline-time')}`
       )
     ).toEqual({ color: 'currentcolor' });
   });
@@ -566,10 +552,11 @@ describe.each([
     expect(firstColor).toBeGreaterThan(lastState);
   });
 
-  // The page's colors don't stand out from a colored Notification, so there a
-  // timeline with no color takes the Notification's text color and fills its
-  // rings with its background (#1710). A color the caller set is kept.
-  describe('in a colored Notification', () => {
+  // The page's colors don't stand out from a colored Notification or Hero, so
+  // there a timeline with no color takes the surface's text color and fills
+  // its rings with its background (#1710, #1733). A color the caller set is
+  // kept.
+  describe('in a colored Notification or Hero', () => {
     /** The variables the top-level rules in `css` matching `el` declare. */
     const declaredOn = (css: string, el: Element) =>
       varsOn(
@@ -612,6 +599,11 @@ describe.each([
                 <Timeline.Item title="Packed" />
               </Timeline>
             </Card>
+            <div className={`${prefix}modal`}>
+              <Timeline active={0} data-testid="in-a-modal">
+                <Timeline.Item title="Packed" />
+              </Timeline>
+            </div>
           </Notification>
           <Box>
             <Notification color="info">
@@ -624,6 +616,13 @@ describe.each([
             <Timeline active={0} data-testid="in-a-hero">
               <Timeline.Item title="Packed" />
             </Timeline>
+            <Timeline
+              active={0}
+              color="warning"
+              data-testid="colored-in-a-hero"
+            >
+              <Timeline.Item title="Packed" />
+            </Timeline>
             <Box>
               <Timeline active={0} data-testid="on-a-box-in-a-hero">
                 <Timeline.Item title="Packed" />
@@ -634,6 +633,11 @@ describe.each([
                 <Timeline.Item title="Packed" />
               </Timeline>
             </Message>
+            <div className={`${prefix}modal`}>
+              <Timeline active={0} data-testid="in-a-modal-in-a-hero">
+                <Timeline.Item title="Packed" />
+              </Timeline>
+            </div>
             <Notification>
               <Timeline active={0} data-testid="in-a-note-in-a-hero">
                 <Timeline.Item title="Packed" />
@@ -671,10 +675,10 @@ describe.each([
       expect(vars('uncolored-note')['--bulma-timeline-active-color']).not.toBe(
         'currentColor'
       );
-      // A Box or a Card inside the Notification is a surface of its own, so a
-      // timeline on one keeps the page's look, while a colored Notification
-      // inside a Box is still the timeline's surface.
-      for (const id of ['on-a-box', 'on-a-card']) {
+      // A Box, a Card or a Modal inside the Notification is a surface of its
+      // own, so a timeline on one keeps the page's look, while a colored
+      // Notification inside a Box is still the timeline's surface.
+      for (const id of ['on-a-box', 'on-a-card', 'in-a-modal']) {
         expect([id, vars(id)['--bulma-timeline-active-color']]).not.toEqual([
           id,
           'currentColor',
@@ -683,21 +687,42 @@ describe.each([
       expect(vars('note-in-a-box')['--bulma-timeline-active-color']).toBe(
         'currentColor'
       );
-      // A colored Hero is the same: its text color and its background.
+      // A colored Hero is the same: its text color and its background, and
+      // its text color for the titles and the times, through their variables,
+      // so a timeline on a surface of its own inside the Hero keeps the
+      // page's.
       const hero = vars('in-a-hero');
       expect(hero['--bulma-timeline-active-color']).toBe('currentColor');
+      expect(hero['--bulma-timeline-title-color']).toBe('currentColor');
+      expect(hero['--bulma-timeline-time-color']).toBe('currentColor');
       expect(bare(hero['--bulma-timeline-marker-background'])).toBe(
         'hsl(var(--bulma-hero-h),var(--bulma-hero-s),var(--bulma-hero-background-l))'
       );
-      // A Box, a Message or a plain Notification inside the Hero keeps the
-      // page's look, and a colored Notification there is the nearest surface,
-      // so its fill is the Notification's, not the Hero's.
+      // A color on the timeline keeps its markers, and its titles and times
+      // still take the Hero's text color, as a Notification's do.
+      const coloredInHero = vars('colored-in-a-hero');
+      expect(coloredInHero['--bulma-timeline-active-color']).not.toBe(
+        'currentColor'
+      );
+      expect(coloredInHero['--bulma-timeline-title-color']).toBe(
+        'currentColor'
+      );
+      expect(coloredInHero['--bulma-timeline-time-color']).toBe('currentColor');
+      // A Box, a Message, a Modal or a plain Notification inside the Hero
+      // keeps the page's look, titles included, and a colored Notification
+      // there is the nearest surface, so its fill is the Notification's, not
+      // the Hero's.
       for (const id of [
         'on-a-box-in-a-hero',
         'in-a-message-in-a-hero',
+        'in-a-modal-in-a-hero',
         'in-a-note-in-a-hero',
       ]) {
         expect([id, vars(id)['--bulma-timeline-active-color']]).not.toEqual([
+          id,
+          'currentColor',
+        ]);
+        expect([id, vars(id)['--bulma-timeline-title-color']]).not.toEqual([
           id,
           'currentColor',
         ]);

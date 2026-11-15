@@ -1006,9 +1006,9 @@ sets that change's color to the color's `-on-scheme` variable directly, so
 `--bulma-steps-label-background` is the patch behind a side label, which hides the line under it.
 It's the page's color on its own, apart from the marker background.
 
-On a colored `Notification` or `Hero`, steps with no color set `--bulma-steps-default-color`,
-`--bulma-steps-marker-background`, `--bulma-steps-label-background` and the title colors from the
-surface, unless they're on a Box, a Card or a Message there, or in a Notification inside the
+On a colored `Notification` or `Hero`, steps set the title colors and
+`--bulma-steps-label-background` from the surface, and steps with no color set
+`--bulma-steps-default-color` and `--bulma-steps-marker-background` from it too, unless they're on a Box, a Card, a Message or a Modal there, or in a Notification inside the
 Hero. To retheme them there, set these on the steps themselves, through their `style`
 or a class loaded after bestax's stylesheet, or give them a `color`.
 
@@ -1087,7 +1087,9 @@ scales them all.
 
 In a colored `Notification` or `Hero`, a timeline with no color sets its neutral, active and icon
 colors to the surface's text color and its marker and icon backgrounds to the surface's
-background, unless it's on a Box, a Card or a Message there, or in a Notification inside the
+background, and in a colored Hero any timeline sets its title and time colors to the Hero's text
+color, unless it's on a Box, a Card, a Message or a Modal there, or in a
+Notification inside the
 Hero. To retheme one there, set these on the timeline
 itself, through its `style` or a class loaded after bestax's stylesheet, or give it a `color`.
 

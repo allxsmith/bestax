@@ -184,14 +184,11 @@ $timeline-time-size: 0.875em !default;
   font-size: cv.getVar("timeline-time-size");
 }
 
-// A Notification and a colored Hero set their own text color, and the
-// scheme's text colors don't read on a colored one, so the title and the time
-// take the surface's, the way Bulma's own titles do there. A Hero with no
-// color keeps the page's text, so it's left out.
+// A Notification sets its own text color, and the scheme's text colors don't
+// read on a colored one, so the title and the time take the Notification's,
+// the way Bulma's own titles do there. A colored Hero's are in its rule below.
 .#{iv.$class-prefix}notification .#{iv.$class-prefix}timeline-title,
-.#{iv.$class-prefix}notification .#{iv.$class-prefix}timeline-time,
-.#{iv.$class-prefix}hero:is(#{extras-color-classes()}) .#{iv.$class-prefix}timeline-title,
-.#{iv.$class-prefix}hero:is(#{extras-color-classes()}) .#{iv.$class-prefix}timeline-time {
+.#{iv.$class-prefix}notification .#{iv.$class-prefix}timeline-time {
   color: currentColor;
 }
 
@@ -398,14 +395,16 @@ $timeline-time-size: 0.875em !default;
 // either, so there a timeline with no color of its own draws its markers in
 // the surface's text color too, and fills its rings, its loader and its icon
 // circles with the surface's background. A color on the timeline or on an
-// item is kept, since whoever set it chose it. A Box, a Card or a Message
-// inside the surface is a surface of its own, in the page's colors, so a
-// timeline on one keeps the page's look, and so is a Notification inside a
+// item is kept, since whoever set it chose it. A colored Hero's titles and
+// times take its text color whatever the timeline's color, as a
+// Notification's do through their rule above. A Box, a Card, a Message or a
+// Modal inside the surface is a surface of its own, in the page's colors, so
+// a timeline on one keeps the page's look, and so is a Notification inside a
 // Hero, which its own rule, or the page's colors, take care of. Each rule
-// weighs what `.timeline` does, so it wins
-// over that by coming later, and a class that sets these variables on a
-// timeline still wins over it from a later sheet.
-@each $surface, $inner in ("notification": ("box", "card", "message"), "hero": ("box", "card", "message", "notification")) {
+// weighs what `.timeline` does, so it wins over that by coming later, and a
+// class that sets these variables on a timeline still wins over it from a
+// later sheet.
+@each $surface, $inner in ("notification": ("box", "card", "message", "modal"), "hero": ("box", "card", "message", "modal", "notification")) {
   $own-surfaces: ();
 
   @each $own in $inner {
@@ -433,5 +432,17 @@ $timeline-time-size: 0.875em !default;
         "timeline-marker-icon-color": currentColor,
       )
     );
+  }
+
+  @if $surface == "hero" {
+    :where(.#{iv.$class-prefix}#{$surface}:is(#{extras-color-classes()}))
+      .#{iv.$class-prefix}timeline:where(:not(#{$own-surfaces})) {
+      @include cv.register-vars(
+        (
+          "timeline-title-color": currentColor,
+          "timeline-time-color": currentColor,
+        )
+      );
+    }
   }
 }

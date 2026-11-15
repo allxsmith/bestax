@@ -537,21 +537,22 @@ button.#{iv.$class-prefix}steps-link {
 // ---- On a colored Notification or Hero ----------------------------------------
 
 // The page's colors don't stand out from a colored Notification or Hero, so
-// there steps with no color of their own take the surface's text color, which
-// Bulma picks to read on it, for their markers, numbers, lines and labels, the
-// way Bulma's own Tabs and Navbar do in a colored Hero, and fill their markers,
-// and the patch behind a side label, with the surface's background. Steps
-// with a color are kept, since whoever set it chose it. A Box, a Card or a
-// Message inside the surface is a surface of its own, in the page's colors,
-// so steps on one keep the page's look, and so is a Notification inside a
-// Hero, which its own rule, or the page's colors, take care of. Each rule
-// weighs what `.steps` does, so it wins over
-// that by coming later, and a class that sets these variables on the steps
-// still wins over it from a later sheet. The text color is written out from
-// the surface's own variables rather than as `currentColor`, since a
-// completed marker fills with it and sets its own color to the background,
-// which `currentColor` would then read.
-@each $surface, $inner in ("notification": ("box", "card", "message"), "hero": ("box", "card", "message", "notification")) {
+// there steps take the surface's text color, which Bulma picks to read on it,
+// for their labels, and the surface's background for the patch behind a side
+// label, as the surface's other text does. Steps with no color of their own
+// take its text color for their markers, numbers and lines too, the way
+// Bulma's own Tabs and Navbar do in a colored Hero, and fill their markers
+// with its background. A color is kept on the markers and lines it draws,
+// since whoever set it chose it. A Box, a Card, a Message or a Modal inside
+// the surface is a surface of its own, in the page's colors, so steps on one
+// keep the page's look, and so is a Notification inside a Hero, which its own
+// rule, or the page's colors, take care of. Each rule weighs what `.steps`
+// does, so it wins over that by coming later, and a class that sets these
+// variables on the steps still wins over it from a later sheet. The text
+// color is written out from the surface's own variables rather than as
+// `currentColor`, since a completed marker fills with it and sets its own
+// color to the background, which `currentColor` would then read.
+@each $surface, $inner in ("notification": ("box", "card", "message", "modal"), "hero": ("box", "card", "message", "modal", "notification")) {
   $own-surfaces: ();
 
   @each $own in $inner {
@@ -562,27 +563,35 @@ button.#{iv.$class-prefix}steps-link {
     );
   }
 
+  $text: hsl(
+    cv.getVar("#{$surface}-h"),
+    cv.getVar("#{$surface}-s"),
+    cv.getVar("#{$surface}-color-l")
+  );
+
+  $background: hsl(
+    cv.getVar("#{$surface}-h"),
+    cv.getVar("#{$surface}-s"),
+    cv.getVar("#{$surface}-background-l")
+  );
+
+  :where(.#{iv.$class-prefix}#{$surface}:is(#{extras-color-classes()}))
+    .#{iv.$class-prefix}steps:where(:not(#{$own-surfaces})) {
+    @include cv.register-vars(
+      (
+        "steps-label-background": #{$background},
+        "steps-title-color": #{$text},
+        "steps-title-active-color": #{$text},
+      )
+    );
+  }
+
   :where(.#{iv.$class-prefix}#{$surface}:is(#{extras-color-classes()}))
     .#{iv.$class-prefix}steps:where(:not(#{extras-color-classes()}, #{$own-surfaces})) {
-    $text: hsl(
-      cv.getVar("#{$surface}-h"),
-      cv.getVar("#{$surface}-s"),
-      cv.getVar("#{$surface}-color-l")
-    );
-
-    $background: hsl(
-      cv.getVar("#{$surface}-h"),
-      cv.getVar("#{$surface}-s"),
-      cv.getVar("#{$surface}-background-l")
-    );
-
     @include cv.register-vars(
       (
         "steps-default-color": #{$text},
         "steps-marker-background": #{$background},
-        "steps-label-background": #{$background},
-        "steps-title-color": #{$text},
-        "steps-title-active-color": #{$text},
       )
     );
   }

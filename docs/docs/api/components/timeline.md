@@ -219,7 +219,7 @@ the pending loader and the icon circles are filled with the surface's background
 timeline or on an item is kept, so on a colored surface set one only if it stands out from the
 surface's color. Elsewhere the rings and the loader are filled with the page's color, from
 `--bulma-timeline-marker-background`, which you can set on the timeline to match what's behind it.
-A timeline on a Box, a Card or a Message inside a colored Notification or Hero keeps the page's
+A timeline on a Box, a Card, a Message or a Modal inside a colored Notification or Hero keeps the page's
 look, since those are surfaces of their own, and one in a Notification inside a Hero follows the
 Notification. On any other surface of its own there, such as a wrapper with a
 `bgColor`, set `--bulma-timeline-marker-background` and `--bulma-timeline-marker-icon-background`

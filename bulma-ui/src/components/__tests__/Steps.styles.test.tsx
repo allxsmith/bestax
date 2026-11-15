@@ -13,6 +13,7 @@ import { Notification } from '../../elements/Notification';
 import { Hero } from '../../layout/Hero';
 import { Box } from '../../elements/Box';
 import { Card } from '../Card';
+import { Message } from '../Message';
 import { ConfigProvider } from '../../helpers/Config';
 import { compileSheet } from '../../__tests__/compile-scss';
 import { bulmaCss, rulesOf as parseSheet } from '../../__tests__/css-cascade';
@@ -593,12 +594,30 @@ describe.each([
               <Card>
                 <Steps value={1} items={ITEMS} data-testid="on-a-card" />
               </Card>
+              <Message>
+                <Steps value={1} items={ITEMS} data-testid="in-a-message" />
+              </Message>
+              <div className={`${prefix}modal`}>
+                <Steps value={1} items={ITEMS} data-testid="in-a-modal" />
+              </div>
             </Surface>
             <Box>
               <Surface color="info">
                 <Steps value={1} items={ITEMS} data-testid="surface-in-a-box" />
               </Surface>
             </Box>
+            <Hero color="link">
+              <Notification>
+                <Steps value={1} items={ITEMS} data-testid="note-in-a-hero" />
+              </Notification>
+              <Notification color="warning">
+                <Steps
+                  value={1}
+                  items={ITEMS}
+                  data-testid="colored-note-in-a-hero"
+                />
+              </Notification>
+            </Hero>
           </ConfigProvider>
         );
         const vars = (id: string) =>
@@ -621,17 +640,41 @@ describe.each([
         expect(bare(plain['--bulma-steps-label-background'])).toBe(
           background(surface)
         );
-        // Steps with a color keep the page's, and so do steps on a surface
-        // with no color, and steps on a Box or a Card inside the surface,
-        // which are surfaces of their own. A colored surface inside a Box is
-        // still the steps' surface.
+        // Steps with a color keep the page's markers, and their labels
+        // still take the surface's colors, as its other text does.
+        const colored = vars('colored');
+        expect(colored['--bulma-steps-default-color']).toBe(
+          'var(--bulma-text-weak)'
+        );
+        expect(colored['--bulma-steps-marker-background']).toBe(
+          'var(--bulma-scheme-main)'
+        );
+        for (const name of [
+          '--bulma-steps-title-color',
+          '--bulma-steps-title-active-color',
+        ]) {
+          expect([name, bare(colored[name])]).toEqual([name, text]);
+        }
+        expect(bare(colored['--bulma-steps-label-background'])).toBe(
+          background(surface)
+        );
+        // Steps on a surface with no color keep the page's look, and so do
+        // steps on a Box, a Card, a Message or a Modal inside the surface,
+        // which are surfaces of their own, as is a Notification inside a
+        // Hero. A colored surface inside a Box is still the steps' surface.
         for (const id of [
-          'colored',
           'uncolored-surface',
           'on-a-box',
           'on-a-card',
+          'in-a-message',
+          'in-a-modal',
+          'note-in-a-hero',
         ]) {
           expect([id, vars(id)['--bulma-steps-default-color']]).toEqual([
+            id,
+            'var(--bulma-text-weak)',
+          ]);
+          expect([id, vars(id)['--bulma-steps-title-color']]).toEqual([
             id,
             'var(--bulma-text-weak)',
           ]);
@@ -639,6 +682,13 @@ describe.each([
         expect(
           bare(vars('surface-in-a-box')['--bulma-steps-default-color'])
         ).toBe(text);
+        // A colored Notification inside a Hero is the nearest surface, so its
+        // steps take the Notification's colors, not the Hero's.
+        expect(
+          bare(vars('colored-note-in-a-hero')['--bulma-steps-default-color'])
+        ).toBe(
+          'hsl(var(--bulma-notification-h),var(--bulma-notification-s),var(--bulma-notification-color-l))'
+        );
         // The rule weighs what `.steps` does: the surface, the colors it
         // skips and the surfaces of their own sit in `:where()`, so a later
         // sheet's class that sets these variables on the steps still wins.
@@ -1005,11 +1055,28 @@ describe.each([
 ])('Steps on a colored surface in %s', (_name, prefix, sheet) => {
   let schemes: ReturnType<typeof schemesOf>;
   let surface: (name: string, color: string) => Vars;
+  let handsOver: (name: string) => boolean;
+  const pair = (name: string, lightness: string) =>
+    `hsl(var(--bulma-${name}-h), var(--bulma-${name}-s), var(--bulma-${name}-${lightness}))`;
   // A hook keeps Vitest's 10s default rather than `testTimeout`, and a whole
   // sheet can take longer than that to compile on a loaded machine.
   beforeAll(() => {
     const { rules } = parseSheet(sheet());
     schemes = schemesOf(rules);
+    const bare = (value: string) => value.replace(/\s+/g, '');
+    // The steps take the surface's pair only through their rule for it, so
+    // the measurements below hold only with it.
+    handsOver = name =>
+      rules.some(
+        rule =>
+          rule.selectorText.includes(`.${prefix}${name}:is(`) &&
+          rule.selectorText.includes(`.${prefix}steps`) &&
+          bare(rule.style.getPropertyValue('--bulma-steps-default-color')) ===
+            bare(pair(name, 'color-l')) &&
+          bare(
+            rule.style.getPropertyValue('--bulma-steps-marker-background')
+          ) === bare(pair(name, 'background-l'))
+      );
     surface = (name, color) => ({
       ...varsOn(rules, `.${prefix}${name}`),
       ...varsOn(rules, `.${prefix}${name}.${prefix}is-${color}`),
@@ -1032,18 +1099,13 @@ describe.each([
       ].map(color => [name, color])
     )
   )('draws them at 4.5:1 on a %s in %s, on both schemes', (name, color) => {
+    expect(handsOver(name)).toBe(true);
     const failures: string[] = [];
     for (const [scheme, page] of Object.entries(schemes)) {
       const vars = { ...page, ...surface(name, color) };
       const ratio = contrast(
-        substitute(
-          `hsl(var(--bulma-${name}-h), var(--bulma-${name}-s), var(--bulma-${name}-color-l))`,
-          vars
-        ),
-        substitute(
-          `hsl(var(--bulma-${name}-h), var(--bulma-${name}-s), var(--bulma-${name}-background-l))`,
-          vars
-        )
+        substitute(pair(name, 'color-l'), vars),
+        substitute(pair(name, 'background-l'), vars)
       );
       if (ratio < 4.5) failures.push(`${scheme}: ${ratio.toFixed(2)}:1`);
     }
