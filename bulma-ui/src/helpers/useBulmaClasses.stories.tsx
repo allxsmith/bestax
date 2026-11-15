@@ -228,11 +228,11 @@ function useSkeletonToggle(intervalMs = 3000) {
   return skeleton;
 }
 
-// --- Skeleton Stories for Each Component, using Skeleton Toggle ---
+// --- Skeleton stories for each component. A story that toggles between the
+// skeleton and its content says so in its name. ---
 
 export const SkeletonButton: Story = {
   render: () => <Button skeleton>Skeleton Button</Button>,
-  name: 'Skeleton Button (Toggles)',
 };
 
 export const SkeletonButtons: Story = {
@@ -243,12 +243,11 @@ export const SkeletonButtons: Story = {
       <Button skeleton>Skeleton</Button>
     </Buttons>
   ),
-  name: 'Skeleton Buttons Group (Toggles)',
+  name: 'Skeleton Buttons Group',
 };
 
 export const SkeletonIcon: Story = {
   render: () => <Icon name="star" skeleton ariaLabel="Star icon skeleton" />,
-  name: 'Skeleton Icon (Toggles)',
 };
 
 export const SkeletonImage: Story = {
@@ -260,7 +259,6 @@ export const SkeletonImage: Story = {
       size="128x128"
     />
   ),
-  name: 'Skeleton Image (Toggles)',
 };
 
 // Skeleton Media Component
@@ -293,12 +291,10 @@ export const SkeletonNotification: Story = {
   render: () => (
     <Notification skeleton>Skeleton notification message.</Notification>
   ),
-  name: 'Skeleton Notification (Toggles)',
 };
 
 export const SkeletonTag: Story = {
   render: () => <Tag skeleton>Skeleton Tag</Tag>,
-  name: 'Skeleton Tag (Toggles)',
 };
 
 export const SkeletonTitle: Story = {
@@ -307,7 +303,6 @@ export const SkeletonTitle: Story = {
       Skeleton Title
     </Title>
   ),
-  name: 'Skeleton Title (Toggles)',
 };
 
 export const SkeletonSubTitle: Story = {
@@ -316,17 +311,16 @@ export const SkeletonSubTitle: Story = {
       Skeleton SubTitle
     </SubTitle>
   ),
-  name: 'Skeleton SubTitle (Toggles)',
+  name: 'Skeleton SubTitle',
 };
 
 export const SkeletonInput: Story = {
   render: () => <Input skeleton placeholder="Skeleton Input" />,
-  name: 'Skeleton Input (Toggles)',
 };
 
 export const SkeletonTextArea: Story = {
   render: () => <TextArea skeleton placeholder="Skeleton TextArea" rows={3} />,
-  name: 'Skeleton TextArea (Toggles)',
+  name: 'Skeleton TextArea',
 };
 
 // --- Custom Stories for useBulmaClasses Example Coverage ---
