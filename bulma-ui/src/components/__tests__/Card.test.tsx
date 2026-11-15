@@ -243,6 +243,20 @@ describe('Card Component', () => {
     expect(img).toHaveAttribute('alt', 'Card image');
   });
 
+  test('renders a decorative <img> with an empty alt when imageAlt is ""', () => {
+    render(
+      <Card image="img.png" imageAlt="">
+        Test
+      </Card>
+    );
+    // An empty alt takes the image out of the accessibility tree, so it has
+    // no img role to query by.
+    expect(screen.queryByRole('img')).toBeNull();
+    const img = document.querySelector('img');
+    expect(img).toHaveAttribute('src', 'img.png');
+    expect(img).toHaveAttribute('alt', '');
+  });
+
   test('renders <img> with provided alt if imageAlt is given', () => {
     render(
       <Card image="img.png" imageAlt="Custom Alt">

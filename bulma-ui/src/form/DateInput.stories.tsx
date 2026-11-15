@@ -11,6 +11,7 @@ import { LocaleProvider } from '../helpers/LocaleProvider';
 import { TimeInput } from './TimeInput';
 import { DateTimeInput } from './DateTimeInput';
 import { DateRangeInput } from './DateRangeInput';
+import { Button } from '../elements/Button';
 
 const meta: Meta<typeof DateInput> = {
   title: 'Form/DateInput',
@@ -932,9 +933,9 @@ export const InForm: Story = {
           defaultValue={new Date()}
         />
         <Block>
-          <button type="submit" className="button is-primary">
+          <Button type="submit" color="primary">
             Submit
-          </button>
+          </Button>
         </Block>
         {submitted !== null && (
           <Paragraph>Submitted booking={submitted}</Paragraph>

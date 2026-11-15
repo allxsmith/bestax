@@ -2,6 +2,7 @@ import {
   getActiveElementInTree,
   getDeepestActiveElement,
   isEventInside,
+  shadowRootsAround,
 } from '../shadowDom';
 
 describe('shadowDom helpers', () => {
@@ -94,6 +95,37 @@ describe('shadowDom helpers', () => {
       nestedHost.attachShadow({ mode: 'open' }).appendChild(deep);
       deep.focus();
       expect(getActiveElementInTree(inner)).toBe(nestedHost);
+    });
+  });
+
+  describe('shadowRootsAround', () => {
+    it('lists the shadow roots around a node, its own first', () => {
+      const nestedHost = document.createElement('div');
+      shadowRoot.appendChild(nestedHost);
+      const nested = nestedHost.attachShadow({ mode: 'open' });
+      const deep = document.createElement('button');
+      nested.appendChild(deep);
+      expect(shadowRootsAround(deep)).toEqual([nested, shadowRoot]);
+      expect(shadowRootsAround(inner)).toEqual([shadowRoot]);
+    });
+
+    it('lists the shadow root of a component a node is slotted into', () => {
+      const scrollerHost = document.createElement('div');
+      const scrollerRoot = scrollerHost.attachShadow({ mode: 'open' });
+      scrollerRoot.innerHTML = '<div><slot></slot></div>';
+      const slotted = document.createElement('button');
+      scrollerHost.appendChild(slotted);
+      document.body.appendChild(scrollerHost);
+      expect(shadowRootsAround(slotted)).toEqual([scrollerRoot]);
+      scrollerHost.remove();
+    });
+
+    it('lists none for a node in the document, a detached one, or nothing', () => {
+      expect(shadowRootsAround(outside)).toEqual([]);
+      // An anchor has a `host` of its own, the URL's, and is no shadow root.
+      expect(shadowRootsAround(document.createElement('a'))).toEqual([]);
+      expect(shadowRootsAround(document.createDocumentFragment())).toEqual([]);
+      expect(shadowRootsAround(null)).toEqual([]);
     });
   });
 
