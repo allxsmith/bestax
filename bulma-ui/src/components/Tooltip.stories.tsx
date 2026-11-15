@@ -16,11 +16,7 @@ import { Input } from '../form/Input';
 import { Columns } from '../columns/Columns';
 import { Column } from '../columns/Column';
 import { Grid } from '../grid/Grid';
-// The sample picture is a crop of a photo published on Unsplash under the
-// Unsplash License (https://unsplash.com/license):
-// - sample-lioness.jpg: "A close-up portrait of a lioness with amber eyes
-//   looking forward", by Samuel Scrimshaw,
-//   https://unsplash.com/photos/sseiVD2XsOk
+// Credits and licenses for the pictures: ../../images/LICENSE.md
 import lioness from '../../images/sample-lioness.jpg';
 
 const meta: Meta<typeof Tooltip> = {

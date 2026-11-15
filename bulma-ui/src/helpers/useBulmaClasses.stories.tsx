@@ -24,11 +24,7 @@ import { Column } from '../columns/Column';
 import { Message } from '../components/Message';
 import { Link } from '../elements/Link';
 import { Paragraph } from '../elements/Paragraph';
-// The sample picture is a crop of a photo published on Unsplash under the
-// Unsplash License (https://unsplash.com/license):
-// - sample-lioness.jpg: "A close-up portrait of a lioness with amber eyes
-//   looking forward", by Samuel Scrimshaw,
-//   https://unsplash.com/photos/sseiVD2XsOk
+// Credits and licenses for the pictures: ../../images/LICENSE.md
 import lioness from '../../images/sample-lioness.jpg';
 
 // One look for the demo boxes in the layout stories, readable on both color

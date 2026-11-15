@@ -4,13 +4,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ProfileCard } from './ProfileCard';
 import { ExampleMeta } from './ExampleMeta';
 import { Box, Group, Title, SubTitle, Notification } from '../index';
-// Both portraits are in the public domain, per their Wikimedia Commons pages:
-// - portrait-ada-lovelace.jpg: Ada Lovelace, watercolor, about 1840, possibly
-//   by Alfred Edward Chalon (died 1860), Science Museum, London.
-//   https://commons.wikimedia.org/wiki/File:Ada_Lovelace_portrait.jpg
-// - portrait-alan-turing.jpg: passport photo of Alan Turing at 16, 1928 to
-//   1929, possibly by Arthur Reginald Chaffin (died 1954), published before
-//   1931. https://commons.wikimedia.org/wiki/File:Alan_Turing_Aged_16.jpg
+// Credits and licenses for the pictures: ../../images/LICENSE.md
 import adaLovelace from '../../images/portrait-ada-lovelace.jpg';
 import alanTuring from '../../images/portrait-alan-turing.jpg';
 
