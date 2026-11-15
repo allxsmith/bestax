@@ -815,6 +815,35 @@ describe('Popover', () => {
       });
     });
 
+    it('follows its trigger as a scrolling element inside a shadow root scrolls', () => {
+      setViewport(1000, 1000);
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const shadow = host.attachShadow({ mode: 'open' });
+      const scroller = document.createElement('div');
+      const container = document.createElement('div');
+      scroller.appendChild(container);
+      shadow.appendChild(scroller);
+      render(<FilterPopover defaultOpen appendToBody />, { container });
+      measure(
+        container,
+        rect({ top: 100, bottom: 130, left: 400, right: 460 }),
+        { width: 200, height: 150 }
+      );
+      const dialog = screen.getByRole('dialog');
+      expect(dialog.style.top).toBe('130px');
+      vi.spyOn(
+        container.querySelector('.popover')!,
+        'getBoundingClientRect'
+      ).mockReturnValue(rect({ top: 40, bottom: 70, left: 400, right: 460 }));
+      act(() => {
+        fireEvent.scroll(scroller);
+        vi.advanceTimersToNextFrame();
+      });
+      expect(dialog.style.top).toBe('70px');
+      host.remove();
+    });
+
     it('lines the default panel up with the left edge left to right', () => {
       setViewport(1000, 1000);
       const { container } = render(<FilterPopover defaultOpen appendToBody />);

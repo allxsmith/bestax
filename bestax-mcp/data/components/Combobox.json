@@ -212,7 +212,7 @@
         },
         {
           "name": "id",
-          "type": "string",
+          "type": "React.HTMLAttributes<HTMLElement>['id']",
           "default": null,
           "description": "The field's `id`, with `data`, which the label then points at, and so can a label of your own. Built from parts, it lands on `div.combobox`, so give `Combobox.Input` the `id` instead.",
           "required": false,
@@ -221,7 +221,7 @@
         },
         {
           "name": "aria-label",
-          "type": "string",
+          "type": "React.AriaAttributes['aria-label']",
           "default": null,
           "description": "Names the field and the list, with `data`, in place of a `label`. Built from parts, it lands on `div.combobox`, so put it on `Combobox.Input`.",
           "required": false,
@@ -230,7 +230,7 @@
         },
         {
           "name": "aria-labelledby",
-          "type": "string",
+          "type": "React.AriaAttributes['aria-labelledby']",
           "default": null,
           "description": "The ids of what names the field and the list, with `data`, in place of a `label`. Built from parts, it lands on `div.combobox`, so put it on `Combobox.Input`.",
           "required": false,

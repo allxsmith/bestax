@@ -61,7 +61,10 @@ export interface ModalProps
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Title/header for modal-card variant. (Legacy API only) */
   modalCardTitle?: React.ReactNode;
-  /** Footer for modal-card variant. (Legacy API only) */
+  /**
+   * Footer for modal-card variant. Group two or more buttons in `Buttons` so
+   * Bulma spaces them. (Legacy API only)
+   */
   modalCardFoot?: React.ReactNode;
   /**
    * Modal style: `'card'` for modal-card, `'content'` for modal-content. (Legacy API only)
@@ -274,7 +277,8 @@ export const ModalCardBody: React.FC<ModalCardBodyProps> = ({
 };
 
 /**
- * Modal.Card.Foot - Renders modal card footer section.
+ * Modal.Card.Foot - Renders modal card footer section. Group two or more
+ * buttons in `Buttons` so Bulma spaces them.
  *
  * @function
  * @param {ModalCardFootProps} props - Component props.

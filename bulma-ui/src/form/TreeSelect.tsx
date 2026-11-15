@@ -123,13 +123,13 @@ interface TreeSelectBaseProps
    */
   label?: React.ReactNode;
   /** The field's `id`, which the label then points at. The panel's is this one with `-panel` after it. */
-  id?: string;
+  id?: React.HTMLAttributes<HTMLElement>['id'];
   /** Names the field, and the panel and the tree, in place of a `label`. */
-  'aria-label'?: string;
+  'aria-label'?: React.AriaAttributes['aria-label'];
   /** The ids of what names the field, and the panel and the tree, in place of a `label`. */
-  'aria-labelledby'?: string;
+  'aria-labelledby'?: React.AriaAttributes['aria-labelledby'];
   /** The ids of what describes the field, ahead of the tags. */
-  'aria-describedby'?: string;
+  'aria-describedby'?: React.AriaAttributes['aria-describedby'];
   /** The open branches' values when you hold the state, as TreeView's `expanded`. */
   expanded?: string[];
   /** The branches open to begin with, when TreeSelect holds its own state. */
