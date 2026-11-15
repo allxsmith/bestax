@@ -45,15 +45,28 @@ Control the CSS display property using the `display` prop or viewport-specific d
 
 For responsive layouts requiring different display types across viewports, use the viewport-specific display properties:
 
-| Property            | Bulma Class Pattern       | Target Viewport  | Description                     |
-| ------------------- | ------------------------- | ---------------- | ------------------------------- |
-| `displayMobile`     | `is-{display}-mobile`     | Up to 768px      | Display type on mobile devices  |
-| `displayTablet`     | `is-{display}-tablet`     | 769px - 1023px   | Display type on tablet devices  |
-| `displayDesktop`    | `is-{display}-desktop`    | 1024px - 1215px  | Display type on desktop screens |
-| `displayWidescreen` | `is-{display}-widescreen` | 1216px - 1407px  | Display type on widescreen      |
-| `displayFullhd`     | `is-{display}-fullhd`     | 1408px and above | Display type on fullHD+         |
+| Property                | Bulma Class Pattern            | Target Viewport  |
+| ----------------------- | ------------------------------ | ---------------- |
+| `displayMobile`         | `is-{display}-mobile`          | Up to 768px      |
+| `displayTablet`         | `is-{display}-tablet`          | 769px and above  |
+| `displayTabletOnly`     | `is-{display}-tablet-only`     | 769px - 1023px   |
+| `displayTouch`          | `is-{display}-touch`           | Up to 1023px     |
+| `displayDesktop`        | `is-{display}-desktop`         | 1024px and above |
+| `displayDesktopOnly`    | `is-{display}-desktop-only`    | 1024px - 1215px  |
+| `displayWidescreen`     | `is-{display}-widescreen`      | 1216px and above |
+| `displayWidescreenOnly` | `is-{display}-widescreen-only` | 1216px - 1407px  |
+| `displayFullhd`         | `is-{display}-fullhd`          | 1408px and above |
 
 **Example:** `displayMobile="flex"` generates `is-flex-mobile`, `displayDesktop="none"` generates `is-hidden-desktop`
+
+`displayTablet`, `displayDesktop` and `displayWidescreen` apply from their breakpoint up, so they
+overlap the properties for larger screens, and where two properties overlap, the breakpoint doesn't
+decide which wins. `none` does, on either side, and
+between two display values the later in Bulma's order (block, flex, inline, inline-block,
+inline-flex, grid) does. So `displayTablet="none"` keeps an element hidden on desktop whatever
+`displayDesktop` asks, and `displayTablet="inline-block"` stays inline-block there over
+`displayDesktop="flex"`. To change the display at a larger breakpoint, set the smaller range with
+its `Only` property, such as `displayTabletOnly="none"`, which writes `is-hidden-tablet-only`.
 
 :::tip
 
@@ -157,7 +170,7 @@ function ViewportDisplayExamples() {
       </Content>
       <Box
         displayMobile="block"
-        displayTablet="inline-block"
+        displayTabletOnly="inline-block"
         displayDesktop="flex"
         p="3"
         mb="3"
@@ -174,7 +187,7 @@ function ViewportDisplayExamples() {
         <strong>Mobile Hidden, Desktop Visible:</strong> Show/hide across
         viewports
       </Content>
-      <Box displayMobile="none" displayDesktop="block" mb="3">
+      <Box displayTouch="none" mb="3">
         <Notification color="success">
           📱 Hidden on mobile/tablet, visible on desktop and larger
         </Notification>
@@ -211,7 +224,7 @@ For simple show/hide scenarios affecting a single viewport, use the `display` + 
 ```tsx live
 <>
   <p>Show only on desktop and larger</p>
-  <Box display="block" viewport="desktop">
+  <Box display="none" viewport="touch">
     Desktop+ only content
   </Box>
   <p>Hide only on mobile</p>
@@ -275,8 +288,8 @@ function GenericDisplayExample() {
         Hidden on mobile only
       </Box>
       <Box
-        display="block"
-        viewport="desktop"
+        display="none"
+        viewport="touch"
         bgColor="success"
         textColor="white"
         p="3"
@@ -315,7 +328,7 @@ function MultipleViewportExample() {
 
       <Box
         displayMobile="block"
-        displayTablet="inline-block"
+        displayTabletOnly="inline-block"
         displayDesktop="flex"
         p="3"
       >
@@ -333,7 +346,7 @@ function MultipleViewportExample() {
 
 :::info Precedence Rule
 
-When both patterns are used together, **viewport-specific properties take precedence** over the generic `display` + `viewport` combination.
+When both patterns are used together, **viewport-specific properties take precedence**: once any of them is set, the generic `display` (with or without `viewport`) is left out entirely, at every width, not only where the two overlap.
 
 ```tsx live
 import { Box } from '@allxsmith/bestax-bulma';
@@ -404,9 +417,7 @@ function ResponsiveShowHideExamples() {
         <strong>Desktop Only:</strong> Visible only on desktop screens
       </Content>
       <Box
-        displayMobile="none"
-        displayTablet="none"
-        displayDesktop="block"
+        displayTouch="none"
         displayWidescreen="none"
         bgColor="success"
         textColor="white"
@@ -420,8 +431,8 @@ function ResponsiveShowHideExamples() {
         <strong>Widescreen Only:</strong> Visible only on widescreen displays
       </Content>
       <Box
-        displayDesktop="none"
-        displayWidescreen="block"
+        displayTouch="none"
+        displayDesktopOnly="none"
         displayFullhd="none"
         bgColor="warning"
         textColor="dark"
@@ -435,8 +446,9 @@ function ResponsiveShowHideExamples() {
         <strong>FullHD Only:</strong> Visible only on fullHD displays
       </Content>
       <Box
-        displayWidescreen="none"
-        displayFullhd="block"
+        displayTouch="none"
+        displayDesktopOnly="none"
+        displayWidescreenOnly="none"
         bgColor="danger"
         textColor="white"
         p="3"
@@ -584,14 +596,7 @@ function HideExamples() {
           </Box>
 
           {/* Extended content hidden on mobile and tablet */}
-          <Box
-            displayMobile="none"
-            displayTablet="none"
-            displayDesktop="block"
-            bgColor="success"
-            textColor="white"
-            p="3"
-          >
+          <Box displayTouch="none" bgColor="success" textColor="white" p="3">
             Extended content only visible on desktop and larger screens.
           </Box>
         </Card.Content>
@@ -605,11 +610,11 @@ function HideExamples() {
 
 Additional visibility utilities for specific use cases.
 
-| Property                 | Bulma Class    | Description                               |
-| ------------------------ | -------------- | ----------------------------------------- |
-| `visibility="hidden"`    | `is-hidden`    | Element is not visible but takes up space |
-| `visibility="sr-only"`   | `is-sr-only`   | Only visible to screen readers            |
-| `visibility="invisible"` | `is-invisible` | Element is invisible but takes up space   |
+| Property                 | Bulma Class    | Description                             |
+| ------------------------ | -------------- | --------------------------------------- |
+| `visibility="hidden"`    | `is-hidden`    | Element is removed from the layout      |
+| `visibility="sr-only"`   | `is-sr-only`   | Only visible to screen readers          |
+| `visibility="invisible"` | `is-invisible` | Element is invisible but takes up space |
 
 ### Viewport-Specific Visibility Properties
 
@@ -618,9 +623,9 @@ Each visibility value (`'hidden'`, `'sr-only'`, `'invisible'`) can be scoped to 
 | Property               | Bulma Class Pattern     | Target Viewport  |
 | ---------------------- | ----------------------- | ---------------- |
 | `visibilityMobile`     | `is-{value}-mobile`     | Up to 768px      |
-| `visibilityTablet`     | `is-{value}-tablet`     | 769px – 1023px   |
-| `visibilityDesktop`    | `is-{value}-desktop`    | 1024px – 1215px  |
-| `visibilityWidescreen` | `is-{value}-widescreen` | 1216px – 1407px  |
+| `visibilityTablet`     | `is-{value}-tablet`     | 769px and above  |
+| `visibilityDesktop`    | `is-{value}-desktop`    | 1024px and above |
+| `visibilityWidescreen` | `is-{value}-widescreen` | 1216px and above |
 | `visibilityFullhd`     | `is-{value}-fullhd`     | 1408px and above |
 
 **Example:** `visibilityMobile="hidden"` generates `is-hidden-mobile`; `visibilityDesktop="invisible"` generates `is-invisible-desktop`.

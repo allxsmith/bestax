@@ -39,25 +39,43 @@ export interface BulmaTypographyProps extends BulmaViewportProps {
   textWeight?: (typeof validTextWeights)[number];
   /** Font family (e.g., 'sans-serif', 'code'). */
   fontFamily?: (typeof validFontFamilies)[number];
-  /** Text size for mobile viewport (up to 768px). */
+  /** Text size on mobile, up to 768px. */
   textSizeMobile?: (typeof validTextSizes)[number];
-  /** Text size for tablet viewport (769px - 1023px). */
+  /**
+   * Text size from 769px up, until a larger breakpoint's text size takes over.
+   */
   textSizeTablet?: (typeof validTextSizes)[number];
-  /** Text size for desktop viewport (1024px - 1215px). */
+  /**
+   * Text size from 1024px up, until a larger breakpoint's text size takes over.
+   */
   textSizeDesktop?: (typeof validTextSizes)[number];
-  /** Text size for widescreen viewport (1216px - 1407px). */
+  /** Text size from 1216px up, until `textSizeFullhd` takes over. */
   textSizeWidescreen?: (typeof validTextSizes)[number];
-  /** Text size for fullhd viewport (1408px and above). */
+  /** Text size from 1408px up. */
   textSizeFullhd?: (typeof validTextSizes)[number];
-  /** Text alignment for mobile viewport (up to 768px). */
+  /** Text alignment on mobile, up to 768px. */
   textAlignMobile?: (typeof validAlignments)[number];
-  /** Text alignment for tablet viewport (769px - 1023px). */
+  /**
+   * Text alignment from 769px up: on tablets and every larger screen. Bulma's
+   * classes for these carry `!important`, so where a larger breakpoint's
+   * alignment applies too, its stylesheet order picks the result, not the
+   * larger breakpoint: the later of centered, justified, left and right wins.
+   * So `textAlignTablet="right"` stays right on a desktop with
+   * `textAlignDesktop="left"`.
+   */
   textAlignTablet?: (typeof validAlignments)[number];
-  /** Text alignment for desktop viewport (1024px - 1215px). */
+  /**
+   * Text alignment from 1024px up. Where a larger breakpoint's alignment
+   * applies too, Bulma's stylesheet order picks the result, as on
+   * `textAlignTablet`.
+   */
   textAlignDesktop?: (typeof validAlignments)[number];
-  /** Text alignment for widescreen viewport (1216px - 1407px). */
+  /**
+   * Text alignment from 1216px up. Where `textAlignFullhd` applies too, Bulma's
+   * stylesheet order picks the result, as on `textAlignTablet`.
+   */
   textAlignWidescreen?: (typeof validAlignments)[number];
-  /** Text alignment for fullhd viewport (1408px and above). */
+  /** Text alignment from 1408px up. */
   textAlignFullhd?: (typeof validAlignments)[number];
 }
 

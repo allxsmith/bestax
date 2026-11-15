@@ -16,28 +16,38 @@ import {
 export interface BulmaVisibilityProps
   extends BulmaViewportProps, BulmaDisplayProps {
   /**
-   * Hides the element. `'hidden'` takes it off the page, `'invisible'` hides
-   * it and keeps its space, and `'sr-only'` (screen reader only) hides it
-   * visually while screen readers still read it.
+   * Hides the element. `'hidden'` takes it off the page, `'invisible'` hides it
+   * and keeps its space, and `'sr-only'` (screen reader only) hides it visually
+   * while screen readers still read it.
    */
   visibility?: (typeof validVisibilities)[number];
-  /** Visibility for mobile viewport (up to 768px). */
+  /** Visibility on mobile, up to 768px. */
   visibilityMobile?: (typeof validVisibilities)[number];
-  /** Visibility for tablet viewport (769px - 1023px). */
+  /**
+   * Visibility from 769px up: on tablets and every larger screen. `'hidden'`
+   * here wins over any display prop for a larger screen. Use
+   * `visibilityTabletOnly` in its place for tablets alone.
+   */
   visibilityTablet?: (typeof validVisibilities)[number];
-  /** Visibility for tablet-only viewport (769px - 1023px, excludes desktop+). */
+  /** Visibility on tablets alone, 769px to 1023px. */
   visibilityTabletOnly?: (typeof validVisibilities)[number];
-  /** Visibility for touch viewport (up to 1023px; mobile + tablet). */
+  /** Visibility up to 1023px, on mobile and tablets. */
   visibilityTouch?: (typeof validVisibilities)[number];
-  /** Visibility for desktop viewport (1024px - 1215px). */
+  /**
+   * Visibility from 1024px up. Use `visibilityDesktopOnly` in its place for
+   * 1024px to 1215px alone.
+   */
   visibilityDesktop?: (typeof validVisibilities)[number];
-  /** Visibility for desktop-only viewport (1024px - 1215px, excludes widescreen+). */
+  /** Visibility from 1024px to 1215px alone. */
   visibilityDesktopOnly?: (typeof validVisibilities)[number];
-  /** Visibility for widescreen viewport (1216px - 1407px). */
+  /**
+   * Visibility from 1216px up. Use `visibilityWidescreenOnly` in its place for
+   * 1216px to 1407px alone.
+   */
   visibilityWidescreen?: (typeof validVisibilities)[number];
-  /** Visibility for widescreen-only viewport (1216px - 1407px, excludes fullhd). */
+  /** Visibility from 1216px to 1407px alone. */
   visibilityWidescreenOnly?: (typeof validVisibilities)[number];
-  /** Visibility for fullhd viewport (1408px and above). */
+  /** Visibility from 1408px up. */
   visibilityFullhd?: (typeof validVisibilities)[number];
 }
 
