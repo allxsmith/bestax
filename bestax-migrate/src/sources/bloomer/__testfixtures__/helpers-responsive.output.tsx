@@ -12,14 +12,14 @@ export const Helpers = ({ dim }: { dim: string }) => (
         one
       </Box>
       <Box
-        display="inline-block"
+        className="is-inline-block"
         displayDesktopOnly="flex"
         visibilityMobile="hidden"
         visibilityWidescreenOnly="hidden">
         two
       </Box>
       <Box
-        display="flex"
+        className="is-flex"
         displayTablet="flex"
         displayMobile="block"
         visibility="hidden"
