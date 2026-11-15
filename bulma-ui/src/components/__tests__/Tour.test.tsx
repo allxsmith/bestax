@@ -1721,6 +1721,10 @@ describe('Tour', () => {
       const app = <Page defaultOpen />;
       const host = document.createElement('div');
       host.innerHTML = renderToString(app);
+      // React 18 warns about a layout effect in a server render that runs in
+      // a test's browser, which a real server never is. The hydration is
+      // what's checked.
+      error.mockClear();
       document.body.appendChild(host);
       expect(host.querySelector('.tour')).toBeNull();
       await act(async () => {
