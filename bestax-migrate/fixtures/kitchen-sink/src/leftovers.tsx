@@ -18,6 +18,7 @@ import {
   Menu,
   Modal,
   Pagination,
+  Tag,
   Tile,
 } from 'react-bulma-components';
 
@@ -72,6 +73,8 @@ export function Leftovers() {
         showFirstLast
         autoHide
       />
+      {/* bestax's Tag takes no textColor prop */}
+      <Tag textColor="white">No text color prop</Tag>
       {/* Bulma v1 has no rule for the `.heading` label this rendered */}
       <Heading heading>Stats</Heading>
       {/* The label's element and weight, which the codemod can't read */}
