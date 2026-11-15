@@ -194,7 +194,9 @@ either one is fixed.
   which says why.
 - Stories: types from `@storybook/react-vite`; `tags: ['autodocs']`; every argType gets a
   `description` (meta-test enforced). No inline `style={{}}` in stories/docs examples — helper
-  props; legacy inline styles exist, don't copy them.
+  props; legacy inline styles exist, don't copy them. A story's picture comes from `images/`,
+  credited in `images/LICENSE.md`. `check:conformance --only=image-hosts` fails on
+  a story file with a URL on a placeholder or stock-photo host.
 - Must pass tests on **React 18 and 19** (CI matrix) — avoid single-major APIs.
 - Bundle size is part of the pitch (the READMEs sell the library as tree-shakeable), so check
   `pnpm bundle:stats` (writes `dist/stats.html`) when adding anything with real runtime weight.
