@@ -458,8 +458,8 @@ export interface BulmaViewportProps {
  */
 export interface BulmaDisplayProps {
   /**
-   * Display type (e.g., 'block', 'flex'). Ignored when any of the viewport
-   * display props below is set.
+   * Display type (e.g., 'block', 'flex'). Its class is left out once any
+   * viewport display prop, such as `displayMobile`, is set.
    */
   display?: (typeof validDisplays)[number] | 'none';
   /** Display type on mobile, up to 768px. */
@@ -484,18 +484,18 @@ export interface BulmaDisplayProps {
    */
   displayTouch?: (typeof validDisplays)[number] | 'none';
   /**
-   * Display type from 1024px up. Where `displayWidescreen` or `displayFullhd`
-   * applies too, Bulma's stylesheet order picks the result, as on
-   * `displayTablet`: `'none'` here keeps it hidden on every larger screen. Use
-   * `displayDesktopOnly` in its place to set 1024px to 1215px alone.
+   * Display type from 1024px up. Where another display prop applies too,
+   * Bulma's stylesheet order picks the result, as on `displayTablet`: `'none'`
+   * here keeps it hidden on every larger screen. Use `displayDesktopOnly` in
+   * its place to set 1024px to 1215px alone.
    */
   displayDesktop?: (typeof validDisplays)[number] | 'none';
   /** Display type from 1024px to 1215px alone. */
   displayDesktopOnly?: (typeof validDisplays)[number] | 'none';
   /**
-   * Display type from 1216px up. Where `displayFullhd` applies too, Bulma's
-   * stylesheet order picks the result, as on `displayTablet`: `'none'` here
-   * keeps it hidden on a fullhd screen. Use `displayWidescreenOnly` in its
+   * Display type from 1216px up. Where another display prop applies too,
+   * Bulma's stylesheet order picks the result, as on `displayTablet`: `'none'`
+   * here keeps it hidden on a fullhd screen. Use `displayWidescreenOnly` in its
    * place to set 1216px to 1407px alone.
    */
   displayWidescreen?: (typeof validDisplays)[number] | 'none';

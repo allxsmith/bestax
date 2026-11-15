@@ -1635,25 +1635,26 @@ export const ViewportSpecificTextAlignment: Story = {
       <Box
         {...STAGE}
         textAlignMobile="centered" // Center on mobile
-        textAlignTablet="left" // Left on tablet
-        textAlignDesktop="right" // Right on desktop
-        textAlignWidescreen="justified" // Justify on widescreen
-        textAlignFullhd="centered" // Center on fullhd
+        textAlignTablet="justified" // Justify on tablet
+        textAlignDesktop="left" // Left on desktop
+        textAlignWidescreen="right" // Right from widescreen up
         textSize="4"
         p="4"
       >
-        This text alignment changes based on viewport: centered on mobile, left
-        on tablet, right on desktop, justified on widescreen, centered again on
-        fullhd. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-        eiusmod tempor incididunt ut labore et dolore magna aliqua.
+        This text alignment changes based on viewport: centered on mobile,
+        justified on tablet, left on desktop and right from widescreen up. Each
+        one runs from its breakpoint up, and where two overlap the later of
+        centered, justified, left and right wins, so they go in that order.
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+        tempor incididunt ut labore et dolore magna aliqua.
       </Box>
 
       <Content>
         <strong>Generated classes:</strong>
         <code>
           {' '}
-          has-text-centered-mobile has-text-left-tablet has-text-right-desktop
-          has-text-justified-widescreen has-text-centered-fullhd
+          has-text-centered-mobile has-text-justified-tablet
+          has-text-left-desktop has-text-right-widescreen
         </code>
       </Content>
     </Box>

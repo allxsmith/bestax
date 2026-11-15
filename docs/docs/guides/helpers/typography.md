@@ -186,7 +186,8 @@ Like the text size viewport props, these per-viewport alignment props can be com
 | `textAlignWidescreen` | `has-text-{value}-widescreen` | 1216px and above |
 | `textAlignFullhd`     | `has-text-{value}-fullhd`     | 1408px and above |
 
-Each applies from its breakpoint up, so a larger breakpoint's alignment overlaps a smaller one's.
+Each one but `textAlignMobile` applies from its breakpoint up, so a larger breakpoint's alignment
+overlaps a smaller one's.
 Where they overlap, Bulma's stylesheet picks the result, not the larger breakpoint: the later of
 centered, justified, left and right wins, so `textAlignTablet="right"` stays right on a desktop
 with `textAlignDesktop="left"`. A text size from a larger breakpoint does take over.

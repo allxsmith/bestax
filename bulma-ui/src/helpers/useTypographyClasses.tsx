@@ -41,15 +41,11 @@ export interface BulmaTypographyProps extends BulmaViewportProps {
   fontFamily?: (typeof validFontFamilies)[number];
   /** Text size on mobile, up to 768px. */
   textSizeMobile?: (typeof validTextSizes)[number];
-  /**
-   * Text size from 769px up, until a larger breakpoint's text size takes over.
-   */
+  /** Text size from 769px up. */
   textSizeTablet?: (typeof validTextSizes)[number];
-  /**
-   * Text size from 1024px up, until a larger breakpoint's text size takes over.
-   */
+  /** Text size from 1024px up. */
   textSizeDesktop?: (typeof validTextSizes)[number];
-  /** Text size from 1216px up, until `textSizeFullhd` takes over. */
+  /** Text size from 1216px up. */
   textSizeWidescreen?: (typeof validTextSizes)[number];
   /** Text size from 1408px up. */
   textSizeFullhd?: (typeof validTextSizes)[number];

@@ -59,9 +59,10 @@ For responsive layouts requiring different display types across viewports, use t
 
 **Example:** `displayMobile="flex"` generates `is-flex-mobile`, `displayDesktop="none"` generates `is-hidden-desktop`
 
-`displayTablet`, `displayDesktop` and `displayWidescreen` apply from their breakpoint up, so they
-overlap the properties for larger screens, and where two properties overlap, the breakpoint doesn't
-decide which wins. `none` does, on either side, and
+These properties' ranges overlap: `displayTablet`, `displayDesktop` and `displayWidescreen` run
+from their breakpoint up, `displayTouch` covers mobile and tablet, and an `Only` property sits
+inside the plain one for its breakpoint. Where two overlap, the breakpoint doesn't decide which
+wins. `none` does, on either side, and
 between two display values the later in Bulma's order (block, flex, inline, inline-block,
 inline-flex, grid) does. So `displayTablet="none"` keeps an element hidden on desktop whatever
 `displayDesktop` asks, and `displayTablet="inline-block"` stays inline-block there over
