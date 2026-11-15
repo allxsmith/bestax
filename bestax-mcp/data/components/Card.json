@@ -62,7 +62,7 @@
       "code": "<Card>\n  <Card.Header>\n    <Card.Header.Title as=\"p\">Component</Card.Header.Title>\n  </Card.Header>\n  <Card.Content>Card content goes here.</Card.Content>\n  <Card.Footer>\n    <Card.FooterItem as=\"a\" href=\"#save\">\n      Save\n    </Card.FooterItem>\n    <Card.FooterItem as=\"a\" href=\"#edit\">\n      Edit\n    </Card.FooterItem>\n  </Card.Footer>\n</Card>"
     }
   ],
-  "accessibility": "- The card image uses an `alt` attribute for screen readers.\n- Use semantic content for the header, body, and footer as needed.",
+  "accessibility": "- **Image alternate text:** A string `image` renders an `<img>` whose `alt` is `imageAlt`. Describe what the picture shows, or pass `imageAlt=\"\"` for a decorative image so screen readers skip it. Without `imageAlt`, the `alt` is \"Card image\", which tells a screen reader nothing about the picture.\n- Use semantic content for the header, body, and footer as needed.",
   "related": ["Icon", "Image", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-card--default",
   "summary": "The `Card` component renders a Bulma-styled card with optional header, image, content, and footer.",
@@ -162,7 +162,7 @@
           "name": "image",
           "type": "React.ReactNode | string",
           "default": null,
-          "description": "Card image node or image src string.",
+          "description": "Card image node or image src string. A string renders an `<img>` whose alternate text is `imageAlt`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -171,7 +171,7 @@
           "name": "imageAlt",
           "type": "string",
           "default": null,
-          "description": "Alternate text for the card image.",
+          "description": "Alternate text for the `<img>` a string `image` renders. Describe what the picture shows, or pass `\"\"` for a decorative one so screen readers skip it. Without it, the image's alternate text is \"Card image\", which tells a screen reader nothing about the picture. A node passed as `image` takes its own `alt`.",
           "required": false,
           "inherited": false,
           "deprecated": false
