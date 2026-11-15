@@ -7,26 +7,26 @@ differ, not the vocabulary. What follows is only what actually changes.
 
 rbx mixes these into every component via `HelpersProps`.
 
-| rbx                               | bestax-bulma                 | note                                                       |
-| --------------------------------- | ---------------------------- | ---------------------------------------------------------- |
-| `backgroundColor`                 | `bgColor`                    | rename only                                                |
-| `textColor`                       | `textColor`                  | unchanged                                                  |
-| `textAlign`                       | `textAlign`                  | unchanged — both use `centered`/`justified`/`left`/`right` |
-| `textWeight`                      | `textWeight`                 | unchanged                                                  |
-| `textTransform`                   | `textTransform`              | unchanged                                                  |
-| `textSize={4}`                    | `textSize="4"`               | number → string                                            |
-| `italic`                          | `textTransform="italic"`     |                                                            |
-| `pull="left"`                     | `float="left"`               |                                                            |
-| `clearfix`, `overlay`, `relative` | same                         | unchanged booleans                                         |
-| `clipped`                         | `overflow="clipped"`         |                                                            |
-| `hidden`                          | `visibility="hidden"`        |                                                            |
-| `invisible`                       | `visibility="invisible"`     |                                                            |
-| `srOnly`                          | `visibility="sr-only"`       |                                                            |
-| `marginless`                      | `m="0"`                      | Bulma v1 removed `is-marginless`                           |
-| `paddingless`                     | `p="0"`                      | Bulma v1 removed `is-paddingless`                          |
-| `radiusless`                      | `radius="radiusless"`        |                                                            |
-| `shadowless`                      | `shadow="shadowless"`        |                                                            |
-| `unselectable`                    | `interaction="unselectable"` |                                                            |
+| rbx                               | bestax-bulma                 | note                                                                                                                              |
+| --------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `backgroundColor`                 | `bgColor`                    | rename only                                                                                                                       |
+| `textColor`                       | `textColor`                  | flagged on a component that takes none (`Tag`, `Table`, `Menu`, `Tabs`, `Hero`, `Input`, `Select`, `TextArea`, `File` and others) |
+| `textAlign`                       | `textAlign`                  | unchanged — both use `centered`/`justified`/`left`/`right`                                                                        |
+| `textWeight`                      | `textWeight`                 | unchanged                                                                                                                         |
+| `textTransform`                   | `textTransform`              | unchanged                                                                                                                         |
+| `textSize={4}`                    | `textSize="4"`               | number → string                                                                                                                   |
+| `italic`                          | `textTransform="italic"`     |                                                                                                                                   |
+| `pull="left"`                     | `float="left"`               |                                                                                                                                   |
+| `clearfix`, `overlay`, `relative` | same                         | unchanged booleans                                                                                                                |
+| `clipped`                         | `overflow="clipped"`         |                                                                                                                                   |
+| `hidden`                          | `visibility="hidden"`        |                                                                                                                                   |
+| `invisible`                       | `visibility="invisible"`     |                                                                                                                                   |
+| `srOnly`                          | `visibility="sr-only"`       |                                                                                                                                   |
+| `marginless`                      | `m="0"`                      | Bulma v1 removed `is-marginless`                                                                                                  |
+| `paddingless`                     | `p="0"`                      | Bulma v1 removed `is-paddingless`                                                                                                 |
+| `radiusless`                      | `radius="radiusless"`        |                                                                                                                                   |
+| `shadowless`                      | `shadow="shadowless"`        |                                                                                                                                   |
+| `unselectable`                    | `interaction="unselectable"` |                                                                                                                                   |
 
 Every name in rbx's `colors` and `shades` unions exists in bestax verbatim.
 
