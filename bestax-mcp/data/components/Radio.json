@@ -30,7 +30,7 @@
       "code": "<Radio name=\"plan\" value=\"basic\" className=\"compact-radio\">\n  Basic\n</Radio>"
     }
   ],
-  "accessibility": "- Each `Radio` is rendered as a `<label>` wrapping an `<input type=\"radio\">` and the label text, for optimal accessibility.\n- Use the same `name` prop for a group of radios to ensure only one can be selected.\n- The circle is at least 24px across, the minimum size WCAG 2.2 sets for a target (2.5.8), whatever `--bulma-radio-size` says. [Circle Size](https://bestax.io/docs/api/form/radio#circle-size) shows how to make it smaller, and why to keep the label text inside the `Radio` when you do.\n- An unchecked radio shows only its ring, `--bulma-radio-border-color`. It defaults to `--bulma-text-weak`, which holds the 3:1 contrast WCAG asks of a control's boundary (non-text contrast) on Bulma's page and card surfaces in light and dark. Set a replacement on a class you pass through `className`, since `style` goes to the `<input>`, naming the label's class too (`.styled-radio.my-radio`) so load order can't undo it, and hold it to 3:1 as well.",
+  "accessibility": "- Each `Radio` is rendered as a `<label>` wrapping an `<input type=\"radio\">` and the label text, for optimal accessibility.\n- Use the same `name` prop for a group of radios to ensure only one can be selected.\n- The circle is at least 24px across, the minimum size WCAG 2.2 sets for a target (2.5.8), whatever `--bulma-radio-size` says. [Circle Size](https://bestax.io/docs/api/form/radio#circle-size) shows how to make it smaller, and why to keep the label text inside the `Radio` when you do.\n- A checked radio's ring and dot hold 3:1 against the page on both schemes: the primary color, or the `color`, in its on-scheme lightness, which Bulma darkens on a light scheme and lightens on a dark one until it reads on the page. The ring's color is also the keyboard focus ring's.\n- An unchecked radio shows only its ring, `--bulma-radio-border-color`. It defaults to `--bulma-text-weak`, which holds the 3:1 contrast WCAG asks of a control's boundary (non-text contrast) on Bulma's page and card surfaces in light and dark. Set a replacement on a class you pass through `className`, since `style` goes to the `<input>`, naming the label's class too (`.styled-radio.my-radio`) so load order can't undo it, and hold it to 3:1 as well.",
   "related": ["Field", "Radios", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-radio--mutually-exclusive",
   "summary": "The `Radio` component provides a Bulma-styled radio button input with flexible labels and helper classes.",
@@ -148,7 +148,7 @@
     {
       "css": "--bulma-radio-active-color",
       "sass": "$radio-active-color",
-      "default": "var(--bulma-primary)",
+      "default": "hsl(var(--bulma-primary-h), var(--bulma-primary-s), var(--bulma-primary-on-scheme-l))",
       "scope": "root"
     },
     {

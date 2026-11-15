@@ -50,7 +50,7 @@
       "code": "function example() {\n  const [settings, setSettings] = useState({\n    notifications: true,\n    darkMode: false,\n    autoSave: true,\n  });\n\n  const updateSetting =\n    (key: keyof typeof settings) =>\n    (e: React.ChangeEvent<HTMLInputElement>) => {\n      setSettings(prev => ({ ...prev, [key]: e.target.checked }));\n    };\n\n  return (\n    <Block style={{ maxWidth: '300px' }}>\n      <Title size=\"5\">Settings</Title>\n      <Block display=\"flex\" flexDirection=\"column\">\n        <Switch\n          color=\"primary\"\n          checked={settings.notifications}\n          onChange={updateSetting('notifications')}\n        >\n          Push notifications\n        </Switch>\n        <Switch\n          color=\"info\"\n          checked={settings.darkMode}\n          onChange={updateSetting('darkMode')}\n        >\n          Dark mode\n        </Switch>\n        <Switch\n          color=\"success\"\n          checked={settings.autoSave}\n          onChange={updateSetting('autoSave')}\n        >\n          Auto-save\n        </Switch>\n      </Block>\n    </Block>\n  );\n}"
     }
   ],
-  "accessibility": "- The Switch is built on a native checkbox input for proper keyboard navigation\n- Use the `children` prop to provide a visible label\n- For icon-only switches, provide an `aria-label` prop\n- The switch can be focused and toggled with keyboard (Space/Enter)",
+  "accessibility": "- The Switch is built on a native checkbox input for proper keyboard navigation\n- Use the `children` prop to provide a visible label\n- For icon-only switches, provide an `aria-label` prop\n- The switch can be focused and toggled with keyboard (Space/Enter)\n- The track holds 3:1 against the page on both schemes, off and on, and the circle holds 3:1 against it. Off, the track is the scheme's weak text color, `--bulma-text-weak`, or a `passiveType` in its on-scheme lightness; on, it's the primary color, or the `color`, in its on-scheme lightness, which Bulma darkens on a light scheme and lightens on a dark one until it reads on the page. The circle's side of the track tells on from off, so the state isn't in color alone. A thin switch draws its circle in those colors over a track at half their strength, and an outlined one draws its edge and its circle in them.",
   "related": [],
   "storybook": null,
   "summary": "The `Switch` component provides a toggle switch for boolean on/off states.",
@@ -235,7 +235,7 @@
     {
       "css": "--bulma-switch-background",
       "sass": "$switch-background",
-      "default": "var(--bulma-grey-light)",
+      "default": "var(--bulma-text-weak)",
       "scope": "root"
     },
     {
@@ -247,7 +247,7 @@
     {
       "css": "--bulma-switch-active-color",
       "sass": "$switch-active-color",
-      "default": "var(--bulma-primary)",
+      "default": "hsl(var(--bulma-primary-h), var(--bulma-primary-s), var(--bulma-primary-on-scheme-l))",
       "scope": "root"
     },
     {
