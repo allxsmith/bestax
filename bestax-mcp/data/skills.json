@@ -29,7 +29,7 @@
       "promptName": "form",
       "dir": "bestax-form",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 33835 },
+        { "id": "api", "file": "references/api.md", "bytes": 33873 },
         { "id": "patterns", "file": "references/patterns.md", "bytes": 10001 }
       ],
       "examples": []
@@ -128,12 +128,12 @@
         {
           "id": "rbx-prop-map",
           "file": "references/rbx/prop-map.md",
-          "bytes": 19899
+          "bytes": 21079
         },
         {
           "id": "rbx-unmappables",
           "file": "references/rbx/unmappables.md",
-          "bytes": 17359
+          "bytes": 21619
         },
         {
           "id": "react-bulma-components-component-map",
@@ -143,12 +143,12 @@
         {
           "id": "react-bulma-components-prop-map",
           "file": "references/react-bulma-components/prop-map.md",
-          "bytes": 11139
+          "bytes": 12657
         },
         {
           "id": "react-bulma-components-unmappables",
           "file": "references/react-bulma-components/unmappables.md",
-          "bytes": 16495
+          "bytes": 16886
         }
       ],
       "examples": []
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 22088
+          "bytes": 22213
         }
       ],
       "examples": []
@@ -176,7 +176,7 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 77784
+          "bytes": 79195
         },
         {
           "id": "themeable-components",

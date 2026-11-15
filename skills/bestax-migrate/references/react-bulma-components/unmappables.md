@@ -195,10 +195,12 @@ move the color to a `has-background-*` class in `className`.
 
 ## `prop:textColor` — a component with no `textColor` prop
 
-`textColor` carries over as written, except on a component whose bestax props have none:
-`Tag`, `Table` and its parts, `Menu` and its parts, `Tabs`, `Hero`, `Dropdown`, `Input`, `Select`, `TextArea`, `File`,
-the `Modal.Card` parts and others keep it with a TODO. Move the color to a `has-text-*` class in
-`className`.
+`textColor` carries over as written, and becomes `color` on `Table` (and its `Thead`, `Tbody` and `Tfoot`), `Menu` and its parts, and `Dropdown` and its `Item`, whose `color` sets the
+text, when the value is one of bestax's color names. On the other components with no `textColor`,
+such as `Tag`, `Tabs`, `Hero`, `Progress`, `Breadcrumb`, `Input`, `Select`, `TextArea`, `File` and the `Modal.Card` parts, it stays with a TODO: move the color to a
+`has-text-*` class in `className`. On the components where it becomes `color`, it also stays with a
+TODO where the element already sets `color` or has a spread, or the value is dynamic, a shade or
+`text`: use `color` with `colorShade` for a shade, or the class.
 
 ## A size bestax doesn't take (`prop:size` on `Button.Group` and `Message`)
 
