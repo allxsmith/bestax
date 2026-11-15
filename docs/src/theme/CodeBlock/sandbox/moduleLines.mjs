@@ -21,3 +21,23 @@ export function stripModuleLines(code) {
     })
     .join('\n');
 }
+
+/**
+ * The stylesheets an example imports for their effect, such as
+ * `import '@allxsmith/bestax-bulma/versions/bestax-prefixed.css';`, in the
+ * order it imports them. Read one line at a time, as `stripModuleLines` drops
+ * them, and a comment after the import is allowed.
+ *
+ * @param {string} code
+ * @returns {string[]}
+ */
+export function importedStylesheets(code) {
+  const sheets = [];
+  for (const line of code.split('\n')) {
+    const match = line
+      .trim()
+      .match(/^import\s+(['"])([^'"]+\.css)\1\s*;?\s*(?:\/\/.*)?$/);
+    if (match && !sheets.includes(match[2])) sheets.push(match[2]);
+  }
+  return sheets;
+}

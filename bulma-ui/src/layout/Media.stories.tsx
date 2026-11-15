@@ -10,11 +10,7 @@ import Checkbox from '../form/Checkbox';
 import Level from '../layout/Level';
 import { Content } from '../elements/Content';
 import Control from '../form/Control';
-// The sample picture is a crop of a photo published on Unsplash under the
-// Unsplash License (https://unsplash.com/license):
-// - sample-lioness.jpg: "A close-up portrait of a lioness with amber eyes
-//   looking forward", by Samuel Scrimshaw,
-//   https://unsplash.com/photos/sseiVD2XsOk
+// Credits and licenses for the pictures: ../../images/LICENSE.md
 import lioness from '../../images/sample-lioness.jpg';
 
 const meta: Meta<typeof Media> = {

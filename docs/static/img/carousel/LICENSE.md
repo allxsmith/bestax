@@ -8,13 +8,16 @@ All images sourced from [Unsplash](https://unsplash.com) under the [Unsplash Lic
 | carousel-banner-2.jpg      | Filip Kvasnak     | [UeRIcbTthwE](https://unsplash.com/photos/UeRIcbTthwE) |
 | carousel-banner-3.jpg      | Vincentiu Solomon | [ln5drpv_ImI](https://unsplash.com/photos/ln5drpv_ImI) |
 | carousel-banner-1-1by1.jpg | Jeremy Thomas     | [4dpAqfTbvKA](https://unsplash.com/photos/4dpAqfTbvKA) |
+| carousel-banner-1-3by2.jpg | Jeremy Thomas     | [4dpAqfTbvKA](https://unsplash.com/photos/4dpAqfTbvKA) |
 | carousel-banner-1-4by3.jpg | Jeremy Thomas     | [4dpAqfTbvKA](https://unsplash.com/photos/4dpAqfTbvKA) |
 | carousel-banner-2-1by1.jpg | Filip Kvasnak     | [UeRIcbTthwE](https://unsplash.com/photos/UeRIcbTthwE) |
+| carousel-banner-2-3by2.jpg | Filip Kvasnak     | [UeRIcbTthwE](https://unsplash.com/photos/UeRIcbTthwE) |
 | carousel-banner-3-1by1.jpg | Vincentiu Solomon | [ln5drpv_ImI](https://unsplash.com/photos/ln5drpv_ImI) |
+| carousel-banner-3-3by2.jpg | Vincentiu Solomon | [ln5drpv_ImI](https://unsplash.com/photos/ln5drpv_ImI) |
 | carousel-banner-3-4by3.jpg | Vincentiu Solomon | [ln5drpv_ImI](https://unsplash.com/photos/ln5drpv_ImI) |
 
-Each `-1by1` and `-4by3` file is a square or 4:3 crop of the banner with the same number,
-for examples that need a picture of that shape.
+Each `-1by1`, `-3by2` and `-4by3` file is a square, 3:2 or 4:3 crop of the banner with the same
+number, for examples that need a picture of that shape.
 
 ## Unsplash License Summary
 
