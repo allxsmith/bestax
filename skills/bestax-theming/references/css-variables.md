@@ -674,6 +674,18 @@ color whatever these say.
 `--bulma-fieldset-legend-spacing`, `--bulma-fieldset-legend-weight`, `--bulma-fieldset-padding`,
 `--bulma-fieldset-padding-top`, `--bulma-fieldset-radius`, `--bulma-fieldset-spacing`
 
+### FloatButton
+
+The shadow and the duration are declared on the button, `.button.float-button`, and the speed
+dial's gap and duration again on `.float-button-speed-dial`, whose actions fade in apart from any
+one button. `FloatButtons` declares its gap on `.float-buttons`. The shadow starts at Bulma's
+`--bulma-shadow` and gives way to Bulma's focus ring while the button has focus. The colors,
+sizes and border are the button's, `--bulma-button-*`, and the corner, its offsets and the z-index
+are Affix's, `--bulma-affix-*`.
+
+`--bulma-float-button-actions-gap`, `--bulma-float-button-shadow`,
+`--bulma-float-button-transition-duration`, `--bulma-float-buttons-gap`
+
 ### HoverCard
 
 All are declared on the card, `.hover-card-content`, so a card rendered with `appendToBody` keeps
