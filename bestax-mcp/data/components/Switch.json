@@ -67,7 +67,7 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Color variant for the switch.",
+          "description": "Color variant for the switch. The track when on takes the color's `-on-scheme` variant, the shade Bulma adjusts to read on the page in either scheme, so a pale color such as `warning` is drawn darker on a light page.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -121,7 +121,7 @@
           "name": "passiveType",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Color when the switch is in the off/passive state.",
+          "description": "Color when the switch is in the off/passive state. The track takes the color's `-on-scheme` variant, as `color` does.",
           "required": false,
           "inherited": false,
           "deprecated": false
