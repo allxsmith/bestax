@@ -182,8 +182,7 @@ Carousel that automatically advances slides.
 
 ### Indicator Styles
 
-Different indicator style options. In each, a resting indicator is a ring and the current one is
-filled.
+Different indicator style options.
 
 ```tsx live
 function IndicatorExample() {
@@ -591,7 +590,7 @@ Carousel that stops at the first and last slides.
 - When something else takes the item holding focus out of view (a swipe, a change of width that changes the count, a new controlled `value`, or the item's removal), focus moves to the first item in view rather than dropping to the page
 - Navigation arrows have `aria-label` for screen readers
 - Indicators use `role="tablist"` and `role="tab"` semantics, one for each position a step can land on
-- The indicators below the slides hold 3:1 against the page on both schemes. A resting one is a ring in the scheme's weak text color, which turns its text color under the pointer, and the current one is filled in the primary color's on-scheme shade, so the current slide's stands out by its fill as well as its color. Forced colors (Windows' contrast themes), which replaces fills, fills it in the buttons' text color. Over the slides, what's under them decides their contrast
+- The indicators take Bulma's look: a resting dot, line or bar is filled in the border color and the current one in the primary color, and a circle is a ring in the border color, filled when current. A resting one falls short of the 3:1 against the page that WCAG asks of a graphic. For that, set `--bulma-carousel-indicator-border-color` to a color such as `var(--bulma-text-weak)` on a class you pass through `className`, with the carousel's class in the selector (`.carousel.my-carousel`, `.bestax-carousel.my-carousel` under the prefixed flavor) so it wins whatever order the stylesheets load in. It draws a ring at each resting indicator's edge, circles included, and leaves the current one, and the dots, lines and bars in the overlay look, as they are. Forced colors (Windows' contrast themes) replaces the fills, so there each indicator shows its ring in the buttons' text color and the current one is filled in it.
 - The Left and Right arrow keys move the carousel while focus is on its arrows or indicators. Inside an item they're left to the item's content, such as a field or a slider
 - Previous/Next buttons are properly disabled at boundaries when not repeating
 - On a right-to-left page the slides run from right to left. The previous arrow sits on the right, at the start of the line, and the next arrow on the left, and the built-in chevrons flip to match. An `iconPrev` or `iconNext` is drawn as you give it. <kbd>ArrowLeft</kbd> and a swipe to the right go to the next slide, the way the track moves.
@@ -693,11 +692,11 @@ Use the `pauseOnHover` prop (enabled by default) to let users interact with caro
 | `--bulma-carousel-indicator-size-mobile`               | `$carousel-indicator-size-mobile`               | `8px`                                                                                   |
 | `--bulma-carousel-indicator-gap`                       | `$carousel-indicator-gap`                       | `0.5rem`                                                                                |
 | `--bulma-carousel-indicator-gap-mobile`                | `$carousel-indicator-gap-mobile`                | `0.375rem`                                                                              |
-| `--bulma-carousel-indicator-background`                | `$carousel-indicator-background`                | `transparent`                                                                           |
-| `--bulma-carousel-indicator-background-hover`          | `$carousel-indicator-background-hover`          | `transparent`                                                                           |
-| `--bulma-carousel-indicator-background-active`         | `$carousel-indicator-background-active`         | `hsl(var(--bulma-primary-h), var(--bulma-primary-s), var(--bulma-primary-on-scheme-l))` |
-| `--bulma-carousel-indicator-border-color`              | `$carousel-indicator-border-color`              | `var(--bulma-text-weak)`                                                                |
-| `--bulma-carousel-indicator-border-color-hover`        | `$carousel-indicator-border-color-hover`        | `var(--bulma-text)`                                                                     |
+| `--bulma-carousel-indicator-background`                | `$carousel-indicator-background`                | `var(--bulma-border)`                                                                   |
+| `--bulma-carousel-indicator-background-hover`          | `$carousel-indicator-background-hover`          | `var(--bulma-border-hover)`                                                             |
+| `--bulma-carousel-indicator-background-active`         | `$carousel-indicator-background-active`         | `var(--bulma-primary)`                                                                  |
+| `--bulma-carousel-indicator-border-color`              | `$carousel-indicator-border-color`              | `transparent`                                                                           |
+| `--bulma-carousel-indicator-border-color-hover`        | `$carousel-indicator-border-color-hover`        | `var(--bulma-carousel-indicator-border-color)`                                          |
 | `--bulma-carousel-indicator-border-width`              | `$carousel-indicator-border-width`              | `2px`                                                                                   |
 | `--bulma-carousel-indicator-line-border-width`         | `$carousel-indicator-line-border-width`         | `1px`                                                                                   |
 | `--bulma-carousel-indicator-circle-size`               | `$carousel-indicator-circle-size`               | `12px`                                                                                  |
