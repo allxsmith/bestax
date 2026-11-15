@@ -152,7 +152,7 @@
           "name": "isLight",
           "type": "boolean",
           "default": "false",
-          "description": "Applies a lighter color variant.",
+          "description": "Applies the light variant of a colored button, such as `primary`'s. Bulma gives the grayscale colors none, so with no `color`, or with `white` or `black`, `isLight` gives the light button, as `color=\"light\"` does, and `light` or `dark` with `isLight` looks the same as without it.",
           "required": false,
           "inherited": true,
           "deprecated": false

@@ -208,7 +208,7 @@ export interface MenuItemOwnProps extends BulmaClassesProps {
   /** Inline styles for the wrapping `<li>`. */
   style?: React.CSSProperties;
   /** `id` for the wrapping `<li>`. */
-  id?: string;
+  id?: React.HTMLAttributes<HTMLElement>['id'];
   /** `title` for the wrapping `<li>`. */
   title?: string;
   /** ARIA role for the wrapping `<li>`. */

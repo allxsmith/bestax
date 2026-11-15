@@ -73,7 +73,7 @@ The `lines` variant of the `Skeleton` component renders multiple line placeholde
 
 ### Skeleton Examples from useBulmaClasses.stories.tsx
 
-These show how the `skeleton` Bulma helper can be applied to various components using the `skeleton` prop and `useBulmaClasses`. The skeleton state toggles on an interval in Storybook.
+These show how the `skeleton` Bulma helper can be applied to various components using the `skeleton` prop and `useBulmaClasses`.
 
 #### Skeleton Button
 
@@ -130,7 +130,7 @@ Media object with a skeleton loader, useful for indicating media content is load
       skeleton
       as="p"
       size="64x64"
-      src="https://bulma.io/assets/images/placeholders/128x128.png"
+      src="/img/carousel/carousel-banner-1-1by1.jpg"
       alt=""
     />
   </Media.Left>
