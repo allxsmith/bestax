@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.69.0"
+    "version": "5.70.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -72,6 +72,8 @@
         "Dialog",
         "Dropdown",
         "EmptyState",
+        "FloatButton",
+        "FloatButtons",
         "HoverCard",
         "Lightbox",
         "Loading",
@@ -746,6 +748,28 @@
       "compound": false,
       "propCount": 13,
       "exampleCount": 4
+    },
+    {
+      "name": "FloatButton",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `FloatButton` component renders a round icon button that floats in a corner of the screen, with its name as a tooltip.",
+      "slug": "components/floatbutton",
+      "import": "import { FloatButton } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 61,
+      "exampleCount": 13
+    },
+    {
+      "name": "FloatButtons",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `FloatButtons` component stacks several float buttons in one corner of the screen, so none covers another.",
+      "slug": "components/floatbuttons",
+      "import": "import { FloatButtons, FloatButton } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 5,
+      "exampleCount": 3
     },
     {
       "name": "Footer",
@@ -1820,9 +1844,13 @@
     "--bulma-carousel-indicator-bar-height-mobile": ["Carousel"],
     "--bulma-carousel-indicator-bar-width": ["Carousel"],
     "--bulma-carousel-indicator-bar-width-mobile": ["Carousel"],
+    "--bulma-carousel-indicator-border-color": ["Carousel"],
+    "--bulma-carousel-indicator-border-color-hover": ["Carousel"],
+    "--bulma-carousel-indicator-border-width": ["Carousel"],
     "--bulma-carousel-indicator-circle-size": ["Carousel"],
     "--bulma-carousel-indicator-gap": ["Carousel"],
     "--bulma-carousel-indicator-gap-mobile": ["Carousel"],
+    "--bulma-carousel-indicator-line-border-width": ["Carousel"],
     "--bulma-carousel-indicator-line-height": ["Carousel"],
     "--bulma-carousel-indicator-line-height-mobile": ["Carousel"],
     "--bulma-carousel-indicator-line-radius": ["Carousel"],
@@ -2215,6 +2243,10 @@
     "--bulma-file-name-max-width": ["File"],
     "--bulma-file-radius": ["File"],
     "--bulma-file-s": ["File"],
+    "--bulma-float-button-actions-gap": ["FloatButton"],
+    "--bulma-float-button-shadow": ["FloatButton"],
+    "--bulma-float-button-transition-duration": ["FloatButton"],
+    "--bulma-float-buttons-gap": ["FloatButtons"],
     "--bulma-footer-background-color": ["Footer"],
     "--bulma-footer-color": ["Footer"],
     "--bulma-footer-padding": ["Footer"],
@@ -3587,6 +3619,16 @@
       "component": "Figure",
       "path": "Figure.Caption",
       "purpose": "FigureCaption component for rendering a styled figcaption element."
+    },
+    "FloatButtonBackToTop": {
+      "component": "FloatButton",
+      "path": "FloatButton.BackToTop",
+      "purpose": "The `FloatButton.BackToTop` component is a float button that shows once the page has scrolled down, and takes it back to the top."
+    },
+    "FloatButtonSpeedDial": {
+      "component": "FloatButton",
+      "path": "FloatButton.SpeedDial",
+      "purpose": "The `FloatButton.SpeedDial` component is a float button that opens a menu of related actions, which are FloatButtons."
     },
     "HeroBody": {
       "component": "Hero",
