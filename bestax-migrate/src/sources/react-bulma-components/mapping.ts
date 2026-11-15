@@ -121,6 +121,18 @@ export const RESPONSIVE_BREAKPOINTS: Record<string, string | null> = {
 
 const activeKept: Record<string, PropAction> = { active: {} };
 
+/**
+ * The targets whose bestax component renders `is-light` from `isLight`, the
+ * class react-bulma-components renders for `colorVariant="light"`.
+ * `color-variant.ts` converts a literal `light` there; everything else keeps
+ * the universal `colorVariant` TODO.
+ */
+export const IS_LIGHT_TARGETS: readonly string[] = [
+  'Button',
+  'Notification',
+  'Tag',
+];
+
 export const MAPPING: Record<string, ComponentMapping> = {
   Block: { status: 'mapped', target: 'Block' },
   Box: { status: 'mapped', target: 'Box' },

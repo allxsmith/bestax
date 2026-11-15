@@ -1,3 +1,12 @@
+## [2.36.7](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.36.6...bestax-migrate@2.36.7) (2026-11-15)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** give backgroundColor the prop each target takes, or a TODO ([f1acbdd](https://github.com/allxsmith/bestax/commit/f1acbdd1623b7d4961be2518269479303b38712e)), closes [#1735](https://github.com/allxsmith/bestax/issues/1735)
+* **bulma-ui:** draw a Timeline's markers in a colored Notification's text color ([04c2d53](https://github.com/allxsmith/bestax/commit/04c2d53b851b4ff7a1f0aa60f9a00c84b83bd18f)), closes [#1710](https://github.com/allxsmith/bestax/issues/1710)
+* **docs:** open an example that imports a prefixed build with that build in its sandbox ([fec1113](https://github.com/allxsmith/bestax/commit/fec1113a19def15ced928ce4e8063bb2ee3cabf9)), closes [#1741](https://github.com/allxsmith/bestax/issues/1741)
+
 ## [2.36.6](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.36.5...bestax-migrate@2.36.6) (2026-11-15)
 
 

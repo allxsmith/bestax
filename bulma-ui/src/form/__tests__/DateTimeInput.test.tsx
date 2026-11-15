@@ -2632,3 +2632,27 @@ describe('DateTimeInput inline Reset', () => {
     expect(day(7)).toHaveAttribute('aria-selected', 'true');
   });
 });
+
+describe('DateTimeInput time wheels in a locale', () => {
+  it('writes the hours, minutes and seconds in the locale’s digits', () => {
+    const v = new Date(2024, 5, 7, 9, 5, 7);
+    const { getByRole } = render(
+      <DateTimeInput defaultValue={v} locale="ar-EG" enableSeconds />
+    );
+    fireEvent.click(getByRole('combobox'));
+    fireEvent.click(getByRole('button', { name: /Time/ }));
+    expect(
+      getByRole('spinbutton', { name: 'hours' }).getAttribute('aria-valuetext')
+    ).toBe('٠٩');
+    expect(
+      getByRole('spinbutton', { name: 'minutes' }).getAttribute(
+        'aria-valuetext'
+      )
+    ).toBe('٠٥');
+    expect(
+      getByRole('spinbutton', { name: 'seconds' }).getAttribute(
+        'aria-valuetext'
+      )
+    ).toBe('٠٧');
+  });
+});

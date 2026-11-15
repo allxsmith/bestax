@@ -17,6 +17,7 @@ import {
   Media,
   Menu,
   Modal,
+  Notification,
   Pagination,
   Tag,
   Tile,
@@ -50,6 +51,7 @@ export function Leftovers() {
       <Button color="grey-light" isSelected colorVariant="light">
         Shade color
       </Button>
+      <Notification backgroundColor="info">No background color prop</Notification>
       <Block touch={{ display: 'block' }} untilWidescreen={{ textSize: 5 }} renderAs="section">
         Touch-only helpers
       </Block>
@@ -89,6 +91,8 @@ export function Leftovers() {
       <Heading heading={choice === 'a'}>Dynamic heading</Heading>
       {/* bestax's Title renders the heading its size names, and this one is unreadable */}
       <Heading size={choice === 'a' ? 3 : 4}>Dynamic size</Heading>
+      {/* only a literal "light" converts, so this keeps the TODO */}
+      <Button colorVariant="dark">Dark variant</Button>
     </div>
   );
 }

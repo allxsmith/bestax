@@ -18,6 +18,63 @@ const LIBRARY_STYLESHEET =
 const LIBRARY_STYLESHEET_NAME =
   /^import '@allxsmith\/bestax-bulma\/([^']+\.css)';$/m;
 
+/**
+ * The stylesheets the library exports, each by the one path a sandbox imports
+ * it under (`publishedSheet` gives the file).
+ */
+const LIBRARY_SHEETS = new Set([
+  'bestax.css',
+  'extras.css',
+  'versions/bestax-prefixed.css',
+  'versions/bestax-no-helpers.css',
+  'versions/bestax-no-helpers-prefixed.css',
+  'versions/bestax-no-dark-mode.css',
+]);
+
+/** Whether a sheet is a prefixed build, whose classes `bestax.css` lacks. */
+const isPrefixed = sheet => sheet.endsWith('-prefixed.css');
+
+/**
+ * The library stylesheets a sandbox imports in place of the template's
+ * `bestax.css`, in the example's order and each once: the ones among the
+ * stylesheets an example imports, once one of them is a prefixed build, which
+ * `bestax.css` can't stand in for. A sandbox is an app, so it imports what an app with that example
+ * would. Otherwise this is empty and the template's `bestax.css` stays, since
+ * it draws an example written for any other build as well. A path the library
+ * doesn't export is left out, as is any stylesheet that isn't the library's.
+ *
+ * The page's preview differs: it keeps `bestax.css`, which every preview
+ * shares, and adds the builds it has a loader for after it
+ * (`FENCE_STYLESHEETS` in `src/components/ShadowPreview/shadowStyles.js`).
+ *
+ * @param {string[]} stylesheets The stylesheet paths an example imports, as
+ *   `importedStylesheets` in `moduleLines.mjs` reads them.
+ * @returns {string[]}
+ */
+export function librarySheetsIn(stylesheets) {
+  const sheets = new Set(
+    stylesheets
+      .filter(path => path.startsWith(`${LIBRARY}/`))
+      .map(path =>
+        publishedSheet(path.slice(LIBRARY.length + 1)).slice('dist/'.length)
+      )
+      .filter(sheet => LIBRARY_SHEETS.has(sheet))
+  );
+  return [...sheets].some(isPrefixed) ? [...sheets] : [];
+}
+
+/**
+ * The published file behind a stylesheet path the library exports, for a CDN
+ * link, as its exports map has it: every sheet sits under `dist/`, whether the
+ * path names `dist/` or not, and a `.min.css` path is the same file as its
+ * `.css` one.
+ *
+ * @param {string} sheet A path inside the library, such as `bestax.css`.
+ * @returns {string}
+ */
+export const publishedSheet = sheet =>
+  `dist/${sheet.replace(/^dist\//, '').replace(/\.min\.css$/, '.css')}`;
+
 /** The template files a sandbox is built from, by path in the template. */
 export const TEMPLATE_FILES = [
   'index.html',
@@ -153,8 +210,12 @@ function iconLinks(icons, versions) {
     });
 }
 
-/** The template's entry file, importing the example's icon stylesheets. */
-function withStylesheets(main, icons) {
+/**
+ * The template's entry file, importing the example's library stylesheets in
+ * place of the template's own, when it imports any, and its icon stylesheets
+ * after them.
+ */
+function withStylesheets(main, icons, sheets) {
   const lines = main.split('\n');
   const at = lines.findIndex(
     line => line.includes(`'${LIBRARY}/`) && line.includes('.css')
@@ -162,7 +223,8 @@ function withStylesheets(main, icons) {
   if (at === -1) {
     throw new Error(
       "The template's main.tsx no longer imports the bestax stylesheet, " +
-        'so the sandbox builder cannot place the icon imports after it.'
+        'so the sandbox builder cannot swap in a prefixed build for it or ' +
+        'place the icon imports after it.'
     );
   }
   const imports = icons
@@ -171,7 +233,10 @@ function withStylesheets(main, icons) {
       id =>
         `import '${ICON_LIBRARIES[id].package}/${ICON_LIBRARIES[id].stylesheet}';`
     );
-  lines.splice(at + 1, 0, ...imports);
+  const library = sheets.length
+    ? sheets.map(sheet => `import '${LIBRARY}/${sheet}';`)
+    : [lines[at]];
+  lines.splice(at, 1, ...library, ...imports);
   return lines.join('\n');
 }
 
@@ -195,15 +260,24 @@ body {
 }
 `;
 
+/**
+ * The attributes that turn on Bulma's dark palette: `data-theme` for
+ * `bestax.css`, and `data-bestax-theme` for a prefixed build, which reads only
+ * its own.
+ */
+const DARK_ROOT = 'data-theme="dark" data-bestax-theme="dark"';
+
 /** Sets the dark palette on the root element of a template page. */
 function darkRoot(html) {
-  return html.replace('<html lang="en">', '<html lang="en" data-theme="dark">');
+  return html.replace('<html lang="en">', `<html lang="en" ${DARK_ROOT}>`);
 }
 
 /**
  * @typedef {object} SandboxInput
  * @property {string} app The example module, written as `src/App.tsx`.
  * @property {string[]} icons Icon library ids, from `iconLibrariesIn`.
+ * @property {string[]} [sheets] Library stylesheets the example imports, from
+ *   `librarySheetsIn`, which take the place of the template's own.
  * @property {Record<string, string>} template The template files, by path.
  * @property {Record<string, string>} versions Version ranges for the library
  *   and the icon packages.
@@ -240,6 +314,7 @@ export const SANDBOX_TYPESCRIPT = '~6.0.3';
 export function stackblitzProject({
   app,
   icons,
+  sheets = [],
   template,
   versions,
   title,
@@ -282,7 +357,7 @@ export function stackblitzProject({
       'index.html': darkRoot(html),
       'src/index.css': `${template['src/index.css']}${STAGE_CSS}`,
       'package.json': `${JSON.stringify(pkg, null, 2)}\n`,
-      'src/main.tsx': withStylesheets(template['src/main.tsx'], icons),
+      'src/main.tsx': withStylesheets(template['src/main.tsx'], icons, sheets),
       'src/App.tsx': app,
     },
   };
@@ -333,6 +408,7 @@ function escapeHtml(text) {
 export function codesandboxFiles({
   app,
   icons,
+  sheets = [],
   template,
   versions,
   title,
@@ -374,13 +450,16 @@ export function codesandboxFiles({
     '<meta charset="UTF-8" />',
     '<meta name="viewport" content="width=device-width, initial-scale=1.0" />',
     `<title>${escapeHtml(title)}</title>`,
-    `<link rel="stylesheet" href="${cdnUrl(versions, LIBRARY, `dist/${librarySheet}`)}" />`,
+    ...(sheets.length ? sheets : [librarySheet]).map(
+      sheet =>
+        `<link rel="stylesheet" href="${cdnUrl(versions, LIBRARY, publishedSheet(sheet))}" />`
+    ),
     ...iconLinks(icons, versions),
     ...iconScripts(icons, versions),
   ];
   const html = [
     '<!doctype html>',
-    '<html lang="en" data-theme="dark">',
+    `<html lang="en" ${DARK_ROOT}>`,
     '  <head>',
     ...head.map(line => `    ${line}`),
     '  </head>',

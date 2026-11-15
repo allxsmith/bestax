@@ -347,25 +347,34 @@ function parseTokens(input: string, fmt: string): ParsedParts | null {
 const DATE_NUMBER: Intl.NumberFormatOptions = { useGrouping: false };
 
 /**
- * Writes a day of the month or a year in the digits `locale` writes numbers
- * in, which are the ones it writes a date in, such as ١٣ in Egyptian Arabic,
- * with no grouping and none of the words some locales put around a date's
- * numbers, as Japanese writes 13日. A `-u-nu-` extension in the tag picks the
- * digits. With no locale it writes plain digits, as the calendar always has,
- * rather than the runtime's, which a server and a browser can disagree on.
+ * Writes a number of a date or a time, a day of the month, a year or an
+ * hour, in the digits `locale` writes numbers in, which are the ones it
+ * writes a date in, such as ١٣ in Egyptian Arabic, with no grouping and none
+ * of the words some locales put around a date's numbers, as Japanese writes
+ * 13日. It pads to `minimumDigits` with the locale's zero, as a time's ٠٩.
+ * A `-u-nu-` extension in the tag picks the digits. With no locale it writes
+ * plain digits, as the pickers always have, rather than the runtime's, which
+ * a server and a browser can disagree on.
  */
 export function getDateNumberFormat(
-  locale: string | undefined
+  locale: string | undefined,
+  minimumDigits = 1
 ): (n: number) => string {
-  if (!locale) return String;
+  const plain = (n: number) => String(n).padStart(minimumDigits, '0');
+  if (!locale) return plain;
   try {
-    const format = numberFormatFor(locale, DATE_NUMBER);
+    const format = numberFormatFor(
+      locale,
+      minimumDigits > 1
+        ? { ...DATE_NUMBER, minimumIntegerDigits: minimumDigits }
+        : DATE_NUMBER
+    );
     return n => format.format(n);
   } catch {
-    // A tag Intl refuses. The names the calendar asks Intl for throw on it,
-    // and with every name given it asks for none, so the numbers stay plain
-    // rather than throw where nothing did.
-    return String;
+    // A tag Intl refuses. The numbers stay plain rather than throw, as they
+    // did before they followed the locale: a time wheel, and a calendar given
+    // every name of its own, ask Intl for nothing else.
+    return plain;
   }
 }
 

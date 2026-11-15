@@ -178,10 +178,20 @@ bestax `Button` colors are the semantic set + `text`/`ghost`. For shades use
 
 ## `colorVariant` / Hero `gradient` / Hero `halfheight` (`prop:size`)
 
-- `colorVariant="light"` → `isLight` where supported (Button, Notification, Tag), otherwise a
-  shade: `bgColor="primary" backgroundColorShade="90"`.
+- `colorVariant="light"` on a `Notification`, a `Tag` or a `Button` that stays one (not
+  `remove`, which becomes `Delete`) becomes `isLight`, unless a spread after it could override
+  it. Any other case is flagged: react-bulma-components rendered the value as the `is-light` or
+  `is-dark` class, so add that class to `className`, or use a shade such as
+  `bgColor="primary" backgroundColorShade="90"`.
 - Bulma v1 removed `is-bold` hero gradients — delete `gradient` or restyle with CSS.
 - `halfheight` has no bestax size; use `size="medium"` or a CSS height.
+
+## `prop:backgroundColor` — a component with no background color prop
+
+`backgroundColor` becomes `bgColor`, or stays `backgroundColor` on a component that takes only
+that. `Notification`, `Table` and its parts, `Tabs`, `Checkbox`, `Radio`, `Progress`, the
+`Modal.Card` parts and the other components that take neither keep it as written with a TODO:
+move the color to a `has-background-*` class in `className`.
 
 ## `prop:textColor` — a component with no `textColor` prop
 
