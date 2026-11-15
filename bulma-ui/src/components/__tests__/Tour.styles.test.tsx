@@ -163,12 +163,73 @@ describe('Tour styles', () => {
     }
   });
 
-  it('moves nothing on its own, so the scroll to a target is the only motion', () => {
-    for (const rule of PLAIN) {
-      for (const property of Object.keys(rule.declarations)) {
-        expect(property).not.toMatch(/^(transition|animation)/);
+  it('moves nothing on its own but the beacons’ pulse, so the scroll to a target is the step’s only motion', () => {
+    const moving = PLAIN.filter(rule =>
+      Object.keys(rule.declarations).some(property =>
+        /^(transition|animation)/.test(property)
+      )
+    ).map(rule => [rule.selector, rule.context.join(' | ')]);
+    expect(moving).toEqual([
+      ['.tour-beacon::after', ''],
+      ['.tour-beacon::after', '@media (prefers-reduced-motion: reduce)'],
+    ]);
+  });
+
+  it('registers the beacons’ tokens on the root', () => {
+    expect(find(PLAIN, '.tour')).toMatchObject({
+      '--bulma-tour-beacon-size': '1.5rem',
+      '--bulma-tour-beacon-color': 'var(--bulma-primary)',
+      '--bulma-tour-beacon-ring-color': 'var(--bulma-scheme-main)',
+      '--bulma-tour-beacon-ring-width': '2px',
+      '--bulma-tour-beacon-animation-duration': '1.4s',
+      '--bulma-tour-beacon-z-index': '19',
+    });
+  });
+
+  it('drops the tour to the beacons’ tier while no step is open', () => {
+    expect(find(PLAIN, '.tour.is-beacon:not(.is-active)')).toEqual({
+      'z-index': 'var(--bulma-tour-beacon-z-index)',
+    });
+  });
+
+  it('draws a beacon as a ringed dot centered on the corner, with Badge’s pulse', () => {
+    expect(find(PLAIN, '.tour-beacon')).toMatchObject({
+      position: 'fixed',
+      width: 'var(--bulma-tour-beacon-size)',
+      height: 'var(--bulma-tour-beacon-size)',
+      border:
+        'var(--bulma-tour-beacon-ring-width) solid var(--bulma-tour-beacon-ring-color)',
+      'border-radius': 'var(--bulma-radius-rounded)',
+      'background-color': 'var(--bulma-tour-beacon-color)',
+      transform: 'translate(-50%, -50%)',
+    });
+    expect(find(PLAIN, '.tour-beacon::after')).toMatchObject({
+      'pointer-events': 'none',
+      animation:
+        'extras-badge-pulse var(--bulma-tour-beacon-animation-duration) cubic-bezier(0, 0, 0.2, 1) infinite',
+    });
+    expect(
+      find(PLAIN, '.tour-beacon::after', [
+        '@media (prefers-reduced-motion: reduce)',
+      ])
+    ).toEqual({ animation: 'none', display: 'none' });
+    expect(find(PLAIN, '.tour-beacon:focus-visible')).toMatchObject({
+      'outline-offset': '2px',
+    });
+  });
+
+  it('shares Badge’s pulse keyframes, emitted once in a build with both', () => {
+    const both = sass.compileString(
+      `@use 'components/badge';
+       @use 'components/tour';`,
+      {
+        loadPaths: [SCSS, NODE_MODULES],
+        quietDeps: true,
+        logger: sass.Logger.silent,
       }
-    }
+    ).css;
+    expect(both.match(/@keyframes extras-badge-pulse/g)).toHaveLength(1);
+    expect(both).toMatch(/\.badge\.is-pulse::after \{[^}]*extras-badge-pulse/);
   });
 
   it('fits a cover’s media to the step’s width, under its top corners', () => {
@@ -206,5 +267,8 @@ describe('Tour styles', () => {
     expect(find(PREFIXED, '.bestax-tour-step.bestax-is-left')).toEqual({
       'margin-left': `calc(-1 * ${gap})`,
     });
+    expect(
+      find(PREFIXED, '.bestax-tour.bestax-is-beacon:not(.bestax-is-active)')
+    ).toEqual({ 'z-index': 'var(--bulma-tour-beacon-z-index)' });
   });
 });

@@ -1,4 +1,10 @@
-import React, { createRef, useEffect, useRef, useState } from 'react';
+import React, {
+  StrictMode,
+  createRef,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { renderToStaticMarkup, renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
@@ -88,6 +94,7 @@ afterEach(() => {
   Reflect.deleteProperty(Element.prototype, 'scrollIntoView');
   Reflect.deleteProperty(window, 'matchMedia');
   Reflect.deleteProperty(globalThis, 'ResizeObserver');
+  Reflect.deleteProperty(globalThis, 'IntersectionObserver');
 });
 
 /** A ResizeObserver the tests fire by hand, recording what it watches. */
@@ -131,6 +138,40 @@ const withResizeObserver = () => {
     watches: (el: Element) => live().some(observer => observer.watched.has(el)),
     fire: () => live().forEach(observer => observer.fire()),
   };
+};
+
+/** An IntersectionObserver the tests report to by hand. */
+class MockIntersectionObserver {
+  static last: MockIntersectionObserver | null = null;
+  watched = new Set<Element>();
+  constructor(private callback: IntersectionObserverCallback) {
+    MockIntersectionObserver.last = this;
+  }
+  observe(el: Element) {
+    this.watched.add(el);
+  }
+  unobserve(el: Element) {
+    this.watched.delete(el);
+  }
+  disconnect() {
+    this.watched.clear();
+  }
+  report(el: Element, isIntersecting: boolean) {
+    act(() => {
+      this.callback(
+        [{ target: el, isIntersecting } as IntersectionObserverEntry],
+        this as unknown as IntersectionObserver
+      );
+    });
+  }
+}
+
+const withIntersectionObserver = () => {
+  Object.defineProperty(globalThis, 'IntersectionObserver', {
+    configurable: true,
+    value: MockIntersectionObserver,
+  });
+  return () => MockIntersectionObserver.last as MockIntersectionObserver;
 };
 
 const steps = (
@@ -232,6 +273,42 @@ function KeptTour(props: {
     </Tour>
   );
 }
+
+/** Two targets and a tour of tips on them, opened in any order. */
+function Tips({
+  children,
+  ...props
+}: Partial<TourProps> & { children?: React.ReactNode }) {
+  return (
+    <>
+      <button type="button" id="opener">
+        Open
+      </button>
+      <button type="button" id="filters" data-rect="100 100 80 30">
+        Filters
+      </button>
+      <button type="button" id="export" data-rect="100 800 80 30">
+        Export
+      </button>
+      <Tour mode="beacon" {...props}>
+        {children ?? (
+          <>
+            <Tour.Step target="#filters" title="Filters">
+              The filters narrow the list.
+            </Tour.Step>
+            <Tour.Step target="#export" title="Export">
+              Export downloads the rows.
+            </Tour.Step>
+          </>
+        )}
+      </Tour>
+    </>
+  );
+}
+
+const beacons = () => screen.queryAllByRole('button', { name: /^Show tip/ });
+const beacon = (name: string) =>
+  screen.getByRole('button', { name: `Show tip ${name}` });
 
 const dialog = () => screen.getByRole('dialog');
 const next = () => screen.getByRole('button', { name: /^(Next|Done)$/ });
@@ -2501,6 +2578,775 @@ describe('Tour', () => {
       inner().focus();
       expect(press('Tab')).toBe(false);
       expect(screen.getByRole('button', { name: 'Filters' })).toHaveFocus();
+    });
+  });
+
+  describe('beacons', () => {
+    it('shows a named group of beacons in step order, each opening a dialog, and moves no focus', () => {
+      render(<Tips />);
+      const opener = screen.getByRole('button', { name: 'Open' });
+      opener.focus();
+      fireEvent.click(screen.getByRole('button', { name: 'Filters' }));
+      expect(screen.queryByRole('group')).toBeNull();
+    });
+
+    it('shows its beacons as it opens, over each target’s top end corner, with focus left where it was', () => {
+      const opener = document.createElement('button');
+      document.body.appendChild(opener);
+      opener.focus();
+      render(<Tips defaultOpen />);
+      const group = screen.getByRole('group', { name: 'Tips' });
+      expect(group).toHaveClass('tour-beacons');
+      expect(beacons().map(b => b.textContent)).toEqual([
+        'Show tip Filters',
+        'Show tip Export',
+      ]);
+      const filters = beacon('Filters');
+      expect(filters).toHaveClass('tour-beacon');
+      expect(filters).toHaveAttribute('type', 'button');
+      expect(filters).toHaveAttribute('aria-haspopup', 'dialog');
+      expect(filters).toHaveAttribute('aria-expanded', 'false');
+      // The corner: the target's top, and its right edge.
+      expect(filters.style.top).toBe('100px');
+      expect(filters.style.left).toBe('180px');
+      expect(beacon('Export').style.left).toBe('880px');
+      expect(screen.queryByRole('dialog')).toBeNull();
+      expect(opener).toHaveFocus();
+      const root = document.querySelector('.tour') as HTMLElement;
+      expect(root).toHaveClass('is-beacon');
+      expect(root).not.toHaveClass('is-active');
+      opener.remove();
+    });
+
+    it('opens a beacon’s step, hiding every beacon, and brings them back with focus on its beacon as Done closes it', () => {
+      const onChange = vi.fn();
+      const onOpenChange = vi.fn();
+      const onFinish = vi.fn();
+      render(
+        <Tips
+          defaultOpen
+          onChange={onChange}
+          onOpenChange={onOpenChange}
+          onFinish={onFinish}
+        />
+      );
+      fireEvent.click(beacon('Export'));
+      expect(onChange).toHaveBeenLastCalledWith(1);
+      expect(screen.getByRole('dialog', { name: 'Export' })).toBeVisible();
+      expect(beacons()).toHaveLength(0);
+      expect(screen.queryByRole('group')).toBeNull();
+      expect(document.querySelector('.tour')).toHaveClass(
+        'is-beacon',
+        'is-active'
+      );
+      // A beacon's step stands alone: no Skip, Back or progress line.
+      const done = screen.getByRole('button', { name: 'Done' });
+      expect(done).toHaveFocus();
+      for (const name of ['Skip', 'Back', 'Next']) {
+        expect(screen.queryByRole('button', { name })).toBeNull();
+      }
+      expect(document.querySelector('.tour-progress')).toBeNull();
+      fireEvent.click(done);
+      expect(onChange).toHaveBeenLastCalledWith(-1);
+      expect(screen.queryByRole('dialog')).toBeNull();
+      expect(beacon('Export')).toHaveFocus();
+      expect(beacons()).toHaveLength(2);
+      expect(onOpenChange).not.toHaveBeenCalled();
+      expect(onFinish).not.toHaveBeenCalled();
+    });
+
+    it('closes only the step on Escape and the close button, modal or not', () => {
+      const onChange = vi.fn();
+      const onOpenChange = vi.fn();
+      const { unmount } = render(
+        <Tips defaultOpen onChange={onChange} onOpenChange={onOpenChange} />
+      );
+      fireEvent.click(beacon('Filters'));
+      press('Escape');
+      expect(onChange).toHaveBeenLastCalledWith(-1);
+      expect(beacon('Filters')).toHaveFocus();
+      fireEvent.click(beacon('Filters'));
+      fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+      expect(onChange).toHaveBeenLastCalledWith(-1);
+      unmount();
+      render(
+        <Tips
+          defaultOpen
+          overlay={false}
+          onChange={onChange}
+          onOpenChange={onOpenChange}
+        />
+      );
+      fireEvent.click(beacon('Export'));
+      expect(dialog()).not.toHaveAttribute('aria-modal');
+      press('Escape');
+      expect(onChange).toHaveBeenLastCalledWith(-1);
+      expect(beacon('Export')).toHaveFocus();
+      expect(onOpenChange).not.toHaveBeenCalled();
+    });
+
+    it('closes the step on a press outside with closeOnClickOutside, and does nothing on one without it', () => {
+      const onChange = vi.fn();
+      const { unmount } = render(<Tips defaultOpen onChange={onChange} />);
+      fireEvent.click(beacon('Filters'));
+      fireEvent.pointerDown(document.querySelector('.tour-overlay') as Element);
+      expect(onChange).toHaveBeenLastCalledWith(0);
+      expect(dialog()).toBeVisible();
+      unmount();
+      const onOpenChange = vi.fn();
+      render(
+        <Tips
+          defaultOpen
+          closeOnClickOutside
+          onChange={onChange}
+          onOpenChange={onOpenChange}
+        />
+      );
+      fireEvent.click(beacon('Filters'));
+      fireEvent.pointerDown(document.querySelector('.tour-overlay') as Element);
+      expect(onChange).toHaveBeenLastCalledWith(-1);
+      expect(screen.queryByRole('dialog')).toBeNull();
+      expect(onOpenChange).not.toHaveBeenCalled();
+    });
+
+    it('leaves the arrow keys alone in a beacon’s step, and says nothing in its status line', () => {
+      const onChange = vi.fn();
+      render(
+        <Tips defaultOpen onChange={onChange}>
+          <Tour.Step target="#filters" title="Filters">
+            1
+          </Tour.Step>
+          <Tour.Step target="#export" title="Export">
+            2
+          </Tour.Step>
+          <Tour.Step target="#opener" title="Opener">
+            3
+          </Tour.Step>
+        </Tips>
+      );
+      fireEvent.click(beacon('Export'));
+      onChange.mockClear();
+      expect(press('ArrowRight')).toBe(true);
+      expect(press('ArrowLeft')).toBe(true);
+      expect(onChange).not.toHaveBeenCalled();
+      expect(screen.getByRole('status')).toHaveTextContent('');
+    });
+
+    it('opens a step from a controlled value as if from its beacon, without a status line', () => {
+      const Controlled = ({ value }: { value: number }) => (
+        <Tips open value={value} />
+      );
+      const { rerender } = render(<Controlled value={-1} />);
+      expect(beacons()).toHaveLength(2);
+      rerender(<Controlled value={0} />);
+      expect(screen.getByRole('dialog', { name: 'Filters' })).toBeVisible();
+      rerender(<Controlled value={1} />);
+      expect(screen.getByRole('dialog', { name: 'Export' })).toBeVisible();
+      expect(screen.getByRole('status')).toHaveTextContent('');
+      rerender(<Controlled value={-1} />);
+      expect(beacon('Export')).toHaveFocus();
+      // One that names no step shows the beacons.
+      rerender(<Controlled value={5} />);
+      expect(screen.queryByRole('dialog')).toBeNull();
+      expect(beacons()).toHaveLength(2);
+    });
+
+    it('hands focus back to the closed step’s own beacon, though steps before it go at the same time, and to its target when it goes too', () => {
+      const all = [
+        { id: 'opener', title: 'Opener' },
+        { id: 'filters', title: 'Filters' },
+        { id: 'export', title: 'Export' },
+      ];
+      const Some = ({ ids, value }: { ids: string[]; value: number }) => (
+        <Tips open value={value}>
+          {all
+            .filter(tip => ids.includes(tip.id))
+            .map(tip => (
+              <Tour.Step key={tip.id} target={`#${tip.id}`} title={tip.title}>
+                {tip.title}
+              </Tour.Step>
+            ))}
+        </Tips>
+      );
+      const ids = all.map(tip => tip.id);
+      const { rerender } = render(<Some ids={ids} value={1} />);
+      expect(screen.getByRole('dialog', { name: 'Filters' })).toBeVisible();
+      rerender(<Some ids={['filters', 'export']} value={-1} />);
+      expect(beacon('Filters')).toHaveFocus();
+      // A step that goes as it closes takes its beacon with it, and focus
+      // goes to its target, still on the page.
+      rerender(<Some ids={['filters', 'export']} value={0} />);
+      rerender(<Some ids={['export']} value={-1} />);
+      expect(document.getElementById('filters')).toHaveFocus();
+    });
+
+    it('starts again from the beacons each time it opens, unless defaultValue names a step', () => {
+      const Toggled = ({ open, ...props }: Partial<TourProps>) => (
+        <Tips open={open} {...props} />
+      );
+      const { rerender } = render(<Toggled open />);
+      fireEvent.click(beacon('Filters'));
+      expect(dialog()).toBeVisible();
+      rerender(<Toggled open={false} />);
+      expect(screen.queryByRole('dialog')).toBeNull();
+      expect(beacons()).toHaveLength(0);
+      expect(document.querySelector('.tour')).toBeNull();
+      const filters = document.getElementById('filters') as HTMLElement;
+      rerender(<Toggled open />);
+      expect(screen.queryByRole('dialog')).toBeNull();
+      expect(beacons()).toHaveLength(2);
+      // Showing the beacons moves no focus.
+      expect(filters).toHaveFocus();
+      rerender(<Toggled open={false} />);
+      rerender(<Toggled open defaultValue={1} />);
+      expect(screen.getByRole('dialog', { name: 'Export' })).toBeVisible();
+    });
+
+    it('names a beacon by a title that’s a node, or by the step’s aria-label, in its own words', () => {
+      render(
+        <Tips defaultOpen labels={{ beacon: 'Tipp zeigen', beacons: 'Tipps' }}>
+          <Tour.Step
+            target="#filters"
+            title={
+              <>
+                <em>Filters</em> panel
+              </>
+            }
+          >
+            1
+          </Tour.Step>
+          <Tour.Step target="#export" aria-label="Export">
+            2
+          </Tour.Step>
+        </Tips>
+      );
+      expect(screen.getByRole('group', { name: 'Tipps' })).toBeVisible();
+      expect(
+        screen.getByRole('button', { name: 'Tipp zeigen Filters panel' })
+      ).toBeVisible();
+      expect(
+        screen.getByRole('button', { name: 'Tipp zeigen Export' })
+      ).toBeVisible();
+    });
+
+    it('mirrors a beacon to its target’s top left corner under right-to-left text', () => {
+      render(
+        <div dir="rtl">
+          <Tips defaultOpen />
+        </div>
+      );
+      // Queried by class: naming it would read the mocked rtl styles.
+      const first = document.querySelector('.tour-beacon') as HTMLElement;
+      expect(first).toHaveTextContent('Show tip Filters');
+      expect(first.style.left).toBe('100px');
+    });
+
+    it('gives a step with no target, or one off the page or without a box, no beacon until it turns up, and warns', async () => {
+      render(
+        <>
+          <div hidden>
+            <button type="button" id="hidden-target">
+              Hidden
+            </button>
+          </div>
+          <Tips defaultOpen>
+            <Tour.Step title="Anywhere">1</Tour.Step>
+            <Tour.Step target="#late" title="Late">
+              2
+            </Tour.Step>
+            <Tour.Step target="#hidden-target" title="Hidden">
+              3
+            </Tour.Step>
+            <Tour.Step target="#filters" title="Filters">
+              4
+            </Tour.Step>
+          </Tips>
+        </>
+      );
+      expect(beacons().map(b => b.textContent)).toEqual(['Show tip Filters']);
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('beacon mode has no target')
+      );
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('Target: "#late"')
+      );
+      const late = document.createElement('button');
+      late.id = 'late';
+      late.dataset.rect = '300 300 40 20';
+      await act(async () => {
+        document.body.prepend(late);
+      });
+      expect(beacons().map(b => b.textContent)).toEqual([
+        'Show tip Late',
+        'Show tip Filters',
+      ]);
+      expect(beacon('Late').style.top).toBe('300px');
+      late.remove();
+    });
+
+    it('drops a step’s beacon with the step, and the group with the last beacon', () => {
+      const { rerender } = render(<Tips defaultOpen />);
+      rerender(
+        <Tips defaultOpen>
+          <Tour.Step target="#export" title="Export">
+            2
+          </Tour.Step>
+        </Tips>
+      );
+      expect(beacons().map(b => b.textContent)).toEqual(['Show tip Export']);
+      rerender(
+        <Tips defaultOpen>
+          <Tour.Step target="#nowhere" title="Nowhere">
+            3
+          </Tour.Step>
+        </Tips>
+      );
+      expect(screen.queryByRole('group')).toBeNull();
+      expect(document.querySelector('.tour')).not.toBeNull();
+    });
+
+    it('warns once when the targets are out of document order', () => {
+      render(
+        <Tips defaultOpen>
+          <Tour.Step target="#export" title="Export">
+            1
+          </Tour.Step>
+          <Tour.Step target="#filters" title="Filters">
+            2
+          </Tour.Step>
+        </Tips>
+      );
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.stringContaining('out of document order')
+      );
+    });
+
+    it('follows its targets as the page scrolls or resizes, or one changes size', () => {
+      const sizes = withResizeObserver();
+      render(<Tips defaultOpen />);
+      const filters = document.getElementById('filters') as HTMLElement;
+      expect(sizes.watches(filters)).toBe(true);
+      filters.dataset.rect = '150 100 80 30';
+      act(() => {
+        window.dispatchEvent(new Event('scroll'));
+      });
+      expect(beacon('Filters').style.top).toBe('150px');
+      filters.dataset.rect = '160 100 90 30';
+      sizes.fire();
+      expect(beacon('Filters').style.left).toBe('190px');
+      filters.dataset.rect = '170 100 90 30';
+      act(() => {
+        window.dispatchEvent(new Event('resize'));
+      });
+      expect(beacon('Filters').style.top).toBe('170px');
+    });
+
+    it('measures its beacons once a frame, however many changes ask in it', () => {
+      const frames: FrameRequestCallback[] = [];
+      vi.mocked(window.requestAnimationFrame).mockImplementation(callback => {
+        frames.push(callback);
+        return frames.length;
+      });
+      render(<Tips defaultOpen />);
+      const asked = frames.length;
+      act(() => {
+        window.dispatchEvent(new Event('scroll'));
+        window.dispatchEvent(new Event('resize'));
+        window.dispatchEvent(new Event('scroll'));
+      });
+      expect(frames).toHaveLength(asked);
+      const filters = document.getElementById('filters') as HTMLElement;
+      filters.dataset.rect = '220 100 80 30';
+      act(() => frames[frames.length - 1](0));
+      expect(beacon('Filters').style.top).toBe('220px');
+      act(() => {
+        window.dispatchEvent(new Event('scroll'));
+      });
+      expect(frames).toHaveLength(asked + 1);
+    });
+
+    it('hides a beacon while its target is out of view, and stops watching a target that goes', () => {
+      const observer = withIntersectionObserver();
+      const { rerender } = render(<Tips defaultOpen />);
+      const filters = document.getElementById('filters') as HTMLElement;
+      expect(observer().watched.has(filters)).toBe(true);
+      observer().report(filters, false);
+      expect(beacons().map(b => b.textContent)).toEqual(['Show tip Export']);
+      // A report that changes nothing changes nothing.
+      observer().report(filters, false);
+      observer().report(filters, true);
+      expect(beacons()).toHaveLength(2);
+      rerender(
+        <Tips defaultOpen>
+          <Tour.Step target="#export" title="Export">
+            2
+          </Tour.Step>
+        </Tips>
+      );
+      expect(observer().watched.has(filters)).toBe(false);
+    });
+
+    it('measures nothing again for its own changes, only for the page’s', async () => {
+      render(<Tips defaultOpen />);
+      const frames = vi.mocked(window.requestAnimationFrame);
+      frames.mockClear();
+      await act(async () => {
+        (document.querySelector('.tour-beacon') as HTMLElement).dataset.seen =
+          '1';
+      });
+      expect(frames).not.toHaveBeenCalled();
+      await act(async () => {
+        (document.getElementById('export') as HTMLElement).dataset.seen = '1';
+      });
+      expect(frames).toHaveBeenCalled();
+    });
+
+    it('hands useTour the mode, with Back doing nothing and Next and Skip closing the step', () => {
+      const onChange = vi.fn();
+      const Custom = () => {
+        const tour = useTour() as NonNullable<ReturnType<typeof useTour>>;
+        return (
+          <>
+            <span>{tour.mode}</span>
+            <button type="button" onClick={tour.back}>
+              Custom back
+            </button>
+            <button type="button" onClick={tour.skip}>
+              Custom skip
+            </button>
+            <button type="button" onClick={tour.next}>
+              Custom next
+            </button>
+          </>
+        );
+      };
+      render(<Tips defaultOpen onChange={onChange} footer={<Custom />} />);
+      fireEvent.click(beacon('Export'));
+      expect(screen.getByText('beacon')).toBeVisible();
+      onChange.mockClear();
+      fireEvent.click(screen.getByRole('button', { name: 'Custom back' }));
+      expect(onChange).not.toHaveBeenCalled();
+      fireEvent.click(screen.getByRole('button', { name: 'Custom skip' }));
+      expect(onChange).toHaveBeenLastCalledWith(-1);
+      fireEvent.click(beacon('Export'));
+      fireEvent.click(screen.getByRole('button', { name: 'Custom next' }));
+      expect(onChange).toHaveBeenLastCalledWith(-1);
+    });
+
+    it('reports a guided tour’s mode as guided', () => {
+      const Mode = () => <output>{useTour()?.mode}</output>;
+      render(
+        <Tour defaultOpen footer={<Mode />}>
+          <Tour.Step title="One">1</Tour.Step>
+        </Tour>
+      );
+      expect(document.querySelector('output')).toHaveTextContent('guided');
+    });
+
+    it('sends focus to the step’s target when the tour closes over a beacon’s step that holds it', () => {
+      const Toggled = ({ open }: { open: boolean }) => <Tips open={open} />;
+      const { rerender } = render(<Toggled open />);
+      fireEvent.click(beacon('Filters'));
+      rerender(<Toggled open={false} />);
+      expect(document.querySelector('.tour')).toBeNull();
+      expect(document.getElementById('filters')).toHaveFocus();
+    });
+
+    it('sends focus into a target’s first control, and leaves it on the page where the user moved it', () => {
+      const Toggled = ({ open }: { open: boolean }) => (
+        <>
+          <div id="panel" data-rect="300 300 200 100">
+            <input aria-label="Inside the panel" />
+          </div>
+          <Tips open={open} overlay={false}>
+            <Tour.Step target="#panel" title="Panel">
+              1
+            </Tour.Step>
+            <Tour.Step target="#export" title="Export">
+              2
+            </Tour.Step>
+          </Tips>
+        </>
+      );
+      const { rerender } = render(<Toggled open />);
+      fireEvent.click(beacon('Panel'));
+      rerender(<Toggled open={false} />);
+      expect(
+        screen.getByRole('textbox', { name: 'Inside the panel' })
+      ).toHaveFocus();
+      rerender(<Toggled open />);
+      fireEvent.click(beacon('Export'));
+      const opener = screen.getByRole('button', { name: 'Open' });
+      opener.focus();
+      rerender(<Toggled open={false} />);
+      expect(opener).toHaveFocus();
+    });
+
+    it('hands focus back to the beacon only while the closing step holds it', () => {
+      const Some = ({ value }: { value: number }) => (
+        <Tips open value={value} overlay={false} />
+      );
+      const { rerender } = render(<Some value={0} />);
+      const field = document.createElement('input');
+      document.body.appendChild(field);
+      field.focus();
+      rerender(<Some value={-1} />);
+      expect(field).toHaveFocus();
+      expect(beacons()).toHaveLength(2);
+      field.remove();
+    });
+
+    it('closes the open tip when a step before it comes or goes, or it goes, firing onChange(-1) once each', () => {
+      const onChange = vi.fn();
+      const Some = ({ ids }: { ids: string[] }) => (
+        <Tips defaultOpen onChange={onChange}>
+          {['opener', 'filters', 'export']
+            .filter(id => ids.includes(id))
+            .map(id => (
+              <Tour.Step key={id} target={`#${id}`} title={id}>
+                {id}
+              </Tour.Step>
+            ))}
+        </Tips>
+      );
+      const { rerender } = render(<Some ids={['filters', 'export']} />);
+      fireEvent.click(beacon('export'));
+      expect(onChange).toHaveBeenLastCalledWith(1);
+      // A step inserted before it: the tip closes, with focus on its beacon.
+      rerender(<Some ids={['opener', 'filters', 'export']} />);
+      expect(screen.queryByRole('dialog')).toBeNull();
+      expect(onChange).toHaveBeenLastCalledWith(-1);
+      expect(beacon('export')).toHaveFocus();
+      fireEvent.click(beacon('export'));
+      expect(onChange).toHaveBeenLastCalledWith(2);
+      // A step removed before it.
+      rerender(<Some ids={['filters', 'export']} />);
+      expect(screen.queryByRole('dialog')).toBeNull();
+      expect(onChange).toHaveBeenLastCalledWith(-1);
+      fireEvent.click(beacon('export'));
+      // The open step removed: focus goes to its target.
+      rerender(<Some ids={['filters']} />);
+      expect(screen.queryByRole('dialog')).toBeNull();
+      expect(document.getElementById('export')).toHaveFocus();
+      expect(onChange.mock.calls.filter(([v]) => v === -1)).toHaveLength(3);
+    });
+
+    it('leaves what shows to a controlled value, telling the app once that its tip closed', () => {
+      const onChange = vi.fn();
+      // A parent that takes the opening and ignores the rest.
+      const Stubborn = ({ ids }: { ids: string[] }) => {
+        const [value, setValue] = useState(-1);
+        return (
+          <Tips
+            open
+            value={value}
+            onChange={v => {
+              onChange(v);
+              if (v >= 0) setValue(v);
+            }}
+          >
+            {['opener', 'filters', 'export']
+              .filter(id => ids.includes(id))
+              .map(id => (
+                <Tour.Step key={id} target={`#${id}`} title={id}>
+                  {id}
+                </Tour.Step>
+              ))}
+          </Tips>
+        );
+      };
+      const { rerender } = render(<Stubborn ids={['filters', 'export']} />);
+      fireEvent.click(beacon('export'));
+      rerender(<Stubborn ids={['opener', 'filters', 'export']} />);
+      expect(onChange).toHaveBeenLastCalledWith(-1);
+      // The value still says 1, so the step there shows.
+      expect(screen.getByRole('dialog', { name: 'filters' })).toBeVisible();
+      rerender(<Stubborn ids={['opener', 'filters', 'export']} />);
+      expect(onChange.mock.calls.filter(([v]) => v === -1)).toHaveLength(1);
+    });
+
+    it('opens a value that names no step once steps arrive that it names', () => {
+      const onChange = vi.fn();
+      const Some = ({ ids }: { ids: string[] }) => (
+        <Tips open value={2} onChange={onChange}>
+          {['opener', 'filters', 'export']
+            .filter(id => ids.includes(id))
+            .map(id => (
+              <Tour.Step key={id} target={`#${id}`} title={id}>
+                {id}
+              </Tour.Step>
+            ))}
+        </Tips>
+      );
+      const { rerender } = render(<Some ids={['filters']} />);
+      expect(screen.queryByRole('dialog')).toBeNull();
+      rerender(<Some ids={['opener', 'filters', 'export']} />);
+      expect(screen.getByRole('dialog', { name: 'export' })).toBeVisible();
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('forgets the tip a beacon opened when the mode or open changes', () => {
+      const onChange = vi.fn();
+      const Some = ({
+        ids,
+        mode = 'beacon',
+        open = true,
+      }: {
+        ids: string[];
+        mode?: TourProps['mode'];
+        open?: boolean;
+      }) => (
+        <Tips open={open} mode={mode} onChange={onChange}>
+          {['opener', 'filters', 'export']
+            .filter(id => ids.includes(id))
+            .map(id => (
+              <Tour.Step key={id} target={`#${id}`} title={id}>
+                {id}
+              </Tour.Step>
+            ))}
+        </Tips>
+      );
+      const ids = ['filters', 'export'];
+      const { rerender, unmount } = render(<Some ids={ids} />);
+      fireEvent.click(beacon('export'));
+      onChange.mockClear();
+      // Guided now: steps change under the step it opened, and back.
+      rerender(<Some ids={ids} mode="guided" />);
+      rerender(<Some ids={['opener', ...ids]} mode="guided" />);
+      rerender(<Some ids={['opener', ...ids]} />);
+      expect(onChange).not.toHaveBeenCalled();
+      unmount();
+      const again = render(<Some ids={ids} />);
+      fireEvent.click(beacon('export'));
+      onChange.mockClear();
+      // Closed, the steps change, and it opens again.
+      again.rerender(<Some ids={ids} open={false} />);
+      again.rerender(<Some ids={['opener', ...ids]} open={false} />);
+      again.rerender(<Some ids={['opener', ...ids]} />);
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('fires onChange(-1) once for a tip closed under StrictMode', () => {
+      const onChange = vi.fn();
+      const Some = ({ ids }: { ids: string[] }) => (
+        <StrictMode>
+          <Tips defaultOpen onChange={onChange}>
+            {['opener', 'filters', 'export']
+              .filter(id => ids.includes(id))
+              .map(id => (
+                <Tour.Step key={id} target={`#${id}`} title={id}>
+                  {id}
+                </Tour.Step>
+              ))}
+          </Tips>
+        </StrictMode>
+      );
+      const { rerender } = render(<Some ids={['filters', 'export']} />);
+      fireEvent.click(beacon('export'));
+      rerender(<Some ids={['opener', 'filters', 'export']} />);
+      expect(onChange.mock.calls.filter(([v]) => v === -1)).toHaveLength(1);
+    });
+
+    it('moves no focus as a step goes that didn’t hold it, as after a click on the page’s background', () => {
+      const Some = ({ open, value }: { open: boolean; value: number }) => (
+        <Tips open={open} value={value} overlay={false} />
+      );
+      const { rerender } = render(<Some open value={0} />);
+      expect(screen.getByRole('button', { name: 'Done' })).toHaveFocus();
+      // A click on the page's background leaves focus on <body>.
+      (document.activeElement as HTMLElement).blur();
+      rerender(<Some open value={-1} />);
+      expect(document.body).toHaveFocus();
+      rerender(<Some open value={1} />);
+      (document.activeElement as HTMLElement).blur();
+      rerender(<Some open={false} value={1} />);
+      expect(document.body).toHaveFocus();
+    });
+
+    it('keeps watching the targets while a step is open, so the beacons come back as they are', () => {
+      const observer = withIntersectionObserver();
+      const { rerender } = render(<Tips defaultOpen />);
+      const filters = document.getElementById('filters') as HTMLElement;
+      const exportButton = document.getElementById('export') as HTMLElement;
+      fireEvent.click(beacon('Filters'));
+      expect(observer().watched.has(exportButton)).toBe(true);
+      observer().report(exportButton, false);
+      fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+      expect(beacons().map(b => b.textContent)).toEqual(['Show tip Filters']);
+      expect(beacon('Filters')).toHaveFocus();
+      fireEvent.click(beacon('Filters'));
+      observer().report(exportButton, true);
+      // A report that changes nothing changes nothing.
+      observer().report(exportButton, true);
+      fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+      expect(beacons()).toHaveLength(2);
+      // A target no longer a step's is dropped, and not hidden when it's
+      // one again.
+      observer().report(filters, false);
+      rerender(
+        <Tips defaultOpen>
+          <Tour.Step target="#export" title="Export">
+            2
+          </Tour.Step>
+        </Tips>
+      );
+      expect(observer().watched.has(filters)).toBe(false);
+      rerender(<Tips defaultOpen />);
+      expect(beacons()).toHaveLength(2);
+    });
+
+    it('moves focus nowhere when neither the beacon nor the target is left', () => {
+      const Some = ({ value }: { value: number }) => (
+        <Tips open value={value}>
+          <Tour.Step title="Anywhere">1</Tour.Step>
+          <Tour.Step target="#export" title="Export">
+            2
+          </Tour.Step>
+        </Tips>
+      );
+      const { rerender } = render(<Some value={0} />);
+      expect(screen.getByRole('button', { name: 'Done' })).toHaveFocus();
+      rerender(<Some value={-1} />);
+      expect(document.body).toHaveFocus();
+    });
+
+    it('skips the development checks in a production build', () => {
+      const previous = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      try {
+        render(
+          <Tips defaultOpen>
+            <Tour.Step target="#export" title="Export">
+              1
+            </Tour.Step>
+            <Tour.Step target="#filters" title="Filters">
+              2
+            </Tour.Step>
+            <Tour.Step target="#nowhere" title="Nowhere">
+              3
+            </Tour.Step>
+          </Tips>
+        );
+        expect(beacons()).toHaveLength(2);
+        expect(console.warn).not.toHaveBeenCalled();
+      } finally {
+        process.env.NODE_ENV = previous;
+      }
+    });
+
+    it('prefixes the beacons’ classes under ConfigProvider classPrefix', () => {
+      render(
+        <ConfigProvider classPrefix="bestax-">
+          <Tips defaultOpen />
+        </ConfigProvider>
+      );
+      const root = document.querySelector('.bestax-tour') as HTMLElement;
+      expect(root).toHaveClass('bestax-is-beacon');
+      expect(root.querySelector('.bestax-tour-beacons')).not.toBeNull();
+      expect(beacon('Filters')).toHaveClass('bestax-tour-beacon');
+      expect(root.querySelector('.tour-beacon')).toBeNull();
+      fireEvent.click(beacon('Filters'));
+      expect(root).toHaveClass('bestax-is-active');
     });
   });
 
