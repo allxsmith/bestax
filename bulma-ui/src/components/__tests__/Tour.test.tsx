@@ -2237,7 +2237,8 @@ describe('Tour', () => {
                 Hidden back
               </Tour.Back>
               <Tour.Back>Back</Tour.Back>
-              <div inert>
+              {/* Set by hand: React 18 drops a boolean inert prop. */}
+              <div ref={node => node?.setAttribute('inert', '')}>
                 <Tour.Next onClick={hiddenPart}>Inert next</Tour.Next>
               </div>
               <Tour.Next>Next</Tour.Next>
