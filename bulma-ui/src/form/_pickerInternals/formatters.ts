@@ -1,3 +1,4 @@
+import { numberFormatFor } from '../../helpers/localeFormat';
 import { FIRST_YEAR, makeDate } from './dateUtils';
 import type { DateGranularity } from './pickerTypes';
 
@@ -340,6 +341,32 @@ function parseTokens(input: string, fmt: string): ParsedParts | null {
     if (out.meridiem === 'am' && out.hours === 12) out.hours = 0;
   }
   return out;
+}
+
+/** A day or a year has no grouping: 2026, not 2,026. */
+const DATE_NUMBER: Intl.NumberFormatOptions = { useGrouping: false };
+
+/**
+ * Writes a day of the month or a year in the digits `locale` writes numbers
+ * in, which are the ones it writes a date in, such as ١٣ in Egyptian Arabic,
+ * with no grouping and none of the words some locales put around a date's
+ * numbers, as Japanese writes 13日. A `-u-nu-` extension in the tag picks the
+ * digits. With no locale it writes plain digits, as the calendar always has,
+ * rather than the runtime's, which a server and a browser can disagree on.
+ */
+export function getDateNumberFormat(
+  locale: string | undefined
+): (n: number) => string {
+  if (!locale) return String;
+  try {
+    const format = numberFormatFor(locale, DATE_NUMBER);
+    return n => format.format(n);
+  } catch {
+    // A tag Intl refuses. The names the calendar asks Intl for throw on it,
+    // and with every name given it asks for none, so the numbers stay plain
+    // rather than throw where nothing did.
+    return String;
+  }
 }
 
 /**

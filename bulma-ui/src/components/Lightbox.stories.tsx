@@ -9,59 +9,41 @@ import { Span } from '../elements/Span';
 import { Column } from '../columns/Column';
 import { Columns } from '../columns/Columns';
 import { LocaleProvider } from '../helpers/LocaleProvider';
+// Credits and licenses for the pictures: ../../images/LICENSE.md
+import fjord from '../../images/sample-fjord-3by2.jpg';
+import skye from '../../images/sample-skye-3by2.jpg';
+import saltCreekFalls from '../../images/sample-salt-creek-falls-3by2.jpg';
+import yosemite from '../../images/sample-yosemite-3by2.jpg';
+import snowCamp from '../../images/sample-snow-camp-3by2.jpg';
+import sharkFinCove from '../../images/sample-shark-fin-cove-3by2.jpg';
+import fjord16by9 from '../../images/sample-fjord-16by9.jpg';
 
-/** A photo from Picsum at a size: the full one for the viewer, small for its thumbnail. */
-const photo = (id: number, width: number, height: number) =>
-  `https://picsum.photos/id/${id}/${width}/${height}`;
-
-// Picsum serves photos from Unsplash, cropped to the size asked for. Each one
-// below is free to use under the Unsplash License
-// (https://unsplash.com/license), as its Unsplash page says. The credit beside
-// each is the one on that page, which can spell a name differently from
-// Picsum's own `/id/<id>/info`.
-const PHOTOS: (LightboxItem & { id: number })[] = [
-  // Oleksii Topolianskyi, Forsand, Norway:
-  // https://unsplash.com/photos/-oWyJoSqBRM
+const PHOTOS: LightboxItem[] = [
   {
-    id: 1015,
-    src: photo(1015, 1600, 1067),
+    src: fjord,
     alt: 'A fjord of deep blue water between steep cliffs',
     caption: 'The fjord from the clifftop path',
   },
-  // Andrew Ridley, Portree, United Kingdom:
-  // https://unsplash.com/photos/Kt5hRENuotI
   {
-    id: 1018,
-    src: photo(1018, 1600, 1067),
+    src: skye,
     alt: 'A road winding below a green ridge',
   },
-  // Andrew Coelho, Salt Creek Falls, United States:
-  // https://unsplash.com/photos/VB-w_3dnyvI
   {
-    id: 1039,
-    src: photo(1039, 1600, 1067),
+    src: saltCreekFalls,
     alt: 'A waterfall dropping into a green forest gorge',
     caption: 'The falls after a week of rain',
   },
-  // Christian Joudrey, Yosemite National Park, United States:
-  // https://unsplash.com/photos/mWRR1xj95hg
   {
-    id: 1043,
-    src: photo(1043, 1600, 1067),
+    src: yosemite,
     alt: 'A river through pines below granite cliffs',
   },
-  // Wolfgang Lutz: https://unsplash.com/photos/yOujaSETXlo
   {
-    id: 1036,
-    src: photo(1036, 1600, 1067),
+    src: snowCamp,
     alt: 'Snow-covered tents beside a stone wall, below snowy peaks',
     caption: 'Camp on the second night',
   },
-  // Joseph Barrientos, Shark Fin Cove, Davenport, California:
-  // https://unsplash.com/photos/xcC5ozHk_N8
   {
-    id: 1050,
-    src: photo(1050, 1600, 1067),
+    src: sharkFinCove,
     alt: 'Sea stacks off a cliffed coast',
   },
 ];
@@ -70,14 +52,9 @@ const PHOTOS: (LightboxItem & { id: number })[] = [
 const thumbnails = (
   <Columns isMultiline isMobile>
     {PHOTOS.map((item, i) => (
-      <Column key={item.id} size="one-third">
+      <Column key={item.src} size="one-third">
         <Lightbox.Trigger index={i}>
-          <Image
-            as="div"
-            src={photo(item.id, 480, 320)}
-            alt={item.alt}
-            size="3by2"
-          />
+          <Image as="div" src={item.src} alt={item.alt} size="3by2" />
         </Lightbox.Trigger>
       </Column>
     ))}
@@ -215,7 +192,7 @@ export const CompoundUsage: Story = {
             <LightboxTrigger index={0}>
               <Image
                 as="div"
-                src={photo(PHOTOS[0].id, 480, 320)}
+                src={PHOTOS[0].src}
                 alt={PHOTOS[0].alt}
                 size="3by2"
               />
@@ -225,7 +202,7 @@ export const CompoundUsage: Story = {
             <Lightbox.Trigger index={1}>
               <Image
                 as="div"
-                src={photo(PHOTOS[1].id, 480, 320)}
+                src={PHOTOS[1].src}
                 alt={PHOTOS[1].alt}
                 size="3by2"
               />
@@ -242,7 +219,7 @@ export const ViewAllPhotos: Story = {
     return (
       <Lightbox items={PHOTOS}>
         <Lightbox.Trigger index={0}>
-          <Image as="div" src={photo(1015, 960, 540)} alt="" size="16by9" />
+          <Image as="div" src={fjord16by9} alt="" size="16by9" />
           <Span display="block" mt="2" textWeight="semibold">
             View all {PHOTOS.length} photos
           </Span>

@@ -1,4 +1,4 @@
-// Skills → Examples → Icons: the bestax-icons skill's canonical example,
+// Skills → Icons: the bestax-icons skill's canonical example,
 // rendered live. Shows the app-root ConfigProvider, meaningful-vs-decorative
 // accessibility, sizes/variants/features, and multi-segment IconText.
 import type { Meta, StoryObj } from '@storybook/react-vite';

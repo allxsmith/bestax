@@ -111,7 +111,8 @@ export interface DataTableProps<TRow>
    * Shows a page of skeleton rows under the header in place of the rows,
    * and marks the table busy. For data on its way, as from a server with
    * `manual`. A skeleton row is as tall as a row of one line of text, so rows
-   * of text replace it without the table changing height.
+   * of text replace it without the table changing height, and each of its
+   * lines sits where its column's `align` puts the value.
    */
   loading?: boolean;
   /**
@@ -391,16 +392,25 @@ export const DataTable = forwardRef(function DataTableRender<TRow>(
 
   let body: React.ReactNode;
   if (loading) {
+    const line = (
+      <Skeleton variant="lines" lines={1} className={skeletonClass} />
+    );
     body = Array.from({ length: size ?? 5 }, (_, index) => (
       <Tr key={index} aria-hidden="true">
         {/* The checkbox column holds no line, which would be wider than the
             checkbox it waits for, so the column keeps its width. */}
         {selectable && <Td isNarrow />}
-        {table.columns.map(column => (
-          <Td key={column.id}>
-            <Skeleton variant="lines" lines={1} className={skeletonClass} />
-          </Td>
-        ))}
+        {/* Each line sits where its column will put the value. A row
+            header's is a Th, since a table aligns a header cell's text as
+            it aligns a header's. */}
+        {table.columns.map(column => {
+          const Cell = column.isRowHeader ? Th : Td;
+          return (
+            <Cell key={column.id} isAligned={column.align}>
+              {line}
+            </Cell>
+          );
+        })}
       </Tr>
     ));
   } else if (pageRows.length === 0) {

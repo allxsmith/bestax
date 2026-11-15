@@ -88,43 +88,70 @@ const outranks = (a: number[], b: number[]) => {
   return false;
 };
 
+/** A selector list split at its own commas, not those inside parentheses. */
+function splitList(list: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let part = '';
+  for (const char of list) {
+    if (char === ',' && depth === 0) {
+      parts.push(part.trim());
+      part = '';
+      continue;
+    }
+    if (char === '(') depth++;
+    else if (char === ')') depth--;
+    part += char;
+  }
+  parts.push(part.trim());
+  return parts;
+}
+
 /**
- * Specificity as [ids, classes, types]. `:has()` and `:not()` count as their
- * most specific argument, which is all the rules here need; any other
- * functional pseudo-class, or one inside another, is refused.
+ * Specificity as [ids, classes, types], as browsers count it: `:is()`,
+ * `:has()` and `:not()` count as their most specific argument, and
+ * `:where()` as nothing. Any other functional pseudo-class is refused.
  */
 function specificity(selector: string): number[] {
-  for (const [, name, arg] of selector.matchAll(/:([\w-]+)\(([^)]*)\)/g)) {
-    if (!['has', 'not'].includes(name) || arg.includes('(')) {
+  const total = [0, 0, 0];
+  let rest = '';
+  for (let i = 0; i < selector.length;) {
+    const fn = /^:([\w-]+)\(/.exec(selector.slice(i));
+    if (!fn) {
+      rest += selector[i++];
+      continue;
+    }
+    const open = i + fn[0].length - 1;
+    let close = open;
+    for (let depth = 0; close < selector.length; close++) {
+      if (selector[close] === '(') depth++;
+      else if (selector[close] === ')' && --depth === 0) break;
+    }
+    const arg = selector.slice(open + 1, close);
+    if (['is', 'has', 'not'].includes(fn[1])) {
+      splitList(arg)
+        .map(specificity)
+        .reduce((most, next) => (outranks(next, most) ? next : most))
+        .forEach((count, k) => (total[k] += count));
+    } else if (fn[1] !== 'where') {
       throw new Error(
-        `${selector} uses :${name}(${arg}), which this resolver does not ` +
+        `${selector} uses :${fn[1]}(${arg}), which this resolver does not ` +
           'rank. Extend `specificity` before trusting a result.'
       );
     }
+    rest += ' ';
+    i = close + 1;
   }
-  const flat = selector.replace(
-    /:(?:has|not)\(([^)]*)\)/g,
-    (_, arg: string) =>
-      ` ${arg
-        .split(',')
-        .map(part => part.trim())
-        .reduce((most, next) =>
-          outranks(specificity(next), specificity(most)) ? next : most
-        )} `
-  );
   return [
-    (flat.match(/#[\w-]+/g) ?? []).length,
-    (flat.match(/\.[\w-]+|\[[^\]]*\]|:(?!:)[\w-]+/g) ?? []).length,
-    (flat.match(/(?:^|[\s>+~])[a-z][\w-]*/gi) ?? []).length,
+    total[0] + (rest.match(/#[\w-]+/g) ?? []).length,
+    total[1] + (rest.match(/\.[\w-]+|\[[^\]]*\]|:(?!:)[\w-]+/g) ?? []).length,
+    total[2] + (rest.match(/(?:^|[\s>+~])[a-z][\w-]*/gi) ?? []).length,
   ];
 }
 
 /** The selectors in a rule's list that match `el`. */
 const matching = (el: Element, rule: CSSStyleRule) =>
-  rule.selectorText
-    .split(/,(?![^(]*\))/)
-    .map(part => part.trim())
-    .filter(part => matches(el, part));
+  splitList(rule.selectorText).filter(part => matches(el, part));
 
 /**
  * The value `el` gets from the rules of `css` for one property, which

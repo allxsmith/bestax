@@ -12,7 +12,7 @@ this automatically for literal values; dynamic values get TODOs.
 | `domRef`                          | flagged — rename to `ref` on the components that forward one, else use a DOM child                                        |
 | `backgroundColor`                 | `bgColor`                                                                                                                 |
 | `textColor`                       | `textColor` (same)                                                                                                        |
-| `colorVariant`                    | flagged — use `isLight` or a color shade                                                                                  |
+| `colorVariant`                    | flagged — for `light`, use `isLight` or a color shade                                                                     |
 | `textSize={4}`                    | `textSize="4"` (string union `'1'`–`'7'`)                                                                                 |
 | `textAlign="center"`              | `textAlign="centered"` (`justify`→`justified`)                                                                            |
 | `textFamily`                      | `fontFamily`                                                                                                              |
