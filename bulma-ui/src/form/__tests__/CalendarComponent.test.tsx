@@ -170,6 +170,26 @@ describe('Calendar', () => {
     });
   });
 
+  it('moves the mark for today when a render comes after midnight', () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 10, 18, 23, 59));
+    try {
+      const { container, rerender } = render(
+        <Calendar locale="en-US" defaultMonth={NOV_2026} />
+      );
+      const current = () =>
+        container.querySelector('[aria-current="date"]')?.textContent;
+      expect(current()).toBe('18');
+      vi.setSystemTime(new Date(2026, 10, 19, 0, 1));
+      rerender(
+        <Calendar locale="en-US" defaultMonth={NOV_2026} className="again" />
+      );
+      expect(current()).toBe('19');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   describe('naming days', () => {
     it('names each day by its full date, with the weekday row hidden', () => {
       const { container } = render(
@@ -730,6 +750,49 @@ describe('Calendar', () => {
       );
       expect(screen.getByRole('grid')).toHaveAccessibleName('December 2026');
       expect(tabStop(container)).toHaveAccessibleName(/December 1, 2026/);
+    });
+
+    it('keeps focus on a day that can take it where a held month stays', () => {
+      const onChange = vi.fn();
+      const { container } = render(
+        <Calendar
+          locale="en-US"
+          month={NOV_2026}
+          defaultValue={new Date(2026, 10, 29)}
+          shouldDisableDate={date =>
+            date.getMonth() === 10 && date.getDate() === 30
+          }
+          onChange={onChange}
+        />
+      );
+      const stop = tabStop(container)!;
+      act(() => stop.focus());
+      // Past the disabled 30th into December, which the caller doesn't pass.
+      key(stop, 'ArrowRight');
+      expect(tabStop(container)).toHaveAccessibleName(/November 29, 2026/);
+      key(tabStop(container)!, 'Enter');
+      expect(onChange).toHaveBeenLastCalledWith(new Date(2026, 10, 29));
+    });
+
+    it("puts focus back on the tab stop from a nearby month's day the caller doesn't turn to", () => {
+      const onChange = vi.fn();
+      const { container } = render(
+        <Calendar
+          locale="en-US"
+          month={new Date(2026, 11, 1)}
+          onChange={onChange}
+        />
+      );
+      const stop = tabStop(container)!;
+      expect(stop).toHaveAccessibleName(/December 1, 2026/);
+      // December's grid opens on November's last days.
+      const nov29 = screen.getByRole('gridcell', { name: /November 29, 2026/ });
+      act(() => nov29.focus());
+      fireEvent.click(nov29);
+      // The click picks the day it's on, and focus goes back to the tab stop.
+      expect(onChange).toHaveBeenCalledWith(new Date(2026, 10, 29));
+      expect(document.activeElement).toBe(tabStop(container));
+      expect(document.activeElement).toHaveAccessibleName(/December 1, 2026/);
     });
 
     it('puts focus on the near end of a month the caller turns to', () => {

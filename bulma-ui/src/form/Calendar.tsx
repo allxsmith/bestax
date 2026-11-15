@@ -140,6 +140,9 @@ interface CalendarBaseProps
   /**
    * BCP-47 locale for the day and month names and the days' accessible
    * names. Unset, it's a `LocaleProvider`'s, and with neither, the runtime's.
+   * On a server render that is the server's, so the server and the browser
+   * can name the month and the weekdays in different languages: give a
+   * locale, here or through a `LocaleProvider`, where the two can differ.
    */
   locale?: string;
   /**

@@ -459,28 +459,6 @@ export const Calendar: React.FC<CalendarProps> = ({
     },
     [firstShownIndex, isDayGranularity, monthCount]
   );
-  // Focus stays on the page. A focused date off it, where a move asked for a
-  // month that a caller holding `month` hasn't passed, or where the caller
-  // moved the month away from it, reads as the nearest day on the page: its
-  // first going forward and its last going back, or at `'month'` granularity
-  // January or December. Once the month it asked for comes, it's on the page.
-  const focusedDate = useMemo(() => {
-    if (!lifted || onPage(focusedDateProp)) return focusedDateProp;
-    const before = monthIndex(focusedDateProp) < firstShownIndex;
-    const year = Math.floor(firstShownIndex / 12);
-    const month = firstShownIndex % 12;
-    if (!isDayGranularity) return makeDate(year, before ? 0 : 11);
-    return before
-      ? makeDate(year, month)
-      : makeDate(year, month + monthCount, 0);
-  }, [
-    lifted,
-    onPage,
-    focusedDateProp,
-    firstShownIndex,
-    isDayGranularity,
-    monthCount,
-  ]);
   // The months the day grid shows, first to last.
   const shownMonths = useMemo(
     () =>
@@ -579,18 +557,54 @@ export const Calendar: React.FC<CalendarProps> = ({
     [min, max, shouldDisableDate, unselectableDates]
   );
 
-  // The day grid's one tab stop. A disabled button can't take focus, so when
-  // the focused day is disabled the stop moves to the nearest enabled day of
-  // the months on show, and focusing it makes it the focused day. A nearby
-  // month's day is left out, as focusing it would turn the grid to its month.
-  const tabStopDay = useMemo(() => {
-    const days = shownCells.flatMap(cells =>
-      cells.filter(c => c.inCurrentMonth).map(c => c.date)
+  // The nearest day to `d` on the page that can take focus. A disabled
+  // button can't, and a nearby month's day is left out, as focusing it would
+  // turn the grid to its month.
+  const nearestEnabledDay = useCallback(
+    (d: Date) => {
+      const days = shownCells.flatMap(cells =>
+        cells.filter(c => c.inCurrentMonth).map(c => c.date)
+      );
+      const at = days.findIndex(day => isSameDay(day, d));
+      return days[
+        nearestEnabled(Math.max(at, 0), days.map(isDateUnselectable))
+      ];
+    },
+    [shownCells, isDateUnselectable]
+  );
+
+  // Focus stays on the page. A focused date off it, where a move asked for a
+  // month that a caller holding `month` hasn't passed, or where the caller
+  // moved the month away from it, reads as the nearest day on the page that
+  // can take focus: from its first going forward and its last going back, or
+  // at `'month'` granularity January or December. Once the month it asked
+  // for comes, it's on the page.
+  const focusedDate = useMemo(() => {
+    if (!lifted || onPage(focusedDateProp)) return focusedDateProp;
+    const before = monthIndex(focusedDateProp) < firstShownIndex;
+    const year = Math.floor(firstShownIndex / 12);
+    const month = firstShownIndex % 12;
+    if (!isDayGranularity) return makeDate(year, before ? 0 : 11);
+    return nearestEnabledDay(
+      before ? makeDate(year, month) : makeDate(year, month + monthCount, 0)
     );
-    const at = days.findIndex(d => isSameDay(d, focusedDate));
-    const i = nearestEnabled(Math.max(at, 0), days.map(isDateUnselectable));
-    return days[i];
-  }, [shownCells, focusedDate, isDateUnselectable]);
+  }, [
+    lifted,
+    onPage,
+    focusedDateProp,
+    firstShownIndex,
+    isDayGranularity,
+    monthCount,
+    nearestEnabledDay,
+  ]);
+
+  // The day grid's one tab stop: the focused day, or when it's disabled the
+  // nearest day of the months on show that isn't, and focusing that makes it
+  // the focused day.
+  const tabStopDay = useMemo(
+    () => nearestEnabledDay(focusedDate),
+    [nearestEnabledDay, focusedDate]
+  );
 
   // A page of months starting at `first`, kept inside `min` and `max` where
   // they leave room for a whole page. `min` wins when they don't.
@@ -1170,13 +1184,17 @@ export const Calendar: React.FC<CalendarProps> = ({
 
   // From then on focus follows the tab stop only while the grid has it, or
   // has just lost it, so focus on a header button or a time wheel stays put.
+  // A move it asked for counts too where the tab stop stays where it was, as
+  // it does when a nearby month's day is clicked and the caller holding the
+  // month doesn't turn to it: focus goes back to the tab stop from that day.
   const tabStopDayTime = tabStopDay.getTime();
+  const askedTime = focusedDateProp.getTime();
   useEffect(() => {
     if (view !== 'days') return;
     const grids = dayGridsRef.current.filter(g => !!g);
     if (!grids.some(g => focusFollows(g, gridHeldFocusRef.current))) return;
     focusTabStop(grids);
-  }, [tabStopDayTime, view]);
+  }, [tabStopDayTime, askedTime, view]);
 
   useEffect(() => {
     const grid = monthGridRef.current;
