@@ -128,7 +128,7 @@
           "name": "onChange",
           "type": "(value: number) => void",
           "default": null,
-          "description": "Called with the new index when Back, Next, an arrow key or a beacon changes the step, and with `-1` when a beacon's step closes, which it does when the step is removed, or moved by a step added or removed before it. So keep a beacon tour's list of steps fixed while the tips show, and drop read ones the next time they open.",
+          "description": "Called with the new index when Back, Next, an arrow key or a beacon changes the step, and with `-1` when a beacon's step closes: Done, Escape, the close button, a press outside with `closeOnClickOutside`, or its step being removed, or moved by a step added or removed before it. So keep a beacon tour's list of steps fixed while a tip shows, and drop read ones the next time the tips open.",
           "required": false,
           "inherited": false,
           "deprecated": false
