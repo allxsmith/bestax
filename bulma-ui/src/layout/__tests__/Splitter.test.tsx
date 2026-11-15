@@ -76,27 +76,6 @@ const rightToLeft = () => {
   });
 };
 
-/**
- * jsdom has no PointerEvent, so fireEvent's pointer events drop clientX and
- * clientY. A MouseEvent of the pointer type carries them, and React reads
- * the native event.
- */
-const pointer = (
-  el: Element,
-  type: 'pointerdown' | 'pointermove' | 'pointerup' | 'pointercancel',
-  init: { clientX?: number; clientY?: number; button?: number } = {}
-) => {
-  const event = new MouseEvent(type, {
-    bubbles: true,
-    cancelable: true,
-    clientX: init.clientX ?? 0,
-    clientY: init.clientY ?? 0,
-    button: init.button ?? 0,
-  });
-  Object.defineProperty(event, 'pointerId', { value: 1 });
-  fireEvent(el, event);
-};
-
 const handles = () => screen.getAllByRole('separator');
 const panesOf = (container: HTMLElement) =>
   Array.from(container.querySelectorAll<HTMLElement>('.splitter-pane'));
@@ -532,11 +511,11 @@ describe('Splitter', () => {
         <Inspector onCollapsedChange={onCollapsedChange} />
       );
       const [handle] = handles();
-      pointer(handle, 'pointerdown', { clientX: 280 });
-      pointer(handle, 'pointermove', { clientX: 380 });
+      fireEvent.pointerDown(handle, { clientX: 280 });
+      fireEvent.pointerMove(handle, { clientX: 380 });
       expect(growOf(container)).toEqual([100, 0]);
       expect(onCollapsedChange).toHaveBeenCalledWith(true);
-      pointer(handle, 'pointerup', { clientX: 380 });
+      fireEvent.pointerUp(handle, { clientX: 380 });
     });
 
     it('starts shut with defaultCollapsed, and comes back at its default', () => {
@@ -610,11 +589,11 @@ describe('Splitter', () => {
       fireEvent.keyDown(handle, { key: 'Enter' });
       expect(onCollapsedChange).toHaveBeenLastCalledWith(true);
       expect(growOf(container)).toEqual([70, 30]);
-      pointer(handle, 'pointerdown', { clientX: 280 });
-      pointer(handle, 'pointermove', { clientX: 380 });
+      fireEvent.pointerDown(handle, { clientX: 280 });
+      fireEvent.pointerMove(handle, { clientX: 380 });
       expect(onCollapsedChange).toHaveBeenCalledTimes(2);
       expect(growOf(container)).toEqual([70, 30]);
-      pointer(handle, 'pointerup', { clientX: 380 });
+      fireEvent.pointerUp(handle, { clientX: 380 });
     });
 
     it('reopens a pane without snapping the pane across shut', () => {
@@ -719,16 +698,16 @@ describe('Splitter', () => {
       const onSizesChange = vi.fn();
       const { container } = render(<TwoPanes onSizesChange={onSizesChange} />);
       const [handle] = handles();
-      pointer(handle, 'pointerdown', { clientX: 100 });
+      fireEvent.pointerDown(handle, { clientX: 100 });
       expect(handle).toHaveClass('is-active');
       expect(document.body.style.cursor).toBe('col-resize');
       expect(document.body.style.userSelect).toBe('none');
-      pointer(handle, 'pointermove', { clientX: 140 });
+      fireEvent.pointerMove(handle, { clientX: 140 });
       expect(growOf(container)).toEqual([35, 65]);
-      pointer(handle, 'pointerup', { clientX: 140 });
+      fireEvent.pointerUp(handle, { clientX: 140 });
       expect(handle).not.toHaveClass('is-active');
       expect(document.body.style.cursor).toBe('');
-      pointer(handle, 'pointermove', { clientX: 300 });
+      fireEvent.pointerMove(handle, { clientX: 300 });
       expect(growOf(container)).toEqual([35, 65]);
       expect(onSizesChange).toHaveBeenCalledTimes(1);
     });
@@ -736,11 +715,11 @@ describe('Splitter', () => {
     it('follows the vertical pointer when stacked', () => {
       const { container } = render(<TwoPanes orientation="vertical" />);
       const [handle] = handles();
-      pointer(handle, 'pointerdown', { clientY: 100 });
+      fireEvent.pointerDown(handle, { clientY: 100 });
       expect(document.body.style.cursor).toBe('row-resize');
-      pointer(handle, 'pointermove', { clientY: 60, clientX: 999 });
+      fireEvent.pointerMove(handle, { clientY: 60, clientX: 999 });
       expect(growOf(container)).toEqual([15, 85]);
-      pointer(handle, 'pointercancel');
+      fireEvent.pointerCancel(handle);
       expect(handle).not.toHaveClass('is-active');
     });
 
@@ -748,21 +727,21 @@ describe('Splitter', () => {
       rightToLeft();
       const { container } = render(<TwoPanes />);
       const [handle] = handles();
-      pointer(handle, 'pointerdown', { clientX: 300 });
-      pointer(handle, 'pointermove', { clientX: 260 });
+      fireEvent.pointerDown(handle, { clientX: 300 });
+      fireEvent.pointerMove(handle, { clientX: 260 });
       expect(growOf(container)).toEqual([35, 65]);
     });
 
     it('ignores a button other than the main one, and a drag with no room to measure', () => {
       const { container } = render(<TwoPanes />);
       const [handle] = handles();
-      pointer(handle, 'pointerdown', { clientX: 100, button: 2 });
+      fireEvent.pointerDown(handle, { clientX: 100, button: 2 });
       expect(handle).not.toHaveClass('is-active');
       lengths = { root: 12, handle: 12 };
-      pointer(handle, 'pointerdown', { clientX: 100 });
-      pointer(handle, 'pointermove', { clientX: 200 });
+      fireEvent.pointerDown(handle, { clientX: 100 });
+      fireEvent.pointerMove(handle, { clientX: 200 });
       expect(growOf(container)).toEqual([25, 75]);
-      pointer(handle, 'pointerup');
+      fireEvent.pointerUp(handle);
     });
 
     it('captures the pointer where it can', () => {
@@ -771,10 +750,10 @@ describe('Splitter', () => {
       const setPointerCapture = vi.fn();
       const releasePointerCapture = vi.fn();
       Object.assign(handle, { setPointerCapture, releasePointerCapture });
-      pointer(handle, 'pointerdown', { clientX: 100 });
-      pointer(handle, 'pointerup', { clientX: 100 });
-      expect(setPointerCapture).toHaveBeenCalledWith(1);
-      expect(releasePointerCapture).toHaveBeenCalledWith(1);
+      fireEvent.pointerDown(handle, { clientX: 100, pointerId: 7 });
+      fireEvent.pointerUp(handle, { clientX: 100, pointerId: 7 });
+      expect(setPointerCapture).toHaveBeenCalledWith(7);
+      expect(releasePointerCapture).toHaveBeenCalledWith(7);
     });
 
     it('puts the two panes back to their default share on a double-click', () => {
@@ -1010,9 +989,9 @@ describe('Splitter', () => {
       ]);
       lengths = { root: 412, handle: 12 };
       const handle = root.children[1];
-      pointer(handle, 'pointerdown', { clientY: 0 });
+      fireEvent.pointerDown(handle, { clientY: 0 });
       expect(handle.className).toBe('bestax-splitter-handle bestax-is-active');
-      pointer(handle, 'pointerup');
+      fireEvent.pointerUp(handle);
     });
   });
 });

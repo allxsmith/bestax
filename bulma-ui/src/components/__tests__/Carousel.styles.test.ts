@@ -97,7 +97,7 @@ describe('Carousel stylesheet', () => {
   it.each([
     320, 767.5, 768, 768.25, 768.5, 768.99, 769, 900, 1023.5, 1024, 1215.5,
     1216, 1407.5, 1408, 1920,
-  ])('reads the same viewport as the script at %ppx', width => {
+  ])('reads the same viewport as the script at %spx', width => {
     expect(stylesheetPick('screen', width)).toBe(
       `var(--bulma-carousel-items-to-show-${scriptPick(width)})`
     );

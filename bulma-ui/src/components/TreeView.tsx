@@ -25,7 +25,7 @@ import {
   type LoadAnnouncement,
 } from '../helpers/loadAnnouncements';
 import { Checkbox } from '../form/Checkbox';
-import { Icon } from '../elements/Icon';
+import { iconNode } from '../helpers/iconNode';
 import { isGiven } from '../helpers/isGiven';
 
 /**
@@ -555,7 +555,7 @@ export const TreeViewItem = forwardRef<HTMLLIElement, TreeViewItemProps>(
           )}
           {isGiven(icon) && (
             <span className={iconClass} aria-hidden="true">
-              {typeof icon === 'string' ? <Icon name={icon} /> : icon}
+              {iconNode(icon)}
             </span>
           )}
           <span className={labelClass} id={labelId} ref={labelRef}>

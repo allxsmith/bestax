@@ -1,6 +1,7 @@
 import type { Preview } from '@storybook/react-vite';
 import { create } from 'storybook/theming';
 import { ACCENT } from './accent';
+import { componentDescription } from './componentDescription';
 // bestax's own stylesheets, compiled from the Sass entry points the package
 // builds `versions/bestax-prefixed.css` and `bestax.css` from: Bulma with
 // bestax's configuration, and the extras. A story shows the CSS a user
@@ -80,6 +81,7 @@ const preview: Preview = {
     },
     docs: {
       theme: docsTheme,
+      extractComponentDescription: componentDescription,
     },
   },
 };

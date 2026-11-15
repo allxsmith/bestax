@@ -13,7 +13,10 @@ $steps-marker-size-small: 1.5rem !default;
 $steps-marker-size-medium: 2.5rem !default;
 $steps-marker-size-large: 3rem !default;
 $steps-divider-height: 0.2em !default;
-$steps-default-color: cv.getVar("grey-light") !default;
+// The ring, the number and the line of a step with no color, and a completed
+// one's fill. It's the scheme's weak text color, which reads on the page, and
+// the page's color, a completed step's mark, reads on it, in either scheme.
+$steps-default-color: cv.getVar("text-weak") !default;
 $steps-marker-background: cv.getVar("scheme-main") !default;
 $steps-marker-font-size: cv.getVar("size-small") !default;
 $steps-marker-font-weight: cv.getVar("weight-bold") !default;
@@ -239,34 +242,42 @@ button.#{iv.$class-prefix}steps-link {
   }
 }
 
-// Color variants
+// Color variants. Each part is drawn in the color's `-on-scheme` lightness,
+// which Bulma darkens on a light scheme and lightens on a dark one until it
+// reads on the page, so the current step's number reads and a marker stands
+// out from the page. A completed marker's mark is in the page's color, which
+// reads on that fill for the same reason. The color is put together here from
+// its hue, saturation and that lightness, the way Bulma's `-on-scheme` helper
+// classes do, so a Theme that sets them around the steps reaches them.
 @each $name in "primary", "link", "info", "success", "warning", "danger" {
+  $on-scheme: hsl(
+    cv.getVar($name, "", "-h"),
+    cv.getVar($name, "", "-s"),
+    cv.getVar($name, "", "-on-scheme-l")
+  );
+
   .#{iv.$class-prefix}steps.#{iv.$class-prefix}is-#{$name} {
     .#{iv.$class-prefix}steps-segment.#{iv.$class-prefix}is-active
       .#{iv.$class-prefix}steps-marker {
-      border-color: cv.getVar($name);
-      color: cv.getVar($name);
+      border-color: $on-scheme;
+      color: $on-scheme;
     }
 
     .#{iv.$class-prefix}steps-segment.#{iv.$class-prefix}is-completed
       .#{iv.$class-prefix}steps-marker {
-      border-color: cv.getVar($name);
-      background-color: cv.getVar($name);
-      color: hsl(
-        cv.getVar($name, "", "-h"),
-        cv.getVar($name, "", "-s"),
-        cv.getVar($name, "", "-invert-l")
-      );
+      border-color: $on-scheme;
+      background-color: $on-scheme;
+      color: cv.getVar("scheme-main");
     }
 
     .#{iv.$class-prefix}steps-list:not(.#{iv.$class-prefix}is-vertical)
       .#{iv.$class-prefix}steps-segment.#{iv.$class-prefix}is-completed:not(:last-child)::before {
-      background-color: cv.getVar($name);
+      background-color: $on-scheme;
     }
 
     .#{iv.$class-prefix}steps-list.#{iv.$class-prefix}is-vertical
       .#{iv.$class-prefix}steps-segment.#{iv.$class-prefix}is-completed:not(:last-child)::after {
-      background-color: cv.getVar($name);
+      background-color: $on-scheme;
     }
   }
 }

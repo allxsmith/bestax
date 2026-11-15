@@ -72,7 +72,7 @@ describe('EmptyState', () => {
     );
 
     it.each([null, false, true, ''])(
-      'renders nothing for a shorthand prop given %p',
+      'renders nothing for a shorthand prop given %o',
       value => {
         const { container } = render(
           <EmptyState
@@ -377,7 +377,7 @@ describe('EmptyState', () => {
       [{ color: 'danger' }, 'is-danger'],
       [{ variant: 'filled' }, 'is-filled'],
     ] as [Partial<EmptyStateProps>, string][])(
-      '%p adds %s',
+      '%o adds %s',
       (props, className) => {
         const { container } = render(<EmptyState {...props} />);
         expect(classesOf(rootOf(container))).toEqual([
@@ -392,7 +392,7 @@ describe('EmptyState', () => {
       [{ align: 'center' }],
       [{ variant: 'light' }],
     ] as [Partial<EmptyStateProps>][])(
-      '%p is the default and adds nothing',
+      '%o is the default and adds nothing',
       props => {
         const { container } = render(<EmptyState {...props} />);
         expect(classesOf(rootOf(container))).toEqual(['empty-state']);

@@ -12,19 +12,19 @@ import { act, fireEvent, render, within } from '@testing-library/react';
 import { ContextMenu } from '../ContextMenu';
 import { ConfigProvider } from '../../helpers/Config';
 
-/** A press, from the element's own window, which jsdom has no PointerEvent in. */
+/** A press, a mouse's unless told otherwise. */
 const press = (
   el: Element,
   { pointerType = 'mouse', pointerId = 1, type = 'pointerdown' } = {}
 ) => {
   const view = el.ownerDocument.defaultView as typeof window;
-  const event = new view.MouseEvent(type, {
+  const event = new view.PointerEvent(type, {
     bubbles: true,
     cancelable: true,
     composed: true,
+    pointerType,
+    pointerId,
   });
-  Object.defineProperty(event, 'pointerType', { value: pointerType });
-  Object.defineProperty(event, 'pointerId', { value: pointerId });
   fireEvent(el, event);
 };
 
