@@ -756,6 +756,15 @@ item's or a section's. The heading itself reads Bulma's label variables (`--bulm
 
 ### Navbar
 
+An active or selected item works `--bulma-navbar-item-color` out again on itself, from the values
+Bulma sets there, so its text takes `--bulma-navbar-item-selected-color-l`, the invert of the
+selected color it sits on, which is the link color in a navbar with no `color`. Bulma works the variable out on `.navbar`, so a value set there doesn't
+reach an active item. Set `--bulma-navbar-item-color` on the item itself to give its text a color
+of your own, since bestax's rule weighs nothing. A theme that changes the selected fill
+(`--bulma-navbar-item-selected-background-l` and the rest) sets
+`--bulma-navbar-item-selected-color-l` to match. An item with a `bgColor` is left out, and keeps
+the navbar's text color.
+
 In a colored `Hero`, a navbar with no `color` of its own takes the hero's colors.
 `--bulma-navbar-burger-color`, `--bulma-navbar-tab-active-color`,
 `--bulma-navbar-tab-active-border-bottom-color` and `--bulma-navbar-tab-hover-border-bottom-color`
@@ -770,7 +779,7 @@ hero variables, `--bulma-navbar-item-hover-background-color` and the rest.
 
 `--bulma-navbar-background-color`, `--bulma-navbar-burger-color`, `--bulma-navbar-dropdown-arrow`,
 `--bulma-navbar-dropdown-item-background-l`, `--bulma-navbar-dropdown-item-color-l`,
-`--bulma-navbar-dropdown-item-h`, `--bulma-navbar-dropdown-item-s`,
+`--bulma-navbar-dropdown-item-h`, `--bulma-navbar-dropdown-item-s`, `--bulma-navbar-item-color`,
 `--bulma-navbar-tab-active-border-bottom-color`, `--bulma-navbar-tab-active-color`,
 `--bulma-navbar-tab-hover-border-bottom-color`
 
