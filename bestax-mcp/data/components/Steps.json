@@ -39,24 +39,24 @@
     },
     {
       "title": "Right-to-Left",
-      "code": "<div dir=\"rtl\" lang=\"ar\">\n  <Steps\n    value={1}\n    color=\"primary\"\n    items={[{ label: 'الحساب' }, { label: 'الملف الشخصي' }, { label: 'تم' }]}\n  />\n  <Steps\n    value={1}\n    vertical\n    labelPosition=\"right\"\n    color=\"primary\"\n    items={[{ label: 'الحساب' }, { label: 'الملف الشخصي' }, { label: 'تم' }]}\n  />\n</div>"
+      "code": "<div dir=\"rtl\" lang=\"ar\">\n  <Steps\n    value={1}\n    color=\"primary\"\n    completedLabel=\"مكتملة\"\n    upcomingLabel=\"قادمة\"\n    items={[{ label: 'الحساب' }, { label: 'الملف الشخصي' }, { label: 'تم' }]}\n  />\n  <Steps\n    value={1}\n    vertical\n    labelPosition=\"right\"\n    color=\"primary\"\n    completedLabel=\"مكتملة\"\n    upcomingLabel=\"قادمة\"\n    items={[{ label: 'الحساب' }, { label: 'الملف الشخصي' }, { label: 'تم' }]}\n  />\n</div>"
     },
     {
       "title": "Compound (dot-notation) usage",
       "code": "<Steps value={1}>\n  <Steps.Step label=\"Account\" />\n  <Steps.Step label=\"Profile\" />\n  <Steps.Step label=\"Complete\" />\n</Steps>"
     }
   ],
-  "accessibility": "- The active step has `aria-current=\"step\"`, on its list item, or on its button when it's clickable\n- A clickable step stays a list item and puts its marker and label in a `<button type=\"button\">` inside it, so the list keeps its list items and assistive technology can count them. The button takes Tab, Enter and Space, and the focus ring goes around the whole step, which is what you can click\n- The list has `role=\"list\"`. That's the role a `<ul>` already has, set again for Safari, whose WebKit stops exposing a `<ul>` as a list once its markers are hidden, as they are here, unless the role is written out\n- Use descriptive labels for each step\n- The step markers show completion state with checkmarks\n- In forced colors (Windows' contrast themes), the lines and a completed step's fill are drawn in the theme's text color, and the current step's marker gets an outline, so completed, current and upcoming steps still look different without color\n- Steps with no `color` are drawn in Bulma's `text-weak`, and a `color` draws the current and completed steps in its `-on-scheme` variant, the one Bulma adjusts for text on the scheme's background, with a completed step's mark in the page's color. A step's number clears WCAG's 4.5:1, and its marker 3:1, against Bulma's page background in light and dark mode. When a `Theme` changes a color's hue, saturation or lightness, set that color's on-scheme lightness with it, as [Label and Text Lightnesses](https://bestax.io/docs/api/helpers/theme#label-and-text-lightnesses) shows",
+  "accessibility": "- The active step has `aria-current=\"step\"`, on its list item, or on its button when it's clickable\n- A clickable step stays a list item and puts its marker and label in a `<button type=\"button\">` inside it, so the list keeps its list items and assistive technology can count them. The button takes Tab, Enter and Space, and the focus ring goes around the whole step, which is what you can click\n- The list has `role=\"list\"`. That's the role a `<ul>` already has, set again for Safari, whose WebKit stops exposing a `<ul>` as a list once its markers are hidden, as they are here, unless the role is written out\n- Use descriptive labels for each step\n- A completed step's marker shows a check mark in place of its number\n- A completed step, and a step not reached yet, ends in a visually hidden \"completed\" or \"upcoming\", in the language `completedLabel` and `upcomingLabel` set. The words sit in the step's list item, after the step, and a clickable step's button also takes them as its description (`aria-describedby`). The button's accessible name stays the step's marker and label. A `Step` used on its own, outside `Steps`, says no words\n- In forced colors (Windows' contrast themes), the lines and a completed step's fill are drawn in the theme's text color, and the current step's marker gets an outline, so completed, current and upcoming steps still look different without color\n- Steps with no `color` are drawn in Bulma's `text-weak`, and a `color` draws the current and completed steps in its `-on-scheme` variant, the one Bulma adjusts for text on the scheme's background, with a completed step's mark in the page's color. A step's number clears WCAG's 4.5:1, and its marker 3:1, against Bulma's page background in light and dark mode. When a `Theme` changes a color's hue, saturation or lightness, set that color's on-scheme lightness with it, as [Label and Text Lightnesses](https://bestax.io/docs/api/helpers/theme#label-and-text-lightnesses) shows",
   "related": ["Progress", "Timeline"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-steps",
-  "summary": "The `Steps` component provides a multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow.",
+  "summary": "The `Steps` component provides a multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow. Each step is a list item. The current one has `aria-current=\"step\"`, and a completed one, and one not reached yet, ends in a visually hidden \"completed\" or \"upcoming\", in the language `completedLabel` and `upcomingLabel` set. A clickable step's button takes those words as its description, so its accessible name stays its marker and its label.",
   "import": "import { Steps } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/components/Steps.tsx",
   "rootClass": "steps",
   "parts": [
     {
       "path": "Steps",
-      "summary": "The `Steps` component provides a multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow.",
+      "summary": "The `Steps` component provides a multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow. Each step is a list item. The current one has `aria-current=\"step\"`, and a completed one, and one not reached yet, ends in a visually hidden \"completed\" or \"upcoming\", in the language `completedLabel` and `upcomingLabel` set. A clickable step's button takes those words as its description, so its accessible name stays its marker and its label.",
       "component": null,
       "props": [
         {
@@ -186,6 +186,24 @@
           "deprecated": false
         },
         {
+          "name": "completedLabel",
+          "type": "string",
+          "default": "'completed'",
+          "description": "Read after a completed step, visually hidden, and as a clickable step's description. In your app's language. An empty string says nothing.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "upcomingLabel",
+          "type": "string",
+          "default": "'upcoming'",
+          "description": "Read after a step not reached yet, visually hidden, and as a clickable step's description. In your app's language. An empty string says nothing.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
           "name": "onPrev",
           "type": "() => void",
           "default": null,
@@ -254,7 +272,7 @@
           "name": "isCompleted",
           "type": "boolean",
           "default": "false",
-          "description": "Whether this step is completed",
+          "description": "Whether this step is completed. Inside `Steps` it's set from `value`, and a completed step ends in the words `completedLabel` sets, for assistive tech. A `Step` on its own says no words.",
           "required": false,
           "inherited": false,
           "deprecated": false
