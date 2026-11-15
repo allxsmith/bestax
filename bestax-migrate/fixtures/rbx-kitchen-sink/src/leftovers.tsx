@@ -18,6 +18,7 @@ import {
   Menu,
   Modal,
   Navbar,
+  Notification,
   Numeric,
   Tag,
   Tile,
@@ -28,6 +29,9 @@ import { faHome } from "@fortawesome/free-solid-svg-icons";
 
 export const Leftovers = ({ where }: { where: "left" | "right" }) => (
   <Generic as="section">
+    {/* bestax's Notification takes no background color prop */}
+    <Notification backgroundColor="info">no background color prop</Notification>
+
     {/* Bulma v1 removed tiles outright. */}
     <Tile kind="ancestor">
       <Tile kind="parent" vertical size={4}>
@@ -104,6 +108,9 @@ export const Leftovers = ({ where }: { where: "left" | "right" }) => (
     <Heading>Followers</Heading>
     {/* and the element it rendered, which the codemod can't read */}
     <Heading as={where === "left" ? "h2" : "h3"}>Following</Heading>
+
+    {/* bestax's Tag takes no textColor prop */}
+    <Tag textColor="white">no text color prop</Tag>
 
     {/* bestax's Title renders the heading its size names, and this one is unreadable */}
     <Title size={where === "left" ? 3 : 4}>a dynamic size</Title>

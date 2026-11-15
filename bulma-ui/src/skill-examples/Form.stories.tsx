@@ -1,4 +1,4 @@
-// Skills → Examples → Form: several realistic forms produced by following the
+// Skills → Form: several realistic forms produced by following the
 // bestax-form skill. Together they exercise every form component group.
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';

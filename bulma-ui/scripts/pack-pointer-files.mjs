@@ -14,16 +14,31 @@ const agentsMd = path.join(pkgRoot, 'AGENTS.md');
 const mode = process.argv[2];
 
 if (mode === 'prepack') {
-  if (fs.existsSync(backup)) {
-    console.error(
-      'pack-pointer-files: CLAUDE.md.bak already exists — a previous pack did not finish.\n' +
-        'Restore the contributor file first: mv CLAUDE.md.bak CLAUDE.md'
-    );
-    process.exit(1);
-  }
   if (!fs.existsSync(agentsMd)) {
     console.error('pack-pointer-files: AGENTS.md not found');
     process.exit(1);
+  }
+  if (fs.existsSync(backup)) {
+    // `pnpm pack --dry-run` runs prepack and never postpack, and neither does a
+    // pack that fails partway, so either leaves the swap in place, and nothing
+    // tells this hook a run is a dry one. While CLAUDE.md is still the consumer
+    // copy byte for byte, the swap this pack wants is already done, and
+    // postpack puts the backup back as usual.
+    const swapped =
+      fs.existsSync(claudeMd) &&
+      fs.readFileSync(claudeMd).equals(fs.readFileSync(agentsMd));
+    if (!swapped) {
+      console.error(
+        'pack-pointer-files: CLAUDE.md.bak holds the contributor CLAUDE.md from an earlier pack, ' +
+          'and CLAUDE.md is missing or no longer matches AGENTS.md, since one of them changed.\n' +
+          'Put the contributor file back as CLAUDE.md, keeping any edits you need, then remove CLAUDE.md.bak.'
+      );
+      process.exit(1);
+    }
+    console.log(
+      'pack-pointer-files: CLAUDE.md is still the consumer copy an earlier pack left'
+    );
+    process.exit(0);
   }
   fs.copyFileSync(claudeMd, backup);
   fs.copyFileSync(agentsMd, claudeMd);

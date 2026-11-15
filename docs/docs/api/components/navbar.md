@@ -526,6 +526,16 @@ function example() {
   takes focus. bestax's styles keep its bars visible in the system's button text color. That rule
   ships in `bestax.css` and `extras.css`, not in Bulma's own stylesheet, and an
   [`AppFrame`](../layout/appframe.md)'s burger gets it too.
+- **In a colored [`Hero`](../layout/hero.md):** Bulma's hero sets the colors its navbar's items
+  take on hover and when active, but Bulma's navbar doesn't read them, so a focused or hovered
+  item took the scheme's fill under the hero's text, and the active item and the burger took the
+  link color. For a `Navbar` with no `color` of its own, bestax's styles draw a focused, hovered or
+  active item in the hero's text color with the hero's background color as its text, the burger
+  and a tab in the hero's text color, and the dropdown arrow in its link's text color. The menu the
+  burger opens, and the dropdown's rows in it, take the hero's background and text, except an
+  active row, which keeps Bulma's selected look, and on a phone a bold hero's menu takes the hero's
+  own gradient. Where `Navbar.DropdownMenu` is a box of its own, on a desktop, its links keep
+  Bulma's colors. That rule ships in `bestax.css` and `extras.css`, not in Bulma's own stylesheet.
 
 :::note
 There's no arrow-key roving between navbar items and no outside-click handling for
@@ -631,8 +641,8 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navba
 | `color`         | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —          | Renders `has-text-<color>`, exactly like `textColor`. Bulma has no `.navbar-burger.is-<color>` rule, so this is not a filled variant. `textColor` takes precedence when both are set, and is the one that reaches the full color list.     |
 | `active`        | `boolean`                                                                       | `false`    | Whether the burger is active.                                                                                                                                                                                                              |
 | `children`      | `React.ReactNode`                                                               | —          | Custom content inside the burger, rendered after its four bar spans. Bulma styles every `<span>` in the burger as a bar, so an extra span here draws an extra bar.                                                                         |
-| `aria-label`    | `string`                                                                        | `'menu'`   | Accessible name. Pass your own to replace it. An empty one, or a spread carrying `'aria-label': undefined`, keeps the default rather than leaving the button unnamed.                                                                      |
-| `aria-expanded` | `boolean` \| `null`                                                             | `active`   | Expanded state for assistive technology. It follows `active` unless you pass `true` or `false`, and `null` leaves it off, for a burger whose state isn't known yet; a spread carrying `'aria-expanded': undefined` still follows `active`. |
+| `aria-label`    | `React.AriaAttributes['aria-label']`                                            | `'menu'`   | Accessible name. Pass your own to replace it. An empty one, or a spread carrying `'aria-label': undefined`, keeps the default rather than leaving the button unnamed.                                                                      |
+| `aria-expanded` | `boolean` \| `null` \| `undefined`                                              | `active`   | Expanded state for assistive technology. It follows `active` unless you pass `true` or `false`, and `null` leaves it off, for a burger whose state isn't known yet; a spread carrying `'aria-expanded': undefined` still follows `active`. |
 | `onClick`       | `React.MouseEventHandler<HTMLButtonElement>`                                    | —          | Click handler.                                                                                                                                                                                                                             |
 | `ref`           | `React.Ref<HTMLButtonElement>`                                                  | —          | Ref forwarded to the burger button element.                                                                                                                                                                                                |
 | `type`          | `'button'` \| `'submit'` \| `'reset'`                                           | `'button'` | Button type. Defaults to `'button'`, so a burger inside a form does not submit it. Pass `'submit'` or `'reset'` and yours is used; any other value, or a spread carrying `type: undefined`, renders `'button'`.                            |

@@ -4,15 +4,7 @@ import { Block } from './Block';
 import { Columns } from '../columns/Columns';
 import { Column } from '../columns/Column';
 import logo from '../../images/logo.png';
-// The sample pictures are crops of photos published on Unsplash under the
-// Unsplash License (https://unsplash.com/license):
-// - sample-lioness.jpg: "A close-up portrait of a lioness with amber eyes
-//   looking forward", by Samuel Scrimshaw,
-//   https://unsplash.com/photos/sseiVD2XsOk
-// - sample-fjord-16by9.jpg: "aerial photography of river", Forsand, Norway, by
-//   Oleksii Topolianskyi, https://unsplash.com/photos/-oWyJoSqBRM
-// - sample-skye-4by3.jpg: "concrete road between mountains", Portree, United
-//   Kingdom, by Andrew Ridley, https://unsplash.com/photos/Kt5hRENuotI
+// Credits and licenses for the pictures: ../../images/LICENSE.md
 import lioness from '../../images/sample-lioness.jpg';
 import fjord from '../../images/sample-fjord-16by9.jpg';
 import skye from '../../images/sample-skye-4by3.jpg';
