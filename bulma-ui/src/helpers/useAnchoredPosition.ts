@@ -3,6 +3,7 @@ import { useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import type { PickerPosition } from '../form/_pickerInternals/pickerTypes';
 import { useClientLayoutEffect } from './useClientLayoutEffect';
+import { shadowRootsAround } from './shadowDom';
 
 /** A corner of the anchor the panel opens from, once `auto` is resolved. */
 export type AnchoredCorner = Exclude<PickerPosition, 'auto'>;
@@ -118,7 +119,8 @@ const samePosition = (a: AnchoredPosition, b: AnchoredPosition): boolean =>
  * Places a floating panel against its anchor: resolves `auto` to a corner
  * and, for a panel fixed to the viewport, works out its coordinates. It
  * measures again on resize, on any scroll of the anchor's window (an
- * iframe's, when the anchor renders into one), and when the panel or the
+ * iframe's, when the anchor renders into one) or of a shadow root it's in,
+ * and when the panel or the
  * anchor changes size, so a fixed panel follows its anchor and its own
  * content. Those measure once in the next frame, however many arrive before
  * it. With `followContent` it also measures after each render. A
@@ -233,16 +235,30 @@ export function useAnchoredPosition(
     resizes = typeof Observer === 'undefined' ? null : new Observer(schedule);
     if (anchorRef.current) resizes?.observe(anchorRef.current);
 
+    // A scroll inside a shadow root doesn't reach the window, so the anchor
+    // listens on each one it's in as well, or the panel when it has none.
+    const scrolled = [
+      view,
+      ...shadowRootsAround(anchorRef.current ?? panelRef.current),
+    ];
+
     updateRef.current = update;
     update();
     view.addEventListener('resize', schedule, { passive: true });
-    view.addEventListener('scroll', schedule, { passive: true, capture: true });
+    for (const target of scrolled) {
+      target.addEventListener('scroll', schedule, {
+        passive: true,
+        capture: true,
+      });
+    }
     return () => {
       updateRef.current = null;
       view.cancelAnimationFrame(frame);
       resizes?.disconnect();
       view.removeEventListener('resize', schedule);
-      view.removeEventListener('scroll', schedule, { capture: true });
+      for (const target of scrolled) {
+        target.removeEventListener('scroll', schedule, { capture: true });
+      }
     };
   }, [
     active,

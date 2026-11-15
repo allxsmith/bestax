@@ -351,6 +351,32 @@ describe('following the panel and the anchor', () => {
     expect(rects).toHaveBeenCalledTimes(2);
   });
 
+  it('measures again on a scroll inside the shadow root its anchor is in, and lets go as it closes', () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const shadow = host.attachShadow({ mode: 'open' });
+    const scroller = document.createElement('div');
+    const container = document.createElement('div');
+    scroller.appendChild(container);
+    shadow.appendChild(scroller);
+    const { unmount } = render(<Above height={200} />, { container });
+    const listen = vi.spyOn(shadow, 'removeEventListener');
+    rects.mockClear();
+
+    // Not composed, so a listener on the window never hears it.
+    act(() => {
+      fireEvent.scroll(scroller);
+    });
+    nextFrame();
+    expect(rects).toHaveBeenCalledTimes(2);
+
+    unmount();
+    expect(listen).toHaveBeenCalledWith('scroll', expect.any(Function), {
+      capture: true,
+    });
+    host.remove();
+  });
+
   it('drops the frame it asked for when it closes', () => {
     const { unmount } = render(<Above height={200} />);
     rects.mockClear();

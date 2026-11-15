@@ -75,3 +75,23 @@ export function getDeepestActiveElement(
   }
   return active;
 }
+
+/**
+ * The shadow roots `node` sits in, its own first and then each one around
+ * that root's host. An event that isn't composed, such as `scroll`, stays in
+ * the shadow root it happens in, so a listener on the window or the document
+ * never hears a scroll inside one. Listen on these as well.
+ *
+ * @param node - An element of the component, or nothing while it is unmounted.
+ * @returns The shadow roots around `node`, innermost first, or none.
+ */
+export function shadowRootsAround(node: Node | null | undefined): ShadowRoot[] {
+  const roots: ShadowRoot[] = [];
+  let root = node?.getRootNode();
+  // A document fragment with a host is a shadow root, whichever window's.
+  while (root?.nodeType === 11 && 'host' in root) {
+    roots.push(root as ShadowRoot);
+    root = (root as ShadowRoot).host.getRootNode();
+  }
+  return roots;
+}
