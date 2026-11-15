@@ -178,7 +178,7 @@ bestax `Button` colors are the semantic set + `text`/`ghost`. For shades use
 
 ## `colorVariant` / Hero `gradient` / Hero `halfheight` (`prop:size`)
 
-- `colorVariant="light"` → `isLight` where supported (Button, Notification), otherwise a
+- `colorVariant="light"` → `isLight` where supported (Button, Notification, Tag), otherwise a
   shade: `bgColor="primary" backgroundColorShade="90"`.
 - Bulma v1 removed `is-bold` hero gradients — delete `gradient` or restyle with CSS.
 - `halfheight` has no bestax size; use `size="medium"` or a CSS height.

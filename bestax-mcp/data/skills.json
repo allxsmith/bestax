@@ -29,7 +29,7 @@
       "promptName": "form",
       "dir": "bestax-form",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 33774 },
+        { "id": "api", "file": "references/api.md", "bytes": 33832 },
         { "id": "patterns", "file": "references/patterns.md", "bytes": 10001 }
       ],
       "examples": []
@@ -59,17 +59,17 @@
         {
           "id": "archetypes",
           "file": "references/archetypes.md",
-          "bytes": 10090
+          "bytes": 10509
         },
         {
           "id": "layout-components",
           "file": "references/layout-components.md",
-          "bytes": 26905
+          "bytes": 27441
         }
       ],
       "examples": [
         { "id": "app-shell", "file": "examples/app-shell.tsx", "bytes": 2412 },
-        { "id": "card-grid", "file": "examples/card-grid.tsx", "bytes": 2673 },
+        { "id": "card-grid", "file": "examples/card-grid.tsx", "bytes": 2950 },
         { "id": "centered", "file": "examples/centered.tsx", "bytes": 1416 },
         {
           "id": "content-page",
@@ -148,7 +148,7 @@
         {
           "id": "react-bulma-components-unmappables",
           "file": "references/react-bulma-components/unmappables.md",
-          "bytes": 15824
+          "bytes": 15829
         }
       ],
       "examples": []
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 21042
+          "bytes": 21198
         }
       ],
       "examples": []
@@ -176,7 +176,7 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 75590
+          "bytes": 75734
         },
         {
           "id": "themeable-components",

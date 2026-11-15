@@ -457,25 +457,51 @@ export interface BulmaViewportProps {
  * display variants.
  */
 export interface BulmaDisplayProps {
-  /** Display type (e.g., 'block', 'flex'). */
+  /**
+   * Display type (e.g., 'block', 'flex'). Its class is left out once any
+   * viewport display prop, such as `displayMobile`, is set.
+   */
   display?: (typeof validDisplays)[number] | 'none';
-  /** Display type for mobile viewport (up to 768px). */
+  /** Display type on mobile, up to 768px. */
   displayMobile?: (typeof validDisplays)[number] | 'none';
-  /** Display type for tablet viewport (769px - 1023px). */
+  /**
+   * Display type from 769px up: on tablets and every larger screen, not tablets
+   * alone. Bulma's classes for these carry `!important`, so where two display
+   * props apply at once its stylesheet order picks the result, not the larger
+   * breakpoint: `'none'` wins over any display, and between two displays the
+   * later of block, flex, inline, inline-block, inline-flex and grid wins. So
+   * `displayTablet="none"` keeps it hidden on a desktop whatever
+   * `displayDesktop` says. Use `displayTabletOnly` in its place to set tablets
+   * alone.
+   */
   displayTablet?: (typeof validDisplays)[number] | 'none';
-  /** Display type for tablet-only viewport (769px - 1023px, excludes desktop+). */
+  /** Display type on tablets alone, 769px to 1023px. */
   displayTabletOnly?: (typeof validDisplays)[number] | 'none';
-  /** Display type for touch viewport (up to 1023px; mobile + tablet). */
+  /**
+   * Display type up to 1023px, on mobile and tablets. Where `displayMobile`,
+   * `displayTablet` or `displayTabletOnly` applies too, Bulma's stylesheet
+   * order picks the result, as on `displayTablet`.
+   */
   displayTouch?: (typeof validDisplays)[number] | 'none';
-  /** Display type for desktop viewport (1024px - 1215px). */
+  /**
+   * Display type from 1024px up. Where another display prop applies too,
+   * Bulma's stylesheet order picks the result, as on `displayTablet`: `'none'`
+   * here keeps it hidden on every larger screen. Use `displayDesktopOnly` in
+   * its place to set 1024px to 1215px alone.
+   */
   displayDesktop?: (typeof validDisplays)[number] | 'none';
-  /** Display type for desktop-only viewport (1024px - 1215px, excludes widescreen+). */
+  /** Display type from 1024px to 1215px alone. */
   displayDesktopOnly?: (typeof validDisplays)[number] | 'none';
-  /** Display type for widescreen viewport (1216px - 1407px). */
+  /**
+   * Display type from 1216px up. Where another display prop applies too,
+   * Bulma's stylesheet order picks the result, as on `displayTablet`: `'none'`
+   * here keeps it hidden on a fullhd screen. Use `displayWidescreenOnly` in its
+   * place to set 1216px to 1407px alone.
+   */
   displayWidescreen?: (typeof validDisplays)[number] | 'none';
-  /** Display type for widescreen-only viewport (1216px - 1407px, excludes fullhd). */
+  /** Display type from 1216px to 1407px alone. */
   displayWidescreenOnly?: (typeof validDisplays)[number] | 'none';
-  /** Display type for fullhd viewport (1408px and above). */
+  /** Display type from 1408px up. */
   displayFullhd?: (typeof validDisplays)[number] | 'none';
 }
 

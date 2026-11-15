@@ -12,6 +12,15 @@ import path from 'path';
 import { render } from '@testing-library/react';
 import { Loading, type LoadingProps } from '../Loading';
 import { ConfigProvider } from '../../helpers/Config';
+import { compileSheet } from '../../__tests__/compile-scss';
+import { bulmaCss, rulesOf as parseSheet } from '../../__tests__/css-cascade';
+import {
+  contrast,
+  schemesOf,
+  substitute,
+  varsOn,
+  type Vars,
+} from '../../__tests__/contrast';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 
@@ -417,5 +426,65 @@ describe.each([
     expect(new Set(borders.map(({ media }) => media))).toEqual(
       new Set([FORCED])
     );
+  });
+});
+
+// The spinner's color, read off a whole published sheet, resolved through the
+// variables it declares in each scheme, the way a browser does, and measured
+// against the page's color, which the overlay is drawn in (#1679). A spinner
+// is a graphic, so it needs 3:1. `extras.css` takes its colors from the app's
+// Bulma, so it is measured with Bulma's own.
+describe.each([
+  ['bestax.css', '', () => compileSheet('bestax.scss')],
+  [
+    'bestax-prefixed.css',
+    'bestax-',
+    () => compileSheet('versions/bestax-prefixed.scss'),
+  ],
+  [
+    'extras.css on Bulma’s own colors',
+    '',
+    () => bulmaCss() + compileSheet('extras.scss'),
+  ],
+])('Loading contrast in %s', (_name, prefix, sheet) => {
+  let schemes: ReturnType<typeof schemesOf>;
+  /** The variables a loading declares on itself. */
+  let base: Vars;
+  /** The variables a loading's color declares. */
+  let colored: (color: string) => Vars;
+  // A hook keeps Vitest's 10s default rather than `testTimeout`, and a whole
+  // sheet can take longer than that to compile on a loaded machine.
+  beforeAll(() => {
+    const { rules } = parseSheet(sheet());
+    schemes = schemesOf(rules);
+    base = varsOn(rules, `.${prefix}loading`);
+    colored = color => varsOn(rules, `.${prefix}loading.${prefix}is-${color}`);
+  }, 30_000);
+
+  it.each([
+    'no color',
+    'primary',
+    'link',
+    'info',
+    'success',
+    'warning',
+    'danger',
+  ])('draws the spinner with %s at 3:1, on both schemes', name => {
+    // A color's own rule, or the loading's default.
+    const own = name === 'no color' ? base : colored(name);
+    const spin = own['--bulma-loading-icon-spin-color'];
+    expect(spin).toBeTruthy();
+    const failures: string[] = [];
+    for (const [scheme, page] of Object.entries(schemes)) {
+      const all = { ...page, ...base, ...own };
+      // The overlay at full strength, as `overlay="opaque"` draws it. A
+      // see-through one lets what it covers show around the spinner.
+      const ratio = contrast(
+        substitute(spin, all),
+        substitute('var(--bulma-loading-overlay-background)', all)
+      );
+      if (ratio < 3) failures.push(`${scheme}: ${ratio.toFixed(2)}:1`);
+    }
+    expect(failures).toEqual([]);
   });
 });
