@@ -9,7 +9,12 @@ import rbcTransform from '../../react-bulma-components/transform.js';
 import rbxTransform from '../../rbx/transform.js';
 import { runTransform } from '../../../runner.js';
 import jscodeshift from 'jscodeshift';
-import { NO_TEXT_COLOR_TODO, applyTextColor } from '../text-color-props.js';
+import {
+  COLOR_TAKEN_TODO,
+  COLOR_VALUE_TODO,
+  NO_TEXT_COLOR_TODO,
+  applyTextColor,
+} from '../text-color-props.js';
 import type { TransformContext } from '../jsx-utils.js';
 import type { TodoEntry } from '../../../types.js';
 
@@ -49,11 +54,45 @@ const TAKES_NONE: Case[] = [
   [
     'react-bulma-components',
     rbcTransform,
+    "import { Tabs } from 'react-bulma-components';",
+    'Tabs',
+    'Tabs',
+  ],
+  ['rbx', rbxTransform, "import { Tab } from 'rbx';", 'Tab.Group', 'Tabs'],
+];
+
+/** Targets whose `color` sets the text, so textColor becomes it (#1781). */
+const TAKES_COLOR: Case[] = [
+  [
+    'react-bulma-components',
+    rbcTransform,
     "import { Table } from 'react-bulma-components';",
     'Table',
     'Table',
   ],
   ['rbx', rbxTransform, "import { Table } from 'rbx';", 'Table', 'Table'],
+  [
+    'react-bulma-components',
+    rbcTransform,
+    "import { Menu } from 'react-bulma-components';",
+    'Menu',
+    'Menu',
+  ],
+  ['rbx', rbxTransform, "import { Menu } from 'rbx';", 'Menu', 'Menu'],
+  [
+    'react-bulma-components',
+    rbcTransform,
+    "import { Dropdown } from 'react-bulma-components';",
+    'Dropdown.Item',
+    'Dropdown.Item',
+  ],
+  [
+    'rbx',
+    rbxTransform,
+    "import { Table } from 'rbx';",
+    'Table.Head',
+    'Table.Thead',
+  ],
 ];
 
 const run = ([, transform, imp, from]: Case, attrs: string) =>
@@ -81,6 +120,45 @@ describe.each(TAKES_NONE)('%s %s, which takes no textColor', (...c) => {
       ]);
     }
   );
+});
+
+describe.each(TAKES_COLOR)('%s %s, whose color sets the text', (...c) => {
+  it.each(['textColor="primary"', 'textColor="inherit"'])(
+    'renames %s to color with no TODO',
+    attr => {
+      const { output, todos } = run(c, attr);
+      expect(output).toContain(
+        `<${c[4]} ${attr.replace('textColor', 'color')}>`
+      );
+      expect(todos).toEqual([]);
+    }
+  );
+
+  it.each(['textColor={c}', 'textColor="text"', 'textColor="primary-dark"'])(
+    'leaves %s, which color may not take, with a TODO',
+    attr => {
+      const { output, todos } = run(c, attr);
+      expect(output).toContain(`<${c[4]} ${attr}>`);
+      expect(todos.map(t => [t.rule, t.message])).toEqual([
+        ['prop:textColor', `\`textColor\` — ${COLOR_VALUE_TODO}`],
+      ]);
+    }
+  );
+
+  it.each([
+    'color="info" textColor="primary"',
+    'textColor="primary" {...rest}',
+  ])('leaves %s with a TODO, since color is or may be set already', attrs => {
+    const [, transform, imp, from] = c;
+    const { output, todos } = migrate(
+      transform,
+      `${imp}\nexport const A = (rest: object) => <${from} ${attrs}>x</${from}>;\n`
+    );
+    expect(output).toContain('textColor="primary"');
+    expect(todos.map(t => [t.rule, t.message])).toEqual([
+      ['prop:textColor', `\`textColor\` — ${COLOR_TAKEN_TODO}`],
+    ]);
+  });
 });
 
 it("leaves a textColor the component's own prop map handled alone", () => {

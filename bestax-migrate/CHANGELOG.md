@@ -1,3 +1,29 @@
+# [2.38.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.37.0...bestax-migrate@2.38.0) (2026-11-15)
+
+
+### Bug Fixes
+
+* **bulma-ui:** draw a navbar in a colored Hero in the hero's colors ([a0c7e11](https://github.com/allxsmith/bestax/commit/a0c7e11cdfeb486fa1719eb07cc221b3a422d192))
+* **bulma-ui:** write the 12-hour time wheel's AM and PM in the locale's words ([18defff](https://github.com/allxsmith/bestax/commit/18defffcc0ccdf518103577aa861a64a35e9b43e)), closes [#1787](https://github.com/allxsmith/bestax/issues/1787)
+
+
+### Features
+
+* **bestax-migrate:** turn textColor into color on Table, Menu and Dropdown ([efb69ef](https://github.com/allxsmith/bestax/commit/efb69efc7be9c85bfd25432e3fa28151d71f8cd3)), closes [#1767](https://github.com/allxsmith/bestax/issues/1767) [#1781](https://github.com/allxsmith/bestax/issues/1781)
+
+# [2.37.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.36.7...bestax-migrate@2.37.0) (2026-11-15)
+
+
+### Bug Fixes
+
+* **bulma-ui:** keep a colored Panel's active block readable on both schemes ([3dde5fe](https://github.com/allxsmith/bestax/commit/3dde5fe3fa22c4a77a5132c3f580f9280a7de01d)), closes [#1688](https://github.com/allxsmith/bestax/issues/1688)
+* **bulma-ui:** write the time wheels' hours and minutes in the locale's digits ([ef35c31](https://github.com/allxsmith/bestax/commit/ef35c31b50d392a6a589af65cd4a8d1a56686afa)), closes [#1685](https://github.com/allxsmith/bestax/issues/1685)
+
+
+### Features
+
+* **bestax-migrate:** turn colorVariant="light" into isLight on Button, Notification and Tag ([6a98bdf](https://github.com/allxsmith/bestax/commit/6a98bdfd2e7ca45f572369135d810f036885f50a)), closes [#1732](https://github.com/allxsmith/bestax/issues/1732)
+
 ## [2.36.7](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.36.6...bestax-migrate@2.36.7) (2026-11-15)
 
 

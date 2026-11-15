@@ -135,7 +135,8 @@ export const ALLOWED_HOSTS = [
 /**
  * Hosts that serve images whatever the URL's path ends in. An entry with a
  * path holds only that path and what is under it. A host matches its
- * subdomains too.
+ * subdomains too. check-conformance's `image-hosts` rule holds the stories,
+ * the docs pages and the skills to this list as well (imageHostUrls).
  */
 export const IMAGE_HOSTS = [
   'bulma.io/assets',
@@ -228,6 +229,12 @@ export function isImageUrl(url) {
   return isImagePath(parsed.pathname) || onHosts(parsed, IMAGE_HOSTS);
 }
 
+/** Whether `url`, absolute, is on one of IMAGE_HOSTS, whatever its path. */
+export const isImageHostUrl = url => {
+  const parsed = parseUrl(url);
+  return parsed !== null && onHosts(parsed, IMAGE_HOSTS);
+};
+
 /** Whether ALLOWED_HOSTS lists the host of `url`, absolute. */
 export const isAllowedUrl = url => {
   const parsed = parseUrl(url);
@@ -249,6 +256,9 @@ export function outsideUrls(text) {
   }
   return found;
 }
+
+/** Each outside URL in `text` on one of IMAGE_HOSTS (isImageHostUrl). */
+export const imageHostUrls = text => outsideUrls(text).filter(isImageHostUrl);
 
 /** Each `data:image/` URI in `text`, named by its type. */
 const dataImages = text =>

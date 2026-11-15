@@ -195,10 +195,12 @@ move the color to a `has-background-*` class in `className`.
 
 ## `prop:textColor` — a component with no `textColor` prop
 
-`textColor` carries over as written, except on a component whose bestax props have none:
-`Tag`, `Table` and its parts, `Menu` and its parts, `Tabs`, `Hero`, `Dropdown`, `Input`, `Select`, `TextArea`, `File`,
-the `Modal.Card` parts and others keep it with a TODO. Move the color to a `has-text-*` class in
-`className`.
+`textColor` carries over as written, and becomes `color` on `Table` (and its `Thead`, `Tbody` and `Tfoot`), `Menu` and its parts, and `Dropdown` and its `Item`, whose `color` sets the
+text, when the value is one of bestax's color names. On the other components with no `textColor`,
+such as `Tag`, `Tabs`, `Hero`, `Progress`, `Breadcrumb`, `Input`, `Select`, `TextArea`, `File` and the `Modal.Card` parts, it stays with a TODO: move the color to a
+`has-text-*` class in `className`. On the components where it becomes `color`, it also stays with a
+TODO where the element already sets `color` or has a spread, or the value is dynamic, a shade or
+`text`: use `color` with `colorShade` for a shade, or the class.
 
 ## A size bestax doesn't take (`prop:size` on `Button.Group` and `Message`)
 
@@ -230,7 +232,7 @@ bestax components don't take `domRef`, but many forward a plain `ref` — the fo
 `Affix`, `AppFrame`, `AppFrame.Aside`, `AppFrame.Burger`, `AppFrame.Footer`, `AppFrame.Header`, `AppFrame.Main`, `AppFrame.Nav`, `Avatar`, `Button`, `Carousel`, `CarouselItem`, `Center`, `ColorSwatch`, `Command`, `Command.Dialog`, `Command.Input`, `CopyButton`, `DataTable`, `DescriptionList`, `DescriptionList.Item`, `DescriptionList.Label`, `DescriptionList.Value`, `Dialog`, `Dropdown`, `EmptyState`, `Flex`, `Group`, `IconButton`, `Kbd`,
 `Kbd.Group`, `Lightbox`, `Lightbox.Trigger`, `Link`, `LinkButton`, `Loader`, `LocaleProvider`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`,
 `Navbar.Dropdown`, `Navbar.Item`, `Navbar.Link`, `NumberFormatter`, `RingProgress`, `ScrollArea`, `SegmentedControl`, `SegmentedControl.Segment`,
-`Sidebar`, `Splitter`, `Splitter.Pane`, `Stack`, `Stat`, `Stat.Change`, `Stat.Description`, `Stat.Label`, `Stat.Value`, `Stats`, `TableOfContents`, `Timeline`, `Timeline.Item`, `Toast`, `ToggleButton`, `TreeView` and `TreeView.Item`. On
+`Sidebar`, `Splitter`, `Splitter.Pane`, `Stack`, `Stat`, `Stat.Change`, `Stat.Description`, `Stat.Label`, `Stat.Value`, `Stats`, `TableOfContents`, `Timeline`, `Timeline.Item`, `Toast`, `ToggleButton`, `Tour`, `Tour.Step`, `TreeView` and `TreeView.Item`. On
 those, rename `domRef` to `ref` and it works; do not restructure the markup. "The form controls"
 means the inputs themselves: the `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios`
 wrappers around them forward nothing, and `Field` is a target this codemod emits.

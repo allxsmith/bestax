@@ -215,15 +215,16 @@ Passing `triggerIcon` explicitly overrides this.
 
 For an app in another language, wrap it, or the form, in `LocaleProvider` rather than passing the
 same `locale` to every picker. The pickers inside take its locale for their day and month names, the
-digits their calendar numbers its days and years in, and any `Intl` `format`, and start the week on
-that locale's first day (Monday for `"de"`), unless one sets `locale` or `firstDayOfWeek` itself.
-Outside a provider the week starts on Sunday, and so does a picker given its own `dayNames`, which
-it shows exactly as given and which screen readers hear as the columns' names: pass `firstDayOfWeek`
-with them and list them from that day. With server rendering, set a locale: without one, an `inline`
-calendar names its days in the server's language on the server and the reader's in the browser, and
-hydration fails to match whenever the two languages differ. Give an `inline` picker a `value` or
-`defaultValue` there too: without one it opens on the month the clock reads, and the server's clock
-and the reader's can read different months.
+digits their calendar and time wheels write numbers in, the time wheels' words for AM and PM, and
+any `Intl` `format`, and start the week on that locale's first day (Monday for `"de"`), unless one
+sets `locale` or `firstDayOfWeek` itself. Outside a provider the week starts on Sunday, and so does
+a picker given its own `dayNames`, which it shows exactly as given and which screen readers hear as
+the columns' names: pass `firstDayOfWeek` with them and list them from that day. With server
+rendering, set a locale: without one, an `inline` calendar names its days in the server's language
+on the server and the reader's in the browser, and hydration fails to match whenever the two
+languages differ. Give an `inline` picker a `value` or `defaultValue` there too: without one it
+opens on the month the clock reads, and the server's clock and the reader's can read different
+months.
 
 ```tsx
 <LocaleProvider locale="de">

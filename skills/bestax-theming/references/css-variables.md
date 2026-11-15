@@ -754,6 +754,26 @@ item's or a section's. The heading itself reads Bulma's label variables (`--bulm
 `--bulma-menu-section-chevron-duration`, `--bulma-menu-section-chevron-size`,
 `--bulma-menu-section-gap`
 
+### Navbar
+
+In a colored `Hero`, a navbar with no `color` of its own takes the hero's colors.
+`--bulma-navbar-burger-color`, `--bulma-navbar-tab-active-color`,
+`--bulma-navbar-tab-active-border-bottom-color` and `--bulma-navbar-tab-hover-border-bottom-color`
+are `--bulma-navbar-item-color` there, the hero's text color, and `--bulma-navbar-dropdown-arrow` is
+`currentColor`, so the arrow follows its link's text at rest, hovered and active. `--bulma-navbar-background-color`,
+which shows there only as the background of the menu the burger opens, is the hero's background,
+and the dropdown's rows in that menu take the hero's hue, background and text through
+`--bulma-navbar-dropdown-item-h`, `-s`, `-background-l` and `-color-l`. They're declared on the
+navbar inside the hero with a selector three classes heavier than `.navbar`, so set them on the
+navbar through `style`, or with a heavier selector. The items' hover and active colors are Bulma's
+hero variables, `--bulma-navbar-item-hover-background-color` and the rest.
+
+`--bulma-navbar-background-color`, `--bulma-navbar-burger-color`, `--bulma-navbar-dropdown-arrow`,
+`--bulma-navbar-dropdown-item-background-l`, `--bulma-navbar-dropdown-item-color-l`,
+`--bulma-navbar-dropdown-item-h`, `--bulma-navbar-dropdown-item-s`,
+`--bulma-navbar-tab-active-border-bottom-color`, `--bulma-navbar-tab-active-color`,
+`--bulma-navbar-tab-hover-border-bottom-color`
+
 ### Notification
 
 `--bulma-notification-delete-padding-inline-end` is the end padding of a notification with a close
@@ -1106,6 +1126,27 @@ trigger and the tooltip past what the pointer can cross on its own, so give the 
 `--bulma-tooltip-font-weight`, `--bulma-tooltip-line-height`, `--bulma-tooltip-max-width`,
 `--bulma-tooltip-multiline-width`, `--bulma-tooltip-padding`, `--bulma-tooltip-radius`,
 `--bulma-tooltip-z-index`
+
+### Tour
+
+Declared on the root, `.tour`, which holds the overlay and the current step, so a `className` or
+`style` on `Tour` reaches every step, and one on a `Tour.Step` reaches that step's panel alone. The
+overlay and the spotlight read theirs from `.tour`, so set `--bulma-tour-overlay-*`,
+`--bulma-tour-spotlight-*` and `--bulma-tour-z-index` on `Tour`. The step
+takes Popover's look from the same Bulma tokens Popover's panel reads, since `--bulma-popover-*`
+is declared on Popover's own panel and doesn't reach a step. `--bulma-tour-overlay-background` is
+Bulma's modal backdrop color at half its strength. `--bulma-tour-spotlight-padding` grows the
+spotlight past the target's edge, and the step sits `--bulma-tour-step-offset` past that.
+
+`--bulma-tour-overlay-background`, `--bulma-tour-progress-color`,
+`--bulma-tour-spotlight-padding`, `--bulma-tour-spotlight-radius`,
+`--bulma-tour-step-background`, `--bulma-tour-step-body-padding`,
+`--bulma-tour-step-border-color`, `--bulma-tour-step-border-width`,
+`--bulma-tour-step-color`, `--bulma-tour-step-footer-gap`, `--bulma-tour-step-footer-padding`,
+`--bulma-tour-step-header-color`, `--bulma-tour-step-header-gap`,
+`--bulma-tour-step-header-padding`,
+`--bulma-tour-step-header-weight`, `--bulma-tour-step-max-width`, `--bulma-tour-step-offset`,
+`--bulma-tour-step-radius`, `--bulma-tour-step-shadow`, `--bulma-tour-z-index`
 
 ### TreeSelect
 
