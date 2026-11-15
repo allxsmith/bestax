@@ -183,6 +183,13 @@ bestax `Button` colors are the semantic set + `text`/`ghost`. For shades use
 - Bulma v1 removed `is-bold` hero gradients — delete `gradient` or restyle with CSS.
 - `halfheight` has no bestax size; use `size="medium"` or a CSS height.
 
+## `prop:backgroundColor` — a component with no background color prop
+
+`backgroundColor` becomes `bgColor`, or stays `backgroundColor` on a component that takes only
+that. `Notification`, `Table` and its parts, `Tabs`, `Checkbox`, `Radio`, `Progress`, the
+`Modal.Card` parts and the other components that take neither keep it as written with a TODO:
+move the color to a `has-background-*` class in `className`.
+
 ## A size bestax doesn't take (`prop:size` on `Button.Group` and `Message`)
 
 `Button.Group` and `Message` sizes carry over as written when bestax's `Buttons` or `Message`
