@@ -51,11 +51,14 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-optimize
 
   @use 'bulma/sass/base';
   @use 'bulma/sass/themes';
+  @use '@allxsmith/bestax-bulma/scss/bulma-defaults';
   @use 'bulma/sass/elements/button';
   @use 'bulma/sass/components/card';
   @use '@allxsmith/bestax-bulma/scss/components/dialog';
   @use '@allxsmith/bestax-bulma/scss/elements/button' as bestax-button;
   @use 'bulma/sass/helpers/flexbox';
+
+  @include bulma-defaults.rules;
   ```
 
 - **Lever 3: import & icon-asset hygiene** — convert `import * as` to named imports, and

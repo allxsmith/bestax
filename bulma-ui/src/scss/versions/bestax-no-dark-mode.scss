@@ -16,6 +16,7 @@
 @use '../form/index' as form;
 @use '../elements/index' as elements;
 @use '../helpers/index' as helpers;
+@use '../bulma-defaults';
 
 @forward "bulma/sass/utilities";
 @forward "bulma/sass/base";
@@ -31,4 +32,7 @@
 :root {
   @include light.light-theme;
   @include setup.setup-theme;
+  // Bulma defaults bestax's own builds change, after the theme so they win
+  // over it. `_bulma-defaults.scss` says which and why.
+  @include bulma-defaults.vars;
 }

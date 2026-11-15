@@ -36,6 +36,11 @@ export interface ControlBaseProps
    * Shows a loading spinner inside the control.
    * Under `prefers-reduced-motion: reduce` the spinner stops and stays
    * drawn (with bestax's CSS loaded).
+   * It's drawn in `--bulma-loading-color`, which bestax's full stylesheets
+   * set to the page scheme's weak text color, 3:1 or better on the input's
+   * fill in both schemes, a section that switches scheme included.
+   * `extras.css` leaves it to your own Bulma, whose themes set it to their
+   * border gray.
    * The spinner sits at the right edge, where a right icon also sits, and the
    * two overlap; leave the right icon out while loading.
    */

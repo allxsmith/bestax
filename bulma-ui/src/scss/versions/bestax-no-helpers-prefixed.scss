@@ -22,3 +22,8 @@
 @use '../layout/index' as layout;
 @use '../form/index' as form;
 @use '../elements/index' as elements;
+@use '../bulma-defaults';
+
+// Bulma defaults bestax's own builds change, after Bulma's themes so they win
+// over them. `_bulma-defaults.scss` says which and why.
+@include bulma-defaults.rules;

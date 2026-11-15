@@ -101,6 +101,9 @@ Create `src/styles.scss` — base + themes always come first:
 // Required base: reset + CSS variable definitions
 @use 'bulma/sass/base';
 @use 'bulma/sass/themes';
+// Bulma values the prebuilt flavors change that Bulma has no variable for
+// (a loading control's ring color), after the `with` above:
+@use '@allxsmith/bestax-bulma/scss/bulma-defaults';
 
 // One line per stock Bulma component the app imports…
 @use 'bulma/sass/elements/button';
@@ -111,6 +114,9 @@ Create `src/styles.scss` — base + themes always come first:
 @use '@allxsmith/bestax-bulma/scss/elements/button' as bestax-button;
 // Helper categories only if the app uses those helper props:
 @use 'bulma/sass/helpers/spacing';
+
+// The defaults' rules, after every `@use`:
+@include bulma-defaults.rules;
 ```
 
 Then replace the prebuilt CSS import in `src/main.tsx` with `import './styles.scss';`,

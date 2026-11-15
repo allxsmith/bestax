@@ -1,0 +1,31 @@
+// Bestax Extras - Bulma defaults bestax's own builds change
+// Stock Bulma values that Bulma gives no Sass variable to configure, so each
+// full build (`bestax.scss` and the flavors in `versions/`) sets them after
+// Bulma's themes. `extras.scss` doesn't include this, so an app that brings
+// its own Bulma keeps Bulma's values, and a modular build includes it by hand.
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+
+// The variables, for a build that sets them in a rule of its own.
+@mixin vars {
+  // The ring a loading control or select draws on the input's fill. Bulma's
+  // themes set it to their border gray, which hardly shows there; the
+  // scheme's weak text color holds 3:1 on the fill in both schemes. A loading
+  // button sets its own, from its text color.
+  --bulma-loading-color: #{cv.getVar("text-weak")};
+}
+
+// The variables on the elements where Bulma's light theme sets them: the
+// page, and an element that switches to the light scheme. Nowhere else, so
+// a value an app sets on a wrapper reaches the same elements it did, a
+// section that switches to the dark scheme included.
+@mixin rules {
+  #{iv.$variables-host} {
+    @include vars;
+  }
+
+  @include cv.bulma-theme($name: "light") {
+    @include vars;
+  }
+}

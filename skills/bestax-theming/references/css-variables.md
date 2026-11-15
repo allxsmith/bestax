@@ -192,6 +192,7 @@ you put on a numbered shade.
 | `--bulma-background`                                                              | secondary background                                                                                                                                       |
 | `--bulma-text`, `--bulma-text-strong`, `--bulma-text-weak`                        | body / emphasized / muted text                                                                                                                             |
 | `--bulma-border`, `--bulma-border-weak`                                           | borders                                                                                                                                                    |
+| `--bulma-loading-color`                                                           | a loading `Control`'s or `Select`'s ring, set from the page's `--bulma-text-weak` in bestax's full sheets; set this one to change it                       |
 
 ## Radius, typography
 

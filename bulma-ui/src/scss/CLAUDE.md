@@ -23,13 +23,18 @@ colors). The `_index.scss` files are the authoritative inventory.
 - `_input-trigger.scss` — `extras-input-trigger`, a button laid over an input's right edge, which
   the date and time pickers' launcher and PasswordInput's toggle share; it reads Bulma's class
   prefix and variables, so it isn't in `_mixins.scss` either
+- `_bulma-defaults.scss` — stock Bulma values bestax's full builds change that Bulma gives no Sass
+  variable to configure (the loading control's ring color). Each full build includes its `rules`
+  after Bulma's themes, on the elements where Bulma's theme sets the value, and `extras.scss`
+  doesn't, so an app's own Bulma keeps its values; a modular build includes it by hand
 - `versions/` — the flavor builds: `bestax-prefixed`, `bestax-no-helpers`, `bestax-no-dark-mode`,
   `bestax-no-helpers-prefixed`. A new partial is included by all of them automatically (they reuse
   the same `_index` imports), but must **work** under each — especially the prefixed build.
   Each one repeats `bestax.scss`'s Bulma configuration in its own `with (…)`, so a change to it
   goes in every one. A default bestax changes in stock Bulma belongs there, configured, rather
   than in a partial overriding it: `extras.css` then sets nothing, and an app's own Bulma build
-  keeps its value.
+  keeps its value. A default Bulma gives no variable for goes in `_bulma-defaults.scss` instead,
+  for the same reason.
 
 ## The pattern (every partial follows it — `components/_collapse.scss` is the template)
 

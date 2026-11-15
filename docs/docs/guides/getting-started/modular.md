@@ -111,6 +111,8 @@ Before importing component partials, include Bulma's base (CSS reset, generic el
 - `base` provides `minireset`, generic element styles, and animation keyframes.
 - `themes` registers the `--bulma-*` CSS custom properties (colors, radii, `--bulma-scheme-main`, etc.) and sets up light/dark mode.
 
+bestax's prebuilt stylesheets also change a few of the values `themes` sets that Bulma gives no Sass variable for, such as the color of the ring a loading `Control` or `Select` draws, which Bulma's themes leave in a gray that hardly shows on the input. A modular build gets them from `bulma-defaults`: add `@use '@allxsmith/bestax-bulma/scss/bulma-defaults';` after the `@use` that configures `bulma/sass/utilities`, since the module loads Bulma's utilities too and Sass configures a module only on its first load, and `@include bulma-defaults.rules;` after the last `@use`, since Sass takes no rule before one.
+
 :::info Exception: grid and columns
 `bulma/sass/grid/columns` and `bulma/sass/grid/grid` register their own CSS variables internally and compile their breakpoints from SCSS, so they can technically be used without `base` and `themes`. The safe default is still to include both — you'll almost always want them as soon as you add a second component.
 :::
@@ -259,6 +261,9 @@ A realistic modular SCSS entry for an app that uses a few Bulma primitives plus 
 // Required base
 @use 'bulma/sass/base';
 @use 'bulma/sass/themes';
+// The Bulma values the prebuilt stylesheets change, such as a loading
+// input's ring
+@use '@allxsmith/bestax-bulma/scss/bulma-defaults';
 
 // Bulma partials — only what the app uses
 @use 'bulma/sass/elements/button';
@@ -273,6 +278,9 @@ A realistic modular SCSS entry for an app that uses a few Bulma primitives plus 
 // bestax extras — only what the app uses
 @use '@allxsmith/bestax-bulma/scss/components/dialog';
 @use '@allxsmith/bestax-bulma/scss/form/autocomplete';
+
+// The defaults' rules, after every `@use`
+@include bulma-defaults.rules;
 ```
 
 Then import the compiled stylesheet once in your app entry:

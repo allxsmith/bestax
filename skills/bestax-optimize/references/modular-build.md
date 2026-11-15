@@ -41,6 +41,17 @@ publishes its SCSS sources (`src/scss` ships in the npm package, exposed via the
 - Exception: `bulma/sass/grid/columns` and `bulma/sass/grid/grid` register their own CSS
   vars and can technically stand alone — include base + themes anyway; it is the safe
   default.
+- `bulma-defaults` — the Bulma values bestax's prebuilt flavors change and Bulma's themes don't
+  let you configure, such as the ring a loading `Control` or `Select` draws, which Bulma's
+  themes draw in a gray that hardly shows on the input. Its `@use` goes after the one that configures
+  `bulma/sass/utilities`, since it loads Bulma's utilities too and Sass configures a module only on
+  its first load, and its rules after every `@use`:
+
+  ```scss
+  @use '@allxsmith/bestax-bulma/scss/bulma-defaults';
+
+  @include bulma-defaults.rules;
+  ```
 
 ## Component → partial mapping
 
@@ -343,6 +354,7 @@ Scaffolded with an icon library, the starter also needs `bulma/sass/elements/ico
 
 @use 'bulma/sass/base';
 @use 'bulma/sass/themes';
+@use '@allxsmith/bestax-bulma/scss/bulma-defaults'; // the Bulma values the prebuilt flavors change
 
 @use 'bulma/sass/elements/box';
 @use 'bulma/sass/elements/button'; // Button + Buttons
@@ -362,6 +374,8 @@ Scaffolded with an icon library, the starter also needs `bulma/sass/elements/ico
 @use '@allxsmith/bestax-bulma/scss/elements/button' as bestax-button; // focus outline and edge in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/delete' as bestax-delete; // the close button in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/notification' as bestax-notification; // text clears the close button
+
+@include bulma-defaults.rules;
 ```
 
 ```tsx

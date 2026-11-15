@@ -54,7 +54,7 @@
       "code": "<>\n  <Field label=\"Options\">\n    <Control>\n      <Radio name=\"option\">Option 1</Radio>\n      <Radio name=\"option\">Option 2</Radio>\n    </Control>\n  </Field>\n\n  <Field label=\"Preferences\">\n    <Control>\n      <Checkbox>Enable notifications</Checkbox>\n      <Checkbox>Subscribe to newsletter</Checkbox>\n    </Control>\n  </Field>\n</>"
     }
   ],
-  "accessibility": "- `Control` provides only visual and layout structure; ensure you use associated `Field` and `label` for accessible form labeling.\n- Icons are decorative by default. Add ARIA attributes to icons if needed for accessibility.",
+  "accessibility": "- `Control` provides only visual and layout structure; ensure you use associated `Field` and `label` for accessible form labeling.\n- Icons are decorative by default. Add ARIA attributes to icons if needed for accessibility.\n- **Loading contrast:** the `isLoading` ring is the only sign the control is loading, so it needs\n  the 3:1 WCAG asks of a graphic against the input's fill. Bulma draws it in its border gray, about\n  1.4:1 there. bestax's full stylesheets (`bestax.css` and its variants) draw it in the page\n  scheme's weak text color, 3:1 or better on the fill and on a disabled input's in both schemes. A\n  section that switches to the dark scheme on a light page keeps the page's color, so a value you\n  set around it still reaches it, and that holds 3:1 there too. Set\n  `--bulma-loading-color` to choose your own, on a wrapper or with `Theme`. With `extras.css` next\n  to your own Bulma, the ring keeps your Bulma's color.",
   "related": [
     "Checkbox",
     "Field",
@@ -115,7 +115,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Shows a loading spinner inside the control. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded). The spinner sits at the right edge, where a right icon also sits, and the two overlap; leave the right icon out while loading.",
+          "description": "Shows a loading spinner inside the control. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded). It's drawn in `--bulma-loading-color`, which bestax's full stylesheets set to the page scheme's weak text color, 3:1 or better on the input's fill in both schemes, a section that switches scheme included. `extras.css` leaves it to your own Bulma, whose themes set it to their border gray. The spinner sits at the right edge, where a right icon also sits, and the two overlap; leave the right icon out while loading.",
           "required": false,
           "inherited": true,
           "deprecated": false

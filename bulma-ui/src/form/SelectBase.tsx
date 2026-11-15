@@ -33,6 +33,8 @@ export interface SelectBaseProps
    * Replaces the chevron with a loading spinner.
    * Under `prefers-reduced-motion: reduce` the spinner stops and stays
    * drawn (with bestax's CSS loaded).
+   * It's drawn in the same color as a loading `Control`'s spinner, which
+   * holds 3:1 on the select's fill with bestax's full stylesheets.
    */
   isLoading?: boolean;
   /** Applies Bulma's is-active modifier. */
