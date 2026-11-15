@@ -1159,6 +1159,31 @@ describe.each(SHEETS)('$label', ({ label, prefix, css }) => {
     ).toEqual(['red', 'red']);
   });
 
+  it('lets an app’s rule set the ring’s variable on a loader, loaded before the library or after', () => {
+    // Bulma set `--bulma-border` nowhere on the loader, so an app's class
+    // that set it there won in either order. The library's rule has no
+    // specificity, so it still does.
+    const app = rulesOf('.app-ring { --bulma-border: red; }');
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <Loader className="app-ring" />
+      </ConfigProvider>
+    );
+    const el = container.querySelector(`.${prefix}loader`)!;
+    const first = app.map(rule => ({
+      ...rule,
+      order: rule.order - app.length,
+    }));
+    const last = app.map(rule => ({
+      ...rule,
+      order: rules.length + rule.order,
+    }));
+    expect([
+      resolved([...first, ...rules], el, '', {}, ['--bulma-border']),
+      resolved([...rules, ...last], el, '', {}, ['--bulma-border']),
+    ]).toEqual(['red', 'red']);
+  });
+
   it("keeps Autocomplete's loader a track of one color with an arc", () => {
     const { container } = render(
       <ConfigProvider classPrefix={prefix}>

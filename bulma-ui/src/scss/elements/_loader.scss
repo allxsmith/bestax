@@ -37,9 +37,11 @@
 // draws it with, set on the loader itself: it resolves in whatever scheme or
 // theme the loader is in, Bulma's rule still draws the ring with its open
 // sides transparent, and neither rule outranks the other, so the order of
-// the two sheets doesn't matter. A rule that recolors the ring after Bulma's,
-// or a `--bulma-border` in a loader's `style`, still wins.
-.#{iv.$class-prefix}loader {
+// the two sheets doesn't matter. `:where()` gives the rule no specificity, so
+// an app's own rule that sets the variable on a loader wins in either order,
+// as it did when Bulma set it nowhere on the loader. A rule that recolors the
+// ring after Bulma's, or a `style`, still wins too.
+:where(.#{iv.$class-prefix}loader) {
   @include cv.register-vars(
     (
       "border": currentColor,
