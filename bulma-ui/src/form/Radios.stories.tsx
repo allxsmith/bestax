@@ -5,6 +5,7 @@ import Radio from './Radio';
 import Radios from './Radios';
 import { Field } from './Field';
 import { Control } from './Control';
+import { Button } from '../elements/Button';
 
 const meta: Meta<typeof Radios> = {
   title: 'Form/Radios',
@@ -191,9 +192,9 @@ export const WithName: Story = {
           <Radio value="blue">Blue</Radio>
         </Radios>
         <div style={{ marginTop: '1rem' }}>
-          <button type="submit" className="button is-primary">
+          <Button type="submit" color="primary">
             Submit
-          </button>
+          </Button>
         </div>
         {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
       </form>
@@ -236,9 +237,9 @@ export const WithNameThroughWrappers: Story = {
           <RadioCard value="enterprise" label="Enterprise — Contact us" />
         </Radios>
         <div style={{ marginTop: '1rem' }}>
-          <button type="submit" className="button is-primary">
+          <Button type="submit" color="primary">
             Submit
-          </button>
+          </Button>
         </div>
         {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
       </form>

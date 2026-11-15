@@ -1,6 +1,7 @@
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { Card } from './Card';
 import { Icon } from '../elements/Icon';
+import { Button } from '../elements/Button';
 
 const DECLARATION_LATIN =
   'Quando in rerum natura cursu fit ut populus aliquis inter nationes terrae statum separatum et aequalem, ad quem iure naturali et naturae Deo habendum vocantur, sibi vindicare velit, debetur erga opiniones humani generis ut causas, quae eos ad secessionem impellunt, declaret.';
@@ -219,10 +220,10 @@ export const CompoundUsage: Story = {
       </Card.Content>
       <Card.Footer>
         <Card.FooterItem>
-          <button className="button is-primary">Save</button>
+          <Button color="primary">Save</Button>
         </Card.FooterItem>
         <Card.FooterItem>
-          <button className="button">Cancel</button>
+          <Button>Cancel</Button>
         </Card.FooterItem>
       </Card.Footer>
     </Card>

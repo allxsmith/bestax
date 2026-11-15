@@ -704,9 +704,9 @@ export const WithName: Story = {
           placeholder="Search a city…"
         />
         <div style={{ marginTop: '1rem' }}>
-          <button type="submit" className="button is-primary">
+          <Button type="submit" color="primary">
             Submit
-          </button>
+          </Button>
         </div>
         {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
       </form>
