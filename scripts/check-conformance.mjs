@@ -511,6 +511,15 @@ const ORPHAN_EXEMPT = new Map([
       'nothing of its own to claim, so this stays until it does',
   ],
   [
+    'bulma-ui/src/scss/components/_navbar.scss',
+    're-sets Bulma variables Navbar already documents (the burger, the ' +
+      'dropdown arrow, the tab colors, the menu background and the ' +
+      "dropdown's row colors) on a " +
+      "colored hero's navbar, a selector the attribution walk cannot " +
+      'place. It registers nothing of its own to claim, so this stays ' +
+      'until it does',
+  ],
+  [
     'bulma-ui/src/scss/elements/_tag.scss',
     're-sets tag-color-l, a Bulma variable Tag already documents, on a ' +
       'doubled color class with :not() the attribution walk cannot place. ' +
