@@ -82,7 +82,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 `loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `steps`, `sidebar`,
 `toast`, `dialog`, `carousel`, `lightbox`, `tabs`, `menu`, `tableofcontents`, `reveal`, `avatar`, `avatars`,
 `badge`, `emptystate`, `timeline`, `treeview`, `scrollarea`, `command`, `datatable`,
-`pagination`, `affix`, `navbar`, `panel`
+`pagination`, `affix`, `navbar`, `panel`, `tour`
 
 **Layout** (`@allxsmith/bestax-bulma/scss/layout/<name>`): `appframe`, `splitter`, `stack`
 
@@ -226,6 +226,9 @@ Notes:
 - `AppFrame.Nav rail` shows each label of its rail in a `Tooltip`, so an app with a rail needs
   `scss/components/tooltip` next to `scss/layout/appframe`, plus Menu's two partials (above),
   which set the menu's icons.
+- `Tour` draws a step's Skip, Back and Next as Bulma buttons and its close button as a delete
+  button, so an app using it needs `bulma/sass/elements/button`, `bulma/sass/elements/delete`
+  and the `delete` partial next to `scss/components/tour`.
 - `ContextMenu`'s menu is Bulma's dropdown markup, so an app using it needs
   `bulma/sass/components/dropdown` next to `scss/components/contextmenu`.
 - `Lightbox`'s viewer is Bulma's modal, with Bulma buttons for its controls and a `Loader` for a

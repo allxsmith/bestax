@@ -708,7 +708,7 @@ function example() {
 `format` and `locale` are ignored by the OS-native pickers (they use the device locale). This example forces `mobileNative={false}` so the locale-aware display shows on touch devices too.
 :::
 
-The wheels write their hours, minutes and seconds in the digits of the picker's locale, its own or a [`LocaleProvider`](../../helpers/localeprovider.md)'s, so an Egyptian Arabic wheel reads ٠٩ where an English one reads 09. With neither they keep plain digits, and a `-u-nu-` extension picks the digits, as in `ar-EG-u-nu-latn`. A 12-hour picker's AM/PM column shows the locale's words for them too, such as 午前 and 午後 in Japanese, and with no locale it shows AM and PM. The field's `A` and `a` tokens keep AM and PM, since typing reads them.
+The wheels write their hours, minutes and seconds in the digits of the picker's locale, its own or a [`LocaleProvider`](../../helpers/localeprovider.md)'s, so an Egyptian Arabic wheel reads ٠٩ where an English one reads 09. With neither they keep plain digits, and a `-u-nu-` extension picks the digits, as in `ar-EG-u-nu-latn`. A 12-hour picker's AM/PM column shows the locale's words for them too, such as 午前 and 午後 in Japanese, and widens to fit a longer word. With no locale it shows AM and PM. The field's `A` and `a` tokens keep AM and PM, since typing reads them.
 
 ---
 
@@ -991,7 +991,7 @@ function TimeInputFormDemo() {
 - Trigger uses `role="combobox"` with `aria-haspopup="dialog"`, `aria-expanded`, and `aria-controls`.
 - Popover panel has `role="dialog"` with an accessible name.
 - Each spinner column has `role="spinbutton"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`, whose text is the number as the column shows it, in the picker's locale's digits when it has a locale. The values drawn above and below are click targets hidden from assistive technology, which reads the value from the spinbutton.
-- In a 12-hour picker, AM/PM is one of those spinbutton columns rather than a toggle button. Its `aria-valuetext` is `AM` or `PM`, or the picker's locale's words for them when it has a locale; `↑`, `PageUp` and `End` move it to PM, and `↓`, `PageDown` and `Home` move it to AM. It stops at either end instead of wrapping around. Its accessible name is `AM/PM` unless `labels.ampm` sets another.
+- In a 12-hour picker, AM/PM is one of those spinbutton columns rather than a toggle button. Its `aria-valuetext` is `AM` or `PM`, or the picker's locale's words for them when it has a locale, and it widens to fit a longer word; `↑`, `PageUp` and `End` move it to PM, and `↓`, `PageDown` and `Home` move it to AM. It stops at either end instead of wrapping around. Its accessible name is `AM/PM` unless `labels.ampm` sets another.
 - A `readOnly` inline picker puts `aria-readonly="true"` on each spinbutton and keeps them in the tab order.
 - Honors `prefers-reduced-motion`.
 - On a right-to-left page the launcher sits at the end of the line and the clock icon at the start. The wheels keep `dir="ltr"`, so hours stay to the left of minutes.

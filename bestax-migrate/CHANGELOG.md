@@ -1,3 +1,16 @@
+# [2.38.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.37.0...bestax-migrate@2.38.0) (2026-11-15)
+
+
+### Bug Fixes
+
+* **bulma-ui:** draw a navbar in a colored Hero in the hero's colors ([a0c7e11](https://github.com/allxsmith/bestax/commit/a0c7e11cdfeb486fa1719eb07cc221b3a422d192))
+* **bulma-ui:** write the 12-hour time wheel's AM and PM in the locale's words ([18defff](https://github.com/allxsmith/bestax/commit/18defffcc0ccdf518103577aa861a64a35e9b43e)), closes [#1787](https://github.com/allxsmith/bestax/issues/1787)
+
+
+### Features
+
+* **bestax-migrate:** turn textColor into color on Table, Menu and Dropdown ([efb69ef](https://github.com/allxsmith/bestax/commit/efb69efc7be9c85bfd25432e3fa28151d71f8cd3)), closes [#1767](https://github.com/allxsmith/bestax/issues/1767) [#1781](https://github.com/allxsmith/bestax/issues/1781)
+
 # [2.37.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.36.7...bestax-migrate@2.37.0) (2026-11-15)
 
 
