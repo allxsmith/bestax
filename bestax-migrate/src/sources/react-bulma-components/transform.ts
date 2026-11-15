@@ -26,7 +26,9 @@ import {
   reprintDirectives,
   type TransformContext,
 } from '../_shared/jsx-utils.js';
+import { applyBackgroundColor } from '../_shared/background-props.js';
 import { applyPropAction, applyUniversalProps } from '../_shared/props.js';
+import { applyTextColor } from '../_shared/text-color-props.js';
 import { enforcePolymorphicProps } from '../_shared/polymorphic.js';
 import {
   bestaxValueLocals,
@@ -44,6 +46,7 @@ import {
   prefersTabs,
   resolvesToBinding,
 } from '../_shared/imports.js';
+import { applyColorVariant } from './color-variant.js';
 import { flattenResponsiveProps } from './responsive.js';
 import { RESPONSIVE_KINDS, runSpecial } from './specials.js';
 
@@ -433,6 +436,9 @@ export default function transform(
         applyPropAction(ctx, path, element, attr, action);
       }
     }
+    applyColorVariant(ctx, path, element, target, handled);
+    applyBackgroundColor(ctx, path, element, target, handled);
+    applyTextColor(ctx, path, element, target, handled);
     applyUniversalProps(ctx, path, element, handled, UNIVERSAL_PROPS);
 
     // Last: bestax's props follow `as`, so the element decides which of the

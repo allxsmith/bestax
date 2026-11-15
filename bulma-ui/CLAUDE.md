@@ -194,7 +194,9 @@ either one is fixed.
   which says why.
 - Stories: types from `@storybook/react-vite`; `tags: ['autodocs']`; every argType gets a
   `description` (meta-test enforced). No inline `style={{}}` in stories/docs examples — helper
-  props; legacy inline styles exist, don't copy them.
+  props; legacy inline styles exist, don't copy them. A story's picture comes from `images/`,
+  credited in `images/LICENSE.md`. `check:conformance --only=image-hosts` fails on
+  a story file with a URL on a placeholder or stock-photo host.
 - Must pass tests on **React 18 and 19** (CI matrix) — avoid single-major APIs.
 - Bundle size is part of the pitch (the READMEs sell the library as tree-shakeable), so check
   `pnpm bundle:stats` (writes `dist/stats.html`) when adding anything with real runtime weight.
@@ -232,6 +234,11 @@ so neither is load-bearing on its own. Removing both is the mistake, and it
 costs more here than anywhere else. And its `prepack`/`postpack`
 pair (`scripts/pack-pointer-files.mjs`, #344) swaps the contributor
 `CLAUDE.md` for the consumer copy of `AGENTS.md` inside the tarball and puts it
-back — pnpm runs both hooks, so the round trip holds, but if a pack is
-interrupted a `CLAUDE.md.bak` is left behind and the next `prepack` refuses
-until you restore it.
+back. `pnpm pack --dry-run` runs `prepack` but not `postpack`, and neither does
+a pack that fails partway, so either leaves the consumer copy in place with a
+`CLAUDE.md.bak` beside it. The next pack finds the swap already done and goes
+on, while `CLAUDE.md` still matches `AGENTS.md` byte for byte, and its
+`postpack` puts the contributor file back. Once either file changes, `prepack`
+refuses and leaves both for you to sort out. To see what the tarball holds,
+`pnpm pack --pack-destination "$(mktemp -d)"` lists its files, runs both hooks
+and writes the tarball outside the repo.

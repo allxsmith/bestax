@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Rate } from './Rate';
 import { Field } from './Field';
 import { Control } from './Control';
+import { Button } from '../elements/Button';
 
 const meta: Meta<typeof Rate> = {
   title: 'Form/Rate',
@@ -96,9 +97,9 @@ export const WithName: Story = {
       >
         <Rate name="rating" defaultValue={3} showScore />
         <div style={{ marginTop: '1rem' }}>
-          <button type="submit" className="button is-primary">
+          <Button type="submit" color="primary">
             Submit
-          </button>
+          </Button>
         </div>
         {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
       </form>

@@ -8,19 +8,13 @@
  * than `aria-labelledby`. Reordering the union would still compile and would
  * still reject the call, so only the message shows the difference.
  *
- * The program holds one file, the fixture below, and what it imports. Its
- * compiler options are bulma-ui's own, read from its `tsconfig.json` and the
- * one it extends, with no file listing done, so they can't drift from what
- * `pnpm typecheck` uses. Two are added: `types: []`, so no `@types` package
- * loads beyond the ones the imports reach, and `noEmit`. It's built once the
- * suite runs, not when the file is collected, in a `beforeAll` with a timeout
- * of its own: a hook keeps Vitest's 10s default rather than the config's
- * `testTimeout`, and a loaded machine can take longer than that to build it.
+ * The program holds one file, the fixture below, and what it imports, with
+ * bulma-ui's own compiler options (`src/__tests__/type-program.ts`).
  */
 import path from 'path';
 import * as ts from 'typescript';
+import { compilerOptions, errorsOf } from '../../__tests__/type-program';
 
-const TSCONFIG = path.resolve(__dirname, '../../../tsconfig.json');
 const FIXTURE = path.join(__dirname, 'icon-button-unnamed.fixture.tsx');
 
 const SOURCE = `
@@ -30,58 +24,10 @@ export const plain = <IconButton icon="trash" />;
 export const anchor = <IconButton as="a" href="/x" icon="trash" />;
 `;
 
-/**
- * bulma-ui's compiler options. `readDirectory` answers nothing, so the
- * `include` globs list no files: only the options, `extends` followed, are
- * read.
- */
-function compilerOptions(): ts.CompilerOptions {
-  const { config, error } = ts.readConfigFile(TSCONFIG, ts.sys.readFile);
-  if (error)
-    throw new Error(ts.flattenDiagnosticMessageText(error.messageText, '\n'));
-  const host: ts.ParseConfigHost = {
-    useCaseSensitiveFileNames: ts.sys.useCaseSensitiveFileNames,
-    fileExists: ts.sys.fileExists,
-    readFile: ts.sys.readFile,
-    readDirectory: () => [],
-  };
-  const { options } = ts.parseJsonConfigFileContent(
-    config,
-    host,
-    path.dirname(TSCONFIG)
-  );
-  return { ...options, types: [], noEmit: true };
-}
-
-/** Every error the fixture gets: its line and its message, flattened. */
-function errorsOf(source: string) {
-  const options = compilerOptions();
-  const host = ts.createCompilerHost(options);
-  const getSourceFile = host.getSourceFile.bind(host);
-  host.getSourceFile = (file, language, ...rest) =>
-    path.resolve(file) === FIXTURE
-      ? ts.createSourceFile(file, source, language, true, ts.ScriptKind.TSX)
-      : getSourceFile(file, language, ...rest);
-  const fileExists = host.fileExists.bind(host);
-  host.fileExists = file => path.resolve(file) === FIXTURE || fileExists(file);
-  const program = ts.createProgram([FIXTURE], options, host);
-  const fixture = program.getSourceFile(FIXTURE)!;
-  return [
-    ...program.getSyntacticDiagnostics(fixture),
-    ...program.getSemanticDiagnostics(fixture),
-  ].map(d => ({
-    line:
-      d.file && d.start !== undefined
-        ? d.file.getLineAndCharacterOfPosition(d.start).line
-        : -1,
-    text: ts.flattenDiagnosticMessageText(d.messageText, '\n'),
-  }));
-}
-
 describe('IconButton name type', () => {
   let errors: ReturnType<typeof errorsOf>;
   beforeAll(() => {
-    errors = errorsOf(SOURCE);
+    errors = errorsOf(FIXTURE, SOURCE);
   }, 30_000);
 
   it('reads the build options, JSX and strictness included', () => {
