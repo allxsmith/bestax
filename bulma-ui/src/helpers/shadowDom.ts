@@ -128,3 +128,43 @@ export function shadowRootsAround(node: Node | null | undefined): ShadowRoot[] {
   }
   return roots;
 }
+
+/**
+ * Listens for `type` on the shadow roots a node is rendered in, as
+ * `shadowRootsAround` finds them, for an event that isn't composed, such as
+ * `scroll`, which a listener on the window never hears from inside one.
+ * `follow` moves the listener when those roots change, as they do for
+ * another node or once a component around it gets its shadow root, and
+ * `stop` takes it off them all.
+ *
+ * @param type - The event to listen for.
+ * @param listener - What runs on it.
+ * @param options - The listener's options, `capture` included.
+ * @returns `follow`, given the node now, and `stop`.
+ */
+export function listenInShadowRoots(
+  type: string,
+  listener: () => void,
+  options: AddEventListenerOptions
+): { follow: (node: Node | null | undefined) => void; stop: () => void } {
+  let roots: ShadowRoot[] = [];
+  const move = (now: ShadowRoot[]) => {
+    for (const root of roots) {
+      root.removeEventListener(type, listener, { capture: options.capture });
+    }
+    roots = now;
+    for (const root of roots) root.addEventListener(type, listener, options);
+  };
+  return {
+    follow: node => {
+      const now = shadowRootsAround(node);
+      if (
+        now.length !== roots.length ||
+        now.some((root, i) => root !== roots[i])
+      ) {
+        move(now);
+      }
+    },
+    stop: () => move([]),
+  };
+}

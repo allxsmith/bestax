@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import type { PickerPosition } from '../form/_pickerInternals/pickerTypes';
 import { useClientLayoutEffect } from './useClientLayoutEffect';
-import { shadowRootsAround } from './shadowDom';
+import { listenInShadowRoots } from './shadowDom';
 
 /** A corner of the anchor the panel opens from, once `auto` is resolved. */
 export type AnchoredCorner = Exclude<PickerPosition, 'auto'>;
@@ -318,26 +318,10 @@ export function useAnchoredPosition(
     // roots the anchor is rendered in are listened on too, as each
     // measurement finds them: another anchor, or a component around it that
     // gets its shadow root later, changes them.
-    let roots: ShadowRoot[] = [];
-    const listenAround = (anchor: HTMLElement) => {
-      const now = shadowRootsAround(anchor);
-      if (
-        now.length === roots.length &&
-        now.every((root, i) => root === roots[i])
-      ) {
-        return;
-      }
-      for (const root of roots) {
-        root.removeEventListener('scroll', schedule, { capture: true });
-      }
-      roots = now;
-      for (const root of roots) {
-        root.addEventListener('scroll', schedule, {
-          passive: true,
-          capture: true,
-        });
-      }
-    };
+    const shadowScrolls = listenInShadowRoots('scroll', () => schedule(), {
+      passive: true,
+      capture: true,
+    });
     const update = () => {
       const anchor = anchorRef.current;
       const panel = panelRef.current;
@@ -349,7 +333,7 @@ export function useAnchoredPosition(
         return;
       }
       if (!anchor) return;
-      listenAround(anchor);
+      shadowScrolls.follow(anchor);
       watch(panel);
       const rect = anchor.getBoundingClientRect();
       const measured = panel.getBoundingClientRect();
@@ -431,9 +415,7 @@ export function useAnchoredPosition(
       resizes?.disconnect();
       view.removeEventListener('resize', schedule);
       view.removeEventListener('scroll', schedule, { capture: true });
-      for (const root of roots) {
-        root.removeEventListener('scroll', schedule, { capture: true });
-      }
+      shadowScrolls.stop();
     };
   }, [
     active,
