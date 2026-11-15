@@ -75,20 +75,23 @@ export interface DropdownProps
  * The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI.
  *
  * Down, Enter and Space on the trigger open the menu on its first enabled
- * item, and Up opens it on its last. On the trigger of a menu that's already
- * open, Down and Up move focus to its first and last item. In the menu, the
- * arrow keys, Home and End move between the items, and Enter and Space run
- * the focused one the way a click does. Typing a letter moves to the next
- * item whose text starts with it, skipping disabled ones, and letters typed
- * in quick succession add up to one search. Typing searches once focus is in
- * the menu, so a letter typed on the trigger does nothing. Escape closes the
- * menu and focuses the trigger. Tab closes it and moves focus to the next
- * tab stop after the Dropdown, wrapping inside a focus trap such as Modal's,
- * and Shift+Tab closes it and focuses the trigger. Anything focusable in the
- * menu that isn't an item, such as a field, keeps its own keys apart from
- * Escape and Tab, though an Escape it calls `preventDefault()` on in its own
- * `onKeyDown` stays its own and leaves the menu open. For a panel built
- * around fields, use `Popover`.
+ * item, and Up opens it on its last. A click the browser dispatches with no
+ * pointer behind it (`detail` 0), as a screen reader's browse mode can send,
+ * opens it on its first enabled item too. A pointer's click on the trigger,
+ * and a script's `click()`, move no focus into the menu. On the trigger of a
+ * menu that's already open, Down and Up move focus to its first and last
+ * item. In the menu, the arrow keys, Home and End move between the items,
+ * and Enter and Space run the focused one the way a click does. Typing a
+ * letter moves to the next item whose text starts with it, skipping disabled
+ * ones, and letters typed in quick succession add up to one search. Typing
+ * searches once focus is in the menu, so a letter typed on the trigger does
+ * nothing. Escape closes the menu and focuses the trigger. Tab closes it and
+ * moves focus to the next tab stop after the Dropdown, wrapping inside a
+ * focus trap such as Modal's, and Shift+Tab closes it and focuses the
+ * trigger. Anything focusable in the menu that isn't an item, such as a
+ * field, keeps its own keys apart from Escape and Tab, though an Escape it
+ * calls `preventDefault()` on in its own `onKeyDown` stays its own and
+ * leaves the menu open. For a panel built around fields, use `Popover`.
  *
  * @function
  * @param {DropdownProps} props - Props for the Dropdown component.
@@ -207,11 +210,18 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
       return () => document.removeEventListener('mousedown', handleClick);
     }, [active, onActiveChangeRef]);
 
-    const handleToggle = () => {
+    // A click the browser dispatched with no pointer behind it (`detail` 0,
+    // trusted), as a screen reader's browse mode can send, opens the menu on
+    // its first item, as Enter does. A pointer's click on the trigger, and a
+    // script's, move no focus into the menu.
+    const handleToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
       /* istanbul ignore next: guard is enforced by button[disabled] at the DOM level */
       if (disabled) return;
 
       const newActive = !active;
+      if (newActive && e.detail === 0 && e.nativeEvent.isTrusted) {
+        pendingFocusRef.current = 'first';
+      }
       setActive(newActive);
       onActiveChange?.(newActive);
     };
