@@ -18,7 +18,10 @@ import {
   toExampleModule,
   withSiteImages,
 } from '../src/theme/CodeBlock/sandbox/example.mjs';
-import { stripModuleLines } from '../src/theme/CodeBlock/sandbox/moduleLines.mjs';
+import {
+  importedStylesheets,
+  stripModuleLines,
+} from '../src/theme/CodeBlock/sandbox/moduleLines.mjs';
 import {
   ICON_LIBRARIES,
   SANDBOX_TYPESCRIPT,
@@ -82,6 +85,27 @@ describe('stripModuleLines', () => {
       'export default A;',
     ].join('\n');
     assert.equal(stripModuleLines(code), 'function A() {}');
+  });
+});
+
+describe('importedStylesheets', () => {
+  it('lists the stylesheets an example imports for their effect, in order', () => {
+    const code = [
+      "import { ConfigProvider } from '@allxsmith/bestax-bulma';",
+      "import '@allxsmith/bestax-bulma/versions/bestax-prefixed.css';",
+      "  import './theme.css' ; // the app's own",
+      "import styles from './module.css';",
+      "import '@allxsmith/bestax-bulma/versions/bestax-prefixed.css';",
+      'const note = "import \'./not-a-line.css\';";',
+    ].join('\n');
+    assert.deepEqual(importedStylesheets(code), [
+      '@allxsmith/bestax-bulma/versions/bestax-prefixed.css',
+      './theme.css',
+    ]);
+  });
+
+  it('is empty for an example that imports no stylesheet', () => {
+    assert.deepEqual(importedStylesheets('<Box>Hi</Box>'), []);
   });
 });
 
