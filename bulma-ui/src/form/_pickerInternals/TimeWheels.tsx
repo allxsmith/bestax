@@ -126,9 +126,10 @@ interface WheelProps<T> {
   formatLabel: (v: T) => string;
   formatAriaText?: (v: T) => string;
   /**
-   * The labels are words rather than digits, which can run right to left,
-   * so each item takes its own direction inside the wheels' left-to-right
-   * row.
+   * The labels are words rather than digits. A word can run longer than two
+   * digits, so the wheel grows to fit its longest, and it can run right to
+   * left, so each item takes its own direction inside the wheels'
+   * left-to-right row.
    */
   wordLabels?: boolean;
   ariaLabel: string;
@@ -682,7 +683,9 @@ const WheelInner = <T,>(
     [`is-${size}`]: !!size,
     'is-disabled': disabled,
     'is-dragging': isDragging,
+    'is-fitted': wordLabels,
   });
+  const sizerClass = prefixedClassNames(classPrefix, 'timeinput-wheel-sizer');
   const itemClass = (selected: boolean) =>
     prefixedClassNames(classPrefix, 'timeinput-wheel-item', {
       'is-selected': selected,
@@ -727,6 +730,19 @@ const WheelInner = <T,>(
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
+      {/* The items are laid out absolutely, so they size nothing. A hidden
+          copy of each word sets the least width the wheel takes instead. The
+          stylesheet draws the word from data-label, so the page's text holds
+          each word once, as the item. */}
+      {wordLabels &&
+        values.map((v, i) => (
+          <span
+            key={i}
+            className={sizerClass}
+            data-label={formatLabel(v)}
+            aria-hidden="true"
+          />
+        ))}
       {/* Stationary selection band — sits at the centre of the viewport while
           items slide through it, like the iOS native picker. The ref lets
           `playBandPulse` animate scale + brightness on each item tick. */}
