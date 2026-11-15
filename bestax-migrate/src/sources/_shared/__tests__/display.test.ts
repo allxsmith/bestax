@@ -59,14 +59,6 @@ describe('keepBaseDisplay', () => {
     ).toBe('<Box className="is-flex box" displayMobile="flex"');
   });
 
-  it('keeps a spread before a className it merges into in the same order', () => {
-    expect(
-      attrs(
-        run('{...p} className="card" display="block" displayMobile="flex"').out
-      )
-    ).toBe('<Box {...p} className="is-block card" displayMobile="flex"');
-  });
-
   it('moves the flex container props with a flex base when no per-viewport display is flex', () => {
     const { out, rules } = run(
       'display="flex" justifyContent="center" alignItems="end" flexDirection="column" flexWrap="wrap" alignContent="center" alignSelf="center" displayMobile="block"'
@@ -123,6 +115,10 @@ describe('keepBaseDisplay', () => {
     [
       'a spread after a per-viewport display',
       'className="card" displayMobile="flex" {...p} display="block"',
+    ],
+    [
+      'a spread before every prop it reads',
+      '{...p} className="card" display="flex" justifyContent="center" displayMobile="block"',
     ],
     ['a dynamic base display', 'display={p.d} displayMobile="flex"'],
   ])('changes nothing and leaves a TODO for %s', (_, written) => {
