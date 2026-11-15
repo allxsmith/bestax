@@ -135,7 +135,7 @@
           "name": "modalCardFoot",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Footer for modal-card variant. (Legacy API only)",
+          "description": "Footer for modal-card variant. Group two or more buttons in `Buttons` so Bulma spaces them. (Legacy API only)",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -326,7 +326,7 @@
     },
     {
       "path": "Modal.Card.Foot",
-      "summary": "Modal.Card.Foot - Renders modal card footer section.",
+      "summary": "Modal.Card.Foot - Renders modal card footer section. Group two or more buttons in `Buttons` so Bulma spaces them.",
       "component": null,
       "props": [
         {

@@ -51,7 +51,10 @@ const LIBRARY_EXPORTS = Object.keys(BestaxBulma);
 /**
  * @param {object} options
  * @param {string} options.code The editor's current code.
- * @param {string} options.sourceUrl The docs page, linked from the project.
+ * @param {string} options.sourceUrl The docs page on the site the build
+ *   names, linked from the project and resolving the example's site images,
+ *   so an origin that serves them without a CORP header breaks them in an
+ *   isolated preview.
  * @param {string} options.bestaxVersion The library release the docs build read.
  */
 function prepare({ code, sourceUrl, bestaxVersion }) {

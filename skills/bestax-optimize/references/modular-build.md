@@ -251,9 +251,10 @@ Notes:
   or light notification. It doesn't depend on the order of the two `@use` lines either.
 - `Tag` is stock Bulma too (`bulma/sass/elements/tag`). The `tag` extras partial gives a light tag
   the light color's own text, where Bulma's module lets its text inherit the color around it, which
-  on the dark scheme leaves it hard to read. Include it (`as bestax-tag`) next to the Bulma module
-  in any build that shows a light tag. It doesn't depend on the order of the two `@use` lines
-  either.
+  on the dark scheme leaves it hard to read, and sets a normal-size tag in a table cell at the
+  bottom of its line, where Bulma's baseline makes the row taller than a row of text. Include it (`as bestax-tag`) next
+  to the Bulma module in any build that shows a light tag or a tag in a table. It doesn't depend on
+  the order of the two `@use` lines either.
 - `Delete` is stock Bulma too, and it's the close button of `Notification`, `Message`, `Toast`, a
   `Modal` card, `AppFrame`'s drawer and the tags of `Taginput`, `Combobox`, `Dropzone` and
   `TreeSelect`. Bulma draws it in `bulma/sass/elements/delete`, and the modules of the components

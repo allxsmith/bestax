@@ -353,8 +353,8 @@ Use individual viewport properties to set **different values for each viewport**
 To see the responsive behavior in the example below, resize your browser window or use your browser's responsive design mode (F12 → Device Toolbar). Try these specific viewport widths:
 
 - **Mobile**: 320px - 768px (text will be size 6, right-aligned)
-- **Tablet**: 769px - 1023px (text will be size 3, left-aligned, and hidden on desktop!)
-- **Desktop**: 1024px+ (element will be hidden)
+- **Tablet**: 769px - 1023px (text will be size 3, left-aligned)
+- **Desktop**: 1024px+ (element will be hidden, since `visibilityDesktop` applies from desktop up)
 
 :::
 
@@ -370,7 +370,7 @@ To see the responsive behavior in the example below, resize your browser window 
       p="3"
     >
       This box demonstrates viewport-specific properties: different text sizes,
-      alignment, and visibility per viewport. (Hidden on tablet!)
+      alignment, and visibility per viewport. (Hidden from desktop up!)
     </Box>
   </Block>
 </>
