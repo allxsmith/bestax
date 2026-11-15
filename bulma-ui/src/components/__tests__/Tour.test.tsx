@@ -3025,6 +3025,32 @@ describe('Tour', () => {
       expect(beacon('Filters').style.top).toBe('170px');
     });
 
+    it('moves a beacon with a target that scrolls inside a shadow root', () => {
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const shadow = host.attachShadow({ mode: 'open' });
+      const scroller = document.createElement('div');
+      const inner = document.createElement('button');
+      inner.dataset.rect = '100 100 80 30';
+      scroller.appendChild(inner);
+      shadow.appendChild(scroller);
+      render(
+        <Tour mode="beacon" defaultOpen>
+          <Tour.Step target={inner} title="Inner">
+            In a web component that scrolls.
+          </Tour.Step>
+        </Tour>
+      );
+      expect(beacon('Inner').style.top).toBe('100px');
+      inner.dataset.rect = '40 100 80 30';
+      // Not composed, so a listener on the window never hears it.
+      act(() => {
+        scroller.dispatchEvent(new Event('scroll'));
+      });
+      expect(beacon('Inner').style.top).toBe('40px');
+      host.remove();
+    });
+
     it('measures its beacons once a frame, however many changes ask in it', () => {
       const frames: FrameRequestCallback[] = [];
       vi.mocked(window.requestAnimationFrame).mockImplementation(callback => {

@@ -656,6 +656,13 @@ function useBeaconPlaces(
     const scope = scopeOf(root);
     // Each target found, box or no box, so one that gets a box is noticed.
     const watched = new Set<HTMLElement>();
+    // A scroll inside a shadow root doesn't reach the window, so the shadow
+    // roots the targets are rendered in are listened on too.
+    const shadowScrolls = listenInShadowRoots(
+      'scroll',
+      () => watch.schedule(),
+      { passive: true, capture: true }
+    );
     const inView =
       typeof IntersectionObserver === 'undefined'
         ? null
@@ -675,6 +682,7 @@ function useBeaconPlaces(
     const update = () => {
       const targets = stepsRef.current.map(step => step.props.target);
       const found = targets.map(target => findTarget(target, scope));
+      shadowScrolls.follow(...found);
       const now = new Set(found.filter(element => element !== null));
       const gone: HTMLElement[] = [];
       for (const element of watched) {
@@ -778,6 +786,7 @@ function useBeaconPlaces(
       updateRef.current = null;
       measuredRef.current = null;
       watch.stop();
+      shadowScrolls.stop();
       inView?.disconnect();
       // Nothing held on to while the tour is closed, and nothing stale when
       // it opens again.

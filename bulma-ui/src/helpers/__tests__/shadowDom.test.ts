@@ -125,6 +125,22 @@ describe('shadowDom helpers', () => {
       expect(heard).toHaveBeenCalledTimes(2);
       otherHost.remove();
     });
+
+    it('listens on the shadow roots of several nodes at once, each once', () => {
+      const otherHost = document.createElement('div');
+      const other = otherHost.attachShadow({ mode: 'open' });
+      const there = document.createElement('div');
+      other.appendChild(there);
+      document.body.appendChild(otherHost);
+      const heard = vi.fn();
+      const scrolls = listenInShadowRoots('scroll', heard, { capture: true });
+      scrolls.follow(inner, there, inner, null);
+      shadowRoot.dispatchEvent(new Event('scroll'));
+      other.dispatchEvent(new Event('scroll'));
+      expect(heard).toHaveBeenCalledTimes(2);
+      scrolls.stop();
+      otherHost.remove();
+    });
   });
 
   describe('shadowRootsAround', () => {
