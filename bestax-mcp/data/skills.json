@@ -93,12 +93,12 @@
         {
           "id": "bloomer-prop-map",
           "file": "references/bloomer/prop-map.md",
-          "bytes": 27258
+          "bytes": 27510
         },
         {
           "id": "bloomer-unmappables",
           "file": "references/bloomer/unmappables.md",
-          "bytes": 18303
+          "bytes": 19249
         },
         {
           "id": "bulma-classes-component-map",
@@ -143,12 +143,12 @@
         {
           "id": "react-bulma-components-prop-map",
           "file": "references/react-bulma-components/prop-map.md",
-          "bytes": 8545
+          "bytes": 8689
         },
         {
           "id": "react-bulma-components-unmappables",
           "file": "references/react-bulma-components/unmappables.md",
-          "bytes": 15443
+          "bytes": 16389
         }
       ],
       "examples": []
