@@ -138,9 +138,10 @@ interface CalendarBaseProps
   /** Days that can't be picked, matched by calendar day. Merged with `shouldDisableDate`. */
   unselectableDates?: Date[];
   /**
-   * BCP-47 locale for the day and month names and the days' accessible
-   * names. Unset, it's a `LocaleProvider`'s, and with neither, the runtime's.
-   * On a server render that is the server's, so the server and the browser
+   * BCP-47 locale for the day and month names, the digits the days and
+   * years are written in, and the days' accessible names. Unset, it's a
+   * `LocaleProvider`'s, and with neither, the runtime's, while the days and
+   * years keep plain digits. On a server render that is the server's, so the server and the browser
    * can name the month and the weekdays in different languages: give a
    * locale, here or through a `LocaleProvider`, where the two can differ.
    */
