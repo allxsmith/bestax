@@ -1,3 +1,34 @@
+## [1.18.55](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.54...bestax-mcp@1.18.55) (2026-11-15)
+
+
+### Bug Fixes
+
+* **bulma-ui:** cap the AM/PM wheel's word padding at the wheel gap ([affddee](https://github.com/allxsmith/bestax/commit/affddee03d8d50a9357d2e61bcc6088acd7df5c3))
+* **bulma-ui:** find a shadow-rooted Tour's targets in the page too, and start each step afresh ([c6d96bf](https://github.com/allxsmith/bestax/commit/c6d96bfd0ee255a82efc90f9ded184f1bde70785))
+* **bulma-ui:** give a non-modal Tour step back to the page, and follow targets once a frame ([2b6b9c6](https://github.com/allxsmith/bestax/commit/2b6b9c6298a3cf225f3d3363b82e14c89df8daf3))
+* **bulma-ui:** give a Tour step's header a gap of its own and its lines one border width ([68e9620](https://github.com/allxsmith/bestax/commit/68e9620295eb45c4d2fc46007195ddc1b78c69e9))
+* **bulma-ui:** keep a modal Tour step's popups in the step, and find targets in a shadow root ([29ab8bd](https://github.com/allxsmith/bestax/commit/29ab8bd471aa2dc369e057c7e9841789f1d584ab))
+* **bulma-ui:** keep a Tour step's name and description through a spread of undefined ([b1141ce](https://github.com/allxsmith/bestax/commit/b1141cee99da01a3dcf2633d9f43ddc10952ed42))
+* **bulma-ui:** keep marginGap to the block margins, and read all four for a side placement ([0b20520](https://github.com/allxsmith/bestax/commit/0b20520d3dc5863c2a8ecae26ce4044ff3cb0140))
+* **bulma-ui:** measure a side-placed panel again once it's drawn on another side ([91dc4eb](https://github.com/allxsmith/bestax/commit/91dc4ebd00116b08820b756e2eb8bf15aaecfe45))
+* **bulma-ui:** move focus out of content a Tour step portals when the step turns modal ([5db813b](https://github.com/allxsmith/bestax/commit/5db813bcbefcf54ccff21d9f1606571b41f203a5))
+* **bulma-ui:** move Tour's spotlight and step with the target rather than glide after it ([62074ca](https://github.com/allxsmith/bestax/commit/62074caafd38a386729a70b050282f71ebc715b9))
+* **bulma-ui:** move Tour's spotlight with a target that scrolls inside a shadow root ([1e7b8d8](https://github.com/allxsmith/bestax/commit/1e7b8d8500a686a928900a0a38d663b6a75e1a12))
+* **bulma-ui:** place a side-placed panel across its anchor when neither side fits ([f8083d4](https://github.com/allxsmith/bestax/commit/f8083d4f3ce6e90e6d8558afd753ce2b8e9ffecf))
+* **bulma-ui:** read only the margin a side placement puts its gap in ([0f0938f](https://github.com/allxsmith/bestax/commit/0f0938f6fb661b62038d59e2435b8ff7d97365f5))
+* **bulma-ui:** read Tour's steps through isElementOf, and its state through useControlled ([d16954f](https://github.com/allxsmith/bestax/commit/d16954ff47c2892fdf40010ccaa611b6907c8b81)), closes [#1500](https://github.com/allxsmith/bestax/issues/1500)
+* **bulma-ui:** send Tab from a non-modal Tour step into a target in a shadow root ([e5a6b39](https://github.com/allxsmith/bestax/commit/e5a6b39dbc49e0297493227c8ca6819150407390))
+* **bulma-ui:** send Tab from a non-modal Tour step to its target, and follow targets safely ([2b9c3e8](https://github.com/allxsmith/bestax/commit/2b9c3e8b8bc6d8c5af90d909bee00b95d968d602))
+* **bulma-ui:** show a Tour's step for a fractional value, and record a finished tour in the examples ([0a2aa64](https://github.com/allxsmith/bestax/commit/0a2aa641b00bc7e9d5bb9215f65956eae41f7099))
+* **bulma-ui:** take a boxless ancestor for no clip in Tour's in-view check ([abd1c08](https://github.com/allxsmith/bestax/commit/abd1c083b0fcd9cff58837cafc99bb048bb9b06c))
+* **bulma-ui:** widen the AM/PM time wheel to fit a locale's long words ([54450a8](https://github.com/allxsmith/bestax/commit/54450a8713c9b9ba5202e32fd15e4c5b725ef04e)), closes [#1800](https://github.com/allxsmith/bestax/issues/1800) [#1799](https://github.com/allxsmith/bestax/issues/1799)
+
+
+### Features
+
+* **bulma-ui:** add Tour, a guided walk through an interface one element at a time ([da9e3bf](https://github.com/allxsmith/bestax/commit/da9e3bf167649ce43baa6d8cac1eed9a301f6202)), closes [#1435](https://github.com/allxsmith/bestax/issues/1435)
+* **bulma-ui:** place an anchored panel on a side of its anchor, and focus a chosen control ([d25af80](https://github.com/allxsmith/bestax/commit/d25af808dcb593d9754bf6a50edbf190417d8f1b))
+
 ## [1.18.54](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.53...bestax-mcp@1.18.54) (2026-11-15)
 
 
