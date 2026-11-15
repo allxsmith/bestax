@@ -432,7 +432,7 @@ describe('useBulmaClasses', () => {
     expect(bulmaHelperClasses).toBe('has-text-primary-05');
   });
 
-  it('applies background color with backgroundColorShade', () => {
+  it('applies background color with a backgroundColorShade of 10', () => {
     const { bulmaHelperClasses } = renderUseBulmaClasses({
       backgroundColor: 'info',
       backgroundColorShade: '10',
@@ -454,23 +454,6 @@ describe('useBulmaClasses', () => {
       colorShade: '05',
     });
     expect(bulmaHelperClasses).toBe('');
-  });
-
-  it('applies text color with shade (duplicate)', () => {
-    const { bulmaHelperClasses } = renderUseBulmaClasses({
-      color: 'primary',
-      colorShade: '05',
-    });
-    expect(bulmaHelperClasses).toBe('has-text-primary-05');
-  });
-
-  it('applies text color with shade (no viewport support)', () => {
-    const { bulmaHelperClasses } = renderUseBulmaClasses({
-      color: 'primary',
-      colorShade: '05',
-      viewport: 'mobile',
-    });
-    expect(bulmaHelperClasses).toBe('has-text-primary-05');
   });
 
   it('applies text color with shade without viewport when viewport is invalid', () => {
@@ -480,30 +463,6 @@ describe('useBulmaClasses', () => {
       viewport: 'invalid',
     });
     expect(bulmaHelperClasses).toBe('has-text-primary-50');
-  });
-
-  it('applies background color with backgroundColorShade', () => {
-    const { bulmaHelperClasses } = renderUseBulmaClasses({
-      backgroundColor: 'info',
-      backgroundColorShade: '10',
-    });
-    expect(bulmaHelperClasses).toBe('has-background-info-10');
-  });
-
-  it('falls back to base color class when shade is invalid', () => {
-    const { bulmaHelperClasses } = renderUseBulmaClasses({
-      color: 'primary',
-      colorShade: 'invalid' as string, // Simulate invalid shade
-    });
-    expect(bulmaHelperClasses).toBe('has-text-primary');
-  });
-
-  it('does not apply color class for invalid color', () => {
-    const { bulmaHelperClasses } = renderUseBulmaClasses({
-      color: 'invalid' as string,
-      colorShade: '05',
-    });
-    expect(bulmaHelperClasses).toBe('');
   });
 
   // Background color with backgroundColorShade and viewport

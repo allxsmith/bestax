@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { marginGap, useAnchoredPosition } from '../useAnchoredPosition';
 import type { PickerPosition } from '../../form/_pickerInternals/pickerTypes';
@@ -349,6 +350,106 @@ describe('following the panel and the anchor', () => {
     nextFrame();
     // One measurement reads the anchor and the panel once each.
     expect(rects).toHaveBeenCalledTimes(2);
+  });
+
+  it('measures again on a scroll inside the shadow root its anchor is in, and lets go as it closes', () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const shadow = host.attachShadow({ mode: 'open' });
+    const scroller = document.createElement('div');
+    const container = document.createElement('div');
+    scroller.appendChild(container);
+    shadow.appendChild(scroller);
+    const { unmount } = render(<Above height={200} />, { container });
+    const listen = vi.spyOn(shadow, 'removeEventListener');
+    rects.mockClear();
+
+    // Not composed, so a listener on the window never hears it.
+    act(() => {
+      fireEvent.scroll(scroller);
+    });
+    nextFrame();
+    expect(rects).toHaveBeenCalledTimes(2);
+
+    unmount();
+    expect(listen).toHaveBeenCalledWith('scroll', expect.any(Function), {
+      capture: true,
+    });
+    rects.mockClear();
+    act(() => {
+      fireEvent.scroll(scroller);
+    });
+    nextFrame();
+    expect(rects).not.toHaveBeenCalled();
+    host.remove();
+  });
+
+  it('moves its listener to the shadow root of an anchor that replaces the old one', () => {
+    const roots = ['first', 'second'].map(() => {
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const shadow = host.attachShadow({ mode: 'open' });
+      const scroller = document.createElement('div');
+      shadow.appendChild(scroller);
+      return { host, scroller };
+    });
+    // The anchor renders into one root or the other; each render measures.
+    const Moving = ({ into }: { into: number }) => {
+      const anchorRef = useRef<HTMLButtonElement>(null);
+      const panelRef = useRef<HTMLDivElement>(null);
+      useAnchoredPosition(anchorRef, panelRef, {
+        active: true,
+        position: 'top-left',
+        fixed: true,
+        followContent: true,
+      });
+      return (
+        <>
+          {createPortal(
+            <button key={into} ref={anchorRef}>
+              anchor
+            </button>,
+            roots[into].scroller
+          )}
+          <div ref={panelRef} data-height={200} />
+        </>
+      );
+    };
+    const { rerender } = render(<Moving into={0} />);
+    rerender(<Moving into={1} />);
+    rects.mockClear();
+
+    act(() => {
+      fireEvent.scroll(roots[0].scroller);
+    });
+    nextFrame();
+    expect(rects).not.toHaveBeenCalled();
+    act(() => {
+      fireEvent.scroll(roots[1].scroller);
+    });
+    nextFrame();
+    expect(rects).toHaveBeenCalledTimes(2);
+    for (const { host } of roots) host.remove();
+  });
+
+  it('measures again on a scroll inside a component its anchor is slotted into', () => {
+    // A scrolling element around a slot, the shape of a web component that
+    // scrolls what's put in it.
+    const host = document.createElement('div');
+    const shadow = host.attachShadow({ mode: 'open' });
+    shadow.innerHTML = '<div class="scroller"><slot></slot></div>';
+    const container = document.createElement('div');
+    host.appendChild(container);
+    document.body.appendChild(host);
+    render(<Above height={200} />, { container });
+    rects.mockClear();
+
+    act(() => {
+      fireEvent.scroll(shadow.querySelector('.scroller') as HTMLElement);
+    });
+    nextFrame();
+    expect(rects).toHaveBeenCalledTimes(2);
+    host.remove();
   });
 
   it('drops the frame it asked for when it closes', () => {

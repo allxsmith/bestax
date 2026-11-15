@@ -97,8 +97,11 @@ export interface TimelineProps
   titleAs?: TimelineTitleElement;
   /**
    * The markers' color, and the color of progress with `active`. Neutral
-   * without it, and Bulma's `link` for progress. The markers are hidden from
-   * assistive tech, so say what a color means in the words too.
+   * without it, and Bulma's `link` for progress. Drawn in the color's
+   * on-scheme shade, the one Bulma adjusts to read on the page in either
+   * scheme, so a pale color such as `warning` is darker on a light page. The
+   * markers are hidden from assistive tech, so say what a color means in the
+   * words too.
    */
   color?: TimelineColor;
   /** Read after a completed item's title, visually hidden. In your app's language. */
@@ -147,7 +150,10 @@ export interface TimelineItemProps
    * what it means goes in the title.
    */
   icon?: React.ReactNode;
-  /** This item's marker color, over the root's. Say what it means in the words too. */
+  /**
+   * This item's marker color, over the root's, in the color's on-scheme
+   * shade. Say what it means in the words too.
+   */
   color?: TimelineColor;
   /** Anything else about the event, under the title and the time, as written. */
   children?: React.ReactNode;

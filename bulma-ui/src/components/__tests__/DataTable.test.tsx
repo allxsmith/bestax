@@ -1153,6 +1153,32 @@ describe('DataTable', () => {
       expect(screen.getByText('No rows match.')).toBeInTheDocument();
     });
 
+    it('aligns each loading cell as its column aligns the value', () => {
+      const { container } = renderTable({
+        loading: true,
+        selectionMode: 'multiple',
+        columns: [...columns, { id: 'id', header: 'Id', align: 'centered' }],
+      });
+      const cells = Array.from(
+        container.querySelector('tbody tr')!.querySelectorAll('td, th')
+      );
+      // The checkbox column, then Name, Role, Score and Id, each in the kind
+      // of cell its value comes in: Name is the row header.
+      expect(
+        cells.map(cell => `${cell.tagName.toLowerCase()} ${cell.className}`)
+      ).toEqual([
+        'td is-narrow',
+        'th ',
+        'td ',
+        'td has-text-right',
+        'td has-text-centered',
+      ]);
+      // Every data cell holds a line; the checkbox column holds none.
+      for (const cell of cells.slice(1)) {
+        expect(cell.querySelector('.data-table-skeleton')).not.toBeNull();
+      }
+    });
+
     it('shows skeleton rows under the header while loading', () => {
       const { container, rerender } = renderTable({
         loading: true,
@@ -1165,8 +1191,15 @@ describe('DataTable', () => {
       expect(rows).toHaveLength(3);
       expect(rows[0]).toHaveAttribute('aria-hidden', 'true');
       expect(
-        rows[0].querySelectorAll('td .skeleton-lines.data-table-skeleton')
-      ).toHaveLength(4);
+        rows[0].querySelectorAll(
+          ':scope > * > .skeleton-lines.data-table-skeleton'
+        )
+      ).toHaveLength(3);
+      // The checkbox column holds no line, which would be wider than the
+      // checkbox, so the column keeps its width.
+      const checkboxCell = rows[0].querySelector('td')!;
+      expect(checkboxCell).toHaveClass('is-narrow');
+      expect(checkboxCell).toBeEmptyDOMElement();
       expect(screen.getAllByRole('columnheader')).toHaveLength(4);
       // The rows it would select aren't on screen.
       expect(screen.getByRole('checkbox')).toBeDisabled();

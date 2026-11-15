@@ -1113,6 +1113,14 @@ The following properties allow you to set different values for each viewport bre
 | `relative`                 | `true`                                                                                                                             | `is-relative`                                                                             |
 | `viewport`                 | `'mobile'`, `'tablet'`, `'tablet-only'`, `'touch'`, `'desktop'`, `'desktop-only'`, `'widescreen'`, `'widescreen-only'`, `'fullhd'` | Adds suffix, e.g. `-mobile`, `-desktop`, `-touch`, `-tablet-only`                         |
 
+The viewport properties' ranges overlap: the tablet, desktop and widescreen ones run from their
+breakpoint up, the touch ones cover mobile and tablet, and an `Only` property sits inside the plain
+one for its breakpoint. Where two display properties overlap, Bulma's stylesheet picks the winner,
+not the breakpoint, so `displayTablet="none"` keeps an element hidden on desktop whatever
+`displayDesktop` asks. The
+[Visibility guide](../../guides/helpers/visibility.md#viewport-specific-display-properties) has the
+rule and the `Only` properties that set one range alone.
+
 ---
 
 ### Full TypeScript Definition
@@ -1428,7 +1436,7 @@ const { bulmaHelperClasses } = useBulmaClasses({
 
   // Different visibility for each viewport
   visibilityMobile: 'hidden', // Hidden on mobile
-  visibilityTablet: 'invisible', // Invisible on tablet
+  visibilityTablet: 'invisible', // Invisible from tablet up
 });
 // Result: is-size-6-mobile is-size-5-tablet is-size-4-desktop
 //         has-text-centered-mobile has-text-left-desktop is-hidden-mobile is-invisible-tablet

@@ -310,9 +310,24 @@ layout-scaffold skill.
 ```tsx live
 function example() {
   const items = [
-    { id: 1, name: 'Aurora Lamp', price: '$48', seed: 1 },
-    { id: 2, name: 'Drift Chair', price: '$220', seed: 2 },
-    { id: 3, name: 'Stone Mug', price: '$18', seed: 3 },
+    {
+      id: 1,
+      name: 'Milky Way Night',
+      price: '$48',
+      image: '/img/carousel/carousel-banner-1-3by2.jpg',
+    },
+    {
+      id: 2,
+      name: 'Starlit Ridge Hike',
+      price: '$64',
+      image: '/img/carousel/carousel-banner-2-3by2.jpg',
+    },
+    {
+      id: 3,
+      name: 'Violet Dusk Walk',
+      price: '$36',
+      image: '/img/carousel/carousel-banner-3-3by2.jpg',
+    },
   ];
   return (
     <Section>
@@ -326,12 +341,12 @@ function example() {
               sizeDesktop="one-third"
             >
               <Card
-                image={`https://picsum.photos/seed/${item.seed}/600/400`}
+                image={item.image}
                 imageAlt={item.name}
                 header={item.name}
-                footer={<span className="card-footer-item">{item.price}</span>}
+                footer={item.price}
               >
-                A short product description.
+                A short description of the trip.
               </Card>
             </Column>
           ))}
@@ -341,6 +356,8 @@ function example() {
   );
 }
 ```
+
+The pictures are crops of Unsplash photos by [Jeremy Thomas](https://unsplash.com/photos/4dpAqfTbvKA), [Filip Kvasnak](https://unsplash.com/photos/UeRIcbTthwE) and [Vincentiu Solomon](https://unsplash.com/photos/ln5drpv_ImI) that this site serves itself. The skill's example points `image` at the app's own files instead, for you to replace with your own pictures.
 
 ### Responsive
 
