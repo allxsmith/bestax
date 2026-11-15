@@ -130,7 +130,7 @@ Media object with a skeleton loader, useful for indicating media content is load
       skeleton
       as="p"
       size="64x64"
-      src="https://bulma.io/assets/images/placeholders/128x128.png"
+      src="/img/carousel/carousel-banner-1-1by1.jpg"
       alt=""
     />
   </Media.Left>
