@@ -105,7 +105,7 @@ An inner provider keeps whatever it leaves unset. One that sets only a `locale` 
 
 ### Date Pickers
 
-The date and time pickers take the provider's `locale` unless they have their own, for their day and month names, the digits their calendar and time wheels write numbers in, and any `Intl` format. Inside a provider, the week starts on the first day of the locale the picker uses: Monday for `"de"`, Saturday for `"ar-EG"`, Sunday for `"en-US"`. A picker's own `firstDayOfWeek` still wins, and a picker with its own `dayNames` keeps Sunday unless it sets `firstDayOfWeek` too, since it shows those names exactly as given.
+The date and time pickers take the provider's `locale` unless they have their own, for their day and month names, the digits their calendar and time wheels write numbers in, the time wheels' words for AM and PM, and any `Intl` format. Inside a provider, the week starts on the first day of the locale the picker uses: Monday for `"de"`, Saturday for `"ar-EG"`, Sunday for `"en-US"`. A picker's own `firstDayOfWeek` still wins, and a picker with its own `dayNames` keeps Sunday unless it sets `firstDayOfWeek` too, since it shows those names exactly as given.
 
 ```tsx live
 <LocaleProvider locale="de">

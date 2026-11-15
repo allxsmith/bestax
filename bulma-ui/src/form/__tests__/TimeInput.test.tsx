@@ -2290,6 +2290,127 @@ describe('TimeInput wheels in a locale', () => {
     ).toBe('13:05');
   });
 
+  /** The AM/PM wheel's value as it reads, and the words its items show. */
+  const ampm = (
+    getByRole: (role: string, o: object) => HTMLElement,
+    name = 'AM/PM'
+  ) => {
+    const wheel = getByRole('spinbutton', { name });
+    return {
+      value: wheel.getAttribute('aria-valuetext'),
+      items: Array.from(wheel.querySelectorAll('button')).map(
+        item => item.textContent
+      ),
+    };
+  };
+
+  it.each([
+    ['en-US', 'AM', 'PM'],
+    ['ar-EG', 'ص', 'م'],
+    ['ja-JP', '午前', '午後'],
+    ['zh-CN', '上午', '下午'],
+    ['fa-IR', 'ق.ظ.', 'ب.ظ.'],
+  ])('writes AM and PM as %s does', (locale, am, pm) => {
+    const { getByRole } = render(
+      <TimeInput
+        inline
+        aria-label="Time"
+        locale={locale}
+        hourFormat="12"
+        defaultValue={at(13, 5)}
+      />
+    );
+    const { value, items } = ampm(getByRole);
+    expect(value).toBe(pm);
+    expect(items).toEqual(expect.arrayContaining([am, pm]));
+  });
+
+  it('lets a word written right to left take its own direction', () => {
+    // The wheels sit in a left-to-right row, which would put the trailing
+    // period of Persian's ق.ظ. on the wrong side.
+    const { getByRole } = render(
+      <TimeInput
+        inline
+        aria-label="Time"
+        locale="fa-IR"
+        hourFormat="12"
+        defaultValue={at(9, 5)}
+      />
+    );
+    const items = getByRole('spinbutton', { name: 'AM/PM' }).querySelectorAll(
+      'button'
+    );
+    expect(items.length).toBeGreaterThan(0);
+    items.forEach(item => expect(item).toHaveAttribute('dir', 'auto'));
+  });
+
+  it("names the AM/PM wheel by labels.ampm in a locale's words", () => {
+    const { getByRole } = render(
+      <TimeInput
+        inline
+        aria-label="Time"
+        locale="ja-JP"
+        hourFormat="12"
+        labels={{ ampm: '午前/午後' }}
+        defaultValue={at(9, 5)}
+      />
+    );
+    expect(ampm(getByRole, '午前/午後').value).toBe('午前');
+  });
+
+  it("takes a LocaleProvider's locale for AM and PM", () => {
+    const { getByRole } = render(
+      <LocaleProvider locale="ar-EG">
+        <TimeInput
+          inline
+          aria-label="Time"
+          hourFormat="12"
+          defaultValue={at(13, 5)}
+        />
+      </LocaleProvider>
+    );
+    expect(ampm(getByRole).value).toBe('م');
+  });
+
+  it('keeps AM and PM with no locale, whatever the runtime writes', () => {
+    // A server and a browser can write a time differently, so with no
+    // locale to agree on the wheel keeps AM and PM. This stands in for a
+    // runtime whose own locale is Egyptian Arabic.
+    const DateTimeFormat = Intl.DateTimeFormat;
+    const dates = vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(function (
+      locales?: Intl.LocalesArgument,
+      options?: Intl.DateTimeFormatOptions
+    ) {
+      return new DateTimeFormat(locales ?? 'ar-EG', options);
+    } as typeof Intl.DateTimeFormat);
+    try {
+      const { getByRole } = render(
+        <TimeInput
+          inline
+          aria-label="Time"
+          hourFormat="12"
+          defaultValue={at(13, 5)}
+        />
+      );
+      expect(ampm(getByRole).value).toBe('PM');
+    } finally {
+      dates.mockRestore();
+    }
+  });
+
+  it('keeps AM and PM for a tag Intl refuses', () => {
+    const { getByRole } = render(
+      <TimeInput
+        inline
+        aria-label="Time"
+        locale="en_US"
+        hourFormat="12"
+        defaultValue={at(13, 5)}
+      />
+    );
+    expect(ampm(getByRole).value).toBe('PM');
+  });
+
   it('pads plain digits for a tag Intl refuses', () => {
     const { getByRole } = render(
       <TimeInput
