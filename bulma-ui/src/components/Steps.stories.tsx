@@ -8,6 +8,8 @@ import { Buttons } from '../elements/Buttons';
 import { Column } from '../columns/Column';
 import { Columns } from '../columns/Columns';
 import { Icon } from '../elements/Icon';
+import { Notification } from '../elements/Notification';
+import { Hero } from '../layout/Hero';
 import { Title } from '../elements/Title';
 import { Paragraph } from '../elements/Paragraph';
 
@@ -891,6 +893,38 @@ export const LocalizedWords: Story = {
           nextLabel="Suivant"
           items={items}
         />
+      </div>
+    );
+  },
+};
+
+/**
+ * Steps on a colored Notification and a colored Hero. With no color of their
+ * own, they take the surface's text color and fill their markers with its
+ * background, as the surface's other text does.
+ */
+export const OnColoredSurfaces: Story = {
+  render: function OnColoredSurfacesStory() {
+    const items = [
+      { label: 'Account' },
+      { label: 'Profile' },
+      { label: 'Settings' },
+      { label: 'Complete' },
+    ];
+
+    return (
+      <div>
+        <Notification color="info">
+          <Steps value={1} items={items} />
+        </Notification>
+        <Notification color="success">
+          <Steps value={2} labelPosition="right" items={items} />
+        </Notification>
+        <Hero color="link">
+          <Hero.Body>
+            <Steps value={1} items={items} />
+          </Hero.Body>
+        </Hero>
       </div>
     );
   },

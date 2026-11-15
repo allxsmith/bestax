@@ -3094,6 +3094,7 @@
     "--bulma-steps-content-margin-top": ["Steps"],
     "--bulma-steps-default-color": ["Steps"],
     "--bulma-steps-divider-height": ["Steps"],
+    "--bulma-steps-label-background": ["Steps"],
     "--bulma-steps-marker-background": ["Steps"],
     "--bulma-steps-marker-font-size": ["Steps"],
     "--bulma-steps-marker-font-weight": ["Steps"],

@@ -1,11 +1,13 @@
 // Steps Component Styles
 // A multi-step progress indicator
 
+@use "sass:list";
 @use "bulma/sass/utilities/initial-variables" as iv;
 @use "bulma/sass/utilities/css-variables" as cv;
 @use "bulma/sass/utilities/mixins" as mx;
 @use '../variables' as *;
 @use '../mixins' as *;
+@use '../color-classes' as *;
 
 // Steps-specific SCSS variables
 $steps-marker-size: 2rem !default;
@@ -18,6 +20,8 @@ $steps-divider-height: 0.2em !default;
 // the page's color, a completed step's mark, reads on it, in either scheme.
 $steps-default-color: cv.getVar("text-weak") !default;
 $steps-marker-background: cv.getVar("scheme-main") !default;
+// The patch behind a side label, which hides the line under it.
+$steps-label-background: cv.getVar("scheme-main") !default;
 $steps-marker-font-size: cv.getVar("size-small") !default;
 $steps-marker-font-weight: cv.getVar("weight-bold") !default;
 $steps-title-size: cv.getVar("size-small") !default;
@@ -42,6 +46,7 @@ $steps-navigation-margin-top: 1rem !default;
       "steps-divider-height": #{$steps-divider-height},
       "steps-default-color": #{$steps-default-color},
       "steps-marker-background": #{$steps-marker-background},
+      "steps-label-background": #{$steps-label-background},
       "steps-marker-font-size": #{$steps-marker-font-size},
       "steps-marker-font-weight": #{$steps-marker-font-weight},
       "steps-title-size": #{$steps-title-size},
@@ -385,7 +390,7 @@ button.#{iv.$class-prefix}steps-link {
   .#{iv.$class-prefix}steps-content {
     position: absolute;
     margin-top: 0;
-    background-color: cv.getVar("scheme-main");
+    background-color: cv.getVar("steps-label-background");
     z-index: 1;
     padding: 0.2em;
     white-space: nowrap;
@@ -444,7 +449,7 @@ button.#{iv.$class-prefix}steps-link {
       margin-inline-start: 0;
       margin-top: cv.getVar("steps-content-margin-top");
       text-align: center;
-      background-color: cv.getVar("scheme-main");
+      background-color: cv.getVar("steps-label-background");
       position: relative;
       z-index: 1;
       padding: 0.2em;
@@ -526,5 +531,59 @@ button.#{iv.$class-prefix}steps-link {
   .#{iv.$class-prefix}steps-segment.#{iv.$class-prefix}is-active .#{iv.$class-prefix}steps-marker {
     outline: cv.getVar("steps-divider-height") solid CanvasText;
     outline-offset: cv.getVar("steps-divider-height");
+  }
+}
+
+// ---- On a colored Notification or Hero ----------------------------------------
+
+// The page's colors don't stand out from a colored Notification or Hero, so
+// there steps with no color of their own take the surface's text color, which
+// Bulma picks to read on it, for their markers, numbers, lines and labels, the
+// way Bulma's own Tabs and Navbar do in a colored Hero, and fill their markers,
+// and the patch behind a side label, with the surface's background. Steps
+// with a color are kept, since whoever set it chose it. A Box, a Card or a
+// Message inside the surface is a surface of its own, in the page's colors,
+// so steps on one keep the page's look, and so is a Notification inside a
+// Hero, which its own rule, or the page's colors, take care of. Each rule
+// weighs what `.steps` does, so it wins over
+// that by coming later, and a class that sets these variables on the steps
+// still wins over it from a later sheet. The text color is written out from
+// the surface's own variables rather than as `currentColor`, since a
+// completed marker fills with it and sets its own color to the background,
+// which `currentColor` would then read.
+@each $surface, $inner in ("notification": ("box", "card", "message"), "hero": ("box", "card", "message", "notification")) {
+  $own-surfaces: ();
+
+  @each $own in $inner {
+    $own-surfaces: list.append(
+      $own-surfaces,
+      '.#{iv.$class-prefix}#{$surface} .#{iv.$class-prefix}#{$own} .#{iv.$class-prefix}steps',
+      $separator: comma
+    );
+  }
+
+  :where(.#{iv.$class-prefix}#{$surface}:is(#{extras-color-classes()}))
+    .#{iv.$class-prefix}steps:where(:not(#{extras-color-classes()}, #{$own-surfaces})) {
+    $text: hsl(
+      cv.getVar("#{$surface}-h"),
+      cv.getVar("#{$surface}-s"),
+      cv.getVar("#{$surface}-color-l")
+    );
+
+    $background: hsl(
+      cv.getVar("#{$surface}-h"),
+      cv.getVar("#{$surface}-s"),
+      cv.getVar("#{$surface}-background-l")
+    );
+
+    @include cv.register-vars(
+      (
+        "steps-default-color": #{$text},
+        "steps-marker-background": #{$background},
+        "steps-label-background": #{$background},
+        "steps-title-color": #{$text},
+        "steps-title-active-color": #{$text},
+      )
+    );
   }
 }

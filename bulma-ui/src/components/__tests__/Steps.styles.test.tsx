@@ -9,10 +9,20 @@ import * as sass from 'sass';
 import path from 'path';
 import { act, render } from '@testing-library/react';
 import { Steps, type StepsProps } from '../Steps';
+import { Notification } from '../../elements/Notification';
+import { Hero } from '../../layout/Hero';
+import { Box } from '../../elements/Box';
+import { Card } from '../Card';
 import { ConfigProvider } from '../../helpers/Config';
 import { compileSheet } from '../../__tests__/compile-scss';
 import { bulmaCss, rulesOf as parseSheet } from '../../__tests__/css-cascade';
-import { contrast, schemesOf, substitute } from '../../__tests__/contrast';
+import {
+  contrast,
+  schemesOf,
+  substitute,
+  varsOn,
+  type Vars,
+} from '../../__tests__/contrast';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 
@@ -59,7 +69,8 @@ function rulesOf(css: string): Found[] {
       if (rule instanceof CSSMediaRule) {
         walk(rule.cssRules, rule.media.mediaText);
       } else if (rule instanceof CSSStyleRule) {
-        for (const selector of rule.selectorText.split(/\s*,\s*/)) {
+        // At the commas between selectors, not the ones inside `:is()`.
+        for (const selector of rule.selectorText.split(/\s*,(?![^(]*\))\s*/)) {
           out.push({ selector, media, style: rule.style });
         }
       }
@@ -531,6 +542,135 @@ describe.each([
     });
   });
 
+  // The page's colors don't stand out from a colored Notification or Hero, so
+  // there steps with no color take the surface's text color and fill their
+  // markers with its background (#1733). Steps with a color are kept.
+  describe('on a colored Notification or Hero', () => {
+    /** The variables the rules outside a media query give `el`, in order. */
+    const ownVars = (found: Found[], el: Element) => {
+      const vars: Record<string, string> = {};
+      for (const { selector, media, style } of found) {
+        if (media !== '' || selector.includes('::') || !el.matches(selector))
+          continue;
+        for (const name of propertiesOf(style)) {
+          if (name.startsWith('--')) {
+            vars[name] = style.getPropertyValue(name).trim();
+          }
+        }
+      }
+      return vars;
+    };
+    const bare = (value?: string) => value?.replace(/\s+/g, '');
+    const background = (surface: string) =>
+      `hsl(var(--bulma-${surface}-h),var(--bulma-${surface}-s),var(--bulma-${surface}-background-l))`;
+
+    it.each([
+      ['Notification', 'notification'],
+      ['Hero', 'hero'],
+    ])(
+      'draws steps with no color in a colored %s’s text color',
+      (_name, surface) => {
+        const found = rulesOf(compile(prefix));
+        const Surface = surface === 'hero' ? Hero : Notification;
+        const { container } = render(
+          <ConfigProvider classPrefix={prefix}>
+            <Surface color="info">
+              <Steps value={1} items={ITEMS} data-testid="plain" />
+              <Steps
+                value={1}
+                items={ITEMS}
+                color="warning"
+                data-testid="colored"
+              />
+            </Surface>
+            <Surface>
+              <Steps value={1} items={ITEMS} data-testid="uncolored-surface" />
+            </Surface>
+            <Surface color="info">
+              <Box>
+                <Steps value={1} items={ITEMS} data-testid="on-a-box" />
+              </Box>
+              <Card>
+                <Steps value={1} items={ITEMS} data-testid="on-a-card" />
+              </Card>
+            </Surface>
+            <Box>
+              <Surface color="info">
+                <Steps value={1} items={ITEMS} data-testid="surface-in-a-box" />
+              </Surface>
+            </Box>
+          </ConfigProvider>
+        );
+        const vars = (id: string) =>
+          ownVars(found, container.querySelector(`[data-testid="${id}"]`)!);
+
+        const plain = vars('plain');
+        // Written out from the surface's variables: `currentColor` would read
+        // a completed marker's own color, the background, in its fill.
+        const text = `hsl(var(--bulma-${surface}-h),var(--bulma-${surface}-s),var(--bulma-${surface}-color-l))`;
+        for (const name of [
+          '--bulma-steps-default-color',
+          '--bulma-steps-title-color',
+          '--bulma-steps-title-active-color',
+        ]) {
+          expect(bare(plain[name])).toBe(text);
+        }
+        expect(bare(plain['--bulma-steps-marker-background'])).toBe(
+          background(surface)
+        );
+        expect(bare(plain['--bulma-steps-label-background'])).toBe(
+          background(surface)
+        );
+        // Steps with a color keep the page's, and so do steps on a surface
+        // with no color, and steps on a Box or a Card inside the surface,
+        // which are surfaces of their own. A colored surface inside a Box is
+        // still the steps' surface.
+        for (const id of [
+          'colored',
+          'uncolored-surface',
+          'on-a-box',
+          'on-a-card',
+        ]) {
+          expect([id, vars(id)['--bulma-steps-default-color']]).toEqual([
+            id,
+            'var(--bulma-text-weak)',
+          ]);
+        }
+        expect(
+          bare(vars('surface-in-a-box')['--bulma-steps-default-color'])
+        ).toBe(text);
+        // The rule weighs what `.steps` does: the surface, the colors it
+        // skips and the surfaces of their own sit in `:where()`, so a later
+        // sheet's class that sets these variables on the steps still wins.
+        const rule = found.find(({ selector }) =>
+          selector.includes(`${p(surface)}:is(`)
+        )!;
+        expect(rule.selector).toMatch(
+          new RegExp(
+            `^:where\\(${p(surface).replace('.', '\\.')}:is\\(.+\\)\\) ${p('steps').replace('.', '\\.')}:where\\(:not\\(.+\\)\\)$`
+          )
+        );
+      }
+    );
+
+    it('puts a side label’s patch on a variable of its own, the page’s color unless a surface sets it', () => {
+      const found = rulesOf(compile(prefix));
+      for (const selector of [
+        `${p('steps')}${p('has-label-right')}:not(${p('is-vertical')}) ${p('steps-content')}`,
+        `${p('steps')}${p('has-label-bottom')}${p('is-vertical')} ${p('steps-list')}${p('is-vertical')} ${p('steps-content')}`,
+      ]) {
+        expect(declarations(found, selector)['background-color']).toBe(
+          'var(--bulma-steps-label-background)'
+        );
+      }
+      // Its own variable, so a marker background a theme sets doesn't reach
+      // it, as it didn't before.
+      expect(
+        declarations(found, p('steps'))['--bulma-steps-label-background']
+      ).toBe('var(--bulma-scheme-main)');
+    });
+  });
+
   // The colors themselves are measured against whole sheets at the end of
   // this file. These pin where they come from, under each prefix.
   describe('colors', () => {
@@ -844,4 +984,69 @@ describe.each([
       expect(failures).toEqual([]);
     }
   );
+});
+
+// On a colored Notification or Hero, steps with no color are drawn in the
+// surface's text color on its background (#1733). Each surface's own pair,
+// resolved through a whole published sheet in each scheme: a number needs
+// 4.5:1 against what it sits on, which covers a marker's 3:1.
+describe.each([
+  ['bestax.css', '', () => compileSheet('bestax.scss')],
+  [
+    'bestax-prefixed.css',
+    'bestax-',
+    () => compileSheet('versions/bestax-prefixed.scss'),
+  ],
+  [
+    'extras.css on Bulma’s own colors',
+    '',
+    () => bulmaCss() + compileSheet('extras.scss'),
+  ],
+])('Steps on a colored surface in %s', (_name, prefix, sheet) => {
+  let schemes: ReturnType<typeof schemesOf>;
+  let surface: (name: string, color: string) => Vars;
+  // A hook keeps Vitest's 10s default rather than `testTimeout`, and a whole
+  // sheet can take longer than that to compile on a loaded machine.
+  beforeAll(() => {
+    const { rules } = parseSheet(sheet());
+    schemes = schemesOf(rules);
+    surface = (name, color) => ({
+      ...varsOn(rules, `.${prefix}${name}`),
+      ...varsOn(rules, `.${prefix}${name}.${prefix}is-${color}`),
+    });
+  }, 30_000);
+
+  it.each(
+    ['notification', 'hero'].flatMap(name =>
+      [
+        'white',
+        'black',
+        'light',
+        'dark',
+        'primary',
+        'link',
+        'info',
+        'success',
+        'warning',
+        'danger',
+      ].map(color => [name, color])
+    )
+  )('draws them at 4.5:1 on a %s in %s, on both schemes', (name, color) => {
+    const failures: string[] = [];
+    for (const [scheme, page] of Object.entries(schemes)) {
+      const vars = { ...page, ...surface(name, color) };
+      const ratio = contrast(
+        substitute(
+          `hsl(var(--bulma-${name}-h), var(--bulma-${name}-s), var(--bulma-${name}-color-l))`,
+          vars
+        ),
+        substitute(
+          `hsl(var(--bulma-${name}-h), var(--bulma-${name}-s), var(--bulma-${name}-background-l))`,
+          vars
+        )
+      );
+      if (ratio < 4.5) failures.push(`${scheme}: ${ratio.toFixed(2)}:1`);
+    }
+    expect(failures).toEqual([]);
+  });
 });

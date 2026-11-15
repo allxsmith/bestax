@@ -213,14 +213,15 @@ Bulma's `link`. A color is only seen, so say what it means in the words too.
 </Timeline>
 ```
 
-In a colored `Notification`, the titles and the times take the Notification's own text color, the
-way Bulma's titles do there. So do the markers of a timeline with no `color`, and their rings, the
-pending loader and the icon circles are filled with the Notification's background. A `color` on
-the timeline or on an item is kept, so in a colored Notification set one only if it stands out
-from the Notification's color. Elsewhere the rings and the loader are filled with the page's color,
-from `--bulma-timeline-marker-background`, which you can set on the timeline to match what's
-behind it. A timeline on a Box or a Card inside a colored Notification keeps the page's look, since
-those are surfaces of their own. On any other surface of its own there, such as a wrapper with a
+In a colored `Notification` or `Hero`, the titles and the times take the surface's own text color,
+the way Bulma's titles do there. So do the markers of a timeline with no `color`, and their rings,
+the pending loader and the icon circles are filled with the surface's background. A `color` on the
+timeline or on an item is kept, so on a colored surface set one only if it stands out from the
+surface's color. Elsewhere the rings and the loader are filled with the page's color, from
+`--bulma-timeline-marker-background`, which you can set on the timeline to match what's behind it.
+A timeline on a Box, a Card or a Message inside a colored Notification or Hero keeps the page's
+look, since those are surfaces of their own, and one in a Notification inside a Hero follows the
+Notification. On any other surface of its own there, such as a wrapper with a
 `bgColor`, set `--bulma-timeline-marker-background` and `--bulma-timeline-marker-icon-background`
 on the timeline, through its `style` or a class loaded after bestax's stylesheet, to that
 surface's color.
@@ -399,9 +400,9 @@ has got, use a `Timeline`.
   speak it.
 - **Motion:** the pending ring turns, and stands still for users who ask for less motion. Its open
   shape is the cue either way.
-- **In a colored Notification:** a timeline with no `color` draws its markers in the
-  Notification's text color, as its titles are, so there its states differ by their shapes and by
-  the line, which is drawn in that color up to the current item. A `color` you set is kept.
+- **In a colored Notification or Hero:** a timeline with no `color` draws its markers in the
+  surface's text color, as its titles are, so there its states differ by their shapes and by the
+  line, which is drawn in that color up to the current item. A `color` you set is kept.
 - **Forced colors:** every line, dot, ring and halo is a border or an outline, so in Windows high
   contrast mode they keep their shapes, and the pending ring stays open.
 - **Not interactive and not live:** it has no tab stop and no keys, and links or buttons in an
@@ -447,7 +448,7 @@ has got, use a `Timeline`.
 | `pending`        | `React.ReactNode`                                                               | —               | What's under way, as a last item after the children: its title, read with `pendingLabel`. Write it as words that say so ("Out for delivery").                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `align`          | `'start'` \| `'end'` \| `'alternate'`                                           | `'start'`       | `start`: the rail at the start of the line. `end`: at the end, with the text against it. `alternate`: down the middle, the items taking turns and each time across the rail; below Bulma's tablet breakpoint it's `start`.                                                                                                                                                                                                                                                                                                                                                                               |
 | `titleAs`        | `'h2'` \| `'h3'` \| `'h4'` \| `'h5'` \| `'h6'` \| `'p'`                         | `'h2'`          | What every item's title renders as: a heading at the level under the heading the timeline sits beneath, or `p` for a busy feed.                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| `color`          | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —               | The markers' color, and the color of progress with `active`. Neutral without it, and Bulma's `link` for progress. Drawn in the color's on-scheme shade, the one Bulma adjusts to read on the page in either scheme, so a pale color such as `warning` is darker on a light page. The markers are hidden from assistive tech, so say what a color means in the words too. In a colored Notification, leave it off: the markers then take the Notification's text color, as the titles do, while a color you set is kept even where it doesn't stand out from the Notification's.                          |
+| `color`          | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —               | The markers' color, and the color of progress with `active`. Neutral without it, and Bulma's `link` for progress. Drawn in the color's on-scheme shade, the one Bulma adjusts to read on the page in either scheme, so a pale color such as `warning` is darker on a light page. The markers are hidden from assistive tech, so say what a color means in the words too. In a colored Notification or Hero, leave it off: the markers then take the surface's text color, as the titles do, while a color you set is kept even where it doesn't stand out from the surface's.                            |
 | `completedLabel` | `string`                                                                        | `'completed'`   | Read after a completed item's title, visually hidden. In your app's language.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `upcomingLabel`  | `string`                                                                        | `'upcoming'`    | Read after an upcoming item's title, visually hidden. In your app's language.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `pendingLabel`   | `string`                                                                        | `'in progress'` | Read after the pending item's title, visually hidden. In your app's language.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
