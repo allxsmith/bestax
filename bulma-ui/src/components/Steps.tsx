@@ -1,8 +1,20 @@
-import React from 'react';
+import React, { createContext, useContext, useId } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useScopedNumberFormat } from '../helpers/localeFormat';
+import { visuallyHidden } from '../helpers/statusRegion';
+
+/**
+ * The words a step inside Steps says after itself when it's completed or not
+ * reached yet. A step outside Steps says none.
+ */
+interface StepsContextValue {
+  completedLabel?: string;
+  upcomingLabel?: string;
+}
+
+const StepsContext = createContext<StepsContextValue>({});
 
 /** Available size modifiers for the Steps component. */
 export type StepsSize = 'small' | 'medium' | 'large';
@@ -87,6 +99,16 @@ export interface StepsProps
   prevLabel?: string;
   /** Label for the next button. */
   nextLabel?: string;
+  /**
+   * Read after a completed step, visually hidden, and as a clickable step's
+   * description. In your app's language. An empty string says nothing.
+   */
+  completedLabel?: string;
+  /**
+   * Read after a step not reached yet, visually hidden, and as a clickable
+   * step's description. In your app's language. An empty string says nothing.
+   */
+  upcomingLabel?: string;
   /** Callback when previous button is clicked. */
   onPrev?: () => void;
   /** Callback when next button is clicked. */
@@ -104,7 +126,11 @@ export interface StepProps
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Whether this step is active */
   isActive?: boolean;
-  /** Whether this step is completed */
+  /**
+   * Whether this step is completed. Inside `Steps` it's set from `value`, and
+   * a completed step ends in the words `completedLabel` sets, for assistive
+   * tech. A `Step` on its own says no words.
+   */
   isCompleted?: boolean;
   /**
    * Step label/title, or pass it as `children`. On a `clickable` step it's
@@ -184,6 +210,24 @@ export const Step: React.FC<StepProps> = ({
   const title = label || children;
   const current = isActive ? 'step' : undefined;
 
+  // The state in words, read after the step: "completed" or "upcoming". The
+  // current step has none, since aria-current says it. They sit in the list
+  // item after the step, outside a clickable step's button, which names them
+  // as its description, so a step's accessible name stays its marker and its
+  // label. They stay in the tree there too, so a reader that skips
+  // descriptions still reaches them. The styles are inline, so the words stay
+  // hidden in a modular build that leaves out Bulma's helper classes.
+  const { completedLabel, upcomingLabel } = useContext(StepsContext);
+  const stateWords = isCompleted
+    ? completedLabel
+    : isActive
+      ? undefined
+      : upcomingLabel;
+  const wordsId = useId();
+  const words = stateWords ? (
+    <span id={wordsId} style={visuallyHidden}>{` ${stateWords}`}</span>
+  ) : null;
+
   // The step stays a list item, and a real button inside it does the
   // clicking, so the list keeps its items and the button brings Enter, Space
   // and focus with it. A button holds only phrasing content, so its parts
@@ -196,6 +240,7 @@ export const Step: React.FC<StepProps> = ({
           className={stepsLinkClass}
           onClick={() => onClick?.()}
           aria-current={current}
+          aria-describedby={words ? wordsId : undefined}
         >
           <span className={stepsMarkerClass}>{markerContent}</span>
           {title && (
@@ -204,6 +249,7 @@ export const Step: React.FC<StepProps> = ({
             </span>
           )}
         </button>
+        {words}
       </li>
     );
   }
@@ -218,12 +264,19 @@ export const Step: React.FC<StepProps> = ({
           </div>
         )}
       </div>
+      {words}
     </li>
   );
 };
 
 /**
  * The `Steps` component provides a multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow.
+ *
+ * Each step is a list item. The current one has `aria-current="step"`, and a
+ * completed one, and one not reached yet, ends in a visually hidden
+ * "completed" or "upcoming", in the language `completedLabel` and
+ * `upcomingLabel` set. A clickable step's button takes those words as its
+ * description, so its accessible name stays its marker and its label.
  *
  * @function
  * @param {StepsProps} props - Props for the Steps component.
@@ -268,6 +321,8 @@ const StepsComponent: React.FC<StepsProps> = ({
   hasNavigation = false,
   prevLabel,
   nextLabel,
+  completedLabel = 'completed',
+  upcomingLabel = 'upcoming',
   onPrev,
   onNext,
   onStepClick,
@@ -356,9 +411,11 @@ const StepsComponent: React.FC<StepsProps> = ({
   // unless the role is set explicitly.
   return (
     <div className={combinedClasses} {...rest}>
-      <ul className={listClasses} role="list">
-        {renderSteps()}
-      </ul>
+      <StepsContext.Provider value={{ completedLabel, upcomingLabel }}>
+        <ul className={listClasses} role="list">
+          {renderSteps()}
+        </ul>
+      </StepsContext.Provider>
       {hasNavigation && (
         <div className={stepsNavigationClass}>
           <button

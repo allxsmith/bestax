@@ -2571,7 +2571,8 @@ export const PLACED: Readonly<Record<string, RootEntry>> = {
   // `Menu.Item` renders the `<li>` and the `<a>` inside it together. Its
   // helper props go on the `<a>`, so the `<li>`'s classes all stay classes.
   // `active` writes `aria-current="page"` on the `<a>` unless it has its own,
-  // as `Pagination.Link`'s does.
+  // as `Pagination.Link`'s does. `icon` is its own prop too, so an element
+  // with an `icon` attribute is refused rather than read as one.
   'menu-list': {
     ...BASE,
     target: 'Menu.Item',
@@ -2592,7 +2593,7 @@ export const PLACED: Readonly<Record<string, RootEntry>> = {
       },
       after: { tag: 'ul', target: 'Menu.List' },
     },
-    ownProps: ['as', 'active'],
+    ownProps: ['as', 'active', 'icon'],
     passThrough: ['id', 'title', 'role', 'tabIndex', 'style', 'data-testid'],
   },
 };

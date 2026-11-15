@@ -824,6 +824,156 @@ describe('Steps', () => {
       const segments = container.querySelectorAll('.steps-segment');
       expect(segments[0]).not.toHaveAttribute('aria-current');
     });
+
+    // A completed step, and one not reached yet, says so in words after it
+    // (#1635), the way Timeline's items do. The words sit in the list item,
+    // outside a clickable step's button, which takes them as its description,
+    // so no step's accessible name changes: code that finds a step's button by
+    // its name still finds it. Empty labels render no words, which is the
+    // markup before them, so each name is compared with that.
+    describe('state words', () => {
+      const ITEMS = [
+        { label: 'Account' },
+        { label: 'Profile' },
+        { label: 'Settings' },
+        { label: 'Complete' },
+      ];
+      const CLICKABLE = ITEMS.map(item => ({ ...item, clickable: true }));
+
+      /**
+       * The accessible name testing-library computes for `el` (through
+       * dom-accessibility-api), read from the name it hands a `name` matcher.
+       */
+      const nameOf = (el: HTMLElement, role: string) => {
+        let name: string | undefined;
+        within(el.parentElement!).getAllByRole(role, {
+          name: (computed, node) => {
+            if (node === el) name = computed;
+            return node === el;
+          },
+        });
+        return name;
+      };
+
+      /** Each step's accessible name, and its button's when it has one. */
+      const namesOf = (container: HTMLElement) =>
+        Array.from(container.querySelectorAll('li')).map(li => {
+          const button = li.querySelector('button');
+          return {
+            item: nameOf(li, 'listitem'),
+            button: button ? nameOf(button, 'button') : null,
+          };
+        });
+
+      it.each([
+        ['clickable', CLICKABLE],
+        ['static', ITEMS],
+      ])('leaves every %s step’s accessible name as it was', (_kind, items) => {
+        const before = render(
+          <Steps value={2} items={items} completedLabel="" upcomingLabel="" />
+        );
+        const without = namesOf(before.container);
+        before.unmount();
+        const { container } = render(<Steps value={2} items={items} />);
+        expect(namesOf(container)).toEqual(without);
+        // And what they are. A list item takes no name from its content, so
+        // its name is empty with the words or without them, and a button's is
+        // its marker and its label.
+        expect(without).toEqual(
+          (items === CLICKABLE
+            ? ['✓Account', '✓Profile', '3Settings', '4Complete']
+            : [null, null, null, null]
+          ).map(button => ({ item: '', button }))
+        );
+      });
+
+      it('describes a clickable step’s button by its state', () => {
+        render(<Steps value={2} items={CLICKABLE} />);
+        const [done1, done2, current, upcoming] = screen.getAllByRole('button');
+        expect(done1).toHaveAccessibleDescription('completed');
+        expect(done2).toHaveAccessibleDescription('completed');
+        expect(upcoming).toHaveAccessibleDescription('upcoming');
+        // The current step says it through aria-current.
+        expect(current).not.toHaveAttribute('aria-describedby');
+        expect(current).toHaveAttribute('aria-current', 'step');
+      });
+
+      it('puts the words in a static step’s list item, after the step', () => {
+        const { container } = render(<Steps value={2} items={ITEMS} />);
+        const items = Array.from(container.querySelectorAll('li'));
+        expect(items.map(li => li.lastElementChild!.textContent)).toEqual([
+          ' completed',
+          ' completed',
+          '3Settings',
+          ' upcoming',
+        ]);
+        // The title keeps its own text, so a query by the label still finds it.
+        expect(screen.getByText('Account')).toHaveClass('steps-title');
+      });
+
+      it('keeps the words out of a clickable step’s button and hides them', () => {
+        const { container } = render(<Steps value={0} items={CLICKABLE} />);
+        const li = container.querySelectorAll('li')[1];
+        const words = within(li).getByText('upcoming');
+        expect(li.querySelector('button')).not.toContainElement(words);
+        expect(li.querySelector('button')).toHaveAttribute(
+          'aria-describedby',
+          words.id
+        );
+        expect(words).toHaveStyle({
+          position: 'absolute',
+          width: '1px',
+          height: '1px',
+          overflow: 'hidden',
+        });
+        // Left in the tree, so a reader that skips descriptions still reaches
+        // them, as it does a static step's.
+        expect(words).not.toHaveAttribute('aria-hidden');
+      });
+
+      it('says the words in the language the labels set', () => {
+        render(
+          <Steps
+            value={1}
+            items={CLICKABLE.slice(0, 3)}
+            completedLabel="terminé"
+            upcomingLabel="à venir"
+          />
+        );
+        const [done, , upcoming] = screen.getAllByRole('button');
+        expect(done).toHaveAccessibleDescription('terminé');
+        expect(upcoming).toHaveAccessibleDescription('à venir');
+      });
+
+      it('says them for a step with no label, and for Steps.Step children', () => {
+        const { container } = render(
+          <Steps value={1}>
+            <Steps.Step clickable />
+            <Steps.Step label="Profile" clickable />
+            <Steps.Step label="Done" />
+          </Steps>
+        );
+        const [done, current] = screen.getAllByRole('button');
+        expect(done).toHaveAccessibleDescription('completed');
+        expect(current).toHaveAccessibleDescription('');
+        expect(container.querySelectorAll('li')[2].textContent).toBe(
+          '3Done upcoming'
+        );
+      });
+
+      it('says nothing for a Step outside Steps, which has no order to place it in', () => {
+        const { container } = render(
+          <ul>
+            <Step label="Account" isCompleted clickable />
+            <Step label="Profile" />
+          </ul>
+        );
+        expect(screen.getByRole('button')).not.toHaveAttribute(
+          'aria-describedby'
+        );
+        expect(container.textContent).toBe('✓AccountProfile');
+      });
+    });
   });
 });
 

@@ -9,6 +9,7 @@ import { Section } from './Section';
 import { Block } from '../elements/Block';
 import { Button } from '../elements/Button';
 import { Content } from '../elements/Content';
+import { Icon } from '../elements/Icon';
 import { Paragraph } from '../elements/Paragraph';
 import { Title } from '../elements/Title';
 import { Checkbox } from '../form/Checkbox';
@@ -237,6 +238,66 @@ export const CollapsedColumn: Story = {
     await expect(burger).toHaveAttribute('aria-expanded', 'false');
     await userEvent.click(burger);
     await expect(burger).toHaveAttribute('aria-expanded', 'true');
+  },
+};
+
+/**
+ * The column collapses to a rail of icons. Each label stays its link's name,
+ * and shows in a tooltip beside the rail on hover and keyboard focus. The
+ * section's button expands the column and opens the section.
+ */
+export const IconRail: Story = {
+  render: function IconRailExample() {
+    const [collapsed, setCollapsed] = useState(true);
+    return (
+      <AppFrame navCollapsed={collapsed} onNavCollapsedChange={setCollapsed}>
+        {header()}
+        <AppFrame.Nav rail>
+          <Menu>
+            <Menu.Label>General</Menu.Label>
+            <Menu.List>
+              <Menu.Item href="#" icon={<Icon name="house" />} active>
+                Dashboard
+              </Menu.Item>
+              <Menu.Item href="#" icon={<Icon name="box" />}>
+                Orders
+              </Menu.Item>
+              <Menu.Item href="#" icon={<Icon name="users" />}>
+                Customers
+              </Menu.Item>
+            </Menu.List>
+            <Menu.Section label="Reports" icon={<Icon name="chart-line" />}>
+              <Menu.List>
+                <Menu.Item href="#">Sales</Menu.Item>
+                <Menu.Item href="#">Returns</Menu.Item>
+              </Menu.List>
+            </Menu.Section>
+            <Menu.Label>Admin</Menu.Label>
+            <Menu.List>
+              <Menu.Item href="#" icon={<Icon name="gear" />}>
+                Settings
+              </Menu.Item>
+            </Menu.List>
+          </Menu>
+        </AppFrame.Nav>
+        <AppFrame.Main>{page('Orders')}</AppFrame.Main>
+      </AppFrame>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const dashboard = canvas.getByRole('link', { name: 'Dashboard' });
+    await expect(dashboard).not.toHaveAttribute('aria-describedby');
+    await expect(canvasElement.querySelector('.app-frame-nav')).toHaveClass(
+      'is-rail'
+    );
+    await userEvent.click(canvas.getByRole('button', { name: 'Reports' }));
+    await expect(canvasElement.querySelector('.app-frame-nav')).not.toHaveClass(
+      'is-rail'
+    );
+    await expect(
+      canvas.getByRole('button', { name: 'Reports' })
+    ).toHaveAttribute('aria-expanded', 'true');
   },
 };
 
