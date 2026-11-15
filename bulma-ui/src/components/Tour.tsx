@@ -459,6 +459,11 @@ interface PageWatch {
   schedule: () => void;
   /** Watches more elements' sizes; `null` where there's no ResizeObserver. */
   sizes: ResizeObserver | null;
+  /**
+   * Listens for a scroll in the shadow roots the targets found now are
+   * rendered in, which a window listener never hears.
+   */
+  follow: (...targets: Array<HTMLElement | null>) => void;
   stop: () => void;
 }
 
@@ -499,15 +504,21 @@ function watchPage(root: HTMLElement, update: () => void): PageWatch {
   if (scope !== doc) observer.observe(scope, changes);
   view.addEventListener('scroll', schedule, { passive: true, capture: true });
   view.addEventListener('resize', schedule, { passive: true });
+  const shadowScrolls = listenInShadowRoots('scroll', schedule, {
+    passive: true,
+    capture: true,
+  });
   return {
     schedule,
     sizes,
+    follow: shadowScrolls.follow,
     stop: () => {
       view.cancelAnimationFrame(frame);
       sizes?.disconnect();
       observer.disconnect();
       view.removeEventListener('scroll', schedule, { capture: true });
       view.removeEventListener('resize', schedule);
+      shadowScrolls.stop();
     },
   };
 }
@@ -538,17 +549,9 @@ function useTourTarget(
     // The element watched for size as the target, box or no box, so one
     // that gets a box is noticed.
     let watched: HTMLElement | null = null;
-    // A scroll inside a shadow root doesn't reach the window, so the shadow
-    // roots the target is rendered in are listened on too, as each
-    // measurement finds them.
-    const shadowScrolls = listenInShadowRoots(
-      'scroll',
-      () => watch.schedule(),
-      { passive: true, capture: true }
-    );
     const update = () => {
       const candidate = findTarget(target, scope);
-      shadowScrolls.follow(candidate);
+      watch.follow(candidate);
       if (candidate !== watched) {
         if (watched) watch.sizes?.unobserve(watched);
         if (candidate) watch.sizes?.observe(candidate);
@@ -586,10 +589,7 @@ function useTourTarget(
     };
     const watch = watchPage(root, update);
     update();
-    return () => {
-      watch.stop();
-      shadowScrolls.stop();
-    };
+    return watch.stop;
   }, [active, target, stepId, rootRef]);
 
   return active && found.stepId === stepId ? found : nothingFound;
@@ -656,13 +656,6 @@ function useBeaconPlaces(
     const scope = scopeOf(root);
     // Each target found, box or no box, so one that gets a box is noticed.
     const watched = new Set<HTMLElement>();
-    // A scroll inside a shadow root doesn't reach the window, so the shadow
-    // roots the targets are rendered in are listened on too.
-    const shadowScrolls = listenInShadowRoots(
-      'scroll',
-      () => watch.schedule(),
-      { passive: true, capture: true }
-    );
     const inView =
       typeof IntersectionObserver === 'undefined'
         ? null
@@ -682,7 +675,7 @@ function useBeaconPlaces(
     const update = () => {
       const targets = stepsRef.current.map(step => step.props.target);
       const found = targets.map(target => findTarget(target, scope));
-      shadowScrolls.follow(...found);
+      watch.follow(...found);
       const now = new Set(found.filter(element => element !== null));
       const gone: HTMLElement[] = [];
       for (const element of watched) {
@@ -786,7 +779,6 @@ function useBeaconPlaces(
       updateRef.current = null;
       measuredRef.current = null;
       watch.stop();
-      shadowScrolls.stop();
       inView?.disconnect();
       // Nothing held on to while the tour is closed, and nothing stale when
       // it opens again.

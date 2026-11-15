@@ -162,9 +162,10 @@ export function listenInShadowRoots(
   return {
     follow: (...nodes) => {
       const now = [...new Set(nodes.flatMap(node => shadowRootsAround(node)))];
+      // The same roots in another order are no change.
       if (
         now.length !== roots.length ||
-        now.some((root, i) => root !== roots[i])
+        now.some(root => !roots.includes(root))
       ) {
         move(now);
       }
