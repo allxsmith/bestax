@@ -71,6 +71,8 @@ const BESTAX = {
   ToggleButton: 'elements/togglebutton',
   UnorderedList: 'elements/unorderedlist',
   Affix: 'components/affix',
+  FloatButton: 'components/floatbutton',
+  'FloatButton.SpeedDial': 'components/floatbutton#speed-dial',
   Avatar: 'components/avatar',
   Avatars: 'components/avatars',
   Badge: 'components/badge',
@@ -106,6 +108,7 @@ const BESTAX = {
   Timeline: 'components/timeline',
   Toast: 'components/toast',
   Tooltip: 'components/tooltip',
+  Tour: 'components/tour',
   TreeView: 'components/treeview',
   Autocomplete: 'form/autocomplete',
   Checkbox: 'form/checkbox',
@@ -172,7 +175,6 @@ const BESTAX = {
   overlay: '/docs/guides/helpers/other',
   aspectRatio: '/docs/guides/helpers/other',
   'pos="sticky"': '/docs/guides/helpers/other',
-  'Affix + Button': 'components/affix',
   gap: '/docs/guides/helpers/flex#gap',
   'bestax.css': '/docs/guides/getting-started/installation',
   // Capabilities bestax documents as a recipe rather than a component.
@@ -182,6 +184,9 @@ const BESTAX = {
   // The October 2026 edition still names this one. The section kept its
   // heading, and now builds the copy field on CopyButton.
   'Input (copy button recipe)': 'form/input#copy-button',
+  // The November 2026 edition credits Affix around a Button, which
+  // FloatButton replaced.
+  'Affix + Button': 'components/floatbutton',
 };
 const bestaxHref = name => {
   const v = BESTAX[name];
@@ -800,7 +805,7 @@ export const categories = [
       ],
       [
         'Floating action button',
-        '~Affix + Button',
+        'FloatButton',
         '~Affix + ActionIcon',
         0,
         'Fab',
@@ -809,7 +814,17 @@ export const categories = [
         0,
         'FloatButton',
       ],
-      ['Speed dial', 0, 0, 0, 'SpeedDial', 0, 0, 0, 'FloatButton.Group'],
+      [
+        'Speed dial',
+        'FloatButton.SpeedDial',
+        0,
+        0,
+        'SpeedDial',
+        0,
+        0,
+        0,
+        'FloatButton.Group',
+      ],
       [
         'Action bar (bulk actions)',
         0,
@@ -2176,7 +2191,7 @@ export const categories = [
         0,
       ],
       ['Anchored positioning primitive', 0, 0, 'Overlay', 'Popper', 0, 0, 0, 0],
-      ['Product tour', 0, 'Tour', 0, 0, 0, 0, 0, 'Tour'],
+      ['Product tour', 'Tour', 'Tour', 0, 0, 0, 0, 0, 'Tour'],
     ],
   },
   {

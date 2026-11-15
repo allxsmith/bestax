@@ -41,7 +41,12 @@ import {
   startOfDay,
   startOfMonth,
 } from './dateUtils';
-import { formatDate, getDayNames, getMonthNames } from './formatters';
+import {
+  formatDate,
+  getDateNumberFormat,
+  getDayNames,
+  getMonthNames,
+} from './formatters';
 
 /** What every calendar takes, whichever way it picks. */
 interface CalendarBaseProps {
@@ -298,6 +303,16 @@ const MONTH_YEAR: Intl.DateTimeFormatOptions = {
 };
 
 /**
+ * The heading with no locale, in plain digits like the calendar's other
+ * numbers then, rather than the runtime's, which a server and a browser can
+ * disagree on.
+ */
+const MONTH_YEAR_PLAIN: Intl.DateTimeFormatOptions = {
+  ...MONTH_YEAR,
+  numberingSystem: 'latn',
+};
+
+/**
  * A day's name in full, with `fullDateNames`. The grid is Gregorian, so the
  * name is too, whatever calendar the locale counts its years by.
  */
@@ -514,6 +529,9 @@ export const Calendar: React.FC<CalendarProps> = ({
     () => customMonthNames ?? getMonthNames(locale, 'short'),
     [customMonthNames, locale]
   );
+
+  // The days and years, in the digits the locale writes a date in.
+  const formatNumber = useMemo(() => getDateNumberFormat(locale), [locale]);
 
   // Each month's day cells.
   const shownCells = useMemo(
@@ -982,11 +1000,14 @@ export const Calendar: React.FC<CalendarProps> = ({
   // space and the year.
   const monthHeading = (d: Date) =>
     customMonthNames
-      ? `${customMonthNames[d.getMonth()]} ${d.getFullYear()}`
-      : formatDate(d, MONTH_YEAR, locale);
+      ? `${customMonthNames[d.getMonth()]} ${formatNumber(d.getFullYear())}`
+      : formatDate(d, locale ? MONTH_YEAR : MONTH_YEAR_PLAIN, locale);
+  // The year in the calendar's digits. It's read off the date rather than
+  // `focusedYear`, which the memos below depend on, since handing a value to
+  // a function the compiler can't see into marks it as one that may change.
   const monthLabel = isDayGranularity
     ? monthHeading(shownMonths[0])
-    : String(focusedYear);
+    : formatNumber(focusedDate.getFullYear());
 
   // As the selection surface the year list is where focus moves, so its
   // window stays centred on the year focused at mount: re-centring on every
@@ -1497,7 +1518,7 @@ export const Calendar: React.FC<CalendarProps> = ({
               }}
               style={!display ? { visibility: 'hidden' } : undefined}
             >
-              {cell.date.getDate()}
+              {formatNumber(cell.date.getDate())}
               {/* Every day shown has the line, empty where the template
                   draws nothing, so the numbers line up along a row. */}
               {display && dayContent && (
@@ -1628,7 +1649,7 @@ export const Calendar: React.FC<CalendarProps> = ({
               isYearGranularity ? handleYearPick(year) : handleYearSelect(year)
             }
           >
-            {year}
+            {formatNumber(year)}
           </button>
         );
       })}

@@ -80,13 +80,13 @@ You can apply responsive text sizes that change based on screen size using the `
 
 ### Responsive Breakpoints
 
-| Viewport                | Screen Size               | Description         |
-| ----------------------- | ------------------------- | ------------------- |
-| `viewport="mobile"`     | Up to 768px               | Mobile devices      |
-| `viewport="tablet"`     | Between 769px and 1023px  | Tablet devices      |
-| `viewport="desktop"`    | Between 1024px and 1215px | Desktop screens     |
-| `viewport="widescreen"` | Between 1216px and 1407px | Widescreen displays |
-| `viewport="fullhd"`     | 1408px and above          | Full HD and larger  |
+| Viewport                | Screen Size      | Description         |
+| ----------------------- | ---------------- | ------------------- |
+| `viewport="mobile"`     | Up to 768px      | Mobile devices      |
+| `viewport="tablet"`     | 769px and above  | Tablet devices      |
+| `viewport="desktop"`    | 1024px and above | Desktop screens     |
+| `viewport="widescreen"` | 1216px and above | Widescreen displays |
+| `viewport="fullhd"`     | 1408px and above | Full HD and larger  |
 
 ### Viewport-Specific Text Size Props
 
@@ -95,9 +95,9 @@ For combining multiple viewports on a single element, use these per-viewport pro
 | Property             | Bulma Class Pattern      | Target Viewport  |
 | -------------------- | ------------------------ | ---------------- |
 | `textSizeMobile`     | `is-size-{n}-mobile`     | Up to 768px      |
-| `textSizeTablet`     | `is-size-{n}-tablet`     | 769px – 1023px   |
-| `textSizeDesktop`    | `is-size-{n}-desktop`    | 1024px – 1215px  |
-| `textSizeWidescreen` | `is-size-{n}-widescreen` | 1216px – 1407px  |
+| `textSizeTablet`     | `is-size-{n}-tablet`     | 769px and above  |
+| `textSizeDesktop`    | `is-size-{n}-desktop`    | 1024px and above |
+| `textSizeWidescreen` | `is-size-{n}-widescreen` | 1216px and above |
 | `textSizeFullhd`     | `is-size-{n}-fullhd`     | 1408px and above |
 
 ### Responsive Size Examples
@@ -181,10 +181,16 @@ Like the text size viewport props, these per-viewport alignment props can be com
 | Property              | Bulma Class Pattern           | Target Viewport  |
 | --------------------- | ----------------------------- | ---------------- |
 | `textAlignMobile`     | `has-text-{value}-mobile`     | Up to 768px      |
-| `textAlignTablet`     | `has-text-{value}-tablet`     | 769px – 1023px   |
-| `textAlignDesktop`    | `has-text-{value}-desktop`    | 1024px – 1215px  |
-| `textAlignWidescreen` | `has-text-{value}-widescreen` | 1216px – 1407px  |
+| `textAlignTablet`     | `has-text-{value}-tablet`     | 769px and above  |
+| `textAlignDesktop`    | `has-text-{value}-desktop`    | 1024px and above |
+| `textAlignWidescreen` | `has-text-{value}-widescreen` | 1216px and above |
 | `textAlignFullhd`     | `has-text-{value}-fullhd`     | 1408px and above |
+
+Each one but `textAlignMobile` applies from its breakpoint up, so a larger breakpoint's alignment
+overlaps a smaller one's.
+Where they overlap, Bulma's stylesheet picks the result, not the larger breakpoint: the later of
+centered, justified, left and right wins, so `textAlignTablet="right"` stays right on a desktop
+with `textAlignDesktop="left"`. A text size from a larger breakpoint does take over.
 
 ### Responsive Alignment Examples
 
@@ -200,10 +206,10 @@ function ResponsiveAlignmentExample() {
 
       <Content
         textAlignMobile="centered"
-        textAlignTablet="left"
-        textAlignDesktop="justified"
+        textAlignTablet="justified"
+        textAlignDesktop="left"
       >
-        This text is centered on mobile, left-aligned on tablet, and justified
+        This text is centered on mobile, justified on tablet, and left-aligned
         on desktop screens. Resize your browser to see the changes.
       </Content>
     </Box>

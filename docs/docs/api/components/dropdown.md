@@ -247,6 +247,10 @@ function SplitButton() {
   submit it. Pass `type="submit"` or `type="reset"` and yours is used instead; any other value
   renders `type="button"`.
 - Pressing outside an open menu closes it.
+- A click the browser dispatches with no pointer behind it (`detail` 0), as a screen reader's
+  browse mode can send when you activate the trigger, opens the menu and focuses its first enabled
+  item, as <kbd>Enter</kbd> does. A pointer's click on the trigger, and a script's `click()`, open
+  it and move no focus into it.
 
 The keyboard follows the [WAI-ARIA Menu Button pattern](https://www.w3.org/WAI/ARIA/apg/patterns/menu-button/).
 Unlike the pattern's menu items, each item is also a tab stop, so <kbd>Tab</kbd> from the
@@ -331,7 +335,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Dropd
 | `disabled`       | `boolean`                                              | `false` | Disables the dropdown trigger.                                                                                                                                                                     |
 | `onActiveChange` | `(active: boolean) => void`                            | —       | Callback when dropdown active state changes.                                                                                                                                                       |
 | `closeOnClick`   | `boolean`                                              | `true`  | Close dropdown when a menu item is clicked, or activated with Enter or Space.                                                                                                                      |
-| `id`             | `string`                                               | —       | Root element ID. The trigger gets `<id>-trigger` and the menu `<id>-menu`, which the trigger's `aria-controls` and the menu's `aria-labelledby` point at. Without one, both ids come from `useId`. |
+| `id`             | `React.HTMLAttributes<HTMLElement>['id']`              | —       | Root element ID. The trigger gets `<id>-trigger` and the menu `<id>-menu`, which the trigger's `aria-controls` and the menu's `aria-labelledby` point at. Without one, both ids come from `useId`. |
 | `ref`            | `React.Ref<HTMLDivElement>`                            | —       | Ref forwarded to the root dropdown element.                                                                                                                                                        |
 | `...`            | All standard `<div>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                  |
 

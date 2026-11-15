@@ -63,6 +63,37 @@ const PROPS: Record<string, Record<string, unknown>> = {
     isRounded: true,
   },
   IconText: { children: 'Text', iconProps: { name: 'star' } },
+  // Named, colored and sized, with a pill beside it in a stack, so every
+  // class a float button and a stack emit is swept.
+  FloatButton: {
+    icon: 'pen',
+    'aria-label': 'Compose',
+    color: 'primary',
+    size: 'large',
+  },
+  FloatButtons: {
+    position: 'top-left',
+    children: [
+      <Library.FloatButton.BackToTop key="top" />,
+      <Library.FloatButton
+        key="pill"
+        aria-label="Compose"
+        icon="pen"
+        showLabel
+      />,
+    ],
+  },
+  // Open and sideways, so the menu, its actions and their tooltips are swept.
+  FloatButtonSpeedDial: {
+    'aria-label': 'Create',
+    icon: 'plus',
+    direction: 'left',
+    defaultOpen: true,
+    children: [
+      <Library.FloatButton key="note" aria-label="Note" icon="note-sticky" />,
+      <Library.FloatButton key="task" aria-label="Task" icon="check" />,
+    ],
+  },
   // Colored and sized; its own test sweeps the icon-only form.
   CopyButton: { value: 'https://bestax.io', color: 'primary', size: 'small' },
   Avatar: { name: 'Ada Lovelace' },
@@ -508,6 +539,21 @@ const PROPS: Record<string, Record<string, unknown>> = {
   Slider: {
     marks: [{ value: 50, label: '50' }],
     tooltip: 'always',
+  },
+  // Open on its second step, so Back is swept with every part a step
+  // renders. Its steps have no target, so the step is centered with no
+  // spotlight; Tour.test.tsx sweeps the spotlight under a prefix.
+  Tour: {
+    defaultOpen: true,
+    defaultValue: 1,
+    children: [
+      <Library.Tour.Step key="one" title="One">
+        One
+      </Library.Tour.Step>,
+      <Library.Tour.Step key="two" title="Two">
+        Two
+      </Library.Tour.Step>,
+    ],
   },
   // Checked, clearable, coloured, sized, rounded and open in place, with a
   // search box and a message, so the field's, the tags', the panel's and

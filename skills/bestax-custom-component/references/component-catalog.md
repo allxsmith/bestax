@@ -40,7 +40,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-135 documented components. Generated from the API docs — every exported
+138 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -104,6 +104,8 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Dialog](https://bestax.io/docs/api/components/dialog) — The `Dialog` component provides ready-made confirm and alert dialogs, so a destructive action stays one `await dialog.confirm()` call away.
 - [Dropdown](https://bestax.io/docs/api/components/dropdown) — The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI.
 - [EmptyState](https://bestax.io/docs/api/components/emptystate) — The `EmptyState` component renders the block an app shows where content would be: an empty list, a search with no results, or a first-run screen.
+- [FloatButton](https://bestax.io/docs/api/components/floatbutton) — The `FloatButton` component renders a round icon button that floats in a corner of the screen, with its name as a tooltip.
+- [FloatButtons](https://bestax.io/docs/api/components/floatbuttons) — The `FloatButtons` component stacks several float buttons in one corner of the screen, so none covers another.
 - [HoverCard](https://bestax.io/docs/api/components/hovercard) — The `HoverCard` component shows a card previewing what's behind a link or a button while the pointer rests on it or keyboard focus is on it.
 - [Lightbox](https://bestax.io/docs/api/components/lightbox) — The `Lightbox` component shows a set of images one at a time in a modal viewer, with previous and next, a counter, captions and zoom, opened from the…
 - [Loading](https://bestax.io/docs/api/components/loading) — The `Loading` component provides a loading overlay with a spinner animation.
@@ -124,6 +126,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Timeline](https://bestax.io/docs/api/components/timeline) — The `Timeline` component renders a list of events in the order they happened, each with a marker on a line down the side.
 - [Toast](https://bestax.io/docs/api/components/toast) — The `Toast` component provides brief notification messages with optional action and cancel buttons.
 - [Tooltip](https://bestax.io/docs/api/components/tooltip) — The `Tooltip` component displays helpful information when users hover over or focus on an element.
+- [Tour](https://bestax.io/docs/api/components/tour) — The `Tour` component walks a user through an interface one step at a time, each step a panel pointing at an element with the rest of the page dimmed around it.
 - [TreeView](https://bestax.io/docs/api/components/treeview) — The `TreeView` component renders a tree of items you browse and pick from, the way a file explorer works: one tab stop, the arrow keys to move…
 
 ## Form

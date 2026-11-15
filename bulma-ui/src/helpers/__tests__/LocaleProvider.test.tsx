@@ -904,15 +904,21 @@ describe('LocaleProvider', () => {
       // the Sunday, Monday, Wednesday or Saturday before it as the week does.
       const october = new Date(2026, 9, 1);
       const sundayFirst = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-      /** The day of the month in each grid's first cell, in order. */
+      /**
+       * The day of the month in each grid's first cell, in order, as the
+       * locale writes it: ٢٧ for 27 in Arabic.
+       */
       const firstCells = () =>
         Array.from(document.querySelectorAll('[role="grid"]')).map(
           grid => grid.querySelector('[role="gridcell"]')!.textContent
         );
 
-      it.each(['de', 'ar-EG'])(
+      it.each([
+        ['de', '27'],
+        ['ar-EG', '٢٧'],
+      ])(
         'keep Sunday inside a %s provider, under the names as given',
-        locale => {
+        (locale, firstCell) => {
           render(
             <LocaleProvider locale={locale}>
               <DateInput
@@ -924,7 +930,7 @@ describe('LocaleProvider', () => {
             </LocaleProvider>
           );
           expect(dayNames()).toEqual(sundayFirst);
-          expect(firstCells()).toEqual(['27']);
+          expect(firstCells()).toEqual([firstCell]);
         }
       );
 
@@ -942,7 +948,7 @@ describe('LocaleProvider', () => {
             'الخميس',
             'الجمعة',
           ],
-          '26',
+          '٢٦',
         ],
       ] as const)(
         'start where firstDayOfWeek says inside a %s provider',

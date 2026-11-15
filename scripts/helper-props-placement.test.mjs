@@ -93,6 +93,20 @@ const UNRENDERED = new Map([
     `ColorPicker.${part}`,
     'it renders only inside a ColorPicker, which holds its color',
   ]),
+  // Whether it shows hangs on a scroll position only the browser has. It
+  // puts both on its <button>, as the FloatButton tests show.
+  [
+    'FloatButton.BackToTop',
+    'it renders nothing on the server, only once hydrated',
+  ],
+  // Each puts both on one element, the root <div> and the step's dialog, as
+  // the Tour tests show.
+  [
+    'Tour',
+    'it shows only after hydration, once its steps can be measured, so a ' +
+      'server render has nothing',
+  ],
+  ['Tour.Step', 'it renders only as the current step of an open Tour'],
 ]);
 
 /** Every opening tag in some markup, with its attributes and classes. */
