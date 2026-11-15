@@ -231,6 +231,7 @@ describe('kitchen-sink e2e', () => {
           t.message.includes("bestax's Dropdown has no prop for that")
       )
     ).toBe(true);
+    expect(rules).toContain('prop:backgroundColor');
     expect(rules).toContain('prop:textColor');
     expect(rules).toContain('prop:value');
     expect(rules).toContain('prop:showFirstLast');

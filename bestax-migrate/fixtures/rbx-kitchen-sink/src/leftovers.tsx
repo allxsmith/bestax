@@ -18,6 +18,7 @@ import {
   Menu,
   Modal,
   Navbar,
+  Notification,
   Numeric,
   Tag,
   Tile,
@@ -28,6 +29,9 @@ import { faHome } from "@fortawesome/free-solid-svg-icons";
 
 export const Leftovers = ({ where }: { where: "left" | "right" }) => (
   <Generic as="section">
+    {/* bestax's Notification takes no background color prop */}
+    <Notification backgroundColor="info">no background color prop</Notification>
+
     {/* Bulma v1 removed tiles outright. */}
     <Tile kind="ancestor">
       <Tile kind="parent" vertical size={4}>

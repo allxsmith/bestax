@@ -115,6 +115,9 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   the fence becomes an `App.tsx` with exactly the imports it uses, its `/img/...` paths in
   strings and CSS `url()`s pointed at the site since a sandbox has no `static/img`, inside the
   create-bestax `vite-ts` template (StackBlitz; CodeSandbox gets a Create React App layout), installing the library release this build read or a later compatible one.
+  An example that imports a prefixed build opens with the library stylesheets it imports in place
+  of the template's `bestax.css` (`librarySheetsIn` in `sandbox/projects.mjs`, which says how that
+  differs from the page's preview).
   Nothing is published ahead of time and a fence needs no marker. A component that exists only
   in this site goes in `DOCS_ONLY_NAMES` in `src/theme/CodeBlock/sandbox/scope-names.mjs` and
   gets its value in the `pick` call in `src/theme/CodeBlock/scope.js`: an example using one
