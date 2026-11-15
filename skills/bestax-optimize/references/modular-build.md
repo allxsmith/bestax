@@ -96,7 +96,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 `delete`, `descriptionlist`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`,
 `progress`, `ringprogress`, `skeleton`, `stat`, `tag`
 
-**Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `cursor`, `sizing`
+**Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `cursor`, `sizing`, `visibility`
 
 Notes:
 
@@ -297,6 +297,7 @@ not `flexbox` — `flexbox` holds only the alignment props. Verified failure mod
 @use 'bulma/sass/helpers/color'; // color/backgroundColor props, has-text-*/has-background-*
 @use 'bulma/sass/helpers/typography'; // textSize/textAlign/textTransform/textWeight/fontFamily
 @use 'bulma/sass/helpers/visibility'; // display/visibility props incl. display="flex" (is-flex/is-block/is-hidden*)
+@use '@allxsmith/bestax-bulma/scss/helpers/visibility' as bestax-visibility; // visibility*="sr-only" at a breakpoint (is-sr-only-tablet…)
 @use 'bulma/sass/helpers/flexbox'; // flex* alignment props (justifyContent/alignItems/flexGrow…) — NOT display="flex"
 @use 'bulma/sass/helpers/float'; // float/clearfix props
 @use 'bulma/sass/helpers/overflow'; // overflow/overflowX/overflowY props

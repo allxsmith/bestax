@@ -1,0 +1,80 @@
+// Bestax Extras - Visibility helpers
+// Bulma draws `is-sr-only` at every width and has no breakpoint form of it,
+// while the viewport visibility props (`visibilityTablet="sr-only"` and the
+// rest) write `is-sr-only-<breakpoint>`. These rules give each of those
+// classes Bulma's own `is-sr-only` declarations inside that breakpoint's
+// query, so the element is hidden from view there and still read.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/mixins' as mx;
+
+// Bulma's `is-sr-only`, declaration for declaration, so a breakpoint's class
+// does what the plain one does. Not `extras-sr-only`, whose declarations
+// aren't `!important`: like Bulma's helpers, these have to outrank the
+// element's own padding and border whichever stylesheet loads first.
+@mixin sr-only {
+  border: none !important;
+  clip: rect(0, 0, 0, 0) !important;
+  height: 0.01em !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  position: absolute !important;
+  white-space: nowrap !important;
+  width: 0.01em !important;
+}
+
+$sr-only: '#{iv.$class-prefix}#{iv.$helpers-prefix}sr-only';
+
+@include mx.mobile {
+  .#{$sr-only}-mobile {
+    @include sr-only;
+  }
+}
+
+@include mx.tablet {
+  .#{$sr-only}-tablet {
+    @include sr-only;
+  }
+}
+
+@include mx.tablet-only {
+  .#{$sr-only}-tablet-only {
+    @include sr-only;
+  }
+}
+
+@include mx.touch {
+  .#{$sr-only}-touch {
+    @include sr-only;
+  }
+}
+
+@include mx.desktop {
+  .#{$sr-only}-desktop {
+    @include sr-only;
+  }
+}
+
+@include mx.desktop-only {
+  .#{$sr-only}-desktop-only {
+    @include sr-only;
+  }
+}
+
+@include mx.widescreen {
+  .#{$sr-only}-widescreen {
+    @include sr-only;
+  }
+}
+
+@include mx.widescreen-only {
+  .#{$sr-only}-widescreen-only {
+    @include sr-only;
+  }
+}
+
+@include mx.fullhd {
+  .#{$sr-only}-fullhd {
+    @include sr-only;
+  }
+}

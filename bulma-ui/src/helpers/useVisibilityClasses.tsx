@@ -11,7 +11,10 @@ import {
 } from './bulmaClassHelpers';
 
 /**
- * Props for applying Bulma visibility and display helper classes.
+ * Props for applying Bulma visibility and display helper classes. Bulma draws
+ * `is-sr-only` at every width only, so `'sr-only'` on a viewport visibility
+ * prop, which writes `is-sr-only-tablet` and the like, is drawn by bestax's
+ * own stylesheet: `bestax.css`, its prefixed flavors and `extras.css`.
  */
 export interface BulmaVisibilityProps
   extends BulmaViewportProps, BulmaDisplayProps {
