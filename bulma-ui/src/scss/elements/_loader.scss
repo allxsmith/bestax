@@ -7,16 +7,19 @@
 // It hides everything inside a loading button, where Bulma hides only the
 // label.
 //
+// It draws `.loader` in the text color around it, where Bulma's gray hardly
+// shows (below).
+//
 // And it keeps each ring open in forced colors (Windows' contrast themes).
 // Bulma leaves two sides of the ring `transparent`, and forced colors paints
 // those in the text color like any other border, so the ring closes, and a
 // closed ring turning looks like one standing still. `Canvas`, the page's
 // own color, is a system color, which forced colors leaves alone.
 //
-// These rules override stock Bulma, and Bulma's CSS can land on either side
-// of this partial: `versions/bestax-no-dark-mode.scss` emits the extras first,
-// an app can link `extras.css` ahead of its own Bulma, and a component can
-// re-spin a ring with a more specific selector (`.autocomplete .loader`).
+// The other rules override stock Bulma, and Bulma's CSS can land on either
+// side of this partial: `versions/bestax-no-dark-mode.scss` emits the extras
+// first, an app can link `extras.css` ahead of its own Bulma, and a component
+// can re-spin a ring with a more specific selector (`.autocomplete .loader`).
 // `!important` is what wins in every one of those cases, whatever the order
 // or specificity, so the override does not depend on where this file lands.
 //
@@ -25,6 +28,24 @@
 // without Bulma at all, so each ring is named here.
 
 @use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+
+// Bulma draws `.loader` in its `border` gray, which hardly shows on the page.
+// A loader can sit on any surface, the page, a dark hero, a colored
+// notification, so it takes the text color around it, the one color each
+// surface is made to keep readable. It does that through the variable Bulma
+// draws it with, set on the loader itself: it resolves in whatever scheme or
+// theme the loader is in, Bulma's rule still draws the ring with its open
+// sides transparent, and neither rule outranks the other, so the order of
+// the two sheets doesn't matter. A rule that recolors the ring after Bulma's,
+// or a `--bulma-border` in a loader's `style`, still wins.
+.#{iv.$class-prefix}loader {
+  @include cv.register-vars(
+    (
+      "border": currentColor,
+    )
+  );
+}
 
 // Bulma hides a loading button's label with a transparent text color, which
 // only reaches what inherits it. A child with a color of its own, a `Tag`, an

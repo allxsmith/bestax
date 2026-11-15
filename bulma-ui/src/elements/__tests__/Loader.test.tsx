@@ -78,10 +78,10 @@ describe('Loader', () => {
     expect(ref.current).toHaveClass('loader');
   });
 
-  it('declares no color props, since the ring ignores text color', () => {
+  it('declares no color props', () => {
     render(
       <>
-        {/* @ts-expect-error: the ring is drawn in --bulma-border, so Loader takes no color */}
+        {/* @ts-expect-error: Loader takes no text color */}
         <Loader color="primary" />
         {/* @ts-expect-error: nor a background color */}
         <Loader backgroundColor="primary" />

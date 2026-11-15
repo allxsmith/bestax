@@ -172,7 +172,10 @@ describe('Lightbox styles', () => {
       padding: 'var(--bulma-lightbox-error-padding)',
       color: 'var(--bulma-lightbox-error-color)',
     });
+    // A loader takes the text color around it, so on the near-black
+    // background it takes the caption's light color (#1764).
     expect(find(PLAIN, '.lightbox-figure > .loader')).toEqual({
+      color: 'var(--bulma-lightbox-caption-color)',
       'font-size': 'var(--bulma-lightbox-loader-size)',
     });
   });

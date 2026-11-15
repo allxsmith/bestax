@@ -511,6 +511,12 @@ const ORPHAN_EXEMPT = new Map([
       'nothing of its own to claim, so this stays until it does',
   ],
   [
+    'bulma-ui/src/scss/elements/_loader.scss',
+    're-sets border, Bulma’s scheme variable, on .loader to currentColor, ' +
+      'so Bulma’s own rule draws the ring in the text color around it. It ' +
+      'registers nothing of its own to claim, so this stays until it does',
+  ],
+  [
     'bulma-ui/src/scss/elements/_tag.scss',
     're-sets tag-color-l, a Bulma variable Tag already documents, on a ' +
       'doubled color class with :not() the attribution walk cannot place. ' +

@@ -26,11 +26,23 @@
 // ring. `_loader.scss` sets them to `Canvas` there, so the same walk resolves
 // the open sides' colors with forced colors on, and checks each ring stays
 // open.
+//
+// The same walk reads the ring's own color: `.loader` takes its text color,
+// which holds 3:1 on the surfaces a loader sits on, while the rings in a
+// loading button, an Autocomplete and an app's own rule keep theirs.
 import fs from 'fs';
 import path from 'path';
 import React from 'react';
 import { render } from '@testing-library/react';
 import { SCSS, compileSheet } from '../../__tests__/compile-scss';
+import { rulesOf as parseSheet } from '../../__tests__/css-cascade';
+import {
+  contrast,
+  schemesOf,
+  substitute,
+  varsOn,
+  type Vars,
+} from '../../__tests__/contrast';
 import { ConfigProvider } from '../../helpers/Config';
 import {
   Autocomplete,
@@ -873,6 +885,28 @@ const SHEETS: Sheet[] = publishedStylesheets().flatMap((file): Sheet[] => {
   return [{ label: file, prefix, css: () => compileSheet(file) }];
 });
 
+/** What a page, a box, a card or a panel paints behind a loader. */
+const SURFACES = [
+  '--bulma-scheme-main',
+  '--bulma-scheme-main-bis',
+  '--bulma-scheme-main-ter',
+  '--bulma-background',
+];
+
+/** The surfaces `color` falls under 3:1 against with `vars`, with the ratio. */
+const belowThreeToOne = (color: string, vars: Vars): string[] =>
+  SURFACES.flatMap(surface => {
+    const ratio = contrast(
+      substitute(color, vars),
+      substitute(`var(${surface})`, vars)
+    );
+    return ratio < 3 ? [`${surface}: ${ratio.toFixed(2)}:1`] : [];
+  });
+
+/** A side's color on the element, as `colorOf` reads it. */
+const sideOf = (rules: Rule[], el: Element, side: Side) =>
+  colorOf(winning(rules, el, '', {}, side));
+
 // The sheet-wide check is only as wide as what the rule walk collects, so
 // anything the walk would misread has to fail rather than shrink the list.
 describe('the cascade resolver', () => {
@@ -1053,11 +1087,113 @@ it('checks every published stylesheet', () => {
   }
 });
 
-describe.each(SHEETS)('$label', ({ prefix, css }) => {
+describe.each(SHEETS)('$label', ({ label, prefix, css }) => {
+  let text: string;
   let rules: Rule[];
   beforeAll(() => {
-    rules = rulesOf(css());
+    text = css();
+    rules = rulesOf(text);
   }, 60000);
+
+  // Bulma draws `.loader` in its `border` gray, about 1.4:1 on the page. The
+  // loader partial sets that variable on the loader to its text color, so the
+  // ring reads on whatever surface it sits on, and Bulma's rule still draws it
+  // (#1764).
+  it("draws Loader's ring in its text color, with its open sides left open", () => {
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <Loader />
+      </ConfigProvider>
+    );
+    const el = container.querySelector(`.${prefix}loader`)!;
+    expect(
+      (['top', 'right', 'bottom', 'left'] as const).map(side =>
+        sideOf(rules, el, side)
+      )
+    ).toEqual([
+      'transparent',
+      'transparent',
+      'var(--bulma-border)',
+      'var(--bulma-border)',
+    ]);
+    expect(resolved(rules, el, '', {}, ['--bulma-border'])).toBe(
+      'currentColor'
+    );
+  });
+
+  it('takes a text color that holds 3:1 on every surface of each scheme', () => {
+    const top = parseSheet(text).rules;
+    // Only the build named for it has no dark scheme; `schemesOf` throws on
+    // any other sheet that has lost its own.
+    const schemes: Record<string, Vars> = /no-dark-mode/.test(label)
+      ? { light: varsOn(top, ':root') }
+      : schemesOf(top);
+    for (const [scheme, vars] of Object.entries(schemes)) {
+      expect([
+        scheme,
+        belowThreeToOne('var(--bulma-body-color)', vars),
+      ]).toEqual([scheme, []]);
+    }
+    // Bulma's own gray is below it on every surface, so the check can fail.
+    expect(belowThreeToOne('var(--bulma-border)', schemes.light)).toHaveLength(
+      SURFACES.length
+    );
+  });
+
+  it('still lets a rule after Bulma’s recolor the ring, as it could before', () => {
+    // An app's class, loaded after the library, as it could recolor Bulma's
+    // own loader. A doubled class here would beat it.
+    const app = rulesOf(
+      '.app-ring { border-bottom-color: red; border-left-color: red; }'
+    ).map(rule => ({ ...rule, order: rules.length + rule.order }));
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <Loader className="app-ring" />
+      </ConfigProvider>
+    );
+    const el = container.querySelector(`.${prefix}loader`)!;
+    expect(
+      (['bottom', 'left'] as const).map(side =>
+        sideOf([...rules, ...app], el, side)
+      )
+    ).toEqual(['red', 'red']);
+  });
+
+  it("keeps Autocomplete's loader a track of one color with an arc", () => {
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <Autocomplete data={[]} loading />
+      </ConfigProvider>
+    );
+    const el = container.querySelector(`.${prefix}loader`)!;
+    expect(
+      (['top', 'right', 'bottom', 'left'] as const).map(side =>
+        sideOf(rules, el, side)
+      )
+    ).toEqual([
+      'var(--bulma-autocomplete-loader-active-color)',
+      ...Array(3).fill('var(--bulma-autocomplete-loader-border-color)'),
+    ]);
+  });
+
+  it("leaves a loading button's ring in the button's own text color", () => {
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <Button isLoading color="primary">
+          Save
+        </Button>
+      </ConfigProvider>
+    );
+    const el = container.querySelector(`.${prefix}button`)!;
+    expect(
+      resolved(rules, el, '', {}, ['--bulma-loading-color'])?.replace(
+        /\s+/g,
+        ' '
+      )
+    ).toBe(
+      'hsl(var(--bulma-button-h), var(--bulma-button-s), var(--bulma-button-color-l))'
+    );
+  });
 
   it.each(ANIMATED)(
     '%s animates normally and stops under prefers-reduced-motion',

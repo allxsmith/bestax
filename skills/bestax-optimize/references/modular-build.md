@@ -219,14 +219,15 @@ Notes:
 - `Lightbox`'s viewer is Bulma's modal, with Bulma buttons for its controls and a `Loader` for a
   slow image, so an app using it needs `bulma/sass/components/modal`,
   `bulma/sass/elements/button` and `bulma/sass/elements/loader` next to
-  `scss/components/lightbox`, and the `delete` partial below for its close button in forced
-  colors.
+  `scss/components/lightbox`, the `loader` partial below so that loader shows on the dark
+  background, and the `delete` partial below for its close button in forced colors.
 - `Loader` is stock Bulma styled by `bulma/sass/elements/loader`, and the `isLoading`
   spinners on `Button`, `Control` and `Select` are Bulma's too. The `loader` extras partial
-  stops all of them under `prefers-reduced-motion: reduce`, hides everything inside a loading
-  button where Bulma hides only the label, and keeps each ring open in forced colors (Windows'
-  contrast themes), so include it (`as bestax-loader`) next to the Bulma modules in any build
-  that shows one. Its
+  draws `Loader`'s ring in the text color around it, where Bulma's gray hardly shows, stops all
+  of them under `prefers-reduced-motion: reduce`, hides everything inside a loading button where
+  Bulma hides only the label, and keeps each ring open in forced colors (Windows' contrast
+  themes), so include it (`as bestax-loader`) next to the Bulma modules in any build that shows
+  one. Its
   rules win over Bulma's either way, so the order of the two `@use` lines does not matter.
 - `Progress` and the skeletons are stock Bulma too (`bulma/sass/elements/progress`,
   `bulma/sass/base/skeleton`). The `progress` and `skeleton` extras partials

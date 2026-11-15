@@ -335,7 +335,10 @@ $lightbox-animation-duration: cv.getVar('duration') !default;
   pointer-events: auto;
 }
 
+// A loader takes the text color around it, and the figure's is the page's,
+// so on the near-black background it takes the caption's light color.
 .#{iv.$class-prefix}lightbox-figure > .#{iv.$class-prefix}loader {
+  color: cv.getVar('lightbox-caption-color');
   font-size: cv.getVar('lightbox-loader-size');
 }
 

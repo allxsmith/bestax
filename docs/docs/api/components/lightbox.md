@@ -412,7 +412,8 @@ field in a caption are the field's.
 - **Right to left:** the arrows, the keys and swipes follow the reading direction, so the next
   image is always the way the next arrow points.
 - **Contrast:** the counter, the caption and the buttons' icons are white on Bulma's near-black
-  modal background in both schemes, well over the 4.5:1 WCAG asks of text.
+  modal background in both schemes, well over the 4.5:1 WCAG asks of text. The loader that stands
+  in for a slow image takes the caption's color, so it shows on that background too.
 - **Forced colors:** the buttons draw their borders in the system's colors and the focus ring
   shows.
 - **Motion:** the open fade, the crossfade between images and the zoom transition stop under

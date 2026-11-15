@@ -19,7 +19,7 @@ const meta: Meta<typeof Loader> = {
     docs: {
       description: {
         component:
-          'Bulma’s `.loader`: a small spinning ring for inline loading states, exposed as an indeterminate progressbar. It is sized by font-size and has no color prop; the ring uses the theme’s border color.',
+          'Bulma’s `.loader`: a small spinning ring for inline loading states, exposed as an indeterminate progressbar. It is sized by font-size and has no color prop; the ring is drawn in the text color around it.',
       },
     },
   },

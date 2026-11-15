@@ -19,9 +19,11 @@ label, or in a card that is still fetching. It renders one empty element with no
 ring is `1em` square, so the `textSize` helper scales it.
 
 :::info
-`Loader` has no color prop. Bulma draws the ring in the theme's border color
-(`--bulma-border`), so the text color helpers don't reach it. For a colored spinner that covers a
-region, use [`Loading`](../components/loading.md) with its `color` prop.
+`Loader` has no color prop. The ring is drawn in the text color around it, so it matches the text
+it sits beside and shows on whatever surface the text does. A `--bulma-border` set on the page or
+an ancestor doesn't reach it. To recolor one, put it in an element with that text color, or set
+`color` on the loader itself. For a colored spinner that covers a region, use
+[`Loading`](../components/loading.md) with its `color` prop.
 :::
 
 ---
@@ -123,6 +125,11 @@ The ring has a fixed width, so `mx="auto"` centers it. Mark the region that is l
   finished, change the text of a live region that is already on the page.
 - **Busy regions:** set `aria-busy="true"` on the region the loader stands in for, and remove it
   when the content arrives.
+- **Contrast:** the ring is all there is of a loader, so it needs the 3:1 WCAG asks of a graphic
+  against what it sits on. Bulma draws it in its border gray, about 1.4:1 on the page. bestax draws
+  it in the text color around it, so it reads wherever that text does: on the page in either
+  scheme, in a dark hero, in a colored notification, in a colored button. In a `Lightbox` it takes
+  the caption's color. It ships in the same stylesheets as the reduced-motion rule below.
 - **Reduced motion:** under `prefers-reduced-motion: reduce` the ring stops spinning and stays
   drawn, so the loading state is still visible. That rule ships in bestax's stylesheets:
   `bestax.css` and its variants, or `extras.css` next to your own Bulma, in either order.

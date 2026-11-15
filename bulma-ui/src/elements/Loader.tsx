@@ -5,9 +5,14 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 /**
  * Props for the Loader component.
  *
- * There is no color prop, and the text and background color helpers are left
- * out on purpose: Bulma draws the ring in `--bulma-border`, so a text color
- * never reaches it. For a colored spinner over a region, use `Loading`.
+ * There is no color prop, and the text and background color helpers aren't
+ * offered. The ring is drawn in the text color around the loader, so it shows
+ * on whatever the loader sits on: the page, a dark hero, a colored
+ * notification. Bulma draws it in its border gray, which hardly shows on the
+ * page, and bestax's stylesheets change that, `extras.css` included, so a
+ * `--bulma-border` set on the page or an ancestor no longer reaches it. To
+ * recolor one, put it in an element with that text color, or set `color` on
+ * the loader itself. For a colored spinner over a region, use `Loading`.
  *
  * @extraProp {React.Ref<HTMLSpanElement>} [ref] - Ref forwarded to the loader element.
  */
