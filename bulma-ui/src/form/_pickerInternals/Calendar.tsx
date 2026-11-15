@@ -1411,7 +1411,9 @@ export const Calendar: React.FC<CalendarProps> = ({
           // A nearby month's day can be another month's own on show, which
           // keeps the tab stop.
           const isFocused = !otherMonth && isSameDay(cell.date, tabStopDay);
-          const isToday = hydrated && cell.isToday;
+          // Today by the render's clock, so a page left open past midnight
+          // moves the mark when it next renders.
+          const isToday = !!today && isSameDay(cell.date, today);
           const cellClass = prefixedClassNames(classPrefix, 'dateinput-cell', {
             'is-selected': isFilled,
             'is-range-start': isStart,

@@ -396,6 +396,31 @@ describe('DateInput', () => {
       expect(document.activeElement).toHaveAttribute('tabindex', '0');
     });
 
+    it('moves the mark for today when a render comes after midnight', () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date(2026, 10, 18, 23, 59));
+      try {
+        const { container, rerender } = render(
+          <DateInput inline defaultValue={new Date(2026, 10, 10)} />
+        );
+        const current = () =>
+          container.querySelector('[aria-current="date"]')?.textContent;
+        expect(current()).toBe('18');
+        // The day passes while the calendar stays on the same month and day.
+        vi.setSystemTime(new Date(2026, 10, 19, 0, 1));
+        rerender(
+          <DateInput
+            inline
+            defaultValue={new Date(2026, 10, 10)}
+            className="again"
+          />
+        );
+        expect(current()).toBe('19');
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
     it('puts focus back on the grid as its year list closes', () => {
       HTMLElement.prototype.scrollIntoView = vi.fn();
       const { getByRole } = render(
