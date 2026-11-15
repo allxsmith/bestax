@@ -42,7 +42,7 @@
       "code": "<Radios name=\"plan\">\n  <RadioCard className=\"compact-card\" value=\"starter\" title=\"Starter\" />\n  <RadioCard className=\"compact-card\" value=\"pro\" title=\"Pro\" />\n</Radios>"
     }
   ],
-  "accessibility": "- The card is a `<label>` around a native `<input type=\"radio\">`, so a click anywhere on it picks\n  the radio and it sends its value with a form.\n- Cards that share a `name` are one group to the browser: Tab lands on the picked card, or the\n  first, and the arrow keys move and pick, skipping disabled cards. Give `Radios` a `name`, or\n  each card the same one; without it each card is a group of its own.\n- The radio is named by the title, through `aria-labelledby`, and described by the description,\n  through `aria-describedby`. An `aria-label` or `aria-labelledby` you pass wins. Without a title,\n  the card's own text names it, as a label's text does.\n- The children aren't read when the radio takes focus. Put what matters in `title` and\n  `description`.\n- A link inside the card is its own Tab stop, and following it doesn't pick the card. A button or\n  another input can't go inside a `<label>`.\n- Keyboard focus draws an outline around the whole card, in Bulma's focus color, whatever the\n  card's color.\n- The selection never rests on color: the radio shows it, and the picked card's edge is twice as\n  thick, with or without the radio.\n- Contrast: against the card, a picked edge in `primary` or `link` clears WCAG 1.4.11's 3:1 on a\n  light page, and in every color on a dark one. `info`, `success`, `warning` and `danger` fall\n  short on a light page, where the edge's width and the radio still show the selection.\n- In forced colors (Windows contrast themes), Bulma's card loses its shadow, so the edge is a\n  real border there: the system's text color, `Highlight` and still thicker when picked, and gray\n  when disabled. The radio takes system colors as `Radio`'s does, and the focus outline is\n  `Highlight`.\n- The edge and the radio change without a transition under `prefers-reduced-motion: reduce`.",
+  "accessibility": "- The card is a `<label>` around a native `<input type=\"radio\">`, so a click anywhere on it picks\n  the radio and it sends its value with a form.\n- Cards that share a `name` are one group to the browser: Tab lands on the picked card, or the\n  first, and the arrow keys move and pick, skipping disabled cards. Give `Radios` a `name`, or\n  each card the same one; without it each card is a group of its own.\n- The radio is named by the title, through `aria-labelledby`, and described by the description,\n  through `aria-describedby`. An `aria-label` or `aria-labelledby` you pass wins. Without a title,\n  the card's own text names it, as a label's text does.\n- The children aren't read when the radio takes focus. Put what matters in `title` and\n  `description`.\n- A link inside the card is its own Tab stop, and following it doesn't pick the card. A button or\n  another input can't go inside a `<label>`.\n- Keyboard focus draws an outline around the whole card, in Bulma's focus color, whatever the\n  card's color.\n- The selection never rests on color: the radio shows it, and the picked card's edge is twice as\n  thick, with or without the radio.\n- Contrast: a picked card's edge, ring and dot are the primary color, or the `color`, in its\n  on-scheme lightness, which Bulma darkens on a light scheme and lightens on a dark one until it\n  reads on the page, so with the stylesheet's colors they hold WCAG 1.4.11's 3:1 against the card\n  on both schemes. A `Theme` that changes a color's hue sets its on-scheme lightness with it.\n- In forced colors (Windows contrast themes), Bulma's card loses its shadow, so the edge is a\n  real border there: the system's text color, `Highlight` and still thicker when picked, and gray\n  when disabled. The radio takes system colors as `Radio`'s does, and the focus outline is\n  `Highlight`.\n- The edge and the radio change without a transition under `prefers-reduced-motion: reduce`.",
   "related": [
     "Card",
     "CheckboxCard",
@@ -102,7 +102,7 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "The color of the radio and of a picked card's edge.",
+          "description": "The color of the radio and of a picked card's edge. They take the color's `-on-scheme` variant, the shade Bulma adjusts to read on the page in either scheme, so a pale color such as `warning` is drawn darker on a light page.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -198,7 +198,7 @@
     {
       "css": "--bulma-radio-card-active-color",
       "sass": "$radio-card-active-color",
-      "default": "var(--bulma-primary)",
+      "default": "hsl(var(--bulma-primary-h), var(--bulma-primary-s), var(--bulma-primary-on-scheme-l))",
       "scope": "root"
     },
     {
