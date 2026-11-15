@@ -2325,6 +2325,22 @@ describe('TimeInput wheels in a locale', () => {
     expect(items).toEqual(expect.arrayContaining([am, pm]));
   });
 
+  it('writes each AM/PM word once in the page’s text', () => {
+    // The copies that size the wheel draw their words from an attribute, so
+    // a query for the word finds the item alone.
+    const { getAllByText } = render(
+      <TimeInput
+        inline
+        aria-label="Time"
+        locale="ja-JP"
+        hourFormat="12"
+        defaultValue={at(13, 5)}
+      />
+    );
+    expect(getAllByText('午後')).toHaveLength(1);
+    expect(getAllByText('午前')).toHaveLength(1);
+  });
+
   it('lets a word written right to left take its own direction', () => {
     // The wheels sit in a left-to-right row, which would put the trailing
     // period of Persian's ق.ظ. on the wrong side.
