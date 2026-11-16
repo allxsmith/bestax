@@ -31,7 +31,9 @@ export const MinimumColumnWidth = () => {
   return (
     <div>
       <Buttons hasAddons>
-        <Button isStatic>Select a Minimum Column Width:</Button>
+        <Button as="span" isStatic>
+          Select a Minimum Column Width:
+        </Button>
         {Array.from({ length: 32 }, (_, i) => (
           <Button
             key={i + 1}
@@ -53,7 +55,9 @@ export const Gap = () => {
   return (
     <div>
       <Buttons hasAddons>
-        <Button isStatic>Select a Gap:</Button>
+        <Button as="span" isStatic>
+          Select a Gap:
+        </Button>
         {Array.from({ length: 8 }, (_, i) => (
           <Button
             key={i + 1}
