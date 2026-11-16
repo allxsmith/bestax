@@ -189,12 +189,12 @@ const PAGES: Record<string, string> = {
         </div>
       </div>
       <nav class="pagination is-centered" role="navigation" aria-label="pagination">
-        <a class="pagination-previous" tabindex="0">Previous</a>
-        <a class="pagination-next" tabindex="0">Next</a>
+        <a class="pagination-previous" href="#2" tabindex="0">Previous</a>
+        <a class="pagination-next" href="#4" tabindex="0">Next</a>
         <ul class="pagination-list">
-          <li><a class="pagination-link" aria-label="Goto page 1" tabindex="0">1</a></li>
+          <li><a class="pagination-link" aria-label="Goto page 1" href="#1" tabindex="0">1</a></li>
           <li><span class="pagination-ellipsis">&hellip;</span></li>
-          <li><a class="pagination-link is-current" aria-label="Page 3" aria-current="page" tabindex="0">3</a></li>
+          <li><a class="pagination-link is-current" aria-label="Page 3" aria-current="page" href="#3" tabindex="0">3</a></li>
         </ul>
       </nav>
     </div>

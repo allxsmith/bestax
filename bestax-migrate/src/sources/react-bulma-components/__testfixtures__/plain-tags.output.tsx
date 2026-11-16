@@ -18,9 +18,9 @@ export const Literal = () => (
     </Breadcrumb>
     <section className="table-container">No rows</section>
     <Tabs>
-<Tabs.List>
+<ul>
         <Tabs.Item><span>Music</span></Tabs.Item>
-      </Tabs.List>
+      </ul>
 </Tabs>
   </div>
 );
@@ -45,9 +45,9 @@ export const Dynamic = ({ tag }: { tag: 'span' }) => (
     </Breadcrumb>
     <div className="table-container">No rows</div>
     <Tabs>
-<Tabs.List>
+<ul>
         <Tabs.Item><a>Music</a></Tabs.Item>
-      </Tabs.List>
+      </ul>
 </Tabs>
   </div>
 );

@@ -36,7 +36,13 @@ export interface CollapseProps
   onClose?: () => void;
   /** Called with the state the trigger asks for (`true` to open) each time it is clicked or activated with Enter or Space, in every mode. Pair it with `open` to let the trigger drive a controlled Collapse. */
   onOpenChange?: (open: boolean) => void;
-  /** The clickable trigger element (header/button). */
+  /**
+   * What the clickable header shows. Collapse renders the header itself, as
+   * a `div` with `role="button"`, `aria-expanded` and `aria-controls`, so
+   * give it text or layout and nothing interactive: a button, a link or a
+   * field inside would be a second tab stop with no expanded state, nested in
+   * the first.
+   */
   trigger?: React.ReactNode;
   /** Animation style, or `false` to disable. */
   animation?: 'fade' | 'slide' | false;
@@ -64,7 +70,7 @@ export interface CollapseProps
  *
  * @example
  * // Basic uncontrolled collapse
- * <Collapse trigger={<button>Click to toggle</button>}>
+ * <Collapse trigger={<strong>Shipping</strong>}>
  *   <p>Collapsible content here</p>
  * </Collapse>
  *
@@ -78,7 +84,7 @@ export interface CollapseProps
  * @example
  * // With callbacks
  * <Collapse
- *   trigger={<button>Toggle</button>}
+ *   trigger={<strong>Returns</strong>}
  *   onOpen={() => console.log('Opened!')}
  *   onClose={() => console.log('Closed!')}
  * >
