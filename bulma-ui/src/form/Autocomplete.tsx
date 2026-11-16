@@ -58,6 +58,15 @@ const isComposing = (e: React.KeyboardEvent): boolean =>
 const isEnabled = (item: AutocompleteItem | string): boolean =>
   typeof item === 'string' || !item.disabled;
 
+/** The accessible strings, in your app's language. */
+export interface AutocompleteLabels {
+  /**
+   * Names the clear button.
+   * @defaultValue 'Clear'
+   */
+  clear?: string;
+}
+
 /**
  * Props for the Autocomplete component.
  * @extraProp {string} [className] - Additional CSS classes.
@@ -100,9 +109,12 @@ export interface AutocompleteProps
    * Whether to show a clear button while the input holds a value.
    * It hides while the input is disabled, and gives way to a loading
    * spinner at the same right edge: the one `loading` draws, or that of a
-   * `Control` with `isLoading` around the Autocomplete.
+   * `Control` with `isLoading` around the Autocomplete. It's named "Clear",
+   * or `labels.clear`.
    */
   clearable?: boolean;
+  /** The accessible strings, in your app's language. */
+  labels?: AutocompleteLabels;
   /** Open dropdown when input is focused. */
   openOnFocus?: boolean;
   /**
@@ -214,6 +226,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       placeholder,
       field = 'label',
       clearable = false,
+      labels,
       openOnFocus = false,
       keepFirst = false,
       keepOpen = false,
@@ -667,7 +680,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
               type="button"
               className={iconRightClickableClass}
               onClick={handleClear}
-              aria-label="Clear"
+              aria-label={labels?.clear || 'Clear'}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
