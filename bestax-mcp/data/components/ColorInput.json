@@ -747,6 +747,12 @@
       "sass": "$picker-popover-animation-duration",
       "default": "0.15s",
       "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-months-max-width",
+      "sass": "$picker-popover-months-max-width",
+      "default": "calc(100vw - 2rem)",
+      "scope": "element"
     }
   ]
 }

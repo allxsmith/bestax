@@ -25,6 +25,7 @@ import { Dropzone } from '../Dropzone';
 import { Taginput } from '../Taginput';
 import { Combobox } from '../Combobox';
 import { TreeSelect } from '../TreeSelect';
+import { Cascader } from '../Cascader';
 import { resetDevWarnings } from '../../helpers/devWarnings';
 import type { FormFieldProps } from '../fieldProps';
 import type { ControlLevelProps } from '../FormContext';
@@ -199,6 +200,13 @@ const wrappers: Wrapper[] = [
     // Control-level props, so the tests that pass them skip it.
     render: p => <TreeSelect {...(p as FormFieldProps)} data={[]} />,
     root: '.tree-select',
+    ownControl: false,
+  },
+  {
+    name: 'Cascader',
+    // The same field as TreeSelect's, with the same Control.
+    render: p => <Cascader {...(p as FormFieldProps)} data={[]} />,
+    root: '.cascader',
     ownControl: false,
   },
 ];

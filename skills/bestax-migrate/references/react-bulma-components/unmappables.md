@@ -106,6 +106,12 @@ const [choice, setChoice] = useState('a');
 </Dropdown>;
 ```
 
+## `Dropdown color` (`prop:color`)
+
+react-bulma-components gave a `Dropdown`'s `color` to its trigger button. bestax's `Dropdown` has no
+prop for its trigger's color, and its own `color` is the text color helper on the root, so the
+codemod leaves `color` with a TODO: remove it.
+
 ## `Pagination` extras (`showFirstLast`, `showPrevNext`, `autoHide`)
 
 bestax `Pagination` renders from `total`/`current`/`onPageChange` when it has no children:
@@ -232,7 +238,7 @@ bestax components don't take `domRef`, but many forward a plain `ref` — the fo
 `Affix`, `AppFrame`, `AppFrame.Aside`, `AppFrame.Burger`, `AppFrame.Footer`, `AppFrame.Header`, `AppFrame.Main`, `AppFrame.Nav`, `Avatar`, `Button`, `Carousel`, `CarouselItem`, `Center`, `ColorSwatch`, `Command`, `Command.Dialog`, `Command.Input`, `CopyButton`, `DataTable`, `DescriptionList`, `DescriptionList.Item`, `DescriptionList.Label`, `DescriptionList.Value`, `Dialog`, `Dropdown`, `EmptyState`, `Flex`, `FloatButton`, `FloatButton.BackToTop`, `FloatButton.SpeedDial`, `FloatButtons`, `Group`, `IconButton`, `Kbd`,
 `Kbd.Group`, `Lightbox`, `Lightbox.Trigger`, `Link`, `LinkButton`, `Loader`, `LocaleProvider`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`,
 `Navbar.Dropdown`, `Navbar.Item`, `Navbar.Link`, `NumberFormatter`, `RingProgress`, `ScrollArea`, `SegmentedControl`, `SegmentedControl.Segment`,
-`Sidebar`, `Splitter`, `Splitter.Pane`, `Stack`, `Stat`, `Stat.Change`, `Stat.Description`, `Stat.Label`, `Stat.Value`, `Stats`, `TableOfContents`, `Timeline`, `Timeline.Item`, `Toast`, `ToggleButton`, `Tour`, `Tour.Step`, `TreeView` and `TreeView.Item`. On
+`Sidebar`, `Splitter`, `Splitter.Pane`, `Stack`, `Stat`, `Stat.Change`, `Stat.Description`, `Stat.Label`, `Stat.Value`, `Stats`, `TableOfContents`, `Timeline`, `Timeline.Item`, `Toast`, `ToggleButton`, `Tour`, `Tour.Back`, `Tour.Next`, `Tour.Skip`, `Tour.Step`, `TreeView` and `TreeView.Item`. On
 those, rename `domRef` to `ref` and it works; do not restructure the markup. "The form controls"
 means the inputs themselves: the `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios`
 wrappers around them forward nothing, and `Field` is a target this codemod emits.
@@ -325,3 +331,19 @@ Where the codemod produced a plain element (`Form.Label` → `<label>`, `Breadcr
 `<li>`, `Table.Container` fallback `<div>`), Bulma helper props were dropped with a TODO.
 Re-express them as classes: `m={2}` → `className="m-2"`, `textAlign="center"` →
 `className="has-text-centered"`.
+
+## `prop:display-base` — a base display beside a per-viewport one
+
+bestax leaves a base `display` out once any per-viewport display prop (`displayMobile` and the rest)
+is set, so the codemod keeps the base value as the class it stood for, in `className`, where the
+`display` attribute was (`is-flex`, `is-hidden` for `none`). With a flex base and no per-viewport
+flex display, the flex container props (`justifyContent`, `alignItems` and the rest) render only
+beside a flex `display` prop, so they move into `className` too (`is-justify-content-center`), and a
+container value bestax doesn't take stays where it was. This TODO, whose message starts "bestax
+leaves `display` out beside a per-viewport display prop", is the case where nothing moves, because a
+per-viewport display, the base value, the `className` or a container prop is dynamic, or the element takes a spread, which could hold any of them:
+
+```jsx
+<Box className={cls} display="flex" displayMobile="block" />
+<Box className={`is-flex ${cls}`} displayMobile="block" />
+```

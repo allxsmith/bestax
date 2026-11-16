@@ -1,0 +1,86 @@
+// Bestax Extras - the field a tree picker opens its panel from
+// A mixin TreeSelect and Cascader share, so the read-only field each one
+// opens its panel from draws the same: the chevron and the clear button at
+// its inline end, the room it keeps for them, and their colors as it's
+// hovered, focused, opened and disabled. Each component registers the
+// variables these rules read under its own name, `--bulma-<name>-chevron-*`
+// and `--bulma-<name>-clear-z-index`, and includes the rules for its root.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+// The rules for the root `.<name>`, its `.<name>-chevron` and its
+// `.<name>-clear`.
+@mixin extras-select-field($name) {
+  // What the panel in place, the chevron and the clear button are placed
+  // against, when a Control around it holds no other field.
+  .#{iv.$class-prefix}#{$name} {
+    position: relative;
+
+    .#{iv.$class-prefix}input {
+      cursor: pointer;
+      padding-inline-end: cv.getVar('#{$name}-chevron-width');
+    }
+
+    &.#{iv.$class-prefix}has-clear .#{iv.$class-prefix}input {
+      padding-inline-end: calc(2 * #{cv.getVar('#{$name}-chevron-width')});
+    }
+
+    .#{iv.$class-prefix}input[disabled] {
+      cursor: not-allowed;
+    }
+  }
+
+  // Bulma's Control icon, at the inline end, where a press goes to the field.
+  .#{iv.$class-prefix}#{$name}-chevron {
+    align-items: center;
+    color: cv.getVar('#{$name}-chevron-color');
+    display: flex;
+    height: 100%;
+    inset-block-start: 0;
+    inset-inline-end: 0;
+    justify-content: center;
+    pointer-events: none;
+    position: absolute;
+    width: cv.getVar('#{$name}-chevron-width');
+    z-index: cv.getVar('#{$name}-chevron-z-index');
+  }
+
+  .#{iv.$class-prefix}#{$name} .#{iv.$class-prefix}input {
+    &:hover ~ .#{iv.$class-prefix}#{$name}-chevron {
+      color: cv.getVar('#{$name}-chevron-hover-color');
+    }
+
+    &:focus ~ .#{iv.$class-prefix}#{$name}-chevron,
+    &.#{iv.$class-prefix}is-focused ~ .#{iv.$class-prefix}#{$name}-chevron,
+    &[aria-expanded='true'] ~ .#{iv.$class-prefix}#{$name}-chevron {
+      color: cv.getVar('#{$name}-chevron-focus-color');
+    }
+
+    &[disabled] ~ .#{iv.$class-prefix}#{$name}-chevron {
+      color: cv.getVar('input-disabled-color');
+    }
+
+    // The chevron's box is in em, so it follows the field's size.
+    &.#{iv.$class-prefix}is-small ~ * {
+      font-size: cv.getVar('size-small');
+    }
+
+    &.#{iv.$class-prefix}is-medium ~ * {
+      font-size: cv.getVar('size-medium');
+    }
+
+    &.#{iv.$class-prefix}is-large ~ * {
+      font-size: cv.getVar('size-large');
+    }
+  }
+
+  // Beside the chevron, centred on the field's height.
+  .#{iv.$class-prefix}#{$name}-clear {
+    inset-block-start: 50%;
+    inset-inline-end: cv.getVar('#{$name}-chevron-width');
+    position: absolute;
+    transform: translateY(-50%);
+    z-index: cv.getVar('#{$name}-clear-z-index');
+  }
+}

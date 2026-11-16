@@ -104,6 +104,9 @@ const NAMED_INDIVIDUALLY = [
   'Toast',
   'ToggleButton',
   'Tour',
+  'Tour.Back',
+  'Tour.Next',
+  'Tour.Skip',
   'Tour.Step',
   'TreeView',
   'TreeView.Item',
@@ -117,6 +120,8 @@ const NAMED_INDIVIDUALLY = [
  */
 const SUMMARISED_AS_FORM_CONTROLS = [
   'Autocomplete',
+  'Calendar',
+  'Cascader',
   'Checkbox',
   'CheckboxCard',
   'ColorInput',

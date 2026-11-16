@@ -23,6 +23,9 @@ colors). The `_index.scss` files are the authoritative inventory.
 - `_input-trigger.scss` — `extras-input-trigger`, a button laid over an input's right edge, which
   the date and time pickers' launcher and PasswordInput's toggle share; it reads Bulma's class
   prefix and variables, so it isn't in `_mixins.scss` either
+- `_select-field.scss` — `extras-select-field($name)`, the read-only field a tree picker opens its
+  panel from: the chevron and the clear button at its inline end and the room they keep, which
+  TreeSelect and Cascader share; it reads Bulma's class prefix and variables too
 - `versions/` — the flavor builds: `bestax-prefixed`, `bestax-no-helpers`, `bestax-no-dark-mode`,
   `bestax-no-helpers-prefixed`. A new partial is included by all of them automatically (they reuse
   the same `_index` imports), but must **work** under each — especially the prefixed build.

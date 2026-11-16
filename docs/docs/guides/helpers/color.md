@@ -41,6 +41,8 @@ Use the `textColor` prop to apply text colors. Most components re-expose Bulma's
 | `textColor="warning"` | `has-text-warning` | Warning yellow      |
 | `textColor="danger"`  | `has-text-danger`  | Danger red          |
 
+Bulma works out a lightness for each color's text on the page, one for each scheme (`colorShade="on-scheme"` renders it). On a dark page, bestax's stylesheets give a standard color's text that lightness wherever it's lighter than the color's own, and its hover and pressed colors on a link or button too, so a dark color, such as bestax's blue primary, stays readable there. On a light page the color keeps its own lightness. The lighter text is for the page, so on a surface that stays light on both schemes, such as `bgColor="white"`, `"light"` or a color's light shade, use `colorShade="dark"` for the color's text, which reads there on both schemes. The theme colors below, `light` and `dark`, and `white` and `black`, stay the same on both schemes, for text on a surface of another color.
+
 ### Monochrome Colors
 
 | Property                   | Bulma Class             | Color Value   |
