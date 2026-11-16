@@ -746,8 +746,9 @@ read for the burger, a carousel and a theme toggle too, and its TODO names the f
   doesn't call it on its own, so give it `onClick={onClose}` for the background to close the
   modal. Keep the open state in `useState` (the `family:modal` TODO covers rebuilding the markup).
 - **`html-script:dismiss`** removes an element when its `.delete` is clicked. `Notification`
-  takes `hasDelete` and `onDelete`, `Tag` takes `onDelete` and `Message` takes `onClose`; render
-  the element only while it's in state.
+  takes `hasDelete` and `onDelete`, `Tag` takes `onDelete` and `Message` takes `onClose`, with
+  `ariaCloseLabel` to keep a name the page gave its `.delete`; render the element only while
+  it's in state.
 - **`html-script:carousel`** drives a carousel. `Carousel` takes its slides as `CarouselItem`
   children and renders its own arrows and indicators (`autoplay` for a timed one). For several
   slides in view, set `itemsToShow`, with a variant per viewport (`itemsToShowMobile`,
