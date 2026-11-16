@@ -154,12 +154,12 @@ as for a feature. CI catches some of these and not others, so a green run doesn'
 ## Bulma's stock colors and the bestax blue
 
 How bestax draws Bulma's stock colors (its named colors and its scheme's own shades) or the bestax
-blue (the primary its builds use) changes only when Alex, the repo's owner, asks for it, whether
-the change is in a component, a helper or the color values themselves. That covers a fill, an edge,
-a ring, a mark, a track or text, at rest or in a state like checked, active, current or picked, and
-swapping one for an on-scheme, darker or lighter shade. Asking means his own words ask for that
-change, in an issue he wrote or in his `@claude` or steer prompt. A `claude-fix` label on its own
-doesn't count.
+blue (the primary its builds use) changes only when Alex, the repo's owner, asks for it, whether the
+change is in a component, a helper or the color values themselves. That covers a fill, an edge, a
+ring (a focus ring included), a mark, a track or text, at rest or in a state like focused, checked,
+active, current or picked, and swapping one for an on-scheme, darker or lighter shade. Asking means
+his own words ask for that change, in an issue he wrote or in his `@claude` or steer prompt. A
+`claude-fix` label on its own doesn't count.
 
 An accessibility or WCAG contrast finding isn't a reason to open a PR that changes those colors.
 Report it to Alex where you found it, on the issue, the PR or in the session, and leave the colors
@@ -172,10 +172,12 @@ read badly: a warning color turned an olive brown on white, and the carousel's d
 One was [closed](https://github.com/allxsmith/bestax/pull/1785) and the other
 [rolled back](https://github.com/allxsmith/bestax/pull/1817).
 
-This doesn't cover a change that leaves those colors as they are, at rest and in those states: a
-bug fix, layout, a fix that applies only in forced colors, a ring that shows only on keyboard
-focus, making a missing element appear the way Bulma draws it, or a new component drawn the way
-its Bulma siblings are.
+This doesn't cover a change that leaves those colors as they are, at rest and in those states: a bug
+fix, layout, a fix that applies only in forced colors, making a missing element appear the way Bulma
+draws it, or a new component drawn the way its Bulma siblings are. One change to the focused state
+doesn't need his ask either: adding a keyboard focus ring where an element shows none, in the color
+Bulma's own focus styles use there. Changing the color of a focus ring that already shows, or
+drawing one in any other color, still does.
 
 ## Commits — release-affecting, not cosmetic
 
