@@ -913,14 +913,39 @@ describe('react-bulma-components transform fixtures', () => {
         expect(rules).toEqual([]);
       });
 
-      it('keeps the Table’s own name, and reports the container’s', () => {
+      it.each([
+        ['a name of its own', ' aria-label="Inner"', ['prop:aria-label']],
+        ['a spread that may hold one', ' {...p}', ['prop:aria-label']],
+        [
+          'an empty name, which is none',
+          ' aria-label=""',
+          ['prop:aria-label', 'name:Table'],
+        ],
+      ])(
+        'keeps a Table with %s as it is, and reports the container’s name',
+        (_, table, expected) => {
+          const { output, rules } = fold(' aria-label="Outer"', table);
+          expect(output).not.toContain('Outer"');
+          expect(rules).toEqual(expected);
+          expect(output).toContain(
+            'the Table it folded onto names itself, or spreads props that may'
+          );
+        }
+      );
+
+      it('tells the container’s role and tab stop to go, which the Table writes itself', () => {
         const { output, rules } = fold(
-          ' aria-label="Outer"',
-          ' aria-label="Inner"'
+          ' role="region" tabIndex={0} aria-label="Scores"',
+          ''
         );
-        expect(output).toContain('aria-label="Inner"');
-        expect(output).not.toContain('Outer"');
-        expect(rules).toEqual(['prop:aria-label']);
+        expect(output).toContain('<Table isResponsive aria-label="Scores" />');
+        expect(rules).toEqual(['prop:role', 'prop:tabIndex']);
+        expect(output).not.toMatch(
+          /`(role|tabIndex)` was dropped[^\n]*re-apply/
+        );
+        expect(output).toContain(
+          '`role` was dropped: `Table isResponsive` renders its container itself'
+        );
       });
 
       it('asks for a name when neither has one', () => {

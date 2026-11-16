@@ -1,7 +1,7 @@
 import { Table } from "@allxsmith/bestax-bulma";
 
 export default function TablePage() {
-  // TODO(bestax-migrate): give the `Table` inside an `aria-label` or `aria-labelledby`, pointed at its caption's `id` if it has one: while it overflows, bestax `Table isResponsive` makes `.table-container` a region you can tab to, named by those alone (table.html:1)
+  // TODO(bestax-migrate): give this `Table` a name in `aria-label` or `aria-labelledby`, such as an `aria-labelledby` pointing at its caption's `id`: while it overflows, bestax `Table isResponsive` makes its `.table-container` a region you can tab to, named by those alone (table.html:1)
   return (
     <Table isBordered isHoverable isResponsive>
       <caption>League</caption>

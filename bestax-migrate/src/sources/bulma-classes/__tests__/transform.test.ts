@@ -484,8 +484,17 @@ describe('a wrapper its component renders', () => {
     expect(rules).toEqual(['name:Table']);
     expect(output).toContain('<Table isResponsive>x</Table>');
     expect(output).toContain(
-      'give the `Table` inside an `aria-label` or `aria-labelledby`'
+      'give this `Table` a name in `aria-label` or `aria-labelledby`'
     );
+  });
+
+  it('counts an empty aria-label as no name', () => {
+    expect(
+      wrapped(
+        '<div className="table-container">',
+        '<table className="table" aria-label="">x</table>'
+      ).rules
+    ).toEqual(['name:Table']);
   });
 
   it.each([

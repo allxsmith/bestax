@@ -82,6 +82,12 @@ const stripModifierProps = makeStripModifierProps(
  */
 const TABLE_NAMES = ['aria-label', 'aria-labelledby'];
 
+/**
+ * What bestax's responsive Table writes on its container itself, while the
+ * table overflows, so a container's own copy has nowhere to go and no need.
+ */
+const CONTAINER_OWN = ['role', 'tabIndex'];
+
 const SPECIALS: Record<string, SpecialHandler> = {
   /**
    * RBC defaults Columns `multiline` to TRUE (Bulma and bestax default to
@@ -865,11 +871,13 @@ const SPECIALS: Record<string, SpecialHandler> = {
       const child = children[0];
       // bestax's responsive Table names its container after the table, from
       // the table's own `aria-label` or `aria-labelledby`, so a name the
-      // container carried moves onto the Table, unless the Table has its own.
-      const childNamed = TABLE_NAMES.some(name => findAttr(child, name));
+      // container carried moves onto the Table, unless the Table writes one
+      // of its own or spreads props that may hold one.
       const childSpreads = (child.openingElement.attributes ?? []).some(
         (a: any) => a.type === 'JSXSpreadAttribute'
       );
+      const takesName =
+        !childSpreads && !TABLE_NAMES.some(name => findAttr(child, name));
       const moved: any[] = [];
       // The container element is gone after the fold. What else it carried
       // (`domRef`, `id`, handlers) applied to the wrapping div, and moving it
@@ -878,7 +886,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       for (const attr of attributesOf(element)) {
         const name = attr?.name?.name;
         if (!name || name === 'className') continue;
-        if (TABLE_NAMES.includes(name) && !childNamed) {
+        if (TABLE_NAMES.includes(name) && takesName) {
           moved.push(attr);
           continue;
         }
@@ -886,7 +894,11 @@ const SPECIALS: Record<string, SpecialHandler> = {
           ctx,
           path,
           `prop:${name}`,
-          `Table.Container \`${name}\` was dropped: the container folded into \`isResponsive\` on its Table, so there is no element left to carry it — re-apply by hand`
+          TABLE_NAMES.includes(name)
+            ? `Table.Container \`${name}\` was dropped: the Table it folded onto names itself, or spreads props that may, and \`Table isResponsive\` names its container after the Table — keep the name you want on the Table`
+            : CONTAINER_OWN.includes(name)
+              ? `Table.Container \`${name}\` was dropped: \`Table isResponsive\` renders its container itself, a region you can tab to while the table overflows and a plain div while it fits — drop it`
+              : `Table.Container \`${name}\` was dropped: the container folded into \`isResponsive\` on its Table, so there is no element left to carry it — re-apply by hand`
         );
       }
       if (
@@ -904,8 +916,14 @@ const SPECIALS: Record<string, SpecialHandler> = {
       addAttr(child, makeAttr(ctx.j, 'isResponsive'));
       for (const attr of moved) addAttr(child, attr);
       // A spread on the Table could hold its name, so only a Table without
-      // one is asked for it.
-      if (!childNamed && moved.length === 0 && !childSpreads) {
+      // one is asked for it. An empty name is none.
+      const named = TABLE_NAMES.some(name => {
+        const attr = findAttr(child, name);
+        if (attr === undefined) return false;
+        const value = literalValueOf(attr);
+        return !(value.kind === 'string' && value.value === '');
+      });
+      if (!named && !childSpreads) {
         addTodo(
           ctx,
           path,
