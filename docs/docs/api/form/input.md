@@ -292,7 +292,7 @@ A `hasAddons` Field names none of the controls it holds, and a placeholder disap
 
 #### Input + Static Suffix
 
-A static button is non-interactive — useful for fixed prefixes/suffixes such as an email domain.
+A static button draws a fixed prefix or suffix, such as an email domain. `isStatic` only styles it, so render it `as="span"`, which Tab skips and a screen reader reads as text.
 
 ```tsx live
 <Field hasAddons>
