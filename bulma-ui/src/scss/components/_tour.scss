@@ -144,6 +144,26 @@ $tour-progress-color: cv.getVar('text-weak') !default;
   }
 }
 
+// Media above the header, as wide as the step and under its top corners.
+// Its top corners follow the inside of the step's border.
+.#{iv.$class-prefix}tour-step-cover {
+  $inner-radius: calc(
+    #{cv.getVar('tour-step-radius')} - #{cv.getVar('tour-step-border-width')}
+  );
+  overflow: hidden;
+  border-start-start-radius: $inner-radius;
+  border-start-end-radius: $inner-radius;
+
+  > img,
+  > video,
+  > picture,
+  > picture > img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+}
+
 .#{iv.$class-prefix}tour-step-header {
   display: flex;
   align-items: center;
@@ -184,6 +204,14 @@ $tour-progress-color: cv.getVar('text-weak') !default;
 
   > .#{iv.$class-prefix}buttons {
     flex-wrap: nowrap;
+  }
+
+  // A footer that renders nothing at all, as Back alone does on the first
+  // step, draws no strip. A wrapper of the app's own, such as Buttons around
+  // that Back, still does, as it isn't empty: the app renders the wrapper
+  // only when its parts show.
+  &:empty {
+    display: none;
   }
 }
 

@@ -540,9 +540,10 @@ const PROPS: Record<string, Record<string, unknown>> = {
     marks: [{ value: 50, label: '50' }],
     tooltip: 'always',
   },
-  // Open on its second step, so Back is swept with every part a step
-  // renders. Its steps have no target, so the step is centered with no
-  // spotlight; Tour.test.tsx sweeps the spotlight under a prefix.
+  // Open on its second step, with a cover, so Back and the cover are swept
+  // with every part a step renders, the footer's parts among them. Its steps
+  // have no target, so the step is centered with no spotlight;
+  // Tour.test.tsx sweeps the spotlight under a prefix.
   Tour: {
     defaultOpen: true,
     defaultValue: 1,
@@ -550,7 +551,11 @@ const PROPS: Record<string, Record<string, unknown>> = {
       <Library.Tour.Step key="one" title="One">
         One
       </Library.Tour.Step>,
-      <Library.Tour.Step key="two" title="Two">
+      <Library.Tour.Step
+        key="two"
+        title="Two"
+        cover={<img src="cover.png" alt="" />}
+      >
         Two
       </Library.Tour.Step>,
     ],

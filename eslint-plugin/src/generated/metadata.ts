@@ -196,6 +196,24 @@ export const DEPRECATED_PROPS: Readonly<
       note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
     },
   },
+  'Tour.Back': {
+    isFullWidth: {
+      replacement: 'isFullwidth',
+      note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
+    },
+  },
+  'Tour.Next': {
+    isFullWidth: {
+      replacement: 'isFullwidth',
+      note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
+    },
+  },
+  'Tour.Skip': {
+    isFullWidth: {
+      replacement: 'isFullwidth',
+      note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
+    },
+  },
 };
 
 /**

@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { useOverlayFocus } from '../useOverlayFocus';
+import { useOverlayStack } from '../overlayStack';
 
 /** An overlay with a button in it, and an opener beside it, in `doc`. */
 function setUp(doc: Document) {
@@ -78,41 +79,78 @@ describe('useOverlayFocus', () => {
     expect(opener).not.toHaveFocus();
   });
 
-  it('focuses the initial element in place of the first tab stop', () => {
+  it('moves focus to the first stop without initialFocus, though focus was inside already', () => {
+    const { opener, overlay, inside } = setUp(document);
+    const later = document.createElement('button');
+    overlay.appendChild(later);
+    opener.focus();
+    later.focus();
+    const { unmount } = renderHook(() =>
+      useOverlayFocus({ current: overlay }, true, { modal: true })
+    );
+    expect(inside).toHaveFocus();
+    unmount();
+  });
+
+  it('lets initialFocus move focus in, in place of the first tab stop', () => {
     const { opener, overlay, inside } = setUp(document);
     const next = document.createElement('button');
     overlay.appendChild(next);
     opener.focus();
+    const initialFocus = vi.fn(() => next.focus());
     const { rerender } = renderHook(
       ({ open }) =>
         useOverlayFocus({ current: overlay }, open, {
           modal: true,
-          initialFocus: { current: next },
+          initialFocus,
         }),
       { initialProps: { open: true } }
     );
+    expect(initialFocus).toHaveBeenCalledWith(overlay);
     expect(next).toHaveFocus();
     expect(inside).not.toHaveFocus();
     rerender({ open: false });
     expect(opener).toHaveFocus();
   });
 
-  it('falls back to the first tab stop for an initial element outside, missing or unfocusable', () => {
+  it('falls back to the first tab stop when initialFocus leaves focus outside', () => {
     const { opener, overlay, inside } = setUp(document);
     const disabled = document.createElement('button');
     disabled.disabled = true;
     overlay.appendChild(disabled);
-    for (const initial of [opener, null, disabled]) {
+    for (const initialFocus of [
+      () => opener.focus(),
+      () => disabled.focus(),
+      () => {},
+    ]) {
       opener.focus();
       const { unmount } = renderHook(() =>
         useOverlayFocus({ current: overlay }, true, {
           modal: true,
-          initialFocus: { current: initial },
+          initialFocus,
         })
       );
       expect(inside).toHaveFocus();
       unmount();
     }
+  });
+
+  it('leaves focus where it is for one that isn’t modal opening while a modal one is', () => {
+    const { opener, overlay, inside } = setUp(document);
+    opener.focus();
+    const stack = renderHook(() => useOverlayStack(true));
+    const initialFocus = vi.fn();
+    const { unmount } = renderHook(() =>
+      useOverlayFocus({ current: overlay }, true, {
+        modal: false,
+        initialFocus,
+      })
+    );
+    expect(initialFocus).not.toHaveBeenCalled();
+    expect(opener).toHaveFocus();
+    expect(inside).not.toHaveFocus();
+    unmount();
+    stack.unmount();
   });
 
   it('leaves focus where it is when restore says no', () => {
