@@ -207,6 +207,59 @@ describe('the field', () => {
   });
 });
 
+describe('several months', () => {
+  const renderMonths = () =>
+    render(
+      <DateRangeInput inline monthsToShow={2} defaultValue={[june(10), null]} />
+    ).container;
+
+  it('share one frame inline, as wide as their row', () => {
+    const months = renderMonths().querySelector('.calendar-months')!;
+    expect(style(months).display).toBe('inline-flex');
+    expect(style(months).maxWidth).toBe('100%');
+    expect(style(months).backgroundColor).toBe('var(--bulma-scheme-main)');
+    expect(style(months).padding).toBe('12px');
+    // Each month inside the frame draws none of its own.
+    expect(style(months.querySelector('.dateinput')!).padding).not.toBe('12px');
+  });
+
+  it('space the months by the gap a Calendar takes, inline and in the popover', () => {
+    const gapOf = (el: Element) =>
+      style(el).getPropertyValue('--bulma-calendar-months-gap');
+    const inline = renderMonths().querySelector('.dateinput-container')!;
+    expect(gapOf(inline)).toBe('var(--bulma-block-spacing)');
+    render(<DateRangeInput monthsToShow={2} appendToBody />);
+    fireEvent.click(screen.getByRole('combobox', { name: 'Start date' }));
+    expect(gapOf(screen.getByRole('dialog'))).toBe(
+      'var(--bulma-block-spacing)'
+    );
+  });
+
+  it("center each month's name over its grid, between the buttons", () => {
+    const headers = renderMonths().querySelectorAll('.dateinput-header');
+    expect(headers).toHaveLength(2);
+    for (const header of headers) {
+      expect(style(header).display).toBe('grid');
+    }
+    expect(
+      style(headers[1].querySelector('.dateinput-month-label')!).justifySelf
+    ).toBe('center');
+    expect(
+      style(headers[1].querySelector('.dateinput-nav-next')!).gridColumn
+    ).toBe('3');
+  });
+
+  it("leave one month's header and frame as they were", () => {
+    const { container } = render(
+      <DateRangeInput inline defaultValue={[june(10), null]} />
+    );
+    expect(style(container.querySelector('.dateinput-header')!).display).toBe(
+      'flex'
+    );
+    expect(style(container.querySelector('.dateinput')!).padding).toBe('12px');
+  });
+});
+
 describe('under a class prefix', () => {
   it('matches the prefixed classes the component emits', () => {
     inject(
@@ -221,8 +274,18 @@ describe('under a class prefix', () => {
       <ConfigProvider classPrefix="bestax-">
         <DateRangeInput inline defaultValue={[june(10), june(13)]} />
         <DateRangeInput disabled />
+        <DateRangeInput
+          inline
+          monthsToShow={2}
+          defaultValue={[june(10), null]}
+        />
       </ConfigProvider>
     );
+    const months = container.querySelector('.bestax-calendar-months')!;
+    expect(style(months).display).toBe('inline-flex');
+    expect(
+      style(months.querySelector('.bestax-dateinput-header')!).display
+    ).toBe('grid');
     expect(style(cell(container, 11)).backgroundColor).toBe(
       'var(--bulma-dateinput-cell-range-bg)'
     );
