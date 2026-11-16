@@ -172,7 +172,8 @@ Notes:
   @use '@allxsmith/bestax-bulma/scss/components/panel' as bestax-panel;
   ```
 
-- The `file` partial **extends** stock Bulma file (File's keyboard focus ring, and the rounded
+- The `file` partial **extends** stock Bulma file (File's keyboard focus ring, a file dropped on
+  its button or name reaching its input, which Bulma's module draws them over, and the rounded
   corners of a boxed `hasName` File with no name to show), so an app using `File` needs both, in
   either order:
 
@@ -193,7 +194,8 @@ Notes:
   ```
 
 - `Dropzone`'s zone is Bulma's file widget, so an app using it needs `bulma/sass/form/file` and the
-  `file` partial (its keyboard focus ring) next to `scss/form/dropzone`, plus
+  `file` partial (its keyboard focus ring, and a file dropped on its button or name reaching its
+  input) next to `scss/form/dropzone`, plus
   `bulma/sass/elements/delete` and the `delete` partial for the remove buttons and
   `bulma/sass/form/tools` for its help lines.
 - `DateInput`/`TimeInput`/`DateTimeInput` also need `picker-popover`.
@@ -261,7 +263,7 @@ Notes:
   `bulma/sass/base/skeleton`). The `progress` and `skeleton` extras partials
   (`as bestax-progress`, `as bestax-skeleton`) stop the indeterminate bar's sweep and the
   skeleton pulse (`Skeleton`, the `skeleton` prop, `hasSkeleton`) under
-  `prefers-reduced-motion: reduce`, the same way and in either order. The `progress` partial
+  `prefers-reduced-motion: reduce`, in either order. The `progress` partial
   also keeps the bar drawn in forced colors, its fill and an edge in the text color, where
   Bulma's module leaves the whole bar the page's color. The `skeleton` partial keeps each shape
   drawn there too, in `GrayText`, with the text Bulma hides still hidden, where Bulma's module

@@ -280,7 +280,7 @@ Some of these partials adjust a stock Bulma component rather than add one of bes
 
 - `form/field` puts the `message` of a horizontal form component (`Input horizontal`, `Checkboxes horizontal` and the like) under its control, where Bulma's row would set it beside, and keeps a horizontal label's text against its control on a right-to-left page, so a build that uses `bulma/sass/form/tools` for horizontal fields wants it too.
 
-- `form/file` lets a file dropped on a `File`'s button or name reach its input, where Bulma's module lets them cover it, draws the button's keyboard focus ring, where Bulma's transparent input shows none, and rounds the bottom corners of a boxed `hasName` File with no name to show, which Bulma's `is-boxed` squares, so a build that uses `bulma/sass/form/file`, for a `File` or a `Dropzone`, wants it too.
+- `form/file` lets a file dropped on a `File`'s button or name reach its input, where Bulma's module draws the button and name over it, draws the button's keyboard focus ring, where Bulma's transparent input shows none, and rounds the bottom corners of a boxed `hasName` File with no name to show, which Bulma's `is-boxed` squares, so a build that uses `bulma/sass/form/file`, for a `File` or a `Dropzone`, wants it too.
 
 - `helpers/color` gives a color's text (`textColor`, `has-text-*`) the color's on-scheme lightness on the dark scheme wherever that's the lighter one, so a dark color such as the bestax blue primary reads there, and a build that uses `bulma/sass/helpers/color` wants it too.
 
@@ -296,7 +296,7 @@ Others draw on a stock Bulma component without adjusting it.
 
 - `elements/stat`'s `Stats` row is Bulma's smart grid, so a build with one wants `bulma/sass/grid/grid` too.
 
-- `form/dropzone` is Bulma's file widget, so a build that uses it wants `bulma/sass/form/file` and bestax's `form/file`, for the zone's focus ring, too, and its remove buttons are delete buttons, so it wants `bulma/sass/elements/delete` and `elements/delete` as well.
+- `form/dropzone` is Bulma's file widget, so a build that uses it wants `bulma/sass/form/file` and bestax's `form/file`, for the zone's focus ring and so a file dropped on its button or name reaches its input, too, and its remove buttons are delete buttons, so it wants `bulma/sass/elements/delete` and `elements/delete` as well.
 
 - `layout/appframe`'s drawer closes with a delete button, so it wants `bulma/sass/elements/delete` and `elements/delete` too, and its burger is Bulma's navbar burger, so it wants `bulma/sass/components/navbar` and `components/navbar` as well. Its icon rail, `AppFrame.Nav rail`, shows each label in a tooltip, so a build with a rail wants `components/tooltip` too, and `bulma/sass/components/menu` and `components/menu` for the icons in its menu.
 
