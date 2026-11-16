@@ -67,7 +67,7 @@ A responsive navigation bar with support for branding, menus, dropdowns, and mor
 
 ### Tabs
 
-A flexible tab navigation system for switching between views or filtering content. [View full documentation.](../../api/components/tabs.md)
+A flexible tab system for navigation, or for switching between views in place. This example is navigation: a link in each `Tabs.Item`, with the current one marked `aria-current="page"`. Tabs that switch views in place are built from `Tabs.Tab` and `Tabs.Content`. [View full documentation.](../../api/components/tabs.md)
 
 ```tsx live
 <Tabs align="centered">
