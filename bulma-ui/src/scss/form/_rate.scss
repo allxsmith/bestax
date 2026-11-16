@@ -120,6 +120,19 @@ $rate-pop-scale: 1.2 !default;
   }
 }
 
+// The filled part of a star the value only partly fills, drawn as a filled
+// star is: in the active color, or the hover color while the pointer would
+// fill it, rather than the item's own color, the empty star's.
+.#{iv.$class-prefix}rate-star-fill {
+  fill: cv.getVar("rate-color-active");
+  transition: fill cv.getVar("rate-transition-duration") ease;
+}
+
+.#{iv.$class-prefix}rate-item:hover .#{iv.$class-prefix}rate-star-fill,
+.#{iv.$class-prefix}rate-item.#{iv.$class-prefix}is-hovered .#{iv.$class-prefix}rate-star-fill {
+  fill: cv.getVar("rate-color-hover");
+}
+
 // Partial fill (precision < 1)
 .#{iv.$class-prefix}rate-icon-partial {
   position: relative;
@@ -292,6 +305,12 @@ $rate-pop-scale: 1.2 !default;
       }
     }
 
+    // A partly filled star's filled part, as a filled star's: important,
+    // over the hover fill, whose rules rank higher.
+    .#{iv.$class-prefix}rate-star-fill {
+      fill: Highlight !important;
+    }
+
     &:focus-visible {
       outline-color: Highlight;
     }
@@ -305,5 +324,9 @@ $rate-pop-scale: 1.2 !default;
   .#{iv.$class-prefix}rate-item {
     transition: none;
     animation: none !important;
+  }
+
+  .#{iv.$class-prefix}rate-star-fill {
+    transition: none;
   }
 }

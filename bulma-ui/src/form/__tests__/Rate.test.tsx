@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { Rate, RateIconProps } from '../Rate';
 import { Field } from '../Field';
 import { Control } from '../Control';
+import { ConfigProvider } from '../../helpers/Config';
 
 /**
  * Helper: stub `getBoundingClientRect` on every `.rate-item` span so
@@ -677,6 +678,20 @@ describe('Rate', () => {
       // The 4th star (index 3) should have a partial fill SVG with a clipPath
       const clipPaths = container.querySelectorAll('clipPath');
       expect(clipPaths.length).toBeGreaterThan(0);
+    });
+
+    it('marks the filled part of a partly filled star, so the stylesheet draws it as a filled star', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bestax-">
+          <Rate defaultValue={3.5} precision={0.5} />
+        </ConfigProvider>
+      );
+      const fill = container.querySelector('path.bestax-rate-star-fill');
+      // The one in the 4th star, clipped to its half, over its empty outline.
+      expect(container.querySelectorAll('.bestax-rate-star-fill')).toHaveLength(
+        1
+      );
+      expect(fill).toHaveAttribute('clip-path');
     });
 
     it('clips each Rate’s partly filled star with a clip of its own', () => {
