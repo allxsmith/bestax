@@ -32,6 +32,12 @@ describe('limitToPercent', () => {
     expect(limitToPercent(25, null, 16)).toBe(25);
     expect(limitToPercent('25', null, 16)).toBe(25);
     expect(limitToPercent(' 12.5% ', null, 16)).toBe(12.5);
+    expect(limitToPercent('25 ', null, 16)).toBe(25);
+    expect(limitToPercent('25 % ', null, 16)).toBe(25);
+  });
+
+  it('reads nothing from a long run of spaces before something else', () => {
+    expect(limitToPercent(`1${' '.repeat(5000)}x`, 800, 16)).toBeNull();
   });
 
   it('turns px and rem into a percentage of the length, once there is one', () => {
