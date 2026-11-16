@@ -392,9 +392,10 @@ describe.each([
   });
 });
 
-// A mark's label is text that gives a value, so it needs 4.5:1 on both
-// schemes. text-light, which it had, is a fixed light gray at about 1.3:1 on
-// the light scheme's white, and the tick's opacity halved it further.
+// A mark's label is drawn in Bulma's text-light inside its tick, and the
+// tick's own opacity dims the label with the line. That's Bulma's stock gray,
+// which changes only when the owner asks (the root CLAUDE.md, "Bulma's stock
+// colors and the bestax blue").
 describe.each([
   ['no prefix', ''],
   ['a class prefix', 'bestax-'],
@@ -411,32 +412,37 @@ describe.each([
   const p = (name: string) => `\\.${prefix}${name}`;
   const block = (selector: string, within = sheet) =>
     within.match(new RegExp(`(?:^|\\n)\\s*${selector}\\s*\\{([^}]*)\\}`))?.[1];
+  /** Every rule body for exactly `selector`, joined. */
+  const blocks = (selector: string) =>
+    [
+      ...sheet.matchAll(
+        new RegExp(`(?:^|\\n)\\s*${selector}\\s*\\{([^}]*)\\}`, 'g')
+      ),
+    ]
+      .map(m => m[1])
+      .join('\n');
   const forced = sheet.slice(sheet.indexOf('@media (forced-colors: active)'));
 
-  it('write in a text color that follows the scheme', () => {
+  it('write in text-light', () => {
     expect(sheet).toContain(
-      '--bulma-slider-tick-label-color: var(--bulma-text-weak)'
+      '--bulma-slider-tick-label-color: var(--bulma-text-light)'
     );
     expect(block(p('slider-tick-label'))).toContain(
       'color: var(--bulma-slider-tick-label-color)'
     );
   });
 
-  it('keep the tick line’s opacity off the label the tick holds', () => {
-    // An opacity on the tick would dim its label with it, whatever the
-    // label's own color, so the line is drawn on the tick's ::before.
-    expect(block(p('slider-tick'))).not.toMatch(/opacity|background/);
-    const line = block(`${p('slider-tick')}::before`)!;
-    expect(line).toContain('background: var(--bulma-slider-tick-color)');
-    expect(line).toContain('opacity: var(--bulma-slider-tick-opacity)');
-    expect(block(`${p('slider-tick')}${p('is-endpoint')}::before`)).toContain(
+  it('sit in a tick whose line color and opacity are its own, so they dim the label too', () => {
+    const tick = blocks(p('slider-tick'));
+    expect(tick).toContain('background: var(--bulma-slider-tick-color)');
+    expect(tick).toContain('opacity: var(--bulma-slider-tick-opacity)');
+    expect(sheet).not.toMatch(new RegExp(`${p('slider-tick')}::before`));
+    expect(block(`${p('slider-tick')}${p('is-endpoint')}`)).toContain(
       'background: transparent'
     );
   });
 
-  it('paint the tick line in the system text color in forced colors', () => {
-    expect(block(`${p('slider-tick')}::before`, forced)).toContain(
-      'background: ButtonText'
-    );
+  it('paint the tick in the system text color in forced colors', () => {
+    expect(block(p('slider-tick'), forced)).toContain('background: ButtonText');
   });
 });
