@@ -84,7 +84,7 @@ export interface NumberinputProps
    * they join the row of a `Field` with `hasAddons` or `grouped` they sit
    * in. On by default inside a `Field`, unless a `Control` is anywhere above
    * it: a `Control` stacks its children, so there the controls keep their
-   * own row. A bare Numberinput renders no `message`, so put help text
+   * own row. Bare plusminus controls render no `message`, so put help text
    * after that row yourself.
    * @defaultValue auto
    */
