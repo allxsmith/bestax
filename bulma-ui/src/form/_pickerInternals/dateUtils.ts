@@ -238,7 +238,8 @@ export const pageMonthCount = (monthsToShow: number): number =>
 /**
  * The first month of a page of `count` months starting at month `first`, a
  * {@link monthIndex}, kept inside `min` and `max` where they leave room for a
- * whole page. `min` wins when they don't.
+ * whole page. `min` wins when they don't. An invalid `max` counts as none, as
+ * the calendar's days read it.
  */
 export function fitPage(
   first: number,
@@ -246,7 +247,8 @@ export function fitPage(
   min: Date,
   max?: Date
 ): number {
-  const last = max ? monthIndex(max) - (count - 1) : first;
+  const top = max ? monthIndex(max) : NaN;
+  const last = Number.isFinite(top) ? top - (count - 1) : first;
   return Math.max(monthIndex(min), Math.min(first, last));
 }
 

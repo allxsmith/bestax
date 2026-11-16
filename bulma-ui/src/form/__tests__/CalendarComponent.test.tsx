@@ -904,6 +904,99 @@ describe('Calendar', () => {
     });
   });
 
+  describe('the first months and the bounds', () => {
+    const JUN_10 = new Date(2026, 5, 10);
+    const AUG_1 = new Date(2026, 7, 1);
+    const MAR_31 = new Date(2026, 2, 31);
+    const DEC_31 = new Date(2026, 11, 31);
+    const FEB_10_2027 = new Date(2027, 1, 10);
+
+    /** The months a Calendar opens on, one month and then two. */
+    const opensOn = (props: Partial<CalendarSingleProps>) =>
+      [1, 2].map(monthsToShow => {
+        const { container, unmount } = render(
+          <Calendar locale="en-US" monthsToShow={monthsToShow} {...props} />
+        );
+        const names = gridNames(container);
+        unmount();
+        return names;
+      });
+
+    it("opens a value before min on min's month, with min only", () => {
+      expect(opensOn({ min: AUG_1, defaultValue: JUN_10 })).toEqual([
+        ['August 2026'],
+        ['August 2026', 'September 2026'],
+      ]);
+    });
+
+    it("opens a value after max on max's month, with max only", () => {
+      expect(opensOn({ max: MAR_31, defaultValue: JUN_10 })).toEqual([
+        ['March 2026'],
+        ['February 2026', 'March 2026'],
+      ]);
+    });
+
+    it('opens a value outside both bounds on the month of the bound it passed', () => {
+      expect(
+        opensOn({ min: AUG_1, max: DEC_31, defaultValue: JUN_10 })
+      ).toEqual([['August 2026'], ['August 2026', 'September 2026']]);
+      expect(
+        opensOn({ min: AUG_1, max: DEC_31, defaultValue: FEB_10_2027 })
+      ).toEqual([['December 2026'], ['November 2026', 'December 2026']]);
+    });
+
+    it("opens a range's start before min on min's month", () => {
+      const { container } = render(
+        <Calendar
+          locale="en-US"
+          selectionMode="range"
+          min={AUG_1}
+          defaultValue={[JUN_10, null]}
+        />
+      );
+      expect(gridNames(container)).toEqual(['August 2026']);
+    });
+
+    it('opens a month grid on the year of the bound a value passed', () => {
+      const { container, rerender } = render(
+        <Calendar
+          locale="en-US"
+          granularity="month"
+          min={new Date(2027, 0, 1)}
+          defaultValue={JUN_10}
+        />
+      );
+      expect(gridNames(container)).toEqual(['2027']);
+      rerender(<></>);
+      rerender(
+        <Calendar
+          locale="en-US"
+          granularity="month"
+          max={new Date(2025, 11, 31)}
+          defaultValue={JUN_10}
+        />
+      );
+      expect(gridNames(container)).toEqual(['2025']);
+    });
+
+    it('reads an invalid max as none, as its days do', () => {
+      expect(
+        opensOn({ max: new Date(Number.NaN), defaultValue: JUN_10 })
+      ).toEqual([['June 2026'], ['June 2026', 'July 2026']]);
+    });
+
+    it('shows month and defaultMonth as given, whatever the bounds', () => {
+      expect(opensOn({ min: AUG_1, defaultMonth: JUN_10 })).toEqual([
+        ['June 2026'],
+        ['June 2026', 'July 2026'],
+      ]);
+      expect(opensOn({ max: MAR_31, month: JUN_10 })).toEqual([
+        ['June 2026'],
+        ['June 2026', 'July 2026'],
+      ]);
+    });
+  });
+
   describe('several months', () => {
     it('shows monthsToShow grids, each named by its month', () => {
       const { container } = render(
