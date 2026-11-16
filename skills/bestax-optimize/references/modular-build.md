@@ -250,7 +250,8 @@ Notes:
 - `Loader` is stock Bulma styled by `bulma/sass/elements/loader`, and the `isLoading`
   spinners on `Button`, `Control` and `Select` are Bulma's too. The `loader` extras partial
   stops all of them under `prefers-reduced-motion: reduce`, hides everything inside a loading
-  button where Bulma hides only the label, and keeps each ring open in forced colors (Windows'
+  button where Bulma hides only the label, outlines a loading button that has keyboard focus,
+  whose focus shadow Bulma takes away, and keeps each ring open in forced colors (Windows'
   contrast themes), so include it (`as bestax-loader`) next to the Bulma modules in any build
   that shows one. Its
   rules win over Bulma's either way, so the order of the two `@use` lines does not matter.
@@ -285,11 +286,13 @@ Notes:
   include it (`as bestax-delete`) in any build that shows a close button. Its rules win over
   Bulma's either way, so the order of the `@use` lines does not matter.
 - `Button` is stock Bulma too (`bulma/sass/elements/button`). Bulma shows a focused button with
-  its border and a shadow, which a ghost button doesn't have, and forced colors (Windows'
+  its border and a shadow, which a ghost button doesn't have and a static one doesn't show, and
+  forced colors (Windows'
   contrast themes) drops the shadow and sets the border's color, so a focused button can look
   like an unfocused one there. Forced colors also replaces a colored button's fill, which Bulma
   draws with no border, so an icon-only one shows only its glyph there. The `button` extras
-  partial gives those focused buttons an outline, a colored button a 1px border in forced
+  partial gives those focused buttons an outline, apart from a loading one, which the `loader`
+  partial outlines, a colored button a 1px border in forced
   colors, and an outlined button the lightness Bulma picks for its color's text on the page where
   that's lighter, so a dark color reads on the dark scheme, so include it (`as bestax-button`) in any build that loads Bulma's button module. Its
   rules win over Bulma's either way, so the order of the `@use` lines does not matter.
