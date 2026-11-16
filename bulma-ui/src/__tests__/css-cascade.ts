@@ -219,6 +219,31 @@ export function cascade(
   return won?.value;
 }
 
+/**
+ * What the rules of `css` that match `el` declare for `properties`, as
+ * `property: value` in source order: the top-level rules' under `atRest`, and
+ * those nested in an at-rule under that at-rule, such as
+ * `@media (forced-colors: active)`. For a value that only applies in a media
+ * query `cascade` doesn't model, where what matters is that it's declared
+ * there and nowhere else.
+ */
+export function declaredFor(el: Element, css: string, properties: string[]) {
+  const { rules, nested } = rulesOf(css);
+  const read = (rule: CSSStyleRule) =>
+    matching(el, rule).length === 0
+      ? []
+      : properties.flatMap(property => {
+          const value = rule.style.getPropertyValue(property);
+          return value ? [`${property}: ${value}`] : [];
+        });
+  const out: Record<string, string[]> = { atRest: rules.flatMap(read) };
+  for (const { rule, within } of nested) {
+    const declared = read(rule);
+    if (declared.length > 0) (out[within] ??= []).push(...declared);
+  }
+  return out;
+}
+
 /** The custom property `name` declared on `el`, as the rules of `css` resolve it. */
 export const customProperty = (el: Element, css: string, name: string) =>
   cascade(

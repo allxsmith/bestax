@@ -1,113 +1,64 @@
-// Forced colors takes away the open list's shadow and the highlighted
+// Forced colors takes away the open dropdown's shadow and the highlighted
 // option's fill, so `_autocomplete.scss` gives them an edge and an outline
-// there (#2003). jsdom loads no partial on its own and evaluates no media
-// query, so this compiles the partial, with no prefix and under one, and
-// matches the selectors of its rules, inside the forced-colors block and
-// outside it, against the markup the Autocomplete renders.
-import * as sass from 'sass';
-import path from 'path';
+// there, and nothing at rest (#2003). jsdom loads no partial on its own and
+// evaluates no media query, so this compiles the partial, with no prefix and
+// under one, and reads what its rules declare for the elements the
+// Autocomplete renders, inside the forced-colors block and outside it.
 import { fireEvent, render, screen } from '@testing-library/react';
 import { Autocomplete } from '../Autocomplete';
 import { ConfigProvider } from '../../helpers/Config';
-
-const SCSS = path.resolve(__dirname, '../../scss');
-const NODE_MODULES = path.resolve(__dirname, '../../../../node_modules');
-
-const compile = (prefix: string) =>
-  sass.compileString(
-    `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
-     @use 'form/autocomplete';`,
-    {
-      loadPaths: [SCSS, NODE_MODULES],
-      quietDeps: true,
-      logger: sass.Logger.silent,
-    }
-  ).css;
-
-/**
- * The declarations of `properties` that the rules of `css` matching `el` make,
- * in source order, split by whether they sit in the forced-colors block.
- */
-function declaredByMode(css: string, el: Element, properties: string[]) {
-  const style = document.createElement('style');
-  style.textContent = css;
-  document.head.appendChild(style);
-  const out = { atRest: [] as string[], forced: [] as string[] };
-  const walk = (rules: CSSRuleList, forced: boolean) => {
-    for (const rule of Array.from(rules)) {
-      if (rule instanceof CSSStyleRule) {
-        if (!el.matches(rule.selectorText)) continue;
-        for (const property of properties) {
-          const value = rule.style.getPropertyValue(property);
-          if (value) {
-            (forced ? out.forced : out.atRest).push(`${property}: ${value}`);
-          }
-        }
-      } else if (rule instanceof CSSMediaRule) {
-        walk(
-          rule.cssRules,
-          forced || rule.conditionText.includes('forced-colors: active')
-        );
-      }
-    }
-  };
-  try {
-    walk((style.sheet as CSSStyleSheet).cssRules, false);
-  } finally {
-    style.remove();
-  }
-  return out;
-}
+import { compilePartial, declaredFor } from '../../__tests__/css-cascade';
 
 const OUTLINE = ['outline', 'outline-offset'];
+const FORCED = '@media (forced-colors: active)';
 
 describe.each([
   ['no prefix', ''],
   ['a class prefix', 'bestax-'],
-])('the open list in forced colors, with %s', (_n, prefix) => {
-  const css = compile(prefix);
+])('the open dropdown in forced colors, with %s', (_n, prefix) => {
+  const css = compilePartial('form/autocomplete', prefix);
 
-  const openList = () => {
+  const open = (typed: string) => {
     render(
       <ConfigProvider classPrefix={prefix}>
         <Autocomplete
           label="Fruit"
           data={['Apple', 'Apricot', 'Avocado']}
           header="Fruit we have"
+          empty="No fruit"
         />
       </ConfigProvider>
     );
     const input = screen.getByRole('combobox');
-    fireEvent.change(input, { target: { value: 'A' } });
+    fireEvent.change(input, { target: { value: typed } });
     fireEvent.keyDown(input, { key: 'ArrowDown' });
-    const options = screen.getAllByRole('option');
-    // The arrow put the highlight on the first option.
-    expect(input).toHaveAttribute('aria-activedescendant', options[0].id);
-    return options;
+    return input;
   };
 
   it('outlines the highlighted option, and only it', () => {
-    const [highlighted, other] = openList();
-    expect(declaredByMode(css, highlighted, OUTLINE)).toEqual({
+    const input = open('A');
+    const [highlighted, other] = screen.getAllByRole('option');
+    // The arrow put the highlight on the first option.
+    expect(input).toHaveAttribute('aria-activedescendant', highlighted.id);
+    expect(declaredFor(highlighted, css, OUTLINE)).toEqual({
       atRest: [],
-      forced: ['outline: 2px solid Highlight', 'outline-offset: -2px'],
+      [FORCED]: ['outline: 2px solid Highlight', 'outline-offset: -2px'],
     });
-    expect(declaredByMode(css, other, OUTLINE)).toEqual({
-      atRest: [],
-      forced: [],
-    });
+    expect(declaredFor(other, css, OUTLINE)).toEqual({ atRest: [] });
   });
 
-  it('draws an edge around the open list, header and all', () => {
-    openList();
+  it.each([
+    ['the options and the header', 'A'],
+    ['only the empty message and the header', 'zz'],
+  ])('draws an edge around the dropdown showing %s', (_m, typed) => {
+    open(typed);
     const box = document.querySelector(
       `.${prefix}autocomplete .${prefix}dropdown-content`
     ) as HTMLElement;
-    expect(box).toContainElement(screen.getByRole('listbox'));
     expect(box).toHaveTextContent('Fruit we have');
-    expect(declaredByMode(css, box, OUTLINE)).toEqual({
+    expect(declaredFor(box, css, OUTLINE)).toEqual({
       atRest: [],
-      forced: ['outline: 1px solid CanvasText', 'outline-offset: -1px'],
+      [FORCED]: ['outline: 1px solid CanvasText', 'outline-offset: -1px'],
     });
   });
 });

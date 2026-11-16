@@ -14,6 +14,10 @@ import { Control } from '../Control';
 import { Field } from '../Field';
 import { Input } from '../Input';
 import { ConfigProvider } from '../../helpers/Config';
+import {
+  compilePartial,
+  declaredFor as declarationsFor,
+} from '../../__tests__/css-cascade';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 const NODE_MODULES = path.resolve(__dirname, '../../../../node_modules');
@@ -117,41 +121,6 @@ function declaredFor(css: string, el: Element, property: string): string[] {
   return out;
 }
 
-/**
- * The declarations of `properties` that the rules of `css` matching `el` make,
- * in source order, split by whether they sit in the forced-colors block.
- */
-function declaredByMode(css: string, el: Element, properties: string[]) {
-  const style = document.createElement('style');
-  style.textContent = css;
-  document.head.appendChild(style);
-  const out = { atRest: [] as string[], forced: [] as string[] };
-  const walk = (rules: CSSRuleList, forced: boolean) => {
-    for (const rule of Array.from(rules)) {
-      if (rule instanceof CSSStyleRule) {
-        if (!el.matches(rule.selectorText)) continue;
-        for (const property of properties) {
-          const value = rule.style.getPropertyValue(property);
-          if (value) {
-            (forced ? out.forced : out.atRest).push(`${property}: ${value}`);
-          }
-        }
-      } else if (rule instanceof CSSMediaRule) {
-        walk(
-          rule.cssRules,
-          forced || rule.conditionText.includes('forced-colors: active')
-        );
-      }
-    }
-  };
-  try {
-    walk((style.sheet as CSSStyleSheet).cssRules, false);
-  } finally {
-    style.remove();
-  }
-  return out;
-}
-
 // Forced colors takes away the open list's shadow and the highlighted
 // suggestion's fill, so the partial gives them an edge and an outline there,
 // and nothing at rest (#2003).
@@ -159,12 +128,9 @@ describe.each([
   ['no prefix', ''],
   ['a class prefix', 'bestax-'],
 ])('the open suggestion list in forced colors, with %s', (_n, prefix) => {
-  const css = sass.compileString(
-    `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
-     @use 'form/taginput';`,
-    OPTIONS
-  ).css;
+  const css = compilePartial('form/taginput', prefix);
   const OUTLINE = ['outline', 'outline-offset'];
+  const FORCED = '@media (forced-colors: active)';
 
   const openList = () => {
     const { getByRole, getAllByRole } = render(
@@ -185,22 +151,19 @@ describe.each([
     const {
       options: [highlighted, other],
     } = openList();
-    expect(declaredByMode(css, highlighted, OUTLINE)).toEqual({
+    expect(declarationsFor(highlighted, css, OUTLINE)).toEqual({
       atRest: [],
-      forced: ['outline: 2px solid Highlight', 'outline-offset: -2px'],
+      [FORCED]: ['outline: 2px solid Highlight', 'outline-offset: -2px'],
     });
-    expect(declaredByMode(css, other, OUTLINE)).toEqual({
-      atRest: [],
-      forced: [],
-    });
+    expect(declarationsFor(other, css, OUTLINE)).toEqual({ atRest: [] });
   });
 
   it('draws an edge around the open list', () => {
     const { list } = openList();
     expect(list).toHaveClass(`${prefix}dropdown-content`);
-    expect(declaredByMode(css, list, OUTLINE)).toEqual({
+    expect(declarationsFor(list, css, OUTLINE)).toEqual({
       atRest: [],
-      forced: ['outline: 1px solid CanvasText', 'outline-offset: -1px'],
+      [FORCED]: ['outline: 1px solid CanvasText', 'outline-offset: -1px'],
     });
   });
 });
