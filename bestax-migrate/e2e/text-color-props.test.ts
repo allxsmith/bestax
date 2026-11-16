@@ -21,8 +21,11 @@ import {
   TEXT_COLOR_VIA_COLOR,
 } from '../src/sources/_shared/text-color-props.js';
 import { renderElement } from './support/render-module.js';
-import { SOURCE_TARGETS } from './support/source-targets.js';
+import { targetsOf } from './support/source-targets.js';
 import { annotate, typecheckTsx } from './support/typecheck-tsx.js';
+
+/** Every component react-bulma-components and rbx can turn an element into. */
+const SOURCE_TARGETS = targetsOf('react-bulma-components', 'rbx');
 
 /**
  * Targets whose `color` renders only `has-text-<color>` at runtime but which

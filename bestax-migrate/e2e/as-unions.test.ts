@@ -25,16 +25,8 @@ import {
   LINK_ATTR_TABLE,
   declaresAs,
 } from '../src/sources/_shared/polymorphic.js';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { annotate, typecheckTsx } from './support/typecheck-tsx.js';
-import { sourceNames } from '../src/sources/registry.js';
-
-const packageRoot = path.join(
-  path.dirname(fileURLToPath(import.meta.url)),
-  '..'
-);
+import { targetsOf } from './support/source-targets.js';
 
 const TARGETS = Object.keys(AS_UNIONS).sort();
 
@@ -451,36 +443,14 @@ describe('every row is exactly what React declares, over all of HTML', () => {
 const UNPROBEABLE = ['Dropdown', 'Dropdown.Divider', 'Tabs.Tab'];
 
 /**
- * Every bestax target the sources can produce.
- *
- * `target:` lines only, plus the handful a `special` names inline -- reading
- * every capitalised dotted string out of `specials.ts` also collects the
- * SOURCE libraries' own names (`Form.Help`, `Field.Label`), which bestax does
- * not export. `Pagination.Next` and `Pagination.Previous` are the ones that
- * matter here: no mapping names them, and the first version of `HREF_OK`
- * missed both for exactly that reason.
+ * Every component the library sources can turn an element into, but the
+ * unprobeable: the sources whose transforms read `HREF_TABLE`, which
+ * bulma-classes never does.
  */
-const SPECIAL_ONLY_TARGETS = ['Pagination.Next', 'Pagination.Previous'];
-
-/** Where each source spells its targets as `target: '…'` lines. */
-const TARGET_FILES: Record<string, string[]> = {
-  bloomer: ['mapping.ts', 'specials.ts'],
-  rbx: ['mapping.ts', 'specials.ts'],
-  'react-bulma-components': ['mapping.ts', 'specials.ts'],
-  'bulma-classes': ['class-map.ts'],
-};
-
 function reachableTargets(): string[] {
-  const dir = path.join(packageRoot, 'src', 'sources');
-  const found = new Set<string>(SPECIAL_ONLY_TARGETS);
-  for (const [source, files] of Object.entries(TARGET_FILES)) {
-    for (const file of files) {
-      const text = fs.readFileSync(path.join(dir, source, file), 'utf8');
-      for (const m of text.matchAll(/target: '([A-Z][\w.]*)'/g))
-        found.add(m[1]);
-    }
-  }
-  return [...found].filter(t => !UNPROBEABLE.includes(t)).sort();
+  return targetsOf('react-bulma-components', 'rbx', 'bloomer').filter(
+    t => !UNPROBEABLE.includes(t)
+  );
 }
 
 /** Whether the target renders an `<a>` when told to: `AS_ANY`, or a union with it. */
@@ -490,10 +460,6 @@ function acceptsAsAnchor(target: string): boolean {
 }
 
 describe('HREF_OK names every reachable target that takes an href', () => {
-  it('reads targets from every registered source', () => {
-    expect(Object.keys(TARGET_FILES).sort()).toEqual(sourceNames().sort());
-  });
-
   it('and no others', () => {
     // The one claim in this file nothing held. A deep review refuted a
     // missing row by hand once; a missing row deletes a working link and a
