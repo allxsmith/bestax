@@ -375,7 +375,7 @@ And around it:
 - A tooltip describes and doesn't name, so give an icon-only trigger a name of its own, such as an
   `IconButton`'s `aria-label`, as [On Icons](#on-icons) does.
 - With `describesTrigger` off, the tooltip shows a name the trigger already has, as the labels of
-  an [AppFrame](../layout/appframe.md) icon rail do. The trigger's `aria-describedby` is left as it
+  an [AppFrame](../layout/appframe.md) icon rail and a [FloatButton](./floatbutton.md) do. The trigger's `aria-describedby` is left as it
   is and the tooltip is `aria-hidden`, so a screen reader reads the name once. It still shows on
   hover and keyboard focus, and Escape still hides it.
 - While it's `disabled`, the tooltip stays closed and the trigger's `aria-describedby` doesn't point
@@ -393,6 +393,7 @@ And around it:
 - [Icon](../elements/icon.md) - Icon component
 - [Button](../elements/button.md) - Button component
 - [IconButton](../elements/iconbutton.md) - A button that shows only an icon, the usual trigger for a tooltip
+- [FloatButton](./floatbutton.md) - A round floating button whose tooltip shows its name
 - [Popover](./popover.md) - A click-to-open panel for content people interact with
 - [HoverCard](./hovercard.md) - A card that opens on hover or keyboard focus, for previews that hold links
 

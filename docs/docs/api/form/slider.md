@@ -373,6 +373,7 @@ function SliderRangeFormDemo() {
 - An `aria-label` or `aria-labelledby` you pass straight to a range Slider names the whole Slider, so it takes the label's place at the start of both thumbs' names: `<Slider range aria-label="Budget" />` announces "Budget Minimum value" and "Budget Maximum value". An `ariaLabel` entry still wins for its own thumb. To keep a label out of the thumbs' names altogether, pass `aria-labelledby={undefined}`, and they stay "Minimum value" and "Maximum value".
 - A `Field` label you wire by hand with `labelProps={{ htmlFor }}`, as in a horizontal form, gets no generated id, so give it one of your own there as well, as in `labelProps={{ htmlFor: 'price', id: 'price-label' }}`, and it starts both thumbs' names the same way. Without that `id` it reaches a range Slider only through its `for`, which the thumbs' default `aria-label` outranks, so they stay "Minimum value" and "Maximum value".
 - In forced colors (Windows' contrast themes) the track and its fill would disappear, since they're painted as a gradient. bestax's styles paint the fill in the system's highlight color and the rest of the track in its text color there, both in the color for disabled text while the slider is disabled, so the track shows how far it's filled.
+- A mark's label defaults to the scheme's weak text color (`--bulma-slider-tick-label-color` is `var(--bulma-text-weak)`), at full opacity, so it follows the light and dark schemes. The tick line's own opacity, `--bulma-slider-tick-opacity`, applies to the line alone.
 - Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes
 - Fully keyboard accessible with arrow keys
 - Focus states clearly visible
@@ -476,7 +477,7 @@ Use the `formatOutput` prop to display values with units like percentages, curre
 | `--bulma-slider-tick-color`           | `$slider-tick-color`           | `var(--bulma-grey-light)`        |
 | `--bulma-slider-tick-opacity`         | `$slider-tick-opacity`         | `0.5`                            |
 | `--bulma-slider-tick-label-font-size` | `$slider-tick-label-font-size` | `0.75rem`                        |
-| `--bulma-slider-tick-label-color`     | `$slider-tick-label-color`     | `var(--bulma-text-light)`        |
+| `--bulma-slider-tick-label-color`     | `$slider-tick-label-color`     | `var(--bulma-text-weak)`         |
 | `--bulma-slider-vertical-height`      | `$slider-vertical-height`      | `200px`                          |
 
 <!-- /bestax:generated cssvars -->

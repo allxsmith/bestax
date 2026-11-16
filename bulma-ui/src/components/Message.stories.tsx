@@ -1,5 +1,6 @@
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { Message, MessageProps } from './Message';
+import { Delete } from '../elements/Delete';
 
 // Latin version of the Declaration of Independence's first paragraph:
 const declarationLatin = `Quando in cursu rerum humanarum fit ut populus aliquis dissolvere vincula politica quae eum cum alio coniunxerunt, et inter potestates terrae, statum separatam et aequalem, ad quem Iura Naturae et Dei Naturalis eum ius habere concedunt, rationabile decus postulat ut causas separationis declarent.`;
@@ -141,7 +142,7 @@ export const CompoundUsage: StoryObj = {
     <Message color="info">
       <Message.Header>
         <p>Compound Component Message</p>
-        <button className="delete" aria-label="delete" />
+        <Delete aria-label="delete" />
       </Message.Header>
       <Message.Body>
         <p>
@@ -185,7 +186,7 @@ export const CompoundHeaderOnly: StoryObj = {
     <Message color="warning">
       <Message.Header>
         <p>Header-only message</p>
-        <button className="delete" aria-label="delete" />
+        <Delete aria-label="delete" />
       </Message.Header>
     </Message>
   ),

@@ -48,15 +48,15 @@ parts are direct children, in this order: `AppFrame.Header` (`<header>`), `AppFr
 (`<nav>`), `AppFrame.Main` (`<main>`), `AppFrame.Aside` (`<aside>`), `AppFrame.Footer`
 (`<footer>`). `AppFrame.Burger` goes in the header's `Navbar.Brand`.
 
-| Prop                                                              | Type                                                                                                                                                                                     |
-| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `breakpoint`                                                      | `'tablet' \| 'desktop' \| 'widescreen'` (default `desktop`: a drawer below it)                                                                                                           |
-| `navOpen` / `defaultNavOpen` / `onNavOpenChange(open)`            | the drawer, below the breakpoint                                                                                                                                                         |
-| `navCollapsed` / `defaultNavCollapsed` / `onNavCollapsedChange()` | the column, from the breakpoint up                                                                                                                                                       |
-| `skipLink`                                                        | `boolean` (default `true`)                                                                                                                                                               |
-| `labels`                                                          | `{ skipLink?, nav?, closeNav?, burger? }`, for another language                                                                                                                          |
-| `AppFrame.Nav`                                                    | `width?`, `overlay?`, `closeOnEscape?`, `closeOnClickOutside?`, `closeOnNavigate?`, `rail?` (collapses to a rail of icons: give each top-level `Menu.Item` and `Menu.Section` an `icon`) |
-| `AppFrame.Aside`                                                  | `width?`, and an `aria-label` when the page has another aside                                                                                                                            |
+| Prop                                                              | Type                                                                                                                                                                                                                                                                                                                                                                     |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `breakpoint`                                                      | `'tablet' \| 'desktop' \| 'widescreen'` (default `desktop`: a drawer below it)                                                                                                                                                                                                                                                                                           |
+| `navOpen` / `defaultNavOpen` / `onNavOpenChange(open)`            | the drawer, below the breakpoint                                                                                                                                                                                                                                                                                                                                         |
+| `navCollapsed` / `defaultNavCollapsed` / `onNavCollapsedChange()` | the column, from the breakpoint up                                                                                                                                                                                                                                                                                                                                       |
+| `skipLink`                                                        | `boolean` (default `true`)                                                                                                                                                                                                                                                                                                                                               |
+| `labels`                                                          | `{ skipLink?, nav?, closeNav?, burger? }`, for another language                                                                                                                                                                                                                                                                                                          |
+| `AppFrame.Nav`                                                    | `width?`, `overlay?`, `closeOnEscape?`, `closeOnClickOutside?`, `closeOnNavigate?`, `rail?` (collapses to a rail of icons: give each top-level `Menu.Item` and `Menu.Section` an `icon`), `resizable?` (a handle drags the width: `width`/`defaultWidth`/`onWidthChange(px)`, `minWidth?`, `maxWidth?`, a number in px or a px or rem string; `step?`, px per arrow key) |
+| `AppFrame.Aside`                                                  | `width?`, and an `aria-label` when the page has another aside                                                                                                                                                                                                                                                                                                            |
 
 Put it at the top of the app, never inside a `<main>` or a `Container as="main"`: it renders the
 page's `<main>`. Its `Navbar` is not `fixed` and needs no `has-navbar-fixed-top`. A control of
@@ -395,14 +395,14 @@ subcomponents (`Card.Header` + `.Title`/`.Icon`, `Card.Image`, `Card.Content`, `
 components as the dotted names. A Next.js Server Component imports the parts by name, since a
 dotted name is `undefined` there.
 
-| Prop                            | Type                          |
-| ------------------------------- | ----------------------------- |
-| `header`                        | `ReactNode`                   |
-| `image`                         | `string` (URL) or `ReactNode` |
-| `imageAlt`                      | `string`                      |
-| `footer`                        | `ReactNode \| ReactNode[]`    |
-| `hasShadow`                     | `boolean` (default `true`)    |
-| `headerCentered` / `headerIcon` | `boolean` / `ReactNode`       |
+| Prop                            | Type                                                                                             |
+| ------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `header`                        | `ReactNode`                                                                                      |
+| `image`                         | `string` (URL) or `ReactNode`                                                                    |
+| `imageAlt`                      | `string` (default `"Card image"`): for an image URL, describe the picture, or `""` if decorative |
+| `footer`                        | `ReactNode \| ReactNode[]`                                                                       |
+| `hasShadow`                     | `boolean` (default `true`)                                                                       |
+| `headerCentered` / `headerIcon` | `boolean` / `ReactNode`                                                                          |
 
 `Card.Header.Title` and `Card.FooterItem` both take an `as` prop for Bulma's own card markup —
 `Card.Header.Title` renders `div` by default (`as="p"` or a heading `h2`-`h4` also work), and

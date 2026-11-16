@@ -22,6 +22,10 @@
       "code": "function example() {\n  const [collapsed, setCollapsed] = useState(true);\n  return (\n    <AppFrame navCollapsed={collapsed} onNavCollapsedChange={setCollapsed}>\n      <AppFrame.Header>\n        <Navbar aria-label=\"Site\">\n          <Navbar.Brand>\n            <Navbar.Item href=\"#\">\n              <strong>Acme</strong>\n            </Navbar.Item>\n            <AppFrame.Burger />\n          </Navbar.Brand>\n        </Navbar>\n      </AppFrame.Header>\n      <AppFrame.Nav rail>\n        <Menu>\n          <Menu.List>\n            <Menu.Item href=\"#\" icon={<Icon name=\"house\" />} active>\n              Dashboard\n            </Menu.Item>\n            <Menu.Item href=\"#\" icon={<Icon name=\"box\" />}>\n              Orders\n            </Menu.Item>\n          </Menu.List>\n          <Menu.Section label=\"Reports\" icon={<Icon name=\"chart-line\" />}>\n            <Menu.List>\n              <Menu.Item href=\"#\">Sales</Menu.Item>\n              <Menu.Item href=\"#\">Returns</Menu.Item>\n            </Menu.List>\n          </Menu.Section>\n        </Menu>\n      </AppFrame.Nav>\n      <AppFrame.Main>\n        <Section>\n          <Paragraph>\n            The column is {collapsed ? 'a rail of icons' : 'expanded'}.\n          </Paragraph>\n        </Section>\n      </AppFrame.Main>\n    </AppFrame>\n  );\n}"
     },
     {
+      "title": "Resizing the Column",
+      "code": "function example() {\n  const [width, setWidth] = useState(256);\n  return (\n    <AppFrame>\n      <AppFrame.Header>\n        <Navbar aria-label=\"Site\">\n          <Navbar.Brand>\n            <Navbar.Item href=\"#\">\n              <strong>Acme</strong>\n            </Navbar.Item>\n            <AppFrame.Burger />\n          </Navbar.Brand>\n        </Navbar>\n      </AppFrame.Header>\n      <AppFrame.Nav resizable width={width} onWidthChange={setWidth}>\n        <Menu>\n          <Menu.List>\n            <Menu.Item href=\"#\" active>\n              Dashboard\n            </Menu.Item>\n            <Menu.Item href=\"#\">Orders</Menu.Item>\n          </Menu.List>\n        </Menu>\n      </AppFrame.Nav>\n      <AppFrame.Main>\n        <Section>\n          <Paragraph>The column is {width} pixels wide.</Paragraph>\n        </Section>\n      </AppFrame.Main>\n    </AppFrame>\n  );\n}"
+    },
+    {
       "title": "Keeping the State",
       "code": "// On the server, read the cookie into `initialCollapsed`, then:\nconst [collapsed, setCollapsed] = useState(initialCollapsed);\n\n<AppFrame\n  navCollapsed={collapsed}\n  onNavCollapsedChange={next => {\n    setCollapsed(next);\n    document.cookie = `nav-collapsed=${next}; path=/; max-age=31536000`;\n  }}\n>\n  …\n</AppFrame>;"
     },
@@ -42,7 +46,7 @@
       "code": "<AppFrame>\n  <AppFrameHeader>\n    <Navbar aria-label=\"Site\">\n      <Navbar.Brand>\n        <Navbar.Item href=\"#\">\n          <strong>Acme</strong>\n        </Navbar.Item>\n        <AppFrameBurger />\n      </Navbar.Brand>\n    </Navbar>\n  </AppFrameHeader>\n  <AppFrameNav>\n    <Menu>\n      <Menu.List>\n        <Menu.Item href=\"#\" active>\n          Dashboard\n        </Menu.Item>\n      </Menu.List>\n    </Menu>\n  </AppFrameNav>\n  <AppFrame.Main>\n    <Section>\n      <Paragraph>\n        AppFrameNav and AppFrame.Nav are the same component.\n      </Paragraph>\n    </Section>\n  </AppFrame.Main>\n</AppFrame>"
     }
   ],
-  "accessibility": "- **Landmarks:** the header, the nav, the page and the footer are the page's banner, navigation,\n  main and contentinfo landmarks, and the aside a complementary one, as long as the frame sits at\n  the top of the page. A development build warns when it sits inside a `main` or a sectioning\n  element, where the header and footer stop being landmarks.\n- **Names:** the nav is named \"Sections\" (`labels.nav`), since the `Navbar` in the header names\n  its own navigation. The name leaves out the word \"navigation\", which the role says. A `Menu`\n  in the nav keeps its `<aside>`, which inside a `<nav>` is a plain element unless it's named.\n- **Skip link:** the first thing on the page, hidden until it has focus, moves focus to the page's\n  `<main>` (WCAG 2.4.1).\n- **Sticky header:** `scroll-padding-top` on the document keeps an in-page link's target and a\n  focused element below the header (WCAG 2.4.11, technique C43).\n- **The burger** is a button named \"menu\" (`labels.burger`), with `aria-expanded` saying whether\n  the drawer is open, or from the breakpoint up whether the column is shown, and `aria-controls`\n  naming the nav. The server can't know the width, so until the page hydrates the burger has no\n  `aria-expanded` and shows its bars, and the first paint after hydration has both right.\n- **The drawer** is modal by default: focus moves to its close button, Tab and Shift+Tab stay\n  inside, the page doesn't scroll, the rest of the frame is inert, and Escape closes it while it's\n  the topmost overlay, so a `Modal` opened from it closes first. Escape, the close button and a\n  click on the backdrop hand focus back to the burger, and so does a press outside the drawer\n  without `overlay`, before the press moves it to what was pressed. The close button is there for\n  a touch screen reader user, who has no Escape key. It stays a navigation landmark rather than a\n  dialog: the inert frame is what keeps assistive technology inside it, so keep the page's content\n  inside the frame's parts.\n- **A closed drawer and a collapsed column** are `visibility: hidden`, so their links are out of\n  the Tab order and the accessibility tree before any script runs.\n- **The icon rail** keeps every name: labels are visually hidden, never removed, and icons are\n  `aria-hidden`. Each tooltip adds no `aria-describedby` and is `aria-hidden` itself, so the name\n  isn't read twice. It shows on keyboard focus as well as hover, stays while the pointer moves\n  onto it, and Escape hides it (WCAG 1.4.13). A section's button in the rail reports\n  `aria-expanded=\"false\"`, since the rail hides its list, and pressing it expands the column and\n  opens the section.\n- **Reflow:** at 320 pixels wide the nav is a drawer, so nothing scrolls sideways (WCAG 1.4.10).\n- **Motion:** the drawer's slide, the backdrop's fade and the column's collapse don't play under\n  `prefers-reduced-motion: reduce`.\n- **Forced colors:** the column keeps its divider, the drawer gets a border on its open edge in\n  place of its shadow, and the burger keeps its bars, as a [`Navbar`](https://bestax.io/docs/api/components/navbar)'s\n  does.\n- **Right to left:** the column sits on the right, and the drawer slides in from the right.",
+  "accessibility": "- **Landmarks:** the header, the nav, the page and the footer are the page's banner, navigation,\n  main and contentinfo landmarks, and the aside a complementary one, as long as the frame sits at\n  the top of the page. A development build warns when it sits inside a `main` or a sectioning\n  element, where the header and footer stop being landmarks.\n- **Names:** the nav is named \"Sections\" (`labels.nav`), since the `Navbar` in the header names\n  its own navigation. The name leaves out the word \"navigation\", which the role says. A `Menu`\n  in the nav keeps its `<aside>`, which inside a `<nav>` is a plain element unless it's named.\n- **Skip link:** the first thing on the page, hidden until it has focus, moves focus to the page's\n  `<main>` (WCAG 2.4.1).\n- **Sticky header:** `scroll-padding-top` on the document keeps an in-page link's target and a\n  focused element below the header (WCAG 2.4.11, technique C43).\n- **The burger** is a button named \"menu\" (`labels.burger`), with `aria-expanded` saying whether\n  the drawer is open, or from the breakpoint up whether the column is shown, and `aria-controls`\n  naming the nav. The server can't know the width, so until the page hydrates the burger has no\n  `aria-expanded` and shows its bars, and the first paint after hydration has both right.\n- **The drawer** is modal by default: focus moves to its close button, Tab and Shift+Tab stay\n  inside, the page doesn't scroll, the rest of the frame is inert, and Escape closes it while it's\n  the topmost overlay, so a `Modal` opened from it closes first. Escape, the close button and a\n  click on the backdrop hand focus back to the burger, and so does a press outside the drawer\n  without `overlay`, before the press moves it to what was pressed. The close button is there for\n  a touch screen reader user, who has no Escape key. It stays a navigation landmark rather than a\n  dialog: the inert frame is what keeps assistive technology inside it, so keep the page's content\n  inside the frame's parts.\n- **A closed drawer and a collapsed column** are `visibility: hidden`, so their links are out of\n  the Tab order and the accessibility tree before any script runs.\n- **The resize handle** is a focusable `separator` with `aria-valuenow`, `aria-valuemin` and\n  `aria-valuemax` in pixels, `aria-controls` naming the nav, and the nav's name, so it's read as\n  \"Sections, separator, 256\". Collapsed, its value is the rail's width, or 0 without a rail, which\n  is where its range starts. Its keys do everything a drag does (WCAG 2.1.1). As with Splitter's\n  handles, a pointer can't set a width without dragging; the column works at its default width,\n  and the burger collapses and expands it with a click. Its strip is 24 pixels wide for a coarse\n  pointer (WCAG 2.5.8), and its line, on hover, focus and drag, is a border, which forced colors\n  keeps in the system's highlight.\n- **The icon rail** keeps every name: labels are visually hidden, never removed, and icons are\n  `aria-hidden`. Each tooltip adds no `aria-describedby` and is `aria-hidden` itself, so the name\n  isn't read twice. It shows on keyboard focus as well as hover, stays while the pointer moves\n  onto it, and Escape hides it (WCAG 1.4.13). A section's button in the rail reports\n  `aria-expanded=\"false\"`, since the rail hides its list, and pressing it expands the column and\n  opens the section.\n- **Reflow:** at 320 pixels wide the nav is a drawer, so nothing scrolls sideways (WCAG 1.4.10).\n- **Motion:** the drawer's slide, the backdrop's fade and the column's collapse don't play under\n  `prefers-reduced-motion: reduce`.\n- **Forced colors:** the column keeps its divider, the drawer gets a border on its open edge in\n  place of its shadow, and the burger keeps its bars, as a [`Navbar`](https://bestax.io/docs/api/components/navbar)'s\n  does.\n- **Right to left:** the column sits on the right, and the drawer slides in from the right.",
   "related": [
     "Footer",
     "Menu",
@@ -129,7 +133,7 @@
           "name": "onNavCollapsedChange",
           "type": "(collapsed: boolean) => void",
           "default": null,
-          "description": "Called with the state asked for: by the burger, `useAppFrame()`, or a `Menu.Section`'s button in the collapsed rail, which expands it.",
+          "description": "Called with the state asked for: by the burger, `useAppFrame()`, a `Menu.Section`'s button in the collapsed rail, which expands it, or a `resizable` nav's handle: a drag that collapses the column or opens it again (see `AppFrame.Nav`'s `resizable`), Enter, and a double click, which expands it.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -252,7 +256,7 @@
           "name": "width",
           "type": "number | string",
           "default": null,
-          "description": "The column's width, and the drawer's up to the window's width less a strip of backdrop. A number is pixels, and a string any CSS length. It writes `--bulma-app-frame-nav-width`, 16rem by default.",
+          "description": "The column's width, and the drawer's up to the window's width less a strip of backdrop. A number is pixels, and a string any CSS length. It writes `--bulma-app-frame-nav-width`, 16rem by default. With `resizable`, it's the controlled width: update it from `onWidthChange`. It then takes pixels, or `px` or `rem`, which the handle can step from; the handle reads anything else as the stylesheet's width, and a development build warns about it.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -298,6 +302,60 @@
           "type": "boolean",
           "default": "false",
           "description": "From the breakpoint up, a collapsed column shrinks to a rail of icons instead of leaving the page. The rail needs a `Menu` inside the nav: a Menu portaled out of it, such as one in a Popover or a Modal opened from it, isn't in the rail, nor is a `Menu.List` with no Menu around it, and a development build warns when a collapsed rail holds no Menu. Every top-level `Menu.Item` and `Menu.Section` needs an `icon`: in the rail, an item without one has nothing to show and its label spills over the page, and a section's button is blank, so a development build warns about one without. In the rail their labels are visually hidden, so each stays its link's or button's name, and shows in a `Tooltip` beside the rail on hover and keyboard focus. Nested lists and `Menu.Label` headings hide there, and a section's button expands the column and opens the section. Anything else in the nav keeps its own width, so hide it while the nav has the `is-rail` class. Collapsed to the rail, the column doesn't scroll on its own, so a tooltip isn't clipped. It sticks under the header while it fits there. A rail taller than the window under the header scrolls with the page instead, so its lower icons come into view as the page scrolls and as Tab reaches them. That takes a measurement in the browser, so before the page hydrates such a rail sticks.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "resizable",
+          "type": "boolean",
+          "default": "false",
+          "description": "Puts a handle on the column's inline-end edge, from the breakpoint up, that drags or keys its width between `minWidth` and `maxWidth`. It's a focusable separator named by the nav's own name and controlling the nav, read as \"Sections, separator, 256\". Arrow keys move it by `step`, ten times as far with Shift, mirrored right to left; Home and End go to `minWidth` and `maxWidth`. Dragging it below halfway from its collapsed width to `minWidth` collapses the column, to the rail when it has one, and dragging it back out past that point opens it at `minWidth`. Enter collapses it and brings it back at the width it had, and a double click resets it to `defaultWidth` and expands it. The collapses go through `onNavCollapsedChange`, the state the burger sets. Collapsed, the handle's value is the rail's width, or 0 without a rail, which is where its range starts. The handle hides while the column is collapsed out of view, and the burger brings it back, unless it has focus, so Enter brings it back too. A development build warns about a `width` with no `onWidthChange`, since the handle couldn't move it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultWidth",
+          "type": "number | string",
+          "default": null,
+          "description": "The width the column starts at when `width` isn't set, and a `resizable` one goes back to on a double click on its handle: pixels, or `px` or `rem`. Without `width`, the reset keeps it as given, so a rem keeps following the font size; with `width`, `onWidthChange` hears it in pixels. The handle reads any other length as the stylesheet's width, and a development build warns about it. Without it, the stylesheet's, 16rem.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onWidthChange",
+          "type": "(width: number) => void",
+          "default": null,
+          "description": "Called with the width in pixels on each step of a drag or a key that changes it, and on a reset. Store it to keep the width across visits.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "minWidth",
+          "type": "number | string",
+          "default": "'12rem'",
+          "description": "The narrowest a drag or a key takes a `resizable` column: a number is pixels, as `width`'s is, and a string a `px` or `rem` length. The handle takes the default for anything else, and a development build warns about it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "maxWidth",
+          "type": "number | string",
+          "default": "'32rem'",
+          "description": "The widest a drag or a key takes a `resizable` column, in the same units as `minWidth`, with the same default for anything else.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "step",
+          "type": "number",
+          "default": "10",
+          "description": "How far an arrow key moves a `resizable` column's edge, in pixels. Shift moves ten times as far.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -520,7 +578,7 @@
         },
         {
           "name": "aria-label",
-          "type": "string",
+          "type": "React.AriaAttributes['aria-label']",
           "default": "'menu'",
           "description": "Accessible name. Pass your own to replace it. An empty one, or a spread carrying `'aria-label': undefined`, keeps the default rather than leaving the button unnamed.",
           "required": false,
@@ -644,6 +702,30 @@
       "css": "--bulma-app-frame-skip-link-color",
       "sass": "$app-frame-skip-link-color",
       "default": "var(--bulma-link)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-app-frame-handle-size",
+      "sass": "$app-frame-handle-size",
+      "default": "0.75rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-app-frame-handle-size-coarse",
+      "sass": "$app-frame-handle-size-coarse",
+      "default": "1.5rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-app-frame-line-active-color",
+      "sass": "$app-frame-line-active-color",
+      "default": "var(--bulma-primary)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-app-frame-line-active-size",
+      "sass": "$app-frame-line-active-size",
+      "default": "2px",
       "scope": "root"
     }
   ]

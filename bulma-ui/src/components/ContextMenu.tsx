@@ -4,7 +4,11 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { Portal, usePopupContainer } from '../helpers/portal';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
-import { getDeepestActiveElement, isEventInside } from '../helpers/shadowDom';
+import {
+  getDeepestActiveElement,
+  isEventInside,
+  shadowRootsAround,
+} from '../helpers/shadowDom';
 import { warnOnce } from '../helpers/devWarnings';
 import {
   useContextMenuTrigger,
@@ -182,6 +186,9 @@ const ContextMenuComponent: React.FC<ContextMenuProps> = ({
   const boxRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<Element | null>(null);
+  // The element it opened on, for the shadow roots a scroll that closes it
+  // can happen in.
+  const triggerRef = useRef<Element | null>(null);
   const reportedRef = useRef(false);
   const menuKeys = useMenuKeys();
   const named = Boolean(props['aria-label'] || props['aria-labelledby']);
@@ -191,6 +198,7 @@ const ContextMenuComponent: React.FC<ContextMenuProps> = ({
     onOpen: (point, triggerNode) => {
       const ownerDoc = triggerNode.ownerDocument;
       openerRef.current = getDeepestActiveElement(ownerDoc);
+      triggerRef.current = triggerNode;
       setMenu({ point, doc: ownerDoc });
     },
   });
@@ -261,8 +269,22 @@ const ContextMenuComponent: React.FC<ContextMenuProps> = ({
     const closeOutside = (event: Event) => {
       if (!isEventInside(event, box)) setMenu(null);
     };
-    doc.addEventListener('scroll', closeOutside, true);
-    return () => doc.removeEventListener('scroll', closeOutside, true);
+    // A scroll inside a shadow root doesn't reach the document, so the ones
+    // the element it opened on and the menu are rendered in are listened on
+    // too.
+    const scrolled = new Set<EventTarget>([
+      doc,
+      ...shadowRootsAround(triggerRef.current),
+      ...shadowRootsAround(box),
+    ]);
+    for (const target of scrolled) {
+      target.addEventListener('scroll', closeOutside, true);
+    }
+    return () => {
+      for (const target of scrolled) {
+        target.removeEventListener('scroll', closeOutside, true);
+      }
+    };
   }, [doc, isPlaced, menuKeys]);
 
   // Before paint, so what the caller does with it, such as highlighting the

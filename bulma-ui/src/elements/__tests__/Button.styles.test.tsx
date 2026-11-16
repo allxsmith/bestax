@@ -18,13 +18,26 @@
 // sets it for the inverted, text and ghost styles to the color each draws its
 // label in, which Bulma leaves out, so the ring shows (#1772).
 import * as sass from 'sass';
-import type { ReactElement } from 'react';
 import path from 'path';
 import { render } from '@testing-library/react';
-import { Button } from '../Button';
+import { Button, type ButtonProps } from '../Button';
 import { LinkButton } from '../LinkButton';
 import { ConfigProvider } from '../../helpers/Config';
 import { selectorsIn, withoutWhere } from '../../__tests__/selectors';
+import { Panel } from '../../components/Panel';
+import { compileSheet } from '../../__tests__/compile-scss';
+import {
+  bulmaCss,
+  compilePartial,
+  customProperty,
+  rulesOf as cascadeRules,
+} from '../../__tests__/css-cascade';
+import {
+  contrast,
+  schemesOf,
+  substitute,
+  type Vars,
+} from '../../__tests__/contrast';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 const NODE_MODULES = path.resolve(__dirname, '../../../../node_modules');
@@ -102,6 +115,7 @@ const borders = (rule: Rule) =>
   '--bulma-button-border-width' in rule.declarations;
 /** Whether a rule sets a loading button's ring color. */
 const rings = (rule: Rule) => '--bulma-loading-color' in rule.declarations;
+const lightnesses = (rule: Rule) => '--bulma-button-l' in rule.declarations;
 
 /**
  * Bulma's button colors, the keys of `$colors` in the order it ships them,
@@ -319,9 +333,27 @@ describe('colored buttons in forced colors', () => {
     );
   });
 
-  it('holds these borders, the focus outlines and the loading rings, and nothing else', () => {
+  it("sets an outlined button's lightness on each color but the fixed shades, and only there", () => {
+    const fixed = ['white', 'black', 'light', 'dark'];
     expect(
-      PLAIN.filter(rule => !outlines(rule) && !borders(rule) && !rings(rule))
+      PLAIN.filter(lightnesses).map(r => [r.context.join(' '), r.selector])
+    ).toEqual(
+      COLORS.filter(name => !fixed.includes(name)).map(name => [
+        '',
+        `.button.is-${name}.is-outlined:not(.is-inverted)`,
+      ])
+    );
+  });
+
+  it("holds these borders, the focus outlines, the loading rings and the outlined buttons' lightness, and nothing else", () => {
+    expect(
+      PLAIN.filter(
+        rule =>
+          !outlines(rule) &&
+          !borders(rule) &&
+          !rings(rule) &&
+          !lightnesses(rule)
+      )
     ).toEqual([]);
   });
 
@@ -408,6 +440,282 @@ describe('colored buttons in forced colors', () => {
         declarations: { '--bulma-button-border-width': '1px' },
       }))
     );
+  });
+});
+
+// Bulma draws an outlined button's label, border and loading ring in the
+// color's own lightness, `--bulma-button-l`, and Bulma's link color reads at
+// about 3.5:1 on the dark scheme that way, which is every Panel's "Reset all
+// filters" button (#1637). The partial gives an outlined button the lighter
+// of the color's own lightness and its on-scheme one. These resolve the
+// variable across Bulma's CSS and the partial in either order with
+// `css-cascade.ts`, and measure the label against bestax.css's own scheme
+// variables (`contrast.ts`).
+describe('outlined buttons on the dark scheme', () => {
+  // The colors whose outlined button the partial adjusts, and the ones it
+  // leaves alone: the fixed shades, and `text`, a text button.
+  const ADJUSTED = ['primary', 'link', 'info', 'success', 'warning', 'danger'];
+  const FIXED = ['white', 'black', 'light', 'dark'];
+
+  /** The lightness the partial gives an outlined button in `color`. */
+  // On a dark page the lighter of the two, and on a white one the color's
+  // own, through a cap that grows with the page's distance from white.
+  const lighter = (color: string) =>
+    `max(var(--bulma-${color}-l),min(var(--bulma-${color}-on-scheme-l),var(--bulma-${color}-l)+(100%-var(--bulma-scheme-main-l))*2))`;
+
+  /** A value without its spaces, which jsdom doesn't always keep. */
+  const flat = (value: string | undefined) => value?.replace(/\s+/g, '');
+
+  /** The button an outlined Button in `color` renders, under `prefix`. */
+  const outlinedOf = (color: string, prefix = '') => {
+    const button = (
+      <Button color={color as 'link'} isOutlined>
+        Reset
+      </Button>
+    );
+    const { container } = render(
+      prefix ? (
+        <ConfigProvider classPrefix={prefix}>{button}</ConfigProvider>
+      ) : (
+        button
+      )
+    );
+    return container.querySelector('button') as HTMLElement;
+  };
+
+  /** The `--bulma-button-l` the rules of `css` give `el`. */
+  const lightnessOf = (el: Element, css: string) =>
+    flat(customProperty(el, css, '--bulma-button-l'));
+
+  const sheets = new Map<string, string>();
+  const sheet = (name: string, build: () => string) => {
+    if (!sheets.has(name)) sheets.set(name, build());
+    return sheets.get(name)!;
+  };
+  const partial = (prefix = '') => compile(`@use 'elements/button';`, prefix);
+  const orders: [string, () => string][] = [
+    ['after', () => sheet('after', () => bulmaCss() + partial())],
+    ['before', () => sheet('before', () => partial() + bulmaCss())],
+  ];
+
+  describe.each(orders)('with the partial %s Bulma', (_order, css) => {
+    it.each(ADJUSTED)(
+      'gives an outlined %s button the lighter lightness',
+      color => {
+        expect(lightnessOf(outlinedOf(color), css())).toBe(lighter(color));
+      }
+    );
+
+    it.each(FIXED)("leaves an outlined %s button at Bulma's", color => {
+      expect(lightnessOf(outlinedOf(color), css())).toBe(
+        `var(--bulma-${color}-l)`
+      );
+    });
+
+    it("leaves an inverted outlined button's lightness at Bulma's", () => {
+      const { container } = render(
+        <Button color="link" isOutlined isInverted>
+          Go
+        </Button>
+      );
+      const button = container.querySelector('button') as HTMLElement;
+      expect(button).toHaveClass('is-outlined', 'is-inverted');
+      expect(lightnessOf(button, css())).toBe('var(--bulma-link-l)');
+    });
+
+    it("leaves a filled button's lightness at Bulma's", () => {
+      const { container } = render(<Button color="link">Go</Button>);
+      expect(
+        lightnessOf(container.querySelector('button') as HTMLElement, css())
+      ).toBe('var(--bulma-link-l)');
+    });
+
+    it('gives Panel.ButtonBlock the lighter lightness', () => {
+      const { container } = render(
+        <Panel>
+          <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
+        </Panel>
+      );
+      const button = container.querySelector('button') as HTMLElement;
+      expect(button).toHaveClass('button', 'is-link', 'is-outlined');
+      expect(lightnessOf(button, css())).toBe(lighter('link'));
+    });
+  });
+
+  it.each(ADJUSTED)(
+    'keys an outlined %s button on the prefixed classes in the prefixed build',
+    color => {
+      const css = sheet(
+        'prefixed',
+        () => bulmaCss('versions/bulma-prefixed.css') + partial('bulma-')
+      );
+      expect(lightnessOf(outlinedOf(color, 'bulma-'), css)).toBe(
+        lighter(color)
+      );
+    }
+  );
+
+  describe('in bestax.css', () => {
+    let css = '';
+    let schemes: Record<string, Vars>;
+
+    // A hook keeps Vitest's 10s default rather than `testTimeout`, and
+    // sass-embedded's start can take longer than that on a loaded machine.
+    beforeAll(() => {
+      css = compileSheet('bestax.scss');
+      schemes = schemesOf(cascadeRules(css).rules);
+    }, 30_000);
+
+    /** An outlined button's label in `color`, at `lightness`. */
+    const label = (color: string, lightness: string) =>
+      `hsl(var(--bulma-${color}-h), var(--bulma-${color}-s), ${lightness})`;
+
+    /** The page's background on `scheme`. */
+    const page = (scheme: string) =>
+      substitute(
+        'hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-main-l))',
+        schemes[scheme]
+      );
+
+    /**
+     * The contrast of an outlined button's label in `color` on the page, with
+     * `own` set over the scheme.
+     */
+    const onPage = (
+      scheme: string,
+      color: string,
+      lightness: string,
+      own: Vars = {}
+    ) =>
+      contrast(
+        substitute(label(color, lightness), { ...schemes[scheme], ...own }),
+        page(scheme)
+      );
+
+    /** The lightness bestax.css gives an outlined button in `color`. */
+    const bestax = (color: string) => {
+      const value = lightnessOf(outlinedOf(color), css);
+      if (!value) throw new Error(`no lightness for an outlined ${color}`);
+      return value;
+    };
+
+    it("measures Bulma's outlined link under 4.5:1 on the dark scheme, so the check can fail", () => {
+      expect(onPage('dark', 'link', 'var(--bulma-link-l)')).toBeLessThan(4.5);
+    });
+
+    it.each(['link', 'primary'])(
+      'holds 4.5:1 for an outlined %s button on the dark scheme',
+      color => {
+        expect(onPage('dark', color, bestax(color))).toBeGreaterThanOrEqual(
+          4.5
+        );
+      }
+    );
+
+    it.each(ADJUSTED)(
+      'keeps an outlined %s button as it was on the light scheme',
+      color => {
+        expect(onPage('light', color, bestax(color))).toBe(
+          onPage('light', color, `var(--bulma-${color}-l)`)
+        );
+      }
+    );
+
+    // A Theme can set a color's trio at runtime and leave its on-scheme
+    // lightness at the build's, which is then lighter than a dark new color.
+    const olive = {
+      '--bulma-primary-h': '60',
+      '--bulma-primary-s': '100%',
+      '--bulma-primary-l': '20%',
+    };
+
+    it('keeps an outlined primary set darker at runtime as dark on the light scheme', () => {
+      expect(onPage('light', 'primary', bestax('primary'), olive)).toBe(
+        onPage('light', 'primary', 'var(--bulma-primary-l)', olive)
+      );
+    });
+
+    it('lifts an outlined primary set darker at runtime on the dark scheme', () => {
+      expect(
+        onPage('dark', 'primary', 'var(--bulma-primary-l)', olive)
+      ).toBeLessThan(4.5);
+      expect(
+        onPage('dark', 'primary', bestax('primary'), olive)
+      ).toBeGreaterThanOrEqual(4.5);
+    });
+
+    // Bulma's own info, success, warning and danger already read on the dark
+    // page, so their on-scheme lightness there is their own.
+    it.each(['info', 'success', 'warning', 'danger'])(
+      'keeps an outlined %s button as it was on the dark scheme, where it already read',
+      color => {
+        const before = onPage('dark', color, `var(--bulma-${color}-l)`);
+        expect(before).toBeGreaterThanOrEqual(4.5);
+        expect(onPage('dark', color, bestax(color))).toBe(before);
+      }
+    );
+  });
+});
+
+// Bulma's button nests no light variant in its grayscale colors. With
+// isLight, a button of one of them, or of no color, takes the light color's
+// class as well, and the cascade between the two decides the look, which
+// isLight's description says (#1678). These resolve the button's custom
+// properties across Bulma's CSS and the partial with `css-cascade.ts`.
+describe('isLight on a grayscale color', () => {
+  const sheets = (prefix = '') =>
+    prefix
+      ? bulmaCss('versions/bulma-prefixed.css') +
+        compilePartial('elements/button', prefix)
+      : bulmaCss() + compilePartial('elements/button');
+  const buttonOf = (props: ButtonProps, prefix = '') =>
+    render(
+      <ConfigProvider classPrefix={prefix || undefined}>
+        <Button {...props}>Save</Button>
+      </ConfigProvider>
+    ).container.querySelector(`.${prefix}button`)!;
+  /** The variables a color sets on a button, as the rules of `css` resolve them. */
+  const looksOf = (el: Element, css: string) =>
+    Object.fromEntries(
+      ['h', 's', 'l', 'background-l', 'border-l', 'color-l'].map(name => [
+        name,
+        customProperty(el, css, `--bulma-button-${name}`),
+      ])
+    );
+  /** What `.button.is-<name>` sets those variables to. */
+  const colorOf = (name: string) => ({
+    h: `var(--bulma-${name}-h)`,
+    s: `var(--bulma-${name}-s)`,
+    l: `var(--bulma-${name}-l)`,
+    'background-l': `var(--bulma-${name}-l)`,
+    'border-l': `var(--bulma-${name}-l)`,
+    'color-l': `var(--bulma-${name}-invert-l)`,
+  });
+
+  describe.each(['', 'bulma-'])("with the class prefix '%s'", prefix => {
+    it("gives white, black, light and no color the light button's look", () => {
+      const css = sheets(prefix);
+      for (const color of [undefined, 'white', 'black', 'light'] as const) {
+        const el = buttonOf({ color, isLight: true }, prefix);
+        expect(el).toHaveClass(`${prefix}is-light`);
+        expect(looksOf(el, css)).toEqual(colorOf('light'));
+      }
+    });
+
+    it("leaves a dark button the dark button's look", () => {
+      const el = buttonOf({ color: 'dark', isLight: true }, prefix);
+      expect(el).toHaveClass(`${prefix}is-dark`, `${prefix}is-light`);
+      expect(looksOf(el, sheets(prefix))).toEqual(colorOf('dark'));
+    });
+
+    it('gives a palette color its light variant', () => {
+      const el = buttonOf({ color: 'primary', isLight: true }, prefix);
+      expect(looksOf(el, sheets(prefix))).toEqual({
+        ...colorOf('primary'),
+        'background-l': 'var(--bulma-light-l)',
+        'color-l': 'var(--bulma-primary-light-invert-l)',
+      });
+    });
   });
 });
 

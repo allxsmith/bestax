@@ -2,6 +2,8 @@ import {
   getActiveElementInTree,
   getDeepestActiveElement,
   isEventInside,
+  listenInShadowRoots,
+  shadowRootsAround,
 } from '../shadowDom';
 
 describe('shadowDom helpers', () => {
@@ -94,6 +96,90 @@ describe('shadowDom helpers', () => {
       nestedHost.attachShadow({ mode: 'open' }).appendChild(deep);
       deep.focus();
       expect(getActiveElementInTree(inner)).toBe(nestedHost);
+    });
+  });
+
+  describe('listenInShadowRoots', () => {
+    it('listens on the shadow roots a node is in, moves with them, and stops', () => {
+      const otherHost = document.createElement('div');
+      const other = otherHost.attachShadow({ mode: 'open' });
+      const there = document.createElement('div');
+      other.appendChild(there);
+      document.body.appendChild(otherHost);
+      const heard = vi.fn();
+      const scrolls = listenInShadowRoots('scroll', heard, {
+        passive: true,
+        capture: true,
+      });
+      const scroll = (root: ShadowRoot) =>
+        root.dispatchEvent(new Event('scroll'));
+      scrolls.follow(inner);
+      scroll(shadowRoot);
+      expect(heard).toHaveBeenCalledTimes(1);
+      scrolls.follow(there);
+      scroll(shadowRoot);
+      scroll(other);
+      expect(heard).toHaveBeenCalledTimes(2);
+      scrolls.stop();
+      scroll(other);
+      expect(heard).toHaveBeenCalledTimes(2);
+      otherHost.remove();
+    });
+
+    it('listens on the shadow roots of several nodes at once, and moves nothing for the same roots', () => {
+      const otherHost = document.createElement('div');
+      const other = otherHost.attachShadow({ mode: 'open' });
+      const there = document.createElement('div');
+      other.appendChild(there);
+      document.body.appendChild(otherHost);
+      const heard = vi.fn();
+      const scrolls = listenInShadowRoots('scroll', heard, { capture: true });
+      const roots = scrolls.follow(inner, there, inner, null);
+      expect(roots).toEqual([shadowRoot, other]);
+      shadowRoot.dispatchEvent(new Event('scroll'));
+      other.dispatchEvent(new Event('scroll'));
+      expect(heard).toHaveBeenCalledTimes(2);
+      // A node listed twice, or the same roots in another order, adds no
+      // listener, takes none off, and gives back the same list.
+      const added = vi.spyOn(shadowRoot, 'addEventListener');
+      const removed = vi.spyOn(shadowRoot, 'removeEventListener');
+      expect(scrolls.follow(there, inner, inner)).toBe(roots);
+      expect(added).not.toHaveBeenCalled();
+      expect(removed).not.toHaveBeenCalled();
+      expect(scrolls.follow(inner)).toEqual([shadowRoot]);
+      scrolls.stop();
+      otherHost.remove();
+    });
+  });
+
+  describe('shadowRootsAround', () => {
+    it('lists the shadow roots around a node, its own first', () => {
+      const nestedHost = document.createElement('div');
+      shadowRoot.appendChild(nestedHost);
+      const nested = nestedHost.attachShadow({ mode: 'open' });
+      const deep = document.createElement('button');
+      nested.appendChild(deep);
+      expect(shadowRootsAround(deep)).toEqual([nested, shadowRoot]);
+      expect(shadowRootsAround(inner)).toEqual([shadowRoot]);
+    });
+
+    it('lists the shadow root of a component a node is slotted into', () => {
+      const scrollerHost = document.createElement('div');
+      const scrollerRoot = scrollerHost.attachShadow({ mode: 'open' });
+      scrollerRoot.innerHTML = '<div><slot></slot></div>';
+      const slotted = document.createElement('button');
+      scrollerHost.appendChild(slotted);
+      document.body.appendChild(scrollerHost);
+      expect(shadowRootsAround(slotted)).toEqual([scrollerRoot]);
+      scrollerHost.remove();
+    });
+
+    it('lists none for a node in the document, a detached one, or nothing', () => {
+      expect(shadowRootsAround(outside)).toEqual([]);
+      // An anchor has a `host` of its own, the URL's, and is no shadow root.
+      expect(shadowRootsAround(document.createElement('a'))).toEqual([]);
+      expect(shadowRootsAround(document.createDocumentFragment())).toEqual([]);
+      expect(shadowRootsAround(null)).toEqual([]);
     });
   });
 

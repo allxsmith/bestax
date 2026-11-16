@@ -218,6 +218,59 @@ export function addMonths(d: Date, n: number): Date {
   return r;
 }
 
+/** A month's place in a count of months, for comparing and subtracting months. */
+export const monthIndex = (d: Date): number =>
+  d.getFullYear() * 12 + d.getMonth();
+
+/** The first day of the month at a {@link monthIndex}. */
+export const monthFromIndex = (index: number): Date =>
+  makeDate(Math.floor(index / 12), index % 12);
+
+/**
+ * How many months a calendar shows side by side for `monthsToShow`: its whole
+ * part, or one when it's less than two or not a finite number.
+ */
+export const pageMonthCount = (monthsToShow: number): number =>
+  monthsToShow > 1 && Number.isFinite(monthsToShow)
+    ? Math.floor(monthsToShow)
+    : 1;
+
+/**
+ * The first month of a page of `count` months starting at month `first`, a
+ * {@link monthIndex}, kept inside `min` and `max` where they leave room for a
+ * whole page. `min` wins when they don't.
+ */
+export function fitPage(
+  first: number,
+  count: number,
+  min: Date,
+  max?: Date
+): number {
+  const last = max ? monthIndex(max) - (count - 1) : first;
+  return Math.max(monthIndex(min), Math.min(first, last));
+}
+
+/**
+ * The first month of the page of `count` months that holds `day`, when the
+ * page on show starts at month `first`: that page while `day` is on it, else
+ * one with `day`'s month in `place`, or with no `place` first when it comes
+ * after and last when it comes before, as a calendar's keys turn it, kept
+ * inside `min` and `max` as {@link fitPage} keeps it.
+ */
+export function pageHolding(
+  day: Date,
+  first: number,
+  count: number,
+  min: Date,
+  max?: Date,
+  place?: 'first' | 'last'
+): number {
+  const target = monthIndex(day);
+  if (target >= first && target < first + count) return first;
+  const last = place ? place === 'last' : target < first;
+  return fitPage(last ? target - (count - 1) : target, count, min, max);
+}
+
 export function addYears(d: Date, n: number): Date {
   return addMonths(d, n * 12);
 }

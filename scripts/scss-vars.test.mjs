@@ -56,6 +56,30 @@ test('the real linkbutton partial yields its four variables', () => {
   assert.ok(rows.every(r => r.scope === 'compound'));
 });
 
+test("another partial's variable shows by its own name, not through its module alias", () => {
+  const src = `@use "../utilities/css-variables" as cv;
+@use "combobox" as cb;
+$cascader-item-size: cb.$combobox-item-size !default;
+$cascader-item-gap: calc(2 * #{cb.$combobox-item-gap}) !default;
+${PREFIX}cascader {
+  @include cv.register-vars(
+    (
+      "cascader-item-size": #{$cascader-item-size},
+      "cascader-item-gap": #{$cascader-item-gap},
+    )
+  );
+}
+`;
+  const rows = componentVars(src, 'cascader');
+  assert.deepEqual(
+    rows.map(r => [r.cssVar, r.value]),
+    [
+      ['--bulma-cascader-item-size', '$combobox-item-size'],
+      ['--bulma-cascader-item-gap', 'calc(2 * $combobox-item-gap)'],
+    ]
+  );
+});
+
 test('the same partial yields nothing for Button', () => {
   // `.button.link-button` contains the class `button`, and Button's root class
   // IS `button`. Without the key-prefix guard, Button's page grows four bogus

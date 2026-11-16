@@ -165,6 +165,8 @@ Pull in only the helper categories you use:
 @use 'bulma/sass/helpers/other';
 ```
 
+With `bulma/sass/helpers/color`, add bestax's `helpers/color` partial too, which the next section lists and says what it adjusts.
+
 #### bestax extras partials
 
 bestax ships SCSS partials for every component it adds on top of Bulma. Import them the same way via the package's `scss/*` export:
@@ -191,8 +193,10 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/components/datatable';
 @use '@allxsmith/bestax-bulma/scss/components/pagination' as bestax-pagination;
 @use '@allxsmith/bestax-bulma/scss/components/affix';
+@use '@allxsmith/bestax-bulma/scss/components/floatbutton';
 @use '@allxsmith/bestax-bulma/scss/components/navbar' as bestax-navbar;
 @use '@allxsmith/bestax-bulma/scss/components/panel' as bestax-panel;
+@use '@allxsmith/bestax-bulma/scss/components/tour';
 
 // bestax layout
 @use '@allxsmith/bestax-bulma/scss/layout/appframe';
@@ -219,6 +223,7 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/form/colorinput';
 @use '@allxsmith/bestax-bulma/scss/form/passwordinput';
 @use '@allxsmith/bestax-bulma/scss/form/treeselect';
+@use '@allxsmith/bestax-bulma/scss/form/cascader';
 
 // bestax elements and helpers
 @use '@allxsmith/bestax-bulma/scss/elements/button' as bestax-button;
@@ -235,13 +240,61 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/elements/skeleton' as bestax-skeleton;
 @use '@allxsmith/bestax-bulma/scss/elements/stat';
 @use '@allxsmith/bestax-bulma/scss/elements/tag' as bestax-tag;
+@use '@allxsmith/bestax-bulma/scss/helpers/color' as bestax-color;
 @use '@allxsmith/bestax-bulma/scss/helpers/cursor';
 @use '@allxsmith/bestax-bulma/scss/helpers/sizing';
+@use '@allxsmith/bestax-bulma/scss/helpers/visibility' as bestax-visibility;
 ```
 
-Some of these partials adjust a stock Bulma component rather than add one of bestax's. `elements/notification` keeps a `Notification`'s text clear of its close button, and gives a dark or light one its color's own text and background, where Bulma's module lets its text inherit the color around it, so a build that uses `bulma/sass/elements/notification` wants it too. `elements/tag` gives a light tag the light color's own text the same way, so a build that uses `bulma/sass/elements/tag` wants it too. `components/pagination` draws the page links' keyboard focus ring, which Bulma's own styles turn off, and keeps the current page marked in forced colors (Windows' contrast themes), so a build that uses `bulma/sass/components/pagination`, for a `Pagination` or a `DataTable`'s pager, wants it too. `components/menu` keeps a menu's active item marked in forced colors the same way, draws `Menu.Section`'s heading and chevron, and starts each item's text at the right on a right-to-left page, so a build that uses `bulma/sass/components/menu`, for a `Menu` or a `TableOfContents`, wants it too. `components/navbar` keeps the burger's bars drawn in forced colors, and keeps a `fixed` navbar in place while an overlay locks the page's scrolling, so a build that uses `bulma/sass/components/navbar`, for a `Navbar` or an `AppFrame`'s burger, wants it too. `components/panel` keeps the heading of a panel with no color readable on the dark scheme, where Bulma writes it white on light gray, so a build that uses `bulma/sass/components/panel` wants it too. `elements/delete` keeps close buttons drawn in forced colors, the delete button and the Modal's and delete tag's crosses, so a build that shows any close button wants it. `elements/button` gives a focused button an outline where Bulma's border and shadow show nothing, on a ghost button and on every button in forced colors, and gives a colored button a border in forced colors, where Bulma draws it with none and the fill is replaced, so a build that uses `bulma/sass/elements/button` wants it too. `form/field` puts the `message` of a horizontal form component (`Input horizontal`, `Checkboxes horizontal` and the like) under its control, where Bulma's row would set it beside, and keeps a horizontal label's text against its control on a right-to-left page, so a build that uses `bulma/sass/form/tools` for horizontal fields wants it too. A partial like that can end in the same name as the Bulma module it adjusts, and Sass refuses two `@use` lines with the same name in one file, so the block above gives those lines a name of their own with `as`. The name changes nothing in the compiled CSS.
+Some of these partials adjust a stock Bulma component rather than add one of bestax's.
 
-Others draw on a stock Bulma component without adjusting it. `components/tableofcontents` is Bulma's menu, so a build that uses it wants `bulma/sass/components/menu` and `components/menu` too. `form/checkboxcard` and `form/radiocard` are Bulma cards, so a build that uses them wants `bulma/sass/components/card` too. `elements/stat`'s `Stats` row is Bulma's smart grid, so a build with one wants `bulma/sass/grid/grid` too. `form/dropzone` is Bulma's file widget, so a build that uses it wants `bulma/sass/form/file` and bestax's `form/file`, for the zone's focus ring, too, and its remove buttons are delete buttons, so it wants `bulma/sass/elements/delete` and `elements/delete` as well. `layout/appframe`'s drawer closes with a delete button, so it wants those two too, and its burger is Bulma's navbar burger, so it wants `bulma/sass/components/navbar` and `components/navbar` as well. Its icon rail, `AppFrame.Nav rail`, shows each label in a tooltip, so a build with a rail wants `components/tooltip` too, and `components/menu` for the icons in its menu. `form/colorpicker` draws its swatches and its preview with `elements/colorswatch`, and its value field and eye dropper button are Bulma's, so it wants that partial, `bulma/sass/form/input-textarea` and `bulma/sass/elements/button` as well. `form/colorinput` opens a `form/colorpicker` in the date pickers' `form/picker-popover`, so it wants both of those and what they want. `form/passwordinput` lays its button over Bulma's input, so it wants `bulma/sass/form/input-textarea` as well. `form/treeselect` opens a `components/treeview` in `form/picker-popover`, and its field, tags and clear button are Bulma's, so it wants those two, `form/checkbox` for the boxes, `bulma/sass/form/input-textarea`, `bulma/sass/elements/tag`, `bulma/sass/elements/delete` and `elements/delete` as well.
+- `elements/notification` keeps a `Notification`'s text clear of its close button, and gives a dark or light one its color's own text and background, and a white or black one with `isLight` the light color's text, where Bulma's module lets its text inherit the color around it, so a build that uses `bulma/sass/elements/notification` wants it too.
+
+- `elements/tag` gives a light tag, and a white, black or dark one with `isLight`, readable text the same way, and sets a normal-size tag in a table cell at the bottom of its line, where Bulma's baseline makes the row taller than a row of text, so a build that uses `bulma/sass/elements/tag` wants it too.
+
+- `components/pagination` draws the page links' keyboard focus ring, which Bulma's own styles turn off, and keeps the current page marked in forced colors (Windows' contrast themes), so a build that uses `bulma/sass/components/pagination`, for a `Pagination` or a `DataTable`'s pager, wants it too.
+
+- `components/menu` keeps a menu's active item marked in forced colors the same way, draws `Menu.Section`'s heading and chevron, and starts each item's text at the right on a right-to-left page, so a build that uses `bulma/sass/components/menu`, for a `Menu` or a `TableOfContents`, wants it too.
+
+- `components/navbar` keeps the burger's bars drawn in forced colors, keeps a `fixed` navbar in place while an overlay locks the page's scrolling, gives an active item's text the invert of the link color it sits on, where Bulma's leaves it in the navbar's text color, and draws a navbar in a colored `Hero` in the hero's colors, where Bulma's draws its active item and burger in the link color, so a build that uses `bulma/sass/components/navbar`, for a `Navbar` or an `AppFrame`'s burger, wants it too.
+
+- `components/panel` keeps the heading of a panel with no color readable on the dark scheme, where Bulma writes it white on light gray, and a colored panel's active block and tab, their text, icon and underline, readable on both schemes, so a build that uses `bulma/sass/components/panel` wants it too.
+
+- `elements/delete` keeps close buttons drawn in forced colors, the delete button and the Modal's and delete tag's crosses, so a build that shows any close button wants it.
+
+- `elements/button` gives a focused button an outline where Bulma's border and shadow show nothing, on a ghost button and on every button in forced colors, gives a colored button a border in forced colors, where Bulma draws it with none and the fill is replaced, and gives an outlined button the lightness Bulma picks for its color's text on the page where that's lighter, so a dark color reads on the dark scheme, so a build that uses `bulma/sass/elements/button` wants it too.
+
+- `form/field` puts the `message` of a horizontal form component (`Input horizontal`, `Checkboxes horizontal` and the like) under its control, where Bulma's row would set it beside, and keeps a horizontal label's text against its control on a right-to-left page, so a build that uses `bulma/sass/form/tools` for horizontal fields wants it too.
+
+- `helpers/color` gives a color's text (`textColor`, `has-text-*`) the color's on-scheme lightness on the dark scheme wherever that's the lighter one, so a dark color such as the bestax blue primary reads there, and a build that uses `bulma/sass/helpers/color` wants it too.
+
+- `helpers/visibility` draws `is-sr-only` at each breakpoint, which Bulma draws only at every width and the viewport visibility props write for `'sr-only'` (`visibilityTablet="sr-only"`), so a build that uses `bulma/sass/helpers/visibility` for those props wants it too.
+
+A partial like that can end in the same name as the Bulma module it adjusts, and Sass refuses two `@use` lines with the same name in one file, so the block above gives those lines a name of their own with `as`. The name changes nothing in the compiled CSS.
+
+Others draw on a stock Bulma component without adjusting it.
+
+- `components/tableofcontents` is Bulma's menu, so a build that uses it wants `bulma/sass/components/menu` and `components/menu` too.
+
+- `form/checkboxcard` and `form/radiocard` are Bulma cards, so a build that uses them wants `bulma/sass/components/card` too.
+
+- `elements/stat`'s `Stats` row is Bulma's smart grid, so a build with one wants `bulma/sass/grid/grid` too.
+
+- `form/dropzone` is Bulma's file widget, so a build that uses it wants `bulma/sass/form/file` and bestax's `form/file`, for the zone's focus ring, too, and its remove buttons are delete buttons, so it wants `bulma/sass/elements/delete` and `elements/delete` as well.
+
+- `layout/appframe`'s drawer closes with a delete button, so it wants those two too, and its burger is Bulma's navbar burger, so it wants `bulma/sass/components/navbar` and `components/navbar` as well. Its icon rail, `AppFrame.Nav rail`, shows each label in a tooltip, so a build with a rail wants `components/tooltip` too, and `components/menu` for the icons in its menu.
+
+- `form/colorpicker` draws its swatches and its preview with `elements/colorswatch`, and its value field and eye dropper button are Bulma's, so it wants that partial, `bulma/sass/form/input-textarea` and `bulma/sass/elements/button` as well.
+
+- `form/colorinput` opens a `form/colorpicker` in the date pickers' `form/picker-popover`, so it wants both of those and what they want.
+
+- `form/passwordinput` lays its button over Bulma's input, so it wants `bulma/sass/form/input-textarea` as well.
+
+- `form/treeselect` opens a `components/treeview` in `form/picker-popover`, and its field, tags and clear button are Bulma's, so it wants those two, `form/checkbox` for the boxes, `bulma/sass/form/input-textarea`, `bulma/sass/elements/tag`, `bulma/sass/elements/delete` and `elements/delete` as well.
+
+- `form/cascader` opens its columns in `form/picker-popover`, and brings `form/combobox` with it, for its search and the values its items start from. Its items are Bulma's dropdown items, so it wants `form/picker-popover`, `bulma/sass/components/dropdown`, `bulma/sass/form/input-textarea`, `bulma/sass/elements/delete` and `elements/delete` for the field and its clear button, and `bulma/sass/elements/loader`, `elements/loader` and `bulma/sass/elements/button` for a column that's loading or failed to load.
+
+- `components/tour` draws a step's Skip, Back and Next with Bulma's buttons and its close button with a delete button, so a build that uses it wants `bulma/sass/elements/button`, `bulma/sass/elements/delete` and `elements/delete` too.
 
 :::info Shortcuts
 
@@ -271,6 +324,7 @@ A realistic modular SCSS entry for an app that uses a few Bulma primitives plus 
 @use 'bulma/sass/helpers/color';
 
 // bestax extras — only what the app uses
+@use '@allxsmith/bestax-bulma/scss/helpers/color' as bestax-color;
 @use '@allxsmith/bestax-bulma/scss/components/dialog';
 @use '@allxsmith/bestax-bulma/scss/form/autocomplete';
 ```
