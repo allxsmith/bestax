@@ -73,14 +73,14 @@ The `lines` variant of the `Skeleton` component renders multiple line placeholde
 
 ### Skeleton Examples from useBulmaClasses.stories.tsx
 
-These show how the `skeleton` Bulma helper can be applied to various components using the `skeleton` prop and `useBulmaClasses`. A screen reader still reads what a skeleton hides, and the keyboard still reaches a skeleton control, so each one hides its text or is disabled, as the [accessibility notes](#accessibility) say.
+These show how the `skeleton` Bulma helper can be applied to various components using the `skeleton` prop and `useBulmaClasses`. A screen reader still reads what a skeleton hides, and the keyboard still reaches a skeleton control, so each one is hidden from assistive tech, and each control is out of the tab order too, as the [accessibility notes](#accessibility) say.
 
 #### Skeleton Button
 
 Demonstrates a button with a skeleton loader, useful for indicating an action is in progress.
 
 ```tsx live
-<Button skeleton isDisabled color="dark">
+<Button skeleton tabIndex={-1} aria-hidden="true" color="dark">
   Skeleton Button
 </Button>
 ```
@@ -91,13 +91,13 @@ A group of buttons with skeleton loaders, ideal for simulating multiple actions 
 
 ```tsx live
 <Buttons>
-  <Button skeleton isDisabled color="dark">
+  <Button skeleton tabIndex={-1} aria-hidden="true" color="dark">
     Skeleton
   </Button>
-  <Button skeleton isDisabled color="dark">
+  <Button skeleton tabIndex={-1} aria-hidden="true" color="dark">
     Skeleton
   </Button>
-  <Button skeleton isDisabled color="dark">
+  <Button skeleton tabIndex={-1} aria-hidden="true" color="dark">
     Skeleton
   </Button>
 </Buttons>
@@ -191,7 +191,7 @@ A subtitle with a skeleton loader, perfect for simulating secondary heading load
 An input field with a skeleton loader, ideal for indicating form input is loading.
 
 ```tsx live
-<Input skeleton disabled placeholder="Skeleton Input" />
+<Input skeleton tabIndex={-1} aria-hidden="true" placeholder="Skeleton Input" />
 ```
 
 #### Skeleton TextArea
@@ -199,7 +199,13 @@ An input field with a skeleton loader, ideal for indicating form input is loadin
 A textarea with a skeleton loader, useful for simulating multi-line text input loading.
 
 ```tsx live
-<TextArea skeleton disabled placeholder="Skeleton TextArea" rows={3} />
+<TextArea
+  skeleton
+  tabIndex={-1}
+  aria-hidden="true"
+  placeholder="Skeleton TextArea"
+  rows={3}
+/>
 ```
 
 ---
@@ -209,16 +215,17 @@ A textarea with a skeleton loader, useful for simulating multi-line text input l
 - **Its text is still read:** Bulma hides a skeleton's text with a transparent color, and a screen
   reader reads it anyway, so `<Skeleton>Lorem ipsum</Skeleton>` reads "Lorem ipsum" and a `Title`
   with the `skeleton` prop is still a heading. Give a skeleton that holds placeholder text
-  `aria-hidden="true"`, on `Skeleton` or on the component with the `skeleton` prop, or leave the
-  block empty. The `lines` variant holds no text.
+  `aria-hidden="true"`, whether it's a `Skeleton` or a component with the `skeleton` prop or
+  `hasSkeleton`, or leave the block empty. The `lines` variant holds no text.
 - **Controls still take the keyboard:** Bulma's skeleton stops the pointer and not the keyboard, so
-  a `Button` with the `skeleton` prop is still reached with Tab and pressed with Enter. Pass it
-  `isDisabled`, which takes it out of the tab order and keeps its look. A form control takes
-  `disabled`, which Bulma draws lighter.
+  a `Button` with the `skeleton` prop is still reached with Tab and pressed with Enter. Give a
+  skeleton control, and anything focusable inside a skeleton, `tabIndex={-1}` as well as
+  `aria-hidden="true"`, so nothing reaches it while it loads and nothing hidden takes focus. Its
+  look doesn't change, where `disabled` would draw it faded.
 - **Say that it's loading:** a skeleton has no role, and ARIA doesn't allow a name on its `<div>`,
   so don't give it an `aria-label`. Set `aria-busy="true"` on the region it stands in for, and
   remove it when the content arrives. To announce that loading started or finished, change the
-  text of a live region already on the page, as [`Loader`](./loader.md#accessibility) does.
+  text of a live region that's already on the page.
 - **Reduced motion:** under `prefers-reduced-motion: reduce` the pulse stops and each shape stays
   drawn in the skeleton color. That covers `Skeleton`, the `skeleton` prop and `hasSkeleton`. The
   rule ships in bestax's stylesheets: `bestax.css` and its variants, or `extras.css` next to your

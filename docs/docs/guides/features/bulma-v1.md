@@ -194,7 +194,12 @@ function SkeletonExamples() {
         {loading ? 'Loading...' : 'Content Loaded!'}
       </Title>
 
-      <Button skeleton={loading} color="primary">
+      <Button
+        skeleton={loading}
+        tabIndex={loading ? -1 : undefined}
+        aria-hidden={loading || undefined}
+        color="primary"
+      >
         Click me
       </Button>
 

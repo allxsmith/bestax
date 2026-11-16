@@ -836,12 +836,12 @@ On `Image`, use its own `size` ratios instead, which also fit the picture to the
 
 ### Skeleton Examples
 
-The `skeleton` prop applies Bulma's skeleton loading effect. [Skeleton's accessibility notes](../elements/skeleton.md#accessibility) cover it too, reduced motion and forced colors included: hide a skeleton's text from screen readers and disable a skeleton control. Here are examples for each component:
+The `skeleton` prop applies Bulma's skeleton loading effect. [Skeleton's accessibility notes](../elements/skeleton.md#accessibility) cover it too, reduced motion and forced colors included: hide a skeleton from screen readers, and take a skeleton control out of the tab order. Here are examples for each component:
 
 #### Skeleton Button
 
 ```tsx live
-<Button skeleton isDisabled>
+<Button skeleton tabIndex={-1} aria-hidden="true">
   Skeleton Button
 </Button>
 ```
@@ -850,13 +850,13 @@ The `skeleton` prop applies Bulma's skeleton loading effect. [Skeleton's accessi
 
 ```tsx live
 <Buttons>
-  <Button skeleton isDisabled>
+  <Button skeleton tabIndex={-1} aria-hidden="true">
     Skeleton
   </Button>
-  <Button skeleton isDisabled>
+  <Button skeleton tabIndex={-1} aria-hidden="true">
     Skeleton
   </Button>
-  <Button skeleton isDisabled>
+  <Button skeleton tabIndex={-1} aria-hidden="true">
     Skeleton
   </Button>
 </Buttons>
@@ -909,13 +909,19 @@ The `skeleton` prop applies Bulma's skeleton loading effect. [Skeleton's accessi
 #### Skeleton Input
 
 ```tsx live
-<Input skeleton disabled placeholder="Skeleton Input" />
+<Input skeleton tabIndex={-1} aria-hidden="true" placeholder="Skeleton Input" />
 ```
 
 #### Skeleton TextArea
 
 ```tsx live
-<TextArea skeleton disabled placeholder="Skeleton TextArea" rows={3} />
+<TextArea
+  skeleton
+  tabIndex={-1}
+  aria-hidden="true"
+  placeholder="Skeleton TextArea"
+  rows={3}
+/>
 ```
 
 ---
