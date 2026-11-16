@@ -1231,13 +1231,14 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
       );
       expect(forced(['background-color', 'background'])).toBe('Canvas');
       expect(colorOf(forced(['border']))).toBe('CanvasText');
-      // None of it reaches anyone not in forced colors.
+      // None of it reaches anyone not in forced colors, where the fill keeps
+      // the Bulma color it reads.
       expect(resolved(rules, bar, '', {}, ['forced-color-adjust'])).toBeNull();
       expect(
         resolved(rules, bar, '', {}, [
           '--bulma-progress-value-background-color',
         ])
-      ).not.toBe('CanvasText');
+      ).toMatch(/^var\(--bulma-/);
     }
   );
 
@@ -1245,37 +1246,50 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
     // The rule above sets the variables, not the paint, so it's only a fix
     // while every background the sheet gives a bar reads them. Bulma paints
     // the track and the fill on vendor pseudo-elements, which the resolver
-    // can't match, so the sheet is read for them directly.
-    const bar = new RegExp(`(^|[\\s>+~])\\.${prefix}progress(?![\\w-])`);
+    // can't match, so the sheet is read for them directly: any rule with the
+    // bar's class anywhere in a selector.
+    const bar = new RegExp(`\\.${prefix}progress(?![\\w-])`);
     const ours =
       /var\(--bulma-progress-(bar|value)-background-color\)|transparent/g;
     const paints = rules
       .filter(rule => !rule.forcedColorsOnly)
-      .filter(rule => rule.selectors.some(selector => bar.test(selector)))
       .flatMap(rule =>
-        ['background-color', 'background', 'background-image']
-          .filter(property => rule.values[property])
-          .map(property => ({
-            rule: `${rule.selectors.join(', ')} { ${property}: ${rule.values[property].value} }`,
-            rest: rule.values[property].value.replace(ours, ''),
-          }))
+        rule.selectors
+          .filter(selector => bar.test(selector))
+          .flatMap(selector =>
+            ['background-color', 'background', 'background-image']
+              .filter(property => rule.values[property])
+              .map(property => ({
+                selector,
+                property,
+                value: rule.values[property].value,
+              }))
+          )
       );
     // Floor against the read going quietly empty: the fill is one of them.
-    expect(
-      paints.some(({ rule }) =>
-        rule.includes(
-          '::-webkit-progress-value { background-color: var(--bulma-progress-value-background-color)'
-        )
-      )
-    ).toBe(true);
-    // Bulma writes its colors as variables, so another variable, or a color
-    // written out, is a paint forced colors would still replace.
+    expect(paints).toContainEqual({
+      selector: `.${prefix}progress::-webkit-progress-value`,
+      property: 'background-color',
+      value: 'var(--bulma-progress-value-background-color)',
+    });
+    // Once the two variables are out, all a paint may have left is the
+    // indeterminate gradient's direction and stops. A color, another
+    // variable or `currentColor` is a paint forced colors would replace.
     expect(
       paints
-        .filter(({ rest }) =>
-          /var\(|#[\da-f]|\b(rgba?|hsla?|color-mix|oklch|lab|lch)\(/i.test(rest)
+        .filter(
+          ({ value }) =>
+            value
+              .replace(ours, '')
+              .replace(
+                /linear-gradient|to (left|right)|[\d.]+%|none|[(),\s]/g,
+                ''
+              ) !== ''
         )
-        .map(({ rule }) => rule)
+        .map(
+          ({ selector, property, value }) =>
+            `${selector} { ${property}: ${value} }`
+        )
     ).toEqual([]);
   });
 
