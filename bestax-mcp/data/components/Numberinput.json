@@ -54,7 +54,7 @@
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Quantity\"\n      labelProps={{ htmlFor: 'quantity-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control>\n            <Numberinput\n              id=\"quantity-field-control\"\n              defaultValue={1}\n              min={1}\n              max={10}\n              color=\"primary\"\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
-  "accessibility": "- Uses native number input element\n- The `label` prop, or the label of a `Field` the Numberinput sits in, names its input. A `Field` with `hasAddons` or `grouped` holds several controls and names none, so wire that one with `labelProps={{ htmlFor }}` and a matching `id`.\n- Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes\n- +/- buttons have `aria-label` for screen readers\n- Arrow keys increment/decrement the value\n- Buttons are disabled at min/max boundaries",
+  "accessibility": "- Uses native number input element\n- The `label` prop, or the label of a `Field` the Numberinput sits in, names its input. A `Field` with `hasAddons` or `grouped` holds several controls and names none, so wire that one with `labelProps={{ htmlFor }}` and a matching `id`.\n- Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes\n- +/- buttons have `aria-label` for screen readers\n- Arrow keys increment/decrement the value\n- Buttons are disabled at min/max boundaries\n- The `message` describes the number input through `aria-describedby`, after any ids you pass there, so a screen reader reads it when the input takes focus.",
   "related": ["Input", "Slider"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-numberinput",
   "summary": "The `Numberinput` component provides a number input with increment/decrement buttons.",
@@ -269,7 +269,7 @@
           "name": "message",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Help/validation message below the input.",
+          "description": "Help or validation text under the widget. It describes the control its label names through `aria-describedby`, so a screen reader reads it there.",
           "required": false,
           "inherited": true,
           "deprecated": false
