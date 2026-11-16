@@ -44,8 +44,9 @@ export interface ProgressProps
 /**
  * The `Progress` component displays a Bulma-styled progress bar.
  *
- * In forced colors, with bestax's CSS loaded, its track and fill are drawn
- * in system colors with an edge, where Bulma's would take the page's color.
+ * In forced colors, with bestax's CSS loaded, its fill and an edge around
+ * its track are drawn in the text color, where Bulma's whole bar would take
+ * the page's color and disappear.
  *
  * @function
  * @param {ProgressProps} props - Props for the Progress component.

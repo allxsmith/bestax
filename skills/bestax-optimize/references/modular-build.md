@@ -259,8 +259,8 @@ Notes:
   (`as bestax-progress`, `as bestax-skeleton`) stop the indeterminate bar's sweep and the
   skeleton pulse (`Skeleton`, the `skeleton` prop, `hasSkeleton`) under
   `prefers-reduced-motion: reduce`, the same way and in either order. The `progress` partial
-  also keeps the bar drawn in forced colors, its track and fill in system colors with an edge,
-  where Bulma's module leaves it the page's color.
+  also keeps the bar drawn in forced colors, its fill and an edge in the text color, where
+  Bulma's module leaves the whole bar the page's color.
 - `Notification` is stock Bulma too (`bulma/sass/elements/notification`). The `notification`
   extras partial pads the end of one with a close button (`hasDelete`, or a `Delete` passed in)
   so its text clears the button, and gives a dark or light one its color's own text and
