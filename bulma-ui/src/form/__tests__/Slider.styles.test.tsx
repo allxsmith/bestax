@@ -475,6 +475,17 @@ describe.each([
     ).toEqual(['buttontext']);
   });
 
+  it('outlines non-endpoint ticks against the track and fill in forced colors', () => {
+    const tick = `${p('slider-tick')}:not(${p('is-endpoint')})`;
+    expect(values(tick, 'outline', [FORCED]).map(v => v.toLowerCase())).toEqual(
+      ['1px solid canvas']
+    );
+    expect(values(tick, 'outline', [])).toEqual([]);
+    expect(
+      values(`${p('slider-tick')}${p('is-endpoint')}`, 'outline', [FORCED])
+    ).toEqual([]);
+  });
+
   it('draw the tick and its label at full strength in forced colors', () => {
     // Forced colors keeps an opacity, so the tick's would halve the line and
     // the label inside it there.

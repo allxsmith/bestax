@@ -689,6 +689,14 @@ $slider-vertical-height: 200px !default;
     opacity: 1;
   }
 
+  // ButtonText and CanvasText can resolve to the same color, hiding the tick
+  // where it crosses the unfilled track. The Canvas outline keeps its edge
+  // visible over both the track and the Highlight fill without changing the
+  // tick's system color.
+  .#{iv.$class-prefix}slider-tick:not(.#{iv.$class-prefix}is-endpoint) {
+    outline: 1px solid Canvas;
+  }
+
   .#{iv.$class-prefix}slider-tick-label {
     color: ButtonText;
   }
