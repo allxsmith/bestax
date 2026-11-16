@@ -60,7 +60,7 @@ in place:
   `tablet={{ display: 'flex' }}` to `displayTablet="flex"`, and so on. A plain `display` beside
   one stays its class (`display="flex" mobile={{ display: 'block' }}` → `className="is-flex"
 displayMobile="block"`), since bestax leaves `display` out beside a per-viewport display prop.
-- **Structure** — `Table.Container` folds into `isResponsive` on the `Table`, its `aria-label` or `aria-labelledby` with it, Navbar dropdown
+- **Structure** — `Table.Container` folds into `isResponsive` on the `Table`, which takes the container's `aria-label` or `aria-labelledby` unless it has its own (a `Table` with neither gets a TODO asking for one), Navbar dropdown
   markup is restructured to bestax's `Navbar.Dropdown`/`Navbar.DropdownMenu` split, icon-font
   children become `<Icon name="…" library="…">` props, and `Menu.List title` becomes a
   `Menu.Label` sibling.

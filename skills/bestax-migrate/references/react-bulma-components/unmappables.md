@@ -238,9 +238,13 @@ The same TODO marks a `Heading` that sets `size` and `textSize` both: drop `size
 `Table.Container` folded into `isResponsive` on a `Table` with no `aria-label` and no
 `aria-labelledby`. While the table overflows, `Table isResponsive` makes its container a region you
 can tab to, named by those two alone, and a development build warns when it has neither. A name
-the container carried has already moved onto the `Table`, so this one never had one. Give the
-`Table` an `aria-label`, or point `aria-labelledby` at a heading, or at its `<caption>`'s `id` when
-it has one.
+the container wrote out has already moved onto the `Table`, so look for one in a spread the
+container carried (`prop:spread`). Otherwise give the `Table` an `aria-label`, or point
+`aria-labelledby` at a heading, or at its `<caption>`'s `id` when it has one.
+
+The container's `role` and `tabIndex` go with it (`prop:role`, `prop:tabIndex`): `Table isResponsive`
+writes them on its container itself while the table overflows. Its name stays where it was when the
+`Table` names itself or spreads props that may (`prop:aria-label`, `prop:aria-labelledby`).
 
 ## `domRef`
 
