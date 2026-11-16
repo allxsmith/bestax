@@ -42,6 +42,14 @@ export interface MessageProps
   /** Callback for the close ("X") button. */
   onClose?: () => void;
   /**
+   * ARIA label for the close button `onClose` renders. The button is drawn
+   * as an icon, so its name is all a screen reader says about it: give it one
+   * in the page's language. An empty one falls back to the default. An
+   * `aria-label` on `Message` names the `<article>`, not the button.
+   * @defaultValue 'delete'
+   */
+  ariaCloseLabel?: string | undefined;
+  /**
    * Body content for the message, wrapped in a `.message-body`. Children that
    * include a `Message.Header` or `Message.Body` aren't wrapped: they render as
    * the article's own children, after the header `title` and `onClose` make.
@@ -65,6 +73,7 @@ const MessageComponent: React.FC<MessageProps> = ({
   bgColor,
   size,
   onClose,
+  ariaCloseLabel,
   children,
   ...props
 }) => {
@@ -107,7 +116,7 @@ const MessageComponent: React.FC<MessageProps> = ({
           {onClose && (
             <button
               className={deleteClass}
-              aria-label="delete"
+              aria-label={ariaCloseLabel || 'delete'}
               onClick={onClose}
               type="button"
               data-testid="message-close"

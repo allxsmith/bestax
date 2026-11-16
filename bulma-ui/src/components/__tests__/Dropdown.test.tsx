@@ -2388,3 +2388,88 @@ describe('href routing', () => {
     expect(screen.getByTestId('dropdown-item')).not.toHaveAttribute('href');
   });
 });
+
+describe('the current item', () => {
+  it('marks an active item aria-current, so it is more than a color', () => {
+    render(
+      <Dropdown label="Go to" active>
+        <Dropdown.Item href="#inbox" active>
+          Inbox
+        </Dropdown.Item>
+        <Dropdown.Item href="#archive">Archive</Dropdown.Item>
+      </Dropdown>
+    );
+    expect(screen.getByRole('menuitem', { current: true })).toHaveTextContent(
+      'Inbox'
+    );
+    expect(screen.getByRole('menuitem', { name: 'Inbox' })).toHaveAttribute(
+      'aria-current',
+      'true'
+    );
+    expect(
+      screen.getByRole('menuitem', { name: 'Archive' })
+    ).not.toHaveAttribute('aria-current');
+  });
+
+  it('marks it under every element `as` takes', () => {
+    render(
+      <Dropdown label="Menu" active>
+        <Dropdown.Item as="button" active>
+          Button
+        </Dropdown.Item>
+        <Dropdown.Item as="div" active>
+          Div
+        </Dropdown.Item>
+      </Dropdown>
+    );
+    expect(screen.getByRole('menuitem', { name: 'Button' })).toHaveAttribute(
+      'aria-current',
+      'true'
+    );
+    expect(screen.getByRole('menuitem', { name: 'Div' })).toHaveAttribute(
+      'aria-current',
+      'true'
+    );
+  });
+
+  it('lets a caller’s own aria-current win, false included', () => {
+    render(
+      <Dropdown label="Pages" active>
+        <Dropdown.Item href="/a" active aria-current="page">
+          Page
+        </Dropdown.Item>
+        {/* An item that says its state with aria-checked, as the TSDoc has it. */}
+        <Dropdown.Item
+          as="button"
+          role="menuitemradio"
+          aria-checked
+          active
+          aria-current={false}
+        >
+          Off
+        </Dropdown.Item>
+      </Dropdown>
+    );
+    expect(screen.getByRole('menuitem', { name: 'Page' })).toHaveAttribute(
+      'aria-current',
+      'page'
+    );
+    const off = screen.getByRole('menuitemradio', { name: 'Off' });
+    expect(off).toHaveClass('is-active');
+    expect(off).toHaveAttribute('aria-current', 'false');
+  });
+
+  it('lets a caller’s aria-current decide even when it’s undefined', () => {
+    const spread: { 'aria-current'?: 'true' } = { 'aria-current': undefined };
+    render(
+      <Dropdown label="Menu" active>
+        <Dropdown.Item as="button" active {...spread}>
+          Item
+        </Dropdown.Item>
+      </Dropdown>
+    );
+    expect(screen.getByRole('menuitem', { name: 'Item' })).not.toHaveAttribute(
+      'aria-current'
+    );
+  });
+});

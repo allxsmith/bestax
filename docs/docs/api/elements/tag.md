@@ -88,10 +88,17 @@ Add the `isRounded` prop to render a tag with fully rounded corners, making it s
 
 ### Delete Tag (Button)
 
-Set `isDelete` to render a tag as a delete button. Use the `onDelete` callback to handle removal actions.
+Set `isDelete` to render a tag as a delete button. Use the `onDelete` callback to handle removal actions. The button is named "Delete tag" unless you pass an `aria-label`, and that name doesn't say which tag it removes, so give it one that does.
 
 ```tsx live
-<Tag isDelete onDelete={() => alert('Deleted!')} />
+<Tags hasAddons>
+  <Tag color="primary">React</Tag>
+  <Tag
+    isDelete
+    aria-label="Remove React"
+    onDelete={() => alert('Removed React')}
+  />
+</Tags>
 ```
 
 ### With Margin
@@ -176,12 +183,12 @@ Set `isHoverable` to add a hover effect, making the tag interactive for mouse us
 You can combine `Tag` with the `Delete` component for custom dismissible tags. Use `hasAddons` on the `Tags` container to group them visually.
 
 ```tsx live
-import { Tags, Delete } from '@allxsmith/bestax-bulma';
+import { Tag, Tags, Delete } from '@allxsmith/bestax-bulma';
 
 <Tags hasAddons>
   <Tag color="primary" size="medium">
-    Tag with Delete
-    <Delete onClick={() => alert('Tag deleted!')} />
+    React
+    <Delete ariaLabel="Remove React" onClick={() => alert('Removed React')} />
   </Tag>
 </Tags>;
 ```
@@ -190,7 +197,7 @@ import { Tags, Delete } from '@allxsmith/bestax-bulma';
 
 ## Accessibility
 
-- **Delete buttons:** Use `aria-label` for delete tags for screen readers.
+- **Delete buttons:** A delete tag is named "Delete tag", and a `Delete` inside a tag "Close", unless you name them. Neither says which tag it removes, so a screen reader user moving between several hears the same name each time. Name each one after its tag: `aria-label="Remove React"` on a delete tag, `ariaLabel="Remove React"` on a `Delete`.
 - **Keyboard:** Delete tags are rendered as `<button>`, supporting keyboard activation.
 - **Semantics:** Use tags for supplemental information, not as primary headings.
 - **Contrast:** A light tag's text, and a white, black or dark tag's with `isLight`, reads against its background the way a light `Button`'s does, in both color schemes. That comes from bestax's stylesheets, as the `color` and `isLight` props' descriptions say.
@@ -220,18 +227,18 @@ Combine `Tag` with `Tags` for grouped, multi-tag UIs.
 
 <!-- bestax:generated props -->
 
-| Prop          | Type                                                    | Default | Description                                                                                                                                                                                                                                                                                                                                                                            |
-| ------------- | ------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `className`   | `string`                                                | —       | Additional CSS classes to apply.                                                                                                                                                                                                                                                                                                                                                       |
-| `color`       | `TagColor`                                              | —       | Bulma color modifier for the tag. `light` takes the light color's own text from bestax's stylesheets. With Bulma's CSS alone, a light tag's text inherits the color around it, which on a dark page is hard to read.                                                                                                                                                                   |
-| `size`        | `'normal'` \| `'medium'` \| `'large'`                   | —       | Tag size.                                                                                                                                                                                                                                                                                                                                                                              |
-| `isLight`     | `boolean`                                               | `false` | Use the light color variant. The light color has none, so `color="light"` with `isLight` looks the same as without it. `white`, `black` and `dark` with `isLight` keep Bulma's light background, and bestax's stylesheets give their text the lightness a light tag's text has. With Bulma's CSS alone, their text inherits the color around it, which on a dark page is hard to read. |
-| `isRounded`   | `boolean`                                               | `false` | Renders a rounded tag.                                                                                                                                                                                                                                                                                                                                                                 |
-| `isDelete`    | `boolean`                                               | `false` | Renders a delete-style tag (delete button). The button renders `type="button"`, so it does not submit a form around it, and is named "Delete tag" unless you pass an `aria-label`. An empty one, or a spread carrying `'aria-label': undefined`, keeps that name rather than leaving the button unnamed.                                                                               |
-| `isHoverable` | `boolean`                                               | `false` | Adds hover effect to the tag.                                                                                                                                                                                                                                                                                                                                                          |
-| `onDelete`    | `() => void`                                            | —       | Callback for delete tag/button.                                                                                                                                                                                                                                                                                                                                                        |
-| `children`    | `React.ReactNode`                                       | —       | Tag content.                                                                                                                                                                                                                                                                                                                                                                           |
-| `...`         | All standard `<span>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                      |
+| Prop          | Type                                                    | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ------------- | ------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `className`   | `string`                                                | —       | Additional CSS classes to apply.                                                                                                                                                                                                                                                                                                                                                                                               |
+| `color`       | `TagColor`                                              | —       | Bulma color modifier for the tag. `light` takes the light color's own text from bestax's stylesheets. With Bulma's CSS alone, a light tag's text inherits the color around it, which on a dark page is hard to read.                                                                                                                                                                                                           |
+| `size`        | `'normal'` \| `'medium'` \| `'large'`                   | —       | Tag size.                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `isLight`     | `boolean`                                               | `false` | Use the light color variant. The light color has none, so `color="light"` with `isLight` looks the same as without it. `white`, `black` and `dark` with `isLight` keep Bulma's light background, and bestax's stylesheets give their text the lightness a light tag's text has. With Bulma's CSS alone, their text inherits the color around it, which on a dark page is hard to read.                                         |
+| `isRounded`   | `boolean`                                               | `false` | Renders a rounded tag.                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `isDelete`    | `boolean`                                               | `false` | Renders a delete-style tag (delete button). The button renders `type="button"`, so it does not submit a form around it, and is named "Delete tag" unless you pass an `aria-label`. An empty one, or a spread carrying `'aria-label': undefined`, keeps that name rather than leaving the button unnamed. "Delete tag" doesn't say which tag the button removes, so pass a name that does, such as `aria-label="Remove React"`. |
+| `isHoverable` | `boolean`                                               | `false` | Adds hover effect to the tag.                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `onDelete`    | `() => void`                                            | —       | Callback for delete tag/button.                                                                                                                                                                                                                                                                                                                                                                                                |
+| `children`    | `React.ReactNode`                                       | —       | Tag content.                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `...`         | All standard `<span>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                              |
 
 **Types:**
 

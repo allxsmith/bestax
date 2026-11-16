@@ -961,7 +961,12 @@ const SPECIALS: Record<string, SpecialHandler> = {
     return {};
   },
 
-  /** RBC Tabs children sit directly under .tabs; bestax needs a Tabs.List. */
+  /**
+   * RBC's Tabs renders `div.tabs > ul` around its children, and bestax's
+   * renders only the `div.tabs`, so the children go in a plain `<ul>`.
+   * Not a `Tabs.List`: it renders `role="tablist"`, which the migrated
+   * `Tabs.Item`s, plain `<li>`s, are not the tabs of (#1961).
+   */
   tabs(ctx, _path, element) {
     const children = element.children ?? [];
     const hasContent = children.some(
@@ -969,17 +974,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
     );
     if (!hasContent) return {};
     const j = ctx.j;
-    const tabsLocal = ctx.reserve('Tabs');
-    const listName = () =>
-      j.jsxMemberExpression(
-        j.jsxIdentifier(tabsLocal),
-        j.jsxIdentifier('List')
-      );
-    const list = j.jsxElement(
-      j.jsxOpeningElement(listName(), []),
-      j.jsxClosingElement(listName()),
-      children
-    );
+    const list = plainElement(j, 'ul', undefined, [], children);
     element.children = [j.jsxText('\n'), list, j.jsxText('\n')];
     ctx.dirty = true;
     return {};

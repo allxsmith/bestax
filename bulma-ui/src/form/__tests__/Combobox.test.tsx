@@ -25,6 +25,10 @@ import {
   announceDelay,
   announcementLifetime,
 } from '../../helpers/statusRegion';
+import {
+  clientWidthFollowsWindow,
+  narrowWindow,
+} from '../../__tests__/viewport';
 
 const COUNTRIES = ['Canada', 'France', 'Germany', 'Japan', 'Mexico'];
 
@@ -1502,6 +1506,8 @@ describe('Combobox', () => {
   });
 
   describe('Combobox.Menu', () => {
+    clientWidthFollowsWindow();
+
     it("doesn't show with nothing in it, whatever open says", () => {
       const { container } = render(
         <Combobox open onOpenChange={() => {}}>
@@ -1548,6 +1554,35 @@ describe('Combobox', () => {
       expect(container.querySelector('.dropdown-menu')).toHaveClass(
         'is-bottom-left'
       );
+    });
+
+    it('shifts a menu in place back inside a narrow window, beside a transform of its own', () => {
+      narrowWindow(el => el.classList.contains('combobox'), '.combobox-menu');
+      try {
+        render(
+          <Combobox defaultOpen position="bottom-left">
+            <Combobox.Input aria-label="Search" />
+            <Combobox.Menu
+              data-testid="panel"
+              style={{ transform: 'scale(0.98)' }}
+            >
+              <Combobox.List>
+                <Combobox.Item value="a">A</Combobox.Item>
+              </Combobox.List>
+            </Combobox.Menu>
+          </Combobox>
+        );
+        const panel = screen.getByTestId('panel');
+        expect(panel).toHaveClass('is-bottom-left');
+        expect(panel.style.getPropertyValue('--bulma-anchored-shift')).toBe(
+          '-40px'
+        );
+        expect(panel.style.marginLeft).toBe('');
+        expect(panel.style.transform).toBe('scale(0.98)');
+        expect(panel.style.translate).toBe('');
+      } finally {
+        vi.restoreAllMocks();
+      }
     });
 
     it('passes its attributes, class and style to the panel', () => {

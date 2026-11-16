@@ -20,6 +20,7 @@ import { ContextMenu } from '../components/ContextMenu';
 import { Popover } from '../components/Popover';
 import { SegmentedControl } from '../components/SegmentedControl';
 import { ScrollArea } from '../components/ScrollArea';
+import { Table } from '../elements/Table';
 import { Tour } from '../components/Tour';
 import { Command } from '../components/Command';
 import { DataTable } from '../components/DataTable';
@@ -93,6 +94,17 @@ const cases: Array<[string, React.ReactElement]> = [
     <ScrollArea key="scroll-area" aria-label="Notes" height={120}>
       <p>Notes</p>
     </ScrollArea>,
+  ],
+  [
+    // Responsive, for its container's scroll measurement.
+    'Table',
+    <Table key="table" isResponsive aria-label="Scores">
+      <tbody>
+        <tr>
+          <td>Ice Wolves</td>
+        </tr>
+      </tbody>
+    </Table>,
   ],
   [
     'Splitter',
