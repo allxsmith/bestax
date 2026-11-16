@@ -521,6 +521,33 @@ export const ProgrammaticAPI: Story = {
 };
 
 /**
+ * The container's hotkey, F8 by default, moves keyboard focus to the newest
+ * toast's first button, and the toast stays open while focus is in it.
+ */
+export const KeyboardHotkey: Story = {
+  render: function KeyboardHotkeyExample() {
+    return (
+      <>
+        <ToastContainer position="top-right" />
+        <Button
+          onClick={() =>
+            toast.show({
+              message: 'File moved to trash. Press F8 to reach Undo.',
+              actionText: 'Undo',
+              actionType: 'info',
+              duration: 5000,
+              onAction: () => toast.success('File restored'),
+            })
+          }
+        >
+          Delete file
+        </Button>
+      </>
+    );
+  },
+};
+
+/**
  * Queued toasts display one at a time (FIFO).
  */
 export const QueuedToasts: Story = {
