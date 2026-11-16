@@ -262,7 +262,8 @@ only finished ranges; typing reports each end as it changes, so handle `[start, 
 can't include a disabled day unless you pass `allowDisabledInRange`. With a `name`, two
 hidden inputs submit `name[start]` and `name[end]` as `YYYY-MM-DD` (`startName` / `endName`
 rename them). `label` names the whole field as a group; the two inputs are named by
-`labels.rangeStart` / `labels.rangeEnd`.
+`labels.rangeStart` / `labels.rangeEnd`. `monthsToShow={2}` shows two months side by side, in
+the popover and `inline`, for ranges that often cross a month's end, such as stays.
 
 ```tsx
 const [stay, setStay] = useState<DateRangeValue>([null, null]);

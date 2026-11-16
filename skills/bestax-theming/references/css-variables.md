@@ -400,7 +400,8 @@ dark tint.
 
 Declared on the root, `.calendar`: its frame, and the gap between the months on show. Each month
 is the `DateInput` calendar, `.dateinput`, so the `--bulma-dateinput-*` variables below theme its
-days, and a theme written for the date pickers themes the Calendar too.
+days, and a theme written for the date pickers themes the Calendar too. A `DateRangeInput` with
+`monthsToShow` takes `--bulma-calendar-months-gap` too, declared on its root and its popover.
 
 `--bulma-calendar-background-color`, `--bulma-calendar-border-color`,
 `--bulma-calendar-months-gap`, `--bulma-calendar-padding`, `--bulma-calendar-radius`
@@ -875,8 +876,12 @@ clock icon at the inline start, so both swap sides on a right-to-left page. Colo
 and launcher take the `--bulma-colorinput-*` variables in its own section, above. PasswordInput's
 show button stays on the physical right.
 
+`--bulma-picker-popover-months-max-width` caps the width of a panel showing several months, a
+DateRangeInput's with `monthsToShow`, past which the months wrap to a column.
+
 `--bulma-picker-popover-animation-duration`, `--bulma-picker-popover-background`,
-`--bulma-picker-popover-border-color`, `--bulma-picker-popover-offset`,
+`--bulma-picker-popover-border-color`, `--bulma-picker-popover-months-max-width`,
+`--bulma-picker-popover-offset`,
 `--bulma-picker-popover-padding`, `--bulma-picker-popover-radius`,
 `--bulma-picker-popover-shadow`, `--bulma-picker-popover-z-index`,
 `--bulma-picker-trigger-color`, `--bulma-picker-trigger-disabled-opacity`,
