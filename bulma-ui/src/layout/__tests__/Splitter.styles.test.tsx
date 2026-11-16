@@ -98,8 +98,9 @@ describe('Splitter styles', () => {
       '--bulma-splitter-line-size': '1px',
       '--bulma-splitter-line-color': 'var(--bulma-border)',
       '--bulma-splitter-line-active-size': '2px',
-      '--bulma-splitter-line-active-color': 'var(--bulma-primary)',
-      '--bulma-splitter-grip-color': 'var(--bulma-border-hover)',
+      '--bulma-splitter-line-active-color':
+        'hsl(var(--bulma-primary-h), var(--bulma-primary-s), var(--bulma-primary-on-scheme-l))',
+      '--bulma-splitter-grip-color': 'var(--bulma-text-weak)',
       display: 'flex',
       'flex-direction': 'row',
     });
@@ -135,10 +136,24 @@ describe('Splitter styles', () => {
     );
   });
 
-  it('turns the line the active color on hover, focus and drag', () => {
+  it('turns the line and the grip the active color on hover, focus and drag', () => {
     expect(find(PLAIN, active(handle, '::before'))).toEqual({
       'border-inline-start-width': 'var(--bulma-splitter-line-active-size)',
       'border-inline-start-color': 'var(--bulma-splitter-line-active-color)',
+    });
+    expect(find(PLAIN, active(handle, '::after'))).toEqual({
+      'border-color': 'var(--bulma-splitter-line-active-color)',
+    });
+  });
+
+  it('turns a stacked handle’s line and grip the active color too', () => {
+    // The stacked rules rank above the plain ones, so they need their own.
+    expect(find(PLAIN, active(stacked, '::before'))).toEqual({
+      'border-block-start-width': 'var(--bulma-splitter-line-active-size)',
+      'border-block-start-color': 'var(--bulma-splitter-line-active-color)',
+    });
+    expect(find(PLAIN, active(stacked, '::after'))).toEqual({
+      'border-block-color': 'var(--bulma-splitter-line-active-color)',
     });
   });
 
@@ -170,7 +185,7 @@ describe('Splitter styles', () => {
     });
   });
 
-  it('draws the active line in Highlight in forced colors', () => {
+  it('draws the active line and grip in Highlight in forced colors, stacked too', () => {
     const forced = ['@media (forced-colors: active)'];
     const rule = PLAIN.find(
       r =>
@@ -178,6 +193,15 @@ describe('Splitter styles', () => {
         r.selector.includes('.splitter-handle.is-active::before')
     );
     expect(rule?.declarations).toEqual({ 'border-color': 'Highlight' });
+    for (const base of [handle, stacked]) {
+      for (const part of ['::before', '::after']) {
+        for (const state of [':hover', ':focus-visible', '.is-active']) {
+          expect(rule?.selector.split(', ')).toContain(
+            `${base}${state}${part}`
+          );
+        }
+      }
+    }
     expect(find(PLAIN, `${handle}:focus-visible`, forced)).toEqual({
       'outline-color': 'CanvasText',
     });

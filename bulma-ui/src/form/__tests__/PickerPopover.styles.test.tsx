@@ -14,6 +14,7 @@ import { DateInput } from '../DateInput';
 import { TimeInput } from '../TimeInput';
 import { DateTimeInput } from '../DateTimeInput';
 import { TreeSelect } from '../TreeSelect';
+import { DateRangeInput } from '../DateRangeInput';
 import { ConfigProvider } from '../../helpers/Config';
 import type { PickerPosition } from '../_pickerInternals/pickerTypes';
 
@@ -102,6 +103,30 @@ describe.each(prefixes)(
         `${prefix}is-portal`
       );
       expect(getComputedStyle(panel).minWidth).not.toBe('100%');
+    });
+
+    it('takes the width of several months, up to the window, and leaves one month alone', () => {
+      const { unmount } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <DateRangeInput monthsToShow={2} />
+        </ConfigProvider>
+      );
+      fireEvent.click(screen.getByRole('combobox', { name: 'Start date' }));
+      const wide = getComputedStyle(screen.getByRole('dialog'));
+      expect(wide.width).toBe('max-content');
+      expect(wide.maxWidth).toBe(
+        'var(--bulma-picker-popover-months-max-width)'
+      );
+      unmount();
+      render(
+        <ConfigProvider classPrefix={prefix}>
+          <DateRangeInput />
+        </ConfigProvider>
+      );
+      fireEvent.click(screen.getByRole('combobox', { name: 'Start date' }));
+      expect(getComputedStyle(screen.getByRole('dialog')).width).not.toBe(
+        'max-content'
+      );
     });
 
     it("leaves a picker's panel that doesn't match alone", () => {

@@ -203,8 +203,16 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   helper props and `className` go on its frame and the `ref` on the element that scrolls.
   `hasFade` fades the edges that have more, `orientation="horizontal"` suits a wide table, and
   `onEdgeReach={edge => …}` loads more at an edge.
-- **Something that stays in a corner of the screen (a floating button, a chat or help launcher,
-  a feedback tab, a consent notice) is `Affix`**, not `pos="fixed"` with offsets in a style:
+- **A floating action button is `FloatButton`**, not a round `Button` in an `Affix`:
+  `<FloatButton aria-label="New message" icon="pen" color="primary" />`. It's an `IconButton`, so
+  its types require `aria-label` (or `aria-labelledby`), and the label shows as its tooltip;
+  `showLabel` prints it beside the icon for touch screens. Several in one corner go in
+  `FloatButtons`, top to bottom in the order written, with a `Badge overlap="circle"` around one for
+  a count. A few related actions behind one button are `FloatButton.SpeedDial` with `FloatButton`s
+  as its children (`direction` sets the way they open), and back to top on a long page is
+  `FloatButton.BackToTop`, which scrolls up and moves focus to `<main>`.
+- **Something else that stays in a corner of the screen (a chat or help launcher, a feedback tab,
+  a consent notice) is `Affix`**, not `pos="fixed"` with offsets in a style:
   `<Affix position="bottom-left"><Button color="primary">Feedback</Button></Affix>`.
   `position` is one of the four corners, `'bottom-right'` by default, and stays physical in
   right-to-left text. The spacing helpers nudge one further in (`mb="6"` lifts it over a bottom
@@ -229,6 +237,12 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   default a step is modal over a dimmed page, so its body says what the target is; give
   `overlay={false}` (on the tour or one step) when the user should try the control. The app
   opens it and stores what `onFinish` and `onOpenChange` say: it doesn't remember who's seen it.
+  A "what's new" step takes `cover={<img src="…" alt="" />}`, and a footer of its own is
+  `footer` (on the tour, or one step) built from `Tour.Skip`, `Tour.Back`, `Tour.Next` and
+  `Tour.Progress`, with `useTour()` for anything else in it: not a hand-written row of buttons
+  that changes the step. Tips pinned to the controls they explain, opened in any order, are
+  `<Tour mode="beacon">`: a beacon on each step's target opens its step, not a Popover per
+  control or a pulsing dot of your own. Drop a read tip the next time the tips show.
 - Link lists (footer nav, sidebars): a bare `UnorderedList` of `ListItem`s is already
   marker-less and flush — Bulma's reset unstyles `ul` — so no prop or CSS is needed;
   bullets appear only inside `Content`.

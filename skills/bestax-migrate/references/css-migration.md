@@ -36,7 +36,7 @@ choice below applies.
   set each scheme's value where the app shows both; the `bestax-theming` skill's
   `references/css-variables.md` ("The lightnesses Bulma's build picks for contrast") shows how,
   and what reads each one. Text the page colors with `has-text-primary` converts to
-  `textColor="primary"`, which reads the trio's own lightness, under 2:1 on white for turquoise
+  `textColor="primary"`, which reads the trio's own lightness on the light scheme, under 2:1 on white for turquoise
   (in stock Bulma too); add `colorShade="on-scheme"` to take the shade made for text.
 
 - **SCSS files**: Bulma 0.9's `@import 'bulma/bulma.sass'` (plus preceding

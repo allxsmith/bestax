@@ -30,6 +30,10 @@ $carousel-indicator-bar-width: 24px !default;
 $carousel-indicator-bar-width-mobile: 16px !default;
 $carousel-indicator-bar-height: 6px !default;
 $carousel-indicator-bar-height-mobile: 4px !default;
+// The width of the ring at each indicator's edge, a dot's or a circle's, and
+// the thinner one of a line or a bar.
+$carousel-indicator-border-width: 2px !default;
+$carousel-indicator-line-border-width: 1px !default;
 
 $carousel-transition-duration: cv.getVar("duration") !default;
 $carousel-fade-duration: 0.5s !default;
@@ -89,9 +93,17 @@ $carousel-gradient-overlay: hsla(
 ) !default;
 
 $carousel-arrow-color: cv.getVar("text") !default;
+// A resting indicator is filled in the border color, and the current one in
+// the primary color. A dot's, a line's or a bar's ring is transparent unless a
+// theme gives it a color, which draws the same as no ring, since the fill
+// shows through it; forced colors draws it in the buttons' text color. A
+// circle's ring is the border color. Under the pointer the ring keeps its
+// color unless a theme sets one for hover.
 $carousel-indicator-background: cv.getVar("border") !default;
 $carousel-indicator-background-hover: cv.getVar("border-hover") !default;
 $carousel-indicator-background-active: cv.getVar("primary") !default;
+$carousel-indicator-border-color: transparent !default;
+$carousel-indicator-border-color-hover: cv.getVar("carousel-indicator-border-color") !default;
 $carousel-overlay-arrow-color: cv.getVar("white") !default;
 $carousel-overlay-indicator-background-active: cv.getVar("white") !default;
 $carousel-arrow-radius: cv.getVar("radius") !default;
@@ -118,6 +130,10 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
       "carousel-indicator-background": #{$carousel-indicator-background},
       "carousel-indicator-background-hover": #{$carousel-indicator-background-hover},
       "carousel-indicator-background-active": #{$carousel-indicator-background-active},
+      "carousel-indicator-border-color": #{$carousel-indicator-border-color},
+      "carousel-indicator-border-color-hover": #{$carousel-indicator-border-color-hover},
+      "carousel-indicator-border-width": #{$carousel-indicator-border-width},
+      "carousel-indicator-line-border-width": #{$carousel-indicator-line-border-width},
       "carousel-indicator-circle-size": #{$carousel-indicator-circle-size},
       "carousel-indicator-line-width": #{$carousel-indicator-line-width},
       "carousel-indicator-line-width-mobile": #{$carousel-indicator-line-width-mobile},
@@ -461,38 +477,53 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
     width: cv.getVar("carousel-indicator-size");
     height: cv.getVar("carousel-indicator-size");
     padding: 0;
-    border: none;
     border-radius: 50%;
-    background-color: cv.getVar("carousel-indicator-background");
     cursor: pointer;
     transition: background-color cv.getVar("carousel-transition-duration"),
                 transform cv.getVar("carousel-transition-duration");
+
+    // The ring and the fill, on a Bulma button too, which every indicator is.
+    &,
+    &.#{iv.$class-prefix}button {
+      border: cv.getVar("carousel-indicator-border-width") solid
+        cv.getVar("carousel-indicator-border-color");
+      background-color: cv.getVar("carousel-indicator-background");
+    }
 
     // Override Button component styles
     &.#{iv.$class-prefix}button {
       min-width: auto;
       min-height: auto;
-      border: none;
       padding: 0;
       background-image: none;
     }
 
     &:hover {
+      border-color: cv.getVar("carousel-indicator-border-color-hover");
       background-color: cv.getVar("carousel-indicator-background-hover");
       transform: scale(1.2);
     }
 
+    // The current one takes no ring, a theme's either, so it draws as one
+    // filled shape.
     &.#{iv.$class-prefix}is-active {
+      border-color: transparent;
       background-color: cv.getVar("carousel-indicator-background-active");
     }
   }
 
-  // Indicator styles
+  // Indicator styles. A circle is a ring, in the border color unless a theme
+  // gives the ring a color, and the current one is filled. `:where()` keeps
+  // the circle's color at the carousel's own weight, so a theme that names the
+  // carousel's class with its own (`.carousel.my-carousel`) outranks it.
+  &:where(.#{iv.$class-prefix}is-indicator-circles) {
+    @include cv.register-var("carousel-indicator-border-color", cv.getVar("border"));
+  }
+
   &.#{iv.$class-prefix}is-indicator-circles {
     .#{iv.$class-prefix}indicator-item {
       width: cv.getVar("carousel-indicator-circle-size");
       height: cv.getVar("carousel-indicator-circle-size");
-      border: 2px solid cv.getVar("border");
       background-color: transparent;
 
       &.#{iv.$class-prefix}is-active {
@@ -506,6 +537,7 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
     .#{iv.$class-prefix}indicator-item {
       width: cv.getVar("carousel-indicator-line-width");
       height: cv.getVar("carousel-indicator-line-height");
+      border-width: cv.getVar("carousel-indicator-line-border-width");
       border-radius: cv.getVar("carousel-indicator-line-radius");
     }
   }
@@ -514,12 +546,21 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
     .#{iv.$class-prefix}indicator-item {
       width: cv.getVar("carousel-indicator-bar-width");
       height: cv.getVar("carousel-indicator-bar-height");
+      border-width: cv.getVar("carousel-indicator-line-border-width");
       border-radius: cv.getVar("carousel-indicator-line-radius");
     }
   }
 
   // The overlay look (`overlayControls`, which `indicatorInside` turns on)
   &.#{iv.$class-prefix}is-overlay {
+    // In the overlay look a dot, a line or a bar over the slides takes no ring,
+    // a theme's either; a circle keeps its own.
+    &:not(.#{iv.$class-prefix}is-indicator-circles)
+      .#{iv.$class-prefix}carousel-indicator.#{iv.$class-prefix}is-inside
+      .#{iv.$class-prefix}indicator-item {
+      border-color: transparent;
+    }
+
     .#{iv.$class-prefix}carousel-indicator.#{iv.$class-prefix}is-inside {
       .#{iv.$class-prefix}indicator-item {
         background-color: cv.getVar("carousel-overlay-indicator-background");
@@ -670,6 +711,26 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
     &.#{iv.$class-prefix}is-indicator-bars .#{iv.$class-prefix}indicator-item {
       width: cv.getVar("carousel-indicator-bar-width-mobile");
       height: cv.getVar("carousel-indicator-bar-height-mobile");
+    }
+  }
+}
+
+// Forced colors (Windows' contrast themes) replaces the fills, which are what
+// tell the current indicator from the others, so it's filled in the buttons'
+// text color there, as its ring is, in the overlay look too. Kept
+// out of forced colors for that, it draws its focus ring itself, Bulma's
+// focus outline in the system's text color, as the others get theirs. Each is
+// important, to win over the button's own focus rules, which come later.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}carousel .#{iv.$class-prefix}indicator-item.#{iv.$class-prefix}is-active {
+    forced-color-adjust: none;
+    border-color: ButtonText !important;
+    background-color: ButtonText !important;
+
+    &:focus-visible {
+      outline: cv.getVar("focus-width") cv.getVar("focus-style") CanvasText !important;
+      outline-offset: cv.getVar("focus-offset") !important;
+      box-shadow: none !important;
     }
   }
 }

@@ -86,6 +86,7 @@ tables live in [component-map.md](component-map.md).
 | RBC                                                                           | bestax                                                      |
 | ----------------------------------------------------------------------------- | ----------------------------------------------------------- |
 | `mobile={{ display: 'flex' }}`                                                | `displayMobile="flex"`                                      |
+| `display="flex" mobile={{ display: 'block' }}`                                | `className="is-flex" displayMobile="block"`                 |
 | `tablet={{ textSize: 5 }}`                                                    | `textSizeTablet="5"`                                        |
 | `desktop={{ textAlign: 'center' }}`                                           | `textAlignDesktop="centered"`                               |
 | `widescreen={{ invisible: true }}`                                            | `visibilityWidescreen="invisible"`                          |

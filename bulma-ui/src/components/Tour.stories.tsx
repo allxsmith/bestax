@@ -1,10 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useRef, useState } from 'react';
-import { Tour } from './Tour';
+import skye from '../../images/sample-skye-4by3.jpg';
+import { Tour, useTour } from './Tour';
 import { Box } from '../elements/Box';
 import { Button } from '../elements/Button';
 import { Buttons } from '../elements/Buttons';
 import { Paragraph } from '../elements/Paragraph';
+import { Tag } from '../elements/Tag';
 import { Input } from '../form/Input';
 
 const meta: Meta<typeof Tour> = {
@@ -20,7 +22,13 @@ const meta: Meta<typeof Tour> = {
     },
   },
   tags: ['autodocs'],
-  subcomponents: { Step: Tour.Step },
+  subcomponents: {
+    Step: Tour.Step,
+    Skip: Tour.Skip,
+    Back: Tour.Back,
+    Next: Tour.Next,
+    Progress: Tour.Progress,
+  },
   argTypes: {
     children: {
       control: false,
@@ -86,8 +94,20 @@ const meta: Meta<typeof Tour> = {
       control: 'object',
       description: 'The words the tour writes, and the progress line',
     },
+    footer: {
+      control: false,
+      description:
+        'Every step’s footer, built from Tour.Skip, Tour.Back, Tour.Next and Tour.Progress; a step’s own wins',
+    },
+    mode: {
+      control: 'select',
+      options: ['guided', 'beacon'],
+      description:
+        'guided walks the steps in order; beacon puts a button on each target that opens its step, in any order',
+    },
   },
   args: {
+    mode: 'guided',
     overlay: true,
     closeOnEscape: true,
     closeOnClickOutside: false,
@@ -100,9 +120,12 @@ type Story = StoryObj<typeof Tour>;
 
 /**
  * A first-visit tour of a small toolbar, opened from a button. Use the
- * controls to try the overlay and the dismissal options.
+ * controls to try the overlay and the dismissal options. Beacons, which
+ * close only with the tour, have a story of their own.
  */
 export const Default: Story = {
+  // Its opener has no way to close a beacon tour.
+  argTypes: { mode: { control: false } },
   render: function DefaultTour(args) {
     const [open, setOpen] = useState(false);
     const filtersRef = useRef<HTMLButtonElement>(null);
@@ -291,6 +314,156 @@ export const CustomLabels: Story = {
         >
           <Tour.Step title="Bienvenida">Un recorrido breve.</Tour.Step>
           <Tour.Step title="Listo">Eso es todo.</Tour.Step>
+        </Tour>
+      </>
+    );
+  },
+};
+
+/**
+ * A cover above a step's header, a footer for every step built from the
+ * parts, and a last step with a footer of its own.
+ */
+export const CoverAndFooter: Story = {
+  render: function CoverAndFooterTour() {
+    const [open, setOpen] = useState(false);
+    return (
+      <>
+        <Button onClick={() => setOpen(true)}>What's new</Button>
+        <Tour
+          open={open}
+          onOpenChange={setOpen}
+          footer={
+            <>
+              <Tour.Progress />
+              <Buttons>
+                <Tour.Back />
+                <Tour.Next />
+              </Buttons>
+            </>
+          }
+        >
+          <Tour.Step title="The new editor" cover={<img src={skye} alt="" />}>
+            The editor now saves as you type.
+          </Tour.Step>
+          <Tour.Step
+            title="That's all"
+            footer={<Tour.Next>Start writing</Tour.Next>}
+          >
+            You can take this tour again from the Help menu.
+          </Tour.Step>
+        </Tour>
+      </>
+    );
+  },
+};
+
+/** A part of the footer's own, built on `useTour()`. */
+function StepCount() {
+  const tour = useTour();
+  return tour ? <Tag>{`${tour.value + 1}/${tour.total}`}</Tag> : null;
+}
+
+/**
+ * `useTour()` hands a component inside a step the step, the total and the
+ * actions, for a part the four the tour has don't cover.
+ */
+export const WithUseTour: Story = {
+  render: function UseTourExample() {
+    const [open, setOpen] = useState(false);
+    return (
+      <>
+        <Button onClick={() => setOpen(true)}>Take the tour</Button>
+        <Tour
+          open={open}
+          onOpenChange={setOpen}
+          footer={
+            <>
+              <StepCount />
+              <Buttons>
+                <Tour.Skip />
+                <Tour.Next />
+              </Buttons>
+            </>
+          }
+        >
+          <Tour.Step title="One">The first step.</Tour.Step>
+          <Tour.Step title="Two">The second step.</Tour.Step>
+        </Tour>
+      </>
+    );
+  },
+};
+
+/**
+ * Tips pinned to the controls they explain, opened in any order: a beacon on
+ * each target opens its step, and closing the step brings the beacons back.
+ * A tip opened once is left out the next time the tips show.
+ */
+export const Beacons: Story = {
+  render: function BeaconTips() {
+    const [open, setOpen] = useState(false);
+    const [read, setRead] = useState<string[]>([]);
+    const [showing, setShowing] = useState<string[]>([]);
+    const filtersRef = useRef<HTMLButtonElement>(null);
+    const searchRef = useRef<HTMLInputElement>(null);
+    const exportRef = useRef<HTMLButtonElement>(null);
+    const tips = [
+      {
+        id: 'filters',
+        target: filtersRef,
+        title: 'Filters',
+        body: 'Narrow the list by status and owner.',
+      },
+      {
+        id: 'search',
+        target: searchRef,
+        title: 'Search',
+        body: 'Find any row by its name.',
+      },
+      {
+        id: 'export',
+        target: exportRef,
+        title: 'Export',
+        body: 'Download the rows you see as a CSV file.',
+      },
+    ];
+    const shown = tips.filter(tip => showing.includes(tip.id));
+    return (
+      <>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Button ref={filtersRef}>Filters</Button>
+          <Input ref={searchRef} aria-label="Search" />
+          <Button ref={exportRef}>Export</Button>
+        </Box>
+        <Buttons>
+          <Button
+            color="primary"
+            onClick={() => {
+              if (!open) {
+                setShowing(
+                  tips.filter(tip => !read.includes(tip.id)).map(tip => tip.id)
+                );
+              }
+              setOpen(!open);
+            }}
+          >
+            {open ? 'Hide tips' : 'Show tips'}
+          </Button>
+          <Button onClick={() => setRead([])}>Forget the tips I've read</Button>
+        </Buttons>
+        <Tour
+          mode="beacon"
+          open={open}
+          onChange={index => {
+            if (index >= 0) setRead(ids => [...ids, shown[index].id]);
+          }}
+        >
+          {shown.map(tip => (
+            <Tour.Step key={tip.id} target={tip.target} title={tip.title}>
+              {tip.body}
+            </Tour.Step>
+          ))}
         </Tour>
       </>
     );

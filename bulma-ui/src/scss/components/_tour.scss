@@ -5,11 +5,15 @@
 //
 // The component places the step with `top` and `left` on a fixed panel, and
 // the stylesheet puts the gap between the spotlight's edge and the panel in a
-// margin on the side facing the target, which the component reads back.
+// margin on the side facing the target, which the component reads back. In
+// beacon mode it places each beacon on its target's top end corner the same
+// way.
 
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
 @use '../variables' as *;
+@use '../mixins' as *;
+@use '../pulse' as *;
 
 // The modal tier, so toasts stay above a tour.
 $tour-z-index: $extras-z-index-modal !default;
@@ -45,6 +49,24 @@ $tour-step-body-padding: 1rem !default;
 $tour-step-footer-padding: 0.75rem 1rem !default;
 $tour-step-footer-gap: 0.5rem !default;
 $tour-progress-color: cv.getVar('text-weak') !default;
+// A beacon's size is its hit area, which the beacon rule keeps at 24px or
+// more, WCAG 2.2's minimum target size, whatever the size or the root font.
+$tour-beacon-size: 1.5rem !default;
+$tour-beacon-color: cv.getVar('primary') !default;
+// A ring in the page's own color, so a beacon stands out on a target drawn
+// in its color, as Badge's ring does.
+$tour-beacon-ring-color: cv.getVar('scheme-main') !default;
+$tour-beacon-ring-width: 2px !default;
+// Badge's pulse, at Badge's pace.
+$tour-beacon-animation-duration: 1.4s !default;
+// While only the beacons show, the tour sits one under the dropdown tier, so
+// everything there or above covers them: a Bulma navbar, fixed or not (30),
+// sidebars and modals, and dropdown menus, such as Dropdown's, Combobox's,
+// Autocomplete's and Taginput's (20). An open step goes back up to the modal
+// tier. A beacon on a target inside one of those needs this raised above
+// that layer: `.tour.is-beacon { --bulma-tour-beacon-z-index: 31; }` puts it
+// over a Bulma navbar.
+$tour-beacon-z-index: $extras-z-index-dropdown - 1 !default;
 
 .#{iv.$class-prefix}tour {
   @include cv.register-vars(
@@ -69,6 +91,12 @@ $tour-progress-color: cv.getVar('text-weak') !default;
       'tour-step-footer-padding': #{$tour-step-footer-padding},
       'tour-step-footer-gap': #{$tour-step-footer-gap},
       'tour-progress-color': #{$tour-progress-color},
+      'tour-beacon-size': #{$tour-beacon-size},
+      'tour-beacon-color': #{$tour-beacon-color},
+      'tour-beacon-ring-color': #{$tour-beacon-ring-color},
+      'tour-beacon-ring-width': #{$tour-beacon-ring-width},
+      'tour-beacon-animation-duration': #{$tour-beacon-animation-duration},
+      'tour-beacon-z-index': #{$tour-beacon-z-index},
     )
   );
 }
@@ -80,6 +108,13 @@ $tour-progress-color: cv.getVar('text-weak') !default;
 .#{iv.$class-prefix}tour {
   position: relative;
   z-index: cv.getVar('tour-z-index');
+}
+
+// In beacon mode, while no step is open, under the app's own overlays.
+.#{iv.$class-prefix}tour.#{iv.$class-prefix}is-beacon:not(
+    .#{iv.$class-prefix}is-active
+  ) {
+  z-index: cv.getVar('tour-beacon-z-index');
 }
 
 // ---- The overlay and the spotlight --------------------------------------------
@@ -144,6 +179,26 @@ $tour-progress-color: cv.getVar('text-weak') !default;
   }
 }
 
+// Media above the header, as wide as the step and under its top corners.
+// Its top corners follow the inside of the step's border.
+.#{iv.$class-prefix}tour-step-cover {
+  $inner-radius: calc(
+    #{cv.getVar('tour-step-radius')} - #{cv.getVar('tour-step-border-width')}
+  );
+  overflow: hidden;
+  border-start-start-radius: $inner-radius;
+  border-start-end-radius: $inner-radius;
+
+  > img,
+  > video,
+  > picture,
+  > picture > img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+}
+
 .#{iv.$class-prefix}tour-step-header {
   display: flex;
   align-items: center;
@@ -185,12 +240,63 @@ $tour-progress-color: cv.getVar('text-weak') !default;
   > .#{iv.$class-prefix}buttons {
     flex-wrap: nowrap;
   }
+
+  // A footer that renders nothing at all, as Back alone does on the first
+  // step, draws no strip. A wrapper of the app's own, such as Buttons around
+  // that Back, still does, as it isn't empty: the app renders the wrapper
+  // only when its parts show.
+  &:empty {
+    display: none;
+  }
 }
 
 .#{iv.$class-prefix}tour-progress {
   margin-inline-end: auto;
   color: cv.getVar('tour-progress-color');
   font-size: cv.getVar('size-small');
+}
+
+// ---- Beacons ----------------------------------------------------------------------
+
+// A dot centered on its target's top end corner, which the component sets,
+// with Badge's pulse spreading from it. Forced colors draw it as a button,
+// its ring as the border.
+.#{iv.$class-prefix}tour-beacon {
+  position: fixed;
+  width: cv.getVar('tour-beacon-size');
+  height: cv.getVar('tour-beacon-size');
+  min-width: 24px;
+  min-height: 24px;
+  margin: 0;
+  padding: 0;
+  border: cv.getVar('tour-beacon-ring-width') solid
+    cv.getVar('tour-beacon-ring-color');
+  border-radius: cv.getVar('radius-rounded');
+  background-color: cv.getVar('tour-beacon-color');
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+
+  // Decorative, and never in the way of a click.
+  &::after {
+    content: '';
+    position: absolute;
+    inset: calc(-1 * #{cv.getVar('tour-beacon-ring-width')});
+    pointer-events: none;
+    border-radius: inherit;
+    background-color: inherit;
+    @include extras-pulse(cv.getVar('tour-beacon-animation-duration'));
+  }
+
+  &:focus-visible {
+    @include extras-focus-outline;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}tour-beacon::after {
+    animation: none;
+    display: none;
+  }
 }
 
 // ---- Forced colors ---------------------------------------------------------------

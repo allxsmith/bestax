@@ -164,7 +164,7 @@ function isAreaShown(area: Element, container: Element): boolean {
  * anything not rendered are skipped. `visibility` is inherited, so the
  * element's own computed value covers its ancestors.
  */
-function isRenderedAndEnabled(el: Element, container: Element): boolean {
+export function isRenderedAndEnabled(el: Element, container: Element): boolean {
   if (el.matches(':disabled')) return false;
   if (el.localName === 'area') return isAreaShown(el, container);
   return isShownUpTo(el, container) && isVisible(el);
@@ -441,6 +441,22 @@ export function focusTabStopAfter(element: HTMLElement): boolean {
   if (!boundary) return false;
   focusTabStop(boundary);
   return true;
+}
+
+/**
+ * Whether a Tab now would take focus out of `container`: focus is inside
+ * it, read through open shadow roots, and no tab stop there follows it. It's
+ * the question a trap asks before it wraps, through the same helpers, so a
+ * component that sends focus somewhere else at the end of its own stops
+ * agrees with a trap on where that end is. Internal like `focusTabStop`.
+ */
+export function tabLeaves(container: HTMLElement): boolean {
+  const focused = focusedElement(container.ownerDocument);
+  if (!inside(container, focused)) return false;
+  const stops = findTabStops(container);
+  return (
+    stops === null || !follows(container, stops.stopFor(focused), stops.last)
+  );
 }
 
 /**

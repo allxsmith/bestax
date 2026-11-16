@@ -63,11 +63,53 @@ const PROPS: Record<string, Record<string, unknown>> = {
     isRounded: true,
   },
   IconText: { children: 'Text', iconProps: { name: 'star' } },
+  // Named, colored and sized, with a pill beside it in a stack, so every
+  // class a float button and a stack emit is swept.
+  FloatButton: {
+    icon: 'pen',
+    'aria-label': 'Compose',
+    color: 'primary',
+    size: 'large',
+  },
+  FloatButtons: {
+    position: 'top-left',
+    children: [
+      <Library.FloatButton.BackToTop key="top" />,
+      <Library.FloatButton
+        key="pill"
+        aria-label="Compose"
+        icon="pen"
+        showLabel
+      />,
+    ],
+  },
+  // Open and sideways, so the menu, its actions and their tooltips are swept.
+  FloatButtonSpeedDial: {
+    'aria-label': 'Create',
+    icon: 'plus',
+    direction: 'left',
+    defaultOpen: true,
+    children: [
+      <Library.FloatButton key="note" aria-label="Note" icon="note-sticky" />,
+      <Library.FloatButton key="task" aria-label="Task" icon="check" />,
+    ],
+  },
   // Colored and sized; its own test sweeps the icon-only form.
   CopyButton: { value: 'https://bestax.io', color: 'primary', size: 'small' },
   Avatar: { name: 'Ada Lovelace' },
   Badge: { children: '9' },
   Steps: { items: [{ label: 'Step 1' }], hasNavigation: true },
+  // Two months, full width, a range across them and content in every day, so
+  // the frame's, the months' and the content's classes are swept.
+  Calendar: {
+    selectionMode: 'range',
+    monthsToShow: 2,
+    isFullwidth: true,
+    color: 'info',
+    size: 'small',
+    defaultValue: [new Date(2026, 10, 28), new Date(2026, 11, 2)],
+    dayTemplate: () => '•',
+  },
   Carousel: {
     children: [
       <Library.CarouselItem key="a">Slide A</Library.CarouselItem>,
@@ -498,9 +540,10 @@ const PROPS: Record<string, Record<string, unknown>> = {
     marks: [{ value: 50, label: '50' }],
     tooltip: 'always',
   },
-  // Open on its second step, so Back is swept with every part a step
-  // renders. Its steps have no target, so the step is centered with no
-  // spotlight; Tour.test.tsx sweeps the spotlight under a prefix.
+  // Open on its second step, with a cover, so Back and the cover are swept
+  // with every part a step renders, the footer's parts among them. Its steps
+  // have no target, so the step is centered with no spotlight;
+  // Tour.test.tsx sweeps the spotlight under a prefix.
   Tour: {
     defaultOpen: true,
     defaultValue: 1,
@@ -508,7 +551,11 @@ const PROPS: Record<string, Record<string, unknown>> = {
       <Library.Tour.Step key="one" title="One">
         One
       </Library.Tour.Step>,
-      <Library.Tour.Step key="two" title="Two">
+      <Library.Tour.Step
+        key="two"
+        title="Two"
+        cover={<img src="cover.png" alt="" />}
+      >
         Two
       </Library.Tour.Step>,
     ],
@@ -536,6 +583,39 @@ const PROPS: Record<string, Record<string, unknown>> = {
     size: 'small',
     isRounded: true,
     message: 'Pick some',
+    messageColor: 'danger',
+  },
+  // Picked, clearable, coloured, sized, rounded and open in place on the
+  // picked node's path, with an icon, a disabled item, a loading column and
+  // a search box, so the field's, the panel's, the columns' and the items'
+  // classes are swept together.
+  Cascader: {
+    label: 'City',
+    data: [
+      {
+        value: 'europe',
+        label: 'Europe',
+        icon: 'globe',
+        children: [
+          { value: 'berlin', label: 'Berlin' },
+          { value: 'paris', label: 'Paris', disabled: true },
+          {
+            value: 'later',
+            label: 'Later',
+            hasChildren: true,
+            isLoading: true,
+          },
+        ],
+      },
+    ],
+    defaultValue: 'berlin',
+    defaultOpen: true,
+    searchable: true,
+    clearable: true,
+    color: 'info',
+    size: 'small',
+    isRounded: true,
+    message: 'Pick one',
     messageColor: 'danger',
   },
   // A checkbox tree, sized and open, with an icon, a disabled item and a

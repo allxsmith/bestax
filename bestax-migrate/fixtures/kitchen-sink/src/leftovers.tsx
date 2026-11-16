@@ -63,6 +63,10 @@ export function Leftovers() {
       <Modal show closeOnEsc={false} closeOnBlur showClose={false} onClose={() => {}}>
         <Modal.Content>Raw content</Modal.Content>
       </Modal>
+      {/* react-bulma-components colored the trigger with this, which bestax's Dropdown can't */}
+      <Dropdown color="info" label="Colored">
+        <Dropdown.Item value="a">First</Dropdown.Item>
+      </Dropdown>
       <Dropdown value={choice} onChange={setChoice} label="Pick">
         <Dropdown.Item value="a">First</Dropdown.Item>
         <Dropdown.Item value="b">Second</Dropdown.Item>
