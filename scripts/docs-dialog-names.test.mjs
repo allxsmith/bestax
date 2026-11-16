@@ -4,21 +4,18 @@
  * An open `Modal` is a `role="dialog"`, and a dialog needs an accessible
  * name: without one a screen reader announces "dialog" as focus moves in,
  * with nothing to say what it's for, while `aria-modal` hides the page
- * around it. The props form wires `modalCardTitle` up as `aria-labelledby`,
- * and any other modal takes an `aria-label` or an `aria-labelledby` of its
- * own. Several Modal examples gave it none and rendered fine, so nothing else
- * caught it (#1894). This reads the jsx and tsx fences under `docs/docs` and
- * `skills` indented by at most three spaces, the `.tsx` examples in `skills`,
- * and bulma-ui's stories. It checks that a name is given, not that an
- * `aria-labelledby` points at an element that exists.
+ * around it. Several Modal examples gave it none and rendered fine, so
+ * nothing else caught it (#1894). This reads the jsx and tsx fences under
+ * `docs/docs` and `skills` indented by at most three spaces, the `.tsx`
+ * examples in `skills`, and bulma-ui's stories. It checks that a name is
+ * given, not that an `aria-labelledby` points at an element that exists.
  *
  * The `bestax-migrate` references are left out, as the Menu.Item test leaves
  * them out: their fences pair another library's markup, whose `Modal` isn't
  * this one, with what the codemod writes for it.
  *
- * A modal passes when it has `aria-label` or `aria-labelledby` with a value,
- * or `modalCardTitle` while it's drawn as a card, or a spread, which this
- * can't see into.
+ * A modal passes when it has `modalCardTitle`, `aria-label` or
+ * `aria-labelledby` with a value, or a spread, which this can't see into.
  *
  * Each source is parsed with TypeScript as a `.tsx` file and nothing is
  * compiled, so a fence that is only a fragment still reads.
@@ -84,26 +81,9 @@ function holdsValue(prop) {
   );
 }
 
-/**
- * Whether a modal is drawn as `.modal-content`, which renders no card head,
- * so `modalCardTitle` has nothing to name it with (#1947).
- */
-function drawnAsContent(attributes) {
-  return attributes.properties.some(
-    prop =>
-      !ts.isJsxSpreadAttribute(prop) &&
-      prop.name.getText() === 'type' &&
-      prop.initializer !== undefined &&
-      ts.isStringLiteral(prop.initializer) &&
-      prop.initializer.text === 'content'
-  );
-}
-
 /** Whether a dialog component's attributes give it a name. */
 function named(tag, attributes) {
-  const names = [...NAMING[tag], ...ARIA].filter(
-    name => name !== 'modalCardTitle' || !drawnAsContent(attributes)
-  );
+  const names = [...NAMING[tag], ...ARIA];
   return attributes.properties.some(
     prop =>
       ts.isJsxSpreadAttribute(prop) ||
@@ -175,11 +155,7 @@ describe('Modal in the examples', () => {
       ['<Modal active aria-labelledby={null}>x</Modal>', false],
       ['<Modal active title="Edit">x</Modal>', false],
       ['<Modal active modalCardTitle={false}>x</Modal>', false],
-      ['<Modal active type="content" modalCardTitle="Edit">x</Modal>', false],
-      [
-        '<Modal active type="content" modalCardTitle="Edit" aria-label="Edit">x</Modal>',
-        true,
-      ],
+      ['<Modal active type="content" modalCardTitle="Edit">x</Modal>', true],
       ['<Modal active type="card" modalCardTitle="Edit">x</Modal>', true],
     ];
     // Every shape the rule gets wrong, so a failure names all of them.
