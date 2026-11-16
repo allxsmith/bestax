@@ -263,7 +263,9 @@ Notes:
   skeleton pulse (`Skeleton`, the `skeleton` prop, `hasSkeleton`) under
   `prefers-reduced-motion: reduce`, the same way and in either order. The `progress` partial
   also keeps the bar drawn in forced colors, its fill and an edge in the text color, where
-  Bulma's module leaves the whole bar the page's color.
+  Bulma's module leaves the whole bar the page's color. The `skeleton` partial keeps each shape
+  drawn there too, in `GrayText`, with the text Bulma hides still hidden, where Bulma's module
+  leaves the shape the page's color and shows that text.
 - `Notification` is stock Bulma too (`bulma/sass/elements/notification`). The `notification`
   extras partial pads the end of one with a close button (`hasDelete`, or a `Delete` passed in)
   so its text clears the button, and gives a dark or light one its color's own text and
@@ -289,17 +291,18 @@ Notes:
   the `Modal`'s floating close and `Tag isDelete` (`bulma/sass/elements/tag`) with them, so
   include it (`as bestax-delete`) in any build that shows a close button. Its rules win over
   Bulma's either way, so the order of the `@use` lines does not matter.
-- `Button` is stock Bulma too (`bulma/sass/elements/button`). Bulma shows a focused button with
-  its border and a shadow, which a ghost button doesn't have and a static one doesn't show, and
-  forced colors (Windows'
-  contrast themes) drops the shadow and sets the border's color, so a focused button can look
-  like an unfocused one there. Forced colors also replaces a colored button's fill, which Bulma
-  draws with no border, so an icon-only one shows only its glyph there. The `button` extras
-  partial gives those focused buttons an outline, apart from a loading one, which the `loader`
-  partial outlines, a colored button a 1px border in forced
-  colors, and an outlined button the lightness Bulma picks for its color's text on the page where
-  that's lighter, so a dark color reads on the dark scheme, so include it (`as bestax-button`) in any build that loads Bulma's button module. Its
-  rules win over Bulma's either way, so the order of the `@use` lines does not matter.
+- `Button` is stock Bulma too (`bulma/sass/elements/button`). Bulma shows a focused button with its
+  border and a shadow, which a ghost button doesn't have and a static one doesn't show, and forced
+  colors (Windows' contrast themes) drops the shadow and sets the border's color, so a focused
+  button can look like an unfocused one there. Forced colors also replaces a colored button's fill,
+  which Bulma draws with no border, so an icon-only one shows only its glyph there. The `button`
+  extras partial gives those focused buttons an outline, apart from a loading one, which the
+  `loader` partial outlines, a pressed `ToggleButton`, a checked `SegmentedControl` segment and any other button with Bulma's `is-selected` the
+  system's highlight colors in forced colors, where the fill that marks them is replaced, a colored
+  button a 1px border in forced colors, and an outlined button the lightness Bulma picks for its
+  color's text on the page where that's lighter, so a dark color reads on the dark scheme, so
+  include it (`as bestax-button`) in any build that loads Bulma's button module. Its rules win over
+  Bulma's either way, so the order of the `@use` lines does not matter.
 - `Stats` lays its row out on Bulma's smart grid (`.grid` and `is-col-min-*`), so a build with a
   `Stats` row wants `bulma/sass/grid/grid` beside the `stat` partial, which only resets the row's
   margins.
@@ -315,15 +318,17 @@ Notes:
   ```
 
   The `table` extras partial draws the keyboard focus ring of a responsive table's container
-  (`isResponsive`), which is a tab stop while the table overflows it, in Bulma's focus color.
-  Include it next to the Bulma module in any build with a responsive table:
+  (`isResponsive`), which is a tab stop while the table overflows it, in Bulma's focus color, and
+  marks a selected row or cell (`Tr isSelected`, and a `DataTable`'s selected rows) with a double
+  line in forced colors, where Bulma's fill for it is replaced. Include it next to the Bulma module
+  in any build with a responsive table or selected rows:
 
   ```scss
   @use '@allxsmith/bestax-bulma/scss/elements/table' as bestax-table;
   ```
 
-  Bulma's module styles no focus on the container, so the order of the two `@use` lines does
-  not matter.
+  Bulma's module sets no outline on the container or on a selected row or cell, so the order of
+  the two `@use` lines does not matter.
 
 - Stock-Bulma form controls still need their Bulma module (`bulma/sass/form/…`); the extras
   form partials above style only the bestax-specific behavior.

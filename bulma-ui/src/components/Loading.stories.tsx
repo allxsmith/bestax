@@ -451,6 +451,46 @@ export const CustomIndicator: Story = {
 };
 
 /**
+ * Text wider than the overlay wraps onto more lines inside it, while text
+ * that fits stays on one line.
+ */
+export const LongText: Story = {
+  render: () => (
+    <Grid isFixed fixedCols={4}>
+      <Cell>
+        <Box relative>
+          <Loading active>
+            Loading your account details, your recent activity and your saved
+            reports, please wait a moment
+          </Loading>
+          <Content>
+            <Paragraph>This content is behind the loading overlay.</Paragraph>
+            <Paragraph>The message is wider than the box.</Paragraph>
+            <Paragraph>So it wraps onto more than one line.</Paragraph>
+            <Paragraph>Each line stays centered under the spinner.</Paragraph>
+            <Paragraph>None of it runs off the sides of the box.</Paragraph>
+            <Paragraph>The box is as tall as this content.</Paragraph>
+          </Content>
+        </Box>
+      </Cell>
+      <Cell>
+        <Box relative>
+          <Loading active>Loading...</Loading>
+          <Content>
+            <Paragraph>Short text stays on one line while it fits.</Paragraph>
+            <Paragraph>This content is behind the loading overlay.</Paragraph>
+            <Paragraph>It sits in a box of the same width.</Paragraph>
+            <Paragraph>The text and the spinner are centered.</Paragraph>
+            <Paragraph>It wraps only once it's wider than the box.</Paragraph>
+            <Paragraph>The box is as tall as this content.</Paragraph>
+          </Content>
+        </Box>
+      </Cell>
+    </Grid>
+  ),
+};
+
+/**
  * Loading inactive state (not visible).
  */
 export const Inactive: Story = {

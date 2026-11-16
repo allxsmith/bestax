@@ -254,3 +254,21 @@ $-centered-left: calc(
     animation: none;
   }
 }
+
+// Forced colors (Windows' contrast themes) drop the toast's shadow and paint
+// its fill in the system's Canvas, the page's own color, so the toast gets an
+// edge as an outline drawn inside it, which takes no room. A toast given a
+// `tabIndex` keeps the browser's focus ring while it shows. Forced colors keep
+// an element's opacity, so the cancel button's text, faded at rest, goes back
+// to full strength in the user's palette; it has the same selector as the
+// rule that fades it, and comes after it.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}toast:not(:focus-visible) {
+    outline: 1px solid CanvasText;
+    outline-offset: -1px;
+  }
+
+  .#{iv.$class-prefix}toast-cancel .#{iv.$class-prefix}button {
+    opacity: 1;
+  }
+}

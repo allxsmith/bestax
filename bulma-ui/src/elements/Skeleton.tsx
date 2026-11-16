@@ -18,6 +18,10 @@ export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
 /**
  * The `Skeleton` component provides a Bulma-styled skeleton loader for React applications, useful for indicating that content is loading.
  *
+ * In forced colors, with bestax's CSS loaded, its shapes are drawn in the
+ * theme's `GrayText` and the text Bulma hides in a block stays hidden, where
+ * Bulma's shapes would take the page's color and that text would show.
+ *
  * @function
  * @param {SkeletonProps} props - Props for the Skeleton component.
  * @returns {JSX.Element} The rendered skeleton element.
