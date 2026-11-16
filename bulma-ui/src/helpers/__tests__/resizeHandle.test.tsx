@@ -1,0 +1,188 @@
+import type { ComponentProps } from 'react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { ResizeHandle } from '../resizeHandle';
+
+/** A pointer event for one pointer, at `clientX`. */
+const pointer = (
+  el: Element,
+  type: 'pointerdown' | 'pointermove' | 'pointerup',
+  pointerId: number,
+  clientX = 0
+) => {
+  // The element's own window makes the event, so a handle in another
+  // document gets one of its own.
+  const view = el.ownerDocument.defaultView as Window & typeof globalThis;
+  fireEvent(
+    el,
+    new view.PointerEvent(type, {
+      bubbles: true,
+      cancelable: true,
+      clientX,
+      pointerId,
+    })
+  );
+};
+
+/** A handle, with whatever of its callbacks a test watches. */
+const Handle = ({
+  label = 'Handle',
+  ...props
+}: Partial<ComponentProps<typeof ResizeHandle>>) => (
+  <ResizeHandle
+    className="handle"
+    activeClass="is-active"
+    orientation="vertical"
+    valueNow={50}
+    valueMin={0}
+    valueMax={100}
+    label={label}
+    rtl={() => false}
+    onDragStart={() => true}
+    onDrag={() => {}}
+    onStep={() => {}}
+    onHome={() => {}}
+    onEnd={() => {}}
+    onEnter={() => {}}
+    onReset={() => {}}
+    {...props}
+  />
+);
+
+/** Two handles, as two fingers can drag at once. */
+function TwoHandles() {
+  return (
+    <>
+      <Handle label="First" />
+      <Handle label="Second" />
+    </>
+  );
+}
+
+describe('ResizeHandle', () => {
+  const body = document.body.style;
+
+  afterEach(() => {
+    body.cursor = '';
+    body.userSelect = '';
+  });
+
+  it('mirrors a line between parts side by side right to left, and not a line between stacked ones', () => {
+    const onStep = vi.fn();
+    const onDrag = vi.fn();
+    const rtl = vi.fn(() => true);
+    const { rerender } = render(
+      <Handle rtl={rtl} onStep={onStep} onDrag={onDrag} />
+    );
+    fireEvent.keyDown(screen.getByRole('separator'), { key: 'ArrowRight' });
+    expect(onStep).toHaveBeenLastCalledWith(-1);
+    rerender(
+      <Handle
+        orientation="horizontal"
+        rtl={rtl}
+        onStep={onStep}
+        onDrag={onDrag}
+      />
+    );
+    const handle = screen.getByRole('separator');
+    rtl.mockClear();
+    fireEvent.keyDown(handle, { key: 'ArrowDown' });
+    expect(onStep).toHaveBeenLastCalledWith(1);
+    const at = (type: string, clientY: number) =>
+      fireEvent(
+        handle,
+        new PointerEvent(type, { bubbles: true, clientY, pointerId: 1 })
+      );
+    at('pointerdown', 100);
+    at('pointermove', 110);
+    expect(onDrag).toHaveBeenLastCalledWith(10);
+    at('pointerup', 110);
+    // Up and down don't depend on the page's direction.
+    expect(rtl).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['in the order they started', ['First', 'Second']],
+    ['in the other order', ['Second', 'First']],
+  ])(
+    'puts the page back once two drags at once have both ended, %s',
+    (_label, endOrder) => {
+      body.cursor = 'wait';
+      body.userSelect = 'text';
+      render(<TwoHandles />);
+      const byName = (name: string) => screen.getByRole('separator', { name });
+      pointer(byName('First'), 'pointerdown', 1);
+      pointer(byName('Second'), 'pointerdown', 2);
+      expect(body.cursor).toBe('col-resize');
+      expect(body.userSelect).toBe('none');
+      pointer(
+        byName(endOrder[0]),
+        'pointerup',
+        endOrder[0] === 'First' ? 1 : 2
+      );
+      // One still holds the page.
+      expect(body.userSelect).toBe('none');
+      pointer(
+        byName(endOrder[1]),
+        'pointerup',
+        endOrder[1] === 'First' ? 1 : 2
+      );
+      expect(body.cursor).toBe('wait');
+      expect(body.userSelect).toBe('text');
+    }
+  );
+
+  it('moves and ends a drag only by the pointer that started it', () => {
+    const onDragStart = vi.fn(() => true);
+    const onDrag = vi.fn();
+    const onDragEnd = vi.fn();
+    render(
+      <Handle onDragStart={onDragStart} onDrag={onDrag} onDragEnd={onDragEnd} />
+    );
+    const handle = screen.getByRole('separator');
+    pointer(handle, 'pointerdown', 1, 100);
+    // A second finger on the same handle starts nothing.
+    pointer(handle, 'pointerdown', 2, 300);
+    expect(onDragStart).toHaveBeenCalledTimes(1);
+    pointer(handle, 'pointermove', 2, 350);
+    expect(onDrag).not.toHaveBeenCalled();
+    pointer(handle, 'pointermove', 1, 120);
+    expect(onDrag).toHaveBeenLastCalledWith(20);
+    pointer(handle, 'pointerup', 2, 350);
+    expect(onDragEnd).not.toHaveBeenCalled();
+    expect(handle).toHaveClass('is-active');
+    pointer(handle, 'pointerup', 1, 120);
+    expect(onDragEnd).toHaveBeenCalledTimes(1);
+    expect(handle).not.toHaveClass('is-active');
+  });
+
+  it('holds the page of its own document', () => {
+    const frame = document.createElement('iframe');
+    document.body.appendChild(frame);
+    const inner = frame.contentDocument!;
+    inner.body.style.cursor = 'wait';
+    const view = render(<Handle />, {
+      container: inner.body.appendChild(inner.createElement('div')),
+    });
+    const handle = view.getByRole('separator');
+    pointer(handle, 'pointerdown', 1);
+    expect(inner.body.style.cursor).toBe('col-resize');
+    expect(inner.body.style.userSelect).toBe('none');
+    // The outer page is not the one being dragged in.
+    expect(body.cursor).toBe('');
+    pointer(handle, 'pointerup', 1);
+    expect(inner.body.style.cursor).toBe('wait');
+    expect(inner.body.style.userSelect).toBe('');
+    view.unmount();
+    frame.remove();
+  });
+
+  it('ends a drag it is taken away in the middle of', () => {
+    const onDragEnd = vi.fn();
+    body.cursor = 'wait';
+    const view = render(<Handle onDragEnd={onDragEnd} />);
+    pointer(screen.getByRole('separator'), 'pointerdown', 1);
+    view.rerender(<></>);
+    expect(onDragEnd).toHaveBeenCalledTimes(1);
+    expect(body.cursor).toBe('wait');
+  });
+});

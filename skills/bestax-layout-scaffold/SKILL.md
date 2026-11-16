@@ -240,7 +240,9 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   A "what's new" step takes `cover={<img src="…" alt="" />}`, and a footer of its own is
   `footer` (on the tour, or one step) built from `Tour.Skip`, `Tour.Back`, `Tour.Next` and
   `Tour.Progress`, with `useTour()` for anything else in it: not a hand-written row of buttons
-  that changes the step.
+  that changes the step. Tips pinned to the controls they explain, opened in any order, are
+  `<Tour mode="beacon">`: a beacon on each step's target opens its step, not a Popover per
+  control or a pulsing dot of your own. Drop a read tip the next time the tips show.
 - Link lists (footer nav, sidebars): a bare `UnorderedList` of `ListItem`s is already
   marker-less and flush — Bulma's reset unstyles `ul` — so no prop or CSS is needed;
   bullets appear only inside `Content`.
