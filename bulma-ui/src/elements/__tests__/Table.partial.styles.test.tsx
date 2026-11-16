@@ -52,21 +52,24 @@ const blocksOf = (css: string) =>
 
 const FORCED = '@media (forced-colors: active)';
 
-/** The compiled CSS outside the forced-colors block, and the block's inside. */
+/** The compiled CSS outside its forced-colors blocks, and their insides. */
 const split = (css: string) => {
-  const at = css.indexOf(FORCED);
-  if (at < 0) return { outside: css, forced: '' };
-  const open = css.indexOf('{', at);
-  let depth = 0;
-  let end = open;
-  for (; end < css.length; end++) {
-    if (css[end] === '{') depth++;
-    else if (css[end] === '}' && --depth === 0) break;
+  let outside = '';
+  let forced = '';
+  let from = 0;
+  for (let at = css.indexOf(FORCED); at >= 0; at = css.indexOf(FORCED, from)) {
+    const open = css.indexOf('{', at);
+    let depth = 0;
+    let end = open;
+    for (; end < css.length; end++) {
+      if (css[end] === '{') depth++;
+      else if (css[end] === '}' && --depth === 0) break;
+    }
+    outside += css.slice(from, at);
+    forced += css.slice(open + 1, end);
+    from = end + 1;
   }
-  return {
-    outside: css.slice(0, at) + css.slice(end + 1),
-    forced: css.slice(open + 1, end),
-  };
+  return { outside: outside + css.slice(from), forced };
 };
 
 describe('the responsive table container’s focus ring', () => {
@@ -126,20 +129,24 @@ describe('a selected row or cell in forced colors', () => {
     ['no prefix', ''],
     ['a class prefix', 'bestax-'],
   ])(
-    'is outlined in Highlight, inside it, in forced colors only, with %s',
+    'is outlined in Highlight, inside it, in forced colors only, and in the text color while focused, with %s',
     (_label, prefix) => {
-      const table = `.${prefix}table`;
+      const selected = ['tr', 'td', 'th'].map(
+        tag => `.${prefix}table ${tag}.${prefix}is-selected`
+      );
       expect(blocksOf(split(compile(prefix)).forced)).toEqual([
         {
-          selector: [
-            `${table} tr.${prefix}is-selected`,
-            `${table} td.${prefix}is-selected`,
-            `${table} th.${prefix}is-selected`,
-          ].join(', '),
+          selector: selected.join(', '),
           declarations: {
             outline: '2px solid Highlight',
             'outline-offset': '-2px',
           },
+        },
+        // A row or cell given a tabIndex: focus takes the outline over, so
+        // it changes color rather than vanish into the selection's.
+        {
+          selector: selected.map(rule => `${rule}:focus-visible`).join(', '),
+          declarations: { 'outline-color': 'CanvasText' },
         },
       ]);
       // Outside forced colors, nothing names a selected row or cell.

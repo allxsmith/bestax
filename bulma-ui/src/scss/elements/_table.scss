@@ -27,17 +27,22 @@
   outline-offset: calc(-1 * #{cv.getVar('focus-width')});
 }
 
-// Bulma marks a selected row or cell (`Tr isSelected`, or `is-selected` on a
-// cell) with a fill and a text color, and nothing else, and forced colors
-// (Windows' contrast themes) replaces both, so there a selected row looks like
-// every other row. This outlines it in Highlight, the color the system keeps
-// for a selection. It's an outline, as `_menu.scss` marks its active item with
-// a border, rather than a Highlight fill, which would need
-// `forced-color-adjust: none` to keep its text readable, and that would leave
-// a checkbox, a tag or a link in a cell in its author colors on the fill.
-// Drawn inside the row, it moves nothing. Bulma sets no outline on these, so
-// the rule wins whichever stylesheet loads first, and outside forced colors
-// nothing changes.
+// Bulma marks a selected row or cell (`Tr isSelected`, or a cell with its
+// `is-selected` class) with a fill and a text color, and nothing else, and
+// forced colors (Windows' contrast themes) replaces both, so there a selected
+// row looks like every other row. This outlines it in Highlight, the color the
+// system keeps for a selection, rather than fill it: a Highlight fill would
+// need `forced-color-adjust: none` to keep its text readable, and that would
+// leave a checkbox, a tag or a link in a cell in its author colors on the
+// fill. Drawn inside the row, it moves nothing. Bulma sets no outline on
+// these, so the rule wins whichever stylesheet loads first, and outside
+// forced colors nothing changes.
+//
+// The outline is where a browser draws its own focus ring, which `_menu.scss`
+// keeps clear by marking its active item with a border instead. A row or a
+// cell takes focus only when it's given a `tabIndex`, so a selected one that
+// has keyboard focus takes the system's text color in place of Highlight,
+// which tells it from the selected ones around it.
 @media (forced-colors: active) {
   .#{iv.$class-prefix}table {
     tr.#{iv.$class-prefix}is-selected,
@@ -45,6 +50,10 @@
     th.#{iv.$class-prefix}is-selected {
       outline: 2px solid Highlight;
       outline-offset: -2px;
+
+      &:focus-visible {
+        outline-color: CanvasText;
+      }
     }
   }
 }
