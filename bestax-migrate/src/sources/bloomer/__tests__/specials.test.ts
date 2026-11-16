@@ -176,6 +176,73 @@ describe('bloomer plain-element handlers', () => {
     expect(output).toContain('<li><a>x</a></li>');
   });
 
+  it('keeps a TabList the plain <ul> bloomer rendered, with no tab list role', () => {
+    // bestax's Tabs.List renders role="tablist", and the Tabs.Items inside
+    // aren't tabs (#1961).
+    const { output, rules } = migrate(
+      dyn(
+        'Tabs, TabList, Tab',
+        '<Tabs><TabList><Tab isActive><a href="#a">A</a></Tab></TabList></Tabs>'
+      )
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain(
+      '<Tabs><ul><Tabs.Item active><a href="#a">A</a></Tabs.Item></ul></Tabs>'
+    );
+    expect(output).not.toContain('Tabs.List');
+  });
+
+  it('names a TabList alignment, which Bulma reads on the Tabs', () => {
+    const { output, rules } = migrate(
+      dyn('TabList', '<TabList isAlign="centered" className="x">y</TabList>')
+    );
+    expect(rules).toEqual(['prop:isAlign']);
+    expect(jsx(output)).toContain('<ul className="x">y</ul>');
+  });
+
+  it('turns a literal TabList helper into its class, and drops a false one', () => {
+    const { output, rules } = migrate(
+      dyn(
+        'TabList',
+        '<TabList isPulled="right" isMarginless isClearfix={false} isDisplay={false} className="x">y</TabList>'
+      )
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain('<ul className="is-pulled-right m-0 x">y</ul>');
+  });
+
+  it('drops any other TabList helper with the plain-element TODO', () => {
+    // A dynamic value, a responsive object, or a bare boolean on a helper
+    // that takes a value has no one class to stand for.
+    for (const helper of [
+      'isPulled={p.s}',
+      'isHidden={{ mobile: true }}',
+      'isPulled',
+    ]) {
+      const { output, rules } = migrate(
+        dyn('TabList', `<TabList ${helper}>y</TabList>`)
+      );
+      expect([helper, rules]).toEqual([helper, ['plain-element']]);
+      expect(jsx(output)).toContain('<ul>y</ul>');
+    }
+  });
+
+  it('keeps a dynamic TabList className where it was', () => {
+    const alone = migrate(
+      dyn('TabList', '<TabList {...p.a} className={p.cls} id="t">y</TabList>')
+    );
+    expect(alone.rules).toEqual([]);
+    expect(alone.output).toContain(
+      '<ul {...p.a} className={p.cls} id="t">y</ul>'
+    );
+    // Beside a helper's class, the two are merged by hand.
+    const merged = migrate(
+      dyn('TabList', '<TabList className={p.cls} isMarginless>y</TabList>')
+    );
+    expect(merged.rules).toEqual(['prop:className']);
+    expect(jsx(merged.output)).toContain('<ul className={p.cls}>y</ul>');
+  });
+
   it('renders HeroVideo without the transparent modifier', () => {
     const { output } = migrate(
       dyn('HeroVideo', '<HeroVideo><video /></HeroVideo>')

@@ -37,7 +37,7 @@ import { UnorderedList, ListItem } from '@allxsmith/bestax-bulma';
 ## Usage
 
 :::info Wrap Lists in Content for Traditional Styling
-Without a [`Content`](./content.md) wrapper, Bulma renders lists without the traditional margin, padding, and list-style markers (bullets, numbers). Wrap your lists in `<Content>` to get the expected typographic list appearance.
+Without a [`Content`](./content.md) wrapper, Bulma renders lists without the traditional margin, padding, and list-style markers (bullets). Wrap your lists in `<Content>` to get the expected typographic list appearance.
 :::
 
 ### Default List
@@ -138,6 +138,10 @@ Apply different colors to individual list items.
 
 - **List Structure:** Screen readers announce the list and the number of items, helping users understand the content structure.
 - **Semantic Markup:** Using proper `<ul>` and `<li>` elements ensures accessibility for all users.
+- **Safari:** the `<ul>` renders `role="list"`, the role it already has. Safari stops treating a
+  `<ul>` as a list once its bullets are hidden, and Bulma's reset hides them outside `Content`, so
+  writing the role out keeps the list and its item count for VoiceOver. A `role` you pass replaces
+  it.
 - **Nesting:** Properly nested lists maintain correct semantics for assistive technologies.
 
 :::info
@@ -166,13 +170,14 @@ Use `UnorderedList` when the order of items is not significant. For ordered cont
 
 <!-- bestax:generated props -->
 
-| Prop        | Type                                                                    | Default | Description                                       |
-| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                                                                | —       | Additional CSS classes to apply.                  |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                |
-| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                          |
-| `children`  | `React.ReactNode`                                                       | —       | List items to render inside the list.             |
-| `...`       | All standard `<ul>` attributes and Bulma helper props                   | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                                                                    | Default  | Description                                                                                                                                                                                                                         |
+| ----------- | ----------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className` | `string`                                                                | —        | Additional CSS classes to apply.                                                                                                                                                                                                    |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —        | Text color helper.                                                                                                                                                                                                                  |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —        | Background color helper.                                                                                                                                                                                                            |
+| `children`  | `React.ReactNode`                                                       | —        | List items to render inside the list.                                                                                                                                                                                               |
+| `role`      | `React.AriaRole`                                                        | `'list'` | The list's role. It's `list`, the role a `<ul>` already has, written out because Safari stops treating a `<ul>` as a list once its bullets are hidden, and Bulma's reset hides them outside `Content`. A role you pass replaces it. |
+| `...`       | All standard `<ul>` attributes and Bulma helper props                   | —        | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                   |
 
 **Subcomponents:**
 

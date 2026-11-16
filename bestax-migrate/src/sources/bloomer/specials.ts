@@ -4,7 +4,7 @@
  * `hasDropdown`), wrappers bestax renders itself (Page, whose Pagination.Link
  * child renders its own <li>), replacement with plain HTML where bestax has
  * no component (Help, Label, Heading, BreadcrumbItem, PanelTab, TabLink,
- * HeroVideo), and the two props whose bloomer shape has no single bestax
+ * HeroVideo) or where its part would add a role (TabList), and the two props whose bloomer shape has no single bestax
  * prop (Icon's className, Control's hasIcons).
  *
  * A handler may return a `target` override for the rename step, or mark the
@@ -12,7 +12,12 @@
  */
 
 import type { ASTPath } from 'jscodeshift';
-import { RENDER_TODO, RESPONSIVE_PROPS, UNIVERSAL_PROPS } from './mapping.js';
+import {
+  helperClassHint,
+  RENDER_TODO,
+  RESPONSIVE_PROPS,
+  UNIVERSAL_PROPS,
+} from './mapping.js';
 import {
   addAttr,
   attrSource,
@@ -1128,6 +1133,79 @@ const SPECIALS: Record<string, SpecialHandler> = {
     );
     const tag = plainTag(ctx, path, element, 'tag', 'a', 'PanelTab');
     return replaceWithPlain(ctx, path, element, tag, cls, 'PanelTab');
+  },
+
+  /**
+   * bloomer's TabList is the tabs' <ul>, and stays one: bestax's `Tabs.List`
+   * renders `role="tablist"`, which the `Tabs.Item`s inside are not the tabs
+   * of (#1961).
+   */
+  'tab-list'(ctx, path, element) {
+    const align = findAttr(element, 'isAlign');
+    if (align) {
+      removeAttr(element, align);
+      ctx.dirty = true;
+      addTodo(
+        ctx,
+        path,
+        'prop:isAlign',
+        "`isAlign` — Bulma aligns tabs on the `.tabs` container, not the list (bloomer's `is-center` on the <ul> did nothing); set `align` on the `<Tabs>` instead"
+      );
+    }
+    // A helper whose literal value stands for one Bulma class becomes that
+    // class, as it did when this was a `Tabs.List`, a part that takes no
+    // helper props. Any other helper is left to `replaceWithPlain`, which
+    // drops it with a `plain-element` TODO, as on every plain element.
+    const classes: string[] = [];
+    for (const attr of attributesOf(element)) {
+      const literal = literalValueOf(attr);
+      if (literal.kind !== 'string' && literal.kind !== 'boolean') continue;
+      const cls = helperClassHint(attr.name.name, literal.value);
+      if (!cls) continue;
+      // A helper set to false did nothing in bloomer, and a bare boolean on
+      // one that takes a value hints a placeholder rather than a class.
+      if (literal.value !== false && cls.includes('<')) continue;
+      removeAttr(element, attr);
+      ctx.dirty = true;
+      if (literal.value !== false) classes.push(cls);
+    }
+    // A dynamic `className` stays as written. `replaceWithPlain` would drop
+    // it, since it can merge only a literal one with a class of its own.
+    const className = findAttr(element, 'className');
+    const dynamic =
+      className && literalValueOf(className).kind !== 'string'
+        ? className
+        : undefined;
+    const attrs = element.openingElement.attributes ?? [];
+    const before = dynamic ? attrs.slice(0, attrs.indexOf(dynamic)) : [];
+    if (dynamic) {
+      removeAttr(element, dynamic);
+      if (classes.length > 0) {
+        addTodo(
+          ctx,
+          path,
+          'prop:className',
+          `dynamic TabList className; merge it with the \`${classes.join(' ')}\` class by hand`
+        );
+      }
+    }
+    const tag = plainTag(ctx, path, element, 'tag', 'ul', 'TabList');
+    const result = replaceWithPlain(
+      ctx,
+      path,
+      element,
+      tag,
+      dynamic ? undefined : join(...classes),
+      'TabList'
+    );
+    if (dynamic) {
+      // Back in its place: after the last attribute before it that the
+      // plain element kept, so a spread keeps the precedence it had.
+      const now = path.node.openingElement.attributes;
+      const anchor = [...before].reverse().find(a => now.includes(a));
+      now.splice(anchor ? now.indexOf(anchor) + 1 : 0, 0, dynamic);
+    }
+    return result;
   },
 
   /** bestax's Tabs.Item is the <li>; the anchor inside it is plain markup. */

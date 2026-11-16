@@ -173,7 +173,7 @@
           "name": "trigger",
           "type": "React.ReactNode",
           "default": null,
-          "description": "The clickable trigger element (header/button).",
+          "description": "What the clickable header shows. Collapse renders the header itself, as a `div` with `role=\"button\"`, `aria-expanded` and `aria-controls`, so give it text or layout and nothing interactive: a button, a link or a field inside would be a second tab stop with no expanded state, nested in the first.",
           "required": false,
           "inherited": false,
           "deprecated": false
