@@ -133,6 +133,14 @@ $rate-pop-scale: 1.2 !default;
   fill: cv.getVar("rate-color-hover");
 }
 
+// The built-in star a value only partly fills clips its filled part from
+// x=0. Right to left it's drawn mirrored, so it fills from its right, beside
+// the filled stars, where the pointer reads its fraction from. The star is
+// symmetric, so the mirror changes nothing else.
+.#{iv.$class-prefix}rate-star-partial:dir(rtl) {
+  transform: scaleX(-1);
+}
+
 // Partial fill (precision < 1)
 .#{iv.$class-prefix}rate-icon-partial {
   position: relative;
@@ -145,10 +153,12 @@ $rate-pop-scale: 1.2 !default;
   color: cv.getVar("rate-color-inactive");
 }
 
+// The filled layer sits at the star's inline start, so right to left it
+// fills the star from its right.
 .#{iv.$class-prefix}rate-icon-fg {
   position: absolute;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
   overflow: hidden;
   width: var(--rate-fill-percent, 100%);
   color: cv.getVar("rate-color-active");
