@@ -81,7 +81,7 @@ a `tag:<Target>` TODO instead of a conversion. A component's own `as` can take m
 | `.section`             | `Section`             | `<section>` only                                                                                 |
 | `.subtitle`            | `SubTitle`            | `<h1>`, `<h2>`, `<h3>`, `<h4>`, `<h5>`, `<h6>`, `<p>` via `as`                                   |
 | `.table`               | `Table`               | `<table>` only                                                                                   |
-| `.tag`                 | `Tag`                 | `<span>` only                                                                                    |
+| `.tag`                 | `Tag`                 | `<span>`, `<a>`, `<button>` via `as`                                                             |
 | `.tags`                | `Tags`                | `<div>` only                                                                                     |
 | `.title`               | `Title`               | `<h1>`, `<h2>`, `<h3>`, `<h4>`, `<h5>`, `<h6>`, `<p>` via `as`                                   |
 | `.breadcrumb`          | `Breadcrumb`          | `<nav>` only                                                                                     |
@@ -132,7 +132,8 @@ does. Otherwise it gets a `children:<Target>` TODO. Bulma's own example card, wi
 `<p className="card-header-title">` and `<a className="card-footer-item">` links, converts through
 `as`. A `.card-footer-item` `<button>` converts only with its `type` written out as `button`,
 `submit` or `reset`, since `Card.FooterItem` writes `type="button"` on a button in place of
-anything else.
+anything else. A `.tag` link or button converts through `as` the same way, with the same rule for
+a `<button>`'s `type`.
 
 `Navbar` writes `role="navigation"` and `aria-label="main navigation"`, the attributes Bulma's
 own navbar carries, so a `.navbar` that sets both converts (whatever the label says), and one

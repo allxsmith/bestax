@@ -122,7 +122,7 @@ than a silent rewrite. The components whose `tag` becomes `as`:
 
 `Button`, `Image`, `Title`, `Subtitle`, `Footer`, `Media`, `MediaLeft`, `Level`, `LevelItem`, `Control`,
 `DropdownItem`, `MenuLink`, `NavbarItem`, `NavbarLink`, `Container`, `Hero`, `HeroHeader`,
-`HeroFooter`, `Panel`.
+`HeroFooter`, `Panel`, `Tag`.
 
 Everywhere else `tag` is left in place with a TODO. On the components that become plain markup
 (`Help`, `Label`, `Heading`, `BreadcrumbItem`, `PanelTab`, `TabLink`, `Page`, `HeroVideo`) a
