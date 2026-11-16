@@ -115,13 +115,15 @@ $loading-animation-duration: 0.75s !default;
   }
 }
 
-// Content wrapper
+// Content wrapper. It may shrink past its longest word, so text wider than
+// the overlay wraps inside it rather than running off both sides.
 .#{iv.$class-prefix}loading-content {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: cv.getVar("loading-content-gap");
+  min-width: 0;
   z-index: 1;
 }
 
@@ -189,12 +191,17 @@ $loading-animation-duration: 0.75s !default;
   animation: extras-spin cv.getVar("loading-animation-duration") infinite linear;
 }
 
-// Loading text
+// Loading text: one line while it fits, wrapped onto more once it's wider
+// than the overlay, between words or, for a word longer than the overlay,
+// inside it. It's rendered inside what it covers, so it says `normal` rather
+// than taking a `pre` or `nowrap` from there.
 .#{iv.$class-prefix}loading-text {
   font-size: cv.getVar("loading-text-size");
   color: cv.getVar("loading-text-color");
   text-align: center;
-  white-space: nowrap;
+  white-space: normal;
+  max-width: 100%;
+  overflow-wrap: break-word;
 }
 
 // Cancel button
