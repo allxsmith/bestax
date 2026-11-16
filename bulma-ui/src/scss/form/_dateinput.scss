@@ -98,6 +98,27 @@ $calendar-radius: cv.getVar('radius') !default;
   );
 }
 
+// The range picker's several months sit in no `.calendar`, so the gap
+// between them is declared on what holds them: the picker inline, and a
+// popover holding them, which can portal out of the field.
+.#{iv.$class-prefix}daterangeinput {
+  @include cv.register-vars(
+    (
+      'calendar-months-gap': #{$calendar-months-gap},
+    )
+  );
+}
+
+// A rule of its own, so a browser without `:has()` still applies the one
+// above.
+.#{iv.$class-prefix}picker-popover:has(> .#{iv.$class-prefix}calendar-months) {
+  @include cv.register-vars(
+    (
+      'calendar-months-gap': #{$calendar-months-gap},
+    )
+  );
+}
+
 .#{iv.$class-prefix}dateinput {
   display: inline-block;
   min-width: cv.getVar('dateinput-min-width');
@@ -109,11 +130,19 @@ $calendar-radius: cv.getVar('radius') !default;
 // (no popover wrapper), give it a subtle frame so the grid doesn't look
 // orphaned on the page. Mirrors the popover's visual weight without the
 // drop-shadow / animation.
-.#{iv.$class-prefix}dateinput-container > .#{iv.$class-prefix}dateinput {
+.#{iv.$class-prefix}dateinput-container > .#{iv.$class-prefix}dateinput,
+.#{iv.$class-prefix}dateinput-container > .#{iv.$class-prefix}calendar-months {
   background-color: cv.getVar('scheme-main');
   border: 1px solid cv.getVar('border');
   border-radius: cv.getVar('radius');
   padding: 0.75rem;
+}
+
+// Several months inline share that one frame, as wide as their row, which
+// wraps to a column where the width runs out.
+.#{iv.$class-prefix}dateinput-container > .#{iv.$class-prefix}calendar-months {
+  display: inline-flex;
+  max-width: 100%;
 }
 
 .#{iv.$class-prefix}dateinput-header {
@@ -513,12 +542,14 @@ $calendar-radius: cv.getVar('radius') !default;
   gap: cv.getVar('calendar-months-gap');
 }
 
-// Each month's header: the previous button before the first month's name,
-// the next button after the last month's, and each name centred over its
-// grid whichever buttons it has. A month's name that opens nothing pads as
-// the first month's button does, so every header is as high and the months'
-// grids line up.
-.#{iv.$class-prefix}calendar .#{iv.$class-prefix}dateinput-header {
+// Each month's header, in a Calendar and wherever a picker shows several
+// months: the previous button before the first month's name, the next button
+// after the last month's, and each name centred over its grid whichever
+// buttons it has. A month's name that opens nothing pads as the first
+// month's button does, so every header is as high and the months' grids
+// line up.
+.#{iv.$class-prefix}calendar .#{iv.$class-prefix}dateinput-header,
+.#{iv.$class-prefix}calendar-months .#{iv.$class-prefix}dateinput-header {
   display: grid;
   grid-template-columns:
     cv.getVar('dateinput-nav-button-size') 1fr

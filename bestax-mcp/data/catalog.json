@@ -616,8 +616,8 @@
       "slug": "form/datetime/daterangeinput",
       "import": "import { DateRangeInput } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 59,
-      "exampleCount": 10
+      "propCount": 60,
+      "exampleCount": 11
     },
     {
       "name": "DateTimeInput",
@@ -1836,7 +1836,7 @@
     "--bulma-button-weight": ["Button"],
     "--bulma-calendar-background-color": ["Calendar"],
     "--bulma-calendar-border-color": ["Calendar"],
-    "--bulma-calendar-months-gap": ["Calendar"],
+    "--bulma-calendar-months-gap": ["Calendar", "DateRangeInput"],
     "--bulma-calendar-padding": ["Calendar"],
     "--bulma-calendar-radius": ["Calendar"],
     "--bulma-card-background-color": ["Card"],
@@ -2976,6 +2976,14 @@
     ],
     "--bulma-picker-popover-border-color": [
       "Cascader",
+      "ColorInput",
+      "DateInput",
+      "DateRangeInput",
+      "DateTimeInput",
+      "TimeInput",
+      "TreeSelect"
+    ],
+    "--bulma-picker-popover-months-max-width": [
       "ColorInput",
       "DateInput",
       "DateRangeInput",
