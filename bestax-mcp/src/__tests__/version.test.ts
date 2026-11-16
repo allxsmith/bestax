@@ -23,6 +23,7 @@ import {
   versionNote,
   type VersionInfo,
 } from '../version.js';
+import { installLibrary } from './installed-library.js';
 
 const temps: string[] = [];
 
@@ -34,26 +35,14 @@ const temps: string[] = [];
 async function projectWithRawVersion(raw: unknown) {
   const root = await mkdtemp(join(tmpdir(), 'bestax-mcp-'));
   temps.push(root);
-  const pkgDir = join(root, 'node_modules', '@allxsmith', 'bestax-bulma');
-  await mkdir(pkgDir, { recursive: true });
-  await writeFile(
-    join(pkgDir, 'package.json'),
-    JSON.stringify({ name: '@allxsmith/bestax-bulma', version: raw })
-  );
+  await installLibrary(root, raw);
   return root;
 }
 
 async function projectWith(version: string | null, depth = 0) {
   const root = await mkdtemp(join(tmpdir(), 'bestax-mcp-'));
   temps.push(root);
-  if (version) {
-    const pkgDir = join(root, 'node_modules', '@allxsmith', 'bestax-bulma');
-    await mkdir(pkgDir, { recursive: true });
-    await writeFile(
-      join(pkgDir, 'package.json'),
-      JSON.stringify({ name: '@allxsmith/bestax-bulma', version })
-    );
-  }
+  if (version) await installLibrary(root, version);
   // A nested working directory, to prove the walk goes up.
   let cwd = root;
   for (let i = 0; i < depth; i++) {

@@ -145,7 +145,11 @@ that includes schema validation and the tool/resource/prompt listings. A handler
 test would pass while the server advertised nothing.
 
 They run against the committed index, not fixtures. The index is the product; a
-test that stubs it proves nothing about what ships.
+test that stubs it proves nothing about what ships. What the server checks the
+index against is a fixture, though: the main client answers for a project with
+the library installed at the index's version, so no drift warning rides on the
+answers between a minor or major release and the index's restamp, when the
+workspace's own library is ahead. The index itself stays the committed one.
 
 ## Releases
 
