@@ -14,6 +14,7 @@ import { useLocaleMatcher } from '../helpers/localeFormat';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
 import {
   TreeViewHiddenContext,
+  TreeViewSpaceJoinsContext,
   readChecks,
   toggledList,
 } from '../helpers/useTreeView';
@@ -220,7 +221,9 @@ export interface TreeSelectSingleProps extends TreeSelectBaseProps {
    * enabled item under it, and a parent with some of them checked is mixed.
    * `'checkbox-independent'`: any number, each box checking its own item, so
    * a parent means the parent alone (Mantine's and Ant Design's
-   * `checkStrictly`). The checkbox modes show the value as tags.
+   * `checkStrictly`). The checkbox modes show the value as tags. In every
+   * mode, a Space typed during a type-ahead search joins it instead when an
+   * item starts with what's been typed and a space.
    */
   selectionMode?: 'single';
   /**
@@ -265,7 +268,9 @@ export interface TreeSelectCheckboxProps extends TreeSelectBaseProps {
   /**
    * `'checkbox'`: a check reaches every enabled item under it, and a parent
    * with some of them checked is mixed. `'checkbox-independent'`: each box
-   * checks its own item, so a parent means the parent alone.
+   * checks its own item, so a parent means the parent alone. A Space typed
+   * during a type-ahead search joins it instead when an item starts with
+   * what's been typed and a space.
    */
   selectionMode: 'checkbox' | 'checkbox-independent';
   /**
@@ -532,6 +537,8 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
     // one on a parent is dropped, and a lazy parent isn't fetched to be
     // picked.
     const clickPickedRef = useRef(false);
+    // Whether the tree takes a Space on a row into a type-ahead search.
+    const spaceJoinsRef = useRef<((item: HTMLElement) => boolean) | null>(null);
     const onTreeExpandedChange = (next: string[]) => {
       if (clickPickedRef.current) {
         clickPickedRef.current = false;
@@ -584,7 +591,10 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
                 event.altKey ||
                 event.ctrlKey ||
                 event.metaKey ||
-                (event.key !== 'Enter' && event.key !== ' ')
+                (event.key !== 'Enter' && event.key !== ' ') ||
+                // The tree types it into its search instead.
+                (event.key === ' ' &&
+                  spaceJoinsRef.current?.(event.currentTarget))
               ) {
                 return;
               }
@@ -841,26 +851,28 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
               <TreeViewHiddenContext.Provider
                 value={search?.hidden ?? NOTHING_HIDDEN}
               >
-                <TreeView
-                  {...panelName}
-                  ref={treeRef}
-                  // It scrolls, and Firefox makes a scroller a Tab stop of
-                  // its own: the roving one on its items is the tree's.
-                  tabIndex={-1}
-                  selectionMode={selectionMode}
-                  size={size}
-                  selected={single ? (picked[0] ?? null) : undefined}
-                  checked={single ? undefined : listed}
-                  onCheckedChange={onCheckedChange}
-                  expanded={shownExpanded}
-                  onExpandedChange={onTreeExpandedChange}
-                  loadingLabel={labels?.loading}
-                  retryLabel={labels?.retry}
-                  loadingAnnouncement={labels?.loadingAnnouncement}
-                  loadedAnnouncement={labels?.loadedAnnouncement}
-                >
-                  {data.map(renderNode)}
-                </TreeView>
+                <TreeViewSpaceJoinsContext.Provider value={spaceJoinsRef}>
+                  <TreeView
+                    {...panelName}
+                    ref={treeRef}
+                    // It scrolls, and Firefox makes a scroller a Tab stop of
+                    // its own: the roving one on its items is the tree's.
+                    tabIndex={-1}
+                    selectionMode={selectionMode}
+                    size={size}
+                    selected={single ? (picked[0] ?? null) : undefined}
+                    checked={single ? undefined : listed}
+                    onCheckedChange={onCheckedChange}
+                    expanded={shownExpanded}
+                    onExpandedChange={onTreeExpandedChange}
+                    loadingLabel={labels?.loading}
+                    retryLabel={labels?.retry}
+                    loadingAnnouncement={labels?.loadingAnnouncement}
+                    loadedAnnouncement={labels?.loadedAnnouncement}
+                  >
+                    {data.map(renderNode)}
+                  </TreeView>
+                </TreeViewSpaceJoinsContext.Provider>
               </TreeViewHiddenContext.Provider>
             )}
             <StatusRegion

@@ -395,7 +395,7 @@ edge. A `position` you pass stays physical.
 - **Each column** is a `listbox` with one tab stop and real focus on its `option`s. The first is
   named as the panel is, and each one after it by the label of the item that opened it. Up, Down,
   Home, End and type-ahead move within a column, and type-ahead starts over in each column it
-  comes into. Space joins a search under way when an item starts with what's been typed and a
+  comes into and after Up, Down, Home or End. Space joins a search under way when an item starts with what's been typed and a
   space, so "new y" reaches "New York", and otherwise picks or opens. Right opens the next column
   and moves into it, Left goes back, and the two swap on a right-to-left page. Disabled items are
   reachable and `aria-disabled`, and Right moves into a column at its item on the open path even

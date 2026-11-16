@@ -738,6 +738,13 @@ describe('useMenuKeys', () => {
       expect(option('Newark')).toHaveFocus();
       press(' ');
       expect(onPick).toHaveBeenLastCalledWith('Newark');
+      advance(TYPEAHEAD_TIMEOUT);
+      // A key that moves focus ends the search, so Space acts on the item
+      // it reached.
+      for (const key of ['n', 'e', 'w', 'ArrowDown']) press(key);
+      expect(option('New Hampshire')).toHaveFocus();
+      press(' ');
+      expect(onPick).toHaveBeenLastCalledWith('New Hampshire');
       unmount();
       onPick.mockClear();
       // Without it, Space acts on the focused item mid-search, as a menu's does.

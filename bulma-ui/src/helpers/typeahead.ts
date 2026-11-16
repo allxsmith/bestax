@@ -54,6 +54,23 @@ export function typeaheadMatch<T extends Element>(
   return undefined;
 }
 
+/**
+ * The item a Space reaches when it joins a search under way: one that starts
+ * with what has been typed and a space, so "new y" reaches "New York". With
+ * nothing typed, or no such item, there's none, and Space does what it does
+ * outside a search.
+ */
+export function spaceJoinMatch<T extends Element>(
+  items: T[],
+  typed: string,
+  current: number,
+  textOf?: (item: T) => string
+): T | undefined {
+  return typed
+    ? typeaheadMatch(items, `${typed} `, current, textOf)
+    : undefined;
+}
+
 /** What `useTypeahead` returns. */
 export interface Typeahead {
   /**
@@ -74,7 +91,8 @@ export interface Typeahead {
  * `typeaheadMatch` to find the item the search names.
  *
  * @function useTypeahead
- * @returns A way to add a character to the search, and a way to forget it.
+ * @returns A way to add a character to the search, a way to forget it, and
+ * what has been typed so far.
  */
 export function useTypeahead(): Typeahead {
   const typedRef = useRef<{

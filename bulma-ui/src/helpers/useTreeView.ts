@@ -2,6 +2,7 @@
 import {
   createContext,
   useCallback,
+  useContext,
   useEffect,
   useReducer,
   useRef,
@@ -12,7 +13,12 @@ import type { TreeViewSelectionMode } from '../components/TreeView';
 import { useClientLayoutEffect } from './useClientLayoutEffect';
 import { useControlled } from './useControlled';
 import { getActiveElementInTree } from './shadowDom';
-import { typeaheadMatch, typeaheadText, useTypeahead } from './typeahead';
+import {
+  spaceJoinMatch,
+  typeaheadMatch,
+  typeaheadText,
+  useTypeahead,
+} from './typeahead';
 
 /** What an item tells the tree about itself when it registers. */
 export interface TreeViewItemRecord {
@@ -90,6 +96,19 @@ const MIRRORED: Record<string, string> = {
   ArrowLeft: 'ArrowRight',
   ArrowRight: 'ArrowLeft',
 };
+
+/** The keys that move through the tree, which end a type-ahead search. */
+const MOVES = new Set([
+  'ArrowDown',
+  'ArrowUp',
+  'ArrowLeft',
+  'ArrowRight',
+  'Home',
+  'End',
+]);
+
+/** The text type-ahead finds an item by: its row's, not its group's. */
+const itemText = (item: Element) => typeaheadText(item.firstElementChild!);
 
 /** An IME is composing, so the key belongs to it (`keyCode` 229 is Safari's word for it). */
 const isComposing = (event: React.KeyboardEvent): boolean =>
@@ -184,6 +203,16 @@ function pathOf(element: Element, { values }: Registry): string[] {
 export const TreeViewHiddenContext = createContext<ReadonlySet<string>>(
   new Set()
 );
+
+/**
+ * For a component around a tree that handles Space on its rows itself, as
+ * TreeSelect's single pick does. The tree fills it with a test of whether a
+ * Space on a row joins a type-ahead search under way, which the tree then
+ * takes, so the component leaves that Space to it. Internal, as above.
+ */
+export const TreeViewSpaceJoinsContext = createContext<React.MutableRefObject<
+  ((item: HTMLElement) => boolean) | null
+> | null>(null);
 
 /**
  * Every known item's check state, by the rules in #1096:
@@ -591,6 +620,27 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
 
   const onBlur = () => setFocused(null);
 
+  // Space joins a type-ahead search under way when an item starts with what
+  // has been typed and a space, so "new y" reaches "New York": the item it
+  // reaches, or none.
+  const spaceMatch = useCallback(
+    (element: HTMLElement, items?: HTMLElement[]) => {
+      const typed = typeahead.typed();
+      if (!typed) return undefined;
+      const shown = items ?? shownIn(treeRef.current!, registryRef.current);
+      return spaceJoinMatch(shown, typed, shown.indexOf(element), itemText);
+    },
+    [typeahead]
+  );
+  const spaceJoinsRef = useContext(TreeViewSpaceJoinsContext);
+  useClientLayoutEffect(() => {
+    if (!spaceJoinsRef) return undefined;
+    spaceJoinsRef.current = element => spaceMatch(element) !== undefined;
+    return () => {
+      spaceJoinsRef.current = null;
+    };
+  }, [spaceJoinsRef, spaceMatch]);
+
   const onKeyDown = (
     event: React.KeyboardEvent<HTMLLIElement>,
     item: TreeViewItemInfo
@@ -612,6 +662,9 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
     const at = items.indexOf(element);
     const rtl = getComputedStyle(element).direction === 'rtl';
     const key = (rtl && MIRRORED[event.key]) || event.key;
+    // An arrow, Home or End ends a type-ahead search, so a Space after it
+    // acts on the item it's on.
+    if (MOVES.has(key)) typeahead.reset();
 
     switch (key) {
       case 'ArrowDown':
@@ -640,9 +693,16 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
       case 'Enter':
         if (!event.repeat) press(item, actions.enter);
         break;
-      case ' ':
-        if (!event.repeat) press(item, actions.space);
+      case ' ': {
+        const match = spaceMatch(element, items);
+        if (match) {
+          typeahead.type(' ');
+          match.focus();
+        } else if (!event.repeat) {
+          press(item, actions.space);
+        }
         break;
+      }
       case '*': {
         // The siblings on the page: not the ones a component around the
         // tree hides, which stay registered.
@@ -665,9 +725,7 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
         // Type-ahead takes a printable character. Anything else, Escape and
         // Tab included, is left to whatever is around the tree.
         if (event.key.length !== 1) return;
-        typeaheadMatch(items, typeahead.type(event.key), at, el =>
-          typeaheadText(el.firstElementChild!)
-        )?.focus();
+        typeaheadMatch(items, typeahead.type(event.key), at, itemText)?.focus();
     }
     event.preventDefault();
   };
