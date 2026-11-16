@@ -1,3 +1,12 @@
+## [5.73.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.73.0...@allxsmith/bestax-bulma@5.73.1) (2026-11-16)
+
+
+### Bug Fixes
+
+* **bulma-ui:** draw Steps and a Timeline in a colored Notification's or Hero's text color ([ba103eb](https://github.com/allxsmith/bestax/commit/ba103ebe88ce4d304edb0dda2f3e86e994700732)), closes [#1733](https://github.com/allxsmith/bestax/issues/1733)
+* **bulma-ui:** give colored Steps' labels and a Hero's timeline titles the surface's color ([e746cc3](https://github.com/allxsmith/bestax/commit/e746cc325041283b4b087a86e0cabb1ac76c31b6))
+* **bulma-ui:** open a Calendar whose value lies outside min or max on the bound's month ([b53b4e9](https://github.com/allxsmith/bestax/commit/b53b4e9935e2fca029aac89bf16b61954f262c8b)), closes [#1818](https://github.com/allxsmith/bestax/issues/1818)
+
 # [5.73.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.72.0...@allxsmith/bestax-bulma@5.73.0) (2026-11-16)
 
 
