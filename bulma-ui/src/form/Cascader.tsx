@@ -721,6 +721,17 @@ export const Cascader = forwardRef<HTMLInputElement, CascaderProps>(
                 keepFirst
                 size={size}
                 className={searchClass}
+                // After the search box's own keys, which take Enter for a
+                // highlighted result. Any other Enter in the box would
+                // submit the form, so none goes on, as in TreeSelect's.
+                onKeyDown={event => {
+                  if (
+                    event.key === 'Enter' &&
+                    (event.target as Element).id === searchId
+                  ) {
+                    event.preventDefault();
+                  }
+                }}
                 onSelect={next => {
                   // The columns behind the search show where it is.
                   engine.reveal(next);
@@ -738,15 +749,6 @@ export const Cascader = forwardRef<HTMLInputElement, CascaderProps>(
                     // A key that opened the panel is in the box: type after it.
                     const { length } = event.currentTarget.value;
                     event.currentTarget.setSelectionRange(length, length);
-                  }}
-                  onKeyDown={event => {
-                    // With nothing to pick, Enter would submit the form.
-                    if (
-                      event.key === 'Enter' &&
-                      matches.every(isPathDisabled)
-                    ) {
-                      event.preventDefault();
-                    }
                   }}
                 />
                 {typed &&

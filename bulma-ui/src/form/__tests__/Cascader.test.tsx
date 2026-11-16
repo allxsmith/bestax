@@ -932,6 +932,48 @@ describe('Cascader', () => {
       expect(event.defaultPrevented).toBe(true);
     });
 
+    it('keeps Enter from submitting when results show but none is highlighted, and picks nothing', () => {
+      const onChange = vi.fn();
+      render(
+        <form onSubmit={event => event.preventDefault()}>
+          <City searchable onChange={onChange} />
+        </form>
+      );
+      key(field(), 'm');
+      const box = screen.getByRole('combobox', { name: 'Search' });
+      fireEvent.change(box, { target: { value: 'munich' } });
+      expect(box).toHaveAttribute(
+        'aria-activedescendant',
+        option('Europe / Germany / Munich').id
+      );
+      // Home is the box's own key, which takes the highlight off the list.
+      fireEvent.keyDown(box, { key: 'Home' });
+      expect(box).not.toHaveAttribute('aria-activedescendant');
+      const event = new KeyboardEvent('keydown', {
+        key: 'Enter',
+        bubbles: true,
+        cancelable: true,
+      });
+      box.dispatchEvent(event);
+      expect(event.defaultPrevented).toBe(true);
+      expect(onChange).not.toHaveBeenCalled();
+      expect(dialog()).not.toBeNull();
+    });
+
+    it('leaves alone an Enter from elsewhere in the search than its box', () => {
+      render(<City searchable />);
+      key(field(), 'm');
+      const box = screen.getByRole('combobox', { name: 'Search' });
+      fireEvent.change(box, { target: { value: 'munich' } });
+      const elsewhere = new KeyboardEvent('keydown', {
+        key: 'Enter',
+        bubbles: true,
+        cancelable: true,
+      });
+      option('Europe / Germany / Munich').dispatchEvent(elsewhere);
+      expect(elsewhere.defaultPrevented).toBe(false);
+    });
+
     it('shows empty when nothing matches, keeps Enter from submitting, and announces it once', () => {
       vi.useFakeTimers();
       try {
