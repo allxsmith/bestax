@@ -72,9 +72,10 @@ interface CalendarBaseProps
   /**
    * The month on show to begin with, when the Calendar holds its own state.
    * Unset, it's the month of `value` (a range's start), or else today's,
-   * moved inside `min` and `max`, and with `monthsToShow` the first month
-   * of a page they hold whole. On a server render today is the server's, so
-   * give this, `month` or a picked `value` there.
+   * kept inside `min` and `max`, and with `monthsToShow` moved back so the
+   * months on show end by `max`, though never before `min`'s month. On a
+   * server render today is the server's, so give this, `month` or a picked
+   * `value` there.
    */
   defaultMonth?: Date;
   /**
@@ -130,11 +131,18 @@ interface CalendarBaseProps
   /** Stretches the grid to the width of its container (Bulma's `is-fullwidth`). */
   isFullwidth?: boolean;
   /**
-   * Earliest day that can be picked. Days before it show disabled. One
-   * before year 1, or none, counts as the start of year 1.
+   * Earliest day that can be picked. Days before it show disabled, and a
+   * `value` before it opens on its month rather than the value's, unless
+   * `month` or `defaultMonth` says otherwise. One before year 1, or none,
+   * counts as the start of year 1.
    */
   min?: Date | undefined;
-  /** Latest day that can be picked. Days after it show disabled. */
+  /**
+   * Latest day that can be picked. Days after it show disabled, and a
+   * `value` after it opens on its month rather than the value's, as the last
+   * month on show with `monthsToShow`, unless `month` or `defaultMonth` says
+   * otherwise.
+   */
   max?: Date | undefined;
   /** Rules days out, such as weekends. They show disabled and can't be picked. */
   shouldDisableDate?: (date: Date) => boolean;
@@ -360,15 +368,13 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
 
     // The first month on show, held here unless `month` is given: a
     // `defaultMonth` as given, else the month of the value or of today, as
-    // the first of a page that `min` and `max` hold whole, the way the grid
-    // pages, so a page past `max` is never the first one on show.
+    // the first of a page inside `min` and `max` where they leave room for
+    // it, the way the grid pages, so a value outside them doesn't open on
+    // months whose days are all disabled.
     const firstMonth = () => {
       if (defaultMonth) return startOfMonth(defaultMonth);
-      const start = startOfMonth(
-        valueStart ?? clampDate(new Date(), lowerBound, max)
-      );
+      const start = valueStart ?? clampDate(new Date(), lowerBound, max);
       const count = granularity === 'day' ? pageMonthCount(monthsToShow) : 1;
-      if (!max || count === 1) return start;
       return monthFromIndex(fitPage(monthIndex(start), count, lowerBound, max));
     };
     const [month, setOwnMonth] = useControlled<Date>(monthProp, firstMonth());
