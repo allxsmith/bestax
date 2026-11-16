@@ -1755,7 +1755,14 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       ),
       ...flags({ 'is-light': 'isLight' }),
     },
-    ownProps: ['color', 'textColor', 'isLight', 'hasDelete', 'onDelete'],
+    ownProps: [
+      'color',
+      'textColor',
+      'isLight',
+      'hasDelete',
+      'onDelete',
+      'ariaCloseLabel',
+    ],
   },
   progress: {
     ...BASE,
