@@ -2476,9 +2476,11 @@ describe('Escape on a menu the pointer shows', () => {
   const point = (over: boolean) => {
     const el = root();
     const own = Element.prototype.matches;
-    el.matches = function (this: Element, selector: string) {
-      return selector === ':hover' ? over : own.call(this, selector);
-    };
+    Object.defineProperty(el, 'matches', {
+      configurable: true,
+      value: (selector: string) =>
+        selector === ':hover' ? over : own.call(el, selector),
+    });
     if (!over) fireEvent.pointerLeave(el);
   };
   const escape = (target: Element, init: Partial<KeyboardEventInit> = {}) =>
