@@ -71,17 +71,19 @@ A flexible tab navigation system for switching between views or filtering conten
 
 ```tsx live
 <Tabs align="centered">
-  <Tabs.List>
+  <ul>
     <Tabs.Item active>
-      <a>Home</a>
+      <a href="#home" aria-current="page">
+        Home
+      </a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>Profile</a>
+      <a href="#profile">Profile</a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>Settings</a>
+      <a href="#settings">Settings</a>
     </Tabs.Item>
-  </Tabs.List>
+  </ul>
 </Tabs>
 ```
 
