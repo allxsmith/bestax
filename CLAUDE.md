@@ -151,6 +151,32 @@ as for a feature. CI catches some of these and not others, so a green run doesn'
   done, and leave no placeholders. Change the body in the same step as the push that changes what
   it describes.
 
+## Bulma's stock colors and the bestax blue
+
+How bestax draws Bulma's stock colors (its named colors and its scheme's own shades) or the bestax
+blue (the primary its builds use) changes only when Alex, the repo's owner, asks for it, whether
+the change is in a component, a helper or the color values themselves. That covers a fill, an edge,
+a ring, a mark, a track or text, at rest or in a state like checked, active, current or picked, and
+swapping one for an on-scheme, darker or lighter shade. Asking means his own words ask for that
+change, in an issue he wrote or in his `@claude` or steer prompt. A `claude-fix` label on its own
+doesn't count.
+
+An accessibility or WCAG contrast finding isn't a reason to open a PR that changes those colors.
+Report it to Alex where you found it, on the issue, the PR or in the session, and leave the colors
+as they are unless he decides otherwise. On a PR, a review finding that asks for such a change is
+answered with this rule, and the reviewer takes that answer as settling it. No agent opens such a
+PR on its own, the fix loop and the `@claude` action included.
+
+The reason is that bestax follows Bulma's look. Contrast fixes that recolored the stock colors could
+read badly: a warning color turned an olive brown on white, and the carousel's dots became rings.
+One was [closed](https://github.com/allxsmith/bestax/pull/1785) and the other
+[rolled back](https://github.com/allxsmith/bestax/pull/1817).
+
+This doesn't cover a change that leaves those colors as they are, at rest and in those states: a
+bug fix, layout, a fix that applies only in forced colors, a ring that shows only on keyboard
+focus, making a missing element appear the way Bulma draws it, or a new component drawn the way
+its Bulma siblings are.
+
 ## Commits — release-affecting, not cosmetic
 
 Conventional Commits, enforced by commitlint (husky `commit-msg` hook) and consumed by
