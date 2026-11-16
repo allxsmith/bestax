@@ -283,6 +283,7 @@ When `canCancel` is true, the loading can be cancelled by:
 - A loading inside a container covers only that container, so it cancels on Escape once no Modal, Dialog, Sidebar or full-page loading is open
 - The spinner with no `color` is Bulma's `text-weak`, and a `color` draws it in the color's on-scheme lightness, the one Bulma adjusts for text on the scheme's background, so it clears WCAG 1.4.11's 3:1 against the page's color, which the overlay is drawn in, in light and dark mode. The overlay lets what it covers show through, so over content that isn't the page's color, `overlay="opaque"` keeps that 3:1. When a `Theme` changes a color's hue, saturation or lightness, set that color's on-scheme lightness with it, as [Label and Text Lightnesses](../helpers/theme.md#label-and-text-lightnesses) shows
 - In forced colors (Windows' contrast themes), the spinner is drawn as a ring in the theme's text color with its top side open, since forced colors drops the gradient it's normally drawn with. The overlay turns solid there, whatever `overlay` is set to, so the page beneath doesn't show through behind the ring or the text. A custom `indicator` is your own content, so it's up to you that it shows there too
+- A line of its text wraps only once it's wider than the overlay, a word longer than the overlay too, rather than running off its sides, which on a narrow screen or at a high browser zoom a full-page loading can't be scrolled to show
 
 ---
 
