@@ -28,7 +28,7 @@ const compile = (prefix: string) =>
  * The declarations of `properties` that the rules of `css` matching `el` make,
  * in source order, split by whether they sit in the forced-colors block.
  */
-function declaredFor(css: string, el: Element, properties: string[]) {
+function declaredByMode(css: string, el: Element, properties: string[]) {
   const style = document.createElement('style');
   style.textContent = css;
   document.head.appendChild(style);
@@ -88,11 +88,11 @@ describe.each([
 
   it('outlines the highlighted option, and only it', () => {
     const [highlighted, other] = openList();
-    expect(declaredFor(css, highlighted, OUTLINE)).toEqual({
+    expect(declaredByMode(css, highlighted, OUTLINE)).toEqual({
       atRest: [],
       forced: ['outline: 2px solid Highlight', 'outline-offset: -2px'],
     });
-    expect(declaredFor(css, other, OUTLINE)).toEqual({
+    expect(declaredByMode(css, other, OUTLINE)).toEqual({
       atRest: [],
       forced: [],
     });
@@ -105,7 +105,7 @@ describe.each([
     ) as HTMLElement;
     expect(box).toContainElement(screen.getByRole('listbox'));
     expect(box).toHaveTextContent('Fruit we have');
-    expect(declaredFor(css, box, OUTLINE)).toEqual({
+    expect(declaredByMode(css, box, OUTLINE)).toEqual({
       atRest: [],
       forced: ['outline: 1px solid CanvasText', 'outline-offset: -1px'],
     });

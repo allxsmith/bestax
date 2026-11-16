@@ -339,8 +339,9 @@ $taginput-transition-duration: cv.getVar("duration") !default;
     }
 
     // The suggestion list's shadow and the highlighted suggestion's fill go
-    // too, so the open list gets an edge and the highlighted suggestion an
-    // outline, as Combobox's do, drawn inside their boxes so nothing moves.
+    // too, so the open list gets an edge, which Combobox's border gives its
+    // list, and the highlighted suggestion the outline Combobox's highlighted
+    // item gets, both drawn inside their boxes so nothing moves.
     .#{iv.$class-prefix}dropdown-content {
       outline: 1px solid CanvasText;
       outline-offset: -1px;
