@@ -205,13 +205,19 @@ A flexible, composable pagination navigation for lists or multi-page content. [V
 ```tsx live
 <Pagination>
   <Pagination.List>
-    <Pagination.Link>&laquo;</Pagination.Link>
-    <Pagination.Link active>1</Pagination.Link>
-    <Pagination.Link>2</Pagination.Link>
-    <Pagination.Link>3</Pagination.Link>
+    <Pagination.Link href="#previous" aria-label="Previous page">
+      &laquo;
+    </Pagination.Link>
+    <Pagination.Link active href="#page-1">
+      1
+    </Pagination.Link>
+    <Pagination.Link href="#page-2">2</Pagination.Link>
+    <Pagination.Link href="#page-3">3</Pagination.Link>
     <Pagination.Ellipsis />
-    <Pagination.Link>10</Pagination.Link>
-    <Pagination.Link>&raquo;</Pagination.Link>
+    <Pagination.Link href="#page-10">10</Pagination.Link>
+    <Pagination.Link href="#next" aria-label="Next page">
+      &raquo;
+    </Pagination.Link>
   </Pagination.List>
 </Pagination>
 ```
