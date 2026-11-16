@@ -25,7 +25,6 @@ import {
 import {
   addAttr,
   addTodo,
-  buildJsxName,
   attributesOf,
   findAttr,
   jsxNameParts,
@@ -985,9 +984,11 @@ const SPECIALS: Record<string, SpecialHandler> = {
 
   /**
    * rbx's `Tab.Group` renders `div.tabs > ul > li`; bestax's `Tabs` renders
-   * only the `div.tabs` and leaves the `<ul>` to `Tabs.List`. Renaming
-   * straight across put the `<li>` items directly inside the div, which is
-   * not valid Bulma tabs markup. Wrap the children in a `Tabs.List`.
+   * only the `div.tabs`. Renaming straight across put the `<li>` items
+   * directly inside the div, which is not valid Bulma tabs markup, so the
+   * children go in a plain `<ul>`. Not a `Tabs.List`: it renders
+   * `role="tablist"`, which the migrated `Tabs.Item`s are not the tabs of
+   * (#1961). A `.List` the caller already put there is left alone.
    */
   'tab-group'(ctx, _path, element) {
     const children = element.children ?? [];
@@ -1003,15 +1004,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       );
     if (solid.length === 0 || alreadyList) return { target: 'Tabs' };
 
-    const local = ctx.reserve('Tabs');
-    const listName = `${local}.List`;
-    element.children = [
-      ctx.j.jsxElement(
-        ctx.j.jsxOpeningElement(buildJsxName(ctx.j, listName), [], false),
-        ctx.j.jsxClosingElement(buildJsxName(ctx.j, listName)),
-        children
-      ),
-    ];
+    element.children = [plainElement(ctx.j, 'ul', undefined, [], children)];
     ctx.dirty = true;
     return { target: 'Tabs' };
   },

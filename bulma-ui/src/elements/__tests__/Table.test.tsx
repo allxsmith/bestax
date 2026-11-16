@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
 import { Table, TableProps } from '../Table';
 import { Thead } from '../Thead';
 import { Tbody } from '../Tbody';
@@ -7,6 +8,7 @@ import { Tr } from '../Tr';
 import { Th } from '../Th';
 import { Td } from '../Td';
 import { ConfigProvider } from '../../helpers/Config';
+import { resetDevWarnings } from '../../helpers/devWarnings';
 
 describe('Table Component', () => {
   const defaultProps: TableProps = {
@@ -334,5 +336,187 @@ describe('Table fullwidth aliases', () => {
       </ConfigProvider>
     );
     expect(screen.getByRole('table')).toHaveClass('bestax-is-fullwidth');
+  });
+});
+
+describe('isResponsive from the keyboard (#1839)', () => {
+  // jsdom lays nothing out, so the container's widths come from `widths`,
+  // which each test sets before it renders or before it scrolls.
+  const widths = { scrollWidth: 200, clientWidth: 200 };
+  type Width = keyof typeof widths;
+  const saved = new Map<Width, PropertyDescriptor | undefined>();
+  const isContainer = (el: Element) =>
+    el.classList.contains('table-container') ||
+    el.classList.contains('bestax-table-container');
+
+  beforeAll(() => {
+    for (const key of Object.keys(widths) as Width[]) {
+      saved.set(
+        key,
+        Object.getOwnPropertyDescriptor(HTMLElement.prototype, key)
+      );
+      Object.defineProperty(HTMLElement.prototype, key, {
+        configurable: true,
+        get(this: HTMLElement) {
+          return isContainer(this) ? widths[key] : 0;
+        },
+      });
+    }
+  });
+
+  afterAll(() => {
+    for (const [key, descriptor] of saved) {
+      if (descriptor)
+        Object.defineProperty(HTMLElement.prototype, key, descriptor);
+      else
+        delete (HTMLElement.prototype as unknown as Record<string, unknown>)[
+          key
+        ];
+    }
+  });
+
+  let warn: ReturnType<typeof vi.spyOn>;
+  beforeEach(() => {
+    Object.assign(widths, { scrollWidth: 200, clientWidth: 200 });
+    resetDevWarnings();
+    warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+  afterEach(() => warn.mockRestore());
+
+  const overflow = () =>
+    Object.assign(widths, { scrollWidth: 600, clientWidth: 200 });
+  const fit = () =>
+    Object.assign(widths, { scrollWidth: 200, clientWidth: 200 });
+
+  const rows = (
+    <Tbody>
+      <Tr>
+        <Td>Ice Wolves</Td>
+        <Td>32</Td>
+      </Tr>
+    </Tbody>
+  );
+
+  it('makes an overflowing container a region you can tab to, named as the table is', () => {
+    overflow();
+    render(
+      <Table isResponsive aria-label="Scores">
+        {rows}
+      </Table>
+    );
+    const region = screen.getByRole('region', { name: 'Scores' });
+    expect(region).toHaveClass('table-container');
+    expect(region).toHaveAttribute('tabindex', '0');
+    // The table keeps its own role and name.
+    expect(screen.getByRole('table', { name: 'Scores' }).parentElement).toBe(
+      region
+    );
+  });
+
+  it('takes the name from the table’s aria-labelledby', () => {
+    overflow();
+    render(
+      <>
+        <h2 id="scores-heading">Scores</h2>
+        <Table isResponsive aria-labelledby="scores-heading">
+          {rows}
+        </Table>
+      </>
+    );
+    const region = screen.getByRole('region', { name: 'Scores' });
+    expect(region).toHaveAttribute('aria-labelledby', 'scores-heading');
+    expect(screen.getByRole('table', { name: 'Scores' })).toBeInTheDocument();
+  });
+
+  it('leaves a container the table fits in a plain div, with no tab stop', () => {
+    render(
+      <Table isResponsive aria-label="Scores">
+        {rows}
+      </Table>
+    );
+    const container = screen.getByRole('table').parentElement!;
+    expect(container).toHaveClass('table-container');
+    expect(screen.queryByRole('region')).toBeNull();
+    expect(container).not.toHaveAttribute('tabindex');
+    expect(container).not.toHaveAttribute('role');
+    expect(container).not.toHaveAttribute('aria-label');
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it('goes back to a plain div when the table stops overflowing', () => {
+    overflow();
+    render(
+      <Table isResponsive aria-label="Scores">
+        {rows}
+      </Table>
+    );
+    const container = screen.getByRole('region', { name: 'Scores' });
+    fit();
+    fireEvent.scroll(container);
+    expect(screen.queryByRole('region')).toBeNull();
+    expect(container).not.toHaveAttribute('tabindex');
+    expect(container).not.toHaveAttribute('aria-label');
+  });
+
+  it('keeps the tab stop while it has focus, and drops it once focus leaves', () => {
+    overflow();
+    render(
+      <Table isResponsive aria-label="Scores">
+        {rows}
+      </Table>
+    );
+    const container = screen.getByRole('region', { name: 'Scores' });
+    act(() => container.focus());
+    fit();
+    fireEvent.scroll(container);
+    expect(container).toHaveAttribute('tabindex', '0');
+    expect(container).toHaveFocus();
+    act(() => container.blur());
+    expect(container).not.toHaveAttribute('tabindex');
+    expect(screen.queryByRole('region')).toBeNull();
+  });
+
+  it('warns once in development when it overflows with no name', () => {
+    overflow();
+    render(<Table isResponsive>{rows}</Table>);
+    render(<Table isResponsive>{rows}</Table>);
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0][0]).toMatch(/<Table isResponsive>.*aria-label/);
+  });
+
+  it('does not warn for a named table', () => {
+    overflow();
+    render(
+      <Table isResponsive aria-label="Scores">
+        {rows}
+      </Table>
+    );
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it('keeps the class prefix on the region', () => {
+    overflow();
+    render(
+      <ConfigProvider classPrefix="bestax-">
+        <Table isResponsive aria-label="Scores">
+          {rows}
+        </Table>
+      </ConfigProvider>
+    );
+    expect(screen.getByRole('region', { name: 'Scores' })).toHaveClass(
+      'bestax-table-container'
+    );
+  });
+
+  it('renders a plain container on the server', () => {
+    overflow();
+    const html = renderToString(
+      <Table isResponsive aria-label="Scores">
+        {rows}
+      </Table>
+    );
+    expect(html).toContain('<div class="table-container"><table');
+    expect(html).not.toContain('role="region"');
+    expect(html).not.toContain('tabindex');
   });
 });
