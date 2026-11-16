@@ -78,6 +78,7 @@ const RENDER_WITH = {
   TableOfContents: () => ({ items: [] }),
   Toast: () => ({ inline: true }),
   TreeSelect: () => ({ data: [] }),
+  Cascader: () => ({ data: [] }),
 };
 
 /** Parts a server render cannot open, with why. */
@@ -92,6 +93,26 @@ const UNRENDERED = new Map([
   ...['Area', 'HueSlider', 'AlphaSlider', 'Swatches', 'Input'].map(part => [
     `ColorPicker.${part}`,
     'it renders only inside a ColorPicker, which holds its color',
+  ]),
+  // Whether it shows hangs on a scroll position only the browser has. It
+  // puts both on its <button>, as the FloatButton tests show.
+  [
+    'FloatButton.BackToTop',
+    'it renders nothing on the server, only once hydrated',
+  ],
+  // Each puts both on one element, the root <div> and the step's dialog, as
+  // the Tour tests show.
+  [
+    'Tour',
+    'it shows only after hydration, once its steps can be measured, so a ' +
+      'server render has nothing',
+  ],
+  ['Tour.Step', 'it renders only as the current step of an open Tour'],
+  // A footer's parts put both on the one element they render, a Button or
+  // the progress line's <span>, as the Tour tests show.
+  ...['Skip', 'Back', 'Next', 'Progress'].map(part => [
+    `Tour.${part}`,
+    'it renders only inside a step of an open Tour',
   ]),
 ]);
 

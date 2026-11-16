@@ -36,6 +36,8 @@ import type { MenuRail } from '../helpers/menuRail';
 import { NavbarBurger } from '../components/Navbar';
 import type { NavbarBurgerProps } from '../components/Navbar';
 import { Tooltip } from '../components/Tooltip';
+import { lengthToPx, remPxOf } from '../helpers/cssLength';
+import { ResizeHandle } from '../helpers/resizeHandle';
 import { Delete } from '../elements/Delete';
 import type { ContainerBreakpoint } from './Container';
 
@@ -120,8 +122,11 @@ export interface AppFrameProps
   /** Whether the column starts collapsed. */
   defaultNavCollapsed?: boolean;
   /**
-   * Called with the state asked for: by the burger, `useAppFrame()`, or a
-   * `Menu.Section`'s button in the collapsed rail, which expands it.
+   * Called with the state asked for: by the burger, `useAppFrame()`, a
+   * `Menu.Section`'s button in the collapsed rail, which expands it, or a
+   * `resizable` nav's handle: a drag that collapses the column or opens it
+   * again (see `AppFrame.Nav`'s `resizable`), Enter, and a double click,
+   * which expands it.
    */
   onNavCollapsedChange?: (collapsed: boolean) => void;
   /**
@@ -181,7 +186,11 @@ export interface AppFrameNavProps
   /**
    * The column's width, and the drawer's up to the window's width less a
    * strip of backdrop. A number is pixels, and a string any CSS length. It
-   * writes `--bulma-app-frame-nav-width`, 16rem by default.
+   * writes `--bulma-app-frame-nav-width`, 16rem by default. With
+   * `resizable`, it's the controlled width: update it from `onWidthChange`.
+   * It then takes pixels, or `px` or `rem`, which the handle can step from;
+   * the handle reads anything else as the stylesheet's width, and a
+   * development build warns about it.
    */
   width?: number | string | undefined;
   /**
@@ -242,6 +251,60 @@ export interface AppFrameNavProps
    * the browser, so before the page hydrates such a rail sticks.
    */
   rail?: boolean;
+  /**
+   * Puts a handle on the column's inline-end edge, from the breakpoint up,
+   * that drags or keys its width between `minWidth` and `maxWidth`. It's a
+   * focusable separator named by the nav's own name and controlling the nav,
+   * read as "Sections, separator, 256". Arrow keys move it by `step`, ten
+   * times as far with Shift, mirrored right to left; Home and End go to
+   * `minWidth` and `maxWidth`. Dragging it below halfway from its collapsed
+   * width to `minWidth` collapses the column, to the rail when it has one,
+   * and dragging it back out past that point opens it at `minWidth`. Enter
+   * collapses it and brings it back at the width it had, and a double click
+   * resets it to `defaultWidth` and expands it. The collapses go through
+   * `onNavCollapsedChange`, the state the burger sets. Collapsed, the
+   * handle's value is the rail's width, or 0 without a rail, which is where
+   * its range starts. The handle hides while the column is collapsed out of
+   * view, and the burger brings it back, unless it has focus, so Enter
+   * brings it back too. A development build warns about a `width` with no
+   * `onWidthChange`, since the handle couldn't move it.
+   */
+  resizable?: boolean;
+  /**
+   * The width the column starts at when `width` isn't set, and a
+   * `resizable` one goes back to on a double click on its handle: pixels, or
+   * `px` or `rem`. Without `width`, the reset keeps it as given, so a rem
+   * keeps following the font size; with `width`, `onWidthChange` hears it
+   * in pixels. The handle reads any other length as the stylesheet's width,
+   * and a development build warns about it. Without it, the stylesheet's,
+   * 16rem.
+   */
+  defaultWidth?: number | string;
+  /**
+   * Called with the width in pixels on each step of a drag or a key that
+   * changes it, and on a reset. Store it to keep the width across visits.
+   */
+  onWidthChange?: (width: number) => void;
+  /**
+   * The narrowest a drag or a key takes a `resizable` column: a number is
+   * pixels, as `width`'s is, and a string a `px` or `rem` length. The handle
+   * takes the default for anything else, and a development build warns
+   * about it.
+   * @defaultValue '12rem'
+   */
+  minWidth?: number | string;
+  /**
+   * The widest a drag or a key takes a `resizable` column, in the same units
+   * as `minWidth`, with the same default for anything else.
+   * @defaultValue '32rem'
+   */
+  maxWidth?: number | string;
+  /**
+   * How far an arrow key moves a `resizable` column's edge, in pixels. Shift
+   * moves ten times as far.
+   * @defaultValue 10
+   */
+  step?: number;
 }
 
 /**
@@ -342,6 +405,19 @@ interface FrameContextValue {
 
 const FrameContext = createContext<FrameContextValue | null>(null);
 
+/**
+ * A rem in pixels, and the stylesheet's widths, the column's and the
+ * rail's, as the nav has them.
+ */
+interface Metrics {
+  rem: number;
+  base: number;
+  rail: number;
+}
+
+/** Bulma's 16px rem, and the stylesheet's 16rem column and 4rem rail. */
+const DEFAULT_METRICS: Metrics = { rem: 16, base: 256, rail: 64 };
+
 /** A width prop as CSS: a number is pixels. */
 const cssLength = (value: number | string) =>
   typeof value === 'number' ? `${value}px` : value;
@@ -435,6 +511,12 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
       closeOnClickOutside = true,
       closeOnNavigate = true,
       rail = false,
+      resizable = false,
+      defaultWidth,
+      onWidthChange,
+      minWidth = '12rem',
+      maxWidth = '32rem',
+      step = 10,
       onClick,
       onPointerDownCapture,
       children,
@@ -662,12 +744,179 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
       }
     }, [railCollapsed, menuClass]);
 
+    // ---- Resizing ----
+    // The width is the caller's with `width`, and the nav's own otherwise,
+    // from `defaultWidth`. Lengths turn into pixels with a rem as the page
+    // has it, and the stylesheet's own widths stand in for none: read as the
+    // nav mounts, and again as the handle takes focus or a drag starts, so a
+    // font size or a theme that changed since counts. Until they're read,
+    // Bulma's 16px rem and the stylesheet's defaults.
+    const [widthState, setWidthState] = useState(defaultWidth);
+    const widthNow = width === undefined ? widthState : width;
+    const [metrics, setMetrics] = useState<Metrics>(DEFAULT_METRICS);
+    const refreshMetrics = () => {
+      const nav = navRef.current!;
+      const rem = remPxOf(nav);
+      // The widths as the nav has them, so a class or a style on it that sets
+      // either counts. While the nav has a width of its own, its variable is
+      // that width, so the default under it comes from the frame.
+      const navStyle = getComputedStyle(nav);
+      const baseStyle =
+        widthNow === undefined
+          ? navStyle
+          : getComputedStyle(nav.parentElement!);
+      const read = (from: CSSStyleDeclaration, name: string, rems: number) =>
+        lengthToPx(from.getPropertyValue(name).trim(), rem) ?? rems * rem;
+      const next: Metrics = {
+        rem,
+        base: read(baseStyle, '--bulma-app-frame-nav-width', 16),
+        rail: read(navStyle, '--bulma-app-frame-nav-rail-width', 4),
+      };
+      setMetrics(previous =>
+        previous.rem === next.rem &&
+        previous.base === next.base &&
+        previous.rail === next.rail
+          ? previous
+          : next
+      );
+      return next;
+    };
+    // Read once as it mounts; the handle reads again when it's used.
+    const refreshMetricsRef = useLatestRef(refreshMetrics);
+    useClientLayoutEffect(() => {
+      if (resizable) refreshMetricsRef.current();
+    }, [resizable, refreshMetricsRef]);
+    const limitsOf = (m: Metrics) => {
+      const min = lengthToPx(minWidth, m.rem) ?? 12 * m.rem;
+      const max = Math.max(min, lengthToPx(maxWidth, m.rem) ?? 32 * m.rem);
+      return { min, max };
+    };
+    const widthOf = (m: Metrics) => lengthToPx(widthNow, m.rem) ?? m.base;
+    const { min: minPx, max: maxPx } = limitsOf(metrics);
+    const widthPx = widthOf(metrics);
+    const widthPxRef = useLatestRef(widthPx);
+    // The width a drag just asked for, until a render shows it: two moves
+    // can come before one, and the second mustn't ask again.
+    const askedRef = useRef<number | null>(null);
+    useClientLayoutEffect(() => {
+      askedRef.current = null;
+    });
+
+    // A width asked for, in the limits, unless it's the one there is.
+    const resizeTo = (next: number, m: Metrics = metrics) => {
+      const { min, max } = limitsOf(m);
+      const px = Math.round(Math.min(Math.max(next, min), max));
+      if (px === (askedRef.current ?? Math.round(widthPxRef.current))) return;
+      askedRef.current = px;
+      if (width === undefined) setWidthState(px);
+      onWidthChange?.(px);
+    };
+    const setCollapsed = (collapsed: boolean) =>
+      frame?.state.setNavCollapsed(collapsed);
+    // Collapsed, the column is its rail's width, or none without a rail.
+    const shutOf = (m: Metrics) => (rail ? m.rail : 0);
+    const shutPx = shutOf(metrics);
+
+    // A drag moves the column's edge from the width the column has as the
+    // drag starts, not its box, which can be part way through a transition,
+    // or, collapsed out of view, still its old width. Below halfway from
+    // its collapsed width to the minimum it collapses, and back out past
+    // that it opens again: halfway, so a rail as wide as half the minimum
+    // doesn't open on the first move. The width doesn't animate while the
+    // pointer has it.
+    const [resizing, setResizing] = useState(false);
+    const dragRef = useRef({
+      start: 0,
+      shut: false,
+      metrics: DEFAULT_METRICS,
+    });
+    const startDrag = () => {
+      const m = refreshMetrics();
+      const start = navCollapsed ? shutOf(m) : widthOf(m);
+      dragRef.current = { start, shut: navCollapsed, metrics: m };
+      setResizing(true);
+      return true;
+    };
+    const dragBy = (moved: number) => {
+      const drag = dragRef.current;
+      const next = drag.start + moved;
+      const shut =
+        next < (shutOf(drag.metrics) + limitsOf(drag.metrics).min) / 2;
+      if (shut !== drag.shut) {
+        drag.shut = shut;
+        setCollapsed(shut);
+      }
+      if (!shut) resizeTo(next, drag.metrics);
+    };
+
+    // Keys move the width of an open column; Enter collapses it or brings
+    // it back, and a double click resets it and opens it.
+    const keyTo = (next: number) => {
+      if (navCollapsed) return false;
+      resizeTo(next);
+      return true;
+    };
+    // A reset goes back to the default as given, so a rem default, or the
+    // stylesheet's width without one, keeps following the font size and the
+    // theme. Its pixels are heard once a render shows it; a controlled width
+    // only hears them.
+    const resetFromRef = useRef<number | null>(null);
+    const reset = () => {
+      if (navCollapsed) setCollapsed(false);
+      if (width !== undefined) {
+        const px = Math.round(
+          lengthToPx(defaultWidth, metrics.rem) ?? metrics.base
+        );
+        if (px !== Math.round(widthPx)) onWidthChange?.(px);
+        return;
+      }
+      if (widthState === defaultWidth) return;
+      resetFromRef.current = Math.round(widthPx);
+      setWidthState(defaultWidth);
+    };
+    useClientLayoutEffect(() => {
+      const from = resetFromRef.current;
+      if (from === null) return;
+      resetFromRef.current = null;
+      const px = Math.round(widthOf(refreshMetrics()));
+      if (px !== from) onWidthChange?.(px);
+    });
+
+    // Without `onWidthChange`, a `width` the handle can't move; and a length
+    // the handle can't measure, which it takes the default for.
+    useEffect(() => {
+      if (!resizable) return;
+      if (width !== undefined && !onWidthChange) {
+        warnOnce(
+          'AppFrame:resizable-width',
+          '[bestax-bulma] <AppFrame.Nav resizable> has a width but no ' +
+            "onWidthChange, so its handle can't move it. Pass onWidthChange " +
+            'and update width from it, or use defaultWidth.'
+        );
+      }
+      const unread = [width, defaultWidth, minWidth, maxWidth].find(
+        length => length !== undefined && lengthToPx(length, 16) === null
+      );
+      if (unread !== undefined) {
+        warnOnce(
+          'AppFrame:resizable-length',
+          `[bestax-bulma] <AppFrame.Nav resizable> has the length "${unread}", ` +
+            "which its handle can't measure, so it takes the default for it. " +
+            'With resizable, width, defaultWidth, minWidth and maxWidth take ' +
+            'pixels, or px or rem.'
+        );
+      }
+    }, [resizable, width, defaultWidth, minWidth, maxWidth, onWidthChange]);
+
+    const handleClass = usePrefixedClassNames('app-frame-handle');
+    const resizingClass = usePrefixedClassNames('is-resizing');
+
     const navStyle =
-      width === undefined
+      widthNow === undefined
         ? style
         : ({
             ...style,
-            '--bulma-app-frame-nav-width': cssLength(width),
+            '--bulma-app-frame-nav-width': cssLength(widthNow),
           } as React.CSSProperties);
 
     return (
@@ -677,7 +926,10 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
           className={classNames(
             navClass,
             shown,
-            { [tallClass]: railCollapsed && railTall },
+            {
+              [tallClass]: railCollapsed && railTall,
+              [resizingClass]: resizing,
+            },
             bulmaHelperClasses,
             className
           )}
@@ -712,6 +964,35 @@ export const AppFrameNav = forwardRef<HTMLElement, AppFrameNavProps>(
             </MenuRailContext.Provider>
           </PortalScope>
         </nav>
+        {frame && resizable && (
+          <ResizeHandle
+            className={handleClass}
+            activeClass={activeClass}
+            orientation="vertical"
+            // The column can always collapse, so its range starts at its
+            // collapsed width, as a collapsible Splitter pane's does: the
+            // rail's, or none without a rail.
+            valueNow={navCollapsed ? shutPx : widthPx}
+            valueMin={Math.min(shutPx, minPx)}
+            valueMax={maxPx}
+            label={
+              rest['aria-label'] ||
+              (rest['aria-labelledby'] ? undefined : frame.labels.nav)
+            }
+            labelledBy={rest['aria-labelledby']}
+            controls={navId}
+            rtl={() => getComputedStyle(navRef.current!).direction === 'rtl'}
+            onFocus={refreshMetrics}
+            onDragStart={startDrag}
+            onDrag={dragBy}
+            onDragEnd={() => setResizing(false)}
+            onStep={by => keyTo(widthPx + by * step)}
+            onHome={() => keyTo(minPx)}
+            onEnd={() => keyTo(maxPx)}
+            onEnter={() => setCollapsed(!navCollapsed)}
+            onReset={reset}
+          />
+        )}
         {frame && overlay && (
           <div
             ref={backdropRef}

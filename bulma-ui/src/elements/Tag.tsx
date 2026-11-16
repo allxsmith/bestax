@@ -49,6 +49,11 @@ export interface TagProps
   /**
    * Use the light color variant. The light color has none, so
    * `color="light"` with `isLight` looks the same as without it.
+   *
+   * `white`, `black` and `dark` with `isLight` keep Bulma's light
+   * background, and bestax's stylesheets give their text the lightness a
+   * light tag's text has. With Bulma's CSS alone, their text inherits the
+   * color around it, which on a dark page is hard to read.
    */
   isLight?: boolean;
   /** Renders a rounded tag. */

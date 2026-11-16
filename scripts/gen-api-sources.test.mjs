@@ -167,12 +167,12 @@ test('DateInput claims the shared picker-popover partial only once the extra roo
   );
 });
 
-test('componentVars attributes the 8 depth-1 popover variables, not the 3 nested trigger ones', () => {
-  // `_picker-popover.scss` registers 11 keys total, but 3
-  // (`picker-trigger-*`) sit two levels deep inside an `@each` over each
-  // picker's own container class — componentVars' depth-1 filter can't place
-  // them regardless of root, which is why the partial stays in
-  // ORPHAN_EXEMPT even once claimed.
+test('componentVars attributes the depth-1 popover variables, not the nested trigger ones', () => {
+  // `_picker-popover.scss` registers its `picker-popover-*` keys on the
+  // panel, but the `picker-trigger-*` ones sit two levels deep inside an
+  // `@each` over each picker's own container class — componentVars' depth-1
+  // filter can't place them regardless of root, which is why the partial
+  // stays in ORPHAN_EXEMPT even once claimed.
   const rows = componentVars(
     repoFile(PICKER_POPOVER),
     'picker-popover',
@@ -182,6 +182,7 @@ test('componentVars attributes the 8 depth-1 popover variables, not the 3 nested
     '--bulma-picker-popover-animation-duration',
     '--bulma-picker-popover-background',
     '--bulma-picker-popover-border-color',
+    '--bulma-picker-popover-months-max-width',
     '--bulma-picker-popover-offset',
     '--bulma-picker-popover-padding',
     '--bulma-picker-popover-radius',

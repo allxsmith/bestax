@@ -34,7 +34,13 @@ export interface PanelProps
    * Bulma color modifier for the panel. With none, the heading takes the
    * text color, with its title in the page background's color so it reads on
    * both schemes. On the dark scheme that title color comes from bestax's
-   * stylesheets: Bulma's CSS alone writes it white on light gray there.
+   * stylesheets: Bulma's CSS alone writes it white on light gray there. With
+   * a color, the active block's and active tab's text, the active block's icon
+   * and the active tab's underline take it at the lightness Bulma picks for
+   * the color's text on the page, also from bestax's stylesheets, so they read
+   * on both schemes. Black takes the title text's lightness, which is white on
+   * the dark scheme. With a `colorShade`, the text takes that shade and the
+   * icon and underline the color's own lightness, as Bulma draws them.
    */
   color?:
     | 'primary'

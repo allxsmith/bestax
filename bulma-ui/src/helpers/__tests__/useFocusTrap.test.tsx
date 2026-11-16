@@ -6,6 +6,7 @@ import { hydrateRoot } from 'react-dom/client';
 import { createPortal } from 'react-dom';
 import {
   focusTabStopAfter,
+  tabLeaves,
   trapTab,
   useFocusTrap,
   UseFocusTrapOptions,
@@ -1631,6 +1632,67 @@ describe('useFocusTrap', () => {
       act(() => button('Cancel').focus());
       expect(pressTab().defaultPrevented).toBe(false);
     });
+  });
+});
+
+describe('tabLeaves', () => {
+  afterEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  const byId = (id: string) => document.getElementById(id) as HTMLElement;
+
+  it('says whether a Tab now would take focus out of the container', () => {
+    document.body.innerHTML = `
+      <button id="before">Before</button>
+      <div id="box">
+        <button id="first">First</button>
+        <input type="radio" name="size" id="small" />
+        <input type="radio" name="size" id="large" />
+        <span id="note" tabindex="-1">Not a stop</span>
+      </div>`;
+    const box = byId('box');
+    byId('first').focus();
+    expect(tabLeaves(box)).toBe(false);
+    // A group with nothing checked is one stop, its first button: the last.
+    byId('small').focus();
+    expect(tabLeaves(box)).toBe(true);
+    // An element after the last stop that isn't one itself.
+    byId('note').focus();
+    expect(tabLeaves(box)).toBe(true);
+    // Focus outside the container isn't its to send anywhere.
+    byId('before').focus();
+    expect(tabLeaves(box)).toBe(false);
+  });
+
+  it('reads focus inside an open shadow root, as a trap does', () => {
+    document.body.innerHTML = `
+      <div id="box">
+        <button id="first">First</button>
+        <span id="host"></span>
+      </div>`;
+    const shadow = byId('host').attachShadow({ mode: 'open' });
+    shadow.innerHTML = '<button>In the shadow</button>';
+    const box = byId('box');
+    byId('first').focus();
+    expect(tabLeaves(box)).toBe(false);
+    (shadow.querySelector('button') as HTMLButtonElement).focus();
+    expect(tabLeaves(box)).toBe(true);
+  });
+
+  it('reads no focus at all, as jsdom can report, as focus outside', () => {
+    document.body.innerHTML = '<div id="box"><button>First</button></div>';
+    const active = vi
+      .spyOn(document, 'activeElement', 'get')
+      .mockReturnValue(null);
+    expect(tabLeaves(byId('box'))).toBe(false);
+    active.mockRestore();
+  });
+
+  it('counts focus on a container without stops as leaving', () => {
+    document.body.innerHTML = '<div id="box" tabindex="-1">Text</div>';
+    byId('box').focus();
+    expect(tabLeaves(byId('box'))).toBe(true);
   });
 });
 

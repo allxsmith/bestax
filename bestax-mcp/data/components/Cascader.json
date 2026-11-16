@@ -1,0 +1,667 @@
+{
+  "name": "Cascader",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/cascader",
+  "docsUrl": "https://bestax.io/docs/api/form/cascader",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<Cascader\n  label=\"City\"\n  placeholder=\"Pick a city\"\n  data={[\n    {\n      value: 'europe',\n      label: 'Europe',\n      children: [\n        {\n          value: 'germany',\n          label: 'Germany',\n          children: [\n            { value: 'berlin', label: 'Berlin' },\n            { value: 'munich', label: 'Munich' },\n          ],\n        },\n        {\n          value: 'france',\n          label: 'France',\n          children: [{ value: 'paris', label: 'Paris' }],\n        },\n        { value: 'spain', label: 'Spain', disabled: true },\n      ],\n    },\n    {\n      value: 'asia',\n      label: 'Asia',\n      children: [\n        {\n          value: 'japan',\n          label: 'Japan',\n          children: [{ value: 'tokyo', label: 'Tokyo' }],\n        },\n      ],\n    },\n  ]}\n/>"
+    },
+    {
+      "title": "Holding the Value",
+      "code": "function example() {\n  const [city, setCity] = useState<string | null>('munich');\n\n  return (\n    <>\n      <Cascader\n        label=\"City\"\n        value={city}\n        onChange={setCity}\n        clearable\n        data={[\n          {\n            value: 'germany',\n            label: 'Germany',\n            children: [\n              { value: 'berlin', label: 'Berlin' },\n              { value: 'munich', label: 'Munich' },\n            ],\n          },\n          { value: 'austria', label: 'Austria' },\n        ]}\n      />\n      <Paragraph textSize=\"7\">Value: {String(city)}</Paragraph>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Picking a Parent",
+      "code": "<Cascader\n  label=\"Category\"\n  parentsSelectable\n  labels={{ separator: ' › ' }}\n  data={[\n    {\n      value: 'clothing',\n      label: 'Clothing',\n      children: [\n        { value: 'shirts', label: 'Shirts' },\n        { value: 'shoes', label: 'Shoes' },\n      ],\n    },\n    {\n      value: 'home',\n      label: 'Home',\n      children: [\n        { value: 'kitchen', label: 'Kitchen' },\n        { value: 'garden', label: 'Garden' },\n      ],\n    },\n  ]}\n/>"
+    },
+    {
+      "title": "Searching",
+      "code": "<Cascader\n  label=\"City\"\n  searchable\n  empty=\"No cities match\"\n  data={[\n    {\n      value: 'germany',\n      label: 'Germany',\n      children: [\n        { value: 'berlin', label: 'Berlin' },\n        { value: 'munich', label: 'Munich' },\n      ],\n    },\n    {\n      value: 'japan',\n      label: 'Japan',\n      children: [\n        { value: 'tokyo', label: 'Tokyo' },\n        { value: 'osaka', label: 'Osaka' },\n      ],\n    },\n  ]}\n/>"
+    },
+    {
+      "title": "Loading Columns as They Open",
+      "code": "function example() {\n  const [loaded, setLoaded] = useState(false);\n  const [loading, setLoading] = useState(false);\n\n  return (\n    <Cascader\n      label=\"Folder\"\n      onExpandedChange={expanded => {\n        if (expanded.includes('photos') && !loaded && !loading) {\n          setLoading(true);\n          setTimeout(() => {\n            setLoaded(true);\n            setLoading(false);\n          }, 1000);\n        }\n      }}\n      data={[\n        {\n          value: 'photos',\n          label: 'Photos',\n          hasChildren: true,\n          isLoading: loading,\n          children: loaded\n            ? [\n                { value: 'summer', label: 'Summer' },\n                { value: 'winter', label: 'Winter' },\n              ]\n            : undefined,\n        },\n        { value: 'docs', label: 'Documents' },\n      ]}\n    />\n  );\n}"
+    },
+    {
+      "title": "In a Form",
+      "code": "<form onSubmit={event => event.preventDefault()}>\n  <Cascader\n    label=\"Office\"\n    name=\"office\"\n    required\n    data={[\n      {\n        value: 'emea',\n        label: 'EMEA',\n        children: [\n          { value: 'london', label: 'London' },\n          { value: 'dublin', label: 'Dublin' },\n        ],\n      },\n      {\n        value: 'americas',\n        label: 'Americas',\n        children: [{ value: 'toronto', label: 'Toronto' }],\n      },\n    ]}\n  />\n  <Button type=\"submit\" color=\"primary\">\n    Save\n  </Button>\n</form>"
+    },
+    {
+      "title": "Icons and Rows of Your Own",
+      "code": "<Cascader\n  label=\"Team\"\n  itemTemplate={node => (\n    <>\n      {node.label} <Tag>{node.value}</Tag>\n    </>\n  )}\n  data={[\n    {\n      value: 'eng',\n      label: 'Engineering',\n      icon: 'people-group',\n      children: [\n        { value: 'web', label: 'Web', icon: 'globe' },\n        { value: 'mobile', label: 'Mobile', icon: 'mobile' },\n      ],\n    },\n  ]}\n/>"
+    },
+    {
+      "title": "Sizes and Colors",
+      "code": "<>\n  <Cascader\n    label=\"Small\"\n    size=\"small\"\n    color=\"info\"\n    data={[{ value: 'a', label: 'Alpha' }]}\n  />\n  <Cascader\n    label=\"Large, rounded\"\n    size=\"large\"\n    isRounded\n    data={[{ value: 'a', label: 'Alpha' }]}\n  />\n</>"
+    },
+    {
+      "title": "Right to Left",
+      "code": "<LocaleProvider locale=\"ar\" dir=\"rtl\">\n  <Cascader\n    label=\"المدينة\"\n    defaultValue=\"berlin\"\n    clearable\n    data={[\n      {\n        value: 'germany',\n        label: 'ألمانيا',\n        children: [{ value: 'berlin', label: 'برلين' }],\n      },\n      { value: 'oceania', label: 'أوقيانوسيا' },\n    ]}\n  />\n</LocaleProvider>"
+    }
+  ],
+  "accessibility": "- **The field is a combobox that opens a dialog,** as the date pickers' and TreeSelect's are:\n  `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls` while the\n  panel is open, named by its `label`. It's read-only, and its value is the picked node's path.\n- **Keys on the field:** a click, Enter, Space, Down or Alt+Down opens the panel, and with\n  `searchable` a printable key opens it with that key in the search box.\n- **The panel** is a non-modal `dialog`, named by the label or `labels.choose`. Focus moves into\n  it as it opens: onto the picked node, its path open, or with nothing picked onto the first\n  column's item on an open path, or its first enabled item, so a `defaultExpanded` path stays\n  open. It holds\n  focus while it's open, as the date pickers' panel does: Tab and Shift+Tab move between the\n  search box and the columns, and wrap. Escape and Alt+Up close it and put focus back on the\n  field, and so does a pick. A press outside closes it and leaves focus where the press put it.\n- **Each column** is a `listbox` with one tab stop and real focus on its `option`s. The first is\n  named as the panel is, and each one after it by the label of the item that opened it. Up, Down,\n  Home, End and type-ahead move within a column, and type-ahead starts over in each column it\n  comes into. Space joins a search under way when an item starts with what's been typed and a\n  space, so \"new y\" reaches \"New York\", and otherwise picks or opens. Right opens the next column\n  and moves into it, Left goes back, and the two swap on a right-to-left page. Disabled items are\n  reachable and `aria-disabled`, and Right moves into a column at its item on the open path even\n  when that one is disabled.\n- **The picked node's path is `aria-selected`,** and drawn filled, its items `is-checked` as\n  Combobox's picked items are. The path you've opened, which follows focus, is drawn with a lighter\n  tint, its items `is-active` as Combobox's highlighted item is, and isn't announced as selected, so moving around never says an item is picked when it isn't. A disabled\n  node on the picked path is selected but not filled, so it stays readable. In forced colors the\n  picked path takes the system's highlight and the open path an outline. Right opens the focused\n  item and nothing else.\n- **An item that opens a column** is described by \"Opens a column\", or `labels.opens`, since an\n  option has no way of its own to say it has items under it. Its chevron is hidden.\n- **A column that's loading** ends in a row that says so, and a failed load's row is named by its\n  message and its Retry, which Enter, Space or a click run. The live region says when a column\n  starts loading and when it's loaded, as TreeView's does.\n- **The search box** is named \"Search\", or `labels.search`, and its results are a listbox of the\n  paths that match. Enter picks the highlighted path unless it's disabled, and with none\n  highlighted it does nothing, so it never submits the form around the field. When nothing matches, `empty` is said once\n  through a polite status region, not again on every key.\n- **`required`** makes the field `aria-required`. A read-only field is left out of the browser's\n  own check, so a hidden field over it carries `required`. When the browser stops a submit, it\n  focuses that one and shows its message, which every browser takes down as it loses focus. So\n  focus stays there, reading as the field and drawn on it, with no on-screen keyboard. A press\n  goes where it lands, and the next key, other than a modifier on its own, goes to the field and\n  does what it would there.\n- **Forced colors:** the field, the panel and the columns keep their edges in system colors, the\n  path through the columns keeps the system's highlight, and the chevrons are borders, so they\n  stay.",
+  "related": [
+    "Combobox",
+    "Select",
+    "TreeSelect",
+    "TreeView",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-cascader--default",
+  "summary": "The `Cascader` component is a form field whose value sits at the end of a path, such as a city picked by country, then region, then city: it opens a panel of columns, one per level, and shows the path in the field. It's TreeSelect's field and `data` with columns in place of a tree. The field is a read-only `role=\"combobox\"` that opens a dialog, wired as DateInput's is, holding one `role=\"listbox\"` per open level, each named after the item that opened it, with real focus moving through them. Up, Down, Home, End and type-ahead move within a column, and the path you've opened follows focus, drawn with a tint, Right opens the next column and moves into it, and Left goes back. Only the picked node's path is `aria-selected`, filled in the colors Bulma gives an active dropdown item, so moving around never announces an item as selected that isn't. The value is the picked node's own `value`, unique across the tree, as in TreeView and TreeSelect, and the field works the path out from `data`, so it's right on the server. Leaves are picked, and any level with `parentsSelectable`. A value no node has is kept and shown as it is, with a warning in development.",
+  "import": "import { Cascader } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/Cascader.tsx",
+  "rootClass": "cascader",
+  "parts": [
+    {
+      "path": "Cascader",
+      "summary": "The `Cascader` component is a form field whose value sits at the end of a path, such as a city picked by country, then region, then city: it opens a panel of columns, one per level, and shows the path in the field. It's TreeSelect's field and `data` with columns in place of a tree. The field is a read-only `role=\"combobox\"` that opens a dialog, wired as DateInput's is, holding one `role=\"listbox\"` per open level, each named after the item that opened it, with real focus moving through them. Up, Down, Home, End and type-ahead move within a column, and the path you've opened follows focus, drawn with a tint, Right opens the next column and moves into it, and Left goes back. Only the picked node's path is `aria-selected`, filled in the colors Bulma gives an active dropdown item, so moving around never announces an item as selected that isn't. The value is the picked node's own `value`, unique across the tree, as in TreeView and TreeSelect, and the field works the path out from `data`, so it's right on the server. Leaves are picked, and any level with `parentsSelectable`. A value no node has is kept and shown as it is, with a warning in development.",
+      "component": null,
+      "props": [
+        {
+          "name": "data",
+          "type": "TreeItemData[]",
+          "default": null,
+          "description": "**Required.** The tree, as nodes nested through `children`. The same nodes TreeSelect takes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The field's label, which names the field through `htmlFor`, and the panel and its first column through `aria-labelledby`. Dropped inside an outer `Field`, whose label names them instead.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "id",
+          "type": "React.HTMLAttributes<HTMLDivElement>['id']",
+          "default": null,
+          "description": "The field's `id`, which the label then points at. The panel's is this one with `-panel` after it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "aria-label",
+          "type": "React.AriaAttributes['aria-label']",
+          "default": null,
+          "description": "Names the field, and the panel and its first column, in place of a `label`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "aria-labelledby",
+          "type": "React.AriaAttributes['aria-labelledby']",
+          "default": null,
+          "description": "The ids of what names the field, and the panel and its first column, in place of a `label`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "aria-describedby",
+          "type": "React.AriaAttributes['aria-describedby']",
+          "default": null,
+          "description": "The ids of what describes the field.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "string | null",
+          "default": null,
+          "description": "The picked node's value when you hold the state, or `null` for none. Picking then only calls `onChange`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "string | null",
+          "default": null,
+          "description": "The node picked to begin with, when the Cascader holds its own state.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(value: string | null) => void",
+          "default": null,
+          "description": "Called with the picked node's value, or `null` when it's cleared. The field shows its path. A reset of the field's form calls it too, with `defaultValue`, or with `null` when you hold the value, for you to set.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "parentsSelectable",
+          "type": "boolean",
+          "default": "false",
+          "description": "A parent can be picked too: its row, Enter and Space pick it, and Right or its chevron opens its column. Without it, only leaves are picked, and a parent's row, Enter and Space open its column. TreeSelect, which takes the same `data`, defaults to `true`, as Ant Design's does, so moving a field from one to the other means setting this to keep what it picks.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnSelect",
+          "type": "boolean",
+          "default": "true",
+          "description": "Closes the panel after a pick and puts focus back on the field.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "expanded",
+          "type": "string[]",
+          "default": null,
+          "description": "The values of the items whose columns are open, which is the open path, when you hold the state. Opening the panel opens the picked node's path and reports it through `onExpandedChange`: at once for a click or a key, and only once the panel is on the page when you open it yourself, with `open` or `defaultOpen`. So when you hold this and open the panel yourself, set it to the path you want open.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultExpanded",
+          "type": "string[]",
+          "default": "[]",
+          "description": "The path open to begin with, when the Cascader holds its own state.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onExpandedChange",
+          "type": "(expanded: string[]) => void",
+          "default": null,
+          "description": "Called with the new path whenever a column opens or closes, opening the panel on the picked node's path included. Fetch a lazy column's items from here.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": null,
+          "description": "Whether the panel is open, controlled: opening and closing then only call `onOpenChange`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "default": "false",
+          "description": "The panel is open to begin with.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "default": null,
+          "description": "Called with the new state when the panel opens or closes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "searchable",
+          "type": "boolean",
+          "default": "false",
+          "description": "Puts a search box at the top of the panel. While it has text, the columns give way to a list of matching paths, leaves only unless `parentsSelectable`. A printable key on the field opens the panel with it in the box, and the search empties when the panel closes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "query",
+          "type": "string",
+          "default": null,
+          "description": "The search text when you hold the state.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultQuery",
+          "type": "string",
+          "default": "''",
+          "description": "The search text to begin with.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onQueryChange",
+          "type": "(query: string) => void",
+          "default": null,
+          "description": "Called with the search text as it changes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "filter",
+          "type": "(query: string, item: TreeItemData, path: TreeItemData[]) => boolean",
+          "default": null,
+          "description": "Whether a path matches the search, in place of the locale-aware match on any of its labels. It's handed the search text trimmed, the node offered, and its path from the top node down, the node last, as TreeSelect's `filter` is. The search runs again when the search text or `data` changes, not when only this does, so one written inline costs nothing.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "empty",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "What the panel shows when the search matches nothing, such as \"No cities match\". Announced once.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "itemTemplate",
+          "type": "(item: TreeItemData) => React.ReactNode",
+          "default": null,
+          "description": "Renders a row's content in place of its label. The field and search results still show the labels.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": null,
+          "description": "What the field shows while nothing is picked.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "default": null,
+          "description": "A form field name. A hidden input posts the picked node's value, empty while nothing is picked.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "form",
+          "type": "string",
+          "default": null,
+          "description": "The id of the form the hidden input belongs to, when it isn't an ancestor.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "default": "false",
+          "description": "A value is needed: the field is `aria-required`, and the form won't submit while nothing is picked. The browser's message points at the field, which shows focus, and the next key goes to it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "The field can't be used: it can't be focused or opened, and its hidden input doesn't post.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "clearable",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shows a clear button at the field's inline end while something is picked.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier for the field.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "The field's size, which the columns follow.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Rounds the field's corners (Bulma's `is-rounded`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | 'auto'",
+          "default": "'bottom-left'",
+          "description": "Where the panel opens against the field, as on the pickers. Left out, it opens below and lines up with the field's start edge, which is its right edge on a right-to-left page. A corner you pass stays physical, so `bottom-left` lines up the left edges either way.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "appendToBody",
+          "type": "boolean",
+          "default": "false",
+          "description": "Renders the panel through a portal, into a `ConfigProvider`'s `portalContainer`, else the overlay it's in that takes its popups, such as a `Modal`, else `document.body`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "CascaderLabels",
+          "default": null,
+          "description": "The visible and accessible strings, in your app's language.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelSize",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size for the label (used in horizontal layouts).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "labelProps",
+          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
+          "default": null,
+          "description": "Props for the label element.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "horizontal",
+          "type": "boolean",
+          "default": "false",
+          "description": "Horizontal field layout.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "message",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Help/validation message below the input.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "messageColor",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color for the message.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "fieldClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Field wrapper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Ref forwarded to the field, the read-only `<input role=\"combobox\">`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-cascader-chevron-width",
+      "sass": "$cascader-chevron-width",
+      "default": "var(--bulma-control-height)",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-cascader-chevron-color",
+      "sass": "$cascader-chevron-color",
+      "default": "var(--bulma-text-light)",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-cascader-chevron-hover-color",
+      "sass": "$cascader-chevron-hover-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-cascader-chevron-focus-color",
+      "sass": "$cascader-chevron-focus-color",
+      "default": "var(--bulma-link)",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-cascader-chevron-z-index",
+      "sass": "$cascader-chevron-z-index",
+      "default": "4",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-cascader-clear-z-index",
+      "sass": "$cascader-clear-z-index",
+      "default": "5",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-cascader-search-gap",
+      "sass": "$cascader-search-gap",
+      "default": "0.5rem",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-cascader-max-width",
+      "sass": "$cascader-max-width",
+      "default": "calc(100vw - 2rem)",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-cascader-column-width",
+      "sass": "$cascader-column-width",
+      "default": "11rem",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-cascader-column-max-height",
+      "sass": "$cascader-column-max-height",
+      "default": "15rem",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-cascader-column-border-width",
+      "sass": "$cascader-column-border-width",
+      "default": "1px",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-cascader-column-border-color",
+      "sass": "$cascader-column-border-color",
+      "default": "var(--bulma-border-weak)",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-cascader-item-color",
+      "sass": "$cascader-item-color",
+      "default": "$combobox-item-color",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-cascader-item-size",
+      "sass": "$cascader-item-size",
+      "default": "$combobox-item-size",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-cascader-item-padding-y",
+      "sass": "$cascader-item-padding-y",
+      "default": "$combobox-item-padding-y",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-cascader-item-padding-x",
+      "sass": "$cascader-item-padding-x",
+      "default": "$combobox-item-padding-x",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-cascader-item-hover-background",
+      "sass": "$cascader-item-hover-background",
+      "default": "$combobox-item-hover-background",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-cascader-highlight-background",
+      "sass": "$cascader-highlight-background",
+      "default": "hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), calc(var(--bulma-scheme-main-l) + var(--bulma-active-background-l-delta)))",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-cascader-checked-background",
+      "sass": "$cascader-checked-background",
+      "default": "var(--bulma-link)",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-cascader-checked-color",
+      "sass": "$cascader-checked-color",
+      "default": "var(--bulma-link-invert)",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-cascader-disabled-color",
+      "sass": "$cascader-disabled-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-cascader-item-chevron-size",
+      "sass": "$cascader-item-chevron-size",
+      "default": "0.5em",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-cascader-item-gap",
+      "sass": "$cascader-item-gap",
+      "default": "0.5em",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-cascader-column-inset",
+      "sass": "$cascader-column-inset",
+      "default": "4px",
+      "scope": "root-and-element"
+    },
+    {
+      "css": "--bulma-picker-popover-z-index",
+      "sass": "$picker-popover-z-index",
+      "default": "30",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-background",
+      "sass": "$picker-popover-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-radius",
+      "sass": "$picker-popover-radius",
+      "default": "var(--bulma-radius-large)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-shadow",
+      "sass": "$picker-popover-shadow",
+      "default": "0 8px 24px hsla(0, 0%, 0%, 0.18)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-border-color",
+      "sass": "$picker-popover-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-padding",
+      "sass": "$picker-popover-padding",
+      "default": "0.75rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-offset",
+      "sass": "$picker-popover-offset",
+      "default": "4px",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-animation-duration",
+      "sass": "$picker-popover-animation-duration",
+      "default": "0.15s",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-months-max-width",
+      "sass": "$picker-popover-months-max-width",
+      "default": "calc(100vw - 2rem)",
+      "scope": "element"
+    }
+  ]
+}

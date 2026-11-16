@@ -1596,6 +1596,8 @@ const ROOT_CLASS_OVERRIDES = {
   // Its root is drawn by the internal `form/_selectInternals/DialogSelect.tsx`,
   // which it hands the class by name.
   TreeSelect: 'tree-select',
+  // Drawn by DialogSelect too, as TreeSelect's is.
+  Cascader: 'cascader',
 };
 
 /**
@@ -1656,6 +1658,8 @@ export const EXTRA_VAR_ROOTS = {
   // TreeSelect's panel is the shared popover, and its tree a TreeView, whose
   // page lists that one's variables.
   TreeSelect: ['picker-popover'],
+  // Cascader's panel is the shared popover too.
+  Cascader: ['picker-popover'],
   DateTimeInput: ['datetimeinput', 'dateinput', 'timeinput', 'picker-popover'],
   DateTimeInputBase: [
     'datetimeinput',
