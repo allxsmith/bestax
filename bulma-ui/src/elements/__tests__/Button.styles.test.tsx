@@ -131,9 +131,9 @@ const colored = (name: string, prefix = '') =>
   `.${prefix}button.${prefix}is-${name}.${prefix}is-${name}:not(.${prefix}is-outlined)`;
 
 const GHOST_FOCUS =
-  '.button.is-ghost:focus-visible, .button.is-ghost.is-focused';
+  '.button.is-ghost:not(.is-loading):focus-visible, .button.is-ghost:not(.is-loading).is-focused';
 const STATIC_FOCUS =
-  '.button.is-static:focus-visible, .button.is-static.is-focused';
+  '.button.is-static:not(.is-loading):focus-visible, .button.is-static:not(.is-loading).is-focused';
 /** The rule outside forced colors, which names both. */
 const OWN_FOCUS = `${GHOST_FOCUS}, ${STATIC_FOCUS}`;
 const FORCED_FOCUS =
@@ -254,16 +254,30 @@ describe('Button focus outline', () => {
     }
   });
 
-  it('leaves a loading button to the loader, which rings it in system colors', () => {
+  it('leaves a loading button to the loader, which rings it in and out of forced colors', () => {
+    // So the order the two partials load in can't decide which ring a
+    // loading ghost or static one gets.
     const { getByRole } = render(
-      <Button isLoading isFocused>
-        Saving
-      </Button>
+      <div>
+        <Button isLoading isFocused>
+          Saving
+        </Button>
+        <Button color="ghost" isLoading isFocused>
+          Ghost
+        </Button>
+        <Button isStatic isLoading isFocused>
+          Static
+        </Button>
+      </div>
     );
-    const button = getByRole('button', { name: 'Saving' });
-    expect(button).toHaveClass('is-loading', 'is-focused');
-    for (const part of FORCED_FOCUS.split(', ')) {
-      expect(button.matches(part.replace(/:focus-visible/g, ''))).toBe(false);
+    for (const name of ['Saving', 'Ghost', 'Static']) {
+      const button = getByRole('button', { name });
+      expect(button).toHaveClass('is-loading', 'is-focused');
+      for (const part of [OWN_FOCUS, FORCED_FOCUS].flatMap(s =>
+        s.split(', ')
+      )) {
+        expect(button.matches(part.replace(/:focus-visible/g, ''))).toBe(false);
+      }
     }
   });
 

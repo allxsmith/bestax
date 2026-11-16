@@ -51,8 +51,8 @@
 }
 
 // Bulma's focus outline, in its focus color, style, width and offset, the
-// one `_button.scss` gives a ghost button, from the keyboard or from
-// `isFocused`. Two classes and the state outrank the `outline: none` Bulma's
+// one `_button.scss` gives a ghost or static button, from the keyboard or
+// from `isFocused`. Two classes and the state outrank the `outline: none` Bulma's
 // control mixin sets on a focused button, whichever stylesheet loads first.
 // The forced colors block below rings it in the system's colors instead, and
 // wins there by coming later in this file with the same selector.

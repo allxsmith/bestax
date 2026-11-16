@@ -13,9 +13,12 @@
 // - Every button in forced colors (Windows' contrast themes), which drops the
 //   shadow and forces the border's color, so a focused button can look just
 //   like an unfocused one there. A ghost or static button matches both rules
-//   there, and they draw the same outline. A loading button is left to
-//   `_loader.scss`, which rings it outside forced colors too, since Bulma's
-//   `is-loading` drops the shadow as well.
+//   there, and they draw the same outline.
+//
+// A loading button, ghost and static ones included, is left to
+// `_loader.scss`, which rings it in and out of forced colors, since Bulma's
+// `is-loading` drops the shadow as well. Neither outline here reaches one, so
+// the order the two partials load in doesn't decide its ring.
 //
 // `.is-focused` is the class `isFocused` sets, so it gets the outline too.
 // The ghost rule doesn't ask for LinkButton's class, since a ghost Button has
@@ -35,10 +38,10 @@
 // link, so the loop leaves it out.
 //
 // Bulma's CSS can land on either side of this partial, as `_loader.scss`
-// says, so each selector outranks Bulma's rule by its classes: the ghost rule
-// has three to the mixin's two, the forced colors outline names `.button`
-// twice, as `_delete.scss` does, and the border names the color class twice
-// to outrank Bulma's `.button.is-<color>`.
+// says, so each selector outranks Bulma's rule by its classes: the ghost and
+// static rule has four to the mixin's two, the forced colors outline names
+// `.button` twice, as `_delete.scss` does, and the border names the color
+// class twice to outrank Bulma's `.button.is-<color>`.
 
 @use 'sass:list';
 @use 'sass:map';
@@ -57,10 +60,18 @@
   outline-width: cv.getVar('focus-width');
 }
 
-.#{iv.$class-prefix}button.#{iv.$class-prefix}is-ghost:focus-visible,
-.#{iv.$class-prefix}button.#{iv.$class-prefix}is-ghost.#{iv.$class-prefix}is-focused,
-.#{iv.$class-prefix}button.#{iv.$class-prefix}is-static:focus-visible,
-.#{iv.$class-prefix}button.#{iv.$class-prefix}is-static.#{iv.$class-prefix}is-focused {
+.#{iv.$class-prefix}button.#{iv.$class-prefix}is-ghost:not(
+    .#{iv.$class-prefix}is-loading
+  ):focus-visible,
+.#{iv.$class-prefix}button.#{iv.$class-prefix}is-ghost:not(
+    .#{iv.$class-prefix}is-loading
+  ).#{iv.$class-prefix}is-focused,
+.#{iv.$class-prefix}button.#{iv.$class-prefix}is-static:not(
+    .#{iv.$class-prefix}is-loading
+  ):focus-visible,
+.#{iv.$class-prefix}button.#{iv.$class-prefix}is-static:not(
+    .#{iv.$class-prefix}is-loading
+  ).#{iv.$class-prefix}is-focused {
   @include -focus-outline;
 }
 
