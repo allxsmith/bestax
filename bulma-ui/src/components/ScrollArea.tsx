@@ -171,28 +171,23 @@ export const ScrollArea = forwardRef<HTMLDivElement, ScrollAreaProps>(
       }
     }, [named]);
 
+    // The name goes to the hook, which renders it with the role: ARIA
+    // prohibits naming a plain div.
     const {
-      ref: setRefs,
-      measured,
-      isRegion,
-      onScroll: handleScroll,
-      onFocus: handleFocus,
-      onBlur: handleBlur,
-    } = useScrollRegion<HTMLDivElement>({
+      'aria-label': ariaLabel,
+      'aria-labelledby': ariaLabelledby,
+      ...viewportRest
+    } = rest;
+    const { props: regionProps, measured } = useScrollRegion<HTMLDivElement>({
       orientation,
       ref,
       onEdgeReach,
       onScroll,
       onFocus,
       onBlur,
-    });
-
-    // The name goes with the role: ARIA prohibits naming a plain div.
-    const {
       'aria-label': ariaLabel,
       'aria-labelledby': ariaLabelledby,
-      ...viewportRest
-    } = rest;
+    });
     const edgeAttributes: Record<string, string> = {};
     if (measured) {
       for (const edge of SCROLL_REGION_EDGES) {
@@ -222,18 +217,11 @@ export const ScrollArea = forwardRef<HTMLDivElement, ScrollAreaProps>(
         }
       >
         <div
-          ref={setRefs}
           className={viewportClass}
           style={viewportStyle}
           {...viewportRest}
           {...edgeAttributes}
-          role={isRegion ? 'region' : undefined}
-          aria-label={isRegion ? ariaLabel : undefined}
-          aria-labelledby={isRegion ? ariaLabelledby : undefined}
-          tabIndex={isRegion ? 0 : undefined}
-          onScroll={handleScroll}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
+          {...regionProps}
         >
           {children}
         </div>

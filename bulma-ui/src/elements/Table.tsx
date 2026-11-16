@@ -64,8 +64,11 @@ const TableContainer = ({
   ariaLabelledby: string | undefined;
   children: React.ReactNode;
 }) => {
-  const { ref, isRegion, onScroll, onFocus, onBlur } =
-    useScrollRegion<HTMLDivElement>({ orientation: 'horizontal' });
+  const { props, isRegion } = useScrollRegion<HTMLDivElement>({
+    orientation: 'horizontal',
+    'aria-label': ariaLabel,
+    'aria-labelledby': ariaLabelledby,
+  });
   const named = Boolean(ariaLabel || ariaLabelledby);
   useEffect(() => {
     if (isRegion && !named) {
@@ -80,17 +83,7 @@ const TableContainer = ({
     }
   }, [isRegion, named]);
   return (
-    <div
-      ref={ref}
-      className={className}
-      role={isRegion ? 'region' : undefined}
-      aria-label={isRegion ? ariaLabel : undefined}
-      aria-labelledby={isRegion ? ariaLabelledby : undefined}
-      tabIndex={isRegion ? 0 : undefined}
-      onScroll={onScroll}
-      onFocus={onFocus}
-      onBlur={onBlur}
-    >
+    <div className={className} {...props}>
       {children}
     </div>
   );

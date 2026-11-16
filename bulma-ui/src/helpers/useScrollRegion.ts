@@ -66,11 +66,32 @@ export interface UseScrollRegionOptions<T extends HTMLElement> {
   onFocus?: React.FocusEventHandler<T> | undefined;
   /** Called before the hook's own blur handler. */
   onBlur?: React.FocusEventHandler<T> | undefined;
+  /** Names the region, rendered only while it is one. */
+  'aria-label'?: string | undefined;
+  /** The id of what names the region, rendered only while it is one. */
+  'aria-labelledby'?: string | undefined;
+}
+
+/**
+ * What the element that scrolls renders: the ref and the handlers, which call
+ * the caller's own first, and the role, the name and the tab stop while it's a
+ * region. The name goes with the role, since ARIA doesn't allow naming a
+ * plain `div`.
+ */
+export interface ScrollRegionProps<T extends HTMLElement> {
+  ref: (node: T | null) => void;
+  role: 'region' | undefined;
+  'aria-label': string | undefined;
+  'aria-labelledby': string | undefined;
+  tabIndex: 0 | undefined;
+  onScroll: React.UIEventHandler<T>;
+  onFocus: React.FocusEventHandler<T>;
+  onBlur: React.FocusEventHandler<T>;
 }
 
 export interface ScrollRegion<T extends HTMLElement> {
-  /** The ref to put on the element that scrolls. */
-  ref: (node: T | null) => void;
+  /** The props to spread on the element that scrolls, after any of its own. */
+  props: ScrollRegionProps<T>;
   /** The latest measurement, `null` until the client has measured. */
   measured: ScrollMeasure | null;
   /**
@@ -78,10 +99,6 @@ export interface ScrollRegion<T extends HTMLElement> {
    * while it holds focus after it stops, so focus isn't dropped to the page.
    */
   isRegion: boolean;
-  /** Handlers to put on the element, which call the caller's own first. */
-  onScroll: React.UIEventHandler<T>;
-  onFocus: React.FocusEventHandler<T>;
-  onBlur: React.FocusEventHandler<T>;
 }
 
 /**
@@ -92,12 +109,11 @@ export interface ScrollRegion<T extends HTMLElement> {
  * It measures before paint, and again whenever the element or anything in it
  * changes size, the children change, or the element scrolls. Nothing is known
  * until the client measures, so the server renders a plain scroller and
- * hydrates as one. The caller renders the role, the name and `tabIndex={0}`
- * while `isRegion` is true.
+ * hydrates as one.
  *
  * @function useScrollRegion
- * @param options - The axes it scrolls, a ref and handlers of the caller's own.
- * @returns The ref and handlers to put on the element, and what it found.
+ * @param options - The axes it scrolls, its name, and a ref and handlers of the caller's own.
+ * @returns The props to spread on the element, and what it found.
  */
 export function useScrollRegion<T extends HTMLElement>({
   orientation,
@@ -106,6 +122,8 @@ export function useScrollRegion<T extends HTMLElement>({
   onScroll,
   onFocus,
   onBlur,
+  'aria-label': ariaLabel,
+  'aria-labelledby': ariaLabelledby,
 }: UseScrollRegionOptions<T>): ScrollRegion<T> {
   const elementRef = useRef<T | null>(null);
   const setRef = useCallback(
@@ -239,15 +257,22 @@ export function useScrollRegion<T extends HTMLElement>({
     if (event.target === event.currentTarget) setFocused(false);
   };
 
+  // A tab stop while it overflows. Taking tabIndex off the focused element
+  // would drop focus to the page, so one that stops overflowing keeps it
+  // until focus leaves.
+  const isRegion = !!measured?.overflowing || focused;
   return {
-    ref: setRef,
+    props: {
+      ref: setRef,
+      role: isRegion ? 'region' : undefined,
+      'aria-label': isRegion ? ariaLabel : undefined,
+      'aria-labelledby': isRegion ? ariaLabelledby : undefined,
+      tabIndex: isRegion ? 0 : undefined,
+      onScroll: handleScroll,
+      onFocus: handleFocus,
+      onBlur: handleBlur,
+    },
     measured,
-    // A tab stop while it overflows. Taking tabIndex off the focused element
-    // would drop focus to the page, so one that stops overflowing keeps it
-    // until focus leaves.
-    isRegion: !!measured?.overflowing || focused,
-    onScroll: handleScroll,
-    onFocus: handleFocus,
-    onBlur: handleBlur,
+    isRegion,
   };
 }
