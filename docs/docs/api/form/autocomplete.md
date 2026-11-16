@@ -433,7 +433,7 @@ function AutocompleteFormDemo() {
 - `empty` is a message, so keep it to text. `Tab` closes the list, so a keyboard user can't reach a link or a button in it
 - Keep that message static, like "No results found". Its text is read when the matches first run out and isn't read again while they stay out, so a message that names the query, like "No results for xyz", is only heard for the query that ran them out
 - Dropdown items use `role="option"`, and the highlighted one is `aria-selected` unless it's disabled
-- In forced colors (Windows' contrast themes), which take away the list's shadow and the highlighted option's fill, the open list is drawn with an edge and the highlighted option with an outline in the system's highlight color
+- In forced colors (Windows' contrast themes), which take away the dropdown's shadow and the highlighted option's fill, the open dropdown is drawn with an edge, whether it shows options or the `empty` content, and the highlighted option with an outline in the system's highlight color
 - Disabled items have `aria-disabled`
 - The `clearable` clear button is a native button named "Clear": `Tab` from the input reaches it, and `Enter` or `Space` clears the input and puts focus back in it
 - Full keyboard navigation support
