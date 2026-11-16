@@ -209,8 +209,8 @@
       "slug": "form/autocomplete",
       "import": "import { Autocomplete } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 37,
-      "exampleCount": 12
+      "propCount": 38,
+      "exampleCount": 13
     },
     {
       "name": "Avatar",
