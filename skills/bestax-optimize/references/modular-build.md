@@ -291,7 +291,7 @@ Notes:
   button can look like an unfocused one there. Forced colors also replaces a colored button's fill,
   which Bulma draws with no border, so an icon-only one shows only its glyph there. The `button`
   extras partial gives those focused buttons an outline, apart from a loading one, which the
-  `loader` partial outlines, a pressed `ToggleButton` and a checked `SegmentedControl` segment the
+  `loader` partial outlines, a pressed `ToggleButton`, a checked `SegmentedControl` segment and any other button with Bulma's `is-selected` the
   system's highlight colors in forced colors, where the fill that marks them is replaced, a colored
   button a 1px border in forced colors, and an outlined button the lightness Bulma picks for its
   color's text on the page where that's lighter, so a dark color reads on the dark scheme, so
