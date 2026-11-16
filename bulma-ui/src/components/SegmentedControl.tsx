@@ -366,7 +366,9 @@ export interface SegmentedControlSegmentProps
   /**
    * Disables the segment, the same as `disabled`: it can't be clicked, the
    * arrow keys, Home and End skip it, and it never holds the row's tab stop.
-   * A checked one keeps its fill under Bulma's disabled look.
+   * A checked one keeps its fill under Bulma's disabled look, and in forced
+   * colors (Windows' contrast themes) it's filled in the system's color for a
+   * disabled control, which needs bestax's CSS.
    */
   isDisabled?: boolean;
   /**
