@@ -190,7 +190,7 @@ function SkeletonExamples() {
 
   return (
     <Box p="4">
-      <Title hasSkeleton={loading}>
+      <Title hasSkeleton={loading} aria-hidden={loading || undefined}>
         {loading ? 'Loading...' : 'Content Loaded!'}
       </Title>
 
@@ -203,7 +203,12 @@ function SkeletonExamples() {
         Click me
       </Button>
 
-      <Icon name="star" skeleton={loading} ariaLabel="Rating" />
+      <Icon
+        name="star"
+        skeleton={loading}
+        ariaLabel="Rating"
+        aria-hidden={loading || undefined}
+      />
 
       <Image
         skeleton={loading}
