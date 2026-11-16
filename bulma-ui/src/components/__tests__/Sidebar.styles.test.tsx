@@ -3,12 +3,14 @@
 // border between itself and the content, on its logical end, or its start with
 // `is-right`, so the border faces the content on a right-to-left page too. A
 // mini sidebar hides each link's label visually but keeps it in the link, so
-// the link keeps its name. jsdom never loads the partial on its own, so these
+// the link keeps its name. In forced colors the partial keeps the panel's edge
+// and the close button's cross (#1889). jsdom never loads the partial on its own, so these
 // compile it, with no prefix and under one, read its rules off the sheet, and
 // check their selectors land on the elements a Sidebar renders. jsdom leaves
 // `var()` unresolved, so a value that reads a variable is compared as written.
 import * as sass from 'sass';
 import path from 'path';
+import type { ComponentProps } from 'react';
 import { render } from '@testing-library/react';
 import { Sidebar } from '../Sidebar';
 import { Menu } from '../Menu';
@@ -32,25 +34,38 @@ const compile = (prefix: string) =>
      @use 'components/sidebar';`
   );
 
-/** Every style rule in `css`, at any depth, in source order. */
-function allRulesOf(css: string) {
+/**
+ * Every style rule in `css`, at any depth, in source order. With `within`,
+ * only the rules inside exactly that at-rule, as its head reads
+ * (`@media (forced-colors: active)`): jsdom evaluates no media query, so a
+ * forced-colors rule is read rather than computed.
+ */
+function allRulesOf(css: string, within?: string) {
   const sheet = document.createElement('style');
   sheet.textContent = css.replace(/@charset "UTF-8";/g, '');
   document.head.appendChild(sheet);
   const out: CSSStyleRule[] = [];
-  const walk = (list: CSSRuleList) => {
+  const walk = (list: CSSRuleList, heads: string[]) => {
     for (const rule of Array.from(list)) {
-      if (rule instanceof CSSStyleRule) out.push(rule);
-      else if ('cssRules' in rule) walk((rule as CSSGroupingRule).cssRules);
+      if (rule instanceof CSSStyleRule) {
+        if (within === undefined || heads.join(' ') === within) out.push(rule);
+      } else if ('cssRules' in rule) {
+        walk((rule as CSSGroupingRule).cssRules, [
+          ...heads,
+          rule.cssText.split('{')[0].trim(),
+        ]);
+      }
     }
   };
   try {
-    walk((sheet.sheet as CSSStyleSheet).cssRules);
+    walk((sheet.sheet as CSSStyleSheet).cssRules, []);
   } finally {
     sheet.remove();
   }
   return out;
 }
+
+const FORCED = '@media (forced-colors: active)';
 
 /**
  * The properties a rule declares, in order. Iterating its style lists the
@@ -105,7 +120,8 @@ describe.each([
   ['a class prefix', 'bestax-'],
 ])('the Sidebar partial with %s', (_label, prefix) => {
   const p = (name: string) => `.${prefix}${name}`;
-  const rules = allRulesOf(compile(prefix));
+  const css = compile(prefix);
+  const rules = allRulesOf(css);
   const staticSidebar = `${p('sidebar')}${p('is-static')}`;
   const label = `${p('sidebar')}${p('is-mini')} ${p('menu-list')} a span:not(${p('icon')})`;
 
@@ -196,6 +212,103 @@ describe.each([
         expect(icon.matches(label)).toBe(false);
       }
     });
+  });
+
+  // Forced colors drop the panel's shadow and paint background colors in
+  // the system's Canvas, so the panel loses its edge and the close button's
+  // cross, drawn as background colors, vanishes (#1889).
+  describe('in forced colors', () => {
+    const forced = allRulesOf(css, FORCED);
+    const panel = `${p('sidebar')}:not(${p('is-static')})`;
+    const cross = `${p('sidebar-close')}::before, ${p('sidebar-close')}::after`;
+    // A system color reads back in whatever case jsdom keeps.
+    const lower = (values: Record<string, string>) =>
+      Object.fromEntries(
+        Object.entries(values).map(([name, value]) => [
+          name,
+          value.toLowerCase(),
+        ])
+      );
+
+    /** A sidebar with a header holding its title and a close button. */
+    const renderWithClose = (
+      closeProps: ComponentProps<typeof Sidebar.Close> = {}
+    ) =>
+      render(
+        <ConfigProvider classPrefix={prefix}>
+          <Sidebar isOpen inline onClose={() => {}}>
+            <Sidebar.Header>
+              <Sidebar.Title>Navigation</Sidebar.Title>
+              <Sidebar.Close {...closeProps} />
+            </Sidebar.Header>
+          </Sidebar>
+        </ConfigProvider>
+      );
+
+    /**
+     * What the forced-colors rules declare for `el`, or its `pseudo`
+     * element, merged in source order, from every selector in a list that
+     * lands on it.
+     */
+    const forcedOn = (el: Element, pseudo?: string) => {
+      const out: Record<string, string> = {};
+      for (const rule of forced) {
+        // A comma inside brackets, as in `:is(a, b)`, doesn't split the list.
+        const lands = rule.selectorText.split(/,(?![^(]*\))/).some(part => {
+          const found = part.trim().match(/^(.*?)(?:::([\w-]+))?$/)!;
+          return found[2] === pseudo && el.matches(found[1]);
+        });
+        if (!lands) continue;
+        for (const name of propertiesOf(rule)) {
+          out[name] = rule.style.getPropertyValue(name).trim().toLowerCase();
+        }
+      }
+      return out;
+    };
+
+    it('draws the panel an edge inside itself, which takes no room', () => {
+      expect(lower(declarations(forced, panel))).toEqual({
+        outline: '1px solid canvastext',
+        'outline-offset': '-1px',
+      });
+    });
+
+    it('lands the edge on the sidebar a Sidebar renders, and not on a static one, which keeps its border', () => {
+      const open = renderWithClose().getByRole('dialog');
+      expect(open.matches(panel)).toBe(true);
+      const sidebarAt = (position: 'left' | 'right') =>
+        renderSidebar(position).container.querySelector('[role="dialog"]')!;
+      expect(sidebarAt('left').matches(panel)).toBe(false);
+      expect(sidebarAt('right').matches(panel)).toBe(false);
+    });
+
+    it('draws the cross in the variable the forced-colors rules set', () => {
+      expect(declarations(rules, cross)['background-color']).toBe(
+        'var(--bulma-sidebar-close-color)'
+      );
+    });
+
+    it.each([
+      ['an enabled', {}, 'canvastext'],
+      ['a disabled', { disabled: true }, 'graytext'],
+      ['an aria-disabled', { 'aria-disabled': true }, 'graytext'],
+    ] as const)(
+      'draws %s close button’s cross in the system’s colors, opting only the cross out',
+      (_label, closeProps, color) => {
+        const button = renderWithClose(closeProps).getByRole('button', {
+          name: 'Close',
+        });
+        for (const pseudo of ['before', 'after']) {
+          expect(forcedOn(button, pseudo)).toEqual({
+            'forced-color-adjust': 'none',
+            '--bulma-sidebar-close-color': color,
+          });
+        }
+        // The button itself keeps the user's palette, its focus ring
+        // included: no forced-colors rule lands on it.
+        expect(forcedOn(button)).toEqual({});
+      }
+    );
   });
 });
 

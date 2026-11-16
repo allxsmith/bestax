@@ -11,7 +11,11 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { PopupPortal } from '../helpers/portal';
 import { useIsHydrated } from '../helpers/useIsHydrated';
-import { marginGap, useAnchoredPosition } from '../helpers/useAnchoredPosition';
+import {
+  anchoredStyle,
+  marginGap,
+  useAnchoredPosition,
+} from '../helpers/useAnchoredPosition';
 import { chain, useHoverOpen } from '../helpers/useHoverOpen';
 import { isTabbableKind } from '../helpers/useFocusTrap';
 import { isDev, warnOnce } from '../helpers/devWarnings';
@@ -100,6 +104,9 @@ export interface HoverCardProps
    * right-to-left page, so a trigger at the start of the line doesn't push
    * the card off the screen. A corner you pass stays physical, so
    * `bottom-left` lines up the left edges on either page.
+   * A panel that would run past the viewport's left or right edge keeps
+   * its corner and moves sideways, just far enough to fit or, wider than
+   * the viewport, to the edge its text starts from.
    * @defaultValue 'bottom-left'
    */
   position?: HoverCardPosition;
@@ -309,15 +316,7 @@ export const HoverCard: React.FC<HoverCardProps> = ({
             ref={cardRef}
             id={cardId}
             className={cardClasses}
-            style={
-              appendToBody
-                ? {
-                    position: 'fixed',
-                    top: resolved.top,
-                    left: resolved.left,
-                  }
-                : undefined
-            }
+            style={anchoredStyle(resolved, appendToBody)}
           >
             {children}
           </div>

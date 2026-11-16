@@ -205,9 +205,10 @@ const ContextMenuComponent: React.FC<ContextMenuProps> = ({
 
   // Measured once per opening, before it paints, against what a fixed box
   // resolves against: the root element's client area, which leaves out a
-  // classic scrollbar. `useAnchoredPosition` and Tooltip read innerWidth and
-  // innerHeight, which count it. A menu pinned to the viewport's edge would
-  // sit under the scrollbar by that much, so this reads the narrower box.
+  // classic scrollbar, as `useAnchoredPosition` does but for the corner its
+  // `auto` picks. Tooltip reads innerWidth and innerHeight, which count it. A
+  // menu pinned to the viewport's edge would sit under the scrollbar by that
+  // much, so this reads the narrower box.
   useClientLayoutEffect(() => {
     const menuNode = menuRef.current;
     if (!menu || menu.placed || !menuNode) return;

@@ -165,8 +165,8 @@ describe.each(prefixes)(
       document.body.appendChild(page);
       try {
         const style = getComputedStyle(page.querySelector('[role="dialog"]')!);
-        expect(style.right).toBe('0px');
-        expect(style.left).not.toBe('0px');
+        expect(style.right).toBe('calc(-1 * var(--bulma-anchored-shift))');
+        expect(style.left).not.toBe('var(--bulma-anchored-shift)');
       } finally {
         page.remove();
       }
@@ -200,17 +200,42 @@ describe.each(pickers)('%s panel placement', (_name, picker) => {
     );
 
     it.each<[Corner, Record<string, string>]>([
-      ['bottom-left', { top: '100%', left: '0px', 'margin-top': gap }],
-      ['bottom-right', { top: '100%', right: '0px', 'margin-top': gap }],
-      ['top-left', { bottom: '100%', left: '0px', 'margin-bottom': gap }],
-      ['top-right', { bottom: '100%', right: '0px', 'margin-bottom': gap }],
+      [
+        'bottom-left',
+        { top: '100%', left: 'var(--bulma-anchored-shift)', 'margin-top': gap },
+      ],
+      [
+        'bottom-right',
+        {
+          top: '100%',
+          right: 'calc(-1 * var(--bulma-anchored-shift))',
+          'margin-top': gap,
+        },
+      ],
+      [
+        'top-left',
+        {
+          bottom: '100%',
+          left: 'var(--bulma-anchored-shift)',
+          'margin-bottom': gap,
+        },
+      ],
+      [
+        'top-right',
+        {
+          bottom: '100%',
+          right: 'calc(-1 * var(--bulma-anchored-shift))',
+          'margin-bottom': gap,
+        },
+      ],
     ])('keeps an in-place %s panel on its corner', (position, expected) => {
       const panel = openPanel(picker, prefix, {
         position,
         appendToBody: false,
       });
       expect(panel).not.toHaveClass(`${prefix}is-portal`);
-      expect(panel.getAttribute('style') ?? '').toBe('');
+      // No coordinates, only the shift its corner rules add, 0 here.
+      expect(panel.getAttribute('style')).toBe('--bulma-anchored-shift: 0px;');
       const style = getComputedStyle(panel);
       expect(style.position).toBe('absolute');
       for (const [property, value] of Object.entries(expected)) {
@@ -609,19 +634,39 @@ describe.each(published)('panel placement in %s', file => {
       it.each<[Corner, Record<string, string>]>([
         [
           'bottom-left',
-          { top: offset, right: 'auto', bottom: 'auto', left: '0px' },
+          {
+            top: offset,
+            right: 'auto',
+            bottom: 'auto',
+            left: 'var(--bulma-anchored-shift)',
+          },
         ],
         [
           'bottom-right',
-          { top: offset, right: '0px', bottom: 'auto', left: 'auto' },
+          {
+            top: offset,
+            right: 'calc(-1 * var(--bulma-anchored-shift))',
+            bottom: 'auto',
+            left: 'auto',
+          },
         ],
         [
           'top-left',
-          { top: 'auto', right: 'auto', bottom: offset, left: '0px' },
+          {
+            top: 'auto',
+            right: 'auto',
+            bottom: offset,
+            left: 'var(--bulma-anchored-shift)',
+          },
         ],
         [
           'top-right',
-          { top: 'auto', right: '0px', bottom: offset, left: 'auto' },
+          {
+            top: 'auto',
+            right: 'calc(-1 * var(--bulma-anchored-shift))',
+            bottom: offset,
+            left: 'auto',
+          },
         ],
       ])(
         'keeps an in-place %s panel the offset off its corner',
@@ -679,7 +724,7 @@ describe.each(published)('panel placement in %s', file => {
           ).toEqual({
             position: 'absolute',
             top: offset,
-            right: '0px',
+            right: 'calc(-1 * var(--bulma-anchored-shift))',
             bottom: 'auto',
             left: 'auto',
           });
@@ -701,7 +746,7 @@ describe.each(published)('panel placement in %s', file => {
             top: offset,
             right: 'auto',
             bottom: 'auto',
-            left: '0px',
+            left: 'var(--bulma-anchored-shift)',
           });
         }
       );

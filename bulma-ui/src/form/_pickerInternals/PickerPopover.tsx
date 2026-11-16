@@ -14,6 +14,7 @@ import {
 import { isEventInside } from '../../helpers/shadowDom';
 import { useLatestRef } from '../../helpers/useLatestRef';
 import {
+  anchoredStyle,
   marginGap,
   useAnchoredPosition,
 } from '../../helpers/useAnchoredPosition';
@@ -28,6 +29,9 @@ export interface PickerPopoverProps {
    * The corner it opens from. Left out, it's `bottom-left` lined up with the
    * anchor's start edge: the stylesheet's `is-start-aligned` rule in place,
    * and the anchor's direction when portaled.
+   * A panel that would run past the viewport's left or right edge keeps
+   * its corner and moves sideways, just far enough to fit or, wider than
+   * the viewport, to the edge its text starts from.
    */
   position?: PickerPosition;
   appendToBody?: boolean;
@@ -192,14 +196,7 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
 
   if (!isOpen) return null;
 
-  const style: React.CSSProperties = appendToBody
-    ? {
-        position: 'fixed',
-        top: resolved.top,
-        left: resolved.left,
-        minWidth: resolved.minWidth,
-      }
-    : {};
+  const style = anchoredStyle(resolved, appendToBody);
 
   const panel = (
     <div
