@@ -124,8 +124,9 @@ Easily create multiple indeterminate progress bars with different sizes and colo
 - **Forced colors:** Bulma paints the track and the fill as background colors, which a contrast
   theme replaces with the page's color, so the bar would disappear. In forced colors, bestax draws
   the track in the page's color inside an edge in its text color, and the fill in the text color,
-  for every `color` and the indeterminate bar. It ships in the same stylesheets as the
-  reduced-motion rule.
+  indeterminate bar included. That's the same for every bar, whatever its `color` or the
+  `--bulma-progress-*` variables say, so a bar's color can't carry meaning there. It ships in the
+  same stylesheets as the reduced-motion rule.
 
 :::warning
 Ensure your progress bars have sufficient color contrast for users with visual impairments.
