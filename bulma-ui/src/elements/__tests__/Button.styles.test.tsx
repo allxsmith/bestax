@@ -501,13 +501,19 @@ describe('colored buttons in forced colors', () => {
 // so the partial draws a selected button in the system's selection colors
 // there (#1869), and a disabled one in its disabled colors.
 describe('selected buttons in forced colors', () => {
-  const DISABLED = `${SELECTED}:disabled, ${SELECTED}.is-disabled`;
+  const DISABLED = [
+    `${SELECTED}:disabled`,
+    `${SELECTED}[disabled]`,
+    `${SELECTED}.is-disabled`,
+    `fieldset[disabled] ${SELECTED}`,
+  ].join(', ');
 
   it("draws a selected button in the system's selection colors, in forced colors only", () => {
     expect(find(PLAIN, SELECTED, [FORCED])).toEqual({
       'forced-color-adjust': 'none',
       'background-color': 'Highlight',
       'border-color': 'Highlight',
+      'box-shadow': 'none',
       color: 'HighlightText',
     });
     expect(find(PLAIN, DISABLED, [FORCED])).toEqual({
@@ -594,15 +600,29 @@ describe('selected buttons in forced colors', () => {
             Week
           </SegmentedControl.Segment>
         </SegmentedControl>
+        {/* A hand-written selected link, which Bulma dims by its class or
+            by a disabled fieldset, not by :disabled. */}
+        <Button as="a" href="#a" className="is-selected" isDisabled>
+          Underline
+        </Button>
+        <fieldset disabled>
+          <Button as="a" href="#b" className="is-selected">
+            Strike
+          </Button>
+        </fieldset>
       </div>
     );
+    const anyOf = (element: Element) =>
+      DISABLED.split(', ').some(part => element.matches(part));
     for (const element of [
       getByRole('button', { name: 'Bold' }),
       getByRole('button', { name: 'Italic' }),
       getByRole('radio', { name: 'Week' }),
+      getByRole('link', { name: 'Underline' }),
+      getByRole('link', { name: 'Strike' }),
     ]) {
       expect(element.matches(SELECTED)).toBe(true);
-      expect(element.matches(DISABLED.split(', ')[0])).toBe(true);
+      expect(anyOf(element)).toBe(true);
     }
   });
 
@@ -625,7 +645,9 @@ describe('selected buttons in forced colors', () => {
     expect(dimmed).toContain('.button[disabled]');
     for (const part of DISABLED.split(', ')) {
       for (const other of ['.button.is-link[disabled]', ...dimmed]) {
-        expect(weight(part)).toBeGreaterThan(weight(asClasses(other)));
+        expect(weight(asClasses(part))).toBeGreaterThan(
+          weight(asClasses(other))
+        );
       }
     }
   });

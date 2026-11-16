@@ -44,10 +44,13 @@
 // current page, so a child with a color of its own keeps it. With forcing
 // off, the forced colors outline would keep Bulma's focus color, so a
 // selected one names CanvasText, the color made to read on the page the
-// outline sits on. A disabled one takes GrayText for its fill and edge and
+// outline sits on, and Bulma's shadows, the focus one included, would show,
+// so it has none. A disabled one takes GrayText for its fill and edge and
 // Canvas for its text, so it still reads as pressed and as disabled, at full
 // opacity, since Bulma's disabled opacity would blend the fill into the page
-// and the text into the fill. A loading one is left to `_loader.scss`, which
+// and the text into the fill. It matches every element Bulma dims: a
+// disabled control, anything with a `disabled` attribute or `is-disabled`,
+// and anything in a disabled `<fieldset>`. A loading one is left to `_loader.scss`, which
 // draws it as it draws any loading button, so while it loads it looks like
 // one that isn't pressed, with its label hidden behind the spinner either
 // way.
@@ -122,6 +125,7 @@
     forced-color-adjust: none;
     background-color: Highlight;
     border-color: Highlight;
+    box-shadow: none;
     color: HighlightText;
 
     &:focus-visible,
@@ -130,7 +134,9 @@
     }
 
     &:disabled,
-    &.#{iv.$class-prefix}is-disabled {
+    &[disabled],
+    &.#{iv.$class-prefix}is-disabled,
+    fieldset[disabled] & {
       background-color: GrayText;
       border-color: GrayText;
       color: Canvas;
