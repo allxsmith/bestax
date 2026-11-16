@@ -21,6 +21,7 @@ import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { MOBILE, useBulmaViewport } from '../helpers/useBulmaViewport';
 import { inertProps } from '../helpers/inertProps';
 import { useSwipe } from '../helpers/useSwipe';
+import { chain } from '../helpers/useHoverOpen';
 import { ChevronNextIcon, ChevronPrevIcon } from '../helpers/chevronIcons';
 import { Icon } from '../elements/Icon';
 import { Button } from '../elements/Button';
@@ -96,6 +97,20 @@ const wholeCount = (count: number | undefined) =>
   count === undefined ? undefined : Math.max(1, Math.floor(count) || 1);
 
 /**
+ * Whether focus stays inside the element a blur reached. A switch to another
+ * window blurs with no related target and leaves the active element where it
+ * was, so that's where focus is going then, and where it comes back to.
+ *
+ * @function
+ * @param {React.FocusEvent<HTMLElement>} e - The blur.
+ * @returns {boolean} Whether focus stays inside.
+ */
+const focusStaysIn = (e: React.FocusEvent<HTMLElement>) =>
+  e.currentTarget.contains(
+    e.relatedTarget ?? getActiveElementInTree(e.currentTarget)
+  );
+
+/**
  * Props for the Carousel component.
  * @extraProp {string} [className] - Additional CSS classes.
  * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the carousel element.
@@ -120,8 +135,10 @@ export interface CarouselProps
    * Enable auto-play: one step (`itemsToScroll` items) per `interval`.
    * Without `repeat` it stops at the last position. It waits while the
    * pointer is over the carousel (see `pauseOnHover`) and while focus is
-   * inside one of its items, so an item being read or used never moves out
-   * of view.
+   * anywhere inside it, on an item, an arrow or an indicator, so nothing
+   * moves while someone reads or works it. A browser that leaves focus on
+   * an arrow or an indicator a click pressed keeps it waiting until focus
+   * moves on. Focus counts only while the page has it.
    */
   autoplay?: boolean;
   /** Auto-play interval in milliseconds. Default: 5000. */
@@ -344,6 +361,10 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       className,
       style,
       children,
+      onFocus,
+      onBlur,
+      onMouseEnter,
+      onMouseLeave,
       ...props
     },
     ref
@@ -359,7 +380,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     const focusedItemRef = useRef<Element | undefined>(undefined);
 
     const [internalValue, setInternalValue] = useState(0);
-    const [isPaused, setIsPaused] = useState(false);
+    const [isHovered, setIsHovered] = useState(false);
     const [isFocusInside, setIsFocusInside] = useState(false);
     const [isWrapping, setIsWrapping] = useState(false);
     const [displayIndex, setDisplayIndex] = useState(0);
@@ -492,23 +513,34 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
 
     // Auto-play. Each slide gets the whole interval, so a slide change,
     // autoplay's own or the user's, starts the timer over. A render that
-    // leaves the slide where it is doesn't. It waits while focus is inside
-    // an item, so what someone is reading or using doesn't move away. The
-    // timer reads where focus is when it fires, rather than trusting the
-    // last focus event alone: a browser moving focus off an element that
-    // went inert need not fire one, and the pause would never end. A focus
-    // change still starts the timer over, so an item gets the whole
-    // interval once focus leaves it.
+    // leaves the slide where it is doesn't. It waits while focus is anywhere
+    // in the carousel, on an item or on an arrow or an indicator, so nothing
+    // moves while someone reads or works it. The timer reads where focus is
+    // when it fires, rather
+    // than trusting the last focus event alone: a browser moving focus off
+    // an element that went inert need not fire one, and the pause would
+    // never end. A focus change still starts the timer over, so a slide gets
+    // the whole interval once focus leaves.
     const isPlaying =
-      autoplay && (looping || nextIndex !== undefined) && !isPaused;
+      autoplay &&
+      (looping || nextIndex !== undefined) &&
+      !(pauseOnHover && isHovered);
     const isRotating = isPlaying && !isFocusInside;
 
     useEffect(() => {
       if (!isPlaying) return undefined;
 
       const timer = setInterval(() => {
-        const track = slidesRef.current;
-        if (track?.contains(getActiveElementInTree(track))) return;
+        // Focus counts only while the page has it: a switch to another
+        // window, or a click on the page around a frame the carousel is in,
+        // leaves the active element inside.
+        const root = carouselRef.current;
+        if (
+          root?.ownerDocument.hasFocus() &&
+          root.contains(getActiveElementInTree(root))
+        ) {
+          return;
+        }
         if (isFocusInside) setIsFocusInside(false);
         goToNextRef.current();
       }, interval);
@@ -516,18 +548,15 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       return () => clearInterval(timer);
     }, [isPlaying, isFocusInside, interval, activeIndex, goToNextRef]);
 
-    // Pause on hover
-    const handleMouseEnter = useCallback(() => {
-      if (pauseOnHover) {
-        setIsPaused(true);
-      }
-    }, [pauseOnHover]);
-
-    const handleMouseLeave = useCallback(() => {
-      if (pauseOnHover) {
-        setIsPaused(false);
-      }
-    }, [pauseOnHover]);
+    // Pause on hover (with `pauseOnHover`, read as it is now) and on focus
+    // anywhere inside. A caller's own handlers for these events run too,
+    // rather than replacing these.
+    const handleMouseEnter = chain(onMouseEnter, () => setIsHovered(true));
+    const handleMouseLeave = chain(onMouseLeave, () => setIsHovered(false));
+    const handleFocus = chain(onFocus, () => setIsFocusInside(true));
+    const handleBlur = chain(onBlur, (e: React.FocusEvent<HTMLDivElement>) =>
+      setIsFocusInside(e.currentTarget.contains(e.relatedTarget))
+    );
 
     // Right to left the track runs the other way, so the next slide is on
     // the left. Read when a swipe or key arrives, as Lightbox does, so a
@@ -748,13 +777,15 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       <div
         ref={combinedRef}
         className={combinedClasses}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
         role="region"
         aria-roledescription="carousel"
         aria-label={ariaLabel}
         style={{ ...countStyle, ...style }}
         {...rest}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
       >
         <div
           ref={containerRef}
@@ -792,15 +823,12 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
             // Announce what comes into view, except while autoplay turns it
             aria-live={isRotating ? 'off' : 'polite'}
             onFocus={e => {
-              setIsFocusInside(true);
               focusedItemRef.current = Array.from(
                 e.currentTarget.children
               ).find(item => item.contains(e.target));
             }}
             onBlur={e => {
-              const inside = e.currentTarget.contains(e.relatedTarget);
-              setIsFocusInside(inside);
-              if (!inside) focusedItemRef.current = undefined;
+              if (!focusStaysIn(e)) focusedItemRef.current = undefined;
             }}
             onTransitionEnd={handleTransitionEnd}
           >
