@@ -20,17 +20,17 @@ A Bulma-styled breadcrumb navigation for showing the user's location in the app.
 <Breadcrumb>
   <li>
     <a href="#">
-      <Icon name="fas fa-home" ariaLabel="home icon" /> Home
+      <Icon name="fas fa-home" /> Home
     </a>
   </li>
   <li>
     <a href="#">
-      <Icon name="fas fa-folder" ariaLabel="category icon" /> Category
+      <Icon name="fas fa-folder" /> Category
     </a>
   </li>
   <li className="is-active">
-    <a href="#">
-      <Icon name="fas fa-file" ariaLabel="item icon" /> Item
+    <a href="#" aria-current="page">
+      <Icon name="fas fa-file" /> Item
     </a>
   </li>
 </Breadcrumb>
