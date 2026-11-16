@@ -82,8 +82,99 @@ export function substitute(value: string, vars: Vars): string {
   );
 }
 
-/** An opaque `hsl()` or `hsla()` color's sRGB channels, from 0 to 1. */
-function rgbOf(color: string): number[] {
+/**
+ * The value of a CSS math expression of numbers and percentages, as a
+ * browser works it out: `calc()`, `min()`, `max()`, parentheses, `+`, `-`,
+ * `*` and `/`. A percentage counts as its number, which holds while every term
+ * is a percentage or a plain factor.
+ */
+function mathOf(expression: string): number {
+  let at = 0;
+  const fail = () => {
+    throw new Error(`cannot work out ${expression} at ${at}`);
+  };
+  const space = () => {
+    while (expression[at] === ' ') at++;
+  };
+  const term = (): number => {
+    space();
+    const fn = /^(calc|min|max)\(/.exec(expression.slice(at));
+    if (fn) {
+      at += fn[0].length;
+      const args = [sum()];
+      space();
+      while (expression[at] === ',') {
+        at++;
+        args.push(sum());
+        space();
+      }
+      if (expression[at++] !== ')') fail();
+      if (fn[1] === 'min') return Math.min(...args);
+      if (fn[1] === 'max') return Math.max(...args);
+      return args[0];
+    }
+    if (expression[at] === '(') {
+      at++;
+      const value = sum();
+      space();
+      if (expression[at++] !== ')') fail();
+      return value;
+    }
+    const number = /^-?[\d.]+%?/.exec(expression.slice(at));
+    if (!number) fail();
+    at += number![0].length;
+    return parseFloat(number![0]);
+  };
+  const product = (): number => {
+    let value = term();
+    for (;;) {
+      space();
+      const op = expression[at];
+      if (op !== '*' && op !== '/') return value;
+      at++;
+      value = op === '*' ? value * term() : value / term();
+    }
+  };
+  const sum = (): number => {
+    let value = product();
+    for (;;) {
+      // After a term, a `+` or `-` can only join it to the next one.
+      space();
+      const op = expression[at];
+      if (op !== '+' && op !== '-') return value;
+      at++;
+      value = op === '+' ? value + product() : value - product();
+    }
+  };
+  const value = sum();
+  space();
+  if (at !== expression.length) fail();
+  return value;
+}
+
+/**
+ * `color` with each `calc()`, `min()` and `max()` of percentages in it worked
+ * out, as a browser does.
+ */
+function evaluate(color: string): string {
+  const start = color.search(/(calc|min|max)\(/);
+  if (start < 0) return color;
+  let depth = 0;
+  let end = start;
+  for (; end < color.length; end++) {
+    if (color[end] === '(') depth++;
+    else if (color[end] === ')' && --depth === 0) break;
+  }
+  const value = mathOf(color.slice(start, end + 1));
+  return evaluate(color.slice(0, start) + `${value}%` + color.slice(end + 1));
+}
+
+/**
+ * An opaque `hsl()` or `hsla()` color's sRGB channels, from 0 to 1, with any
+ * `calc()`, `min()` or `max()` of percentages in it worked out.
+ */
+function rgbOf(value: string): number[] {
+  const color = evaluate(value);
   const match =
     /^hsla?\(\s*([\d.]+)(?:deg)?\s*,\s*([\d.]+)%\s*,\s*([\d.]+)%\s*(?:,\s*1\s*)?\)$/.exec(
       color

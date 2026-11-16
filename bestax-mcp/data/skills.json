@@ -21,7 +21,7 @@
     },
     {
       "name": "bestax-form",
-      "description": "Build forms with @allxsmith/bestax-bulma — Field/Control/Label/Help composition, inputs, selects, checkboxes, radios, switches, and advanced controls (Autocomplete, Combobox, TreeSelect, Slider, Numberinput, PinInput, Rate, Taginput, File, date/time, Calendar). There is no form/validation library; this skill shows the components and the validate-it-yourself error pattern. Use when building a form, wiring inputs to state, or showing validation/error state.",
+      "description": "Build forms with @allxsmith/bestax-bulma — Field/Control/Label/Help composition, inputs, selects, checkboxes, radios, switches, and advanced controls (Autocomplete, Combobox, TreeSelect, Cascader, Slider, Numberinput, PinInput, Rate, Taginput, File, date/time, Calendar). There is no form/validation library; this skill shows the components and the validate-it-yourself error pattern. Use when building a form, wiring inputs to state, or showing validation/error state.",
       "promptName": "form",
       "dir": "bestax-form",
       "references": [

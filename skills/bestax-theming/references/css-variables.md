@@ -353,6 +353,18 @@ header taller than Bulma's navbar sets it there. `AppFrame.Nav width` writes
 `--bulma-autocomplete-border-hover-color` is registered but has no effect: the input's hover
 border is Bulma's own.
 
+### Button
+
+An outlined button in a color other than `white`, `black`, `light`, `dark` and `text` sets
+`--bulma-button-l`, Bulma's lightness for its label, border and loading ring, on a dark page to
+the lighter of the color's own lightness and its on-scheme one, so a dark color reads there, and on
+a light page to the color's own. That
+rule, `.button.is-<color>.is-outlined`, outranks Bulma's `.button.is-<color>`, so set the
+variable on the button through `style`. On the dark page a trio set without its on-scheme lightness
+comes out at the build's on-scheme lightness where that's the lighter one.
+On a surface that stays light on both schemes, Bulma's `theme-light` class on the surface (with
+the class prefix in a prefixed build) keeps what's inside it on the light scheme's values.
+
 ### Carousel
 
 `--bulma-carousel-arrow-background`, `--bulma-carousel-arrow-background-hover`,
@@ -412,10 +424,39 @@ dark tint.
 
 Declared on the root, `.calendar`: its frame, and the gap between the months on show. Each month
 is the `DateInput` calendar, `.dateinput`, so the `--bulma-dateinput-*` variables below theme its
-days, and a theme written for the date pickers themes the Calendar too.
+days, and a theme written for the date pickers themes the Calendar too. A `DateRangeInput` with
+`monthsToShow` takes `--bulma-calendar-months-gap` too, declared on its root and its popover.
 
 `--bulma-calendar-background-color`, `--bulma-calendar-border-color`,
 `--bulma-calendar-months-gap`, `--bulma-calendar-padding`, `--bulma-calendar-radius`
+
+### Cascader
+
+Declared on the root, `.cascader`, and on a portaled panel, `.cascader-panel`, which sits outside
+it. The chevron and the clear button on the field are drawn as TreeSelect's are, from the tokens
+Bulma's input icon variables start from. The rest lay out the columns and draw their items, which
+are Bulma's dropdown items: Bulma registers `--bulma-dropdown-*` on `.dropdown` alone, and a
+cascader isn't one, so retheme the items through these. Their color, size, padding and hover,
+and the sizes, start from Combobox's Sass values. The open path, which follows focus, is
+`is-active` and takes `highlight-background`, and the picked path is `is-checked` and takes the
+`checked-*` pair, as Combobox's highlight and checked items are named. A size on the field sets the `item-size`
+and `item-padding-*` values on the panel. The panel is at least as wide as the field and grows with its
+columns up to `max-width`, the viewport less a margin, so on a narrow screen they scroll sideways in
+it. The panel is the picker popover, above, so
+`--bulma-picker-popover-*` themes it here too.
+
+`--bulma-cascader-chevron-color`, `--bulma-cascader-chevron-focus-color`,
+`--bulma-cascader-chevron-hover-color`, `--bulma-cascader-chevron-width`,
+`--bulma-cascader-chevron-z-index`, `--bulma-cascader-clear-z-index`,
+`--bulma-cascader-checked-background`, `--bulma-cascader-checked-color`,
+`--bulma-cascader-column-border-color`, `--bulma-cascader-column-border-width`,
+`--bulma-cascader-column-inset`, `--bulma-cascader-column-max-height`,
+`--bulma-cascader-column-width`, `--bulma-cascader-disabled-color`,
+`--bulma-cascader-highlight-background`, `--bulma-cascader-item-chevron-size`,
+`--bulma-cascader-item-color`, `--bulma-cascader-item-gap`,
+`--bulma-cascader-item-hover-background`, `--bulma-cascader-item-padding-x`,
+`--bulma-cascader-item-padding-y`, `--bulma-cascader-item-size`, `--bulma-cascader-max-width`,
+`--bulma-cascader-search-gap`
 
 ### Checkbox
 
@@ -797,6 +838,15 @@ item's or a section's. The heading itself reads Bulma's label variables (`--bulm
 
 ### Navbar
 
+An active or selected item works `--bulma-navbar-item-color` out again on itself, from the values
+Bulma sets there, so its text takes `--bulma-navbar-item-selected-color-l`, the invert of the
+selected color it sits on, which is the link color in a navbar with no `color`. Bulma works the variable out on `.navbar`, so a value set there doesn't
+reach an active item. Set `--bulma-navbar-item-color` on the item itself to give its text a color
+of your own, since bestax's rule weighs nothing. A theme that changes the selected fill
+(`--bulma-navbar-item-selected-background-l` and the rest) sets
+`--bulma-navbar-item-selected-color-l` to match. An item with a `bgColor` is left out, and keeps
+the navbar's text color.
+
 In a colored `Hero`, a navbar with no `color` of its own takes the hero's colors.
 `--bulma-navbar-burger-color`, `--bulma-navbar-tab-active-color`,
 `--bulma-navbar-tab-active-border-bottom-color` and `--bulma-navbar-tab-hover-border-bottom-color`
@@ -811,7 +861,7 @@ hero variables, `--bulma-navbar-item-hover-background-color` and the rest.
 
 `--bulma-navbar-background-color`, `--bulma-navbar-burger-color`, `--bulma-navbar-dropdown-arrow`,
 `--bulma-navbar-dropdown-item-background-l`, `--bulma-navbar-dropdown-item-color-l`,
-`--bulma-navbar-dropdown-item-h`, `--bulma-navbar-dropdown-item-s`,
+`--bulma-navbar-dropdown-item-h`, `--bulma-navbar-dropdown-item-s`, `--bulma-navbar-item-color`,
 `--bulma-navbar-tab-active-border-bottom-color`, `--bulma-navbar-tab-active-color`,
 `--bulma-navbar-tab-hover-border-bottom-color`
 
@@ -852,8 +902,11 @@ Bulma points its `--bulma-panel-block-active-color` and `--bulma-panel-tab-activ
 `--bulma-link-active`, which it never defines, so the active block and tab inherit the panel's
 color. In a colored Panel, `.panel.is-<color>.has-text-<color>`, the partial gives the active
 block and tab a fallback for the two, the color at its on-scheme lightness
-(`--bulma-<color>-on-scheme-l`), which reads on the page on both schemes. A value of your own for
-either, set on the panel, still wins.
+(`--bulma-<color>-on-scheme-l`), which reads on the page on both schemes, and sets Bulma's
+`--bulma-panel-color-l`, which draws the active icon and the active tab's underline, to the same
+lightness. Black takes the title text's lightness, `--bulma-text-title-l`, white on the dark
+scheme. A value of your own for the two active colors, set on the panel, still wins, and so does a
+`--bulma-panel-color-l` set through the panel's `style`.
 
 `--bulma-text-invert-l`
 
@@ -879,16 +932,20 @@ in `em`, so they follow the size of the boxes, and the caret is `currentColor`, 
 `--bulma-pin-input-caret-color`, `--bulma-pin-input-caret-height`, `--bulma-pin-input-caret-width`,
 `--bulma-pin-input-gap`
 
-### Picker popover (DateInput / TimeInput / DateTimeInput / DateRangeInput / ColorInput / TreeSelect)
+### Picker popover (DateInput / TimeInput / DateTimeInput / DateRangeInput / ColorInput / TreeSelect / Cascader)
 
-ColorInput's and TreeSelect's panels take the `--bulma-picker-popover-*` variables here. The `--bulma-picker-trigger-*`
+ColorInput's, TreeSelect's and Cascader's panels take the `--bulma-picker-popover-*` variables here. The `--bulma-picker-trigger-*`
 ones are the date and time pickers' launcher, which sits at the inline end, with the calendar or
 clock icon at the inline start, so both swap sides on a right-to-left page. ColorInput's swatch
 and launcher take the `--bulma-colorinput-*` variables in its own section, above. PasswordInput's
 show button stays on the physical right.
 
+`--bulma-picker-popover-months-max-width` caps the width of a panel showing several months, a
+DateRangeInput's with `monthsToShow`, past which the months wrap to a column.
+
 `--bulma-picker-popover-animation-duration`, `--bulma-picker-popover-background`,
-`--bulma-picker-popover-border-color`, `--bulma-picker-popover-offset`,
+`--bulma-picker-popover-border-color`, `--bulma-picker-popover-months-max-width`,
+`--bulma-picker-popover-offset`,
 `--bulma-picker-popover-padding`, `--bulma-picker-popover-radius`,
 `--bulma-picker-popover-shadow`, `--bulma-picker-popover-z-index`,
 `--bulma-picker-trigger-color`, `--bulma-picker-trigger-disabled-opacity`,

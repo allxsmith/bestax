@@ -23,6 +23,9 @@ colors). The `_index.scss` files are the authoritative inventory.
 - `_input-trigger.scss` — `extras-input-trigger`, a button laid over an input's right edge, which
   the date and time pickers' launcher and PasswordInput's toggle share; it reads Bulma's class
   prefix and variables, so it isn't in `_mixins.scss` either
+- `_select-field.scss` — `extras-select-field($name)`, the read-only field a tree picker opens its
+  panel from: the chevron and the clear button at its inline end and the room they keep, which
+  TreeSelect and Cascader share; it reads Bulma's class prefix and variables too
 - `_pulse.scss` — the pulse keyframes and the `extras-pulse` mixin that runs them, which Badge's
   halo and Tour's beacons share; a module of its own, so a build with both emits the keyframes once
 - `versions/` — the flavor builds: `bestax-prefixed`, `bestax-no-helpers`, `bestax-no-dark-mode`,

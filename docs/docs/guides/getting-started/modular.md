@@ -221,6 +221,7 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/form/colorinput';
 @use '@allxsmith/bestax-bulma/scss/form/passwordinput';
 @use '@allxsmith/bestax-bulma/scss/form/treeselect';
+@use '@allxsmith/bestax-bulma/scss/form/cascader';
 
 // bestax elements and helpers
 @use '@allxsmith/bestax-bulma/scss/elements/button' as bestax-button;
@@ -252,13 +253,13 @@ Some of these partials adjust a stock Bulma component rather than add one of bes
 
 - `components/menu` keeps a menu's active item marked in forced colors the same way, draws `Menu.Section`'s heading and chevron, and starts each item's text at the right on a right-to-left page, so a build that uses `bulma/sass/components/menu`, for a `Menu` or a `TableOfContents`, wants it too.
 
-- `components/navbar` keeps the burger's bars drawn in forced colors, keeps a `fixed` navbar in place while an overlay locks the page's scrolling, and draws a navbar in a colored `Hero` in the hero's colors, where Bulma's draws its active item and burger in the link color, so a build that uses `bulma/sass/components/navbar`, for a `Navbar` or an `AppFrame`'s burger, wants it too.
+- `components/navbar` keeps the burger's bars drawn in forced colors, keeps a `fixed` navbar in place while an overlay locks the page's scrolling, gives an active item's text the invert of the link color it sits on, where Bulma's leaves it in the navbar's text color, and draws a navbar in a colored `Hero` in the hero's colors, where Bulma's draws its active item and burger in the link color, so a build that uses `bulma/sass/components/navbar`, for a `Navbar` or an `AppFrame`'s burger, wants it too.
 
-- `components/panel` keeps the heading of a panel with no color readable on the dark scheme, where Bulma writes it white on light gray, and the text of a colored panel's active block and tab readable on both schemes, so a build that uses `bulma/sass/components/panel` wants it too.
+- `components/panel` keeps the heading of a panel with no color readable on the dark scheme, where Bulma writes it white on light gray, and a colored panel's active block and tab, their text, icon and underline, readable on both schemes, so a build that uses `bulma/sass/components/panel` wants it too.
 
 - `elements/delete` keeps close buttons drawn in forced colors, the delete button and the Modal's and delete tag's crosses, so a build that shows any close button wants it.
 
-- `elements/button` gives a focused button an outline where Bulma's border and shadow show nothing, on a ghost button and on every button in forced colors, and gives a colored button a border in forced colors, where Bulma draws it with none and the fill is replaced, so a build that uses `bulma/sass/elements/button` wants it too.
+- `elements/button` gives a focused button an outline where Bulma's border and shadow show nothing, on a ghost button and on every button in forced colors, gives a colored button a border in forced colors, where Bulma draws it with none and the fill is replaced, and gives an outlined button the lightness Bulma picks for its color's text on the page where that's lighter, so a dark color reads on the dark scheme, so a build that uses `bulma/sass/elements/button` wants it too.
 
 - `form/field` puts the `message` of a horizontal form component (`Input horizontal`, `Checkboxes horizontal` and the like) under its control, where Bulma's row would set it beside, and keeps a horizontal label's text against its control on a right-to-left page, so a build that uses `bulma/sass/form/tools` for horizontal fields wants it too.
 
@@ -285,6 +286,8 @@ Others draw on a stock Bulma component without adjusting it.
 - `form/passwordinput` lays its button over Bulma's input, so it wants `bulma/sass/form/input-textarea` as well.
 
 - `form/treeselect` opens a `components/treeview` in `form/picker-popover`, and its field, tags and clear button are Bulma's, so it wants those two, `form/checkbox` for the boxes, `bulma/sass/form/input-textarea`, `bulma/sass/elements/tag`, `bulma/sass/elements/delete` and `elements/delete` as well.
+
+- `form/cascader` opens its columns in `form/picker-popover`, and brings `form/combobox` with it, for its search and the values its items start from. Its items are Bulma's dropdown items, so it wants `form/picker-popover`, `bulma/sass/components/dropdown`, `bulma/sass/form/input-textarea`, `bulma/sass/elements/delete` and `elements/delete` for the field and its clear button, and `bulma/sass/elements/loader`, `elements/loader` and `bulma/sass/elements/button` for a column that's loading or failed to load.
 
 - `components/tour` draws a step's Skip, Back and Next with Bulma's buttons and its close button with a delete button, so a build that uses it wants `bulma/sass/elements/button`, `bulma/sass/elements/delete` and `elements/delete` too.
 

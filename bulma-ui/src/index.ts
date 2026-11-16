@@ -108,6 +108,7 @@ export * from './form/Rate';
 export * from './form/Autocomplete';
 export * from './form/Combobox';
 export * from './form/TreeSelect';
+export * from './form/Cascader';
 export * from './form/Taginput';
 export * from './form/ColorPicker';
 

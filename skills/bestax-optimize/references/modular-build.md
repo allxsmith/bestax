@@ -90,7 +90,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 `checkbox`, `checkboxcard`, `radio`, `radiocard`, `switch`, `slider`, `numberinput`, `pininput`,
 `rate`, `autocomplete`, `combobox`, `taginput`, `picker-popover`, `dateinput`, `timeinput`,
 `datetimeinput`, `daterangeinput`, `file`, `fieldset`, `field`, `dropzone`, `colorpicker`,
-`colorinput`, `passwordinput`, `treeselect`
+`colorinput`, `passwordinput`, `treeselect`, `cascader`
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `button`, `colorswatch`,
 `delete`, `descriptionlist`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`,
@@ -148,8 +148,9 @@ Notes:
 
 - The `navbar` partial **extends** stock Bulma navbar (it keeps the burger's bars in
   ButtonText in forced colors, where Chromium paints them in the page's Canvas color, keeps a
-  `fixed` navbar in place while an overlay locks the page's scrolling, and draws a navbar in a
-  colored `Hero` in the hero's colors, where Bulma's draws its active item and burger in the link
+  `fixed` navbar in place while an overlay locks the page's scrolling, gives an active item's
+  text the invert of the link color it sits on, where Bulma's leaves it in the navbar's text
+  color, and draws a navbar in a colored `Hero` in the hero's colors, where Bulma's draws its active item and burger in the link
   color), so an app using `Navbar` needs both, in either order. `AppFrame.Burger` renders `Navbar.Burger`, so a build with one
   wants this partial too:
 
@@ -159,8 +160,8 @@ Notes:
   ```
 
 - The `panel` partial **extends** stock Bulma panel (it keeps the heading of a panel with no
-  `color` readable on the dark scheme, where Bulma writes it white on light gray, and the text
-  of a colored panel's active block and tab readable on both schemes), so an app using `Panel` needs both,
+  `color` readable on the dark scheme, where Bulma writes it white on light gray, and a colored
+  panel's active block and tab, their text, icon and underline, readable on both schemes), so an app using `Panel` needs both,
   in either order:
 
   ```scss
@@ -213,6 +214,13 @@ Notes:
   `form/checkbox` for its boxes and `picker-popover` next to `treeselect`, with
   `bulma/sass/form/input-textarea`, `bulma/sass/elements/tag`, `bulma/sass/elements/delete` and
   `elements/delete` for the field, the tags and the clear button.
+- `Cascader` opens its columns in the pickers' popover, with a `Combobox` list for its search, and
+  its items are Bulma's dropdown items. Its partial brings `form/combobox` with it, for the search
+  and the values its items start from, so it needs `picker-popover` and
+  `bulma/sass/components/dropdown` next to `cascader`, with `bulma/sass/form/input-textarea`,
+  `bulma/sass/elements/delete` and `elements/delete` for the field and the clear button, and
+  `bulma/sass/elements/loader`, `elements/loader` and `bulma/sass/elements/button` for a column
+  that's loading or failed to load.
 - `PinInput`'s boxes are Bulma inputs, so an app using it needs `bulma/sass/form/input-textarea`
   next to `scss/form/pininput`, and `bulma/sass/form/tools` for the label and help text around it.
 - `Popover.Close` renders a Bulma button, so an app using it needs `bulma/sass/elements/button`
@@ -278,8 +286,9 @@ Notes:
   contrast themes) drops the shadow and sets the border's color, so a focused button can look
   like an unfocused one there. Forced colors also replaces a colored button's fill, which Bulma
   draws with no border, so an icon-only one shows only its glyph there. The `button` extras
-  partial gives those focused buttons an outline, and a colored button a 1px border in forced
-  colors, so include it (`as bestax-button`) in any build that loads Bulma's button module. Its
+  partial gives those focused buttons an outline, a colored button a 1px border in forced
+  colors, and an outlined button the lightness Bulma picks for its color's text on the page where
+  that's lighter, so a dark color reads on the dark scheme, so include it (`as bestax-button`) in any build that loads Bulma's button module. Its
   rules win over Bulma's either way, so the order of the `@use` lines does not matter.
 - `Stats` lays its row out on Bulma's smart grid (`.grid` and `is-col-min-*`), so a build with a
   `Stats` row wants `bulma/sass/grid/grid` beside the `stat` partial, which only resets the row's

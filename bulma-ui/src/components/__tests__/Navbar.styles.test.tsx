@@ -15,7 +15,18 @@ import { render } from '@testing-library/react';
 import { Navbar } from '../Navbar';
 import { Hero } from '../../layout/Hero';
 import { ConfigProvider } from '../../helpers/Config';
-import { cascade, customProperty } from '../../__tests__/css-cascade';
+import {
+  cascade,
+  customProperty,
+  rulesOf as styleRulesOf,
+} from '../../__tests__/css-cascade';
+import {
+  contrast,
+  schemesOf,
+  substitute,
+  varsOn,
+  type Vars,
+} from '../../__tests__/contrast';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 
@@ -254,6 +265,11 @@ describe('the burger bars on a forced-colors page', () => {
   });
 });
 
+// What Bulma works out on `.navbar` for its items' text, and what the
+// partial works out again on an active one.
+const ITEM_COLOR =
+  'hsl(var(--bulma-navbar-h), var(--bulma-navbar-s), var(--bulma-navbar-item-color-l))';
+
 // While an overlay locks the page, the window takes back the room the page's
 // scrollbar had and the lock sets it on <html>, so a fixed navbar takes it as
 // margins to stay over the page. With no lock each falls back to 0.
@@ -285,7 +301,7 @@ describe('the Navbar partial', () => {
     ['no prefix', ''],
     ['a class prefix', 'bestax-'],
   ])(
-    'keeps the burger in forced colors and a fixed navbar’s lock margins at no weight, with %s, naming only prefixed classes',
+    'keeps the burger in forced colors, and a fixed navbar’s lock margins and an active item’s text at no weight, with %s, naming only prefixed classes',
     (_label, prefix) => {
       const rules = rulesOf(compile(prefix));
       expect(
@@ -297,16 +313,17 @@ describe('the Navbar partial', () => {
           [],
         ],
       ]);
-      // The rest are the colored hero's navbar, at the top level but for the
-      // menu's rows under the burger and a bold hero's menu on a phone.
-      expect(rules.slice(2).map(rule => rule.context)).toEqual([
+      // Then the colored hero's navbar, at the top level but for the menu's
+      // rows under the burger and a bold hero's menu on a phone.
+      const hero = rules.slice(2, -1);
+      expect(hero.map(rule => rule.context)).toEqual([
         [],
         ['@media screen and (max-width: 1023px)'],
         ['@media screen and (max-width: 768px)'],
         [],
         [],
       ]);
-      for (const { selector } of rules.slice(2)) {
+      for (const { selector } of hero) {
         expect(selector).toMatch(
           new RegExp(
             `^(:where\\()?\\.${prefix}hero(\\.${prefix}is-bold)?:is\\(`
@@ -318,6 +335,15 @@ describe('the Navbar partial', () => {
         'background-color': 'ButtonText',
       });
       expect(rules[1].declarations).toEqual(LOCK_MARGINS);
+      // Last, an active item's text color, at no weight either.
+      const last = rules[rules.length - 1];
+      expect([last.selector, last.context]).toEqual([
+        `:where(a.${prefix}navbar-item, .${prefix}navbar-link):where(.${prefix}is-active, .${prefix}is-selected):where(:not([class^=${prefix}has-background-], [class*=" ${prefix}has-background-"]))`,
+        [],
+      ]);
+      expect(last.declarations).toEqual({
+        '--bulma-navbar-item-color': ITEM_COLOR,
+      });
       // A class written bare matches nothing in a prefixed build.
       const classes = rules.flatMap(({ selector }) =>
         Array.from(selector.matchAll(/\.(-?[_a-zA-Z][\w-]*)/g), m => m[1])
@@ -628,5 +654,282 @@ describe('a navbar in a colored hero', () => {
         ).toEqual([]);
       }
     });
+  });
+});
+
+// Bulma's `.is-active` and `.is-selected` set an item's `--bulma-navbar-h`,
+// `-s` and `-item-color-l` to the selected ones, and its background reads them
+// there, but its text reads `--bulma-navbar-item-color`, which Bulma works out
+// on `.navbar`. The item inherits that worked-out value, so it drew the
+// navbar's own text color on the link color (#1712). The partial works the
+// variable out again on the item. jsdom resolves no `var()` and inherits no
+// worked-out value, so this does: the navbar's value from the navbar's
+// variables, then the item's from its own, over that.
+describe('an active navbar item', () => {
+  const sheets = [
+    ['the partial after Bulma', '', 'bulma.css', true],
+    ['the partial before Bulma', '', 'bulma.css', false],
+    [
+      'a prefixed build, the partial after Bulma',
+      'bulma-',
+      'versions/bulma-prefixed.css',
+      true,
+    ],
+    [
+      'a prefixed build, the partial before Bulma',
+      'bulma-',
+      'versions/bulma-prefixed.css',
+      false,
+    ],
+  ] as const;
+
+  /**
+   * A navbar with active, selected and plain items, an active item with a
+   * background helper, an active tab, and a dropdown.
+   */
+  const navbarOf = (prefix: string, color?: 'primary' | 'link' | 'white') => {
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <Navbar aria-label="Site" color={color}>
+          <Navbar.Menu active>
+            <Navbar.Start>
+              <Navbar.Item href="#home" active>
+                Home
+              </Navbar.Item>
+              <Navbar.Item href="#docs" className={`${prefix}is-selected`}>
+                Docs
+              </Navbar.Item>
+              <Navbar.Item href="#plain">Plain</Navbar.Item>
+              <Navbar.Item href="#filled" active bgColor="white">
+                Filled
+              </Navbar.Item>
+              <Navbar.Item href="#tab" className={`${prefix}is-tab`} active>
+                Tab
+              </Navbar.Item>
+              <Navbar.Dropdown active>
+                <Navbar.Link className={`${prefix}is-active`}>More</Navbar.Link>
+                <Navbar.DropdownMenu>
+                  <Navbar.Item href="#inside" active>
+                    Inside
+                  </Navbar.Item>
+                </Navbar.DropdownMenu>
+              </Navbar.Dropdown>
+            </Navbar.Start>
+          </Navbar.Menu>
+        </Navbar>
+      </ConfigProvider>
+    );
+    const find = (selector: string) =>
+      container.querySelector(selector) as HTMLElement;
+    return {
+      navbar: find(`.${prefix}navbar`),
+      home: find('[href="#home"]'),
+      docs: find('[href="#docs"]'),
+      plain: find('[href="#plain"]'),
+      filled: find('[href="#filled"]'),
+      tab: find('[href="#tab"]'),
+      link: find(`.${prefix}navbar-link`),
+      inside: find('[href="#inside"]'),
+    };
+  };
+
+  // Each Bulma sheet's top-level rules, parsed once.
+  const parsed = new Map<string, CSSStyleRule[]>();
+  const bulmaRules = (file: string) => {
+    if (!parsed.has(file)) parsed.set(file, styleRulesOf(bulmaCss(file)).rules);
+    return parsed.get(file) as CSSStyleRule[];
+  };
+
+  const flat = (value: string) => value.replace(/\s+/g, ' ');
+  // jsdom drops the spaces in a custom property's value.
+  const bare = (value: string | undefined) => value?.replace(/\s+/g, '');
+
+  /**
+   * The text and the background of `item`, an active or selected link item, in
+   * `scheme`, from Bulma's sheet `bulmaFile` and the sheet `css` that links
+   * it. The item's own variables come from the rules of Bulma's that match it.
+   */
+  function drawn(
+    css: string,
+    bulmaFile: string,
+    prefix: string,
+    navbar: Element,
+    item: Element,
+    scheme: 'light' | 'dark'
+  ) {
+    const rules = bulmaRules(bulmaFile);
+    const navbarSelectors = new Set(
+      Array.from(navbar.classList, name => `.${prefix}navbar.${name}`).concat(
+        `.${prefix}navbar`
+      )
+    );
+    const onNavbar: Vars = {
+      ...schemesOf(rules)[scheme],
+      ...varsOn(rules, s => navbarSelectors.has(s)),
+    };
+    const onItem: Vars = {
+      ...onNavbar,
+      // Inherited as the navbar worked it out.
+      '--bulma-navbar-item-color': substitute(
+        onNavbar['--bulma-navbar-item-color'],
+        onNavbar
+      ),
+      ...varsOn(rules, s => matches(item, s)),
+    };
+    const own = customProperty(item, css, '--bulma-navbar-item-color');
+    if (own) onItem['--bulma-navbar-item-color'] = own;
+    return {
+      text: substitute('var(--bulma-navbar-item-color)', onItem),
+      // Bulma's background at rest, its delta 0% and its alpha 1 on an
+      // active item, which the pinned formula below holds it to.
+      background: substitute(
+        'hsl(var(--bulma-navbar-h), var(--bulma-navbar-s), var(--bulma-navbar-item-background-l))',
+        onItem
+      ),
+    };
+  }
+
+  it('draws on Bulma’s formulas for an item’s text and background', () => {
+    const css = flat(bulmaCss());
+    expect(css).toContain(
+      '.navbar-item, .navbar-link { color: var(--bulma-navbar-item-color);'
+    );
+    expect(css).toContain(
+      'a.navbar-item, .navbar-link { background-color: hsla(var(--bulma-navbar-h), var(--bulma-navbar-s), calc(var(--bulma-navbar-item-background-l) + var(--bulma-navbar-item-background-l-delta)), var(--bulma-navbar-item-background-a));'
+    );
+    expect(css).toContain('--bulma-navbar-item-background-l-delta: 0%;');
+    const { rules } = styleRulesOf(bulmaCss());
+    expect(varsOn(rules, 'a.navbar-item.is-active')).toMatchObject({
+      '--bulma-navbar-item-background-a': '1',
+      '--bulma-navbar-item-color-l':
+        'var(--bulma-navbar-item-selected-color-l)',
+    });
+    expect(bare(varsOn(rules, '.navbar')['--bulma-navbar-item-color'])).toBe(
+      bare(ITEM_COLOR)
+    );
+  });
+
+  describe.each(sheets)('with %s', (_order, prefix, bulmaFile, after) => {
+    const partial = compile(prefix);
+    const css = after
+      ? bulmaCss(bulmaFile) + partial
+      : partial + bulmaCss(bulmaFile);
+
+    it('works the text color out again on an active or selected item and link', () => {
+      const { home, docs, link, inside } = navbarOf(prefix);
+      for (const el of [home, docs, link, inside]) {
+        expect(bare(customProperty(el, css, '--bulma-navbar-item-color'))).toBe(
+          bare(ITEM_COLOR)
+        );
+      }
+    });
+
+    it('leaves an item that isn’t active, or whose fill a bgColor replaces, to inherit the navbar’s', () => {
+      // The helper's `!important` background replaces Bulma's selected fill,
+      // and the navbar's own text reads on it as it did.
+      const { plain, filled } = navbarOf(prefix);
+      expect(filled).toHaveClass(`${prefix}has-background-white`);
+      for (const el of [plain, filled]) {
+        expect(
+          customProperty(el, css, '--bulma-navbar-item-color')
+        ).toBeUndefined();
+      }
+    });
+
+    it.each(['light', 'dark'] as const)(
+      'draws an active or selected item’s and link’s text at 4.5:1 or better on the link color, on the %s scheme',
+      scheme => {
+        const { navbar, home, docs, link } = navbarOf(prefix);
+        for (const item of [home, docs, link]) {
+          const { text, background } = drawn(
+            css,
+            bulmaFile,
+            prefix,
+            navbar,
+            item,
+            scheme
+          );
+          expect(contrast(text, background)).toBeGreaterThanOrEqual(4.5);
+        }
+      }
+    );
+
+    it('leaves an active tab’s text to Bulma’s tab color, the link color', () => {
+      // The tab is an active link item too, so the variable is set on it, but
+      // Bulma's tab rule sets its `color` from a variable of its own.
+      const { navbar, tab } = navbarOf(prefix);
+      expect(
+        cascade(
+          tab,
+          css,
+          ['color'],
+          (declared, name) => declared.getPropertyValue(name) || undefined
+        )
+      ).toBe('var(--bulma-navbar-tab-active-color)');
+      expect(
+        varsOn(bulmaRules(bulmaFile), s => matches(navbar, s))[
+          '--bulma-navbar-tab-active-color'
+        ]
+      ).toBe('var(--bulma-link)');
+    });
+
+    it('still lets a value an app sets on an item win, wherever it loads', () => {
+      const { home } = navbarOf(prefix);
+      const app = `.${prefix}navbar-item.${prefix}is-active { --bulma-navbar-item-color: red; }`;
+      for (const sheet of [css + app, app + css]) {
+        expect(customProperty(home, sheet, '--bulma-navbar-item-color')).toBe(
+          'red'
+        );
+      }
+    });
+
+    it.each(['primary', 'link', 'white'] as const)(
+      'leaves the active item in a %s navbar as Bulma draws it',
+      color => {
+        // A colored navbar's selected color is its own invert, which its
+        // items already inherit, so the text comes out the same.
+        const { navbar, home } = navbarOf(prefix, color);
+        for (const scheme of ['light', 'dark'] as const) {
+          expect(drawn(css, bulmaFile, prefix, navbar, home, scheme).text).toBe(
+            drawn(bulmaCss(bulmaFile), bulmaFile, prefix, navbar, home, scheme)
+              .text
+          );
+        }
+      }
+    );
+  });
+
+  it('reads under 4.5:1 with Bulma alone, which is the bug', () => {
+    const { navbar, home } = navbarOf('');
+    for (const scheme of ['light', 'dark'] as const) {
+      const { text, background } = drawn(
+        bulmaCss(),
+        'bulma.css',
+        '',
+        navbar,
+        home,
+        scheme
+      );
+      expect(contrast(text, background)).toBeLessThan(4.5);
+    }
+  });
+
+  it('draws an active item inside a dropdown the same way, without a prefix', () => {
+    // In the prefixed build Bulma's rule for a dropdown's rows names
+    // `.is-active` and `.is-selected` without the prefix in its `:not()`, so
+    // it draws an active row as a plain one, in the dropdown's own colors.
+    const { navbar, inside } = navbarOf('');
+    const css = bulmaCss() + compile();
+    for (const scheme of ['light', 'dark'] as const) {
+      const { text, background } = drawn(
+        css,
+        'bulma.css',
+        '',
+        navbar,
+        inside,
+        scheme
+      );
+      expect(contrast(text, background)).toBeGreaterThanOrEqual(4.5);
+    }
   });
 });

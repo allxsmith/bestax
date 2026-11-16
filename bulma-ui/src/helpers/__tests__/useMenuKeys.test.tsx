@@ -645,4 +645,115 @@ describe('useMenuKeys', () => {
       expect(screen.getByRole('button', { name: 'Elsewhere' })).toHaveFocus();
     });
   });
+
+  describe('a list of another kind, disabled items reachable', () => {
+    /** A listbox with the hook's handler on it, its options reaching disabled ones. */
+    const List = ({ onPick }: { onPick: (name: string) => void }) => {
+      const keys = useMenuKeys({
+        itemSelector: '[role="option"]',
+        disabledReachable: true,
+      });
+      return (
+        <ul role="listbox" aria-label="Places" onKeyDown={keys.onKeyDown}>
+          {['Asia', 'Europe', 'Oceania'].map(name => (
+            <li
+              key={name}
+              role="option"
+              aria-selected={false}
+              aria-disabled={name === 'Europe' || undefined}
+              tabIndex={-1}
+              onClick={() => onPick(name)}
+            >
+              {name}
+            </li>
+          ))}
+          <li role="menuitem" tabIndex={-1}>
+            Not an option
+          </li>
+        </ul>
+      );
+    };
+    const option = (name: string) => screen.getByRole('option', { name });
+
+    it('moves through its options, disabled ones included, and only them', () => {
+      render(<List onPick={() => {}} />);
+      option('Asia').focus();
+      press('ArrowDown');
+      expect(option('Europe')).toHaveFocus();
+      press('End');
+      expect(option('Oceania')).toHaveFocus();
+      press('ArrowDown');
+      expect(option('Asia')).toHaveFocus();
+      press('e');
+      expect(option('Europe')).toHaveFocus();
+    });
+
+    it('activates an enabled option, and never a disabled one', () => {
+      const onPick = vi.fn();
+      render(<List onPick={onPick} />);
+      option('Europe').focus();
+      expect(press('Enter')).toBe(false);
+      expect(press(' ')).toBe(false);
+      expect(onPick).not.toHaveBeenCalled();
+      option('Oceania').focus();
+      press('Enter');
+      expect(onPick).toHaveBeenCalledWith('Oceania');
+    });
+
+    it('lets Space join a search it can extend with spaceJoinsSearch, and act otherwise', () => {
+      const onPick = vi.fn();
+      const States = ({ joins }: { joins: boolean }) => {
+        const keys = useMenuKeys({
+          itemSelector: '[role="option"]',
+          spaceJoinsSearch: joins,
+        });
+        return (
+          <ul role="listbox" aria-label="States" onKeyDown={keys.onKeyDown}>
+            {['Newark', 'New York', 'New Hampshire'].map(name => (
+              <li
+                key={name}
+                role="option"
+                aria-selected={false}
+                tabIndex={-1}
+                onClick={() => onPick(name)}
+              >
+                {name}
+              </li>
+            ))}
+          </ul>
+        );
+      };
+      const { unmount } = render(<States joins />);
+      option('Newark').focus();
+      for (const key of ['n', 'e', 'w', ' ', 'h']) {
+        expect(press(key)).toBe(false);
+      }
+      expect(option('New Hampshire')).toHaveFocus();
+      expect(onPick).not.toHaveBeenCalled();
+      advance(TYPEAHEAD_TIMEOUT);
+      press(' ');
+      expect(onPick).toHaveBeenCalledWith('New Hampshire');
+      // A search no item can extend with a space leaves Space to act.
+      press('n');
+      expect(option('Newark')).toHaveFocus();
+      press(' ');
+      expect(onPick).toHaveBeenLastCalledWith('Newark');
+      unmount();
+      onPick.mockClear();
+      // Without it, Space acts on the focused item mid-search, as a menu's does.
+      render(<States joins={false} />);
+      option('Newark').focus();
+      press('n');
+      press(' ');
+      expect(onPick).toHaveBeenCalledWith('New York');
+    });
+
+    it('leaves a key alone on an item of another kind', () => {
+      render(<List onPick={() => {}} />);
+      const other = screen.getByRole('menuitem', { name: 'Not an option' });
+      other.focus();
+      expect(press('ArrowDown')).toBe(true);
+      expect(other).toHaveFocus();
+    });
+  });
 });

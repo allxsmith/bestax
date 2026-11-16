@@ -78,6 +78,7 @@ const RENDER_WITH = {
   TableOfContents: () => ({ items: [] }),
   Toast: () => ({ inline: true }),
   TreeSelect: () => ({ data: [] }),
+  Cascader: () => ({ data: [] }),
 };
 
 /** Parts a server render cannot open, with why. */

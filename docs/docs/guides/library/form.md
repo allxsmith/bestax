@@ -300,6 +300,35 @@ A field whose options are a tree, such as a folder, a place or a team. It opens 
 
 ---
 
+### Cascader
+
+A field whose value sits at the end of a path, such as a city picked by continent, then country. It opens a column per level, shows the path in the field once it's shut, and takes the same `data` as `TreeSelect`.
+
+```tsx live
+<Cascader
+  label="City"
+  data={[
+    {
+      value: 'germany',
+      label: 'Germany',
+      children: [
+        { value: 'berlin', label: 'Berlin' },
+        { value: 'munich', label: 'Munich' },
+      ],
+    },
+    {
+      value: 'japan',
+      label: 'Japan',
+      children: [{ value: 'tokyo', label: 'Tokyo' }],
+    },
+  ]}
+/>
+```
+
+[View full documentation.](../../api/form/cascader)
+
+---
+
 ### Switch
 
 Toggle switch for on/off states. A styled checkbox that appears as a toggle, commonly used for settings.

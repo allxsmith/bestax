@@ -1236,6 +1236,12 @@
       "scope": "element"
     },
     {
+      "css": "--bulma-picker-popover-months-max-width",
+      "sass": "$picker-popover-months-max-width",
+      "default": "calc(100vw - 2rem)",
+      "scope": "element"
+    },
+    {
       "css": "--bulma-input-h",
       "sass": "$input-h",
       "default": "var(--bulma-scheme-h)",
