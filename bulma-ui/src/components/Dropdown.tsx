@@ -425,7 +425,13 @@ export type DropdownItemElement = 'a' | 'div' | 'button';
  * The DropdownItem component's own props.
  */
 export interface DropdownItemOwnProps extends BulmaClassesProps {
-  /** Whether the item is active. */
+  /**
+   * Marks the item as the current one. It adds Bulma's `is-active` class, and
+   * `aria-current="true"`, so assistive tech can tell which item is current
+   * too. An `aria-current` you pass wins, `false` and `undefined` included,
+   * so an item that says its state another way, such as a `menuitemradio`
+   * with `aria-checked`, takes `aria-current={false}`.
+   */
   active?: boolean;
   /** Additional CSS classes. */
   className?: string | undefined;
@@ -546,6 +552,11 @@ export const DropdownItem = ((itemProps: DropdownItemProps) => {
         className
       )}
       data-testid="dropdown-item"
+      // The current item, as Menu.Item and Navbar.Item mark theirs, with
+      // "true" rather than "page": a menu's items are actions more often than
+      // pages. Before the spread, so an `aria-current` the caller passes
+      // decides, `false` and `undefined` included.
+      aria-current={active ? 'true' : undefined}
       {...forwarded}
       // After `forwarded` for the same reason as `role` and `type` below: a
       // spread carrying `tabIndex: undefined` would otherwise erase the
