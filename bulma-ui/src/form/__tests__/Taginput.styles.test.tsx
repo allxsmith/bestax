@@ -8,7 +8,7 @@ import * as sass from 'sass';
 import fs from 'fs';
 import path from 'path';
 import type { ReactElement } from 'react';
-import { render } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 import { Taginput } from '../Taginput';
 import { Control } from '../Control';
 import { Field } from '../Field';
@@ -116,6 +116,94 @@ function declaredFor(css: string, el: Element, property: string): string[] {
   }
   return out;
 }
+
+/**
+ * The declarations of `properties` that the rules of `css` matching `el` make,
+ * in source order, split by whether they sit in the forced-colors block.
+ */
+function declaredByMode(css: string, el: Element, properties: string[]) {
+  const style = document.createElement('style');
+  style.textContent = css;
+  document.head.appendChild(style);
+  const out = { atRest: [] as string[], forced: [] as string[] };
+  const walk = (rules: CSSRuleList, forced: boolean) => {
+    for (const rule of Array.from(rules)) {
+      if (rule instanceof CSSStyleRule) {
+        if (!el.matches(rule.selectorText)) continue;
+        for (const property of properties) {
+          const value = rule.style.getPropertyValue(property);
+          if (value) {
+            (forced ? out.forced : out.atRest).push(`${property}: ${value}`);
+          }
+        }
+      } else if (rule instanceof CSSMediaRule) {
+        walk(
+          rule.cssRules,
+          forced || rule.conditionText.includes('forced-colors: active')
+        );
+      }
+    }
+  };
+  try {
+    walk((style.sheet as CSSStyleSheet).cssRules, false);
+  } finally {
+    style.remove();
+  }
+  return out;
+}
+
+// Forced colors takes away the open list's shadow and the highlighted
+// suggestion's fill, so the partial gives them an edge and an outline there,
+// and nothing at rest (#2003).
+describe.each([
+  ['no prefix', ''],
+  ['a class prefix', 'bestax-'],
+])('the open suggestion list in forced colors, with %s', (_n, prefix) => {
+  const css = sass.compileString(
+    `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+     @use 'form/taginput';`,
+    OPTIONS
+  ).css;
+  const OUTLINE = ['outline', 'outline-offset'];
+
+  const openList = () => {
+    const { getByRole, getAllByRole } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <Taginput label="Tags" data={['Apple', 'Apricot', 'Avocado']} />
+      </ConfigProvider>
+    );
+    const input = getByRole('combobox');
+    fireEvent.change(input, { target: { value: 'A' } });
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    const options = getAllByRole('option');
+    // The arrow put the highlight on the first suggestion.
+    expect(input).toHaveAttribute('aria-activedescendant', options[0].id);
+    return { list: getByRole('listbox'), options };
+  };
+
+  it('outlines the highlighted suggestion, and only it', () => {
+    const {
+      options: [highlighted, other],
+    } = openList();
+    expect(declaredByMode(css, highlighted, OUTLINE)).toEqual({
+      atRest: [],
+      forced: ['outline: 2px solid Highlight', 'outline-offset: -2px'],
+    });
+    expect(declaredByMode(css, other, OUTLINE)).toEqual({
+      atRest: [],
+      forced: [],
+    });
+  });
+
+  it('draws an edge around the open list', () => {
+    const { list } = openList();
+    expect(list).toHaveClass(`${prefix}dropdown-content`);
+    expect(declaredByMode(css, list, OUTLINE)).toEqual({
+      atRest: [],
+      forced: ['outline: 1px solid CanvasText', 'outline-offset: -1px'],
+    });
+  });
+});
 
 describe("a tag's remove button", () => {
   // The button comes after the tag's text, so its gap from the text belongs
