@@ -125,7 +125,7 @@
           "name": "defaultMonth",
           "type": "Date",
           "default": null,
-          "description": "The month on show to begin with, when the Calendar holds its own state. Unset, it's the month of `value` (a range's start), or else today's, moved inside `min` and `max`, and with `monthsToShow` the first month of a page they hold whole. On a server render today is the server's, so give this, `month` or a picked `value` there.",
+          "description": "The month on show to begin with, when the Calendar holds its own state. Unset, it's the month of `value` (a range's start), or else today's, kept inside `min` and `max`, and with `monthsToShow` moved back so the months on show end by `max`, though never before `min`'s month. On a server render today is the server's, so give this, `month` or a picked `value` there.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -206,7 +206,7 @@
           "name": "min",
           "type": "Date",
           "default": null,
-          "description": "Earliest day that can be picked. Days before it show disabled. One before year 1, or none, counts as the start of year 1.",
+          "description": "Earliest day that can be picked. Days before it show disabled, and a `value` before it opens on its month rather than the value's, unless `month` or `defaultMonth` says otherwise. One before year 1, or none, counts as the start of year 1.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -215,7 +215,7 @@
           "name": "max",
           "type": "Date",
           "default": null,
-          "description": "Latest day that can be picked. Days after it show disabled.",
+          "description": "Latest day that can be picked. Days after it show disabled, and a `value` after it opens on its month rather than the value's, as the last month on show with `monthsToShow`, unless `month` or `defaultMonth` says otherwise.",
           "required": false,
           "inherited": true,
           "deprecated": false
