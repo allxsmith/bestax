@@ -171,6 +171,32 @@ describe('Tour styles', () => {
     }
   });
 
+  it('fits a cover’s media to the step’s width, under its top corners', () => {
+    // The inside of the border, so no panel shows between the two.
+    const inner =
+      'calc(var(--bulma-tour-step-radius) - var(--bulma-tour-step-border-width))';
+    expect(find(PLAIN, '.tour-step-cover')).toEqual({
+      overflow: 'hidden',
+      'border-start-start-radius': inner,
+      'border-start-end-radius': inner,
+    });
+    expect(
+      find(
+        PLAIN,
+        '.tour-step-cover > img, .tour-step-cover > video, .tour-step-cover > picture, .tour-step-cover > picture > img'
+      )
+    ).toEqual({ display: 'block', width: '100%', height: 'auto' });
+  });
+
+  it('hides a footer whose parts all render nothing', () => {
+    expect(find(PLAIN, '.tour-step-footer:empty')).toEqual({
+      display: 'none',
+    });
+    expect(find(PREFIXED, '.bestax-tour-step-footer:empty')).toEqual({
+      display: 'none',
+    });
+  });
+
   it('prefixes every class it styles', () => {
     for (const rule of PREFIXED) {
       for (const cls of rule.selector.match(/\.[a-z][\w-]*/g) ?? []) {

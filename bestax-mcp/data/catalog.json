@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.71.0"
+    "version": "5.72.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -1604,10 +1604,10 @@
       "category": "components",
       "purpose": "The `Tour` component walks a user through an interface one step at a time, each step a panel pointing at an element with the rest of the page dimmed around it.",
       "slug": "components/tour",
-      "import": "import { Tour } from '@allxsmith/bestax-bulma';",
+      "import": "import { Tour, useTour } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 23,
-      "exampleCount": 7
+      "propCount": 85,
+      "exampleCount": 10
     },
     {
       "name": "TreeSelect",
@@ -4117,6 +4117,26 @@
       "purpose": "Container component for rendering programmatic toasts.",
       "standalone": "companion"
     },
+    "TourBack": {
+      "component": "Tour",
+      "path": "Tour.Back",
+      "purpose": "A `Button` to the step before, labelled `labels.back` unless it has children."
+    },
+    "TourNext": {
+      "component": "Tour",
+      "path": "Tour.Next",
+      "purpose": "A `Button` to the next step, labelled `labels.next`, or `labels.done` on the last step, where it finishes the tour, unless it has children."
+    },
+    "TourProgress": {
+      "component": "Tour",
+      "path": "Tour.Progress",
+      "purpose": "The progress line, \"Step 2 of 5\" by default, from `labels.progress`."
+    },
+    "TourSkip": {
+      "component": "Tour",
+      "path": "Tour.Skip",
+      "purpose": "A `Button` that ends the tour early, labelled `labels.skip` unless it has children."
+    },
     "TourStep": {
       "component": "Tour",
       "path": "Tour.Step",
@@ -4191,6 +4211,11 @@
       "component": "TableOfContents",
       "purpose": "`useScrollSpy` is what picks the current section, and it returns its id, or `null`.",
       "section": "The useScrollSpy Hook"
+    },
+    "useTour": {
+      "component": "Tour",
+      "purpose": "`useTour()` hands a component inside a step the current step's index as `value`, the `total`, and Next's, Back's and Skip's actions as `next`, `back` and…",
+      "section": "useTour"
     },
     "validColors": { "component": "Valid value constants", "purpose": "" },
     "validSizes": { "component": "Valid value constants", "purpose": "" },

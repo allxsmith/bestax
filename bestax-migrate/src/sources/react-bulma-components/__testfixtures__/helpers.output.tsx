@@ -25,7 +25,7 @@ export const Helpers = () => (
       Kitchen sink of helpers
     </Box>
     <Block
-      display="flex"
+      className="is-flex"
       justifyContent="center"
       alignItems="center"
       touch={{ display: 'block' }}

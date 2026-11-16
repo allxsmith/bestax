@@ -57,7 +57,9 @@ in place:
   string unions (`textSize={4}` → `textSize="4"`), and values are remapped
   (`textAlign="center"` → `"centered"`, `state="hover"` → `isHovered`).
 - **Responsive objects** — `mobile={{ size: 4 }}` flattens to `sizeMobile={4}`,
-  `tablet={{ display: 'flex' }}` to `displayTablet="flex"`, and so on.
+  `tablet={{ display: 'flex' }}` to `displayTablet="flex"`, and so on. A plain `display` beside
+  one stays its class (`display="flex" mobile={{ display: 'block' }}` → `className="is-flex"
+displayMobile="block"`), since bestax leaves `display` out beside a per-viewport display prop.
 - **Structure** — `Table.Container` folds into `isResponsive` on the `Table`, Navbar dropdown
   markup is restructured to bestax's `Navbar.Dropdown`/`Navbar.DropdownMenu` split, icon-font
   children become `<Icon name="…" library="…">` props, and `Menu.List title` becomes a
@@ -99,6 +101,7 @@ errors. The recurring cases:
 | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Element`, `Tile`                                                           | No bestax equivalent — use a semantic component; `Tile` → the [Grid](../../../api/grid/grid.md) components                                   |
 | `Dropdown value/onChange`, `Dropdown.Item value`                            | bestax Dropdown is compositional — own the selection state, `onClick` per item                                                               |
+| `Dropdown color`                                                            | it colored the trigger button, and bestax's Dropdown has no prop for that (its own `color` is the text color helper), so remove it           |
 | `touch` / `untilWidescreen` / `{ only: true }`                              | No bestax helper variants — use Bulma classes via `className`                                                                                |
 | Dynamic prop values (`state={x}`, `textSize={n}`)                           | Convert at the source of the expression                                                                                                      |
 | `Pagination` extras (`showFirstLast`, `autoHide`)                           | bestax Pagination always shows the first and last pages; render conditionally instead of `autoHide`                                          |

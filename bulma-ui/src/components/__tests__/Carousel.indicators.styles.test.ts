@@ -1,24 +1,25 @@
-// The colors the carousel draws its indicators in, resolved through the
-// variables a whole published sheet declares in each scheme, the way a
-// browser does, and measured (#1716). An indicator is a button whose fill is
-// all there is of it, a graphic, so it needs 3:1 against the page at rest, on
-// hover and while it's the current slide's. `extras.css` takes its colors
-// from the app's Bulma, so it is measured with Bulma's own. The overlay look
-// draws them over the slides instead, where the picture decides, so it isn't
-// measured here.
+// Carousel's indicators take Bulma's look: a resting dot, line or bar filled
+// in the border color, the border-hover color under the pointer, the current
+// one in the primary color, and a circle a ring in the border color, filled
+// when current. A dot, a line and a bar also have a ring a theme can color,
+// transparent by default, so outside forced colors it draws nothing over the
+// fill until then. These pin that look in each published sheet, and the rules
+// that draw it in the partial, with no prefix and under one.
 import { compileSheet } from '../../__tests__/compile-scss';
 import { bulmaCss, compilePartial, rulesOf } from '../../__tests__/css-cascade';
-import {
-  contrast,
-  schemesOf,
-  substitute,
-  varsOn,
-  type Vars,
-} from '../../__tests__/contrast';
+import { varsOn } from '../../__tests__/contrast';
 
-// A resting indicator's ring and its color under the pointer, and the
-// current one's fill. A resting one has no fill of its own.
-const STATES = ['border-color', 'border-color-hover', 'background-active'];
+/** The indicator variables each sheet declares on the carousel. */
+const DEFAULTS = {
+  '--bulma-carousel-indicator-background': 'var(--bulma-border)',
+  '--bulma-carousel-indicator-background-hover': 'var(--bulma-border-hover)',
+  '--bulma-carousel-indicator-background-active': 'var(--bulma-primary)',
+  '--bulma-carousel-indicator-border-color': 'transparent',
+  '--bulma-carousel-indicator-border-color-hover':
+    'var(--bulma-carousel-indicator-border-color)',
+  '--bulma-carousel-indicator-border-width': '2px',
+  '--bulma-carousel-indicator-line-border-width': '1px',
+};
 
 describe.each([
   ['bestax.css', '', () => compileSheet('bestax.scss')],
@@ -28,51 +29,27 @@ describe.each([
     () => compileSheet('versions/bestax-prefixed.scss'),
   ],
   [
-    'extras.css on Bulma’s own colors',
+    'extras.css on Bulma’s own CSS',
     '',
     () => bulmaCss() + compileSheet('extras.scss'),
   ],
-])('Carousel indicator contrast in %s', (_name, prefix, sheet) => {
-  let schemes: ReturnType<typeof schemesOf>;
-  let own: Vars;
+])('Carousel indicator defaults in %s', (_name, prefix, sheet) => {
   // A hook keeps Vitest's 10s default rather than `testTimeout`, and a whole
   // sheet can take longer than that to compile on a loaded machine.
+  let own: Record<string, string>;
   beforeAll(() => {
-    const { rules } = rulesOf(sheet());
-    schemes = schemesOf(rules);
-    // The variables the carousel declares on itself, over the page's.
-    own = varsOn(rules, `.${prefix}carousel`);
+    own = varsOn(rulesOf(sheet()).rules, `.${prefix}carousel`);
   }, 30_000);
 
-  it('draws an indicator at 3:1 against the page at rest, on hover and current, on both schemes', () => {
-    const failures: string[] = [];
-    for (const [scheme, page] of Object.entries(schemes)) {
-      const vars = { ...page, ...own };
-      const background = substitute('var(--bulma-scheme-main)', vars);
-      for (const state of STATES) {
-        const color = substitute(
-          `var(--bulma-carousel-indicator-${state})`,
-          vars
-        );
-        const ratio = contrast(color, background);
-        if (ratio < 3) {
-          failures.push(`${scheme}, ${state}: ${ratio.toFixed(2)}:1`);
-        }
-      }
-    }
-    expect(failures).toEqual([]);
+  it('fills the indicators in the border and primary colors, with a transparent ring', () => {
+    expect(own).toMatchObject(DEFAULTS);
   });
 });
 
-// A resting indicator is a ring in the resting color, and turns the hover
-// color under the pointer; the current one is filled in the current color.
-// The fill is the cue that isn't color, so forced colors, which replaces
-// fills, gets one of its own. The overlay look over the slides keeps its
-// white fills with no ring.
 describe.each([
   ['no prefix', ''],
   ['a prefix', 'bestax-'],
-])('Carousel indicator looks with %s', (_name, prefix) => {
+])('Carousel indicator rules with %s', (_name, prefix) => {
   const p = (name: string) => `.${prefix}${name}`;
   const { rules, nested } = rulesOf(
     compilePartial('components/carousel', prefix)
@@ -84,11 +61,12 @@ describe.each([
       .map(rule => rule.style.getPropertyValue(property))
       .find(Boolean);
   const item = `${p('carousel')} ${p('indicator-item')}`;
+  const circle = `${p('carousel')}${p('is-indicator-circles')} ${p('indicator-item')}`;
 
-  it('rings a resting indicator, on its own and as a Bulma button, over its own fill', () => {
+  it('fills a resting indicator, on its own and as a Bulma button, inside its ring', () => {
     for (const selector of [item, `${item}${p('button')}`]) {
-      expect(declared(selector, 'border')).toContain(
-        'var(--bulma-carousel-indicator-border-color)'
+      expect(declared(selector, 'border')).toBe(
+        'var(--bulma-carousel-indicator-border-width) solid var(--bulma-carousel-indicator-border-color)'
       );
       expect(declared(selector, 'background-color')).toBe(
         'var(--bulma-carousel-indicator-background)'
@@ -97,13 +75,36 @@ describe.each([
     expect(declared(`${item}:hover`, 'border-color')).toBe(
       'var(--bulma-carousel-indicator-border-color-hover)'
     );
+    // The fill and the scale move; the ring changes at once, as it always has.
+    expect(declared(item, 'transition')).toBe(
+      'background-color var(--bulma-carousel-transition-duration), transform var(--bulma-carousel-transition-duration)'
+    );
     expect(declared(`${item}:hover`, 'background-color')).toBe(
       'var(--bulma-carousel-indicator-background-hover)'
     );
   });
 
-  it('fills the current indicator, ring and all, in the current color', () => {
+  it('fills the current indicator in the current color, with no ring', () => {
     const current = `${item}${p('is-active')}`;
+    expect(declared(current, 'background-color')).toBe(
+      'var(--bulma-carousel-indicator-background-active)'
+    );
+    expect(declared(current, 'border-color')).toBe('transparent');
+  });
+
+  it('draws a circle as a ring in the border color, filled when current', () => {
+    // The ring's variable, at the carousel's own weight, so a theme that
+    // names the carousel's class with its own outranks it whatever order the
+    // sheets load in.
+    expect(
+      declared(
+        `${p('carousel')}:where(${p('is-indicator-circles')})`,
+        '--bulma-carousel-indicator-border-color'
+      )
+    ).toBe('var(--bulma-border)');
+    expect(declared(circle, 'border-color')).toBeUndefined();
+    expect(declared(circle, 'background-color')).toBe('transparent');
+    const current = `${circle}${p('is-active')}`;
     const fill = 'var(--bulma-carousel-indicator-background-active)';
     expect(declared(current, 'border-color')).toBe(fill);
     expect(declared(current, 'background-color')).toBe(fill);
@@ -120,10 +121,16 @@ describe.each([
     }
   });
 
-  it('leaves the ring off over the slides, in the overlay look', () => {
+  it('fills the indicators over the slides in the overlay colors, a ring on circles alone', () => {
+    const inside = `${p('carousel-indicator')}${p('is-inside')} ${p('indicator-item')}`;
+    const overlay = `${p('carousel')}${p('is-overlay')} ${inside}`;
+    expect(declared(overlay, 'background-color')).toBe(
+      'var(--bulma-carousel-overlay-indicator-background)'
+    );
+    expect(declared(overlay, 'border-color')).toBeUndefined();
     expect(
       declared(
-        `${p('carousel')}${p('is-overlay')} ${p('carousel-indicator')}${p('is-inside')} ${p('indicator-item')}`,
+        `${p('carousel')}${p('is-overlay')}:not(${p('is-indicator-circles')}) ${inside}`,
         'border-color'
       )
     ).toBe('transparent');

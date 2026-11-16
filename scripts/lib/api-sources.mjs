@@ -460,6 +460,7 @@ export const IMPORT_COMPANIONS = {
   ],
   TableOfContents: ['TableOfContents', 'useScrollSpy'],
   Toast: ['Toast', 'ToastContainer', 'toast'],
+  Tour: ['Tour', 'useTour'],
   Figure: ['Figure', 'FigureCaption'],
   ListItem: ['ListItem', 'UnorderedList', 'OrderedList'],
   Notification: ['Notification', 'NotificationContainer', 'notification'],
