@@ -4077,12 +4077,12 @@
     "TabItem": {
       "component": "Tabs",
       "path": "Tabs.Item",
-      "purpose": "Each tab; accepts `active`, `onClick`, etc."
+      "purpose": "A navigation tab: an `<li>` holding a link of your own, with an `href`."
     },
     "TabList": {
       "component": "Tabs",
       "path": "Tabs.List",
-      "purpose": "The `<ul>` container for tab items."
+      "purpose": "The `<ul role=\"tablist\">` that holds the `Tabs.Tab`s."
     },
     "TabsContent": {
       "component": "Tabs",
