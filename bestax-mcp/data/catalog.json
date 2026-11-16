@@ -2984,6 +2984,7 @@
       "TreeSelect"
     ],
     "--bulma-picker-popover-months-max-width": [
+      "Cascader",
       "ColorInput",
       "DateInput",
       "DateRangeInput",

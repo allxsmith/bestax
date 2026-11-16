@@ -397,7 +397,7 @@
           "name": "isOutlined",
           "type": "boolean",
           "default": "false",
-          "description": "Applies outlined styling (requires color).",
+          "description": "Applies outlined styling (requires color). On the dark scheme, bestax's stylesheets draw the label and border at the lightness Bulma picks for the color's text on the page wherever that's lighter, so a dark color reads there. On a surface that stays light on both schemes, give the surface Bulma's `theme-light` class (with the class prefix in a prefixed build), which keeps what's inside it on the light scheme's values.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -600,7 +600,7 @@
           "name": "isOutlined",
           "type": "boolean",
           "default": "false",
-          "description": "Applies outlined styling (requires color).",
+          "description": "Applies outlined styling (requires color). On the dark scheme, bestax's stylesheets draw the label and border at the lightness Bulma picks for the color's text on the page wherever that's lighter, so a dark color reads there. On a surface that stays light on both schemes, give the surface Bulma's `theme-light` class (with the class prefix in a prefixed build), which keeps what's inside it on the light scheme's values.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -803,7 +803,7 @@
           "name": "isOutlined",
           "type": "boolean",
           "default": "false",
-          "description": "Applies outlined styling (requires color).",
+          "description": "Applies outlined styling (requires color). On the dark scheme, bestax's stylesheets draw the label and border at the lightness Bulma picks for the color's text on the page wherever that's lighter, so a dark color reads there. On a surface that stays light on both schemes, give the surface Bulma's `theme-light` class (with the class prefix in a prefixed build), which keeps what's inside it on the light scheme's values.",
           "required": false,
           "inherited": true,
           "deprecated": false
