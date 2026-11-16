@@ -250,7 +250,7 @@ Some of these partials adjust a stock Bulma component rather than add one of bes
 
 - `elements/notification` keeps a `Notification`'s text clear of its close button, and gives a dark or light one its color's own text and background, and a white or black one with `isLight` the light color's text, where Bulma's module lets its text inherit the color around it, so a build that uses `bulma/sass/elements/notification` wants it too.
 
-- `elements/tag` gives a light tag, and a white, black or dark one with `isLight`, readable text the same way, and sets a normal-size tag in a table cell at the bottom of its line, where Bulma's baseline makes the row taller than a row of text, so a build that uses `bulma/sass/elements/tag` wants it too.
+- `elements/tag` gives a light tag, and a white, black or dark one with `isLight`, readable text the same way, sets a normal-size tag in a table cell at the bottom of its line, where Bulma's baseline makes the row taller than a row of text, and gives a button tag (`as="button"`, `isDelete`) the weight, spacing and other text a span tag takes from the text around it, where the browser gives a button its own, so a build that uses `bulma/sass/elements/tag` wants it too.
 
 - `components/pagination` draws the page links' keyboard focus ring, which Bulma's own styles turn off, and keeps the current page marked in forced colors (Windows' contrast themes), so a build that uses `bulma/sass/components/pagination`, for a `Pagination` or a `DataTable`'s pager, wants it too.
 
