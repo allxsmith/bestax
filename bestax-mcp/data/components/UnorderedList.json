@@ -30,7 +30,7 @@
       "code": "<Content>\n  <UnorderedList>\n    <UnorderedList.Item>First item</UnorderedList.Item>\n    <UnorderedList.Item>Second item</UnorderedList.Item>\n  </UnorderedList>\n</Content>"
     }
   ],
-  "accessibility": "- **List Structure:** Screen readers announce the list and the number of items, helping users understand the content structure.\n- **Semantic Markup:** Using proper `<ul>` and `<li>` elements ensures accessibility for all users.\n- **Nesting:** Properly nested lists maintain correct semantics for assistive technologies.\n\n:::info\nUse `UnorderedList` when the order of items is not significant. For ordered content, use `OrderedList`.\n:::",
+  "accessibility": "- **List Structure:** Screen readers announce the list and the number of items, helping users understand the content structure.\n- **Semantic Markup:** Using proper `<ul>` and `<li>` elements ensures accessibility for all users.\n- **Safari:** the `<ul>` renders `role=\"list\"`, the role it already has. Safari stops treating a\n  `<ul>` as a list once its bullets are hidden, and Bulma's reset hides them outside `Content`, so\n  writing the role out keeps the list and its item count for VoiceOver. A `role` you pass replaces\n  it.\n- **Nesting:** Properly nested lists maintain correct semantics for assistive technologies.\n\n:::info\nUse `UnorderedList` when the order of items is not significant. For ordered content, use `OrderedList`.\n:::",
   "related": ["Content", "ListItem", "OrderedList", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-unorderedlist--default",
   "summary": "The `UnorderedList` component renders a styled unordered list (`<ul>`) element with Bulma helper class integration.",
@@ -82,7 +82,17 @@
           "deprecated": false
         }
       ],
-      "extraProps": [],
+      "extraProps": [
+        {
+          "name": "role",
+          "type": "React.AriaRole",
+          "default": "'list'",
+          "description": "The list's role. It's `list`, the role a `<ul>` already has, written out because Safari stops treating a `<ul>` as a list once its bullets are hidden, and Bulma's reset hides them outside `Content`. A role you pass replaces it, such as `tablist` for a list of tabs.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
       "catchAll": "All standard <ul> attributes and Bulma helper props",
       "types": []
     },
