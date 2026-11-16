@@ -1052,6 +1052,9 @@ whatever these say.
 
 ### Sidebar
 
+In forced colors the panel's edge takes `CanvasText` and the close button's cross `ButtonText`,
+whatever `--bulma-sidebar-shadow` and `--bulma-sidebar-close-color` say.
+
 `--bulma-sidebar-background`, `--bulma-sidebar-close-color`,
 `--bulma-sidebar-close-hover-background`, `--bulma-sidebar-close-line-width`,
 `--bulma-sidebar-close-radius`, `--bulma-sidebar-close-size`, `--bulma-sidebar-content-padding`,
