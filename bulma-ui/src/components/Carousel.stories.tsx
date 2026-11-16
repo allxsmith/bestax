@@ -230,7 +230,8 @@ export const Autoplay: Story = {
     return (
       <Block p="5">
         <Paragraph mb="4" className="help">
-          Auto-advances every 3 seconds. Pause on hover.
+          Auto-advances every 3 seconds. Waits while the pointer is over it and
+          while focus is in it.
         </Paragraph>
         <Carousel autoplay interval={3000}>
           {heroColors.map((color, i) => (

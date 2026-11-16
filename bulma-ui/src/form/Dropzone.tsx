@@ -804,7 +804,10 @@ export const Dropzone = forwardRef<HTMLInputElement, DropzoneProps>(
           </p>
         )}
         {showFileList && files.length > 0 && (
-          <ul ref={listRef} className={pcn('dropzone-list')}>
+          // Bulma's reset hides a `<ul>`'s bullets, and WebKit stops treating
+          // a `<ul>` with hidden markers as a list unless the role is written
+          // out, so VoiceOver would read the files with no count.
+          <ul ref={listRef} className={pcn('dropzone-list')} role="list">
             {files.map((file, index) => (
               <li key={keyOf(file)} className={pcn('dropzone-item')}>
                 <span className={pcn('dropzone-name')}>{file.name}</span>

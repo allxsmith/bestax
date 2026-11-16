@@ -166,6 +166,60 @@ $tabs-content-padding: 1rem !default;
   }
 }
 
+// Forced colors (Windows' contrast themes)
+// Bulma marks the active tab with colors alone: a fill in the toggle style,
+// a link-colored label and underline in the plain one, a box in the boxed one,
+// and the vertical layout above adds a link-colored edge. Forced colors
+// replaces every one of those colors with the system's, and paints a
+// transparent border in the text color, so the active tab looks like every
+// other one. This draws a bar in Highlight, the system's color for a
+// selection, which Menu marks its active item in too, along the bottom of the
+// active tab, inside it. The bar is a pseudo-element's background, a system
+// color the browser keeps, rather than a fill of the tab, so the browser goes
+// on adjusting the tab and everything in it, its label, an icon and its focus
+// ring, to the user's colors. It runs along the bottom, short of the tab's
+// sides, and sits behind the label and the focus ring. It reads the links
+// Bulma highlights, so a link in an active Tabs.Item gets it too. Outside
+// forced colors none of this changes anything.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}tabs li.#{iv.$class-prefix}is-active a {
+    position: relative;
+    // The tab's own stacking context, so the bar's -1 puts it over the
+    // tab's background and under the rest, and the tab keeps its place
+    // among its neighbours.
+    isolation: isolate;
+
+    &::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      inset-inline: 1em;
+      bottom: 0;
+      height: 0.25em;
+      background-color: Highlight;
+    }
+  }
+
+  // A disabled tab is dimmed with opacity, which would dim a selected one's
+  // bar too, and the theme's colors with it. So a disabled tab is drawn at
+  // full strength in GrayText, the system's color for something disabled,
+  // and a selected one's bar with it. The doubled class outranks Bulma's
+  // toggle style, which colors the selected tab's label, wherever its CSS
+  // loads.
+  .#{iv.$class-prefix}tabs.#{iv.$class-prefix}tabs
+    li[role="tab"][aria-disabled="true"]
+    > a {
+    opacity: 1;
+    color: GrayText;
+  }
+
+  .#{iv.$class-prefix}tabs
+    li[role="tab"][aria-disabled="true"].#{iv.$class-prefix}is-active
+    > a::after {
+    background-color: GrayText;
+  }
+}
+
 // Mobile fallback — vertical tabs stack to horizontal. Bulma's mobile query,
 // which ends where its tablet query above starts, whatever `$tablet` a build
 // configures, so a width gets one layout or the other.

@@ -103,10 +103,10 @@ was given. A trio set at runtime leaves them as they were, so when a new color r
 darker than the built one, which a change of hue or saturation can do as well as a change of
 lightness, set them too:
 
-| Variable                  | What reads it                                                                                                                                                                                                    |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--bulma-<c>-invert-l`    | the label on a solid `<c>` surface: `Button`, `Tag` and `Notification` with `color="<c>"`, a colored `Hero` or `Navbar`, a colored `Steps`' completed mark, …                                                    |
-| `--bulma-<c>-on-scheme-l` | `<c>` text on the page: `textColor="<c>" colorShade="on-scheme"`, `textColor="<c>"` where it's lighter than the trio's, a colored `Message`'s body, a field's colored help text, `Timeline`'s colored markers, … |
+| Variable                  | What reads it                                                                                                                                                                      |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--bulma-<c>-invert-l`    | the label on a solid `<c>` surface: `Button`, `Tag` and `Notification` with `color="<c>"`, a colored `Hero` or `Navbar`, a colored `Steps`' completed mark, …                      |
+| `--bulma-<c>-on-scheme-l` | `<c>` text on the page: `textColor="<c>" colorShade="on-scheme"`, `textColor="<c>"` where it's lighter than the trio's, a colored `Message`'s body, a field's colored help text, … |
 
 For `link`, the on-scheme lightness is also every link on the page (`--bulma-link-text`), so a new
 link color that reads lighter than Bulma's own leaves the page's links pale.
@@ -959,6 +959,16 @@ DateRangeInput's with `monthsToShow`, past which the months wrap to a column.
 `--bulma-picker-trigger-color`, `--bulma-picker-trigger-disabled-opacity`,
 `--bulma-picker-trigger-hover-color`, `--bulma-picker-trigger-width`
 
+### A panel's shift at a corner (Popover / HoverCard / Combobox / the pickers)
+
+`--bulma-anchored-shift` is how far the component moves a panel in place sideways, from its
+corner's edge, so it doesn't run past the viewport. The component writes it on the panel itself,
+0 while the panel fits, and the corner rules add it to the corner's edge. It isn't for a theme to
+set: a value set on a panel is replaced, and a theme that places a panel by its own rules leaves
+it out.
+
+`--bulma-anchored-shift`
+
 ### Popover
 
 All are declared on the panel, `.popover-content`, so a panel rendered with `appendToBody` keeps
@@ -1051,6 +1061,10 @@ whatever these say.
 `--bulma-scroll-area-track-color`
 
 ### Sidebar
+
+In forced colors a sidebar other than a static one gets a `CanvasText` edge in place of
+`--bulma-sidebar-shadow`, and the close button's cross takes `CanvasText`, or `GrayText` when the
+button is `disabled` or `aria-disabled`, whatever `--bulma-sidebar-close-color` says.
 
 `--bulma-sidebar-background`, `--bulma-sidebar-close-color`,
 `--bulma-sidebar-close-hover-background`, `--bulma-sidebar-close-line-width`,
@@ -1198,10 +1212,10 @@ Declared on the root, `.timeline`. The states and the color classes set
 and `--bulma-timeline-active-color` rather than those two. `--bulma-timeline-marker-background`
 fills the upcoming rings and the pending loader, and a reached icon marker's tint is mixed into
 it. It's the page's color by default, so it hides the line behind them. A record's icon circles
-take `--bulma-timeline-marker-icon-background`, which the color classes set. A color class, and
-the default progress color, read the color's hue, saturation and `--bulma-<c>-on-scheme-l`, so a
-new trio for that color wants its on-scheme lightness too. Every size is in `em`, so `textSize`
-scales them all.
+take `--bulma-timeline-marker-icon-background`, which the color classes set. An upcoming icon is
+drawn in `--bulma-text-weak`, not `--bulma-timeline-marker-icon-color`. A color class, and the default progress color, read the color's hue,
+saturation and lightness, so a Theme that sets them around the timeline reaches it. Every size is
+in `em`, so `textSize` scales them all.
 
 `--bulma-timeline-active-color`, `--bulma-timeline-content-gap`, `--bulma-timeline-dot-size`,
 `--bulma-timeline-gap`, `--bulma-timeline-halo-offset`, `--bulma-timeline-line-color`,
@@ -1214,15 +1228,17 @@ scales them all.
 `--bulma-timeline-time-color`, `--bulma-timeline-time-size`, `--bulma-timeline-title-color`,
 `--bulma-timeline-title-weight`
 
-In a colored `Notification` or `Hero`, a timeline with no color sets its neutral, active and icon
-colors to the surface's text color and its marker and icon backgrounds to the surface's
-background, and in a colored Hero any timeline sets its title and time colors to the Hero's text
-color, unless it's on a Box, a Card, a Message or a Modal there, or in a
-Notification inside the
-Hero. To retheme one there, set these on the timeline
-itself, through its `style` or a class loaded after bestax's stylesheet, or give it a `color`.
+In a colored `Hero`, a timeline with no color sets its neutral, active and icon colors to the
+Hero's text color and its marker and icon backgrounds to the Hero's background, and draws an
+upcoming icon in its neutral color, and any timeline sets its title and time colors to the Hero's
+text color, unless it's on a Box, a Card, a Message, a Modal or a Notification there. To retheme
+one there, set these on the timeline itself, through its `style` or a class loaded after bestax's
+stylesheet, or give it a `color`.
 
 ### Toast
+
+Forced colors drop the toast's shadow and repaint its fill in the system's `Canvas`, so there the
+toast takes a one pixel `CanvasText` edge, and the cancel button's text is drawn at full strength.
 
 `--bulma-toast-action-hover-opacity`, `--bulma-toast-action-radius`,
 `--bulma-toast-action-weight`, `--bulma-toast-animation-duration`, `--bulma-toast-background`,
