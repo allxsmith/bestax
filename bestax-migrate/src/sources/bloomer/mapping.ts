@@ -333,7 +333,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
   Tag: {
     status: 'mapped',
     target: 'Tag',
-    props: { isColor: color, isSize: size },
+    props: { isColor: color, isSize: size, tag: TAG_AS },
   },
   // bestax's `Title.size` accepts the numbers 1–6 as well as their string
   // forms, but it also picks the heading level, which bloomer's `isSize`
