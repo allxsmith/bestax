@@ -16,8 +16,9 @@
  * them out: their fences pair another library's markup, whose `Modal` isn't
  * this one, with what the codemod writes for it.
  *
- * A modal passes when it has `modalCardTitle`, `aria-label` or
- * `aria-labelledby` with a value, or a spread, which this can't see into.
+ * A modal passes when it has `aria-label` or `aria-labelledby` with a value,
+ * or `modalCardTitle` while it's drawn as a card, or a spread, which this
+ * can't see into.
  *
  * Each source is parsed with TypeScript as a `.tsx` file and nothing is
  * compiled, so a fence that is only a fragment still reads.
@@ -65,7 +66,7 @@ function sourcesOf(rel) {
 
 /**
  * Whether an attribute holds a value: a string that isn't empty, or an
- * expression other than `undefined` or `null`.
+ * expression other than `undefined`, `null` or `false`.
  */
 function holdsValue(prop) {
   const value = prop.initializer;
@@ -78,13 +79,31 @@ function holdsValue(prop) {
   }
   return !(
     expr.kind === ts.SyntaxKind.NullKeyword ||
+    expr.kind === ts.SyntaxKind.FalseKeyword ||
     (ts.isIdentifier(expr) && expr.text === 'undefined')
+  );
+}
+
+/**
+ * Whether a modal is drawn as `.modal-content`, which renders no card head,
+ * so `modalCardTitle` has nothing to name it with (#1947).
+ */
+function drawnAsContent(attributes) {
+  return attributes.properties.some(
+    prop =>
+      !ts.isJsxSpreadAttribute(prop) &&
+      prop.name.getText() === 'type' &&
+      prop.initializer !== undefined &&
+      ts.isStringLiteral(prop.initializer) &&
+      prop.initializer.text === 'content'
   );
 }
 
 /** Whether a dialog component's attributes give it a name. */
 function named(tag, attributes) {
-  const names = [...NAMING[tag], ...ARIA];
+  const names = [...NAMING[tag], ...ARIA].filter(
+    name => name !== 'modalCardTitle' || !drawnAsContent(attributes)
+  );
   return attributes.properties.some(
     prop =>
       ts.isJsxSpreadAttribute(prop) ||
@@ -155,6 +174,13 @@ describe('Modal in the examples', () => {
       ['<Modal active aria-label={undefined}>x</Modal>', false],
       ['<Modal active aria-labelledby={null}>x</Modal>', false],
       ['<Modal active title="Edit">x</Modal>', false],
+      ['<Modal active modalCardTitle={false}>x</Modal>', false],
+      ['<Modal active type="content" modalCardTitle="Edit">x</Modal>', false],
+      [
+        '<Modal active type="content" modalCardTitle="Edit" aria-label="Edit">x</Modal>',
+        true,
+      ],
+      ['<Modal active type="card" modalCardTitle="Edit">x</Modal>', true],
     ];
     // Every shape the rule gets wrong, so a failure names all of them.
     const wrong = verdicts
