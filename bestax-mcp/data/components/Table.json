@@ -11,7 +11,7 @@
     },
     {
       "title": "All Modifiers",
-      "code": "<Table isBordered isStriped isNarrow isHoverable isFullwidth isResponsive>\n  <Thead>\n    <Tr>\n      <Th>Column 1</Th>\n      <Th>Column 2</Th>\n    </Tr>\n  </Thead>\n  <Tbody>\n    <Tr>\n      <Td>Cell 1</Td>\n      <Td>Cell 2</Td>\n    </Tr>\n    <Tr>\n      <Td>Cell 3</Td>\n      <Td>Cell 4</Td>\n    </Tr>\n  </Tbody>\n</Table>"
+      "code": "<Table\n  isBordered\n  isStriped\n  isNarrow\n  isHoverable\n  isFullwidth\n  isResponsive\n  aria-label=\"Every modifier\"\n>\n  <Thead>\n    <Tr>\n      <Th>Column 1</Th>\n      <Th>Column 2</Th>\n    </Tr>\n  </Thead>\n  <Tbody>\n    <Tr>\n      <Td>Cell 1</Td>\n      <Td>Cell 2</Td>\n    </Tr>\n    <Tr>\n      <Td>Cell 3</Td>\n      <Td>Cell 4</Td>\n    </Tr>\n  </Tbody>\n</Table>"
     },
     {
       "title": "Responsive Table (horizontal scroll on mobile)",

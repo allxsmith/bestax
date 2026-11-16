@@ -77,7 +77,15 @@ To create a basic table, use the `Table` component along with its subcomponents:
 Showcase the full range of table customization by combining multiple props on the `Table` component. Use `isBordered` to add borders, `isStriped` for zebra-striping, `isNarrow` for compact cells, `isHoverable` for row hover effects, `isFullwidth` to stretch the table to its container, and `isResponsive` for horizontal scrolling on small screens. These modifiers can be mixed and matched to achieve the exact look and behavior you need.
 
 ```tsx live
-<Table isBordered isStriped isNarrow isHoverable isFullwidth isResponsive>
+<Table
+  isBordered
+  isStriped
+  isNarrow
+  isHoverable
+  isFullwidth
+  isResponsive
+  aria-label="Every modifier"
+>
   <Thead>
     <Tr>
       <Th>Column 1</Th>
