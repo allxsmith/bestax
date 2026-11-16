@@ -663,6 +663,16 @@ describe('get_props', () => {
     }
   );
 
+  it('marks the props a caller must pass, as the API pages do (#1754)', async () => {
+    const rows = text(await call('get_props', { component: 'Dropdown' }))
+      .split('\n')
+      .filter(l => l.startsWith('| `'));
+    const row = (name: string) =>
+      rows.find(r => r.startsWith(`| \`${name}\` |`));
+    expect(row('label')).toMatch(/\| \*\*Required\.\*\* The dropdown/);
+    expect(row('className')).not.toContain('Required');
+  });
+
   it('returns a compound subcomponent by dot-path', async () => {
     const out = text(
       await call('get_props', { component: 'Navbar', path: 'Navbar.Brand' })

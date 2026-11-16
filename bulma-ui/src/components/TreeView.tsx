@@ -172,10 +172,10 @@ export interface TreeViewItemProps extends Omit<
   React.LiHTMLAttributes<HTMLLIElement>,
   'role' | 'value' | 'onSelect' | 'children'
 > {
-  /** **Required.** Identifies the item in `selected`, `checked` and `expanded`. Unique in the tree. */
+  /** Identifies the item in `selected`, `checked` and `expanded`. Unique in the tree. */
   value: string;
   /**
-   * **Required.** What the row shows, and the item's name for assistive
+   * What the row shows, and the item's name for assistive
    * tech. Nothing in it should be a link or a button: a tree item does one
    * thing, and nothing else in its row takes focus.
    */

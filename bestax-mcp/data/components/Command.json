@@ -430,7 +430,7 @@
           "type": "React.ReactNode",
           "default": null,
           "description": "The heading, which also names the group for assistive tech, unless you give the group an `aria-label` or `aria-labelledby` of its own.",
-          "required": false,
+          "required": true,
           "inherited": false,
           "deprecated": false
         },
@@ -467,7 +467,7 @@
           "type": "string",
           "default": null,
           "description": "What the Command's `onSelect` hands back. Unique within the Command.",
-          "required": false,
+          "required": true,
           "inherited": false,
           "deprecated": false
         },

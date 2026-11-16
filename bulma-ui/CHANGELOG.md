@@ -1,3 +1,10 @@
+## [5.73.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.73.2...@allxsmith/bestax-bulma@5.73.3) (2026-11-16)
+
+
+### Bug Fixes
+
+* **bulma-ui:** fill a right-to-left Rate's half star from the side the pointer reads ([6a1133f](https://github.com/allxsmith/bestax/commit/6a1133f40e02a811276aa88cbc2e79e05d30cdd5)), closes [#1825](https://github.com/allxsmith/bestax/issues/1825)
+
 ## [5.73.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.73.1...@allxsmith/bestax-bulma@5.73.2) (2026-11-16)
 
 
