@@ -104,6 +104,28 @@ export const DangerBodyOnly: StoryObj<MessageProps> = {
   },
 };
 
+// ----- DISMISSIBLE -----
+export const Dismissible: StoryObj<MessageProps> = {
+  args: {
+    color: 'info',
+    title: 'Dismissible',
+    onClose: () => {},
+    children: declarationLatin,
+  },
+};
+
+// The close button is drawn as an icon, so its name is all a screen reader
+// says about it. Here it's in the language of the message.
+export const DismissibleWithCloseLabel: StoryObj<MessageProps> = {
+  args: {
+    color: 'info',
+    title: 'Avis',
+    onClose: () => {},
+    ariaCloseLabel: 'Fermer le message',
+    children: declarationLatin,
+  },
+};
+
 // ----- STORIES PER SIZE -----
 export const DefaultSize: StoryObj<MessageProps> = {
   args: {
