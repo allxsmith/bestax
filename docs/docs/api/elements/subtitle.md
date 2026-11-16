@@ -49,7 +49,9 @@ A basic `SubTitle` renders a secondary heading. Use this for subheadings or supp
 Set the `hasSkeleton` prop to apply a skeleton effect to part of the subtitle, useful for partial loading states.
 
 ```tsx live
-<SubTitle hasSkeleton>SubTitle with Skeleton Effect</SubTitle>
+<SubTitle hasSkeleton aria-hidden="true">
+  SubTitle with Skeleton Effect
+</SubTitle>
 ```
 
 `hasSkeleton` will only turn a small part of the content into a skeleton, typically for partial loading effects.
@@ -59,7 +61,9 @@ Set the `hasSkeleton` prop to apply a skeleton effect to part of the subtitle, u
 Set the `skeleton` prop to apply a skeleton effect to the entire subtitle, indicating that the whole heading is loading.
 
 ```tsx live
-<SubTitle skeleton>SubTitle Skeleton Effect</SubTitle>
+<SubTitle skeleton aria-hidden="true">
+  SubTitle Skeleton Effect
+</SubTitle>
 ```
 
 `skeleton` applies the `is-skeleton` class to the entire subtitle, making the whole heading appear as a skeleton placeholder.

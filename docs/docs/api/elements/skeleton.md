@@ -220,8 +220,8 @@ A textarea with a skeleton loader, useful for simulating multi-line text input l
 - **Controls still take the keyboard:** Bulma's skeleton stops the pointer and not the keyboard, so
   a `Button` with the `skeleton` prop is still reached with Tab and pressed with Enter. Give a
   skeleton control, and anything focusable inside a skeleton, `tabIndex={-1}` as well as
-  `aria-hidden="true"`, so nothing reaches it while it loads and nothing hidden takes focus. Its
-  look doesn't change, where `disabled` would draw it faded.
+  `aria-hidden="true"`, so Tab passes it by and a screen reader skips it. Its look doesn't change,
+  where `disabled` would draw it faded.
 - **Say that it's loading:** `Skeleton` has no role, and ARIA doesn't allow a name on its `<div>`,
   so don't give it an `aria-label`. Set `aria-busy="true"` on the region it stands in for, and
   remove it when the content arrives, swapping the skeleton for the content as soon as it's there.
@@ -276,13 +276,13 @@ The following components support the `skeleton` property for Bulma skeleton load
 
 <!-- bestax:generated props -->
 
-| Prop        | Type                            | Default   | Description                                        |
-| ----------- | ------------------------------- | --------- | -------------------------------------------------- |
-| `className` | `string`                        | —         | Additional CSS classes to apply                    |
-| `variant`   | `'block'` \| `'lines'`          | `'block'` | Skeleton variant: block (single block) or lines.   |
-| `lines`     | `number`                        | `3`       | Number of lines (only for `lines` variant).        |
-| `children`  | `React.ReactNode`               | —         | Content inside the block (only for block variant). |
-| `...`       | All standard `<div>` attributes | —         |                                                    |
+| Prop        | Type                            | Default   | Description                                                                                                                                                              |
+| ----------- | ------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `className` | `string`                        | —         | Additional CSS classes to apply                                                                                                                                          |
+| `variant`   | `'block'` \| `'lines'`          | `'block'` | Skeleton variant: block (single block) or lines.                                                                                                                         |
+| `lines`     | `number`                        | `3`       | Number of lines (only for `lines` variant).                                                                                                                              |
+| `children`  | `React.ReactNode`               | —         | Content inside the block (only for block variant). Bulma hides it, but a screen reader still reads it, so give a block that holds placeholder text `aria-hidden="true"`. |
+| `...`       | All standard `<div>` attributes | —         |                                                                                                                                                                          |
 
 <!-- /bestax:generated props -->
 

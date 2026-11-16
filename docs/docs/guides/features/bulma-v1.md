@@ -190,7 +190,7 @@ function SkeletonExamples() {
 
   return (
     <Box p="4">
-      <Title hasSkeleton={loading} aria-hidden={loading || undefined}>
+      <Title hasSkeleton={loading}>
         {loading ? 'Loading...' : 'Content Loaded!'}
       </Title>
 

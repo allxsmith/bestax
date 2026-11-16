@@ -49,7 +49,9 @@ A basic `Title` renders a prominent heading. Use this for main section or page t
 Set the `hasSkeleton` prop to apply a skeleton effect to part of the title, useful for partial loading states.
 
 ```tsx live
-<Title hasSkeleton>Title with Skeleton Effect</Title>
+<Title hasSkeleton aria-hidden="true">
+  Title with Skeleton Effect
+</Title>
 ```
 
 `hasSkeleton` will only turn a small part of the content into a skeleton, typically for partial loading effects.
@@ -59,7 +61,9 @@ Set the `hasSkeleton` prop to apply a skeleton effect to part of the title, usef
 Set the `skeleton` prop to apply a skeleton effect to the entire title, indicating that the whole heading is loading.
 
 ```tsx live
-<Title skeleton>Title Skeleton Effect</Title>
+<Title skeleton aria-hidden="true">
+  Title Skeleton Effect
+</Title>
 ```
 
 `skeleton` applies the `is-skeleton` class to the entire title, making the whole heading appear as a skeleton placeholder.
