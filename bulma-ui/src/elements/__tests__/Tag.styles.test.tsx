@@ -322,3 +322,88 @@ describe('a Tag in a table cell', () => {
     });
   });
 });
+
+// A tag rendered as a button takes the text a span takes from the text around
+// it, not the browser's own for a button: its weight, style, spacing,
+// transform, indent, shadow and alignment (#1841). Chromium's computed styles
+// matched a span tag's for a link and a button tag, in both builds and
+// schemes, once these held.
+describe('a Tag rendered as a button', () => {
+  const TEXT_PROPERTIES = [
+    'font-feature-settings',
+    'font-kerning',
+    'font-language-override',
+    'font-optical-sizing',
+    'font-palette',
+    'font-size-adjust',
+    'font-stretch',
+    'font-style',
+    'font-synthesis',
+    'font-variant',
+    'font-variation-settings',
+    'font-weight',
+    'letter-spacing',
+    'text-align',
+    'text-indent',
+    'text-rendering',
+    'text-shadow',
+    'text-transform',
+    'word-spacing',
+  ];
+
+  describe.each([
+    ['the partial after Bulma', '', () => bulmaCss() + compile()],
+    ['the partial before Bulma', '', () => compile() + bulmaCss()],
+    [
+      'a prefixed build',
+      'bulma-',
+      () => bulmaCss('versions/bulma-prefixed.css') + compile('bulma-'),
+    ],
+  ])('with %s', (_order, prefix, sheet) => {
+    const css = sheet();
+    const valueOf = (el: Element, property: string) =>
+      cascade(
+        el,
+        css,
+        [property],
+        (style, name) => style.getPropertyValue(name) || undefined
+      );
+    const tagOfProps = (props: TagProps) =>
+      tagIn(
+        render(
+          <ConfigProvider classPrefix={prefix}>
+            <Tag {...props} />
+          </ConfigProvider>
+        ).container,
+        prefix
+      );
+
+    it.each(TEXT_PROPERTIES)('takes %s from the text around it', property => {
+      const el = tagOfProps({ as: 'button', children: 'Filter' });
+      expect(el.tagName).toBe('BUTTON');
+      expect(valueOf(el, property)).toBe('inherit');
+    });
+
+    it('does the same for a delete tag', () => {
+      const el = tagOfProps({ isDelete: true });
+      expect(valueOf(el, 'font-weight')).toBe('inherit');
+    });
+
+    it('sets none of them on a span or a link tag', () => {
+      const partial = compile(prefix);
+      for (const as of ['span', 'a'] as const) {
+        const el = tagOfProps({ as, href: '#topic', children: 'Topic' });
+        for (const property of TEXT_PROPERTIES) {
+          expect(
+            cascade(
+              el,
+              partial,
+              [property],
+              (style, name) => style.getPropertyValue(name) || undefined
+            )
+          ).toBeUndefined();
+        }
+      }
+    });
+  });
+});
