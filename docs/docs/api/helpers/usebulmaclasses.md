@@ -836,28 +836,36 @@ On `Image`, use its own `size` ratios instead, which also fit the picture to the
 
 ### Skeleton Examples
 
-The `skeleton` prop applies Bulma's skeleton loading effect. [Skeleton's accessibility notes](../elements/skeleton.md#accessibility) cover it too, reduced motion and forced colors included. Here are examples for each component:
+The `skeleton` prop applies Bulma's skeleton loading effect. [Skeleton's accessibility notes](../elements/skeleton.md#accessibility) cover it too, reduced motion and forced colors included: hide a skeleton's text from screen readers and disable a skeleton control. Here are examples for each component:
 
 #### Skeleton Button
 
 ```tsx live
-<Button skeleton>Skeleton Button</Button>
+<Button skeleton isDisabled>
+  Skeleton Button
+</Button>
 ```
 
 #### Skeleton Buttons Group
 
 ```tsx live
 <Buttons>
-  <Button skeleton>Skeleton</Button>
-  <Button skeleton>Skeleton</Button>
-  <Button skeleton>Skeleton</Button>
+  <Button skeleton isDisabled>
+    Skeleton
+  </Button>
+  <Button skeleton isDisabled>
+    Skeleton
+  </Button>
+  <Button skeleton isDisabled>
+    Skeleton
+  </Button>
 </Buttons>
 ```
 
 #### Skeleton Icon
 
 ```tsx live
-<Icon name="star" skeleton ariaLabel="Star icon skeleton" />
+<Icon name="star" skeleton />
 ```
 
 #### Skeleton Image
@@ -869,19 +877,23 @@ The `skeleton` prop applies Bulma's skeleton loading effect. [Skeleton's accessi
 #### Skeleton Notification
 
 ```tsx live
-<Notification skeleton>Skeleton notification message.</Notification>
+<Notification skeleton aria-hidden="true">
+  Skeleton notification message.
+</Notification>
 ```
 
 #### Skeleton Tag
 
 ```tsx live
-<Tag skeleton>Skeleton Tag</Tag>
+<Tag skeleton aria-hidden="true">
+  Skeleton Tag
+</Tag>
 ```
 
 #### Skeleton Title
 
 ```tsx live
-<Title skeleton size="2">
+<Title skeleton aria-hidden="true" size="2">
   Skeleton Title
 </Title>
 ```
@@ -889,7 +901,7 @@ The `skeleton` prop applies Bulma's skeleton loading effect. [Skeleton's accessi
 #### Skeleton SubTitle
 
 ```tsx live
-<SubTitle skeleton size="4">
+<SubTitle skeleton aria-hidden="true" size="4">
   Skeleton SubTitle
 </SubTitle>
 ```
@@ -897,13 +909,13 @@ The `skeleton` prop applies Bulma's skeleton loading effect. [Skeleton's accessi
 #### Skeleton Input
 
 ```tsx live
-<Input skeleton placeholder="Skeleton Input" />
+<Input skeleton disabled placeholder="Skeleton Input" />
 ```
 
 #### Skeleton TextArea
 
 ```tsx live
-<TextArea skeleton placeholder="Skeleton TextArea" rows={3} />
+<TextArea skeleton disabled placeholder="Skeleton TextArea" rows={3} />
 ```
 
 ---
