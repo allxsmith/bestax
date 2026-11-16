@@ -320,6 +320,11 @@ You can combine the traditional prop-based API with compound components:
 
 - **Image alternate text:** An image URL passed as `image` renders an `<img>` whose `alt` is `imageAlt`. Describe what the picture shows, or pass `imageAlt=""` for a decorative image so screen readers skip it. Without `imageAlt`, the `alt` is "Card image", which tells a screen reader nothing about the picture. An image you render yourself, as a node in `image` or inside `Card.Image`, takes its own `alt`, and `imageAlt` doesn't reach it.
 - Use semantic content for the header, body, and footer as needed.
+- **Forced colors:** in Windows' contrast themes, which drop shadows and paint the card in the
+  page's own color, the card's edge is drawn as an outline in the system's text color, so a row of
+  cards still shows which image, text and actions belong together. While the card has keyboard
+  focus, the browser's focus ring shows in its place. CheckboxCard and RadioCard keep the edge they
+  draw themselves.
 
 ---
 
