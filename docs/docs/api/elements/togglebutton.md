@@ -334,7 +334,7 @@ function example() {
 - **Loading:** while `isLoading` is set, it carries `aria-busy="true"` and `aria-disabled="true"`,
   so a screen reader can tell it won't respond, and keys hold it still the same as the pointer
   does. It keeps focus, since `aria-disabled` doesn't take it away the way `disabled` would, and
-  shows Bulma's focus outline meanwhile, pressed or not.
+  shows Bulma's focus outline while it has keyboard focus, pressed or not.
 - **The label stays put:** APG says "it is critical the label on a toggle does not change when its
   state changes." Mute stays "Mute". An icon can change, but the `aria-label` doesn't. A label that
   changes, "Play" and then "Pause", belongs on a plain `Button` with no `aria-pressed`. Nothing can
