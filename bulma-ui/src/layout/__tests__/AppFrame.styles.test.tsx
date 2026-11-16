@@ -334,6 +334,34 @@ describe('AppFrame styles', () => {
         });
       });
 
+      it.each([
+        ['', PLAIN],
+        ['bestax-', PREFIXED],
+      ])(
+        'loses its line’s color and its ring to the forced-colors rules, which weigh as much and come after (prefix "%s")',
+        (prefix, rules) => {
+          const p = (s: string) => s.replace(/\.(?=[a-z])/g, `.${prefix}`);
+          const forced = ['@media (forced-colors: active)'];
+          // The rules that color the line and draw the ring here. The test
+          // above holds the hover, focus and drag rule to the line's width.
+          for (const part of ['::before', ':focus-visible']) {
+            const layout = ruleFor(rules, p(`${handle}${part}`), [media]);
+            const fc = ruleFor(
+              rules,
+              p(`.app-frame.app-frame > .app-frame-handle${part}`),
+              forced
+            );
+            // The same selector with the breakpoint's class swapped for the
+            // root's, so the same weight, and after it, so it wins. One with
+            // fewer classes lost here, at every width the handle shows (#2019).
+            expect(fc.selector).toBe(
+              layout.selector.replace(p(`.is-${breakpoint}`), p('.app-frame'))
+            );
+            expect(rules.indexOf(fc)).toBeGreaterThan(rules.indexOf(layout));
+          }
+        }
+      );
+
       it('stops the column’s width animating while it’s dragged', () => {
         expect(
           find(PLAIN, `${root} > .app-frame-nav.is-resizing`, [media])
@@ -461,16 +489,14 @@ describe('AppFrame styles', () => {
   });
 
   it('draws the handle’s line in the highlight color and its ring in the text color in forced colors', () => {
-    expect(
-      find(PLAIN, '.app-frame-handle::before', [
-        '@media (forced-colors: active)',
-      ])
-    ).toEqual({ 'border-color': 'Highlight' });
-    expect(
-      find(PLAIN, '.app-frame-handle:focus-visible', [
-        '@media (forced-colors: active)',
-      ])
-    ).toEqual({ 'outline-color': 'CanvasText' });
+    const forced = ['@media (forced-colors: active)'];
+    const handle = '.app-frame.app-frame > .app-frame-handle';
+    expect(find(PLAIN, `${handle}::before`, forced)).toEqual({
+      'border-color': 'Highlight',
+    });
+    expect(find(PLAIN, `${handle}:focus-visible`, forced)).toEqual({
+      'outline-color': 'CanvasText',
+    });
   });
 
   it('makes the rail’s tooltip wrapper a block and hides its tooltip and bridge, at every width', () => {
