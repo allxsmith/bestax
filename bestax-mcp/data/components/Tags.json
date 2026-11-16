@@ -11,7 +11,7 @@
     },
     {
       "title": "Add-ons (Grouped)",
-      "code": "<Tags hasAddons>\n  <Tag color=\"primary\">Package</Tag>\n  <Tag color=\"success\">Ready</Tag>\n  <Tag isDelete onDelete={() => alert('Deleted!')} />\n</Tags>"
+      "code": "<Tags hasAddons>\n  <Tag color=\"primary\">Package</Tag>\n  <Tag color=\"success\">Ready</Tag>\n  <Tag\n    isDelete\n    aria-label=\"Remove Package Ready\"\n    onDelete={() => alert('Removed Package Ready')}\n  />\n</Tags>"
     },
     {
       "title": "Wrapping (Default)",
@@ -27,18 +27,18 @@
     },
     {
       "title": "Mixed Tags",
-      "code": "function example() {\n  const [show, setShow] = useState(true);\n\n  return (\n    <Tags>\n      <Tag color=\"primary\" size=\"medium\">\n        Primary Medium\n      </Tag>\n      <Tag color=\"success\" isRounded>\n        Success Rounded\n      </Tag>\n      {/* Dismissible tag */}\n      {show && <Tag color=\"danger\" isDelete onDelete={() => setShow(false)} />}\n      <Tag color=\"info\">Info</Tag>\n    </Tags>\n  );\n}"
+      "code": "function example() {\n  const [show, setShow] = useState(true);\n\n  return (\n    <Tags>\n      <Tag color=\"primary\" size=\"medium\">\n        Primary Medium\n      </Tag>\n      <Tag color=\"success\" isRounded>\n        Success Rounded\n      </Tag>\n      {/* Dismissible tag */}\n      {show && (\n        <Tag color=\"danger\">\n          Danger\n          <Delete\n            size=\"small\"\n            ariaLabel=\"Remove Danger\"\n            onClick={() => setShow(false)}\n          />\n        </Tag>\n      )}\n      <Tag color=\"info\">Info</Tag>\n    </Tags>\n  );\n}"
     },
     {
       "title": "Add-ons with Delete Tag",
-      "code": "<Tags hasAddons>\n  <Tag color=\"danger\">Allxsmith</Tag>\n  <Tag isDelete onDelete={() => alert('Deleted!')} />\n</Tags>"
+      "code": "<Tags hasAddons>\n  <Tag color=\"danger\">Allxsmith</Tag>\n  <Tag\n    isDelete\n    aria-label=\"Remove Allxsmith\"\n    onDelete={() => alert('Removed Allxsmith')}\n  />\n</Tags>"
     },
     {
       "title": "Compound (dot-notation) usage",
       "code": "<Tags>\n  <Tags.Tag color=\"primary\">React</Tags.Tag>\n  <Tags.Tag color=\"info\">TypeScript</Tags.Tag>\n</Tags>"
     }
   ],
-  "accessibility": "- **Grouping:** The container is a `<div class=\"tags\">`, which is semantically neutral.\n- **Delete buttons:** If using delete tags, ensure each has an accessible label.\n- **Wrapping:** Tags wrap onto multiple lines by default for better readability on small screens.\n\n:::tip\nUse `hasAddons` for tightly grouped tags (no space between them).\n:::",
+  "accessibility": "- **Grouping:** The container is a `<div class=\"tags\">`, which is semantically neutral.\n- **Delete buttons:** A delete tag is named \"Delete tag\", and a `Delete` inside a tag \"Close\", unless you name them, and neither name says which tag it removes. Name each one after its tag, as these examples do: `aria-label=\"Remove Allxsmith\"` on a delete tag, `ariaLabel=\"Remove Danger\"` on a `Delete`.\n- **Wrapping:** Tags wrap onto multiple lines by default for better readability on small screens.\n\n:::tip\nUse `hasAddons` for tightly grouped tags (no space between them).\n:::",
   "related": ["Delete", "Tag", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-tag--default",
   "summary": "The `Tags` component groups multiple `Tag` components together in a Bulma-styled container that wraps onto multiple lines by default.",
@@ -156,7 +156,7 @@
           "name": "isDelete",
           "type": "boolean",
           "default": "false",
-          "description": "Renders a delete-style tag (delete button). The button renders `type=\"button\"`, so it does not submit a form around it, and is named \"Delete tag\" unless you pass an `aria-label`. An empty one, or a spread carrying `'aria-label': undefined`, keeps that name rather than leaving the button unnamed.",
+          "description": "Renders a delete-style tag (delete button). The button renders `type=\"button\"`, so it does not submit a form around it, and is named \"Delete tag\" unless you pass an `aria-label`. An empty one, or a spread carrying `'aria-label': undefined`, keeps that name rather than leaving the button unnamed. \"Delete tag\" doesn't say which tag the button removes, so pass a name that does, such as `aria-label=\"Remove React\"`.",
           "required": false,
           "inherited": false,
           "deprecated": false

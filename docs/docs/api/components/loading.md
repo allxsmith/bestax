@@ -112,7 +112,7 @@ function example() {
 
 ### Spinner Colors
 
-The spinner supports Bulma color variants. When no color is specified, the spinner is Bulma's `text-weak`, the scheme's weak text color.
+The spinner supports Bulma color variants. When no color is specified, the spinner is Bulma's `grey-light`.
 
 ```tsx live
 function example() {
@@ -277,11 +277,10 @@ When `canCancel` is true, the loading can be cancelled by:
 - Has `aria-busy="true"` to indicate loading status
 - Has `aria-label="Loading"` for the loading container
 - Cancel button has proper `aria-label` for accessibility
-- The Cancel button's label defaults to the scheme's text color (`--bulma-loading-cancel-color` is `var(--bulma-text)`), so it reads on the light and dark schemes alike
 - Escape key support for cancelling (when `canCancel` is true). An Escape that closed a popup on the page, such as a Dropdown menu or a date picker's calendar, doesn't cancel
 - A full-page loading takes its turn for Escape with [Modal](./modal.md), [Dialog](./dialog.md) and [Sidebar](./sidebar.md), since it covers them: one Escape goes to whichever opened last. Shown over an open Modal, it cancels on the first Escape and the Modal closes on the next. While it's on top, even when it can't be cancelled, the Modal under it doesn't close on Escape or hold Tab
 - A loading inside a container covers only that container, so it cancels on Escape once no Modal, Dialog, Sidebar or full-page loading is open
-- The spinner with no `color` is Bulma's `text-weak`, and a `color` draws it in the color's on-scheme lightness, the one Bulma adjusts for text on the scheme's background, so it clears WCAG 1.4.11's 3:1 against the page's color, which the overlay is drawn in, in light and dark mode. The overlay lets what it covers show through, so over content that isn't the page's color, `overlay="opaque"` keeps that 3:1. When a `Theme` changes a color's hue, saturation or lightness, set that color's on-scheme lightness with it, as [Label and Text Lightnesses](../helpers/theme.md#label-and-text-lightnesses) shows
+- Loading takes Bulma's colors. The spinner is `grey-light` with no `color`, and the color itself with one. The Cancel button's label is `text-light`, and under the pointer its label is `text` and its border `text-light`. On a light page, against the page's color, which `overlay="opaque"` draws the overlay in, `grey-light` and some of the colors fall short of the 3:1 that WCAG 1.4.11 asks of a graphic, and `text-light` falls well short of the 4.5:1 a label needs. For more, set `--bulma-loading-icon-spin-color`, `--bulma-loading-cancel-color` and `--bulma-loading-cancel-hover-border-color` to colors such as `var(--bulma-text-weak)`, `var(--bulma-text)` and `var(--bulma-border-hover)` on a class you pass through `className`, with the loading's class in the selector (`.loading.my-loading`, `.bestax-loading.my-loading` under the prefixed flavor) so it wins whatever order the stylesheets load in. A `color` sets the spinner's on a rule of the same weight, so for a colored spinner pick a `color` that reads on your page. A see-through overlay lets what it covers show around the spinner, so over content that isn't the page's color, `overlay="opaque"` keeps the spinner on the page's color
 - In forced colors (Windows' contrast themes), the spinner is drawn as a ring in the theme's text color with its top side open, since forced colors drops the gradient it's normally drawn with. The overlay turns solid there, whatever `overlay` is set to, so the page beneath doesn't show through behind the ring or the text. A custom `indicator` is your own content, so it's up to you that it shows there too
 - A line of its text wraps only once it's wider than the overlay, a word longer than the overlay too, rather than running off its sides, which on a narrow screen or at a high browser zoom a full-page loading can't be scrolled to show
 
@@ -304,7 +303,7 @@ When `canCancel` is true, the loading can be cancelled by:
 | `active`           | `boolean`                                                                       | `false` | Whether the loading overlay is visible. While it is, what it covers is inert, out of reach of Tab, Enter, Space and screen readers as well as the mouse: the other children of the element it's rendered in, so render it directly inside the element it covers, or with `isFullPage` the rest of the page. Its own content, the cancel button included, stays reachable. Only what's there when it turns on is made inert, and an element that was inert already is left as it was. A control under it that had focus loses it, and gets it back when the loading goes away, unless focus has moved on in the meantime. Show one at a time over the same content: two that cover each other, such as two in one container or two full-page ones, make each other inert, cancel buttons and all. |
 | `isFullPage`       | `boolean`                                                                       | `false` | Cover the entire viewport. While it's active, the rest of the page is inert, as it is under a modal, rather than only the element it's rendered in. A full-page loading also takes its turn with Modal and Sidebar for Escape: while it's the topmost open overlay, the Modal or Sidebar under it doesn't answer Escape or hold Tab, whether or not the loading can be cancelled.                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `size`             | `'small'` \| `'medium'` \| `'large'`                                            | —       | Size of the loading spinner.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Color variant for the spinner, drawn in the color's on-scheme shade, the one Bulma adjusts to read on the page in either scheme, so a pale color such as `warning` is darker on a light page. Without it, the spinner is the scheme's weak text color.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Color variant for the spinner, drawn in the color itself. Without it, the spinner is Bulma's `grey-light`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `canCancel`        | `boolean`                                                                       | `false` | Show a cancel button and allow closing, by a click on the overlay or by Escape. With `isFullPage`, the loading is an overlay like Modal and Sidebar: only the topmost open overlay answers Escape, so a full-page loading shown over a Modal cancels first, and the Modal closes on the next Escape. Without it, Escape cancels once no Modal, Dialog, Sidebar or full-page Loading is open. Either way it marks the Escape it cancels on as used with `preventDefault()`. An Escape a popup on the page closed on, by calling `preventDefault()`, doesn't cancel.                                                                                                                                                                                                                               |
 | `onCancel`         | `() => void`                                                                    | —       | Callback when cancel is triggered.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | `overlayClassName` | `string`                                                                        | —       | Additional classes for the overlay.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
@@ -325,33 +324,33 @@ When `canCancel` is true, the loading can be cancelled by:
 
 `Loading` registers these variables on its own `.loading` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
 
-| CSS Variable                                | Sass Variable                        | Default                     |
-| ------------------------------------------- | ------------------------------------ | --------------------------- |
-| `--bulma-loading-overlay-background`        | `$loading-overlay-background`        | `var(--bulma-scheme-main)`  |
-| `--bulma-loading-overlay-opacity`           | `$loading-overlay-opacity`           | `0.7`                       |
-| `--bulma-loading-overlay-fullpage-opacity`  | `$loading-overlay-fullpage-opacity`  | `0.8`                       |
-| `--bulma-loading-overlay-opacity-light`     | `$loading-overlay-opacity-light`     | `0.4`                       |
-| `--bulma-loading-overlay-opacity-dark`      | `$loading-overlay-opacity-dark`      | `0.85`                      |
-| `--bulma-loading-overlay-opacity-opaque`    | `$loading-overlay-opacity-opaque`    | `1`                         |
-| `--bulma-loading-icon-size`                 | `$loading-icon-size`                 | `4.5em`                     |
-| `--bulma-loading-icon-size-small`           | `$loading-icon-size-small`           | `3em`                       |
-| `--bulma-loading-icon-size-medium`          | `$loading-icon-size-medium`          | `6em`                       |
-| `--bulma-loading-icon-size-large`           | `$loading-icon-size-large`           | `7.5em`                     |
-| `--bulma-loading-icon-border-width`         | `$loading-icon-border-width`         | `0.25em`                    |
-| `--bulma-loading-icon-border-width-small`   | `$loading-icon-border-width-small`   | `0.2em`                     |
-| `--bulma-loading-icon-border-width-medium`  | `$loading-icon-border-width-medium`  | `0.3em`                     |
-| `--bulma-loading-icon-border-width-large`   | `$loading-icon-border-width-large`   | `0.375em`                   |
-| `--bulma-loading-icon-spin-color`           | `$loading-icon-spin-color`           | `var(--bulma-text-weak)`    |
-| `--bulma-loading-text-color`                | `$loading-text-color`                | `var(--bulma-text)`         |
-| `--bulma-loading-text-size`                 | `$loading-text-size`                 | `var(--bulma-size-normal)`  |
-| `--bulma-loading-content-gap`               | `$loading-content-gap`               | `1rem`                      |
-| `--bulma-loading-cancel-color`              | `$loading-cancel-color`              | `var(--bulma-text)`         |
-| `--bulma-loading-cancel-border-color`       | `$loading-cancel-border-color`       | `var(--bulma-border)`       |
-| `--bulma-loading-cancel-background`         | `$loading-cancel-background`         | `var(--bulma-scheme-main)`  |
-| `--bulma-loading-cancel-hover-color`        | `$loading-cancel-hover-color`        | `var(--bulma-text-strong)`  |
-| `--bulma-loading-cancel-hover-border-color` | `$loading-cancel-hover-border-color` | `var(--bulma-border-hover)` |
-| `--bulma-loading-cancel-radius`             | `$loading-cancel-radius`             | `var(--bulma-radius)`       |
-| `--bulma-loading-cancel-size`               | `$loading-cancel-size`               | `var(--bulma-size-small)`   |
-| `--bulma-loading-animation-duration`        | `$loading-animation-duration`        | `0.75s`                     |
+| CSS Variable                                | Sass Variable                        | Default                    |
+| ------------------------------------------- | ------------------------------------ | -------------------------- |
+| `--bulma-loading-overlay-background`        | `$loading-overlay-background`        | `var(--bulma-scheme-main)` |
+| `--bulma-loading-overlay-opacity`           | `$loading-overlay-opacity`           | `0.7`                      |
+| `--bulma-loading-overlay-fullpage-opacity`  | `$loading-overlay-fullpage-opacity`  | `0.8`                      |
+| `--bulma-loading-overlay-opacity-light`     | `$loading-overlay-opacity-light`     | `0.4`                      |
+| `--bulma-loading-overlay-opacity-dark`      | `$loading-overlay-opacity-dark`      | `0.85`                     |
+| `--bulma-loading-overlay-opacity-opaque`    | `$loading-overlay-opacity-opaque`    | `1`                        |
+| `--bulma-loading-icon-size`                 | `$loading-icon-size`                 | `4.5em`                    |
+| `--bulma-loading-icon-size-small`           | `$loading-icon-size-small`           | `3em`                      |
+| `--bulma-loading-icon-size-medium`          | `$loading-icon-size-medium`          | `6em`                      |
+| `--bulma-loading-icon-size-large`           | `$loading-icon-size-large`           | `7.5em`                    |
+| `--bulma-loading-icon-border-width`         | `$loading-icon-border-width`         | `0.25em`                   |
+| `--bulma-loading-icon-border-width-small`   | `$loading-icon-border-width-small`   | `0.2em`                    |
+| `--bulma-loading-icon-border-width-medium`  | `$loading-icon-border-width-medium`  | `0.3em`                    |
+| `--bulma-loading-icon-border-width-large`   | `$loading-icon-border-width-large`   | `0.375em`                  |
+| `--bulma-loading-icon-spin-color`           | `$loading-icon-spin-color`           | `var(--bulma-grey-light)`  |
+| `--bulma-loading-text-color`                | `$loading-text-color`                | `var(--bulma-text)`        |
+| `--bulma-loading-text-size`                 | `$loading-text-size`                 | `var(--bulma-size-normal)` |
+| `--bulma-loading-content-gap`               | `$loading-content-gap`               | `1rem`                     |
+| `--bulma-loading-cancel-color`              | `$loading-cancel-color`              | `var(--bulma-text-light)`  |
+| `--bulma-loading-cancel-border-color`       | `$loading-cancel-border-color`       | `var(--bulma-border)`      |
+| `--bulma-loading-cancel-background`         | `$loading-cancel-background`         | `var(--bulma-scheme-main)` |
+| `--bulma-loading-cancel-hover-color`        | `$loading-cancel-hover-color`        | `var(--bulma-text)`        |
+| `--bulma-loading-cancel-hover-border-color` | `$loading-cancel-hover-border-color` | `var(--bulma-text-light)`  |
+| `--bulma-loading-cancel-radius`             | `$loading-cancel-radius`             | `var(--bulma-radius)`      |
+| `--bulma-loading-cancel-size`               | `$loading-cancel-size`               | `var(--bulma-size-small)`  |
+| `--bulma-loading-animation-duration`        | `$loading-animation-duration`        | `0.75s`                    |
 
 <!-- /bestax:generated cssvars -->

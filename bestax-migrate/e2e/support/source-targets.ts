@@ -111,15 +111,15 @@ export const SPECIAL_TARGETS: Record<Source, readonly string[]> = {
 
 /**
  * Components a library source writes around, beside or inside an element
- * that its tables don't name and no element becomes: the `Tabs.List` a tabs
- * handler wraps the tabs in, the `Menu.Label` react-bulma-components'
- * `Menu.List` writes from its `title`, and the `Badge` and `Tooltip` rbx
- * wraps an element in for its `badge` and `tooltip` props. The passes that
- * read the per-target tables never run on one, so `targetsOf` leaves them out.
+ * that its tables don't name and no element becomes: the `Menu.Label`
+ * react-bulma-components' `Menu.List` writes from its `title`, and the
+ * `Badge` and `Tooltip` rbx wraps an element in for its `badge` and `tooltip`
+ * props. The passes that read the per-target tables never run on one, so
+ * `targetsOf` leaves them out.
  */
 export const ADDED_COMPONENTS: Record<LibrarySource, readonly string[]> = {
-  'react-bulma-components': ['Menu.Label', 'Tabs.List'],
-  rbx: ['Badge', 'Tabs.List', 'Tooltip'],
+  'react-bulma-components': ['Menu.Label'],
+  rbx: ['Badge', 'Tooltip'],
   bloomer: [],
 };
 

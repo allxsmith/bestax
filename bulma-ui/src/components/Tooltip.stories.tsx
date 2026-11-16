@@ -71,7 +71,8 @@ const meta: Meta<typeof Tooltip> = {
     },
     multiline: {
       control: 'boolean',
-      description: 'Allow tooltip to wrap to multiple lines',
+      description:
+        'Give the tooltip a fixed width, up to the max width, whatever its label length, with its text centered. Without it, the tooltip is as wide as its text, and wraps a label once the box reaches the max width',
     },
     animated: {
       control: 'boolean',
@@ -204,7 +205,8 @@ export const Sizes: Story = {
 };
 
 /**
- * Multiline tooltip for longer content.
+ * A multiline tooltip: a fixed width with its text centered, whatever its
+ * label's length.
  */
 export const Multiline: Story = {
   render: () => (
@@ -214,6 +216,30 @@ export const Multiline: Story = {
         multiline
       >
         <Button>Hover for more info</Button>
+      </Tooltip>
+    </Box>
+  ),
+};
+
+/**
+ * A label that fits stays on a single line at its own width, and one too
+ * wide for the box at its maximum width wraps inside it. `multiline` sets a
+ * fixed width instead.
+ */
+export const LongLabel: Story = {
+  render: () => (
+    <Box p="6">
+      <Block>
+        <Tooltip label="Moves it to the trash" position="right" active>
+          <Button>Short label</Button>
+        </Tooltip>
+      </Block>
+      <Tooltip
+        label="Deletes the file and every version of it from the server"
+        position="right"
+        active
+      >
+        <Button>Long label</Button>
       </Tooltip>
     </Box>
   ),
