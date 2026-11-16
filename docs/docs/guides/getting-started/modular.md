@@ -155,7 +155,7 @@ bestax's prebuilt stylesheets build Bulma's table with `$table-cell-text-align: 
 );
 ```
 
-A build with a responsive `Table` or selected rows also wants bestax's `elements/table` partial, as the list of partials below says.
+A build with a responsive `Table`, selected rows or a `DataTable` also wants bestax's `elements/table` partial, as the list of partials below says.
 
 Pull in only the helper categories you use:
 
