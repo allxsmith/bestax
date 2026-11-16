@@ -36,6 +36,20 @@
 // The item rules weigh one class over Bulma's, so they win wherever Bulma's
 // CSS loads. Once Bulma's navbar reads the hero's variables, this restates
 // it and can go.
+//
+// An active or selected item (`Navbar.Item active`, Bulma's `is-active` or
+// `is-selected` on a link item or a `.navbar-link`): Bulma sets the item's
+// `--bulma-navbar-h`, `-s` and `-item-color-l` to the selected ones, the link
+// color and its invert, and builds the item's background from them there. Its
+// text reads `--bulma-navbar-item-color`, which Bulma works out on `.navbar`,
+// so the item inherits the navbar's own text color and draws it on the link
+// color. The last rule works the variable out again on the item, from the
+// values Bulma set there. Bulma declares it on no item, so `:where()` keeps
+// that rule at no weight: a value an app sets on an item still wins, and a
+// rule that sets the item's `color`, an `is-tab`'s or a colored hero's above,
+// still decides it. An item with a background helper (`bgColor`) is left out,
+// since the helper replaces the fill and the navbar's text reads on it as it
+// did. A rule of an app's own that takes the fill off restates `color` too.
 
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
@@ -150,4 +164,26 @@ $-hero-navbar: '.#{iv.$class-prefix}hero:is(#{extras-color-classes()}) .#{iv.$cl
     background-color: cv.getVar('navbar-item-active-background-color');
     color: cv.getVar('navbar-item-active-color');
   }
+}
+
+// A class that starts with a background helper's name.
+$-background-helper: '#{iv.$class-prefix}#{iv.$helpers-has-prefix}background-';
+
+:where(
+    a.#{iv.$class-prefix}navbar-item,
+    .#{iv.$class-prefix}navbar-link
+  ):where(.#{iv.$class-prefix}is-active, .#{iv.$class-prefix}is-selected):where(
+    :not(
+        [class^='#{$-background-helper}'],
+        [class*=' #{$-background-helper}']
+      )
+  ) {
+  @include cv.register-var(
+    'navbar-item-color',
+    hsl(
+      #{cv.getVar('navbar-h')},
+      #{cv.getVar('navbar-s')},
+      #{cv.getVar('navbar-item-color-l')}
+    )
+  );
 }

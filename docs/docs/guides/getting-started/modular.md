@@ -253,7 +253,7 @@ Some of these partials adjust a stock Bulma component rather than add one of bes
 
 - `components/menu` keeps a menu's active item marked in forced colors the same way, draws `Menu.Section`'s heading and chevron, and starts each item's text at the right on a right-to-left page, so a build that uses `bulma/sass/components/menu`, for a `Menu` or a `TableOfContents`, wants it too.
 
-- `components/navbar` keeps the burger's bars drawn in forced colors, keeps a `fixed` navbar in place while an overlay locks the page's scrolling, and draws a navbar in a colored `Hero` in the hero's colors, where Bulma's draws its active item and burger in the link color, so a build that uses `bulma/sass/components/navbar`, for a `Navbar` or an `AppFrame`'s burger, wants it too.
+- `components/navbar` keeps the burger's bars drawn in forced colors, keeps a `fixed` navbar in place while an overlay locks the page's scrolling, gives an active item's text the invert of the link color it sits on, where Bulma's leaves it in the navbar's text color, and draws a navbar in a colored `Hero` in the hero's colors, where Bulma's draws its active item and burger in the link color, so a build that uses `bulma/sass/components/navbar`, for a `Navbar` or an `AppFrame`'s burger, wants it too.
 
 - `components/panel` keeps the heading of a panel with no color readable on the dark scheme, where Bulma writes it white on light gray, and the text of a colored panel's active block and tab readable on both schemes, so a build that uses `bulma/sass/components/panel` wants it too.
 
