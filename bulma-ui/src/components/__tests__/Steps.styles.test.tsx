@@ -264,6 +264,77 @@ const ITEMS = [
   { label: 'Delivered' },
 ];
 
+/**
+ * What wins each colored part of a step in `color`, from `found`, laid out
+ * in a row and in a column: the current marker's ring and number, the
+ * completed marker's ring, fill and mark, the completed line, and the ring
+ * of a step not reached yet.
+ */
+function colorsOf(found: Found[], prefix: string, color: StepsProps['color']) {
+  const p = (name: string) => `.${prefix}${name}`;
+  return [false, true].map(vertical => {
+    const { container, unmount } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <Steps value={2} color={color} items={ITEMS} vertical={vertical} />
+      </ConfigProvider>
+    );
+    const [done, , current, upcoming] = Array.from(
+      container.querySelectorAll(p('steps-segment'))
+    );
+    const marker = (li: Element) => li.querySelector(p('steps-marker'))!;
+    const parts = {
+      vertical,
+      currentRing: cascaded(found, marker(current), ['border', 'border-color']),
+      currentNumber: cascaded(found, marker(current), 'color'),
+      completedRing: cascaded(found, marker(done), ['border', 'border-color']),
+      completedFill: cascaded(found, marker(done), 'background-color'),
+      completedMark: cascaded(found, marker(done), 'color'),
+      completedLine: cascaded(
+        found,
+        done,
+        'background-color',
+        vertical ? '::after' : '::before'
+      ),
+      upcomingRing: cascaded(found, marker(upcoming), [
+        'border',
+        'border-color',
+      ]),
+    };
+    unmount();
+    return parts;
+  });
+}
+
+/**
+ * The colors Bulma draws a step in `color` with: the color itself, and its
+ * invert for a completed step's mark. With no color, the steps' default
+ * color, Bulma's grey-light, and the marker background, the page's color,
+ * for the mark. A step not reached yet takes the default color either way.
+ * The color is put together on the step from its hue, saturation and
+ * lightness, which a Theme around the steps can set. It's the same color as
+ * Bulma's `--bulma-<color>`, which Bulma puts together where it declares its
+ * themes, not around the steps.
+ */
+const bulmaColors = (color: StepsProps['color']) => {
+  const fill = color
+    ? `hsl(var(--bulma-${color}-h), var(--bulma-${color}-s), var(--bulma-${color}-l))`
+    : 'var(--bulma-steps-default-color)';
+  const mark = color
+    ? `hsl(var(--bulma-${color}-h), var(--bulma-${color}-s), var(--bulma-${color}-invert-l))`
+    : 'var(--bulma-steps-marker-background)';
+  return [false, true].map(vertical => ({
+    vertical,
+    currentRing: fill,
+    currentNumber: fill,
+    completedRing: fill,
+    completedFill: fill,
+    completedMark: mark,
+    completedLine: fill,
+    upcomingRing:
+      'var(--bulma-steps-divider-height) solid var(--bulma-steps-default-color)',
+  }));
+};
+
 describe.each([
   ['no prefix', ''],
   ['a class prefix', 'bestax-'],
@@ -644,7 +715,7 @@ describe.each([
         // still take the surface's colors, as its other text does.
         const colored = vars('colored');
         expect(colored['--bulma-steps-default-color']).toBe(
-          'var(--bulma-text-weak)'
+          'var(--bulma-grey-light)'
         );
         expect(colored['--bulma-steps-marker-background']).toBe(
           'var(--bulma-scheme-main)'
@@ -672,7 +743,7 @@ describe.each([
         ]) {
           expect([id, vars(id)['--bulma-steps-default-color']]).toEqual([
             id,
-            'var(--bulma-text-weak)',
+            'var(--bulma-grey-light)',
           ]);
           expect([id, vars(id)['--bulma-steps-title-color']]).toEqual([
             id,
@@ -721,55 +792,25 @@ describe.each([
     });
   });
 
-  // The colors themselves are measured against whole sheets at the end of
-  // this file. These pin where they come from, under each prefix.
+  // Steps take Bulma's colors, which change only when the repo's owner asks
+  // (the root CLAUDE.md, "Bulma's stock colors and the bestax blue"). These
+  // pin where they come from, under each prefix, and the end of this file
+  // pins them in each published sheet.
   describe('colors', () => {
-    it('draws a step with no color in the scheme’s weak text color', () => {
+    it('draws a step with no color in Bulma’s grey-light', () => {
       expect(
         declarations(rulesOf(compile(prefix)), p('steps'))[
           '--bulma-steps-default-color'
         ]
-      ).toBe('var(--bulma-text-weak)');
+      ).toBe('var(--bulma-grey-light)');
     });
 
-    // Put together on the step from the color's hue, saturation and
-    // on-scheme lightness, which a Theme around the steps can set. Bulma's
-    // `--bulma-<color>-on-scheme` is put together on `:root`, where a scoped
-    // Theme's values never reach it.
-    it.each(COLORS.filter(Boolean))(
-      'draws a %s step’s marker, number and line in its -on-scheme lightness',
-      color => {
-        const found = rulesOf(compile(prefix));
-        const onScheme = `hsl(var(--bulma-${color}-h), var(--bulma-${color}-s), var(--bulma-${color}-on-scheme-l))`;
-        for (const vertical of [false, true]) {
-          const { container, unmount } = renderSteps({ color, vertical });
-          const segments = Array.from(
-            container.querySelectorAll(p('steps-segment'))
-          );
-          const marker = (li: Element) => li.querySelector(p('steps-marker'))!;
-          const [done, , current] = segments;
-          expect(cascaded(found, marker(current), 'border-color')).toBe(
-            onScheme
-          );
-          expect(cascaded(found, marker(current), 'color')).toBe(onScheme);
-          expect(cascaded(found, marker(done), 'border-color')).toBe(onScheme);
-          expect(cascaded(found, marker(done), 'background-color')).toBe(
-            onScheme
-          );
-          // The mark is in the page's color, which that lightness reads on.
-          expect(cascaded(found, marker(done), 'color')).toBe(
-            'var(--bulma-scheme-main)'
-          );
-          expect(
-            cascaded(
-              found,
-              done,
-              'background-color',
-              vertical ? '::after' : '::before'
-            )
-          ).toBe(onScheme);
-          unmount();
-        }
+    it.each(COLORS.map(color => [color ?? 'no color', color] as const))(
+      'draws steps with %s in Bulma’s colors, in a row and in a column',
+      (_label, color) => {
+        expect(colorsOf(rulesOf(compile(prefix)), prefix, color)).toEqual(
+          bulmaColors(color)
+        );
       }
     );
   });
@@ -946,11 +987,11 @@ describe('the Steps partial with a configured $tablet', () => {
   });
 });
 
-// The colors the partial draws a step in, resolved through the variables a
-// whole published sheet declares in each scheme, the way a browser does, and
-// measured (#1636). A number needs 4.5:1 against what it sits on, and a
-// marker, a graphic, 3:1 against the page. `extras.css` takes its colors from
-// the app's Bulma, so it is measured with Bulma's own.
+// Each published sheet carries the partial's colors, under its own prefix:
+// the parts `colorsOf` reads, from the rules in the whole sheet that name the
+// steps, in its order. Bulma's grey-light and some of its colors fall short
+// of WCAG's 3:1 against a light page, which the Steps page says, with how a
+// theme gets more.
 describe.each([
   ['bestax.css', '', () => compileSheet('bestax.scss')],
   [
@@ -963,73 +1004,65 @@ describe.each([
     '',
     () => bulmaCss() + compileSheet('extras.scss'),
   ],
-])('Steps contrast in %s', (_name, prefix, sheet) => {
+])('Steps colors in %s', (_name, prefix, sheet) => {
+  let found: Found[];
   let schemes: ReturnType<typeof schemesOf>;
   // A hook keeps Vitest's 10s default rather than `testTimeout`, and a whole
   // sheet can take longer than that to compile on a loaded machine.
   beforeAll(() => {
-    schemes = schemesOf(parseSheet(sheet()).rules);
+    const css = sheet();
+    found = rulesOf(css).filter(({ selector }) =>
+      selector.includes(`.${prefix}steps`)
+    );
+    schemes = schemesOf(parseSheet(css).rules);
   }, 30_000);
 
+  it('declares Bulma’s grey-light as the steps’ default color', () => {
+    expect(
+      declarations(found, `.${prefix}steps`)['--bulma-steps-default-color']
+    ).toBe('var(--bulma-grey-light)');
+  });
+
   it.each(COLORS.map(color => [color ?? 'no color', color] as const))(
-    'reads on the page with %s, on both schemes',
+    'draws steps with %s in Bulma’s colors',
     (_label, color) => {
-      const p = (name: string) => `.${prefix}${name}`;
-      const found = rulesOf(compile(prefix));
-      const { container } = render(
-        <ConfigProvider classPrefix={prefix}>
-          <Steps value={2} color={color} items={ITEMS} />
-        </ConfigProvider>
-      );
-      const [done, , current, upcoming] = Array.from(
-        container.querySelectorAll(p('steps-marker'))
-      );
-      // The variables the steps declare on themselves, over the page's.
-      const own = Object.fromEntries(
-        Object.entries(declarations(found, p('steps'))).filter(([name]) =>
-          name.startsWith('--')
-        )
-      );
+      expect(colorsOf(found, prefix, color)).toEqual(bulmaColors(color));
+    }
+  );
+
+  // With no Theme around the steps, the color put together on the step
+  // resolves to what the sheet's own `--bulma-<color>` does, in each scheme,
+  // so it stays Bulma's color if Bulma ever puts `--bulma-<color>` together
+  // differently. Variables resolve here as the whole page declares them, not
+  // per element.
+  it.each(COLORS.filter(Boolean))(
+    'puts %s together as the sheet’s own color, on both schemes',
+    color => {
+      const [{ currentRing }] = colorsOf(found, prefix, color);
+      const plain = (value: string) =>
+        value.replace(/^hsla\((.*),\s*1\)$/, 'hsl($1)').replace(/\s+/g, '');
+      for (const [scheme, vars] of Object.entries(schemes)) {
+        expect([scheme, plain(substitute(currentRing!, vars))]).toEqual([
+          scheme,
+          plain(substitute(`var(--bulma-${color})`, vars)),
+        ]);
+      }
+    }
+  );
+
+  // The mark is a completed step's only cue drawn on its fill, so it reads
+  // at 4.5:1 there in each scheme, as Bulma's invert does on its color.
+  it.each(COLORS.filter(Boolean))(
+    'draws a %s completed step’s mark at 4.5:1 on its fill, on both schemes',
+    color => {
+      const [{ completedFill, completedMark }] = colorsOf(found, prefix, color);
       const failures: string[] = [];
-      for (const [scheme, page] of Object.entries(schemes)) {
-        const vars = { ...page, ...own };
-        const read = (el: Element, property: string | string[]) => {
-          const value = cascaded(found, el, property);
-          if (!value) throw new Error(`nothing sets ${property}`);
-          return substitute(value, vars);
-        };
-        // A ring is set as a color, or as the color in a `border`.
-        const ring = (el: Element) => {
-          const colors = read(el, ['border', 'border-color']).match(
-            /hsla?\([^()]*\)/g
-          );
-          if (colors?.length !== 1) throw new Error('no single ring color');
-          return colors[0];
-        };
-        const background = substitute('var(--bulma-scheme-main)', vars);
-        const check = (what: string, fg: string, bg: string, min: number) => {
-          const ratio = contrast(fg, bg);
-          if (ratio < min) {
-            failures.push(`${scheme}, ${what}: ${ratio.toFixed(2)}:1`);
-          }
-        };
-        const fill = read(done, 'background-color');
-        check(
-          'current number',
-          read(current, 'color'),
-          read(current, 'background-color'),
-          4.5
+      for (const [scheme, vars] of Object.entries(schemes)) {
+        const ratio = contrast(
+          substitute(completedMark!, vars),
+          substitute(completedFill!, vars)
         );
-        check('current ring', ring(current), background, 3);
-        check('completed fill', fill, background, 3);
-        check('completed mark', read(done, 'color'), fill, 4.5);
-        check(
-          'upcoming number',
-          read(upcoming, 'color'),
-          read(upcoming, 'background-color'),
-          4.5
-        );
-        check('upcoming ring', ring(upcoming), background, 3);
+        if (ratio < 4.5) failures.push(`${scheme}: ${ratio.toFixed(2)}:1`);
       }
       expect(failures).toEqual([]);
     }
