@@ -56,11 +56,12 @@ const UnorderedListComponent: React.FC<UnorderedListProps> = ({
 
   // WebKit exposes a `<ul>` whose markers are hidden as a group, not a list,
   // unless it has role="list", and Bulma's reset hides a `<ul>`'s bullets
-  // everywhere but `Content`. A caller's role still wins, and an empty one,
-  // or a spread carrying `role: undefined`, keeps the list's own, as Stack's
-  // list does.
+  // everywhere but `Content`. A role the caller writes is rendered as
+  // written, an empty one included, as it would be on a plain `<ul>`, so the
+  // bulma-classes codemod's conversion of one renders the same; only a role
+  // left out, or a spread carrying `role: undefined`, gets the list's own.
   return (
-    <ul className={listClasses || undefined} role={role || 'list'} {...rest}>
+    <ul className={listClasses || undefined} role={role ?? 'list'} {...rest}>
       {children}
     </ul>
   );

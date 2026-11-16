@@ -127,9 +127,9 @@ describe('UnorderedList Component', () => {
       expect(screen.getByTestId('list')).toHaveAttribute('role', 'list');
     });
 
-    test('an empty role keeps it', () => {
+    test('an empty role is rendered as written, as on a plain ul', () => {
       render(<UnorderedList role="" data-testid="list" />);
-      expect(screen.getByTestId('list')).toHaveAttribute('role', 'list');
+      expect(screen.getByTestId('list')).toHaveAttribute('role', '');
     });
   });
 
