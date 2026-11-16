@@ -74,7 +74,14 @@ const hockeyTeams = [
 
 export const HockeyTeamRecords: Story = {
   render: () => (
-    <Table isBordered isStriped isHoverable isFullwidth isResponsive>
+    <Table
+      isBordered
+      isStriped
+      isHoverable
+      isFullwidth
+      isResponsive
+      aria-label="Team records"
+    >
       <Thead>
         <Tr>
           <Th isAligned="left">Team</Th>
@@ -341,6 +348,7 @@ export const AllModifiers: Story = {
     isHoverable: true,
     isFullwidth: true,
     isResponsive: true,
+    'aria-label': 'Every modifier',
     children: (
       <>
         <Thead>
