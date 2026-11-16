@@ -79,7 +79,7 @@ Every extras partial that exists (from the library's `src/scss/**/_index.scss` â
 is **more complete** than the docs page's Option C example, which omits several):
 
 **Components** (`@allxsmith/bestax-bulma/scss/components/<name>`):
-`loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `steps`, `sidebar`,
+`loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `dropdown`, `steps`, `sidebar`,
 `toast`, `dialog`, `carousel`, `lightbox`, `tabs`, `menu`, `tableofcontents`, `reveal`, `avatar`, `avatars`,
 `badge`, `emptystate`, `timeline`, `treeview`, `scrollarea`, `command`, `datatable`,
 `pagination`, `affix`, `floatbutton`, `navbar`, `panel`, `tour`
@@ -146,8 +146,19 @@ Notes:
   @use '@allxsmith/bestax-bulma/scss/components/pagination' as bestax-pagination;
   ```
 
+- The `dropdown` partial **extends** stock Bulma dropdown (it draws a divider in CanvasText in
+  forced colors, where Bulma's fill takes the menu's own Canvas color), so an app using
+  `Dropdown`, or a `ContextMenu`, whose menu is Bulma's dropdown markup, needs both, in either
+  order:
+
+  ```scss
+  @use 'bulma/sass/components/dropdown';
+  @use '@allxsmith/bestax-bulma/scss/components/dropdown' as bestax-dropdown;
+  ```
+
 - The `navbar` partial **extends** stock Bulma navbar (it keeps the burger's bars in
-  ButtonText in forced colors, where Chromium paints them in the page's Canvas color, keeps a
+  ButtonText and `Navbar.Divider` in CanvasText in forced colors, where Chromium paints the
+  bars in the page's Canvas color and Bulma's fill takes the menu's, keeps a
   `fixed` navbar in place while an overlay locks the page's scrolling, gives an active item's
   text the invert of the link color it sits on, where Bulma's leaves it in the navbar's text
   color, draws a navbar in a colored `Hero` in the hero's colors, where Bulma's draws its active item and burger in the link
@@ -241,7 +252,8 @@ Notes:
   button, so an app using it needs `bulma/sass/elements/button`, `bulma/sass/elements/delete`
   and the `delete` partial next to `scss/components/tour`.
 - `ContextMenu`'s menu is Bulma's dropdown markup, so an app using it needs
-  `bulma/sass/components/dropdown` next to `scss/components/contextmenu`.
+  `bulma/sass/components/dropdown` and the `dropdown` partial above next to
+  `scss/components/contextmenu`.
 - `Lightbox`'s viewer is Bulma's modal, with Bulma buttons for its controls and a `Loader` for a
   slow image, so an app using it needs `bulma/sass/components/modal`,
   `bulma/sass/elements/button` and `bulma/sass/elements/loader` next to
