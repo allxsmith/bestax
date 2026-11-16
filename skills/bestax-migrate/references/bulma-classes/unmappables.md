@@ -365,6 +365,14 @@ move it to a component of its own:
   (`<Image size="128x128" mx="auto">`), which centers it and does nothing else `.container`
   does. Otherwise wrap the element in a `Container`. Either way, check the layout.
 
+## A table it folded with no name: `name:<Target>`
+
+A `.table-container` folded into `Table isResponsive` around a table with no `aria-label` and no
+`aria-labelledby`. While the table overflows, `Table isResponsive` makes `.table-container` a region
+you can tab to, named by those two alone, and a development build warns when it has neither. Give
+the `Table` an `aria-label`, or point `aria-labelledby` at a heading, or at its `<caption>`'s `id`
+when it has one, which names both the table and the region.
+
 ## A family it leaves as markup: `family:<class>`
 
 The bestax component renders parts of its own, or adds attributes, so a one-element-at-a-time
