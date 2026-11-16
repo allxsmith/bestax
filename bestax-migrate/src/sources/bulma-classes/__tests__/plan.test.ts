@@ -2115,8 +2115,35 @@ describe('plan', () => {
         'Panel.Heading'
       );
       expect(
-        plan(facts('a', 'panel-block is-active')).conversion
+        plan(facts('a', 'panel-block is-active', { 'aria-current': 'page' }))
+          .conversion
       ).toMatchObject({ target: 'Panel.Block', props: [['active', true]] });
+    });
+
+    it("makes a block's is-active active only beside an aria-current of its own", () => {
+      // `active` writes aria-current="page" unless the block has its own.
+      // Without one the class stays a class, which renders the same.
+      expect(
+        plan(facts('a', 'panel-block is-active', { 'aria-current': 'false' }))
+      ).toMatchObject({
+        conversion: { props: [['active', true]], className: null },
+        todos: [],
+      });
+      expect(plan(facts('a', 'panel-block is-active'))).toMatchObject({
+        conversion: { props: [], className: 'is-active' },
+        todos: [],
+      });
+      // Under a condition too: without one, it stays in the call.
+      const conditional = (attributes: Record<string, string>) =>
+        plan(
+          facts('a', 'panel-block', attributes, {
+            conditional: [['is-active']],
+          })
+        ).conversion?.conditional;
+      expect(conditional({ 'aria-current': 'page' })).toEqual([
+        ['active', 'is-active'],
+      ]);
+      expect(conditional({})).toBeUndefined();
     });
 
     it('converts the root and a block on the tags their `as` takes', () => {
@@ -2127,7 +2154,9 @@ describe('plan', () => {
         });
       }
       for (const tag of ['label', 'div']) {
-        expect(plan(facts(tag, 'panel-block is-active'))).toEqual({
+        expect(
+          plan(facts(tag, 'panel-block is-active', { 'aria-current': 'false' }))
+        ).toEqual({
           conversion: {
             target: 'Panel.Block',
             props: [

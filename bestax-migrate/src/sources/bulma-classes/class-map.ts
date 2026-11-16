@@ -2414,7 +2414,15 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     textColor: null,
     bgColor: null,
     noHelpers: true,
-    modifiers: flags({ 'is-active': 'active' }),
+    // `active` writes `aria-current="page"` unless the block has its own, the
+    // way `Navbar.Item` does, so `is-active` converts only beside one and
+    // stays a class otherwise.
+    modifiers: {
+      'is-active': {
+        writes: [{ prop: 'active' }],
+        needsAttr: { name: 'aria-current', value: 'page' },
+      },
+    },
     // The anchor attributes, and `rel`, reach only an <a>, and the label's
     // only a <label> (`STRIP_FROM_NON_ANCHOR` and `STRIP_FROM_NON_LABEL` in
     // bulma-ui's Panel.tsx).
