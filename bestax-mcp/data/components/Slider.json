@@ -255,7 +255,7 @@
           "name": "marks",
           "type": "{ value: number; label?: React.ReactNode }[]",
           "default": null,
-          "description": "Custom labeled marks along the track. Each mark has `{ value: number; label?: ReactNode }`.",
+          "description": "Custom labeled marks along the track. Each mark has `{ value: number; label?: ReactNode }`. A mark's label sits inside its tick, so `--bulma-slider-tick-opacity` dims the label along with the tick's line, whatever `--bulma-slider-tick-label-color` is.",
           "required": false,
           "inherited": true,
           "deprecated": false

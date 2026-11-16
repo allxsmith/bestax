@@ -1069,6 +1069,9 @@ whatever these say.
 
 ### Slider
 
+A mark's label sits inside its tick, so `--bulma-slider-tick-opacity` dims the label along with the
+tick's line, whatever `--bulma-slider-tick-label-color` you set.
+
 `--bulma-slider-disabled-opacity`, `--bulma-slider-fill-color`,
 `--bulma-slider-output-background`, `--bulma-slider-output-color`,
 `--bulma-slider-output-font-size`, `--bulma-slider-output-font-weight`, `--bulma-slider-radius`,
