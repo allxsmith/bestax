@@ -2,7 +2,7 @@
 import { useMemo } from 'react';
 import type { KeyboardEvent } from 'react';
 import { getActiveElementInTree } from './shadowDom';
-import { typeaheadMatch, useTypeahead } from './typeahead';
+import { spaceJoinMatch, typeaheadMatch, useTypeahead } from './typeahead';
 
 export { TYPEAHEAD_TIMEOUT } from './typeahead';
 
@@ -90,7 +90,8 @@ export interface MenuKeysOptions {
   /**
    * Space joins a type-ahead search under way when an item starts with what
    * has been typed and a space, so "new y" reaches "New York". Otherwise it
-   * activates the focused item, as it does without this.
+   * activates the focused item, as it does without this. An arrow, Home or
+   * End ends the search, so a Space after one acts on the item it reached.
    * @defaultValue false
    */
   spaceJoinsSearch?: boolean;
@@ -193,6 +194,14 @@ export function useMenuKeys(options: MenuKeysOptions = {}): MenuKeys {
       if (!items.length) return;
       const current = items.indexOf(focused as HTMLElement);
       const step = arrowStep(event.key, menu, orientation, reverse, physical);
+      // A key that moves focus ends a search Space could join, so a Space
+      // after it acts on the item it reached.
+      if (
+        spaceJoinsSearch &&
+        (step !== 0 || event.key === 'Home' || event.key === 'End')
+      ) {
+        typeahead.reset();
+      }
       if (step === 1) {
         event.preventDefault();
         items[current >= 0 ? (current + 1) % items.length : 0].focus();
@@ -220,12 +229,10 @@ export function useMenuKeys(options: MenuKeysOptions = {}): MenuKeys {
         case ' ': {
           if (current < 0 || event.defaultPrevented) return;
           // Typed as a character, below, when the search can take it.
-          const typed = typeahead.typed();
           if (
             event.key === ' ' &&
             spaceJoinsSearch &&
-            typed &&
-            typeaheadMatch(items, `${typed} `, current)
+            spaceJoinMatch(items, typeahead.typed(), current)
           ) {
             break;
           }

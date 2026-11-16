@@ -95,6 +95,9 @@ export interface TreeViewProps
    * `checkbox-independent`: any number, checked with Space or a click, each
    * box for its own item. A check reaches nothing under it, and no parent is
    * mixed (Mantine's and Ant Design's `checkStrictly`).
+   * In any mode, a Space typed during a type-ahead search joins it instead
+   * when an item starts with what's been typed and a space, so "new y"
+   * reaches "New York".
    */
   selectionMode?: TreeViewSelectionMode;
   /**
@@ -205,10 +208,10 @@ export interface TreeViewItemProps extends Omit<
   loadError?: React.ReactNode;
   /**
    * Called by the Retry button on a failed load's row, and by Enter or Space
-   * there. Set `isLoading` while the retry runs, so the live region says it's
-   * loading, and reads the message out again if it fails again. The same
-   * message passed a second time with no loading between is no change the
-   * tree can see.
+   * there, Space unless it joins a type-ahead search. Set `isLoading` while
+   * the retry runs, so the live region says it's loading, and reads the
+   * message out again if it fails again. The same message passed a second
+   * time with no loading between is no change the tree can see.
    */
   onRetry?: () => void;
   /**
@@ -607,7 +610,8 @@ interface StatusRowProps {
  * It's a `treeitem` the keys reach, the way they reach a disabled item, so a
  * screen reader finds it. It has no value and no record, so it's never
  * selected or checked, and a check never counts it. A failed load's row with
- * `onRetry` retries with Enter, Space or a click, and any other is disabled.
+ * `onRetry` retries with Enter, Space or a click, Space unless it joins a
+ * type-ahead search, and any other is disabled.
  * The Retry button is drawn, hidden from assistive tech and out of the tab
  * order, the way an item's box is: the row is what's pressed, and its name
  * says so. Rendered in one place, a failed load's row that starts loading
