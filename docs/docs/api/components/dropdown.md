@@ -282,7 +282,10 @@ trigger of a `hoverable` menu the pointer holds open goes through its items.
   as it does for <kbd>Escape</kbd>. An item whose `onClick` moves focus somewhere else keeps
   it there.
 - Disabled items (a `Dropdown.Item` rendered with a native `disabled` attribute or
-  `aria-disabled="true"`) and dividers are skipped by the arrow keys and by typing.
+  `aria-disabled="true"`) and dividers are skipped by the arrow keys and by typing. An item that
+  turns disabled while it has focus, such as one whose action is loading, keeps its place: the
+  arrows and typing go on from where it sits. An `as="button"` item given `disabled` loses focus
+  to the page instead, as any disabled button does.
 - For a panel built around fields, [`Popover`](./popover.md) fits better: `role="menu"` owns
   menu items, and the default `closeOnClick` shuts the menu on a click anywhere in it, a field
   included. Anything focusable you put in the menu anyway that isn't an item (a field, a

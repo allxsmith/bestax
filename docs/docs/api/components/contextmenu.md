@@ -403,7 +403,8 @@ Roles and names:
 - Items are `menuitem` by default, and `menuitemcheckbox` or `menuitemradio` with `aria-checked`
   through the item's `role`. A divider is an `<hr>`, which is a separator.
 - Disabled items, a `button` with `disabled` or an item with `aria-disabled="true"`, are skipped by
-  the arrow keys and by typing, as in `Dropdown`.
+  the arrow keys and by typing, as in `Dropdown`, and they go on from an item that turns disabled
+  while it keeps focus.
 - The trigger gets no ARIA, no role and no tab stop. `aria-haspopup` describes a popup that opens
   when an element is activated, and a right-click on a row isn't that. So nothing tells a screen
   reader user the menu is there, and on macOS only VoiceOver opens it from the keyboard: every action
