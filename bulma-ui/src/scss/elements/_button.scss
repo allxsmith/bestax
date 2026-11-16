@@ -32,6 +32,20 @@
 // gives a colored button that same border only while it's focused, so with
 // one at rest the outline above is what shows focus.
 //
+// A pressed ToggleButton and a checked SegmentedControl segment show their
+// state with a fill, from `is-selected` and a color class, the way Bulma
+// marks the selected button of a group. Forced colors replaces the fill, so
+// there they look like the buttons beside them. The selected rule draws them
+// in Highlight and HighlightText, the pair the system keeps for a selection,
+// as `_pagination.scss` draws the current page. Forced colors keeps a system
+// color an author sets, so the browser goes on adjusting everything inside the
+// button. The browser draws a focused button's forced outline in its text
+// color, which is HighlightText there and can be the page's own color, so
+// its outline names CanvasText, as an unselected button's comes out. A
+// disabled one takes GrayText for its fill and edge and Canvas for its text,
+// so it still reads as pressed and as disabled. A loading one is left to
+// `_loader.scss`, which draws it in the colors it has when idle.
+//
 // Bulma's colors include `text`, but `.button.is-text` is a text button, as
 // `Button color="text"` and LinkButton's text and underline variants render
 // it. It has no fill to lose, and a border at rest would draw a box around a
@@ -41,7 +55,10 @@
 // says, so each selector outranks Bulma's rule by its classes: the ghost and
 // static rule has four to the mixin's two, the forced colors outline names
 // `.button` twice, as `_delete.scss` does, and the border names the color
-// class twice to outrank Bulma's `.button.is-<color>`.
+// class twice to outrank Bulma's `.button.is-<color>`. The selected rule
+// names `is-selected` twice too, so its disabled one outranks Bulma's
+// `.button.is-<color>[disabled]`, and its outline outranks the forced colors
+// one.
 
 @use 'sass:list';
 @use 'sass:map';
@@ -90,6 +107,26 @@
         .#{iv.$class-prefix}is-outlined
       ) {
       @include cv.register-var('button-border-width', 1px);
+    }
+  }
+
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}is-selected.#{iv.$class-prefix}is-selected:not(
+      .#{iv.$class-prefix}is-loading
+    ) {
+    background-color: Highlight;
+    border-color: Highlight;
+    color: HighlightText;
+
+    &:focus-visible,
+    &.#{iv.$class-prefix}is-focused {
+      outline-color: CanvasText;
+    }
+
+    &:disabled,
+    &.#{iv.$class-prefix}is-disabled {
+      background-color: GrayText;
+      border-color: GrayText;
+      color: Canvas;
     }
   }
 }

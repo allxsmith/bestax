@@ -18,6 +18,8 @@ import path from 'path';
 import { render } from '@testing-library/react';
 import { Button, type ButtonProps } from '../Button';
 import { LinkButton } from '../LinkButton';
+import { ToggleButton } from '../ToggleButton';
+import { SegmentedControl } from '../../components/SegmentedControl';
 import { ConfigProvider } from '../../helpers/Config';
 import { Panel } from '../../components/Panel';
 import { compileSheet } from '../../__tests__/compile-scss';
@@ -109,6 +111,7 @@ const outlines = (rule: Rule) =>
 const borders = (rule: Rule) =>
   '--bulma-button-border-width' in rule.declarations;
 const lightnesses = (rule: Rule) => '--bulma-button-l' in rule.declarations;
+const selects = (rule: Rule) => /is-selected/.test(rule.selector);
 
 /**
  * Bulma's button colors, the keys of `$colors` in the order it ships them,
@@ -136,6 +139,9 @@ const STATIC_FOCUS =
   '.button.is-static:not(.is-loading):focus-visible, .button.is-static:not(.is-loading).is-focused';
 /** The rule outside forced colors, which names both. */
 const OWN_FOCUS = `${GHOST_FOCUS}, ${STATIC_FOCUS}`;
+const SELECTED = '.button.is-selected.is-selected:not(.is-loading)';
+/** A selected button's forced-colors outline color, in the page's text color. */
+const SELECTED_FOCUS = `${SELECTED}:focus-visible, ${SELECTED}.is-focused`;
 const FORCED_FOCUS =
   '.button.button:not(.is-loading):focus-visible, .button.button:not(.is-loading).is-focused';
 
@@ -268,12 +274,15 @@ describe('Button focus outline', () => {
         <Button isStatic isLoading isFocused>
           Static
         </Button>
+        <ToggleButton defaultPressed isLoading isFocused>
+          Pressed
+        </ToggleButton>
       </div>
     );
-    for (const name of ['Saving', 'Ghost', 'Static']) {
+    for (const name of ['Saving', 'Ghost', 'Static', 'Pressed']) {
       const button = getByRole('button', { name });
       expect(button).toHaveClass('is-loading', 'is-focused');
-      for (const part of [OWN_FOCUS, FORCED_FOCUS].flatMap(s =>
+      for (const part of [OWN_FOCUS, FORCED_FOCUS, SELECTED_FOCUS].flatMap(s =>
         s.split(', ')
       )) {
         expect(button.matches(part.replace(/:focus-visible/g, ''))).toBe(false);
@@ -297,12 +306,13 @@ describe('Button focus outline', () => {
     expect(button.matches('.button.is-ghost.is-focused')).toBe(false);
   });
 
-  it('draws only these outlines, the forced colors one in its media query', () => {
+  it('draws only these outlines, the forced colors ones in their media query', () => {
     expect(
       PLAIN.filter(outlines).map(r => [r.context.join(' '), r.selector])
     ).toEqual([
       ['', OWN_FOCUS],
       [FORCED, FORCED_FOCUS],
+      [FORCED, SELECTED_FOCUS],
     ]);
   });
 
@@ -316,7 +326,9 @@ describe('Button focus outline', () => {
       '.button:focus-visible',
       '.is-focused.button',
     ]);
-    for (const part of [OWN_FOCUS, FORCED_FOCUS].flatMap(s => s.split(', '))) {
+    for (const part of [OWN_FOCUS, FORCED_FOCUS, SELECTED_FOCUS].flatMap(s =>
+      s.split(', ')
+    )) {
       for (const other of theirs.filter(focused)) {
         expect(weight(part)).toBeGreaterThan(weight(other));
       }
@@ -358,7 +370,7 @@ describe('Button focus outline', () => {
       expect(matchesClasses(button, prefixed(FORCED_FOCUS))).toBe(true);
     }
     expect(PREFIXED.filter(outlines).map(r => r.selector)).toEqual(
-      [OWN_FOCUS, FORCED_FOCUS].map(prefixed)
+      [OWN_FOCUS, FORCED_FOCUS, SELECTED_FOCUS].map(prefixed)
     );
   });
 });
@@ -386,10 +398,14 @@ describe('colored buttons in forced colors', () => {
     );
   });
 
-  it("holds these borders, the focus outlines and the outlined buttons' lightness, and nothing else", () => {
+  it("holds these borders, the focus outlines, the outlined buttons' lightness and the selected look, and nothing else", () => {
     expect(
       PLAIN.filter(
-        rule => !outlines(rule) && !borders(rule) && !lightnesses(rule)
+        rule =>
+          !outlines(rule) &&
+          !borders(rule) &&
+          !lightnesses(rule) &&
+          !selects(rule)
       )
     ).toEqual([]);
   });
@@ -477,6 +493,164 @@ describe('colored buttons in forced colors', () => {
         declarations: { '--bulma-button-border-width': '1px' },
       }))
     );
+  });
+});
+
+// A pressed ToggleButton and a checked SegmentedControl segment differ from
+// the buttons beside them only by Bulma's fill, which forced colors replaces,
+// so the partial draws a selected button in the system's selection colors
+// there (#1869), and a disabled one in its disabled colors.
+describe('selected buttons in forced colors', () => {
+  const DISABLED = `${SELECTED}:disabled, ${SELECTED}.is-disabled`;
+
+  it("draws a selected button in the system's selection colors, in forced colors only", () => {
+    expect(find(PLAIN, SELECTED, [FORCED])).toEqual({
+      'background-color': 'Highlight',
+      'border-color': 'Highlight',
+      color: 'HighlightText',
+    });
+    expect(find(PLAIN, DISABLED, [FORCED])).toEqual({
+      'background-color': 'GrayText',
+      'border-color': 'GrayText',
+      color: 'Canvas',
+    });
+    expect(
+      PLAIN.filter(selects).map(r => [r.context.join(' '), r.selector])
+    ).toEqual([
+      [FORCED, SELECTED],
+      [FORCED, SELECTED_FOCUS],
+      [FORCED, DISABLED],
+    ]);
+  });
+
+  it("rings a focused one in the page's text color, which its own text color isn't", () => {
+    // The browser draws the forced outline in the button's text color, which
+    // is HighlightText here and can be the page's own color.
+    expect(find(PLAIN, SELECTED_FOCUS, [FORCED])).toEqual({
+      'outline-color': 'CanvasText',
+    });
+    // It outranks the forced colors outline, whichever comes first.
+    for (const part of SELECTED_FOCUS.split(', ')) {
+      for (const other of FORCED_FOCUS.split(', ')) {
+        expect(weight(part)).toBeGreaterThan(weight(other));
+      }
+    }
+    const { getByRole } = render(
+      <ToggleButton defaultPressed isFocused>
+        Bold
+      </ToggleButton>
+    );
+    const button = getByRole('button', { name: 'Bold' });
+    expect(matchesClasses(button, SELECTED_FOCUS)).toBe(true);
+    expect(matchesClasses(button, FORCED_FOCUS)).toBe(true);
+  });
+
+  it('matches a pressed ToggleButton and a checked segment, and not the others', () => {
+    const { getByRole } = render(
+      <div>
+        <ToggleButton>Italic</ToggleButton>
+        <ToggleButton defaultPressed>Bold</ToggleButton>
+        <ToggleButton defaultPressed color="success">
+          Underline
+        </ToggleButton>
+        <SegmentedControl aria-label="View" defaultValue="week">
+          <SegmentedControl.Segment value="day">Day</SegmentedControl.Segment>
+          <SegmentedControl.Segment value="week">Week</SegmentedControl.Segment>
+        </SegmentedControl>
+      </div>
+    );
+    const on = [
+      getByRole('button', { name: 'Bold', pressed: true }),
+      getByRole('button', { name: 'Underline', pressed: true }),
+      getByRole('radio', { name: 'Week', checked: true }),
+    ];
+    const off = [
+      getByRole('button', { name: 'Italic', pressed: false }),
+      getByRole('radio', { name: 'Day', checked: false }),
+    ];
+    for (const element of on) {
+      expect(element.matches(SELECTED)).toBe(true);
+      expect(element.matches(DISABLED.split(', ')[0])).toBe(false);
+    }
+    for (const element of off) {
+      expect(element.matches(SELECTED)).toBe(false);
+    }
+  });
+
+  it('draws a disabled pressed toggle and a disabled checked segment in the disabled colors', () => {
+    const { getByRole } = render(
+      <div>
+        <ToggleButton defaultPressed disabled>
+          Bold
+        </ToggleButton>
+        <fieldset disabled>
+          <ToggleButton defaultPressed>Italic</ToggleButton>
+        </fieldset>
+        <SegmentedControl aria-label="View" defaultValue="week">
+          <SegmentedControl.Segment value="day">Day</SegmentedControl.Segment>
+          <SegmentedControl.Segment value="week" disabled>
+            Week
+          </SegmentedControl.Segment>
+        </SegmentedControl>
+      </div>
+    );
+    for (const element of [
+      getByRole('button', { name: 'Bold' }),
+      getByRole('button', { name: 'Italic' }),
+      getByRole('radio', { name: 'Week' }),
+    ]) {
+      expect(element.matches(SELECTED)).toBe(true);
+      expect(element.matches(DISABLED.split(', ')[0])).toBe(true);
+    }
+  });
+
+  it("outranks Bulma's fill and its disabled fill, whichever stylesheet loads first", () => {
+    expect(weight(SELECTED)).toBeGreaterThan(weight('.button.is-link'));
+    const theirs = BULMA.filter(
+      rule =>
+        !rule.context.length &&
+        'background-color' in rule.declarations &&
+        rule.selector.split(', ').includes('.button.is-link[disabled]')
+    );
+    expect(theirs).toHaveLength(1);
+    // An attribute selector weighs what a class does.
+    const asClasses = (selector: string) =>
+      selector.replace(/\[[^\]]*\]/g, '.attribute');
+    for (const part of DISABLED.split(', ')) {
+      expect(weight(part)).toBeGreaterThan(
+        weight(asClasses('.button.is-link[disabled]'))
+      );
+    }
+  });
+
+  it('leaves a loading one to the loader, whose colors are !important', () => {
+    const loader = rulesOf(compile(`@use 'elements/loader';`)).filter(
+      rule =>
+        rule.context.join(' ') === FORCED &&
+        rule.selector === '.button.is-loading'
+    );
+    expect(loader).toHaveLength(1);
+    for (const property of ['background-color', 'border-color', 'color']) {
+      expect(loader[0].declarations[property]).toMatch(/!important$/);
+    }
+  });
+
+  it('prefixes every class under a class prefix', () => {
+    expect(PREFIXED.filter(selects).map(r => r.selector)).toEqual(
+      [SELECTED, SELECTED_FOCUS, DISABLED].map(selector =>
+        selector.replace(/\.(button|is-)/g, '.bestax-$1')
+      )
+    );
+    const { getByRole } = render(
+      <ConfigProvider classPrefix="bestax-">
+        <ToggleButton defaultPressed>Bold</ToggleButton>
+      </ConfigProvider>
+    );
+    expect(
+      getByRole('button', { name: 'Bold' }).matches(
+        '.bestax-button.bestax-is-selected.bestax-is-selected'
+      )
+    ).toBe(true);
   });
 });
 

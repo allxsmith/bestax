@@ -151,7 +151,10 @@ export interface SegmentedControlProps
    * The checked segment's fill. The others are plain buttons, so the fill is
    * the difference people see. Takes the same colors as `ToggleButton`, for
    * the same reason: `white`, `light`, `dark` and `black` fill about as light
-   * or dark as a plain button already is in one theme or the other.
+   * or dark as a plain button already is in one theme or the other. Forced
+   * colors (Windows' contrast themes) replaces the fill, so there the checked
+   * segment is drawn in the system's highlight colors instead, whatever the
+   * `color`, which needs bestax's CSS.
    */
   color?: SegmentedControlColor | undefined;
   /** Size of every segment, through Bulma's `are-<size>` on the row. */

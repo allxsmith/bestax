@@ -1306,6 +1306,15 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
       </fieldset>,
       { surface: 'ButtonFace', border: 'GrayText' },
     ],
+    // Pressed, `_button.scss` draws it in Highlight in forced colors, which
+    // these `!important` colors outrank while it loads.
+    [
+      'ToggleButton pressed isLoading',
+      <ToggleButton key="x" defaultPressed isLoading>
+        Bold
+      </ToggleButton>,
+      { surface: 'ButtonFace', border: 'ButtonText' },
+    ],
   ];
 
   it('checks the loading buttons on the roster', () => {
@@ -1592,8 +1601,8 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
     ...LOADING_LOOKS.filter(
       ([label]) => !/isDisabled|disabled fieldset/.test(label)
     ).map(([label, element]): [string, React.ReactElement] => [label, element]),
-    // Over Bulma's static rule, which drops the shadow too, and on the
-    // components that render through Button.
+    // Over Bulma's static rule, which drops the shadow too, and on a
+    // component that renders through Button.
     [
       'Button isStatic isLoading',
       <Button key="x" isStatic isLoading>
@@ -1603,12 +1612,6 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
     [
       'IconButton isLoading',
       <IconButton key="x" icon="trash" aria-label="Delete" isLoading />,
-    ],
-    [
-      'ToggleButton pressed isLoading',
-      <ToggleButton key="x" defaultPressed isLoading>
-        Bold
-      </ToggleButton>,
     ],
   ] as Array<[string, React.ReactElement]>)(
     "%s takes Bulma's focus outline from the keyboard or isFocused, outside forced colors",
