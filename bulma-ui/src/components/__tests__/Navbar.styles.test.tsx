@@ -301,7 +301,7 @@ describe('the Navbar partial', () => {
     ['no prefix', ''],
     ['a class prefix', 'bestax-'],
   ])(
-    'keeps the burger in forced colors, and a fixed navbar’s lock margins and an active item’s text at no weight, with %s, naming only prefixed classes',
+    'keeps the burger in forced colors, a fixed navbar’s lock margins and an active item’s text at no weight, and a prefixed dropdown’s active row over Bulma’s row rules, with %s, naming only prefixed classes',
     (_label, prefix) => {
       const rules = rulesOf(compile(prefix));
       expect(
@@ -315,7 +315,9 @@ describe('the Navbar partial', () => {
       ]);
       // Then the colored hero's navbar, at the top level but for the menu's
       // rows under the burger and a bold hero's menu on a phone.
-      const hero = rules.slice(2, -1);
+      // A prefixed build ends with one more rule, for a dropdown's active row.
+      const extra = prefix ? 1 : 0;
+      const hero = rules.slice(2, -1 - extra);
       expect(hero.map(rule => rule.context)).toEqual([
         [],
         ['@media screen and (max-width: 1023px)'],
@@ -335,8 +337,8 @@ describe('the Navbar partial', () => {
         'background-color': 'ButtonText',
       });
       expect(rules[1].declarations).toEqual(LOCK_MARGINS);
-      // Last, an active item's text color, at no weight either.
-      const last = rules[rules.length - 1];
+      // Then an active item's text color, at no weight either.
+      const last = rules[rules.length - 1 - extra];
       expect([last.selector, last.context]).toEqual([
         `:where(a.${prefix}navbar-item, .${prefix}navbar-link):where(.${prefix}is-active, .${prefix}is-selected):where(:not([class^=${prefix}has-background-], [class*=" ${prefix}has-background-"]))`,
         [],
@@ -344,6 +346,14 @@ describe('the Navbar partial', () => {
       expect(last.declarations).toEqual({
         '--bulma-navbar-item-color': ITEM_COLOR,
       });
+      if (prefix) {
+        // Last, a dropdown's active link row, one class over Bulma's.
+        const row = rules[rules.length - 1];
+        expect([row.selector, row.context]).toEqual([
+          `.${prefix}navbar-dropdown a.${prefix}navbar-item:is(a):is(.${prefix}is-active, .${prefix}is-selected):where(:not(.${prefix}is-tab))`,
+          [],
+        ]);
+      }
       // A class written bare matches nothing in a prefixed build.
       const classes = rules.flatMap(({ selector }) =>
         Array.from(selector.matchAll(/\.(-?[_a-zA-Z][\w-]*)/g), m => m[1])
@@ -532,14 +542,23 @@ describe('a navbar in a colored hero', () => {
 
     it('leaves the items inside a dropdown, however deep, and a tab to Bulma', () => {
       // A dropdown on a large screen is a box of its own, and a tab draws no
-      // fill, so the partial sets nothing on them, focused or active.
+      // fill, so the partial sets nothing of the hero's on them, focused or
+      // active. In a prefixed build an active link row in the dropdown takes
+      // back the fill and text Bulma gives it without a prefix (#1805).
+      const bulmaOwn: Record<string, string> = {
+        'background-color':
+          'hsla(var(--bulma-navbar-h), var(--bulma-navbar-s), calc(var(--bulma-navbar-item-background-l) + var(--bulma-navbar-item-background-l-delta)), var(--bulma-navbar-item-background-a))',
+        color: 'var(--bulma-navbar-item-color)',
+      };
       const { inside, deeper, tab } = heroNavbar('primary');
       for (const el of [inside, deeper, tab]) {
         el.classList.add(`${prefix}is-active`);
         el.focus();
         expect(el).toHaveFocus();
         for (const property of ['background-color', 'color']) {
-          expect(style(el, property, partial)).toBeUndefined();
+          expect(style(el, property, partial)).toBe(
+            prefix && el !== tab ? bulmaOwn[property] : undefined
+          );
         }
       }
     });
@@ -931,5 +950,297 @@ describe('an active navbar item', () => {
       );
       expect(contrast(text, background)).toBeGreaterThanOrEqual(4.5);
     }
+  });
+});
+
+// Bulma's rule for a dropdown's rows names `.is-active` and `.is-selected`
+// without the class prefix in its `:not()`, so in a prefixed build it matches
+// an active row too and draws it as a plain one (#1805). The partial gives an
+// active link row back the fill and the text the unprefixed build gives it.
+// These resolve the row's text and fill in each build, as a large and a small
+// screen see the sheets, and compare them.
+describe('an active dropdown row in a prefixed build', () => {
+  /**
+   * `css` as a screen `width` pixels wide sees it: each `@media screen and`
+   * block of widths it falls in is unwrapped, and each other one dropped,
+   * Bulma's `, print` form included. Other at-rules stay as they are.
+   */
+  function atWidth(css: string, width: number): string {
+    const head =
+      /@media screen and ((?:\((?:min|max)-width: \d+px\)(?: and )?)+)(?:, print)?\s*\{/g;
+    let out = '';
+    let from = 0;
+    for (let m = head.exec(css); m; m = head.exec(css)) {
+      out += css.slice(from, m.index);
+      let close = head.lastIndex;
+      for (let depth = 1; depth > 0; close++) {
+        if (css[close] === '{') depth++;
+        else if (css[close] === '}') depth--;
+      }
+      const fits = Array.from(
+        m[1].matchAll(/\((min|max)-width: (\d+)px\)/g)
+      ).every(([, side, px]) =>
+        side === 'min' ? width >= Number(px) : width <= Number(px)
+      );
+      if (fits) out += atWidth(css.slice(head.lastIndex, close - 1), width);
+      from = close;
+      head.lastIndex = close;
+    }
+    return out + css.slice(from);
+  }
+
+  const widthRules = new Map<string, CSSStyleRule[]>();
+  /** Bulma's top-level rules as a screen `width` pixels wide sees them. */
+  const bulmaAt = (file: string, width: number) => {
+    const key = `${file}@${width}`;
+    if (!widthRules.has(key)) {
+      widthRules.set(key, styleRulesOf(atWidth(bulmaCss(file), width)).rules);
+    }
+    return widthRules.get(key) as CSSStyleRule[];
+  };
+
+  type Setup = { color?: 'primary'; transparent?: boolean; hero?: boolean };
+
+  /**
+   * A navbar whose open dropdown has an active link row, a selected one and a
+   * filled one.
+   */
+  const dropdownOf = (prefix: string, setup: Setup = {}) => {
+    const navbar = (
+      <Navbar
+        aria-label="Site"
+        color={setup.color}
+        transparent={setup.transparent}
+      >
+        <Navbar.Menu active>
+          <Navbar.Start>
+            <Navbar.Dropdown active>
+              <Navbar.Link>More</Navbar.Link>
+              <Navbar.DropdownMenu>
+                <Navbar.Item href="#row" active>
+                  Row
+                </Navbar.Item>
+                <Navbar.Item
+                  href="#selected"
+                  className={`${prefix}is-selected`}
+                >
+                  Selected
+                </Navbar.Item>
+                <Navbar.Item href="#filled" active bgColor="white">
+                  Filled
+                </Navbar.Item>
+              </Navbar.DropdownMenu>
+            </Navbar.Dropdown>
+          </Navbar.Start>
+        </Navbar.Menu>
+      </Navbar>
+    );
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>
+        {setup.hero ? (
+          <Hero color="primary">
+            <Hero.Head>{navbar}</Hero.Head>
+          </Hero>
+        ) : (
+          navbar
+        )}
+      </ConfigProvider>
+    );
+    const find = (selector: string) =>
+      container.querySelector(selector) as HTMLElement;
+    return {
+      navbar: find(`.${prefix}navbar`),
+      row: find('[href="#row"]'),
+      selected: find('[href="#selected"]'),
+      filled: find('[href="#filled"]'),
+    };
+  };
+
+  /**
+   * The row's text and fill, with every variable worked out, as the sheet
+   * `css` over Bulma's sheet `bulmaFile` draws them in `scheme` on a screen
+   * `width` pixels wide. The variables come from Bulma's sheet, and the one
+   * the partial declares that the row reads, `--bulma-navbar-item-color`,
+   * through the cascade.
+   */
+  function drawnRow(
+    css: string,
+    bulmaFile: string,
+    navbar: Element,
+    row: Element,
+    scheme: 'light' | 'dark',
+    width: number
+  ) {
+    const sheet = atWidth(css, width);
+    const rules = bulmaAt(bulmaFile, width);
+    /** The variables Bulma declares on `from`'s ancestors down to `to`. */
+    const down = (from: Element | null, to: Element): Vars => {
+      const chain: Element[] = [];
+      for (
+        let el: Element | null = to;
+        el && el !== from;
+        el = el.parentElement
+      )
+        chain.unshift(el);
+      return Object.assign(
+        {},
+        ...chain.map(el => varsOn(rules, s => matches(el, s)))
+      );
+    };
+    const onNavbar: Vars = {
+      ...schemesOf(rules)[scheme],
+      ...down(null, navbar),
+    };
+    const onRow: Vars = {
+      ...onNavbar,
+      // Inherited as the navbar worked it out.
+      '--bulma-navbar-item-color': substitute(
+        onNavbar['--bulma-navbar-item-color'],
+        onNavbar
+      ),
+      ...down(navbar, row),
+    };
+    const own = customProperty(row, sheet, '--bulma-navbar-item-color');
+    if (own) onRow['--bulma-navbar-item-color'] = own;
+    const declared = (property: string) =>
+      cascade(
+        row,
+        sheet,
+        [property],
+        (style, name) => style.getPropertyValue(name) || undefined
+      ) as string;
+    return {
+      text: substitute(declared('color'), onRow),
+      fill: substitute(declared('background-color'), onRow),
+    };
+  }
+
+  it('restates Bulma’s own fill and text for a link item', () => {
+    const css = bulmaCss('versions/bulma-prefixed.css').replace(/\s+/g, ' ');
+    expect(css).toContain(
+      '.bulma-navbar-dropdown .bulma-navbar-item:not(.is-active, .is-selected) {'
+    );
+    const partial = rulesOf(compile('bulma-'));
+    const row = partial[partial.length - 1];
+    expect(css).toContain(
+      `a.bulma-navbar-item, .bulma-navbar-link { background-color: ${row.declarations['background-color']};`
+    );
+    expect(css).toContain(
+      `.bulma-navbar-item, .bulma-navbar-link { color: ${row.declarations.color};`
+    );
+  });
+
+  it('adds nothing to a build without a prefix', () => {
+    // The rule's own text, which nothing else in the partial sets.
+    expect(
+      rulesOf(compile()).filter(
+        rule => rule.declarations.color === 'var(--bulma-navbar-item-color)'
+      )
+    ).toEqual([]);
+    expect(
+      rulesOf(compile('bulma-')).filter(
+        rule => rule.declarations.color === 'var(--bulma-navbar-item-color)'
+      )
+    ).toHaveLength(1);
+  });
+
+  describe.each([
+    ['the partial after Bulma', true],
+    ['the partial before Bulma', false],
+  ])('with %s', (_order, after) => {
+    const link = (bulma: string, partial: string) =>
+      after ? bulma + partial : partial + bulma;
+    const unprefixed = link(bulmaCss(), compile());
+    const prefixed = link(
+      bulmaCss('versions/bulma-prefixed.css'),
+      compile('bulma-')
+    );
+
+    /** Whether `pick`'s row draws the same in both builds, everywhere. */
+    const sameInBoth = (
+      setup: Setup,
+      pick: (rows: ReturnType<typeof dropdownOf>) => HTMLElement,
+      focus = false
+    ) => {
+      const plain = dropdownOf('', setup);
+      const withPrefix = dropdownOf('bulma-', setup);
+      for (const width of [1280, 800]) {
+        for (const scheme of ['light', 'dark'] as const) {
+          if (focus) pick(plain).focus();
+          const want = drawnRow(
+            unprefixed,
+            'bulma.css',
+            plain.navbar,
+            pick(plain),
+            scheme,
+            width
+          );
+          if (focus) pick(withPrefix).focus();
+          const got = drawnRow(
+            prefixed,
+            'versions/bulma-prefixed.css',
+            withPrefix.navbar,
+            pick(withPrefix),
+            scheme,
+            width
+          );
+          // The same color measures 1:1 against itself.
+          expect(contrast(got.text, want.text)).toBeCloseTo(1, 6);
+          expect(contrast(got.fill, want.fill)).toBeCloseTo(1, 6);
+        }
+      }
+    };
+
+    it.each([
+      ['a navbar with no color', {}],
+      ['a primary navbar', { color: 'primary' }],
+      ['a transparent navbar', { transparent: true }],
+      ['a navbar in a primary hero', { hero: true }],
+    ] as [string, Setup][])(
+      'draws the active row in %s as the unprefixed build does',
+      (_label, setup) => sameInBoth(setup, rows => rows.row)
+    );
+
+    it('draws a focused active row as the unprefixed build does', () => {
+      sameInBoth({}, rows => rows.row, true);
+    });
+
+    it.each([
+      ['a navbar with no color', {}],
+      ['a primary navbar', { color: 'primary' }],
+    ] as [string, Setup][])(
+      'draws a selected row in %s as the unprefixed build does',
+      (_label, setup) => sameInBoth(setup, rows => rows.selected)
+    );
+
+    it.each([
+      ['a navbar with no color', {}],
+      ['a primary navbar', { color: 'primary' }],
+    ] as [string, Setup][])(
+      'draws an active row with a bgColor in %s as the unprefixed build does',
+      (_label, setup) => sameInBoth(setup, rows => rows.filled)
+    );
+  });
+
+  it('draws the active row as a plain one with Bulma’s prefixed CSS alone, which is the bug', () => {
+    const plain = dropdownOf('');
+    const withPrefix = dropdownOf('bulma-');
+    const want = drawnRow(
+      bulmaCss() + compile(),
+      'bulma.css',
+      plain.navbar,
+      plain.row,
+      'light',
+      1280
+    );
+    const got = drawnRow(
+      bulmaCss('versions/bulma-prefixed.css'),
+      'versions/bulma-prefixed.css',
+      withPrefix.navbar,
+      withPrefix.row,
+      'light',
+      1280
+    );
+    expect(contrast(got.fill, want.fill)).toBeGreaterThan(1.5);
   });
 });
