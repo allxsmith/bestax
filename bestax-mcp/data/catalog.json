@@ -4194,8 +4194,8 @@
     },
     "toast": {
       "component": "Toast",
-      "purpose": "For showing toasts from anywhere in your app, use the programmatic API.",
-      "section": "Programmatic API"
+      "purpose": "The container's `hotkey`, F8 unless you give it another, moves keyboard focus to the newest toast's first button, or to the toast itself when it has none, and…",
+      "section": "Reaching a toast from the keyboard"
     },
     "useAppFrame": {
       "component": "AppFrame",
