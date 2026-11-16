@@ -502,7 +502,6 @@ describe('colored buttons in forced colors', () => {
 // there (#1869), and a disabled one in its disabled colors.
 describe('selected buttons in forced colors', () => {
   const DISABLED = [
-    `${SELECTED}:disabled`,
     `${SELECTED}[disabled]`,
     `${SELECTED}.is-disabled`,
     `fieldset[disabled] ${SELECTED}`,
@@ -531,9 +530,9 @@ describe('selected buttons in forced colors', () => {
     ]);
   });
 
-  it("rings a focused one in the page's text color, which its own text color isn't", () => {
-    // The browser draws the forced outline in the button's text color, which
-    // is HighlightText here and can be the page's own color.
+  it("rings a focused one in the page's text color, not Bulma's focus color", () => {
+    // Forcing is off on a selected button, so the forced colors outline
+    // would keep Bulma's focus color.
     expect(find(PLAIN, SELECTED_FOCUS, [FORCED])).toEqual({
       'outline-color': 'CanvasText',
     });
@@ -578,7 +577,9 @@ describe('selected buttons in forced colors', () => {
     ];
     for (const element of on) {
       expect(element.matches(SELECTED)).toBe(true);
-      expect(element.matches(DISABLED.split(', ')[0])).toBe(false);
+      for (const part of DISABLED.split(', ')) {
+        expect(element.matches(part)).toBe(false);
+      }
     }
     for (const element of off) {
       expect(element.matches(SELECTED)).toBe(false);
@@ -600,8 +601,9 @@ describe('selected buttons in forced colors', () => {
             Week
           </SegmentedControl.Segment>
         </SegmentedControl>
-        {/* A hand-written selected link, which Bulma dims by its class or
-            by a disabled fieldset, not by :disabled. */}
+        {/* Selected links: one disabled through Button's is-disabled,
+            since Button renders no disabled attribute on a link, and one in
+            a disabled fieldset, the case Bulma dims. */}
         <Button as="a" href="#a" className="is-selected" isDisabled>
           Underline
         </Button>

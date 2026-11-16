@@ -48,9 +48,10 @@
 // so it has none. A disabled one takes GrayText for its fill and edge and
 // Canvas for its text, so it still reads as pressed and as disabled, at full
 // opacity, since Bulma's disabled opacity would blend the fill into the page
-// and the text into the fill. It matches every element Bulma dims: a
-// disabled control, anything with a `disabled` attribute or `is-disabled`,
-// and anything in a disabled `<fieldset>`. A loading one is left to `_loader.scss`, which
+// and the text into the fill. It matches what Bulma dims, a `disabled`
+// attribute and anything in a disabled `<fieldset>`, and `is-disabled`, which
+// `Button` writes for `isDisabled` on any element, a link included, where it
+// renders no `disabled` attribute. A loading one is left to `_loader.scss`, which
 // draws it as it draws any loading button, so while it loads it looks like
 // one that isn't pressed, with its label hidden behind the spinner either
 // way.
@@ -133,7 +134,6 @@
       outline-color: CanvasText;
     }
 
-    &:disabled,
     &[disabled],
     &.#{iv.$class-prefix}is-disabled,
     fieldset[disabled] & {
