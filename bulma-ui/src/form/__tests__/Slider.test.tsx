@@ -874,17 +874,17 @@ describe('Slider', () => {
       expect(highOutput).not.toHaveClass('is-visible');
     });
 
-    it('keyDown on high thumb does not throw and does not change values', () => {
-      // High thumb has no onKeyDown wired, but it should accept the event silently.
+    it('leaves Home and End on either thumb to the browser', () => {
+      // The low thumb's handler cancelled both keys and set nothing, so they
+      // did nothing there (#1966). The browser moves a range thumb to its
+      // end, which jsdom doesn't, so this checks the keys reach it.
       const handleChange = vi.fn();
       render(<Slider range value={[20, 80]} onChange={handleChange} />);
-      const inputs = screen.getAllByRole('slider') as HTMLInputElement[];
-
-      // Pressing Home on a range slider's low thumb is a no-op
-      // (range branch in handleKeyDown is intentionally empty),
-      // exercising the `if (!range)` false branch on lines 328 and 334.
-      fireEvent.keyDown(inputs[0], { key: 'Home' });
-      fireEvent.keyDown(inputs[0], { key: 'End' });
+      for (const thumb of screen.getAllByRole('slider')) {
+        for (const key of ['Home', 'End']) {
+          expect(fireEvent.keyDown(thumb, { key })).toBe(true);
+        }
+      }
       expect(handleChange).not.toHaveBeenCalled();
     });
   });

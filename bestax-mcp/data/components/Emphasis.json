@@ -38,7 +38,7 @@
       "code": "<Paragraph>\n  The <Emphasis>idempotent</Emphasis> operation can be applied multiple times\n  without changing the result beyond the initial application.\n</Paragraph>"
     }
   ],
-  "accessibility": "- **Stress Emphasis:** Screen readers may announce `<em>` content with a change in tone or stress.\n- **Appropriate Use:** Use `<em>` for content that requires stress emphasis, not just for visual styling.\n- **Nested Emphasis:** Multiple levels of `<em>` indicate greater degrees of emphasis.\n\n:::info\nThe `<em>` element indicates stress emphasis that subtly changes the meaning of a sentence. Compare \"I _love_ coding\" vs \"I love _coding_\".\n:::",
+  "accessibility": "- **Stress Emphasis:** browsers tell assistive tech that `<em>` is emphasis, but don't count on a screen reader saying so. When the meaning hangs on the stress, let the words carry it too.\n- **Appropriate Use:** Use `<em>` for content that requires stress emphasis, not just for visual styling.\n- **Nested Emphasis:** Multiple levels of `<em>` indicate greater degrees of emphasis.\n\n:::info\nThe `<em>` element indicates stress emphasis that subtly changes the meaning of a sentence. Compare \"I _love_ coding\" vs \"I love _coding_\".\n:::",
   "related": ["Paragraph", "Span", "Strong", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-emphasis--default",
   "summary": "The `Emphasis` component renders a styled `<em>` element with Bulma helper class integration.",
