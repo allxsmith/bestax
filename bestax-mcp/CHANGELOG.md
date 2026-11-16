@@ -1,3 +1,33 @@
+## [1.18.67](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.66...bestax-mcp@1.18.67) (2026-11-16)
+
+
+### Bug Fixes
+
+* **bulma-ui:** draw Loading in Bulma's colors again ([cc9351d](https://github.com/allxsmith/bestax/commit/cc9351d410c1be20ec336b2655a87537a9a2db83)), closes [#1751](https://github.com/allxsmith/bestax/issues/1751) [#1768](https://github.com/allxsmith/bestax/issues/1768) [#1874](https://github.com/allxsmith/bestax/issues/1874)
+* **bulma-ui:** draw the Sidebar's forced-colors cross in CanvasText, aria-disabled too ([d2e7c53](https://github.com/allxsmith/bestax/commit/d2e7c534e25d9998ec4094d08a94e78093c6080a))
+* **bulma-ui:** draw Timeline in Bulma's colors again ([7a33f7d](https://github.com/allxsmith/bestax/commit/7a33f7d198a91d2558ef2ad1b3fb48ec5153179d)), closes [#1728](https://github.com/allxsmith/bestax/issues/1728) [#1791](https://github.com/allxsmith/bestax/issues/1791) [#1798](https://github.com/allxsmith/bestax/issues/1798) [pre-#1791](https://github.com/pre-/issues/1791) [#1861](https://github.com/allxsmith/bestax/issues/1861)
+* **bulma-ui:** keep a fixed panel at a corner inside the viewport, along its anchor ([2a1f6b8](https://github.com/allxsmith/bestax/commit/2a1f6b87576d7fc722ba3629471c23793dec5465)), closes [#1823](https://github.com/allxsmith/bestax/issues/1823)
+* **bulma-ui:** keep Sidebar's close button and its edge in forced colors ([f65d61b](https://github.com/allxsmith/bestax/commit/f65d61b5c8413391698e3698dfcc3ef96aafb8b0)), closes [#1889](https://github.com/allxsmith/bestax/issues/1889)
+* **bulma-ui:** mark the active Dropdown.Item as the current one with aria-current ([557ff56](https://github.com/allxsmith/bestax/commit/557ff56f49838fb5e7e26f09ab88769d6f10eae3))
+* **bulma-ui:** shift a panel in place at a corner back inside the viewport ([0812c9a](https://github.com/allxsmith/bestax/commit/0812c9a12a9ad7dd106112256a745e19d92340a7)), closes [#1823](https://github.com/allxsmith/bestax/issues/1823)
+* **bulma-ui:** write aria-current="page" for Link's isActive ([6cad89a](https://github.com/allxsmith/bestax/commit/6cad89a69aae3d3d06a3ac80e453010ed32bf85e)), closes [#1852](https://github.com/allxsmith/bestax/issues/1852)
+
+## [1.18.66](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.65...bestax-mcp@1.18.66) (2026-11-16)
+
+
+### Bug Fixes
+
+* **bulma-ui:** draw Progress's track and fill in forced colors ([06f1ed7](https://github.com/allxsmith/bestax/commit/06f1ed751d139866b141176341d4d2db54d5f2bc)), closes [#1846](https://github.com/allxsmith/bestax/issues/1846)
+* **bulma-ui:** draw Slider's ticks and mark labels at full strength in forced colors ([f5e1647](https://github.com/allxsmith/bestax/commit/f5e164721e43a92a38add89eda456813d7addc99)), closes [#1845](https://github.com/allxsmith/bestax/issues/1845)
+* **bulma-ui:** draw the table container's ring inside it, and name the caption in its warning ([9fd5c83](https://github.com/allxsmith/bestax/commit/9fd5c83d0141341eb3f8870c41788324ed85ee4c)), closes [#1839](https://github.com/allxsmith/bestax/issues/1839)
+* **bulma-ui:** keep a programmatic notification open while focus is inside it ([a720a45](https://github.com/allxsmith/bestax/commit/a720a45e1d48bd75c881b68c2606a541eefeb242)), closes [#1837](https://github.com/allxsmith/bestax/issues/1837)
+* **bulma-ui:** keep UnorderedList's list role for an empty role, as Stack's list does ([371c3fd](https://github.com/allxsmith/bestax/commit/371c3fdb41eb5b719f8529f4c7a9185a45f3c292))
+* **bulma-ui:** leave every loading button's focus ring to the loader partial ([42241fd](https://github.com/allxsmith/bestax/commit/42241fdf5aca4ba73277e68c8595c18e984aa6b0))
+* **bulma-ui:** make a responsive Table's container a named tab stop while it overflows ([0b8ddce](https://github.com/allxsmith/bestax/commit/0b8ddce0f20db15525e124a6d8e2d790a32c6bf1)), closes [#1839](https://github.com/allxsmith/bestax/issues/1839)
+* **bulma-ui:** render a role written on UnorderedList as written, empty included ([ac468a3](https://github.com/allxsmith/bestax/commit/ac468a3a4dd4dfac7250460f6959d17cfe45604b))
+* **bulma-ui:** ring a focused loading or static Button in Bulma's focus color ([2fd3714](https://github.com/allxsmith/bestax/commit/2fd3714c5e6e7f089ba70eff6cd3437805abb02b)), closes [#1849](https://github.com/allxsmith/bestax/issues/1849)
+* **bulma-ui:** write role="list" on UnorderedList's ul, so Safari keeps it a list ([4137048](https://github.com/allxsmith/bestax/commit/4137048f8232c928dd01c2c4fc45b0415837e9cb)), closes [#1850](https://github.com/allxsmith/bestax/issues/1850)
+
 ## [1.18.65](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.64...bestax-mcp@1.18.65) (2026-11-16)
 
 
