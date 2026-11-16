@@ -1,10 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useRef, useState } from 'react';
-import { Tour } from './Tour';
+import skye from '../../images/sample-skye-4by3.jpg';
+import { Tour, useTour } from './Tour';
 import { Box } from '../elements/Box';
 import { Button } from '../elements/Button';
 import { Buttons } from '../elements/Buttons';
 import { Paragraph } from '../elements/Paragraph';
+import { Tag } from '../elements/Tag';
 import { Input } from '../form/Input';
 
 const meta: Meta<typeof Tour> = {
@@ -20,7 +22,13 @@ const meta: Meta<typeof Tour> = {
     },
   },
   tags: ['autodocs'],
-  subcomponents: { Step: Tour.Step },
+  subcomponents: {
+    Step: Tour.Step,
+    Skip: Tour.Skip,
+    Back: Tour.Back,
+    Next: Tour.Next,
+    Progress: Tour.Progress,
+  },
   argTypes: {
     children: {
       control: false,
@@ -85,6 +93,11 @@ const meta: Meta<typeof Tour> = {
     labels: {
       control: 'object',
       description: 'The words the tour writes, and the progress line',
+    },
+    footer: {
+      control: false,
+      description:
+        'Every step’s footer, built from Tour.Skip, Tour.Back, Tour.Next and Tour.Progress; a step’s own wins',
     },
   },
   args: {
@@ -291,6 +304,81 @@ export const CustomLabels: Story = {
         >
           <Tour.Step title="Bienvenida">Un recorrido breve.</Tour.Step>
           <Tour.Step title="Listo">Eso es todo.</Tour.Step>
+        </Tour>
+      </>
+    );
+  },
+};
+
+/**
+ * A cover above a step's header, a footer for every step built from the
+ * parts, and a last step with a footer of its own.
+ */
+export const CoverAndFooter: Story = {
+  render: function CoverAndFooterTour() {
+    const [open, setOpen] = useState(false);
+    return (
+      <>
+        <Button onClick={() => setOpen(true)}>What's new</Button>
+        <Tour
+          open={open}
+          onOpenChange={setOpen}
+          footer={
+            <>
+              <Tour.Progress />
+              <Buttons>
+                <Tour.Back />
+                <Tour.Next />
+              </Buttons>
+            </>
+          }
+        >
+          <Tour.Step title="The new editor" cover={<img src={skye} alt="" />}>
+            The editor now saves as you type.
+          </Tour.Step>
+          <Tour.Step
+            title="That's all"
+            footer={<Tour.Next>Start writing</Tour.Next>}
+          >
+            You can take this tour again from the Help menu.
+          </Tour.Step>
+        </Tour>
+      </>
+    );
+  },
+};
+
+/** A part of the footer's own, built on `useTour()`. */
+function StepCount() {
+  const tour = useTour();
+  return tour ? <Tag>{`${tour.value + 1}/${tour.total}`}</Tag> : null;
+}
+
+/**
+ * `useTour()` hands a component inside a step the step, the total and the
+ * actions, for a part the four the tour has don't cover.
+ */
+export const WithUseTour: Story = {
+  render: function UseTourExample() {
+    const [open, setOpen] = useState(false);
+    return (
+      <>
+        <Button onClick={() => setOpen(true)}>Take the tour</Button>
+        <Tour
+          open={open}
+          onOpenChange={setOpen}
+          footer={
+            <>
+              <StepCount />
+              <Buttons>
+                <Tour.Skip />
+                <Tour.Next />
+              </Buttons>
+            </>
+          }
+        >
+          <Tour.Step title="One">The first step.</Tour.Step>
+          <Tour.Step title="Two">The second step.</Tour.Step>
         </Tour>
       </>
     );

@@ -111,7 +111,7 @@
           "name": "parentsSelectable",
           "type": "boolean",
           "default": "true",
-          "description": "A parent's row picks the parent. `false` makes the row, Enter and Space open it instead, so only leaves are picked.",
+          "description": "A parent's row picks the parent. `false` makes the row, Enter and Space open it instead, so only leaves are picked. Cascader, which takes the same `data`, defaults to `false`, as Ant Design's does, since a column per level is how its parents are opened.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -548,6 +548,12 @@
       "css": "--bulma-picker-popover-animation-duration",
       "sass": "$picker-popover-animation-duration",
       "default": "0.15s",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-months-max-width",
+      "sass": "$picker-popover-months-max-width",
+      "default": "calc(100vw - 2rem)",
       "scope": "element"
     },
     {

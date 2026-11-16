@@ -1,3 +1,39 @@
+# [5.72.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.71.0...@allxsmith/bestax-bulma@5.72.0) (2026-11-16)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** flag a react-bulma-components Dropdown's color, which colored its trigger ([27919d9](https://github.com/allxsmith/bestax/commit/27919d99b0d29cf337c3082a10e62bec874c9d42)), closes [#1792](https://github.com/allxsmith/bestax/issues/1792)
+* **bestax-migrate:** give the base-display TODO a rule of its own, and read the class map's values ([0639b23](https://github.com/allxsmith/bestax/commit/0639b2339e91e7c8ef6f790498626bc547254e51)), closes [#1747](https://github.com/allxsmith/bestax/issues/1747)
+* **bestax-migrate:** keep a base display beside a per-viewport one as its class ([5a266ae](https://github.com/allxsmith/bestax/commit/5a266ae88ae44765c813f9d60c956c8eda39d9b9)), closes [#1747](https://github.com/allxsmith/bestax/issues/1747)
+* **bestax-migrate:** leave a base display alone where a spread or dynamic value could undo it ([bd114a6](https://github.com/allxsmith/bestax/commit/bd114a69d90ec38e2ac638d6ab05356365591159)), closes [#1747](https://github.com/allxsmith/bestax/issues/1747)
+* **bestax-migrate:** leave an element that takes a spread to the reader ([8d2a15b](https://github.com/allxsmith/bestax/commit/8d2a15b4c733e9b14d5d8f8f3f56d636a2784a5e)), closes [#1747](https://github.com/allxsmith/bestax/issues/1747)
+* **bestax-migrate:** list Tour.Skip, Tour.Back and Tour.Next among the parts that forward a ref ([f787eb7](https://github.com/allxsmith/bestax/commit/f787eb71146c3768e8efe9c2fc0d5da0466975c7)), closes [#1435](https://github.com/allxsmith/bestax/issues/1435)
+* **bestax-migrate:** refuse a base display that a later spread could replace ([adf9d0a](https://github.com/allxsmith/bestax/commit/adf9d0a48bdd2792fc165a3a273a50eab2b50fd1)), closes [#1747](https://github.com/allxsmith/bestax/issues/1747)
+* **bulma-ui:** draw Carousel's indicators in Bulma's look again ([aaec983](https://github.com/allxsmith/bestax/commit/aaec983a02666a01b1c557a9e9d8dea5b6989952)), closes [#1760](https://github.com/allxsmith/bestax/issues/1760) [#1760](https://github.com/allxsmith/bestax/issues/1760)
+* **eslint-plugin:** flag isFullWidth on Tour.Skip, Tour.Back and Tour.Next ([7990df9](https://github.com/allxsmith/bestax/commit/7990df9535a947c911aab2f9befd7ccdfcede03b)), closes [#1435](https://github.com/allxsmith/bestax/issues/1435)
+
+
+### Features
+
+* **bulma-ui:** give Tour steps a cover and a footer of their own, built from parts ([7539c5b](https://github.com/allxsmith/bestax/commit/7539c5b9ccd450649075ecd8bfed7121f332f3b1)), closes [#1435](https://github.com/allxsmith/bestax/issues/1435)
+
+# [5.71.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.70.0...@allxsmith/bestax-bulma@5.71.0) (2026-11-16)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** answer a search for a calendar with Calendar first ([a3845b9](https://github.com/allxsmith/bestax/commit/a3845b967dcc1918733011f2d27a4fa3fca427a0))
+* **bulma-ui:** keep a held-month Calendar's focus on a day that can take it ([f919735](https://github.com/allxsmith/bestax/commit/f9197355dd2cb32b373a73f2291d8e34f8d254ad))
+* **bulma-ui:** move the date pickers' today mark when a render comes after midnight ([1bf5309](https://github.com/allxsmith/bestax/commit/1bf5309cdf7efdd7d4ee44f7bb6349c52a413bb3))
+* **bulma-ui:** open a Calendar with several months on a page that max holds whole ([46744f4](https://github.com/allxsmith/bestax/commit/46744f4c5456b8c8b5f210051e4906d62446f267))
+* **bulma-ui:** put focus back on the date pickers' calendar as its year list closes ([ca9aff6](https://github.com/allxsmith/bestax/commit/ca9aff66083014f4ee89fdae7c930f554222fa5c))
+
+
+### Features
+
+* **bulma-ui:** add Calendar, months on the page that pick a day or a range ([b6197c1](https://github.com/allxsmith/bestax/commit/b6197c17b0e0e4790ff5d5f2a3148355eda235cd))
+
 # [5.70.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.69.0...@allxsmith/bestax-bulma@5.70.0) (2026-11-15)
 
 

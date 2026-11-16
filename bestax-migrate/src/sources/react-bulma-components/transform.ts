@@ -30,6 +30,7 @@ import { applyBackgroundColor } from '../_shared/background-props.js';
 import { applyPropAction, applyUniversalProps } from '../_shared/props.js';
 import { applyTextColor } from '../_shared/text-color-props.js';
 import { enforcePolymorphicProps } from '../_shared/polymorphic.js';
+import { keepBaseDisplay } from '../_shared/display.js';
 import {
   bestaxValueLocals,
   buildBestaxImport,
@@ -440,6 +441,10 @@ export default function transform(
     applyBackgroundColor(ctx, path, element, target, handled);
     applyTextColor(ctx, path, element, target, handled);
     applyUniversalProps(ctx, path, element, handled, UNIVERSAL_PROPS);
+
+    // bestax leaves a base `display` out beside a per-viewport one, so it
+    // stays the class it stood for.
+    keepBaseDisplay(ctx, path, element);
 
     // Last: bestax's props follow `as`, so the element decides which of the
     // props just written it can actually take.

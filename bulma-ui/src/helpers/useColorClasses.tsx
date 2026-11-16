@@ -12,9 +12,20 @@ import {
  * Props for applying Bulma text and background color helper classes.
  */
 export interface BulmaColorProps {
-  /** Text color class (e.g., 'primary', 'info'). */
+  /**
+   * Text color class (e.g., 'primary', 'info'). On the dark scheme, bestax's
+   * stylesheets give a color's text the lightness Bulma picks for that
+   * color's text on the page wherever that's lighter, so a dark color reads
+   * there. On a surface that stays light on both schemes, such as
+   * `has-background-white` or `has-background-light`, add
+   * `colorShade="dark"`, which reads there on both.
+   */
   color?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Text color shade suffix (e.g., '00', 'invert'). */
+  /**
+   * Text color shade suffix (e.g., '00', 'invert'). `'dark'` is the one for
+   * text on a surface that stays light on both schemes, where the plain
+   * color gets lighter on the dark scheme.
+   */
   colorShade?: (typeof validColorShades)[number];
   /** Background color class (e.g., 'primary', 'info'). */
   backgroundColor?: (typeof validColors)[number] | 'inherit' | 'current';

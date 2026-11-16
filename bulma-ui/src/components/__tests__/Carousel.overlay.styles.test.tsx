@@ -153,7 +153,7 @@ describe('Carousel overlay stylesheet', () => {
     const container = renderCarousel({ overlayControls: true });
     const indicator = indicatorOf(container);
     expect(resolve(indicator, rules, 'background')).toBeUndefined();
-    // The plain look: a ring in the resting color, over the plain fill.
+    // The plain look: the plain fill, inside the ring a theme can color.
     const resting = indicator.querySelector('.indicator-item:not(.is-active)')!;
     expect(resolve(resting, rules, 'background-color')).toBe(
       'var(--bulma-carousel-indicator-background)'

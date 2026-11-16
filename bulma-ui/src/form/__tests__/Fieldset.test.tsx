@@ -23,6 +23,7 @@ import { Dropzone } from '../Dropzone';
 import { Autocomplete } from '../Autocomplete';
 import { Combobox } from '../Combobox';
 import { TreeSelect } from '../TreeSelect';
+import { Cascader } from '../Cascader';
 import { DateInputBase } from '../DateInputBase';
 import { TimeInputBase } from '../TimeInputBase';
 import { DateTimeInputBase } from '../DateTimeInputBase';
@@ -399,6 +400,26 @@ describe('Fieldset disabled', () => {
         data={[{ value: 'a' }]}
         defaultValue={['a']}
         name="t"
+      />,
+      c => {
+        expect(c.querySelector('input[role="combobox"]')).toHaveAttribute(
+          'disabled'
+        );
+        expect(c.querySelector('input[type="hidden"]')).toHaveAttribute(
+          'disabled'
+        );
+        expect(c.querySelector('.delete')).toBeNull();
+      },
+    ],
+    [
+      'Cascader',
+      <Cascader
+        key="ca"
+        aria-label="x"
+        data={[{ value: 'a' }]}
+        defaultValue="a"
+        name="c"
+        clearable
       />,
       c => {
         expect(c.querySelector('input[role="combobox"]')).toHaveAttribute(

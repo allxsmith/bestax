@@ -1,10 +1,12 @@
 // Two rules in _tag.scss, resolved across Bulma's CSS and the partial in
-// either order with `css-cascade.ts`, which says how. Bulma's
-// `.tag.is-light.is-light` matches every light tag and reads its text's
-// lightness from a variable Bulma doesn't define, so the partial puts back the
-// one `.tag.is-light` sets (#1464). And a tag in a table cell sits at the
-// bottom of its line rather than on the baseline, so it doesn't make its row
-// taller than a row of text (#1634).
+// either order with `css-cascade.ts`, which says how. Bulma's light variant of
+// a tag reads its text's lightness from `--bulma-<color>-light-invert-l`,
+// which Bulma doesn't define for white, black, light or dark, and its
+// `.tag.is-light.is-light` matches every light tag. So the partial gives a
+// light tag (#1464), and a white, black or dark one with isLight (#1514), the
+// text `.tag.is-light` sets, on Bulma's background. And a tag in a table cell
+// sits at the bottom of its line rather than on the baseline, so it doesn't
+// make its row taller than a row of text (#1634).
 import type { ReactNode } from 'react';
 import { render } from '@testing-library/react';
 import { Tag, type TagProps } from '../Tag';
@@ -68,6 +70,35 @@ describe('the colors of a light Tag', () => {
       expect(colorsOf(el, css())).toEqual(LIGHT);
     });
 
+    // Bulma's light variant already gives these the light color's
+    // background, so the text is all the partial sets.
+    it.each(['white', 'black', 'dark'] as const)(
+      "gives color='%s' with isLight the light color's text",
+      color => {
+        const el = tagOf({ color, isLight: true, children: 'New' });
+        expect(el).toHaveClass(`is-${color}`, 'is-light');
+        expect(colorsOf(el, css())).toEqual(LIGHT);
+      }
+    );
+
+    it("keeps color='dark' with isLight in the dark color's hue", () => {
+      const el = tagOf({ color: 'dark', isLight: true, children: 'New' });
+      expect(customProperty(el, css(), '--bulma-tag-h')).toBe(
+        'var(--bulma-dark-h)'
+      );
+    });
+
+    it.each(['white', 'black', 'dark'] as const)(
+      "leaves color='%s' without isLight alone",
+      color => {
+        const el = tagOf({ color, children: 'New' });
+        expect(colorsOf(el, css())).toEqual({
+          background: `var(--bulma-${color}-l)`,
+          text: `var(--bulma-${color}-invert-l)`,
+        });
+      }
+    );
+
     it("leaves Bulma's light variant of another color alone", () => {
       const el = tagOf({ color: 'primary', isLight: true, children: 'New' });
       expect(colorsOf(el, css())).toEqual({
@@ -104,6 +135,33 @@ describe('the colors of a light Tag', () => {
       expect(colorsOf(el, css())).toEqual(LIGHT);
     });
 
+    it.each(['white', 'black', 'dark'] as const)(
+      "gives color='%s' with isLight the light color's text",
+      color => {
+        const el = prefixedOf({ color, isLight: true });
+        expect(el).toHaveClass(`bulma-is-${color}`, 'bulma-is-light');
+        expect(colorsOf(el, css())).toEqual(LIGHT);
+      }
+    );
+
+    it("keeps color='dark' with isLight in the dark color's hue", () => {
+      const el = prefixedOf({ color: 'dark', isLight: true });
+      expect(customProperty(el, css(), '--bulma-tag-h')).toBe(
+        'var(--bulma-dark-h)'
+      );
+    });
+
+    it.each(['white', 'black', 'dark'] as const)(
+      "leaves color='%s' without isLight alone",
+      color => {
+        const el = prefixedOf({ color });
+        expect(colorsOf(el, css())).toEqual({
+          background: `var(--bulma-${color}-l)`,
+          text: `var(--bulma-${color}-invert-l)`,
+        });
+      }
+    );
+
     it("leaves Bulma's light variant of another color alone", () => {
       const el = prefixedOf({ color: 'primary', isLight: true });
       expect(colorsOf(el, css()).text).toBe(
@@ -131,15 +189,20 @@ describe('the colors of a light Tag', () => {
     const light = rules.filter(rule => rule.style.getPropertyValue(TEXT));
     expect(light).toHaveLength(1);
     const [, skipped] = /:not\((.*)\)$/.exec(light[0].selectorText)!;
+    const grayscale = ['white', 'black', 'light', 'dark'];
     expect(skipped.split(/,\s*/)).toEqual(
-      keys.filter(name => name !== 'light').map(name => `.is-${name}`)
+      keys.filter(name => !grayscale.includes(name)).map(name => `.is-${name}`)
     );
 
     const el = document.createElement('span');
     el.className = 'tag is-brand is-light';
     expect(el.matches(light[0].selectorText)).toBe(false);
-    el.className = 'tag is-light';
-    expect(el.matches(light[0].selectorText)).toBe(true);
+    el.className = 'tag is-primary is-dark is-light';
+    expect(el.matches(light[0].selectorText)).toBe(false);
+    for (const name of grayscale) {
+      el.className = `tag is-${name} is-light`;
+      expect(el.matches(light[0].selectorText)).toBe(true);
+    }
   });
 });
 

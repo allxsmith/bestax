@@ -79,10 +79,22 @@ const ADDONS = [
     desc: 'Corner status dots and counts overlaid on any element.',
   },
   {
+    name: 'Calendar',
+    icon: 'calendar',
+    link: '/docs/api/form/datetime/calendar',
+    desc: 'Months on the page that pick a day or a range, with what each day holds drawn under its number.',
+  },
+  {
     name: 'Carousel',
     icon: 'carousel',
     link: '/docs/api/components/carousel',
     desc: 'Slide any content with autoplay, drag, arrows, and indicators.',
+  },
+  {
+    name: 'Cascader',
+    icon: 'cascader',
+    link: '/docs/api/form/cascader',
+    desc: 'A form field that picks along a path, one column per level, and shows the whole path once it closes.',
   },
   {
     name: 'CheckboxCard/RadioCard',

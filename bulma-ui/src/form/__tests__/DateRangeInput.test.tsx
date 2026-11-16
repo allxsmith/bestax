@@ -1150,6 +1150,251 @@ describe('DateRangeInput', () => {
     });
   });
 
+  describe('several months', () => {
+    const july = (day: number) => new Date(2024, 6, day);
+
+    /** Each month's grid, first to last. */
+    const grids = () =>
+      Array.from(document.querySelectorAll<HTMLElement>('[role="grid"]'));
+
+    /** The grids' names, read through `aria-labelledby`. */
+    const gridNames = () =>
+      grids().map(
+        g =>
+          document.getElementById(g.getAttribute('aria-labelledby')!)
+            ?.textContent
+      );
+
+    /** The cell for `day` of the `i`th month on show. */
+    const dayIn = (i: number, day: number) =>
+      Array.from(
+        grids()[i].querySelectorAll<HTMLButtonElement>('[role="gridcell"]')
+      ).find(
+        c =>
+          !c.className.includes('is-other-month') &&
+          c.textContent === String(day)
+      )!;
+
+    it('shows one month unless asked for more', () => {
+      const { container } = render(
+        <DateRangeInput inline defaultValue={[june(28), july(3)]} />
+      );
+      expect(grids()).toHaveLength(1);
+      expect(container.querySelector('.calendar-months')).toBeNull();
+    });
+
+    it('shows monthsToShow months from the range start, inline and in the popover', () => {
+      const { container, unmount } = render(
+        <DateRangeInput
+          inline
+          monthsToShow={2}
+          defaultValue={[june(28), july(3)]}
+        />
+      );
+      expect(gridNames()).toEqual(['June 2024', 'July 2024']);
+      expect(container.querySelector('.calendar-months')).toContainElement(
+        grids()[1]
+      );
+      unmount();
+      render(
+        <DateRangeInput monthsToShow={2} defaultValue={[june(28), july(3)]} />
+      );
+      fireEvent.click(startInput());
+      expect(screen.getByRole('dialog')).toContainElement(grids()[1]);
+      expect(gridNames()).toEqual(['June 2024', 'July 2024']);
+    });
+
+    it('reads monthsToShow down to a whole number, and less than two as one', () => {
+      const { rerender } = render(
+        <DateRangeInput
+          inline
+          monthsToShow={2.7}
+          defaultValue={[june(28), null]}
+        />
+      );
+      expect(grids()).toHaveLength(2);
+      for (const n of [0, -1, Number.NaN, Number.POSITIVE_INFINITY]) {
+        rerender(
+          <DateRangeInput
+            inline
+            monthsToShow={n}
+            defaultValue={[june(28), null]}
+          />
+        );
+        expect(grids()).toHaveLength(1);
+      }
+    });
+
+    it('picks a range from one month into the next', () => {
+      const onChange = vi.fn();
+      render(
+        <DateRangeInput
+          monthsToShow={2}
+          defaultValue={[june(1), june(2)]}
+          onChange={onChange}
+        />
+      );
+      fireEvent.click(startInput());
+      fireEvent.click(dayIn(0, 28));
+      fireEvent.click(dayIn(1, 3));
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith([june(28), july(3)]);
+      expect(endInput()).toHaveValue('2024-07-03');
+    });
+
+    it('moves every month by monthsToShow from one pair of buttons', () => {
+      render(
+        <DateRangeInput
+          inline
+          monthsToShow={2}
+          defaultValue={[june(10), null]}
+        />
+      );
+      expect(
+        screen.getAllByRole('button', { name: 'Previous month' })
+      ).toHaveLength(1);
+      expect(
+        screen.getAllByRole('button', { name: 'Next month' })
+      ).toHaveLength(1);
+      fireEvent.click(screen.getByRole('button', { name: 'Next month' }));
+      expect(gridNames()).toEqual(['August 2024', 'September 2024']);
+      fireEvent.click(screen.getByRole('button', { name: 'Previous month' }));
+      expect(gridNames()).toEqual(['June 2024', 'July 2024']);
+    });
+
+    it('crosses from one month into the next by key, with one tab stop', () => {
+      render(
+        <DateRangeInput
+          inline
+          monthsToShow={2}
+          defaultValue={[june(30), null]}
+        />
+      );
+      const from = dayIn(0, 30);
+      act(() => {
+        from.focus();
+      });
+      fireEvent.keyDown(from, { key: 'ArrowRight' });
+      expect(document.activeElement).toBe(dayIn(1, 1));
+      expect(
+        document.querySelectorAll('[role="gridcell"][tabindex="0"]')
+      ).toHaveLength(1);
+      expect(gridNames()).toEqual(['June 2024', 'July 2024']);
+    });
+
+    it('opens on months that show a day typed in', () => {
+      render(
+        <DateRangeInput
+          monthsToShow={2}
+          openOnFocus={false}
+          defaultValue={[june(28), july(3)]}
+        />
+      );
+      const launcher = screen.getByRole('button', {
+        name: 'Choose date range',
+      });
+      // A start comes in as the first month, so the range runs on from it,
+      // and an end as the last.
+      act(() => {
+        startInput().focus();
+      });
+      type(startInput(), '20240310');
+      expect(startInput()).toHaveValue('2024-03-10');
+      fireEvent.click(launcher);
+      expect(gridNames()).toEqual(['March 2024', 'April 2024']);
+      // The months stay put as focus moves onto the second of them.
+      fireEvent.click(dayIn(1, 20));
+      expect(gridNames()).toEqual(['March 2024', 'April 2024']);
+      fireEvent.click(launcher);
+      act(() => {
+        endInput().focus();
+      });
+      type(endInput(), '20241015');
+      expect(endInput()).toHaveValue('2024-10-15');
+      fireEvent.click(launcher);
+      expect(gridNames()).toEqual(['September 2024', 'October 2024']);
+    });
+
+    it('opens with an end that has no start as the last month', () => {
+      render(
+        <DateRangeInput
+          inline
+          monthsToShow={2}
+          defaultValue={[null, july(3)]}
+        />
+      );
+      expect(gridNames()).toEqual(['June 2024', 'July 2024']);
+    });
+
+    it('opens on months that max holds whole', () => {
+      render(
+        <DateRangeInput
+          inline
+          monthsToShow={2}
+          max={july(20)}
+          defaultValue={[july(10), null]}
+        />
+      );
+      expect(gridNames()).toEqual(['June 2024', 'July 2024']);
+      expect(screen.getByRole('button', { name: 'Next month' })).toBeDisabled();
+    });
+
+    it('keeps the months inside max as monthsToShow grows', () => {
+      const { rerender } = render(
+        <DateRangeInput
+          inline
+          monthsToShow={2}
+          max={july(20)}
+          defaultValue={[july(10), null]}
+        />
+      );
+      rerender(
+        <DateRangeInput
+          inline
+          monthsToShow={3}
+          max={july(20)}
+          defaultValue={[july(10), null]}
+        />
+      );
+      expect(gridNames()).toEqual(['May 2024', 'June 2024', 'July 2024']);
+    });
+
+    it('shows the months that hold focus when monthsToShow changes', () => {
+      const { rerender } = render(
+        <DateRangeInput inline defaultValue={[june(10), null]} />
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Next month' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Next month' }));
+      rerender(
+        <DateRangeInput
+          inline
+          monthsToShow={2}
+          defaultValue={[june(10), null]}
+        />
+      );
+      expect(gridNames()).toEqual(['August 2024', 'September 2024']);
+      // And keep them as focus moves onto the second.
+      fireEvent.click(dayIn(1, 10));
+      expect(gridNames()).toEqual(['August 2024', 'September 2024']);
+    });
+
+    it('prefixes the months under a ConfigProvider classPrefix', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bestax-">
+          <DateRangeInput
+            inline
+            monthsToShow={2}
+            defaultValue={[june(10), null]}
+          />
+        </ConfigProvider>
+      );
+      expect(
+        container.querySelector('.bestax-calendar-months')
+      ).toContainElement(grids()[1]);
+      expect(container.querySelector('.calendar-months')).toBeNull();
+    });
+  });
+
   describe('native inputs', () => {
     const nativeStart = () => screen.getByLabelText('Start date');
     const nativeEnd = () => screen.getByLabelText('End date');

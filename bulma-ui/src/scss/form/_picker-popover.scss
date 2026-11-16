@@ -10,6 +10,7 @@ $picker-popover-border-color: cv.getVar('border') !default;
 $picker-popover-padding: 0.75rem !default;
 $picker-popover-offset: 4px !default;
 $picker-popover-animation-duration: 0.15s !default;
+$picker-popover-months-max-width: calc(100vw - 2rem) !default;
 $picker-trigger-width: 2.5em !default;
 $picker-trigger-color: cv.getVar('text') !default;
 $picker-trigger-hover-color: cv.getVar('text-strong') !default;
@@ -26,6 +27,7 @@ $picker-trigger-disabled-opacity: 0.5 !default;
       'picker-popover-padding': #{$picker-popover-padding},
       'picker-popover-offset': #{$picker-popover-offset},
       'picker-popover-animation-duration': #{$picker-popover-animation-duration},
+      'picker-popover-months-max-width': #{$picker-popover-months-max-width},
     )
   );
 }
@@ -81,6 +83,12 @@ $picker-trigger-disabled-opacity: 0.5 !default;
   // there would be the viewport's.
   &.#{iv.$class-prefix}has-anchor-width:not(.#{iv.$class-prefix}is-portal) {
     min-width: 100%;
+  }
+  // Several months take their own width rather than the field's, so they
+  // sit side by side, up to the window's width, where they wrap to a column.
+  &:has(> .#{iv.$class-prefix}calendar-months) {
+    width: max-content;
+    max-width: cv.getVar('picker-popover-months-max-width');
   }
   // Portaled: fixed to the viewport at the top and left the positioning hook
   // sets inline, so the corner's own right and bottom must not apply. Left

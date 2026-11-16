@@ -17,7 +17,6 @@
 // load in. Something inside a panel that reads `text-invert` itself, such as
 // the `has-text-text-invert` helper, gets the same value.
 
-@use 'sass:list';
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
 @use 'bulma/sass/utilities/derived-variables' as dv;
@@ -38,33 +37,51 @@ $panel-text-invert-l: cv.getVar('scheme-main-l') !default;
 // inherits the panel's. Panel's `color` puts the color's text helper on the
 // panel as well as its modifier, so in a colored Panel that text is the
 // color's own lightness on the page's background, which for many colors
-// doesn't read: a light panel's active block is near white on white.
+// doesn't read: a light panel's active block is near white on white. Bulma
+// draws the active block's icon and the active tab's underline in the color's
+// own lightness too, `--bulma-panel-color-l`, so a light panel's are near
+// white on white as well.
 //
 // This gives the active block and active tab of a panel with both classes a
-// fallback for those two variables: the color at its on-scheme lightness, the
-// one Bulma picks for that color's text on the page, so it reads on the page
-// on either scheme. A variable that reads an undefined one has no value, so
-// the fallback applies until either variable, or `--bulma-link-active`, is
-// given one, and a value of your own still wins. A panel with the modifier
-// alone, as Bulma writes one, inherits the page's text and is left as it is.
-// Black is left out: Bulma's on-scheme black is black on the dark scheme too,
-// so the rule wouldn't change it. So is `text`, which isn't one of Panel's
-// colors. The active block's icon and the active tab's underline keep the
-// color's own lightness.
+// fallback for those two variables, and the panel that same lightness as its
+// `--bulma-panel-color-l` for the icon and the underline. It's the color's
+// on-scheme lightness, the one Bulma picks for that color's text on the page,
+// so they read on the page on either scheme. A variable that reads an
+// undefined one has no value, so the fallback applies until either variable,
+// or `--bulma-link-active`, is given one, and a value of your own for them
+// still wins. `--bulma-panel-color-l` set through the panel's `style` does
+// too. A panel with the modifier alone, as Bulma writes one, inherits the
+// page's text and is left as it is. `text` is left out, since it isn't one of
+// Panel's colors.
 //
-// Each rule names the panel, its two color classes and Bulma's selector for
-// the block or tab, which outranks Bulma's rule whichever stylesheet loads
-// first.
-$-active-left-alone: ('black', 'text');
-
+// Bulma's on-scheme black is black on the dark scheme too, since Bulma only
+// ever steps a color darker than the dark page darker still. So black takes
+// Bulma's title text lightness, `--bulma-text-title-l`, which each scheme
+// sets to read on its page: near black on the light one and white on the
+// dark one.
+//
+// Each rule names the panel and its two color classes, which outranks Bulma's
+// `.panel` and `.panel.is-<color>`, where it declares the variables, and the
+// text rules add Bulma's selector for the block or tab, whichever stylesheet
+// loads first.
 @each $name, $color in dv.$colors {
-  @if not list.index($-active-left-alone, $name) {
+  @if $name != 'text' {
     $panel: '.#{iv.$class-prefix}panel.#{iv.$class-prefix}is-#{$name}.#{iv.$class-prefix}#{iv.$helpers-has-prefix}text-#{$name}';
+    $lightness: cv.getVar($name, '', '-on-scheme-l');
+
+    @if $name == 'black' {
+      $lightness: cv.getVar('text-title-l');
+    }
+
     $active: hsl(
       #{cv.getVar($name, '', '-h')},
       #{cv.getVar($name, '', '-s')},
-      #{cv.getVar($name, '', '-on-scheme-l')}
+      #{$lightness}
     );
+
+    #{$panel} {
+      @include cv.register-var('panel-color-l', #{$lightness});
+    }
 
     #{$panel} .#{iv.$class-prefix}panel-block.#{iv.$class-prefix}is-active {
       color: var(#{cv.buildVarName('panel-block-active-color')}, #{$active});

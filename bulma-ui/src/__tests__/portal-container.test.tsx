@@ -30,6 +30,7 @@ import { DateTimeInput } from '../form/DateTimeInput';
 import { DateRangeInput } from '../form/DateRangeInput';
 import { ColorInput } from '../form/ColorInput';
 import { TreeSelect } from '../form/TreeSelect';
+import { Cascader } from '../form/Cascader';
 
 beforeAll(() => {
   if (!window.matchMedia) {
@@ -554,6 +555,15 @@ describe('picker popovers inside a Modal', () => {
       'TreeSelect',
       <TreeSelect
         key="ts"
+        label="Place"
+        data={[{ value: 'here', label: 'Here' }]}
+        appendToBody
+      />,
+    ],
+    [
+      'Cascader',
+      <Cascader
+        key="cs"
         label="Place"
         data={[{ value: 'here', label: 'Here' }]}
         appendToBody

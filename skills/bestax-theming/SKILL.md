@@ -75,8 +75,8 @@ bulmaVars` now accepts `--bulma-scheme-main`/`-bis`/`-ter` (and the `-invert` tr
 Reach for the helper props (`color` / `textColor` / `bgColor` / `colorShade`, `textSize`,
 `textWeight`, `fontFamily`) to apply themed colors and type to individual components.
 Variant flags and value unions are component-specific — never carry one over by analogy:
-`isLight` exists on `Button` and `Notification` **only** (`Tag` has none, and `LinkButtonProps`
-omits it);
+`isLight` exists on `Button`, `IconButton`, `CopyButton`, `Popover.Close`, `Notification` and
+`Tag`, but `LinkButton`, `ToggleButton` and `SegmentedControl` leave it out;
 `Tag size` is `normal | medium | large` (no `small`, unlike `Button`); `Buttons` has
 `isCentered`, `Tags` does not (center tags with `justifyContent="center"`); the verbatim
 truth table is `references/themeable-components.md`.

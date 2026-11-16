@@ -46,6 +46,11 @@ const meta: Meta<typeof DateRangeInput> = {
       control: 'boolean',
       description: 'Render the calendar on the page, with no inputs.',
     },
+    monthsToShow: {
+      control: { type: 'number', min: 1, max: 3 },
+      description:
+        'How many months the calendar shows side by side, wrapping to a column where the width runs out.',
+    },
     disabled: {
       control: 'boolean',
       description: 'Disable both inputs and the launcher.',
@@ -146,6 +151,28 @@ export const Inline: Story = {
     label: 'Stay',
     inline: true,
     defaultValue: thisWeek(),
+  },
+};
+
+export const SeveralMonths: Story = {
+  render: () => (
+    <Block>
+      <DateRangeInput label="Stay" monthsToShow={2} defaultValue={thisWeek()} />
+      <DateRangeInput
+        label="Stay, on the page"
+        inline
+        monthsToShow={2}
+        defaultValue={thisWeek()}
+      />
+    </Block>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "`monthsToShow={2}` shows two months side by side, in the popover and inline, so a range that crosses a month's end shows both its ends. One pair of buttons moves both months, and the arrow keys cross from one into the other.",
+      },
+    },
   },
 };
 

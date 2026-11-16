@@ -317,7 +317,9 @@ export const ActiveDropdownItem: Story = {
           <Navbar.Dropdown active>
             <Navbar.Link>Active Dropdown</Navbar.Link>
             <Navbar.DropdownMenu>
-              <Navbar.Item href="#">A1</Navbar.Item>
+              <Navbar.Item href="#" active>
+                A1
+              </Navbar.Item>
               <Navbar.Item href="#">A2</Navbar.Item>
             </Navbar.DropdownMenu>
           </Navbar.Dropdown>

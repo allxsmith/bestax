@@ -1134,6 +1134,12 @@
       "scope": "element"
     },
     {
+      "css": "--bulma-picker-popover-months-max-width",
+      "sass": "$picker-popover-months-max-width",
+      "default": "calc(100vw - 2rem)",
+      "scope": "element"
+    },
+    {
       "css": "--bulma-timeinput-wheel-width",
       "sass": "$timeinput-wheel-width",
       "default": "3rem",
