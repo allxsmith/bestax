@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { Rate, RateIconProps } from '../Rate';
 import { Field } from '../Field';
 import { Control } from '../Control';
+import { ConfigProvider } from '../../helpers/Config';
 
 /**
  * Helper: stub `getBoundingClientRect` on every `.rate-item` span so
@@ -677,6 +678,42 @@ describe('Rate', () => {
       // The 4th star (index 3) should have a partial fill SVG with a clipPath
       const clipPaths = container.querySelectorAll('clipPath');
       expect(clipPaths.length).toBeGreaterThan(0);
+    });
+
+    it('marks the filled part of a partly filled star, so the stylesheet draws it as a filled star', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bestax-">
+          <Rate defaultValue={3.5} precision={0.5} />
+        </ConfigProvider>
+      );
+      const fill = container.querySelector('path.bestax-rate-star-fill');
+      // The one in the 4th star, clipped to its half, over its empty outline.
+      expect(container.querySelectorAll('.bestax-rate-star-fill')).toHaveLength(
+        1
+      );
+      expect(fill).toHaveAttribute('clip-path');
+    });
+
+    it('clips each Rate’s partly filled star with a clip of its own', () => {
+      const { container } = render(
+        <>
+          <Rate defaultValue={3.2} precision={0.1} aria-label="First" />
+          <Rate defaultValue={3.8} precision={0.1} aria-label="Second" />
+        </>
+      );
+      const clips = Array.from(container.querySelectorAll('clipPath'));
+      expect(new Set(clips.map(clip => clip.id)).size).toBe(clips.length);
+      // Only characters a `url(#…)` reference keeps as they are, whatever
+      // form React's useId takes.
+      for (const clip of clips) expect(clip.id).toMatch(/^[\w-]+$/);
+      // Each clipped path points at a clip inside its own star.
+      for (const path of Array.from(
+        container.querySelectorAll('path[clip-path]')
+      )) {
+        const svg = path.closest('svg')!;
+        const id = path.getAttribute('clip-path')!.slice(5, -1);
+        expect(svg.querySelector(`clipPath[id="${id}"]`)).not.toBeNull();
+      }
     });
 
     it('Home key works with precision', () => {
