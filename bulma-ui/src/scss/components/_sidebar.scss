@@ -309,6 +309,35 @@ $sidebar-static-border-color: cv.getVar("border") !default;
   }
 }
 
+// Forced colors (Windows' contrast themes) drop the panel's shadow and paint
+// background colors in the system's Canvas, the panel's own color. So the
+// panel gets an edge as an outline drawn inside it, which takes no room and
+// shows nothing while the panel is slid out of view. A static one keeps the
+// border below instead. The close button's cross is drawn as background
+// colors on `::before` and `::after`, which would vanish, so only those two
+// opt out and take the system's button text color, or its disabled color, as
+// `_delete.scss` draws the Modal's close. The button itself keeps the
+// user's palette, its focus ring included.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}sidebar:not(.#{iv.$class-prefix}is-static) {
+    outline: 1px solid CanvasText;
+    outline-offset: -1px;
+  }
+
+  .#{iv.$class-prefix}sidebar-close {
+    &::before,
+    &::after {
+      forced-color-adjust: none;
+      background-color: ButtonText;
+    }
+
+    &:disabled::before,
+    &:disabled::after {
+      background-color: GrayText;
+    }
+  }
+}
+
 // Static variant (inline sidebar, not overlay). The border sits between the
 // sidebar and the content: on its end, or its start with `is-right`, so it
 // faces the content on a right-to-left page too.

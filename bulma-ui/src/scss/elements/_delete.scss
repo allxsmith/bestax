@@ -10,8 +10,9 @@
 // colors it changes nothing.
 //
 // `.delete` is `Delete`, which every other close button bestax renders is
-// too, apart from the Modal's floating close (`.modal-close`) and `Tag
-// isDelete` (`.tag.is-delete`).
+// too, apart from the Modal's floating close (`.modal-close`), `Tag
+// isDelete` (`.tag.is-delete`), and `Sidebar.Close` (`.sidebar-close`),
+// whose cross `_sidebar.scss` draws the same way.
 //
 // `forced-color-adjust: none` keeps these colors, and the focus ring's too,
 // which would then be Bulma's focus color rather than the user's, so the ring
