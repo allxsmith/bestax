@@ -37,11 +37,13 @@
 // marks the selected button of a group. Forced colors replaces the fill, so
 // there they look like the buttons beside them. The selected rule draws them
 // in Highlight and HighlightText, the pair the system keeps for a selection,
-// as `_pagination.scss` draws the current page. Forced colors keeps a system
-// color an author sets, so the browser goes on adjusting everything inside the
-// button. The browser draws a focused button's forced outline in its text
-// color, which is HighlightText there and can be the page's own color, so
-// its outline names CanvasText, the color made to read on the page the
+// as `_pagination.scss` draws the current page. `forced-color-adjust: none`
+// keeps them: with forcing on, Chromium draws the page's color behind the
+// label, which in some themes is HighlightText's own color, and the label
+// would vanish. It reaches everything inside the button too, as on the
+// current page, so a child with a color of its own keeps it. With forcing
+// off, the forced colors outline would keep Bulma's focus color, so a
+// selected one names CanvasText, the color made to read on the page the
 // outline sits on. A disabled one takes GrayText for its fill and edge and
 // Canvas for its text, so it still reads as pressed and as disabled, at full
 // opacity, since Bulma's disabled opacity would blend the fill into the page
@@ -117,6 +119,7 @@
   .#{iv.$class-prefix}button.#{iv.$class-prefix}is-selected.#{iv.$class-prefix}is-selected:not(
       .#{iv.$class-prefix}is-loading
     ) {
+    forced-color-adjust: none;
     background-color: Highlight;
     border-color: Highlight;
     color: HighlightText;

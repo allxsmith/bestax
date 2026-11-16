@@ -1306,8 +1306,9 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
       </fieldset>,
       { surface: 'ButtonFace', border: 'GrayText' },
     ],
-    // Pressed, `_button.scss` draws it in Highlight in forced colors, which
-    // these `!important` colors outrank while it loads.
+    // Pressed, it takes these colors too while it loads: `_button.scss`
+    // draws a selected button in Highlight in forced colors, and skips a
+    // loading one.
     [
       'ToggleButton pressed isLoading',
       <ToggleButton key="x" defaultPressed isLoading>

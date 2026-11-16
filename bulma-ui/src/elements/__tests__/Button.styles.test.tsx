@@ -505,6 +505,7 @@ describe('selected buttons in forced colors', () => {
 
   it("draws a selected button in the system's selection colors, in forced colors only", () => {
     expect(find(PLAIN, SELECTED, [FORCED])).toEqual({
+      'forced-color-adjust': 'none',
       'background-color': 'Highlight',
       'border-color': 'Highlight',
       color: 'HighlightText',
@@ -629,15 +630,23 @@ describe('selected buttons in forced colors', () => {
     }
   });
 
-  it('leaves a loading one to the loader, whose colors are !important', () => {
-    const loader = rulesOf(compile(`@use 'elements/loader';`)).filter(
-      rule =>
-        rule.context.join(' ') === FORCED &&
-        rule.selector === '.button.is-loading'
+  it('leaves a loading one to the loader, which draws it as any loading button', () => {
+    const { getByRole } = render(
+      <div>
+        <ToggleButton defaultPressed isLoading>
+          Bold
+        </ToggleButton>
+        <ToggleButton defaultPressed isLoading disabled>
+          Italic
+        </ToggleButton>
+      </div>
     );
-    expect(loader).toHaveLength(1);
-    for (const property of ['background-color', 'border-color', 'color']) {
-      expect(loader[0].declarations[property]).toMatch(/!important$/);
+    for (const name of ['Bold', 'Italic']) {
+      const button = getByRole('button', { name });
+      expect(button).toHaveClass('is-selected', 'is-loading');
+      for (const part of [SELECTED, ...DISABLED.split(', ')]) {
+        expect(button.matches(part)).toBe(false);
+      }
     }
   });
 
