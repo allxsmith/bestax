@@ -7,50 +7,50 @@
   "examples": [
     {
       "title": "Default Breadcrumb",
-      "code": "<Breadcrumb>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" ariaLabel=\"home icon\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" ariaLabel=\"category icon\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"file\" ariaLabel=\"item icon\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
+      "code": "<Breadcrumb>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\" aria-current=\"page\">\n      <Icon library=\"fa\" name=\"file\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
     },
     {
       "title": "Centered Alignment",
-      "code": "<Breadcrumb alignment=\"centered\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" ariaLabel=\"home icon\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" ariaLabel=\"category icon\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"file\" ariaLabel=\"item icon\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
+      "code": "<Breadcrumb alignment=\"centered\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\" aria-current=\"page\">\n      <Icon library=\"fa\" name=\"file\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
     },
     {
       "title": "Right Alignment",
-      "code": "<Breadcrumb alignment=\"right\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" ariaLabel=\"home icon\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" ariaLabel=\"category icon\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"file\" ariaLabel=\"item icon\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
+      "code": "<Breadcrumb alignment=\"right\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\" aria-current=\"page\">\n      <Icon library=\"fa\" name=\"file\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
     },
     {
       "title": "Arrow Separator",
-      "code": "<Breadcrumb separator=\"arrow\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" ariaLabel=\"home icon\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" ariaLabel=\"category icon\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"file\" ariaLabel=\"item icon\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
+      "code": "<Breadcrumb separator=\"arrow\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\" aria-current=\"page\">\n      <Icon library=\"fa\" name=\"file\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
     },
     {
       "title": "Bullet Separator",
-      "code": "<Breadcrumb separator=\"bullet\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" ariaLabel=\"home icon\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" ariaLabel=\"category icon\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"file\" ariaLabel=\"item icon\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
+      "code": "<Breadcrumb separator=\"bullet\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\" aria-current=\"page\">\n      <Icon library=\"fa\" name=\"file\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
     },
     {
       "title": "Dot Separator",
-      "code": "<Breadcrumb separator=\"dot\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" ariaLabel=\"home icon\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" ariaLabel=\"category icon\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"file\" ariaLabel=\"item icon\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
+      "code": "<Breadcrumb separator=\"dot\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\" aria-current=\"page\">\n      <Icon library=\"fa\" name=\"file\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
     },
     {
       "title": "Succeeds Separator",
-      "code": "<Breadcrumb separator=\"succeeds\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" ariaLabel=\"home icon\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" ariaLabel=\"category icon\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"file\" ariaLabel=\"item icon\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
+      "code": "<Breadcrumb separator=\"succeeds\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\" aria-current=\"page\">\n      <Icon library=\"fa\" name=\"file\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
     },
     {
       "title": "Small Size",
-      "code": "<Breadcrumb size=\"small\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" ariaLabel=\"home icon\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" ariaLabel=\"category icon\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"file\" ariaLabel=\"item icon\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
+      "code": "<Breadcrumb size=\"small\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\" aria-current=\"page\">\n      <Icon library=\"fa\" name=\"file\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
     },
     {
       "title": "Medium Size",
-      "code": "<Breadcrumb size=\"medium\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" ariaLabel=\"home icon\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" ariaLabel=\"category icon\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"file\" ariaLabel=\"item icon\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
+      "code": "<Breadcrumb size=\"medium\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\" aria-current=\"page\">\n      <Icon library=\"fa\" name=\"file\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
     },
     {
       "title": "Large Size",
-      "code": "<Breadcrumb size=\"large\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" ariaLabel=\"home icon\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" ariaLabel=\"category icon\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"file\" ariaLabel=\"item icon\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
+      "code": "<Breadcrumb size=\"large\">\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\" aria-current=\"page\">\n      <Icon library=\"fa\" name=\"file\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
     },
     {
       "title": "With Icons, Alignment, Separator, Size, and Text Weight",
-      "code": "<Breadcrumb\n  alignment=\"centered\"\n  separator=\"dot\"\n  size=\"medium\"\n  textWeight=\"semibold\"\n>\n  <li>\n    <a href=\"#\">\n      <Icon\n        library=\"fa\"\n        name=\"home\"\n        textColor=\"primary\"\n        size=\"small\"\n        ariaLabel=\"home icon\"\n      />{' '}\n      Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon\n        library=\"fa\"\n        name=\"folder\"\n        textColor=\"info\"\n        size=\"small\"\n        ariaLabel=\"category icon\"\n      />{' '}\n      Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\">\n      <Icon\n        library=\"fa\"\n        name=\"file\"\n        textColor=\"success\"\n        size=\"small\"\n        ariaLabel=\"item icon\"\n      />{' '}\n      Item\n    </a>\n  </li>\n</Breadcrumb>"
+      "code": "<Breadcrumb\n  alignment=\"centered\"\n  separator=\"dot\"\n  size=\"medium\"\n  textWeight=\"semibold\"\n>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"home\" textColor=\"primary\" size=\"small\" /> Home\n    </a>\n  </li>\n  <li>\n    <a href=\"#\">\n      <Icon library=\"fa\" name=\"folder\" textColor=\"info\" size=\"small\" /> Category\n    </a>\n  </li>\n  <li className=\"is-active\">\n    <a href=\"#\" aria-current=\"page\">\n      <Icon library=\"fa\" name=\"file\" textColor=\"success\" size=\"small\" /> Item\n    </a>\n  </li>\n</Breadcrumb>"
     }
   ],
-  "accessibility": "- The root is a `<nav class=\"breadcrumb\">` with `aria-label=\"breadcrumbs\"`.\n- Each breadcrumb item should be an `<li>` with an `<a>` or `<span>`, and the final active item should have the `is-active` class.",
+  "accessibility": "- The root is a `<nav class=\"breadcrumb\">` with `aria-label=\"breadcrumbs\"`.\n- Each breadcrumb item should be an `<li>` with an `<a>` or `<span>`, and the final active item should have the `is-active` class.\n- **The current page:** `is-active` (with your class prefix, if you set one) only styles the item, so put `aria-current=\"page\"` on its `<a>` or `<span>` too, as the examples do. A screen reader then says which crumb is the page you're on. Without it, every crumb reads as just another link.\n- **Icons beside text:** leave an icon beside a crumb's text without an `ariaLabel`, so it's hidden from assistive technology and the link's name is its text. A label on it is read as part of the link (\"home icon Home\").",
   "related": ["Icon", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-breadcrumb--default",
   "summary": "The `Breadcrumb` component renders a Bulma-styled breadcrumb navigation.",
@@ -103,7 +103,7 @@
           "name": "children",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Breadcrumb items (`<li>`s with `<a>` or `<span>`).",
+          "description": "Breadcrumb items (`<li>`s with `<a>` or `<span>`). Mark the current page's item with Bulma's `is-active` class (with your class prefix, if you set one) and give its `<a>` or `<span>` `aria-current=\"page\"`, which is what tells a screen reader it's the page you're on, since the class only styles it.",
           "required": false,
           "inherited": false,
           "deprecated": false

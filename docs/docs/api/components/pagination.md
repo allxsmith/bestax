@@ -43,13 +43,19 @@ This example demonstrates a basic pagination navigation using `Pagination`, `Pag
 ```tsx live
 <Pagination>
   <Pagination.List>
-    <Pagination.Link>&laquo;</Pagination.Link>
-    <Pagination.Link active>1</Pagination.Link>
-    <Pagination.Link>2</Pagination.Link>
-    <Pagination.Link>3</Pagination.Link>
+    <Pagination.Link href="#previous" aria-label="Previous page">
+      &laquo;
+    </Pagination.Link>
+    <Pagination.Link active href="#page-1">
+      1
+    </Pagination.Link>
+    <Pagination.Link href="#page-2">2</Pagination.Link>
+    <Pagination.Link href="#page-3">3</Pagination.Link>
     <Pagination.Ellipsis />
-    <Pagination.Link>10</Pagination.Link>
-    <Pagination.Link>&raquo;</Pagination.Link>
+    <Pagination.Link href="#page-10">10</Pagination.Link>
+    <Pagination.Link href="#next" aria-label="Next page">
+      &raquo;
+    </Pagination.Link>
   </Pagination.List>
 </Pagination>
 ```
@@ -64,23 +70,29 @@ Showcases the use of the `size` prop to render paginations in different sizes. S
 <>
   <Pagination size="small" mb="2">
     <Pagination.List>
-      <Pagination.Link>1</Pagination.Link>
-      <Pagination.Link active>2</Pagination.Link>
-      <Pagination.Link>3</Pagination.Link>
+      <Pagination.Link href="#page-1">1</Pagination.Link>
+      <Pagination.Link active href="#page-2">
+        2
+      </Pagination.Link>
+      <Pagination.Link href="#page-3">3</Pagination.Link>
     </Pagination.List>
   </Pagination>
   <Pagination size="medium" mb="2">
     <Pagination.List>
-      <Pagination.Link>1</Pagination.Link>
-      <Pagination.Link active>2</Pagination.Link>
-      <Pagination.Link>3</Pagination.Link>
+      <Pagination.Link href="#page-1">1</Pagination.Link>
+      <Pagination.Link active href="#page-2">
+        2
+      </Pagination.Link>
+      <Pagination.Link href="#page-3">3</Pagination.Link>
     </Pagination.List>
   </Pagination>
   <Pagination size="large">
     <Pagination.List>
-      <Pagination.Link>1</Pagination.Link>
-      <Pagination.Link active>2</Pagination.Link>
-      <Pagination.Link>3</Pagination.Link>
+      <Pagination.Link href="#page-1">1</Pagination.Link>
+      <Pagination.Link active href="#page-2">
+        2
+      </Pagination.Link>
+      <Pagination.Link href="#page-3">3</Pagination.Link>
     </Pagination.List>
   </Pagination>
 </>
@@ -96,16 +108,20 @@ Demonstrates the `align` prop to control the pagination alignment. Use `align="c
 <>
   <Pagination align="centered" mb="2">
     <Pagination.List>
-      <Pagination.Link>1</Pagination.Link>
-      <Pagination.Link active>2</Pagination.Link>
-      <Pagination.Link>3</Pagination.Link>
+      <Pagination.Link href="#page-1">1</Pagination.Link>
+      <Pagination.Link active href="#page-2">
+        2
+      </Pagination.Link>
+      <Pagination.Link href="#page-3">3</Pagination.Link>
     </Pagination.List>
   </Pagination>
   <Pagination align="right">
     <Pagination.List>
-      <Pagination.Link>1</Pagination.Link>
-      <Pagination.Link active>2</Pagination.Link>
-      <Pagination.Link>3</Pagination.Link>
+      <Pagination.Link href="#page-1">1</Pagination.Link>
+      <Pagination.Link active href="#page-2">
+        2
+      </Pagination.Link>
+      <Pagination.Link href="#page-3">3</Pagination.Link>
     </Pagination.List>
   </Pagination>
 </>
@@ -120,9 +136,11 @@ This example demonstrates the `rounded` prop, which renders the pagination with 
 ```tsx live
 <Pagination rounded>
   <Pagination.List>
-    <Pagination.Link>1</Pagination.Link>
-    <Pagination.Link active>2</Pagination.Link>
-    <Pagination.Link>3</Pagination.Link>
+    <Pagination.Link href="#page-1">1</Pagination.Link>
+    <Pagination.Link active href="#page-2">
+      2
+    </Pagination.Link>
+    <Pagination.Link href="#page-3">3</Pagination.Link>
   </Pagination.List>
 </Pagination>
 ```
@@ -136,13 +154,19 @@ This example shows how to use the `disabled` prop on `Pagination.Link` to indica
 ```tsx live
 <Pagination>
   <Pagination.List>
-    <Pagination.Link disabled>&laquo;</Pagination.Link>
-    <Pagination.Link active>1</Pagination.Link>
-    <Pagination.Link>2</Pagination.Link>
-    <Pagination.Link>3</Pagination.Link>
+    <Pagination.Link disabled aria-label="Previous page">
+      &laquo;
+    </Pagination.Link>
+    <Pagination.Link active href="#page-1">
+      1
+    </Pagination.Link>
+    <Pagination.Link href="#page-2">2</Pagination.Link>
+    <Pagination.Link href="#page-3">3</Pagination.Link>
     <Pagination.Ellipsis />
-    <Pagination.Link>10</Pagination.Link>
-    <Pagination.Link>&raquo;</Pagination.Link>
+    <Pagination.Link href="#page-10">10</Pagination.Link>
+    <Pagination.Link href="#next" aria-label="Next page">
+      &raquo;
+    </Pagination.Link>
   </Pagination.List>
 </Pagination>
 ```
@@ -151,7 +175,7 @@ This example shows how to use the `disabled` prop on `Pagination.Link` to indica
 
 ### Controlled Pagination
 
-This example demonstrates a controlled pagination pattern using the `page` state and the `onClick` handler on each `Pagination.Link`. The current page is tracked in state, and clicking a link updates the page. Use this approach for paginations where you need to manage the current page in your app logic.
+This example demonstrates a controlled pagination pattern using the `page` state and the `onClick` handler on each `Pagination.Link`. The current page is tracked in state, and clicking a link updates the page. With no `href`, each part is a button, so Enter and Space choose a page too. Use this approach for paginations where you need to manage the current page in your app logic.
 
 ```tsx live
 function example() {
@@ -215,18 +239,26 @@ This example combines the `Pagination.Previous` and `Pagination.Next` subcompone
 
 ```tsx live
 <Pagination align="centered">
-  <Pagination.Previous>Previous</Pagination.Previous>
-  <Pagination.Next>Next page</Pagination.Next>
+  <Pagination.Previous href="#previous">Previous</Pagination.Previous>
+  <Pagination.Next href="#next">Next page</Pagination.Next>
   <Pagination.List>
-    <Pagination.Link aria-label="Goto page 1">1</Pagination.Link>
+    <Pagination.Link aria-label="Goto page 1" href="#page-1">
+      1
+    </Pagination.Link>
     <Pagination.Ellipsis />
-    <Pagination.Link aria-label="Goto page 45">45</Pagination.Link>
-    <Pagination.Link active aria-label="Page 46">
+    <Pagination.Link aria-label="Goto page 45" href="#page-45">
+      45
+    </Pagination.Link>
+    <Pagination.Link active aria-label="Page 46" href="#page-46">
       46
     </Pagination.Link>
-    <Pagination.Link aria-label="Goto page 47">47</Pagination.Link>
+    <Pagination.Link aria-label="Goto page 47" href="#page-47">
+      47
+    </Pagination.Link>
     <Pagination.Ellipsis />
-    <Pagination.Link aria-label="Goto page 86">86</Pagination.Link>
+    <Pagination.Link aria-label="Goto page 86" href="#page-86">
+      86
+    </Pagination.Link>
   </Pagination.List>
 </Pagination>
 ```
@@ -239,13 +271,15 @@ Every subcomponent is exported by name (`PaginationLink`, `PaginationList`, …)
 
 ```tsx live
 <Pagination>
-  <Pagination.Previous>Previous</Pagination.Previous>
-  <Pagination.Next>Next page</Pagination.Next>
+  <Pagination.Previous href="#previous">Previous</Pagination.Previous>
+  <Pagination.Next href="#next">Next page</Pagination.Next>
   <Pagination.List>
-    <Pagination.Link active>1</Pagination.Link>
-    <Pagination.Link>2</Pagination.Link>
+    <Pagination.Link active href="#page-1">
+      1
+    </Pagination.Link>
+    <Pagination.Link href="#page-2">2</Pagination.Link>
     <Pagination.Ellipsis />
-    <Pagination.Link>10</Pagination.Link>
+    <Pagination.Link href="#page-10">10</Pagination.Link>
   </Pagination.List>
 </Pagination>
 ```
@@ -257,12 +291,13 @@ Every subcomponent is exported by name (`PaginationLink`, `PaginationList`, …)
 - The root `Pagination` renders as a semantic `<nav role="navigation" aria-label="pagination">`.
 - Use `aria-label` on page links for better screen reader support.
 - Disabled and active states are handled with ARIA attributes and classes.
-- Rendered from `total`, each page's link is named for its page ("Page 3"; pass `getPageLabel` for your own words), and the current page's link carries `aria-current="page"`. Without `getPageHref` the links have no `href`, so they carry `role="button"` and choose a page with Enter or Space.
+- Rendered from `total`, each page's link is named for its page ("Page 3"; pass `getPageLabel` for your own words), and the current page's link carries `aria-current="page"`. Without `getPageHref` the links have no `href`, so they carry `role="button"` and choose a page with Enter or Space. With it, an end that goes nowhere has no `href` either, so it's a disabled button.
+- **Links and buttons:** `Pagination.Link`, `Pagination.Previous` and `Pagination.Next` render an `<a>`. Given an `href`, it's a link, and the browser follows it. Without one it's a button: it carries `role="button"`, and Enter or Space clicks it, so an `onClick` works from the keyboard too, as in [Controlled Pagination](#controlled-pagination). A disabled one does nothing, a `role` you pass wins, and an `onKeyDown` you pass keeps the keys to itself.
 - **Focus ring:** the previous, next and page links show a focus ring for keyboard focus only, in Bulma's focus color, width, style and offset (`--bulma-focus-h`, `--bulma-focus-s`, `--bulma-focus-l`, `--bulma-focus-width`, `--bulma-focus-style`, `--bulma-focus-offset`). The current page is filled with the link color, which matches the focus color by default, so its ring takes the link's text color instead, inside the fill. It comes from the bestax extras (`extras.css`, or `bestax.css`, which includes them); with Bulma's CSS alone a focused link shows only its hover shade.
 - **Forced colors:** Bulma marks the current page with colors alone, which forced colors (Windows' contrast themes) replaces, so bestax's styles draw it in the system's highlight colors there instead. A link with Bulma's `is-current` or `is-selected` class gets them, so a [DataTable](./datatable.md)'s pager does too.
 
 :::note
-Pagination links are rendered as `<a>` elements for accessibility and keyboard navigation.
+Pagination's parts render `<a>` elements: links with an `href`, and buttons without one.
 :::
 
 ---
@@ -289,27 +324,27 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Pagin
 
 <!-- bestax:generated props -->
 
-| Prop            | Type                                                                                                                               | Default      | Description                                                                                                                                                                                                                                                                                                                                                                      |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `color`         | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'` | —            | **Deprecated.** No `.pagination.is-<color>` CSS exists; the prop renders unstyled and will be removed in the next major version. Color modifier for the pagination (renders `is-<color>`). Bulma ships no pagination color CSS, so this prop has never had a visual effect for any value. Passing it logs a console warning in development. Use `textColor` / `bgColor` instead. |
-| `textColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —            | Text color helper.                                                                                                                                                                                                                                                                                                                                                               |
-| `bgColor`       | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —            | Background color helper.                                                                                                                                                                                                                                                                                                                                                         |
-| `size`          | `'small'` \| `'medium'` \| `'large'`                                                                                               | —            | Size modifier for the pagination.                                                                                                                                                                                                                                                                                                                                                |
-| `align`         | `'centered'` \| `'right'`                                                                                                          | —            | Alignment for the pagination.                                                                                                                                                                                                                                                                                                                                                    |
-| `rounded`       | `boolean`                                                                                                                          | `false`      | Renders pagination with rounded corners.                                                                                                                                                                                                                                                                                                                                         |
-| `total`         | `number`                                                                                                                           | —            | The number of pages. Given `total` and no children, `Pagination` renders the whole control itself: Previous, Next and a link for each page it shows, with an ellipsis where it skips some. Given children, it renders those as they are, and `total` and the other page props do nothing.                                                                                        |
-| `current`       | `number`                                                                                                                           | —            | The page shown as current, counting from 1, when rendering from `total`. Leave it out and `Pagination` keeps the page itself, starting at 1.                                                                                                                                                                                                                                     |
-| `onPageChange`  | `(page: number) => void`                                                                                                           | —            | Called with the page chosen, when rendering from `total`. Choosing the page already current doesn't call it.                                                                                                                                                                                                                                                                     |
-| `siblingCount`  | `number`                                                                                                                           | `1`          | How many pages to show on each side of the current one, when rendering from `total`.                                                                                                                                                                                                                                                                                             |
-| `boundaryCount` | `number`                                                                                                                           | `1`          | How many pages to always show at the start and at the end, when rendering from `total`.                                                                                                                                                                                                                                                                                          |
-| `previousLabel` | `React.ReactNode`                                                                                                                  | `'Previous'` | The Previous link's content, when rendering from `total`.                                                                                                                                                                                                                                                                                                                        |
-| `nextLabel`     | `React.ReactNode`                                                                                                                  | `'Next'`     | The Next link's content, when rendering from `total`.                                                                                                                                                                                                                                                                                                                            |
-| `disabled`      | `boolean`                                                                                                                          | `false`      | Disables every link, when rendering from `total`.                                                                                                                                                                                                                                                                                                                                |
-| `getPageHref`   | `(page: number) => string`                                                                                                         | —            | The `href` for a page's link, when rendering from `total`, making each one a real link (`page => '?page=' + page`). A click then calls `onPageChange` and the browser follows the link too. Without it the links have no `href`, act as buttons, and Enter or Space chooses a page.                                                                                              |
-| `getPageLabel`  | `(page: number) => string`                                                                                                         | —            | The accessible name of a page's link, when rendering from `total`, since its content is only the number (`page => 'Page ' + page` by default). Inside a `LocaleProvider` with a `locale`, the number on the link, and in the default name, is written the way that locale writes numbers, so the name still holds the text on screen.                                            |
-| `className`     | `string`                                                                                                                           | —            | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                          |
-| `children`      | `React.ReactNode`                                                                                                                  | —            | Custom pagination content (usually subcomponents).                                                                                                                                                                                                                                                                                                                               |
-| `...`           | All standard HTML attributes and Bulma helper props                                                                                | —            | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                |
+| Prop            | Type                                                                                                                               | Default      | Description                                                                                                                                                                                                                                                                                                                                                                                                         |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `color`         | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'` | —            | **Deprecated.** No `.pagination.is-<color>` CSS exists; the prop renders unstyled and will be removed in the next major version. Color modifier for the pagination (renders `is-<color>`). Bulma ships no pagination color CSS, so this prop has never had a visual effect for any value. Passing it logs a console warning in development. Use `textColor` / `bgColor` instead.                                    |
+| `textColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —            | Text color helper.                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `bgColor`       | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —            | Background color helper.                                                                                                                                                                                                                                                                                                                                                                                            |
+| `size`          | `'small'` \| `'medium'` \| `'large'`                                                                                               | —            | Size modifier for the pagination.                                                                                                                                                                                                                                                                                                                                                                                   |
+| `align`         | `'centered'` \| `'right'`                                                                                                          | —            | Alignment for the pagination.                                                                                                                                                                                                                                                                                                                                                                                       |
+| `rounded`       | `boolean`                                                                                                                          | `false`      | Renders pagination with rounded corners.                                                                                                                                                                                                                                                                                                                                                                            |
+| `total`         | `number`                                                                                                                           | —            | The number of pages. Given `total` and no children, `Pagination` renders the whole control itself: Previous, Next and a link for each page it shows, with an ellipsis where it skips some. Given children, it renders those as they are, and `total` and the other page props do nothing.                                                                                                                           |
+| `current`       | `number`                                                                                                                           | —            | The page shown as current, counting from 1, when rendering from `total`. Leave it out and `Pagination` keeps the page itself, starting at 1.                                                                                                                                                                                                                                                                        |
+| `onPageChange`  | `(page: number) => void`                                                                                                           | —            | Called with the page chosen, when rendering from `total`. Choosing the page already current doesn't call it.                                                                                                                                                                                                                                                                                                        |
+| `siblingCount`  | `number`                                                                                                                           | `1`          | How many pages to show on each side of the current one, when rendering from `total`.                                                                                                                                                                                                                                                                                                                                |
+| `boundaryCount` | `number`                                                                                                                           | `1`          | How many pages to always show at the start and at the end, when rendering from `total`.                                                                                                                                                                                                                                                                                                                             |
+| `previousLabel` | `React.ReactNode`                                                                                                                  | `'Previous'` | The Previous link's content, when rendering from `total`.                                                                                                                                                                                                                                                                                                                                                           |
+| `nextLabel`     | `React.ReactNode`                                                                                                                  | `'Next'`     | The Next link's content, when rendering from `total`.                                                                                                                                                                                                                                                                                                                                                               |
+| `disabled`      | `boolean`                                                                                                                          | `false`      | Disables every link, when rendering from `total`.                                                                                                                                                                                                                                                                                                                                                                   |
+| `getPageHref`   | `(page: number) => string`                                                                                                         | —            | The `href` for a page's link, when rendering from `total`, making each one a real link (`page => '?page=' + page`). A click then calls `onPageChange` and the browser follows the link too. Without it the links have no `href`, act as buttons, and Enter or Space chooses a page. An end that goes nowhere, Previous on the first page and Next on the last, has no `href` either way, so it's a disabled button. |
+| `getPageLabel`  | `(page: number) => string`                                                                                                         | —            | The accessible name of a page's link, when rendering from `total`, since its content is only the number (`page => 'Page ' + page` by default). Inside a `LocaleProvider` with a `locale`, the number on the link, and in the default name, is written the way that locale writes numbers, so the name still holds the text on screen.                                                                               |
+| `className`     | `string`                                                                                                                           | —            | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                                                             |
+| `children`      | `React.ReactNode`                                                                                                                  | —            | Custom pagination content (usually subcomponents).                                                                                                                                                                                                                                                                                                                                                                  |
+| `...`           | All standard HTML attributes and Bulma helper props                                                                                | —            | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                   |
 
 **Subcomponents:**
 
@@ -321,16 +356,17 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Pagin
 
 ### Pagination.Link
 
-| Prop        | Type                                                                            | Default | Description                                       |
-| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                                                                        | —       | Additional CSS classes.                           |
-| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier.                             |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color.                                       |
-| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color.                                 |
-| `active`    | `boolean`                                                                       | `false` | Whether the link is for the current page.         |
-| `disabled`  | `boolean`                                                                       | `false` | Whether the link is disabled.                     |
-| `children`  | `React.ReactNode`                                                               | —       | Link content.                                     |
-| `...`       | All standard `<a>` attributes and Bulma helper props                            | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                                                                            | Default | Description                                                                                                                                                                                                                          |
+| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `className` | `string`                                                                        | —       | Additional CSS classes.                                                                                                                                                                                                              |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier.                                                                                                                                                                                                                |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color.                                                                                                                                                                                                                          |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color.                                                                                                                                                                                                                    |
+| `active`    | `boolean`                                                                       | `false` | Whether the link is for the current page.                                                                                                                                                                                            |
+| `disabled`  | `boolean`                                                                       | `false` | Whether the link is disabled.                                                                                                                                                                                                        |
+| `children`  | `React.ReactNode`                                                               | —       | Link content.                                                                                                                                                                                                                        |
+| `href`      | `string`                                                                        | —       | Where the link goes. Without one it's a button: it renders `role="button"`, and Enter or Space clicks it, so its `onClick` runs from the keyboard too. A `role` you pass wins, and an `onKeyDown` you pass keeps the keys to itself. |
+| `...`       | All standard `<a>` attributes and Bulma helper props                            | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                    |
 
 ### Pagination.List
 
@@ -345,21 +381,23 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Pagin
 
 ### Pagination.Previous
 
-| Prop        | Type                          | Default | Description                        |
-| ----------- | ----------------------------- | ------- | ---------------------------------- |
-| `className` | `string`                      | —       | Additional CSS classes.            |
-| `disabled`  | `boolean`                     | `false` | Whether previous/next is disabled. |
-| `children`  | `React.ReactNode`             | —       | Button content.                    |
-| `...`       | All standard `<a>` attributes | —       |                                    |
+| Prop        | Type                          | Default | Description                                                                                                                                                                                                                          |
+| ----------- | ----------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `className` | `string`                      | —       | Additional CSS classes.                                                                                                                                                                                                              |
+| `disabled`  | `boolean`                     | `false` | Whether previous/next is disabled.                                                                                                                                                                                                   |
+| `children`  | `React.ReactNode`             | —       | Button content.                                                                                                                                                                                                                      |
+| `href`      | `string`                      | —       | Where the link goes. Without one it's a button: it renders `role="button"`, and Enter or Space clicks it, so its `onClick` runs from the keyboard too. A `role` you pass wins, and an `onKeyDown` you pass keeps the keys to itself. |
+| `...`       | All standard `<a>` attributes | —       |                                                                                                                                                                                                                                      |
 
 ### Pagination.Next
 
-| Prop        | Type                          | Default | Description                        |
-| ----------- | ----------------------------- | ------- | ---------------------------------- |
-| `className` | `string`                      | —       | Additional CSS classes.            |
-| `disabled`  | `boolean`                     | `false` | Whether previous/next is disabled. |
-| `children`  | `React.ReactNode`             | —       | Button content.                    |
-| `...`       | All standard `<a>` attributes | —       |                                    |
+| Prop        | Type                          | Default | Description                                                                                                                                                                                                                          |
+| ----------- | ----------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `className` | `string`                      | —       | Additional CSS classes.                                                                                                                                                                                                              |
+| `disabled`  | `boolean`                     | `false` | Whether previous/next is disabled.                                                                                                                                                                                                   |
+| `children`  | `React.ReactNode`             | —       | Button content.                                                                                                                                                                                                                      |
+| `href`      | `string`                      | —       | Where the link goes. Without one it's a button: it renders `role="button"`, and Enter or Space clicks it, so its `onClick` runs from the keyboard too. A `role` you pass wins, and an `onKeyDown` you pass keeps the keys to itself. |
+| `...`       | All standard `<a>` attributes | —       |                                                                                                                                                                                                                                      |
 
 <!-- /bestax:generated props -->
 

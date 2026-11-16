@@ -77,7 +77,15 @@ To create a basic table, use the `Table` component along with its subcomponents:
 Showcase the full range of table customization by combining multiple props on the `Table` component. Use `isBordered` to add borders, `isStriped` for zebra-striping, `isNarrow` for compact cells, `isHoverable` for row hover effects, `isFullwidth` to stretch the table to its container, and `isResponsive` for horizontal scrolling on small screens. These modifiers can be mixed and matched to achieve the exact look and behavior you need.
 
 ```tsx live
-<Table isBordered isStriped isNarrow isHoverable isFullwidth isResponsive>
+<Table
+  isBordered
+  isStriped
+  isNarrow
+  isHoverable
+  isFullwidth
+  isResponsive
+  aria-label="Every modifier"
+>
   <Thead>
     <Tr>
       <Th>Column 1</Th>
@@ -99,10 +107,12 @@ Showcase the full range of table customization by combining multiple props on th
 
 ### Responsive Table (horizontal scroll on mobile)
 
-Enable the `isResponsive` prop to make your table horizontally scrollable on small screens. This ensures that wide tables with many columns remain accessible and readable on mobile devices, without breaking the layout or hiding data.
+Enable the `isResponsive` prop to make your table horizontally scrollable on small screens, so a wide table with many columns stays readable on a phone without breaking the layout or hiding data.
+
+Name the table with `aria-label`, or with `aria-labelledby` pointing at a heading or at its `<caption>`'s id. While the table is wider than its container, the container is a tab stop named after the table, as [Accessibility](#accessibility) says.
 
 ```tsx live
-<Table isResponsive>
+<Table isResponsive aria-label="Twenty columns">
   <Thead>
     <Tr>
       {Array.from({ length: 20 }, (_, i) => (
@@ -279,7 +289,7 @@ Every table sub-component is also available as a static on `Table` under its exa
 ## Accessibility
 
 - **Semantics:** Uses `<table>`, `<thead>`, `<tbody>`, `<tfoot>`, `<tr>`, `<th>`, and `<td>`—all proper HTML table elements.
-- **Responsive:** When using `isResponsive`, the table is wrapped in a scrollable container.
+- **Responsive:** with `isResponsive`, the table is wrapped in Bulma's scrollable `.table-container`. While the table overflows it, the container is a region with a tab stop, named by the table's own `aria-label` or `aria-labelledby`, so a keyboard user can reach and scroll it, Safari included. The `elements/table` partial, which `bestax.css` and `extras.css` carry, draws Bulma's focus ring just inside it on keyboard focus. While the table fits, it's a plain `div` with no tab stop, though one that has focus keeps its tab stop until focus leaves. A development build warns when a table overflows with no name.
 - **Screen Readers:** Always use `<Th>` for header cells, and provide descriptive column headings.
 - **Right to left:** with `bestax.css` and its variants, a header cell aligns to the start of the line, as the body cells do, so on a right-to-left page both sit on the right. They build Bulma with `$table-cell-text-align: start`, where Bulma's own default, in the table below, is `left`. With `extras.css` and a Bulma of your own, set `$table-cell-text-align: start` in your Bulma build, or `--bulma-table-cell-text-align: start` on the table, to get the same. `isAligned` or an `align` attribute still sets a cell's own alignment.
 
@@ -310,18 +320,18 @@ For responsive tables, ensure your column headers are clear and concise for smal
 
 <!-- bestax:generated props -->
 
-| Prop           | Type                                                     | Default | Description                                                                                                                        |
-| -------------- | -------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `className`    | `string`                                                 | —       | Additional CSS classes to apply.                                                                                                   |
-| `isBordered`   | `boolean`                                                | `false` | Adds borders to all cells.                                                                                                         |
-| `isStriped`    | `boolean`                                                | `false` | Adds zebra-striping to rows.                                                                                                       |
-| `isNarrow`     | `boolean`                                                | `false` | Makes the table more compact by cutting cell padding in half.                                                                      |
-| `isHoverable`  | `boolean`                                                | `false` | Adds a hover effect on rows.                                                                                                       |
-| `isFullwidth`  | `boolean`                                                | `false` | Makes the table span the full width of its parent.                                                                                 |
-| `isFullWidth`  | `boolean`                                                | `false` | **Deprecated.** Use `isFullwidth` instead — `isFullwidth` wins if both are set. Makes the table span the full width of its parent. |
-| `isResponsive` | `boolean`                                                | `false` | Makes the table horizontally scrollable on small screens.                                                                          |
-| `children`     | `React.ReactNode`                                        | —       | Table content (should use subcomponents).                                                                                          |
-| `...`          | All standard `<table>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                  |
+| Prop           | Type                                                     | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| -------------- | -------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `className`    | `string`                                                 | —       | Additional CSS classes to apply.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `isBordered`   | `boolean`                                                | `false` | Adds borders to all cells.                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `isStriped`    | `boolean`                                                | `false` | Adds zebra-striping to rows.                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `isNarrow`     | `boolean`                                                | `false` | Makes the table more compact by cutting cell padding in half.                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `isHoverable`  | `boolean`                                                | `false` | Adds a hover effect on rows.                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `isFullwidth`  | `boolean`                                                | `false` | Makes the table span the full width of its parent.                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `isFullWidth`  | `boolean`                                                | `false` | **Deprecated.** Use `isFullwidth` instead — `isFullwidth` wins if both are set. Makes the table span the full width of its parent.                                                                                                                                                                                                                                                                                                                                                               |
+| `isResponsive` | `boolean`                                                | `false` | Wraps the table in Bulma's `.table-container`, which scrolls it sideways when it's wider than its parent. While it overflows, the container is a region you can tab to and scroll by keyboard, named by the table's own `aria-label` or `aria-labelledby`, so name the table with one of them; a development build warns when it overflows with neither. While the table fits, the container is a plain `div` with no tab stop, though one that has focus keeps its tab stop until focus leaves. |
+| `children`     | `React.ReactNode`                                        | —       | Table content (should use subcomponents).                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `...`          | All standard `<table>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 
 **Subcomponents:**
 
