@@ -29,18 +29,17 @@ $timeline-dot-size: 0.75em !default;
 $timeline-marker-size: 2em !default;
 // Bulma's loader is 1em across.
 $timeline-pending-size: 1em !default;
-// A marker with no color, in a record or not reached yet: the scheme's weak
-// text color, which stands out from the page on either scheme.
-$timeline-neutral-color: cv.getVar("text-weak") !default;
-// Progress, and the markers of a color (below): the color's on-scheme
-// lightness, which Bulma darkens on a light scheme and lightens on a dark one
-// until it reads on the page. Put together from the color's hue, saturation and
-// that lightness, the way Bulma's `-on-scheme` helper classes do, so a Theme
-// that sets them around the timeline reaches it.
+// A marker with no color, in a record or not reached yet: Bulma's border-hover.
+$timeline-neutral-color: cv.getVar("border-hover") !default;
+// Progress: Bulma's link. Like the markers of a color (below), it's put
+// together from the color's hue, saturation and lightness, the way Bulma's
+// Button, Tag and Notification do, rather than read from `--bulma-link`,
+// which Bulma puts together where it declares its themes: it's the same
+// color, and a Theme that sets the three around the timeline reaches it.
 $timeline-active-color: hsl(
   cv.getVar("link-h"),
   cv.getVar("link-s"),
-  cv.getVar("link-on-scheme-l")
+  cv.getVar("link-l")
 ) !default;
 // The fill behind a ring, the loader and an icon, so the line doesn't show
 // through them: the page's own color.
@@ -299,7 +298,7 @@ $timeline-time-size: 0.875em !default;
   border-width: cv.getVar("timeline-line-width");
 
   &.#{iv.$class-prefix}is-icon {
-    color: cv.getVar("timeline-neutral-color");
+    color: cv.getVar("text-weak");
   }
 }
 
@@ -360,18 +359,18 @@ $timeline-time-size: 0.875em !default;
 // ---- Colors, after the states, so an item's own color wins -----------------
 
 @each $name in "primary", "link", "info", "success", "warning", "danger" {
-  $on-scheme: hsl(
+  $color: hsl(
     cv.getVar("#{$name}-h"),
     cv.getVar("#{$name}-s"),
-    cv.getVar("#{$name}-on-scheme-l")
+    cv.getVar("#{$name}-l")
   );
 
   .#{iv.$class-prefix}timeline.#{iv.$class-prefix}is-#{$name},
   .#{iv.$class-prefix}timeline-item.#{iv.$class-prefix}is-#{$name} {
     @include cv.register-vars(
       (
-        "timeline-marker-color": #{$on-scheme},
-        "timeline-active-color": #{$on-scheme},
+        "timeline-marker-color": #{$color},
+        "timeline-active-color": #{$color},
         "timeline-marker-icon-background":
           hsl(
             #{cv.getVar($name, "", "-h")},
@@ -389,60 +388,61 @@ $timeline-time-size: 0.875em !default;
   }
 }
 
-// ---- In a colored Notification or Hero, after the colors ------------------
+// ---- In a colored Hero, after the colors ------------------------------------
 
-// The page's colors don't stand out from a colored Notification or Hero
-// either, so there a timeline with no color of its own draws its markers in
-// the surface's text color too, and fills its rings, its loader and its icon
-// circles with the surface's background. A color on the timeline or on an
-// item is kept, since whoever set it chose it. A colored Hero's titles and
-// times take its text color whatever the timeline's color, as a
-// Notification's do through their rule above. A Box, a Card, a Message or a
-// Modal inside the surface is a surface of its own, in the page's colors, so
-// a timeline on one keeps the page's look, and so is a Notification inside a
-// Hero, which its own rule, or the page's colors, take care of. Each rule
-// weighs what `.timeline` does, so it wins over that by coming later, and a
-// class that sets these variables on a timeline still wins over it from a
-// later sheet.
-@each $surface, $inner in ("notification": ("box", "card", "message", "modal"), "hero": ("box", "card", "message", "modal", "notification")) {
-  $own-surfaces: ();
+// The page's colors don't stand out from a colored Hero either, so there a
+// timeline with no color of its own draws its markers in the Hero's text
+// color too, an upcoming icon included, and fills its rings, its loader and
+// its icon circles with the Hero's background. A color on the timeline or on
+// an item is kept, since whoever set it chose it. The Hero's titles and times
+// take its text color whatever the timeline's color, as a Notification's do
+// through their rule above. A Box, a Card, a Message, a Modal or a
+// Notification inside the Hero is a surface of its own, so a timeline on one
+// keeps the page's look, or the Notification's titles. Each rule weighs what
+// `.timeline` does, so it wins over that by coming later, and a class that
+// sets these variables on a timeline still wins over it from a later sheet.
+$-hero-own-surfaces: ();
 
-  @each $own in $inner {
-    $own-surfaces: list.append(
-      $own-surfaces,
-      '.#{iv.$class-prefix}#{$surface} .#{iv.$class-prefix}#{$own} .#{iv.$class-prefix}timeline',
-      $separator: comma
-    );
+@each $own in ("box", "card", "message", "modal", "notification") {
+  $-hero-own-surfaces: list.append(
+    $-hero-own-surfaces,
+    '.#{iv.$class-prefix}hero .#{iv.$class-prefix}#{$own} .#{iv.$class-prefix}timeline',
+    $separator: comma
+  );
+}
+
+:where(.#{iv.$class-prefix}hero:is(#{extras-color-classes()}))
+  .#{iv.$class-prefix}timeline:where(:not(#{extras-color-classes()}, #{$-hero-own-surfaces})) {
+  $background: hsl(
+    cv.getVar("hero-h"),
+    cv.getVar("hero-s"),
+    cv.getVar("hero-background-l")
+  );
+
+  @include cv.register-vars(
+    (
+      "timeline-neutral-color": currentColor,
+      "timeline-active-color": currentColor,
+      "timeline-marker-background": #{$background},
+      "timeline-marker-icon-background": #{$background},
+      "timeline-marker-icon-color": currentColor,
+    )
+  );
+
+  // An upcoming icon is drawn in the page's weak text color, which doesn't
+  // read here, so it takes the neutral color, the Hero's text color.
+  .#{iv.$class-prefix}timeline-item.#{iv.$class-prefix}is-upcoming
+    > .#{iv.$class-prefix}timeline-marker.#{iv.$class-prefix}is-icon {
+    color: cv.getVar("timeline-neutral-color");
   }
+}
 
-  :where(.#{iv.$class-prefix}#{$surface}:is(#{extras-color-classes()}))
-    .#{iv.$class-prefix}timeline:where(:not(#{extras-color-classes()}, #{$own-surfaces})) {
-    $background: hsl(
-      cv.getVar("#{$surface}-h"),
-      cv.getVar("#{$surface}-s"),
-      cv.getVar("#{$surface}-background-l")
-    );
-
-    @include cv.register-vars(
-      (
-        "timeline-neutral-color": currentColor,
-        "timeline-active-color": currentColor,
-        "timeline-marker-background": #{$background},
-        "timeline-marker-icon-background": #{$background},
-        "timeline-marker-icon-color": currentColor,
-      )
-    );
-  }
-
-  @if $surface == "hero" {
-    :where(.#{iv.$class-prefix}#{$surface}:is(#{extras-color-classes()}))
-      .#{iv.$class-prefix}timeline:where(:not(#{$own-surfaces})) {
-      @include cv.register-vars(
-        (
-          "timeline-title-color": currentColor,
-          "timeline-time-color": currentColor,
-        )
-      );
-    }
-  }
+:where(.#{iv.$class-prefix}hero:is(#{extras-color-classes()}))
+  .#{iv.$class-prefix}timeline:where(:not(#{$-hero-own-surfaces})) {
+  @include cv.register-vars(
+    (
+      "timeline-title-color": currentColor,
+      "timeline-time-color": currentColor,
+    )
+  );
 }
