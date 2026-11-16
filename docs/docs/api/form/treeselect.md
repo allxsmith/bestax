@@ -636,6 +636,7 @@ field's right edge. A `position` you pass stays physical.
 | `--bulma-picker-popover-padding` ‡            | `$picker-popover-padding`            | `0.75rem`                          |
 | `--bulma-picker-popover-offset` ‡             | `$picker-popover-offset`             | `4px`                              |
 | `--bulma-picker-popover-animation-duration` ‡ | `$picker-popover-animation-duration` | `0.15s`                            |
+| `--bulma-picker-popover-months-max-width` ‡   | `$picker-popover-months-max-width`   | `calc(100vw - 2rem)`               |
 | `--bulma-tree-select-panel-max-height`        | `$tree-select-panel-max-height`      | `15rem`                            |
 | `--bulma-tree-select-search-gap`              | `$tree-select-search-gap`            | `0.5rem`                           |
 | `--bulma-tree-select-chevron-width`           | `$tree-select-chevron-width`         | `var(--bulma-control-height)`      |
