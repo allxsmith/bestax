@@ -537,9 +537,6 @@ field's right edge. A `position` you pass stays physical.
   focus stays there, reading as the field and drawn on it, with no on-screen keyboard. A press
   goes where it lands, and the next key, other than a modifier on its own, goes to the field and
   does what it would there.
-- **The chevron** marks the field as a picker, so its colors follow the scheme:
-  `--bulma-tree-select-chevron-color` defaults to `var(--bulma-text-weak)`, and
-  `--bulma-tree-select-chevron-hover-color` to the stronger `var(--bulma-text)`.
 - **Forced colors:** the field, the panel and the tree keep their edges in system colors, and the
   chevron is text.
 
@@ -643,8 +640,8 @@ field's right edge. A `position` you pass stays physical.
 | `--bulma-tree-select-panel-max-height`        | `$tree-select-panel-max-height`      | `15rem`                            |
 | `--bulma-tree-select-search-gap`              | `$tree-select-search-gap`            | `0.5rem`                           |
 | `--bulma-tree-select-chevron-width`           | `$tree-select-chevron-width`         | `var(--bulma-control-height)`      |
-| `--bulma-tree-select-chevron-color`           | `$tree-select-chevron-color`         | `var(--bulma-text-weak)`           |
-| `--bulma-tree-select-chevron-hover-color`     | `$tree-select-chevron-hover-color`   | `var(--bulma-text)`                |
+| `--bulma-tree-select-chevron-color`           | `$tree-select-chevron-color`         | `var(--bulma-text-light)`          |
+| `--bulma-tree-select-chevron-hover-color`     | `$tree-select-chevron-hover-color`   | `var(--bulma-text-weak)`           |
 | `--bulma-tree-select-chevron-focus-color`     | `$tree-select-chevron-focus-color`   | `var(--bulma-link)`                |
 | `--bulma-tree-select-chevron-z-index`         | `$tree-select-chevron-z-index`       | `4`                                |
 | `--bulma-tree-select-clear-z-index`           | `$tree-select-clear-z-index`         | `5`                                |
