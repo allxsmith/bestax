@@ -462,7 +462,7 @@ describe.each([
     try {
       const { unmount, getByTestId } = renderOpen();
       const byDefault = getComputedStyle(getByTestId('panel'));
-      expect(byDefault.right).toBe('0px');
+      expect(byDefault.right).toBe('calc(-1 * var(--bulma-anchored-shift))');
       expect(byDefault.left).toBe('auto');
       unmount();
       const named = render(
@@ -478,7 +478,7 @@ describe.each([
         </ConfigProvider>
       );
       const style = getComputedStyle(named.getByTestId('named'));
-      expect(style.left).toBe('0px');
+      expect(style.left).toBe('var(--bulma-anchored-shift)');
       expect(style.right).toBe('auto');
     } finally {
       document.documentElement.removeAttribute('dir');
@@ -489,7 +489,7 @@ describe.each([
     load(compile(prefix));
     const { getByTestId } = renderOpen();
     const style = getComputedStyle(getByTestId('panel'));
-    expect(style.left).toBe('0px');
+    expect(style.left).toBe('var(--bulma-anchored-shift)');
     expect(style.right).toBe('auto');
   });
 

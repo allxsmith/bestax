@@ -18,6 +18,7 @@ import { warnOnce } from '../helpers/devWarnings';
 import { useLocaleMatcher } from '../helpers/localeFormat';
 import {
   AnchoredPosition,
+  anchoredStyle,
   marginGap,
   useAnchoredPosition,
 } from '../helpers/useAnchoredPosition';
@@ -147,6 +148,9 @@ interface ComboboxBaseProps
    * start edge, which is its right edge on a right-to-left page, so a menu
    * wider than the field doesn't hang off the screen. A corner you pass
    * stays physical, so `bottom-left` lines up the left edges on either page.
+   * A panel that would run past the viewport's left or right edge keeps
+   * its corner and moves sideways, just far enough to fit or, wider than
+   * the viewport, to the edge its text starts from.
    * @defaultValue 'bottom-left'
    */
   position?: PopoverPosition;
@@ -954,17 +958,7 @@ export const ComboboxMenu: React.FC<ComboboxMenuProps> = ({
         {...props}
         ref={panelRef}
         className={classNames(menuClass, className)}
-        style={
-          appendToBody
-            ? {
-                ...style,
-                position: 'fixed',
-                top: placement.top,
-                left: placement.left,
-                minWidth: placement.minWidth,
-              }
-            : style
-        }
+        style={{ ...style, ...anchoredStyle(placement, appendToBody) }}
         onMouseDown={event => {
           onMouseDown?.(event);
           engine.keepFocus(event);
