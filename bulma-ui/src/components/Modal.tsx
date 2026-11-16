@@ -59,7 +59,11 @@ export interface ModalProps
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color for modal content. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Title/header for modal-card variant. (Legacy API only) */
+  /**
+   * Title/header for modal-card variant, which names the dialog through
+   * `aria-labelledby`. Without one, give the modal an `aria-label`, or an
+   * `aria-labelledby` pointing at a heading inside it. (Legacy API only)
+   */
   modalCardTitle?: React.ReactNode;
   /**
    * Footer for modal-card variant. Group two or more buttons in `Buttons` so
@@ -383,11 +387,11 @@ export const ModalClose: React.FC<ModalCloseProps> = ({
  *
  * @example
  * // Compound Component API
- * <Modal isActive={isOpen} onClose={handleClose}>
+ * <Modal isActive={isOpen} onClose={handleClose} aria-labelledby="modal-title">
  *   <Modal.Background onClick={handleClose} />
  *   <Modal.Card>
  *     <Modal.Card.Head>
- *       <Modal.Card.Title>Title</Modal.Card.Title>
+ *       <Modal.Card.Title id="modal-title">Title</Modal.Card.Title>
  *       <Modal.Close />
  *     </Modal.Card.Head>
  *     <Modal.Card.Body>Content</Modal.Card.Body>
@@ -587,8 +591,9 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
     ariaModalProp ??
     (isModalActive && resolvedRole !== 'presentation' ? 'true' : undefined);
   // A dialog needs an accessible name: the legacy card title is wired up
-  // automatically, compound users pass their own aria-label/aria-labelledby
-  // (both arrive in `rest`, which is spread last and so wins).
+  // automatically, and a modal without one, legacy or compound, takes the
+  // caller's own aria-label/aria-labelledby (both arrive in `rest`, which is
+  // spread last and so wins).
   const titleId = modalCardTitle ? generatedTitleId : undefined;
   // A test id the caller passes wins. It's written after `rest`, since a
   // spread carrying `data-testid: undefined` would otherwise erase the default.
