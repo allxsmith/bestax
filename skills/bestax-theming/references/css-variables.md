@@ -387,6 +387,18 @@ come from the `itemsToShow*` props, and `--bulma-carousel-items-in-view` is the 
 viewport picks. The props also decide how far a step moves, so set the count with the props
 rather than with these variables.
 
+The indicators are Bulma's: a resting dot, line or bar filled in `--bulma-carousel-indicator-background`
+(the border color), the current one in `--bulma-carousel-indicator-background-active` (the primary
+color), and a circle a ring in the border color. `--bulma-carousel-indicator-border-color` draws a
+ring at each resting indicator's edge, `--bulma-carousel-indicator-border-width` wide, or
+`--bulma-carousel-indicator-line-border-width` on a line or a bar. It's transparent on dots, lines
+and bars, so they show their fill alone, and the border color on circles. Set it on a class you pass
+through `className`, with the carousel's class in the selector (`.carousel.my-carousel`, mind the
+class prefix), and it colors every resting ring, circles included; `-hover` follows it unless set.
+The current indicator, and dots, lines and bars in the overlay look, take no ring. A resting fill
+falls short of 3:1 against the page, so for indicators that hold it, set the ring to a color such as
+`var(--bulma-text-weak)`.
+
 The `--bulma-carousel-overlay-*` variables color the arrows, and indicators over the slides, only
 while the overlay look is on: `overlayControls`, which follows `indicatorInside` unless set. The look
 also puts a dark gradient band behind indicators over the slides (a `background`, not a variable),
