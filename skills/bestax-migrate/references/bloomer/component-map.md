@@ -113,7 +113,7 @@ coverage test holds to bloomer's own export surface (108 exports, vendored from 
 | `Subtitle`             | `SubTitle`            | mapped  |
 | `Tab`                  | `Tabs.Item`           | mapped  |
 | `TabLink`              | _structural_          | mapped  |
-| `TabList`              | `Tabs.List`           | mapped  |
+| `TabList`              | _structural_          | mapped  |
 | `Table`                | `Table`               | mapped  |
 | `Tabs`                 | `Tabs`                | mapped  |
 | `Tag`                  | `Tag`                 | mapped  |
@@ -146,14 +146,14 @@ that change along the way:
 
 Some targets depend on a prop or a child, so the codemod picks them element by element:
 
-| bloomer                                              | becomes                                                            | decided by                                                                                                                |
-| ---------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| `PageControl`                                        | `Pagination.Previous` / `Pagination.Next`                          | `isNext` (bloomer's default is previous)                                                                                  |
-| `NavbarItem`                                         | `Navbar.Item` / `Navbar.Dropdown`                                  | `hasDropdown`                                                                                                             |
-| `Page`                                               | _folded into its child_ / `<li>`                                   | whether the child is a `PageLink`/`PageEllipsis`; attributes on the Page move onto the link, with a `component:Page` note |
-| `PanelBlock`                                         | `Panel.Block` / _the plain block_                                  | the element: an `<a>`, a `<div>` or a `<label>` is the component; any other `tag`, or a dynamic one, stays plain markup   |
-| `MenuLink` in a literal `<li>`                       | `Menu.Item`, the `<li>` folded away                                | bestax's item renders its own `<li>`                                                                                      |
-| `Breadcrumb` around a literal `<ul>`                 | `Breadcrumb`, the `<ul>` folded away                               | bestax's breadcrumb renders its own `<ul>`                                                                                |
-| `Icon`, `PanelIcon`                                  | `name`/`library`/`variant` / an `<i>` child                        | whether the icon classes are FA5/6 or MDI                                                                                 |
-| `Help`, `Label`, `Heading`                           | `<p class="help">`, `<label class="label">`, `<p class="heading">` | always plain markup                                                                                                       |
-| `BreadcrumbItem`, `PanelTab`, `TabLink`, `HeroVideo` | `<li>`, `<a>`, `<a>`, `<div class="hero-video">`                   | always plain markup                                                                                                       |
+| bloomer                                                         | becomes                                                            | decided by                                                                                                                                        |
+| --------------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PageControl`                                                   | `Pagination.Previous` / `Pagination.Next`                          | `isNext` (bloomer's default is previous)                                                                                                          |
+| `NavbarItem`                                                    | `Navbar.Item` / `Navbar.Dropdown`                                  | `hasDropdown`                                                                                                                                     |
+| `Page`                                                          | _folded into its child_ / `<li>`                                   | whether the child is a `PageLink`/`PageEllipsis`; attributes on the Page move onto the link, with a `component:Page` note                         |
+| `PanelBlock`                                                    | `Panel.Block` / _the plain block_                                  | the element: an `<a>`, a `<div>` or a `<label>` is the component; any other `tag`, or a dynamic one, stays plain markup                           |
+| `MenuLink` in a literal `<li>`                                  | `Menu.Item`, the `<li>` folded away                                | bestax's item renders its own `<li>`                                                                                                              |
+| `Breadcrumb` around a literal `<ul>`                            | `Breadcrumb`, the `<ul>` folded away                               | bestax's breadcrumb renders its own `<ul>`                                                                                                        |
+| `Icon`, `PanelIcon`                                             | `name`/`library`/`variant` / an `<i>` child                        | whether the icon classes are FA5/6 or MDI                                                                                                         |
+| `Help`, `Label`, `Heading`                                      | `<p class="help">`, `<label class="label">`, `<p class="heading">` | always plain markup                                                                                                                               |
+| `BreadcrumbItem`, `PanelTab`, `TabLink`, `TabList`, `HeroVideo` | `<li>`, `<a>`, `<a>`, `<ul>`, `<div class="hero-video">`           | always plain markup; a `TabList` stays the `<ul>` it was, since bestax's `Tabs.List` adds `role="tablist"` and the `Tabs.Item`s in it aren't tabs |

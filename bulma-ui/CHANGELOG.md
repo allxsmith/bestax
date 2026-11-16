@@ -1,3 +1,17 @@
+## [5.73.6](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.73.5...@allxsmith/bestax-bulma@5.73.6) (2026-11-16)
+
+
+### Bug Fixes
+
+* **bulma-ui:** draw Loading in Bulma's colors again ([cc9351d](https://github.com/allxsmith/bestax/commit/cc9351d410c1be20ec336b2655a87537a9a2db83)), closes [#1751](https://github.com/allxsmith/bestax/issues/1751) [#1768](https://github.com/allxsmith/bestax/issues/1768) [#1874](https://github.com/allxsmith/bestax/issues/1874)
+* **bulma-ui:** draw the Sidebar's forced-colors cross in CanvasText, aria-disabled too ([d2e7c53](https://github.com/allxsmith/bestax/commit/d2e7c534e25d9998ec4094d08a94e78093c6080a))
+* **bulma-ui:** draw Timeline in Bulma's colors again ([7a33f7d](https://github.com/allxsmith/bestax/commit/7a33f7d198a91d2558ef2ad1b3fb48ec5153179d)), closes [#1728](https://github.com/allxsmith/bestax/issues/1728) [#1791](https://github.com/allxsmith/bestax/issues/1791) [#1798](https://github.com/allxsmith/bestax/issues/1798) [pre-#1791](https://github.com/pre-/issues/1791) [#1861](https://github.com/allxsmith/bestax/issues/1861)
+* **bulma-ui:** keep a fixed panel at a corner inside the viewport, along its anchor ([2a1f6b8](https://github.com/allxsmith/bestax/commit/2a1f6b87576d7fc722ba3629471c23793dec5465)), closes [#1823](https://github.com/allxsmith/bestax/issues/1823)
+* **bulma-ui:** keep Sidebar's close button and its edge in forced colors ([f65d61b](https://github.com/allxsmith/bestax/commit/f65d61b5c8413391698e3698dfcc3ef96aafb8b0)), closes [#1889](https://github.com/allxsmith/bestax/issues/1889)
+* **bulma-ui:** mark the active Dropdown.Item as the current one with aria-current ([557ff56](https://github.com/allxsmith/bestax/commit/557ff56f49838fb5e7e26f09ab88769d6f10eae3))
+* **bulma-ui:** shift a panel in place at a corner back inside the viewport ([0812c9a](https://github.com/allxsmith/bestax/commit/0812c9a12a9ad7dd106112256a745e19d92340a7)), closes [#1823](https://github.com/allxsmith/bestax/issues/1823)
+* **bulma-ui:** write aria-current="page" for Link's isActive ([6cad89a](https://github.com/allxsmith/bestax/commit/6cad89a69aae3d3d06a3ac80e453010ed32bf85e)), closes [#1852](https://github.com/allxsmith/bestax/issues/1852)
+
 ## [5.73.5](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.73.4...@allxsmith/bestax-bulma@5.73.5) (2026-11-16)
 
 

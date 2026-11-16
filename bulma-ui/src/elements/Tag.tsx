@@ -64,6 +64,9 @@ export interface TagProps
    * "Delete tag" unless you pass an `aria-label`. An empty one, or a spread
    * carrying `'aria-label': undefined`, keeps that name rather than leaving
    * the button unnamed.
+   *
+   * "Delete tag" doesn't say which tag the button removes, so pass a name
+   * that does, such as `aria-label="Remove React"`.
    */
   isDelete?: boolean;
   /** Adds hover effect to the tag. */
