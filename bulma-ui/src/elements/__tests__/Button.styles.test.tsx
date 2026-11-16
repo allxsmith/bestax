@@ -1,8 +1,9 @@
 // Bulma's control mixin sets `outline: none` on a focused button and shows
 // focus through its border color and box-shadow. `.button.is-ghost` clears
-// both, and forced colors drops the shadow and forces the border's color, so
-// `_button.scss` gives a focused ghost button, and every focused button in
-// forced colors, Bulma's focus outline. These compile that partial and read
+// both, `.button.is-static` clears the shadow and keeps its own border color,
+// and forced colors drops the shadow and forces the border's color, so
+// `_button.scss` gives a focused ghost or static button, and every focused
+// button in forced colors, Bulma's focus outline. These compile that partial and read
 // its rules as text, the way IconButton's styles test reads its own, beside
 // Bulma's button rules, which they have to outrank. No browser: jsdom's CSSOM
 // drops `:focus-visible` and evaluates no media query.
@@ -131,6 +132,10 @@ const colored = (name: string, prefix = '') =>
 
 const GHOST_FOCUS =
   '.button.is-ghost:focus-visible, .button.is-ghost.is-focused';
+const STATIC_FOCUS =
+  '.button.is-static:focus-visible, .button.is-static.is-focused';
+/** The rule outside forced colors, which names both. */
+const OWN_FOCUS = `${GHOST_FOCUS}, ${STATIC_FOCUS}`;
 const FORCED_FOCUS =
   '.button.button:not(.is-loading):focus-visible, .button.button:not(.is-loading).is-focused';
 
@@ -174,8 +179,8 @@ const matchesClasses = (element: Element, selectors: string) =>
     .every(part => element.matches(part.replace(/:focus-visible/g, '')));
 
 describe('Button focus outline', () => {
-  it("draws Bulma's focus outline on a focused ghost button", () => {
-    expect(find(PLAIN, GHOST_FOCUS)).toEqual(FOCUS_OUTLINE);
+  it("draws Bulma's focus outline on a focused ghost or static button", () => {
+    expect(find(PLAIN, OWN_FOCUS)).toEqual(FOCUS_OUTLINE);
   });
 
   it('matches a ghost Button, which has no link-button class, and a ghost LinkButton', () => {
@@ -195,6 +200,31 @@ describe('Button focus outline', () => {
     expect(link).toHaveClass('link-button');
     expect(matchesClasses(button, GHOST_FOCUS)).toBe(true);
     expect(matchesClasses(link, GHOST_FOCUS)).toBe(true);
+  });
+
+  it('matches a static Button, as a button or a link, which Tab reaches', () => {
+    // Bulma's `is-static` draws no shadow, and its border color outranks the
+    // focus one, so without the outline nothing shows focus.
+    const { getByRole } = render(
+      <div>
+        <Button isStatic isFocused>
+          @gmail.com
+        </Button>
+        <Button as="a" href="#domain" isStatic isFocused>
+          @example.com
+        </Button>
+      </div>
+    );
+    for (const [role, name] of [
+      ['button', '@gmail.com'],
+      ['link', '@example.com'],
+    ]) {
+      const element = getByRole(role, { name });
+      expect(element.tabIndex).toBe(0);
+      expect(element).toHaveClass('is-static', 'is-focused');
+      expect(matchesClasses(element, STATIC_FOCUS)).toBe(true);
+      expect(matchesClasses(element, GHOST_FOCUS)).toBe(false);
+    }
   });
 
   it("draws Bulma's focus outline on every focused button in forced colors", () => {
@@ -257,7 +287,7 @@ describe('Button focus outline', () => {
     expect(
       PLAIN.filter(outlines).map(r => [r.context.join(' '), r.selector])
     ).toEqual([
-      ['', GHOST_FOCUS],
+      ['', OWN_FOCUS],
       [FORCED, FORCED_FOCUS],
     ]);
   });
@@ -272,9 +302,7 @@ describe('Button focus outline', () => {
       '.button:focus-visible',
       '.is-focused.button',
     ]);
-    for (const part of [GHOST_FOCUS, FORCED_FOCUS].flatMap(s =>
-      s.split(', ')
-    )) {
+    for (const part of [OWN_FOCUS, FORCED_FOCUS].flatMap(s => s.split(', '))) {
       for (const other of theirs.filter(focused)) {
         expect(weight(part)).toBeGreaterThan(weight(other));
       }
@@ -294,18 +322,30 @@ describe('Button focus outline', () => {
   });
 
   it('matches a Button rendered under that prefix', () => {
+    const prefixed = (selector: string) =>
+      selector.replace(/\.(button|is-)/g, '.bestax-$1');
     const { getByRole } = render(
       <ConfigProvider classPrefix="bestax-">
         <Button color="ghost" isFocused>
           Ghost
         </Button>
+        <Button isStatic isFocused>
+          Static
+        </Button>
       </ConfigProvider>
     );
-    const button = getByRole('button', { name: 'Ghost' });
-    expect(button).toHaveClass('bestax-button', 'bestax-is-focused');
-    for (const rule of PREFIXED.filter(outlines)) {
-      expect(matchesClasses(button, rule.selector)).toBe(true);
+    for (const [name, own] of [
+      ['Ghost', GHOST_FOCUS],
+      ['Static', STATIC_FOCUS],
+    ]) {
+      const button = getByRole('button', { name });
+      expect(button).toHaveClass('bestax-button', 'bestax-is-focused');
+      expect(matchesClasses(button, prefixed(own))).toBe(true);
+      expect(matchesClasses(button, prefixed(FORCED_FOCUS))).toBe(true);
     }
+    expect(PREFIXED.filter(outlines).map(r => r.selector)).toEqual(
+      [OWN_FOCUS, FORCED_FOCUS].map(prefixed)
+    );
   });
 });
 

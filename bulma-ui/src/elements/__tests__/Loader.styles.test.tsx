@@ -1577,4 +1577,48 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
         )
     ).toEqual([]);
   });
+
+  /** Bulma's focus outline, in its focus color, style, width and offset. */
+  const FOCUS_OUTLINE = {
+    'outline-color':
+      'hsl(var(--bulma-focus-h), var(--bulma-focus-s), var(--bulma-focus-l))',
+    'outline-style': 'var(--bulma-focus-style)',
+    'outline-width': 'var(--bulma-focus-width)',
+    'outline-offset': 'var(--bulma-focus-offset)',
+  };
+
+  it.each(
+    LOADING_LOOKS.filter(
+      ([label]) => !/isDisabled|disabled fieldset/.test(label)
+    )
+  )(
+    "%s takes Bulma's focus outline from the keyboard or isFocused, outside forced colors",
+    (_label, element) => {
+      // Bulma's `is-loading` drops the shadow a focused button shows, and
+      // its control mixin sets `outline: none`, so without this a colored one
+      // keeps a 1px border in the focus color on its own fill, and an
+      // outlined or text one nothing.
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>{element}</ConfigProvider>
+      );
+      const button = container.querySelector<HTMLElement>(`.${prefix}button`)!;
+      const outline = () =>
+        Object.fromEntries(
+          Object.keys(FOCUS_OUTLINE).map(longhand => [
+            longhand,
+            resolved(rules, button, '', {}, [longhand, 'outline']),
+          ])
+        );
+      // At rest it draws none of it.
+      expect(outline()['outline-style']).not.toBe(
+        FOCUS_OUTLINE['outline-style']
+      );
+      button.setAttribute('tabindex', '0');
+      button.focus();
+      expect(outline()).toEqual(FOCUS_OUTLINE);
+      button.blur();
+      button.classList.add(`${prefix}is-focused`);
+      expect(outline()).toEqual(FOCUS_OUTLINE);
+    }
+  );
 });

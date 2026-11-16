@@ -54,8 +54,10 @@ export interface ButtonOwnProps extends Omit<
   /**
    * Displays a loading spinner, with everything inside the button hidden
    * behind it, in forced colors (Windows' contrast themes) too. Under
-   * `prefers-reduced-motion: reduce` the spinner stops and stays drawn.
-   * Bulma alone hides only the label, so the rest needs bestax's CSS loaded.
+   * `prefers-reduced-motion: reduce` the spinner stops and stays drawn. It
+   * keeps focus, and shows Bulma's focus outline while it has it from the
+   * keyboard. Bulma alone hides only the label and draws no focus ring on a
+   * loading button, so the rest needs bestax's CSS loaded.
    */
   isLoading?: boolean;
   /** Makes the button non-interactive. */

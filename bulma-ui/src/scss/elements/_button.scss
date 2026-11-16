@@ -6,12 +6,16 @@
 //
 // - A ghost button, which Bulma draws with no border and no shadow, so it
 //   shows no focus at all. This one applies outside forced colors too.
+// - A static button, which shows none either: Bulma's `is-static` sets no
+//   shadow, and its border color outranks the focus one. `isStatic` still
+//   renders a `<button>`, so Tab reaches it. This one applies outside forced
+//   colors too.
 // - Every button in forced colors (Windows' contrast themes), which drops the
 //   shadow and forces the border's color, so a focused button can look just
-//   like an unfocused one there. A ghost button matches both rules there,
-//   and they draw the same outline. A loading button is left to
-//   `_loader.scss`, which turns forcing off on it and rings it in the
-//   system's colors.
+//   like an unfocused one there. A ghost or static button matches both rules
+//   there, and they draw the same outline. A loading button is left to
+//   `_loader.scss`, which rings it outside forced colors too, since Bulma's
+//   `is-loading` drops the shadow as well.
 //
 // `.is-focused` is the class `isFocused` sets, so it gets the outline too.
 // The ghost rule doesn't ask for LinkButton's class, since a ghost Button has
@@ -54,7 +58,9 @@
 }
 
 .#{iv.$class-prefix}button.#{iv.$class-prefix}is-ghost:focus-visible,
-.#{iv.$class-prefix}button.#{iv.$class-prefix}is-ghost.#{iv.$class-prefix}is-focused {
+.#{iv.$class-prefix}button.#{iv.$class-prefix}is-ghost.#{iv.$class-prefix}is-focused,
+.#{iv.$class-prefix}button.#{iv.$class-prefix}is-static:focus-visible,
+.#{iv.$class-prefix}button.#{iv.$class-prefix}is-static.#{iv.$class-prefix}is-focused {
   @include -focus-outline;
 }
 
