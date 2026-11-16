@@ -1923,6 +1923,163 @@ describe('Carousel with several items in view', () => {
     });
   });
 
+  describe('focus on an indicator', () => {
+    const tabs = () => screen.getAllByRole('tab');
+
+    it('moves with Left and Right to the indicator beside it, and shows its slide', () => {
+      const onChange = vi.fn();
+      render(<Carousel onChange={onChange}>{itemsOf(3)}</Carousel>);
+      focusOn(tabs()[0]);
+      fireEvent.keyDown(tabs()[0], { key: 'ArrowRight' });
+      expect(onChange).toHaveBeenLastCalledWith(1);
+      expect(tabs()[1]).toHaveAttribute('aria-selected', 'true');
+      expect(document.activeElement).toBe(tabs()[1]);
+
+      fireEvent.keyDown(tabs()[1], { key: 'ArrowLeft' });
+      expect(onChange).toHaveBeenLastCalledWith(0);
+      expect(document.activeElement).toBe(tabs()[0]);
+    });
+
+    it('goes from the indicator focus is on, not the selected one', () => {
+      const onChange = vi.fn();
+      render(<Carousel onChange={onChange}>{itemsOf(5)}</Carousel>);
+      focusOn(tabs()[3]);
+      fireEvent.keyDown(tabs()[3], { key: 'ArrowRight' });
+      expect(onChange).toHaveBeenLastCalledWith(4);
+      expect(tabs()[4]).toHaveAttribute('aria-selected', 'true');
+      expect(document.activeElement).toBe(tabs()[4]);
+    });
+
+    it('goes round past either end when the carousel loops', () => {
+      render(<Carousel>{itemsOf(3)}</Carousel>);
+      focusOn(tabs()[0]);
+      fireEvent.keyDown(tabs()[0], { key: 'ArrowLeft' });
+      expect(tabs()[2]).toHaveAttribute('aria-selected', 'true');
+      expect(document.activeElement).toBe(tabs()[2]);
+
+      fireEvent.keyDown(tabs()[2], { key: 'ArrowRight' });
+      expect(tabs()[0]).toHaveAttribute('aria-selected', 'true');
+      expect(document.activeElement).toBe(tabs()[0]);
+    });
+
+    it('goes to the position beside it when the view sits between two', () => {
+      // Positions 0, 2 and 4; a value of 3 sits after the second one.
+      const onChange = vi.fn();
+      render(
+        <Carousel
+          value={3}
+          itemsToShow={2}
+          itemsToScroll={2}
+          onChange={onChange}
+        >
+          {itemsOf(5)}
+        </Carousel>
+      );
+      expect(tabs()[1]).toHaveAttribute('aria-selected', 'true');
+      focusOn(tabs()[1]);
+      fireEvent.keyDown(tabs()[1], { key: 'ArrowLeft' });
+      expect(onChange).toHaveBeenLastCalledWith(0);
+      expect(document.activeElement).toBe(tabs()[0]);
+    });
+
+    it('leaves a modified arrow key to the browser, on an indicator or an arrow', () => {
+      const onChange = vi.fn();
+      render(<Carousel onChange={onChange}>{itemsOf(3)}</Carousel>);
+      for (const control of [tabs()[0], screen.getByLabelText('Next slide')]) {
+        focusOn(control);
+        for (const modifier of ['altKey', 'ctrlKey', 'metaKey']) {
+          const event = new KeyboardEvent('keydown', {
+            key: 'ArrowRight',
+            bubbles: true,
+            cancelable: true,
+            [modifier]: true,
+          });
+          control.dispatchEvent(event);
+          expect(event.defaultPrevented).toBe(false);
+        }
+        expect(document.activeElement).toBe(control);
+      }
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('leaves a key the page has handled alone', () => {
+      const onChange = vi.fn();
+      render(
+        <Carousel
+          onChange={onChange}
+          onKeyDown={e => {
+            if (e.key === 'ArrowRight') e.preventDefault();
+          }}
+        >
+          {itemsOf(3)}
+        </Carousel>
+      );
+      focusOn(tabs()[0]);
+      fireEvent.keyDown(tabs()[0], { key: 'ArrowRight' });
+      expect(onChange).not.toHaveBeenCalled();
+      expect(document.activeElement).toBe(tabs()[0]);
+    });
+
+    it('stays on the first indicator without a loop', () => {
+      const onChange = vi.fn();
+      render(
+        <Carousel repeat={false} onChange={onChange}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      focusOn(tabs()[0]);
+      fireEvent.keyDown(tabs()[0], { key: 'ArrowLeft' });
+      expect(onChange).not.toHaveBeenCalled();
+      expect(document.activeElement).toBe(tabs()[0]);
+    });
+
+    it('stays on the last indicator without a loop', () => {
+      const onChange = vi.fn();
+      render(
+        <Carousel repeat={false} onChange={onChange}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      focusOn(tabs()[2]);
+      fireEvent.keyDown(tabs()[2], { key: 'ArrowRight' });
+      expect(onChange).not.toHaveBeenCalled();
+      expect(document.activeElement).toBe(tabs()[2]);
+    });
+
+    describe('right to left', () => {
+      // jsdom maps no `dir` to `direction`, which the keys read.
+      let rtl: HTMLStyleElement;
+      beforeEach(() => {
+        rtl = document.createElement('style');
+        rtl.textContent = '[dir="rtl"] { direction: rtl; }';
+        document.head.appendChild(rtl);
+      });
+      afterEach(() => rtl.remove());
+
+      it('goes to the next indicator with Left and back with Right', () => {
+        render(
+          <div dir="rtl">
+            <Carousel>{itemsOf(3)}</Carousel>
+          </div>
+        );
+        focusOn(tabs()[0]);
+        fireEvent.keyDown(tabs()[0], { key: 'ArrowLeft' });
+        expect(document.activeElement).toBe(tabs()[1]);
+        fireEvent.keyDown(tabs()[1], { key: 'ArrowRight' });
+        expect(document.activeElement).toBe(tabs()[0]);
+      });
+    });
+
+    it('leaves focus on an arrow there', () => {
+      render(<Carousel>{itemsOf(3)}</Carousel>);
+      const next = screen.getByLabelText('Next slide');
+      focusOn(next);
+      fireEvent.keyDown(next, { key: 'ArrowRight' });
+      expect(tabs()[1]).toHaveAttribute('aria-selected', 'true');
+      expect(document.activeElement).toBe(next);
+    });
+  });
+
   describe('focus on an arrow or an indicator that is disabled or goes away', () => {
     // A browser drops focus from a button that's disabled or removed to the
     // page. jsdom moves it off a removed one but not off a disabled one, so
