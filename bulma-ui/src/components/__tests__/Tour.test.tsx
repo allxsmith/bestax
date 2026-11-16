@@ -1701,6 +1701,30 @@ describe('Tour', () => {
       expect(scrollIntoView).toHaveBeenCalledTimes(1);
     });
 
+    it('scrolls no fixed target outside its scrolling ancestor, which doesn’t cut it off', () => {
+      const scrollIntoView = scrollTo();
+      render(
+        <>
+          <div data-rect="0 0 300 300" style={{ overflowY: 'auto' }}>
+            <button
+              type="button"
+              id="pinned"
+              data-rect="400 100 50 20"
+              style={{ position: 'fixed' }}
+            >
+              Pinned
+            </button>
+          </div>
+          <Tour defaultOpen>
+            <Tour.Step target="#pinned" title="Pinned">
+              Fixed to the screen.
+            </Tour.Step>
+          </Tour>
+        </>
+      );
+      expect(scrollIntoView).not.toHaveBeenCalled();
+    });
+
     it('moves the spotlight with a target that scrolls inside a shadow root', () => {
       const host = document.createElement('div');
       document.body.appendChild(host);
@@ -3093,6 +3117,120 @@ describe('Tour', () => {
         window.dispatchEvent(new Event('scroll'));
       });
       expect(beacons().map(b => b.textContent)).toEqual(['Show tip Export']);
+    });
+
+    it('hides a beacon whose corner a scrolling panel cuts off while part of its target shows', () => {
+      render(
+        <>
+          <div data-rect="100 0 600 300" style={{ overflowY: 'auto' }}>
+            <button type="button" id="inner" data-rect="50 100 80 200">
+              Inner
+            </button>
+          </div>
+          <Tour mode="beacon" defaultOpen>
+            <Tour.Step target="#inner" title="Inner">
+              In a panel that scrolls.
+            </Tour.Step>
+          </Tour>
+        </>
+      );
+      // Its top, and the corner the beacon sits on, are above the panel's.
+      expect(beacons()).toEqual([]);
+      document.getElementById('inner')!.dataset.rect = '150 100 80 30';
+      act(() => {
+        window.dispatchEvent(new Event('scroll'));
+      });
+      expect(beacon('Inner').style.top).toBe('150px');
+      // Its top on the panel's bottom edge: none of it shows.
+      document.getElementById('inner')!.dataset.rect = '400 100 80 30';
+      act(() => {
+        window.dispatchEvent(new Event('scroll'));
+      });
+      expect(beacons()).toEqual([]);
+    });
+
+    it('keeps the beacons of fixed and absolute targets their scrolling ancestor doesn’t cut off', () => {
+      const Page = ({ scroller }: { scroller: React.CSSProperties }) => (
+        <>
+          <div
+            data-rect="0 0 300 200"
+            style={{ overflowY: 'auto', ...scroller }}
+          >
+            <button
+              type="button"
+              id="pinned"
+              data-rect="700 900 60 40"
+              style={{ position: 'fixed' }}
+            >
+              Pinned
+            </button>
+            <button
+              type="button"
+              id="floating"
+              data-rect="400 500 60 40"
+              style={{ position: 'absolute' }}
+            >
+              Floating
+            </button>
+          </div>
+          <Tour mode="beacon" defaultOpen>
+            <Tour.Step target="#pinned" title="Pinned">
+              Fixed to the screen.
+            </Tour.Step>
+            <Tour.Step target="#floating" title="Floating">
+              Laid out past the panel.
+            </Tour.Step>
+          </Tour>
+        </>
+      );
+      const { unmount } = render(<Page scroller={{}} />);
+      expect(beacon('Pinned').style.top).toBe('700px');
+      expect(beacon('Floating').style.top).toBe('400px');
+      unmount();
+      // A positioned panel is where the absolute target is laid out, so it
+      // cuts that one off, and still not the fixed one.
+      render(<Page scroller={{ position: 'relative' }} />);
+      expect(beacons().map(b => b.textContent)).toEqual(['Show tip Pinned']);
+    });
+
+    it('hides the beacons of fixed and absolute targets a transformed ancestor holds in a panel that cuts them off', () => {
+      render(
+        <>
+          <div data-rect="0 0 300 200" style={{ overflowY: 'hidden' }}>
+            {/* A slide track: static, and moved by a transform. */}
+            <div
+              data-rect="0 -300 900 200"
+              style={{ transform: 'translateX(-300px)' }}
+            >
+              <button
+                type="button"
+                id="pinned"
+                data-rect="100 400 60 40"
+                style={{ position: 'fixed' }}
+              >
+                Pinned
+              </button>
+              <button
+                type="button"
+                id="floating"
+                data-rect="100 500 60 40"
+                style={{ position: 'absolute' }}
+              >
+                Floating
+              </button>
+            </div>
+          </div>
+          <Tour mode="beacon" defaultOpen>
+            <Tour.Step target="#pinned" title="Pinned">
+              On a slide out of view.
+            </Tour.Step>
+            <Tour.Step target="#floating" title="Floating">
+              On another.
+            </Tour.Step>
+          </Tour>
+        </>
+      );
+      expect(beacons()).toEqual([]);
     });
 
     it('draws each beacon at its own step’s target in the render that reorders them', () => {

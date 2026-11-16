@@ -620,7 +620,7 @@ const samePlaces = (a: BeaconPlaces, b: BeaconPlaces): boolean =>
  * Where each step's beacon sits: over its target's top end corner, the right
  * one or, under right-to-left text, the left, or `null` for a step with no
  * target on the page with a box, or one that isn't in view, or whose top end
- * corner is off the screen. It runs for the whole of a beacon tour, a step's
+ * corner isn't. It runs for the whole of a beacon tour, a step's
  * open time included, so the beacons come back where their targets are now,
  * at once, for focus to go to one. The places are kept by each step's key, so
  * a render that adds, removes or reorders steps keeps each beacon at its own
@@ -709,19 +709,21 @@ function useBeaconPlaces(
         targets,
       };
       // A beacon sits on its target's top end corner, so that corner has to
-      // be on the screen as well as the target in view: a tall target
-      // scrolled partway past the top would put its beacon off the screen.
-      // The root element's client area leaves out a classic scrollbar.
-      const { clientWidth, clientHeight } = root.ownerDocument.documentElement;
+      // be in view as well as some of the target: a tall target scrolled
+      // partway past the top of the screen, or of a panel that scrolls,
+      // would put its beacon where the target doesn't show.
       const next = found.map(element => {
         if (!element || element.getClientRects().length === 0) return null;
         const rect = element.getBoundingClientRect();
         const rtl = getComputedStyle(element).direction === 'rtl';
         const top = rect.top;
         const left = rtl ? rect.left : rect.right;
-        const onScreen =
-          top >= 0 && top <= clientHeight && left >= 0 && left <= clientWidth;
-        return onScreen ? { element, top, left } : null;
+        // The target's pixel at that corner, so a target that only touches
+        // an edge shows no beacon on it.
+        const corner = rtl
+          ? { top, left, bottom: top + 1, right: left + 1 }
+          : { top, left: left - 1, bottom: top + 1, right: left };
+        return isInView(element, corner) ? { element, top, left } : null;
       });
       const byKey: BeaconPlaces = new Map(
         stepsRef.current.map((step, i) => [step.key, next[i]])
@@ -817,13 +819,21 @@ function useBeaconPlaces(
 const sameItems = (a: readonly unknown[], b: readonly unknown[]): boolean =>
   a.length === b.length && a.every((item, i) => item === b[i]);
 
+/** Whether all of `element` is in view. */
+const isFullyVisible = (element: HTMLElement): boolean =>
+  isInView(element, element.getBoundingClientRect());
+
 /**
- * Whether all of `element` is in view: inside the viewport, and inside each
- * ancestor that clips what overflows it.
+ * Whether `rect`, a box on the screen that `element` draws in, is all in
+ * view: inside the viewport, and inside each ancestor that clips what
+ * overflows it. Only an ancestor the element is laid out in clips it: a
+ * fixed element is laid out in the viewport, and an absolutely positioned
+ * one in its nearest positioned ancestor, unless an ancestor on the way
+ * holds it as `holdsPositioned` says, so it escapes every ancestor in
+ * between.
  */
-function isFullyVisible(element: HTMLElement): boolean {
+function isInView(element: HTMLElement, rect: Edges): boolean {
   const doc = element.ownerDocument;
-  const rect = element.getBoundingClientRect();
   const inside = (box: Edges) =>
     rect.top >= box.top &&
     rect.left >= box.left &&
@@ -834,6 +844,8 @@ function isFullyVisible(element: HTMLElement): boolean {
   if (!inside({ top: 0, left: 0, bottom: clientHeight, right: clientWidth })) {
     return false;
   }
+  // How the element, or the last ancestor it's laid out in, is positioned.
+  let position = getComputedStyle(element).position;
   for (
     let node = flatParent(element) as Element | null;
     node && node !== doc.body && node !== doc.documentElement;
@@ -841,12 +853,42 @@ function isFullyVisible(element: HTMLElement): boolean {
   ) {
     // An ancestor with no box, as a slot is by default, clips nothing.
     if (node.getClientRects().length === 0) continue;
-    const { overflowX, overflowY } = getComputedStyle(node);
+    const style = getComputedStyle(node);
+    const holds =
+      position === 'fixed'
+        ? holdsPositioned(style)
+        : position !== 'absolute' ||
+          style.position !== 'static' ||
+          holdsPositioned(style);
+    if (!holds) continue;
+    position = style.position;
+    const { overflowX, overflowY } = style;
     const clips = /auto|scroll|hidden|clip/.test(`${overflowX} ${overflowY}`);
     if (clips && !inside(node.getBoundingClientRect())) return false;
   }
   return true;
 }
+
+/**
+ * Whether an element holds its fixed and absolutely positioned descendants
+ * whatever its own position, as a transform, a perspective, a filter, layout
+ * or paint containment, a size container or a `will-change` naming one of
+ * them makes it.
+ */
+const holdsPositioned = (style: CSSStyleDeclaration): boolean =>
+  [
+    style.transform,
+    style.translate,
+    style.scale,
+    style.rotate,
+    style.perspective,
+    style.filter,
+  ].some(value => !!value && value !== 'none') ||
+  (!!style.containerType && style.containerType !== 'normal') ||
+  /transform|translate|scale|rotate|perspective|filter/.test(
+    style.willChange ?? ''
+  ) ||
+  /paint|layout|strict|content/.test(style.contain ?? '');
 
 /**
  * Whether a title or a body has something to show: any child but `null`,
