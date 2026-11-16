@@ -18,6 +18,7 @@
 // sets it for the inverted, text and ghost styles to the color each draws its
 // label in, which Bulma leaves out, so the ring shows (#1772).
 import * as sass from 'sass';
+import type { ReactElement } from 'react';
 import path from 'path';
 import { render } from '@testing-library/react';
 import { Button, type ButtonProps } from '../Button';
