@@ -176,12 +176,11 @@ Disabled, by its own `disabled` or a disabled [`Fieldset`](./fieldset.md), the b
 
 ### Strength Recipe
 
-`PasswordInput` doesn't score passwords. Scoring belongs to your app or your server, which can check a password against lists of breached and common ones, as NIST asks; character-class rules ("one number, one symbol") are what it asks you not to require. The example reads the field in `onChange` and passes it no `value`, so it stays uncontrolled. Once you have a score, say it in words in the `message`, so it doesn't rest on color, and point the input's `aria-describedby` at those words so a screen reader reads them with the field. A bar beside the words is a meter, a level in a range, so it's a native `<meter>`; [`Progress`](../elements/progress.md) is a `<progress>`, which reports how far along a task is.
+`PasswordInput` doesn't score passwords. Scoring belongs to your app or your server, which can check a password against lists of breached and common ones, as NIST asks; character-class rules ("one number, one symbol") are what it asks you not to require. The example reads the field in `onChange` and passes it no `value`, so it stays uncontrolled. Once you have a score, say it in words in the `message`, so it doesn't rest on color. The `message` describes the input, so a screen reader reads the words with the field. A bar beside the words is a meter, a level in a range, so it's a native `<meter>`; [`Progress`](../elements/progress.md) is a `<progress>`, which reports how far along a task is. The words already say the level, so the bar is hidden from assistive tech, which would otherwise read its number into the field's description too.
 
 ```tsx live
 function StrengthRecipe() {
   const [password, setPassword] = useState('');
-  const id = React.useId();
   // Your app or server scores the password; this demo counts its length.
   const score = Math.min(4, Math.floor(password.length / 4));
   const words = ['Too short', 'Weak', 'Fair', 'Good', 'Strong'];
@@ -192,7 +191,6 @@ function StrengthRecipe() {
       label="New password"
       autoComplete="new-password"
       onChange={event => setPassword(event.target.value)}
-      aria-describedby={id}
       messageColor={password ? colors[score] : undefined}
       message={
         <>
@@ -203,9 +201,9 @@ function StrengthRecipe() {
             high={3}
             optimum={4}
             value={score}
-            aria-label="Password strength"
+            aria-hidden="true"
           />{' '}
-          <span id={id}>Strength: {password ? words[score] : 'none yet'}</span>
+          Strength: {password ? words[score] : 'none yet'}
         </>
       }
     />

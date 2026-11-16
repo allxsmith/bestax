@@ -6,7 +6,7 @@ No form library — state is plain React, validation is a function, errors surfa
 `color` + `message` + `messageColor`.
 
 ```tsx
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import {
   Input,
   Select,
@@ -43,6 +43,7 @@ export function ProfileForm() {
     agree: false,
   });
   const [submitted, setSubmitted] = useState(false);
+  const agreeErrorId = useId();
 
   const errors = validate(values);
   const show = (k: keyof Values) => (submitted ? errors[k] : undefined);
@@ -107,13 +108,13 @@ export function ProfileForm() {
           checked={values.agree}
           onChange={e => set('agree', e.target.checked)}
           aria-invalid={!!show('agree')}
-          aria-describedby={show('agree') ? 'agree-error' : undefined}
+          aria-describedby={show('agree') ? agreeErrorId : undefined}
         >
           {' '}
           I accept the terms
         </Checkbox>
         {show('agree') && (
-          <p id="agree-error" className="help is-danger">
+          <p id={agreeErrorId} className="help is-danger">
             {show('agree')}
           </p>
         )}

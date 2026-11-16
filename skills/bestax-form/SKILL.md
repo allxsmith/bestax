@@ -11,8 +11,8 @@ This skill covers the form components in `@allxsmith/bestax-bulma` and how to co
 **Important:** bestax-bulma ships **no form/validation library** — there is no integration with
 formik, react-hook-form, yup, or zod, and no `useForm`-style hook. You own your form state with
 plain React (`useState` / `useReducer` or any library you choose) and feed validation results
-back via each input's own `color`, `message`, `messageColor` and `aria-invalid` props on the
-convenience inputs (`Input`, `Select`, `TextArea`, …). Always put validation state on the **input**: `Field` has no
+back via each input's own `color`, `message` and `messageColor` props on the convenience inputs
+(`Input`, `Select`, `TextArea`, …), and `aria-invalid` where it reaches the input (see below). Always put validation state on the **input**: `Field` has no
 `message`/`messageColor`, and although `FieldProps` types a `color`, `Field` discards it — it
 renders no class, so setting it looks right and does nothing. (`FieldLabel`/`FieldBody` do honor
 `color`, as the `has-text-*` helper.) See **Validation without a library** below.
@@ -312,6 +312,11 @@ Rules of thumb:
   hears it: the colors say nothing to one. The `message` describes the input through
   `aria-describedby`, so the error is read when the field takes focus. Use `'success'` to signal a
   valid field.
+- `aria-invalid` reaches the input on `Input`, `TextArea`, `Select`, `PasswordInput`,
+  `Numberinput`, `PinInput`, `File`, `ColorInput` and `Combobox.Input`. The date and time inputs,
+  `Autocomplete`, `Taginput`, `TreeSelect`, `Cascader` and a `Combobox` with `data` put the other
+  attributes on their wrapper, so there it doesn't reach the input yet; the `message` still
+  carries the error.
 - Want a different validation library? Wire it up yourself — pass its `value`/`onChange`/error
   string into these props. bestax does not prescribe one.
 - For grouped controls, render the `<p class="help">` via the `message` prop of the convenience
