@@ -259,7 +259,7 @@ Some of these partials adjust a stock Bulma component rather than add one of bes
 
 - `elements/delete` keeps close buttons drawn in forced colors, the delete button and the Modal's and delete tag's crosses, so a build that shows any close button wants it.
 
-- `elements/button` gives a focused button an outline where Bulma's border and shadow show nothing, on a ghost button and on every button in forced colors, and gives a colored button a border in forced colors, where Bulma draws it with none and the fill is replaced, so a build that uses `bulma/sass/elements/button` wants it too.
+- `elements/button` gives a focused button an outline where Bulma's border and shadow show nothing, on a ghost button and on every button in forced colors, gives a colored button a border in forced colors, where Bulma draws it with none and the fill is replaced, and gives an outlined button the lightness Bulma picks for its color's text on the page where that's lighter, so a dark color reads on the dark scheme, so a build that uses `bulma/sass/elements/button` wants it too.
 
 - `form/field` puts the `message` of a horizontal form component (`Input horizontal`, `Checkboxes horizontal` and the like) under its control, where Bulma's row would set it beside, and keeps a horizontal label's text against its control on a right-to-left page, so a build that uses `bulma/sass/form/tools` for horizontal fields wants it too.
 

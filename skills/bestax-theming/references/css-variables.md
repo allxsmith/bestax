@@ -353,6 +353,18 @@ header taller than Bulma's navbar sets it there. `AppFrame.Nav width` writes
 `--bulma-autocomplete-border-hover-color` is registered but has no effect: the input's hover
 border is Bulma's own.
 
+### Button
+
+An outlined button in a color other than `white`, `black`, `light`, `dark` and `text` sets
+`--bulma-button-l`, Bulma's lightness for its label, border and loading ring, on a dark page to
+the lighter of the color's own lightness and its on-scheme one, so a dark color reads there, and on
+a light page to the color's own. That
+rule, `.button.is-<color>.is-outlined`, outranks Bulma's `.button.is-<color>`, so set the
+variable on the button through `style`. On the dark page a trio set without its on-scheme lightness
+comes out at the build's on-scheme lightness where that's the lighter one.
+On a surface that stays light on both schemes, Bulma's `theme-light` class on the surface (with
+the class prefix in a prefixed build) keeps what's inside it on the light scheme's values.
+
 ### Carousel
 
 `--bulma-carousel-arrow-background`, `--bulma-carousel-arrow-background-hover`,
