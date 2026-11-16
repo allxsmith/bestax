@@ -11,7 +11,9 @@ import path from 'path';
 import { render } from '@testing-library/react';
 import { Timeline } from '../Timeline';
 import { Notification } from '../../elements/Notification';
+import { Hero } from '../../layout/Hero';
 import { Box } from '../../elements/Box';
+import { Message } from '../Message';
 import { Card } from '../Card';
 import { ConfigProvider } from '../../helpers/Config';
 import { compileSheet } from '../../__tests__/compile-scss';
@@ -202,17 +204,20 @@ describe.each([
         'is-success',
         'is-upcoming',
         'is-warning',
-        // Bulma's, for the colored Notification rules below, which name each
-        // color a Notification takes.
+        // Bulma's, for the colored Notification and Hero rules below, which
+        // name each color a Notification or a Hero takes.
         'is-black',
         'is-dark',
         'is-light',
         'is-text',
         'is-white',
         'notification',
+        'hero',
         // And the surfaces of their own inside one, which that rule skips.
         'box',
         'card',
+        'message',
+        'modal',
         'timeline',
         'timeline-content',
         'timeline-item',
@@ -460,7 +465,8 @@ describe.each([
 
   it('gives the title and the time a Notification’s own text color', () => {
     // Bulma does the same for its titles there, since the scheme's text
-    // colors don't read on a colored Notification.
+    // colors don't read on a colored Notification. A colored Hero's come
+    // through the timeline's variables, below.
     expect(
       declarations(
         compile(prefix),
@@ -535,10 +541,10 @@ describe.each([
       expect(bare(color['--bulma-timeline-active-color'])).toBe(onScheme(name));
     }
     // The colors come after the states, so an item's own color wins over its
-    // state. The rules for a colored Notification name both, and come last.
+    // state. The rules for a colored Notification or Hero name both.
     const selectors = allRulesOf(css)
       .map(({ rule }) => rule.selectorText)
-      .filter(s => !s.includes(p('notification')));
+      .filter(s => !s.includes(p('notification')) && !s.includes(p('hero')));
     const lastState = selectors
       .map(s => s.includes(p('is-upcoming')))
       .lastIndexOf(true);
@@ -546,10 +552,11 @@ describe.each([
     expect(firstColor).toBeGreaterThan(lastState);
   });
 
-  // The page's colors don't stand out from a colored Notification, so there a
-  // timeline with no color takes the Notification's text color and fills its
-  // rings with its background (#1710). A color the caller set is kept.
-  describe('in a colored Notification', () => {
+  // The page's colors don't stand out from a colored Notification or Hero, so
+  // there a timeline with no color takes the surface's text color and fills
+  // its rings with its background (#1710, #1733). A color the caller set is
+  // kept.
+  describe('in a colored Notification or Hero', () => {
     /** The variables the top-level rules in `css` matching `el` declare. */
     const declaredOn = (css: string, el: Element) =>
       varsOn(
@@ -592,6 +599,11 @@ describe.each([
                 <Timeline.Item title="Packed" />
               </Timeline>
             </Card>
+            <div className={`${prefix}modal`}>
+              <Timeline active={0} data-testid="in-a-modal">
+                <Timeline.Item title="Packed" />
+              </Timeline>
+            </div>
           </Notification>
           <Box>
             <Notification color="info">
@@ -600,6 +612,43 @@ describe.each([
               </Timeline>
             </Notification>
           </Box>
+          <Hero color="link">
+            <Timeline active={0} data-testid="in-a-hero">
+              <Timeline.Item title="Packed" />
+            </Timeline>
+            <Timeline
+              active={0}
+              color="warning"
+              data-testid="colored-in-a-hero"
+            >
+              <Timeline.Item title="Packed" />
+            </Timeline>
+            <Box>
+              <Timeline active={0} data-testid="on-a-box-in-a-hero">
+                <Timeline.Item title="Packed" />
+              </Timeline>
+            </Box>
+            <Message>
+              <Timeline active={0} data-testid="in-a-message-in-a-hero">
+                <Timeline.Item title="Packed" />
+              </Timeline>
+            </Message>
+            <div className={`${prefix}modal`}>
+              <Timeline active={0} data-testid="in-a-modal-in-a-hero">
+                <Timeline.Item title="Packed" />
+              </Timeline>
+            </div>
+            <Notification>
+              <Timeline active={0} data-testid="in-a-note-in-a-hero">
+                <Timeline.Item title="Packed" />
+              </Timeline>
+            </Notification>
+            <Notification color="warning">
+              <Timeline active={0} data-testid="in-a-colored-note-in-a-hero">
+                <Timeline.Item title="Packed" />
+              </Timeline>
+            </Notification>
+          </Hero>
         </ConfigProvider>
       );
       const vars = (id: string) =>
@@ -626,10 +675,10 @@ describe.each([
       expect(vars('uncolored-note')['--bulma-timeline-active-color']).not.toBe(
         'currentColor'
       );
-      // A Box or a Card inside the Notification is a surface of its own, so a
-      // timeline on one keeps the page's look, while a colored Notification
-      // inside a Box is still the timeline's surface.
-      for (const id of ['on-a-box', 'on-a-card']) {
+      // A Box, a Card or a Modal inside the Notification is a surface of its
+      // own, so a timeline on one keeps the page's look, while a colored
+      // Notification inside a Box is still the timeline's surface.
+      for (const id of ['on-a-box', 'on-a-card', 'in-a-modal']) {
         expect([id, vars(id)['--bulma-timeline-active-color']]).not.toEqual([
           id,
           'currentColor',
@@ -638,6 +687,53 @@ describe.each([
       expect(vars('note-in-a-box')['--bulma-timeline-active-color']).toBe(
         'currentColor'
       );
+      // A colored Hero is the same: its text color and its background, and
+      // its text color for the titles and the times, through their variables,
+      // so a timeline on a surface of its own inside the Hero keeps the
+      // page's.
+      const hero = vars('in-a-hero');
+      expect(hero['--bulma-timeline-active-color']).toBe('currentColor');
+      expect(hero['--bulma-timeline-title-color']).toBe('currentColor');
+      expect(hero['--bulma-timeline-time-color']).toBe('currentColor');
+      expect(bare(hero['--bulma-timeline-marker-background'])).toBe(
+        'hsl(var(--bulma-hero-h),var(--bulma-hero-s),var(--bulma-hero-background-l))'
+      );
+      // A color on the timeline keeps its markers, and its titles and times
+      // still take the Hero's text color, as a Notification's do.
+      const coloredInHero = vars('colored-in-a-hero');
+      expect(coloredInHero['--bulma-timeline-active-color']).not.toBe(
+        'currentColor'
+      );
+      expect(coloredInHero['--bulma-timeline-title-color']).toBe(
+        'currentColor'
+      );
+      expect(coloredInHero['--bulma-timeline-time-color']).toBe('currentColor');
+      // A Box, a Message, a Modal or a plain Notification inside the Hero
+      // keeps the page's look, titles included, and a colored Notification
+      // there is the nearest surface, so its fill is the Notification's, not
+      // the Hero's.
+      for (const id of [
+        'on-a-box-in-a-hero',
+        'in-a-message-in-a-hero',
+        'in-a-modal-in-a-hero',
+        'in-a-note-in-a-hero',
+      ]) {
+        expect([id, vars(id)['--bulma-timeline-active-color']]).not.toEqual([
+          id,
+          'currentColor',
+        ]);
+        expect([id, vars(id)['--bulma-timeline-title-color']]).not.toEqual([
+          id,
+          'currentColor',
+        ]);
+      }
+      expect(
+        bare(
+          vars('in-a-colored-note-in-a-hero')[
+            '--bulma-timeline-marker-background'
+          ]
+        )
+      ).toBe(background);
       // And so is an item's own, declared on the item over what it inherits.
       expect(
         bare(vars('colored-item')['--bulma-timeline-marker-color'])
@@ -645,14 +741,16 @@ describe.each([
       // The rule weighs what `.timeline` does: the Notification and the
       // colors it skips sit in `:where()`, so a later sheet's class that sets
       // these variables on a timeline still wins.
-      const rule = allRulesOf(css).find(({ rule }) =>
-        rule.selectorText.includes(`${p('notification')}:is(`)
-      )!.rule;
-      expect(rule.selectorText).toMatch(
-        new RegExp(
-          `^:where\\(${p('notification').replace('.', '\\.')}:is\\(.+\\)\\) ${p('timeline').replace('.', '\\.')}:where\\(:not\\(.+\\)\\)$`
-        )
-      );
+      for (const surface of ['notification', 'hero']) {
+        const rule = allRulesOf(css).find(({ rule }) =>
+          rule.selectorText.startsWith(`:where(${p(surface)}:is(`)
+        )!.rule;
+        expect(rule.selectorText).toMatch(
+          new RegExp(
+            `^:where\\(${p(surface).replace('.', '\\.')}:is\\(.+\\)\\) ${p('timeline').replace('.', '\\.')}:where\\(:not\\(.+\\)\\)$`
+          )
+        );
+      }
     });
   });
 });
@@ -687,65 +785,67 @@ const CONTRAST_SHEETS: [string, string, () => CSSStyleRule[]][] = [
 // whole published sheet in each scheme. A marker is a graphic, so it needs
 // 3:1.
 describe.each(CONTRAST_SHEETS)(
-  'Timeline in a colored Notification in %s',
+  'Timeline in a colored Notification or Hero in %s',
   (_name, prefix, sheet) => {
     let schemes: ReturnType<typeof schemesOf>;
-    let note: (name: string, variant: string) => Vars;
-    let handsOver = false;
+    let surfaceVars: (surface: string, name: string, variant: string) => Vars;
+    let handsOver: (surface: string) => boolean;
     // A hook keeps Vitest's 10s default rather than `testTimeout`, and a whole
     // sheet can take longer than that to compile on a loaded machine.
     beforeAll(() => {
       const rules = sheet();
       schemes = schemesOf(rules);
       const p = (name: string) => `.${prefix}${name}`;
-      // The markers take the Notification's text color only through the
+      // The markers take the surface's text color only through the
       // timeline's rule for it, so the measurements below hold only with it.
-      handsOver = rules.some(
-        rule =>
-          rule.selectorText.includes(`${p('notification')}:is(`) &&
-          rule.selectorText.includes(p('timeline')) &&
-          rule.style
-            .getPropertyValue('--bulma-timeline-neutral-color')
-            .trim() === 'currentColor'
-      );
-      note = (name, variant) => ({
-        ...varsOn(rules, p('notification')),
-        ...varsOn(rules, `${p('notification')}${p(`is-${name}`)}`),
+      handsOver = surface =>
+        rules.some(
+          rule =>
+            rule.selectorText.includes(`${p(surface)}:is(`) &&
+            rule.selectorText.includes(p('timeline')) &&
+            rule.style
+              .getPropertyValue('--bulma-timeline-neutral-color')
+              .trim() === 'currentColor'
+        );
+      surfaceVars = (surface, name, variant) => ({
+        ...varsOn(rules, p(surface)),
+        ...varsOn(rules, `${p(surface)}${p(`is-${name}`)}`),
         ...(variant &&
           varsOn(
             rules,
-            `${p('notification')}${p(`is-${name}`)}${p(`is-${variant}`)}`
+            `${p(surface)}${p(`is-${name}`)}${p(`is-${variant}`)}`
           )),
       });
     }, 30_000);
 
-    // Bulma's light and dark shades work for the six theme colors. For white,
-    // black, light and dark it writes shade rules that read variables it
-    // never declares, so such a Notification loses its own text color, and
-    // its titles with it, whatever a timeline does there.
+    // Bulma's light and dark shades work for the six theme colors of a
+    // Notification. For white, black, light and dark it writes shade rules
+    // that read variables it never declares, so such a Notification loses its
+    // own text color, and its titles with it, whatever a timeline does there.
+    // A Hero has no shades.
+    const colors = ['white', 'black', 'light', 'dark'];
+    const themed = ['primary', 'link', 'info', 'success', 'warning', 'danger'];
     it.each([
-      ...['white', 'black', 'light', 'dark'].map(name => [name, '']),
-      ...['primary', 'link', 'info', 'success', 'warning', 'danger'].flatMap(
-        name => [
-          [name, ''],
-          [name, 'light'],
-          [name, 'dark'],
-        ]
-      ),
+      ...[...colors, ...themed].map(name => ['notification', name, '']),
+      ...themed.flatMap(name => [
+        ['notification', name, 'light'],
+        ['notification', name, 'dark'],
+      ]),
+      ...[...colors, ...themed].map(name => ['hero', name, '']),
     ])(
-      'draws the markers at 3:1 on a %s %s Notification, on both schemes',
-      (name, variant) => {
-        expect(handsOver).toBe(true);
+      'draws the markers at 3:1 on a %s in %s %s, on both schemes',
+      (surface, name, variant) => {
+        expect(handsOver(surface)).toBe(true);
         const failures: string[] = [];
         for (const [scheme, page] of Object.entries(schemes)) {
-          const vars = { ...page, ...note(name, variant) };
+          const vars = { ...page, ...surfaceVars(surface, name, variant) };
           const ratio = contrast(
             substitute(
-              'hsl(var(--bulma-notification-h), var(--bulma-notification-s), var(--bulma-notification-color-l))',
+              `hsl(var(--bulma-${surface}-h), var(--bulma-${surface}-s), var(--bulma-${surface}-color-l))`,
               vars
             ),
             substitute(
-              'hsl(var(--bulma-notification-h), var(--bulma-notification-s), var(--bulma-notification-background-l))',
+              `hsl(var(--bulma-${surface}-h), var(--bulma-${surface}-s), var(--bulma-${surface}-background-l))`,
               vars
             )
           );

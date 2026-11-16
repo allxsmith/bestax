@@ -101,9 +101,9 @@ export interface TimelineProps
    * on-scheme shade, the one Bulma adjusts to read on the page in either
    * scheme, so a pale color such as `warning` is darker on a light page. The
    * markers are hidden from assistive tech, so say what a color means in the
-   * words too. In a colored Notification, leave it off: the markers then take
-   * the Notification's text color, as the titles do, while a color you set is
-   * kept even where it doesn't stand out from the Notification's.
+   * words too. In a colored Notification or Hero, leave it off: the markers
+   * then take the surface's text color, as the titles do, while a color you
+   * set is kept even where it doesn't stand out from the surface's.
    */
   color?: TimelineColor;
   /** Read after a completed item's title, visually hidden. In your app's language. */
