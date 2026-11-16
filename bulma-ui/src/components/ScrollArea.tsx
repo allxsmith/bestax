@@ -1,34 +1,26 @@
-import React, {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { forwardRef, useEffect } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
-import { useLatestRef } from '../helpers/useLatestRef';
+import {
+  useScrollRegion,
+  SCROLL_REGION_EDGES,
+  type ScrollRegionEdge,
+  type ScrollRegionOrientation,
+} from '../helpers/useScrollRegion';
 import { warnOnce } from '../helpers/devWarnings';
 
 /** Which way the content scrolls. */
-export type ScrollAreaOrientation = 'vertical' | 'horizontal' | 'both';
+export type ScrollAreaOrientation = ScrollRegionOrientation;
 
 /** When the scrollbars show. */
 export type ScrollAreaScrollbars = 'auto' | 'hover' | 'always';
 
 /** An edge of the content: the block's top and bottom, the line's start and end. */
-export type ScrollAreaEdge = 'top' | 'bottom' | 'start' | 'end';
-
-const EDGES: readonly ScrollAreaEdge[] = ['top', 'bottom', 'start', 'end'];
-
-// Layout can land a fraction of a pixel short of an edge, so anything closer
-// than this counts as there.
-const SLACK = 1;
+export type ScrollAreaEdge = ScrollRegionEdge;
 
 /**
  * Props for the ScrollArea component.
@@ -103,24 +95,6 @@ export interface ScrollAreaProps
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
 }
-
-/** What a measurement of the viewport found. */
-interface Measured {
-  /** Overflows on an axis it scrolls. */
-  overflowing: boolean;
-  /** Each edge that has more content past it. */
-  edges: Record<ScrollAreaEdge, boolean>;
-  /** The vertical scrollbar's width, and the horizontal one's height. */
-  barInline: number;
-  barBlock: number;
-}
-
-const sameMeasure = (a: Measured | null, b: Measured): boolean =>
-  !!a &&
-  a.overflowing === b.overflowing &&
-  a.barInline === b.barInline &&
-  a.barBlock === b.barBlock &&
-  EDGES.every(edge => a.edges[edge] === b.edges[edge]);
 
 /**
  * The `ScrollArea` component renders a box whose content scrolls inside it, on the browser's own scrollbars in Bulma's colors.
@@ -197,159 +171,26 @@ export const ScrollArea = forwardRef<HTMLDivElement, ScrollAreaProps>(
       }
     }, [named]);
 
-    const viewportRef = useRef<HTMLDivElement | null>(null);
-    const setRefs = useCallback(
-      (node: HTMLDivElement | null) => {
-        viewportRef.current = node;
-        if (typeof ref === 'function') return ref(node);
-        if (ref) ref.current = node;
-      },
-      [ref]
-    );
-
-    // Nothing is known about the overflow until the client measures it, so
-    // the server renders a plain scroller and hydrates as one.
-    const [measured, setMeasured] = useState<Measured | null>(null);
-    const [focused, setFocused] = useState(false);
-    // The last measurement, read by the scroll handler to see which edges
-    // it just reached, and the direction and bar sizes, which only change
-    // with layout, so a scroll doesn't read computed styles.
-    const lastRef = useRef<Measured | null>(null);
-    const layoutRef = useRef({ rtl: false, barInline: 0, barBlock: 0 });
-    const onEdgeReachRef = useLatestRef(onEdgeReach);
-
-    const measure = useCallback(
-      (fromScroll: boolean) => {
-        const el = viewportRef.current;
-        /* istanbul ignore next: measuring only runs while it's mounted */
-        if (!el) return;
-        const scrollsY = orientation !== 'horizontal';
-        const scrollsX = orientation !== 'vertical';
-        const maxTop = el.scrollHeight - el.clientHeight;
-        const maxLeft = el.scrollWidth - el.clientWidth;
-        const overflowY = scrollsY && maxTop > SLACK;
-        const overflowX = scrollsX && maxLeft > SLACK;
-        // Right to left, scrollLeft runs from 0 at the start to negative.
-        const fromStart = layoutRef.current.rtl
-          ? -el.scrollLeft
-          : el.scrollLeft;
-        const next: Measured = {
-          overflowing: overflowY || overflowX,
-          edges: {
-            top: overflowY && el.scrollTop > SLACK,
-            bottom: overflowY && maxTop - el.scrollTop > SLACK,
-            start: overflowX && fromStart > SLACK,
-            end: overflowX && maxLeft - fromStart > SLACK,
-          },
-          barInline: layoutRef.current.barInline,
-          barBlock: layoutRef.current.barBlock,
-        };
-        const last = lastRef.current;
-        lastRef.current = next;
-        if (fromScroll && last) {
-          for (const edge of EDGES) {
-            if (last.edges[edge] && !next.edges[edge]) {
-              onEdgeReachRef.current?.(edge);
-            }
-          }
-        }
-        setMeasured(prev => (sameMeasure(prev, next) ? prev : next));
-      },
-      [orientation, onEdgeReachRef]
-    );
-
-    // Layout: the direction and the bars' sizes, then the overflow. It runs
-    // before paint, and again whenever the viewport or anything in it
-    // changes size, or the children change.
-    useClientLayoutEffect(() => {
-      const el = viewportRef.current;
-      /* istanbul ignore next: the effect only runs once it's mounted */
-      if (!el) return;
-      const relayout = () => {
-        const cs = getComputedStyle(el);
-        const px = (value: string) => parseFloat(value) || 0;
-        layoutRef.current = {
-          rtl: cs.direction === 'rtl',
-          barInline: Math.max(
-            0,
-            el.offsetWidth -
-              el.clientWidth -
-              px(cs.borderLeftWidth) -
-              px(cs.borderRightWidth)
-          ),
-          barBlock: Math.max(
-            0,
-            el.offsetHeight -
-              el.clientHeight -
-              px(cs.borderTopWidth) -
-              px(cs.borderBottomWidth)
-          ),
-        };
-        measure(false);
-      };
-      relayout();
-      if (typeof ResizeObserver === 'undefined') return;
-      const resizes = new ResizeObserver(relayout);
-      const observeAll = () => {
-        resizes.disconnect();
-        resizes.observe(el);
-        for (const child of Array.from(el.children)) resizes.observe(child);
-      };
-      observeAll();
-      // Content that changes can overflow before any size is reported: a
-      // child added or taken away, or text React rewrites in place, which
-      // resizes no element when the area's height is fixed, and inline
-      // children, which a ResizeObserver doesn't report at all.
-      const mutations =
-        typeof MutationObserver === 'undefined'
-          ? null
-          : new MutationObserver(records => {
-              if (
-                records.some(
-                  record => record.target === el && record.type === 'childList'
-                )
-              ) {
-                observeAll();
-              }
-              relayout();
-            });
-      mutations?.observe(el, {
-        childList: true,
-        characterData: true,
-        subtree: true,
-      });
-      return () => {
-        resizes.disconnect();
-        mutations?.disconnect();
-      };
-    }, [measure]);
-
-    const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
-      onScroll?.(event);
-      measure(true);
-    };
-    const handleFocus = (event: React.FocusEvent<HTMLDivElement>) => {
-      onFocus?.(event);
-      if (event.target === event.currentTarget) setFocused(true);
-    };
-    const handleBlur = (event: React.FocusEvent<HTMLDivElement>) => {
-      onBlur?.(event);
-      if (event.target === event.currentTarget) setFocused(false);
-    };
-
-    // A tab stop while it overflows. Taking tabIndex off the focused element
-    // would drop focus to the page, so a viewport that stops overflowing
-    // keeps it until focus leaves.
-    const isRegion = !!measured?.overflowing || focused;
-    // The name goes with the role: ARIA prohibits naming a plain div.
+    // The name goes to the hook, which renders it with the role: ARIA
+    // prohibits naming a plain div.
     const {
       'aria-label': ariaLabel,
       'aria-labelledby': ariaLabelledby,
       ...viewportRest
     } = rest;
+    const { props: regionProps, measured } = useScrollRegion<HTMLDivElement>({
+      orientation,
+      ref,
+      onEdgeReach,
+      onScroll,
+      onFocus,
+      onBlur,
+      'aria-label': ariaLabel,
+      'aria-labelledby': ariaLabelledby,
+    });
     const edgeAttributes: Record<string, string> = {};
     if (measured) {
-      for (const edge of EDGES) {
+      for (const edge of SCROLL_REGION_EDGES) {
         if (measured.edges[edge]) edgeAttributes[`data-overflow-${edge}`] = '';
       }
     }
@@ -376,18 +217,11 @@ export const ScrollArea = forwardRef<HTMLDivElement, ScrollAreaProps>(
         }
       >
         <div
-          ref={setRefs}
           className={viewportClass}
           style={viewportStyle}
           {...viewportRest}
           {...edgeAttributes}
-          role={isRegion ? 'region' : undefined}
-          aria-label={isRegion ? ariaLabel : undefined}
-          aria-labelledby={isRegion ? ariaLabelledby : undefined}
-          tabIndex={isRegion ? 0 : undefined}
-          onScroll={handleScroll}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
+          {...regionProps}
         >
           {children}
         </div>

@@ -23,7 +23,8 @@
  *   autodocs-tag         every story file opts into autodocs
  *   inline-style         no NEW inline style={{}} in stories/docs (ratcheted
  *                        against scripts/conformance-baseline.json; after
- *                        removing styles, shrink it with `--update-baseline`)
+ *                        removing styles, shrink it with `--update-baseline`,
+ *                        which a row above its file's count warns about)
  *   skills-sync          the theming skill's references name every registered
  *                        CSS variable and every color-prop component
  *   skills-roster        every skill directory under skills/ is named in each
@@ -2040,21 +2041,46 @@ async function checkInlineStyle(updateBaseline) {
   }
 
   if (updateBaseline) {
-    // Ratchet: the baseline can only shrink. Raising it is a reviewed edit.
-    const next = {};
-    for (const [file, n] of Object.entries(current)) {
-      next[file] = file in baseline ? Math.min(baseline[file], n) : n;
-    }
-    const sorted = Object.fromEntries(
-      Object.entries(next).sort(([a], [b]) => (a < b ? -1 : 1))
-    );
-    await writeFile(BASELINE, JSON.stringify(sorted, null, 2) + '\n');
+    const next = lowerInlineStyleBaseline(current, baseline);
+    await writeFile(BASELINE, JSON.stringify(next, null, 2) + '\n');
     process.stdout.write(
-      `Wrote ${relative(REPO, BASELINE)} (${Object.keys(sorted).length} files)\n`
+      `Wrote ${relative(REPO, BASELINE)} (${Object.keys(next).length} files)\n`
     );
     return [];
   }
 
+  // A row above its file's count warns rather than fails: the AI fix loop
+  // may not edit the baseline, so failing would strand its PRs (#1862).
+  const warning = inlineStyleWarning(staleInlineStyleRows(current, baseline), {
+    ci: process.env.GITHUB_ACTIONS === 'true',
+  });
+  for (const line of warning) console.error(line);
+  return inlineStyleViolations(current, baseline);
+}
+
+/**
+ * The baseline `--update-baseline` writes: each row lowered to its file's
+ * count, and the rows for files that hold none or are gone dropped. It only
+ * shrinks. A file with no row gets none, so it stays a violation, and raising
+ * the baseline is a hand edit someone reviews.
+ */
+export function lowerInlineStyleBaseline(current, baseline) {
+  const next = {};
+  for (const [file, allowed] of Object.entries(baseline)) {
+    const n = Math.min(allowed, current[file] ?? 0);
+    if (n > 0) next[file] = n;
+  }
+  return Object.fromEntries(
+    Object.entries(next).sort(([a], [b]) => (a < b ? -1 : 1))
+  );
+}
+
+/**
+ * The inline-style ratchet, given each file's count of inline `style={{}}`
+ * uses (files holding none left out) and the baseline's rows: a file may hold
+ * no more than its row allows.
+ */
+export function inlineStyleViolations(current, baseline) {
   const violations = [];
   for (const [file, n] of Object.entries(current)) {
     const allowed = baseline[file] ?? 0;
@@ -2068,6 +2094,55 @@ async function checkInlineStyle(updateBaseline) {
     }
   }
   return violations;
+}
+
+/**
+ * The rows that allow more inline `style={{}}` uses than their file holds. A
+ * stale row lets the file gain inline styles back up to the old count without
+ * failing (#1649, #1862).
+ */
+export function staleInlineStyleRows(current, baseline) {
+  const stale = [];
+  for (const [file, allowed] of Object.entries(baseline)) {
+    const n = current[file] ?? 0;
+    if (allowed > n) {
+      stale.push(
+        `${file}: the baseline allows ${allowed}, and it ` +
+          `${n ? `holds ${n}` : 'holds none or is gone'}.`
+      );
+    }
+  }
+  return stale;
+}
+
+/**
+ * The lines that report stale rows: a heading naming the command that lowers
+ * them, then one line per row. In GitHub Actions (`ci`) it adds a single
+ * `::warning` annotation holding all of them, since a run shows only so many
+ * annotations a step.
+ */
+export function inlineStyleWarning(stale, { ci = false } = {}) {
+  if (!stale.length) return [];
+  const heading =
+    `⚠ inline-style: ${stale.length} row(s) in ` +
+    `${relative(REPO, BASELINE)} allow more inline style={{}} than their ` +
+    `file holds, so the file can gain them back without failing. Lower ` +
+    `them with \`node scripts/check-conformance.mjs --only=inline-style ` +
+    `--update-baseline\` and commit the result. A PR from the AI fix loop ` +
+    `leaves this to a maintainer. Stale rows alone don't fail the check.`;
+  const lines = ['', heading, ...stale.map(row => `  - ${row}`)];
+  if (ci) {
+    const message = [heading, ...stale.map(row => `- ${row}`)]
+      .join('\n')
+      .replace(/%/g, '%25')
+      .replace(/\r/g, '%0D')
+      .replace(/\n/g, '%0A');
+    lines.push(
+      `::warning file=${relative(REPO, BASELINE)},title=inline-style ` +
+        `baseline::${message}`
+    );
+  }
+  return lines;
 }
 
 // The `packages:` list out of pnpm-workspace.yaml. Reads only that block —
