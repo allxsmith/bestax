@@ -55,8 +55,10 @@ export interface ButtonOwnProps extends Omit<
    * Displays a loading spinner, with everything inside the button hidden
    * behind it, in forced colors (Windows' contrast themes) too, and holds the
    * button still: a click, Enter or Space does nothing, so `onClick` doesn't
-   * run, a submit button doesn't submit its form and a link doesn't follow
-   * its `href`, until it's cleared. Set it while an action is in progress, so
+   * run, a submit button doesn't submit its form and a click on a link
+   * doesn't follow its `href`, until it's cleared. A custom `as` component
+   * gets that dropped click as its `onClick`, so it holds still as far as it
+   * acts through it. Set it while an action is in progress, so
    * nobody sends it twice. The button carries `aria-busy` and `aria-disabled`
    * meanwhile, so a screen reader can tell it won't respond, and stays
    * focusable, so focus isn't lost, with Bulma's focus outline showing it
