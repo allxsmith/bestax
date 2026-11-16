@@ -313,11 +313,12 @@ $sidebar-static-border-color: cv.getVar("border") !default;
 // background colors in the system's Canvas, the panel's own color. So the
 // panel gets an edge as an outline drawn inside it, which takes no room and
 // shows nothing while the panel is slid out of view. A static one keeps the
-// border below instead. The close button's cross is drawn as background
-// colors on `::before` and `::after`, which would vanish, so only those two
-// opt out and take the system's button text color, or its disabled color, as
-// `_delete.scss` draws the Modal's close. The button itself keeps the
-// user's palette, its focus ring included.
+// border below instead. The close button's cross is drawn in
+// `sidebar-close-color` as background colors on `::before` and `::after`,
+// which would vanish, so only those two opt out, with the variable set to the
+// system's text color, since the button has no fill and the panel's Canvas is
+// behind them, or its disabled color. The button itself keeps the user's
+// palette, its focus ring included.
 @media (forced-colors: active) {
   .#{iv.$class-prefix}sidebar:not(.#{iv.$class-prefix}is-static) {
     outline: 1px solid CanvasText;
@@ -328,12 +329,23 @@ $sidebar-static-border-color: cv.getVar("border") !default;
     &::before,
     &::after {
       forced-color-adjust: none;
-      background-color: ButtonText;
+      @include cv.register-vars(
+        (
+          "sidebar-close-color": CanvasText,
+        )
+      );
     }
 
-    &:disabled::before,
-    &:disabled::after {
-      background-color: GrayText;
+    &:disabled,
+    &[aria-disabled="true"] {
+      &::before,
+      &::after {
+        @include cv.register-vars(
+          (
+            "sidebar-close-color": GrayText,
+          )
+        );
+      }
     }
   }
 }
