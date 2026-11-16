@@ -132,7 +132,7 @@ const config = {
   focus ring in Bulma's focus color just inside it, and a region when it has a name. While it fits, it's a plain
   `<pre>` with no tab stop. Name it with `aria-label` or `aria-labelledby` so a screen reader says
   what took focus.
-- **Screen Readers:** Preformatted text is typically announced as such by screen readers.
+- **Screen Readers:** a `<pre>` has no role of its own, so a screen reader reads its text like any other and doesn't say it's preformatted. Say what the block is in the text before it ("The config file:").
 
 :::info
 For code blocks, wrap content in both `<Pre>` and `<Code>` for proper semantics: `<Pre><Code>...</Code></Pre>`.

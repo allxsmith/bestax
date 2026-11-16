@@ -140,7 +140,7 @@ children, no compound child. A `Modal.Content` or `Modal.Card` child (which is w
 RBC modal has) selects the **compound** form, and that renders only the children you wrote:
 
 ```tsx
-<Modal active={show} onClose={close}>
+<Modal active={show} onClose={close} aria-label="Edit profile">
   <Modal.Background onClick={close} />
   <Modal.Content>…</Modal.Content>
   <Modal.Close variant="floating" onClick={close} />
@@ -148,7 +148,8 @@ RBC modal has) selects the **compound** form, and that renders only the children
 ```
 
 So `closeOnBlur` and `showClose={true}` mean "add those two children"; passing either as `false`
-means "drop the prop", since the compound form gives you neither unless you ask.
+means "drop the prop", since the compound form gives you neither unless you ask. The open modal
+is a dialog, so give it a name too, with `aria-label`, or `aria-labelledby` pointing at its title.
 
 ## `responsive` — `touch` / `untilWidescreen` / `untilFullhd` / `{ only: true }` breakpoints
 

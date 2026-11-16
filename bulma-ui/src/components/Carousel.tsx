@@ -201,7 +201,10 @@ export interface CarouselProps
    * carousel inside a form is not submitted by moving between slides.
    */
   arrow?: boolean;
-  /** Only show arrows on hover. */
+  /**
+   * Only show arrows on hover. An arrow also shows while keyboard focus is
+   * on it.
+   */
   arrowHover?: boolean;
   /**
    * Show slide indicators. Default: true. There is one for each position a
@@ -257,7 +260,11 @@ export interface CarouselProps
   iconSize?: 'small' | 'medium' | 'large';
   /** Additional icon modifiers. */
   iconFeatures?: string | string[];
-  /** Show semi-transparent background on arrow buttons. Set to `false` for icon-only arrows. */
+  /**
+   * Show semi-transparent background on arrow buttons. Set to `false` for
+   * icon-only arrows, which show Bulma's focus outline while they have
+   * keyboard focus, as a ghost `Button` does.
+   */
   arrowBackground?: boolean;
   /**
    * Color theme for navigation arrows. Not applied while the overlay look is

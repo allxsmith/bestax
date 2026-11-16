@@ -416,7 +416,8 @@ in the browser:
 - **`family:modal`**: `Modal` writes `data-testid="modal"` when it's given none and adds dialog
   attributes and focus handling, so the `.modal` root stays markup while its background, content and card parts
   convert on their own. Rebuild the root with `Modal` around them, drive it with its open prop,
-  and pass `onClose`, which Escape and `Modal.Close` call. The converted `Modal.Background`
+  and pass `onClose`, which Escape and `Modal.Close` call, and a name, `aria-label` or
+  `aria-labelledby` pointing at the card's title, since the open modal is a dialog. The converted `Modal.Background`
   doesn't call it on its own: give it `onClick={onClose}` for the background to close the modal.
   A `.modal-close` stays too, since `Modal.Close` renders `.delete` unless it's floating: write
   `<Modal.Close variant="floating" />` in its place. A card head's `.delete` converts to `Delete`,
