@@ -27,6 +27,18 @@ describe.each([
     expect(declared(fill, 'fill')).toBe('var(--bulma-rate-color-active)');
   });
 
+  it('fades its fill as the star’s color fades, unless motion is reduced', () => {
+    expect(declared(fill, 'transition')).toBe(
+      'fill var(--bulma-rate-transition-duration) ease'
+    );
+    const still = nested.find(
+      ({ rule, within }) =>
+        within === '@media (prefers-reduced-motion: reduce)' &&
+        rule.selectorText === fill
+    )?.rule;
+    expect(still?.style.getPropertyValue('transition')).toBe('none');
+  });
+
   it('fills it in the hover color while the pointer would fill it', () => {
     for (const state of [':hover', p('is-hovered')]) {
       expect(declared(`${p('rate-item')}${state} ${fill}`, 'fill')).toBe(

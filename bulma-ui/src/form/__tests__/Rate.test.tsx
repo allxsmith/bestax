@@ -692,6 +692,13 @@ describe('Rate', () => {
         1
       );
       expect(fill).toHaveAttribute('clip-path');
+      // The empty outline behind it is clipped to the part that isn't filled,
+      // so the filled part has no rim of it.
+      const outline = fill?.previousElementSibling;
+      const restId = outline?.getAttribute('clip-path')?.slice(5, -1);
+      const rest = container.querySelector(`[id="${restId}"] rect`);
+      expect(rest).toHaveAttribute('x', '12');
+      expect(rest).toHaveAttribute('width', '12');
     });
 
     it('clips each Rate’s partly filled star with a clip of its own', () => {
@@ -703,13 +710,13 @@ describe('Rate', () => {
       );
       const clips = Array.from(container.querySelectorAll('clipPath'));
       expect(new Set(clips.map(clip => clip.id)).size).toBe(clips.length);
-      // Each filled part points at the clip inside its own star.
+      // Each clipped path points at a clip inside its own star.
       for (const path of Array.from(
         container.querySelectorAll('path[clip-path]')
       )) {
         const svg = path.closest('svg')!;
         const id = path.getAttribute('clip-path')!.slice(5, -1);
-        expect(svg.querySelector('clipPath')!.id).toBe(id);
+        expect(svg.querySelector(`clipPath[id="${id}"]`)).not.toBeNull();
       }
     });
 

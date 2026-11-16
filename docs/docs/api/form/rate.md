@@ -331,6 +331,7 @@ function RateFormDemo() {
 - Full keyboard navigation with arrow keys
 - Home/End keys jump to 0/max values
 - `disabled` sets `aria-disabled` on the group and on every star, so a screen reader announces them as unavailable, and takes the group out of the tab order
+- In forced colors (Windows' contrast themes) a filled star takes the system's highlight color and an empty one its button text color, and a star the value only partly fills draws its filled part in the highlight color too
 
 ---
 
