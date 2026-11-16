@@ -155,7 +155,7 @@ bestax's prebuilt stylesheets build Bulma's table with `$table-cell-text-align: 
 );
 ```
 
-A build with a responsive `Table` also wants bestax's `elements/table` partial, for its container's focus ring, as the list of partials below says.
+A build with a responsive `Table` also wants bestax's `elements/table` partial, for its container's focus ring, and so does one with selected rows, in a `Table` or a `DataTable`, which the partial marks in forced colors.
 
 Pull in only the helper categories you use:
 
@@ -254,7 +254,7 @@ Some of these partials adjust a stock Bulma component rather than add one of bes
 
 - `elements/notification` keeps a `Notification`'s text clear of its close button, and gives a dark or light one its color's own text and background, and a white or black one with `isLight` the light color's text, where Bulma's module lets its text inherit the color around it, so a build that uses `bulma/sass/elements/notification` wants it too.
 
-- `elements/table` draws the keyboard focus ring of a responsive table's container, which is a tab stop while the table overflows it, so a build that uses `bulma/sass/elements/table` for a `Table` with `isResponsive` wants it too.
+- `elements/table` draws the keyboard focus ring of a responsive table's container, which is a tab stop while the table overflows it, and marks a selected row or cell with a double line in forced colors, where Bulma's fill for it is replaced, so a build that uses `bulma/sass/elements/table` for a `Table` with `isResponsive` or selected rows, or for a `DataTable` that selects rows, wants it too.
 
 - `elements/tag` gives a light tag, and a white, black or dark one with `isLight`, readable text the same way, and sets a normal-size tag in a table cell at the bottom of its line, where Bulma's baseline makes the row taller than a row of text, so a build that uses `bulma/sass/elements/tag` wants it too.
 
@@ -272,11 +272,13 @@ Some of these partials adjust a stock Bulma component rather than add one of bes
 
 - `elements/delete` keeps close buttons drawn in forced colors, the delete button and the Modal's and delete tag's crosses, so a build that shows any close button wants it.
 
-- `elements/button` gives a focused button an outline where Bulma's border and shadow show nothing, on a ghost or static button and on every button in forced colors, apart from a loading one, which `elements/loader` outlines, gives a colored button a border in forced colors, where Bulma draws it with none and the fill is replaced, and gives an outlined button the lightness Bulma picks for its color's text on the page where that's lighter, so a dark color reads on the dark scheme, so a build that uses `bulma/sass/elements/button` wants it too.
+- `elements/button` gives a focused button an outline where Bulma's border and shadow show nothing, on a ghost or static button and on every button in forced colors, apart from a loading one, which `elements/loader` outlines, gives a colored button a border in forced colors, where Bulma draws it with none and the fill is replaced, draws a pressed `ToggleButton`, a checked `SegmentedControl` segment and any other button with Bulma's `is-selected` in the system's highlight colors there, where they'd look like the buttons beside them, and gives an outlined button the lightness Bulma picks for its color's text on the page where that's lighter, so a dark color reads on the dark scheme, so a build that uses `bulma/sass/elements/button` wants it too.
 
 - `elements/loader` stops Bulma's spinners under `prefers-reduced-motion: reduce`, hides everything inside a loading button where Bulma hides only the label, outlines a loading button that has keyboard focus, whose focus shadow Bulma takes away, and keeps each spinner's ring open in forced colors, so a build that shows a `Loader` or a loading `Button`, `Control` or `Select` wants it too.
 
 - `elements/progress` keeps a `Progress` bar drawn in forced colors (Windows' contrast themes), its fill and an edge in the text color, where Bulma paints it in colors a contrast theme turns into the page's, and stops an indeterminate bar's sweep under `prefers-reduced-motion: reduce`, so a build that uses `bulma/sass/elements/progress` wants it too.
+
+- `elements/skeleton` keeps every skeleton shape (`Skeleton`, the `skeleton` prop and `hasSkeleton`) drawn in forced colors (Windows' contrast themes), in `GrayText` with the text Bulma hides still hidden, where a contrast theme turns Bulma's shape into the page's color and shows that text, and stops the shapes' pulse under `prefers-reduced-motion: reduce`, so a build that uses `bulma/sass/base/skeleton` wants it too.
 
 - `form/field` puts the `message` of a horizontal form component (`Input horizontal`, `Checkboxes horizontal` and the like) under its control, where Bulma's row would set it beside, and keeps a horizontal label's text against its control on a right-to-left page, so a build that uses `bulma/sass/form/tools` for horizontal fields wants it too.
 

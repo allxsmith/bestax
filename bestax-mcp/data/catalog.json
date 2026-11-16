@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.73.6"
+    "version": "5.73.7"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -3794,7 +3794,7 @@
     "MenuLabel": {
       "component": "Menu",
       "path": "Menu.Label",
-      "purpose": "Bulma Menu label component."
+      "purpose": "The label over a group of the menu's items: a paragraph to assistive tech, until you give it `role=\"heading\"` and an `aria-level`."
     },
     "MenuList": {
       "component": "Menu",

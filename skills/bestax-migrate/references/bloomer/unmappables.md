@@ -64,10 +64,11 @@ bloomer's `Modal` was an inert shell: `isActive` toggled the class and nothing e
 and renders inline unless `portal` is set. So every conversion changes behaviour, and every one
 is flagged. Pass `onClose` for Escape and `Modal.Close` to close it. `Modal.Background` doesn't
 call `onClose` on its own, so give it the same handler as `onClick` for the background to close
-it too:
+it too. The open modal is a dialog, so give it a name with `aria-label`, or `aria-labelledby`
+pointing at its title:
 
 ```jsx
-<Modal active={open} onClose={() => setOpen(false)}>
+<Modal active={open} onClose={() => setOpen(false)} aria-label="Edit profile">
   <Modal.Background onClick={() => setOpen(false)} />
 ```
 
