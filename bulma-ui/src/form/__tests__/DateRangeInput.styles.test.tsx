@@ -235,6 +235,19 @@ describe('several months', () => {
     );
   });
 
+  it('declare the inline gap in a rule of its own, which a browser without :has() keeps', () => {
+    const rules = Array.from(
+      (sheets[0].sheet as CSSStyleSheet).cssRules
+    ).filter(
+      (rule): rule is CSSStyleRule =>
+        rule instanceof CSSStyleRule &&
+        rule.style.getPropertyValue('--bulma-calendar-months-gap') !== '' &&
+        /\.daterangeinput\b/.test(rule.selectorText)
+    );
+    expect(rules).toHaveLength(1);
+    expect(rules[0].selectorText).not.toContain(':has(');
+  });
+
   it("center each month's name over its grid, between the buttons", () => {
     const headers = renderMonths().querySelectorAll('.dateinput-header');
     expect(headers).toHaveLength(2);

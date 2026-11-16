@@ -101,7 +101,16 @@ $calendar-radius: cv.getVar('radius') !default;
 // The range picker's several months sit in no `.calendar`, so the gap
 // between them is declared on what holds them: the picker inline, and a
 // popover holding them, which can portal out of the field.
-.#{iv.$class-prefix}daterangeinput,
+.#{iv.$class-prefix}daterangeinput {
+  @include cv.register-vars(
+    (
+      'calendar-months-gap': #{$calendar-months-gap},
+    )
+  );
+}
+
+// A rule of its own, so a browser without `:has()` still applies the one
+// above.
 .#{iv.$class-prefix}picker-popover:has(> .#{iv.$class-prefix}calendar-months) {
   @include cv.register-vars(
     (
