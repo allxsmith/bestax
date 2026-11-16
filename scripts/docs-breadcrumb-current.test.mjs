@@ -22,31 +22,22 @@
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { describe, it } from 'vitest';
-import { REPO, exampleFiles, sourcesOf } from './lib/example-sources.mjs';
+import {
+  REPO,
+  attributesOf,
+  exampleFiles,
+  isElement,
+  parseTsx,
+  sourcesOf,
+  tagOf,
+  ts,
+} from './lib/example-sources.mjs';
 
-const ts = createRequire(join(REPO, 'package.json'))('typescript');
 const STORIES = 'bulma-ui/src/components/Breadcrumb.stories.tsx';
 /** What names an `Icon`, as `Icon` reads it. */
 const NAMES = ['ariaLabel', 'aria-label', 'aria-labelledby'];
-
-const isElement = node =>
-  ts.isJsxElement(node) || ts.isJsxSelfClosingElement(node);
-const openingOf = node => (ts.isJsxElement(node) ? node.openingElement : node);
-const tagOf = node => openingOf(node).tagName.getText();
-
-/** An element's attributes by name, and whether any is a spread. */
-function attributesOf(node) {
-  const byName = new Map();
-  let spread = false;
-  for (const prop of openingOf(node).attributes.properties) {
-    if (ts.isJsxSpreadAttribute(prop)) spread = true;
-    else byName.set(prop.name.getText(), prop);
-  }
-  return { byName, spread };
-}
 
 /** An attribute's text when it's written as a string, else undefined. */
 function textOf(prop) {
@@ -104,13 +95,7 @@ const hasText = element =>
  * line within the code.
  */
 function readCode(code, crumbs = false) {
-  const sf = ts.createSourceFile(
-    'example.tsx',
-    code,
-    ts.ScriptTarget.Latest,
-    true,
-    ts.ScriptKind.TSX
-  );
+  const sf = parseTsx(code);
   const current = [];
   const icons = [];
   const lineOf = node =>
