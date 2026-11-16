@@ -73,4 +73,27 @@ describe.each([
     expect(rule?.style.getPropertyValue('fill')).toBe('highlight');
     expect(rule?.style.getPropertyPriority('fill')).toBe('important');
   });
+
+  // An `iconName` star a value only partly fills is two copies of the icon.
+  // Forced colors repainted both in the text color, so it drew as an empty
+  // star (#1967).
+  it('draws a half-filled icon’s filled part in the highlight color in forced colors', () => {
+    const forced = (selector: string) =>
+      nested.find(
+        ({ rule, within }) =>
+          within === '@media (forced-colors: active)' &&
+          rule.selectorText === selector
+      )?.rule;
+    // The filled part takes a filled star's color. It outranks the layer's
+    // own color, a rule of one class, and the back layer keeps the star's.
+    expect(
+      forced(`${p('rate')} ${p('rate-icon-fg')}`)?.style.getPropertyValue(
+        'color'
+      )
+    ).toBe('highlight');
+    expect(declared(p('rate-icon-fg'), 'color')).toBe(
+      'var(--bulma-rate-color-active)'
+    );
+    expect(forced(`${p('rate')} ${p('rate-icon-bg')}`)).toBeUndefined();
+  });
 });
