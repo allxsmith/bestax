@@ -25,7 +25,9 @@
 // paints those in the text color like any other border, which closes the
 // ring. `_loader.scss` sets them to `Canvas` there, so the same walk resolves
 // the open sides' colors with forced colors on, and checks each ring stays
-// open.
+// open. Bulma paints a progress bar's track and fill as background colors,
+// which forced colors turns into the page's color, so the walk also checks
+// `_progress.scss` names system colors for them there.
 import fs from 'fs';
 import path from 'path';
 import React from 'react';
@@ -1195,6 +1197,101 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
           )
       );
     expect(extra).toEqual([]);
+  });
+
+  /** Each kind of bar Bulma draws: with a value, in a color, and indeterminate. */
+  const BARS: Array<[string, React.ReactElement]> = [
+    ['Progress value', <Progress key="x" value={40} max={100} />],
+    [
+      'Progress color="primary" value',
+      <Progress key="x" color="primary" value={70} max={100} />,
+    ],
+    [
+      'Progress color="danger" indeterminate',
+      <Progress key="x" color="danger" />,
+    ],
+  ];
+
+  it.each(BARS)(
+    '%s draws its track, fill and edge in forced colors, and only there',
+    (_label, element) => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>{element}</ConfigProvider>
+      );
+      const bar = container.querySelector(`.${prefix}progress`)!;
+      const forced = (names: string[]) =>
+        resolved(rules, bar, '', { forcedColors: true }, names);
+      // Forced colors paints Bulma's track and fill in the page's color and
+      // drops the indeterminate gradient. With forcing off, the two
+      // variables Bulma paints them with name system colors, and so does
+      // the element's own background, which is Firefox's track.
+      expect(forced(['forced-color-adjust'])).toBe('none');
+      expect(forced(['--bulma-progress-bar-background-color'])).toBe('Canvas');
+      expect(forced(['--bulma-progress-value-background-color'])).toBe(
+        'CanvasText'
+      );
+      expect(forced(['background-color', 'background'])).toBe('Canvas');
+      expect(colorOf(forced(['border']))).toBe('CanvasText');
+      // None of it reaches anyone not in forced colors, where the fill keeps
+      // the Bulma color it reads.
+      expect(resolved(rules, bar, '', {}, ['forced-color-adjust'])).toBeNull();
+      expect(
+        resolved(rules, bar, '', {}, [
+          '--bulma-progress-value-background-color',
+        ])
+      ).toMatch(/^var\(--bulma-/);
+    }
+  );
+
+  it('gives a bar no background outside forced colors but the two variables set there', () => {
+    // The rule above sets the variables, not the paint, so it's only a fix
+    // while every background the sheet gives a bar reads them. Bulma paints
+    // the track and the fill on vendor pseudo-elements, which the resolver
+    // can't match, so the sheet's rules are read for them directly: any rule
+    // the walk collects with the bar's class anywhere in a selector.
+    const bar = new RegExp(`\\.${prefix}progress(?![\\w-])`);
+    const ours =
+      /var\(--bulma-progress-(bar|value)-background-color\)|transparent/g;
+    const paints = rules
+      .filter(rule => !rule.forcedColorsOnly)
+      .flatMap(rule =>
+        rule.selectors
+          .filter(selector => bar.test(selector))
+          .flatMap(selector =>
+            ['background-color', 'background', 'background-image']
+              .filter(property => rule.values[property])
+              .map(property => ({
+                selector,
+                property,
+                value: rule.values[property].value,
+              }))
+          )
+      );
+    // Floor against the read going quietly empty: the fill is one of them.
+    expect(paints).toContainEqual({
+      selector: `.${prefix}progress::-webkit-progress-value`,
+      property: 'background-color',
+      value: 'var(--bulma-progress-value-background-color)',
+    });
+    // Once the two variables are out, all a paint may have left is the
+    // indeterminate gradient's direction and stops. A color, another
+    // variable or `currentColor` is a paint forced colors would replace.
+    expect(
+      paints
+        .filter(
+          ({ value }) =>
+            value
+              .replace(ours, '')
+              .replace(
+                /linear-gradient|to (left|right)|[\d.]+%|none|[(),\s]/g,
+                ''
+              ) !== ''
+        )
+        .map(
+          ({ selector, property, value }) =>
+            `${selector} { ${property}: ${value} }`
+        )
+    ).toEqual([]);
   });
 
   /**
