@@ -87,7 +87,7 @@
           "name": "role",
           "type": "React.AriaRole",
           "default": "'list'",
-          "description": "The list's role. It's `list`, the role a `<ul>` already has, written out because Safari stops treating a `<ul>` as a list once its bullets are hidden, and Bulma's reset hides them outside `Content`. A role you pass replaces it, such as `tablist` for a list of tabs.",
+          "description": "The list's role. It's `list`, the role a `<ul>` already has, written out because Safari stops treating a `<ul>` as a list once its bullets are hidden, and Bulma's reset hides them outside `Content`. A role you pass replaces it.",
           "required": false,
           "inherited": false,
           "deprecated": false
