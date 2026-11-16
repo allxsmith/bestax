@@ -1,0 +1,1078 @@
+{
+  "name": "Tour",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/tour",
+  "docsUrl": "https://bestax.io/docs/api/components/tour",
+  "examples": [
+    {
+      "title": "Basic Tour",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const filtersRef = React.useRef<HTMLButtonElement>(null);\n  const exportRef = React.useRef<HTMLButtonElement>(null);\n\n  return (\n    <>\n      <Buttons>\n        <Button ref={filtersRef}>Filters</Button>\n        <Button ref={exportRef}>Export</Button>\n        <Button color=\"primary\" onClick={() => setOpen(true)}>\n          Take the tour\n        </Button>\n      </Buttons>\n      <Tour open={open} onOpenChange={setOpen}>\n        <Tour.Step title=\"Welcome\">\n          A quick look around the list and its tools.\n        </Tour.Step>\n        <Tour.Step target={filtersRef} title=\"Filters\">\n          The Filters button narrows the list by status and owner.\n        </Tour.Step>\n        <Tour.Step target={exportRef} title=\"Export\" position=\"left\">\n          The Export button downloads the rows you see as a CSV file.\n        </Tour.Step>\n      </Tour>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Targets",
+      "code": "<Tour open={open} onOpenChange={setOpen}>\n  <Tour.Step target=\"#filters\" title=\"Filters\">\n    The filters above the list narrow it by status and owner.\n  </Tour.Step>\n  <Tour.Step target={exportRef} title=\"Export\">\n    The Export button downloads the rows you see.\n  </Tour.Step>\n</Tour>"
+    },
+    {
+      "title": "Placement",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const targetRef = React.useRef<HTMLButtonElement>(null);\n\n  return (\n    <Block textAlign=\"centered\">\n      <Button ref={targetRef} mb=\"4\">\n        Target\n      </Button>\n      <br />\n      <Button onClick={() => setOpen(true)}>Walk the sides</Button>\n      <Tour open={open} onOpenChange={setOpen}>\n        <Tour.Step target={targetRef} title=\"Bottom\">\n          The default side.\n        </Tour.Step>\n        <Tour.Step target={targetRef} title=\"End\" position=\"right\">\n          The end of the line.\n        </Tour.Step>\n        <Tour.Step target={targetRef} title=\"Top\" position=\"top\">\n          Above the target.\n        </Tour.Step>\n        <Tour.Step target={targetRef} title=\"Start\" position=\"left\">\n          The start of the line.\n        </Tour.Step>\n      </Tour>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Without the Overlay",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const nameRef = React.useRef<HTMLInputElement>(null);\n\n  return (\n    <>\n      <Input ref={nameRef} label=\"Project name\" />\n      <Button mt=\"3\" onClick={() => setOpen(true)}>\n        Try it\n      </Button>\n      <Tour open={open} onOpenChange={setOpen} overlay={false}>\n        <Tour.Step target={nameRef} title=\"Name your project\">\n          Type a name in the field. The page stays usable while this step shows.\n        </Tour.Step>\n      </Tour>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Controlled",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const [step, setStep] = useState(0);\n  const [result, setResult] = useState('not taken');\n\n  return (\n    <>\n      <Button\n        onClick={() => {\n          setStep(0);\n          setResult('in progress');\n          setOpen(true);\n        }}\n      >\n        Start\n      </Button>\n      <Paragraph mt=\"3\">\n        Step {step + 1}, tour {result}\n      </Paragraph>\n      <Tour\n        open={open}\n        onOpenChange={next => {\n          setOpen(next);\n          // Done calls onFinish first, so a finished tour stays finished.\n          if (!next) setResult(now => (now === 'finished' ? now : 'skipped'));\n        }}\n        value={step}\n        onChange={setStep}\n        onFinish={() => setResult('finished')}\n      >\n        <Tour.Step title=\"Your draft\">Everything you write is kept.</Tour.Step>\n        <Tour.Step title=\"Publishing\">Publish when you're ready.</Tour.Step>\n      </Tour>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Labels",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Button onClick={() => setOpen(true)}>Empezar</Button>\n      <Tour\n        open={open}\n        onOpenChange={setOpen}\n        labels={{\n          skip: 'Omitir',\n          back: 'Atrás',\n          next: 'Siguiente',\n          done: 'Listo',\n          close: 'Cerrar',\n          progress: (step, total) => `Paso ${step} de ${total}`,\n        }}\n      >\n        <Tour.Step title=\"Bienvenida\">Un recorrido breve.</Tour.Step>\n        <Tour.Step title=\"Eso es todo\">Gracias por mirar.</Tour.Step>\n      </Tour>\n    </>\n  );\n}"
+    },
+    {
+      "title": "A Cover",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Button onClick={() => setOpen(true)}>What's new</Button>\n      <Tour open={open} onOpenChange={setOpen}>\n        <Tour.Step\n          title=\"The new editor\"\n          cover={<img src=\"/img/carousel/carousel-banner-1-4by3.jpg\" alt=\"\" />}\n        >\n          The editor now saves as you type.\n        </Tour.Step>\n      </Tour>\n    </>\n  );\n}"
+    },
+    {
+      "title": "A Footer of Your Own",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Button onClick={() => setOpen(true)}>Take the tour</Button>\n      <Tour\n        open={open}\n        onOpenChange={setOpen}\n        footer={\n          <>\n            <Tour.Progress />\n            <Buttons>\n              <Tour.Back />\n              <Tour.Next />\n            </Buttons>\n          </>\n        }\n      >\n        <Tour.Step title=\"Your draft\">Everything you write is kept.</Tour.Step>\n        <Tour.Step title=\"Publishing\">Publish when you're ready.</Tour.Step>\n        <Tour.Step\n          title=\"That's all\"\n          footer={<Tour.Next>Start writing</Tour.Next>}\n        >\n          You can take this tour again from the Help menu.\n        </Tour.Step>\n      </Tour>\n    </>\n  );\n}"
+    },
+    {
+      "title": "useTour",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  function StepCount() {\n    const tour = useTour();\n    return tour ? <Tag>{`${tour.value + 1}/${tour.total}`}</Tag> : null;\n  }\n\n  return (\n    <>\n      <Button onClick={() => setOpen(true)}>Take the tour</Button>\n      <Tour\n        open={open}\n        onOpenChange={setOpen}\n        footer={\n          <>\n            <StepCount />\n            <Buttons>\n              <Tour.Skip />\n              <Tour.Next />\n            </Buttons>\n          </>\n        }\n      >\n        <Tour.Step title=\"One\">The first step.</Tour.Step>\n        <Tour.Step title=\"Two\">The second step.</Tour.Step>\n      </Tour>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const searchRef = React.useRef<HTMLInputElement>(null);\n  const tips = [\n    { id: 'search', title: 'Search', body: 'Find any row by name.' },\n    { id: 'done', title: 'That’s it', body: 'Open this tour again any time.' },\n  ];\n\n  return (\n    <>\n      <Input ref={searchRef} label=\"Search\" />\n      <Button mt=\"3\" onClick={() => setOpen(true)}>\n        Show me\n      </Button>\n      <Tour open={open} onOpenChange={setOpen}>\n        {tips.map(tip => (\n          <Tour.Step\n            key={tip.id}\n            target={tip.id === 'search' ? searchRef : undefined}\n            title={tip.title}\n          >\n            {tip.body}\n          </Tour.Step>\n        ))}\n      </Tour>\n    </>\n  );\n}"
+    }
+  ],
+  "accessibility": "There's no WAI-ARIA pattern for a tour, so each step is a\n[dialog](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/), modal with the overlay and\nnon-modal without it:\n\n- A step is a `role=\"dialog\"`, named by its title through `aria-labelledby`, or by an `aria-label`\n  on the `Tour.Step`, and described by its body. A development build warns about a step with\n  neither a title nor a label.\n- With the overlay, the step has `aria-modal=\"true\"`, and the page under it is out of reach for\n  everyone: everything else on the page is `inert`, the page doesn't scroll, the overlay takes\n  every click, and Tab and Shift+Tab stay in the step. The target is out of reach too, so say in\n  the step's body what it is: the spotlight tells a screen reader nothing.\n- Without the overlay, nothing claims modality. The page and the target stay usable, by pointer\n  and keyboard alike: Tab from the step's last control moves focus to the target, to its first\n  control or the target itself when it takes focus, and Shift+Tab goes where the browser sends it. Escape ends the tour\n  while focus is in the step, so an Escape meant for a field on the page stays with it.\n- Opening moves focus to Next, or, on a step without one that takes focus, to the footer's first\n  control, else the body's, else the close button. Ending the tour hands focus back to whatever had it when the tour\n  opened. On a step change, focus stays on the control used, so Enter on Next keeps going, and\n  goes back to where the step starts when that control is gone, as Back is on the first step.\n- After each step change, a polite `role=\"status\"` line inside the step says where the tour is,\n  \"Step 2 of 5: Filters\", since a dialog whose name changes isn't announced again.\n- <kbd>ArrowRight</kbd> and <kbd>ArrowLeft</kbd> press the step's Next and Back while focus is in\n  the step, swapped under right-to-left text, but not from a text field, another control that\n  uses the arrows, or a dialog inside the step. A step whose Next or Back is missing, hidden or\n  disabled ignores that key, and nothing happens past either end: ArrowRight doesn't finish the\n  tour. The key presses the button as a click does, so a Next or Back given `type=\"submit\"`\n  submits its form.\n- Skip and the close button always end the tour, so a modal step is never a keyboard trap, and\n  <kbd>Escape</kbd> does too unless `closeOnEscape={false}`. A Modal or Dialog opened from a step\n  takes Escape and Tab until it closes.\n- The scroll to a target is the only motion: the spotlight and the step move with the target\n  rather than glide after it, and under `prefers-reduced-motion: reduce` the scroll is instant.\n- In forced colors, the overlay keeps dimming the page, since it's an SVG fill, the spotlight gets\n  a `Highlight` outline, and the step keeps its border.\n\nA tour sits at the modal layer, under toasts. In a modal step, a popup that renders through a portal\nof its own, such as a Popover with `appendToBody` or a picker's calendar, renders inside the step,\nas it does in a Modal, so it shows over the tour and stays reachable. A `ConfigProvider`'s\n`portalContainer` still comes first, there as in a Modal. A step without the overlay\nleaves it in `<body>`, under the tour, so keep such content in place inside a non-modal step.",
+  "related": [
+    "LocaleProvider",
+    "Modal",
+    "Popover",
+    "Steps",
+    "Tooltip",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-tour--default",
+  "summary": "The `Tour` component walks a user through an interface one step at a time, each step a panel pointing at an element with the rest of the page dimmed around it. Each step is a dialog. With the overlay, the default, it's modal: the page under it is inert and still, Tab stays in the step and Escape ends the tour. Without it, the step is a non-modal dialog and the page stays usable.",
+  "import": "import { Tour, useTour } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Tour.tsx",
+  "rootClass": "tour",
+  "parts": [
+    {
+      "path": "Tour",
+      "summary": "The `Tour` component walks a user through an interface one step at a time, each step a panel pointing at an element with the rest of the page dimmed around it. Each step is a dialog. With the overlay, the default, it's modal: the page under it is inert and still, Tab stays in the step and Escape ends the tour. Without it, the step is a non-modal dialog and the page stays usable.",
+      "component": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "`Tour.Step`s, in the order the tour visits them. Fragments are opened up, and anything that isn't a `Tour.Step`, a component that renders one included, is left out.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": null,
+          "description": "Whether the tour is showing (controlled).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether it shows from the start (uncontrolled). A tour has to measure its targets, so it shows from the commit after hydration, never in server markup.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "default": null,
+          "description": "Called with `false` when the tour ends: Skip, the close button, Escape, a click outside with `closeOnClickOutside`, or Done after `onFinish`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "default": null,
+          "description": "The current step's index (controlled). An index past either end shows the nearest step, and a fraction is rounded down.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "number",
+          "default": "0",
+          "description": "The step it starts on (uncontrolled), and goes back to each time it opens.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(value: number) => void",
+          "default": null,
+          "description": "Called with the new index when Back, Next or an arrow key changes the step.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onFinish",
+          "type": "() => void",
+          "default": null,
+          "description": "Called when Done on the last step finishes the tour, before `onOpenChange(false)`. Skip, the close button, Escape and a click outside don't call it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "overlay",
+          "type": "boolean",
+          "default": "true",
+          "description": "Dims the page and makes each step modal: `aria-modal`, the rest of the page inert and still, and Tab held in the step. With `false`, a step is a non-modal dialog, as a `Popover` is, and the page and its target stay usable, from the keyboard too: focus moves in and back, Tab from the step's last control, Next in the default footer, goes on to the target (its first control, or the target itself when it takes focus), Shift+Tab goes where the browser sends it, and Escape ends the tour while focus is in the step. A `Tour.Step` can set its own, and a step that turns modal while focus is out on the page takes focus.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnEscape",
+          "type": "boolean",
+          "default": "true",
+          "description": "Ends the tour on Escape. With the overlay, from anywhere, while no overlay opened over it, such as a Modal opened from a step, is on top. Without it, only while focus is in the step, so an Escape meant for the page stays with the page. A popup inside the step, and content that calls `preventDefault()` on the key, take it first.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnClickOutside",
+          "type": "boolean",
+          "default": "false",
+          "description": "Ends the tour on a press outside the step, the overlay included. Content the step renders through a portal counts as inside. Off by default, unlike Popover's: a tour is a sequence someone means to finish, and a stray click on the dimmed page, or on the page around a step without the overlay, shouldn't end it partway. Skip, the close button and Escape still end it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "portal",
+          "type": "boolean | string | HTMLElement",
+          "default": "true",
+          "description": "Where the tour renders: `true` for the `ConfigProvider` portal container or `<body>`, a selector or an element for another container, `false` for where it's written. Modal's shape, with a different default. The step and the overlay are fixed to the viewport wherever they render, so a `transform` on an ancestor of an in-place tour moves them with it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "titleAs",
+          "type": "'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p'",
+          "default": "'h2'",
+          "description": "What every step's title renders as: a heading one level under the heading the tour's page sits beneath, or `p`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "TourLabels",
+          "default": null,
+          "description": "The words the tour writes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "footer",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Every step's footer, in place of the default: Skip and the progress line at the start, Back and Next at the end. Build it from `Tour.Skip`, `Tour.Back`, `Tour.Next` and `Tour.Progress`, which act on the tour from wherever they sit in the step. ArrowRight and ArrowLeft press the step's `Tour.Next` and `Tour.Back`, swapped under right-to-left text, so one that's disabled, loading or `aria-disabled`, or whose `onClick` prevents, holds for the keys too, and a step without one ignores its key. A step's own `footer` wins, and `null` leaves the steps without one.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Forwarded to the underlying element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Tour.Step",
+      "summary": "One step of the tour: a title, a body and the element it points at. It renders nothing where it's written.",
+      "component": null,
+      "props": [
+        {
+          "name": "target",
+          "type": "TourTarget",
+          "default": null,
+          "description": "The element the step points at. Without one, or while it isn't on the page or has no box (in a closed Collapse or a hidden tab panel), the step is centered. A target that turns up later, or gets a box, is found then. A development build warns about a missing target, once for each selector.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "title",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The title, which names the step's dialog. A step without one needs an `aria-label`, and a development build warns when it has neither.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The body, which describes the step's dialog. Say what the target is: a modal step leaves it out of reach, and the spotlight says nothing to a screen reader.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "'top' | 'bottom' | 'left' | 'right'",
+          "default": "'bottom'",
+          "description": "The side of the target the panel sits on. It flips to the opposite side when it doesn't fit, or to a side across when neither does, as beside a target on a phone, and stays inside the viewport.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "overlay",
+          "type": "boolean",
+          "default": "the tour's",
+          "description": "This step's own `overlay`, in place of the tour's.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "cover",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Media above the header, such as an image or a short clip, which fills the step's width. Give an image the `alt` it needs, which is `\"\"` when the body already says what it shows, and don't autoplay motion when the user asks for less of it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "footer",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "This step's footer, in place of the tour's `footer` or the default one. `null` leaves the step without one.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Forwarded to the underlying element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Tour.Skip",
+      "summary": "A `Button` that ends the tour early, labelled `labels.skip` unless it has children.",
+      "component": null,
+      "props": [
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'white' | 'light' | 'dark' | 'black' | 'text' | 'ghost'",
+          "default": "'text'",
+          "description": "Bulma color variant for the button. `ghost` renders a link-like button; `text` renders a minimal text-only button.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of the button.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isLight",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies the light variant of a colored button, such as `primary`'s. Bulma gives the grayscale colors none, so with no `color`, or with `white` or `black`, `isLight` gives the light button, as `color=\"light\"` does, and `light` or `dark` with `isLight` looks the same as without it.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button rounded.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isLoading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Displays a loading spinner, with everything inside the button hidden behind it, in forced colors (Windows' contrast themes) too. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn. Bulma alone hides only the label, so the rest needs bestax's CSS loaded.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isStatic",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button non-interactive.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFullwidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button full-width.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFullWidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button full-width.",
+          "required": false,
+          "inherited": true,
+          "deprecated": true,
+          "deprecationNote": "Use `isFullwidth` instead — `isFullwidth` wins if both are set."
+        },
+        {
+          "name": "isOutlined",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies outlined styling (requires color). On the dark scheme, bestax's stylesheets draw the label and border at the lightness Bulma picks for the color's text on the page wherever that's lighter, so a dark color reads there. On a surface that stays light on both schemes, give the surface Bulma's `theme-light` class (with the class prefix in a prefixed build), which keeps what's inside it on the light scheme's values.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isInverted",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies inverted styling (requires color).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFocused",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies focused styling (visual only).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isActive",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies active styling (visual only), with no `aria-pressed`. For a button that stays pressed, use `ToggleButton`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isHovered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies hovered styling (visual only).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isDisabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies disabled styling.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Custom class name.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Button content.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLButtonElement>",
+          "default": null,
+          "description": "Forwarded to the underlying element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "type",
+          "type": "'button' | 'submit' | 'reset'",
+          "default": "'button'",
+          "description": "Button type. Defaults to `'button'`, so a part inside a form doesn't submit it. The arrow keys press Next and Back as a click does, so one given `'submit'` submits its form on an arrow key too.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onClick",
+          "type": "React.MouseEventHandler<HTMLButtonElement>",
+          "default": null,
+          "description": "Runs before the part acts on the tour. Call `preventDefault()` to keep it from acting.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <button> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Tour.Back",
+      "summary": "A `Button` to the step before, labelled `labels.back` unless it has children. It renders nothing on the first step, and ArrowLeft in the step, ArrowRight under right-to-left text, presses it.",
+      "component": null,
+      "props": [
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'white' | 'light' | 'dark' | 'black' | 'text' | 'ghost'",
+          "default": null,
+          "description": "Bulma color variant for the button. `ghost` renders a link-like button; `text` renders a minimal text-only button.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of the button.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isLight",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies the light variant of a colored button, such as `primary`'s. Bulma gives the grayscale colors none, so with no `color`, or with `white` or `black`, `isLight` gives the light button, as `color=\"light\"` does, and `light` or `dark` with `isLight` looks the same as without it.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button rounded.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isLoading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Displays a loading spinner, with everything inside the button hidden behind it, in forced colors (Windows' contrast themes) too. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn. Bulma alone hides only the label, so the rest needs bestax's CSS loaded.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isStatic",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button non-interactive.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFullwidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button full-width.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFullWidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button full-width.",
+          "required": false,
+          "inherited": true,
+          "deprecated": true,
+          "deprecationNote": "Use `isFullwidth` instead — `isFullwidth` wins if both are set."
+        },
+        {
+          "name": "isOutlined",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies outlined styling (requires color). On the dark scheme, bestax's stylesheets draw the label and border at the lightness Bulma picks for the color's text on the page wherever that's lighter, so a dark color reads there. On a surface that stays light on both schemes, give the surface Bulma's `theme-light` class (with the class prefix in a prefixed build), which keeps what's inside it on the light scheme's values.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isInverted",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies inverted styling (requires color).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFocused",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies focused styling (visual only).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isActive",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies active styling (visual only), with no `aria-pressed`. For a button that stays pressed, use `ToggleButton`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isHovered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies hovered styling (visual only).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isDisabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies disabled styling.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Custom class name.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Button content.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLButtonElement>",
+          "default": null,
+          "description": "Forwarded to the underlying element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "type",
+          "type": "'button' | 'submit' | 'reset'",
+          "default": "'button'",
+          "description": "Button type. Defaults to `'button'`, so a part inside a form doesn't submit it. The arrow keys press Next and Back as a click does, so one given `'submit'` submits its form on an arrow key too.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onClick",
+          "type": "React.MouseEventHandler<HTMLButtonElement>",
+          "default": null,
+          "description": "Runs before the part acts on the tour. Call `preventDefault()` to keep it from acting.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <button> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Tour.Next",
+      "summary": "A `Button` to the next step, labelled `labels.next`, or `labels.done` on the last step, where it finishes the tour, unless it has children. Focus starts on it as a step opens, and ArrowRight in the step, ArrowLeft under right-to-left text, presses it, except on the last step.",
+      "component": null,
+      "props": [
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'white' | 'light' | 'dark' | 'black' | 'text' | 'ghost'",
+          "default": "'primary'",
+          "description": "Bulma color variant for the button. `ghost` renders a link-like button; `text` renders a minimal text-only button.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of the button.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isLight",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies the light variant of a colored button, such as `primary`'s. Bulma gives the grayscale colors none, so with no `color`, or with `white` or `black`, `isLight` gives the light button, as `color=\"light\"` does, and `light` or `dark` with `isLight` looks the same as without it.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button rounded.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isLoading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Displays a loading spinner, with everything inside the button hidden behind it, in forced colors (Windows' contrast themes) too. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn. Bulma alone hides only the label, so the rest needs bestax's CSS loaded.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isStatic",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button non-interactive.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFullwidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button full-width.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFullWidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button full-width.",
+          "required": false,
+          "inherited": true,
+          "deprecated": true,
+          "deprecationNote": "Use `isFullwidth` instead — `isFullwidth` wins if both are set."
+        },
+        {
+          "name": "isOutlined",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies outlined styling (requires color). On the dark scheme, bestax's stylesheets draw the label and border at the lightness Bulma picks for the color's text on the page wherever that's lighter, so a dark color reads there. On a surface that stays light on both schemes, give the surface Bulma's `theme-light` class (with the class prefix in a prefixed build), which keeps what's inside it on the light scheme's values.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isInverted",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies inverted styling (requires color).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFocused",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies focused styling (visual only).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isActive",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies active styling (visual only), with no `aria-pressed`. For a button that stays pressed, use `ToggleButton`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isHovered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies hovered styling (visual only).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isDisabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies disabled styling.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Custom class name.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Button content.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLButtonElement>",
+          "default": null,
+          "description": "Forwarded to the underlying element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "type",
+          "type": "'button' | 'submit' | 'reset'",
+          "default": "'button'",
+          "description": "Button type. Defaults to `'button'`, so a part inside a form doesn't submit it. The arrow keys press Next and Back as a click does, so one given `'submit'` submits its form on an arrow key too.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onClick",
+          "type": "React.MouseEventHandler<HTMLButtonElement>",
+          "default": null,
+          "description": "Runs before the part acts on the tour. Call `preventDefault()` to keep it from acting.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <button> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Tour.Progress",
+      "summary": "The progress line, \"Step 2 of 5\" by default, from `labels.progress`.",
+      "component": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "What the line says, in place of `labels.progress`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <span> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-tour-z-index",
+      "sass": "$tour-z-index",
+      "default": "$extras-z-index-modal",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-overlay-background",
+      "sass": "$tour-overlay-background",
+      "default": "hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.5)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-spotlight-padding",
+      "sass": "$tour-spotlight-padding",
+      "default": "0.5rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-spotlight-radius",
+      "sass": "$tour-spotlight-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-background",
+      "sass": "$tour-step-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-color",
+      "sass": "$tour-step-color",
+      "default": "var(--bulma-text)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-border-color",
+      "sass": "$tour-step-border-color",
+      "default": "var(--bulma-border-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-border-width",
+      "sass": "$tour-step-border-width",
+      "default": "1px",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-radius",
+      "sass": "$tour-step-radius",
+      "default": "var(--bulma-radius-large)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-shadow",
+      "sass": "$tour-step-shadow",
+      "default": "var(--bulma-shadow)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-max-width",
+      "sass": "$tour-step-max-width",
+      "default": "min(24rem, calc(100vw - 2rem))",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-offset",
+      "sass": "$tour-step-offset",
+      "default": "0.5rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-header-padding",
+      "sass": "$tour-step-header-padding",
+      "default": "0.75rem 1rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-header-gap",
+      "sass": "$tour-step-header-gap",
+      "default": "0.5rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-header-color",
+      "sass": "$tour-step-header-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-header-weight",
+      "sass": "$tour-step-header-weight",
+      "default": "var(--bulma-weight-semibold)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-body-padding",
+      "sass": "$tour-step-body-padding",
+      "default": "1rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-footer-padding",
+      "sass": "$tour-step-footer-padding",
+      "default": "0.75rem 1rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-step-footer-gap",
+      "sass": "$tour-step-footer-gap",
+      "default": "0.5rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tour-progress-color",
+      "sass": "$tour-progress-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    }
+  ]
+}

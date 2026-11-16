@@ -16,7 +16,7 @@ import { SIZE_UNIONS } from '../src/sources/_shared/size-unions.js';
 import { resolveMapping as resolveRbc } from '../src/sources/react-bulma-components/mapping.js';
 import { resolveMapping as resolveRbx } from '../src/sources/rbx/mapping.js';
 import type { ComponentMapping } from '../src/types.js';
-import { typecheckTsx } from './support/typecheck-tsx.js';
+import { annotate, typecheckTsx } from './support/typecheck-tsx.js';
 
 /** Each row's union as bulma-ui exports it. */
 const BESTAX_TYPES: Record<keyof typeof SIZE_UNIONS, string> = {
@@ -70,19 +70,6 @@ function buildSource(): string {
     ...sources,
     '',
   ].join('\n');
-}
-
-/** Quote the generated line beside each diagnostic, so a failure names its row. */
-function annotate(diagnostics: string, source: string): string {
-  const lines = source.split('\n');
-  return diagnostics
-    .split('\n')
-    .map(line => {
-      const at = /check\.tsx\((\d+),/.exec(line);
-      const row = at && lines[Number(at[1]) - 1];
-      return row ? `${line}\n    ↳ ${row.trim()}` : line;
-    })
-    .join('\n');
 }
 
 describe('SIZE_UNIONS matches the size each bestax component declares', () => {

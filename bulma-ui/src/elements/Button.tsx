@@ -41,7 +41,12 @@ export interface ButtonOwnProps extends Omit<
     | 'ghost';
   /** Size of the button. */
   size?: 'small' | 'normal' | 'medium' | 'large';
-  /** Applies a lighter color variant. */
+  /**
+   * Applies the light variant of a colored button, such as `primary`'s.
+   * Bulma gives the grayscale colors none, so with no `color`, or with
+   * `white` or `black`, `isLight` gives the light button, as `color="light"`
+   * does, and `light` or `dark` with `isLight` looks the same as without it.
+   */
   isLight?: boolean;
   /** Makes the button rounded. */
   isRounded?: boolean;
@@ -58,7 +63,14 @@ export interface ButtonOwnProps extends Omit<
   isFullwidth?: boolean;
   /** Makes the button full-width. @deprecated Use `isFullwidth` instead — `isFullwidth` wins if both are set. */
   isFullWidth?: boolean;
-  /** Applies outlined styling (requires color). */
+  /**
+   * Applies outlined styling (requires color). On the dark scheme, bestax's
+   * stylesheets draw the label and border at the lightness Bulma picks for
+   * the color's text on the page wherever that's lighter, so a dark color
+   * reads there. On a surface that stays light on both schemes, give the
+   * surface Bulma's `theme-light` class (with the class prefix in a prefixed
+   * build), which keeps what's inside it on the light scheme's values.
+   */
   isOutlined?: boolean;
   /** Applies inverted styling (requires color). */
   isInverted?: boolean;

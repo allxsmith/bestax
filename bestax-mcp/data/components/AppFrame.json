@@ -578,7 +578,7 @@
         },
         {
           "name": "aria-label",
-          "type": "string",
+          "type": "React.AriaAttributes['aria-label']",
           "default": "'menu'",
           "description": "Accessible name. Pass your own to replace it. An empty one, or a spread carrying `'aria-label': undefined`, keeps the default rather than leaving the button unnamed.",
           "required": false,

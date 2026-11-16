@@ -28,13 +28,23 @@ export interface OverlayFocusOptions {
    * whose overlay stays on the page as something else.
    */
   restore?: () => boolean;
+  /**
+   * Moves focus into the overlay as it opens, in place of the first tab
+   * stop, as a tour step starts on its Next button. It's given the
+   * overlay's element. When focus isn't inside the overlay after it, the
+   * first tab stop takes it as usual. Without one, the first tab stop takes
+   * focus whether or not it was inside already.
+   */
+  initialFocus?: (overlay: HTMLElement) => void;
 }
 
 /**
- * Moves focus into an overlay as it opens, to the first stop Tab wraps to
- * inside `ref`'s element or the element itself, and hands it back to
- * whatever had it as it closes, as `Modal` does. Focus goes back only while
- * the overlay still holds it, or it's been dropped to `<body>`: closing one
+ * Moves focus into an overlay as it opens: it calls `initialFocus`, and when
+ * focus isn't inside the overlay afterwards, or there's no `initialFocus`,
+ * moves it to the first stop Tab wraps to inside `ref`'s element, or the
+ * element itself. It hands focus back to whatever had it as it closes, as
+ * `Modal` does. Focus goes back only while the overlay still holds it, or
+ * it's been dropped to `<body>`: closing one
  * under another overlay mustn't pull focus out of the one on top, and focus
  * moved out to the page stays there. The opener is found wherever it sits,
  * inside a shadow root too, in the overlay's own document, an iframe's when
@@ -53,10 +63,11 @@ export interface OverlayFocusOptions {
 export function useOverlayFocus(
   ref: RefObject<HTMLElement | null>,
   open: boolean,
-  { modal, remountKey, restore }: OverlayFocusOptions
+  { modal, remountKey, restore, initialFocus }: OverlayFocusOptions
 ): void {
   const openerRef = useRef<HTMLElement | null>(null);
   const restoreRef = useLatestRef(restore);
+  const initialFocusRef = useLatestRef(initialFocus);
 
   // The element that had focus, wherever it sits: a portaled overlay renders
   // under `document.body` while its opener can be inside a shadow root.
@@ -79,7 +90,11 @@ export function useOverlayFocus(
     if (!element) return undefined;
 
     if (modal || !isModalOverlayOpen()) {
-      focusTabStop(element);
+      const initialFocus = initialFocusRef.current;
+      initialFocus?.(element);
+      if (!initialFocus || !element.contains(getActiveElementInTree(element))) {
+        focusTabStop(element);
+      }
     }
 
     return () => {
@@ -94,5 +109,5 @@ export function useOverlayFocus(
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `modal` is read as the overlay opens, on purpose
-  }, [open, remountKey, ref, restoreRef]);
+  }, [open, remountKey, ref, restoreRef, initialFocusRef]);
 }

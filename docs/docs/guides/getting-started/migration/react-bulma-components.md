@@ -57,7 +57,9 @@ in place:
   string unions (`textSize={4}` → `textSize="4"`), and values are remapped
   (`textAlign="center"` → `"centered"`, `state="hover"` → `isHovered`).
 - **Responsive objects** — `mobile={{ size: 4 }}` flattens to `sizeMobile={4}`,
-  `tablet={{ display: 'flex' }}` to `displayTablet="flex"`, and so on.
+  `tablet={{ display: 'flex' }}` to `displayTablet="flex"`, and so on. A plain `display` beside
+  one stays its class (`display="flex" mobile={{ display: 'block' }}` → `className="is-flex"
+displayMobile="block"`), since bestax leaves `display` out beside a per-viewport display prop.
 - **Structure** — `Table.Container` folds into `isResponsive` on the `Table`, Navbar dropdown
   markup is restructured to bestax's `Navbar.Dropdown`/`Navbar.DropdownMenu` split, icon-font
   children become `<Icon name="…" library="…">` props, and `Menu.List title` becomes a
@@ -95,16 +97,19 @@ Anything without a safe automatic conversion is left in place with an inline com
 and the run ends with a summary of every TODO by file and line. TODOs are expected output, not
 errors. The recurring cases:
 
-| Flagged                                           | What to do                                                                                                             |
-| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `Element`, `Tile`                                 | No bestax equivalent — use a semantic component; `Tile` → the [Grid](../../../api/grid/grid.md) components             |
-| `Dropdown value/onChange`, `Dropdown.Item value`  | bestax Dropdown is compositional — own the selection state, `onClick` per item                                         |
-| `touch` / `untilWidescreen` / `{ only: true }`    | No bestax helper variants — use Bulma classes via `className`                                                          |
-| Dynamic prop values (`state={x}`, `textSize={n}`) | Convert at the source of the expression                                                                                |
-| `Pagination` extras (`showFirstLast`, `autoHide`) | bestax Pagination always shows the first and last pages; render conditionally instead of `autoHide`                    |
-| `Modal closeOnBlur/showClose`                     | the compound form renders only your children — add `Modal.Background`/`Modal.Close` yourself                           |
-| `renderAs` outside a narrowed `as`                | several bestax components render only certain tags — wrap the component in the element you wanted                      |
-| `href` beside a non-anchor `renderAs`             | bestax types `href` onto an `<a>` or a custom `as`, not another tag — drop the `renderAs` where the link was the point |
+| Flagged                                                                     | What to do                                                                                                                                   |
+| --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Element`, `Tile`                                                           | No bestax equivalent — use a semantic component; `Tile` → the [Grid](../../../api/grid/grid.md) components                                   |
+| `Dropdown value/onChange`, `Dropdown.Item value`                            | bestax Dropdown is compositional — own the selection state, `onClick` per item                                                               |
+| `Dropdown color`                                                            | it colored the trigger button, and bestax's Dropdown has no prop for that (its own `color` is the text color helper), so remove it           |
+| `touch` / `untilWidescreen` / `{ only: true }`                              | No bestax helper variants — use Bulma classes via `className`                                                                                |
+| Dynamic prop values (`state={x}`, `textSize={n}`)                           | Convert at the source of the expression                                                                                                      |
+| `Pagination` extras (`showFirstLast`, `autoHide`)                           | bestax Pagination always shows the first and last pages; render conditionally instead of `autoHide`                                          |
+| `Modal closeOnBlur/showClose`                                               | the compound form renders only your children — add `Modal.Background`/`Modal.Close` yourself                                                 |
+| `renderAs` outside a narrowed `as`                                          | several bestax components render only certain tags — wrap the component in the element you wanted                                            |
+| `href` beside a non-anchor `renderAs`                                       | bestax types `href` onto an `<a>` or a custom `as`, not another tag — drop the `renderAs` where the link was the point                       |
+| `textColor` on `Tag`, `Tabs`, `Hero`, `Progress` and others                 | these take no `textColor` prop: move the color to a `has-text-*` class in `className` (on `Table`, `Menu` and `Dropdown` it becomes `color`) |
+| `backgroundColor` on `Notification`, `Table`, `Tabs`, `Checkbox` and others | these take no background color prop — move the color to a `has-background-*` class in `className`                                            |
 
 :::tip Let an agent do the follow-up
 The [`bestax-migrate` skill](/docs/skills/migrate) packages this whole workflow — codemod run,

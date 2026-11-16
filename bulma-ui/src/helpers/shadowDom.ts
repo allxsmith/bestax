@@ -55,6 +55,16 @@ export function getActiveElementInTree(
 }
 
 /**
+ * The element above `el` in the page: its parent, or the host of the shadow
+ * root it sits at the top of. Nothing above the top of a detached tree.
+ *
+ * @param el - The element to climb from.
+ * @returns Its parent in the page, or `undefined` at the top.
+ */
+export const parentInPage = (el: Element): Element | undefined =>
+  el.parentElement ?? (el.getRootNode() as Partial<ShadowRoot>).host;
+
+/**
  * The element that really has focus, followed down from
  * `document.activeElement` through every open shadow root on the way. Use it
  * to record where focus was before moving it, so it can be restored to that
@@ -74,4 +84,88 @@ export function getDeepestActiveElement(
     active = active.shadowRoot.activeElement;
   }
   return active;
+}
+
+/**
+ * The node's parent in the flattened tree, the one the browser renders and
+ * tabs through: the slot it is assigned to, else its parent, else the host of
+ * the shadow root it tops, and nothing above the document. A closed shadow
+ * root hides its slots (`assignedSlot` reads `null` under one), so a child of
+ * its host goes straight to the host, whether a slot takes it or not.
+ *
+ * @param node - The node to climb from.
+ * @returns Its parent in the flattened tree, or `null` at the top.
+ */
+export const flatParent = (node: Node): Node | null =>
+  (node as Element).assignedSlot ??
+  node.parentElement ??
+  (node.parentNode as ShadowRoot | null)?.host ??
+  null;
+
+/**
+ * The shadow roots `node` is rendered in: the one each of its ancestors in
+ * the flattened tree sits in, its own first, so the open shadow root of a
+ * component it's slotted into counts too. A closed one hides its slots, so
+ * it doesn't. An event that isn't composed, such as `scroll`, stays in the
+ * shadow root it happens in, so a listener on the window or the document
+ * never hears a scroll inside one. Listen on these as well.
+ *
+ * @param node - An element of the component, or nothing while it is unmounted.
+ * @returns The shadow roots around `node`, innermost first, or none.
+ */
+export function shadowRootsAround(node: Node | null | undefined): ShadowRoot[] {
+  const roots: ShadowRoot[] = [];
+  for (let at = node ?? null; at; at = flatParent(at)) {
+    const root = at.getRootNode();
+    // A document fragment with a host is a shadow root, whichever window's.
+    if (
+      root.nodeType === 11 &&
+      'host' in root &&
+      !roots.includes(root as ShadowRoot)
+    ) {
+      roots.push(root as ShadowRoot);
+    }
+  }
+  return roots;
+}
+
+/**
+ * Listens for `type` on the shadow roots a node is rendered in, as
+ * `shadowRootsAround` finds them, for an event that isn't composed, such as
+ * `scroll`, which a listener on the window never hears from inside one.
+ * `follow` finds the node's roots again and moves the listener when they've
+ * changed, so a caller that calls it at each measurement keeps up with
+ * another node, or with a component around it that got its shadow root
+ * since. `stop` takes the listener off them all.
+ *
+ * @param type - The event to listen for.
+ * @param listener - What runs on it.
+ * @param options - The listener's options, `capture` included.
+ * @returns `follow`, given the node now, and `stop`.
+ */
+export function listenInShadowRoots(
+  type: string,
+  listener: () => void,
+  options: AddEventListenerOptions
+): { follow: (node: Node | null | undefined) => void; stop: () => void } {
+  let roots: ShadowRoot[] = [];
+  const move = (now: ShadowRoot[]) => {
+    for (const root of roots) {
+      root.removeEventListener(type, listener, { capture: options.capture });
+    }
+    roots = now;
+    for (const root of roots) root.addEventListener(type, listener, options);
+  };
+  return {
+    follow: node => {
+      const now = shadowRootsAround(node);
+      if (
+        now.length !== roots.length ||
+        now.some((root, i) => root !== roots[i])
+      ) {
+        move(now);
+      }
+    },
+    stop: () => move([]),
+  };
 }

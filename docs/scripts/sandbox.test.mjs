@@ -16,14 +16,20 @@ import { fileURLToPath } from 'node:url';
 import {
   blankNonCode,
   toExampleModule,
+  withSiteImages,
 } from '../src/theme/CodeBlock/sandbox/example.mjs';
-import { stripModuleLines } from '../src/theme/CodeBlock/sandbox/moduleLines.mjs';
+import {
+  importedStylesheets,
+  stripModuleLines,
+} from '../src/theme/CodeBlock/sandbox/moduleLines.mjs';
 import {
   ICON_LIBRARIES,
   SANDBOX_TYPESCRIPT,
   TEMPLATE_FILES,
   codesandboxFiles,
   iconLibrariesIn,
+  librarySheetsIn,
+  publishedSheet,
   sandboxVersions,
   stackblitzProject,
 } from '../src/theme/CodeBlock/sandbox/projects.mjs';
@@ -81,6 +87,27 @@ describe('stripModuleLines', () => {
       'export default A;',
     ].join('\n');
     assert.equal(stripModuleLines(code), 'function A() {}');
+  });
+});
+
+describe('importedStylesheets', () => {
+  it('lists the stylesheets an example imports for their effect, in order', () => {
+    const code = [
+      "import { ConfigProvider } from '@allxsmith/bestax-bulma';",
+      "import '@allxsmith/bestax-bulma/versions/bestax-prefixed.css';",
+      "  import './theme.css' ; // the app's own",
+      "import styles from './module.css';",
+      "import '@allxsmith/bestax-bulma/versions/bestax-prefixed.css';",
+      'const note = "import \'./not-a-line.css\';";',
+    ].join('\n');
+    assert.deepEqual(importedStylesheets(code), [
+      '@allxsmith/bestax-bulma/versions/bestax-prefixed.css',
+      './theme.css',
+    ]);
+  });
+
+  it('is empty for an example that imports no stylesheet', () => {
+    assert.deepEqual(importedStylesheets('<Box>Hi</Box>'), []);
   });
 });
 
@@ -255,6 +282,57 @@ describe('toExampleModule', () => {
     assert.match(named.source, /\n\nexport default A;\n$/);
   });
 
+  it("points the site's images at the docs site, and leaves other paths", () => {
+    const code = [
+      'function Example() {',
+      "  const photos = [{ src: '/img/carousel/a.jpg' }];",
+      '  const n = 2;',
+      '  return (',
+      '    <Block>',
+      '      <img src="/img/logo.svg" alt="" />',
+      '      <img src={`/img/b-${n}.jpg`} alt="" />',
+      '      <img src="/images/c.png" alt="" />',
+      '      <img src="https://example.com/img/d.png" alt="" />',
+      "      <Box style={{ backgroundImage: 'url(/img/f.jpg)' }} />",
+      "      <Box style={{ backgroundImage: 'url( /img/h.jpg)' }} />",
+      '      <p>Put pictures in (/img/), one per {/img/.source.length} slashes</p>',
+      '      <Box style={{ backgroundImage: \'url("/img/g.jpg")\' }} />',
+      '      <img src={photos[0].src} alt="" />',
+      '    </Block>',
+      '  );',
+      '}',
+    ].join('\n');
+    const { source } = toExampleModule(code, {
+      ...OPTIONS,
+      sourceUrl: 'https://bestax.io/docs/api/elements/image',
+    });
+    assert.match(
+      source,
+      /\{ src: 'https:\/\/bestax\.io\/img\/carousel\/a\.jpg' \}/
+    );
+    assert.match(source, /src="https:\/\/bestax\.io\/img\/logo\.svg"/);
+    assert.match(source, /src=\{`https:\/\/bestax\.io\/img\/b-\$\{n\}\.jpg`\}/);
+    assert.match(source, /src="\/images\/c\.png"/);
+    assert.match(source, /src="https:\/\/example\.com\/img\/d\.png"/);
+    assert.match(source, /'url\(https:\/\/bestax\.io\/img\/f\.jpg\)'/);
+    assert.match(source, /'url\( https:\/\/bestax\.io\/img\/h\.jpg\)'/);
+    // Text and a regex literal that only mention the folder are left alone.
+    assert.match(source, /in \(\/img\/\), one per \{\/img\/\.source/);
+    assert.match(source, /'url\("https:\/\/bestax\.io\/img\/g\.jpg"\)'/);
+    // With no page to resolve against, the path is left as written.
+    assert.match(
+      toExampleModule(code, OPTIONS).source,
+      /src="\/img\/logo\.svg"/
+    );
+  });
+
+  it('resolves site images against the page URL it is given', () => {
+    assert.equal(
+      withSiteImages("'/img/a.svg'", 'https://preview.bestax.io/docs/x'),
+      "'https://preview.bestax.io/img/a.svg'"
+    );
+  });
+
   it('returns null for an example that uses a docs-only component', () => {
     assert.equal(convert('<ProfileCard name="Ada" />'), null);
   });
@@ -262,6 +340,87 @@ describe('toExampleModule', () => {
   it('still converts an edit that does not compile', () => {
     const result = convert('<Box>\n  <Button>Go</Butto\n</Box>');
     assert.deepEqual(result.libraryImports, ['Box', 'Button']);
+  });
+});
+
+describe('librarySheetsIn', () => {
+  const library = sheet => `@allxsmith/bestax-bulma/${sheet}`;
+
+  it("names the library's stylesheets an example imports, and no others", () => {
+    assert.deepEqual(
+      librarySheetsIn([library('versions/bestax-prefixed.css'), './App.css']),
+      ['versions/bestax-prefixed.css']
+    );
+    assert.deepEqual(librarySheetsIn([]), []);
+  });
+
+  it('names each build once, by the path a sandbox imports', () => {
+    assert.deepEqual(
+      librarySheetsIn([
+        library('dist/versions/bestax-prefixed.css'),
+        library('versions/bestax-prefixed.css'),
+      ]),
+      ['versions/bestax-prefixed.css']
+    );
+  });
+
+  it('keeps bestax.css for a build that shares its classes, and for a path the library lacks', () => {
+    for (const sheet of [
+      'extras.css',
+      'versions/bestax-no-dark-mode.css',
+      'versions/bestax-no-helpers.css',
+      'bestax.min.css',
+      'versions/bestax-prefix.css',
+    ]) {
+      assert.deepEqual(librarySheetsIn([library(sheet)]), [], sheet);
+    }
+  });
+
+  it('keeps the other library stylesheets an example imports beside a prefixed build', () => {
+    const imported = [
+      'bestax.min.css',
+      'versions/bestax-prefixed.css',
+      'versions/bestax-prefix.css',
+      'dist/extras.css',
+    ].map(library);
+    assert.deepEqual(librarySheetsIn(imported), [
+      'bestax.css',
+      'versions/bestax-prefixed.css',
+      'extras.css',
+    ]);
+  });
+
+  it('knows every stylesheet the library exports, under each path it exports it as', () => {
+    const paths = Object.keys(libraryPackage.exports)
+      .filter(key => key.endsWith('.css'))
+      .map(key => key.slice(2));
+    assert.ok(paths.some(path => path.endsWith('-prefixed.css')));
+    for (const path of paths) {
+      const sheet = publishedSheet(path).slice('dist/'.length);
+      const beside = [library(path), library('versions/bestax-prefixed.css')];
+      assert.ok(librarySheetsIn(beside).includes(sheet), path);
+      assert.deepEqual(
+        librarySheetsIn([library(path)]),
+        path.endsWith('-prefixed.css') ? [sheet] : [],
+        path
+      );
+    }
+  });
+});
+
+describe('publishedSheet', () => {
+  it("names the file the library's exports map gives every stylesheet path", () => {
+    const sheets = Object.entries(libraryPackage.exports).filter(([path]) =>
+      path.endsWith('.css')
+    );
+    assert.ok(sheets.length > 0);
+    for (const [path, target] of sheets) {
+      assert.equal(
+        `./${publishedSheet(path.slice(2))}`,
+        target.default ?? target,
+        path
+      );
+    }
   });
 });
 
@@ -349,6 +508,26 @@ describe('stackblitzProject', () => {
     ]);
   });
 
+  it("imports the example's library build in place of the template's", () => {
+    const prefixed = stackblitzProject({
+      ...INPUT,
+      sheets: ['versions/bestax-prefixed.css'],
+    });
+    const lines = prefixed.files['src/main.tsx']
+      .split('\n')
+      .map(line => line.trimEnd());
+    assert.ok(!lines.includes("import '@allxsmith/bestax-bulma/bestax.css';"));
+    const at = lines.indexOf(
+      "import '@allxsmith/bestax-bulma/versions/bestax-prefixed.css';"
+    );
+    assert.ok(at >= 0);
+    // The icon stylesheets still follow the library's.
+    assert.equal(
+      lines[at + 1],
+      "import '@fortawesome/fontawesome-free/css/all.min.css';"
+    );
+  });
+
   it('loads Ionicons from its CDN build', () => {
     assert.match(
       project.files['index.html'],
@@ -382,7 +561,7 @@ describe('stackblitzProject', () => {
   it('darkens the page and pads the example, in index.html and index.css', () => {
     assert.match(
       project.files['index.html'],
-      /<html lang="en" data-theme="dark">/
+      /<html lang="en" data-theme="dark" data-bestax-theme="dark">/
     );
     const css = project.files['src/index.css'];
     assert.match(css, /background: #16171d/);
@@ -570,6 +749,19 @@ describe('codesandboxFiles', () => {
     );
   });
 
+  it("links the example's library build in place of the template's", () => {
+    const html = codesandboxFiles({
+      ...INPUT,
+      sheets: ['versions/bestax-prefixed.css'],
+    })['public/index.html'].content;
+    const linked = [
+      ...html.matchAll(
+        /href="https:\/\/cdn\.jsdelivr\.net\/npm\/@allxsmith\/bestax-bulma@[^/]+\/([^"]+)"/g
+      ),
+    ].map(match => match[1]);
+    assert.deepEqual(linked, ['dist/versions/bestax-prefixed.css']);
+  });
+
   it('writes a page with a root, the escaped title and the Ionicons script', () => {
     const html = files['public/index.html'].content;
     assert.match(html, /<div id="root"><\/div>/);
@@ -596,7 +788,7 @@ describe('codesandboxFiles', () => {
   it('darkens the page and pads the example in the CodeSandbox page and CSS', () => {
     assert.match(
       files['public/index.html'].content,
-      /<html lang="en" data-theme="dark">/
+      /<html lang="en" data-theme="dark" data-bestax-theme="dark">/
     );
     const css = files['src/index.css'].content;
     assert.match(css, /background: #16171d/);

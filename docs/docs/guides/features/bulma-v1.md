@@ -202,8 +202,8 @@ function SkeletonExamples() {
 
       <Image
         skeleton={loading}
-        src="https://via.placeholder.com/300"
-        alt="Example"
+        src="/img/carousel/carousel-banner-1-1by1.jpg"
+        alt="Vibrant galaxy with purple and gold tones"
         size="128x128"
       />
 

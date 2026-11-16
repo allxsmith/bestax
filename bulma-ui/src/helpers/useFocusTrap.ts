@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import { useIsHydrated } from './useIsHydrated';
-import { getDeepestActiveElement } from './shadowDom';
+import { flatParent, getDeepestActiveElement } from './shadowDom';
 
 /**
  * Whether `el` is editable while its parent is not, which makes it an editing
@@ -67,19 +67,6 @@ export function isTabbableKind(el: Element): boolean {
       return isEditingHost(el);
   }
 }
-
-/**
- * The node's parent in the flattened tree, the one the browser renders and
- * tabs through: the slot it is assigned to, else its parent, else the host of
- * the shadow root it tops, and nothing above the document. A closed shadow
- * root hides its slots (`assignedSlot` reads `null` under one), so a child of
- * its host goes straight to the host, whether a slot takes it or not.
- */
-const flatParent = (node: Node): Node | null =>
-  (node as Element).assignedSlot ??
-  node.parentElement ??
-  (node.parentNode as ShadowRoot | null)?.host ??
-  null;
 
 /**
  * The element's children in the flattened tree, in the order they render: a
@@ -177,7 +164,7 @@ function isAreaShown(area: Element, container: Element): boolean {
  * anything not rendered are skipped. `visibility` is inherited, so the
  * element's own computed value covers its ancestors.
  */
-function isRenderedAndEnabled(el: Element, container: Element): boolean {
+export function isRenderedAndEnabled(el: Element, container: Element): boolean {
   if (el.matches(':disabled')) return false;
   if (el.localName === 'area') return isAreaShown(el, container);
   return isShownUpTo(el, container) && isVisible(el);
@@ -454,6 +441,22 @@ export function focusTabStopAfter(element: HTMLElement): boolean {
   if (!boundary) return false;
   focusTabStop(boundary);
   return true;
+}
+
+/**
+ * Whether a Tab now would take focus out of `container`: focus is inside
+ * it, read through open shadow roots, and no tab stop there follows it. It's
+ * the question a trap asks before it wraps, through the same helpers, so a
+ * component that sends focus somewhere else at the end of its own stops
+ * agrees with a trap on where that end is. Internal like `focusTabStop`.
+ */
+export function tabLeaves(container: HTMLElement): boolean {
+  const focused = focusedElement(container.ownerDocument);
+  if (!inside(container, focused)) return false;
+  const stops = findTabStops(container);
+  return (
+    stops === null || !follows(container, stops.stopFor(focused), stops.last)
+  );
 }
 
 /**

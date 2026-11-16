@@ -104,8 +104,8 @@ function FloatExamples() {
         <Card.Content>
           <Content>
             <Image
-              src="https://bulma.io/assets/images/placeholders/256x256.png"
-              alt="Article image"
+              src="/img/carousel/carousel-banner-1-1by1.jpg"
+              alt="Vibrant galaxy with purple and gold tones"
               float="left"
               mr="3"
               mb="3"
@@ -220,7 +220,7 @@ function OverlayExamples() {
             <Box
               style={{
                 backgroundImage:
-                  'url(https://bulma.io/assets/images/placeholders/640x480.png)',
+                  'url(/img/carousel/carousel-banner-3-4by3.jpg)',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 height: '100%',
@@ -399,8 +399,8 @@ function BorderRadiusExamples() {
               Rounded Box
             </Box>
             <Image
-              src="https://bulma.io/assets/images/placeholders/128x128.png"
-              alt="Rounded image"
+              src="/img/carousel/carousel-banner-3-1by1.jpg"
+              alt="Starry night sky over mountain silhouettes"
               style={{ width: '64px', height: '64px', borderRadius: '8px' }}
             />
           </Box>
@@ -449,8 +449,8 @@ function BorderRadiusExamples() {
               Square Box
             </Box>
             <Image
-              src="https://bulma.io/assets/images/placeholders/128x128.png"
-              alt="Square image"
+              src="/img/carousel/carousel-banner-3-1by1.jpg"
+              alt="Starry night sky over mountain silhouettes"
               radius="radiusless"
               style={{ width: '64px', height: '64px' }}
             />
@@ -703,7 +703,7 @@ The `pos` prop sets CSS `position`. It is named `pos` because several components
 | `pos="sticky"`    | `is-position-sticky`   | `position: sticky`   |
 | `relative={true}` | `is-relative`          | `position: relative` |
 
-The helpers set `position` and nothing else, so an element that is `absolute`, `fixed` or `sticky` still takes its offsets (`top`, `right`, …) from your own CSS. A sticky element does nothing until it has one. Beside `overlay`, which sets the offsets to 0, see [Overlay in the useBulmaClasses reference](/docs/api/helpers/usebulmaclasses#overlay). For content fixed to a corner of the screen, such as a floating button, use [`Affix`](/docs/api/components/affix), which brings the offsets, the safe-area insets and a place in the stacking order.
+The helpers set `position` and nothing else, so an element that is `absolute`, `fixed` or `sticky` still takes its offsets (`top`, `right`, …) from your own CSS. A sticky element does nothing until it has one. Beside `overlay`, which sets the offsets to 0, see [Overlay in the useBulmaClasses reference](/docs/api/helpers/usebulmaclasses#overlay). For content fixed to a corner of the screen, use [`Affix`](/docs/api/components/affix), which brings the offsets, the safe-area insets and a place in the stacking order, and for a floating button, [`FloatButton`](/docs/api/components/floatbutton), which renders through it.
 
 ### Position Examples
 
@@ -831,8 +831,8 @@ function CombinedHelpersExample() {
           <Box pos="relative" style={{ height: '300px' }}>
             {/* Product image */}
             <Image
-              src="https://bulma.io/assets/images/placeholders/400x300.png"
-              alt="Product"
+              src="/img/carousel/carousel-banner-1-4by3.jpg"
+              alt="Vibrant galaxy with purple and gold tones"
               style={{
                 width: '100%',
                 height: '200px',
@@ -924,12 +924,9 @@ function CombinedHelpersExample() {
   </Lightbox.Trigger>
 </Lightbox>
 
-// Floating action button, fixed to a corner by Affix
-<Affix>
-  <Button color="primary" radius="rounded" aria-label="Add">
-    +
-  </Button>
-</Affix>
+// Floating action button: FloatButton brings the corner, the circle,
+// the shadow and a tooltip with its name
+<FloatButton aria-label="Add" icon="plus" color="primary" />
 
 // Layout with floated sidebar and clearfix
 <Box clearfix>

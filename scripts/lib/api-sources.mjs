@@ -102,9 +102,14 @@ export const SCSS_SOURCES = {
   Breadcrumb: [{ pkg: 'bulma', path: 'sass/components/breadcrumb.scss' }],
   Button: [{ pkg: 'bulma', path: 'sass/elements/button.scss' }],
   Buttons: [],
+  Calendar: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_dateinput.scss' }],
   Card: [{ pkg: 'bulma', path: 'sass/components/card.scss' }],
   Carousel: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_carousel.scss' },
+  ],
+  Cascader: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_cascader.scss' },
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
   ],
   Cell: [],
   Center: [],
@@ -206,6 +211,12 @@ export const SCSS_SOURCES = {
   Figure: [],
   File: [{ pkg: 'bulma', path: 'sass/form/file.scss' }],
   Flex: [],
+  FloatButton: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_floatbutton.scss' },
+  ],
+  FloatButtons: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_floatbutton.scss' },
+  ],
   Footer: [{ pkg: 'bulma', path: 'sass/layout/footer.scss' }],
   Grid: [{ pkg: 'bulma', path: 'sass/grid/grid.scss' }],
   Group: [{ pkg: 'repo', path: 'bulma-ui/src/scss/layout/_stack.scss' }],
@@ -351,6 +362,7 @@ export const SCSS_SOURCES = {
   Tooltip: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_tooltip.scss' },
   ],
+  Tour: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_tour.scss' }],
   Tr: [],
   TreeSelect: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
@@ -385,9 +397,11 @@ export const SCSS_SOURCES = {
  * missing from this map doesn't mean it renders an element of its own.
  */
 export const RENDERS_ELEMENT_OF = {
+  Calendar: 'DateInput', // each month on show is the pickers' `.dateinput`
   CheckboxCard: 'Card', // its label is a `.card.checkbox-card`
   CopyButton: 'Button', // renders a `.button` through Button, or IconButton's
   Dropzone: 'File', // its zone is a `.file.is-boxed.is-fullwidth`
+  FloatButton: 'Button', // renders `.button.float-button` through IconButton
   IconButton: 'Button', // renders `.button.icon-button` through Button
   Lightbox: 'Modal', // its viewer is a `.modal.lightbox`
   LinkButton: 'Button', // renders `.button.link-button` through Button
@@ -422,6 +436,7 @@ export const IMPORT_COMPANIONS = {
   DataTable: ['DataTable', 'useDataTable'],
   Dialog: ['Dialog', 'DialogContainer', 'dialog'],
   Dropdown: ['Dropdown', 'Button', 'Field', 'Control', 'Span'],
+  FloatButtons: ['FloatButtons', 'FloatButton'],
   Message: ['Message', 'MessageHeader', 'MessageBody'],
   Modal: [
     'Modal',
@@ -445,6 +460,7 @@ export const IMPORT_COMPANIONS = {
   ],
   TableOfContents: ['TableOfContents', 'useScrollSpy'],
   Toast: ['Toast', 'ToastContainer', 'toast'],
+  Tour: ['Tour', 'useTour'],
   Figure: ['Figure', 'FigureCaption'],
   ListItem: ['ListItem', 'UnorderedList', 'OrderedList'],
   Notification: ['Notification', 'NotificationContainer', 'notification'],

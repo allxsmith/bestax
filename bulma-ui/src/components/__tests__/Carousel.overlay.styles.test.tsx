@@ -153,13 +153,14 @@ describe('Carousel overlay stylesheet', () => {
     const container = renderCarousel({ overlayControls: true });
     const indicator = indicatorOf(container);
     expect(resolve(indicator, rules, 'background')).toBeUndefined();
-    expect(
-      resolve(
-        indicator.querySelector('.indicator-item:not(.is-active)')!,
-        rules,
-        'background-color'
-      )
-    ).toBe('var(--bulma-carousel-indicator-background)');
+    // The plain look: the plain fill, inside the ring a theme can color.
+    const resting = indicator.querySelector('.indicator-item:not(.is-active)')!;
+    expect(resolve(resting, rules, 'background-color')).toBe(
+      'var(--bulma-carousel-indicator-background)'
+    );
+    expect(resolve(resting, rules, 'border')).toContain(
+      'var(--bulma-carousel-indicator-border-color)'
+    );
     expect(
       resolve(container.querySelector('.carousel-arrow')!, rules, 'color')
     ).toBe('var(--bulma-carousel-overlay-arrow-color)');
@@ -174,13 +175,13 @@ describe('Carousel overlay stylesheet', () => {
     expect(
       resolve(container.querySelector('.carousel-arrow')!, rules, 'color')
     ).toBe('var(--bulma-text-strong)');
-    expect(
-      resolve(
-        container.querySelector('.indicator-item:not(.is-active)')!,
-        rules,
-        'background-color'
-      )
-    ).toBe('var(--bulma-carousel-indicator-background)');
+    const resting = container.querySelector('.indicator-item:not(.is-active)')!;
+    expect(resolve(resting, rules, 'background-color')).toBe(
+      'var(--bulma-carousel-indicator-background)'
+    );
+    expect(resolve(resting, rules, 'border')).toContain(
+      'var(--bulma-carousel-indicator-border-color)'
+    );
   });
 
   it("lets a page's own rule still take the band off", () => {

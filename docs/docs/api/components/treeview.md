@@ -678,6 +678,7 @@ emulation, and runs in Firefox and Safari.
   data you browse and pick from.
 - [`TreeSelect`](../form/treeselect.md): The same tree in a form field, opened from it, with the
   picked items named in the field or as tags.
+- [`Cascader`](../form/cascader.md): The same tree in a form field, picked a column per level.
 - [`Checkbox`](../form/checkbox.md): The box a checkbox tree draws, with its mixed state.
 - [`Loader`](../elements/loader.md): Bulma's ring, which a loading item's row turns.
 - [`Collapse`](./collapse.md): A single section that opens and closes.

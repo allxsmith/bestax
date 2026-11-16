@@ -285,7 +285,8 @@ its own stylesheet:
   faint black.
 - **On `.navbar a.navbar-item.is-active`:** v1 fills the active item, and switches the fill on
   at `a.navbar-item.is-active`, so a less specific selector can't take it off. The fill is
-  `--bulma-navbar-item-background-a`.
+  `--bulma-navbar-item-background-a`. bestax's navbar styles give the active item's text the
+  color that reads on the fill, so a rule that takes the fill off sets `color` too.
 - **On a `Navbar.Item` that holds other items:** the flex `gap` on `.navbar-item` spaces them,
   and `gap="0"` takes it off.
 - **On a colored hero's navbar menu,** `.hero.is-light .navbar-menu` and the other colors',
