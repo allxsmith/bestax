@@ -367,8 +367,8 @@ move it to a component of its own:
 
 ## A table it folded with no name: `name:<Target>`
 
-A `.table-container` folded into `Table isResponsive` around a table with no `aria-label` and no
-`aria-labelledby`. While the table overflows, `Table isResponsive` makes `.table-container` a region
+A `.table-container` folded into `Table isResponsive` around a table that writes no `aria-label`
+and no `aria-labelledby`, and spreads no props that could. While the table overflows, `Table isResponsive` makes `.table-container` a region
 you can tab to, named by those two alone, and a development build warns when it has neither. Give
 the `Table` an `aria-label`, or point `aria-labelledby` at a heading, or at its `<caption>`'s `id`
 when it has one, which names both the table and the region.
