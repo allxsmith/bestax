@@ -2,6 +2,7 @@
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
 @use '../mixins' as *;
+@use '../pulse' as *;
 
 // Badge-specific SCSS variables
 $badge-height: 1.25em !default;
@@ -181,19 +182,7 @@ $badge-animation-duration: 1.4s !default;
   pointer-events: none;
   border-radius: inherit;
   background-color: inherit;
-  animation: extras-badge-pulse cv.getVar('badge-animation-duration')
-    cubic-bezier(0, 0, 0.2, 1) infinite;
-}
-
-@keyframes extras-badge-pulse {
-  0% {
-    opacity: 0.6;
-    transform: scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1.75);
-  }
+  @include extras-pulse(cv.getVar('badge-animation-duration'));
 }
 
 @media (prefers-reduced-motion: reduce) {

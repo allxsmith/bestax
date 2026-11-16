@@ -99,8 +99,15 @@ const meta: Meta<typeof Tour> = {
       description:
         'Every step’s footer, built from Tour.Skip, Tour.Back, Tour.Next and Tour.Progress; a step’s own wins',
     },
+    mode: {
+      control: 'select',
+      options: ['guided', 'beacon'],
+      description:
+        'guided walks the steps in order; beacon puts a button on each target that opens its step, in any order',
+    },
   },
   args: {
+    mode: 'guided',
     overlay: true,
     closeOnEscape: true,
     closeOnClickOutside: false,
@@ -113,9 +120,12 @@ type Story = StoryObj<typeof Tour>;
 
 /**
  * A first-visit tour of a small toolbar, opened from a button. Use the
- * controls to try the overlay and the dismissal options.
+ * controls to try the overlay and the dismissal options. Beacons, which
+ * close only with the tour, have a story of their own.
  */
 export const Default: Story = {
+  // Its opener has no way to close a beacon tour.
+  argTypes: { mode: { control: false } },
   render: function DefaultTour(args) {
     const [open, setOpen] = useState(false);
     const filtersRef = useRef<HTMLButtonElement>(null);
@@ -379,6 +389,81 @@ export const WithUseTour: Story = {
         >
           <Tour.Step title="One">The first step.</Tour.Step>
           <Tour.Step title="Two">The second step.</Tour.Step>
+        </Tour>
+      </>
+    );
+  },
+};
+
+/**
+ * Tips pinned to the controls they explain, opened in any order: a beacon on
+ * each target opens its step, and closing the step brings the beacons back.
+ * A tip opened once is left out the next time the tips show.
+ */
+export const Beacons: Story = {
+  render: function BeaconTips() {
+    const [open, setOpen] = useState(false);
+    const [read, setRead] = useState<string[]>([]);
+    const [showing, setShowing] = useState<string[]>([]);
+    const filtersRef = useRef<HTMLButtonElement>(null);
+    const searchRef = useRef<HTMLInputElement>(null);
+    const exportRef = useRef<HTMLButtonElement>(null);
+    const tips = [
+      {
+        id: 'filters',
+        target: filtersRef,
+        title: 'Filters',
+        body: 'Narrow the list by status and owner.',
+      },
+      {
+        id: 'search',
+        target: searchRef,
+        title: 'Search',
+        body: 'Find any row by its name.',
+      },
+      {
+        id: 'export',
+        target: exportRef,
+        title: 'Export',
+        body: 'Download the rows you see as a CSV file.',
+      },
+    ];
+    const shown = tips.filter(tip => showing.includes(tip.id));
+    return (
+      <>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Button ref={filtersRef}>Filters</Button>
+          <Input ref={searchRef} aria-label="Search" />
+          <Button ref={exportRef}>Export</Button>
+        </Box>
+        <Buttons>
+          <Button
+            color="primary"
+            onClick={() => {
+              if (!open) {
+                setShowing(
+                  tips.filter(tip => !read.includes(tip.id)).map(tip => tip.id)
+                );
+              }
+              setOpen(!open);
+            }}
+          >
+            {open ? 'Hide tips' : 'Show tips'}
+          </Button>
+          <Button onClick={() => setRead([])}>Forget the tips I've read</Button>
+        </Buttons>
+        <Tour
+          mode="beacon"
+          open={open}
+          onChange={index => {
+            if (index >= 0) setRead(ids => [...ids, shown[index].id]);
+          }}
+        >
+          {shown.map(tip => (
+            <Tour.Step key={tip.id} target={tip.target} title={tip.title}>
+              {tip.body}
+            </Tour.Step>
+          ))}
         </Tour>
       </>
     );

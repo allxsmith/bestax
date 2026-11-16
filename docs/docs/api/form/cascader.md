@@ -543,6 +543,7 @@ edge. A `position` you pass stays physical.
 | `--bulma-picker-popover-padding` ‡            | `$picker-popover-padding`            | `0.75rem`                                                                                                                      |
 | `--bulma-picker-popover-offset` ‡             | `$picker-popover-offset`             | `4px`                                                                                                                          |
 | `--bulma-picker-popover-animation-duration` ‡ | `$picker-popover-animation-duration` | `0.15s`                                                                                                                        |
+| `--bulma-picker-popover-months-max-width` ‡   | `$picker-popover-months-max-width`   | `calc(100vw - 2rem)`                                                                                                           |
 
 ‡ declared on a constituent element: values set via `className`, the `style` prop, or an ancestor are only inherited and lose — target the declaring element in your CSS.
 
