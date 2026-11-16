@@ -69,12 +69,12 @@ export interface ButtonOwnProps extends Omit<
    */
   isLoading?: boolean;
   /**
-   * Draws Bulma's static look, for a label such as "@gmail.com" beside an
-   * input in a `Field` with addons, and stops the pointer. It doesn't change
-   * the element: a `<button>` is still a tab stop that a screen reader
-   * announces as a button and Enter and Space press. For a label that does
-   * nothing, render it `as="span"`, the non-focusable element Bulma's own
-   * markup uses.
+   * Draws Bulma's static look and stops the pointer. It doesn't change the
+   * element: a `<button>` with it is still a tab stop that a screen reader
+   * announces as a button and Enter and Space press, and in a form it's a
+   * submit button. A label that does nothing, such as "@gmail.com" beside an
+   * input in a `Field` with addons, is a `Button` rendered `as="span"`, which
+   * Tab skips and a screen reader reads as text.
    */
   isStatic?: boolean;
   /** Makes the button full-width. */

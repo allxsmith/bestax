@@ -264,11 +264,7 @@ export const Static: Story = {
     isStatic: true,
     children: 'Static Button',
   },
-  render: ({ isStatic, children }) => (
-    <Button as="span" isStatic={isStatic}>
-      {children}
-    </Button>
-  ),
+  render: args => <Button {...(args as ButtonProps<'span'>)} as="span" />,
 };
 
 // FullWidth

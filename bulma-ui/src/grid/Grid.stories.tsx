@@ -79,7 +79,9 @@ export const ColumnGap = () => {
   return (
     <div>
       <Buttons hasAddons>
-        <Button isStatic>Select a Column Gap:</Button>
+        <Button as="span" isStatic>
+          Select a Column Gap:
+        </Button>
         {Array.from({ length: 8 }, (_, i) => (
           <Button
             key={i + 1}
@@ -101,7 +103,9 @@ export const RowGap = () => {
   return (
     <div>
       <Buttons hasAddons>
-        <Button isStatic>Select a Row Gap:</Button>
+        <Button as="span" isStatic>
+          Select a Row Gap:
+        </Button>
         {Array.from({ length: 8 }, (_, i) => (
           <Button
             key={i + 1}
@@ -141,7 +145,9 @@ export const FixedGridCols = () => {
   return (
     <div>
       <Buttons hasAddons>
-        <Button isStatic>Select Columns:</Button>
+        <Button as="span" isStatic>
+          Select Columns:
+        </Button>
         {Array.from({ length: 12 }, (_, i) => (
           <Button
             key={i + 1}
@@ -203,7 +209,9 @@ export const FixedGridColsByBreakpoint = () => {
         Resize the browser to see this in action!
       </p>
       <Buttons hasAddons>
-        <Button isStatic>Select Breakpoint:</Button>
+        <Button as="span" isStatic>
+          Select Breakpoint:
+        </Button>
         {breakpoints.map(bp => (
           <Button
             key={bp.key}
@@ -215,7 +223,7 @@ export const FixedGridColsByBreakpoint = () => {
         ))}
       </Buttons>
       <Buttons hasAddons>
-        <Button isStatic>
+        <Button as="span" isStatic>
           {breakpoint === 'Mobile'
             ? 'Columns (Mobile)'
             : `Columns (${breakpoint})`}
