@@ -107,6 +107,10 @@ export const SCSS_SOURCES = {
   Carousel: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_carousel.scss' },
   ],
+  Cascader: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_cascader.scss' },
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
+  ],
   Cell: [],
   Center: [],
   Checkbox: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_checkbox.scss' }],

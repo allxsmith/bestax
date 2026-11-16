@@ -90,7 +90,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 `checkbox`, `checkboxcard`, `radio`, `radiocard`, `switch`, `slider`, `numberinput`, `pininput`,
 `rate`, `autocomplete`, `combobox`, `taginput`, `picker-popover`, `dateinput`, `timeinput`,
 `datetimeinput`, `daterangeinput`, `file`, `fieldset`, `field`, `dropzone`, `colorpicker`,
-`colorinput`, `passwordinput`, `treeselect`
+`colorinput`, `passwordinput`, `treeselect`, `cascader`
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `button`, `colorswatch`,
 `delete`, `descriptionlist`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`,
@@ -213,6 +213,13 @@ Notes:
   `form/checkbox` for its boxes and `picker-popover` next to `treeselect`, with
   `bulma/sass/form/input-textarea`, `bulma/sass/elements/tag`, `bulma/sass/elements/delete` and
   `elements/delete` for the field, the tags and the clear button.
+- `Cascader` opens its columns in the pickers' popover, with a `Combobox` list for its search, and
+  its items are Bulma's dropdown items. Its partial brings `form/combobox` with it, for the search
+  and the values its items start from, so it needs `picker-popover` and
+  `bulma/sass/components/dropdown` next to `cascader`, with `bulma/sass/form/input-textarea`,
+  `bulma/sass/elements/delete` and `elements/delete` for the field and the clear button, and
+  `bulma/sass/elements/loader`, `elements/loader` and `bulma/sass/elements/button` for a column
+  that's loading or failed to load.
 - `PinInput`'s boxes are Bulma inputs, so an app using it needs `bulma/sass/form/input-textarea`
   next to `scss/form/pininput`, and `bulma/sass/form/tools` for the label and help text around it.
 - `Popover.Close` renders a Bulma button, so an app using it needs `bulma/sass/elements/button`

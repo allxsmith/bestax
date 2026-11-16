@@ -221,6 +221,7 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/form/colorinput';
 @use '@allxsmith/bestax-bulma/scss/form/passwordinput';
 @use '@allxsmith/bestax-bulma/scss/form/treeselect';
+@use '@allxsmith/bestax-bulma/scss/form/cascader';
 
 // bestax elements and helpers
 @use '@allxsmith/bestax-bulma/scss/elements/button' as bestax-button;
@@ -285,6 +286,8 @@ Others draw on a stock Bulma component without adjusting it.
 - `form/passwordinput` lays its button over Bulma's input, so it wants `bulma/sass/form/input-textarea` as well.
 
 - `form/treeselect` opens a `components/treeview` in `form/picker-popover`, and its field, tags and clear button are Bulma's, so it wants those two, `form/checkbox` for the boxes, `bulma/sass/form/input-textarea`, `bulma/sass/elements/tag`, `bulma/sass/elements/delete` and `elements/delete` as well.
+
+- `form/cascader` opens its columns in `form/picker-popover`, and brings `form/combobox` with it, for its search and the values its items start from. Its items are Bulma's dropdown items, so it wants `form/picker-popover`, `bulma/sass/components/dropdown`, `bulma/sass/form/input-textarea`, `bulma/sass/elements/delete` and `elements/delete` for the field and its clear button, and `bulma/sass/elements/loader`, `elements/loader` and `bulma/sass/elements/button` for a column that's loading or failed to load.
 
 - `components/tour` draws a step's Skip, Back and Next with Bulma's buttons and its close button with a delete button, so a build that uses it wants `bulma/sass/elements/button`, `bulma/sass/elements/delete` and `elements/delete` too.
 

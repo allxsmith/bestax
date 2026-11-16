@@ -585,6 +585,39 @@ const PROPS: Record<string, Record<string, unknown>> = {
     message: 'Pick some',
     messageColor: 'danger',
   },
+  // Picked, clearable, coloured, sized, rounded and open in place on the
+  // picked node's path, with an icon, a disabled item, a loading column and
+  // a search box, so the field's, the panel's, the columns' and the items'
+  // classes are swept together.
+  Cascader: {
+    label: 'City',
+    data: [
+      {
+        value: 'europe',
+        label: 'Europe',
+        icon: 'globe',
+        children: [
+          { value: 'berlin', label: 'Berlin' },
+          { value: 'paris', label: 'Paris', disabled: true },
+          {
+            value: 'later',
+            label: 'Later',
+            hasChildren: true,
+            isLoading: true,
+          },
+        ],
+      },
+    ],
+    defaultValue: 'berlin',
+    defaultOpen: true,
+    searchable: true,
+    clearable: true,
+    color: 'info',
+    size: 'small',
+    isRounded: true,
+    message: 'Pick one',
+    messageColor: 'danger',
+  },
   // A checkbox tree, sized and open, with an icon, a disabled item and a
   // checked one, so the box, the group and the modifiers are swept. An item
   // renders nothing outside a tree, so TreeViewItem's classes are swept here.

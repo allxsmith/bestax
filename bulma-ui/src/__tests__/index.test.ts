@@ -34,6 +34,7 @@ const PUBLIC_EXPORTS = [
   'CardImage',
   'Carousel',
   'CarouselItem',
+  'Cascader',
   'Cell',
   'Center',
   'Checkbox',

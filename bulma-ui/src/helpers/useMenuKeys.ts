@@ -25,8 +25,11 @@ export function isEnabledMenuItem(item: Element): boolean {
 }
 
 /** Whether `node` is one of `menu`'s items, enabled or not. */
-const isItemOf = (menu: Element, node: Element | null): boolean =>
-  Boolean(node && menu.contains(node) && node.matches(MENU_ITEM_SELECTOR));
+const isItemOf = (
+  menu: Element,
+  node: Element | null,
+  selector: string
+): boolean => Boolean(node && menu.contains(node) && node.matches(selector));
 
 /** The items in `menu` the keys reach, in document order. */
 export function enabledMenuItems(menu: Element): HTMLElement[] {
@@ -71,6 +74,26 @@ export interface MenuKeysOptions {
    * @defaultValue false
    */
   physical?: boolean;
+  /**
+   * What the items are, as a selector, such as `[role="option"]` for a
+   * listbox.
+   * @defaultValue MENU_ITEM_SELECTOR
+   */
+  itemSelector?: string;
+  /**
+   * Disabled items stay reachable by the arrows, Home, End and type-ahead,
+   * as a listbox's and a tree's are, so a screen reader finds them. Enter
+   * and Space never activate one.
+   * @defaultValue false
+   */
+  disabledReachable?: boolean;
+  /**
+   * Space joins a type-ahead search under way when an item starts with what
+   * has been typed and a space, so "new y" reaches "New York". Otherwise it
+   * activates the focused item, as it does without this.
+   * @defaultValue false
+   */
+  spaceJoinsSearch?: boolean;
 }
 
 /**
@@ -125,7 +148,8 @@ export interface MenuKeys {
  *   first and Up to the last. `options` turns the axis sideways, swaps
  *   its arrows, or reads them as they point on the screen, and the other
  *   axis's arrows are left alone.
- * - Enter and Space activate the focused item. A `<button>`, and a link with
+ * - Enter and Space activate the focused item, Space unless
+ *   `spaceJoinsSearch` has it join a search. A `<button>`, and a link with
  *   an `href` for Enter, get the browser's own click, and anything else gets
  *   one from here, so its `onClick` runs either way. A key held down
  *   activates it once. A key handler on the item that called
@@ -136,11 +160,15 @@ export interface MenuKeys {
  *
  * Items are `MENU_ITEM_SELECTOR` matches, and disabled ones are skipped by
  * all of the above. Escape and Tab are left to the menu's owner, since what
- * closing means is up to it, and so is any other key.
+ * closing means is up to it, and so is any other key. `options` makes the
+ * items another selector's matches, such as a listbox's options, can keep
+ * disabled items reachable, and can let Space join a search under way.
  *
  * @function useMenuKeys
- * @param options - The axis the items run along, and whether its arrows are
- * swapped. Without it, Down and Up move, as in a menu that drops down.
+ * @param options - The axis the items run along, whether its arrows are
+ * swapped, another kind of item, whether disabled ones are reached, and
+ * whether Space joins a search. Without it, Down and Up move, as in a menu
+ * that drops down.
  * @returns The `keydown` handler for the menu element, and a way to forget
  * what has been typed.
  */
@@ -149,6 +177,9 @@ export function useMenuKeys(options: MenuKeysOptions = {}): MenuKeys {
     orientation = 'vertical',
     reverse = false,
     physical = false,
+    itemSelector = MENU_ITEM_SELECTOR,
+    disabledReachable = false,
+    spaceJoinsSearch = false,
   } = options;
   const typeahead = useTypeahead();
 
@@ -156,8 +187,9 @@ export function useMenuKeys(options: MenuKeysOptions = {}): MenuKeys {
     const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
       const menu = event.currentTarget;
       const focused = getActiveElementInTree(menu);
-      if (focused !== menu && !isItemOf(menu, focused)) return;
-      const items = enabledMenuItems(menu);
+      if (focused !== menu && !isItemOf(menu, focused, itemSelector)) return;
+      const all = Array.from(menu.querySelectorAll<HTMLElement>(itemSelector));
+      const items = disabledReachable ? all : all.filter(isEnabledMenuItem);
       if (!items.length) return;
       const current = items.indexOf(focused as HTMLElement);
       const step = arrowStep(event.key, menu, orientation, reverse, physical);
@@ -187,7 +219,23 @@ export function useMenuKeys(options: MenuKeysOptions = {}): MenuKeys {
         case 'Enter':
         case ' ': {
           if (current < 0 || event.defaultPrevented) return;
+          // Typed as a character, below, when the search can take it.
+          const typed = typeahead.typed();
+          if (
+            event.key === ' ' &&
+            spaceJoinsSearch &&
+            typed &&
+            typeaheadMatch(items, `${typed} `, current)
+          ) {
+            break;
+          }
           const item = items[current];
+          // A disabled item the arrows reach does nothing, and Space doesn't
+          // scroll the page.
+          if (!isEnabledMenuItem(item)) {
+            event.preventDefault();
+            return;
+          }
           if (activatesItself(item, event.key)) {
             // The browser clicks on Enter's keydown, and a held key sends one
             // per auto-repeat. Space clicks on keyup, once however long it's
@@ -217,5 +265,13 @@ export function useMenuKeys(options: MenuKeysOptions = {}): MenuKeys {
       typeaheadMatch(items, typeahead.type(event.key), current)?.focus();
     };
     return { onKeyDown, reset: typeahead.reset };
-  }, [typeahead, orientation, reverse, physical]);
+  }, [
+    typeahead,
+    orientation,
+    reverse,
+    physical,
+    itemSelector,
+    disabledReachable,
+    spaceJoinsSearch,
+  ]);
 }
