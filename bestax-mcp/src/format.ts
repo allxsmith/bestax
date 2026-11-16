@@ -213,6 +213,8 @@ export function table(headers: string[], rows: string[][]): string {
 function propRows(props: PropRow[]): string[][] {
   return props.map(p => {
     const notes = [
+      // The API pages mark a prop a caller must pass the same way.
+      p.required ? '**Required.**' : '',
       p.deprecated
         ? `**Deprecated.**${
             p.deprecationNote ? ` ${attributedLinks(p.deprecationNote)}` : ''

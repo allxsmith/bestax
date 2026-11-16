@@ -103,10 +103,10 @@ was given. A trio set at runtime leaves them as they were, so when a new color r
 darker than the built one, which a change of hue or saturation can do as well as a change of
 lightness, set them too:
 
-| Variable                  | What reads it                                                                                                                                                                                                                 |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--bulma-<c>-invert-l`    | the label on a solid `<c>` surface: `Button`, `Tag` and `Notification` with `color="<c>"`, a colored `Hero` or `Navbar`, …                                                                                                    |
-| `--bulma-<c>-on-scheme-l` | `<c>` text on the page: `textColor="<c>" colorShade="on-scheme"`, `textColor="<c>"` where it's lighter than the trio's, a colored `Message`'s body, a field's colored help text, `Steps`' and `Timeline`'s colored markers, … |
+| Variable                  | What reads it                                                                                                                                                                                                    |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--bulma-<c>-invert-l`    | the label on a solid `<c>` surface: `Button`, `Tag` and `Notification` with `color="<c>"`, a colored `Hero` or `Navbar`, a colored `Steps`' completed mark, …                                                    |
+| `--bulma-<c>-on-scheme-l` | `<c>` text on the page: `textColor="<c>" colorShade="on-scheme"`, `textColor="<c>"` where it's lighter than the trio's, a colored `Message`'s body, a field's colored help text, `Timeline`'s colored markers, … |
 
 For `link`, the on-scheme lightness is also every link on the page (`--bulma-link-text`), so a new
 link color that reads lighter than Bulma's own leaves the page's links pale.
@@ -1069,6 +1069,9 @@ whatever these say.
 
 ### Slider
 
+A mark's label sits inside its tick, so `--bulma-slider-tick-opacity` dims the label along with the
+tick's line, whatever `--bulma-slider-tick-label-color` you set.
+
 `--bulma-slider-disabled-opacity`, `--bulma-slider-fill-color`,
 `--bulma-slider-output-background`, `--bulma-slider-output-color`,
 `--bulma-slider-output-font-size`, `--bulma-slider-output-font-weight`, `--bulma-slider-radius`,
@@ -1277,10 +1280,9 @@ in, such as 31 over a navbar, for beacons on targets inside one.
 
 Declared on the root, `.tree-select`, and on a portaled panel, `.tree-select-panel`, which sits
 outside it. They draw the chevron and the clear button on the field, set the panel's height and
-space the search box over the tree. The chevron's defaults start from root tokens
-(`control-height`, `text-weak`, `text` on hover, `link` while focused), since Bulma registers its
-input variables on the field and its Control. Its colors follow the scheme rather than Bulma's
-input icon color, `text-light`, a fixed light gray that the light scheme's white all but hides. The panel is the picker popover, above, and the tree in it is a
+space the search box over the tree. The chevron's defaults are the tokens Bulma's input icon variables
+start from (`control-height`, `text-light`, `text-weak`, `link`), since Bulma registers those on
+the field and its Control. The panel is the picker popover, above, and the tree in it is a
 `TreeView`, below, so `--bulma-picker-popover-*` and `--bulma-tree-view-*` theme them here too.
 The panel is at least as wide as the field, in place through the picker popover's own rule and
 portaled through the field's width set inline.

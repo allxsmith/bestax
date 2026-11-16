@@ -59,8 +59,8 @@
           "name": "items",
           "type": "LightboxItem[]",
           "default": null,
-          "description": "**Required.** The images, in order.",
-          "required": false,
+          "description": "The images, in order.",
+          "required": true,
           "inherited": false,
           "deprecated": false
         },
@@ -241,8 +241,8 @@
           "name": "index",
           "type": "number",
           "default": null,
-          "description": "**Required.** The index in `items` the viewer opens at.",
-          "required": false,
+          "description": "The index in `items` the viewer opens at.",
+          "required": true,
           "inherited": false,
           "deprecated": false
         },

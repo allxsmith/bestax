@@ -111,7 +111,7 @@
           "type": "React.ReactNode",
           "default": null,
           "description": "Radio elements to render in the group.",
-          "required": false,
+          "required": true,
           "inherited": false,
           "deprecated": false
         },

@@ -65,7 +65,7 @@
           "type": "React.ReactElement",
           "default": null,
           "description": "The element that opens and closes the popover, such as a `Button`. Popover gives it `aria-haspopup=\"dialog\"`, `aria-expanded`, `aria-controls` while the panel is open, and click and key handlers that run after its own (call `preventDefault()` in yours to keep the popover from toggling). It has to be a single element that passes `onClick` and `onKeyDown` to its DOM node. Enter and Space toggle a trigger the browser doesn't click on its own, and an intrinsic element that isn't already a control (a `<span>`) also gets `role=\"button\"` and `tabIndex={0}` unless it sets them; a component that renders one has to take those itself.",
-          "required": false,
+          "required": true,
           "inherited": false,
           "deprecated": false
         },

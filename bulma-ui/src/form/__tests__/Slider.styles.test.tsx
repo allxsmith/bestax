@@ -392,14 +392,17 @@ describe.each([
   });
 });
 
-// A mark's label is text that gives a value, so it needs 4.5:1 on both
-// schemes. text-light, which it had, is a fixed light gray at about 1.3:1 on
-// the light scheme's white, and the tick's opacity halved it further.
+// A mark's label is drawn in Bulma's text-light inside its tick, and the
+// tick's own opacity dims the label with the line. That's Bulma's stock gray,
+// which changes only when the owner asks (the root CLAUDE.md, "Bulma's stock
+// colors and the bestax blue").
 describe.each([
   ['no prefix', ''],
   ['a class prefix', 'bestax-'],
 ])('Slider mark labels, with %s', (_label, prefix) => {
-  const sheet = sass.compileString(
+  const FORCED = '@media (forced-colors: active)';
+  const p = (name: string) => `.${prefix}${name}`;
+  const compiled = sass.compileString(
     `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
      @use 'form/slider';`,
     {
@@ -408,35 +411,67 @@ describe.each([
       logger: sass.Logger.silent,
     }
   ).css;
-  const p = (name: string) => `\\.${prefix}${name}`;
-  const block = (selector: string, within = sheet) =>
-    within.match(new RegExp(`(?:^|\\n)\\s*${selector}\\s*\\{([^}]*)\\}`))?.[1];
-  const forced = sheet.slice(sheet.indexOf('@media (forced-colors: active)'));
 
-  it('write in a text color that follows the scheme', () => {
-    expect(sheet).toContain(
-      '--bulma-slider-tick-label-color: var(--bulma-text-weak)'
+  /** Every style rule, with the at-rules it sits in, outermost first. */
+  const rules = (() => {
+    const sheet = document.createElement('style');
+    sheet.textContent = compiled;
+    document.head.appendChild(sheet);
+    const out: { rule: CSSStyleRule; within: string[] }[] = [];
+    const walk = (list: CSSRuleList, within: string[]) => {
+      for (const rule of Array.from(list)) {
+        if (rule instanceof CSSStyleRule) out.push({ rule, within });
+        else if ('cssRules' in rule) {
+          walk((rule as CSSGroupingRule).cssRules, [
+            ...within,
+            rule.cssText.split('{')[0].trim(),
+          ]);
+        }
+      }
+    };
+    try {
+      walk((sheet.sheet as CSSStyleSheet).cssRules, []);
+    } finally {
+      sheet.remove();
+    }
+    return out;
+  })();
+
+  /** A property's values across the rules for exactly `selector`. */
+  const values = (selector: string, property: string, within: string[]) =>
+    rules
+      .filter(
+        r =>
+          r.within.join() === within.join() && r.rule.selectorText === selector
+      )
+      .map(r => r.rule.style.getPropertyValue(property))
+      .filter(Boolean);
+
+  it('write in text-light', () => {
+    expect(compiled).toContain(
+      '--bulma-slider-tick-label-color: var(--bulma-text-light)'
     );
-    expect(block(p('slider-tick-label'))).toContain(
-      'color: var(--bulma-slider-tick-label-color)'
-    );
+    expect(values(p('slider-tick-label'), 'color', [])).toEqual([
+      'var(--bulma-slider-tick-label-color)',
+    ]);
   });
 
-  it('keep the tick line’s opacity off the label the tick holds', () => {
-    // An opacity on the tick would dim its label with it, whatever the
-    // label's own color, so the line is drawn on the tick's ::before.
-    expect(block(p('slider-tick'))).not.toMatch(/opacity|background/);
-    const line = block(`${p('slider-tick')}::before`)!;
-    expect(line).toContain('background: var(--bulma-slider-tick-color)');
-    expect(line).toContain('opacity: var(--bulma-slider-tick-opacity)');
-    expect(block(`${p('slider-tick')}${p('is-endpoint')}::before`)).toContain(
-      'background: transparent'
-    );
+  it('sit in a tick that carries the line’s opacity, so it dims the label too', () => {
+    const tick = p('slider-tick');
+    expect(values(tick, 'background', [])).toEqual([
+      'var(--bulma-slider-tick-color)',
+    ]);
+    expect(values(tick, 'opacity', [])).toEqual([
+      'var(--bulma-slider-tick-opacity)',
+    ]);
+    expect(values(`${tick}${p('is-endpoint')}`, 'background', [])).toEqual([
+      'transparent',
+    ]);
   });
 
-  it('paint the tick line in the system text color in forced colors', () => {
-    expect(block(`${p('slider-tick')}::before`, forced)).toContain(
-      'background: ButtonText'
-    );
+  it('paint the tick in the system text color in forced colors', () => {
+    expect(
+      values(p('slider-tick'), 'background', [FORCED]).map(v => v.toLowerCase())
+    ).toEqual(['buttontext']);
   });
 });
