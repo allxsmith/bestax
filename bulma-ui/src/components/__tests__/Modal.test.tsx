@@ -1102,6 +1102,56 @@ describe('Modal', () => {
       expect(document.getElementById(labelledBy)).toHaveTextContent('Settings');
     });
 
+    // Drawn as content, the modal renders no card head, so pointing
+    // aria-labelledby at the title's id named it nothing (#1947).
+    it('is named by a text title it draws as content, which still shows nowhere', () => {
+      render(
+        <Modal active type="content" modalCardTitle="Edit profile">
+          {latin}
+        </Modal>
+      );
+      const modal = screen.getByTestId('modal');
+      expect(screen.getByRole('dialog')).toHaveAccessibleName('Edit profile');
+      expect(modal).not.toHaveAttribute('aria-labelledby');
+      expect(screen.queryByText('Edit profile')).not.toBeInTheDocument();
+    });
+
+    it('points at nothing missing for a title that is not text, drawn as content', () => {
+      render(
+        <Modal active type="content" modalCardTitle={<em>Edit profile</em>}>
+          {latin}
+        </Modal>
+      );
+      const modal = screen.getByTestId('modal');
+      expect(modal).not.toHaveAttribute('aria-labelledby');
+      expect(modal).not.toHaveAttribute('aria-label');
+    });
+
+    it('names nothing for a blank title drawn as content', () => {
+      render(
+        <Modal active type="content" modalCardTitle=" ">
+          {latin}
+        </Modal>
+      );
+      expect(screen.getByTestId('modal')).not.toHaveAttribute('aria-label');
+    });
+
+    it('takes the name the caller gives a modal drawn as content', () => {
+      render(
+        <Modal
+          active
+          type="content"
+          modalCardTitle="Edit profile"
+          aria-label="Edit your profile"
+        >
+          {latin}
+        </Modal>
+      );
+      expect(screen.getByRole('dialog')).toHaveAccessibleName(
+        'Edit your profile'
+      );
+    });
+
     it('has no aria-labelledby when there is no card title', () => {
       render(<Modal active>{latin}</Modal>);
       expect(screen.getByTestId('modal')).not.toHaveAttribute(
