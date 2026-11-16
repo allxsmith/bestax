@@ -97,20 +97,6 @@ const wholeCount = (count: number | undefined) =>
   count === undefined ? undefined : Math.max(1, Math.floor(count) || 1);
 
 /**
- * Whether focus stays inside the element a blur reached. A switch to another
- * window blurs with no related target and leaves the active element where it
- * was, so that's where focus is going then, and where it comes back to.
- *
- * @function
- * @param {React.FocusEvent<HTMLElement>} e - The blur.
- * @returns {boolean} Whether focus stays inside.
- */
-const focusStaysIn = (e: React.FocusEvent<HTMLElement>) =>
-  e.currentTarget.contains(
-    e.relatedTarget ?? getActiveElementInTree(e.currentTarget)
-  );
-
-/**
  * Props for the Carousel component.
  * @extraProp {string} [className] - Additional CSS classes.
  * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the carousel element.
@@ -138,7 +124,7 @@ export interface CarouselProps
    * anywhere inside it, on an item, an arrow or an indicator, so nothing
    * moves while someone reads or works it. A browser that leaves focus on
    * an arrow or an indicator a click pressed keeps it waiting until focus
-   * moves on. Focus counts only while the page has it.
+   * moves on.
    */
   autoplay?: boolean;
   /** Auto-play interval in milliseconds. Default: 5000. */
@@ -516,11 +502,10 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     // leaves the slide where it is doesn't. It waits while focus is anywhere
     // in the carousel, on an item or on an arrow or an indicator, so nothing
     // moves while someone reads or works it. The timer reads where focus is
-    // when it fires, rather
-    // than trusting the last focus event alone: a browser moving focus off
-    // an element that went inert need not fire one, and the pause would
-    // never end. A focus change still starts the timer over, so a slide gets
-    // the whole interval once focus leaves.
+    // when it fires, rather than trusting the last focus event alone: a
+    // browser moving focus off an element that went inert need not fire one,
+    // and the pause would never end. A focus change still starts the timer
+    // over, so a slide gets the whole interval once focus leaves.
     const isPlaying =
       autoplay &&
       (looping || nextIndex !== undefined) &&
@@ -531,16 +516,8 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       if (!isPlaying) return undefined;
 
       const timer = setInterval(() => {
-        // Focus counts only while the page has it: a switch to another
-        // window, or a click on the page around a frame the carousel is in,
-        // leaves the active element inside.
         const root = carouselRef.current;
-        if (
-          root?.ownerDocument.hasFocus() &&
-          root.contains(getActiveElementInTree(root))
-        ) {
-          return;
-        }
+        if (root?.contains(getActiveElementInTree(root))) return;
         if (isFocusInside) setIsFocusInside(false);
         goToNextRef.current();
       }, interval);
@@ -828,7 +805,9 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
               ).find(item => item.contains(e.target));
             }}
             onBlur={e => {
-              if (!focusStaysIn(e)) focusedItemRef.current = undefined;
+              if (!e.currentTarget.contains(e.relatedTarget)) {
+                focusedItemRef.current = undefined;
+              }
             }}
             onTransitionEnd={handleTransitionEnd}
           >

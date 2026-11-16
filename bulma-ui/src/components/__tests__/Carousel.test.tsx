@@ -1765,46 +1765,6 @@ describe('Carousel with several items in view', () => {
       expectFocusOnItem(3, 2);
     });
 
-    it('hands focus on after a switch to another window left it in the item', () => {
-      // The window losing focus blurs the button with no related target, and
-      // leaves it the active element, so the item still holds focus.
-      const { rerender } = render(
-        <Carousel value={0} repeat={false}>
-          {itemsOf(3)}
-        </Carousel>
-      );
-      const button = focusButtonIn(3, 0);
-      fireEvent.blur(button, { relatedTarget: null });
-      expect(document.activeElement).toBe(button);
-
-      rerender(
-        <Carousel value={2} repeat={false}>
-          {itemsOf(3)}
-        </Carousel>
-      );
-      expectFocusOnItem(3, 2);
-    });
-
-    it('leaves focus on the page after it left the item for nowhere', () => {
-      const { rerender } = render(
-        <Carousel value={0} repeat={false}>
-          {itemsOf(3)}
-        </Carousel>
-      );
-      const button = focusButtonIn(3, 0);
-      act(() => {
-        button.blur();
-      });
-      expect(document.activeElement).toBe(document.body);
-
-      rerender(
-        <Carousel value={2} repeat={false}>
-          {itemsOf(3)}
-        </Carousel>
-      );
-      expect(document.activeElement).toBe(document.body);
-    });
-
     it('stays on an item that is still in view', () => {
       const { rerender } = render(
         <Carousel value={0} itemsToShow={2} repeat={false}>
@@ -2152,7 +2112,9 @@ describe('Carousel with several items in view', () => {
       expect(onChange).toHaveBeenLastCalledWith(2);
     });
 
-    it('goes on while the page has lost focus, and waits again once it has it back', () => {
+    it('keeps holding while focus on an arrow waits out a switch to another window', () => {
+      // As focus in an item already did: the window losing focus blurs the
+      // arrow with no related target and leaves it the active element.
       const onChange = vi.fn();
       render(
         <Carousel autoplay interval={1000} onChange={onChange}>
@@ -2161,30 +2123,16 @@ describe('Carousel with several items in view', () => {
       );
       const next = screen.getByLabelText('Next slide');
       focusOn(next);
-
-      // A switch to another window blurs the arrow with no related target,
-      // leaves it the active element, and takes focus from the page.
-      const hasFocus = vi
-        .spyOn(Document.prototype, 'hasFocus')
-        .mockReturnValue(false);
-      try {
-        fireEvent.blur(next, { relatedTarget: null });
-        expect(document.activeElement).toBe(next);
-        expect(track()).toHaveAttribute('aria-live', 'off');
-        act(() => {
-          vi.advanceTimersByTime(1000);
-        });
-        expect(onChange).toHaveBeenCalledWith(1);
-      } finally {
-        hasFocus.mockRestore();
-      }
-
-      fireEvent.focus(next);
-      expect(track()).toHaveAttribute('aria-live', 'polite');
+      fireEvent.blur(next, { relatedTarget: null });
+      expect(document.activeElement).toBe(next);
       act(() => {
         vi.advanceTimersByTime(3000);
       });
-      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).not.toHaveBeenCalled();
+
+      // Coming back focuses it again, so the track is polite once more.
+      fireEvent.focus(next);
+      expect(track()).toHaveAttribute('aria-live', 'polite');
     });
 
     it("runs a caller's own focus and pointer handlers along with its own", () => {
