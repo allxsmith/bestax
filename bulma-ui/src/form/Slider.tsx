@@ -90,8 +90,8 @@ interface SliderBaseProps
   ticks?: boolean;
   /**
    * Custom labeled marks along the track. Each mark has `{ value: number; label?: ReactNode }`.
-   * A mark's label sits inside its tick, so `--bulma-slider-tick-opacity` dims the label along
-   * with the tick's line, whatever `--bulma-slider-tick-label-color` is.
+   * A mark's label sits inside its tick, so outside forced colors `--bulma-slider-tick-opacity`
+   * dims the label along with the tick's line, whatever `--bulma-slider-tick-label-color` is.
    */
   marks?: SliderMark[];
   /** Orientation of the slider. */
