@@ -108,8 +108,9 @@ Create `src/styles.scss` — base + themes always come first:
 @use 'bulma/sass/components/card';
 // …and per bestax extras component:
 @use '@allxsmith/bestax-bulma/scss/components/dialog';
-// …and bestax's partial for a stock component that has one:
+// …and bestax's partial for each stock component that has one:
 @use '@allxsmith/bestax-bulma/scss/elements/button' as bestax-button;
+@use '@allxsmith/bestax-bulma/scss/components/card' as bestax-card;
 // Helper categories only if the app uses those helper props:
 @use 'bulma/sass/helpers/spacing';
 ```
