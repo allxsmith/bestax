@@ -967,6 +967,24 @@ describe('ContextMenu', () => {
       expect(item('Delete')).toHaveFocus();
     });
 
+    it('goes on from an item that turned disabled while it had focus', () => {
+      const Busy = ({ busy }: { busy?: boolean }) => (
+        <ContextMenu aria-label="Actions" trigger={<div data-region>Row</div>}>
+          <ContextMenu.Item as="button">Rename</ContextMenu.Item>
+          <ContextMenu.Item as="button" aria-disabled={busy || undefined}>
+            Share
+          </ContextMenu.Item>
+          <ContextMenu.Item as="button">Delete</ContextMenu.Item>
+        </ContextMenu>
+      );
+      const { rerender } = render(<Busy />);
+      contextMenu(region());
+      fireEvent.keyDown(item('Rename'), { key: 'ArrowDown' });
+      rerender(<Busy busy />);
+      fireEvent.keyDown(item('Share'), { key: 'ArrowUp' });
+      expect(item('Rename')).toHaveFocus();
+    });
+
     it('activates a div item on Enter and Space once each, and closes', () => {
       const onDiv = vi.fn();
       render(<Menu onDiv={onDiv} />);
