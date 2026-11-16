@@ -46,7 +46,7 @@ publishes its SCSS sources (`src/scss` ships in the npm package, exposed via the
 
 **Rule:** stock Bulma components map to `bulma/sass/<category>/<lowercased-name>`; bestax
 extras map to `@allxsmith/bestax-bulma/scss/<category>/<lowercased-name>`. Components that
-are pure stock Bulma (Box, Card, Modal, Hero, …) have **no** extras partial —
+are pure stock Bulma (Hero, Level, Media, …) have **no** extras partial —
 Bulma's own module is all they need.
 
 Bulma groups its form controls, so their modules don't follow the name: `Input` and `TextArea`
@@ -92,7 +92,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 `datetimeinput`, `daterangeinput`, `file`, `fieldset`, `field`, `dropzone`, `colorpicker`,
 `colorinput`, `passwordinput`, `treeselect`, `cascader`
 
-**Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `button`, `colorswatch`,
+**Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `box`, `button`, `colorswatch`,
 `delete`, `descriptionlist`, `divider`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`,
 `progress`, `ringprogress`, `skeleton`, `stat`, `tag`
 
@@ -293,6 +293,12 @@ Notes:
   colors, and an outlined button the lightness Bulma picks for its color's text on the page where
   that's lighter, so a dark color reads on the dark scheme, so include it (`as bestax-button`) in any build that loads Bulma's button module. Its
   rules win over Bulma's either way, so the order of the `@use` lines does not matter.
+- `Box` is stock Bulma (`bulma/sass/elements/box`), which draws a box's edge as a shadow with no
+  border. Forced colors (Windows' contrast themes) drops every shadow and paints the box in the
+  page's own color, so its edge vanishes there. The `box` extras partial draws it back as an
+  outline in the system's text color, so include it (`as bestax-box`) next to Bulma's module in
+  any build that shows a `Box`. Its rule wins over Bulma's either way, so the order of the `@use`
+  lines does not matter.
 - `Divider` renders an `<hr>`, which Bulma draws in its base (`bulma/sass/base`) as a background
   color with no border. Forced colors (Windows' contrast themes) replaces that color with the
   page's own, so the line vanishes there. The `divider` extras partial draws it as a border in the
@@ -376,7 +382,8 @@ there. It doesn't depend on the order of the two `@use` lines:
 The `npm create bestax` starter renders `Container`, `Section`, `Columns`/`Column`, `Image`,
 `Title`/`SubTitle`, `Box`, `Card`, `Buttons`/`Button`, and `Notification` with its close
 button: all stock Bulma, plus the `notification` and `delete` extras partials for that close
-button and the `button` partial for the buttons' focus outline and edge in forced colors. Its helper
+button, the `button` partial for the buttons' focus outline and edge in forced colors, and the
+`box` partial for the boxes' edge in forced colors. Its helper
 props are `display` (visibility), `flexGrow` (flexbox), and `textAlign` (typography);
 it uses no spacing or color props. That inventory compiles to the following, verified
 pixel-equivalent to the prebuilt `complete` flavor in headless Chromium (light and dark, phone
@@ -408,6 +415,7 @@ Scaffolded with an icon library, the starter also needs `bulma/sass/elements/ico
 @use 'bulma/sass/helpers/flexbox'; // flexGrow
 @use 'bulma/sass/helpers/typography'; // textAlign
 
+@use '@allxsmith/bestax-bulma/scss/elements/box' as bestax-box; // the edge in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/button' as bestax-button; // focus outline and edge in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/delete' as bestax-delete; // the close button in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/notification' as bestax-notification; // text clears the close button
