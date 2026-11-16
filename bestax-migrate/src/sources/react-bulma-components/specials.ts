@@ -877,7 +877,18 @@ const SPECIALS: Record<string, SpecialHandler> = {
       const childSpreads = (child.openingElement.attributes ?? []).some(
         (a: any) => a.type === 'JSXSpreadAttribute'
       );
-      const childNamed = TABLE_NAMES.some(name => findAttr(child, name));
+      // A <caption> names the table too, and a moved `aria-label` would
+      // take its place, so the container's name stays out of a table with
+      // one.
+      const childNamed =
+        TABLE_NAMES.some(name => findAttr(child, name)) ||
+        (child.children ?? []).some(
+          (c: any) =>
+            c.type === 'JSXElement' &&
+            c.openingElement.name?.type === 'JSXIdentifier' &&
+            c.openingElement.name.name === 'caption'
+        );
+      const labelled = TABLE_NAMES.some(name => findAttr(child, name));
       const moved: any[] = [];
       // The container element is gone after the fold. What else it carried
       // (`domRef`, `id`, handlers) applied to the wrapping div, and moving it
@@ -895,9 +906,9 @@ const SPECIALS: Record<string, SpecialHandler> = {
           path,
           `prop:${name}`,
           TABLE_NAMES.includes(name)
-            ? `Table.Container \`${name}\` was dropped: the Table it folded onto names itself, and \`Table isResponsive\` names its container after the Table — keep the name you want on the Table`
+            ? `Table.Container \`${name}\` was dropped: the Table it folded onto names itself, with its own attribute or a caption, and \`Table isResponsive\` names its container from the Table's \`aria-label\` or \`aria-labelledby\` — keep the name you want there`
             : CONTAINER_OWN.includes(name)
-              ? `Table.Container \`${name}\` was dropped: \`Table isResponsive\` renders its container itself, a region you can tab to while the table overflows and a plain div while it fits — drop it`
+              ? `Table.Container \`${name}\` was dropped: \`Table isResponsive\` renders its container itself, a region you can tab to while the table overflows and a plain div while it fits`
               : `Table.Container \`${name}\` was dropped: the container folded into \`isResponsive\` on its Table, so there is no element left to carry it — re-apply by hand`
         );
       }
@@ -920,7 +931,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       ];
       // A spread on the Table could hold its name, so only a Table with
       // neither is asked for one.
-      if (!childNamed && moved.length === 0 && !childSpreads) {
+      if (!labelled && moved.length === 0 && !childSpreads) {
         addTodo(
           ctx,
           path,

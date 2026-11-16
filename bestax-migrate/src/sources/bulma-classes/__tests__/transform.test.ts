@@ -488,6 +488,14 @@ describe('a wrapper its component renders', () => {
     );
   });
 
+  it('asks for no name in a file that converts nothing, where the fold is called off', () => {
+    const { output, rules } = migrate(
+      `/** @jsxImportSource preact */\nexport const A = () => (\n  <div className="table-container">\n    ${table}\n  </div>\n);\n`
+    );
+    expect(rules).not.toContain('name:Table');
+    expect(output ?? '').not.toContain('isResponsive');
+  });
+
   it.each([
     ['an aria-label', named],
     [

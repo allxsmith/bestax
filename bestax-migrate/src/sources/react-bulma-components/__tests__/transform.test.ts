@@ -926,6 +926,24 @@ describe('react-bulma-components transform fixtures', () => {
         }
       );
 
+      it('keeps a caption the Table has as its name, and asks for a name the container can take', () => {
+        const todos: TodoEntry[] = [];
+        const { output } = runTransform(
+          transform,
+          'caption.tsx',
+          'import { Table } from "react-bulma-components";\n' +
+            'export const A = () => <Table.Container aria-label="Scroll"><Table><caption>Q3</caption></Table></Table.Container>;',
+          { add: entry => todos.push(entry) }
+        );
+        expect(output).toContain(
+          '<Table isResponsive><caption>Q3</caption></Table>'
+        );
+        expect(todos.map(t => t.rule)).toEqual([
+          'prop:aria-label',
+          'name:Table',
+        ]);
+      });
+
       it('puts the container’s name ahead of a spread on the Table, which still wins', () => {
         const { output, rules } = fold(' aria-label="Outer"', ' {...p}');
         expect(output).toContain(
