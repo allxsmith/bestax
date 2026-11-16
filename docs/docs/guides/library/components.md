@@ -20,17 +20,17 @@ A Bulma-styled breadcrumb navigation for showing the user's location in the app.
 <Breadcrumb>
   <li>
     <a href="#">
-      <Icon name="fas fa-home" ariaLabel="home icon" /> Home
+      <Icon name="fas fa-home" /> Home
     </a>
   </li>
   <li>
     <a href="#">
-      <Icon name="fas fa-folder" ariaLabel="category icon" /> Category
+      <Icon name="fas fa-folder" /> Category
     </a>
   </li>
   <li className="is-active">
-    <a href="#">
-      <Icon name="fas fa-file" ariaLabel="item icon" /> Item
+    <a href="#" aria-current="page">
+      <Icon name="fas fa-file" /> Item
     </a>
   </li>
 </Breadcrumb>
@@ -205,13 +205,19 @@ A flexible, composable pagination navigation for lists or multi-page content. [V
 ```tsx live
 <Pagination>
   <Pagination.List>
-    <Pagination.Link>&laquo;</Pagination.Link>
-    <Pagination.Link active>1</Pagination.Link>
-    <Pagination.Link>2</Pagination.Link>
-    <Pagination.Link>3</Pagination.Link>
+    <Pagination.Link href="#previous" aria-label="Previous page">
+      &laquo;
+    </Pagination.Link>
+    <Pagination.Link active href="#page-1">
+      1
+    </Pagination.Link>
+    <Pagination.Link href="#page-2">2</Pagination.Link>
+    <Pagination.Link href="#page-3">3</Pagination.Link>
     <Pagination.Ellipsis />
-    <Pagination.Link>10</Pagination.Link>
-    <Pagination.Link>&raquo;</Pagination.Link>
+    <Pagination.Link href="#page-10">10</Pagination.Link>
+    <Pagination.Link href="#next" aria-label="Next page">
+      &raquo;
+    </Pagination.Link>
   </Pagination.List>
 </Pagination>
 ```
@@ -376,11 +382,18 @@ Image/content slider with navigation arrows and indicators. Supports auto-play, 
 Expandable/collapsible content panels with smooth animation. Works in controlled or uncontrolled mode. [View full documentation.](../../api/components/collapse.md)
 
 ```tsx live
-<Collapse trigger={<Button>Click to expand</Button>}>
-  <Box mt="3">
+<Collapse
+  bordered
+  trigger={
+    <Block p="3">
+      <Strong>Click to expand</Strong>
+    </Block>
+  }
+>
+  <Block p="3">
     <p>This content is revealed when the collapse is opened.</p>
-    <p>Click the button again to hide it.</p>
-  </Box>
+    <p>Click the header again to hide it.</p>
+  </Block>
 </Collapse>
 ```
 
