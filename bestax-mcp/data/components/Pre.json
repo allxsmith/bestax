@@ -34,17 +34,17 @@
       "code": "<Pre textColor=\"primary\" p=\"3\">{`// Important configuration\nconst config = {\n  debug: true,\n  verbose: true\n};`}</Pre>"
     }
   ],
-  "accessibility": "- **Whitespace Preservation:** The `<pre>` element preserves all whitespace, which is important for code formatting.\n- **Scrolling:** Bulma scrolls a long line sideways rather than wrapping it. While the content\n  overflows, the block is a region you can tab to and scroll with the arrow keys, Safari included,\n  with Bulma's focus ring just inside it. While it fits, it's a plain `<pre>` with no tab stop.\n  Name it with `aria-label` or `aria-labelledby` so a screen reader says what took focus.\n- **Screen Readers:** Preformatted text is typically announced as such by screen readers.\n\n:::info\nFor code blocks, wrap content in both `<Pre>` and `<Code>` for proper semantics: `<Pre><Code>...</Code></Pre>`.\n:::",
+  "accessibility": "- **Whitespace Preservation:** The `<pre>` element preserves all whitespace, which is important for code formatting.\n- **Scrolling:** Bulma scrolls a long line sideways rather than wrapping it. While the content\n  overflows, the block is a tab stop you can scroll with the arrow keys, Safari included, with\n  Bulma's focus ring just inside it, and a region when it has a name. While it fits, it's a plain\n  `<pre>` with no tab stop. Name it with `aria-label` or `aria-labelledby` so a screen reader says\n  what took focus.\n- **Screen Readers:** Preformatted text is typically announced as such by screen readers.\n\n:::info\nFor code blocks, wrap content in both `<Pre>` and `<Code>` for proper semantics: `<Pre><Code>...</Code></Pre>`.\n:::",
   "related": ["Code", "Figure", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-pre--default",
-  "summary": "The `Pre` component renders a styled `<pre>` element with Bulma helper class integration. Bulma scrolls a line longer than the block sideways rather than wrapping it. While the content overflows, the block is a region you can tab to and scroll with the arrow keys, Safari included, as `ScrollArea`'s viewport and a responsive `Table` are; while it fits, it's a plain `<pre>` with no tab stop.",
+  "summary": "The `Pre` component renders a styled `<pre>` element with Bulma helper class integration. Bulma scrolls a line longer than the block sideways rather than wrapping it. While the content overflows, the block is a tab stop you can scroll with the arrow keys, Safari included, as `ScrollArea`'s viewport and a responsive `Table` are, and a region when it has a name; while it fits, it's a plain `<pre>` with no tab stop.",
   "import": "import { Pre, Code } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/elements/Pre.tsx",
   "rootClass": null,
   "parts": [
     {
       "path": "Pre",
-      "summary": "The `Pre` component renders a styled `<pre>` element with Bulma helper class integration. Bulma scrolls a line longer than the block sideways rather than wrapping it. While the content overflows, the block is a region you can tab to and scroll with the arrow keys, Safari included, as `ScrollArea`'s viewport and a responsive `Table` are; while it fits, it's a plain `<pre>` with no tab stop.",
+      "summary": "The `Pre` component renders a styled `<pre>` element with Bulma helper class integration. Bulma scrolls a line longer than the block sideways rather than wrapping it. While the content overflows, the block is a tab stop you can scroll with the arrow keys, Safari included, as `ScrollArea`'s viewport and a responsive `Table` are, and a region when it has a name; while it fits, it's a plain `<pre>` with no tab stop.",
       "component": null,
       "props": [
         {
@@ -91,7 +91,7 @@
           "name": "aria-label",
           "type": "string",
           "default": null,
-          "description": "Names the block. While it overflows, it's a region you can tab to, and this is the name a screen reader says when it takes focus, such as \"Install command\".",
+          "description": "Names the block, such as \"Install command\". While it overflows, a named block is a region, and this is what a screen reader says when it takes focus.",
           "required": false,
           "inherited": false,
           "deprecated": false
