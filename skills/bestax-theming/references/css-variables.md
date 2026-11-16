@@ -1008,9 +1008,8 @@ The same as CheckboxCard's, on the `.radio-card` label, with a ring and a dot fo
 
 ### Rate
 
-`--bulma-rate-color-active`, `--bulma-rate-color-edge`, `--bulma-rate-color-hover`,
-`--bulma-rate-color-inactive`, `--bulma-rate-disabled-opacity`, `--bulma-rate-edge-width`,
-`--bulma-rate-font-icon-size`,
+`--bulma-rate-color-active`, `--bulma-rate-color-hover`, `--bulma-rate-color-inactive`,
+`--bulma-rate-disabled-opacity`, `--bulma-rate-font-icon-size`,
 `--bulma-rate-font-icon-size-large`, `--bulma-rate-font-icon-size-medium`,
 `--bulma-rate-font-icon-size-small`, `--bulma-rate-gap`, `--bulma-rate-icon-size`,
 `--bulma-rate-icon-size-large`, `--bulma-rate-icon-size-medium`, `--bulma-rate-icon-size-small`,

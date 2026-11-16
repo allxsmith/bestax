@@ -5,7 +5,6 @@ import { Rate, RateIconProps } from '../Rate';
 import { Field } from '../Field';
 import { Control } from '../Control';
 import { ConfigProvider } from '../../helpers/Config';
-import { Icon } from '../../elements/Icon';
 
 /**
  * Helper: stub `getBoundingClientRect` on every `.rate-item` span so
@@ -693,9 +692,6 @@ describe('Rate', () => {
         1
       );
       expect(fill).toHaveAttribute('clip-path');
-      expect(fill?.previousElementSibling).toHaveClass(
-        'bestax-rate-star-empty'
-      );
     });
 
     it('clips each Rate’s partly filled star with a clip of its own', () => {
@@ -715,46 +711,6 @@ describe('Rate', () => {
         const id = path.getAttribute('clip-path')!.slice(5, -1);
         expect(svg.querySelector('clipPath')!.id).toBe(id);
       }
-    });
-
-    it('marks the built-in star for the stylesheet’s edge, and leaves a custom icon unmarked', () => {
-      const { container, rerender } = render(
-        <ConfigProvider classPrefix="bestax-">
-          <Rate defaultValue={2} />
-        </ConfigProvider>
-      );
-      expect(container.querySelectorAll('svg.bestax-rate-star')).toHaveLength(
-        5
-      );
-      rerender(
-        <ConfigProvider classPrefix="bestax-">
-          <Rate defaultValue={2} customIcon={() => <svg data-testid="own" />} />
-        </ConfigProvider>
-      );
-      expect(container.querySelector('.bestax-rate-star')).toBeNull();
-      expect(screen.getAllByTestId('own')).toHaveLength(5);
-    });
-
-    it('marks a font icon’s glyph for the stylesheet’s edge, and leaves a custom icon built on Icon unmarked', () => {
-      const { container, rerender } = render(
-        <ConfigProvider classPrefix="bestax-">
-          <Rate defaultValue={2} iconName="star" />
-        </ConfigProvider>
-      );
-      expect(
-        container.querySelectorAll(
-          '.bestax-rate-item > .bestax-icon.bestax-rate-glyph'
-        )
-      ).toHaveLength(5);
-      rerender(
-        <ConfigProvider classPrefix="bestax-">
-          <Rate defaultValue={2} customIcon={() => <Icon name="heart" />} />
-        </ConfigProvider>
-      );
-      expect(
-        container.querySelectorAll('.bestax-rate-item > .bestax-icon')
-      ).toHaveLength(5);
-      expect(container.querySelector('.bestax-rate-glyph')).toBeNull();
     });
 
     it('Home key works with precision', () => {

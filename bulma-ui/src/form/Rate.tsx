@@ -94,24 +94,13 @@ export interface RateProps
   texts?: string[];
   /** Callback when rating changes. */
   onChange?: (value: number) => void;
-  /**
-   * Custom icon renderer. The icon is drawn as you give it. A filled star's
-   * gold, or a `color`'s own shade, doesn't reach 3:1 against a light page on
-   * its own, so give a filled icon an edge in `--bulma-rate-color-edge`, as
-   * the built-in star has.
-   */
+  /** Custom icon renderer. */
   customIcon?: (props: RateIconProps) => React.ReactNode;
   /** Add spacing between icons. */
   spaced?: boolean;
   /** Right-to-left direction. */
   rtl?: boolean;
-  /**
-   * Custom icon name for the rating stars. A font icon has no edge to draw,
-   * so a filled one is drawn in the edge's color, the warning color or the
-   * `color` in its on-scheme lightness, rather than gold. It's one glyph, so
-   * a filled star and an empty one differ by color alone; the built-in star,
-   * solid or an outline, or a `customIcon`, tells them apart by shape too.
-   */
+  /** Custom icon name for the rating stars. */
   iconName?: string;
   /** Icon library to use (defaults to ConfigProvider value or 'fa'). */
   iconLibrary?: IconLibrary;
@@ -119,11 +108,7 @@ export interface RateProps
   iconVariant?: string;
   /** Additional icon modifiers. */
   iconFeatures?: string | string[];
-  /**
-   * Color of the active rating icons: a filled star is the color's own shade,
-   * with an edge in its on-scheme lightness, which reads on the page on both
-   * schemes. Without it, a filled star is gold with a warning edge.
-   */
+  /** Color of the active rating icons. */
   color?: BulmaColor;
   /** Rating precision (e.g., `0.5` for half stars). */
   precision?: number;
@@ -134,12 +119,8 @@ export interface RateProps
 /**
  * Default star icon component.
  */
-const StarIcon: React.FC<{ filled: boolean; className: string }> = ({
-  filled,
-  className,
-}) => (
+const StarIcon: React.FC<{ filled: boolean }> = ({ filled }) => (
   <svg
-    className={className}
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"
     fill={filled ? 'currentColor' : 'none'}
@@ -421,7 +402,6 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
       if (iconName) {
         return (
           <Icon
-            className={prefixedClassNames(classPrefix, 'rate-glyph')}
             name={iconName}
             library={resolvedLibrary}
             variant={iconVariant}
@@ -430,12 +410,7 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
         );
       }
 
-      return (
-        <StarIcon
-          filled={isActive}
-          className={prefixedClassNames(classPrefix, 'rate-star')}
-        />
-      );
+      return <StarIcon filled={isActive} />;
     };
 
     // Render partial icon with layered approach
@@ -503,7 +478,6 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
           </defs>
           {/* Background: empty star */}
           <path
-            className={prefixedClassNames(classPrefix, 'rate-star-empty')}
             fill="none"
             stroke="currentColor"
             strokeWidth={2}
