@@ -513,6 +513,7 @@ describe('selected buttons in forced colors', () => {
       'background-color': 'GrayText',
       'border-color': 'GrayText',
       color: 'Canvas',
+      opacity: '1',
     });
     expect(
       PLAIN.filter(selects).map(r => [r.context.join(' '), r.selector])
@@ -616,10 +617,15 @@ describe('selected buttons in forced colors', () => {
     // An attribute selector weighs what a class does.
     const asClasses = (selector: string) =>
       selector.replace(/\[[^\]]*\]/g, '.attribute');
+    // Bulma's disabled opacity too, which would blend the fill into the page.
+    const dimmed = BULMA.filter(
+      rule => !rule.context.length && 'opacity' in rule.declarations
+    ).flatMap(rule => rule.selector.split(', '));
+    expect(dimmed).toContain('.button[disabled]');
     for (const part of DISABLED.split(', ')) {
-      expect(weight(part)).toBeGreaterThan(
-        weight(asClasses('.button.is-link[disabled]'))
-      );
+      for (const other of ['.button.is-link[disabled]', ...dimmed]) {
+        expect(weight(part)).toBeGreaterThan(weight(asClasses(other)));
+      }
     }
   });
 

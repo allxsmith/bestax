@@ -94,7 +94,8 @@
   // element when it's idle, so it doesn't change look when it starts
   // loading: the page's own colors for most elements, a button's for a
   // `<button>`, a link's for a link, and no surface for a variant that has
-  // none, as below. Forcing off reaches everything inside too, which the
+  // none, as below. A selected button, which `_button.scss` draws in
+  // Highlight while it's idle, takes a button's colors here too. Forcing off reaches everything inside too, which the
   // rule at the top already hides. It also stops the browser recoloring the
   // border to show focus, so a focused one gets an outline, and so does one
   // with `is-focused`.

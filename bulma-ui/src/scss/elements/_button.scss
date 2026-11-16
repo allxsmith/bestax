@@ -41,10 +41,14 @@
 // color an author sets, so the browser goes on adjusting everything inside the
 // button. The browser draws a focused button's forced outline in its text
 // color, which is HighlightText there and can be the page's own color, so
-// its outline names CanvasText, as an unselected button's comes out. A
-// disabled one takes GrayText for its fill and edge and Canvas for its text,
-// so it still reads as pressed and as disabled. A loading one is left to
-// `_loader.scss`, which draws it in the colors it has when idle.
+// its outline names CanvasText, the color made to read on the page the
+// outline sits on. A disabled one takes GrayText for its fill and edge and
+// Canvas for its text, so it still reads as pressed and as disabled, at full
+// opacity, since Bulma's disabled opacity would blend the fill into the page
+// and the text into the fill. A loading one is left to `_loader.scss`, which
+// draws it as it draws any loading button, so while it loads it looks like
+// one that isn't pressed, with its label hidden behind the spinner either
+// way.
 //
 // Bulma's colors include `text`, but `.button.is-text` is a text button, as
 // `Button color="text"` and LinkButton's text and underline variants render
@@ -127,6 +131,7 @@
       background-color: GrayText;
       border-color: GrayText;
       color: Canvas;
+      opacity: 1;
     }
   }
 }
