@@ -10,6 +10,7 @@ import {
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
+import { useFieldMessage } from './useFieldMessage';
 
 /** Valid sizes for the Numberinput component. */
 export type NumberinputSize = 'small' | 'medium' | 'large';
@@ -330,10 +331,11 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
       className
     );
 
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+    const { messageEl, describedBy } = useFieldMessage(
+      message,
+      messageColor,
+      props['aria-describedby']
+    );
 
     // Use combined ref
     const combinedRef = (node: HTMLInputElement | null) => {
@@ -367,6 +369,7 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
           {...rest}
           // After the spread: an undefined `id` key in rest would wipe it.
           id={controlId}
+          aria-describedby={describedBy}
         />
       </div>
     );

@@ -19,6 +19,7 @@ import {
   useInsideField,
 } from '../FormContext';
 import { useAutoLabelId } from '../useAutoLabelId';
+import { useFieldMessage } from '../useFieldMessage';
 import { PickerPopover } from '../_pickerInternals/PickerPopover';
 import {
   isPopoverToggleKey,
@@ -255,9 +256,12 @@ export function DialogSelect({
   const panelClasses = usePrefixedClassNames(panelClass, {
     [`is-${size}`]: !!size,
   });
-  const helpClass = usePrefixedClassNames('help', {
-    [`is-${messageColor}`]: !!messageColor,
-  });
+  // The caller's ids, then the tags', then the message's.
+  const { messageEl, describedBy: fieldDescription } = useFieldMessage(
+    message,
+    messageColor,
+    [ariaDescribedBy, describedBy].filter(Boolean).join(' ') || undefined
+  );
   const isOpen = open && !disabled;
 
   // A reset of the field's form puts the value back, as it does a native
@@ -308,9 +312,6 @@ export function DialogSelect({
       event.preventDefault();
     }
   };
-
-  const fieldDescription =
-    [ariaDescribedBy, describedBy].filter(Boolean).join(' ') || undefined;
 
   const field = (
     <>
@@ -437,8 +438,6 @@ export function DialogSelect({
         {below}
       </div>
     );
-  const messageEl = message ? <p className={helpClass}>{message}</p> : null;
-
   if (ownField) {
     return (
       <Field

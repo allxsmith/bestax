@@ -6,11 +6,7 @@ import React, {
   useCallback,
   useId,
 } from 'react';
-import {
-  classNames,
-  usePrefixedClassNames,
-  prefixedClassNames,
-} from '../helpers/classNames';
+import { classNames, prefixedClassNames } from '../helpers/classNames';
 import { useConfig, useIconLibrary } from '../helpers/Config';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { isEventInside } from '../helpers/shadowDom';
@@ -27,6 +23,7 @@ import {
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
+import { useFieldMessage } from './useFieldMessage';
 import { Icon } from '../elements/Icon';
 
 /**
@@ -675,10 +672,13 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     const iconRightClass = pcn('icon', 'is-right');
     const loaderClass = pcn('loader', 'is-loading');
 
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+    // The other attributes go on the wrapper, so the input takes only the
+    // counter's and the message's ids.
+    const { messageEl, describedBy } = useFieldMessage(
+      message,
+      messageColor,
+      showCounter ? counterId : undefined
+    );
 
     // The combobox controls its listbox and points at the highlighted option,
     // the way Autocomplete's does. The listbox takes its name from the label
@@ -769,8 +769,9 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
               // keeps the fallback so the input is never nameless.
               aria-label={labelled ? undefined : 'Add tag'}
               // The counter, while it shows, describes the input, so at the
-              // limit it says why the field takes no more.
-              aria-describedby={showCounter ? counterId : undefined}
+              // limit it says why the field takes no more, and then the
+              // message does.
+              aria-describedby={describedBy}
             />
           </div>
           {loading && (
