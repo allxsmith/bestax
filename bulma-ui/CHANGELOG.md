@@ -1,3 +1,19 @@
+# [5.71.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.70.0...@allxsmith/bestax-bulma@5.71.0) (2026-11-16)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** answer a search for a calendar with Calendar first ([a3845b9](https://github.com/allxsmith/bestax/commit/a3845b967dcc1918733011f2d27a4fa3fca427a0))
+* **bulma-ui:** keep a held-month Calendar's focus on a day that can take it ([f919735](https://github.com/allxsmith/bestax/commit/f9197355dd2cb32b373a73f2291d8e34f8d254ad))
+* **bulma-ui:** move the date pickers' today mark when a render comes after midnight ([1bf5309](https://github.com/allxsmith/bestax/commit/1bf5309cdf7efdd7d4ee44f7bb6349c52a413bb3))
+* **bulma-ui:** open a Calendar with several months on a page that max holds whole ([46744f4](https://github.com/allxsmith/bestax/commit/46744f4c5456b8c8b5f210051e4906d62446f267))
+* **bulma-ui:** put focus back on the date pickers' calendar as its year list closes ([ca9aff6](https://github.com/allxsmith/bestax/commit/ca9aff66083014f4ee89fdae7c930f554222fa5c))
+
+
+### Features
+
+* **bulma-ui:** add Calendar, months on the page that pick a day or a range ([b6197c1](https://github.com/allxsmith/bestax/commit/b6197c17b0e0e4790ff5d5f2a3148355eda235cd))
+
 # [5.70.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.69.0...@allxsmith/bestax-bulma@5.70.0) (2026-11-15)
 
 
