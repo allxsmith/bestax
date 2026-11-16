@@ -1,3 +1,17 @@
+## [1.18.62](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.61...bestax-mcp@1.18.62) (2026-11-16)
+
+
+### Bug Fixes
+
+* **bulma-ui:** clip each Rate's partly filled star with a clip of its own ([4084bfb](https://github.com/allxsmith/bestax/commit/4084bfbc27195e9e4dc51bc0e416b22bece63d9c))
+* **bulma-ui:** draw a half star's filled part as a filled star, not gray ([8f7a24d](https://github.com/allxsmith/bestax/commit/8f7a24d26314a6a52ad5b637b17d1d2e617e2d86))
+* **bulma-ui:** draw a prefixed build's active dropdown row as the unprefixed one ([5a65f98](https://github.com/allxsmith/bestax/commit/5a65f989d32c03acac5597bb19a0af1799d8220f)), closes [#1805](https://github.com/allxsmith/bestax/issues/1805)
+* **bulma-ui:** let Control's as take undefined, and check every component's props ([7e56d90](https://github.com/allxsmith/bestax/commit/7e56d90cff97c0b83424cea7b06be41b9bc4bf41)), closes [#1707](https://github.com/allxsmith/bestax/issues/1707)
+* **bulma-ui:** let Space join a type-ahead search in TreeView and TreeSelect ([9d95c9f](https://github.com/allxsmith/bestax/commit/9d95c9fc64da47dc7db9c6294758a49065b24896)), closes [#1683](https://github.com/allxsmith/bestax/issues/1683)
+* **bulma-ui:** let the newly merged components' DOM-named props take undefined ([94c353a](https://github.com/allxsmith/bestax/commit/94c353afc66064cc904c7803f497c844a7fa3c9a))
+* **bulma-ui:** let the props under DOM attribute names take undefined ([cec95cb](https://github.com/allxsmith/bestax/commit/cec95cb8a372f3e1c0dda2a699d5ccaab7f9bac1)), closes [#1677](https://github.com/allxsmith/bestax/issues/1677) [#1707](https://github.com/allxsmith/bestax/issues/1707)
+* **docs:** leave an optional prop's undefined out of the props tables ([1fb3a82](https://github.com/allxsmith/bestax/commit/1fb3a826a402f786413125afad22bd7efa4c65ce)), closes [#1707](https://github.com/allxsmith/bestax/issues/1707) [#1707](https://github.com/allxsmith/bestax/issues/1707)
+
 ## [1.18.61](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.60...bestax-mcp@1.18.61) (2026-11-16)
 
 

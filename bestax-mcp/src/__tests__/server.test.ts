@@ -7,9 +7,12 @@
  * the handlers directly would pass while the server advertised nothing.
  *
  * These run against the committed index, not fixtures. The index is the
- * product; a test that stubs it proves nothing about what ships.
+ * product; a test that stubs it proves nothing about what ships. The project
+ * the main client answers for is a fixture, though: one with the library at
+ * the version the index documents, so the answers don't depend on how far the
+ * workspace's own library has moved since the index was stamped.
  */
-import { describe, expect, it, afterAll, beforeAll } from 'vitest';
+import { describe, expect, it, afterAll, beforeAll, vi } from 'vitest';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
@@ -19,6 +22,7 @@ import ts from 'typescript';
 
 import { DATA_DIR, loadCatalog, loadComponent } from '../data.js';
 import { createServer } from '../server.js';
+import { installLibrary } from './installed-library.js';
 
 /** The repository, which the export sweep reads the library's barrel from. */
 const REPO_ROOT = join(DATA_DIR, '..', '..');
@@ -29,6 +33,7 @@ type TextResult = {
 };
 
 let client: Client;
+let project: string;
 
 const text = (r: unknown) => (r as TextResult).content[0].text;
 const failed = (r: unknown) => Boolean((r as TextResult).isError);
@@ -36,15 +41,49 @@ const failed = (r: unknown) => Boolean((r as TextResult).isError);
 const call = (name: string, args: Record<string, unknown> = {}) =>
   client.callTool({ name, arguments: args });
 
-beforeAll(async () => {
-  const server = await createServer();
+/** A client linked to a server started in `cwd`, as a project would start it. */
+async function connectAt(cwd: string): Promise<Client> {
+  const server = await createServer({ cwd });
   const [clientTransport, serverTransport] =
     InMemoryTransport.createLinkedPair();
-  client = new Client({ name: 'test', version: '0' });
+  const linked = new Client({ name: 'test', version: '0' });
   await Promise.all([
     server.connect(serverTransport),
-    client.connect(clientTransport),
+    linked.connect(clientTransport),
   ]);
+  return linked;
+}
+
+/**
+ * A project directory with the library installed at `version`, for the server
+ * to check its index against.
+ */
+async function projectWith(version: string): Promise<string> {
+  const dir = await mkdtemp(join(tmpdir(), 'bestax-mcp-project-'));
+  await installLibrary(dir, version);
+  return dir;
+}
+
+// The main client answers for a project at the version the index documents,
+// so the tests read the answers with no drift warning on them, whatever the
+// workspace's own library is. Started in the workspace, the server checked
+// against that library, which a release moves ahead of the index until the
+// publish job restamps it. A minor or major release there puts the warning on
+// every answer (a patch gap says nothing), and a merge in that window got it,
+// which named CSS variables on a component with none and pushed the answers
+// kept under 10k past it. (`gen:mcp:check` flags the old stamp in that window
+// too, until the restamp lands.) The suite turns the version check on, whatever
+// the shell sets, since what it reads depends on that check.
+beforeAll(async () => {
+  vi.stubEnv('BESTAX_MCP_NO_VERSION_CHECK', '');
+  project = await projectWith((await loadCatalog()).generatedFrom.version);
+  client = await connectAt(project);
+});
+
+afterAll(async () => {
+  vi.unstubAllEnvs();
+  await client?.close();
+  if (project) await rm(project, { recursive: true, force: true });
 });
 
 describe('advertised surface', () => {
@@ -2753,6 +2792,38 @@ describe('get_helper_props on where a named class goes', () => {
   });
 });
 
+// The window between a feat release and the index's restamp, when a project,
+// the workspace among them, is a minor ahead of the index. Outside that window
+// the workspace matches the index, so this stands one up rather than waiting
+// for it.
+describe('with the library a minor version ahead of the index', () => {
+  let ahead: Client;
+  let dir: string;
+
+  beforeAll(async () => {
+    const [major, minor] = (await loadCatalog()).generatedFrom.version
+      .split('.')
+      .map(Number);
+    dir = await projectWith(`${major}.${minor + 1}.0`);
+    ahead = await connectAt(dir);
+  });
+
+  afterAll(async () => {
+    await ahead?.close();
+    if (dir) await rm(dir, { recursive: true, force: true });
+  });
+
+  it('warns on every answer, where the main client, at the index version, has no warning', async () => {
+    const block = { name: 'get_component', arguments: { name: 'Block' } };
+    const theme = { name: 'get_props', arguments: { component: 'Theme' } };
+    expect(text(await ahead.callTool(block))).toContain('This index documents');
+    expect(text(await ahead.callTool(theme))).toContain('This index documents');
+    expect(text(await client.callTool(block))).not.toContain(
+      'This index documents'
+    );
+  });
+});
+
 // A client that starts the server outside the project used to get answers checked
 // against nothing, and no word of it (#935).
 describe('with no installed library to check against', () => {
@@ -2761,14 +2832,7 @@ describe('with no installed library to check against', () => {
 
   beforeAll(async () => {
     dir = await mkdtemp(join(tmpdir(), 'bestax-mcp-elsewhere-'));
-    const server = await createServer({ cwd: dir });
-    const [clientTransport, serverTransport] =
-      InMemoryTransport.createLinkedPair();
-    elsewhere = new Client({ name: 'test', version: '0' });
-    await Promise.all([
-      server.connect(serverTransport),
-      elsewhere.connect(clientTransport),
-    ]);
+    elsewhere = await connectAt(dir);
   });
 
   afterAll(async () => {
