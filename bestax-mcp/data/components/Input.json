@@ -59,7 +59,7 @@
     },
     {
       "title": "Form Addons › Input + Static Suffix",
-      "code": "<Field hasAddons>\n  <Control isExpanded>\n    <Input placeholder=\"Your email\" aria-label=\"Email username\" />\n  </Control>\n  <Control>\n    <Button isStatic>@gmail.com</Button>\n  </Control>\n</Field>"
+      "code": "<Field hasAddons>\n  <Control isExpanded>\n    <Input placeholder=\"Your email\" aria-label=\"Email username\" />\n  </Control>\n  <Control>\n    <Button as=\"span\" isStatic>\n      @gmail.com\n    </Button>\n  </Control>\n</Field>"
     },
     {
       "title": "Form Addons › Select + Input + Button",
@@ -111,7 +111,7 @@
     },
     {
       "title": "Horizontal — Addons (Phone with Country Code)",
-      "code": "<Field horizontal label=\"Phone\" labelProps={{ htmlFor: 'phone-number' }}>\n  <Field.Body>\n    <Field hasAddons>\n      <Control>\n        <Button isStatic>+44</Button>\n      </Control>\n      <Control isExpanded>\n        <Input id=\"phone-number\" type=\"tel\" placeholder=\"Your phone number\" />\n      </Control>\n    </Field>\n  </Field.Body>\n</Field>"
+      "code": "<Field horizontal label=\"Phone\" labelProps={{ htmlFor: 'phone-number' }}>\n  <Field.Body>\n    <Field hasAddons>\n      <Control>\n        <Button as=\"span\" isStatic>\n          +44\n        </Button>\n      </Control>\n      <Control isExpanded>\n        <Input id=\"phone-number\" type=\"tel\" placeholder=\"Your phone number\" />\n      </Control>\n    </Field>\n  </Field.Body>\n</Field>"
     },
     {
       "title": "Horizontal — Submit Row",
