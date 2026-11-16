@@ -78,6 +78,7 @@ describe('Cascader styles', () => {
       'chevron-z-index',
       'clear-z-index',
       'search-gap',
+      'max-width',
       'column-width',
       'column-max-height',
       'column-border-width',
@@ -126,6 +127,23 @@ describe('Cascader styles', () => {
     expect(body(PLAIN, '.cascader-column + .cascader-column')).toContain(
       'border-inline-start: var(--bulma-cascader-column-border-width) solid var(--bulma-cascader-column-border-color)'
     );
+  });
+
+  it('keeps the panel no wider than the viewport, so on a narrow screen the columns scroll sideways in it', () => {
+    for (const [rules, prefix] of [
+      [PLAIN, ''],
+      [PREFIXED, 'bestax-'],
+    ] as const) {
+      expect(
+        body(
+          rules,
+          `.${prefix}cascader, .${prefix}cascader-panel.${prefix}is-portal`
+        )
+      ).toContain('--bulma-cascader-max-width: calc(100vw - 2rem)');
+      expect(body(rules, `.${prefix}cascader-panel`)).toContain(
+        'max-width: var(--bulma-cascader-max-width)'
+      );
+    }
   });
 
   it("starts the items from Combobox's values, its sizes included", () => {

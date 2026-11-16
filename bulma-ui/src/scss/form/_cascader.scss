@@ -26,6 +26,10 @@ $cascader-chevron-focus-color: cv.getVar('link') !default;
 $cascader-chevron-z-index: 4 !default;
 $cascader-clear-z-index: 5 !default;
 $cascader-search-gap: 0.5rem !default;
+// The panel, at least as wide as the field, grows with its columns up to
+// this, so on a narrow screen they scroll sideways inside it rather than
+// widening it past the screen.
+$cascader-max-width: calc(100vw - 2rem) !default;
 $cascader-column-width: 11rem !default;
 // A column scrolls past this, as Combobox's list does.
 $cascader-column-max-height: 15rem !default;
@@ -75,6 +79,7 @@ $cascader-sizes: cb.$combobox-sizes !default;
       'cascader-chevron-z-index': #{$cascader-chevron-z-index},
       'cascader-clear-z-index': #{$cascader-clear-z-index},
       'cascader-search-gap': #{$cascader-search-gap},
+      'cascader-max-width': #{$cascader-max-width},
       'cascader-column-width': #{$cascader-column-width},
       'cascader-column-max-height': #{$cascader-column-max-height},
       'cascader-column-border-width': #{$cascader-column-border-width},
@@ -115,9 +120,11 @@ $cascader-sizes: cb.$combobox-sizes !default;
   display: flex;
   flex-direction: column;
   gap: cv.getVar('cascader-search-gap');
+  max-width: cv.getVar('cascader-max-width');
 }
 
-// The columns side by side, scrolling sideways when they don't all fit.
+// The columns side by side, scrolling sideways when they don't all fit in
+// the panel.
 .#{iv.$class-prefix}cascader-columns {
   display: flex;
   font-size: cv.getVar('cascader-item-size');
