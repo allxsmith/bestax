@@ -313,8 +313,10 @@ Notes:
   ```
 
   The `table` extras partial draws the keyboard focus ring of a responsive table's container
-  (`isResponsive`), which is a tab stop while the table overflows it, in Bulma's focus color.
-  Include it next to the Bulma module in any build with a responsive table:
+  (`isResponsive`), which is a tab stop while the table overflows it, in Bulma's focus color, and
+  outlines a selected row or cell (`Tr isSelected`, and a `DataTable`'s selected rows) in forced
+  colors, where Bulma's fill for it is replaced. Include it next to the Bulma module in any build
+  with a responsive table or selected rows:
 
   ```scss
   @use '@allxsmith/bestax-bulma/scss/elements/table' as bestax-table;
