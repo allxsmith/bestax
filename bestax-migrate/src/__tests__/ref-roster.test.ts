@@ -62,6 +62,10 @@ const NAMED_INDIVIDUALLY = [
   'Dropdown',
   'EmptyState',
   'Flex',
+  'FloatButton',
+  'FloatButton.BackToTop',
+  'FloatButton.SpeedDial',
+  'FloatButtons',
   'Group',
   'IconButton',
   'Kbd',
@@ -99,6 +103,8 @@ const NAMED_INDIVIDUALLY = [
   'Timeline.Item',
   'Toast',
   'ToggleButton',
+  'Tour',
+  'Tour.Step',
   'TreeView',
   'TreeView.Item',
 ] as const;
@@ -111,6 +117,7 @@ const NAMED_INDIVIDUALLY = [
  */
 const SUMMARISED_AS_FORM_CONTROLS = [
   'Autocomplete',
+  'Calendar',
   'Cascader',
   'Checkbox',
   'CheckboxCard',

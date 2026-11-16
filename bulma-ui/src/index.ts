@@ -36,7 +36,10 @@ export * from './components/ScrollArea';
 export * from './components/Command';
 export * from './components/DataTable';
 export * from './components/Affix';
+export * from './components/FloatButton';
+export * from './components/FloatButtons';
 export * from './components/TableOfContents';
+export * from './components/Tour';
 
 export * from './elements/Block';
 export * from './elements/Box';
@@ -134,6 +137,14 @@ export { PasswordInput } from './form/PasswordInput';
 export type { PasswordInputProps } from './form/PasswordInput';
 
 // Date / time pickers
+export { Calendar } from './form/Calendar';
+export type {
+  CalendarProps,
+  CalendarSingleProps,
+  CalendarRangeProps,
+  CalendarSelectionMode,
+  CalendarDayState,
+} from './form/Calendar';
 export { DateInputBase } from './form/DateInputBase';
 export type { DateInputBaseProps } from './form/DateInputBase';
 export { DateInput } from './form/DateInput';

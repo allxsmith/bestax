@@ -16,10 +16,13 @@ $tree-select-panel-max-height: 15rem !default;
 $tree-select-search-gap: 0.5rem !default;
 // The chevron's box at the field's inline end, drawn as a Control's icon is.
 // Bulma registers its input variables on the field and its Control, which the
-// root is outside, so these start from the tokens those start from.
+// root is outside, so these start from root tokens. Its colors follow the
+// scheme, since the chevron is what marks the field as a picker: Bulma's
+// icon color, text-light, is a fixed light gray that the light scheme's white
+// all but hides.
 $tree-select-chevron-width: cv.getVar('control-height') !default;
-$tree-select-chevron-color: cv.getVar('text-light') !default;
-$tree-select-chevron-hover-color: cv.getVar('text-weak') !default;
+$tree-select-chevron-color: cv.getVar('text-weak') !default;
+$tree-select-chevron-hover-color: cv.getVar('text') !default;
 $tree-select-chevron-focus-color: cv.getVar('link') !default;
 // Over the field, as Bulma stacks a Control's icon, and the clear button
 // over the chevron.

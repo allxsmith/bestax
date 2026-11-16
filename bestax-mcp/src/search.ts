@@ -222,7 +222,14 @@ export const ALIASES: Readonly<Record<string, readonly string[]>> = {
   // ported names the one it loads (bestax-migrate's EXTENSION_COMPONENTS).
   bulmaaccordion: ['Collapses', 'Collapse'],
   bulmabadge: ['Badge'],
-  bulmacalendar: ['DateInput', 'DateTimeInput', 'TimeInput', 'DateRangeInput'],
+  bulmacalendar: [
+    'DateInput',
+    'DateTimeInput',
+    'TimeInput',
+    'DateRangeInput',
+    // Its inline display mode, a calendar on the page.
+    'Calendar',
+  ],
   bulmacarousel: ['Carousel'],
   bulmacheckradio: ['Checkbox', 'Radio'],
   bulmacollapsible: ['Collapse', 'Collapses'],
@@ -236,7 +243,8 @@ export const ALIASES: Readonly<Record<string, readonly string[]>> = {
   bulmatoast: ['Toast'],
   bulmatooltip: ['Tooltip'],
   buttongroup: ['Buttons'],
-  calendar: ['DateInput', 'DateTimeInput'],
+  // A calendar on the page, and then the pickers that open one.
+  calendar: ['Calendar', 'DateInput', 'DateTimeInput'],
   checkboxgroup: ['Checkboxes'],
   chip: ['Taginput'],
   chipinput: ['Taginput'],
@@ -245,6 +253,8 @@ export const ALIASES: Readonly<Record<string, readonly string[]>> = {
   // Mantine, Chakra and Radix Themes call it DataList. HTML's `<datalist>` is
   // input suggestions, which is Autocomplete.
   datalist: ['DescriptionList', 'Autocomplete'],
+  // MUI's name for it.
+  datecalendar: ['Calendar'],
   datepicker: ['DateInput', 'DateTimeInput'],
   datetimepicker: ['DateTimeInput'],
   definitionlist: ['DescriptionList'],

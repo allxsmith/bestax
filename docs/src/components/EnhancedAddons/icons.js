@@ -42,6 +42,18 @@ function AffixIcon() {
   );
 }
 
+// A screen with a round button in its corner and two smaller ones above it
+function FloatButtonIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <circle cx="16" cy="17" r="2" />
+      <circle cx="16" cy="11.5" r="1.25" />
+      <circle cx="16" cy="7" r="1.25" />
+    </svg>
+  );
+}
+
 // Person in a frame — avatar
 function AvatarIcon() {
   return (
@@ -58,6 +70,18 @@ function BadgeIcon() {
     <svg {...iconProps}>
       <rect x="3" y="6" width="12" height="12" rx="2" />
       <circle cx="18" cy="6" r="3" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+// A month page with its binding rings, and a dot under one day
+function CalendarIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="4.5" width="18" height="16.5" rx="2" />
+      <path d="M3 9.5h18M8 2.5v4M16 2.5v4" />
+      <path d="M7.5 13.5h.01M12 13.5h.01M16.5 13.5h.01M7.5 17h.01M12 17h.01" />
+      <circle cx="16.5" cy="17.5" r="1.25" />
     </svg>
   );
 }
@@ -481,6 +505,18 @@ function TooltipIcon() {
   );
 }
 
+// A button ringed by a spotlight, and a step's panel below it with a line of text and its buttons
+function TourIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="2.5" width="10" height="6" rx="2" strokeDasharray="2 2" />
+      <path d="M6 5.5h4" />
+      <rect x="7" y="12" width="14" height="9.5" rx="2" />
+      <path d="M10 15.5h8M10 18.5h3M15.5 18.5h2.5" />
+    </svg>
+  );
+}
+
 // An open parent's chevron and row, with two rows under its guide line
 function TreeViewIcon() {
   return (
@@ -511,8 +547,10 @@ const ADDON_ICONS = {
   linkbutton: LinkButtonIcon,
   kbd: KbdIcon,
   affix: AffixIcon,
+  floatbutton: FloatButtonIcon,
   avatar: AvatarIcon,
   badge: BadgeIcon,
+  calendar: CalendarIcon,
   carousel: CarouselIcon,
   cascader: CascaderIcon,
   choicecard: ChoiceCardIcon,
@@ -548,6 +586,7 @@ const ADDON_ICONS = {
   timeline: TimelineIcon,
   toast: ToastIcon,
   tooltip: TooltipIcon,
+  tour: TourIcon,
   treeselect: TreeSelectIcon,
   treeview: TreeViewIcon,
 };

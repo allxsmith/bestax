@@ -87,7 +87,7 @@
         },
         {
           "name": "id",
-          "type": "string",
+          "type": "React.HTMLAttributes<HTMLElement>['id']",
           "default": null,
           "description": "Applied to the inner text input (the labellable control), not the wrapper div.",
           "required": false,

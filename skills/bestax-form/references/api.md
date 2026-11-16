@@ -215,16 +215,17 @@ Passing `triggerIcon` explicitly overrides this.
 ```
 
 For an app in another language, wrap it, or the form, in `LocaleProvider` rather than passing the
-same `locale` to every picker. The pickers inside take its locale for their day and month names
-and any `Intl` `format`, and start the week on that locale's first day (Monday for `"de"`), unless
-one sets `locale` or `firstDayOfWeek` itself. Outside a provider the week starts on Sunday, and so
-does a picker given its own `dayNames`, which it shows exactly as given and which screen readers
-hear as the columns' names: pass `firstDayOfWeek` with them and list them from that day. With
-server rendering, set a locale: without one, an `inline` calendar names its days in the server's
-language on the server and the reader's in the browser, and hydration fails to match whenever
-the two languages differ. Give an `inline` picker a `value` or `defaultValue` there too: without
-one it opens on the month the clock reads, and the server's clock and the reader's can read
-different months.
+same `locale` to every picker. The pickers inside take its locale for their day and month names, the
+digits their calendar and time wheels write numbers in, the time wheels' words for AM and PM, and
+any `Intl` `format`, and start the week on that locale's first day (Monday for `"de"`), unless one
+sets `locale` or `firstDayOfWeek` itself. Outside a provider the week starts on Sunday, and so does
+a picker given its own `dayNames`, which it shows exactly as given and which screen readers hear as
+the columns' names: pass `firstDayOfWeek` with them and list them from that day. With server
+rendering, set a locale: without one, an `inline` calendar names its days in the server's language
+on the server and the reader's in the browser, and hydration fails to match whenever the two
+languages differ. Give an `inline` picker a `value` or `defaultValue` there too: without one it
+opens on the month the clock reads, and the server's clock and the reader's can read different
+months.
 
 ```tsx
 <LocaleProvider locale="de">
@@ -275,6 +276,39 @@ const [stay, setStay] = useState<DateRangeValue>([null, null]);
   onChange={setStay}
   color={stay[0] && !stay[1] ? 'danger' : undefined}
   message={stay[0] && !stay[1] ? 'Pick a check-out date.' : undefined}
+/>;
+```
+
+For months on the page that say something about each day (free slots, fares, holidays, an
+agenda), use `Calendar` rather than an `inline` picker with content drawn over it. It's the
+pickers' grid with no `Field`, label or hidden input, so a form that posts a date still uses
+`DateInput inline`. A click picks: `selectionMode` is `'single'` (`Date | null`, as on
+`DateInput`, with `granularity` for a month or a year) or `'range'` (`[start, end]`, as on
+`DateRangeInput`, reported once both ends are picked). `readOnly` reads days without picking
+them and `disabled` stops both. `dayTemplate(date, state)` draws short content under a day's
+number, and because a day's name is its full date, which a screen reader reads instead, pair it
+with `getDayLabel(date, label)` to say the same thing. `month`/`defaultMonth`/`onMonthChange`
+hold the month on show, so load each month's data in `onMonthChange` and set `loading` while it
+arrives. `monthsToShow` sets months side by side, and `isFullwidth` stretches the days to the
+container. Name it with `aria-label` or `aria-labelledby`. On a server-rendered page give it a
+`month`, a `defaultMonth` or a picked `value`, since without one the first month comes from the
+clock, and a `locale` (or a `LocaleProvider` around it), since without one the month and weekday
+names come in the server's language on the server.
+
+```tsx
+const [month, setMonth] = useState(new Date(2026, 10, 1));
+const [day, setDay] = useState<Date | null>(null);
+
+<Calendar
+  aria-label="Book a slot"
+  month={month}
+  onMonthChange={setMonth}
+  loading={loading}
+  value={day}
+  onChange={setDay}
+  shouldDisableDate={date => slotsLeft(date) === 0}
+  dayTemplate={date => slotsLeft(date) > 0 && `${slotsLeft(date)} left`}
+  getDayLabel={(date, label) => `${label}, ${slotsLeft(date)} slots left`}
 />;
 ```
 
