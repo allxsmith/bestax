@@ -116,7 +116,8 @@ export interface TourLabels {
   close?: string;
   /**
    * The progress line, which also starts the announcement after the step
-   * changes ("Step 2 of 5: Filters"). `step` counts from 1.
+   * changes ("Step 2 of 5: Filters"). `step` counts from 1. It isn't called
+   * with `mode="beacon"`, whose steps show no progress.
    * @defaultValue (step, total) => `Step ${step} of ${total}`, the numbers in
    * the LocaleProvider's locale
    */
@@ -460,8 +461,9 @@ interface PageWatch {
   /** Watches more elements' sizes; `null` where there's no ResizeObserver. */
   sizes: ResizeObserver | null;
   /**
-   * Listens for a scroll in the shadow roots the targets found now are
-   * rendered in, which a window listener never hears.
+   * Listens for a scroll, and watches for changes, in the shadow roots the
+   * targets found now are rendered in, which neither a window listener nor
+   * the body's subtree reaches.
    */
   follow: (...targets: Array<HTMLElement | null>) => void;
   stop: () => void;
@@ -476,8 +478,9 @@ interface PageWatch {
  * loading. Any attribute can bring a target in or move one (`hidden`, `open`,
  * `style`, a `data-` one a selector names), and the frame bounds the cost.
  * The tour's own changes can't, so they're left out. A tour in a shadow root
- * watches that root too, which the body's subtree doesn't reach. A step's
- * target and the beacons' targets are both watched this way.
+ * watches that root too, and so does a target in one, as `follow` finds
+ * them, since the body's subtree reaches neither. A step's target and the
+ * beacons' targets are both watched this way.
  */
 function watchPage(root: HTMLElement, update: () => void): PageWatch {
   const doc = root.ownerDocument;
@@ -496,22 +499,45 @@ function watchPage(root: HTMLElement, update: () => void): PageWatch {
       ? null
       : new ResizeObserver(() => schedule());
   sizes?.observe(doc.body);
+  // The tour's own changes can't move a target.
+  const outside = (records: MutationRecord[]) =>
+    records.some(record => !root.contains(record.target));
   const observer = new MutationObserver(records => {
-    if (records.some(record => !root.contains(record.target))) schedule();
+    if (outside(records)) schedule();
   });
   const changes = { childList: true, subtree: true, attributes: true };
-  observer.observe(doc.body, changes);
-  if (scope !== doc) observer.observe(scope, changes);
+  // The body, the tour's own shadow root, and the shadow roots the targets
+  // are in, which neither one's subtree reaches.
+  const observe = (roots: readonly ShadowRoot[]) => {
+    observer.observe(doc.body, changes);
+    if (scope !== doc) observer.observe(scope, changes);
+    for (const shadow of roots) {
+      if (shadow !== scope) observer.observe(shadow, changes);
+    }
+  };
+  observe([]);
   view.addEventListener('scroll', schedule, { passive: true, capture: true });
   view.addEventListener('resize', schedule, { passive: true });
   const shadowScrolls = listenInShadowRoots('scroll', schedule, {
     passive: true,
     capture: true,
   });
+  // The helper's own list, none yet, which stays the same array until the
+  // roots change.
+  let followed = shadowScrolls.follow();
   return {
     schedule,
     sizes,
-    follow: shadowScrolls.follow,
+    follow: (...targets) => {
+      const roots = shadowScrolls.follow(...targets);
+      if (roots === followed) return;
+      followed = roots;
+      // Changes not yet delivered would go with the old registrations.
+      const pending = observer.takeRecords();
+      observer.disconnect();
+      observe(roots);
+      if (outside(pending)) schedule();
+    },
     stop: () => {
       view.cancelAnimationFrame(frame);
       sizes?.disconnect();
@@ -862,9 +888,19 @@ function isInView(element: HTMLElement, rect: Edges): boolean {
           holdsPositioned(style);
     if (!holds) continue;
     position = style.position;
-    const { overflowX, overflowY } = style;
-    const clips = /auto|scroll|hidden|clip/.test(`${overflowX} ${overflowY}`);
-    if (clips && !inside(node.getBoundingClientRect())) return false;
+    // Each axis clips on its own: `overflow-x: clip` leaves the other one
+    // visible.
+    const clipsX = /auto|scroll|hidden|clip/.test(style.overflowX);
+    const clipsY = /auto|scroll|hidden|clip/.test(style.overflowY);
+    if (!clipsX && !clipsY) continue;
+    const box = node.getBoundingClientRect();
+    const clip = {
+      top: clipsY ? box.top : -Infinity,
+      bottom: clipsY ? box.bottom : Infinity,
+      left: clipsX ? box.left : -Infinity,
+      right: clipsX ? box.right : Infinity,
+    };
+    if (!inside(clip)) return false;
   }
   return true;
 }
@@ -968,7 +1004,7 @@ interface TourContextValue {
   placement: { side: AnchoredSide | 'center'; top?: number; left?: number };
   titleAs: TourTitleElement;
   words: TourWords;
-  /** The progress line for the current step. */
+  /** The progress line for the current step, empty on a beacon's step. */
   progress: string;
   stepRef: React.MutableRefObject<HTMLDivElement | null>;
   /** Whether the step held focus as it last went from the page. */
@@ -1891,9 +1927,15 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
 
     const formatNumber = useScopedNumberFormat();
     const write = (n: number) => (formatNumber ? formatNumber(n) : String(n));
-    const progress = labels?.progress
-      ? labels.progress(index + 1, total)
-      : `Step ${write(index + 1)} of ${write(total)}`;
+    // A beacon's step shows no progress, and with no step to show, as a
+    // beacon tour with none open or a tour with no steps yet, the index is
+    // -1, which `labels.progress` isn't written for.
+    const progress =
+      beacon || !step
+        ? ''
+        : labels?.progress
+          ? labels.progress(index + 1, total)
+          : `Step ${write(index + 1)} of ${write(total)}`;
     const words: TourWords = {
       skip: labels?.skip || 'Skip',
       back: labels?.back || 'Back',

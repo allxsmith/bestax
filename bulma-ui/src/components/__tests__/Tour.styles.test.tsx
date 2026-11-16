@@ -197,6 +197,9 @@ describe('Tour styles', () => {
       position: 'fixed',
       width: 'var(--bulma-tour-beacon-size)',
       height: 'var(--bulma-tour-beacon-size)',
+      // WCAG 2.2's minimum target size, whatever the size or the root font.
+      'min-width': '24px',
+      'min-height': '24px',
       border:
         'var(--bulma-tour-beacon-ring-width) solid var(--bulma-tour-beacon-ring-color)',
       'border-radius': 'var(--bulma-radius-rounded)',
@@ -270,5 +273,9 @@ describe('Tour styles', () => {
     expect(
       find(PREFIXED, '.bestax-tour.bestax-is-beacon:not(.bestax-is-active)')
     ).toEqual({ 'z-index': 'var(--bulma-tour-beacon-z-index)' });
+    expect(find(PREFIXED, '.bestax-tour-beacon')).toMatchObject({
+      'min-width': '24px',
+      'min-height': '24px',
+    });
   });
 });

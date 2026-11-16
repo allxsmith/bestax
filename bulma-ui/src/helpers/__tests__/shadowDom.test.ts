@@ -134,17 +134,19 @@ describe('shadowDom helpers', () => {
       document.body.appendChild(otherHost);
       const heard = vi.fn();
       const scrolls = listenInShadowRoots('scroll', heard, { capture: true });
-      scrolls.follow(inner, there, inner, null);
+      const roots = scrolls.follow(inner, there, inner, null);
+      expect(roots).toEqual([shadowRoot, other]);
       shadowRoot.dispatchEvent(new Event('scroll'));
       other.dispatchEvent(new Event('scroll'));
       expect(heard).toHaveBeenCalledTimes(2);
       // A node listed twice, or the same roots in another order, adds no
-      // listener and takes none off.
+      // listener, takes none off, and gives back the same list.
       const added = vi.spyOn(shadowRoot, 'addEventListener');
       const removed = vi.spyOn(shadowRoot, 'removeEventListener');
-      scrolls.follow(there, inner, inner);
+      expect(scrolls.follow(there, inner, inner)).toBe(roots);
       expect(added).not.toHaveBeenCalled();
       expect(removed).not.toHaveBeenCalled();
+      expect(scrolls.follow(inner)).toEqual([shadowRoot]);
       scrolls.stop();
       otherHost.remove();
     });

@@ -1176,12 +1176,13 @@ takes Popover's look from the same Bulma tokens Popover's panel reads, since `--
 is declared on Popover's own panel and doesn't reach a step. `--bulma-tour-overlay-background` is
 Bulma's modal backdrop color at half its strength. `--bulma-tour-spotlight-padding` grows the
 spotlight past the target's edge, and the step sits `--bulma-tour-step-offset` past that. In
-`mode="beacon"`, `--bulma-tour-beacon-size` is a beacon's hit area too, so keep it at 24px or more,
-and while only the beacons show the tour sits at `--bulma-tour-beacon-z-index`, 19, one under the
-dropdown tier, so everything there or above covers them: a Bulma navbar, fixed or not (30),
-sidebars and modals, and the dropdown menus of `Dropdown`, `Combobox`, `Autocomplete` and
-`Taginput` (20). Raise it above the layer a target sits in, such as 31 over a navbar, for beacons on
-targets inside one.
+`mode="beacon"`, `--bulma-tour-beacon-size` is a beacon's hit area too, and it can't take a beacon
+below 24px: the stylesheet gives `.tour-beacon` a `min-width` and `min-height` of 24px, WCAG 2.2's
+minimum target size, under any root font size. While only the beacons show, the tour sits at
+`--bulma-tour-beacon-z-index`, 19, one under the dropdown tier, so everything there or above covers
+them: a Bulma navbar, fixed or not (30), sidebars and modals, and the dropdown menus of
+`Dropdown`, `Combobox`, `Autocomplete` and `Taginput` (20). Raise it above the layer a target sits
+in, such as 31 over a navbar, for beacons on targets inside one.
 
 `--bulma-tour-beacon-animation-duration`, `--bulma-tour-beacon-color`,
 `--bulma-tour-beacon-ring-color`, `--bulma-tour-beacon-ring-width`, `--bulma-tour-beacon-size`,

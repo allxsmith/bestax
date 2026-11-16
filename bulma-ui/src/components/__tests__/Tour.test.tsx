@@ -3196,7 +3196,11 @@ describe('Tour', () => {
     it('hides the beacons of fixed and absolute targets a transformed ancestor holds in a panel that cuts them off', () => {
       render(
         <>
-          <div data-rect="0 0 300 200" style={{ overflowY: 'hidden' }}>
+          {/* A carousel's window: both axes, as a browser computes them. */}
+          <div
+            data-rect="0 0 300 200"
+            style={{ overflowX: 'hidden', overflowY: 'hidden' }}
+          >
             {/* A slide track: static, and moved by a transform. */}
             <div
               data-rect="0 -300 900 200"
@@ -3231,6 +3235,107 @@ describe('Tour', () => {
         </>
       );
       expect(beacons()).toEqual([]);
+    });
+
+    it('keeps a beacon whose corner shows past an ancestor that clips only across', () => {
+      render(
+        <>
+          <div data-rect="200 0 600 100" style={{ overflowX: 'clip' }}>
+            <button type="button" id="tall" data-rect="150 100 80 100">
+              Tall
+            </button>
+          </div>
+          <Tour mode="beacon" defaultOpen>
+            <Tour.Step target="#tall" title="Tall">
+              Above its parent, which clips only across.
+            </Tour.Step>
+          </Tour>
+        </>
+      );
+      expect(beacon('Tall').style.top).toBe('150px');
+      // Across, it's cut off.
+      document.getElementById('tall')!.dataset.rect = '150 560 80 100';
+      act(() => {
+        window.dispatchEvent(new Event('scroll'));
+      });
+      expect(beacons()).toEqual([]);
+    });
+
+    it('moves a beacon with a target that a change inside its shadow root moves', async () => {
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const inner = document.createElement('button');
+      inner.dataset.rect = '100 100 80 30';
+      host.attachShadow({ mode: 'open' }).appendChild(inner);
+      render(
+        <Tour mode="beacon" defaultOpen>
+          <Tour.Step target={inner} title="Inner">
+            In a web component.
+          </Tour.Step>
+        </Tour>
+      );
+      expect(beacon('Inner').style.top).toBe('100px');
+      // A change the body's subtree doesn't reach.
+      await act(async () => {
+        inner.dataset.rect = '160 100 80 30';
+      });
+      expect(beacon('Inner').style.top).toBe('160px');
+      host.remove();
+    });
+
+    it('asks labels.progress for nothing, since a beacon’s step shows no progress', () => {
+      const progress = vi.fn(
+        (step: number, total: number) =>
+          `${['Filters', 'Export'][step - 1]!.toUpperCase()} of ${total}`
+      );
+      const { unmount } = render(<Tips defaultOpen labels={{ progress }} />);
+      fireEvent.click(beacon('Export'));
+      expect(screen.getByRole('dialog', { name: 'Export' })).toBeVisible();
+      expect(progress).not.toHaveBeenCalled();
+      unmount();
+      // Nor does a guided tour with no steps yet.
+      render(
+        <Tour defaultOpen labels={{ progress }}>
+          {[]}
+        </Tour>
+      );
+      expect(progress).not.toHaveBeenCalled();
+    });
+
+    it('measures again for changes on their way when a target moves to another shadow root', () => {
+      const frames: FrameRequestCallback[] = [];
+      vi.mocked(window.requestAnimationFrame).mockImplementation(callback => {
+        frames.push(callback);
+        return frames.length;
+      });
+      const component = () => {
+        const host = document.createElement('div');
+        document.body.appendChild(host);
+        return { host, shadow: host.attachShadow({ mode: 'open' }) };
+      };
+      const first = component();
+      const second = component();
+      const inner = document.createElement('button');
+      inner.dataset.rect = '100 100 80 30';
+      first.shadow.appendChild(inner);
+      render(
+        <Tour mode="beacon" defaultOpen>
+          <Tour.Step target={inner} title="Inner">
+            Moved between web components.
+          </Tour.Step>
+        </Tour>
+      );
+      act(() => {
+        // A change in the first root, not delivered yet when the frame
+        // follows the target into the second.
+        second.shadow.appendChild(inner);
+        window.dispatchEvent(new Event('scroll'));
+        const asked = frames.length;
+        frames[asked - 1](0);
+        expect(frames).toHaveLength(asked + 1);
+      });
+      first.host.remove();
+      second.host.remove();
     });
 
     it('draws each beacon at its own step’s target in the render that reorders them', () => {

@@ -49,7 +49,8 @@ $tour-step-body-padding: 1rem !default;
 $tour-step-footer-padding: 0.75rem 1rem !default;
 $tour-step-footer-gap: 0.5rem !default;
 $tour-progress-color: cv.getVar('text-weak') !default;
-// A beacon's size is its hit area, so it stays at 24px or more (WCAG 2.5.8).
+// A beacon's size is its hit area, which the beacon rule keeps at 24px or
+// more, WCAG 2.2's minimum target size, whatever the size or the root font.
 $tour-beacon-size: 1.5rem !default;
 $tour-beacon-color: cv.getVar('primary') !default;
 // A ring in the page's own color, so a beacon stands out on a target drawn
@@ -264,6 +265,8 @@ $tour-beacon-z-index: $extras-z-index-dropdown - 1 !default;
   position: fixed;
   width: cv.getVar('tour-beacon-size');
   height: cv.getVar('tour-beacon-size');
+  min-width: 24px;
+  min-height: 24px;
   margin: 0;
   padding: 0;
   border: cv.getVar('tour-beacon-ring-width') solid

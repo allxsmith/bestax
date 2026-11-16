@@ -136,7 +136,9 @@ export function shadowRootsAround(node: Node | null | undefined): ShadowRoot[] {
  * `follow` finds the nodes' roots again and moves the listener when they've
  * changed, so a caller that calls it at each measurement keeps up with
  * other nodes, or with a component around one that got its shadow root
- * since. `stop` takes the listener off them all.
+ * since. It gives back the roots it listens on, the same array until they
+ * change, so a caller can watch those roots in other ways too. `stop` takes
+ * the listener off them all.
  *
  * @param type - The event to listen for.
  * @param listener - What runs on it.
@@ -148,7 +150,7 @@ export function listenInShadowRoots(
   listener: () => void,
   options: AddEventListenerOptions
 ): {
-  follow: (...nodes: Array<Node | null | undefined>) => void;
+  follow: (...nodes: Array<Node | null | undefined>) => readonly ShadowRoot[];
   stop: () => void;
 } {
   let roots: ShadowRoot[] = [];
@@ -169,6 +171,7 @@ export function listenInShadowRoots(
       ) {
         move(now);
       }
+      return roots;
     },
     stop: () => move([]),
   };
