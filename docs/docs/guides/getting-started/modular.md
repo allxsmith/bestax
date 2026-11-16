@@ -155,7 +155,7 @@ bestax's prebuilt stylesheets build Bulma's table with `$table-cell-text-align: 
 );
 ```
 
-A build with a responsive `Table`, selected rows or a `DataTable` that selects rows also wants bestax's `elements/table` partial, as the list of partials below says.
+A build with a responsive `Table` also wants bestax's `elements/table` partial, for its container's focus ring, and so does one with selected rows, in a `Table` or a `DataTable`, which the partial marks in forced colors.
 
 Pull in only the helper categories you use:
 

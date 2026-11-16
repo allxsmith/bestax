@@ -19,8 +19,8 @@ export interface TrProps
    * Whether the row is selected (adds Bulma's is-selected class). It's a look
    * only: it says nothing to assistive tech, so pair it with a checkbox named
    * for the row when the selection matters. Forced colors replaces its fill,
-   * so there the `elements/table` partial draws a double line around the row
-   * in the system's highlight color instead. A bestax `Checkbox` or `Radio`
+   * so there the `elements/table` partial draws a double line just inside the
+   * row's edge in the system's highlight color instead. A bestax `Checkbox` or `Radio`
    * placed straight in one of the row's cells takes the row's text color, so
    * a checked one shows on the row's fill. One in a menu or a table nested in a
    * cell, or in a cell with a `color` of its own, keeps its own colors, since

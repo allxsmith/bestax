@@ -33,7 +33,7 @@ anywhere on the page.
 :::info
 Bulma has the table and nothing that sorts it, so `DataTable` brings a few styles of its own, for
 the sort buttons and the toolbar, in `bestax.css` and its variants, or in `extras.css` next to your
-own Bulma. The rest is Bulma's table, checkbox and pagination, with bestax's partials for them.
+own Bulma. The rest is Bulma's table, checkbox and pagination.
 :::
 
 ---
