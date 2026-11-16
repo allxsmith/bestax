@@ -72,6 +72,26 @@ export const Default: Story = {
   },
 };
 
+export const LongLine: Story = {
+  render: () => (
+    <Pre aria-label="Install command">
+      <Code>
+        {
+          'pnpm add @allxsmith/bestax-bulma bulma react react-dom @fortawesome/fontawesome-free material-symbols'
+        }
+      </Code>
+    </Pre>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'A line longer than the block scrolls sideways. While it does, the block is a tab stop you can scroll with the arrow keys, and with a name it is a region.',
+      },
+    },
+  },
+};
+
 export const WithCodeElement: Story = {
   render: () => (
     <Pre>
