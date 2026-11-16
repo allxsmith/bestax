@@ -9,7 +9,13 @@ export type ScrollRegionOrientation = 'vertical' | 'horizontal' | 'both';
 /** An edge of the content: the block's top and bottom, the line's start and end. */
 export type ScrollRegionEdge = 'top' | 'bottom' | 'start' | 'end';
 
-const EDGES: readonly ScrollRegionEdge[] = ['top', 'bottom', 'start', 'end'];
+/** Every edge, in the order the measurement reports them. */
+export const SCROLL_REGION_EDGES: readonly ScrollRegionEdge[] = [
+  'top',
+  'bottom',
+  'start',
+  'end',
+];
 
 // Layout can land a fraction of a pixel short of an edge, so anything closer
 // than this counts as there.
@@ -31,7 +37,7 @@ const sameMeasure = (a: ScrollMeasure | null, b: ScrollMeasure): boolean =>
   a.overflowing === b.overflowing &&
   a.barInline === b.barInline &&
   a.barBlock === b.barBlock &&
-  EDGES.every(edge => a.edges[edge] === b.edges[edge]);
+  SCROLL_REGION_EDGES.every(edge => a.edges[edge] === b.edges[edge]);
 
 /**
  * Hands a node to the hook's own ref and to the caller's, and passes on what
@@ -143,7 +149,7 @@ export function useScrollRegion<T extends HTMLElement>({
       const last = lastRef.current;
       lastRef.current = next;
       if (fromScroll && last) {
-        for (const edge of EDGES) {
+        for (const edge of SCROLL_REGION_EDGES) {
           if (last.edges[edge] && !next.edges[edge]) {
             onEdgeReachRef.current?.(edge);
           }

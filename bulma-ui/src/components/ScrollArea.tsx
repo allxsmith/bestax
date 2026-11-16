@@ -5,19 +5,22 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useScrollRegion } from '../helpers/useScrollRegion';
+import {
+  useScrollRegion,
+  SCROLL_REGION_EDGES,
+  type ScrollRegionEdge,
+  type ScrollRegionOrientation,
+} from '../helpers/useScrollRegion';
 import { warnOnce } from '../helpers/devWarnings';
 
 /** Which way the content scrolls. */
-export type ScrollAreaOrientation = 'vertical' | 'horizontal' | 'both';
+export type ScrollAreaOrientation = ScrollRegionOrientation;
 
 /** When the scrollbars show. */
 export type ScrollAreaScrollbars = 'auto' | 'hover' | 'always';
 
 /** An edge of the content: the block's top and bottom, the line's start and end. */
-export type ScrollAreaEdge = 'top' | 'bottom' | 'start' | 'end';
-
-const EDGES: readonly ScrollAreaEdge[] = ['top', 'bottom', 'start', 'end'];
+export type ScrollAreaEdge = ScrollRegionEdge;
 
 /**
  * Props for the ScrollArea component.
@@ -192,7 +195,7 @@ export const ScrollArea = forwardRef<HTMLDivElement, ScrollAreaProps>(
     } = rest;
     const edgeAttributes: Record<string, string> = {};
     if (measured) {
-      for (const edge of EDGES) {
+      for (const edge of SCROLL_REGION_EDGES) {
         if (measured.edges[edge]) edgeAttributes[`data-overflow-${edge}`] = '';
       }
     }

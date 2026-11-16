@@ -71,8 +71,10 @@ const TableContainer = ({
     if (isRegion && !named) {
       warnOnce(
         'Table:unnamed',
-        '[bestax-bulma] <Table isResponsive> overflows and has no ' +
-          'accessible name. Pass aria-label or aria-labelledby, so a screen ' +
+        '[bestax-bulma] <Table isResponsive> overflows, and its scroll ' +
+          'container has no name: it takes the table’s aria-label or ' +
+          'aria-labelledby, not a caption. Pass one of them, pointing ' +
+          'aria-labelledby at the caption’s id if it has one, so a screen ' +
           'reader can say what took focus when the table scrolls.'
       );
     }

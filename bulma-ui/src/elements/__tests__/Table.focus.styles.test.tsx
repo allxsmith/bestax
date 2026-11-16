@@ -1,7 +1,8 @@
 // While a responsive table overflows, its `.table-container` is a region you
 // can tab to (#1839), and `elements/_table.scss` draws its keyboard focus ring
-// the way Bulma draws its own on a link or a button. These read the compiled
-// partial, not a browser: jsdom evaluates no `:focus-visible`.
+// in Bulma's focus color, style and width, just inside the container. These
+// read the compiled partial, not a browser: jsdom evaluates no
+// `:focus-visible`.
 import * as sass from 'sass';
 import fs from 'fs';
 import path from 'path';
@@ -52,7 +53,7 @@ describe('the responsive table container’s focus ring', () => {
     ['no prefix', ''],
     ['a class prefix', 'bestax-'],
   ])(
-    'is Bulma’s focus outline, on :focus-visible only, with %s',
+    'is Bulma’s focus outline, inside the container, on :focus-visible only, with %s',
     (_label, prefix) => {
       expect(blocksOf(compile(prefix))).toEqual([
         {
@@ -62,7 +63,7 @@ describe('the responsive table container’s focus ring', () => {
               'hsl(var(--bulma-focus-h), var(--bulma-focus-s), var(--bulma-focus-l))',
             'outline-style': 'var(--bulma-focus-style)',
             'outline-width': 'var(--bulma-focus-width)',
-            'outline-offset': 'var(--bulma-focus-offset)',
+            'outline-offset': 'calc(-1 * var(--bulma-focus-width))',
           },
         },
       ]);

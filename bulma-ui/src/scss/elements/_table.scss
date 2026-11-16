@@ -1,11 +1,14 @@
 // Bestax Extras - Table Styles
 // Bulma's `.table-container` scrolls a wide table sideways. While the table
 // overflows it, `Table isResponsive` makes the container a region you can tab
-// to, and this draws its keyboard focus ring the way Bulma draws its own on a
-// link or a button: in Bulma's focus color, style, width and offset. Bulma
-// styles no focus on the container, so one class wins whichever stylesheet
-// loads first. `:focus-visible` keeps the ring off a mouse click, and a
-// container without keyboard focus looks as it does now.
+// to, and this draws its keyboard focus ring in Bulma's focus color, style
+// and width, as Bulma draws its own on a link or a button. It sits just inside
+// the container, as Tabs' ring does, since an overflowing container fills its
+// parent's width, and a parent that scrolls or clips, such as a modal card's
+// body, would cut the sides off a ring drawn outside it. Bulma styles no focus
+// on the container, so one class wins whichever stylesheet loads first.
+// `:focus-visible` keeps the ring off a mouse click, and a container without
+// keyboard focus looks as it does now.
 
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
@@ -18,5 +21,5 @@
   );
   outline-style: cv.getVar('focus-style');
   outline-width: cv.getVar('focus-width');
-  outline-offset: cv.getVar('focus-offset');
+  outline-offset: calc(-1 * #{cv.getVar('focus-width')});
 }
