@@ -164,7 +164,9 @@ Notes:
 
 - The `panel` partial **extends** stock Bulma panel (it keeps the heading of a panel with no
   `color` readable on the dark scheme, where Bulma writes it white on light gray, and a colored
-  panel's active block and tab, their text, icon and underline, readable on both schemes), so an app using `Panel` needs both,
+  panel's active block and tab, their text, icon and underline, readable on both schemes, and
+  keeps the active block and tab marked in forced colors, where Bulma's colors for them are
+  replaced), so an app using `Panel` needs both,
   in either order:
 
   ```scss
