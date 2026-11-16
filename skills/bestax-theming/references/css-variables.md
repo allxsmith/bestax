@@ -103,10 +103,10 @@ was given. A trio set at runtime leaves them as they were, so when a new color r
 darker than the built one, which a change of hue or saturation can do as well as a change of
 lightness, set them too:
 
-| Variable                  | What reads it                                                                                                                                                           |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--bulma-<c>-invert-l`    | the label on a solid `<c>` surface: `Button`, `Tag` and `Notification` with `color="<c>"`, a colored `Hero` or `Navbar`, …                                              |
-| `--bulma-<c>-on-scheme-l` | `<c>` text on the page: `textColor="<c>" colorShade="on-scheme"`, a colored `Message`'s body, a field's colored help text, `Steps`' and `Timeline`'s colored markers, … |
+| Variable                  | What reads it                                                                                                                                                                                                                 |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--bulma-<c>-invert-l`    | the label on a solid `<c>` surface: `Button`, `Tag` and `Notification` with `color="<c>"`, a colored `Hero` or `Navbar`, …                                                                                                    |
+| `--bulma-<c>-on-scheme-l` | `<c>` text on the page: `textColor="<c>" colorShade="on-scheme"`, `textColor="<c>"` where it's lighter than the trio's, a colored `Message`'s body, a field's colored help text, `Steps`' and `Timeline`'s colored markers, … |
 
 For `link`, the on-scheme lightness is also every link on the page (`--bulma-link-text`), so a new
 link color that reads lighter than Bulma's own leaves the page's links pale.
@@ -174,8 +174,13 @@ both of its paths:
 For a color of your own, pick each value by its contrast (4.5:1 or more for text), or build
 Bulma's Sass with the color (`@use 'bulma/sass' with ($primary: …)`), which computes both.
 
-`textColor="<c>"` alone renders `has-text-<c>`, which reads the trio's own lightness, so text in a
-light color on a light page takes `colorShade="on-scheme"` as well.
+`textColor="<c>"` alone renders `has-text-<c>`. On a dark page bestax's stylesheets give it the
+lighter of the trio's lightness and the on-scheme one, for each color they were built with but
+`white`, `black`, `light`, `dark` and `text`, and on a light page the trio's own, so text in a light color
+on a light page takes `colorShade="on-scheme"` as well. On the dark page a trio set without its
+on-scheme lightness comes out at the build's on-scheme lightness where that's the lighter one.
+Text on a surface that stays light on both schemes (`bgColor="white"`, `"light"` or a color's
+light shade) takes `colorShade="dark"`.
 
 The build pairs each numbered shade, and the light and dark variants, with a label shade the same
 way (`--bulma-<c>-<n>-invert-l`, `--bulma-<c>-light-invert-l`, `--bulma-<c>-dark-invert-l`),

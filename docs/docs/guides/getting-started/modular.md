@@ -165,6 +165,8 @@ Pull in only the helper categories you use:
 @use 'bulma/sass/helpers/other';
 ```
 
+With `bulma/sass/helpers/color`, add bestax's `helpers/color` partial too, which the next section lists and says what it adjusts.
+
 #### bestax extras partials
 
 bestax ships SCSS partials for every component it adds on top of Bulma. Import them the same way via the package's `scss/*` export:
@@ -238,6 +240,7 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/elements/skeleton' as bestax-skeleton;
 @use '@allxsmith/bestax-bulma/scss/elements/stat';
 @use '@allxsmith/bestax-bulma/scss/elements/tag' as bestax-tag;
+@use '@allxsmith/bestax-bulma/scss/helpers/color' as bestax-color;
 @use '@allxsmith/bestax-bulma/scss/helpers/cursor';
 @use '@allxsmith/bestax-bulma/scss/helpers/sizing';
 @use '@allxsmith/bestax-bulma/scss/helpers/visibility' as bestax-visibility;
@@ -262,6 +265,8 @@ Some of these partials adjust a stock Bulma component rather than add one of bes
 - `elements/button` gives a focused button an outline where Bulma's border and shadow show nothing, on a ghost button and on every button in forced colors, gives a colored button a border in forced colors, where Bulma draws it with none and the fill is replaced, and gives an outlined button the lightness Bulma picks for its color's text on the page where that's lighter, so a dark color reads on the dark scheme, so a build that uses `bulma/sass/elements/button` wants it too.
 
 - `form/field` puts the `message` of a horizontal form component (`Input horizontal`, `Checkboxes horizontal` and the like) under its control, where Bulma's row would set it beside, and keeps a horizontal label's text against its control on a right-to-left page, so a build that uses `bulma/sass/form/tools` for horizontal fields wants it too.
+
+- `helpers/color` gives a color's text (`textColor`, `has-text-*`) the color's on-scheme lightness on the dark scheme wherever that's the lighter one, so a dark color such as the bestax blue primary reads there, and a build that uses `bulma/sass/helpers/color` wants it too.
 
 - `helpers/visibility` draws `is-sr-only` at each breakpoint, which Bulma draws only at every width and the viewport visibility props write for `'sr-only'` (`visibilityTablet="sr-only"`), so a build that uses `bulma/sass/helpers/visibility` for those props wants it too.
 
@@ -319,6 +324,7 @@ A realistic modular SCSS entry for an app that uses a few Bulma primitives plus 
 @use 'bulma/sass/helpers/color';
 
 // bestax extras — only what the app uses
+@use '@allxsmith/bestax-bulma/scss/helpers/color' as bestax-color;
 @use '@allxsmith/bestax-bulma/scss/components/dialog';
 @use '@allxsmith/bestax-bulma/scss/form/autocomplete';
 ```

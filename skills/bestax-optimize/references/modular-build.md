@@ -96,7 +96,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 `delete`, `descriptionlist`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`,
 `progress`, `ringprogress`, `skeleton`, `stat`, `tag`
 
-**Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `cursor`, `sizing`, `visibility`
+**Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `color`, `cursor`, `sizing`, `visibility`
 
 Notes:
 
@@ -334,6 +334,16 @@ not `flexbox` — `flexbox` holds only the alignment props. Verified failure mod
 @use 'bulma/sass/helpers/visibility'; // display/visibility props incl. display="flex" (is-flex/is-block/is-hidden*)
 @use '@allxsmith/bestax-bulma/scss/helpers/visibility' as bestax-visibility; // visibility*="sr-only" at a breakpoint (is-sr-only-tablet…)
 @use 'bulma/sass/helpers/other'; // interaction, radius="radiusless", shadow="shadowless"
+```
+
+With `bulma/sass/helpers/color`, include the `color` extras partial (`as bestax-color`) too. On
+the dark scheme it gives a color's text (`textColor`, `has-text-*`) the color's on-scheme
+lightness wherever that's the lighter one, so a dark color such as the bestax blue primary reads
+there. It doesn't depend on the order of the two `@use` lines:
+
+```scss
+@use 'bulma/sass/helpers/color';
+@use '@allxsmith/bestax-bulma/scss/helpers/color' as bestax-color;
 ```
 
 ## Procedure
