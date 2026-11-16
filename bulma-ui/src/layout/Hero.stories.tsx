@@ -305,23 +305,23 @@ export const FullHeightWithHeadBodyFoot: StoryObj<typeof Hero> = {
       <Hero.Foot>
         <Tabs>
           <Container>
-            <Tabs.List>
+            <ul>
               <Tabs.Item>
-                <a>Elements</a>
+                <a href="#elements">Elements</a>
               </Tabs.Item>
               <Tabs.Item>
-                <a>Components</a>
+                <a href="#components">Components</a>
               </Tabs.Item>
               <Tabs.Item>
-                <a>Columns</a>
+                <a href="#columns">Columns</a>
               </Tabs.Item>
               <Tabs.Item>
-                <a>Grid</a>
+                <a href="#grid">Grid</a>
               </Tabs.Item>
               <Tabs.Item>
-                <a>Layout</a>
+                <a href="#layout">Layout</a>
               </Tabs.Item>
-            </Tabs.List>
+            </ul>
           </Container>
         </Tabs>
       </Hero.Foot>
