@@ -5,11 +5,21 @@ import { Tag, TagProps } from './Tag';
 import { Tags } from './Tags';
 import { Delete } from './Delete';
 
-// Wrapper component for dismissible tag
+// Wrapper component for a dismissible tag: a tag, and the delete tag that
+// removes it, named after it. The story's args style both.
 const DismissibleTagWrapper: React.FC<TagProps> = props => {
   const [isVisible, setIsVisible] = useState(true);
   return isVisible ? (
-    <Tag {...props} onDelete={() => setIsVisible(false)} />
+    <Tags hasAddons>
+      <Tag {...props} isDelete={false}>
+        React
+      </Tag>
+      <Tag
+        {...props}
+        aria-label="Remove React"
+        onDelete={() => setIsVisible(false)}
+      />
+    </Tags>
   ) : (
     <></>
   );
@@ -22,7 +32,10 @@ const CombinedTagWithDeleteWrapper: React.FC<TagProps> = props => {
     <Tags hasAddons>
       <Tag {...props}>
         Tag with Delete
-        <Delete onClick={() => setIsVisible(false)} />
+        <Delete
+          ariaLabel="Remove Tag with Delete"
+          onClick={() => setIsVisible(false)}
+        />
       </Tag>
     </Tags>
   ) : (

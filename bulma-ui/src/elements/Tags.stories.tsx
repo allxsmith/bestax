@@ -2,12 +2,20 @@ import React, { useState } from 'react';
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { Tags } from './Tags';
 import { Tag } from './Tag';
+import { Delete } from './Delete';
 
 // Wrapper component for dismissible tag in Tags
 const DismissibleTagWrapper: React.FC = () => {
   const [isVisible, setIsVisible] = useState(true);
   return isVisible ? (
-    <Tag color="danger" isDelete onDelete={() => setIsVisible(false)} />
+    <Tag color="danger">
+      Danger
+      <Delete
+        size="small"
+        ariaLabel="Remove Danger"
+        onClick={() => setIsVisible(false)}
+      />
+    </Tag>
   ) : (
     <></>
   );
@@ -19,7 +27,11 @@ const DismissibleTagWithDeleteWrapper: React.FC = () => {
   return isVisible ? (
     <Tags hasAddons>
       <Tag color="danger">Allxsmith</Tag>
-      <Tag isDelete onDelete={() => setIsVisible(false)} />
+      <Tag
+        isDelete
+        aria-label="Remove Allxsmith"
+        onDelete={() => setIsVisible(false)}
+      />
     </Tags>
   ) : (
     <></>
@@ -137,7 +149,7 @@ export const AddonsWithDeleteTag: Story = {
     docs: {
       description: {
         story:
-          'Shows a Tags container with has-addons, containing a danger tag with text "Alex Smith" and a dismissible delete tag.',
+          'Shows a Tags container with has-addons, containing a danger tag with text "Allxsmith" and a delete tag named "Remove Allxsmith" that removes it.',
       },
     },
   },

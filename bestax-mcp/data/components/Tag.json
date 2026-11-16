@@ -21,7 +21,7 @@
     { "title": "Rounded Tag", "code": "<Tag isRounded>Rounded Tag</Tag>" },
     {
       "title": "Delete Tag (Button)",
-      "code": "<Tag isDelete onDelete={() => alert('Deleted!')} />"
+      "code": "<Tags hasAddons>\n  <Tag color=\"primary\">React</Tag>\n  <Tag\n    isDelete\n    aria-label=\"Remove React\"\n    onDelete={() => alert('Removed React')}\n  />\n</Tags>"
     },
     { "title": "With Margin", "code": "<Tag m=\"4\">Tag with Margin</Tag>" },
     {
@@ -42,10 +42,10 @@
     },
     {
       "title": "Tag with Delete Component",
-      "code": "import { Tags, Delete } from '@allxsmith/bestax-bulma';\n\n<Tags hasAddons>\n  <Tag color=\"primary\" size=\"medium\">\n    Tag with Delete\n    <Delete onClick={() => alert('Tag deleted!')} />\n  </Tag>\n</Tags>;"
+      "code": "import { Tag, Tags, Delete } from '@allxsmith/bestax-bulma';\n\n<Tags hasAddons>\n  <Tag color=\"primary\" size=\"medium\">\n    React\n    <Delete ariaLabel=\"Remove React\" onClick={() => alert('Removed React')} />\n  </Tag>\n</Tags>;"
     }
   ],
-  "accessibility": "- **Delete buttons:** Use `aria-label` for delete tags for screen readers.\n- **Keyboard:** Delete tags are rendered as `<button>`, supporting keyboard activation.\n- **Semantics:** Use tags for supplemental information, not as primary headings.\n- **Contrast:** A light tag's text, and a white, black or dark tag's with `isLight`, reads against its background the way a light `Button`'s does, in both color schemes. That comes from bestax's stylesheets, as the `color` and `isLight` props' descriptions say.\n\n:::tip\nCombine `Tag` with `Tags` for grouped, multi-tag UIs.\n:::",
+  "accessibility": "- **Delete buttons:** A delete tag is named \"Delete tag\", and a `Delete` inside a tag \"Close\", unless you name them. Neither says which tag it removes, so a screen reader user moving between several hears the same name each time. Name each one after its tag: `aria-label=\"Remove React\"` on a delete tag, `ariaLabel=\"Remove React\"` on a `Delete`.\n- **Keyboard:** Delete tags are rendered as `<button>`, supporting keyboard activation.\n- **Semantics:** Use tags for supplemental information, not as primary headings.\n- **Contrast:** A light tag's text, and a white, black or dark tag's with `isLight`, reads against its background the way a light `Button`'s does, in both color schemes. That comes from bestax's stylesheets, as the `color` and `isLight` props' descriptions say.\n\n:::tip\nCombine `Tag` with `Tags` for grouped, multi-tag UIs.\n:::",
   "related": ["Delete", "Tags", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-tag--default",
   "summary": "The `Tag` component renders a Bulma-styled label or badge.",
@@ -107,7 +107,7 @@
           "name": "isDelete",
           "type": "boolean",
           "default": "false",
-          "description": "Renders a delete-style tag (delete button). The button renders `type=\"button\"`, so it does not submit a form around it, and is named \"Delete tag\" unless you pass an `aria-label`. An empty one, or a spread carrying `'aria-label': undefined`, keeps that name rather than leaving the button unnamed.",
+          "description": "Renders a delete-style tag (delete button). The button renders `type=\"button\"`, so it does not submit a form around it, and is named \"Delete tag\" unless you pass an `aria-label`. An empty one, or a spread carrying `'aria-label': undefined`, keeps that name rather than leaving the button unnamed. \"Delete tag\" doesn't say which tag the button removes, so pass a name that does, such as `aria-label=\"Remove React\"`.",
           "required": false,
           "inherited": false,
           "deprecated": false

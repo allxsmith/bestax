@@ -37,7 +37,16 @@ export interface LinkOwnProps extends Omit<
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Whether the link appears active. */
+  /**
+   * Marks the link as the current one. It adds Bulma's `is-active` class,
+   * which Bulma's menus and navbars draw as the current page, and
+   * `aria-current="page"`, so assistive tech can tell which link is current
+   * too. The `aria-current` goes to what `as` renders like any other prop, so
+   * a component of your own decides what to do with it. An `aria-current` you
+   * pass wins, even `undefined`: use it to say something else (`"location"`
+   * for a section of one page, say), and give an active link that isn't
+   * navigation, such as an `as="button"` toggle, `aria-current={false}`.
+   */
   isActive?: boolean;
   /** Content to render inside the link. */
   children?: React.ReactNode;
@@ -112,6 +121,12 @@ export const Link = forwardRef(function Link(
     <Component
       ref={ref}
       className={linkClasses || undefined}
+      // The class draws the current page in Bulma's menus and navbars, and
+      // this tells assistive tech the same. Before the spread, so an
+      // `aria-current` the caller passes wins, `undefined` and `false`
+      // included, and only while active, so a component `as` names gets no
+      // `aria-current` key from a link that isn't.
+      {...(isActive ? { 'aria-current': 'page' as const } : {})}
       {...rest}
       // A `<button>` defaults to type="submit", and a link-styled button inside
       // a form must not submit it. After the spread, reading through it, so a
