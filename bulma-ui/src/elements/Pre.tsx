@@ -10,7 +10,7 @@ import { useScrollRegion } from '../helpers/useScrollRegion';
 /**
  * Props for the Pre component.
  *
- * @extraProp {string} [aria-label] - Names the block. While it overflows, it's a region you can tab to, and this is the name a screen reader says when it takes focus, such as "Install command".
+ * @extraProp {string} [aria-label] - Names the block, such as "Install command". While it overflows, a named block is a region, and this is what a screen reader says when it takes focus.
  * @extraProp {string} [aria-labelledby] - The id of a visible heading or caption that names the block, in place of `aria-label`.
  * @extraProp {number} [tabIndex] - Replaces the tab stop `Pre` gives itself while it overflows: `-1` keeps it out of the Tab order.
  */
@@ -32,10 +32,10 @@ export interface PreProps
  * The `Pre` component renders a styled `<pre>` element with Bulma helper class integration.
  *
  * Bulma scrolls a line longer than the block sideways rather than wrapping
- * it. While the content overflows, the block is a region you can tab to and
- * scroll with the arrow keys, Safari included, as `ScrollArea`'s viewport and
- * a responsive `Table` are; while it fits, it's a plain `<pre>` with no tab
- * stop.
+ * it. While the content overflows, the block is a tab stop you can scroll with
+ * the arrow keys, Safari included, as `ScrollArea`'s viewport and a
+ * responsive `Table` are, and a region when it has a name; while it fits,
+ * it's a plain `<pre>` with no tab stop.
  *
  * @function
  * @param {PreProps} props - Props for the Pre component.
@@ -64,26 +64,35 @@ export const Pre: React.FC<PreProps> = ({
 
   // A `<pre>` scrolls sideways, and Safari, unlike Chromium and Firefox,
   // gives a scroller no tab stop of its own, so the keyboard couldn't reach
-  // the end of a long line there. A role, a tab stop or a name the caller
-  // passes wins, and the name stays on whether or not it overflows.
+  // the end of a long line there. While it overflows it's a tab stop, and a
+  // region only when it has a name, since a region with none tells a screen
+  // reader nothing; unnamed, it's the plain focusable scroller the other
+  // browsers make of it. A role, a tab stop or a name the caller passes wins,
+  // and the name stays on as it always has. A ref passed as a prop, as React
+  // 19 passes one, still reaches the `<pre>`.
+  const { ref: callerRef, ...attributes } = rest as typeof rest & {
+    ref?: React.ForwardedRef<HTMLPreElement>;
+  };
+  const named = Boolean(
+    attributes['aria-label'] || attributes['aria-labelledby']
+  );
   const { props: region } = useScrollRegion<HTMLPreElement>({
     orientation: 'both',
+    ref: callerRef,
     onScroll,
     onFocus,
     onBlur,
-    'aria-label': rest['aria-label'],
-    'aria-labelledby': rest['aria-labelledby'],
   });
 
   return (
     <pre
       className={preClasses || undefined}
-      {...rest}
+      {...attributes}
       {...region}
-      role={role ?? region.role}
+      role={role ?? (named ? region.role : undefined)}
       tabIndex={tabIndex ?? region.tabIndex}
-      aria-label={rest['aria-label']}
-      aria-labelledby={rest['aria-labelledby']}
+      aria-label={attributes['aria-label']}
+      aria-labelledby={attributes['aria-labelledby']}
     >
       {children}
     </pre>

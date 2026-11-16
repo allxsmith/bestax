@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import { createRef } from 'react';
 import { renderToString } from 'react-dom/server';
-import { Pre } from '../Pre';
+import { Pre, type PreProps } from '../Pre';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Pre Component', () => {
@@ -200,12 +201,13 @@ describe('a Pre that overflows, from the keyboard (#1854)', () => {
 
   beforeEach(fit);
 
-  it('is a region you can tab to while a line runs past its edge', () => {
+  it('is a tab stop while a line runs past its edge', () => {
     overflowSideways();
     render(<Pre data-testid="pre">npm install a-very-long-package-name</Pre>);
     const pre = screen.getByTestId('pre');
     expect(pre).toHaveAttribute('tabindex', '0');
-    expect(pre).toHaveAttribute('role', 'region');
+    // No name, so no region: the plain focusable scroller other browsers make.
+    expect(pre).not.toHaveAttribute('role');
   });
 
   it('is one while it overflows downward too, under a height of its own', () => {
@@ -241,6 +243,17 @@ describe('a Pre that overflows, from the keyboard (#1854)', () => {
     expect(pre).not.toHaveAttribute('tabindex');
     expect(pre).not.toHaveAttribute('role');
     expect(pre).toHaveAttribute('aria-label', 'Install command');
+  });
+
+  it('passes a ref given as a prop, as React 19 gives one, to the pre', () => {
+    overflowSideways();
+    const ref = createRef<HTMLPreElement>();
+    // Called as a function, so `ref` arrives as a prop on React 18 as well,
+    // where JSX would hold it back.
+    const props = { ref, children: 'npm install' } as PreProps;
+    const Host = () => Pre(props);
+    render(<Host />);
+    expect(ref.current?.tagName).toBe('PRE');
   });
 
   it('keeps the tab stop while it has focus, and drops it once focus leaves', () => {
