@@ -1034,7 +1034,7 @@
       "slug": "components/message",
       "import": "import { Message, MessageHeader, MessageBody } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 12,
+      "propCount": 13,
       "exampleCount": 8
     },
     {
