@@ -106,6 +106,12 @@ const [choice, setChoice] = useState('a');
 </Dropdown>;
 ```
 
+## `Dropdown color` (`prop:color`)
+
+react-bulma-components gave a `Dropdown`'s `color` to its trigger button. bestax's `Dropdown` has no
+prop for its trigger's color, and its own `color` is the text color helper on the root, so the
+codemod leaves `color` with a TODO: remove it.
+
 ## `Pagination` extras (`showFirstLast`, `showPrevNext`, `autoHide`)
 
 bestax `Pagination` renders from `total`/`current`/`onPageChange` when it has no children:
