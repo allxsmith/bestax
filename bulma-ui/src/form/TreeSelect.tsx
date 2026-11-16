@@ -115,7 +115,7 @@ interface TreeSelectBaseProps
     >,
     Omit<BulmaClassesProps, 'color'>,
     FormFieldProps {
-  /** **Required.** The tree, as nodes nested through `children`. */
+  /** The tree, as nodes nested through `children`. */
   data: TreeItemData[];
   /**
    * The field's label, which names the field through `htmlFor`, and the

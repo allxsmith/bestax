@@ -963,7 +963,7 @@ and a click in the field opens the list. A press in the list never takes focus f
 
 | Prop        | Type                            | Default | Description                                                                                                                                   |
 | ----------- | ------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `value`     | `string`                        | —       | What `onSelect` hands back. Unique within the Combobox.                                                                                       |
+| `value`     | `string`                        | —       | **Required.** What `onSelect` hands back. Unique within the Combobox.                                                                         |
 | `disabled`  | `boolean`                       | `false` | Can't be picked. The arrows still reach it, so a screen reader user finds it, and it's never `aria-selected`.                                 |
 | `checked`   | `boolean`                       | `false` | It's the value, or one of them. It shows a check mark, the list opens with the highlight on it, and with `multiple` it's the `aria-selected`. |
 | `children`  | `React.ReactNode`               | —       | What the item shows: text, or text with an avatar, a tag or a hint.                                                                           |
@@ -972,12 +972,12 @@ and a click in the field opens the list. A press in the list never takes focus f
 
 ### Combobox.Group
 
-| Prop        | Type                            | Default | Description                                                                                                                            |
-| ----------- | ------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `label`     | `React.ReactNode`               | —       | The heading, which also names the group for assistive tech, unless you give the group an `aria-label` or `aria-labelledby` of its own. |
-| `children`  | `React.ReactNode`               | —       | The group's `Combobox.Item`s.                                                                                                          |
-| `className` | `string`                        | —       | Additional CSS classes.                                                                                                                |
-| `...`       | All standard `<div>` attributes | —       |                                                                                                                                        |
+| Prop        | Type                            | Default | Description                                                                                                                                          |
+| ----------- | ------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`     | `React.ReactNode`               | —       | **Required.** The heading, which also names the group for assistive tech, unless you give the group an `aria-label` or `aria-labelledby` of its own. |
+| `children`  | `React.ReactNode`               | —       | The group's `Combobox.Item`s.                                                                                                                        |
+| `className` | `string`                        | —       | Additional CSS classes.                                                                                                                              |
+| `...`       | All standard `<div>` attributes | —       |                                                                                                                                                      |
 
 ### Combobox.Empty
 

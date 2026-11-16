@@ -424,7 +424,7 @@ export interface MenuSectionProps
     BulmaClassesProps {
   /** Additional CSS classes for the wrapping `<div>`. */
   className?: string | undefined;
-  /** **Required.** The section's heading, drawn like `Menu.Label` inside the button that opens and closes it. Keep links and buttons out of it, since it's inside one. */
+  /** The section's heading, drawn like `Menu.Label` inside the button that opens and closes it. Keep links and buttons out of it, since it's inside one. */
   label: React.ReactNode;
   /**
    * An icon before the heading: an `Icon` name, or a node. It's hidden from

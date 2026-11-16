@@ -147,8 +147,8 @@
           "name": "data",
           "type": "TreeItemData[]",
           "default": null,
-          "description": "**Required.** The tree, as nodes nested through `children`.",
-          "required": false,
+          "description": "The tree, as nodes nested through `children`.",
+          "required": true,
           "inherited": true,
           "deprecated": false
         },

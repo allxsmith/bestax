@@ -48,7 +48,7 @@
           "type": "React.ReactElement",
           "default": null,
           "description": "The element the card previews, such as a link or a `Button`. The element itself has to take focus, so keyboard users can open the card too: a link inside a `<span>` doesn't do, since focus comes back to the trigger and its ARIA is on it. HoverCard gives it no role and no tab stop, since it can't know what the element is, and a development build warns when it can't take focus: use a link or a button, or give the element `tabIndex={0}`. A disabled button can't take focus either. HoverCard adds `aria-expanded` and `aria-controls`, both naming the card only while it is on the page, so it has to be a single element that passes those to its DOM node. Its own click and keys stay its own, and the card doesn't toggle on them, except Escape while the card is open, which closes the card before the trigger sees it.",
-          "required": false,
+          "required": true,
           "inherited": false,
           "deprecated": false
         },
