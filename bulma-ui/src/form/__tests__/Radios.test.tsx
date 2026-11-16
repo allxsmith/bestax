@@ -1,6 +1,8 @@
 import { render, screen } from '@testing-library/react';
-import Radios from '../Radios';
+import userEvent from '@testing-library/user-event';
+import Radios, { type RadiosProps } from '../Radios';
 import Radio from '../Radio';
+import RadioCard from '../RadioCard';
 import { Field } from '../Field';
 import { Control } from '../Control';
 import { ConfigProvider } from '../../helpers/Config';
@@ -278,9 +280,9 @@ describe('Radios', () => {
       expect(handleChange).toHaveBeenCalledTimes(1);
     });
 
-    it('with only onChange and no name, leaves the radios with a value alone when one without is picked', () => {
-      // Radios without a name aren't a native group, so the pick unchecks
-      // nothing.
+    it('with only onChange and no name, lets a radio without a value be picked', () => {
+      // The radios share the name the group generates, so the browser
+      // unchecks Medium when Other is picked, as it does with a name given.
       const { getByLabelText } = render(
         <Radios onChange={() => {}}>
           <Radio value="m" defaultChecked>
@@ -291,7 +293,115 @@ describe('Radios', () => {
       );
       getByLabelText('Other').click();
       expect((getByLabelText('Other') as HTMLInputElement).checked).toBe(true);
-      expect((getByLabelText('Medium') as HTMLInputElement).checked).toBe(true);
+      expect((getByLabelText('Medium') as HTMLInputElement).checked).toBe(
+        false
+      );
+    });
+  });
+
+  describe('without a name', () => {
+    // A browser groups radios by name, so nameless radios were each a group
+    // of their own: a Tab stop each, no arrow keys, and, in a group that
+    // doesn't manage the selection, any number checked (#1968).
+    const Sizes = (props: Partial<RadiosProps>) => (
+      <Radios label="Size" {...props}>
+        <Radio value="s">Small</Radio>
+        <Radio value="m">Medium</Radio>
+        <Radio value="l">Large</Radio>
+      </Radios>
+    );
+    const radio = (name: string) =>
+      screen.getByRole('radio', { name }) as HTMLInputElement;
+
+    it('gives its radios one name, and each group its own', () => {
+      render(
+        <>
+          <Sizes />
+          <Radios label="Color">
+            <Radio value="red">Red</Radio>
+          </Radios>
+        </>
+      );
+      const name = radio('Small').name;
+      expect(name).not.toBe('');
+      expect(radio('Medium').name).toBe(name);
+      expect(radio('Large').name).toBe(name);
+      expect(radio('Red').name).not.toBe(name);
+    });
+
+    it('lets only one radio be checked', async () => {
+      const user = userEvent.setup();
+      render(<Sizes />);
+      await user.click(radio('Small'));
+      await user.click(radio('Medium'));
+      expect(radio('Small')).not.toBeChecked();
+      expect(radio('Medium')).toBeChecked();
+    });
+
+    it('is one Tab stop, which the arrow keys move and pick in', async () => {
+      const user = userEvent.setup();
+      // A group that doesn't manage the selection, where a Tab stop per
+      // radio showed most.
+      render(
+        <>
+          <button>Before</button>
+          <Sizes />
+          <button>After</button>
+        </>
+      );
+      await user.click(screen.getByRole('button', { name: 'Before' }));
+      await user.tab();
+      expect(radio('Small')).toHaveFocus();
+      await user.keyboard('{ArrowDown}');
+      expect(radio('Medium')).toHaveFocus();
+      expect(radio('Medium')).toBeChecked();
+      expect(radio('Small')).not.toBeChecked();
+      await user.tab();
+      expect(screen.getByRole('button', { name: 'After' })).toHaveFocus();
+    });
+
+    it('generates a name for an empty one, which groups nothing', () => {
+      render(<Sizes name="" />);
+      const name = radio('Small').name;
+      expect(name).not.toBe('');
+      expect(radio('Large').name).toBe(name);
+    });
+
+    it('sends a checked radio with a form under the name it generates', () => {
+      render(
+        <form aria-label="Order">
+          <Sizes defaultValue="m" />
+        </form>
+      );
+      const data = new FormData(
+        screen.getByRole('form', { name: 'Order' }) as HTMLFormElement
+      );
+      expect(Array.from(data.entries())).toEqual([[radio('Medium').name, 'm']]);
+    });
+
+    it('keeps a name it is given, and one a single radio is given', () => {
+      render(
+        <Radios label="Size" name="size">
+          <Radio value="s">Small</Radio>
+          <Radio value="m" name="own">
+            Medium
+          </Radio>
+        </Radios>
+      );
+      expect(radio('Small').name).toBe('size');
+      expect(radio('Medium').name).toBe('own');
+    });
+
+    it('names its radio cards too', () => {
+      render(
+        <Radios label="Shipping">
+          <RadioCard value="std" title="Standard" />
+          <RadioCard value="exp" title="Express" />
+        </Radios>
+      );
+      const name = radio('Standard').name;
+      expect(name).not.toBe('');
+      expect(radio('Express').name).toBe(name);
     });
   });
 });

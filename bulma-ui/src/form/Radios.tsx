@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useId, useMemo, useState } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
@@ -37,7 +37,17 @@ export interface RadiosProps
   };
   /** Additional CSS classes to apply. */
   className?: string | undefined;
-  /** Form field name shared by every Radio in the group (via context). */
+  /**
+   * Form field name shared by every Radio in the group (via context). Without
+   * one, or with an empty one, the group generates a name, since a browser
+   * groups radios by their name: that's what makes them one Tab stop the
+   * arrow keys move through, with one checked at a time. A checked radio is
+   * then sent with a form under the generated name, so pass `name` to choose
+   * the key it's sent under. A generated name comes from React's `useId`,
+   * which repeats across React roots, so on a page with more than one, pass
+   * `name` or give each root an `identifierPrefix`. A `name` on a single
+   * Radio still wins for that Radio.
+   */
   name?: string | undefined;
   /** Currently-selected value (controlled mode). */
   value?: string | undefined;
@@ -170,14 +180,20 @@ const RadiosComponent: React.FC<RadiosProps> = ({
     setInternalValue(current => (current === undefined ? null : current));
   }, []);
 
+  // A browser groups radios by name, and an empty one is none, so the radios
+  // would each be a group of their own: a Tab stop each, and, unmanaged, any
+  // number checked. The group names them itself when the caller doesn't.
+  const generatedName = useId();
+  const groupName = name || generatedName;
+
   const ctx = useMemo<RadiosGroupContextValue>(
     () => ({
-      name,
+      name: groupName,
       ...(groupActive
         ? { value: currentValue, onChange: handleChange, pickWithoutValue }
         : {}),
     }),
-    [name, groupActive, currentValue, handleChange, pickWithoutValue]
+    [groupName, groupActive, currentValue, handleChange, pickWithoutValue]
   );
 
   const choices = <RadiosProvider value={ctx}>{children}</RadiosProvider>;
