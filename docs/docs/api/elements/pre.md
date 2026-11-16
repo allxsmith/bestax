@@ -128,7 +128,7 @@ const config = {
 
 - **Whitespace Preservation:** The `<pre>` element preserves all whitespace, which is important for code formatting.
 - **Scrolling:** Consider horizontal scrolling for long lines to prevent layout issues.
-- **Screen Readers:** Preformatted text is typically announced as such by screen readers.
+- **Screen Readers:** a `<pre>` has no role of its own, so a screen reader reads its text like any other and doesn't say it's preformatted. Say what the block is in the text before it ("The config file:").
 
 :::info
 For code blocks, wrap content in both `<Pre>` and `<Code>` for proper semantics: `<Pre><Code>...</Code></Pre>`.

@@ -501,24 +501,22 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       [isControlled, onChange, currentRange, minDistance]
     );
 
-    // Key handler for Home/End
+    // Home and End on a single Slider's thumb. A range's thumbs leave them to
+    // the browser, which moves a thumb to its end, and their change handlers
+    // keep it from passing the other thumb, as they do for the arrow keys.
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Home') {
           e.preventDefault();
-          if (!range) {
-            if (!isControlled) setInternalSingle(min);
-            (onChange as ((v: number) => void) | undefined)?.(min);
-          }
+          if (!isControlled) setInternalSingle(min);
+          (onChange as ((v: number) => void) | undefined)?.(min);
         } else if (e.key === 'End') {
           e.preventDefault();
-          if (!range) {
-            if (!isControlled) setInternalSingle(max);
-            (onChange as ((v: number) => void) | undefined)?.(max);
-          }
+          if (!isControlled) setInternalSingle(max);
+          (onChange as ((v: number) => void) | undefined)?.(max);
         }
       },
-      [range, isControlled, onChange, min, max]
+      [isControlled, onChange, min, max]
     );
 
     // Tick positions
@@ -851,7 +849,6 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           value={currentRange[0]}
           disabled={disabled}
           onChange={handleRangeLowChange}
-          onKeyDown={handleKeyDown}
           onMouseEnter={() => setShowTooltip(true)}
           onMouseLeave={() => setShowTooltip(false)}
           onFocus={() => setShowTooltip(true)}
