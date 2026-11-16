@@ -115,14 +115,16 @@ export const Dismissible: StoryObj<MessageProps> = {
 };
 
 // The close button is drawn as an icon, so its name is all a screen reader
-// says about it. Here it's in the language of the message.
+// says about it. Here it's in the language of the message, which `lang`
+// declares.
 export const DismissibleWithCloseLabel: StoryObj<MessageProps> = {
   args: {
     color: 'info',
+    lang: 'fr',
     title: 'Avis',
     onClose: () => {},
     ariaCloseLabel: 'Fermer le message',
-    children: declarationLatin,
+    children: 'Vos modifications ont été enregistrées.',
   },
 };
 
