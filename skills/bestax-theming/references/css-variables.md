@@ -1120,14 +1120,23 @@ sets that change's color to the color's `-on-scheme` variable directly, so
 ### Steps
 
 `--bulma-steps-animation-duration`, `--bulma-steps-content-margin-top`,
-`--bulma-steps-default-color`, `--bulma-steps-divider-height`, `--bulma-steps-marker-background`,
-`--bulma-steps-marker-font-size`, `--bulma-steps-marker-font-weight`,
+`--bulma-steps-default-color`, `--bulma-steps-divider-height`, `--bulma-steps-label-background`,
+`--bulma-steps-marker-background`, `--bulma-steps-marker-font-size`, `--bulma-steps-marker-font-weight`,
 `--bulma-steps-marker-size`, `--bulma-steps-marker-size-large`,
 `--bulma-steps-marker-size-medium`, `--bulma-steps-marker-size-small`,
 `--bulma-steps-navigation-margin-top`, `--bulma-steps-title-active-color`,
 `--bulma-steps-title-active-weight`, `--bulma-steps-title-color`, `--bulma-steps-title-size`,
 `--bulma-steps-title-weight`, `--bulma-steps-vertical-content-margin-left`,
 `--bulma-steps-vertical-padding`
+
+`--bulma-steps-label-background` is the patch behind a side label, which hides the line under it.
+It's the page's color on its own, apart from the marker background.
+
+On a colored `Notification` or `Hero`, steps set the title colors and
+`--bulma-steps-label-background` from the surface, and steps with no color set
+`--bulma-steps-default-color` and `--bulma-steps-marker-background` from it too, unless they're on a Box, a Card, a Message or a Modal there, or in a Notification inside the
+Hero. To retheme them there, set these on the steps themselves, through their `style`
+or a class loaded after bestax's stylesheet, or give them a `color`.
 
 ### Switch
 
@@ -1202,9 +1211,12 @@ scales them all.
 `--bulma-timeline-time-color`, `--bulma-timeline-time-size`, `--bulma-timeline-title-color`,
 `--bulma-timeline-title-weight`
 
-In a colored `Notification`, a timeline with no color sets its neutral, active and icon colors to
-the Notification's text color and its marker and icon backgrounds to the Notification's
-background, unless it's on a Box or a Card there. To retheme one there, set these on the timeline
+In a colored `Notification` or `Hero`, a timeline with no color sets its neutral, active and icon
+colors to the surface's text color and its marker and icon backgrounds to the surface's
+background, and in a colored Hero any timeline sets its title and time colors to the Hero's text
+color, unless it's on a Box, a Card, a Message or a Modal there, or in a
+Notification inside the
+Hero. To retheme one there, set these on the timeline
 itself, through its `style` or a class loaded after bestax's stylesheet, or give it a `color`.
 
 ### Toast
