@@ -87,6 +87,11 @@ const meta: Meta<typeof Toast> = {
       control: 'boolean',
       description: 'Show an explicit close (X) button',
     },
+    ariaCloseLabel: {
+      control: 'text',
+      description:
+        'Names the close button, in place of "Close", for an app in another language',
+    },
     rounded: {
       control: 'boolean',
       description: 'Pill-shaped toast',

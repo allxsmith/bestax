@@ -71,6 +71,12 @@ export interface NotificationProps
   hasDelete?: boolean;
   /** Callback fired when the delete button is clicked. */
   onDelete?: () => void;
+  /**
+   * Names the close button `hasDelete` shows, in place of "Close
+   * notification", for an app in another language. An empty one keeps that
+   * name.
+   */
+  ariaCloseLabel?: string;
   /** Content inside the notification. */
   children?: React.ReactNode;
 }
@@ -90,6 +96,7 @@ export const Notification: React.FC<NotificationProps> = ({
   isLight,
   hasDelete,
   onDelete,
+  ariaCloseLabel,
   children,
   ...props
 }) => {
@@ -126,7 +133,7 @@ export const Notification: React.FC<NotificationProps> = ({
           type="button"
           className={deleteClasses}
           onClick={onDelete}
-          aria-label="Close notification"
+          aria-label={ariaCloseLabel || 'Close notification'}
         />
       )}
       {children}
@@ -204,6 +211,11 @@ export interface NotificationOptions {
   queue?: boolean;
   /** Show a delete (close) button. Default true. */
   hasDelete?: boolean;
+  /**
+   * Names the close button, in place of "Close notification", for an app in
+   * another language. An empty one keeps that name.
+   */
+  ariaCloseLabel?: string;
   /** Stay open until dismissed. */
   indefinite?: boolean;
   /**
@@ -410,6 +422,7 @@ const NotificationItem: React.FC<{
     isLight,
     duration = 3000,
     hasDelete = true,
+    ariaCloseLabel,
     indefinite = false,
     pauseOnHover = true,
   } = instance.options;
@@ -449,6 +462,7 @@ const NotificationItem: React.FC<{
       color={color}
       isLight={isLight}
       hasDelete={hasDelete}
+      ariaCloseLabel={ariaCloseLabel}
       onDelete={handleClose}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
