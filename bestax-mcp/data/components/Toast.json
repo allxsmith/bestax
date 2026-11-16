@@ -34,7 +34,7 @@
       "code": "function example() {\n  const [showToast, setShowToast] = useState(false);\n  return (\n    <Block>\n      <Button onClick={() => setShowToast(true)}>Show Indefinite Toast</Button>\n      {showToast && (\n        <Toast\n          inline\n          message=\"This won't auto-dismiss\"\n          indefinite\n          onClose={() => setShowToast(false)}\n        />\n      )}\n    </Block>\n  );\n}"
     }
   ],
-  "accessibility": "- Uses `role=\"alert\"` for screen reader announcement.\n- Has `aria-live=\"polite\"` for non-intrusive notifications.\n- The closable button has `aria-label=\"Close\"`.\n- `pauseOnHover` lets users keep the toast visible while reading.\n- `cancelable` (default `true`) supports Escape-key dismiss. An Escape that closed a popup on the page, such as a Dropdown menu or a date picker's calendar, leaves the toast up.\n- A toast is a notification rather than a layer, so while a [Modal](https://bestax.io/docs/api/components/modal), [Dialog](https://bestax.io/docs/api/components/dialog), [Sidebar](https://bestax.io/docs/api/components/sidebar) or full-page [Loading](https://bestax.io/docs/api/components/loading) is open, Escape goes to that and the toast stays up. Once none is open, Escape dismisses the toast.\n- In forced colors (Windows' contrast themes), which drop the toast's shadow and paint its fill in the page's own color, the toast gets a one pixel edge in the system's text color, and the cancel button's text shows at full strength. A toast given a `tabIndex` shows the browser's focus ring in place of that edge while it has keyboard focus.",
+  "accessibility": "- Uses `role=\"alert\"` for screen reader announcement.\n- Has `aria-live=\"polite\"` for non-intrusive notifications.\n- The closable button has `aria-label=\"Close\"`.\n- `pauseOnHover` lets users keep the toast visible while reading.\n- A toast doesn't close on its timer while focus is inside it, on its action, cancel or close button, whatever `pauseOnHover` says, so a keyboard user who reaches it can use it. Once focus leaves, it gets its whole `duration` again.\n- `cancelable` (default `true`) supports Escape-key dismiss. An Escape that closed a popup on the page, such as a Dropdown menu or a date picker's calendar, leaves the toast up.\n- A toast is a notification rather than a layer, so while a [Modal](https://bestax.io/docs/api/components/modal), [Dialog](https://bestax.io/docs/api/components/dialog), [Sidebar](https://bestax.io/docs/api/components/sidebar) or full-page [Loading](https://bestax.io/docs/api/components/loading) is open, Escape goes to that and the toast stays up. Once none is open, Escape dismisses the toast.\n- In forced colors (Windows' contrast themes), which drop the toast's shadow and paint its fill in the page's own color, the toast gets a one pixel edge in the system's text color, and the cancel button's text shows at full strength. A toast given a `tabIndex` shows the browser's focus ring in place of that edge while it has keyboard focus.",
   "related": ["Dialog"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-toast",
   "summary": "The `Toast` component provides brief notification messages with optional action and cancel buttons.",
@@ -87,7 +87,7 @@
           "name": "duration",
           "type": "number",
           "default": "2000",
-          "description": "Duration in ms before auto-close. `0` disables auto-close.",
+          "description": "Duration in ms before auto-close. `0` disables auto-close. The countdown waits while focus is inside the toast, on its action, cancel or close button, whatever `pauseOnHover` says, and once focus leaves, the toast gets its whole duration again.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -132,7 +132,7 @@
           "name": "pauseOnHover",
           "type": "boolean",
           "default": "false",
-          "description": "Pause auto-close timer on hover. Default: false.",
+          "description": "Pause auto-close timer on hover. Default: false. Focus inside the toast holds it open either way (see `duration`).",
           "required": false,
           "inherited": false,
           "deprecated": false
