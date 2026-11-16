@@ -47,7 +47,7 @@ import {
 } from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
 import { useFieldLabelTarget, useFieldsetDisabled } from './FormContext';
-import { useFieldMessageId } from './useFieldMessage';
+import { joinIds, useFieldMessageId } from './useFieldMessage';
 import { Icon } from '../elements/Icon';
 import { getActiveElementInTree } from '../helpers/shadowDom';
 import { inertProps } from '../helpers/inertProps';
@@ -696,11 +696,8 @@ export const DateTimeInputBase = forwardRef<
   );
 
   // The wrapper's message describes the input (#1963). The native input
-
   // lists it after the caller's ids; the text input takes it alone, since
-
   // the caller's attributes go on the container.
-
   const messageId = useFieldMessageId();
 
   if (useNative) {
@@ -710,11 +707,7 @@ export const DateTimeInputBase = forwardRef<
         {...localeScope.rootAttrs}
         {...cleanRest}
         ref={combinedRef}
-        aria-describedby={
-          [cleanRest['aria-describedby'], messageId]
-            .filter(Boolean)
-            .join(' ') || undefined
-        }
+        aria-describedby={joinIds(cleanRest['aria-describedby'], messageId)}
         type="datetime-local"
         step={nativeStep}
         className={classNames(inputClass, bulmaHelperClasses, className)}

@@ -3,6 +3,14 @@ import { usePrefixedClassNames } from '../helpers/classNames';
 import type { FormFieldProps } from './fieldProps';
 
 /**
+ * A space-separated id list of the ids given, leaving out the empty ones, or
+ * undefined when none is left, for `aria-describedby`. Internal.
+ */
+export const joinIds = (
+  ...ids: Array<string | undefined>
+): string | undefined => ids.filter(Boolean).join(' ') || undefined;
+
+/**
  * A form wrapper's `message`, as the `help` paragraph it renders and the
  * `aria-describedby` that ties it to the control (#1963), so a screen reader
  * reads the help or error text when the control takes focus. The paragraph
@@ -31,8 +39,7 @@ export function useFieldMessage(
       {message}
     </p>
   ) : null;
-  const describedBy =
-    [callerDescribedBy, messageId].filter(Boolean).join(' ') || undefined;
+  const describedBy = joinIds(callerDescribedBy, messageId);
   return { messageEl, messageId, describedBy };
 }
 

@@ -38,7 +38,7 @@ import {
   useInsideField,
 } from './FormContext';
 import { useAutoLabelId } from './useAutoLabelId';
-import { useFieldMessage } from './useFieldMessage';
+import { joinIds, useFieldMessage } from './useFieldMessage';
 import { useControlLoading } from './controlLoading';
 import { HiddenValues, ValueTags, tagIds } from './_selectInternals/ValueTags';
 
@@ -859,11 +859,7 @@ export const ComboboxInput = forwardRef<HTMLInputElement, ComboboxInputProps>(
         id={id ?? context.inputId}
         aria-labelledby={labelledBy}
         // The Combobox's message after the caller's ids, as on an `Input`.
-        aria-describedby={
-          [props['aria-describedby'], context.messageId]
-            .filter(Boolean)
-            .join(' ') || undefined
-        }
+        aria-describedby={joinIds(props['aria-describedby'], context.messageId)}
         isLoading={isLoading}
         size={context.size}
         controlSize={controlSize ?? (insideControl ? undefined : context.size)}

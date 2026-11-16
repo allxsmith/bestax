@@ -19,7 +19,7 @@ import {
   useInsideField,
 } from '../FormContext';
 import { useAutoLabelId } from '../useAutoLabelId';
-import { useFieldMessage } from '../useFieldMessage';
+import { joinIds, useFieldMessage } from '../useFieldMessage';
 import { PickerPopover } from '../_pickerInternals/PickerPopover';
 import {
   isPopoverToggleKey,
@@ -260,7 +260,7 @@ export function DialogSelect({
   const { messageEl, describedBy: fieldDescription } = useFieldMessage(
     message,
     messageColor,
-    [ariaDescribedBy, describedBy].filter(Boolean).join(' ') || undefined
+    joinIds(ariaDescribedBy, describedBy)
   );
   const isOpen = open && !disabled;
 

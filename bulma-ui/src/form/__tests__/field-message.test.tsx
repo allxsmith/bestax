@@ -320,6 +320,18 @@ describe('message wiring beyond the table', () => {
     expect(high).toHaveAttribute('aria-describedby', help.id);
   });
 
+  it('describes nothing on a bare Numberinput, which renders no message', () => {
+    const { container } = render(
+      <Field label="Quantity">
+        <Numberinput message="Up to 10." aria-describedby="hint" />
+      </Field>
+    );
+    expect(container.querySelector('p.help')).toBeNull();
+    expect(
+      screen.getByRole('spinbutton', { name: 'Quantity' })
+    ).toHaveAttribute('aria-describedby', 'hint');
+  });
+
   it("lists a Taginput's counter before its message", () => {
     const { container } = render(
       <Taginput label="Tags" maxTags={3} message="Press Enter to add." />
