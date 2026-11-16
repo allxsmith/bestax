@@ -113,6 +113,27 @@ test('a prop says whether a caller must pass it (#1754)', () => {
   assert.ok(!label.description.startsWith('**Required.**'), label.description);
 });
 
+test('no prop writes its own required mark into its TSDoc (#1754)', () => {
+  // The tables and the `required` field mark a required prop already, so a
+  // mark written by hand as well prints twice in its row. A required prop's
+  // description may not open with the word either, bold or not.
+  const marked = [];
+  for (const { parts } of components.values()) {
+    for (const part of parts) {
+      for (const p of [...part.props, ...part.extraProps]) {
+        const text = p.description ?? '';
+        if (
+          /\*\*Required\.?\*\*|\(required\)/i.test(text) ||
+          (p.required && /^\W*required\b/i.test(text))
+        ) {
+          marked.push(`${part.path} ${p.name}`);
+        }
+      }
+    }
+  }
+  assert.deepEqual(marked, []);
+});
+
 test('compound families keep every dot-path, including table-less subs', () => {
   const navbar = components.get('Navbar');
   const paths = navbar.parts.map(p => p.path);
