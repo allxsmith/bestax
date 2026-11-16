@@ -128,15 +128,15 @@ export interface CascaderProps
   /** The ids of what describes the field. */
   'aria-describedby'?: React.AriaAttributes['aria-describedby'];
   /** The picked node's value when you hold the state, or `null` for none. Picking then only calls `onChange`. */
-  value?: string | null;
+  value?: string | null | undefined;
   /** The node picked to begin with, when the Cascader holds its own state. */
-  defaultValue?: string | null;
+  defaultValue?: string | null | undefined;
   /**
    * Called with the picked node's value, or `null` when it's cleared. The
    * field shows its path. A reset of the field's form calls it too, with
    * `defaultValue`, or with `null` when you hold the value, for you to set.
    */
-  onChange?: (value: string | null) => void;
+  onChange?: ((value: string | null) => void) | undefined;
   /**
    * A parent can be picked too: its row, Enter and Space pick it, and Right
    * or its chevron opens its column. Without it, only leaves are picked, and
@@ -169,7 +169,7 @@ export interface CascaderProps
    */
   onExpandedChange?: (expanded: string[]) => void;
   /** Whether the panel is open, controlled: opening and closing then only call `onOpenChange`. */
-  open?: boolean;
+  open?: boolean | undefined;
   /** The panel is open to begin with. */
   defaultOpen?: boolean;
   /** Called with the new state when the panel opens or closes. */
@@ -201,25 +201,26 @@ export interface CascaderProps
   /** Renders a row's content in place of its label. The field and search results still show the labels. */
   itemTemplate?: (item: TreeItemData) => React.ReactNode;
   /** What the field shows while nothing is picked. */
-  placeholder?: string;
+  placeholder?: string | undefined;
   /** A form field name. A hidden input posts the picked node's value, empty while nothing is picked. */
-  name?: string;
+  name?: string | undefined;
   /** The id of the form the hidden input belongs to, when it isn't an ancestor. */
-  form?: string;
+  form?: string | undefined;
   /**
    * A value is needed: the field is `aria-required`, and the form won't
    * submit while nothing is picked. The browser's message points at the
    * field, which shows focus, and the next key goes to it.
    */
-  required?: boolean;
+  required?: boolean | undefined;
   /** The field can't be used: it can't be focused or opened, and its hidden input doesn't post. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Shows a clear button at the field's inline end while something is picked. */
   clearable?: boolean;
   /** Bulma color modifier for the field. */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** The field's size, which the columns follow. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Rounds the field's corners (Bulma's `is-rounded`). */
   isRounded?: boolean;
   /**

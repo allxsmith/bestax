@@ -19,7 +19,7 @@ export interface FloatButtonsProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * `FloatButton`s, a `FloatButton.SpeedDial`, a `FloatButton.BackToTop`, or
    * any of them inside a `Badge`, top to bottom.

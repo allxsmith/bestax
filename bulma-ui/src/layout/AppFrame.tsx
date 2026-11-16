@@ -304,7 +304,7 @@ export interface AppFrameNavProps
    * moves ten times as far.
    * @defaultValue 10
    */
-  step?: number;
+  step?: number | undefined;
 }
 
 /**
