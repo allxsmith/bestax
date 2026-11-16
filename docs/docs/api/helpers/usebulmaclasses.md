@@ -836,7 +836,7 @@ On `Image`, use its own `size` ratios instead, which also fit the picture to the
 
 ### Skeleton Examples
 
-The `skeleton` prop applies Bulma's skeleton loading effect. [Skeleton's accessibility notes](../elements/skeleton.md#accessibility) cover it too, reduced motion and forced colors included: hide a skeleton from screen readers, and take a skeleton control out of the tab order. Here are examples for each component:
+The `skeleton` prop applies Bulma's skeleton loading effect. [Skeleton's accessibility notes](../elements/skeleton.md#accessibility) cover it too, reduced motion and forced colors included. In short, hide a skeleton from screen readers, and take a skeleton control out of the tab order. Here are examples for each component:
 
 #### Skeleton Button
 

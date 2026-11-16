@@ -222,10 +222,11 @@ A textarea with a skeleton loader, useful for simulating multi-line text input l
   skeleton control, and anything focusable inside a skeleton, `tabIndex={-1}` as well as
   `aria-hidden="true"`, so nothing reaches it while it loads and nothing hidden takes focus. Its
   look doesn't change, where `disabled` would draw it faded.
-- **Say that it's loading:** a skeleton has no role, and ARIA doesn't allow a name on its `<div>`,
+- **Say that it's loading:** `Skeleton` has no role, and ARIA doesn't allow a name on its `<div>`,
   so don't give it an `aria-label`. Set `aria-busy="true"` on the region it stands in for, and
-  remove it when the content arrives. To announce that loading started or finished, change the
-  text of a live region that's already on the page.
+  remove it when the content arrives, swapping the skeleton for the content as soon as it's there.
+  To announce that loading started or finished, change the text of a live region that's already
+  on the page.
 - **Reduced motion:** under `prefers-reduced-motion: reduce` the pulse stops and each shape stays
   drawn in the skeleton color. That covers `Skeleton`, the `skeleton` prop and `hasSkeleton`. The
   rule ships in bestax's stylesheets: `bestax.css` and its variants, or `extras.css` next to your

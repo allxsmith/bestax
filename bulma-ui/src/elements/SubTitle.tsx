@@ -29,7 +29,7 @@ export type SubTitleElement = (typeof validSubTitleElements)[number];
 
 /**
  * Props for the SubTitle component.
- * @extraProp {boolean} [skeleton] - Applies the `is-skeleton` class to the entire component.
+ * @extraProp {boolean} [skeleton] - Applies the `is-skeleton` class to the entire component. A screen reader still reads its text, so give it `aria-hidden="true"` while it's a skeleton.
  */
 export interface SubTitleProps
   extends
@@ -55,7 +55,11 @@ export interface SubTitleProps
    * the subtitle with the `textSize` helper instead.
    */
   as?: SubTitleElement | undefined;
-  /** Applies the `has-skeleton` class to part of the content. */
+  /**
+   * Applies the `has-skeleton` class to part of the content. A screen
+   * reader still reads its text, so give it `aria-hidden="true"` while it's
+   * a skeleton.
+   */
   hasSkeleton?: boolean;
   /** Subtitle content. */
   children?: React.ReactNode;
