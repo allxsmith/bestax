@@ -250,6 +250,12 @@ function SplitButton() {
   submit it. Pass `type="submit"` or `type="reset"` and yours is used instead; any other value
   renders `type="button"`.
 - Pressing outside an open menu closes it.
+- On a `hoverable` Dropdown, <kbd>Escape</kbd> puts away a menu the pointer is showing, so it can
+  be dismissed without moving the pointer, as
+  [WCAG 1.4.13](https://www.w3.org/WAI/WCAG22/Understanding/content-on-hover-or-focus.html) asks.
+  It stays away until the pointer leaves the Dropdown. With focus on the trigger, the key is used
+  there (`preventDefault()`), so a `Modal` around the Dropdown waits for the next one. With focus
+  elsewhere on the page, the key goes on to what has focus too, as a tooltip's does.
 - A click the browser dispatches with no pointer behind it (`detail` 0), as a screen reader's
   browse mode can send when you activate the trigger, opens the menu and focuses its first enabled
   item, as <kbd>Enter</kbd> does. A pointer's click on the trigger, and a script's `click()`, open
@@ -334,7 +340,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Dropd
 | `active`         | `boolean`                                              | —       | Whether the dropdown is open (controlled).                                                                                                                                                         |
 | `up`             | `boolean`                                              | `false` | Dropdown menu opens upward.                                                                                                                                                                        |
 | `right`          | `boolean`                                              | `false` | Menu is right-aligned.                                                                                                                                                                             |
-| `hoverable`      | `boolean`                                              | `false` | Open on hover instead of click.                                                                                                                                                                    |
+| `hoverable`      | `boolean`                                              | `false` | Open on hover instead of click. Escape puts away a menu the pointer is showing, and it stays away until the pointer leaves the Dropdown.                                                           |
 | `disabled`       | `boolean`                                              | `false` | Disables the dropdown trigger.                                                                                                                                                                     |
 | `onActiveChange` | `(active: boolean) => void`                            | —       | Callback when dropdown active state changes.                                                                                                                                                       |
 | `closeOnClick`   | `boolean`                                              | `true`  | Close dropdown when a menu item is clicked, or activated with Enter or Space.                                                                                                                      |
