@@ -137,6 +137,7 @@ const BESTAX = {
   Taginput: 'form/taginput',
   TextArea: 'form/textarea',
   TreeSelect: 'form/treeselect',
+  Calendar: 'form/datetime/calendar',
   DateInput: 'form/datetime/dateinput',
   DateRangeInput: 'form/datetime/daterangeinput',
   DateTimeInput: 'form/datetime/datetimeinput',
@@ -1216,7 +1217,7 @@ export const categories = [
       ],
       [
         'Calendar (inline)',
-        '~DateInput',
+        'Calendar',
         'Calendar',
         0,
         'DateCalendar',

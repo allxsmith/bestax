@@ -1,6 +1,6 @@
 ---
 name: bestax-form
-description: Build forms with @allxsmith/bestax-bulma — Field/Control/Label/Help composition, inputs, selects, checkboxes, radios, switches, and advanced controls (Autocomplete, Combobox, TreeSelect, Slider, Numberinput, PinInput, Rate, Taginput, File, date/time). There is no form/validation library; this skill shows the components and the validate-it-yourself error pattern. Use when building a form, wiring inputs to state, or showing validation/error state.
+description: Build forms with @allxsmith/bestax-bulma — Field/Control/Label/Help composition, inputs, selects, checkboxes, radios, switches, and advanced controls (Autocomplete, Combobox, TreeSelect, Slider, Numberinput, PinInput, Rate, Taginput, File, date/time, Calendar). There is no form/validation library; this skill shows the components and the validate-it-yourself error pattern. Use when building a form, wiring inputs to state, or showing validation/error state.
 license: MIT
 ---
 
@@ -126,6 +126,7 @@ All import from `@allxsmith/bestax-bulma`. Convenience components auto-wrap Fiel
 | `ColorInput` (+ `ColorInputBase`) / `ColorPicker`       | A color as a CSS string, HSL by default: a field with a popover / a panel. |
 | `DateInput` / `TimeInput` / `DateTimeInput` (+ `*Base`) | Date / time / datetime pickers; month or year via `granularity`.           |
 | `DateRangeInput` (+ `*Base`)                            | Start and end date: `[Date \| null, Date \| null]`, one calendar.          |
+| `Calendar`                                              | Months on the page that pick a day or a range, with content in each day.   |
 
 (`NumberInput` and `TagInput` also exist as deprecated aliases of `Numberinput`/`Taginput` —
 same components; prefer the lowercase-second-word spellings.)

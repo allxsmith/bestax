@@ -23,6 +23,7 @@ const PUBLIC_EXPORTS = [
   'Breadcrumb',
   'Button',
   'Buttons',
+  'Calendar',
   'Card',
   'CardContent',
   'CardFooter',
