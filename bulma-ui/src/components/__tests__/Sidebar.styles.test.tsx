@@ -253,7 +253,8 @@ describe.each([
     const forcedOn = (el: Element, pseudo?: string) => {
       const out: Record<string, string> = {};
       for (const rule of forced) {
-        const lands = rule.selectorText.split(',').some(part => {
+        // A comma inside brackets, as in `:is(a, b)`, doesn't split the list.
+        const lands = rule.selectorText.split(/,(?![^(]*\))/).some(part => {
           const found = part.trim().match(/^(.*?)(?:::([\w-]+))?$/)!;
           return found[2] === pseudo && el.matches(found[1]);
         });
