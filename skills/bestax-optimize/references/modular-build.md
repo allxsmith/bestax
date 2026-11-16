@@ -94,7 +94,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `button`, `colorswatch`,
 `delete`, `descriptionlist`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`,
-`progress`, `ringprogress`, `skeleton`, `stat`, `tag`
+`progress`, `ringprogress`, `skeleton`, `stat`, `table`, `tag`
 
 **Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `color`, `cursor`, `sizing`, `visibility`
 
@@ -106,8 +106,10 @@ Notes:
   file. A partial that extends a stock component often shares that name with the component's
   Bulma module (`components/tabs`, `elements/notification`), so give the bestax line a name of
   its own with `as`, the way the notes below do. The name changes nothing in the compiled CSS.
-- Extras `Tabs` **extends** stock Bulma tabs (vertical variant), so an app using `Tabs` needs
-  both:
+- Extras `Tabs` **extends** stock Bulma tabs (it shows only the selected `Tabs.Content` panel,
+  lays out the vertical variant, draws a `Tabs.Tab`'s focus ring and a disabled tab's look, and
+  keeps the active tab marked in forced colors, where Bulma's colors for it are replaced), so an
+  app using `Tabs` needs both:
 
   ```scss
   @use 'bulma/sass/components/tabs';
@@ -259,7 +261,9 @@ Notes:
   `bulma/sass/base/skeleton`). The `progress` and `skeleton` extras partials
   (`as bestax-progress`, `as bestax-skeleton`) stop the indeterminate bar's sweep and the
   skeleton pulse (`Skeleton`, the `skeleton` prop, `hasSkeleton`) under
-  `prefers-reduced-motion: reduce`, the same way and in either order.
+  `prefers-reduced-motion: reduce`, the same way and in either order. The `progress` partial
+  also keeps the bar drawn in forced colors, its fill and an edge in the text color, where
+  Bulma's module leaves the whole bar the page's color.
 - `Notification` is stock Bulma too (`bulma/sass/elements/notification`). The `notification`
   extras partial pads the end of one with a close button (`hasDelete`, or a `Delete` passed in)
   so its text clears the button, and gives a dark or light one its color's own text and
@@ -310,6 +314,17 @@ Notes:
     $table-cell-text-align: start
   );
   ```
+
+  The `table` extras partial draws the keyboard focus ring of a responsive table's container
+  (`isResponsive`), which is a tab stop while the table overflows it, in Bulma's focus color.
+  Include it next to the Bulma module in any build with a responsive table:
+
+  ```scss
+  @use '@allxsmith/bestax-bulma/scss/elements/table' as bestax-table;
+  ```
+
+  Bulma's module styles no focus on the container, so the order of the two `@use` lines does
+  not matter.
 
 - Stock-Bulma form controls still need their Bulma module (`bulma/sass/form/…`); the extras
   form partials above style only the bestax-specific behavior.

@@ -412,6 +412,7 @@ When `canCancel` is true, the sidebar can be closed by:
 - A sidebar on top that can't close on Escape, with `escapeClose` or `canCancel` off, still keeps the key from the overlays under it. A [Toast](./toast.md) waits until no overlay is open
 - A popup open inside it, such as a Dropdown menu or a date picker's calendar, takes the first Escape, and the next one closes the sidebar. A popup of your own does the same by calling `preventDefault()` on the Escape it closes on, as the [Modal](./modal.md#accessibility) page explains.
 - The page doesn't scroll while the sidebar is open with an overlay, through the ref-counted lock shared with [`Modal`](./modal.md#accessibility), `Dialog` and `Loading`, so closing one overlay never unlocks the page underneath another that is still open
+- In forced colors (Windows' contrast themes), which drop the panel's shadow and repaint background colors, the panel keeps a one pixel edge in the system's text color, and `Sidebar.Close` keeps its cross, in the system's text color, or its color for a disabled control when the button is `disabled` or `aria-disabled`
 
 ---
 
