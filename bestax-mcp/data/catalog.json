@@ -198,8 +198,8 @@
       "slug": "layout/appframe",
       "import": "import { AppFrame, useAppFrame } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 36,
-      "exampleCount": 9
+      "propCount": 42,
+      "exampleCount": 10
     },
     {
       "name": "Autocomplete",
@@ -1606,8 +1606,8 @@
       "slug": "components/tour",
       "import": "import { Tour, useTour } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 85,
-      "exampleCount": 10
+      "propCount": 86,
+      "exampleCount": 11
     },
     {
       "name": "TreeSelect",
@@ -1718,8 +1718,12 @@
     "--bulma-app-frame-border-color": ["AppFrame"],
     "--bulma-app-frame-border-width": ["AppFrame"],
     "--bulma-app-frame-drawer-shadow": ["AppFrame"],
+    "--bulma-app-frame-handle-size": ["AppFrame"],
+    "--bulma-app-frame-handle-size-coarse": ["AppFrame"],
     "--bulma-app-frame-header-background": ["AppFrame"],
     "--bulma-app-frame-header-height": ["AppFrame"],
+    "--bulma-app-frame-line-active-color": ["AppFrame"],
+    "--bulma-app-frame-line-active-size": ["AppFrame"],
     "--bulma-app-frame-nav-background": ["AppFrame"],
     "--bulma-app-frame-nav-padding": ["AppFrame"],
     "--bulma-app-frame-nav-rail-width": ["AppFrame"],
@@ -3403,6 +3407,12 @@
     "--bulma-tooltip-padding": ["Tooltip"],
     "--bulma-tooltip-radius": ["Tooltip"],
     "--bulma-tooltip-z-index": ["Tooltip"],
+    "--bulma-tour-beacon-animation-duration": ["Tour"],
+    "--bulma-tour-beacon-color": ["Tour"],
+    "--bulma-tour-beacon-ring-color": ["Tour"],
+    "--bulma-tour-beacon-ring-width": ["Tour"],
+    "--bulma-tour-beacon-size": ["Tour"],
+    "--bulma-tour-beacon-z-index": ["Tour"],
     "--bulma-tour-overlay-background": ["Tour"],
     "--bulma-tour-progress-color": ["Tour"],
     "--bulma-tour-spotlight-padding": ["Tour"],
