@@ -1,3 +1,11 @@
+## [1.18.64](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.63...bestax-mcp@1.18.64) (2026-11-16)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** mark the props a caller must pass in get_props ([8eb2a1d](https://github.com/allxsmith/bestax/commit/8eb2a1d918e0d4a12e4b01dbc1d39ae19a8680d0)), closes [#1754](https://github.com/allxsmith/bestax/issues/1754)
+* **docs:** mark the props a caller must pass in the API tables and the MCP index ([60f5d1f](https://github.com/allxsmith/bestax/commit/60f5d1f120f664992f496e3f5e100d1d7b2d897d)), closes [#1754](https://github.com/allxsmith/bestax/issues/1754)
+
 ## [1.18.63](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.62...bestax-mcp@1.18.63) (2026-11-16)
 
 
