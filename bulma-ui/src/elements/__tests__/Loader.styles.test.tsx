@@ -1242,12 +1242,12 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
     }
   );
 
-  it('paints every bar only with the two variables set in forced colors', () => {
+  it('gives a bar no background outside forced colors but the two variables set there', () => {
     // The rule above sets the variables, not the paint, so it's only a fix
     // while every background the sheet gives a bar reads them. Bulma paints
     // the track and the fill on vendor pseudo-elements, which the resolver
-    // can't match, so the sheet is read for them directly: any rule with the
-    // bar's class anywhere in a selector.
+    // can't match, so the sheet's rules are read for them directly: any rule
+    // the walk collects with the bar's class anywhere in a selector.
     const bar = new RegExp(`\\.${prefix}progress(?![\\w-])`);
     const ours =
       /var\(--bulma-progress-(bar|value)-background-color\)|transparent/g;
