@@ -890,8 +890,11 @@ Bulma points its `--bulma-panel-block-active-color` and `--bulma-panel-tab-activ
 `--bulma-link-active`, which it never defines, so the active block and tab inherit the panel's
 color. In a colored Panel, `.panel.is-<color>.has-text-<color>`, the partial gives the active
 block and tab a fallback for the two, the color at its on-scheme lightness
-(`--bulma-<color>-on-scheme-l`), which reads on the page on both schemes. A value of your own for
-either, set on the panel, still wins.
+(`--bulma-<color>-on-scheme-l`), which reads on the page on both schemes, and sets Bulma's
+`--bulma-panel-color-l`, which draws the active icon and the active tab's underline, to the same
+lightness. Black takes the title text's lightness, `--bulma-text-title-l`, white on the dark
+scheme. A value of your own for the two active colors, set on the panel, still wins, and so does a
+`--bulma-panel-color-l` set through the panel's `style`.
 
 `--bulma-text-invert-l`
 
