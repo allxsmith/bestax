@@ -488,15 +488,6 @@ describe('a wrapper its component renders', () => {
     );
   });
 
-  it('counts an empty aria-label as no name', () => {
-    expect(
-      wrapped(
-        '<div className="table-container">',
-        '<table className="table" aria-label="">x</table>'
-      ).rules
-    ).toEqual(['name:Table']);
-  });
-
   it.each([
     ['an aria-label', named],
     [

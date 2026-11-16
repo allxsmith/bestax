@@ -311,7 +311,8 @@ export interface RootEntry {
    * For a `fold` root: the attributes of the target inside that name what the
    * fold renders (a responsive `Table` names its container after the table's
    * `aria-label` or `aria-labelledby` while it overflows). A fold onto one
-   * with none of them, and no spread, gets a `name:` TODO asking for one.
+   * with none of them, and no spread, gets a `name:` TODO asking for one,
+   * whose words describe that container, the only fold that sets this.
    */
   readonly namedFrom?: readonly string[];
   /** The target renders the element's only child itself. */

@@ -908,37 +908,38 @@ describe('react-bulma-components transform fixtures', () => {
         ['an aria-label from an expression', ' aria-label={p.label}'],
       ])('moves %s onto the Table', (_, name) => {
         const { output, rules } = fold(name, '');
-        expect(output).toContain(`<Table isResponsive${name} />`);
+        expect(output).toContain(`<Table${name} isResponsive />`);
         expect(output).not.toContain('Table.Container');
         expect(rules).toEqual([]);
       });
 
       it.each([
-        ['a name of its own', ' aria-label="Inner"', ['prop:aria-label']],
-        ['a spread that may hold one', ' {...p}', ['prop:aria-label']],
-        [
-          'an empty name, which is none',
-          ' aria-label=""',
-          ['prop:aria-label', 'name:Table'],
-        ],
+        ['a name of its own', ' aria-label="Inner"'],
+        ['an empty one', ' aria-label=""'],
       ])(
         'keeps a Table with %s as it is, and reports the container’s name',
-        (_, table, expected) => {
+        (_, table) => {
           const { output, rules } = fold(' aria-label="Outer"', table);
           expect(output).not.toContain('Outer"');
-          expect(rules).toEqual(expected);
-          expect(output).toContain(
-            'the Table it folded onto names itself, or spreads props that may'
-          );
+          expect(rules).toEqual(['prop:aria-label']);
+          expect(output).toContain('the Table it folded onto names itself');
         }
       );
+
+      it('puts the container’s name ahead of a spread on the Table, which still wins', () => {
+        const { output, rules } = fold(' aria-label="Outer"', ' {...p}');
+        expect(output).toContain(
+          '<Table aria-label="Outer" {...p} isResponsive />'
+        );
+        expect(rules).toEqual([]);
+      });
 
       it('tells the container’s role and tab stop to go, which the Table writes itself', () => {
         const { output, rules } = fold(
           ' role="region" tabIndex={0} aria-label="Scores"',
           ''
         );
-        expect(output).toContain('<Table isResponsive aria-label="Scores" />');
+        expect(output).toContain('<Table aria-label="Scores" isResponsive />');
         expect(rules).toEqual(['prop:role', 'prop:tabIndex']);
         expect(output).not.toMatch(
           /`(role|tabIndex)` was dropped[^\n]*re-apply/

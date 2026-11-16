@@ -2201,18 +2201,14 @@ function planFold(facts: ElementFacts, wrapper: string, todos: Todo[]): Plan {
     );
   }
   // What the fold renders takes its name from the target inside, so one with
-  // no name asks for one. A spread there could hold it, and an empty one is
-  // none.
+  // no name asks for one. A spread there could hold it.
   const inner = facts.soleChild;
   const names = entry.namedFrom ?? [];
   const unnamed =
     names.length > 0 &&
     inner !== undefined &&
     !inner.hasSpread &&
-    !names.some(name => {
-      const value = inner.attributes.get(name);
-      return value !== undefined && value !== '';
-    });
+    !names.some(name => inner.attributes.has(name));
   return {
     conversion: null,
     fold: {
@@ -2223,7 +2219,7 @@ function planFold(facts: ElementFacts, wrapper: string, todos: Todo[]): Plan {
         todos: [
           {
             rule: ruleId('name', target),
-            message: `give this \`${target}\` a name in ${names.map(name => `\`${name}\``).join(' or ')}, such as an \`aria-labelledby\` pointing at its caption's \`id\`: while it overflows, bestax ${renders} makes its \`.${wrapper}\` a region you can tab to, named by those alone`,
+            message: `give this \`${target}\` a name in ${names.map(name => `\`${name}\``).join(' or ')}, such as an \`aria-labelledby\` pointing at a heading or at its caption's \`id\`: while it overflows, bestax ${renders} makes its \`.${wrapper}\` a region you can tab to, named by those alone`,
           },
         ],
       }),
