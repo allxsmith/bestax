@@ -53,7 +53,7 @@
           "type": "string",
           "default": null,
           "description": "The color it shows: any CSS color, such as `#1e6b99`, `hsl(202, 67%, 36%)` or `var(--bulma-primary)`. A see-through color shows a checkerboard behind it.",
-          "required": false,
+          "required": true,
           "inherited": false,
           "deprecated": false
         },

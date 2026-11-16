@@ -774,18 +774,18 @@ A press in the list never takes focus from the field.
 
 ### Command.Group
 
-| Prop        | Type                            | Default | Description                                                                                                                            |
-| ----------- | ------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `label`     | `React.ReactNode`               | —       | The heading, which also names the group for assistive tech, unless you give the group an `aria-label` or `aria-labelledby` of its own. |
-| `children`  | `React.ReactNode`               | —       | The group's `Command.Item`s.                                                                                                           |
-| `className` | `string`                        | —       | Additional CSS classes.                                                                                                                |
-| `...`       | All standard `<div>` attributes | —       |                                                                                                                                        |
+| Prop        | Type                            | Default | Description                                                                                                                                          |
+| ----------- | ------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`     | `React.ReactNode`               | —       | **Required.** The heading, which also names the group for assistive tech, unless you give the group an `aria-label` or `aria-labelledby` of its own. |
+| `children`  | `React.ReactNode`               | —       | The group's `Command.Item`s.                                                                                                                         |
+| `className` | `string`                        | —       | Additional CSS classes.                                                                                                                              |
+| `...`       | All standard `<div>` attributes | —       |                                                                                                                                                      |
 
 ### Command.Item
 
 | Prop          | Type                            | Default | Description                                                                                                                                                           |
 | ------------- | ------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `value`       | `string`                        | —       | What the Command's `onSelect` hands back. Unique within the Command.                                                                                                  |
+| `value`       | `string`                        | —       | **Required.** What the Command's `onSelect` hands back. Unique within the Command.                                                                                    |
 | `disabled`    | `boolean`                       | `false` | Can't be run. The arrows still reach it, so a screen reader user finds it, and it's never `aria-selected`.                                                            |
 | `onSelect`    | `() => void`                    | —       | Runs the item, when it's picked with Enter or a click, before the Command's `onSelect`.                                                                               |
 | `icon`        | `React.ReactNode`               | —       | Shown before the label, and hidden from assistive tech.                                                                                                               |

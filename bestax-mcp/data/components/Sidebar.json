@@ -59,8 +59,8 @@
           "name": "isOpen",
           "type": "boolean",
           "default": null,
-          "description": "Whether the sidebar is open (required). Opening moves focus into the sidebar, to its first tab stop or the sidebar itself, except for a sidebar without an overlay opened while a modal overlay, such as a Modal, is open: that one leaves focus where it is. That's decided as it opens, and changing `overlay` while it's open doesn't move focus. Closing hands focus back to whatever had it when the sidebar opened, unless focus has already left the sidebar, as it does for an overlay opened over it. A closed sidebar stays in the page, so it can slide out, and is `inert` and `aria-hidden` there: Tab passes over its content and assistive technology doesn't read it.",
-          "required": false,
+          "description": "Whether the sidebar is open. Opening moves focus into the sidebar, to its first tab stop or the sidebar itself, except for a sidebar without an overlay opened while a modal overlay, such as a Modal, is open: that one leaves focus where it is. That's decided as it opens, and changing `overlay` while it's open doesn't move focus. Closing hands focus back to whatever had it when the sidebar opened, unless focus has already left the sidebar, as it does for an overlay opened over it. A closed sidebar stays in the page, so it can slide out, and is `inert` and `aria-hidden` there: Tab passes over its content and assistive technology doesn't read it.",
+          "required": true,
           "inherited": false,
           "deprecated": false
         },

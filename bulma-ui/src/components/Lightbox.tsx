@@ -123,7 +123,7 @@ export interface LightboxProps
       'onChange' | 'defaultValue' | 'color'
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
-  /** **Required.** The images, in order. */
+  /** The images, in order. */
   items: LightboxItem[];
   /** Rendered in place: usually `Lightbox.Trigger`s, in whatever layout you like. */
   children?: React.ReactNode;
@@ -219,7 +219,7 @@ export interface LightboxTriggerOwnProps extends Omit<
   BulmaClassesProps,
   'color' | 'backgroundColor'
 > {
-  /** **Required.** The index in `items` the viewer opens at. */
+  /** The index in `items` the viewer opens at. */
   index: number;
   /**
    * What the button shows: a thumbnail, or text such as "View all photos".
