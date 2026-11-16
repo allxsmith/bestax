@@ -1,3 +1,19 @@
+## [1.18.68](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.67...bestax-mcp@1.18.68) (2026-11-16)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** convert a panel block's is-active only beside an aria-current ([a7dc280](https://github.com/allxsmith/bestax/commit/a7dc28075683a8d0aeb6fa35384fe0f5b302b9eb))
+* **bestax-migrate:** put migrated tabs in a plain <ul>, not Tabs.List ([3330f00](https://github.com/allxsmith/bestax/commit/3330f008a4d526dc686214396204cd1adfb21281)), closes [#1961](https://github.com/allxsmith/bestax/issues/1961)
+* **bulma-ui:** hold Carousel's autoplay by focus inside it whatever the page's focus ([b85b034](https://github.com/allxsmith/bestax/commit/b85b034faf6f981549be50b2dd94cce4e345f114))
+* **bulma-ui:** hold Carousel's autoplay while focus is on its arrows or indicators ([1811dab](https://github.com/allxsmith/bestax/commit/1811dabe2de5403063c069c1b1aa31ccf01e435b)), closes [#1920](https://github.com/allxsmith/bestax/issues/1920)
+* **bulma-ui:** let a caller name Message's close button with ariaCloseLabel ([08768c7](https://github.com/allxsmith/bestax/commit/08768c7c4ddb27f79d021ec921b1a5e29c850836)), closes [#1911](https://github.com/allxsmith/bestax/issues/1911)
+* **bulma-ui:** make a Pagination link with no href a button ([#1957](https://github.com/allxsmith/bestax/issues/1957)) ([3e7ecc7](https://github.com/allxsmith/bestax/commit/3e7ecc728586eaeb57258908a93c1edff66b7593))
+* **bulma-ui:** mark a Tabs' active tab in forced colors ([a3f55dc](https://github.com/allxsmith/bestax/commit/a3f55dc473a7aa5a411213e696095c61816d87c2)), closes [#1885](https://github.com/allxsmith/bestax/issues/1885)
+* **bulma-ui:** mark the active Panel.Block as the current one with aria-current ([6237d5b](https://github.com/allxsmith/bestax/commit/6237d5b0fd5b7618ac4c05f22e3dd79912978af9)), closes [#1881](https://github.com/allxsmith/bestax/issues/1881)
+* **bulma-ui:** reveal a Reveal too tall ever to show its threshold once any of it is in view ([1531608](https://github.com/allxsmith/bestax/commit/153160883760bd42a325b87d412e8e77efdf8043)), closes [#1907](https://github.com/allxsmith/bestax/issues/1907)
+* **bulma-ui:** wrap a Tooltip label wider than its box inside it ([52f5249](https://github.com/allxsmith/bestax/commit/52f5249c1c7493c6adb5305ca77381fd1ecd4fbd)), closes [#1909](https://github.com/allxsmith/bestax/issues/1909)
+
 ## [1.18.67](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.66...bestax-mcp@1.18.67) (2026-11-16)
 
 

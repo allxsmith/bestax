@@ -31,7 +31,7 @@
       "code": "<Paragraph>\n  <Strong>Note:</Strong> This is a pattern commonly used for callouts where the\n  lead word is strong to draw attention.\n</Paragraph>"
     }
   ],
-  "accessibility": "- **Semantic Importance:** Screen readers typically announce `<strong>` content with additional emphasis.\n- **Appropriate Use:** Use `<strong>` for content that is truly important, not just for visual styling.\n- **Color Contrast:** When adding color, ensure sufficient contrast for readability.\n\n:::info\nThe `<strong>` element indicates strong importance. For visual-only bold styling, use CSS or the `Span` component with `textWeight=\"bold\"`.\n:::",
+  "accessibility": "- **Semantic Importance:** browsers tell assistive tech that `<strong>` is strong importance, but don't count on a screen reader saying so. Put what matters in the words too: \"Don't delete this file\", not only the bold.\n- **Appropriate Use:** Use `<strong>` for content that is truly important, not just for visual styling.\n- **Color Contrast:** When adding color, ensure sufficient contrast for readability.\n\n:::info\nThe `<strong>` element indicates strong importance. For visual-only bold styling, use CSS or the `Span` component with `textWeight=\"bold\"`.\n:::",
   "related": ["Emphasis", "Paragraph", "Span", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-strong--default",
   "summary": "The `Strong` component renders a styled `<strong>` element with Bulma helper class integration.",

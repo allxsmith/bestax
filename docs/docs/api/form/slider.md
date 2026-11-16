@@ -375,6 +375,7 @@ function SliderRangeFormDemo() {
 - In forced colors (Windows' contrast themes) the track and its fill would disappear, since they're painted as a gradient. bestax's styles paint the fill in the system's highlight color and the rest of the track in its text color there, so the track shows how far it's filled. The mark labels draw in its text color too, and the tick lines in its button text color. A disabled slider draws its track, thumbs, ticks and labels in its color for disabled text instead. All of them draw at full strength there.
 - Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes
 - Fully keyboard accessible with arrow keys
+- Home and End move a thumb to the slider's ends. On a range Slider a thumb stops at the other thumb, or `minDistance` short of it.
 - Focus states clearly visible
 - On a right-to-left page the native range mirrors, and the fill, the tick marks and the value bubble follow it, so a value of 25 fills from the right. A vertical slider still fills from the bottom.
 - In forced colors (Windows' contrast themes) the value bubble takes the page's own background, and every side of its arrow would be painted, drawing it as a square. bestax's styles outline the bubble in the system's text color there, and keep the arrow a triangle in that color, pointing at the thumb whichever side the bubble sits on.

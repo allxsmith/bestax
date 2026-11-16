@@ -358,6 +358,10 @@ https://bestax.io/docs/guides/features/routing.
 </Menu>
 ```
 
+`Menu.Label` is a `<p>`, which a screen reader reads as plain text that isn't a heading. To let
+screen reader users move between the groups by heading, give each label `role="heading"` and the
+`aria-level` that fits the headings already on the page.
+
 A sidebar whose groups of links open and close (a docs sidebar, an admin app's sections) puts each
 group's `Menu.List` in a `Menu.Section`. Its heading is a real button drawn like `Menu.Label`, with
 `aria-expanded` and a chevron, and its links stay ordinary links, each a tab stop. Open the

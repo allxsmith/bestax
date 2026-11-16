@@ -338,6 +338,12 @@ function example() {
 - Every `Menu.List` has `role="list"`, nested ones included. That's the role a `<ul>` already has,
   set again for Safari, whose WebKit stops exposing a `<ul>` as a list once its markers are hidden,
   as Bulma's reset hides them, unless the role is written out.
+- `Menu.Label` renders Bulma's `<p class="menu-label">`, which assistive tech reads as a plain
+  paragraph: it isn't a heading, and nothing ties it to the list under it, so a screen reader user
+  who moves through the page by heading skips the groups. Give the label `role="heading"` and the
+  `aria-level` that fits the headings already on the page, so they can move between the groups by
+  heading. To name a list after its label as well, give the label an `id` that's unique on the
+  page and write `aria-labelledby` with that id on the `Menu.List`.
 - `Menu.Item active` sets `aria-current="page"` on the element `as` renders, the link by
   default, so the current item isn't only a color. An `aria-current` you pass wins: a menu of
   sections on one page can say `"location"`, and `aria-current={false}` turns it off.
@@ -433,7 +439,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu 
 
 **Subcomponents:**
 
-- `Menu.Label`: Bulma Menu label component.
+- `Menu.Label`: The label over a group of the menu's items: a paragraph to assistive tech, until you give it `role="heading"` and an `aria-level`. It renders Bulma's `<p class="menu-label">`, which isn't a heading and doesn't name the `Menu.List` under it. Give it `role="heading"` and the `aria-level` that fits the headings already on the page, so screen reader users can move between the groups by heading. To name the list after it as well, give it an `id` that's unique on the page and write `aria-labelledby` with that id on the list.
 - `Menu.List`: MenuList applies `menu-list` class only at the top level (not for nested lists). Every level renders `role="list"`, which Safari needs: WebKit stops exposing a `<ul>` as a list once its markers are hidden, and Bulma's reset hides them.
 - `Menu.Item`: MenuItem supports `as` prop for custom link components, e.g., react-router-dom Link. Give each item an `href`, a router link through `as`, or `as="button"`, so the keyboard can reach it: an `<a>` with no `href` isn't a link, and Tab skips it.
 - `Menu.Section`: A section of the menu that opens and closes: its heading is a button drawn like `Menu.Label`, and its `Menu.List` of links shows while it's open. It's APG's disclosure navigation, for a sidebar of link groups: the links stay ordinary links, each its own tab stop, and a closed section's list is `hidden` and `inert`, so Tab and assistive tech skip it. It goes directly in `Menu`, holding a `Menu.List`. Closing it while focus is on one of its links moves focus to its heading.

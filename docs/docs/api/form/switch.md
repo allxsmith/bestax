@@ -308,6 +308,7 @@ function example() {
 - Use the `children` prop to provide a visible label
 - For icon-only switches, provide an `aria-label` prop
 - The switch can be focused and toggled with keyboard (Space/Enter)
+- In forced colors (Windows contrast themes), the track and the knob take system colors, so the knob shows which side it's on in every style. Off, the knob and the edge are in the system's button text color. On, the default style's track fills with the highlight color and the knob takes the color made to read on it, while a thin or outlined switch, whose track doesn't fill, draws its knob and edge in the highlight color. Disabled, the edge is gray, and so is the knob when off.
 
 ---
 
