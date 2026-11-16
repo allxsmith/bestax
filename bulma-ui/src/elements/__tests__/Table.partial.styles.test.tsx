@@ -129,7 +129,7 @@ describe('a selected row or cell in forced colors', () => {
     ['no prefix', ''],
     ['a class prefix', 'bestax-'],
   ])(
-    'is outlined in Highlight, inside it, in forced colors only, and in the text color while focused, with %s',
+    'is a double Highlight line inside it, in forced colors only, and in the text color while focused, with %s',
     (_label, prefix) => {
       const selected = ['tr', 'td', 'th'].map(
         tag => `.${prefix}table ${tag}.${prefix}is-selected`
@@ -138,12 +138,12 @@ describe('a selected row or cell in forced colors', () => {
         {
           selector: selected.join(', '),
           declarations: {
-            outline: '2px solid Highlight',
-            'outline-offset': '-2px',
+            outline: '4px double Highlight',
+            'outline-offset': '-4px',
           },
         },
-        // A row or cell given a tabIndex: focus takes the outline over, so
-        // it changes color rather than vanish into the selection's.
+        // A row or cell given a tabIndex: focus keeps the double line, so it
+        // still reads as selected, and changes its color, so focus shows.
         {
           selector: selected.map(rule => `${rule}:focus-visible`).join(', '),
           declarations: { 'outline-color': 'CanvasText' },

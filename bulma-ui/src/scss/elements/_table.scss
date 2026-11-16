@@ -30,26 +30,27 @@
 // Bulma marks a selected row or cell (`Tr isSelected`, or a cell with its
 // `is-selected` class) with a fill and a text color, and nothing else, and
 // forced colors (Windows' contrast themes) replaces both, so there a selected
-// row looks like every other row. This outlines it in Highlight, the color the
-// system keeps for a selection, rather than fill it: a Highlight fill would
-// need `forced-color-adjust: none` to keep its text readable, and that would
-// leave a checkbox, a tag or a link in a cell in its author colors on the
-// fill. Drawn inside the row, it moves nothing. Bulma sets no outline on
-// these, so the rule wins whichever stylesheet loads first, and outside
-// forced colors nothing changes.
+// row looks like every other row. This draws a double line around it, inside
+// its edge, in Highlight, the color the system keeps for a selection, rather
+// than fill it: a Highlight fill would need `forced-color-adjust: none` to
+// keep its text readable, and that would leave a checkbox, a tag or a link in
+// a cell in its author colors on the fill. Drawn inside, it moves nothing.
+// Bulma sets no outline on these, so the rule wins whichever stylesheet loads
+// first, and outside forced colors nothing changes.
 //
-// The outline is where a browser draws its own focus ring, which `_menu.scss`
-// keeps clear by marking its active item with a border instead. A row or a
-// cell takes focus only when it's given a `tabIndex`, so a selected one that
-// has keyboard focus takes the system's text color in place of Highlight,
-// which tells it from the selected ones around it.
+// The line is an outline, where a browser draws its focus ring, which a row
+// or a cell shows only when it's given a `tabIndex`. A browser's ring is a
+// single line, which Chromium draws in Highlight there too, so the selection
+// is a double one, and a selected row or cell with keyboard focus keeps it,
+// in the system's text color: the shape still says selected, and the color
+// says focused.
 @media (forced-colors: active) {
   .#{iv.$class-prefix}table {
     tr.#{iv.$class-prefix}is-selected,
     td.#{iv.$class-prefix}is-selected,
     th.#{iv.$class-prefix}is-selected {
-      outline: 2px solid Highlight;
-      outline-offset: -2px;
+      outline: 4px double Highlight;
+      outline-offset: -4px;
 
       &:focus-visible {
         outline-color: CanvasText;
