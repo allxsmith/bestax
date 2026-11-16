@@ -38,7 +38,12 @@ export interface RateIconProps {
   isHovered: boolean;
   /** The current value */
   value: number;
-  /** Fill percentage for partial icons (0-100). Used with precision < 1. */
+  /**
+   * Fill percentage for partial icons (0-100). Used with precision < 1. On a
+   * right-to-left page the pointer reads a star's fraction from its right
+   * edge, so fill from the icon's inline start, for example with
+   * `inset-inline-start`, to fill the side the pointer is over.
+   */
   fillPercent: number;
 }
 
@@ -100,11 +105,13 @@ export interface RateProps
   spaced?: boolean;
   /**
    * Renders the stars in reverse order and adds `is-rtl`, whose style reverses
-   * them back, so on its own it changes nothing you see. The stars follow the
+   * them back. So on its own it changes nothing you see, only the order a
+   * screen reader meets the stars in, which it reverses. The stars follow the
    * direction of the page, or of a wrapper's `dir`, with this prop or without:
-   * in a right-to-left one they run right to left, a half star is filled from
-   * its right, and the pointer reads a star's fraction from its right edge.
-   * Set `dir="rtl"` on the page or a wrapper for that.
+   * in a right-to-left one they run right to left, the built-in star or an
+   * `iconName` icon fills a half star from its right, and the pointer reads a
+   * star's fraction from its right edge. Set `dir="rtl"` on the page or a
+   * wrapper for that, and leave this prop off.
    */
   rtl?: boolean;
   /** Custom icon name for the rating stars. */
@@ -143,7 +150,6 @@ const StarIcon: React.FC<{ filled: boolean }> = ({ filled }) => (
   </svg>
 );
 
-/** Snap a value to the nearest precision step. */
 /**
  * Whether `element` lays out right to left, from the page's or a wrapper's
  * `dir`, as ColorPicker and Slider read it.
@@ -151,6 +157,7 @@ const StarIcon: React.FC<{ filled: boolean }> = ({ filled }) => (
 const isRtl = (element: Element) =>
   getComputedStyle(element).direction === 'rtl';
 
+/** Snap a value to the nearest precision step. */
 function snapToPrecision(val: number, precision: number): number {
   return Math.round(val / precision) * precision;
 }
