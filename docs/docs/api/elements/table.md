@@ -164,7 +164,7 @@ Apply the `color` prop to individual `Td` cells to use Bulma's color modifiers. 
 
 ### Highlighted Row
 
-Use the `isSelected` prop on a `Tr` to highlight a specific row. This is ideal for drawing attention to active selections, search results, or rows that require user action.
+Use the `isSelected` prop on a `Tr` to highlight a row, such as the reader's own team or a search result. The highlight is a fill, which a screen reader doesn't announce and some readers can't tell from the other rows, so say in the row why it stands out, as "(your team)" does here. Each team's name is the row's header (`Th` with `scope="row"`), so a screen reader reads it with every cell in the row. For rows a user picks, give each one a checkbox, as in [A Column of Checkboxes](#a-column-of-checkboxes).
 
 ```tsx live
 <Table isFullwidth>
@@ -177,12 +177,12 @@ Use the `isSelected` prop on a `Tr` to highlight a specific row. This is ideal f
   </Thead>
   <Tbody>
     <Tr isSelected>
-      <Td>Ice Wolves</Td>
+      <Th scope="row">Ice Wolves (your team)</Th>
       <Td>32</Td>
       <Td>8</Td>
     </Tr>
     <Tr>
-      <Td>Frost Giants</Td>
+      <Th scope="row">Frost Giants</Th>
       <Td>30</Td>
       <Td>9</Td>
     </Tr>
@@ -292,6 +292,7 @@ Every table sub-component is also available as a static on `Table` under its exa
 - **Responsive:** with `isResponsive`, the table is wrapped in Bulma's scrollable `.table-container`. While the table overflows it, the container is a region with a tab stop, named by the table's own `aria-label` or `aria-labelledby`, so a keyboard user can reach and scroll it, Safari included. The `elements/table` partial, which `bestax.css` and `extras.css` carry, draws Bulma's focus ring just inside it on keyboard focus. While the table fits, it's a plain `div` with no tab stop, though one that has focus keeps its tab stop until focus leaves. A development build warns when a table overflows with no name.
 - **Forced colors:** Bulma marks a selected row or cell (`Tr isSelected`, or a cell with Bulma's `is-selected` class) with a fill and a text color, which forced colors replaces, so there the `elements/table` partial draws a double line just inside it in the system's highlight color, which moves nothing. A selected row or cell given a `tabIndex` keeps the double line while it has keyboard focus, in the system's text color, so it still reads as selected and the focus shows.
 - **Screen Readers:** Always use `<Th>` for header cells, and provide descriptive column headings.
+- **Selected rows:** `isSelected` is a look, which assistive tech doesn't announce. Say in a highlighted row why it stands out, as in [Highlighted Row](#highlighted-row), and give rows a user picks a checkbox named for the row, as in [A Column of Checkboxes](#a-column-of-checkboxes).
 - **Right to left:** with `bestax.css` and its variants, a header cell aligns to the start of the line, as the body cells do, so on a right-to-left page both sit on the right. They build Bulma with `$table-cell-text-align: start`, where Bulma's own default, in the table below, is `left`. With `extras.css` and a Bulma of your own, set `$table-cell-text-align: start` in your Bulma build, or `--bulma-table-cell-text-align: start` on the table, to get the same. `isAligned` or an `align` attribute still sets a cell's own alignment.
 
 :::tip
