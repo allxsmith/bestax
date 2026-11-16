@@ -301,6 +301,39 @@ export const IconRail: Story = {
   },
 };
 
+/**
+ * The column's edge drags its width, with the width kept by the story. The
+ * handle's keys move it too: the arrows, Home and End, Enter to collapse and
+ * bring it back, and a double click to reset it.
+ */
+export const ResizableColumn: Story = {
+  render: function ResizableColumnExample() {
+    const [width, setWidth] = useState(256);
+    return (
+      <AppFrame>
+        {header()}
+        <AppFrame.Nav resizable width={width} onWidthChange={setWidth}>
+          {menu}
+        </AppFrame.Nav>
+        <AppFrame.Main>
+          <Section>
+            <Title as="h1">Orders</Title>
+            <Paragraph>The column is {width} pixels wide.</Paragraph>
+          </Section>
+        </AppFrame.Main>
+      </AppFrame>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const handle = canvas.getByRole('separator', { name: 'Sections' });
+    await expect(handle).toHaveAttribute('aria-valuenow', '256');
+    handle.focus();
+    await userEvent.keyboard('{ArrowRight}');
+    await expect(handle).toHaveAttribute('aria-valuenow', '266');
+  },
+};
+
 /** A drawer of filters, which stays open as you pick, from the tablet up. */
 export const FiltersAtTablet: Story = {
   render: function FiltersAtTabletExample() {

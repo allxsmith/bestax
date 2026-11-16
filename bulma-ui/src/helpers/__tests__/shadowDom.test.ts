@@ -125,6 +125,31 @@ describe('shadowDom helpers', () => {
       expect(heard).toHaveBeenCalledTimes(2);
       otherHost.remove();
     });
+
+    it('listens on the shadow roots of several nodes at once, and moves nothing for the same roots', () => {
+      const otherHost = document.createElement('div');
+      const other = otherHost.attachShadow({ mode: 'open' });
+      const there = document.createElement('div');
+      other.appendChild(there);
+      document.body.appendChild(otherHost);
+      const heard = vi.fn();
+      const scrolls = listenInShadowRoots('scroll', heard, { capture: true });
+      const roots = scrolls.follow(inner, there, inner, null);
+      expect(roots).toEqual([shadowRoot, other]);
+      shadowRoot.dispatchEvent(new Event('scroll'));
+      other.dispatchEvent(new Event('scroll'));
+      expect(heard).toHaveBeenCalledTimes(2);
+      // A node listed twice, or the same roots in another order, adds no
+      // listener, takes none off, and gives back the same list.
+      const added = vi.spyOn(shadowRoot, 'addEventListener');
+      const removed = vi.spyOn(shadowRoot, 'removeEventListener');
+      expect(scrolls.follow(there, inner, inner)).toBe(roots);
+      expect(added).not.toHaveBeenCalled();
+      expect(removed).not.toHaveBeenCalled();
+      expect(scrolls.follow(inner)).toEqual([shadowRoot]);
+      scrolls.stop();
+      otherHost.remove();
+    });
   });
 
   describe('shadowRootsAround', () => {

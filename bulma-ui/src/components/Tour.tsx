@@ -36,6 +36,7 @@ import {
   useAnchoredPosition,
 } from '../helpers/useAnchoredPosition';
 import type { AnchoredSide } from '../helpers/useAnchoredPosition';
+import { useLatestRef } from '../helpers/useLatestRef';
 import { useScopedNumberFormat } from '../helpers/localeFormat';
 import { spokenText, visuallyHidden } from '../helpers/statusRegion';
 import {
@@ -43,7 +44,7 @@ import {
   getActiveElementInTree,
   listenInShadowRoots,
 } from '../helpers/shadowDom';
-import { warnOnce } from '../helpers/devWarnings';
+import { isDev, warnOnce } from '../helpers/devWarnings';
 import { buttonType } from '../helpers/buttonType';
 import { Button, ButtonOwnProps } from '../elements/Button';
 import { Buttons } from '../elements/Buttons';
@@ -67,6 +68,12 @@ export type TourTarget =
 const validTourTitleElements = ['h2', 'h3', 'h4', 'h5', 'h6', 'p'] as const;
 /** What each step's title renders as: a heading level, or `p`. Timeline's union. */
 export type TourTitleElement = (typeof validTourTitleElements)[number];
+
+/**
+ * Whether the tour walks its steps in order, or puts a beacon on each target
+ * that opens its step, in any order.
+ */
+export type TourMode = 'guided' | 'beacon';
 
 const validTourStepPositions: readonly TourStepPosition[] = [
   'top',
@@ -97,7 +104,8 @@ export interface TourLabels {
    */
   next?: string;
   /**
-   * Next on the last step, which finishes the tour.
+   * Next on the last step, which finishes the tour, and on a beacon's step,
+   * which closes the step.
    * @defaultValue 'Done'
    */
   done?: string;
@@ -108,17 +116,30 @@ export interface TourLabels {
   close?: string;
   /**
    * The progress line, which also starts the announcement after the step
-   * changes ("Step 2 of 5: Filters"). `step` counts from 1.
+   * changes ("Step 2 of 5: Filters"). `step` counts from 1. It isn't called
+   * with `mode="beacon"`, whose steps show no progress.
    * @defaultValue (step, total) => `Step ${step} of ${total}`, the numbers in
    * the LocaleProvider's locale
    */
   progress?: (step: number, total: number) => string;
+  /**
+   * A beacon's name, read before its step's title, or its `aria-label`.
+   * A step named only by `aria-labelledby` gives its beacon this alone,
+   * since what that points at isn't on the page while the beacons show.
+   * @defaultValue 'Show tip'
+   */
+  beacon?: string;
+  /**
+   * The name of the group the beacons sit in.
+   * @defaultValue 'Tips'
+   */
+  beacons?: string;
 }
 
 /**
  * Props for the Tour component. The helper props, the other attributes and
  * the `ref` land on the `.tour` element in the portal, which holds the
- * overlay and the current step.
+ * overlay, the current step and the beacons.
  */
 export interface TourProps
   extends
@@ -145,25 +166,37 @@ export interface TourProps
   /**
    * Called with `false` when the tour ends: Skip, the close button, Escape,
    * a click outside with `closeOnClickOutside`, or Done after `onFinish`.
+   * With `mode="beacon"` it never fires: those close only the open step,
+   * and the app owns `open`.
    */
   onOpenChange?: (open: boolean) => void;
   /**
-   * The current step's index (controlled). An index past either end shows
-   * the nearest step, and a fraction is rounded down.
+   * The current step's index (controlled). In guided mode an index past
+   * either end shows the nearest step, and a fraction is rounded down. With
+   * `mode="beacon"`, the open step's index, or `-1` while only the beacons
+   * show, as Timeline's `active` takes `-1` for none.
    */
   value?: number;
   /**
    * The step it starts on (uncontrolled), and goes back to each time it
    * opens.
-   * @defaultValue 0
+   * @defaultValue 0, or -1 with mode="beacon"
    */
   defaultValue?: number;
-  /** Called with the new index when Back, Next or an arrow key changes the step. */
+  /**
+   * Called with the new index when Back, Next, an arrow key or a beacon
+   * changes the step, and with `-1` when a beacon's step closes: Done,
+   * Escape, the close button, a press outside with `closeOnClickOutside`,
+   * or its step being removed, or moved by a step added or removed before
+   * it. So keep a beacon tour's list of steps fixed while a tip shows, and
+   * drop read ones the next time the tips open.
+   */
   onChange?: (value: number) => void;
   /**
    * Called when Done on the last step finishes the tour, before
    * `onOpenChange(false)`. Skip, the close button, Escape and a click
-   * outside don't call it.
+   * outside don't call it, and with `mode="beacon"`, where Done closes only
+   * the step, it never fires.
    */
   onFinish?: () => void;
   /**
@@ -181,7 +214,8 @@ export interface TourProps
    */
   overlay?: boolean;
   /**
-   * Ends the tour on Escape. With the overlay, from anywhere, while no
+   * Ends the tour on Escape, or with `mode="beacon"` closes the open step.
+   * With the overlay, from anywhere, while no
    * overlay opened over it, such as a Modal opened from a step, is on top.
    * Without it, only while focus is in the step, so an Escape meant for the
    * page stays with the page. A popup inside the step, and content that
@@ -195,7 +229,9 @@ export interface TourProps
    * default, unlike Popover's: a tour is a sequence someone means to finish,
    * and a stray click on the dimmed page, or on the page around a step
    * without the overlay, shouldn't end it partway. Skip, the close button
-   * and Escape still end it.
+   * and Escape still end it. With `mode="beacon"`, a press outside closes
+   * the open step, as Escape does, and never ends the tour, and it's off
+   * there by default too, so with the default it does nothing.
    * @defaultValue false
    */
   closeOnClickOutside?: boolean;
@@ -228,6 +264,29 @@ export interface TourProps
    * `null` leaves the steps without one.
    */
   footer?: React.ReactNode;
+  /**
+   * `guided` walks the steps in order. `beacon` puts a button on each
+   * target that opens its step, in any order, and keeps the buttons there
+   * until `open` turns `false`. The beacons sit in one group named by
+   * `labels.beacons`, in step order, after the page's own content in the Tab
+   * order, so order the steps as the page reads; a development build warns
+   * once when they aren't. A beacon sits over its target's top end corner
+   * and shows while its target is on the page, has a box and is in view,
+   * that corner included.
+   * Opening one hides them all and opens its step, modal or not by
+   * `overlay`, and closing the step brings them back, with focus on its
+   * beacon while the step held it. A beacon's step has no Skip, Back or
+   * progress line, its Next reads Done and closes the step, and the arrow
+   * keys do nothing in it. Closing the tour while its step holds focus sends
+   * focus to the step's target. Removing a step removes its beacon, so an
+   * app can drop the tips a user has read; a tip whose step is removed or
+   * moved while it's open closes, with `onChange(-1)`. While only the
+   * beacons show, the tour sits under the app's navbar, sidebars, modals and
+   * dropdown menus; raise `--bulma-tour-beacon-z-index` for targets inside
+   * one.
+   * @defaultValue 'guided'
+   */
+  mode?: TourMode;
 }
 
 /**
@@ -312,12 +371,17 @@ export interface TourState {
   value: number;
   /** How many steps the tour has. */
   total: number;
-  /** Goes to the next step, and finishes the tour on the last. */
+  /**
+   * Goes to the next step, finishes the tour on the last, and closes a
+   * beacon's step.
+   */
   next: () => void;
-  /** Goes to the step before. Does nothing on the first. */
+  /** Goes to the step before. Does nothing on the first, or on a beacon's step. */
   back: () => void;
-  /** Ends the tour without finishing it, as Skip does. */
+  /** Ends the tour without finishing it, as Skip does, or closes a beacon's step. */
   skip: () => void;
+  /** The tour's `mode`: `beacon` when this step came from a beacon. */
+  mode: TourMode;
 }
 
 /** Where a step's target is on the screen. */
@@ -390,6 +454,101 @@ function findTarget(
 const scopeOf = (node: Node): Document | ShadowRoot =>
   node.getRootNode() as Document | ShadowRoot;
 
+/** What watching the page hands back. */
+interface PageWatch {
+  /** Asks for a measurement, in the next frame unless one is coming. */
+  schedule: () => void;
+  /** Watches more elements' sizes; `null` where there's no ResizeObserver. */
+  sizes: ResizeObserver | null;
+  /**
+   * Listens for a scroll, and watches for changes, in the shadow roots the
+   * targets found now are rendered in, which neither a window listener nor
+   * the body's subtree reaches.
+   */
+  follow: (...targets: Array<HTMLElement | null>) => void;
+  stop: () => void;
+}
+
+/**
+ * Calls `update` once a frame at most, on a scroll, a resize of the window, a
+ * change in the size of the body or of an element given to `sizes`, or any
+ * change to the page outside `root`: an element added or removed, or an
+ * attribute changed. The body is watched because, on a page that scrolls as
+ * a whole, it grows when something above a target does, such as an image
+ * loading. Any attribute can bring a target in or move one (`hidden`, `open`,
+ * `style`, a `data-` one a selector names), and the frame bounds the cost.
+ * The tour's own changes can't, so they're left out. A tour in a shadow root
+ * watches that root too, and so does a target in one, as `follow` finds
+ * them, since the body's subtree reaches neither. A step's target and the
+ * beacons' targets are both watched this way.
+ */
+function watchPage(root: HTMLElement, update: () => void): PageWatch {
+  const doc = root.ownerDocument;
+  const scope = scopeOf(root);
+  const view = doc.defaultView as Window;
+  let frame = 0;
+  const run = () => {
+    frame = 0;
+    update();
+  };
+  const schedule = () => {
+    if (!frame) frame = view.requestAnimationFrame(run);
+  };
+  const sizes =
+    typeof ResizeObserver === 'undefined'
+      ? null
+      : new ResizeObserver(() => schedule());
+  sizes?.observe(doc.body);
+  // The tour's own changes can't move a target.
+  const outside = (records: MutationRecord[]) =>
+    records.some(record => !root.contains(record.target));
+  const observer = new MutationObserver(records => {
+    if (outside(records)) schedule();
+  });
+  const changes = { childList: true, subtree: true, attributes: true };
+  // The body, the tour's own shadow root, and the shadow roots the targets
+  // are in, which neither one's subtree reaches.
+  const observe = (roots: readonly ShadowRoot[]) => {
+    observer.observe(doc.body, changes);
+    if (scope !== doc) observer.observe(scope, changes);
+    for (const shadow of roots) {
+      if (shadow !== scope) observer.observe(shadow, changes);
+    }
+  };
+  observe([]);
+  view.addEventListener('scroll', schedule, { passive: true, capture: true });
+  view.addEventListener('resize', schedule, { passive: true });
+  const shadowScrolls = listenInShadowRoots('scroll', schedule, {
+    passive: true,
+    capture: true,
+  });
+  // The helper's own list, none yet, which stays the same array until the
+  // roots change.
+  let followed = shadowScrolls.follow();
+  return {
+    schedule,
+    sizes,
+    follow: (...targets) => {
+      const roots = shadowScrolls.follow(...targets);
+      if (roots === followed) return;
+      followed = roots;
+      // Changes not yet delivered would go with the old registrations.
+      const pending = observer.takeRecords();
+      observer.disconnect();
+      observe(roots);
+      if (outside(pending)) schedule();
+    },
+    stop: () => {
+      view.cancelAnimationFrame(frame);
+      sizes?.disconnect();
+      observer.disconnect();
+      view.removeEventListener('scroll', schedule, { capture: true });
+      view.removeEventListener('resize', schedule);
+      shadowScrolls.stop();
+    },
+  };
+}
+
 /**
  * Finds the current step's target and its box while the step shows, and
  * measures it again, once a frame at most, on a scroll, a resize of the
@@ -412,33 +571,16 @@ function useTourTarget(
     if (!active) return undefined;
     // The root renders whenever the tour shows, so it's on the page here.
     const root = rootRef.current as HTMLDivElement;
-    const doc = root.ownerDocument;
     const scope = scopeOf(root);
-    const view = doc.defaultView as Window;
-    let frame = 0;
     // The element watched for size as the target, box or no box, so one
     // that gets a box is noticed.
     let watched: HTMLElement | null = null;
-    // The body is watched as well: on a page that scrolls as a whole, it
-    // grows when something above the target does, such as an image loading.
-    const sizes =
-      typeof ResizeObserver === 'undefined'
-        ? null
-        : new ResizeObserver(() => schedule());
-    // A scroll inside a shadow root doesn't reach the window, so the shadow
-    // roots the target is rendered in are listened on too, as each
-    // measurement finds them.
-    const shadowScrolls = listenInShadowRoots('scroll', () => schedule(), {
-      passive: true,
-      capture: true,
-    });
     const update = () => {
-      frame = 0;
       const candidate = findTarget(target, scope);
-      shadowScrolls.follow(candidate);
+      watch.follow(candidate);
       if (candidate !== watched) {
-        if (watched) sizes?.unobserve(watched);
-        if (candidate) sizes?.observe(candidate);
+        if (watched) watch.sizes?.unobserve(watched);
+        if (candidate) watch.sizes?.observe(candidate);
         watched = candidate;
       }
       const element =
@@ -471,44 +613,253 @@ function useTourTarget(
         );
       }
     };
-    const schedule = () => {
-      if (!frame) frame = view.requestAnimationFrame(update);
-    };
-    sizes?.observe(doc.body);
+    const watch = watchPage(root, update);
     update();
-    // Any attribute can bring a target in or move one (`hidden`, `open`,
-    // `style`, a `data-` one a selector names), and the frame bounds the
-    // cost. The tour's own changes can't, so they're left out. A tour in a
-    // shadow root watches that root too, which the body's subtree doesn't
-    // reach.
-    const observer = new MutationObserver(records => {
-      if (records.some(record => !root.contains(record.target))) schedule();
-    });
-    const changes = { childList: true, subtree: true, attributes: true };
-    observer.observe(doc.body, changes);
-    if (scope !== doc) observer.observe(scope, changes);
-    view.addEventListener('scroll', schedule, { passive: true, capture: true });
-    view.addEventListener('resize', schedule, { passive: true });
-    return () => {
-      view.cancelAnimationFrame(frame);
-      sizes?.disconnect();
-      observer.disconnect();
-      view.removeEventListener('scroll', schedule, { capture: true });
-      view.removeEventListener('resize', schedule);
-      shadowScrolls.stop();
-    };
+    return watch.stop;
   }, [active, target, stepId, rootRef]);
 
   return active && found.stepId === stepId ? found : nothingFound;
 }
 
+/** Where a beacon sits: its target's top end corner, on the screen. */
+interface BeaconPlace {
+  element: HTMLElement;
+  top: number;
+  left: number;
+}
+
+/** Each step's beacon place, by the step's key. */
+type BeaconPlaces = ReadonlyMap<React.Key | null, BeaconPlace | null>;
+
+const samePlaces = (a: BeaconPlaces, b: BeaconPlaces): boolean =>
+  a.size === b.size &&
+  [...a].every(([key, place]) => {
+    const other = b.get(key);
+    return place === null || !other
+      ? place === (other ?? null) && b.has(key)
+      : place.element === other.element &&
+          place.top === other.top &&
+          place.left === other.left;
+  });
+
 /**
- * Whether all of `element` is in view: inside the viewport, and inside each
- * ancestor that clips what overflows it.
+ * Where each step's beacon sits: over its target's top end corner, the right
+ * one or, under right-to-left text, the left, or `null` for a step with no
+ * target on the page with a box, or one that isn't in view, or whose top end
+ * corner isn't. It runs for the whole of a beacon tour, a step's
+ * open time included, so the beacons come back where their targets are now,
+ * at once, for focus to go to one. The places are kept by each step's key, so
+ * a render that adds, removes or reorders steps keeps each beacon at its own
+ * target, and such a render, or one that points a step elsewhere, measures
+ * again at once. Otherwise they're measured once a frame at most on a
+ * scroll, a resize of the window, a change in a target's size or the body's,
+ * or any change to the page outside the tour, as a step's target is. Whether
+ * a target is in view comes from one IntersectionObserver on the viewport,
+ * which counts clipping by a scrolling ancestor too.
  */
-function isFullyVisible(element: HTMLElement): boolean {
+function useBeaconPlaces(
+  rootRef: React.RefObject<HTMLDivElement | null>,
+  steps: ReadonlyArray<React.ReactElement<TourStepProps>>,
+  active: boolean
+): ReadonlyArray<BeaconPlace | null> {
+  const [places, setPlaces] = useState<BeaconPlaces>(() => new Map());
+  const [outOfView, setOutOfView] = useState<ReadonlySet<Element>>(
+    () => new Set()
+  );
+  const stepsRef = useLatestRef(steps);
+  const updateRef = useRef<(() => void) | null>(null);
+  // The steps' keys and targets as last measured, so a render that changes
+  // them measures at once rather than a frame later, and each beacon is
+  // drawn at its own step's target.
+  const measuredRef = useRef<{ keys: unknown[]; targets: unknown[] } | null>(
+    null
+  );
+
+  useClientLayoutEffect(() => {
+    if (!active) return undefined;
+    // The root renders for the whole of an open beacon tour.
+    const root = rootRef.current as HTMLDivElement;
+    const scope = scopeOf(root);
+    // Each target found, box or no box, so one that gets a box is noticed.
+    const watched = new Set<HTMLElement>();
+    const inView =
+      typeof IntersectionObserver === 'undefined'
+        ? null
+        : new IntersectionObserver(entries => {
+            setOutOfView(prev => {
+              const next = new Set(prev);
+              for (const entry of entries) {
+                if (entry.isIntersecting) next.delete(entry.target);
+                else next.add(entry.target);
+              }
+              return next.size === prev.size &&
+                [...next].every(element => prev.has(element))
+                ? prev
+                : next;
+            });
+          });
+    const update = () => {
+      const targets = stepsRef.current.map(step => step.props.target);
+      const found = targets.map(target => findTarget(target, scope));
+      watch.follow(...found);
+      const now = new Set(found.filter(element => element !== null));
+      const gone: HTMLElement[] = [];
+      for (const element of watched) {
+        if (now.has(element)) continue;
+        watch.sizes?.unobserve(element);
+        inView?.unobserve(element);
+        watched.delete(element);
+        gone.push(element);
+      }
+      // A target no longer watched has nothing more to say about being in
+      // view, and isn't held on to.
+      if (gone.length > 0) {
+        setOutOfView(prev =>
+          gone.some(element => prev.has(element))
+            ? new Set(
+                [...prev].filter(
+                  element => !gone.includes(element as HTMLElement)
+                )
+              )
+            : prev
+        );
+      }
+      for (const element of now) {
+        if (watched.has(element)) continue;
+        watch.sizes?.observe(element);
+        inView?.observe(element);
+        watched.add(element);
+      }
+      measuredRef.current = {
+        keys: stepsRef.current.map(step => step.key),
+        targets,
+      };
+      // A beacon sits on its target's top end corner, so that corner has to
+      // be in view as well as some of the target: a tall target scrolled
+      // partway past the top of the screen, or of a panel that scrolls,
+      // would put its beacon where the target doesn't show.
+      const next = found.map(element => {
+        if (!element || element.getClientRects().length === 0) return null;
+        const rect = element.getBoundingClientRect();
+        const rtl = getComputedStyle(element).direction === 'rtl';
+        const top = rect.top;
+        const left = rtl ? rect.left : rect.right;
+        // The target's pixel at that corner, so a target that only touches
+        // an edge shows no beacon on it.
+        const corner = rtl
+          ? { top, left, bottom: top + 1, right: left + 1 }
+          : { top, left: left - 1, bottom: top + 1, right: left };
+        return isInView(element, corner) ? { element, top, left } : null;
+      });
+      const byKey: BeaconPlaces = new Map(
+        stepsRef.current.map((step, i) => [step.key, next[i]])
+      );
+      setPlaces(prev => (samePlaces(prev, byKey) ? prev : byKey));
+      // The warnings cost a walk of the steps, so a production build, which
+      // drops them, skips it.
+      if (!isDev()) return;
+      targets.forEach((target, i) => {
+        if (target == null) {
+          warnOnce(
+            'Tour:beacon-no-target',
+            '[bestax-bulma] A Tour.Step in beacon mode has no target, so it ' +
+              'has no beacon.'
+          );
+          return;
+        }
+        if (found[i] && found[i].getClientRects().length > 0) return;
+        warnOnce(
+          `Tour:beacon-missing-target:${typeof target === 'string' ? target : ''}`,
+          '[bestax-bulma] A Tour.Step in beacon mode has no target on the ' +
+            'page with a box, so it has no beacon until one turns up.' +
+            (typeof target === 'string' ? ` Target: "${target}".` : '')
+        );
+      });
+      // Tab reaches the beacons in step order, which should be the order
+      // the page reads in.
+      // Elements in separate trees, as in two shadow roots, have no order to
+      // compare.
+      const placed = next.filter(place => place !== null);
+      if (
+        placed.some((place, i) => {
+          if (i === 0) return false;
+          const order = placed[i - 1].element.compareDocumentPosition(
+            place.element
+          );
+          return (
+            (order & Node.DOCUMENT_POSITION_PRECEDING) !== 0 &&
+            (order & Node.DOCUMENT_POSITION_DISCONNECTED) === 0
+          );
+        })
+      ) {
+        warnOnce(
+          'Tour:beacon-order',
+          '[bestax-bulma] A beacon tour has its targets out of document ' +
+            'order, so Tab reaches the beacons in an order the page does ' +
+            'not read in. Order the Tour.Steps as the page reads.'
+        );
+      }
+    };
+    const watch = watchPage(root, update);
+    updateRef.current = update;
+    update();
+    return () => {
+      updateRef.current = null;
+      measuredRef.current = null;
+      watch.stop();
+      inView?.disconnect();
+      // Nothing held on to while the tour is closed, and nothing stale when
+      // it opens again.
+      setPlaces(new Map());
+      setOutOfView(new Set());
+    };
+  }, [active, rootRef, stepsRef]);
+
+  // A render can add, remove or reorder steps, or point one elsewhere, and
+  // is measured at once when it does.
+  useClientLayoutEffect(() => {
+    const measured = measuredRef.current;
+    if (
+      measured &&
+      sameItems(
+        measured.keys,
+        steps.map(step => step.key)
+      ) &&
+      sameItems(
+        measured.targets,
+        steps.map(step => step.props.target)
+      )
+    ) {
+      return;
+    }
+    updateRef.current?.();
+  });
+
+  return steps.map(step => {
+    const place = places.get(step.key) ?? null;
+    return place && !outOfView.has(place.element) ? place : null;
+  });
+}
+
+/** Whether two lists hold the same items, in the same order. */
+const sameItems = (a: readonly unknown[], b: readonly unknown[]): boolean =>
+  a.length === b.length && a.every((item, i) => item === b[i]);
+
+/** Whether all of `element` is in view. */
+const isFullyVisible = (element: HTMLElement): boolean =>
+  isInView(element, element.getBoundingClientRect());
+
+/**
+ * Whether `rect`, a box on the screen that `element` draws in, is all in
+ * view: inside the viewport, and inside each ancestor that clips what
+ * overflows it. Only an ancestor the element is laid out in clips it: a
+ * fixed element is laid out in the viewport, and an absolutely positioned
+ * one in its nearest positioned ancestor, unless an ancestor on the way
+ * holds it as `holdsPositioned` says, so it escapes every ancestor in
+ * between.
+ */
+function isInView(element: HTMLElement, rect: Edges): boolean {
   const doc = element.ownerDocument;
-  const rect = element.getBoundingClientRect();
   const inside = (box: Edges) =>
     rect.top >= box.top &&
     rect.left >= box.left &&
@@ -519,6 +870,8 @@ function isFullyVisible(element: HTMLElement): boolean {
   if (!inside({ top: 0, left: 0, bottom: clientHeight, right: clientWidth })) {
     return false;
   }
+  // How the element, or the last ancestor it's laid out in, is positioned.
+  let position = getComputedStyle(element).position;
   for (
     let node = flatParent(element) as Element | null;
     node && node !== doc.body && node !== doc.documentElement;
@@ -526,12 +879,52 @@ function isFullyVisible(element: HTMLElement): boolean {
   ) {
     // An ancestor with no box, as a slot is by default, clips nothing.
     if (node.getClientRects().length === 0) continue;
-    const { overflowX, overflowY } = getComputedStyle(node);
-    const clips = /auto|scroll|hidden|clip/.test(`${overflowX} ${overflowY}`);
-    if (clips && !inside(node.getBoundingClientRect())) return false;
+    const style = getComputedStyle(node);
+    const holds =
+      position === 'fixed'
+        ? holdsPositioned(style)
+        : position !== 'absolute' ||
+          style.position !== 'static' ||
+          holdsPositioned(style);
+    if (!holds) continue;
+    position = style.position;
+    // Each axis clips on its own: `overflow-x: clip` leaves the other one
+    // visible.
+    const clipsX = /auto|scroll|hidden|clip/.test(style.overflowX);
+    const clipsY = /auto|scroll|hidden|clip/.test(style.overflowY);
+    if (!clipsX && !clipsY) continue;
+    const box = node.getBoundingClientRect();
+    const clip = {
+      top: clipsY ? box.top : -Infinity,
+      bottom: clipsY ? box.bottom : Infinity,
+      left: clipsX ? box.left : -Infinity,
+      right: clipsX ? box.right : Infinity,
+    };
+    if (!inside(clip)) return false;
   }
   return true;
 }
+
+/**
+ * Whether an element holds its fixed and absolutely positioned descendants
+ * whatever its own position, as a transform, a perspective, a filter, layout
+ * or paint containment, a size container or a `will-change` naming one of
+ * them makes it.
+ */
+const holdsPositioned = (style: CSSStyleDeclaration): boolean =>
+  [
+    style.transform,
+    style.translate,
+    style.scale,
+    style.rotate,
+    style.perspective,
+    style.filter,
+  ].some(value => !!value && value !== 'none') ||
+  (!!style.containerType && style.containerType !== 'normal') ||
+  /transform|translate|scale|rotate|perspective|filter/.test(
+    style.willChange ?? ''
+  ) ||
+  /paint|layout|strict|content/.test(style.contain ?? '');
 
 /**
  * Whether a title or a body has something to show: any child but `null`,
@@ -590,6 +983,8 @@ interface TourWords {
   next: string;
   done: string;
   close: string;
+  beacon: string;
+  beacons: string;
 }
 
 interface TourContextValue {
@@ -600,6 +995,8 @@ interface TourContextValue {
    */
   stepId: string;
   total: number;
+  /** Whether the step came from a beacon, so it stands alone. */
+  beacon: boolean;
   modal: boolean;
   /** Whether Escape from inside a non-modal step ends the tour. */
   closeOnEscape: boolean;
@@ -607,17 +1004,22 @@ interface TourContextValue {
   placement: { side: AnchoredSide | 'center'; top?: number; left?: number };
   titleAs: TourTitleElement;
   words: TourWords;
-  /** The progress line for the current step. */
+  /** The progress line for the current step, empty on a beacon's step. */
   progress: string;
   stepRef: React.MutableRefObject<HTMLDivElement | null>;
+  /** Whether the step held focus as it last went from the page. */
+  focusHeldRef: React.MutableRefObject<boolean>;
   /** The target the step points at, on the page with a box, or `null`. */
   target: HTMLElement | null;
   markInsidePress: (event: React.PointerEvent) => void;
-  /** Next's action: the next step, or the end of the tour on the last. */
+  /**
+   * Next's action: the next step, the end of the tour on the last, or the
+   * close of a beacon's step.
+   */
   next: () => void;
   /** Back's action: the step before, or nothing on the first. */
   back: () => void;
-  /** Ends the tour without finishing it. */
+  /** Ends the tour without finishing it, or closes a beacon's step. */
   skip: () => void;
   /** The tour's own `footer`, in place of the default one. */
   footer: React.ReactNode;
@@ -708,7 +1110,7 @@ function TourOverlay({ box }: { box: TargetBox | null }) {
 }
 
 /**
- * A `Button` that ends the tour early, labelled `labels.skip` unless it has children.
+ * A `Button` that ends the tour early, labelled `labels.skip` unless it has children. It renders nothing on a beacon's step.
  *
  * @function
  * @param {TourButtonProps} props - Props for the Tour.Skip component.
@@ -717,7 +1119,7 @@ function TourOverlay({ box }: { box: TargetBox | null }) {
 export const TourSkip = forwardRef<HTMLButtonElement, TourButtonProps>(
   ({ onClick, color = 'text', children, ...props }, ref) => {
     const tour = useContext(TourContext);
-    if (!tour) return null;
+    if (!tour || tour.beacon) return null;
     return (
       <Button
         {...props}
@@ -739,7 +1141,7 @@ export const TourSkip = forwardRef<HTMLButtonElement, TourButtonProps>(
 TourSkip.displayName = 'Tour.Skip';
 
 /**
- * A `Button` to the step before, labelled `labels.back` unless it has children. It renders nothing on the first step, and ArrowLeft in the step, ArrowRight under right-to-left text, presses it.
+ * A `Button` to the step before, labelled `labels.back` unless it has children. It renders nothing on the first step or on a beacon's step, and ArrowLeft in the step, ArrowRight under right-to-left text, presses it.
  *
  * @function
  * @param {TourButtonProps} props - Props for the Tour.Back component.
@@ -748,7 +1150,7 @@ TourSkip.displayName = 'Tour.Skip';
 export const TourBack = forwardRef<HTMLButtonElement, TourButtonProps>(
   ({ onClick, children, ...props }, ref) => {
     const tour = useContext(TourContext);
-    if (!tour || tour.index === 0) return null;
+    if (!tour || tour.beacon || tour.index === 0) return null;
     return (
       <Button
         {...props}
@@ -769,7 +1171,7 @@ export const TourBack = forwardRef<HTMLButtonElement, TourButtonProps>(
 TourBack.displayName = 'Tour.Back';
 
 /**
- * A `Button` to the next step, labelled `labels.next`, or `labels.done` on the last step, where it finishes the tour, unless it has children. Focus starts on it as a step opens, and ArrowRight in the step, ArrowLeft under right-to-left text, presses it, except on the last step.
+ * A `Button` to the next step, labelled `labels.next`, or `labels.done` on the last step, where it finishes the tour, unless it has children. On a beacon's step it reads `labels.done` and closes the step. Focus starts on it as a step opens, and ArrowRight in the step, ArrowLeft under right-to-left text, presses it, except on the last step and on a beacon's step.
  *
  * @function
  * @param {TourButtonProps} props - Props for the Tour.Next component.
@@ -780,7 +1182,8 @@ export const TourNext = forwardRef<HTMLButtonElement, TourButtonProps>(
     const tour = useContext(TourContext);
     if (!tour) return null;
     const { next, words } = tour;
-    const label = tour.index === tour.total - 1 ? words.done : words.next;
+    const label =
+      tour.beacon || tour.index === tour.total - 1 ? words.done : words.next;
     return (
       <Button
         {...props}
@@ -802,7 +1205,7 @@ export const TourNext = forwardRef<HTMLButtonElement, TourButtonProps>(
 TourNext.displayName = 'Tour.Next';
 
 /**
- * The progress line, "Step 2 of 5" by default, from `labels.progress`.
+ * The progress line, "Step 2 of 5" by default, from `labels.progress`. It renders nothing on a beacon's step.
  *
  * @function
  * @param {TourProgressProps} props - Props for the Tour.Progress component.
@@ -816,7 +1219,7 @@ export const TourProgress: React.FC<TourProgressProps> = ({
   const tour = useContext(TourContext);
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
   const progressClass = usePrefixedClassNames('tour-progress');
-  if (!tour) return null;
+  if (!tour || tour.beacon) return null;
   return (
     <span
       className={classNames(progressClass, bulmaHelperClasses, className)}
@@ -877,7 +1280,7 @@ function TourPanel({
   const titleId = `${baseId}-title`;
   const bodyId = `${baseId}-body`;
   const titleRef = useRef<HTMLElement | null>(null);
-  const { stepRef } = tour;
+  const { stepRef, focusHeldRef } = tour;
   const cleanupRef = useRef<(() => void) | null>(null);
   // The panel, as state, for the popups in a modal step to portal into, as
   // Modal's do: outside it, its `aria-modal` hides them from screen readers
@@ -890,6 +1293,17 @@ function TourPanel({
     },
     [stepRef, forwardedRef]
   );
+
+  // Whether the step holds focus at the moment it goes: a layout effect's
+  // cleanup runs while the panel is still on the page, before focus falls
+  // out of it, so a click on the page's background before the step closes
+  // isn't mistaken for focus in it.
+  useClientLayoutEffect(() => {
+    const panel = stepRef.current as HTMLDivElement;
+    return () => {
+      focusHeldRef.current = panel.contains(getActiveElementInTree(panel));
+    };
+  }, [stepRef, focusHeldRef]);
 
   const hasTitle = showsSomething(title);
   const named =
@@ -909,9 +1323,10 @@ function TourPanel({
   // step: its Next, else the footer's first control, then the body's, then
   // the close button, as focusStart has it. The status
   // line then says where the tour is, since a dialog whose name changes
-  // isn't announced again.
+  // isn't announced again. A beacon's step stands alone, so it has no
+  // progress to say.
   const [said, setSaid] = useState('');
-  const { stepId, progress } = tour;
+  const { stepId, progress, beacon } = tour;
   const shownStepRef = useRef(stepId);
   const ariaLabel = rest['aria-label'];
   useEffect(() => {
@@ -921,9 +1336,10 @@ function TourPanel({
     if (panel.ownerDocument.activeElement === panel.ownerDocument.body) {
       focusStart(panel);
     }
+    if (beacon) return;
     const name = titleRef.current ? spokenText(titleRef.current) : ariaLabel;
     setSaid(name ? `${progress}: ${name}` : progress);
-  }, [stepId, progress, ariaLabel, stepRef]);
+  }, [stepId, progress, ariaLabel, beacon, stepRef]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     onKeyDown?.(e);
@@ -966,8 +1382,10 @@ function TourPanel({
     }
     // The arrows press the step's own Next and Back, so one that's disabled,
     // loading or aria-disabled, or whose onClick prevents, holds for the keys
-    // too, and a step without one ignores the key. On the last step Next would finish the tour,
-    // which a key never does.
+    // too, and a step without one ignores the key. On the last step Next
+    // would finish the tour, which a key never does, and a beacon's step has
+    // nowhere to move to.
+    if (tour.beacon) return;
     const rtl = getComputedStyle(e.currentTarget).direction === 'rtl';
     const forward = (e.key === 'ArrowRight') !== rtl;
     if (forward && index === total - 1) return;
@@ -1073,6 +1491,46 @@ function TourPanel({
   );
 }
 
+interface TourBeaconProps {
+  place: BeaconPlace;
+  /** `labels.beacon`, read first. */
+  label: string;
+  /** The step's title, or its `aria-label` when it has none. */
+  name: React.ReactNode;
+  onOpen: () => void;
+  buttonRef: (node: HTMLButtonElement | null) => void;
+}
+
+/**
+ * A step's beacon: a button over its target's top end corner that opens the
+ * step. Its name is `labels.beacon` and then the step's title, two pieces of
+ * visually hidden text with a space between them, so a title that's a node
+ * names it too and no punctuation has to suit every language.
+ */
+function TourBeacon({
+  place,
+  label,
+  name,
+  onOpen,
+  buttonRef,
+}: TourBeaconProps) {
+  const beaconClass = usePrefixedClassNames('tour-beacon');
+  return (
+    <button
+      ref={buttonRef}
+      type="button"
+      className={beaconClass}
+      aria-haspopup="dialog"
+      aria-expanded="false"
+      style={{ top: place.top, left: place.left }}
+      onClick={onOpen}
+    >
+      <span style={visuallyHidden}>{label}</span>{' '}
+      <span style={visuallyHidden}>{name}</span>
+    </button>
+  );
+}
+
 /**
  * One step of the tour: a title, a body and the element it points at. It renders nothing where it's written.
  *
@@ -1119,7 +1577,7 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
       defaultOpen = false,
       onOpenChange,
       value: controlledValue,
-      defaultValue = 0,
+      defaultValue: givenDefaultValue,
       onChange,
       onFinish,
       overlay = true,
@@ -1129,17 +1587,14 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
       titleAs = 'h2',
       labels,
       footer,
+      mode = 'guided',
       className,
       ...props
     },
     ref
   ) => {
+    const beacon = mode === 'beacon';
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
-    const rootClass = classNames(
-      usePrefixedClassNames('tour'),
-      bulmaHelperClasses,
-      className
-    );
 
     const [isOpen, setOwnOpen] = useControlled(controlledOpen, defaultOpen);
     const requestOpen = (next: boolean) => {
@@ -1148,7 +1603,9 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
     };
 
     // An uncontrolled tour starts again at `defaultValue` each time it
-    // opens, set as the render that opens it runs.
+    // opens, set as the render that opens it runs: the first step, or in
+    // beacon mode none, only the beacons.
+    const defaultValue = givenDefaultValue ?? (beacon ? -1 : 0);
     const [value, setOwnValue] = useControlled(controlledValue, defaultValue);
     const [wasOpen, setWasOpen] = useState(isOpen);
     if (wasOpen !== isOpen) {
@@ -1174,8 +1631,17 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
       );
     }
     const total = steps.length;
-    // NaN, which no step has, counts as the first.
-    const index = Math.max(0, Math.min(Math.floor(value) || 0, total - 1));
+    // A fraction is rounded down. In beacon mode, a value that names no
+    // step, `-1`, one past the end or NaN, shows only the beacons, until
+    // steps arrive that it names. In guided mode NaN counts as the first.
+    const requested = Math.floor(value);
+    const keyAtValue =
+      requested >= 0 && requested < total ? steps[requested].key : null;
+    const index = beacon
+      ? keyAtValue === null
+        ? -1
+        : requested
+      : Math.max(0, Math.min(requested || 0, total - 1));
     const step = steps[index] as React.ReactElement<TourStepProps> | undefined;
     const stepProps: TourStepProps = step?.props ?? {};
     // Which step shows, so a different one at the same index, after the
@@ -1187,6 +1653,17 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
     const hydrated = useIsHydrated();
     const shown = isOpen && hydrated && step !== undefined;
     const modal = shown && (stepProps.overlay ?? overlay);
+    // The beacons show while the tour is open in beacon mode and no step is.
+    const beaconsShown = beacon && isOpen && hydrated && !shown;
+    const rootClass = classNames(
+      usePrefixedClassNames('tour', {
+        'is-beacon': beacon,
+        'is-active': shown,
+      }),
+      bulmaHelperClasses,
+      className
+    );
+    const beaconsClass = usePrefixedClassNames('tour-beacons');
 
     const rootRef = useRef<HTMLDivElement | null>(null);
     const rootCleanupRef = useRef<(() => void) | null>(null);
@@ -1196,6 +1673,14 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
       [ref]
     );
     const stepRef = useRef<HTMLDivElement | null>(null);
+
+    const beaconPlaces = useBeaconPlaces(
+      rootRef,
+      steps,
+      beacon && isOpen && hydrated
+    );
+    const beaconsRef = useRef(new Map<React.Key, HTMLButtonElement>());
+    const focusHeldRef = useRef(false);
 
     const { element: target, box } = useTourTarget(
       rootRef,
@@ -1248,8 +1733,11 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
     // any layout effect, so a part's layout effect on the commit that shows
     // a step acts on that step. They do nothing while the tour is closed or
     // gone, so a timer a part left running can't finish or reopen it.
+    // In beacon mode, Done, Skip's action and every way of dismissing a
+    // step close only that step, and Back has nowhere to go.
     const latestRef = useRef({
       shown,
+      beacon,
       index,
       total,
       requestValue,
@@ -1259,6 +1747,7 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
     useInsertionEffect(() => {
       latestRef.current = {
         shown,
+        beacon,
         index,
         total,
         requestValue,
@@ -1272,6 +1761,10 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
     const next = useCallback(() => {
       const now = latestRef.current;
       if (!now.shown) return;
+      if (now.beacon) {
+        now.requestValue(-1);
+        return;
+      }
       if (now.index < now.total - 1) {
         now.requestValue(now.index + 1);
         return;
@@ -1281,14 +1774,21 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
     }, []);
     const back = useCallback(() => {
       const now = latestRef.current;
-      if (now.shown && now.index > 0) now.requestValue(now.index - 1);
+      if (now.shown && !now.beacon && now.index > 0) {
+        now.requestValue(now.index - 1);
+      }
     }, []);
     const skip = useCallback(() => {
-      if (latestRef.current.shown) latestRef.current.close();
+      const now = latestRef.current;
+      if (!now.shown) return;
+      if (now.beacon) now.requestValue(-1);
+      else now.close();
     }, []);
+
+    const tourMode: TourMode = beacon ? 'beacon' : 'guided';
     const state = useMemo<TourState>(
-      () => ({ value: index, total, next, back, skip }),
-      [index, total, next, back, skip]
+      () => ({ value: index, total, next, back, skip, mode: tourMode }),
+      [index, total, next, back, skip, tourMode]
     );
 
     // A modal step joins the stack of open overlays, so Escape and Tab go to
@@ -1296,7 +1796,7 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
     // closes. A non-modal step stays out of it, as a Popover does, and takes
     // Escape only from inside itself.
     const isTopmost = useOverlayStack(modal);
-    useOverlayEscape(modal && closeOnEscape, isTopmost, close);
+    useOverlayEscape(modal && closeOnEscape, isTopmost, skip);
 
     // The page goes inert before focus moves in, and its lock comes off
     // before focus is handed back, so focus can land on the opener again:
@@ -1309,6 +1809,76 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
       modal,
       remountKey: container,
       initialFocus: focusStart,
+      // A beacon's step hands focus to its beacon, below, once the beacons
+      // are back.
+      restore: () => !beacon,
+    });
+
+    // A tip closes when the steps change under it. The key of the step a
+    // beacon or the value opened is kept, with the value it opened at, and
+    // while the value
+    // still names that index but the step there has another key, as when a
+    // step before it is added or removed, or it's removed itself, the tip
+    // closes: `-1`, through `onChange` too, once. The ref is cleared as it
+    // fires, so a second run of the effect, as StrictMode makes, can't fire
+    // it again. A controlled `value` still decides what shows. Any other
+    // change of the value, the mode or `open` forgets the key. Otherwise the
+    // tip showing is noted, for focus as it goes, below; a render that shows
+    // another step at the old index, before the tip closes, isn't.
+    const openedRef = useRef<{ key: React.Key; value: number } | null>(null);
+    const seenRef = useRef({ beacon, isOpen });
+    const shownTipRef = useRef<{
+      key: React.Key;
+      target: HTMLElement | null;
+    } | null>(null);
+    const requestValueRef = useLatestRef(requestValue);
+    useClientLayoutEffect(() => {
+      if (
+        seenRef.current.beacon !== beacon ||
+        seenRef.current.isOpen !== isOpen
+      ) {
+        seenRef.current = { beacon, isOpen };
+        openedRef.current = null;
+      }
+      const opened = openedRef.current;
+      if (opened && requested !== opened.value) {
+        openedRef.current = null;
+      } else if (opened && keyAtValue !== opened.key) {
+        openedRef.current = null;
+        requestValueRef.current(-1);
+        return;
+      }
+      if (beacon && shown) {
+        const key = (step as React.ReactElement).key as React.Key;
+        // A tip the value opened, as `defaultValue` or a controlled one does,
+        // is kept as one a beacon opened is.
+        if (!openedRef.current) openedRef.current = { key, value: requested };
+        shownTipRef.current = { key, target };
+      }
+    });
+
+    // As a beacon's step goes, focus goes on only if the step held it at
+    // that moment: to the step's beacon, as it would to a disclosure's
+    // button, while the beacon is there, else to the step's target, its
+    // first control or the target itself when it takes focus, as Tab from a
+    // non-modal step does. One rule for a tip closed, a tip whose step went,
+    // and the whole tour closed. A step that didn't hold focus moves none,
+    // so a close the app makes doesn't pull the caret out of a field the
+    // user moved to. It runs after the page's inert is lifted, so a modal
+    // step's target can take focus, and after the beacons are back.
+    useEffect(() => {
+      if (shown) {
+        // A guided step that took over from a tip, as a change of `mode`
+        // makes, is the tour's own: it has no beacon to go back to.
+        if (!beacon) shownTipRef.current = null;
+        return;
+      }
+      const tip = shownTipRef.current;
+      shownTipRef.current = null;
+      if (!tip || !focusHeldRef.current) return;
+      const button = beaconsRef.current.get(tip.key);
+      if (button) button.focus();
+      else if (tip.target?.isConnected) focusTabStop(tip.target);
     });
 
     // A modal step holds Tab and Shift+Tab while it's the topmost modal
@@ -1338,7 +1908,7 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
     const markInsidePress = useOutsidePress(
       stepRef,
       shown && closeOnClickOutside,
-      close
+      skip
     );
 
     // A target that isn't all in view scrolls to the middle, smoothly unless
@@ -1357,16 +1927,60 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
 
     const formatNumber = useScopedNumberFormat();
     const write = (n: number) => (formatNumber ? formatNumber(n) : String(n));
-    const progress = labels?.progress
-      ? labels.progress(index + 1, total)
-      : `Step ${write(index + 1)} of ${write(total)}`;
+    // A beacon's step shows no progress, and with no step to show, as a
+    // beacon tour with none open or a tour with no steps yet, the index is
+    // -1, which `labels.progress` isn't written for.
+    const progress =
+      beacon || !step
+        ? ''
+        : labels?.progress
+          ? labels.progress(index + 1, total)
+          : `Step ${write(index + 1)} of ${write(total)}`;
+    const words: TourWords = {
+      skip: labels?.skip || 'Skip',
+      back: labels?.back || 'Back',
+      next: labels?.next || 'Next',
+      done: labels?.done || 'Done',
+      close: labels?.close || 'Close',
+      beacon: labels?.beacon || 'Show tip',
+      beacons: labels?.beacons || 'Tips',
+    };
 
-    if (!shown || !step) return null;
+    if (!shown && !beaconsShown) return null;
 
-    const context: TourContextValue = {
+    const beacons = beaconsShown
+      ? steps.flatMap((beaconStep, i) => {
+          const place = beaconPlaces[i];
+          if (!place) return [];
+          const { title, 'aria-label': ariaLabel } = beaconStep.props;
+          return [
+            <TourBeacon
+              key={beaconStep.key}
+              place={place}
+              label={words.beacon}
+              name={showsSomething(title) ? title : ariaLabel}
+              onOpen={() => {
+                openedRef.current = {
+                  key: beaconStep.key as React.Key,
+                  value: i,
+                };
+                requestValue(i);
+              }}
+              buttonRef={node => {
+                const key = beaconStep.key as React.Key;
+                if (node) beaconsRef.current.set(key, node);
+                else beaconsRef.current.delete(key);
+              }}
+            />,
+          ];
+        })
+      : [];
+
+    const context: TourContextValue | undefined = step && {
       index,
       stepId,
       total,
+      beacon,
       modal,
       closeOnEscape,
       placement: {
@@ -1375,15 +1989,10 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
         left: placed.left,
       },
       titleAs: validTourTitleElements.includes(titleAs) ? titleAs : 'h2',
-      words: {
-        skip: labels?.skip || 'Skip',
-        back: labels?.back || 'Back',
-        next: labels?.next || 'Next',
-        done: labels?.done || 'Done',
-        close: labels?.close || 'Close',
-      },
+      words,
       progress,
       stepRef,
+      focusHeldRef,
       target,
       markInsidePress,
       next,
@@ -1400,11 +2009,22 @@ const TourRoot = forwardRef<HTMLDivElement, TourProps>(
       >
         <div className={rootClass} {...rest} ref={setRootRef}>
           {modal && <TourOverlay box={box} />}
-          <TourContext.Provider value={context}>
-            {/* One key for every step, so the panel and its buttons stay put
-                and focus stays on the one that was used. */}
-            {React.cloneElement(step, { key: 'step' })}
-          </TourContext.Provider>
+          {shown && context && (
+            <TourContext.Provider value={context}>
+              {/* One key for every step, so the panel and its buttons stay
+                  put and focus stays on the one that was used. */}
+              {React.cloneElement(step as React.ReactElement, { key: 'step' })}
+            </TourContext.Provider>
+          )}
+          {beacons.length > 0 && (
+            <div
+              className={beaconsClass}
+              role="group"
+              aria-label={words.beacons}
+            >
+              {beacons}
+            </div>
+          )}
         </div>
       </Portal>
     );
