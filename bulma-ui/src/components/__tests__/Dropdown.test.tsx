@@ -974,6 +974,23 @@ describe('Dropdown keyboard navigation', () => {
     expect(screen.getByText('First')).toHaveAttribute('tabindex', '-1');
   });
 
+  test('Down from an item that turned disabled while focused goes to the item after it', () => {
+    const Menu = ({ busy }: { busy?: boolean }) => (
+      <Dropdown label="Menu" active>
+        <DropdownItem as="button">First</DropdownItem>
+        <DropdownItem as="button" aria-disabled={busy || undefined}>
+          Second
+        </DropdownItem>
+        <DropdownItem as="button">Third</DropdownItem>
+      </Dropdown>
+    );
+    const { rerender } = render(<Menu />);
+    screen.getByText('Second').focus();
+    rerender(<Menu busy />);
+    fireEvent.keyDown(screen.getByText('Second'), { key: 'ArrowDown' });
+    expect(screen.getByText('Third')).toHaveFocus();
+  });
+
   test('arrow keys reach items given menuitemcheckbox or menuitemradio', () => {
     render(
       <Dropdown label="Menu">
