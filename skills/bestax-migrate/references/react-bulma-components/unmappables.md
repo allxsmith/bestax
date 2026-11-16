@@ -243,8 +243,9 @@ container carried (`prop:spread`). Otherwise give the `Table` an `aria-label`, o
 `aria-labelledby` at a heading, or at its `<caption>`'s `id` when it has one.
 
 The container's `role` and `tabIndex` go with it (`prop:role`, `prop:tabIndex`): `Table isResponsive`
-writes them on its container itself while the table overflows. Its name stays where it was when the
-`Table` names itself or spreads props that may (`prop:aria-label`, `prop:aria-labelledby`).
+writes them on its container itself while the table overflows. When the `Table` already names
+itself, the container's name goes with the container too (`prop:aria-label`,
+`prop:aria-labelledby`), so check that the `Table`'s is the one you want.
 
 ## `domRef`
 
