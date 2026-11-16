@@ -122,8 +122,13 @@ which renders the `<i>` the script draws from. Inside a `.control` with `has-ico
 after the `Control`'s children. Each TODO says which of these applies, and what the icon converts
 to.
 `Pagination` renders Bulma's own `role="navigation"` and `aria-label="pagination"`, and
-`Pagination.Previous`, `Pagination.Next` and `Pagination.Link` render `tabIndex={0}`, so give each
-element the attribute it's missing.
+`Pagination.Previous`, `Pagination.Next` and `Pagination.Link` render `tabIndex={0}`, and
+`role="button"` when they have no `href`, since a link without one is no link and they make it a
+button, so give each element the attribute it's missing. One whose `href` is an expression, which
+may render as none, gets a TODO asking for a `role`, since no one role fits both cases: convert it
+by hand instead, keeping the `href` (`<Pagination.Link href={url}>`, in place of the `<li>` around
+it, since it renders its own), which renders a link while the `href` is set and a button while it
+isn't.
 `Card.FooterItem`, `Card.Header.Icon` and `Navbar.Item` render `type="button"` on a `<button>` that
 sets none, and `Card.Header.Icon` renders `aria-label="more options"` too. One whose `type` isn't
 `button`, `submit` or `reset` gets an `attr:type` TODO instead, since bestax writes `button` in its
@@ -746,8 +751,9 @@ read for the burger, a carousel and a theme toggle too, and its TODO names the f
   doesn't call it on its own, so give it `onClick={onClose}` for the background to close the
   modal. Keep the open state in `useState` (the `family:modal` TODO covers rebuilding the markup).
 - **`html-script:dismiss`** removes an element when its `.delete` is clicked. `Notification`
-  takes `hasDelete` and `onDelete`, `Tag` takes `onDelete` and `Message` takes `onClose`; render
-  the element only while it's in state.
+  takes `hasDelete` and `onDelete`, `Tag` takes `onDelete` and `Message` takes `onClose`, with
+  `ariaCloseLabel` to keep a name the page gave its `.delete`; render the element only while
+  it's in state.
 - **`html-script:carousel`** drives a carousel. `Carousel` takes its slides as `CarouselItem`
   children and renders its own arrows and indicators (`autoplay` for a timed one). For several
   slides in view, set `itemsToShow`, with a variant per viewport (`itemsToShowMobile`,

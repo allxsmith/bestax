@@ -52,10 +52,8 @@ export interface LoadingProps
   /** Size of the loading spinner. */
   size?: 'small' | 'medium' | 'large' | undefined;
   /**
-   * Color variant for the spinner, drawn in the color's on-scheme shade, the
-   * one Bulma adjusts to read on the page in either scheme, so a pale color
-   * such as `warning` is darker on a light page. Without it, the spinner is
-   * the scheme's weak text color.
+   * Color variant for the spinner, drawn in the color itself. Without it, the
+   * spinner is Bulma's `grey-light`.
    */
   color?: LoadingColor | undefined;
   /**

@@ -47,7 +47,8 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   mobile. Add responsive `size*` props only to tune the breakpoints.
 - Interactive extras don't share a state API — never transfer one by analogy:
   `Collapse trigger={node} open/defaultOpen onOpenChange` (`onOpenChange(open)` reports every
-  trigger; `onOpen/onClose` fire only when the Collapse holds its own state), an accordion is
+  trigger; `onOpen/onClose` fire only when the Collapse holds its own state; the header is
+  already a button, so `trigger` holds text, never a `Button` or link), an accordion is
   `Collapses value/defaultValue/onChange` around plain `Collapse` children indexed from 0 by
   position (`number | null`, or `number[]` with `multiple`; hide an item with
   `visibility="hidden"`, never `{cond && …}`, or the open state shifts to its neighbour) rather

@@ -126,7 +126,15 @@ export type PanelBlockElement = 'a' | 'div' | 'label';
 export interface PanelBlockOwnProps {
   /** Additional CSS classes. */
   className?: string | undefined;
-  /** Whether the block is active. */
+  /**
+   * Marks the block as the current one. It adds Bulma's `is-active` class,
+   * and `aria-current="page"` on the element `as` renders, so assistive tech
+   * can tell which block is current too. An `aria-current` you pass wins,
+   * even `undefined`: use it to say something else (`"location"` for a
+   * section of one page, say), or `aria-current={false}` to turn it off, as
+   * on an active block that isn't navigation, such as a `label` with a
+   * checkbox.
+   */
   active?: boolean;
   /** Block content. */
   children?: React.ReactNode;
@@ -322,7 +330,16 @@ export const PanelBlock = ((blockProps: PanelBlockProps) => {
         ? omitAttrs(props, STRIP_FROM_NON_ANCHOR)
         : omitAttrs(props, STRIP_FROM_DIV);
   return (
-    <Tag className={blockClasses} {...forwarded}>
+    <Tag
+      className={blockClasses}
+      // The current block, the way Menu.Item and Navbar.Item mark theirs.
+      // Before the spread, so an `aria-current` the caller passes decides,
+      // `false` and `undefined` included. bestax-migrate converts `is-active`
+      // to `active` only beside an `aria-current` of the element's own, and
+      // relies on that to render the same markup.
+      aria-current={active ? 'page' : undefined}
+      {...forwarded}
+    >
       {children}
     </Tag>
   );

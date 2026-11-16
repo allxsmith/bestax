@@ -79,6 +79,8 @@ export interface PaginationProps
    * one a real link (`page => '?page=' + page`). A click then calls
    * `onPageChange` and the browser follows the link too. Without it the
    * links have no `href`, act as buttons, and Enter or Space chooses a page.
+   * An end that goes nowhere, Previous on the first page and Next on the
+   * last, has no `href` either way, so it's a disabled button.
    */
   getPageHref?: (page: number) => string;
   /**
@@ -142,7 +144,42 @@ function pageItems(
 }
 
 /**
+ * The `role` and `onKeyDown` a part's `<a>` renders with, spread after the
+ * caller's props. With no `href` it's a button: `role="button"`, and Enter
+ * and Space clicking it, as a mouse click does, since an `<a>` without an
+ * `href` is no link and the browser activates it on no key. A `role` the
+ * caller gives it wins, and one that isn't `button` takes the keys with it.
+ * A caller that passes its own `onKeyDown` keeps the keys, as before, so
+ * code that already answers Enter there doesn't act twice. With an `href`
+ * it's a link, and the caller's role and handler are all it gets.
+ */
+function asButton(
+  href: string | undefined,
+  role: React.AriaRole | undefined,
+  onKeyDown: React.KeyboardEventHandler<HTMLAnchorElement> | undefined
+): Pick<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'role' | 'onKeyDown'> {
+  const button = href == null && (role ?? 'button') === 'button';
+  if (!button) return { role, onKeyDown };
+  return {
+    role: 'button',
+    onKeyDown:
+      onKeyDown ??
+      (e => {
+        // A key with a modifier, or on something inside the part, isn't
+        // the part's to answer. A disabled part's own click handler drops
+        // the click, and Space still mustn't scroll the page.
+        if (e.altKey || e.ctrlKey || e.metaKey) return;
+        if (e.target !== e.currentTarget) return;
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        e.preventDefault();
+        e.currentTarget.click();
+      }),
+  };
+}
+
+/**
  * Props for PaginationPrevious and PaginationNext components.
+ * @extraProp {string} [href] - Where the link goes. Without one it's a button: it renders `role="button"`, and Enter or Space clicks it, so its `onClick` runs from the keyboard too. A `role` you pass wins, and an `onKeyDown` you pass keeps the keys to itself.
  */
 export interface PaginationPreviousNextProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   /** Additional CSS classes. */
@@ -163,6 +200,7 @@ export interface PaginationPreviousNextProps extends React.AnchorHTMLAttributes<
 export const PaginationPrevious: React.FC<PaginationPreviousNextProps> = ({
   className,
   disabled,
+  onKeyDown,
   children,
   ...props
 }) => (
@@ -176,6 +214,7 @@ export const PaginationPrevious: React.FC<PaginationPreviousNextProps> = ({
     aria-disabled={disabled}
     tabIndex={disabled ? -1 : 0}
     {...props}
+    {...asButton(props.href, props.role, onKeyDown)}
     onClick={
       disabled
         ? e => {
@@ -199,6 +238,7 @@ export const PaginationPrevious: React.FC<PaginationPreviousNextProps> = ({
 export const PaginationNext: React.FC<PaginationPreviousNextProps> = ({
   className,
   disabled,
+  onKeyDown,
   children,
   ...props
 }) => (
@@ -210,6 +250,7 @@ export const PaginationNext: React.FC<PaginationPreviousNextProps> = ({
     aria-disabled={disabled}
     tabIndex={disabled ? -1 : 0}
     {...props}
+    {...asButton(props.href, props.role, onKeyDown)}
     onClick={
       disabled
         ? e => {
@@ -298,20 +339,13 @@ const PaginationComponent: React.FC<PaginationProps> = ({
     };
     /**
      * What a link to `target` is given, beside what it renders. With no
-     * `getPageHref` it's a button; a link that's `off` goes nowhere.
+     * `getPageHref`, or when it's `off` and goes nowhere, it has no `href`,
+     * so the part makes it a button.
      */
     const linkTo = (target: number, off: boolean) => ({
       href: off || !getPageHref ? undefined : getPageHref(target),
-      role: getPageHref ? undefined : 'button',
       // A link that's off is disabled too, and the parts drop its clicks.
       onClick: () => choose(target),
-      onKeyDown: getPageHref
-        ? undefined
-        : (e: React.KeyboardEvent<HTMLAnchorElement>) => {
-            if (off || (e.key !== 'Enter' && e.key !== ' ')) return;
-            e.preventDefault();
-            choose(target);
-          },
     });
     const atStart = disabled || page <= 1;
     const atEnd = disabled || page >= pages;
@@ -418,6 +452,7 @@ export const PaginationList: React.FC<PaginationListProps> = ({
 
 /**
  * Props for the PaginationLink component.
+ * @extraProp {string} [href] - Where the link goes. Without one it's a button: it renders `role="button"`, and Enter or Space clicks it, so its `onClick` runs from the keyboard too. A `role` you pass wins, and an `onKeyDown` you pass keeps the keys to itself.
  */
 export interface PaginationLinkProps
   extends
@@ -454,6 +489,7 @@ export const PaginationLink: React.FC<PaginationLinkProps> = ({
   active,
   disabled,
   onClick,
+  onKeyDown,
   children,
   ...props
 }) => {
@@ -490,6 +526,7 @@ export const PaginationLink: React.FC<PaginationLinkProps> = ({
         tabIndex={disabled ? -1 : 0}
         onClick={handleClick}
         {...rest}
+        {...asButton(rest.href, rest.role, onKeyDown)}
       >
         {children}
       </a>
