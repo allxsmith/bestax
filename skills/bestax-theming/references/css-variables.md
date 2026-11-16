@@ -959,6 +959,16 @@ DateRangeInput's with `monthsToShow`, past which the months wrap to a column.
 `--bulma-picker-trigger-color`, `--bulma-picker-trigger-disabled-opacity`,
 `--bulma-picker-trigger-hover-color`, `--bulma-picker-trigger-width`
 
+### A panel's shift at a corner (Popover / HoverCard / Combobox / the pickers)
+
+`--bulma-anchored-shift` is how far the component moves a panel in place sideways, from its
+corner's edge, so it doesn't run past the viewport. The component writes it on the panel itself,
+0 while the panel fits, and the corner rules add it to the corner's edge. It isn't for a theme to
+set: a value set on a panel is replaced, and a theme that places a panel by its own rules leaves
+it out.
+
+`--bulma-anchored-shift`
+
 ### Popover
 
 All are declared on the panel, `.popover-content`, so a panel rendered with `appendToBody` keeps
