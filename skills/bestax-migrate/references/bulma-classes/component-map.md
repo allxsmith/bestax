@@ -278,6 +278,9 @@ prop: `<p className="has-text-centered mt-4">` → `<Paragraph textAlign="center
 | `<ul>`     | `UnorderedList` |
 | `<figure>` | `Figure`        |
 
+`UnorderedList` writes `role="list"` on its `<ul>` when the `<ul>` has no `role`, the role a list
+already has, and renders any `role` it's given as written, so a `<ul>` converts either way.
+
 bestax has no plain `<div>` wrapper, so `<div className="is-flex mt-4">` stays as it is, with
 no TODO: it is valid Bulma, and nothing unsafe was skipped.
 
