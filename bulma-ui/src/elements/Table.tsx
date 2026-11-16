@@ -20,7 +20,7 @@ export interface TableProps
     Omit<React.TableHTMLAttributes<HTMLTableElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Adds borders to all cells. */
   isBordered?: boolean;
   /** Adds zebra-striping to rows. */

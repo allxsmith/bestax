@@ -19,6 +19,8 @@ import { withSubComponents } from '../helpers/withSubComponents';
 import { isElementOf } from '../helpers/elementType';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { warnOnce } from '../helpers/devWarnings';
+import { remPxOf } from '../helpers/cssLength';
+import { ResizeHandle } from '../helpers/resizeHandle';
 import {
   defaultSizes,
   fitSizes,
@@ -46,7 +48,7 @@ export interface SplitterPaneProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * What the pane is, such as "Files". It names the handle that speaks for
    * this pane, which is announced as "Files, separator, 25". That's the
@@ -54,7 +56,7 @@ export interface SplitterPaneProps
    * beside that handle, can collapse. A development build warns when a
    * handle's pane has none.
    */
-  label?: string;
+  label?: string | undefined;
   /**
    * Its starting size, in percent of the room the panes share. Panes without
    * one share what's left equally, and a total over 100 is scaled down.
@@ -110,7 +112,7 @@ export interface SplitterProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * `Splitter.Pane`s, two or more, each a direct child, with Fragments
    * opened up. A handle goes between each pair. Changing which panes there
@@ -126,13 +128,13 @@ export interface SplitterProps
    * The splitter's height. A number is pixels, and a string any CSS length.
    * A vertical splitter needs a height to split.
    */
-  height?: number | string;
+  height?: number | string | undefined;
   /**
    * Each pane's size, in percent, in order, adding up to 100. With it, the
    * sizes are yours: update them from `onSizesChange`. Without it, each
    * pane starts at its `defaultSize`.
    */
-  sizes?: number[];
+  sizes?: number[] | undefined;
   /**
    * Called with every pane's size, in percent, whenever they change: on
    * each step of a drag or a key, on a collapse and on a reset.
@@ -142,7 +144,7 @@ export interface SplitterProps
    * How far an arrow key moves a handle, in percent. Shift moves ten times
    * as far.
    */
-  step?: number;
+  step?: number | undefined;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color helper. */
@@ -461,9 +463,7 @@ const SplitterRoot = forwardRef<HTMLDivElement, SplitterProps>(
     }, [vertical]);
     const measure = useCallback(() => {
       setLength(roomOf());
-      setRemPx(
-        parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
-      );
+      setRemPx(remPxOf(document.documentElement));
     }, [roomOf]);
     useClientLayoutEffect(() => {
       measure();
@@ -481,69 +481,39 @@ const SplitterRoot = forwardRef<HTMLDivElement, SplitterProps>(
     }, [boundsKey]);
 
     const rtl = () =>
-      !vertical &&
       !!rootRef.current &&
       getComputedStyle(rootRef.current).direction === 'rtl';
 
     // ---- Dragging ----
-    const [dragging, setDragging] = useState<number | null>(null);
-    const dragRef = useRef<{
-      handle: number;
-      start: number;
-      startSizes: number[];
-      pixels: number;
-      flip: boolean;
-    } | null>(null);
-    const onPointerDown =
-      (h: number) => (event: React.PointerEvent<HTMLDivElement>) => {
-        if (event.button !== 0) return;
-        const pixels = roomOf();
-        if (!pixels) return;
-        event.currentTarget.setPointerCapture?.(event.pointerId);
-        dragRef.current = {
-          handle: h,
-          start: vertical ? event.clientY : event.clientX,
-          startSizes: sizesRef.current,
-          pixels,
-          flip: rtl(),
-        };
-        setDragging(h);
-      };
-    const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-      const drag = dragRef.current;
-      if (!drag) return;
-      const moved = (vertical ? event.clientY : event.clientX) - drag.start;
-      const delta = ((drag.flip ? -moved : moved) / drag.pixels) * 100;
+    // The layout and the room as each handle's drag starts, which its steps
+    // move from. Each handle keeps its own, so two dragged at once, as two
+    // fingers can, don't move from each other's start.
+    const dragStartsRef = useRef(
+      new Map<number, { sizes: number[]; pixels: number }>()
+    );
+    const startDrag = (h: number) => () => {
+      const pixels = roomOf();
+      if (!pixels) return false;
+      dragStartsRef.current.set(h, { sizes: sizesRef.current, pixels });
+      return true;
+    };
+    const endDrag = (h: number) => () => {
+      dragStartsRef.current.delete(h);
+    };
+    const dragBy = (h: number) => (moved: number) => {
+      const start = dragStartsRef.current.get(h)!;
       commit(
         resizePair(
           sizesRef.current,
-          drag.handle,
-          drag.startSizes[drag.handle] + delta,
+          h,
+          start.sizes[h] + (moved / start.pixels) * 100,
           bounds
         )
       );
     };
-    const endDrag = (event: React.PointerEvent<HTMLDivElement>) => {
-      if (!dragRef.current) return;
-      dragRef.current = null;
-      event.currentTarget.releasePointerCapture?.(event.pointerId);
-      setDragging(null);
-    };
-    // While dragging, the resize cursor shows wherever the pointer goes.
-    useEffect(() => {
-      if (dragging === null) return;
-      const body = document.body.style;
-      const { cursor, userSelect } = body;
-      body.cursor = vertical ? 'row-resize' : 'col-resize';
-      body.userSelect = 'none';
-      return () => {
-        body.cursor = cursor;
-        body.userSelect = userSelect;
-      };
-    }, [dragging, vertical]);
 
     // Double-click: the two panes back to their default share of the room.
-    const onDoubleClick = (h: number) => () => {
+    const reset = (h: number) => () => {
       const current = sizesRef.current;
       const total = current[h] + current[h + 1];
       const pair = defaults[h] + defaults[h + 1];
@@ -555,42 +525,31 @@ const SplitterRoot = forwardRef<HTMLDivElement, SplitterProps>(
     };
 
     // ---- Keys ----
-    const onKeyDown =
-      (h: number) => (event: React.KeyboardEvent<HTMLDivElement>) => {
-        const current = sizesRef.current;
-        const primary = primaryOf(h, bounds);
-        const by = event.shiftKey ? step * 10 : step;
-        const back = vertical ? 'ArrowUp' : 'ArrowLeft';
-        const forward = vertical ? 'ArrowDown' : 'ArrowRight';
-        // The line moves the way the key points, so right to left, moving
-        // right shrinks the pane before, which sits on the right.
-        const sign = rtl() ? -1 : 1;
-        // Keys move within the limits; Enter is what shuts a pane.
-        const open = opened(bounds, h);
-        let next: number[] | null = null;
-        if (event.key === back || event.key === forward) {
-          const direction = (event.key === forward ? 1 : -1) * sign;
-          next = resizePair(current, h, current[h] + direction * by, open);
-        } else if (event.key === 'Home' || event.key === 'End') {
-          const range = primaryRange(current, h, primary, open);
-          const size = event.key === 'Home' ? range.min : range.max;
-          const total = current[h] + current[h + 1];
-          next = resizePair(
-            current,
-            h,
-            primary === h ? size : total - size,
-            open
-          );
-        } else if (event.key === 'Enter' && bounds[primary].collapsible) {
-          next =
-            current[primary] > 1e-6
-              ? collapseIn(current, primary)
-              : expand(current, primary);
-        }
-        if (!next) return;
-        event.preventDefault();
-        commit(next);
-      };
+    // Keys move within the limits; Enter is what shuts a pane.
+    const stepBy = (h: number) => (by: number) => {
+      const current = sizesRef.current;
+      commit(resizePair(current, h, current[h] + by * step, opened(bounds, h)));
+    };
+    const toLimit = (h: number, end: boolean) => () => {
+      const current = sizesRef.current;
+      const primary = primaryOf(h, bounds);
+      const open = opened(bounds, h);
+      const range = primaryRange(current, h, primary, open);
+      const size = end ? range.max : range.min;
+      const total = current[h] + current[h + 1];
+      commit(resizePair(current, h, primary === h ? size : total - size, open));
+    };
+    const toggle = (h: number) => () => {
+      const primary = primaryOf(h, bounds);
+      if (!bounds[primary].collapsible) return false;
+      const current = sizesRef.current;
+      commit(
+        current[primary] > 1e-6
+          ? collapseIn(current, primary)
+          : expand(current, primary)
+      );
+      return true;
+    };
 
     // A handle names its pane, so a pane without a label leaves it nameless.
     const unnamed = panes
@@ -623,23 +582,25 @@ const SplitterRoot = forwardRef<HTMLDivElement, SplitterProps>(
       const primary = primaryOf(i, bounds);
       const range = primaryRange(sizes, i, primary, bounds);
       items.push(
-        <div
+        <ResizeHandle
           key={`handle-${i}`}
-          className={classNames(handleClass, dragging === i && activeClass)}
-          role="separator"
-          tabIndex={0}
-          aria-orientation={vertical ? 'horizontal' : 'vertical'}
-          aria-valuenow={Math.round(range.now)}
-          aria-valuemin={Math.round(range.min)}
-          aria-valuemax={Math.round(range.max)}
-          aria-controls={ids[primary]}
-          aria-label={panes[primary].props.label}
-          onPointerDown={onPointerDown(i)}
-          onPointerMove={onPointerMove}
-          onPointerUp={endDrag}
-          onPointerCancel={endDrag}
-          onDoubleClick={onDoubleClick(i)}
-          onKeyDown={onKeyDown(i)}
+          className={handleClass}
+          activeClass={activeClass}
+          orientation={vertical ? 'horizontal' : 'vertical'}
+          valueNow={range.now}
+          valueMin={range.min}
+          valueMax={range.max}
+          controls={ids[primary]}
+          label={panes[primary].props.label}
+          rtl={rtl}
+          onDragStart={startDrag(i)}
+          onDrag={dragBy(i)}
+          onDragEnd={endDrag(i)}
+          onStep={stepBy(i)}
+          onHome={toLimit(i, false)}
+          onEnd={toLimit(i, true)}
+          onEnter={toggle(i)}
+          onReset={reset(i)}
         />
       );
     });

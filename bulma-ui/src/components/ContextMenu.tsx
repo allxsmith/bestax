@@ -78,7 +78,7 @@ export interface ContextMenuProps
    * Leave the trigger to the browser: a right-click shows the browser's own
    * menu, a long press does what it does anywhere, and an open menu closes.
    */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
 }
 
 /** Where the menu goes once it's measured. */

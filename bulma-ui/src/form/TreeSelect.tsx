@@ -14,6 +14,7 @@ import { useLocaleMatcher } from '../helpers/localeFormat';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
 import {
   TreeViewHiddenContext,
+  TreeViewSpaceJoinsContext,
   readChecks,
   toggledList,
 } from '../helpers/useTreeView';
@@ -141,7 +142,7 @@ interface TreeSelectBaseProps
    */
   onExpandedChange?: (expanded: string[]) => void;
   /** Whether the panel is open, controlled: opening and closing then only call `onOpenChange`. */
-  open?: boolean;
+  open?: boolean | undefined;
   /** The panel is open to begin with. */
   defaultOpen?: boolean;
   /** Called with the new state when the panel opens or closes. */
@@ -173,19 +174,19 @@ interface TreeSelectBaseProps
   /** Renders a row's content in place of its label. The field and the tags still show the label. */
   itemTemplate?: (item: TreeItemData) => React.ReactNode;
   /** What the field shows while nothing is picked. */
-  placeholder?: string;
+  placeholder?: string | undefined;
   /** A form field name. A hidden input posts the value, or one per value in the checkbox modes. */
-  name?: string;
+  name?: string | undefined;
   /** The id of the form the hidden inputs belong to, when it isn't an ancestor. */
-  form?: string;
+  form?: string | undefined;
   /**
    * A value is needed: the field is `aria-required`, and the form won't
    * submit while nothing is picked. The browser's message points at the
    * field, which shows focus, and the next key goes to it.
    */
-  required?: boolean;
+  required?: boolean | undefined;
   /** The field can't be used: it can't be focused or opened, its tags lose their buttons, and its hidden inputs don't post. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /**
    * Shows a clear button at the field's inline end while something it can
    * take off is picked. It leaves checked disabled items, which no control
@@ -193,9 +194,10 @@ interface TreeSelectBaseProps
    */
   clearable?: boolean;
   /** Bulma color modifier for the field. */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** The field's size, which the tree in the panel follows. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Rounds the field's corners (Bulma's `is-rounded`). */
   isRounded?: boolean;
   /**
@@ -220,7 +222,9 @@ export interface TreeSelectSingleProps extends TreeSelectBaseProps {
    * enabled item under it, and a parent with some of them checked is mixed.
    * `'checkbox-independent'`: any number, each box checking its own item, so
    * a parent means the parent alone (Mantine's and Ant Design's
-   * `checkStrictly`). The checkbox modes show the value as tags.
+   * `checkStrictly`). The checkbox modes show the value as tags. In every
+   * mode, a Space typed during a type-ahead search joins it instead when an
+   * item starts with what's been typed and a space.
    */
   selectionMode?: 'single';
   /**
@@ -229,9 +233,9 @@ export interface TreeSelectSingleProps extends TreeSelectBaseProps {
    * In `'checkbox'` a parent's value checks its whole branch, so the list any
    * `checkedStrategy` gives checks the same boxes.
    */
-  value?: string | null;
+  value?: string | null | undefined;
   /** The value to begin with, when TreeSelect holds its own state: a value or `null`, or a list in the checkbox modes. */
-  defaultValue?: string | null;
+  defaultValue?: string | null | undefined;
   /**
    * Called with the new value: in `'single'` the picked item's value, or
    * `null` when it's cleared, and in the checkbox modes the new list, after a
@@ -240,10 +244,12 @@ export interface TreeSelectSingleProps extends TreeSelectBaseProps {
    * `defaultValue` as it was given, or with `null` or `[]` when you hold
    * the value, for you to set.
    */
-  onChange?: (value: string | null) => void;
+  onChange?: ((value: string | null) => void) | undefined;
   /**
    * A parent's row picks the parent. `false` makes the row, Enter and Space
-   * open it instead, so only leaves are picked.
+   * open it instead, so only leaves are picked. Cascader, which takes the
+   * same `data`, defaults to `false`, as Ant Design's does, since a column
+   * per level is how its parents are opened.
    * @defaultValue true
    */
   parentsSelectable?: boolean;
@@ -263,7 +269,9 @@ export interface TreeSelectCheckboxProps extends TreeSelectBaseProps {
   /**
    * `'checkbox'`: a check reaches every enabled item under it, and a parent
    * with some of them checked is mixed. `'checkbox-independent'`: each box
-   * checks its own item, so a parent means the parent alone.
+   * checks its own item, so a parent means the parent alone. A Space typed
+   * during a type-ahead search joins it instead when an item starts with
+   * what's been typed and a space.
    */
   selectionMode: 'checkbox' | 'checkbox-independent';
   /**
@@ -271,16 +279,16 @@ export interface TreeSelectCheckboxProps extends TreeSelectBaseProps {
    * value checks its whole branch, so the list any `checkedStrategy` gives
    * checks the same boxes.
    */
-  value?: string[];
+  value?: string[] | undefined;
   /** The values checked to begin with, when TreeSelect holds its own state. */
-  defaultValue?: string[];
+  defaultValue?: string[] | undefined;
   /**
    * Called with the new list after a check, an uncheck, a tag's button or
    * the clear button, shaped by `checkedStrategy`, and after a reset of the
    * field's form, with `defaultValue` as given, or `[]` when you hold the
    * value.
    */
-  onChange?: (value: string[]) => void;
+  onChange?: ((value: string[]) => void) | undefined;
   /**
    * What a checked branch puts in the value, in `'checkbox'`: `'child'` its
    * leaves, `'parent'` its topmost checked item, `'all'` every checked item,
@@ -530,6 +538,8 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
     // one on a parent is dropped, and a lazy parent isn't fetched to be
     // picked.
     const clickPickedRef = useRef(false);
+    // Whether the tree takes a Space on a row into a type-ahead search.
+    const spaceJoinsRef = useRef<((item: HTMLElement) => boolean) | null>(null);
     const onTreeExpandedChange = (next: string[]) => {
       if (clickPickedRef.current) {
         clickPickedRef.current = false;
@@ -582,7 +592,10 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
                 event.altKey ||
                 event.ctrlKey ||
                 event.metaKey ||
-                (event.key !== 'Enter' && event.key !== ' ')
+                (event.key !== 'Enter' && event.key !== ' ') ||
+                // The tree types it into its search instead.
+                (event.key === ' ' &&
+                  spaceJoinsRef.current?.(event.currentTarget))
               ) {
                 return;
               }
@@ -839,26 +852,28 @@ export const TreeSelect = forwardRef<HTMLInputElement, TreeSelectProps>(
               <TreeViewHiddenContext.Provider
                 value={search?.hidden ?? NOTHING_HIDDEN}
               >
-                <TreeView
-                  {...panelName}
-                  ref={treeRef}
-                  // It scrolls, and Firefox makes a scroller a Tab stop of
-                  // its own: the roving one on its items is the tree's.
-                  tabIndex={-1}
-                  selectionMode={selectionMode}
-                  size={size}
-                  selected={single ? (picked[0] ?? null) : undefined}
-                  checked={single ? undefined : listed}
-                  onCheckedChange={onCheckedChange}
-                  expanded={shownExpanded}
-                  onExpandedChange={onTreeExpandedChange}
-                  loadingLabel={labels?.loading}
-                  retryLabel={labels?.retry}
-                  loadingAnnouncement={labels?.loadingAnnouncement}
-                  loadedAnnouncement={labels?.loadedAnnouncement}
-                >
-                  {data.map(renderNode)}
-                </TreeView>
+                <TreeViewSpaceJoinsContext.Provider value={spaceJoinsRef}>
+                  <TreeView
+                    {...panelName}
+                    ref={treeRef}
+                    // It scrolls, and Firefox makes a scroller a Tab stop of
+                    // its own: the roving one on its items is the tree's.
+                    tabIndex={-1}
+                    selectionMode={selectionMode}
+                    size={size}
+                    selected={single ? (picked[0] ?? null) : undefined}
+                    checked={single ? undefined : listed}
+                    onCheckedChange={onCheckedChange}
+                    expanded={shownExpanded}
+                    onExpandedChange={onTreeExpandedChange}
+                    loadingLabel={labels?.loading}
+                    retryLabel={labels?.retry}
+                    loadingAnnouncement={labels?.loadingAnnouncement}
+                    loadedAnnouncement={labels?.loadedAnnouncement}
+                  >
+                    {data.map(renderNode)}
+                  </TreeView>
+                </TreeViewSpaceJoinsContext.Provider>
               </TreeViewHiddenContext.Provider>
             )}
             <StatusRegion

@@ -383,6 +383,10 @@ export function renderValue(raw) {
   );
   // Remaining interpolations are pass-through wrappers around a value.
   text = text.replace(/#\{([^{}]*)\}/g, '$1');
+  // Another partial's variable, read through its module (`cb.$combobox-x`),
+  // shows by its own name: the namespace is a local alias that means nothing
+  // on the page. Anchored at a word's start, so it scans each word once.
+  text = text.replace(/(^|[^\w$.-])[a-z][\w-]*\.(?=\$)/g, '$1');
 
   return text
     .replace(/\s+/g, ' ')

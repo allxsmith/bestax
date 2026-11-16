@@ -23,19 +23,20 @@ export interface CellProps
   /** Which column the cell ends at, counting from the end (Bulma: `is-col-from-end-x`). */
   colFromEnd?: number;
   /** How many columns the cell will span (Bulma: `is-col-span-x`). */
-  colSpan?: CellSpanValue;
+  colSpan?: CellSpanValue | undefined;
   /** Which row the cell starts at (Bulma: `is-row-start-x`). */
   rowStart?: number;
   /** Which row the cell ends at, counting from the end (Bulma: `is-row-from-end-x`). */
   rowFromEnd?: number;
   /** How many rows the cell will span (Bulma: `is-row-span-x`). */
-  rowSpan?: CellSpanValue;
+  rowSpan?: CellSpanValue | undefined;
   /** Additional CSS class names. */
-  className?: string;
+  className?: string | undefined;
   /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Bulma color modifier for the cell. */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Content to render inside the cell. */

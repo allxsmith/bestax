@@ -61,7 +61,7 @@ export interface TimelineProps
     Omit<React.OlHTMLAttributes<HTMLOListElement>, 'color' | 'role'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * `Timeline.Item`s, in the order they're read: newest first or oldest
    * first for a record, oldest first with `active` or `pending`.
@@ -101,11 +101,11 @@ export interface TimelineProps
    * on-scheme shade, the one Bulma adjusts to read on the page in either
    * scheme, so a pale color such as `warning` is darker on a light page. The
    * markers are hidden from assistive tech, so say what a color means in the
-   * words too. In a colored Notification, leave it off: the markers then take
-   * the Notification's text color, as the titles do, while a color you set is
-   * kept even where it doesn't stand out from the Notification's.
+   * words too. In a colored Notification or Hero, leave it off: the markers
+   * then take the surface's text color, as the titles do, while a color you
+   * set is kept even where it doesn't stand out from the surface's.
    */
-  color?: TimelineColor;
+  color?: TimelineColor | undefined;
   /** Read after a completed item's title, visually hidden. In your app's language. */
   completedLabel?: string;
   /** Read after an upcoming item's title, visually hidden. In your app's language. */
@@ -130,7 +130,7 @@ export interface TimelineItemProps
     Omit<React.LiHTMLAttributes<HTMLLIElement>, 'color' | 'title'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** What happened, in a line. It renders as the root's `titleAs`. */
   title?: React.ReactNode;
   /**
@@ -144,7 +144,7 @@ export interface TimelineItemProps
    * "2026-10-14", "2026-10-14T08:12", "2026-10". With it, `time` renders in
    * a `<time>`. Keep it the same moment as `time`, since some readers speak it.
    */
-  dateTime?: string;
+  dateTime?: string | undefined;
   /**
    * A picture in the marker. A string is an `Icon` name, drawn from the icon
    * library `ConfigProvider` sets, and anything else renders as it is.
@@ -156,7 +156,7 @@ export interface TimelineItemProps
    * This item's marker color, over the root's, in the color's on-scheme
    * shade. Say what it means in the words too.
    */
-  color?: TimelineColor;
+  color?: TimelineColor | undefined;
   /** Anything else about the event, under the title and the time, as written. */
   children?: React.ReactNode;
   /** Text color helper. */

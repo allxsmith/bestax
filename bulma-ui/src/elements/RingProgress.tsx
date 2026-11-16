@@ -53,14 +53,14 @@ export interface RingProgressProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color' | 'role'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * How far along it is, from 0 to `max`. Values outside that range are
    * drawn, and read, at the nearest end. Ignored with `sections`.
    */
-  value?: number;
+  value?: number | undefined;
   /** The value that fills the ring. */
-  max?: number;
+  max?: number | undefined;
   /**
    * Several values around one ring, in order clockwise from the top, each
    * with its own color and label. The ring is then an image whose name
@@ -75,7 +75,7 @@ export interface RingProgressProps
    * read with the value. A development build warns when the ring has no
    * name.
    */
-  label?: string;
+  label?: string | undefined;
   /**
    * A level within a range, such as storage used or a score, rather than a
    * task moving toward done: `role="meter"` in place of `role="progressbar"`.
@@ -83,9 +83,9 @@ export interface RingProgressProps
    */
   isMeter?: boolean;
   /** The arc's color, and the color of sections without one. */
-  color?: RingProgressColor;
+  color?: RingProgressColor | undefined;
   /** The ring's size. */
-  size?: (typeof validRingProgressSizes)[number];
+  size?: (typeof validRingProgressSizes)[number] | undefined;
   /** Rounds the ends of the arc. */
   isRounded?: boolean;
   /**

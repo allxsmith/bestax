@@ -128,7 +128,7 @@ export interface LightboxProps
   /** Rendered in place: usually `Lightbox.Trigger`s, in whatever layout you like. */
   children?: React.ReactNode;
   /** Whether the viewer is open (controlled). With no `items` it shows nothing. */
-  open?: boolean;
+  open?: boolean | undefined;
   /**
    * Whether the viewer starts open (uncontrolled).
    * @defaultValue false
@@ -145,20 +145,20 @@ export interface LightboxProps
    * shown as the last or the first image, or wrapped round with `repeat`,
    * without calling `onChange`.
    */
-  value?: number;
+  value?: number | undefined;
   /**
    * The image an uncontrolled viewer shows when something other than a
    * trigger opens it. A trigger opens at its own `index`.
    * @defaultValue 0
    */
-  defaultValue?: number;
+  defaultValue?: number | undefined;
   /**
    * Called with the new index when an arrow, a key or a swipe changes the
    * image, and when a trigger opens the viewer, with the trigger's `index`
    * even when that's the image already shown, before `onOpenChange(true)`.
    * A parent that opens the viewer from `value` hears the trigger that way.
    */
-  onChange?: (value: number) => void;
+  onChange?: ((value: number) => void) | undefined;
   /**
    * Go from the last image to the first and back, as Carousel does. Off,
    * the previous and next buttons are `aria-disabled` at the ends.
@@ -228,7 +228,7 @@ export interface LightboxTriggerOwnProps extends Omit<
    */
   children?: React.ReactNode;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**
@@ -253,7 +253,7 @@ export type LightboxTriggerProps<T extends React.ElementType = 'button'> =
        * button. `color` is taken only with a component: on an element it
        * would be HTML's old presentational attribute.
        */
-      as?: T;
+      as?: T | undefined;
     };
 
 /**

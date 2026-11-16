@@ -109,16 +109,16 @@ export interface DateTimeInputBaseProps
     >,
     Omit<BulmaClassesProps, 'color'> {
   /** Controlled selected date-time. */
-  value?: Date | null;
+  value?: Date | null | undefined;
   /** Initial value for uncontrolled usage. */
-  defaultValue?: Date | null;
+  defaultValue?: Date | null | undefined;
   /**
    * Fired when either the date or time portion changes. Picking a day keeps
    * the value's whole time of day, down to seconds and milliseconds the field
    * doesn't show, and `min` and `max` judge the picked day at that time. An
    * empty field's day is picked at midnight.
    */
-  onChange?: (d: Date | null) => void;
+  onChange?: ((d: Date | null) => void) | undefined;
   /** Fired when the popover opens. */
   onOpen?: () => void;
   /** Fired when the popover closes. */
@@ -129,23 +129,23 @@ export interface DateTimeInputBaseProps
    * too: HTML's datetime-local input holds no earlier year, so the calendar,
    * the time wheels and typing stop there.
    */
-  min?: Date;
+  min?: Date | undefined;
   /** Upper bound for the combined date-time. */
-  max?: Date;
+  max?: Date | undefined;
   /**
    * Disable the input. An `inline` panel disables its days, header buttons,
    * Time, Reset and ✓, but its hidden input still submits the value, where a
    * disabled input submits nothing.
    */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /**
    * Read-only input. An `inline` panel still moves through the dates by key
    * and by its header, but a click, Enter or Space picks nothing, and Time
    * and Reset are disabled, so the time can't change either.
    */
-  readOnly?: boolean;
+  readOnly?: boolean | undefined;
   /** Placeholder text. */
-  placeholder?: string;
+  placeholder?: string | undefined;
   /**
    * Token format string or `Intl.DateTimeFormat` options. Default `'YYYY-MM-DD HH:mm'`.
    * @defaultValue 'YYYY-MM-DD HH:mm'
@@ -158,11 +158,12 @@ export interface DateTimeInputBaseProps
    */
   parse?: (s: string) => Date | null;
   /**
-   * BCP-47 locale tag for day/month names, the digits the calendar numbers
-   * its days and years in, and Intl formatting. Unset, it is the `locale` of
-   * a `LocaleProvider` around the picker, and with neither, `Intl` uses the
-   * runtime's own locale and the calendar numbers its days and years in plain
-   * digits. On a server render that locale is the server's, so an `inline`
+   * BCP-47 locale tag for day/month names, the digits the calendar and the
+   * time wheels write their numbers in, the words a 12-hour wheel shows for
+   * AM and PM, and Intl formatting. Unset, it is the `locale` of a
+   * `LocaleProvider` around the picker, and with neither, `Intl` uses the
+   * runtime's own locale and the calendar and the wheels keep plain digits
+   * and AM and PM. On a server render that locale is the server's, so an `inline`
    * calendar rendered there names its days in the server's language and the
    * browser's own render names them in the browser's: give it a locale, here
    * or through a `LocaleProvider`, where the two can differ.
@@ -185,7 +186,7 @@ export interface DateTimeInputBaseProps
   /** Allow segmented keyboard typing (type the date-time directly across all segments). `false` makes the field picker-only. */
   editable?: boolean;
   /** Whether the calendar + time popover exists. `false` makes the field input-only (segmented typing with no popover). Default `true`. */
-  popover?: boolean;
+  popover?: boolean | undefined;
   /**
    * Open the popover on focus. Default `true`. Focus that a closing popover
    * hands back to the input leaves it closed. Dismissing it commits nothing:
@@ -221,9 +222,10 @@ export interface DateTimeInputBaseProps
    * follow `primary` by default. The footer's time pill and Done button do not
    * follow `color`.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Size variant. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Rounded input corners. */
   isRounded?: boolean;
   // date subset
@@ -792,6 +794,7 @@ export const DateTimeInputBase = forwardRef<
                 disabled={disabled || readOnly}
                 id={timeWheelsId}
                 labels={labels}
+                locale={locale}
                 itemHeight={wheelItemHeight}
                 audioTick={effectiveAudioTick}
                 // Enter on a wheel commits the time, which the wheels already

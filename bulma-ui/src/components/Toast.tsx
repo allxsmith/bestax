@@ -46,7 +46,7 @@ export interface ToastProps
   /** The message to display. */
   message: string;
   /** Color variant — colors the toast **background**. */
-  type?: ToastType;
+  type?: ToastType | undefined;
   /** Color variant — colors the **action button** text. */
   actionType?: ToastType;
   /**

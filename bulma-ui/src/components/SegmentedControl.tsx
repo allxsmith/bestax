@@ -129,7 +129,7 @@ export interface SegmentedControlProps
    * tab stop `defaultValue` describes for that. Pick this or `defaultValue`
    * for the group's lifetime.
    */
-  value?: string | null;
+  value?: string | null | undefined;
   /**
    * The segment checked to begin with, when the group holds its own state.
    * Leave it out and nothing is checked until someone picks one, and Tab
@@ -138,7 +138,7 @@ export interface SegmentedControlProps
    * checked has no tab stop until then, while a checked segment is the stop
    * from the server markup on.
    */
-  defaultValue?: string;
+  defaultValue?: string | undefined;
   /**
    * Called with the newly checked segment's `value`, whether or not `value`
    * is set. The arrow keys, Home and End check the segment they move to, so
@@ -146,16 +146,16 @@ export interface SegmentedControlProps
    * group. Pressing the checked segment again doesn't call it, since a
    * segmented control can't be cleared: one stays checked once one is.
    */
-  onChange?: (value: string) => void;
+  onChange?: ((value: string) => void) | undefined;
   /**
    * The checked segment's fill. The others are plain buttons, so the fill is
    * the difference people see. Takes the same colors as `ToggleButton`, for
    * the same reason: `white`, `light`, `dark` and `black` fill about as light
    * or dark as a plain button already is in one theme or the other.
    */
-  color?: SegmentedControlColor;
+  color?: SegmentedControlColor | undefined;
   /** Size of every segment, through Bulma's `are-<size>` on the row. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /**
    * Joins the segments into one row with no gap between them, Bulma's
    * `has-addons`. Set it to `false` for separate buttons.
@@ -166,7 +166,7 @@ export interface SegmentedControlProps
   /** Aligns the row to the right. */
   isRight?: boolean;
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** The `SegmentedControl.Segment`s, each with a `value` of its own. */
   children?: React.ReactNode;
 }

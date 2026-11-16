@@ -68,7 +68,8 @@ in place:
   `Field` and `Control` and bloomer's never did.
 - **Helpers** — `isDisplay` and `isHidden`, in all three of their shapes, flatten onto bestax's
   per-viewport props: `isDisplay="flex-tablet"` → `displayTablet="flex"`,
-  `isDisplay={{ flex: ['default', 'tablet'] }}` → `display="flex" displayTablet="flex"`,
+  `isDisplay={{ flex: ['default', 'tablet'] }}` → `className="is-flex" displayTablet="flex"` (bestax
+  leaves `display` out beside a per-viewport display prop, so the plain value stays its class),
   `isHidden="touch"` → `visibilityTouch="hidden"`. Every Bulma viewport has a bestax prop,
   `touch` and the `-only` ones included. `Column isSize="1/2"` → `size="half"`, and its
   per-breakpoint object → `sizeMobile`/`sizeTablet`/…

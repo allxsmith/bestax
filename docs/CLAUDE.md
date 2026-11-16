@@ -81,6 +81,9 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   has nowhere to go, so move it out first. A `###` heading that is not one of the component's
   sub-components (`### TaginputTag`) ends the region rather than being swallowed by it.
 - No inline `style={{}}` in examples — use `Block`/helper props.
+- An example's picture is one the site serves from `static/img`.
+  `check:conformance --only=image-hosts` fails on a docs page, or a file under `src/`, with a
+  URL on a placeholder or stock-photo host.
 - Code examples must compile against the current library API; when a component changes, its
   docs page changes in the same PR (CONTRIBUTING requires docs before approval).
 - **`jsx` and `tsx` fences are linted** with the ESLint plugin's `recommended` rules, in

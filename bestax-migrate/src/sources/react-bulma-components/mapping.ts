@@ -32,7 +32,7 @@ export const UNIVERSAL_PROPS: Record<string, PropAction> = {
     todo: 'this bestax component has no `as` prop; restructure the element instead',
   },
   domRef: {
-    todo: 'bestax-bulma has no `domRef`. The form controls, plus `Affix`, `AppFrame`, `AppFrame.Aside`, `AppFrame.Burger`, `AppFrame.Footer`, `AppFrame.Header`, `AppFrame.Main`, `AppFrame.Nav`, `Avatar`, `Button`, `Carousel`, `CarouselItem`, `Center`, `ColorSwatch`, `Command`, `Command.Dialog`, `Command.Input`, `CopyButton`, `DataTable`, `DescriptionList`, `DescriptionList.Item`, `DescriptionList.Label`, `DescriptionList.Value`, `Dialog`, `Dropdown`, `EmptyState`, `Flex`, `Group`, `IconButton`, `Kbd`, `Kbd.Group`, `Lightbox`, `Lightbox.Trigger`, `Link`, `LinkButton`, `Loader`, `LocaleProvider`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`, `Navbar.Item`, `Navbar.Link`, `NumberFormatter`, `RingProgress`, `ScrollArea`, `SegmentedControl`, `SegmentedControl.Segment`, `Sidebar`, `Splitter`, `Splitter.Pane`, `Stack`, `Stat`, `Stat.Change`, `Stat.Description`, `Stat.Label`, `Stat.Value`, `Stats`, `TableOfContents`, `Timeline`, `Timeline.Item`, `Toast`, `ToggleButton`, `TreeView` and `TreeView.Item` forward a ref — on those, rename `domRef` to `ref`, though not on the `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios` wrappers, which forward none. Mind the `Navbar.Dropdown` collision: the `Navbar.Item` that wrapped your dropdown became bestax `Navbar.Dropdown` and forwards one, while your `Navbar.Dropdown` became `Navbar.DropdownMenu` and does not. The rest forward no ref: React 18 drops it with a warning, React 19 leaves it wherever the rest props go, so put the ref on a DOM child or wrap the component',
+    todo: 'bestax-bulma has no `domRef`. The form controls, plus `Affix`, `AppFrame`, `AppFrame.Aside`, `AppFrame.Burger`, `AppFrame.Footer`, `AppFrame.Header`, `AppFrame.Main`, `AppFrame.Nav`, `Avatar`, `Button`, `Carousel`, `CarouselItem`, `Center`, `ColorSwatch`, `Command`, `Command.Dialog`, `Command.Input`, `CopyButton`, `DataTable`, `DescriptionList`, `DescriptionList.Item`, `DescriptionList.Label`, `DescriptionList.Value`, `Dialog`, `Dropdown`, `EmptyState`, `Flex`, `FloatButton`, `FloatButton.BackToTop`, `FloatButton.SpeedDial`, `FloatButtons`, `Group`, `IconButton`, `Kbd`, `Kbd.Group`, `Lightbox`, `Lightbox.Trigger`, `Link`, `LinkButton`, `Loader`, `LocaleProvider`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`, `Navbar.Item`, `Navbar.Link`, `NumberFormatter`, `RingProgress`, `ScrollArea`, `SegmentedControl`, `SegmentedControl.Segment`, `Sidebar`, `Splitter`, `Splitter.Pane`, `Stack`, `Stat`, `Stat.Change`, `Stat.Description`, `Stat.Label`, `Stat.Value`, `Stats`, `TableOfContents`, `Timeline`, `Timeline.Item`, `Toast`, `ToggleButton`, `Tour`, `Tour.Back`, `Tour.Next`, `Tour.Skip`, `Tour.Step`, `TreeView` and `TreeView.Item` forward a ref — on those, rename `domRef` to `ref`, though not on the `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios` wrappers, which forward none. Mind the `Navbar.Dropdown` collision: the `Navbar.Item` that wrapped your dropdown became bestax `Navbar.Dropdown` and forwards one, while your `Navbar.Dropdown` became `Navbar.DropdownMenu` and does not. The rest forward no ref: React 18 drops it with a warning, React 19 leaves it wherever the rest props go, so put the ref on a DOM child or wrap the component',
   },
   // ColorProps
   backgroundColor: { rename: 'bgColor' },
@@ -120,6 +120,18 @@ export const RESPONSIVE_BREAKPOINTS: Record<string, string | null> = {
 };
 
 const activeKept: Record<string, PropAction> = { active: {} };
+
+/**
+ * The targets whose bestax component renders `is-light` from `isLight`, the
+ * class react-bulma-components renders for `colorVariant="light"`.
+ * `color-variant.ts` converts a literal `light` there; everything else keeps
+ * the universal `colorVariant` TODO.
+ */
+export const IS_LIGHT_TARGETS: readonly string[] = [
+  'Button',
+  'Notification',
+  'Tag',
+];
 
 export const MAPPING: Record<string, ComponentMapping> = {
   Block: { status: 'mapped', target: 'Block' },
@@ -295,7 +307,9 @@ export const MAPPING: Record<string, ComponentMapping> = {
     target: 'Dropdown',
     props: {
       label: {},
-      color: {},
+      color: {
+        todo: "react-bulma-components colored the dropdown's trigger button with it, and bestax's Dropdown has no prop for that: its own `color` is the text color helper on the root, so remove it",
+      },
       hoverable: {},
       right: {},
       up: {},

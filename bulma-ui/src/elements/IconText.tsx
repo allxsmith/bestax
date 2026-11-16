@@ -25,7 +25,7 @@ interface IconTextItem {
 interface IconTextProps
   extends React.HTMLAttributes<HTMLSpanElement>, BulmaClassesProps {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
@@ -34,7 +34,8 @@ interface IconTextProps
    * `textColor`, which takes precedence when both are set; use `bgColor` for
    * a colored surface.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Props for a single Icon component, or a custom node, for single icon mode. */

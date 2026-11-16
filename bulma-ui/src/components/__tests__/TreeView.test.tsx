@@ -1450,6 +1450,144 @@ describe('TreeView', () => {
       }
     });
 
+    it('takes Space into a search an item can extend with it, and acts with it otherwise', () => {
+      vi.useFakeTimers();
+      try {
+        const onSelectedChange = vi.fn();
+        render(
+          <TreeView
+            aria-label="States"
+            selectionMode="single"
+            onSelectedChange={onSelectedChange}
+          >
+            <TreeView.Item value="nwk" label="Newark" />
+            <TreeView.Item value="ny" label="New York" />
+            <TreeView.Item value="nh" label="New Hampshire" />
+          </TreeView>
+        );
+        focus('Newark');
+        for (const key of ['n', 'e', 'w', ' ', 'h']) {
+          press(document.activeElement!, key);
+        }
+        expect(focused()).toBe('New Hampshire');
+        expect(onSelectedChange).not.toHaveBeenCalled();
+        // No item starts with "new h ", so Space selects.
+        press(item('New Hampshire'), ' ');
+        expect(onSelectedChange).toHaveBeenLastCalledWith('nh');
+        act(() => vi.advanceTimersByTime(TYPEAHEAD_TIMEOUT));
+        // With nothing typed, Space selects as it always has.
+        focus('Newark');
+        press(item('Newark'), ' ');
+        expect(onSelectedChange).toHaveBeenLastCalledWith('nwk');
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('moves focus with a Space that joins a search, after the item’s own handler, which can keep it', () => {
+      vi.useFakeTimers();
+      try {
+        let claim = false;
+        const seen: boolean[] = [];
+        const onCheckedChange = vi.fn();
+        render(
+          <TreeView
+            aria-label="States"
+            selectionMode="checkbox"
+            onCheckedChange={onCheckedChange}
+          >
+            <TreeView.Item
+              value="nwk"
+              label="Newark"
+              onKeyDown={event => {
+                if (event.key !== ' ') return;
+                seen.push(event.defaultPrevented);
+                if (claim) event.preventDefault();
+              }}
+            />
+            <TreeView.Item value="ny" label="New York" />
+            <TreeView.Item value="zh" label="Zurich" />
+          </TreeView>
+        );
+        focus('Zurich');
+        for (const key of ['n', 'e', 'w']) press(document.activeElement!, key);
+        expect(focused()).toBe('Newark');
+        // Newark doesn't start with "new ", New York does.
+        press(item('Newark'), ' ');
+        expect(focused()).toBe('New York');
+        expect(seen).toEqual([false]);
+        expect(onCheckedChange).not.toHaveBeenCalled();
+        // The item's own handler runs first, and its preventDefault keeps
+        // the tree from acting on the key, a joining Space included.
+        act(() => vi.advanceTimersByTime(TYPEAHEAD_TIMEOUT));
+        claim = true;
+        focus('Zurich');
+        for (const key of ['n', 'e', 'w']) press(document.activeElement!, key);
+        press(item('Newark'), ' ');
+        expect(focused()).toBe('Newark');
+        expect(onCheckedChange).not.toHaveBeenCalled();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('takes a Space on a failed load’s row into a search it joins, and retries with it otherwise', () => {
+      vi.useFakeTimers();
+      try {
+        const onRetry = vi.fn();
+        render(
+          <TreeView aria-label="Places" defaultExpanded={['broken']}>
+            <TreeView.Item value="nwk" label="Newark" />
+            <TreeView.Item value="ny" label="New York" />
+            <TreeView.Item
+              value="broken"
+              label="Broken"
+              hasChildren
+              loadError="Couldn’t load Broken"
+              onRetry={onRetry}
+            />
+          </TreeView>
+        );
+        const row = () => item('Couldn’t load Broken Retry');
+        focus('Broken');
+        for (const key of ['n', 'e', 'w']) press(document.activeElement!, key);
+        expect(focused()).toBe('Newark');
+        act(() => row().focus());
+        press(row(), ' ');
+        expect(focused()).toBe('New York');
+        expect(onRetry).not.toHaveBeenCalled();
+        act(() => vi.advanceTimersByTime(TYPEAHEAD_TIMEOUT));
+        act(() => row().focus());
+        press(row(), ' ');
+        expect(onRetry).toHaveBeenCalledTimes(1);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('ends a search on an arrow, Home or End, so Space acts on the item it’s on', () => {
+      const onSelectedChange = vi.fn();
+      render(
+        <TreeView
+          aria-label="States"
+          selectionMode="single"
+          onSelectedChange={onSelectedChange}
+        >
+          <TreeView.Item value="nwk" label="Newark" />
+          <TreeView.Item value="ny" label="New York" />
+          <TreeView.Item value="zh" label="Zurich" />
+        </TreeView>
+      );
+      focus('Zurich');
+      for (const key of ['n', 'e', 'w', 'ArrowDown']) {
+        press(document.activeElement!, key);
+      }
+      expect(focused()).toBe('New York');
+      press(item('New York'), ' ');
+      expect(onSelectedChange).toHaveBeenLastCalledWith('ny');
+      expect(focused()).toBe('New York');
+    });
+
     it('reads the label only, not the icon’s glyph name', () => {
       render(
         <TreeView aria-label="Glyphs">

@@ -32,7 +32,7 @@ export interface LinkOwnProps extends Omit<
    */
   backgroundColor?: never;
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color helper. */
@@ -59,7 +59,7 @@ export type LinkProps<T extends React.ElementType = 'a'> = LinkOwnProps &
      * `type="submit"` or `type="reset"` and yours is used; any other value, or a spread
      * carrying `type: undefined`, renders `type="button"`.
      */
-    as?: T;
+    as?: T | undefined;
   };
 
 /**

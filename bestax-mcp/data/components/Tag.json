@@ -45,7 +45,7 @@
       "code": "import { Tags, Delete } from '@allxsmith/bestax-bulma';\n\n<Tags hasAddons>\n  <Tag color=\"primary\" size=\"medium\">\n    Tag with Delete\n    <Delete onClick={() => alert('Tag deleted!')} />\n  </Tag>\n</Tags>;"
     }
   ],
-  "accessibility": "- **Delete buttons:** Use `aria-label` for delete tags for screen readers.\n- **Keyboard:** Delete tags are rendered as `<button>`, supporting keyboard activation.\n- **Semantics:** Use tags for supplemental information, not as primary headings.\n- **Contrast:** A light tag's text reads against its background the way a light `Button`'s does, in both color schemes. That comes from bestax's stylesheets, as the `color` prop's description says.\n\n:::tip\nCombine `Tag` with `Tags` for grouped, multi-tag UIs.\n:::",
+  "accessibility": "- **Delete buttons:** Use `aria-label` for delete tags for screen readers.\n- **Keyboard:** Delete tags are rendered as `<button>`, supporting keyboard activation.\n- **Semantics:** Use tags for supplemental information, not as primary headings.\n- **Contrast:** A light tag's text, and a white, black or dark tag's with `isLight`, reads against its background the way a light `Button`'s does, in both color schemes. That comes from bestax's stylesheets, as the `color` and `isLight` props' descriptions say.\n\n:::tip\nCombine `Tag` with `Tags` for grouped, multi-tag UIs.\n:::",
   "related": ["Delete", "Tags", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-tag--default",
   "summary": "The `Tag` component renders a Bulma-styled label or badge.",
@@ -89,7 +89,7 @@
           "name": "isLight",
           "type": "boolean",
           "default": "false",
-          "description": "Use the light color variant. The light color has none, so `color=\"light\"` with `isLight` looks the same as without it.",
+          "description": "Use the light color variant. The light color has none, so `color=\"light\"` with `isLight` looks the same as without it. `white`, `black` and `dark` with `isLight` keep Bulma's light background, and bestax's stylesheets give their text the lightness a light tag's text has. With Bulma's CSS alone, their text inherits the color around it, which on a dark page is hard to read.",
           "required": false,
           "inherited": false,
           "deprecated": false

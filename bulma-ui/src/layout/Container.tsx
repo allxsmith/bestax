@@ -36,9 +36,10 @@ export interface ContainerProps
     | 'aside'
     | 'header'
     | 'footer'
-    | 'nav';
+    | 'nav'
+    | undefined;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
@@ -47,7 +48,8 @@ export interface ContainerProps
    * `textColor`, which takes precedence when both are set; use `bgColor` for
    * a colored surface.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /**
    * Background color helper. `scheme-*` values render as a dark-mode-safe
    * inline `background-color: var(--bulma-scheme-*)` instead of a class. The

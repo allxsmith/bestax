@@ -34,7 +34,7 @@ export interface NavbarProps
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes for the navbar. */
-  className?: string;
+  className?: string | undefined;
   /** Text color for the navbar. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Bulma color modifier for the navbar. */
@@ -48,7 +48,8 @@ export interface NavbarProps
     | 'black'
     | 'dark'
     | 'light'
-    | 'white';
+    | 'white'
+    | undefined;
   /** Background color for the navbar. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Renders the navbar with a transparent background. */
@@ -154,7 +155,7 @@ export interface NavbarBrandProps
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Text color for the brand. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
@@ -163,7 +164,8 @@ export interface NavbarBrandProps
    * `textColor` takes precedence when both are set, and is the one that
    * reaches the full color list.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Brand content. */
   children?: React.ReactNode;
 }
@@ -225,7 +227,7 @@ export interface NavbarItemOwnProps extends Omit<
    */
   backgroundColor?: never;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /**
    * Marks the item as the current one. It adds Bulma's `is-active` class, and
    * `aria-current="page"` on the element `as` renders, so assistive tech can
@@ -236,6 +238,11 @@ export interface NavbarItemOwnProps extends Omit<
    * control, say, or a `has-dropdown` container like the
    * `<Navbar.Item as="div" className="has-dropdown" active>` older
    * bestax-migrate versions wrote. That one can be a `Navbar.Dropdown` instead.
+   * Bulma fills an active link item with its selected color, the link color in
+   * a navbar with no `color`. bestax's stylesheets give the text that color's
+   * invert, where Bulma's own leaves it in the navbar's text color, dark gray
+   * on blue on the light scheme. With a `bgColor` the text keeps the navbar's
+   * color, and a fill of your own from CSS wants a `textColor` too.
    */
   active?: boolean;
   /** Text color for the item. */
@@ -263,7 +270,7 @@ export type NavbarItemProps<T extends React.ElementType = 'a'> =
        * `type="submit"` or `type="reset"` and yours is used; any other value, or a spread
        * carrying `type: undefined`, renders `type="button"`.
        */
-      as?: T;
+      as?: T | undefined;
     };
 
 /**
@@ -342,7 +349,7 @@ export interface NavbarBurgerProps
     Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'aria-expanded'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Text color for the burger. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
@@ -351,7 +358,8 @@ export interface NavbarBurgerProps
    * `textColor` takes precedence when both are set, and is the one that
    * reaches the full color list.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Whether the burger is active. */
   active?: boolean;
   /**
@@ -376,7 +384,7 @@ export interface NavbarBurgerProps
    */
   'aria-expanded'?: boolean | null | undefined;
   /** Click handler. */
-  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  onClick?: React.MouseEventHandler<HTMLButtonElement> | undefined;
 }
 
 /**
@@ -444,7 +452,7 @@ export interface NavbarMenuProps
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Text color for the menu. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
@@ -453,7 +461,8 @@ export interface NavbarMenuProps
    * `textColor` takes precedence when both are set, and is the one that
    * reaches the full color list.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Whether the menu is active. */
   active?: boolean;
   /** Menu content. */
@@ -504,7 +513,7 @@ export interface NavbarStartEndProps
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
@@ -513,7 +522,8 @@ export interface NavbarStartEndProps
    * `textColor` takes precedence when both are set, and is the one that
    * reaches the full color list.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Content. */
   children?: React.ReactNode;
 }
@@ -606,7 +616,7 @@ export interface NavbarLinkOwnProps extends Omit<
    */
   backgroundColor?: never;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Remove the dropdown arrow indicator. */
   arrowless?: boolean;
   /** Text color. */
@@ -647,7 +657,7 @@ export type NavbarLinkProps<T extends React.ElementType = 'a'> =
        * `type="submit"` or `type="reset"` and yours is used; any other value, or a spread
        * carrying `type: undefined`, renders `type="button"`.
        */
-      as?: T;
+      as?: T | undefined;
     };
 
 /**
@@ -788,7 +798,7 @@ NavbarLink.displayName = 'NavbarLink';
  */
 export interface NavbarDropdownProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Dropdown aligned right. */
   right?: boolean;
   /** Dropdown opens upwards. */
@@ -876,7 +886,7 @@ NavbarDropdown.displayName = 'NavbarDropdown';
  */
 export interface NavbarDropdownMenuProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Dropdown aligned right. */
   right?: boolean;
   /** Dropdown opens upwards. */

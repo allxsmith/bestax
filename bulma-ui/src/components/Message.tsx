@@ -27,17 +27,18 @@ export interface MessageProps
     Omit<React.HTMLAttributes<HTMLElement>, 'title'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Title string/node (renders header section). */
   title?: React.ReactNode;
   /** Text color for the message (Bulma helper). */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Bulma color modifier for the message. */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color for the message (Bulma helper). */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Size of the message. */
-  size?: MessageSize;
+  size?: MessageSize | undefined;
   /** Callback for the close ("X") button. */
   onClose?: () => void;
   /**
@@ -135,7 +136,7 @@ const MessageComponent: React.FC<MessageProps> = ({
  */
 export interface MessageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Header content (title, close button, etc.). */
   children?: React.ReactNode;
 }
@@ -145,7 +146,7 @@ export interface MessageHeaderProps extends React.HTMLAttributes<HTMLDivElement>
  */
 export interface MessageBodyProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Message body content. */
   children?: React.ReactNode;
 }

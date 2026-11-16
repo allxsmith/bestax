@@ -76,9 +76,9 @@ export interface TaginputProps
   /** Applied to the inner text input (the labellable control), not the wrapper div. */
   id?: React.HTMLAttributes<HTMLElement>['id'];
   /** The current tags (controlled). */
-  value?: TaginputTag[];
+  value?: TaginputTag[] | undefined;
   /** Default tags (uncontrolled). */
-  defaultValue?: TaginputTag[];
+  defaultValue?: TaginputTag[] | undefined;
   /**
    * Autocomplete suggestions. With `data` set, even to an empty array, the
    * text input is a `role="combobox"` that controls the suggestion list and
@@ -88,9 +88,9 @@ export interface TaginputProps
    * `LocaleProvider` with a `locale`, ignoring accents too where that
    * language does, so "cafe" finds "Café".
    */
-  data?: string[];
+  data?: string[] | undefined;
   /** Placeholder text when no tags. */
-  placeholder?: string;
+  placeholder?: string | undefined;
   /** Object property to use as display field. */
   field?: string;
   /** Allow creating new tags not in suggestions. */
@@ -118,7 +118,7 @@ export interface TaginputProps
   /** Maximum length of input. */
   maxlength?: number;
   /** Whether the input is disabled. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Whether the input is read-only. */
   readonly?: boolean;
   /** Applies rounded corners to the tags. */
@@ -162,7 +162,8 @@ export interface TaginputProps
   /** Additional icon modifiers. */
   iconFeatures?: string | string[];
   /** Input color variant. */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Tag color variant. */
   tagColor?:
     | 'primary'
@@ -174,13 +175,13 @@ export interface TaginputProps
     | 'dark'
     | 'light';
   /** Size variant. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Form field name. When set, one hidden input per tag is rendered. */
-  name?: string;
+  name?: string | undefined;
   /** Optional id of the form the hidden inputs belong to. */
-  form?: string;
+  form?: string | undefined;
   /** Callback when tags change. */
-  onChange?: (tags: TaginputTag[]) => void;
+  onChange?: ((tags: TaginputTag[]) => void) | undefined;
   /** Callback when tag is added. */
   onAdd?: (tag: TaginputTag) => void;
   /** Callback when tag is removed. */

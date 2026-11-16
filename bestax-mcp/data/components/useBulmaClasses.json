@@ -204,7 +204,7 @@
       "name": "color",
       "type": "Bulma color | 'inherit' | 'current'",
       "default": null,
-      "description": "Text color class (e.g., 'primary', 'info').",
+      "description": "Text color class (e.g., 'primary', 'info'). On the dark scheme, bestax's stylesheets give a color's text the lightness Bulma picks for that color's text on the page wherever that's lighter, so a dark color reads there. On a surface that stays light on both schemes, such as `has-background-white` or `has-background-light`, add `colorShade=\"dark\"`, which reads there on both.",
       "required": false,
       "inherited": false,
       "deprecated": false,
@@ -214,7 +214,7 @@
       "name": "colorShade",
       "type": "(typeof validColorShades)[number]",
       "default": null,
-      "description": "Text color shade suffix (e.g., '00', 'invert').",
+      "description": "Text color shade suffix (e.g., '00', 'invert'). `'dark'` is the one for text on a surface that stays light on both schemes, where the plain color gets lighter on the dark scheme.",
       "required": false,
       "inherited": false,
       "deprecated": false

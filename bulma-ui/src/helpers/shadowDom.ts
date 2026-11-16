@@ -55,6 +55,16 @@ export function getActiveElementInTree(
 }
 
 /**
+ * The element above `el` in the page: its parent, or the host of the shadow
+ * root it sits at the top of. Nothing above the top of a detached tree.
+ *
+ * @param el - The element to climb from.
+ * @returns Its parent in the page, or `undefined` at the top.
+ */
+export const parentInPage = (el: Element): Element | undefined =>
+  el.parentElement ?? (el.getRootNode() as Partial<ShadowRoot>).host;
+
+/**
  * The element that really has focus, followed down from
  * `document.activeElement` through every open shadow root on the way. Use it
  * to record where focus was before moving it, so it can be restored to that
@@ -117,4 +127,52 @@ export function shadowRootsAround(node: Node | null | undefined): ShadowRoot[] {
     }
   }
   return roots;
+}
+
+/**
+ * Listens for `type` on the shadow roots the nodes are rendered in, as
+ * `shadowRootsAround` finds them, for an event that isn't composed, such as
+ * `scroll`, which a listener on the window never hears from inside one.
+ * `follow` finds the nodes' roots again and moves the listener when they've
+ * changed, so a caller that calls it at each measurement keeps up with
+ * other nodes, or with a component around one that got its shadow root
+ * since. It gives back the roots it listens on, the same array until they
+ * change, so a caller can watch those roots in other ways too. `stop` takes
+ * the listener off them all.
+ *
+ * @param type - The event to listen for.
+ * @param listener - What runs on it.
+ * @param options - The listener's options, `capture` included.
+ * @returns `follow`, given the nodes now, and `stop`.
+ */
+export function listenInShadowRoots(
+  type: string,
+  listener: () => void,
+  options: AddEventListenerOptions
+): {
+  follow: (...nodes: Array<Node | null | undefined>) => readonly ShadowRoot[];
+  stop: () => void;
+} {
+  let roots: ShadowRoot[] = [];
+  const move = (now: ShadowRoot[]) => {
+    for (const root of roots) {
+      root.removeEventListener(type, listener, { capture: options.capture });
+    }
+    roots = now;
+    for (const root of roots) root.addEventListener(type, listener, options);
+  };
+  return {
+    follow: (...nodes) => {
+      const now = [...new Set(nodes.flatMap(node => shadowRootsAround(node)))];
+      // The same roots in another order are no change.
+      if (
+        now.length !== roots.length ||
+        now.some(root => !roots.includes(root))
+      ) {
+        move(now);
+      }
+      return roots;
+    },
+    stop: () => move([]),
+  };
 }

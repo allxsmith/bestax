@@ -20,7 +20,7 @@ export interface KbdProps
     Omit<React.HTMLAttributes<HTMLElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * The key as it's printed on the keyboard: a word (`Ctrl`, `Esc`), a
    * letter, or a symbol (`⌘`).
@@ -36,7 +36,7 @@ export interface KbdProps
    * instead: ARIA in HTML prohibits naming a `<kbd>`, so nothing obliges a
    * screen reader to read it.
    */
-  label?: string;
+  label?: string | undefined;
   /**
    * Text color helper. The key's edge and fill are mixed from its text
    * color, so they follow it.
@@ -63,7 +63,7 @@ export interface KbdGroupProps
     Omit<React.HTMLAttributes<HTMLElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * The keys, a `Kbd` each, in the order they're pressed. The group renders
    * the outer `<kbd>` around them, so it doesn't go inside a `Kbd` of its

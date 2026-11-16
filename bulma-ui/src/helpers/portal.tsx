@@ -193,7 +193,7 @@ export interface PortalProps {
    * path.
    * @defaultValue false
    */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
 }
 
 /**

@@ -85,9 +85,10 @@ export interface DropzoneProps
     | 'black'
     | 'dark'
     | 'light'
-    | 'white';
+    | 'white'
+    | undefined;
   /** Size modifier for the zone. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /**
    * The zone's text. It's the input's accessible name, so keep it short, and
    * put details such as "PDF up to 5 MB" in `hint`. Default: "Choose or drop
@@ -157,7 +158,7 @@ export interface DropzoneProps
    */
   message?: React.ReactNode;
   /** Additional CSS classes for the root. */
-  className?: string;
+  className?: string | undefined;
 }
 
 /** A file on its way in, and whether it's really a folder. */

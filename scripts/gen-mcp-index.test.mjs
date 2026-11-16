@@ -15,6 +15,7 @@
  */
 import { test, beforeAll } from 'vitest';
 import assert from 'node:assert/strict';
+import { statSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -781,7 +782,8 @@ test('references nested one level per subject still reach the index', () => {
     const ref = migrate.references.find(r => r.id === id);
     assert.ok(ref, `${id} is not indexed`);
     assert.match(ref.file, /^references\/[^/]+\/[^/]+\.md$/);
-    assert.ok(ref.bytes > 0, `${id} indexed as empty`);
+    const source = join(REPO, 'skills', 'bestax-migrate', ref.file);
+    assert.ok(statSync(source).size > 0, `${id} is an empty file`);
   }
   // `id` is the lookup key behind bestax://skills/{name}/references/{ref},
   // so a slash in it would not resolve.
@@ -866,9 +868,7 @@ test('the index refuses a symbolic link wherever the sync scripts do', async t =
   );
   writeFileSync(join(skill, 'references', 'api.md'), '# api\n');
   const [form] = await readSkills(skillsDir);
-  assert.deepEqual(form.references, [
-    { id: 'api', file: 'references/api.md', bytes: 6 },
-  ]);
+  assert.deepEqual(form.references, [{ id: 'api', file: 'references/api.md' }]);
   assert.deepEqual(form.examples, []);
 
   const outside = join(root, 'outside');

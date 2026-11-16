@@ -7,7 +7,6 @@ import React, {
   useId,
   useMemo,
   useRef,
-  useState,
 } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
@@ -20,6 +19,11 @@ import {
   type TreeViewEngine,
 } from '../helpers/useTreeView';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
+import {
+  useLoadPhase,
+  useLoadRegion,
+  type LoadAnnouncement,
+} from '../helpers/loadAnnouncements';
 import { Checkbox } from '../form/Checkbox';
 import { iconNode } from '../helpers/iconNode';
 import { isGiven } from '../helpers/isGiven';
@@ -35,19 +39,6 @@ export type TreeViewSelectionMode =
 
 const validTreeViewSizes = ['small', 'medium', 'large'] as const;
 
-/** What an open item's load says in the tree's live region. */
-interface LoadAnnouncement {
-  /** The item's key, so what it says next replaces this. */
-  key: string;
-  /** The key and the kind: the region says it once each time it appears. */
-  id: string;
-  kind: 'loading' | 'loaded' | 'error';
-  /** The item's name, read off its label. */
-  name: string;
-  /** A failed load's message, read off its row. */
-  message: string;
-}
-
 /** What the root hands its items: the engine, the live region, and the rows' words. */
 interface TreeContextValue extends TreeViewEngine {
   /** Puts what an item's load says in the live region, or takes it out with `null`. */
@@ -58,9 +49,6 @@ interface TreeContextValue extends TreeViewEngine {
 
 // Not exported, so they stay out of the public API that `index.ts` re-exports.
 const TreeViewContext = createContext<TreeContextValue | null>(null);
-
-const sayLoading = (name: string) => `Loading ${name}`;
-const sayLoaded = (name: string) => `${name} loaded`;
 
 /** Where an item sits: the values of the items above it, and whether one of them is closed. */
 interface Branch {
@@ -107,6 +95,9 @@ export interface TreeViewProps
    * `checkbox-independent`: any number, checked with Space or a click, each
    * box for its own item. A check reaches nothing under it, and no parent is
    * mixed (Mantine's and Ant Design's `checkStrictly`).
+   * In any mode, a Space typed during a type-ahead search joins it instead
+   * when an item starts with what's been typed and a space, so "new y"
+   * reaches "New York".
    */
   selectionMode?: TreeViewSelectionMode;
   /**
@@ -114,7 +105,7 @@ export interface TreeViewProps
    * Read with `single` only. Picking an item then only calls
    * `onSelectedChange`, and nothing changes until you pass the new value.
    */
-  selected?: string | null;
+  selected?: string | null | undefined;
   /** The item selected to begin with, when the tree holds its own state. Read with `single` only. */
   defaultSelected?: string | null;
   /**
@@ -130,9 +121,9 @@ export interface TreeViewProps
    * a disabled item is checked only by its own value. In
    * `checkbox-independent`, a value checks its own item and nothing else.
    */
-  checked?: string[];
+  checked?: string[] | undefined;
   /** The values checked to begin with, when the tree holds its own state. Read with `checkbox` and `checkbox-independent` only. */
-  defaultChecked?: string[];
+  defaultChecked?: string[] | undefined;
   /**
    * Called after a check or an uncheck. In `checkbox`, with every item that
    * now shows checked, parents included, plus any earlier value that matches
@@ -152,7 +143,7 @@ export interface TreeViewProps
   /** Called with the new list whenever an item opens or closes, `*` included. */
   onExpandedChange?: (expanded: string[]) => void;
   /** The text size, as Bulma's menu sizes it. The rows, the indent and the chevron scale with it. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** What the row in a loading item's group says. In your app's language. */
   loadingLabel?: string;
   /** The Retry button's text on a failed load's row. In your app's language. */
@@ -217,10 +208,10 @@ export interface TreeViewItemProps extends Omit<
   loadError?: React.ReactNode;
   /**
    * Called by the Retry button on a failed load's row, and by Enter or Space
-   * there. Set `isLoading` while the retry runs, so the live region says it's
-   * loading, and reads the message out again if it fails again. The same
-   * message passed a second time with no loading between is no change the
-   * tree can see.
+   * there, Space unless it joins a type-ahead search. Set `isLoading` while
+   * the retry runs, so the live region says it's loading, and reads the
+   * message out again if it fails again. The same message passed a second
+   * time with no loading between is no change the tree can see.
    */
   onRetry?: () => void;
   /**
@@ -228,7 +219,7 @@ export interface TreeViewItemProps extends Omit<
    * reader finds it, but never selected, checked, opened or closed. One
    * that's already open stays open.
    */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
 }
 
 /**
@@ -332,26 +323,9 @@ const TreeViewRoot = forwardRef<HTMLUListElement, TreeViewProps>(
     });
 
     // What each open item's load says, in the order they started saying it.
-    const [announcements, setAnnouncements] = useState<LoadAnnouncement[]>([]);
-    const announce = useCallback(
-      (key: string, announcement: LoadAnnouncement | null) => {
-        setAnnouncements(current => {
-          const others = current.filter(said => said.key !== key);
-          return announcement ? [...others, announcement] : others;
-        });
-      },
-      []
-    );
-    const describe = useCallback(
-      ({ kind, name, message }: LoadAnnouncement) => {
-        if (kind === 'error') return message;
-        const say =
-          kind === 'loading'
-            ? (loadingAnnouncement ?? sayLoading)
-            : (loadedAnnouncement ?? sayLoaded);
-        return say(name);
-      },
-      [loadingAnnouncement, loadedAnnouncement]
+    const { announcements, announce, describe } = useLoadRegion(
+      loadingAnnouncement,
+      loadedAnnouncement
     );
 
     // The props are spread first, so the role and the attributes the tree
@@ -439,28 +413,11 @@ export const TreeViewItem = forwardRef<HTMLLIElement, TreeViewItemProps>(
     // still open, whichever row it was, until the item closes or loads again.
     // A closed item says nothing, loading or not.
     const phase = shown ? (status ?? 'open') : 'closed';
-    const lastPhaseRef = useRef(phase);
-    const announce = tree?.announce;
-    useEffect(() => {
-      const was = lastPhaseRef.current;
-      lastPhaseRef.current = phase;
-      const kind =
-        phase === 'loading' || phase === 'error'
-          ? phase
-          : phase === 'open' && (was === 'loading' || was === 'error')
-            ? 'loaded'
-            : null;
-      if (!kind) return undefined;
-      // Only an item inside a tree can be open.
-      announce!(labelId, {
-        key: labelId,
-        id: `${labelId}:${kind}`,
-        kind,
-        name: spokenText(labelRef.current!),
-        message: kind === 'error' ? spokenText(statusLabelRef.current!) : '',
-      });
-      return () => announce!(labelId, null);
-    }, [phase, announce, labelId]);
+    useLoadPhase(phase, labelId, tree?.announce, () => ({
+      name: spokenText(labelRef.current!),
+      // A failed load's message, read off its row while it's there.
+      message: statusLabelRef.current ? spokenText(statusLabelRef.current) : '',
+    }));
 
     const itemClass = usePrefixedClassNames('tree-view-item');
     const groupClass = usePrefixedClassNames('tree-view-group');
@@ -653,7 +610,8 @@ interface StatusRowProps {
  * It's a `treeitem` the keys reach, the way they reach a disabled item, so a
  * screen reader finds it. It has no value and no record, so it's never
  * selected or checked, and a check never counts it. A failed load's row with
- * `onRetry` retries with Enter, Space or a click, and any other is disabled.
+ * `onRetry` retries with Enter, Space or a click, Space unless it joins a
+ * type-ahead search, and any other is disabled.
  * The Retry button is drawn, hidden from assistive tech and out of the tab
  * order, the way an item's box is: the row is what's pressed, and its name
  * says so. Rendered in one place, a failed load's row that starts loading

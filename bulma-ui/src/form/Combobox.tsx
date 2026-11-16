@@ -104,7 +104,7 @@ interface ComboboxBaseProps
    * Controlled open state. When set, opening and closing only report
    * through `onOpenChange`.
    */
-  open?: boolean;
+  open?: boolean | undefined;
   /**
    * Initial open state when uncontrolled.
    * @defaultValue false
@@ -123,7 +123,7 @@ interface ComboboxBaseProps
    * value that follows. Built from parts, the Combobox keeps no value and
    * doesn't change the text in the field: update yours here.
    */
-  onSelect?: (value: string) => void;
+  onSelect?: ((value: string) => void) | undefined;
   /**
    * Highlights the first enabled item whenever the list opens or its
    * items change, so Enter picks the top match. It only highlights:
@@ -161,18 +161,18 @@ interface ComboboxBaseProps
    */
   appendToBody?: boolean;
   /** Sizes the field and the items together. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
 }
 
 /** What a Combobox given `data` takes, with one value or several. */
 interface ComboboxDataBaseProps extends ComboboxBaseProps {
   /** The field's placeholder, with `data`. */
-  placeholder?: string;
+  placeholder?: string | undefined;
   /**
    * A form field name, with `data`. A hidden input posts the value, empty
    * while there's none, and with `multiple` a hidden input posts each value.
    */
-  name?: string;
+  name?: string | undefined;
   /**
    * What the menu shows in place of the list, with `data`, when nothing
    * matches the typing, such as "No countries match". It's announced the way
@@ -190,7 +190,7 @@ interface ComboboxDataBaseProps extends ComboboxBaseProps {
    * its items can't be picked, its tags lose their buttons, and its hidden
    * inputs don't post, the way a disabled field's value doesn't.
    */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /**
    * A value is needed, with `data`. The field is `required` while nothing is
    * picked, so the browser's own check stops the form the way it does for
@@ -198,13 +198,13 @@ interface ComboboxDataBaseProps extends ComboboxBaseProps {
    * reads the field's text, which Enter, the list closing or leaving the
    * field puts back to the pick.
    */
-  required?: boolean;
+  required?: boolean | undefined;
   /**
    * The id of the form the value posts with, with `data`, for a field
    * outside it. It goes on the hidden inputs, and on the field so that form
    * checks `required` too.
    */
-  form?: string;
+  form?: string | undefined;
   /**
    * The field's `id`, with `data`, which the label then points at, and so
    * can a label of your own. Built from parts, it lands on `div.combobox`, so
@@ -246,7 +246,7 @@ export interface ComboboxSingleDataProps extends ComboboxDataBaseProps {
    * search.
    * @defaultValue false
    */
-  multiple?: false;
+  multiple?: false | undefined;
   /**
    * The value, controlled, with `data`: the picked item's `value`, or `null`
    * for none, and with `multiple` an array of them. With one value, the
@@ -254,15 +254,15 @@ export interface ComboboxSingleDataProps extends ComboboxDataBaseProps {
    * the list closing or the field being left puts it back over any typing.
    * A field emptied and left like that clears the value.
    */
-  value?: string | null;
+  value?: string | null | undefined;
   /** The value to start with when uncontrolled, with `data`. */
-  defaultValue?: string | null;
+  defaultValue?: string | null | undefined;
   /**
    * Called with the new value, with `data`, when a pick, a tag's button or
    * a field left empty changes it: an item's `value` or `null`, or with
    * `multiple` the array.
    */
-  onChange?: (value: string | null) => void;
+  onChange?: ((value: string | null) => void) | undefined;
   /** With one value there are no tags to name. */
   ariaCloseLabel?: never;
 }
@@ -281,11 +281,11 @@ export interface ComboboxMultipleDataProps extends ComboboxDataBaseProps {
    */
   multiple: true;
   /** The values, controlled: the picked items' `value`s. */
-  value?: string[];
+  value?: string[] | undefined;
   /** The values to start with when uncontrolled. */
-  defaultValue?: string[];
+  defaultValue?: string[] | undefined;
   /** Called with the new array when a pick or a tag's button changes it. */
-  onChange?: (value: string[]) => void;
+  onChange?: ((value: string[]) => void) | undefined;
   /**
    * Names each tag's button, in place of "Remove" and the item's label, as
    * Taginput's does. The button is then described by its tag's label, so it
@@ -315,7 +315,7 @@ export interface ComboboxPartsProps extends ComboboxBaseProps {
    * `aria-selected`.
    * @defaultValue false
    */
-  multiple?: boolean;
+  multiple?: boolean | undefined;
   /** Built from parts, there's no `data`. */
   data?: never;
   /** Built from parts, the app keeps the value. */
@@ -417,13 +417,13 @@ export interface ComboboxItemProps extends Omit<
    * finds it, and it's never `aria-selected`.
    * @defaultValue false
    */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /**
    * It's the value, or one of them. It shows a check mark, the list opens
    * with the highlight on it, and with `multiple` it's the `aria-selected`.
    * @defaultValue false
    */
-  checked?: boolean;
+  checked?: boolean | undefined;
   /** What the item shows: text, or text with an avatar, a tag or a hint. */
   children?: React.ReactNode;
 }

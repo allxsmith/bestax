@@ -31,14 +31,14 @@ export interface TitleProps
     >,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * Size of the title (Bulma sizes `1`-`6`, as a string or number). It also
    * picks the heading level: unless `as` is `p`, `size="4"` renders an
    * `<h4>`, whatever `as` says. For a heading whose level and size differ,
    * set the level with `as` and the size with the `textSize` helper.
    */
-  size?: TitleSize;
+  size?: TitleSize | undefined;
   /** Adds margin below the title. */
   isSpaced?: boolean;
   /**
@@ -46,7 +46,7 @@ export interface TitleProps
    * unless it's `p`, so `as="h2" size="4"` renders an `<h4>`. To keep the
    * level `as` sets, size the title with the `textSize` helper instead.
    */
-  as?: TitleElement;
+  as?: TitleElement | undefined;
   /** Applies the `has-skeleton` class to part of the content. */
   hasSkeleton?: boolean;
   /** Title content. */

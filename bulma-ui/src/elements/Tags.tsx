@@ -18,7 +18,7 @@ export interface TagsProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color' | 'size'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Group tags together as add-ons (no spacing). */
   hasAddons?: boolean;
   /**
@@ -30,7 +30,7 @@ export interface TagsProps
    */
   isMultiline?: boolean;
   /** Size of every tag in the group. */
-  size?: TagsSize;
+  size?: TagsSize | undefined;
   /** Tag elements to render inside the container. */
   children?: React.ReactNode;
 }

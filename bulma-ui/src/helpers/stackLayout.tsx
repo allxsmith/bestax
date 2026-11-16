@@ -57,7 +57,7 @@ export interface LayoutOwnProps extends Omit<
    */
   backgroundColor?: never;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /**
    * What it lays out. The top and bottom margins Bulma gives them are
    * zeroed, so `gap` is the only space between them, and a spacing helper
@@ -78,7 +78,7 @@ export interface LayoutOwnProps extends Omit<
 export interface StackLayoutProps
   extends LayoutOwnProps, Omit<React.HTMLAttributes<HTMLElement>, 'color'> {
   /** The element to render. */
-  as?: LayoutElement;
+  as?: LayoutElement | undefined;
   /** Flex's direction. The other three pass `undefined`, so they never reorder. */
   flexDirection?: (typeof validFlexDirections)[number];
   /** The modifier classes beside `stack`, as `usePrefixedClassNames` takes them. */

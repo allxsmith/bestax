@@ -797,17 +797,15 @@ export async function readSkills(skillsDir = SKILLS_DIR) {
     // for anyone who pinned the old resource URI. Nothing in this repo pins
     // one, and agents discover ids through `get_skill` rather than hardcoding
     // them, so the rename is accepted rather than aliased.
-    const listing = async sub => {
+    const listing = sub => {
       const prefix = `${sub}/`;
       const files = [];
       for (const file of shipped) {
         if (!file.startsWith(prefix)) continue;
         const rel = file.slice(prefix.length);
-        const body = await readFile(join(skillsDir, name, file), 'utf8');
         files.push({
           id: rel.replace(extname(rel), '').replace(/\//g, '-'),
           file,
-          bytes: Buffer.byteLength(body),
         });
       }
       // `a-b/x.md` and `a/b-x.md` both flatten to `a-b-x`, and `id` is the
@@ -838,8 +836,8 @@ export async function readSkills(skillsDir = SKILLS_DIR) {
       // The prompt name an MCP client shows.
       promptName: skillSlug(name),
       dir: name,
-      references: await listing('references'),
-      examples: await listing('examples'),
+      references: listing('references'),
+      examples: listing('examples'),
     });
   }
   // In readSkillNames' order, which is code-point order.

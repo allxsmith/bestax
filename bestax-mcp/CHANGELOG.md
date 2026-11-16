@@ -1,3 +1,192 @@
+## [1.18.61](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.60...bestax-mcp@1.18.61) (2026-11-16)
+
+
+### Bug Fixes
+
+* **bulma-ui:** draw Steps and a Timeline in a colored Notification's or Hero's text color ([ba103eb](https://github.com/allxsmith/bestax/commit/ba103ebe88ce4d304edb0dda2f3e86e994700732)), closes [#1733](https://github.com/allxsmith/bestax/issues/1733)
+* **bulma-ui:** give colored Steps' labels and a Hero's timeline titles the surface's color ([e746cc3](https://github.com/allxsmith/bestax/commit/e746cc325041283b4b087a86e0cabb1ac76c31b6))
+* **bulma-ui:** open a Calendar whose value lies outside min or max on the bound's month ([b53b4e9](https://github.com/allxsmith/bestax/commit/b53b4e9935e2fca029aac89bf16b61954f262c8b)), closes [#1818](https://github.com/allxsmith/bestax/issues/1818)
+
+## [1.18.60](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.59...bestax-mcp@1.18.60) (2026-11-16)
+
+
+### Bug Fixes
+
+* **bulma-ui:** cap Cascader's panel at the viewport's width, so its columns scroll sideways in it ([f4d78d5](https://github.com/allxsmith/bestax/commit/f4d78d542180693f3156176b6c6affff7a5daf23))
+* **bulma-ui:** collapse a resized column halfway to its minimum, and keep its focused handle ([5ddd4e5](https://github.com/allxsmith/bestax/commit/5ddd4e5737f4996af9067ce2e7533bff0407ed64))
+* **bulma-ui:** color the select field's chevron as focused while the field is drawn focused ([2ab704a](https://github.com/allxsmith/bestax/commit/2ab704aa2a8e38c105473e69922c8fcfca10318c))
+* **bulma-ui:** empty Cascader's search however the panel closes, and keep focus in the panel ([5c1d6d7](https://github.com/allxsmith/bestax/commit/5c1d6d7a0ae5994359983363f69f3c4eccec33c2))
+* **bulma-ui:** give a color's text its on-scheme lightness on the dark scheme ([03cdf9e](https://github.com/allxsmith/bestax/commit/03cdf9e764b5c34322628613747f7b60bdac5401))
+* **bulma-ui:** give a Navbar's active item text that reads on the link color ([857418c](https://github.com/allxsmith/bestax/commit/857418cc537b1d1a47d76e114f54ddb8d7648ece)), closes [#1712](https://github.com/allxsmith/bestax/issues/1712)
+* **bulma-ui:** give a white, black or dark Notification or Tag with isLight readable text ([5909aec](https://github.com/allxsmith/bestax/commit/5909aec8f9084d6f2317e5b17b3517704d8bd5a8)), closes [#1514](https://github.com/allxsmith/bestax/issues/1514)
+* **bulma-ui:** hand focus from the hidden required field to the field a task later ([9afd5d6](https://github.com/allxsmith/bestax/commit/9afd5d67539be5f0d1babf1fc53099ad8b96f698))
+* **bulma-ui:** hide a Tour beacon whose corner a scrolling panel cuts off ([3f8e79e](https://github.com/allxsmith/bestax/commit/3f8e79e812c5ab95d73455f3ac66b6250905c91b))
+* **bulma-ui:** keep a collapsed column's handle while the keyboard has it ([2954ebd](https://github.com/allxsmith/bestax/commit/2954ebd82f0761ce5702061bd4b94ac3be6e0dbb))
+* **bulma-ui:** keep a color's text at its own lightness on a light page ([ec70735](https://github.com/allxsmith/bestax/commit/ec7073515433c6fb5b219f9d0ba7208a353a5e92))
+* **bulma-ui:** keep a colored Panel's active icon, tab underline and black text readable ([5442116](https://github.com/allxsmith/bestax/commit/54421160e45ac2b1ad32edffee6b9e5d6bfa3428))
+* **bulma-ui:** keep a column's width when resizable turns off, and correct the resize TSDoc ([b3d32d7](https://github.com/allxsmith/bestax/commit/b3d32d7f29e6d04d6fe31cda3fbb37eecaaf819c))
+* **bulma-ui:** keep a resize handle's drag to its own pointer, document and lifetime ([65cba56](https://github.com/allxsmith/bestax/commit/65cba566f0bc19130450dc90df39c53a9d0096d9))
+* **bulma-ui:** keep an Enter that picks nothing in Cascader's search from submitting the form ([cb2f98a](https://github.com/allxsmith/bestax/commit/cb2f98a28afaf267031ae528c469e4271f2bc1a2))
+* **bulma-ui:** keep each of two Splitter handles dragged at once to its own start ([9e383e2](https://github.com/allxsmith/bestax/commit/9e383e27cb6ae31a42a22e50fabb5f7c228ef0ce))
+* **bulma-ui:** keep each Tour beacon's place by its step's key, and its corner on the screen ([c15fa71](https://github.com/allxsmith/bestax/commit/c15fa71293d0c744d005d070926f7b952656d81e))
+* **bulma-ui:** keep the browser's required message up, focus on its field until the next key ([e95d703](https://github.com/allxsmith/bestax/commit/e95d703dba1b0b1b2364d22b24e7d6438a6c5744))
+* **bulma-ui:** keep the column's handle out of its track, and theme its line's width ([f6864e7](https://github.com/allxsmith/bestax/commit/f6864e73fda69de877e1081f81fd178b7f7ee214))
+* **bulma-ui:** keep the range picker's months gap where :has() isn't supported ([5228bdd](https://github.com/allxsmith/bestax/commit/5228bddf207c950fffb4a4a1971b0962639e45fb))
+* **bulma-ui:** key Cascader's columns apart from node values, and keep inherited prop types ([3160fc2](https://github.com/allxsmith/bestax/commit/3160fc20c1404dc29ce2481e413d399ab7becf77))
+* **bulma-ui:** leave the select field's rules to the shared mixin, its chevron color included ([4b3492c](https://github.com/allxsmith/bestax/commit/4b3492c7e4f07b8a0d31c393068ae197d62ccae2))
+* **bulma-ui:** let Cascader's panel in place inherit the root's variables ([6f98634](https://github.com/allxsmith/bestax/commit/6f98634c819f0346e92963ec2bb8bb0c0310fd91))
+* **bulma-ui:** let Space join a type-ahead search in Cascader's columns ([bf9d1ed](https://github.com/allxsmith/bestax/commit/bf9d1edf85747bd5892860ff1510eaa9941e535a)), closes [#1683](https://github.com/allxsmith/bestax/issues/1683)
+* **bulma-ui:** let Space join only a search it extends, and walk focus back past gone columns ([1af39c5](https://github.com/allxsmith/bestax/commit/1af39c5da2cf8b8ff9094007672c1676fb07580a))
+* **bulma-ui:** let the focused required stand-in read as the field, and leave it on a modifier ([e7ac4bb](https://github.com/allxsmith/bestax/commit/e7ac4bb7c0ed36af9843a674e8f72845cd565a59))
+* **bulma-ui:** move Tour's beacons with targets that scroll inside a shadow root ([7b3c74a](https://github.com/allxsmith/bestax/commit/7b3c74a9ef4bee09bf40062f649db5f889ebf8c5))
+* **bulma-ui:** name Cascader's states as Combobox's, and put its strings in labels ([d804cb5](https://github.com/allxsmith/bestax/commit/d804cb504548fff6b15b030ca643df6779e5d1c2))
+* **bulma-ui:** name the resize handle's line variables as Splitter names its line's ([4d7e91e](https://github.com/allxsmith/bestax/commit/4d7e91e71c05d56e3ce90e1b27a6a16a209eb933))
+* **bulma-ui:** open only the focused Cascader item on Right, and keep a disabled picked node legible ([6019811](https://github.com/allxsmith/bestax/commit/601981172b379a340d992900df21b89ea6e16d65))
+* **bulma-ui:** put TreeSelect's strings in labels, hand filter the path, keep a ref's cleanup ([bc9a88d](https://github.com/allxsmith/bestax/commit/bc9a88dc2ed003120688f31949eef9bdeba5837e))
+* **bulma-ui:** read a length's number with a pattern that fails in one pass ([f926408](https://github.com/allxsmith/bestax/commit/f9264085bed5754c9c92235583b413048d81d295))
+* **bulma-ui:** read a Splitter percent limit's trailing space only after its % ([a7f4f4c](https://github.com/allxsmith/bestax/commit/a7f4f4cf1b1705c4907fc416d35522d97cd2e935))
+* **bulma-ui:** read an outlined link-colored Button at 4.5:1 or better on the dark scheme ([#1752](https://github.com/allxsmith/bestax/issues/1752)) ([bb13c3a](https://github.com/allxsmith/bestax/commit/bb13c3adc8906a3455fe58276d54e035bc1903f6))
+* **bulma-ui:** register how TreeSelect's chevron and clear button stack ([58f95af](https://github.com/allxsmith/bestax/commit/58f95af8c7a3cbf83c3631a622d178aa1f0f5bf1))
+* **bulma-ui:** reset the column to its default as given, and read its widths from the nav ([db86cab](https://github.com/allxsmith/bestax/commit/db86cab3657e071709ddd1a0005200e39f89feed))
+* **bulma-ui:** resize the column from the width it has, with lengths read when they're used ([10e14ee](https://github.com/allxsmith/bestax/commit/10e14eebcf68179f7c094c45a9710ed310760744))
+* **bulma-ui:** say where Cascader's panel opens right to left, and which overlay takes it ([9ca8f2c](https://github.com/allxsmith/bestax/commit/9ca8f2cbe40704bbececcac6ae642eac45e24d70))
+* **bulma-ui:** select only Cascader's picked path, and open it however the panel opens ([0d34c32](https://github.com/allxsmith/bestax/commit/0d34c32ac1a05c65f48e631bc149de26877672f2))
+* **bulma-ui:** share the page's resize cursor between handles dragged at once ([d6c74b4](https://github.com/allxsmith/bestax/commit/d6c74b47178151a0e447713d49961aaa468593fc))
+* **bulma-ui:** show a beacon only with its corner in view, and close any tip whose step moves ([c9769db](https://github.com/allxsmith/bestax/commit/c9769dbdeb7c71b85f58d921e661e10d323402a8))
+* **bulma-ui:** watch Tour's targets' shadow roots for changes, and floor a beacon at 24px ([62f5f27](https://github.com/allxsmith/bestax/commit/62f5f27e5d430f0445c07ef22e696d36836a285a))
+
+
+### Features
+
+* **bulma-ui:** add AppFrame.Nav resizable, a handle that drags the column's width ([438469b](https://github.com/allxsmith/bestax/commit/438469b190f2cca32b1df492d8c1de47d4cbfd9a)), closes [#1432](https://github.com/allxsmith/bestax/issues/1432)
+* **bulma-ui:** add beacon mode to Tour, tips opened in any order ([0e25d14](https://github.com/allxsmith/bestax/commit/0e25d146a4c86b6a61e1da0d1751b0a8bf4034d8)), closes [#1435](https://github.com/allxsmith/bestax/issues/1435)
+* **bulma-ui:** add Cascader, a form field that picks along a path, one column per level ([d63fd18](https://github.com/allxsmith/bestax/commit/d63fd18675e60b0a289198d9f680cfeb4a9b7165))
+* **bulma-ui:** add monthsToShow to DateRangeInput, to show months side by side ([ef57e9e](https://github.com/allxsmith/bestax/commit/ef57e9e2e91f78053cbc48fb1fb4d9a476192a7d)), closes [#1702](https://github.com/allxsmith/bestax/issues/1702)
+* **bulma-ui:** draw Cascader's columns, and share the field's rules with TreeSelect ([bb2c658](https://github.com/allxsmith/bestax/commit/bb2c658beb4b970dc4dd37e08e9184b3dac66f47))
+* **bulma-ui:** give a resizable AppFrame.Nav a step, in pixels, as Splitter has one ([87a4526](https://github.com/allxsmith/bestax/commit/87a4526e014de72283238556e7df936ec856b377))
+
+## [1.18.59](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.58...bestax-mcp@1.18.59) (2026-11-16)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** flag a react-bulma-components Dropdown's color, which colored its trigger ([27919d9](https://github.com/allxsmith/bestax/commit/27919d99b0d29cf337c3082a10e62bec874c9d42)), closes [#1792](https://github.com/allxsmith/bestax/issues/1792)
+* **bestax-migrate:** give the base-display TODO a rule of its own, and read the class map's values ([0639b23](https://github.com/allxsmith/bestax/commit/0639b2339e91e7c8ef6f790498626bc547254e51)), closes [#1747](https://github.com/allxsmith/bestax/issues/1747)
+* **bestax-migrate:** keep a base display beside a per-viewport one as its class ([5a266ae](https://github.com/allxsmith/bestax/commit/5a266ae88ae44765c813f9d60c956c8eda39d9b9)), closes [#1747](https://github.com/allxsmith/bestax/issues/1747)
+* **bestax-migrate:** leave a base display alone where a spread or dynamic value could undo it ([bd114a6](https://github.com/allxsmith/bestax/commit/bd114a69d90ec38e2ac638d6ab05356365591159)), closes [#1747](https://github.com/allxsmith/bestax/issues/1747)
+* **bestax-migrate:** leave an element that takes a spread to the reader ([8d2a15b](https://github.com/allxsmith/bestax/commit/8d2a15b4c733e9b14d5d8f8f3f56d636a2784a5e)), closes [#1747](https://github.com/allxsmith/bestax/issues/1747)
+* **bestax-migrate:** list Tour.Skip, Tour.Back and Tour.Next among the parts that forward a ref ([f787eb7](https://github.com/allxsmith/bestax/commit/f787eb71146c3768e8efe9c2fc0d5da0466975c7)), closes [#1435](https://github.com/allxsmith/bestax/issues/1435)
+* **bestax-migrate:** refuse a base display that a later spread could replace ([adf9d0a](https://github.com/allxsmith/bestax/commit/adf9d0a48bdd2792fc165a3a273a50eab2b50fd1)), closes [#1747](https://github.com/allxsmith/bestax/issues/1747)
+* **bulma-ui:** draw Carousel's indicators in Bulma's look again ([aaec983](https://github.com/allxsmith/bestax/commit/aaec983a02666a01b1c557a9e9d8dea5b6989952)), closes [#1760](https://github.com/allxsmith/bestax/issues/1760) [#1760](https://github.com/allxsmith/bestax/issues/1760)
+* **eslint-plugin:** flag isFullWidth on Tour.Skip, Tour.Back and Tour.Next ([7990df9](https://github.com/allxsmith/bestax/commit/7990df9535a947c911aab2f9befd7ccdfcede03b)), closes [#1435](https://github.com/allxsmith/bestax/issues/1435)
+
+
+### Features
+
+* **bulma-ui:** give Tour steps a cover and a footer of their own, built from parts ([7539c5b](https://github.com/allxsmith/bestax/commit/7539c5b9ccd450649075ecd8bfed7121f332f3b1)), closes [#1435](https://github.com/allxsmith/bestax/issues/1435)
+
+## [1.18.58](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.57...bestax-mcp@1.18.58) (2026-11-16)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** answer a search for a calendar with Calendar first ([a3845b9](https://github.com/allxsmith/bestax/commit/a3845b967dcc1918733011f2d27a4fa3fca427a0))
+* **bulma-ui:** keep a held-month Calendar's focus on a day that can take it ([f919735](https://github.com/allxsmith/bestax/commit/f9197355dd2cb32b373a73f2291d8e34f8d254ad))
+* **bulma-ui:** move the date pickers' today mark when a render comes after midnight ([1bf5309](https://github.com/allxsmith/bestax/commit/1bf5309cdf7efdd7d4ee44f7bb6349c52a413bb3))
+* **bulma-ui:** open a Calendar with several months on a page that max holds whole ([46744f4](https://github.com/allxsmith/bestax/commit/46744f4c5456b8c8b5f210051e4906d62446f267))
+* **bulma-ui:** put focus back on the date pickers' calendar as its year list closes ([ca9aff6](https://github.com/allxsmith/bestax/commit/ca9aff66083014f4ee89fdae7c930f554222fa5c))
+
+
+### Features
+
+* **bulma-ui:** add Calendar, months on the page that pick a day or a range ([b6197c1](https://github.com/allxsmith/bestax/commit/b6197c17b0e0e4790ff5d5f2a3148355eda235cd))
+
+## [1.18.57](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.56...bestax-mcp@1.18.57) (2026-11-15)
+
+
+### Bug Fixes
+
+* **bulma-ui:** bring FloatButton's props, keys and refs in line with its siblings ([d4a4ddb](https://github.com/allxsmith/bestax/commit/d4a4ddbce98393b1de1b64a4b34567a178b05882))
+* **bulma-ui:** draw Carousel's resting indicators as rings at 3:1, and fill the current one ([ee111bc](https://github.com/allxsmith/bestax/commit/ee111bc6123fe1340a31a0c8bd5275ecc5650c37)), closes [#1716](https://github.com/allxsmith/bestax/issues/1716)
+* **bulma-ui:** draw Splitter's grip at 3:1 against the page, at rest and in use ([ed72284](https://github.com/allxsmith/bestax/commit/ed72284e0c81032b5781e19304375d936a56096d)), closes [#1716](https://github.com/allxsmith/bestax/issues/1716)
+* **bulma-ui:** hand focus back to a speed dial's trigger when a click on it closes the dial ([6872655](https://github.com/allxsmith/bestax/commit/687265569aa08312e9291ce859ca6ce6cc9f2c6b))
+* **bulma-ui:** line float buttons up on their corner's side in right-to-left text too ([9f153f9](https://github.com/allxsmith/bestax/commit/9f153f96326e910da58c98e12de0bd6adc87bc4f))
+* **bulma-ui:** move a speed dial's focus once its state answers, and leave a page's tabindex be ([5220b2e](https://github.com/allxsmith/bestax/commit/5220b2e73602df4649ed10e831a7e0c3fa3dc581))
+* **bulma-ui:** open a speed dial on its first action for a click with no pointer behind it ([10eb3f5](https://github.com/allxsmith/bestax/commit/10eb3f5cbd59e21e2e6fee237cd5e1d072a43a51))
+* **bulma-ui:** scroll the scroller back to top watches, and let its onClick cancel the scroll ([25bc7dc](https://github.com/allxsmith/bestax/commit/25bc7dc8715438ea77fa1b9f4f9a6c11a513a75d))
+* **bulma-ui:** unpress back to top, and keep a speed dial's keys, layout and tooltip in step ([7167ec3](https://github.com/allxsmith/bestax/commit/7167ec3a6692a6a319b1cc501f7c304d0adfc1ed))
+
+
+### Features
+
+* **bulma-ui:** add FloatButton, with FloatButtons, a speed dial and back to top ([91a76a9](https://github.com/allxsmith/bestax/commit/91a76a90ba026511b6593a84269f7693e2f4a532)), closes [#1434](https://github.com/allxsmith/bestax/issues/1434)
+* **bulma-ui:** add Tooltip describesTrigger, and the menu and hover options FloatButton needs ([a9f0058](https://github.com/allxsmith/bestax/commit/a9f00583af682c04d48cb9a8e8dc73882e40361d))
+* **bulma-ui:** let useMenuKeys read a horizontal menu's arrows as they point on the screen ([a8c5881](https://github.com/allxsmith/bestax/commit/a8c58813cac1dd4344fd05c37a22bf4ed7c85129))
+
+## [1.18.56](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.55...bestax-mcp@1.18.56) (2026-11-15)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** stop recording each skill file's size in the index ([e55eb3a](https://github.com/allxsmith/bestax/commit/e55eb3a88c7d5f0cb25801e0369f1cc49a57e8aa)), closes [#1801](https://github.com/allxsmith/bestax/issues/1801)
+
+## [1.18.55](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.54...bestax-mcp@1.18.55) (2026-11-15)
+
+
+### Bug Fixes
+
+* **bulma-ui:** cap the AM/PM wheel's word padding at the wheel gap ([affddee](https://github.com/allxsmith/bestax/commit/affddee03d8d50a9357d2e61bcc6088acd7df5c3))
+* **bulma-ui:** find a shadow-rooted Tour's targets in the page too, and start each step afresh ([c6d96bf](https://github.com/allxsmith/bestax/commit/c6d96bfd0ee255a82efc90f9ded184f1bde70785))
+* **bulma-ui:** give a non-modal Tour step back to the page, and follow targets once a frame ([2b6b9c6](https://github.com/allxsmith/bestax/commit/2b6b9c6298a3cf225f3d3363b82e14c89df8daf3))
+* **bulma-ui:** give a Tour step's header a gap of its own and its lines one border width ([68e9620](https://github.com/allxsmith/bestax/commit/68e9620295eb45c4d2fc46007195ddc1b78c69e9))
+* **bulma-ui:** keep a modal Tour step's popups in the step, and find targets in a shadow root ([29ab8bd](https://github.com/allxsmith/bestax/commit/29ab8bd471aa2dc369e057c7e9841789f1d584ab))
+* **bulma-ui:** keep a Tour step's name and description through a spread of undefined ([b1141ce](https://github.com/allxsmith/bestax/commit/b1141cee99da01a3dcf2633d9f43ddc10952ed42))
+* **bulma-ui:** keep marginGap to the block margins, and read all four for a side placement ([0b20520](https://github.com/allxsmith/bestax/commit/0b20520d3dc5863c2a8ecae26ce4044ff3cb0140))
+* **bulma-ui:** measure a side-placed panel again once it's drawn on another side ([91dc4eb](https://github.com/allxsmith/bestax/commit/91dc4ebd00116b08820b756e2eb8bf15aaecfe45))
+* **bulma-ui:** move focus out of content a Tour step portals when the step turns modal ([5db813b](https://github.com/allxsmith/bestax/commit/5db813bcbefcf54ccff21d9f1606571b41f203a5))
+* **bulma-ui:** move Tour's spotlight and step with the target rather than glide after it ([62074ca](https://github.com/allxsmith/bestax/commit/62074caafd38a386729a70b050282f71ebc715b9))
+* **bulma-ui:** move Tour's spotlight with a target that scrolls inside a shadow root ([1e7b8d8](https://github.com/allxsmith/bestax/commit/1e7b8d8500a686a928900a0a38d663b6a75e1a12))
+* **bulma-ui:** place a side-placed panel across its anchor when neither side fits ([f8083d4](https://github.com/allxsmith/bestax/commit/f8083d4f3ce6e90e6d8558afd753ce2b8e9ffecf))
+* **bulma-ui:** read only the margin a side placement puts its gap in ([0f0938f](https://github.com/allxsmith/bestax/commit/0f0938f6fb661b62038d59e2435b8ff7d97365f5))
+* **bulma-ui:** read Tour's steps through isElementOf, and its state through useControlled ([d16954f](https://github.com/allxsmith/bestax/commit/d16954ff47c2892fdf40010ccaa611b6907c8b81)), closes [#1500](https://github.com/allxsmith/bestax/issues/1500)
+* **bulma-ui:** send Tab from a non-modal Tour step into a target in a shadow root ([e5a6b39](https://github.com/allxsmith/bestax/commit/e5a6b39dbc49e0297493227c8ca6819150407390))
+* **bulma-ui:** send Tab from a non-modal Tour step to its target, and follow targets safely ([2b9c3e8](https://github.com/allxsmith/bestax/commit/2b9c3e8b8bc6d8c5af90d909bee00b95d968d602))
+* **bulma-ui:** show a Tour's step for a fractional value, and record a finished tour in the examples ([0a2aa64](https://github.com/allxsmith/bestax/commit/0a2aa641b00bc7e9d5bb9215f65956eae41f7099))
+* **bulma-ui:** take a boxless ancestor for no clip in Tour's in-view check ([abd1c08](https://github.com/allxsmith/bestax/commit/abd1c083b0fcd9cff58837cafc99bb048bb9b06c))
+* **bulma-ui:** widen the AM/PM time wheel to fit a locale's long words ([54450a8](https://github.com/allxsmith/bestax/commit/54450a8713c9b9ba5202e32fd15e4c5b725ef04e)), closes [#1800](https://github.com/allxsmith/bestax/issues/1800) [#1799](https://github.com/allxsmith/bestax/issues/1799)
+
+
+### Features
+
+* **bulma-ui:** add Tour, a guided walk through an interface one element at a time ([da9e3bf](https://github.com/allxsmith/bestax/commit/da9e3bf167649ce43baa6d8cac1eed9a301f6202)), closes [#1435](https://github.com/allxsmith/bestax/issues/1435)
+* **bulma-ui:** place an anchored panel on a side of its anchor, and focus a chosen control ([d25af80](https://github.com/allxsmith/bestax/commit/d25af808dcb593d9754bf6a50edbf190417d8f1b))
+
+## [1.18.54](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.53...bestax-mcp@1.18.54) (2026-11-15)
+
+
+### Bug Fixes
+
+* **bulma-ui:** draw a navbar in a colored Hero in the hero's colors ([a0c7e11](https://github.com/allxsmith/bestax/commit/a0c7e11cdfeb486fa1719eb07cc221b3a422d192))
+* **bulma-ui:** write the 12-hour time wheel's AM and PM in the locale's words ([18defff](https://github.com/allxsmith/bestax/commit/18defffcc0ccdf518103577aa861a64a35e9b43e)), closes [#1787](https://github.com/allxsmith/bestax/issues/1787)
+
+
+### Features
+
+* **bestax-migrate:** turn textColor into color on Table, Menu and Dropdown ([efb69ef](https://github.com/allxsmith/bestax/commit/efb69efc7be9c85bfd25432e3fa28151d71f8cd3)), closes [#1767](https://github.com/allxsmith/bestax/issues/1767) [#1781](https://github.com/allxsmith/bestax/issues/1781)
+
+## [1.18.53](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.52...bestax-mcp@1.18.53) (2026-11-15)
+
+
+### Bug Fixes
+
+* **bulma-ui:** keep a colored Panel's active block readable on both schemes ([3dde5fe](https://github.com/allxsmith/bestax/commit/3dde5fe3fa22c4a77a5132c3f580f9280a7de01d)), closes [#1688](https://github.com/allxsmith/bestax/issues/1688)
+* **bulma-ui:** write the time wheels' hours and minutes in the locale's digits ([ef35c31](https://github.com/allxsmith/bestax/commit/ef35c31b50d392a6a589af65cd4a8d1a56686afa)), closes [#1685](https://github.com/allxsmith/bestax/issues/1685)
+
+
+### Features
+
+* **bestax-migrate:** turn colorVariant="light" into isLight on Button, Notification and Tag ([6a98bdf](https://github.com/allxsmith/bestax/commit/6a98bdfd2e7ca45f572369135d810f036885f50a)), closes [#1732](https://github.com/allxsmith/bestax/issues/1732)
+
 ## [1.18.52](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.51...bestax-mcp@1.18.52) (2026-11-15)
 
 

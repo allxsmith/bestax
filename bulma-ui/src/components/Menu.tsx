@@ -42,7 +42,7 @@ export interface MenuProps
     Omit<React.HTMLAttributes<HTMLElement>, keyof BulmaClassesProps>,
     BulmaClassesProps {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Menu content (labels, lists, items, etc). */
   children: React.ReactNode;
 }
@@ -86,7 +86,7 @@ export interface MenuLabelProps
     Omit<React.HTMLAttributes<HTMLParagraphElement>, keyof BulmaClassesProps>,
     BulmaClassesProps {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Label content. */
   children: React.ReactNode;
 }
@@ -128,7 +128,7 @@ export interface MenuListProps
     Omit<React.HTMLAttributes<HTMLUListElement>, keyof BulmaClassesProps>,
     BulmaClassesProps {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** List items. */
   children: React.ReactNode;
 }
@@ -178,7 +178,7 @@ export const MenuList: React.FC<MenuListProps> = ({
  */
 export interface MenuItemOwnProps extends BulmaClassesProps {
   /** Additional CSS classes for the wrapping `<li>`. */
-  className?: string;
+  className?: string | undefined;
   /** Item content and optional nested MenuList. */
   children: React.ReactNode;
   /**
@@ -206,15 +206,15 @@ export interface MenuItemOwnProps extends BulmaClassesProps {
    */
   active?: boolean;
   /** Inline styles for the wrapping `<li>`. */
-  style?: React.CSSProperties;
+  style?: React.CSSProperties | undefined;
   /** `id` for the wrapping `<li>`. */
   id?: React.HTMLAttributes<HTMLElement>['id'];
   /** `title` for the wrapping `<li>`. */
-  title?: string;
+  title?: string | undefined;
   /** ARIA role for the wrapping `<li>`. */
-  role?: React.AriaRole;
+  role?: React.AriaRole | undefined;
   /** Tab index for the wrapping `<li>`. */
-  tabIndex?: number;
+  tabIndex?: number | undefined;
   /** Test id for the wrapping `<li>`. */
   'data-testid'?: string;
 }
@@ -236,7 +236,7 @@ export type MenuItemProps<T extends React.ElementType = 'a'> =
        * `'button'` renders `type="button"` unless you pass `type="submit"` or `type="reset"`, so
        * an item inside a form does not submit it.
        */
-      as?: T;
+      as?: T | undefined;
     };
 
 /**
@@ -423,7 +423,7 @@ export interface MenuSectionProps
     Omit<React.HTMLAttributes<HTMLDivElement>, keyof BulmaClassesProps>,
     BulmaClassesProps {
   /** Additional CSS classes for the wrapping `<div>`. */
-  className?: string;
+  className?: string | undefined;
   /** The section's heading, drawn like `Menu.Label` inside the button that opens and closes it. Keep links and buttons out of it, since it's inside one. */
   label: React.ReactNode;
   /**
@@ -443,7 +443,7 @@ export interface MenuSectionProps
    */
   children: React.ReactNode;
   /** Controlled open state. If provided, the section is controlled, and its button only reports through `onOpenChange`. */
-  open?: boolean;
+  open?: boolean | undefined;
   /** Initial open state for uncontrolled usage. Open the section that holds the current page, so the reader sees where they are. */
   defaultOpen?: boolean;
   /** Called with the state the button asks for (`true` to open) each time it is clicked or activated with Enter or Space, in every mode. Pair it with `open` to let the button drive a controlled section. */

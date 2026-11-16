@@ -35,7 +35,7 @@ export interface TagProps
     Omit<React.HTMLAttributes<HTMLSpanElement>, 'color'>,
     Omit<BulmaClassesProps, 'color'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * Bulma color modifier for the tag.
    *
@@ -43,12 +43,17 @@ export interface TagProps
    * Bulma's CSS alone, a light tag's text inherits the color around it, which
    * on a dark page is hard to read.
    */
-  color?: TagColor;
+  color?: TagColor | undefined;
   /** Tag size. */
-  size?: TagSize;
+  size?: TagSize | undefined;
   /**
    * Use the light color variant. The light color has none, so
    * `color="light"` with `isLight` looks the same as without it.
+   *
+   * `white`, `black` and `dark` with `isLight` keep Bulma's light
+   * background, and bestax's stylesheets give their text the lightness a
+   * light tag's text has. With Bulma's CSS alone, their text inherits the
+   * color around it, which on a dark page is hard to read.
    */
   isLight?: boolean;
   /** Renders a rounded tag. */

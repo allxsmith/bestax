@@ -29,12 +29,18 @@ export interface PanelProps
    * is a `region` landmark only once it has an accessible name, such as
    * `aria-labelledby` pointing at the `id` of its `Panel.Heading`.
    */
-  as?: 'nav' | 'article' | 'section' | 'aside' | 'div';
+  as?: 'nav' | 'article' | 'section' | 'aside' | 'div' | undefined;
   /**
    * Bulma color modifier for the panel. With none, the heading takes the
    * text color, with its title in the page background's color so it reads on
    * both schemes. On the dark scheme that title color comes from bestax's
-   * stylesheets: Bulma's CSS alone writes it white on light gray there.
+   * stylesheets: Bulma's CSS alone writes it white on light gray there. With
+   * a color, the active block's and active tab's text, the active block's icon
+   * and the active tab's underline take it at the lightness Bulma picks for
+   * the color's text on the page, also from bestax's stylesheets, so they read
+   * on both schemes. Black takes the title text's lightness, which is white on
+   * the dark scheme. With a `colorShade`, the text takes that shade and the
+   * icon and underline the color's own lightness, as Bulma draws them.
    */
   color?:
     | 'primary'
@@ -46,9 +52,10 @@ export interface PanelProps
     | 'black'
     | 'dark'
     | 'light'
-    | 'white';
+    | 'white'
+    | undefined;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Panel content (usually includes subcomponents). */
   children?: React.ReactNode;
 }
@@ -58,7 +65,7 @@ export interface PanelProps
  */
 export interface PanelHeadingProps extends React.HTMLAttributes<HTMLParagraphElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Heading content. */
   children?: React.ReactNode;
 }
@@ -68,7 +75,7 @@ export interface PanelHeadingProps extends React.HTMLAttributes<HTMLParagraphEle
  */
 export interface PanelTabsProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Tabs content. */
   children?: React.ReactNode;
 }
@@ -118,7 +125,7 @@ export type PanelBlockElement = 'a' | 'div' | 'label';
  */
 export interface PanelBlockOwnProps {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Whether the block is active. */
   active?: boolean;
   /** Block content. */
@@ -151,7 +158,7 @@ export type PanelBlockProps<T extends PanelBlockElement = 'a'> =
        * `Panel.InputBlock` and `Panel.ButtonBlock` render the usual `label`
        * and `div` blocks with their contents.
        */
-      as?: T;
+      as?: T | undefined;
     };
 
 /**
@@ -179,11 +186,11 @@ export type PanelIconProps =
  */
 export interface PanelInputBlockProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Input value. */
-  value?: string;
+  value?: string | undefined;
   /** Input change handler. */
-  onChange?: React.ChangeEventHandler<HTMLInputElement>;
+  onChange?: React.ChangeEventHandler<HTMLInputElement> | undefined;
   /** Input placeholder. */
-  placeholder?: string;
+  placeholder?: string | undefined;
   /** Icon class for left icon (default 'fas fa-search'). */
   iconClassName?: string;
 }
@@ -196,9 +203,9 @@ export interface PanelCheckboxBlockProps extends Omit<
   'onChange'
 > {
   /** Whether the checkbox is checked. */
-  checked?: boolean;
+  checked?: boolean | undefined;
   /** Checkbox change handler. */
-  onChange?: React.ChangeEventHandler<HTMLInputElement>;
+  onChange?: React.ChangeEventHandler<HTMLInputElement> | undefined;
   /** Label/content. */
   children?: React.ReactNode;
 }

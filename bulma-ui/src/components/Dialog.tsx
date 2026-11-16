@@ -26,11 +26,11 @@ export interface DialogProps
   /** Whether the dialog is open. */
   isOpen: boolean;
   /** Dialog title. */
-  title?: string;
+  title?: string | undefined;
   /** Dialog message/content. */
   message: string | React.ReactNode;
   /** The type/color of the dialog. Default: 'default'. */
-  type?: DialogType;
+  type?: DialogType | undefined;
   /** Text for confirm button. Default: 'OK'. */
   confirmText?: string;
   /** Text for cancel button. Default: 'Cancel'. */

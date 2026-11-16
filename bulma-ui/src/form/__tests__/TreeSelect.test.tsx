@@ -517,6 +517,31 @@ describe('TreeSelect', () => {
       }
     );
 
+    it('leaves Space to a type-ahead search it joins, and picks with it otherwise', () => {
+      const onChange = vi.fn();
+      render(
+        <TreeSelect
+          label="State"
+          onChange={onChange}
+          data={[
+            { value: 'nwk', label: 'Newark' },
+            { value: 'ny', label: 'New York' },
+            { value: 'nh', label: 'New Hampshire' },
+          ]}
+        />
+      );
+      open();
+      for (const k of ['n', 'e', 'w', ' ', 'h'])
+        key(document.activeElement!, k);
+      expect(item('New Hampshire')).toHaveFocus();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(dialog()).not.toBeNull();
+      // No item starts with "new h ", so Space picks.
+      key(item('New Hampshire'), ' ');
+      expect(onChange).toHaveBeenCalledWith('nh');
+      expect(dialog()).toBeNull();
+    });
+
     it('picks with a click on a row, a parent included', () => {
       const onChange = vi.fn();
       render(<TreeSelect label="Place" data={PLACES} onChange={onChange} />);
@@ -640,6 +665,30 @@ describe('TreeSelect', () => {
       expect(dialog()).not.toBeNull();
       fireEvent.click(item('France'));
       expect(onChange).toHaveBeenCalledWith('france');
+    });
+
+    it('leaves a Space that joins a search to the tree on a parent it would open', () => {
+      render(
+        <TreeSelect
+          label="Region"
+          parentsSelectable={false}
+          data={[
+            { value: 'ny', label: 'New York' },
+            {
+              value: 'ne',
+              label: 'New England',
+              children: [{ value: 'me', label: 'Maine' }],
+            },
+          ]}
+        />
+      );
+      open();
+      for (const k of ['n', 'e', 'w']) key(document.activeElement!, k);
+      expect(item('New England')).toHaveFocus();
+      // "new " still finds New England, so the Space joins the search.
+      key(item('New England'), ' ');
+      expect(item('New England')).toHaveFocus();
+      expect(item('New England')).toHaveAttribute('aria-expanded', 'false');
     });
 
     it('leaves a disabled parent alone with parentsSelectable={false}', () => {

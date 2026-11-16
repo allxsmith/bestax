@@ -43,11 +43,12 @@ export interface ControlBaseProps
   /** Makes the control expand to fill available space. */
   isExpanded?: boolean;
   /** Sets the control size. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Sets text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Bulma color for the control. */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
@@ -81,7 +82,7 @@ export interface ControlBaseProps
   /** Shortcut for right icon size. */
   iconRightSize?: 'small' | 'medium' | 'large';
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Content inside the control. */
   children?: React.ReactNode;
 }
@@ -90,7 +91,7 @@ export interface ControlBaseProps
 type ControlProps =
   | ({
       /** Element type for the control (`div` by default). */
-      as?: 'div';
+      as?: 'div' | undefined;
     } & ControlBaseProps & {
         /** Ref for the control element. */
         ref?: React.Ref<HTMLDivElement>;

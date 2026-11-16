@@ -63,6 +63,10 @@ export function Leftovers() {
       <Modal show closeOnEsc={false} closeOnBlur showClose={false} onClose={() => {}}>
         <Modal.Content>Raw content</Modal.Content>
       </Modal>
+      {/* react-bulma-components colored the trigger with this, which bestax's Dropdown can't */}
+      <Dropdown color="info" label="Colored">
+        <Dropdown.Item value="a">First</Dropdown.Item>
+      </Dropdown>
       <Dropdown value={choice} onChange={setChoice} label="Pick">
         <Dropdown.Item value="a">First</Dropdown.Item>
         <Dropdown.Item value="b">Second</Dropdown.Item>
@@ -91,6 +95,8 @@ export function Leftovers() {
       <Heading heading={choice === 'a'}>Dynamic heading</Heading>
       {/* bestax's Title renders the heading its size names, and this one is unreadable */}
       <Heading size={choice === 'a' ? 3 : 4}>Dynamic size</Heading>
+      {/* only a literal "light" converts, so this keeps the TODO */}
+      <Button colorVariant="dark">Dark variant</Button>
     </div>
   );
 }

@@ -69,15 +69,15 @@ export interface ColorInputBaseProps
    * The color, controlled, as a CSS color the picker reads (hex, `rgb()`,
    * `hsl()` or a color name), or `''` for none.
    */
-  value?: string;
+  value?: string | undefined;
   /** The color to start with, uncontrolled; empty without one. */
-  defaultValue?: string;
+  defaultValue?: string | undefined;
   /**
    * Called with the color, in `format`, as it changes: on every step of a
    * drag in the panel, on a key or a swatch, and when typed text is
    * committed. Clearing the field calls it with `''`.
    */
-  onChange?: (value: string) => void;
+  onChange?: ((value: string) => void) | undefined;
   /**
    * Called with the color, in `format`, once a change is done: when a drag
    * ends, and with `onChange` for everything else. The place to save it.
@@ -129,17 +129,18 @@ export interface ColorInputBaseProps
    */
   appendToBody?: boolean;
   /** Bulma color modifier for the field. */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** The field's size. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Renders the field with rounded ends. */
   isRounded?: boolean;
   /** Disables the field and its panel. A disabled `Fieldset` does too. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Makes the field read-only, with no panel. */
-  readOnly?: boolean;
+  readOnly?: boolean | undefined;
   /** Text shown while the field is empty. */
-  placeholder?: string;
+  placeholder?: string | undefined;
   /**
    * Shows the launcher on the field's end that toggles the panel. Hidden by
    * default while a `Control` it sits in shows its `isLoading` spinner,

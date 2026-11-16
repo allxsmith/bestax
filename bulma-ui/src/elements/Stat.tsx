@@ -38,7 +38,7 @@ export interface StatProps
     Omit<React.HTMLAttributes<HTMLElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * What the figure is ("Revenue"), as a `Stat.Label` before the children.
    * A Stat needs one, here or as a `Stat.Label` child: it's the figure's
@@ -97,7 +97,7 @@ export interface StatProps
    * The figure's size, a step of Bulma's size scale. The label, the change
    * and the note stay small.
    */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /**
    * Shows a `Skeleton` in place of `value`, one line of the figure tall,
    * and sets `aria-busy` on the Stat. The label, the change and the note
@@ -135,7 +135,7 @@ export interface StatLabelProps
     Omit<React.HTMLAttributes<HTMLElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * The label. A button may sit in it, such as one that opens a `Popover`
    * about the figure, but not a heading, which HTML doesn't allow here.
@@ -158,7 +158,7 @@ export interface StatValueProps
     Omit<React.HTMLAttributes<HTMLElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * The figure, written as you give it, so write a number with
    * `NumberFormatter`.
@@ -181,7 +181,7 @@ export interface StatDescriptionProps
     Omit<React.HTMLAttributes<HTMLElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** The note, such as "since last month". */
   children?: React.ReactNode;
   /** Text color helper. */
@@ -201,7 +201,7 @@ export interface StatChangeProps
     Omit<React.HTMLAttributes<HTMLElement>, 'color' | 'children'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * The change, as Stat's `change`. One that rounds to zero in its format,
    * such as `0.0004` at one decimal place of a percentage, reads as zero, so
@@ -220,7 +220,7 @@ export interface StatChangeProps
    * As Stat's `changeColor`. Unset, it's the sign's: `success` up, `danger`
    * down, and none at zero. Set, it applies at zero too.
    */
-  color?: StatChangeColor;
+  color?: StatChangeColor | undefined;
 }
 
 /**

@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.68.2"
+    "version": "5.73.1"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -72,6 +72,8 @@
         "Dialog",
         "Dropdown",
         "EmptyState",
+        "FloatButton",
+        "FloatButtons",
         "HoverCard",
         "Lightbox",
         "Loading",
@@ -92,6 +94,7 @@
         "Timeline",
         "Toast",
         "Tooltip",
+        "Tour",
         "TreeView"
       ]
     },
@@ -100,6 +103,8 @@
       "label": "Form",
       "components": [
         "Autocomplete",
+        "Calendar",
+        "Cascader",
         "Checkbox",
         "CheckboxCard",
         "Checkboxes",
@@ -193,8 +198,8 @@
       "slug": "layout/appframe",
       "import": "import { AppFrame, useAppFrame } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 36,
-      "exampleCount": 9
+      "propCount": 42,
+      "exampleCount": 10
     },
     {
       "name": "Autocomplete",
@@ -296,6 +301,17 @@
       "exampleCount": 8
     },
     {
+      "name": "Calendar",
+      "kind": "component",
+      "category": "form",
+      "purpose": "The `Calendar` component shows months on the page, not behind an input, where a click picks a day or a range and each day can show what's on it.",
+      "slug": "form/datetime/calendar",
+      "import": "import { Calendar } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 30,
+      "exampleCount": 12
+    },
+    {
       "name": "Card",
       "kind": "component",
       "category": "components",
@@ -316,6 +332,17 @@
       "compound": false,
       "propCount": 31,
       "exampleCount": 16
+    },
+    {
+      "name": "Cascader",
+      "kind": "component",
+      "category": "form",
+      "purpose": "The `Cascader` component is a form field whose value sits at the end of a path, such as a city picked by country, then region, then city: it opens a panel of…",
+      "slug": "form/cascader",
+      "import": "import { Cascader } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 43,
+      "exampleCount": 9
     },
     {
       "name": "Cell",
@@ -589,8 +616,8 @@
       "slug": "form/datetime/daterangeinput",
       "import": "import { DateRangeInput } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 59,
-      "exampleCount": 10
+      "propCount": 60,
+      "exampleCount": 11
     },
     {
       "name": "DateTimeInput",
@@ -745,6 +772,28 @@
       "compound": false,
       "propCount": 13,
       "exampleCount": 4
+    },
+    {
+      "name": "FloatButton",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `FloatButton` component renders a round icon button that floats in a corner of the screen, with its name as a tooltip.",
+      "slug": "components/floatbutton",
+      "import": "import { FloatButton } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 61,
+      "exampleCount": 13
+    },
+    {
+      "name": "FloatButtons",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `FloatButtons` component stacks several float buttons in one corner of the screen, so none covers another.",
+      "slug": "components/floatbuttons",
+      "import": "import { FloatButtons, FloatButton } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 5,
+      "exampleCount": 3
     },
     {
       "name": "Footer",
@@ -1550,6 +1599,17 @@
       "exampleCount": 12
     },
     {
+      "name": "Tour",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `Tour` component walks a user through an interface one step at a time, each step a panel pointing at an element with the rest of the page dimmed around it.",
+      "slug": "components/tour",
+      "import": "import { Tour, useTour } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 86,
+      "exampleCount": 11
+    },
+    {
       "name": "TreeSelect",
       "kind": "component",
       "category": "form",
@@ -1658,8 +1718,12 @@
     "--bulma-app-frame-border-color": ["AppFrame"],
     "--bulma-app-frame-border-width": ["AppFrame"],
     "--bulma-app-frame-drawer-shadow": ["AppFrame"],
+    "--bulma-app-frame-handle-size": ["AppFrame"],
+    "--bulma-app-frame-handle-size-coarse": ["AppFrame"],
     "--bulma-app-frame-header-background": ["AppFrame"],
     "--bulma-app-frame-header-height": ["AppFrame"],
+    "--bulma-app-frame-line-active-color": ["AppFrame"],
+    "--bulma-app-frame-line-active-size": ["AppFrame"],
     "--bulma-app-frame-nav-background": ["AppFrame"],
     "--bulma-app-frame-nav-padding": ["AppFrame"],
     "--bulma-app-frame-nav-rail-width": ["AppFrame"],
@@ -1774,6 +1838,11 @@
     "--bulma-button-text-hover-background-color": ["Button"],
     "--bulma-button-text-hover-color": ["Button"],
     "--bulma-button-weight": ["Button"],
+    "--bulma-calendar-background-color": ["Calendar"],
+    "--bulma-calendar-border-color": ["Calendar"],
+    "--bulma-calendar-months-gap": ["Calendar", "DateRangeInput"],
+    "--bulma-calendar-padding": ["Calendar"],
+    "--bulma-calendar-radius": ["Calendar"],
     "--bulma-card-background-color": ["Card"],
     "--bulma-card-color": ["Card"],
     "--bulma-card-content-background-color": ["Card"],
@@ -1808,9 +1877,13 @@
     "--bulma-carousel-indicator-bar-height-mobile": ["Carousel"],
     "--bulma-carousel-indicator-bar-width": ["Carousel"],
     "--bulma-carousel-indicator-bar-width-mobile": ["Carousel"],
+    "--bulma-carousel-indicator-border-color": ["Carousel"],
+    "--bulma-carousel-indicator-border-color-hover": ["Carousel"],
+    "--bulma-carousel-indicator-border-width": ["Carousel"],
     "--bulma-carousel-indicator-circle-size": ["Carousel"],
     "--bulma-carousel-indicator-gap": ["Carousel"],
     "--bulma-carousel-indicator-gap-mobile": ["Carousel"],
+    "--bulma-carousel-indicator-line-border-width": ["Carousel"],
     "--bulma-carousel-indicator-line-height": ["Carousel"],
     "--bulma-carousel-indicator-line-height-mobile": ["Carousel"],
     "--bulma-carousel-indicator-line-radius": ["Carousel"],
@@ -1833,6 +1906,30 @@
     "--bulma-carousel-overlay-indicator-background-active": ["Carousel"],
     "--bulma-carousel-overlay-indicator-background-hover": ["Carousel"],
     "--bulma-carousel-transition-duration": ["Carousel"],
+    "--bulma-cascader-checked-background": ["Cascader"],
+    "--bulma-cascader-checked-color": ["Cascader"],
+    "--bulma-cascader-chevron-color": ["Cascader"],
+    "--bulma-cascader-chevron-focus-color": ["Cascader"],
+    "--bulma-cascader-chevron-hover-color": ["Cascader"],
+    "--bulma-cascader-chevron-width": ["Cascader"],
+    "--bulma-cascader-chevron-z-index": ["Cascader"],
+    "--bulma-cascader-clear-z-index": ["Cascader"],
+    "--bulma-cascader-column-border-color": ["Cascader"],
+    "--bulma-cascader-column-border-width": ["Cascader"],
+    "--bulma-cascader-column-inset": ["Cascader"],
+    "--bulma-cascader-column-max-height": ["Cascader"],
+    "--bulma-cascader-column-width": ["Cascader"],
+    "--bulma-cascader-disabled-color": ["Cascader"],
+    "--bulma-cascader-highlight-background": ["Cascader"],
+    "--bulma-cascader-item-chevron-size": ["Cascader"],
+    "--bulma-cascader-item-color": ["Cascader"],
+    "--bulma-cascader-item-gap": ["Cascader"],
+    "--bulma-cascader-item-hover-background": ["Cascader"],
+    "--bulma-cascader-item-padding-x": ["Cascader"],
+    "--bulma-cascader-item-padding-y": ["Cascader"],
+    "--bulma-cascader-item-size": ["Cascader"],
+    "--bulma-cascader-max-width": ["Cascader"],
+    "--bulma-cascader-search-gap": ["Cascader"],
     "--bulma-checkbox-active-color": ["Checkbox"],
     "--bulma-checkbox-background": ["Checkbox"],
     "--bulma-checkbox-border-color": ["Checkbox"],
@@ -1994,6 +2091,21 @@
     "--bulma-data-table-sort-indicator-size": ["DataTable"],
     "--bulma-data-table-sort-unsorted-opacity": ["DataTable"],
     "--bulma-dateinput-cell-color": [
+      "DateInput",
+      "DateRangeInput",
+      "DateTimeInput"
+    ],
+    "--bulma-dateinput-cell-content-color": [
+      "DateInput",
+      "DateRangeInput",
+      "DateTimeInput"
+    ],
+    "--bulma-dateinput-cell-content-loading-opacity": [
+      "DateInput",
+      "DateRangeInput",
+      "DateTimeInput"
+    ],
+    "--bulma-dateinput-cell-content-size": [
       "DateInput",
       "DateRangeInput",
       "DateTimeInput"
@@ -2203,6 +2315,10 @@
     "--bulma-file-name-max-width": ["File"],
     "--bulma-file-radius": ["File"],
     "--bulma-file-s": ["File"],
+    "--bulma-float-button-actions-gap": ["FloatButton"],
+    "--bulma-float-button-shadow": ["FloatButton"],
+    "--bulma-float-button-transition-duration": ["FloatButton"],
+    "--bulma-float-buttons-gap": ["FloatButtons"],
     "--bulma-footer-background-color": ["Footer"],
     "--bulma-footer-color": ["Footer"],
     "--bulma-footer-padding": ["Footer"],
@@ -2845,6 +2961,7 @@
     "--bulma-password-input-toggle-text-width": ["PasswordInput"],
     "--bulma-password-input-toggle-width": ["PasswordInput"],
     "--bulma-picker-popover-animation-duration": [
+      "Cascader",
       "ColorInput",
       "DateInput",
       "DateRangeInput",
@@ -2853,6 +2970,7 @@
       "TreeSelect"
     ],
     "--bulma-picker-popover-background": [
+      "Cascader",
       "ColorInput",
       "DateInput",
       "DateRangeInput",
@@ -2861,6 +2979,16 @@
       "TreeSelect"
     ],
     "--bulma-picker-popover-border-color": [
+      "Cascader",
+      "ColorInput",
+      "DateInput",
+      "DateRangeInput",
+      "DateTimeInput",
+      "TimeInput",
+      "TreeSelect"
+    ],
+    "--bulma-picker-popover-months-max-width": [
+      "Cascader",
       "ColorInput",
       "DateInput",
       "DateRangeInput",
@@ -2869,6 +2997,7 @@
       "TreeSelect"
     ],
     "--bulma-picker-popover-offset": [
+      "Cascader",
       "ColorInput",
       "DateInput",
       "DateRangeInput",
@@ -2877,6 +3006,7 @@
       "TreeSelect"
     ],
     "--bulma-picker-popover-padding": [
+      "Cascader",
       "ColorInput",
       "DateInput",
       "DateRangeInput",
@@ -2885,6 +3015,7 @@
       "TreeSelect"
     ],
     "--bulma-picker-popover-radius": [
+      "Cascader",
       "ColorInput",
       "DateInput",
       "DateRangeInput",
@@ -2893,6 +3024,7 @@
       "TreeSelect"
     ],
     "--bulma-picker-popover-shadow": [
+      "Cascader",
       "ColorInput",
       "DateInput",
       "DateRangeInput",
@@ -2901,6 +3033,7 @@
       "TreeSelect"
     ],
     "--bulma-picker-popover-z-index": [
+      "Cascader",
       "ColorInput",
       "DateInput",
       "DateRangeInput",
@@ -3094,6 +3227,7 @@
     "--bulma-steps-content-margin-top": ["Steps"],
     "--bulma-steps-default-color": ["Steps"],
     "--bulma-steps-divider-height": ["Steps"],
+    "--bulma-steps-label-background": ["Steps"],
     "--bulma-steps-marker-background": ["Steps"],
     "--bulma-steps-marker-font-size": ["Steps"],
     "--bulma-steps-marker-font-weight": ["Steps"],
@@ -3274,6 +3408,32 @@
     "--bulma-tooltip-padding": ["Tooltip"],
     "--bulma-tooltip-radius": ["Tooltip"],
     "--bulma-tooltip-z-index": ["Tooltip"],
+    "--bulma-tour-beacon-animation-duration": ["Tour"],
+    "--bulma-tour-beacon-color": ["Tour"],
+    "--bulma-tour-beacon-ring-color": ["Tour"],
+    "--bulma-tour-beacon-ring-width": ["Tour"],
+    "--bulma-tour-beacon-size": ["Tour"],
+    "--bulma-tour-beacon-z-index": ["Tour"],
+    "--bulma-tour-overlay-background": ["Tour"],
+    "--bulma-tour-progress-color": ["Tour"],
+    "--bulma-tour-spotlight-padding": ["Tour"],
+    "--bulma-tour-spotlight-radius": ["Tour"],
+    "--bulma-tour-step-background": ["Tour"],
+    "--bulma-tour-step-body-padding": ["Tour"],
+    "--bulma-tour-step-border-color": ["Tour"],
+    "--bulma-tour-step-border-width": ["Tour"],
+    "--bulma-tour-step-color": ["Tour"],
+    "--bulma-tour-step-footer-gap": ["Tour"],
+    "--bulma-tour-step-footer-padding": ["Tour"],
+    "--bulma-tour-step-header-color": ["Tour"],
+    "--bulma-tour-step-header-gap": ["Tour"],
+    "--bulma-tour-step-header-padding": ["Tour"],
+    "--bulma-tour-step-header-weight": ["Tour"],
+    "--bulma-tour-step-max-width": ["Tour"],
+    "--bulma-tour-step-offset": ["Tour"],
+    "--bulma-tour-step-radius": ["Tour"],
+    "--bulma-tour-step-shadow": ["Tour"],
+    "--bulma-tour-z-index": ["Tour"],
     "--bulma-tree-select-chevron-color": ["TreeSelect"],
     "--bulma-tree-select-chevron-focus-color": ["TreeSelect"],
     "--bulma-tree-select-chevron-hover-color": ["TreeSelect"],
@@ -3554,6 +3714,16 @@
       "component": "Figure",
       "path": "Figure.Caption",
       "purpose": "FigureCaption component for rendering a styled figcaption element."
+    },
+    "FloatButtonBackToTop": {
+      "component": "FloatButton",
+      "path": "FloatButton.BackToTop",
+      "purpose": "The `FloatButton.BackToTop` component is a float button that shows once the page has scrolled down, and takes it back to the top."
+    },
+    "FloatButtonSpeedDial": {
+      "component": "FloatButton",
+      "path": "FloatButton.SpeedDial",
+      "purpose": "The `FloatButton.SpeedDial` component is a float button that opens a menu of related actions, which are FloatButtons."
     },
     "HeroBody": {
       "component": "Hero",
@@ -3967,6 +4137,31 @@
       "purpose": "Container component for rendering programmatic toasts.",
       "standalone": "companion"
     },
+    "TourBack": {
+      "component": "Tour",
+      "path": "Tour.Back",
+      "purpose": "A `Button` to the step before, labelled `labels.back` unless it has children."
+    },
+    "TourNext": {
+      "component": "Tour",
+      "path": "Tour.Next",
+      "purpose": "A `Button` to the next step, labelled `labels.next`, or `labels.done` on the last step, where it finishes the tour, unless it has children."
+    },
+    "TourProgress": {
+      "component": "Tour",
+      "path": "Tour.Progress",
+      "purpose": "The progress line, \"Step 2 of 5\" by default, from `labels.progress`."
+    },
+    "TourSkip": {
+      "component": "Tour",
+      "path": "Tour.Skip",
+      "purpose": "A `Button` that ends the tour early, labelled `labels.skip` unless it has children."
+    },
+    "TourStep": {
+      "component": "Tour",
+      "path": "Tour.Step",
+      "purpose": "One step of the tour: a title, a body and the element it points at."
+    },
     "Tr": {
       "component": "Table",
       "path": "Table.Tr",
@@ -4036,6 +4231,11 @@
       "component": "TableOfContents",
       "purpose": "`useScrollSpy` is what picks the current section, and it returns its id, or `null`.",
       "section": "The useScrollSpy Hook"
+    },
+    "useTour": {
+      "component": "Tour",
+      "purpose": "`useTour()` hands a component inside a step the current step's index as `value`, the `total`, and Next's, Back's and Skip's actions as `next`, `back` and…",
+      "section": "useTour"
     },
     "validColors": { "component": "Valid value constants", "purpose": "" },
     "validSizes": { "component": "Valid value constants", "purpose": "" },

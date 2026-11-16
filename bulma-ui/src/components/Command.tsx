@@ -91,7 +91,7 @@ interface CommandBaseProps
    * `Command.Dialog` the dialog too. An empty string counts as none.
    * @defaultValue 'Commands'
    */
-  label?: string;
+  label?: string | undefined;
   /**
    * The search, controlled: the text in the field. Pair it with
    * `onQueryChange`.
@@ -112,7 +112,7 @@ interface CommandBaseProps
    * with Enter or a click, after the item's own `onSelect`. A disabled item
    * is never run.
    */
-  onSelect?: (value: string) => void;
+  onSelect?: ((value: string) => void) | undefined;
 }
 
 /** Props for a Command given `actions`. */
@@ -134,7 +134,7 @@ export interface CommandActionsProps extends CommandBaseProps {
    */
   filter?: (query: string, actions: CommandAction[]) => CommandAction[];
   /** The field's placeholder, with `actions`. */
-  placeholder?: string;
+  placeholder?: string | undefined;
   /**
    * What shows in place of the list, with `actions`, when nothing matches.
    * It's announced the way `Command.Empty` is. `null` shows nothing.
@@ -178,7 +178,7 @@ export type CommandProps = CommandActionsProps | CommandPartsProps;
 /** What Command.Dialog takes on top of a Command's props. */
 interface CommandDialogOwnProps {
   /** Controlled open state. When set, opening and closing only report through `onOpenChange`. */
-  open?: boolean;
+  open?: boolean | undefined;
   /**
    * Initial open state when uncontrolled.
    * @defaultValue false
@@ -305,9 +305,9 @@ export interface CommandItemProps extends Omit<
    * it, and it's never `aria-selected`.
    * @defaultValue false
    */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Runs the item, when it's picked with Enter or a click, before the Command's `onSelect`. */
-  onSelect?: () => void;
+  onSelect?: (() => void) | undefined;
   /** Shown before the label, and hidden from assistive tech. */
   icon?: React.ReactNode;
   /**

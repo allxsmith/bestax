@@ -28,9 +28,14 @@ import {
 import {
   canCloseRange,
   clampDate,
+  fitPage,
   floorMin,
   isSameDay,
   isWithin,
+  monthFromIndex,
+  monthIndex,
+  pageHolding,
+  pageMonthCount,
   startOfDay,
 } from './_pickerInternals/dateUtils';
 import { Calendar, CALENDAR_FOCUSED_CELL } from './_pickerInternals/Calendar';
@@ -81,9 +86,9 @@ export interface DateRangeInputBaseProps
    * Controlled range, start first. Either end may be `null`, and
    * `[null, null]` is empty.
    */
-  value?: DateRangeValue;
+  value?: DateRangeValue | undefined;
   /** Initial range for uncontrolled usage. */
-  defaultValue?: DateRangeValue;
+  defaultValue?: DateRangeValue | undefined;
   /**
    * Fired when the range changes, with the start first. Typing commits one
    * end at a time, so a range half typed arrives as `[start, null]`. The
@@ -91,7 +96,7 @@ export interface DateRangeInputBaseProps
    * inside the calendar and its second commits both ends in one call. The
    * range stays ordered, so the end is never before the start.
    */
-  onChange?: (range: DateRangeValue) => void;
+  onChange?: ((range: DateRangeValue) => void) | undefined;
   /** Fired when the popover opens. */
   onOpen?: () => void;
   /** Fired when the popover closes. */
@@ -100,23 +105,23 @@ export interface DateRangeInputBaseProps
    * Earliest selectable date, for either end. A `min` before year 1 is raised
    * to 1 January of year 1, where the range starts without one too.
    */
-  min?: Date;
+  min?: Date | undefined;
   /** Latest selectable date, for either end. */
-  max?: Date;
+  max?: Date | undefined;
   /**
    * Disable both inputs and the launcher, or an `inline` calendar's days and
    * header buttons. The hidden inputs still submit the range, in every mode,
    * where a disabled input submits nothing.
    */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /**
    * Make both inputs read-only and keep the popover closed. An `inline`
    * calendar still moves through the dates by key and by its header, but a
    * click, Enter or Space picks nothing.
    */
-  readOnly?: boolean;
+  readOnly?: boolean | undefined;
   /** Placeholder text, shown in both inputs while they are empty. */
-  placeholder?: string;
+  placeholder?: string | undefined;
   /**
    * Token format string or `Intl.DateTimeFormat` options, used by both
    * inputs.
@@ -159,7 +164,7 @@ export interface DateRangeInputBaseProps
   /** Allow segmented keyboard typing in both inputs. `false` makes the field picker-only. */
   editable?: boolean;
   /** Whether the calendar popover exists. `false` makes the field input-only. */
-  popover?: boolean;
+  popover?: boolean | undefined;
   /**
    * Open the popover when focus arrives in the field. Moving focus between
    * the two inputs, or back from the launcher, leaves it closed, and so does
@@ -190,9 +195,10 @@ export interface DateRangeInputBaseProps
    * Bulma color modifier for the field, also carried by the calendar, where it
    * colors the range's ends and the band between them.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Size variant. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Render the field with rounded corners. */
   isRounded?: boolean;
   /**
@@ -241,6 +247,23 @@ export interface DateRangeInputBaseProps
   monthNames?: string[];
   /** Show dimmed dates from adjacent months in the grid. */
   nearbyMonthDays?: boolean;
+  /**
+   * How many months the calendar shows side by side, in the popover and
+   * `inline`, so a range that crosses a month's end shows both its ends.
+   * They wrap to a column where the width runs out, one previous and next
+   * pair moves them all by this many, and the arrow keys cross from one
+   * month into the next. They start with the range's start as the first
+   * month, or an end with no start as the last, and a start typed into the
+   * field that isn't on show brings in months with it as the first, an end
+   * with it as the last. `min` and `max` win: the months stay inside them
+   * where they leave room for all of them.
+   * The popover takes the months' width rather than the field's, up to the
+   * window's width less 2rem, so from a field far from the window's left edge
+   * it can reach past the right one: set `position="auto"`, which lines the
+   * popover up with the field's right edge when it doesn't fit to the right.
+   * @defaultValue 1
+   */
+  monthsToShow?: number;
   /** Decorative left icon glyph for the wrapping `Control` (shown by default). Set `''` to hide. */
   iconLeftName?: string;
   /**
@@ -265,19 +288,19 @@ export interface DateRangeInputBaseProps
    * named `name[start]` and `name[end]`, in every mode. The visible inputs
    * carry no name.
    */
-  name?: string;
+  name?: string | undefined;
   /** Name of the hidden input carrying the start, in place of `name[start]`. */
   startName?: string;
   /** Name of the hidden input carrying the end, in place of `name[end]`. */
   endName?: string;
   /** Form id the hidden inputs belong to. */
-  form?: string;
+  form?: string | undefined;
   /**
    * Mark both visible inputs required, so a form won't submit with either
    * end empty. An `inline` calendar has no visible input, so it is not
    * checked there.
    */
-  required?: boolean;
+  required?: boolean | undefined;
   /** Id of the start input. The end input takes `${id}-end`. */
   id?: React.HTMLAttributes<HTMLElement>['id'];
 }
@@ -331,6 +354,7 @@ export const DateRangeInputBase = forwardRef<
     dayNames,
     monthNames,
     nearbyMonthDays = true,
+    monthsToShow = 1,
     iconLeftName: _iconLeftName,
     triggerIcon: triggerIconProp,
     triggerIconName = 'chevron-down',
@@ -383,6 +407,54 @@ export const DateRangeInputBase = forwardRef<
   useEffect(() => {
     setFocusedDate(prev => clampDate(prev, lowerBound, max));
   }, [lowerBound, max]);
+
+  // With several months the picker holds the first month on show, as
+  // `Calendar` does. A move the calendar makes brings its page through
+  // `onMonthChange`. The page stays inside the bounds and the count as they
+  // change, and holds the focused day, brought in the way the calendar's keys
+  // bring it when focus moves off the page some other way.
+  const monthCount = pageMonthCount(monthsToShow);
+  // It starts with the range's start as the first month, or with an end
+  // that has no start as the last, so the range runs from or up to it.
+  const [pageStart, setPageStart] = useState(() =>
+    fitPage(
+      monthIndex(focusedDate) - (!start && end ? monthCount - 1 : 0),
+      monthCount,
+      lowerBound,
+      max
+    )
+  );
+  const shownPage = pageHolding(
+    focusedDate,
+    fitPage(pageStart, monthCount, lowerBound, max),
+    monthCount,
+    lowerBound,
+    max
+  );
+  if (monthCount > 1 && shownPage !== pageStart) setPageStart(shownPage);
+  const handleMonthChange = useCallback(
+    (month: Date) => setPageStart(monthIndex(month)),
+    []
+  );
+  // A day typed into the field that isn't on show brings in months with a
+  // start as the first, so the range runs on from it, and an end as the last,
+  // so the range runs up to it.
+  const showTypedDay = useCallback(
+    (d: Date, place: 'first' | 'last') => {
+      if (monthCount < 2) return;
+      setPageStart(page =>
+        pageHolding(
+          d,
+          fitPage(page, monthCount, lowerBound, max),
+          monthCount,
+          lowerBound,
+          max,
+          place
+        )
+      );
+    },
+    [monthCount, lowerBound, max]
+  );
 
   const [open, setOpenState] = useState(false);
   const [startText, setStartText] = useState(() =>
@@ -523,9 +595,12 @@ export const DateRangeInputBase = forwardRef<
         !end ||
         canCloseRange(next, end, constraints, allowDisabledInRange);
       commitRange([next, keepsEnd ? end : null]);
-      if (next) setFocusedDate(next);
+      if (next) {
+        setFocusedDate(next);
+        showTypedDay(next, 'first');
+      }
     },
-    [end, constraints, allowDisabledInRange, commitRange]
+    [end, constraints, allowDisabledInRange, commitRange, showTypedDay]
   );
   // Every digit typed into the start commits, so a start passes through
   // values on its way to the one being typed. The first digits of a year make
@@ -540,9 +615,12 @@ export const DateRangeInputBase = forwardRef<
   const commitEnd = useCallback(
     (next: Date | null) => {
       commitRange([start, next]);
-      if (next) setFocusedDate(next);
+      if (next) {
+        setFocusedDate(next);
+        showTypedDay(next, 'last');
+      }
     },
-    [start, commitRange]
+    [start, commitRange, showTypedDay]
   );
 
   const handleRangeSelect = useCallback(
@@ -756,6 +834,10 @@ export const DateRangeInputBase = forwardRef<
       dayNames={dayNames}
       monthNames={monthNames}
       nearbyMonthDays={nearbyMonthDays}
+      // One month is the pickers' own calendar, which holds no month.
+      month={monthCount > 1 ? monthFromIndex(shownPage) : undefined}
+      monthsToShow={monthCount}
+      onMonthChange={handleMonthChange}
       color={color}
       size={size}
       // The popover panel takes `popoverId`, so the calendar inside it takes

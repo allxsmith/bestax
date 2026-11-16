@@ -97,14 +97,14 @@ export interface DateInputBaseProps
     >,
     Omit<BulmaClassesProps, 'color'> {
   /** Controlled selected date. */
-  value?: Date | null;
+  value?: Date | null | undefined;
   /** Initial date for uncontrolled usage. */
-  defaultValue?: Date | null;
+  defaultValue?: Date | null | undefined;
   /**
    * Fired when the value changes. A day picked in the calendar, by click or
    * by key, arrives at local midnight.
    */
-  onChange?: (d: Date | null) => void;
+  onChange?: ((d: Date | null) => void) | undefined;
   /** Fired when the popover opens. */
   onOpen?: () => void;
   /** Fired when the popover closes. */
@@ -114,23 +114,23 @@ export interface DateInputBaseProps
    * year 1, where the range starts without one too: HTML's date and month
    * inputs hold no earlier year, so the calendar and typing stop there.
    */
-  min?: Date;
+  min?: Date | undefined;
   /** Latest selectable date. */
-  max?: Date;
+  max?: Date | undefined;
   /**
    * Disable the input. An `inline` calendar disables its days and header
    * buttons, but its hidden input still submits the value, where a disabled
    * input submits nothing.
    */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /**
    * Make the input read-only. An `inline` calendar still moves through the
    * dates by key and by its header, but a click, Enter or Space picks
    * nothing.
    */
-  readOnly?: boolean;
+  readOnly?: boolean | undefined;
   /** Placeholder text for the input. */
-  placeholder?: string;
+  placeholder?: string | undefined;
   /**
    * What the calendar shows and what a selection means: `'day'` shows the
    * day grid, `'month'` a grid of the focused year's months whose header
@@ -198,7 +198,7 @@ export interface DateInputBaseProps
   /** Allow segmented keyboard typing in the input (type the date directly, auto-advancing across segments). `false` makes the field picker-only. */
   editable?: boolean;
   /** Whether the calendar popover exists. `false` makes the field input-only (segmented typing, no popover). */
-  popover?: boolean;
+  popover?: boolean | undefined;
   /**
    * Open the popover when the input is focused. Focus that a closing popover
    * hands back to the input leaves it closed. Dismissing it commits nothing:
@@ -230,9 +230,10 @@ export interface DateInputBaseProps
    * `--bulma-dateinput-*` variables, which follow `primary` the same way by
    * default.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Size variant. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Render the input with rounded corners. */
   isRounded?: boolean;
   /** Predicate to disable specific dates (e.g. weekends). Blocked dates are also rejected during manual typing. */

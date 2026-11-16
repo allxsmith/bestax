@@ -66,23 +66,23 @@ export interface RateProps
     [key: string]: unknown;
   };
   /** Form field name. When set, a hidden input is rendered. */
-  name?: string;
+  name?: string | undefined;
   /** Optional id of the form this hidden input belongs to (use when the input lives outside the form element). */
-  form?: string;
+  form?: string | undefined;
   /** Controlled value (0 to max). */
-  value?: number;
+  value?: number | undefined;
   /** Default value for uncontrolled usage. */
-  defaultValue?: number;
+  defaultValue?: number | undefined;
   /** Maximum rating value. */
-  max?: number;
+  max?: number | undefined;
   /** Size variant. */
-  size?: RateSize;
+  size?: RateSize | undefined;
   /**
    * Whether the rating is disabled. A disabled Rate ignores clicks and keys,
    * leaves the tab order, and sets `aria-disabled` on the group and on every
    * star, so a screen reader announces them as unavailable.
    */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /**
    * Show the numeric score next to stars, written the way the `locale` of a
    * `LocaleProvider` around it writes numbers.
@@ -93,7 +93,7 @@ export interface RateProps
   /** Array of text labels for each rating value. */
   texts?: string[];
   /** Callback when rating changes. */
-  onChange?: (value: number) => void;
+  onChange?: ((value: number) => void) | undefined;
   /** Custom icon renderer. */
   customIcon?: (props: RateIconProps) => React.ReactNode;
   /** Add spacing between icons. */
@@ -109,7 +109,7 @@ export interface RateProps
   /** Additional icon modifiers. */
   iconFeatures?: string | string[];
   /** Color of the active rating icons. */
-  color?: BulmaColor;
+  color?: BulmaColor | undefined;
   /** Rating precision (e.g., `0.5` for half stars). */
   precision?: number;
   /** Custom text displayed next to the rating. */
@@ -457,8 +457,10 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
         );
       }
 
-      // Default SVG with clipPath for partial fill
-      const clipId = `rate-clip-${iconIndex}`;
+      // Default SVG with clipPath for partial fill. The id is this Rate's, so
+      // another Rate on the page can't take its clip, with only the characters
+      // a `url(#…)` reference keeps as they are, as Tour's mask id has.
+      const clipId = `${starBaseId.replace(/[^\w-]/g, '')}-clip-${iconIndex}`;
       return (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -484,8 +486,9 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
             strokeLinejoin="round"
             d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
           />
-          {/* Foreground: filled portion */}
+          {/* Foreground: filled portion, drawn as a filled star is */}
           <path
+            className={prefixedClassNames(classPrefix, 'rate-star-fill')}
             clipPath={`url(#${clipId})`}
             fill="currentColor"
             d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"

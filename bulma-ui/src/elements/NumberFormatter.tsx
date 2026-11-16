@@ -21,7 +21,7 @@ export interface NumberFormatterProps
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * The number. The text is what `Intl.NumberFormat` writes for it, `NaN`
    * and `Infinity` included. The `<data>` element's `value` attribute holds

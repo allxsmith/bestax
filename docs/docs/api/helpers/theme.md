@@ -178,7 +178,9 @@ it can't carry. A color that reads lighter or darker than the built one sets bot
 The text has to read on a light page and on a dark one, so Bulma gives each scheme its own
 on-scheme lightness. On a root theme, an on-scheme key takes `{ light, dark }`, and each value
 applies wherever Bulma's own value for that scheme would. A scheme you leave out keeps the
-stylesheet's value, and a string sets one value for both.
+stylesheet's value, and a string sets one value for both. On the dark scheme, bestax's
+stylesheets give `textColor="<color>"` the on-scheme lightness wherever it's lighter than the
+trio's, so a darker color set through the trio alone takes the build's lightness there.
 
 ```tsx
 function StockTurquoise() {

@@ -134,3 +134,33 @@ export function searchTree(
   };
   return { hidden, open, found: walk(data, false, []) };
 }
+
+/**
+ * The nodes from the top of the tree down to the one with `value`, which a
+ * field shows as a path. None when no node has the value.
+ */
+export function nodesTo(
+  index: Map<string, TreeNodeEntry>,
+  value: string
+): TreeItemData[] {
+  const entry = index.get(value);
+  if (!entry) return [];
+  return [...entry.path.map(above => index.get(above)!.node), entry.node];
+}
+
+/**
+ * Every node's path, from the top of the tree down to it, in the order the
+ * tree reads, which a search offers as a flat list.
+ */
+export function treePaths(data: TreeItemData[]): TreeItemData[][] {
+  const paths: TreeItemData[][] = [];
+  const walk = (nodes: TreeItemData[], above: TreeItemData[]) => {
+    for (const node of nodes) {
+      const path = [...above, node];
+      paths.push(path);
+      walk(childNodes(node), path);
+    }
+  };
+  walk(data, []);
+  return paths;
+}

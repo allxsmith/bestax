@@ -52,7 +52,7 @@ export interface TdProps
     Omit<React.TdHTMLAttributes<HTMLTableCellElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Text alignment for the table cell ('left', 'right', 'centered'). */
   isAligned?: TableAlignment;
   /**
@@ -64,7 +64,7 @@ export interface TdProps
   /** Centers the content vertically (Bulma's `is-vcentered`). Cells sit at the top otherwise. */
   isVcentered?: boolean;
   /** Bulma color modifier for the table cell. */
-  color?: TableColor;
+  color?: TableColor | undefined;
   /** Table cell content. */
   children?: React.ReactNode;
 }

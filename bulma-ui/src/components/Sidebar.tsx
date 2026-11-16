@@ -40,7 +40,7 @@ export interface SidebarProps
   /** Which side the sidebar appears from. Default: 'left'. */
   position?: SidebarPosition;
   /** Custom width of the sidebar. */
-  width?: string;
+  width?: string | undefined;
   /** Sidebar takes full width (mobile-style). */
   isFullwidth?: boolean;
   /** Sidebar takes full width (mobile-style). @deprecated Use `isFullwidth` instead — `isFullwidth` wins if both are set. */

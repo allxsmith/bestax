@@ -95,11 +95,11 @@ export interface TimeInputBaseProps
     >,
     Omit<BulmaClassesProps, 'color'> {
   /** Controlled selected time (date portion is preserved). */
-  value?: Date | null;
+  value?: Date | null | undefined;
   /** Initial value for uncontrolled usage. */
-  defaultValue?: Date | null;
+  defaultValue?: Date | null | undefined;
   /** Fired when the value changes. */
-  onChange?: (d: Date | null) => void;
+  onChange?: ((d: Date | null) => void) | undefined;
   /** Fired when the popover opens. */
   onOpen?: () => void;
   /** Fired when the popover closes. */
@@ -109,19 +109,19 @@ export interface TimeInputBaseProps
    * 1 January of year 1, and a `value` dated before then is out of range, so
    * the wheels and typing change nothing on it, as in the date pickers.
    */
-  min?: Date;
+  min?: Date | undefined;
   /** Latest selectable time. */
-  max?: Date;
+  max?: Date | undefined;
   /** Disable the input. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /**
    * Make the input read-only. An `inline` picker's wheels keep their tab
    * stops and carry `aria-readonly`, but no key, scroll, drag or click turns
    * them, so the time can't change.
    */
-  readOnly?: boolean;
+  readOnly?: boolean | undefined;
   /** Placeholder text for the input. */
-  placeholder?: string;
+  placeholder?: string | undefined;
   /**
    * Token format string or `Intl.DateTimeFormat` options.
    * @defaultValue (see below)
@@ -134,9 +134,11 @@ export interface TimeInputBaseProps
    */
   parse?: (s: string) => Date | null;
   /**
-   * BCP-47 locale tag for Intl formatting. Unset, it is the `locale` of a
-   * `LocaleProvider` around the picker, and with neither, `Intl` uses the
-   * runtime's own locale.
+   * BCP-47 locale tag for Intl formatting, the digits the wheels write
+   * their hours, minutes and seconds in, and the words a 12-hour wheel shows
+   * for AM and PM. Unset, it is the `locale` of a `LocaleProvider` around
+   * the picker, and with neither, `Intl` uses the runtime's own locale and
+   * the wheels keep plain digits and AM and PM.
    */
   locale?: string;
   /** Render the spinner inline (no popover). */
@@ -146,7 +148,7 @@ export interface TimeInputBaseProps
   /** Allow segmented keyboard typing in the input (type the time directly, auto-advancing across segments). `false` makes the field picker-only. */
   editable?: boolean;
   /** Whether the spinner popover exists. `false` makes the field input-only (segmented typing, no popover). */
-  popover?: boolean;
+  popover?: boolean | undefined;
   /**
    * Open the popover when the input is focused. Focus that a closing popover
    * hands back to the input leaves it closed. Dismissing it commits nothing:
@@ -179,9 +181,10 @@ export interface TimeInputBaseProps
    * shows on the fill. Unset, the wheels use
    * `--bulma-timeinput-wheel-selected-bg`, which defaults to `primary`.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Size variant. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Render the input with rounded corners. */
   isRounded?: boolean;
   /** Hour format. `'12'` adds an AM/PM column to the wheels. */
@@ -560,6 +563,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
           // the id they released with.
           id={inline ? popoverId : `${popoverId}-time`}
           labels={labels}
+          locale={locale}
           itemHeight={wheelItemHeight}
           audioTick={effectiveAudioTick}
           onCommit={() => setOpen(false)}
