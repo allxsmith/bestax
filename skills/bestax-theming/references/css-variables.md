@@ -1224,6 +1224,9 @@ itself, through its `style` or a class loaded after bestax's stylesheet, or give
 
 ### Toast
 
+Forced colors drop the toast's shadow and repaint its fill in the system's `Canvas`, so there the
+toast takes a one pixel `CanvasText` edge, and the cancel button's text is drawn at full strength.
+
 `--bulma-toast-action-hover-opacity`, `--bulma-toast-action-radius`,
 `--bulma-toast-action-weight`, `--bulma-toast-animation-duration`, `--bulma-toast-background`,
 `--bulma-toast-color`, `--bulma-toast-gap`, `--bulma-toast-max-width`,
