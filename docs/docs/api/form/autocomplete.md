@@ -105,17 +105,29 @@ function example() {
 }
 ```
 
+---
+
+### Clear Button in Another Language
+
 The clear button shows only an icon, so a screen reader and speech input go by its name, "Clear".
 In another language, `labels.clear` names it in the page's language.
 
 ```tsx live
-<Autocomplete
-  label="Fruit"
-  data={['Pomme', 'Poire', 'Prune']}
-  placeholder="Chercher un fruit"
-  clearable
-  labels={{ clear: 'Effacer' }}
-/>
+function example() {
+  const [value, setValue] = useState('Pomme');
+
+  return (
+    <Autocomplete
+      label="Fruit"
+      data={['Pomme', 'Poire', 'Prune']}
+      placeholder="Chercher un fruit"
+      value={value}
+      onInput={setValue}
+      clearable
+      labels={{ clear: 'Effacer' }}
+    />
+  );
+}
 ```
 
 ---
@@ -488,7 +500,7 @@ Use `keepFirst` combined with `Enter` to quickly select the first matching resul
 | `placeholder`            | `string`                                                                        | —         | Placeholder text for the input.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | `field`                  | `string`                                                                        | `'label'` | Object property to use as the display field.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `clearable`              | `boolean`                                                                       | `false`   | Whether to show a clear button while the input holds a value. It hides while the input is disabled, and gives way to a loading spinner at the same right edge: the one `loading` draws, or that of a `Control` with `isLoading` around the Autocomplete. It's named "Clear", or `labels.clear`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `labels`                 | `{ clear?: string }`                                                            | —         | The accessible strings, in your app's language.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `labels`                 | `{ clear?: string }`                                                            | —         | The clear button's name, in your app's language.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `openOnFocus`            | `boolean`                                                                       | `false`   | Open dropdown when input is focused.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `keepFirst`              | `boolean`                                                                       | `false`   | Keep the first option highlighted whenever the list opens, Up Arrow and Alt+Down Arrow included, and whenever the text in the field changes. While the list is open on a highlighted option that isn't disabled, Enter picks it rather than submitting a form around the field.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | `keepOpen`               | `boolean`                                                                       | `false`   | Keep dropdown open after selection.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |

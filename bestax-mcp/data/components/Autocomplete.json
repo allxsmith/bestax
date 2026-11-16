@@ -18,8 +18,8 @@
       "code": "function example() {\n  const options = ['Option 1', 'Option 2', 'Option 3', 'Option 4'];\n\n  return (\n    <Autocomplete data={options} placeholder=\"Search options...\" clearable />\n  );\n}"
     },
     {
-      "title": "With Clear Button",
-      "code": "<Autocomplete\n  label=\"Fruit\"\n  data={['Pomme', 'Poire', 'Prune']}\n  placeholder=\"Chercher un fruit\"\n  clearable\n  labels={{ clear: 'Effacer' }}\n/>"
+      "title": "Clear Button in Another Language",
+      "code": "function example() {\n  const [value, setValue] = useState('Pomme');\n\n  return (\n    <Autocomplete\n      label=\"Fruit\"\n      data={['Pomme', 'Poire', 'Prune']}\n      placeholder=\"Chercher un fruit\"\n      value={value}\n      onInput={setValue}\n      clearable\n      labels={{ clear: 'Effacer' }}\n    />\n  );\n}"
     },
     {
       "title": "Color and Size Variants",
@@ -157,7 +157,7 @@
           "name": "labels",
           "type": "{ clear?: string }",
           "default": null,
-          "description": "The accessible strings, in your app's language.",
+          "description": "The clear button's name, in your app's language.",
           "required": false,
           "inherited": false,
           "deprecated": false
