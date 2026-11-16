@@ -243,7 +243,9 @@ export interface TreeSelectSingleProps extends TreeSelectBaseProps {
   onChange?: (value: string | null) => void;
   /**
    * A parent's row picks the parent. `false` makes the row, Enter and Space
-   * open it instead, so only leaves are picked.
+   * open it instead, so only leaves are picked. Cascader, which takes the
+   * same `data`, defaults to `false`, as Ant Design's does, since a column
+   * per level is how its parents are opened.
    * @defaultValue true
    */
   parentsSelectable?: boolean;

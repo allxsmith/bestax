@@ -29,19 +29,22 @@ export interface OverlayFocusOptions {
    */
   restore?: () => boolean;
   /**
-   * The element inside the overlay to focus as it opens, in place of the
-   * first tab stop, as a tour step's Next button. When it's missing, outside
-   * the overlay or doesn't take focus, the first tab stop takes it as usual.
+   * Moves focus into the overlay as it opens, in place of the first tab
+   * stop, as a tour step starts on its Next button. It's given the
+   * overlay's element. When focus isn't inside the overlay after it, the
+   * first tab stop takes it as usual. Without one, the first tab stop takes
+   * focus whether or not it was inside already.
    */
-  initialFocus?: RefObject<HTMLElement | null>;
+  initialFocus?: (overlay: HTMLElement) => void;
 }
 
 /**
- * Moves focus into an overlay as it opens, to `initialFocus`, or the first
- * stop Tab wraps to inside `ref`'s element, or the element itself, and hands
- * it back to
- * whatever had it as it closes, as `Modal` does. Focus goes back only while
- * the overlay still holds it, or it's been dropped to `<body>`: closing one
+ * Moves focus into an overlay as it opens: it calls `initialFocus`, and when
+ * focus isn't inside the overlay afterwards, or there's no `initialFocus`,
+ * moves it to the first stop Tab wraps to inside `ref`'s element, or the
+ * element itself. It hands focus back to whatever had it as it closes, as
+ * `Modal` does. Focus goes back only while the overlay still holds it, or
+ * it's been dropped to `<body>`: closing one
  * under another overlay mustn't pull focus out of the one on top, and focus
  * moved out to the page stays there. The opener is found wherever it sits,
  * inside a shadow root too, in the overlay's own document, an iframe's when
@@ -87,10 +90,9 @@ export function useOverlayFocus(
     if (!element) return undefined;
 
     if (modal || !isModalOverlayOpen()) {
-      const given = initialFocusRef.current?.current;
-      const initial = given && element.contains(given) ? given : null;
-      initial?.focus();
-      if (!initial || getActiveElementInTree(element) !== initial) {
+      const initialFocus = initialFocusRef.current;
+      initialFocus?.(element);
+      if (!initialFocus || !element.contains(getActiveElementInTree(element))) {
         focusTabStop(element);
       }
     }

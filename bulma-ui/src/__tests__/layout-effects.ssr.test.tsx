@@ -37,6 +37,7 @@ import { TimeInput } from '../form/TimeInput';
 import { DateTimeInput } from '../form/DateTimeInput';
 import { DateRangeInput } from '../form/DateRangeInput';
 import { TreeSelect } from '../form/TreeSelect';
+import { Cascader } from '../form/Cascader';
 
 const cases: Array<[string, React.ReactElement]> = [
   [
@@ -184,6 +185,19 @@ const cases: Array<[string, React.ReactElement]> = [
       label="Folder"
       defaultOpen
       searchable
+      data={[{ value: 'a', label: 'A', children: [{ value: 'b' }] }]}
+    />,
+  ],
+  [
+    // Open on the picked node's path, so the panel and its columns render
+    // on the server too.
+    'Cascader',
+    <Cascader
+      key="cascader"
+      label="City"
+      defaultOpen
+      searchable
+      defaultValue="b"
       data={[{ value: 'a', label: 'A', children: [{ value: 'b' }] }]}
     />,
   ],

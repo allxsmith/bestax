@@ -300,6 +300,35 @@ A field whose options are a tree, such as a folder, a place or a team. It opens 
 
 ---
 
+### Cascader
+
+A field whose value sits at the end of a path, such as a city picked by continent, then country. It opens a column per level, shows the path in the field once it's shut, and takes the same `data` as `TreeSelect`.
+
+```tsx live
+<Cascader
+  label="City"
+  data={[
+    {
+      value: 'germany',
+      label: 'Germany',
+      children: [
+        { value: 'berlin', label: 'Berlin' },
+        { value: 'munich', label: 'Munich' },
+      ],
+    },
+    {
+      value: 'japan',
+      label: 'Japan',
+      children: [{ value: 'tokyo', label: 'Tokyo' }],
+    },
+  ]}
+/>
+```
+
+[View full documentation.](../../api/form/cascader)
+
+---
+
 ### Switch
 
 Toggle switch for on/off states. A styled checkbox that appears as a toggle, commonly used for settings.
@@ -465,6 +494,35 @@ function DateRangeInputExample() {
 ```
 
 [View full documentation.](../../api/form/datetime/daterangeinput)
+
+---
+
+### Calendar
+
+Months on the page, not behind an input. A click picks a day or a range, `dayTemplate` draws what's on each day, with `getDayLabel` saying it to a screen reader, and `month` with `onMonthChange` lets an app load each month's data as it comes up. It posts nothing with a form: use `DateInput inline` for that.
+
+```tsx live
+function CalendarExample() {
+  const [day, setDay] = React.useState<Date | null>(null);
+  const fare = (date: Date) => 60 + ((date.getDate() * 7) % 50);
+  return (
+    <div>
+      <Calendar
+        aria-label="Pick a departure day"
+        value={day}
+        onChange={setDay}
+        dayTemplate={date => `$${fare(date)}`}
+        getDayLabel={(date, label) => `${label}, $${fare(date)}`}
+      />
+      <p className="mt-2">
+        {day ? `${day.toDateString()}: $${fare(day)}` : 'Pick a day'}
+      </p>
+    </div>
+  );
+}
+```
+
+[View full documentation.](../../api/form/datetime/calendar)
 
 ---
 

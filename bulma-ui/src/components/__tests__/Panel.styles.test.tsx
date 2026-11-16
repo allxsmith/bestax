@@ -16,7 +16,12 @@ import path from 'path';
 import { render } from '@testing-library/react';
 import { Panel, type PanelProps } from '../Panel';
 import { ConfigProvider } from '../../helpers/Config';
-import { bulmaCss, cascade, rulesOf } from '../../__tests__/css-cascade';
+import {
+  bulmaCss,
+  cascade,
+  customProperty,
+  rulesOf,
+} from '../../__tests__/css-cascade';
 import {
   contrast,
   schemesOf,
@@ -203,9 +208,16 @@ describe('Panel partial', () => {
 // adds no background to a block, so the text sits on the page's, or on
 // Bulma's hover background when the pointer is over the block.
 describe('Panel active block contrast', () => {
-  // Black's on-scheme lightness is black on the dark scheme too, so the
-  // partial leaves a black panel as it was.
-  const READABLE = COLORS.filter(color => color !== 'black');
+  /**
+   * The lightness the partial gives a colored Panel's active text, icon and
+   * underline: the color's on-scheme lightness, and for black, whose
+   * on-scheme lightness is black on the dark scheme too, Bulma's title text
+   * lightness.
+   */
+  const lightnessFor = (color: string) =>
+    color === 'black'
+      ? 'var(--bulma-text-title-l)'
+      : `var(--bulma-${color}-on-scheme-l)`;
 
   /** What Bulma, and the partial for a colored Panel, give the block and tab. */
   const BULMA_ACTIVE = {
@@ -213,10 +225,10 @@ describe('Panel active block contrast', () => {
     tab: 'var(--bulma-panel-tab-active-color)',
   };
   const partialFor = (color: string) => {
-    const onScheme = `hsl(var(--bulma-${color}-h), var(--bulma-${color}-s), var(--bulma-${color}-on-scheme-l))`;
+    const active = `hsl(var(--bulma-${color}-h), var(--bulma-${color}-s), ${lightnessFor(color)})`;
     return {
-      block: `var(--bulma-panel-block-active-color, ${onScheme})`,
-      tab: `var(--bulma-panel-tab-active-color, ${onScheme})`,
+      block: `var(--bulma-panel-block-active-color, ${active})`,
+      tab: `var(--bulma-panel-tab-active-color, ${active})`,
     };
   };
 
@@ -295,8 +307,12 @@ describe('Panel active block contrast', () => {
     expect(bulma).not.toMatch(/--bulma-link-active\s*:/);
   });
 
+  /** The `--bulma-panel-color-l` the rules of `css` give a Panel's root. */
+  const panelColorOf = (el: Element, css: string) =>
+    customProperty(el, css, '--bulma-panel-color-l')?.replace(/\s+/g, '');
+
   describe.each(orders)('with the partial %s Bulma', (_order, css) => {
-    it.each(READABLE)(
+    it.each(COLORS)(
       "gives a %s Panel's active block and tab the color's fallback",
       color => {
         expect(flat(colorsOf(activeOf(color), css()))).toEqual(
@@ -305,11 +321,16 @@ describe('Panel active block contrast', () => {
       }
     );
 
-    it('leaves a black Panel as Bulma draws it', () => {
-      expect(flat(colorsOf(activeOf('black'), css()))).toEqual(
-        flat(BULMA_ACTIVE)
-      );
-    });
+    it.each(COLORS)(
+      "sets a %s Panel's --bulma-panel-color-l to the same lightness",
+      color => {
+        const { block } = activeOf(color);
+        const panelEl = block.closest('.panel') as HTMLElement;
+        expect(panelColorOf(panelEl, css())).toBe(
+          lightnessFor(color).replace(/\s+/g, '')
+        );
+      }
+    );
 
     it("leaves Bulma's own markup, with the modifier alone, as Bulma draws it", () => {
       const nav = document.createElement('nav');
@@ -324,21 +345,25 @@ describe('Panel active block contrast', () => {
           tab: nav.querySelector('.panel-tabs a') as Element,
         };
         expect(flat(colorsOf(active, css()))).toEqual(flat(BULMA_ACTIVE));
+        expect(panelColorOf(nav, css())).toBe('var(--bulma-light-l)');
       } finally {
         nav.remove();
       }
     });
   });
 
-  it.each(READABLE)(
+  it.each(COLORS)(
     'keys a %s Panel on the prefixed classes in the prefixed build',
     color => {
       const css = sheet(
         'prefixed',
         () => bulmaCss('versions/bulma-prefixed.css') + partial('bulma-')
       );
-      expect(flat(colorsOf(activeOf(color, 'bulma-'), css))).toEqual(
-        flat(partialFor(color))
+      const active = activeOf(color, 'bulma-');
+      expect(flat(colorsOf(active, css))).toEqual(flat(partialFor(color)));
+      const panelEl = active.block.closest('.bulma-panel') as HTMLElement;
+      expect(panelColorOf(panelEl, css)).toBe(
+        lightnessFor(color).replace(/\s+/g, '')
       );
     }
   );
@@ -400,9 +425,7 @@ describe('Panel active block contrast', () => {
   });
 
   it.each(
-    READABLE.flatMap(color =>
-      Object.keys(SCHEMES).map(scheme => [color, scheme])
-    )
+    COLORS.flatMap(color => Object.keys(SCHEMES).map(scheme => [color, scheme]))
   )(
     'holds 4.5:1 for a %s Panel on the %s scheme, at rest and hovered',
     (color, scheme) => {
@@ -412,6 +435,61 @@ describe('Panel active block contrast', () => {
       }
     }
   );
+
+  /**
+   * The active icon and the active tab's underline on `scheme`, both drawn
+   * from `--bulma-panel-color-l` by Bulma, with or without the partial.
+   */
+  const cue = (scheme: string, color: string, withPartial = true) => {
+    const partialVars = varsOn(
+      topRules(partial()),
+      `.panel.is-${color}.has-text-${color}`
+    );
+    return substitute(
+      'hsl(var(--bulma-panel-h), var(--bulma-panel-s), var(--bulma-panel-color-l))',
+      {
+        ...SCHEMES[scheme],
+        ...varsOn(PANEL_RULES, '.panel'),
+        ...varsOn(PANEL_RULES, `.panel.is-${color}`),
+        ...(withPartial ? partialVars : {}),
+      }
+    );
+  };
+
+  it("draws the active icon and the active tab's underline from --bulma-panel-color-l, as Bulma does", () => {
+    const formula =
+      'hsl(var(--bulma-panel-h), var(--bulma-panel-s), var(--bulma-panel-color-l))';
+    const flat = PANEL.replace(/\s+/g, ' ');
+    expect(flat).toContain(
+      `.panel-block.is-active .panel-icon { color: ${formula}; }`
+    );
+    expect(flat).toContain(
+      `.panel-tabs a.is-active { border-bottom-color: ${formula};`
+    );
+  });
+
+  it("measures a light panel's active icon under 3:1 on the light scheme without the partial, so the check can fail", () => {
+    expect(
+      contrast(cue('light', 'light', false), surfaces(SCHEMES, 'light')[0])
+    ).toBeLessThan(3);
+  });
+
+  it.each(
+    COLORS.flatMap(color => Object.keys(SCHEMES).map(scheme => [color, scheme]))
+  )(
+    "holds 3:1 for a %s Panel's active icon and underline on the %s scheme",
+    (color, scheme) => {
+      for (const surface of surfaces(SCHEMES, scheme)) {
+        expect(contrast(cue(scheme, color), surface)).toBeGreaterThanOrEqual(3);
+      }
+    }
+  );
+
+  it("measures a black panel's active text under 4.5:1 on the dark scheme without the partial, so the check can fail", () => {
+    expect(
+      contrast(inherited('dark', 'black'), surfaces(SCHEMES, 'dark')[0])
+    ).toBeLessThan(4.5);
+  });
 
   // bestax's builds configure Bulma's primary, whose on-scheme lightness
   // differs from Bulma's own. bestax.scss is read for the color.

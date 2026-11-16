@@ -36,6 +36,7 @@
 // twice, as `_delete.scss` does, and the border names the color class twice
 // to outrank Bulma's `.button.is-<color>`.
 
+@use 'sass:list';
 @use 'sass:map';
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
@@ -58,8 +59,12 @@
 }
 
 @media (forced-colors: active) {
-  .#{iv.$class-prefix}button.#{iv.$class-prefix}button:not(.#{iv.$class-prefix}is-loading):focus-visible,
-  .#{iv.$class-prefix}button.#{iv.$class-prefix}button:not(.#{iv.$class-prefix}is-loading).#{iv.$class-prefix}is-focused {
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}button:not(
+      .#{iv.$class-prefix}is-loading
+    ):focus-visible,
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}button:not(
+      .#{iv.$class-prefix}is-loading
+    ).#{iv.$class-prefix}is-focused {
     @include -focus-outline;
   }
 
@@ -68,6 +73,61 @@
         .#{iv.$class-prefix}is-outlined
       ) {
       @include cv.register-var('button-border-width', 1px);
+    }
+  }
+}
+
+// Bulma draws an outlined button's label and border in the color's own
+// lightness, `--bulma-button-l`, on whatever is behind the button, which is
+// usually the page. Bulma also works out a lightness for each color's text on
+// the page, `--bulma-<color>-on-scheme-l`, one for each scheme, stepping the
+// color lighter on the dark scheme or darker on the light one until it reads.
+// The outlined button doesn't use it, so on the dark scheme a dark color's
+// outlined button is hard to read: Bulma's link color, which
+// `Panel.ButtonBlock` uses, and bestax's blue primary.
+//
+// On a dark page this gives an outlined button whichever of the two
+// lightnesses is lighter, for its label, its border and its loading ring.
+// That's the on-scheme one wherever the color doesn't read on its own. On a
+// light page the button keeps the color's own lightness, whatever the
+// on-scheme one is, so a darker color set at runtime without its on-scheme
+// lightness stays as dark as it was set. Which page it is comes from
+// `--bulma-scheme-main-l`, the page's own lightness, which each scheme sets on
+// the element it applies to: 100% on Bulma's light scheme and 9% on its dark
+// one. The on-scheme lightness is capped at the color's own plus twice the
+// page's distance from white, which is the color's own on a white page and
+// past any lightness on the dark one. The lighter label is for the dark page,
+// so on a surface that stays light on both schemes it has less contrast than
+// the color's own.
+//
+// White, black, light and dark are left out: they're fixed shades for a
+// button on a surface of another color, such as a white outlined button on a
+// primary hero. So is `text`, which is a text button, not an outlined one,
+// and so is an inverted outlined button, whose fill is the color's invert and
+// whose border sits on that fill rather than on the page.
+//
+// The rule names the color and `is-outlined`, which outranks Bulma's
+// `.button.is-<color>`, where it sets the lightness, whichever stylesheet
+// loads first.
+$-outlined-left-alone: ('white', 'black', 'light', 'dark', 'text');
+
+@each $name, $color in dv.$colors {
+  @if not list.index($-outlined-left-alone, $name) {
+    $own: cv.getVar($name, '', '-l');
+
+    .#{iv.$class-prefix}button.#{iv.$class-prefix}is-#{$name}.#{iv.$class-prefix}is-outlined:not(
+        .#{iv.$class-prefix}is-inverted
+      ) {
+      @include cv.register-var(
+        'button-l',
+        max(
+          #{$own},
+          min(
+            #{cv.getVar($name, '', '-on-scheme-l')},
+            calc(#{$own} + (100% - #{cv.getVar('scheme-main-l')}) * 2)
+          )
+        )
+      );
     }
   }
 }
