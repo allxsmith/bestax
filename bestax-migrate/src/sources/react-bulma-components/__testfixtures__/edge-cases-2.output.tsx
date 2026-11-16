@@ -48,6 +48,7 @@ export function MoreEdgeCases({
   // TODO(bestax-migrate): dynamic Panel.Tabs.Tab className; re-apply it to the emitted element by hand
   // TODO(bestax-migrate): dynamic Loader className; merge it with the `loader` class by hand
   // TODO(bestax-migrate): Table.Container className; the container folded into `isResponsive` on its Table — re-apply the class by hand
+  // TODO(bestax-migrate): Table.Container folded into `isResponsive` on a Table with no `aria-label` or `aria-labelledby`: while it overflows, `Table isResponsive` makes its container a region you can tab to, named by those alone, so give the Table one, pointing `aria-labelledby` at its caption's `id` if it has one
   // TODO(bestax-migrate): Table.Container became a plain element; the Bulma helper prop(s) `textAlign` were dropped — restyle with classes
   return (
     <div>

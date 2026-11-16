@@ -384,6 +384,11 @@ export interface Plan {
     target: string;
     props: Array<[name: string, value: string | true]>;
     numbers: string[];
+    /**
+     * TODOs about the component the fold makes, written only once the fold
+     * is: a fold the transform calls off takes them with it.
+     */
+    todos?: Todo[];
   };
   todos: Todo[];
 }
@@ -2195,5 +2200,30 @@ function planFold(facts: ElementFacts, wrapper: string, todos: Todo[]): Plan {
       `bestax ${renders} renders \`.${wrapper}\` itself, so this element converts only around a single element that becomes a \`${target}\`, with nothing else beside it`
     );
   }
-  return { conversion: null, fold: { target, props, numbers }, todos };
+  // What the fold renders takes its name from the target inside, so one with
+  // no name asks for one. A spread there could hold it.
+  const inner = facts.soleChild;
+  const names = entry.namedFrom ?? [];
+  const unnamed =
+    names.length > 0 &&
+    inner !== undefined &&
+    !inner.hasSpread &&
+    !names.some(name => inner.attributes.has(name));
+  return {
+    conversion: null,
+    fold: {
+      target,
+      props,
+      numbers,
+      ...(unnamed && {
+        todos: [
+          {
+            rule: ruleId('name', target),
+            message: `give the \`${target}\` inside an ${names.map(name => `\`${name}\``).join(' or ')}, pointed at its caption's \`id\` if it has one: while it overflows, bestax ${renders} makes \`.${wrapper}\` a region you can tab to, named by those alone`,
+          },
+        ],
+      }),
+    },
+    todos,
+  };
 }

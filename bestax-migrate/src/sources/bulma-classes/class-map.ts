@@ -307,6 +307,13 @@ export interface RootEntry {
    * modifiers add their props beside these.
    */
   readonly folds?: readonly PropWrite[];
+  /**
+   * For a `fold` root: the attributes of the target inside that name what the
+   * fold renders (a responsive `Table` names its container after the table's
+   * `aria-label` or `aria-labelledby` while it overflows). A fold onto one
+   * with none of them, and no spread, gets a `name:` TODO asking for one.
+   */
+  readonly namedFrom?: readonly string[];
   /** The target renders the element's only child itself. */
   readonly absorbs?: Absorbs;
   /**
@@ -2536,6 +2543,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     target: 'Table',
     tag: 'div',
     folds: [{ prop: 'isResponsive' }],
+    namedFrom: ['aria-label', 'aria-labelledby'],
   },
   'fixed-grid': {
     status: 'fold',

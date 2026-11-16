@@ -76,6 +76,12 @@ const stripModifierProps = makeStripModifierProps(
   'domRef'
 );
 
+/**
+ * The attributes bestax's responsive Table names its container from, while
+ * the table overflows: the table's own.
+ */
+const TABLE_NAMES = ['aria-label', 'aria-labelledby'];
+
 const SPECIALS: Record<string, SpecialHandler> = {
   /**
    * RBC defaults Columns `multiline` to TRUE (Bulma and bestax default to
@@ -856,13 +862,26 @@ const SPECIALS: Record<string, SpecialHandler> = {
           'Table.Container className; the container folded into `isResponsive` on its Table — re-apply the class by hand'
         );
       }
-      // The container element is gone after the fold. What it carried
+      const child = children[0];
+      // bestax's responsive Table names its container after the table, from
+      // the table's own `aria-label` or `aria-labelledby`, so a name the
+      // container carried moves onto the Table, unless the Table has its own.
+      const childNamed = TABLE_NAMES.some(name => findAttr(child, name));
+      const childSpreads = (child.openingElement.attributes ?? []).some(
+        (a: any) => a.type === 'JSXSpreadAttribute'
+      );
+      const moved: any[] = [];
+      // The container element is gone after the fold. What else it carried
       // (`domRef`, `id`, handlers) applied to the wrapping div, and moving it
       // onto the Table would put it on the <table> instead, so it is reported
       // rather than carried. Only `className` used to be reported.
       for (const attr of attributesOf(element)) {
         const name = attr?.name?.name;
         if (!name || name === 'className') continue;
+        if (TABLE_NAMES.includes(name) && !childNamed) {
+          moved.push(attr);
+          continue;
+        }
         addTodo(
           ctx,
           path,
@@ -882,8 +901,18 @@ const SPECIALS: Record<string, SpecialHandler> = {
           'Table.Container spread props were dropped: the container folded into `isResponsive` on its Table, so there is no element left to carry them — re-apply by hand'
         );
       }
-      const child = children[0];
       addAttr(child, makeAttr(ctx.j, 'isResponsive'));
+      for (const attr of moved) addAttr(child, attr);
+      // A spread on the Table could hold its name, so only a Table without
+      // one is asked for it.
+      if (!childNamed && moved.length === 0 && !childSpreads) {
+        addTodo(
+          ctx,
+          path,
+          'name:Table',
+          "Table.Container folded into `isResponsive` on a Table with no `aria-label` or `aria-labelledby`: while it overflows, `Table isResponsive` makes its container a region you can tab to, named by those alone, so give the Table one, pointing `aria-labelledby` at its caption's `id` if it has one"
+        );
+      }
       path.replace(child);
       ctx.dirty = true;
       return { replaced: true };

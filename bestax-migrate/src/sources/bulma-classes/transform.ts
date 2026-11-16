@@ -1835,6 +1835,10 @@ export default function transform(
   }
   for (const { path: elementPath, plan: result } of [...elements].reverse()) {
     if (result.fold) {
+      // What the fold makes may want a TODO of its own, now that it's made.
+      for (const { rule, message } of result.fold.todos ?? []) {
+        todo(elementPath, rule, message);
+      }
       // The child inside has converted already (innermost first), with the
       // wrapper's props on it; the wrapper itself goes, its comments with the
       // child: one on the wrapper moves to the child, and one inside the

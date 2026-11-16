@@ -78,7 +78,7 @@ export function Layout() {
           </div>
         </div>
         <div className="table-container">
-          <table className="table is-narrow">
+          <table className="table is-narrow" aria-label="Sizes">
             <tbody>
               <tr>
                 <td>Responsive</td>

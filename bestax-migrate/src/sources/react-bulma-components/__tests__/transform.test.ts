@@ -887,6 +887,53 @@ describe('react-bulma-components transform fixtures', () => {
       );
     });
 
+    // bestax's responsive Table names its container after the table while it
+    // overflows (#2016), so the container's name belongs on the Table.
+    describe('the name of a folded Table.Container', () => {
+      const fold = (container: string, table: string) => {
+        const todos: TodoEntry[] = [];
+        const { output } = runTransform(
+          transform,
+          'name.tsx',
+          'import { Table } from "react-bulma-components";\n' +
+            `export const A = (p: any) => <Table.Container${container}><Table${table} /></Table.Container>;`,
+          { add: entry => todos.push(entry) }
+        );
+        return { output: output ?? '', rules: todos.map(t => t.rule) };
+      };
+
+      it.each([
+        ['an aria-label', ' aria-label="Scores"'],
+        ['an aria-labelledby', ' aria-labelledby="scores"'],
+        ['an aria-label from an expression', ' aria-label={p.label}'],
+      ])('moves %s onto the Table', (_, name) => {
+        const { output, rules } = fold(name, '');
+        expect(output).toContain(`<Table isResponsive${name} />`);
+        expect(output).not.toContain('Table.Container');
+        expect(rules).toEqual([]);
+      });
+
+      it('keeps the Table’s own name, and reports the container’s', () => {
+        const { output, rules } = fold(
+          ' aria-label="Outer"',
+          ' aria-label="Inner"'
+        );
+        expect(output).toContain('aria-label="Inner"');
+        expect(output).not.toContain('Outer"');
+        expect(rules).toEqual(['prop:aria-label']);
+      });
+
+      it('asks for a name when neither has one', () => {
+        const { output, rules } = fold('', '');
+        expect(rules).toEqual(['name:Table']);
+        expect(output).toContain('named by those alone, so give the Table one');
+      });
+
+      it('asks for no name when the Table spreads props, which could hold one', () => {
+        expect(fold('', ' {...p}').rules).toEqual([]);
+      });
+    });
+
     it.each([
       [
         'ref',

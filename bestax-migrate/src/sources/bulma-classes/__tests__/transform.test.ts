@@ -460,15 +460,51 @@ describe('a wrapper its component renders', () => {
       `export const A = ({ on }: { on: boolean }) => (\n  ${wrapper}\n    ${inside}\n  </div>\n);\n`
     );
   const table = '<table className="table">x</table>';
+  const named = '<table className="table" aria-label="Scores">x</table>';
 
   it('folds into the component inside it', () => {
     const { output, rules } = wrapped(
       '<div className="table-container">',
-      table
+      named
     );
     expect(rules).toEqual([]);
-    expect(output).toContain('<Table isResponsive>x</Table>');
+    expect(output).toContain(
+      '<Table isResponsive aria-label="Scores">x</Table>'
+    );
     expect(output).not.toContain('table-container');
+  });
+
+  // A responsive Table names its container after the table while it
+  // overflows (#2016), so a fold onto a table with no name asks for one.
+  it('asks for a name when the table it folds onto has none', () => {
+    const { output, rules } = wrapped(
+      '<div className="table-container">',
+      table
+    );
+    expect(rules).toEqual(['name:Table']);
+    expect(output).toContain('<Table isResponsive>x</Table>');
+    expect(output).toContain(
+      'give the `Table` inside an `aria-label` or `aria-labelledby`'
+    );
+  });
+
+  it.each([
+    ['an aria-label', named],
+    [
+      'an aria-labelledby',
+      '<table className="table" aria-labelledby="scores">x</table>',
+    ],
+    [
+      'an aria-label from an expression',
+      '<table className="table" aria-label={on ? "On" : "Off"}>x</table>',
+    ],
+  ])('asks for no name when the table has %s', (_, inside) => {
+    const { output, rules } = wrapped(
+      '<div className="table-container">',
+      inside
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain('isResponsive');
   });
 
   it.each([
@@ -516,12 +552,12 @@ describe('a wrapper its component renders', () => {
 
   it('keeps the comments on the wrapper', () => {
     const { output, rules } = migrate(
-      `export const A = () => (\n  // above\n  <div /* inside */ className="table-container">\n    ${table}\n  </div>\n);\n`
+      `export const A = () => (\n  // above\n  <div /* inside */ className="table-container">\n    ${named}\n  </div>\n);\n`
     );
     expect(rules).toEqual([]);
     expect(output).toContain('// above');
     expect(output).toContain('/* inside */');
-    expect(output).toContain('isResponsive>x</Table>');
+    expect(output).toContain('aria-label="Scores">x</Table>');
   });
 
   it('refuses the only child of a component, which may clone it', () => {
