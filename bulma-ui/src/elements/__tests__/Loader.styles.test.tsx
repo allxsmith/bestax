@@ -25,7 +25,9 @@
 // paints those in the text color like any other border, which closes the
 // ring. `_loader.scss` sets them to `Canvas` there, so the same walk resolves
 // the open sides' colors with forced colors on, and checks each ring stays
-// open.
+// open. Bulma paints a progress bar's track and fill as background colors,
+// which forced colors turns into the page's color, so the walk also checks
+// `_progress.scss` names system colors for them there.
 import fs from 'fs';
 import path from 'path';
 import React from 'react';
@@ -1194,6 +1196,87 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
           )
       );
     expect(extra).toEqual([]);
+  });
+
+  /** Each kind of bar Bulma draws: with a value, in a color, and indeterminate. */
+  const BARS: Array<[string, React.ReactElement]> = [
+    ['Progress value', <Progress key="x" value={40} max={100} />],
+    [
+      'Progress color="primary" value',
+      <Progress key="x" color="primary" value={70} max={100} />,
+    ],
+    [
+      'Progress color="danger" indeterminate',
+      <Progress key="x" color="danger" />,
+    ],
+  ];
+
+  it.each(BARS)(
+    '%s draws its track, fill and edge in forced colors, and only there',
+    (_label, element) => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>{element}</ConfigProvider>
+      );
+      const bar = container.querySelector(`.${prefix}progress`)!;
+      const forced = (names: string[]) =>
+        resolved(rules, bar, '', { forcedColors: true }, names);
+      // Forced colors paints Bulma's track and fill in the page's color and
+      // drops the indeterminate gradient. With forcing off, the two
+      // variables Bulma paints them with name system colors, and so does
+      // the element's own background, which is Firefox's track.
+      expect(forced(['forced-color-adjust'])).toBe('none');
+      expect(forced(['--bulma-progress-bar-background-color'])).toBe('Canvas');
+      expect(forced(['--bulma-progress-value-background-color'])).toBe(
+        'CanvasText'
+      );
+      expect(forced(['background-color', 'background'])).toBe('Canvas');
+      expect(colorOf(forced(['border']))).toBe('CanvasText');
+      // None of it reaches anyone not in forced colors.
+      expect(resolved(rules, bar, '', {}, ['forced-color-adjust'])).toBeNull();
+      expect(
+        resolved(rules, bar, '', {}, [
+          '--bulma-progress-value-background-color',
+        ])
+      ).not.toBe('CanvasText');
+    }
+  );
+
+  it('paints every bar only with the two variables set in forced colors', () => {
+    // The rule above sets the variables, not the paint, so it's only a fix
+    // while every background the sheet gives a bar reads them. Bulma paints
+    // the track and the fill on vendor pseudo-elements, which the resolver
+    // can't match, so the sheet is read for them directly.
+    const bar = new RegExp(`(^|[\\s>+~])\\.${prefix}progress(?![\\w-])`);
+    const ours =
+      /var\(--bulma-progress-(bar|value)-background-color\)|transparent/g;
+    const paints = rules
+      .filter(rule => !rule.forcedColorsOnly)
+      .filter(rule => rule.selectors.some(selector => bar.test(selector)))
+      .flatMap(rule =>
+        ['background-color', 'background', 'background-image']
+          .filter(property => rule.values[property])
+          .map(property => ({
+            rule: `${rule.selectors.join(', ')} { ${property}: ${rule.values[property].value} }`,
+            rest: rule.values[property].value.replace(ours, ''),
+          }))
+      );
+    // Floor against the read going quietly empty: the fill is one of them.
+    expect(
+      paints.some(({ rule }) =>
+        rule.includes(
+          '::-webkit-progress-value { background-color: var(--bulma-progress-value-background-color)'
+        )
+      )
+    ).toBe(true);
+    // Bulma writes its colors as variables, so another variable, or a color
+    // written out, is a paint forced colors would still replace.
+    expect(
+      paints
+        .filter(({ rest }) =>
+          /var\(|#[\da-f]|\b(rgba?|hsla?|color-mix|oklch|lab|lch)\(/i.test(rest)
+        )
+        .map(({ rule }) => rule)
+    ).toEqual([]);
   });
 
   /**
