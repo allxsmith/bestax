@@ -1,3 +1,19 @@
+## [5.73.5](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.73.4...@allxsmith/bestax-bulma@5.73.5) (2026-11-16)
+
+
+### Bug Fixes
+
+* **bulma-ui:** draw Progress's track and fill in forced colors ([06f1ed7](https://github.com/allxsmith/bestax/commit/06f1ed751d139866b141176341d4d2db54d5f2bc)), closes [#1846](https://github.com/allxsmith/bestax/issues/1846)
+* **bulma-ui:** draw Slider's ticks and mark labels at full strength in forced colors ([f5e1647](https://github.com/allxsmith/bestax/commit/f5e164721e43a92a38add89eda456813d7addc99)), closes [#1845](https://github.com/allxsmith/bestax/issues/1845)
+* **bulma-ui:** draw the table container's ring inside it, and name the caption in its warning ([9fd5c83](https://github.com/allxsmith/bestax/commit/9fd5c83d0141341eb3f8870c41788324ed85ee4c)), closes [#1839](https://github.com/allxsmith/bestax/issues/1839)
+* **bulma-ui:** keep a programmatic notification open while focus is inside it ([a720a45](https://github.com/allxsmith/bestax/commit/a720a45e1d48bd75c881b68c2606a541eefeb242)), closes [#1837](https://github.com/allxsmith/bestax/issues/1837)
+* **bulma-ui:** keep UnorderedList's list role for an empty role, as Stack's list does ([371c3fd](https://github.com/allxsmith/bestax/commit/371c3fdb41eb5b719f8529f4c7a9185a45f3c292))
+* **bulma-ui:** leave every loading button's focus ring to the loader partial ([42241fd](https://github.com/allxsmith/bestax/commit/42241fdf5aca4ba73277e68c8595c18e984aa6b0))
+* **bulma-ui:** make a responsive Table's container a named tab stop while it overflows ([0b8ddce](https://github.com/allxsmith/bestax/commit/0b8ddce0f20db15525e124a6d8e2d790a32c6bf1)), closes [#1839](https://github.com/allxsmith/bestax/issues/1839)
+* **bulma-ui:** render a role written on UnorderedList as written, empty included ([ac468a3](https://github.com/allxsmith/bestax/commit/ac468a3a4dd4dfac7250460f6959d17cfe45604b))
+* **bulma-ui:** ring a focused loading or static Button in Bulma's focus color ([2fd3714](https://github.com/allxsmith/bestax/commit/2fd3714c5e6e7f089ba70eff6cd3437805abb02b)), closes [#1849](https://github.com/allxsmith/bestax/issues/1849)
+* **bulma-ui:** write role="list" on UnorderedList's ul, so Safari keeps it a list ([4137048](https://github.com/allxsmith/bestax/commit/4137048f8232c928dd01c2c4fc45b0415837e9cb)), closes [#1850](https://github.com/allxsmith/bestax/issues/1850)
+
 ## [5.73.4](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.73.3...@allxsmith/bestax-bulma@5.73.4) (2026-11-16)
 
 
