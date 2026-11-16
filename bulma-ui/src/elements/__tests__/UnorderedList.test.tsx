@@ -126,6 +126,11 @@ describe('UnorderedList Component', () => {
       render(<UnorderedList {...forwarded} data-testid="list" />);
       expect(screen.getByTestId('list')).toHaveAttribute('role', 'list');
     });
+
+    test('an empty role keeps it', () => {
+      render(<UnorderedList role="" data-testid="list" />);
+      expect(screen.getByTestId('list')).toHaveAttribute('role', 'list');
+    });
   });
 
   describe('ClassPrefix', () => {
