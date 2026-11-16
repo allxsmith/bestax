@@ -263,7 +263,7 @@ text some other way.
   system's text color, and the chosen swatch's ring is drawn in the system's highlight color.
 - **The eye dropper** button is named "Pick a color from the screen" and only appears where the
   browser can do it.
-- The `message` describes the group through `aria-describedby`, after any ids you pass there, so a screen reader reads it as focus enters the picker.
+- The `message` describes the group through `aria-describedby`, after any ids you pass there, as the label names it.
 
 ---
 

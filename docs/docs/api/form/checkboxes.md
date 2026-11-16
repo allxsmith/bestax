@@ -283,7 +283,7 @@ function CheckboxesFormDemo() {
 - With `as="fieldset"`, the group is a native `<fieldset>`, named by its `<legend>` where it renders its own `Field`, or by an outer `Field`'s label through `aria-labelledby` inside one.
 - An `aria-label` or `aria-labelledby` you give the group wins over either label, whether that label sits on the Checkboxes or on a `Field` around them.
 - Each child should be a `Checkbox` for proper labeling and accessibility.
-- The `message` describes the group through `aria-describedby`, after any ids you pass there, so a screen reader reads it as focus enters the group. That holds with `as="fieldset"` too.
+- The `message` describes the group through `aria-describedby`, after any ids you pass there, as the label names it. That holds with `as="fieldset"` too.
 
 ---
 

@@ -307,7 +307,7 @@ function RadiosWrappedFormDemo() {
 - An `aria-label` or `aria-labelledby` you give the group wins over either label, whether that label sits on the Radios or on a `Field` around them.
 - Each child should be a `Radio` for proper labeling and accessibility.
 - Use the same `name` for all radios in a group to ensure mutual exclusivity.
-- The `message` describes the group through `aria-describedby`, after any ids you pass there, so a screen reader reads it as focus enters the group. That holds with `as="fieldset"` too.
+- The `message` describes the group through `aria-describedby`, after any ids you pass there, as the label names it. That holds with `as="fieldset"` too.
 
 ---
 

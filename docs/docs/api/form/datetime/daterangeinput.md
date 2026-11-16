@@ -284,7 +284,7 @@ function RangeFormDemo() {
 - A polite live region in the calendar states the range in words, such as "Start date: June 10, 2024, End date: June 13, 2024", and announces each pick. The grid points at it too, so moving into the grid reads the current range.
 - Everything else is the calendar `DateInput` uses: a roving `tabindex`, weekday column headers named in full (or by your `dayNames`), `aria-disabled` on disabled days, `aria-current="date"` on today, and focus back on the grid as the year list closes.
 - On a right-to-left page the launcher sits at the end of the line and the calendar icon at the start, and the previous-month chevron points right.
-- The `message` describes the group through `aria-describedby`, after any ids you pass there, so a screen reader reads it as focus enters the field.
+- The `message` describes the group through `aria-describedby`, after any ids you pass there, as the label names it.
 
 ---
 
