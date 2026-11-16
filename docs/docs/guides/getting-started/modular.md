@@ -155,7 +155,7 @@ bestax's prebuilt stylesheets build Bulma's table with `$table-cell-text-align: 
 );
 ```
 
-A build with a responsive `Table`, selected rows or a `DataTable` also wants bestax's `elements/table` partial, as the list of partials below says.
+A build with a responsive `Table`, selected rows or a `DataTable` that selects rows also wants bestax's `elements/table` partial, as the list of partials below says.
 
 Pull in only the helper categories you use:
 
@@ -253,7 +253,7 @@ Some of these partials adjust a stock Bulma component rather than add one of bes
 
 - `elements/notification` keeps a `Notification`'s text clear of its close button, and gives a dark or light one its color's own text and background, and a white or black one with `isLight` the light color's text, where Bulma's module lets its text inherit the color around it, so a build that uses `bulma/sass/elements/notification` wants it too.
 
-- `elements/table` draws the keyboard focus ring of a responsive table's container, which is a tab stop while the table overflows it, and outlines a selected row or cell in forced colors, where Bulma's fill for it is replaced, so a build that uses `bulma/sass/elements/table` for a `Table` with `isResponsive` or selected rows, or for a `DataTable`, wants it too.
+- `elements/table` draws the keyboard focus ring of a responsive table's container, which is a tab stop while the table overflows it, and marks a selected row or cell with a double line in forced colors, where Bulma's fill for it is replaced, so a build that uses `bulma/sass/elements/table` for a `Table` with `isResponsive` or selected rows, or for a `DataTable` that selects rows, wants it too.
 
 - `elements/tag` gives a light tag, and a white, black or dark one with `isLight`, readable text the same way, and sets a normal-size tag in a table cell at the bottom of its line, where Bulma's baseline makes the row taller than a row of text, so a build that uses `bulma/sass/elements/tag` wants it too.
 
