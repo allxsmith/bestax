@@ -103,10 +103,10 @@ was given. A trio set at runtime leaves them as they were, so when a new color r
 darker than the built one, which a change of hue or saturation can do as well as a change of
 lightness, set them too:
 
-| Variable                  | What reads it                                                                                                                                                           |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--bulma-<c>-invert-l`    | the label on a solid `<c>` surface: `Button`, `Tag` and `Notification` with `color="<c>"`, a colored `Hero` or `Navbar`, …                                              |
-| `--bulma-<c>-on-scheme-l` | `<c>` text on the page: `textColor="<c>" colorShade="on-scheme"`, a colored `Message`'s body, a field's colored help text, `Steps`' and `Timeline`'s colored markers, … |
+| Variable                  | What reads it                                                                                                                                                                                                                 |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--bulma-<c>-invert-l`    | the label on a solid `<c>` surface: `Button`, `Tag` and `Notification` with `color="<c>"`, a colored `Hero` or `Navbar`, …                                                                                                    |
+| `--bulma-<c>-on-scheme-l` | `<c>` text on the page: `textColor="<c>" colorShade="on-scheme"`, `textColor="<c>"` where it's lighter than the trio's, a colored `Message`'s body, a field's colored help text, `Steps`' and `Timeline`'s colored markers, … |
 
 For `link`, the on-scheme lightness is also every link on the page (`--bulma-link-text`), so a new
 link color that reads lighter than Bulma's own leaves the page's links pale.
@@ -174,8 +174,13 @@ both of its paths:
 For a color of your own, pick each value by its contrast (4.5:1 or more for text), or build
 Bulma's Sass with the color (`@use 'bulma/sass' with ($primary: …)`), which computes both.
 
-`textColor="<c>"` alone renders `has-text-<c>`, which reads the trio's own lightness, so text in a
-light color on a light page takes `colorShade="on-scheme"` as well.
+`textColor="<c>"` alone renders `has-text-<c>`. On a dark page bestax's stylesheets give it the
+lighter of the trio's lightness and the on-scheme one, for each color they were built with but
+`white`, `black`, `light`, `dark` and `text`, and on a light page the trio's own, so text in a light color
+on a light page takes `colorShade="on-scheme"` as well. On the dark page a trio set without its
+on-scheme lightness comes out at the build's on-scheme lightness where that's the lighter one.
+Text on a surface that stays light on both schemes (`bgColor="white"`, `"light"` or a color's
+light shade) takes `colorShade="dark"`.
 
 The build pairs each numbered shade, and the light and dark variants, with a label shade the same
 way (`--bulma-<c>-<n>-invert-l`, `--bulma-<c>-light-invert-l`, `--bulma-<c>-dark-invert-l`),
@@ -876,10 +881,11 @@ sizes.
 A dark or light notification, with or without `isLight`, sets `--bulma-notification-background-l`
 and `--bulma-notification-color-l` to that color's own `--bulma-dark-l` and
 `--bulma-dark-invert-l`, or `--bulma-light-l` and `--bulma-light-invert-l`, so it reads as a dark
-or light button does. Bulma's own variant of that color would otherwise give it text that inherits
-the color around it. Those rules outrank a selector like `.notification.is-dark`, so set either
-variable on a dark or light notification through `style`. Bulma's own `--bulma-notification-*`
-variables set the rest.
+or light button does. A white or black notification with `isLight` keeps Bulma's light gray
+background and sets `--bulma-notification-color-l` to `--bulma-light-invert-l`. Bulma's own variant
+of each of those colors would otherwise give it text that inherits the color around it. Those rules
+outrank a selector like `.notification.is-dark`, so set either variable on such a notification
+through `style`. Bulma's own `--bulma-notification-*` variables set the rest.
 
 ### Numberinput
 
@@ -1145,11 +1151,11 @@ set on the root itself, since its own declaration wins over one on an ancestor.
 
 ### Tag
 
-A light tag, with or without `isLight`, sets `--bulma-tag-color-l` to the light color's own
-`--bulma-light-invert-l`, so its text reads as a light button's does. Bulma's light variant of the
-light color would otherwise give it text that inherits the color around it. That rule outranks a
-selector like `.tag.is-light`, so set the variable on a light tag through `style`. Bulma's own
-`--bulma-tag-*` variables set the rest.
+A light tag, with or without `isLight`, and a white, black or dark one with `isLight`, sets
+`--bulma-tag-color-l` to the light color's own `--bulma-light-invert-l`, so its text reads as a
+light button's does. Bulma's light variant of each of those colors would otherwise give it text
+that inherits the color around it. That rule outranks a selector like `.tag.is-light`, so set the
+variable on such a tag through `style`. Bulma's own `--bulma-tag-*` variables set the rest.
 
 ### Taginput
 

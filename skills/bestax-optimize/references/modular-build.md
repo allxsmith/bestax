@@ -96,7 +96,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 `delete`, `descriptionlist`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`,
 `progress`, `ringprogress`, `skeleton`, `stat`, `tag`
 
-**Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `cursor`, `sizing`, `visibility`
+**Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `color`, `cursor`, `sizing`, `visibility`
 
 Notes:
 
@@ -261,15 +261,17 @@ Notes:
 - `Notification` is stock Bulma too (`bulma/sass/elements/notification`). The `notification`
   extras partial pads the end of one with a close button (`hasDelete`, or a `Delete` passed in)
   so its text clears the button, and gives a dark or light one its color's own text and
-  background, where Bulma's module lets its text inherit the color around it. Include it
-  (`as bestax-notification`) next to the Bulma module in any build that shows a dismissible, dark
-  or light notification. It doesn't depend on the order of the two `@use` lines either.
-- `Tag` is stock Bulma too (`bulma/sass/elements/tag`). The `tag` extras partial gives a light tag
-  the light color's own text, where Bulma's module lets its text inherit the color around it, which
-  on the dark scheme leaves it hard to read, and sets a normal-size tag in a table cell at the
-  bottom of its line, where Bulma's baseline makes the row taller than a row of text. Include it (`as bestax-tag`) next
-  to the Bulma module in any build that shows a light tag or a tag in a table. It doesn't depend on
-  the order of the two `@use` lines either.
+  background, and a white or black one with `isLight` the light color's text, where Bulma's module
+  lets its text inherit the color around it. Include it (`as bestax-notification`) next to the
+  Bulma module in any build that shows a dismissible, dark or light notification, or a white or
+  black one with `isLight`. It doesn't depend on the order of the two `@use` lines either.
+- `Tag` is stock Bulma too (`bulma/sass/elements/tag`). The `tag` extras partial gives a light tag,
+  and a white, black or dark one with `isLight`, text that reads on its light background, where
+  Bulma's module lets its text inherit the color around it, which on the dark scheme leaves it hard
+  to read, and sets a normal-size tag in a table cell at the bottom of its line, where Bulma's
+  baseline makes the row taller than a row of text. Include it (`as bestax-tag`) next to the Bulma
+  module in any build that shows one of those tags or a tag in a table. It doesn't depend on the
+  order of the two `@use` lines either.
 - `Delete` is stock Bulma too, and it's the close button of `Notification`, `Message`, `Toast`, a
   `Modal` card, `AppFrame`'s drawer and the tags of `Taginput`, `Combobox`, `Dropzone` and
   `TreeSelect`. Bulma draws it in `bulma/sass/elements/delete`, and the modules of the components
@@ -334,6 +336,16 @@ not `flexbox` — `flexbox` holds only the alignment props. Verified failure mod
 @use 'bulma/sass/helpers/visibility'; // display/visibility props incl. display="flex" (is-flex/is-block/is-hidden*)
 @use '@allxsmith/bestax-bulma/scss/helpers/visibility' as bestax-visibility; // visibility*="sr-only" at a breakpoint (is-sr-only-tablet…)
 @use 'bulma/sass/helpers/other'; // interaction, radius="radiusless", shadow="shadowless"
+```
+
+With `bulma/sass/helpers/color`, include the `color` extras partial (`as bestax-color`) too. On
+the dark scheme it gives a color's text (`textColor`, `has-text-*`) the color's on-scheme
+lightness wherever that's the lighter one, so a dark color such as the bestax blue primary reads
+there. It doesn't depend on the order of the two `@use` lines:
+
+```scss
+@use 'bulma/sass/helpers/color';
+@use '@allxsmith/bestax-bulma/scss/helpers/color' as bestax-color;
 ```
 
 ## Procedure
