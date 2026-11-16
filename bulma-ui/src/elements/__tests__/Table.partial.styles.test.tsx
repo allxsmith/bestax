@@ -134,7 +134,8 @@ describe('a selected row or cell in forced colors', () => {
       const selected = ['tr', 'td', 'th'].map(
         tag => `.${prefix}table ${tag}.${prefix}is-selected`
       );
-      expect(blocksOf(split(compile(prefix)).forced)).toEqual([
+      const { outside, forced } = split(compile(prefix));
+      expect(blocksOf(forced)).toEqual([
         {
           selector: selected.join(', '),
           declarations: {
@@ -151,9 +152,7 @@ describe('a selected row or cell in forced colors', () => {
       ]);
       // Outside forced colors, nothing names a selected row or cell.
       expect(
-        blocksOf(split(compile(prefix)).outside).filter(rule =>
-          rule.selector.includes('is-selected')
-        )
+        blocksOf(outside).filter(rule => rule.selector.includes('is-selected'))
       ).toEqual([]);
     }
   );
