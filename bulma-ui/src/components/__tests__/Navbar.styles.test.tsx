@@ -301,13 +301,14 @@ describe('the Navbar partial', () => {
     ['no prefix', ''],
     ['a class prefix', 'bestax-'],
   ])(
-    'keeps the burger in forced colors, a fixed navbar’s lock margins and an active item’s text at no weight, and a prefixed dropdown’s active row over Bulma’s row rules, with %s, naming only prefixed classes',
+    'keeps the burger and the divider in forced colors, a fixed navbar’s lock margins and an active item’s text at no weight, and a prefixed dropdown’s active row over Bulma’s row rules, with %s, naming only prefixed classes',
     (_label, prefix) => {
       const rules = rulesOf(compile(prefix));
       expect(
-        rules.slice(0, 2).map(rule => [rule.selector, rule.context])
+        rules.slice(0, 3).map(rule => [rule.selector, rule.context])
       ).toEqual([
         [`.${prefix}navbar-burger.${prefix}navbar-burger span`, [FORCED]],
+        [`.${prefix}navbar-divider.${prefix}navbar-divider`, [FORCED]],
         [
           `:where(.${prefix}navbar.${prefix}is-fixed-top, .${prefix}navbar.${prefix}is-fixed-bottom)`,
           [],
@@ -317,7 +318,7 @@ describe('the Navbar partial', () => {
       // rows under the burger and a bold hero's menu on a phone.
       // A prefixed build ends with one more rule, for a dropdown's active row.
       const extra = prefix ? 1 : 0;
-      const hero = rules.slice(2, -1 - extra);
+      const hero = rules.slice(3, -1 - extra);
       expect(hero.map(rule => rule.context)).toEqual([
         [],
         ['@media screen and (max-width: 1023px)'],
@@ -336,7 +337,11 @@ describe('the Navbar partial', () => {
         'forced-color-adjust': 'none',
         'background-color': 'ButtonText',
       });
-      expect(rules[1].declarations).toEqual(LOCK_MARGINS);
+      expect(rules[1].declarations).toEqual({
+        'forced-color-adjust': 'none',
+        'background-color': 'CanvasText',
+      });
+      expect(rules[2].declarations).toEqual(LOCK_MARGINS);
       // Then an active item's text color, at no weight either.
       const last = rules[rules.length - 1 - extra];
       expect([last.selector, last.context]).toEqual([

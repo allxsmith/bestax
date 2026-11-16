@@ -7,7 +7,8 @@
 //
 // Bulma's CSS can land on either side of this partial, as it can for
 // `_delete.scss`, so the selector names its class twice to outrank Bulma's
-// `.navbar-burger span`, wherever the two load.
+// `.navbar-burger span`, wherever the two load. `.navbar-divider`, another
+// background with no border, is drawn in CanvasText there the same way.
 //
 // A navbar fixed to the top or the bottom of the window (`Navbar fixed`)
 // spans it. While an overlay locks the page, the window takes back the room
@@ -76,6 +77,14 @@
     // Opt out so Chromium keeps these bars in ButtonText, not Canvas.
     forced-color-adjust: none;
     background-color: ButtonText;
+  }
+
+  // Bulma draws the divider as a background with no border, which forced
+  // colors paints in Canvas, the dropdown's own color there. It keeps
+  // Bulma's display, which hides it outside the desktop menu.
+  .#{iv.$class-prefix}navbar-divider.#{iv.$class-prefix}navbar-divider {
+    forced-color-adjust: none;
+    background-color: CanvasText;
   }
 }
 
