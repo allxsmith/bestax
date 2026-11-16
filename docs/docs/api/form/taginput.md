@@ -493,6 +493,7 @@ function TaginputFormDemo() {
 - Focus stays in the input, which points `aria-activedescendant` at the highlighted suggestion as the arrow keys or the mouse move it
 - The list is a `role="listbox"` named through `aria-labelledby` by the label that names the input, when that label has an id: the `label` prop's label always has one, and so does a `Field`'s label that the `Field` wires itself. A `Field` label you wire by hand with `labelProps.htmlFor`, which is how the horizontal examples above name the Taginput, needs an `id` in its `labelProps` as well. Otherwise the list falls back to `aria-label="Suggestions"`
 - The list holds only the suggestions, each a `role="option"` with an id of its own, and the highlighted one has `aria-selected="true"`
+- In forced colors (Windows' contrast themes), which take away the list's shadow and the highlighted suggestion's fill, the open list is drawn with an edge and the highlighted suggestion with an outline in the system's highlight color
 - The `message` describes the input through `aria-describedby`, after the counter while it shows, so a screen reader reads both when the input takes focus.
 
 ---

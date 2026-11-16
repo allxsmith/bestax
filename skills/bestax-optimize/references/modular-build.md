@@ -263,7 +263,9 @@ Notes:
   skeleton pulse (`Skeleton`, the `skeleton` prop, `hasSkeleton`) under
   `prefers-reduced-motion: reduce`, the same way and in either order. The `progress` partial
   also keeps the bar drawn in forced colors, its fill and an edge in the text color, where
-  Bulma's module leaves the whole bar the page's color.
+  Bulma's module leaves the whole bar the page's color. The `skeleton` partial keeps each shape
+  drawn there too, in `GrayText`, with the text Bulma hides still hidden, where Bulma's module
+  leaves the shape the page's color and shows that text.
 - `Notification` is stock Bulma too (`bulma/sass/elements/notification`). The `notification`
   extras partial pads the end of one with a close button (`hasDelete`, or a `Delete` passed in)
   so its text clears the button, and gives a dark or light one its color's own text and
@@ -316,15 +318,17 @@ Notes:
   ```
 
   The `table` extras partial draws the keyboard focus ring of a responsive table's container
-  (`isResponsive`), which is a tab stop while the table overflows it, in Bulma's focus color.
-  Include it next to the Bulma module in any build with a responsive table:
+  (`isResponsive`), which is a tab stop while the table overflows it, in Bulma's focus color, and
+  marks a selected row or cell (`Tr isSelected`, and a `DataTable`'s selected rows) with a double
+  line in forced colors, where Bulma's fill for it is replaced. Include it next to the Bulma module
+  in any build with a responsive table or selected rows:
 
   ```scss
   @use '@allxsmith/bestax-bulma/scss/elements/table' as bestax-table;
   ```
 
-  Bulma's module styles no focus on the container, so the order of the two `@use` lines does
-  not matter.
+  Bulma's module sets no outline on the container or on a selected row or cell, so the order of
+  the two `@use` lines does not matter.
 
 - Stock-Bulma form controls still need their Bulma module (`bulma/sass/form/…`); the extras
   form partials above style only the bestax-specific behavior.
