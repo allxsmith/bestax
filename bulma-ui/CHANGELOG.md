@@ -1,3 +1,21 @@
+## [5.73.4](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.73.3...@allxsmith/bestax-bulma@5.73.4) (2026-11-16)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** leave room under 10k for the drift warning on get_helper_props ([803c676](https://github.com/allxsmith/bestax/commit/803c67678f4525c37e10e1fc07c410f19d6e8570)), closes [#1835](https://github.com/allxsmith/bestax/issues/1835)
+* **bestax-mcp:** mark the props a caller must pass in get_props ([8eb2a1d](https://github.com/allxsmith/bestax/commit/8eb2a1d918e0d4a12e4b01dbc1d39ae19a8680d0)), closes [#1754](https://github.com/allxsmith/bestax/issues/1754)
+* **bulma-ui:** draw Steps in Bulma's colors again ([0b37c55](https://github.com/allxsmith/bestax/commit/0b37c55d37530ddbdc976bcf2487659c8c6add61)), closes [#1696](https://github.com/allxsmith/bestax/issues/1696) [#1798](https://github.com/allxsmith/bestax/issues/1798) [#1826](https://github.com/allxsmith/bestax/issues/1826)
+* **bulma-ui:** undo [#1770](https://github.com/allxsmith/bestax/issues/1770)'s recolor of Slider's mark labels and TreeSelect's chevron ([0230b45](https://github.com/allxsmith/bestax/commit/0230b45bc730f5e1651396a4f44f65b3d48698c0)), closes [#1832](https://github.com/allxsmith/bestax/issues/1832)
+* **docs:** mark the props a caller must pass in the API tables and the MCP index ([60f5d1f](https://github.com/allxsmith/bestax/commit/60f5d1f120f664992f496e3f5e100d1d7b2d897d)), closes [#1754](https://github.com/allxsmith/bestax/issues/1754)
+
+## [5.73.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.73.2...@allxsmith/bestax-bulma@5.73.3) (2026-11-16)
+
+
+### Bug Fixes
+
+* **bulma-ui:** fill a right-to-left Rate's half star from the side the pointer reads ([6a1133f](https://github.com/allxsmith/bestax/commit/6a1133f40e02a811276aa88cbc2e79e05d30cdd5)), closes [#1825](https://github.com/allxsmith/bestax/issues/1825)
+
 ## [5.73.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.73.1...@allxsmith/bestax-bulma@5.73.2) (2026-11-16)
 
 

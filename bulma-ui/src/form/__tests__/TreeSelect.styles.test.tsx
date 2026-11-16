@@ -95,19 +95,20 @@ describe('TreeSelect styles', () => {
     ['no prefix', PLAIN, ''],
     ['a class prefix', PREFIXED, 'bestax-'],
   ])(
-    'draws the chevron in colors that follow the scheme, with %s',
+    "draws the chevron in Bulma's input icon grays, with %s",
     (_label, sheet, x) => {
+      // text-light at rest and text-weak on hover, the grays Bulma's own
+      // input icon takes. Bulma's stock colors change only when the owner
+      // asks (the root CLAUDE.md, "Bulma's stock colors and the bestax blue").
       const vars = body(
         sheet,
         `.${x}tree-select, .${x}tree-select-panel.${x}is-portal`
       );
-      // Not text-light, a fixed light gray at about 1.3:1 on the light
-      // scheme's white.
       expect(vars).toContain(
-        '--bulma-tree-select-chevron-color: var(--bulma-text-weak)'
+        '--bulma-tree-select-chevron-color: var(--bulma-text-light)'
       );
       expect(vars).toContain(
-        '--bulma-tree-select-chevron-hover-color: var(--bulma-text)'
+        '--bulma-tree-select-chevron-hover-color: var(--bulma-text-weak)'
       );
       expect(body(sheet, `.${x}tree-select-chevron`)).toContain(
         'color: var(--bulma-tree-select-chevron-color)'

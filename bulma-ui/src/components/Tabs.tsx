@@ -449,7 +449,7 @@ export interface TabProps extends Omit<
   React.LiHTMLAttributes<HTMLLIElement>,
   'onClick'
 > {
-  /** **Required.** Tab index for matching with content. */
+  /** Tab index for matching with content. */
   index: number;
   /**
    * Disables the tab. A disabled tab is marked `aria-disabled`, cannot be
@@ -696,7 +696,7 @@ const TabsContentComponent: React.FC<TabsContentProps> = ({
  * @extraProp {number} [tabIndex] - The panel is not focusable by default. Pass `0` when it holds nothing focusable, so Tab moves from the tab list into it.
  */
 export interface TabContentItemProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** **Required.** Tab index for matching with content. */
+  /** Tab index for matching with content. */
   index: number;
   /** Additional CSS classes. */
   className?: string | undefined;

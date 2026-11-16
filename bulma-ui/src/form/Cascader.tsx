@@ -111,7 +111,7 @@ export interface CascaderProps
     >,
     Omit<BulmaClassesProps, 'color'>,
     FormFieldProps {
-  /** **Required.** The tree, as nodes nested through `children`. The same nodes TreeSelect takes. */
+  /** The tree, as nodes nested through `children`. The same nodes TreeSelect takes. */
   data: TreeItemData[];
   /**
    * The field's label, which names the field through `htmlFor`, and the

@@ -352,7 +352,7 @@
           "type": "number",
           "default": null,
           "description": "The change, as Stat's `change`. One that rounds to zero in its format, such as `0.0004` at one decimal place of a percentage, reads as zero, so it gets no arrow and no color of its own.",
-          "required": false,
+          "required": true,
           "inherited": false,
           "deprecated": false
         },

@@ -578,10 +578,10 @@ Set `allowNew={false}` when you need strict control over allowed values, such as
 
 Can be either a `string` or an object with:
 
-| Prop    | Type     | Description               |
-| ------- | -------- | ------------------------- |
-| `value` | `string` | The tag value.            |
-| `label` | `string` | Display label (optional). |
+| Prop    | Type     | Description                  |
+| ------- | -------- | ---------------------------- |
+| `value` | `string` | **Required.** The tag value. |
+| `label` | `string` | Display label.               |
 
 ---
 
