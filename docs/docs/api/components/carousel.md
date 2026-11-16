@@ -37,7 +37,7 @@ import { Carousel, CarouselItem } from '@allxsmith/bestax-bulma';
 A simple carousel with colored slides using the Hero component.
 
 ```tsx live
-<Carousel indicatorStyle="dots">
+<Carousel ariaLabel="Highlights" indicatorStyle="dots">
   <CarouselItem>
     <Hero color="primary" size="medium">
       <Hero.Body textAlign="centered">
@@ -69,7 +69,12 @@ A simple carousel with colored slides using the Hero component.
 `itemsToShow` puts several items in view at once, and the `itemsToShow<Viewport>` props change that count at Bulma's breakpoints, the way a `Column`'s `size<Viewport>` props change its width. Here it's one card on mobile, two from tablet up, and three from desktop up.
 
 ```tsx live
-<Carousel itemsToShow={1} itemsToShowTablet={2} itemsToShowDesktop={3}>
+<Carousel
+  ariaLabel="Rooms"
+  itemsToShow={1}
+  itemsToShowTablet={2}
+  itemsToShowDesktop={3}
+>
   {[
     'Garden Room',
     'Harbor Suite',
@@ -111,7 +116,12 @@ The widths come from the stylesheet: `Carousel` writes each count prop as a CSS 
 The indicators mark the positions a step can land on, not the items. Without `repeat`, the last position is the last full view, so the last step can be shorter and the end of the track never shows empty space: with seven items, three in view and `itemsToScroll={3}`, the positions start at items 1, 4 and 5.
 
 ```tsx live
-<Carousel itemsToShow={3} itemsToScroll={3} repeat={false}>
+<Carousel
+  ariaLabel="Numbered items"
+  itemsToShow={3}
+  itemsToScroll={3}
+  repeat={false}
+>
   {[1, 2, 3, 4, 5, 6, 7].map(n => (
     <CarouselItem key={n}>
       <Box m="2" textAlign="centered">
@@ -133,7 +143,7 @@ The cards above keep apart with their own margin. To space the items themselves,
 ```
 
 ```tsx
-<Carousel className="room-gallery" itemsToShow={3}>
+<Carousel ariaLabel="Room gallery" className="room-gallery" itemsToShow={3}>
   {/* items */}
 </Carousel>
 ```
@@ -153,7 +163,7 @@ The cards above keep apart with their own margin. To space the items themselves,
 Carousel that automatically advances slides.
 
 ```tsx live
-<Carousel autoplay interval={3000}>
+<Carousel ariaLabel="Status colors" autoplay interval={3000}>
   <CarouselItem>
     <Hero color="info" size="medium">
       <Hero.Body textAlign="centered">
@@ -217,7 +227,7 @@ function IndicatorExample() {
           Bars
         </Button>
       </Buttons>
-      <Carousel indicatorStyle={style}>
+      <Carousel ariaLabel="Indicator styles" indicatorStyle={style}>
         <CarouselItem>
           <Hero color="primary" size="medium">
             <Hero.Body textAlign="centered">
@@ -252,7 +262,7 @@ function IndicatorExample() {
 `indicatorInside` moves the indicators from below the slides onto them, at the bottom edge, or the top one with `indicatorPosition="top"`. On its own it also turns on the overlay look, made for photos: light arrows, and light indicators on a dark gradient band. The look's colors are the `--bulma-carousel-overlay-*` variables, and `arrowColor` doesn't apply while it's on.
 
 ```tsx live
-<Carousel indicatorInside>
+<Carousel ariaLabel="Indicators over the slides" indicatorInside>
   <CarouselItem>
     <Hero color="dark" size="medium">
       <Hero.Body textAlign="centered">
@@ -288,7 +298,7 @@ function IndicatorExample() {
 The arrows and the indicators sit over the edges of each slide, so give the slide's content room to clear them. Here each card centers its text, with space above and below it:
 
 ```tsx live
-<Carousel indicatorInside overlayControls={false}>
+<Carousel ariaLabel="Featured rooms" indicatorInside overlayControls={false}>
   {['Garden Room', 'Harbor Suite', 'Loft', 'Courtyard Twin'].map(room => (
     <CarouselItem key={room}>
       <Card m="2">
@@ -313,7 +323,7 @@ The arrows and the indicators sit over the edges of each slide, so give the slid
 `overlayControls` without `indicatorInside` gives the arrows the overlay look and leaves the indicators below the slides. They keep their plain colors there, since they sit on the page rather than on the slides:
 
 ```tsx live
-<Carousel overlayControls>
+<Carousel ariaLabel="Overlay arrows" overlayControls>
   <CarouselItem>
     <Hero color="dark" size="medium">
       <Hero.Body textAlign="centered">
@@ -338,7 +348,7 @@ The arrows and the indicators sit over the edges of each slide, so give the slid
 Carousel with indicators only.
 
 ```tsx live
-<Carousel arrow={false}>
+<Carousel ariaLabel="Navigation without arrows" arrow={false}>
   <CarouselItem>
     <Hero color="primary" size="medium">
       <Hero.Body textAlign="centered">
@@ -363,7 +373,7 @@ Carousel with indicators only.
 Show arrows only when hovering over the carousel.
 
 ```tsx live
-<Carousel arrowHover>
+<Carousel ariaLabel="Arrows on hover" arrowHover>
   <CarouselItem>
     <Hero color="dark" size="medium">
       <Hero.Body textAlign="centered">
@@ -395,7 +405,7 @@ Show arrows only when hovering over the carousel.
 Remove the arrow button backgrounds to show just the icons.
 
 ```tsx live
-<Carousel arrowBackground={false}>
+<Carousel ariaLabel="Transparent arrows" arrowBackground={false}>
   <CarouselItem>
     <Hero color="primary" size="medium">
       <Hero.Body textAlign="centered">
@@ -428,6 +438,7 @@ Customize navigation arrows using the icon props. The Carousel uses the Icon com
 
 ```tsx live
 <Carousel
+  ariaLabel="Font Awesome arrows"
   iconPrev="chevron-left"
   iconNext="chevron-right"
   iconLibrary="fa"
@@ -460,7 +471,12 @@ Customize navigation arrows using the icon props. The Carousel uses the Icon com
 ### With Material Design Icons
 
 ```tsx live
-<Carousel iconPrev="arrow-left" iconNext="arrow-right" iconLibrary="mdi">
+<Carousel
+  ariaLabel="Material Design arrows"
+  iconPrev="arrow-left"
+  iconNext="arrow-right"
+  iconLibrary="mdi"
+>
   <CarouselItem>
     <Hero color="primary" size="medium">
       <Hero.Body textAlign="centered">
@@ -514,6 +530,7 @@ function ControlledExample() {
         </Button>
       </Buttons>
       <Carousel
+        ariaLabel="Controlled slides"
         value={currentSlide}
         onChange={setCurrentSlide}
         indicator={false}
@@ -553,7 +570,7 @@ function ControlledExample() {
 Carousel that stops at the first and last slides.
 
 ```tsx live
-<Carousel repeat={false}>
+<Carousel ariaLabel="Slides without repeat" repeat={false}>
   <CarouselItem>
     <Hero color="danger" size="medium">
       <Hero.Body textAlign="centered">
@@ -583,6 +600,7 @@ Carousel that stops at the first and last slides.
 ## Accessibility
 
 - Uses `role="region"` with `aria-roledescription="carousel"`
+- Name each carousel for what it shows with `ariaLabel`, such as "Featured products", and leave the word "carousel" out of it, since the role description already says it. Under a visible heading, pass `aria-labelledby` with the heading's id instead, which names it ahead of the `aria-label` the default still sets. The default, "Image carousel", is a placeholder: with the role description it says "carousel" twice, and every carousel left with it has the same name
 - Each item is a `group` with `aria-roledescription="slide"`, named for its place, such as "2 of 6". An item's own `aria-label` or `aria-labelledby` takes the place of that name
 - Items out of view are `aria-hidden` and `inert`, so screen readers skip them and nothing in them takes focus. With several in view, every item in view is exposed. The copies a loop adds at each end of the track follow the same rule, so where the view runs past the last item, the copies on screen are the ones exposed
 - The track is a polite live region, so what comes into view is announced, except while autoplay is moving it (`aria-live="off"`)
@@ -651,7 +669,7 @@ Use the `pauseOnHover` prop (enabled by default) to let users interact with caro
 | `iconFeatures`          | `string` \| `string[]`                                                     | —                  | Additional icon modifiers.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `arrowBackground`       | `boolean`                                                                  | `true`             | Show semi-transparent background on arrow buttons. Set to `false` for icon-only arrows, which show Bulma's focus outline while they have keyboard focus, as a ghost `Button` does.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `arrowColor`            | `'light'` \| `'dark'`                                                      | —                  | Color theme for navigation arrows. Not applied while the overlay look is on (see `overlayControls`, which `indicatorInside` turns on), whose arrows take `--bulma-carousel-overlay-arrow-color`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `ariaLabel`             | `string`                                                                   | `'Image carousel'` | Accessible label for the carousel region. Default: 'Image carousel'.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `ariaLabel`             | `string`                                                                   | `'Image carousel'` | The carousel region's name. Name it for what it shows, such as "Featured products", and leave out the word "carousel", which the region's role description already says. Under a visible heading, `aria-labelledby` with the heading's id names it instead, ahead of the `aria-label` the default still sets. The default is a placeholder that says "carousel" twice with the role description, and is the same on every carousel left with it. Default: 'Image carousel'.                                                                                                                                                                                                                           |
 | `onChange`              | `(value: number) => void`                                                  | —                  | Called with the index of the first item in view when an arrow, an arrow key, an indicator, a swipe or autoplay moves the carousel.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `children`              | `React.ReactNode`                                                          | —                  | CarouselItem children.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `className`             | `string`                                                                   | —                  | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
