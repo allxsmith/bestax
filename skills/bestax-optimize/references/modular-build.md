@@ -94,7 +94,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `button`, `colorswatch`,
 `delete`, `descriptionlist`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`,
-`progress`, `ringprogress`, `skeleton`, `stat`, `tag`
+`progress`, `ringprogress`, `skeleton`, `stat`, `table`, `tag`
 
 **Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `color`, `cursor`, `sizing`, `visibility`
 
@@ -311,6 +311,17 @@ Notes:
     $table-cell-text-align: start
   );
   ```
+
+  The `table` extras partial draws the keyboard focus ring of a responsive table's container
+  (`isResponsive`), which is a tab stop while the table overflows it, in Bulma's focus color.
+  Include it next to the Bulma module in any build with a responsive table:
+
+  ```scss
+  @use '@allxsmith/bestax-bulma/scss/elements/table' as bestax-table;
+  ```
+
+  Bulma's module styles no focus on the container, so the order of the two `@use` lines does
+  not matter.
 
 - Stock-Bulma form controls still need their Bulma module (`bulma/sass/form/…`); the extras
   form partials above style only the bestax-specific behavior.
