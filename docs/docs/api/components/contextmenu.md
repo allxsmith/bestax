@@ -419,9 +419,10 @@ And around it:
 - Nothing listens on the page while the menu is closed and no finger is held on its trigger, so a
   table with a menu on every row adds no listeners until one is used.
 - The menu doesn't animate.
-- In forced colors (Windows' contrast themes), a divider is drawn in the system's text color, as in
-  `Dropdown`. That rule ships in `bestax.css` and `extras.css`, from the dropdown partial, so a
-  modular build adds `scss/components/dropdown` for it.
+- In forced colors (Windows' contrast themes), a divider is drawn in the system's text color, and
+  an `active` item is marked with a bar in the system's highlight color, as in `Dropdown`. Those
+  rules ship in `bestax.css` and `extras.css`, from the dropdown partial, so a modular build adds
+  `scss/components/dropdown` for them.
 
 ---
 
