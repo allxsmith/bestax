@@ -37,7 +37,7 @@ import { UnorderedList, ListItem } from '@allxsmith/bestax-bulma';
 ## Usage
 
 :::info Wrap Lists in Content for Traditional Styling
-Without a [`Content`](./content.md) wrapper, Bulma renders lists without the traditional margin, padding, and list-style markers (bullets, numbers). Wrap your lists in `<Content>` to get the expected typographic list appearance.
+Without a [`Content`](./content.md) wrapper, Bulma renders lists without the traditional margin, padding, and list-style markers (bullets). Wrap your lists in `<Content>` to get the expected typographic list appearance.
 :::
 
 ### Default List
