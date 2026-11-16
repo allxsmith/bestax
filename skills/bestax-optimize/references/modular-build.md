@@ -93,7 +93,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 `colorinput`, `passwordinput`, `treeselect`, `cascader`
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `button`, `colorswatch`,
-`delete`, `descriptionlist`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`,
+`delete`, `descriptionlist`, `divider`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`,
 `progress`, `ringprogress`, `skeleton`, `stat`, `tag`
 
 **Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `color`, `cursor`, `sizing`, `visibility`
@@ -293,6 +293,12 @@ Notes:
   colors, and an outlined button the lightness Bulma picks for its color's text on the page where
   that's lighter, so a dark color reads on the dark scheme, so include it (`as bestax-button`) in any build that loads Bulma's button module. Its
   rules win over Bulma's either way, so the order of the `@use` lines does not matter.
+- `Divider` renders an `<hr>`, which Bulma draws in its base (`bulma/sass/base`) as a background
+  color with no border. Forced colors (Windows' contrast themes) replaces that color with the
+  page's own, so the line vanishes there. The `divider` extras partial draws it as a border in the
+  system's text color, so include it in any build that shows a `Divider` or an `<hr>`. Its rule
+  wins over Bulma's either way, so the order of the `@use` lines does not matter, and an `<hr>`
+  with a class of its own keeps its own rules.
 - `Stats` lays its row out on Bulma's smart grid (`.grid` and `is-col-min-*`), so a build with a
   `Stats` row wants `bulma/sass/grid/grid` beside the `stat` partial, which only resets the row's
   margins.
