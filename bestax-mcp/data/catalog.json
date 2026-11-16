@@ -2984,6 +2984,7 @@
       "TreeSelect"
     ],
     "--bulma-picker-popover-months-max-width": [
+      "Cascader",
       "ColorInput",
       "DateInput",
       "DateRangeInput",
@@ -3092,11 +3093,9 @@
     "--bulma-radio-size": ["Radio"],
     "--bulma-radio-transition-duration": ["Radio"],
     "--bulma-rate-color-active": ["Rate"],
-    "--bulma-rate-color-edge": ["Rate"],
     "--bulma-rate-color-hover": ["Rate"],
     "--bulma-rate-color-inactive": ["Rate"],
     "--bulma-rate-disabled-opacity": ["Rate"],
-    "--bulma-rate-edge-width": ["Rate"],
     "--bulma-rate-font-icon-size": ["Rate"],
     "--bulma-rate-font-icon-size-large": ["Rate"],
     "--bulma-rate-font-icon-size-medium": ["Rate"],
