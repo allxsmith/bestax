@@ -11,11 +11,11 @@
     },
     {
       "title": "Has Skeleton",
-      "code": "<SubTitle hasSkeleton>SubTitle with Skeleton Effect</SubTitle>"
+      "code": "<SubTitle hasSkeleton aria-hidden=\"true\">\n  SubTitle with Skeleton Effect\n</SubTitle>"
     },
     {
       "title": "Is Skeleton",
-      "code": "<SubTitle skeleton>SubTitle Skeleton Effect</SubTitle>"
+      "code": "<SubTitle skeleton aria-hidden=\"true\">\n  SubTitle Skeleton Effect\n</SubTitle>"
     },
     {
       "title": "Different Sizes",
