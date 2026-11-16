@@ -682,12 +682,26 @@ $slider-vertical-height: 200px !default;
     }
   }
 
+  // Forced colors keeps an opacity, and the tick's would dim the line and the
+  // label inside it to half strength, so both draw at full strength here.
   .#{iv.$class-prefix}slider-tick {
     background: ButtonText;
+    opacity: 1;
   }
 
   .#{iv.$class-prefix}slider-tick-label {
     color: ButtonText;
+  }
+
+  // A disabled slider's ticks and labels take the color for disabled text,
+  // the color its track and thumb take. An endpoint's tick keeps no line.
+  .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-disabled
+    .#{iv.$class-prefix}slider-tick:not(.#{iv.$class-prefix}is-endpoint) {
+    background: GrayText;
+  }
+
+  .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-disabled .#{iv.$class-prefix}slider-tick-label {
+    color: GrayText;
   }
 
   .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-range .#{iv.$class-prefix}slider-track {

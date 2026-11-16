@@ -94,7 +94,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `button`, `colorswatch`,
 `delete`, `descriptionlist`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`,
-`progress`, `ringprogress`, `skeleton`, `stat`, `tag`
+`progress`, `ringprogress`, `skeleton`, `stat`, `table`, `tag`
 
 **Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `color`, `cursor`, `sizing`, `visibility`
 
@@ -253,7 +253,8 @@ Notes:
 - `Loader` is stock Bulma styled by `bulma/sass/elements/loader`, and the `isLoading`
   spinners on `Button`, `Control` and `Select` are Bulma's too. The `loader` extras partial
   stops all of them under `prefers-reduced-motion: reduce`, hides everything inside a loading
-  button where Bulma hides only the label, and keeps each ring open in forced colors (Windows'
+  button where Bulma hides only the label, outlines a loading button that has keyboard focus,
+  whose focus shadow Bulma takes away, and keeps each ring open in forced colors (Windows'
   contrast themes), so include it (`as bestax-loader`) next to the Bulma modules in any build
   that shows one. Its
   rules win over Bulma's either way, so the order of the two `@use` lines does not matter.
@@ -261,7 +262,9 @@ Notes:
   `bulma/sass/base/skeleton`). The `progress` and `skeleton` extras partials
   (`as bestax-progress`, `as bestax-skeleton`) stop the indeterminate bar's sweep and the
   skeleton pulse (`Skeleton`, the `skeleton` prop, `hasSkeleton`) under
-  `prefers-reduced-motion: reduce`, the same way and in either order.
+  `prefers-reduced-motion: reduce`, the same way and in either order. The `progress` partial
+  also keeps the bar drawn in forced colors, its fill and an edge in the text color, where
+  Bulma's module leaves the whole bar the page's color.
 - `Notification` is stock Bulma too (`bulma/sass/elements/notification`). The `notification`
   extras partial pads the end of one with a close button (`hasDelete`, or a `Delete` passed in)
   so its text clears the button, and gives a dark or light one its color's own text and
@@ -288,11 +291,13 @@ Notes:
   include it (`as bestax-delete`) in any build that shows a close button. Its rules win over
   Bulma's either way, so the order of the `@use` lines does not matter.
 - `Button` is stock Bulma too (`bulma/sass/elements/button`). Bulma shows a focused button with
-  its border and a shadow, which a ghost button doesn't have, and forced colors (Windows'
+  its border and a shadow, which a ghost button doesn't have and a static one doesn't show, and
+  forced colors (Windows'
   contrast themes) drops the shadow and sets the border's color, so a focused button can look
   like an unfocused one there. Forced colors also replaces a colored button's fill, which Bulma
   draws with no border, so an icon-only one shows only its glyph there. The `button` extras
-  partial gives those focused buttons an outline, a colored button a 1px border in forced
+  partial gives those focused buttons an outline, apart from a loading one, which the `loader`
+  partial outlines, a colored button a 1px border in forced
   colors, and an outlined button the lightness Bulma picks for its color's text on the page where
   that's lighter, so a dark color reads on the dark scheme, so include it (`as bestax-button`) in any build that loads Bulma's button module. Its
   rules win over Bulma's either way, so the order of the `@use` lines does not matter.
@@ -309,6 +314,17 @@ Notes:
     $table-cell-text-align: start
   );
   ```
+
+  The `table` extras partial draws the keyboard focus ring of a responsive table's container
+  (`isResponsive`), which is a tab stop while the table overflows it, in Bulma's focus color.
+  Include it next to the Bulma module in any build with a responsive table:
+
+  ```scss
+  @use '@allxsmith/bestax-bulma/scss/elements/table' as bestax-table;
+  ```
+
+  Bulma's module styles no focus on the container, so the order of the two `@use` lines does
+  not matter.
 
 - Stock-Bulma form controls still need their Bulma module (`bulma/sass/form/…`); the extras
   form partials above style only the bestax-specific behavior.

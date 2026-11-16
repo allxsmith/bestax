@@ -1,5 +1,6 @@
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
+@use '../anchored-shift' as *;
 @use '../input-trigger' as *;
 
 $picker-popover-z-index: 30 !default;
@@ -33,6 +34,8 @@ $picker-trigger-disabled-opacity: 0.5 !default;
 }
 
 .#{iv.$class-prefix}picker-popover {
+  // The sideways shift the component writes, 0 while the panel fits.
+  @include extras-anchored-shift;
   position: absolute;
   z-index: cv.getVar('picker-popover-z-index');
   background-color: cv.getVar('picker-popover-background');
@@ -48,22 +51,22 @@ $picker-trigger-disabled-opacity: 0.5 !default;
   // positioning hook can read it off the panel when `auto` picks a corner.
   &.#{iv.$class-prefix}is-bottom-left {
     top: 100%;
-    left: 0;
+    @include extras-anchored-left;
     margin-top: cv.getVar('picker-popover-offset');
   }
   &.#{iv.$class-prefix}is-bottom-right {
     top: 100%;
-    right: 0;
+    @include extras-anchored-right;
     margin-top: cv.getVar('picker-popover-offset');
   }
   &.#{iv.$class-prefix}is-top-left {
     bottom: 100%;
-    left: 0;
+    @include extras-anchored-left;
     margin-bottom: cv.getVar('picker-popover-offset');
   }
   &.#{iv.$class-prefix}is-top-right {
     bottom: 100%;
-    right: 0;
+    @include extras-anchored-right;
     margin-bottom: cv.getVar('picker-popover-offset');
   }
   // With no `position`, the panel lines up with the field's inline start, so
@@ -76,7 +79,7 @@ $picker-trigger-disabled-opacity: 0.5 !default;
       :not(.#{iv.$class-prefix}is-portal):dir(rtl)
     ) {
     left: auto;
-    right: 0;
+    @include extras-anchored-right;
   }
   // At least as wide as the anchor it's placed against, as a list under a
   // field is. Portaled, the anchor's width comes inline instead, since 100%
