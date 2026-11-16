@@ -118,7 +118,9 @@ describe('ranking realistic queries', () => {
     ['date picker', 'DateInput'],
     ['datepicker', 'DateInput'],
     ['Date-Picker', 'DateInput'],
-    ['calendar', 'DateInput'],
+    ['calendar', 'Calendar'],
+    ['DateCalendar', 'Calendar'],
+    ['inline calendar with prices', 'Calendar'],
     ['time picker', 'TimeInput'],
     ['timepicker', 'TimeInput'],
     ['datetime picker', 'DateTimeInput'],
@@ -165,7 +167,7 @@ describe('ranking realistic queries', () => {
     // The components a query names outright and the one its alias reaches, with
     // neither crowding the other out.
     ['navbar with a dropdown menu', ['Dropdown', 'Menu', 'Navbar']],
-    ['modal with a calendar inside', ['DateInput', 'Modal']],
+    ['modal with a calendar inside', ['Calendar', 'Modal']],
   ])(
     '"%s" puts every component it names ahead of anything else',
     (query, names) => {

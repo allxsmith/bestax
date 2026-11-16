@@ -34,18 +34,20 @@ bloomer's `withHelpersModifiers` mixed these into every component.
 Both take three shapes in bloomer; all three flatten onto bestax's per-viewport props. bestax
 declares every Bulma viewport, including `touch` and the `-only` ones, so nothing is lost:
 
-| bloomer                                                        | bestax-bulma                                                  |
-| -------------------------------------------------------------- | ------------------------------------------------------------- |
-| `isDisplay="flex"`                                             | `display="flex"`                                              |
-| `isDisplay="flex-tablet-only"`                                 | `displayTabletOnly="flex"`                                    |
-| `isDisplay={['inline-block', 'flex-desktop']}`                 | `display="inline-block" displayDesktop="flex"`                |
-| `isDisplay={{ flex: ['default', 'tablet'], block: 'mobile' }}` | `display="flex" displayTablet="flex" displayMobile="block"`   |
-| `isHidden`                                                     | `visibility="hidden"`                                         |
-| `isHidden="touch"`                                             | `visibilityTouch="hidden"`                                    |
-| `isHidden={['mobile', 'widescreen-only']}`                     | `visibilityMobile="hidden" visibilityWidescreenOnly="hidden"` |
+| bloomer                                                        | bestax-bulma                                                     |
+| -------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `isDisplay="flex"`                                             | `display="flex"`                                                 |
+| `isDisplay="flex-tablet-only"`                                 | `displayTabletOnly="flex"`                                       |
+| `isDisplay={['inline-block', 'flex-desktop']}`                 | `className="is-inline-block" displayDesktop="flex"`              |
+| `isDisplay={{ flex: ['default', 'tablet'], block: 'mobile' }}` | `className="is-flex" displayTablet="flex" displayMobile="block"` |
+| `isHidden`                                                     | `visibility="hidden"`                                            |
+| `isHidden="touch"`                                             | `visibilityTouch="hidden"`                                       |
+| `isHidden={['mobile', 'widescreen-only']}`                     | `visibilityMobile="hidden" visibilityWidescreenOnly="hidden"`    |
 
-Two entries that land on the same prop, a dynamic value, or a viewport bestax does not know get
-a TODO; the bloomer prop is always removed, because bestax has no `isDisplay`/`isHidden` and a
+A plain display beside a per-viewport one stays its class in `className` (`is-inline-block`),
+since bestax leaves `display` out once a per-viewport display prop is set; see `prop:display-base` in
+[unmappables.md](unmappables.md). Two entries that land on the same prop, a dynamic value, or a
+viewport bestax does not know get a TODO; the bloomer prop is always removed, because bestax has no `isDisplay`/`isHidden` and a
 leftover would be a type error rather than a no-op.
 
 ## Value props
@@ -190,7 +192,7 @@ value is flagged. The same conversion covers the modifiers bestax has no prop fo
 ## Refs
 
 bloomer forwarded no refs. bestax forwards a ref from the form controls, plus `Affix`, `AppFrame`, `AppFrame.Aside`, `AppFrame.Burger`, `AppFrame.Footer`, `AppFrame.Header`, `AppFrame.Main`, `AppFrame.Nav`, `Avatar`, `Button`,
-`Carousel`, `CarouselItem`, `Center`, `ColorSwatch`, `Command`, `Command.Dialog`, `Command.Input`, `CopyButton`, `DataTable`, `DescriptionList`, `DescriptionList.Item`, `DescriptionList.Label`, `DescriptionList.Value`, `Dialog`, `Dropdown`, `EmptyState`, `Flex`, `Group`, `IconButton`, `Kbd`, `Kbd.Group`, `Lightbox`, `Lightbox.Trigger`, `Link`,
+`Carousel`, `CarouselItem`, `Center`, `ColorSwatch`, `Command`, `Command.Dialog`, `Command.Input`, `CopyButton`, `DataTable`, `DescriptionList`, `DescriptionList.Item`, `DescriptionList.Label`, `DescriptionList.Value`, `Dialog`, `Dropdown`, `EmptyState`, `Flex`, `FloatButton`, `FloatButton.BackToTop`, `FloatButton.SpeedDial`, `FloatButtons`, `Group`, `IconButton`, `Kbd`, `Kbd.Group`, `Lightbox`, `Lightbox.Trigger`, `Link`,
 `LinkButton`, `Loader`, `LocaleProvider`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`,
 `Navbar.Item`, `Navbar.Link`, `NumberFormatter`, `RingProgress`, `ScrollArea`, `SegmentedControl`, `SegmentedControl.Segment`, `Sidebar`, `Splitter`, `Splitter.Pane`, `Stack`, `Stat`, `Stat.Change`, `Stat.Description`, `Stat.Label`, `Stat.Value`, `Stats`, `TableOfContents`, `Timeline`,
 `Timeline.Item`, `Toast`, `ToggleButton`, `Tour`, `Tour.Back`, `Tour.Next`, `Tour.Skip`, `Tour.Step`, `TreeView` and `TreeView.Item` — pass `ref` directly on

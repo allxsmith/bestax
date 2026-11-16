@@ -57,7 +57,18 @@ describe('isDisplay', () => {
       box('isDisplay={["inline-block-mobile", "inline-flex"]}')
     );
     expect(output).toContain('displayMobile="inline-block"');
-    expect(output).toContain('display="inline-flex"');
+    // Beside a per-viewport display, the base one stays its class.
+    expect(output).toContain('className="is-inline-flex"');
+  });
+
+  it('keeps a base display beside a per-viewport one as its class', () => {
+    const { output, rules } = migrate(
+      box('isDisplay={["inline-block", "flex-desktop"]}')
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain('displayDesktop="flex"');
+    expect(output).toContain('className="is-inline-block"');
+    expect(jsx(output)).not.toMatch(/\sdisplay="/);
   });
 
   it('flags a string that is not a display', () => {

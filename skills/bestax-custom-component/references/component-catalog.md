@@ -40,7 +40,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-135 documented components. Generated from the API docs — every exported
+138 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -104,6 +104,8 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Dialog](https://bestax.io/docs/api/components/dialog) — The `Dialog` component provides ready-made confirm and alert dialogs, so a destructive action stays one `await dialog.confirm()` call away.
 - [Dropdown](https://bestax.io/docs/api/components/dropdown) — The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI.
 - [EmptyState](https://bestax.io/docs/api/components/emptystate) — The `EmptyState` component renders the block an app shows where content would be: an empty list, a search with no results, or a first-run screen.
+- [FloatButton](https://bestax.io/docs/api/components/floatbutton) — The `FloatButton` component renders a round icon button that floats in a corner of the screen, with its name as a tooltip.
+- [FloatButtons](https://bestax.io/docs/api/components/floatbuttons) — The `FloatButtons` component stacks several float buttons in one corner of the screen, so none covers another.
 - [HoverCard](https://bestax.io/docs/api/components/hovercard) — The `HoverCard` component shows a card previewing what's behind a link or a button while the pointer rests on it or keyboard focus is on it.
 - [Lightbox](https://bestax.io/docs/api/components/lightbox) — The `Lightbox` component shows a set of images one at a time in a modal viewer, with previous and next, a counter, captions and zoom, opened from the…
 - [Loading](https://bestax.io/docs/api/components/loading) — The `Loading` component provides a loading overlay with a spinner animation.
@@ -130,6 +132,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 ## Form
 
 - [Autocomplete](https://bestax.io/docs/api/form/autocomplete) — The `Autocomplete` component provides an input field with dropdown suggestions that filter based on user input.
+- [Calendar](https://bestax.io/docs/api/form/datetime/calendar) — The `Calendar` component shows months on the page, not behind an input, where a click picks a day or a range and each day can show what's on it.
 - [Checkbox](https://bestax.io/docs/api/form/checkbox) — The `Checkbox` component provides a Bulma-styled checkbox input.
 - [CheckboxCard](https://bestax.io/docs/api/form/checkboxcard) — The `CheckboxCard` component is a checkbox drawn as a card, with a title and a description, that toggles wherever you click it.
 - [Checkboxes](https://bestax.io/docs/api/form/checkboxes) — The `Checkboxes` component wraps multiple `Checkbox` components in a Bulma-styled group.

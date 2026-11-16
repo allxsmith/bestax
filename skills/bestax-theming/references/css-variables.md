@@ -364,8 +364,10 @@ border is Bulma's own.
 `--bulma-carousel-indicator-background`, `--bulma-carousel-indicator-background-active`,
 `--bulma-carousel-indicator-background-hover`, `--bulma-carousel-indicator-bar-height`,
 `--bulma-carousel-indicator-bar-height-mobile`, `--bulma-carousel-indicator-bar-width`,
-`--bulma-carousel-indicator-bar-width-mobile`, `--bulma-carousel-indicator-circle-size`,
-`--bulma-carousel-indicator-gap`, `--bulma-carousel-indicator-gap-mobile`,
+`--bulma-carousel-indicator-bar-width-mobile`, `--bulma-carousel-indicator-border-color`,
+`--bulma-carousel-indicator-border-color-hover`, `--bulma-carousel-indicator-border-width`,
+`--bulma-carousel-indicator-circle-size`, `--bulma-carousel-indicator-gap`,
+`--bulma-carousel-indicator-gap-mobile`, `--bulma-carousel-indicator-line-border-width`,
 `--bulma-carousel-indicator-line-height`, `--bulma-carousel-indicator-line-height-mobile`,
 `--bulma-carousel-indicator-line-radius`, `--bulma-carousel-indicator-line-width`,
 `--bulma-carousel-indicator-line-width-mobile`, `--bulma-carousel-indicator-size`,
@@ -385,6 +387,18 @@ come from the `itemsToShow*` props, and `--bulma-carousel-items-in-view` is the 
 viewport picks. The props also decide how far a step moves, so set the count with the props
 rather than with these variables.
 
+The indicators are Bulma's: a resting dot, line or bar filled in `--bulma-carousel-indicator-background`
+(the border color), the current one in `--bulma-carousel-indicator-background-active` (the primary
+color), and a circle a ring in the border color. `--bulma-carousel-indicator-border-color` draws a
+ring at each resting indicator's edge, `--bulma-carousel-indicator-border-width` wide, or
+`--bulma-carousel-indicator-line-border-width` on a line or a bar. It's transparent on dots, lines
+and bars, so they show their fill alone, and the border color on circles. Set it on a class you pass
+through `className`, with the carousel's class in the selector (`.carousel.my-carousel`, mind the
+class prefix), and it colors every resting ring, circles included; `-hover` follows it unless set.
+The current indicator, and dots, lines and bars in the overlay look, take no ring. A resting fill
+falls short of 3:1 against the page, so for indicators that hold it, set the ring to a color such as
+`var(--bulma-text-weak)`.
+
 The `--bulma-carousel-overlay-*` variables color the arrows, and indicators over the slides, only
 while the overlay look is on: `overlayControls`, which follows `indicatorInside` unless set. The look
 also puts a dark gradient band behind indicators over the slides (a `background`, not a variable),
@@ -393,6 +407,15 @@ cards, use `<Carousel indicatorInside overlayControls={false}>`: plain colors an
 `overlayControls` alone gives the arrows the overlay look with the indicators below the slides. The
 overlay colors default to light ones (`--bulma-white`) in either color scheme, since they sit on a
 dark tint.
+
+### Calendar
+
+Declared on the root, `.calendar`: its frame, and the gap between the months on show. Each month
+is the `DateInput` calendar, `.dateinput`, so the `--bulma-dateinput-*` variables below theme its
+days, and a theme written for the date pickers themes the Calendar too.
+
+`--bulma-calendar-background-color`, `--bulma-calendar-border-color`,
+`--bulma-calendar-months-gap`, `--bulma-calendar-padding`, `--bulma-calendar-radius`
 
 ### Checkbox
 
@@ -574,7 +597,9 @@ built from `useDataTable`'s props looks the same with no `.data-table` around it
 
 ### DateInput
 
-`--bulma-dateinput-cell-color`, `--bulma-dateinput-cell-disabled-color`,
+`--bulma-dateinput-cell-color`, `--bulma-dateinput-cell-content-color`,
+`--bulma-dateinput-cell-content-loading-opacity`, `--bulma-dateinput-cell-content-size`,
+`--bulma-dateinput-cell-disabled-color`,
 `--bulma-dateinput-cell-hover-bg`, `--bulma-dateinput-cell-other-month-color`,
 `--bulma-dateinput-cell-radius`, `--bulma-dateinput-cell-range-bg`,
 `--bulma-dateinput-cell-range-preview-bg`, `--bulma-dateinput-cell-selected-bg`,
@@ -590,6 +615,10 @@ ends, and the fainter band shown while the end is still being picked. Both are m
 them too. Inside a band, a nearby month's day reads `--bulma-dateinput-cell-color` rather than
 `--bulma-dateinput-cell-other-month-color`, and today's tint leans a fifth of the way toward
 `--bulma-text-strong`, so both stay readable on the band's color.
+
+The three `cell-content` variables style what a `Calendar`'s `dayTemplate` draws under a day's
+number: its color, which a picked day's fill replaces with the picked day's own, its size, and the
+opacity it fades to while the Calendar is `loading`.
 
 ### DateRangeInput
 
@@ -673,6 +702,18 @@ color whatever these say.
 `--bulma-fieldset-legend-padding`, `--bulma-fieldset-legend-size`,
 `--bulma-fieldset-legend-spacing`, `--bulma-fieldset-legend-weight`, `--bulma-fieldset-padding`,
 `--bulma-fieldset-padding-top`, `--bulma-fieldset-radius`, `--bulma-fieldset-spacing`
+
+### FloatButton
+
+The shadow and the duration are declared on the button, `.button.float-button`, and the speed
+dial's gap and duration again on `.float-button-speed-dial`, whose actions fade in apart from any
+one button. `FloatButtons` declares its gap on `.float-buttons`. The shadow starts at Bulma's
+`--bulma-shadow` and gives way to Bulma's focus ring while the button has focus. The colors,
+sizes and border are the button's, `--bulma-button-*`, and the corner, its offsets and the z-index
+are Affix's, `--bulma-affix-*`.
+
+`--bulma-float-button-actions-gap`, `--bulma-float-button-shadow`,
+`--bulma-float-button-transition-duration`, `--bulma-float-buttons-gap`
 
 ### HoverCard
 

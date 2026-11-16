@@ -49,6 +49,12 @@ const ADDONS = [
     desc: 'Content fixed to a corner of the screen, such as a floating button, over the page and under its menus and modals.',
   },
   {
+    name: 'FloatButton',
+    icon: 'floatbutton',
+    link: '/docs/api/components/floatbutton',
+    desc: 'A round button floating in a corner for the main action, with a speed dial of related actions and back to top.',
+  },
+  {
     name: 'NumberFormatter',
     icon: 'numberformatter',
     link: '/docs/api/elements/numberformatter',
@@ -71,6 +77,12 @@ const ADDONS = [
     icon: 'badge',
     link: '/docs/api/components/badge',
     desc: 'Corner status dots and counts overlaid on any element.',
+  },
+  {
+    name: 'Calendar',
+    icon: 'calendar',
+    link: '/docs/api/form/datetime/calendar',
+    desc: 'Months on the page that pick a day or a range, with what each day holds drawn under its number.',
   },
   {
     name: 'Carousel',

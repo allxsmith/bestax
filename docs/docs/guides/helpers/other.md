@@ -703,7 +703,7 @@ The `pos` prop sets CSS `position`. It is named `pos` because several components
 | `pos="sticky"`    | `is-position-sticky`   | `position: sticky`   |
 | `relative={true}` | `is-relative`          | `position: relative` |
 
-The helpers set `position` and nothing else, so an element that is `absolute`, `fixed` or `sticky` still takes its offsets (`top`, `right`, …) from your own CSS. A sticky element does nothing until it has one. Beside `overlay`, which sets the offsets to 0, see [Overlay in the useBulmaClasses reference](/docs/api/helpers/usebulmaclasses#overlay). For content fixed to a corner of the screen, such as a floating button, use [`Affix`](/docs/api/components/affix), which brings the offsets, the safe-area insets and a place in the stacking order.
+The helpers set `position` and nothing else, so an element that is `absolute`, `fixed` or `sticky` still takes its offsets (`top`, `right`, …) from your own CSS. A sticky element does nothing until it has one. Beside `overlay`, which sets the offsets to 0, see [Overlay in the useBulmaClasses reference](/docs/api/helpers/usebulmaclasses#overlay). For content fixed to a corner of the screen, use [`Affix`](/docs/api/components/affix), which brings the offsets, the safe-area insets and a place in the stacking order, and for a floating button, [`FloatButton`](/docs/api/components/floatbutton), which renders through it.
 
 ### Position Examples
 
@@ -924,12 +924,9 @@ function CombinedHelpersExample() {
   </Lightbox.Trigger>
 </Lightbox>
 
-// Floating action button, fixed to a corner by Affix
-<Affix>
-  <Button color="primary" radius="rounded" aria-label="Add">
-    +
-  </Button>
-</Affix>
+// Floating action button: FloatButton brings the corner, the circle,
+// the shadow and a tooltip with its name
+<FloatButton aria-label="Add" icon="plus" color="primary" />
 
 // Layout with floated sidebar and clearfix
 <Box clearfix>

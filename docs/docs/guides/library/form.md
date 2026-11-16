@@ -468,6 +468,35 @@ function DateRangeInputExample() {
 
 ---
 
+### Calendar
+
+Months on the page, not behind an input. A click picks a day or a range, `dayTemplate` draws what's on each day, with `getDayLabel` saying it to a screen reader, and `month` with `onMonthChange` lets an app load each month's data as it comes up. It posts nothing with a form: use `DateInput inline` for that.
+
+```tsx live
+function CalendarExample() {
+  const [day, setDay] = React.useState<Date | null>(null);
+  const fare = (date: Date) => 60 + ((date.getDate() * 7) % 50);
+  return (
+    <div>
+      <Calendar
+        aria-label="Pick a departure day"
+        value={day}
+        onChange={setDay}
+        dayTemplate={date => `$${fare(date)}`}
+        getDayLabel={(date, label) => `${label}, $${fare(date)}`}
+      />
+      <p className="mt-2">
+        {day ? `${day.toDateString()}: $${fare(day)}` : 'Pick a day'}
+      </p>
+    </div>
+  );
+}
+```
+
+[View full documentation.](../../api/form/datetime/calendar)
+
+---
+
 ### TimeInput
 
 A time-of-day input that opens a popover wheel spinner, with segmented keyboard entry directly in the field. Supports 12/24-hour formats, optional seconds, custom increments, min/max bounds, and a native fallback on touch devices.

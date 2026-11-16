@@ -299,6 +299,9 @@ them from the start.
   panes beside a handle back to their default sizes.
 - **Collapsed panes** are `hidden`, so nothing in them can be reached until they come back.
 - **Focus ring:** Bulma's focus outline, inside the handle.
+- **Grip:** the short bar that shows a handle can be dragged is the scheme's weak text color at
+  rest, and the primary color in its on-scheme shade while the handle is hovered, focused or
+  dragged, 3:1 or more against the page on both schemes either way.
 - **Target size:** the handle is 0.75rem across for a mouse and 1.5rem for a coarse pointer, which
   meets WCAG 2.5.8's 24px.
 - **Forced colors:** the line and the grip are borders, which forced colors keeps, and an active
@@ -378,17 +381,17 @@ them from the start.
 
 `Splitter` registers these variables on its own `.splitter` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
 
-| CSS Variable                          | Sass Variable                  | Default                       |
-| ------------------------------------- | ------------------------------ | ----------------------------- |
-| `--bulma-splitter-handle-size`        | `$splitter-handle-size`        | `0.75rem`                     |
-| `--bulma-splitter-handle-size-coarse` | `$splitter-handle-size-coarse` | `1.5rem`                      |
-| `--bulma-splitter-line-size`          | `$splitter-line-size`          | `1px`                         |
-| `--bulma-splitter-line-color`         | `$splitter-line-color`         | `var(--bulma-border)`         |
-| `--bulma-splitter-line-active-size`   | `$splitter-line-active-size`   | `2px`                         |
-| `--bulma-splitter-line-active-color`  | `$splitter-line-active-color`  | `var(--bulma-primary)`        |
-| `--bulma-splitter-grip-length`        | `$splitter-grip-length`        | `1.5rem`                      |
-| `--bulma-splitter-grip-size`          | `$splitter-grip-size`          | `0.25rem`                     |
-| `--bulma-splitter-grip-color`         | `$splitter-grip-color`         | `var(--bulma-border-hover)`   |
-| `--bulma-splitter-grip-radius`        | `$splitter-grip-radius`        | `var(--bulma-radius-rounded)` |
+| CSS Variable                          | Sass Variable                  | Default                                                                                 |
+| ------------------------------------- | ------------------------------ | --------------------------------------------------------------------------------------- |
+| `--bulma-splitter-handle-size`        | `$splitter-handle-size`        | `0.75rem`                                                                               |
+| `--bulma-splitter-handle-size-coarse` | `$splitter-handle-size-coarse` | `1.5rem`                                                                                |
+| `--bulma-splitter-line-size`          | `$splitter-line-size`          | `1px`                                                                                   |
+| `--bulma-splitter-line-color`         | `$splitter-line-color`         | `var(--bulma-border)`                                                                   |
+| `--bulma-splitter-line-active-size`   | `$splitter-line-active-size`   | `2px`                                                                                   |
+| `--bulma-splitter-line-active-color`  | `$splitter-line-active-color`  | `hsl(var(--bulma-primary-h), var(--bulma-primary-s), var(--bulma-primary-on-scheme-l))` |
+| `--bulma-splitter-grip-length`        | `$splitter-grip-length`        | `1.5rem`                                                                                |
+| `--bulma-splitter-grip-size`          | `$splitter-grip-size`          | `0.25rem`                                                                               |
+| `--bulma-splitter-grip-color`         | `$splitter-grip-color`         | `var(--bulma-text-weak)`                                                                |
+| `--bulma-splitter-grip-radius`        | `$splitter-grip-radius`        | `var(--bulma-radius-rounded)`                                                           |
 
 <!-- /bestax:generated cssvars -->

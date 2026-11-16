@@ -62,6 +62,10 @@ const NAMED_INDIVIDUALLY = [
   'Dropdown',
   'EmptyState',
   'Flex',
+  'FloatButton',
+  'FloatButton.BackToTop',
+  'FloatButton.SpeedDial',
+  'FloatButtons',
   'Group',
   'IconButton',
   'Kbd',
@@ -116,6 +120,7 @@ const NAMED_INDIVIDUALLY = [
  */
 const SUMMARISED_AS_FORM_CONTROLS = [
   'Autocomplete',
+  'Calendar',
   'Checkbox',
   'CheckboxCard',
   'ColorInput',

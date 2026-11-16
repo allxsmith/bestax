@@ -42,6 +42,18 @@ function AffixIcon() {
   );
 }
 
+// A screen with a round button in its corner and two smaller ones above it
+function FloatButtonIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <circle cx="16" cy="17" r="2" />
+      <circle cx="16" cy="11.5" r="1.25" />
+      <circle cx="16" cy="7" r="1.25" />
+    </svg>
+  );
+}
+
 // Person in a frame — avatar
 function AvatarIcon() {
   return (
@@ -58,6 +70,18 @@ function BadgeIcon() {
     <svg {...iconProps}>
       <rect x="3" y="6" width="12" height="12" rx="2" />
       <circle cx="18" cy="6" r="3" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+// A month page with its binding rings, and a dot under one day
+function CalendarIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="4.5" width="18" height="16.5" rx="2" />
+      <path d="M3 9.5h18M8 2.5v4M16 2.5v4" />
+      <path d="M7.5 13.5h.01M12 13.5h.01M16.5 13.5h.01M7.5 17h.01M12 17h.01" />
+      <circle cx="16.5" cy="17.5" r="1.25" />
     </svg>
   );
 }
@@ -507,8 +531,10 @@ const ADDON_ICONS = {
   linkbutton: LinkButtonIcon,
   kbd: KbdIcon,
   affix: AffixIcon,
+  floatbutton: FloatButtonIcon,
   avatar: AvatarIcon,
   badge: BadgeIcon,
+  calendar: CalendarIcon,
   carousel: CarouselIcon,
   choicecard: ChoiceCardIcon,
   collapse: CollapseIcon,

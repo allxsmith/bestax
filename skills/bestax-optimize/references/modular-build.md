@@ -82,7 +82,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 `loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `steps`, `sidebar`,
 `toast`, `dialog`, `carousel`, `lightbox`, `tabs`, `menu`, `tableofcontents`, `reveal`, `avatar`, `avatars`,
 `badge`, `emptystate`, `timeline`, `treeview`, `scrollarea`, `command`, `datatable`,
-`pagination`, `affix`, `navbar`, `panel`, `tour`
+`pagination`, `affix`, `floatbutton`, `navbar`, `panel`, `tour`
 
 **Layout** (`@allxsmith/bestax-bulma/scss/layout/<name>`): `appframe`, `splitter`, `stack`
 
@@ -193,6 +193,8 @@ Notes:
   `bulma/sass/elements/delete` and the `delete` partial for the remove buttons and
   `bulma/sass/form/tools` for its help lines.
 - `DateInput`/`TimeInput`/`DateTimeInput` also need `picker-popover`.
+- `Calendar` is the pickers' calendar on the page, so it needs `dateinput`, which draws its frame
+  and its months too, and no `picker-popover`.
 - `DateRangeInput` needs `daterangeinput` for its field and `dateinput` for its calendar, and
   `picker-popover` too.
 - `CheckboxCard` and `RadioCard` are Bulma cards, so an app using them needs
