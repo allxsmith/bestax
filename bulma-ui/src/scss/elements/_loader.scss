@@ -91,10 +91,12 @@
   // label would show through the spinner. With forcing off on the button,
   // the label stays transparent, and the button names its own colors, all of
   // them system ones the theme picks. They're the ones the browser gives the
-  // element when it's idle, so it doesn't change look when it starts
-  // loading: the page's own colors for most elements, a button's for a
-  // `<button>`, a link's for a link, and no surface for a variant that has
-  // none, as below. Forcing off reaches everything inside too, which the
+  // element when it's idle: the page's own colors for most elements, a
+  // button's for a `<button>`, a link's for a link, and no surface for a
+  // variant that has none, as below. So a button doesn't change look when it
+  // starts loading, unless it's selected: `_button.scss` draws a selected
+  // button in Highlight while it's idle, and skips a loading one, which
+  // takes a button's colors here like any other. Forcing off reaches everything inside too, which the
   // rule at the top already hides. It also stops the browser recoloring the
   // border to show focus, so a focused one gets an outline, and so does one
   // with `is-focused`.

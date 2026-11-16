@@ -5,6 +5,12 @@
 // less motion. Each shape stays drawn in the skeleton background, so the
 // placeholder still marks where content is loading.
 //
+// And it keeps each shape drawn in forced colors (Windows' contrast themes).
+// Bulma paints a shape as a background color, which forced colors turns into
+// the page's color, and hides the text inside with a transparent color,
+// which forced colors paints in the text color, so the shape vanished and
+// its placeholder text showed.
+//
 // Bulma's CSS can land on either side of this partial, as it can for
 // `_loader.scss`, which says why. `!important` wins in every case, so the
 // override does not depend on where this file lands.
@@ -17,5 +23,28 @@
   .#{iv.$class-prefix}is-skeleton,
   .#{iv.$class-prefix}has-skeleton::after {
     animation: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  // What holds text opts out of forcing, so Bulma's transparent color keeps
+  // hiding it. The opt-out is inherited, so the text inside is hidden too,
+  // and anything inside that Bulma draws in colors of its own, such as a
+  // control's edge and focus ring or a link, keeps Bulma's colors rather
+  // than the theme's. Forcing a child again would paint the transparent text
+  // it inherits. A line holds no text, so it stays forced.
+  .#{iv.$class-prefix}skeleton-block,
+  .#{iv.$class-prefix}is-skeleton,
+  .#{iv.$class-prefix}has-skeleton {
+    forced-color-adjust: none;
+  }
+
+  // Every shape takes GrayText, the theme's color for something
+  // unavailable, which forcing leaves alone.
+  .#{iv.$class-prefix}skeleton-block,
+  .#{iv.$class-prefix}skeleton-lines > div,
+  .#{iv.$class-prefix}is-skeleton,
+  .#{iv.$class-prefix}has-skeleton::after {
+    background-color: GrayText !important;
   }
 }
