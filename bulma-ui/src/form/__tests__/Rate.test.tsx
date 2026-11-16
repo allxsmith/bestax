@@ -895,13 +895,13 @@ describe('Rate', () => {
     // wrapper's `dir` lays the stars out. The `rtl` prop doesn't change where
     // a star is drawn, so it doesn't change which side that is (#1825).
     it.each([
-      // The 3rd star, drawn 40 to 60, clicked 4 in from its left: 2.2 -> 2.
-      ['left to right', 'ltr', false, 44, 2],
-      ['left to right, with the rtl prop', 'ltr', true, 44, 2],
-      // The 3rd star, drawn 40 to 60 from the right, clicked 4 in from its
-      // right: 2.2 -> 2.
-      ['right to left', 'rtl', false, 56, 2],
-      ['right to left, with the rtl prop', 'rtl', true, 56, 2],
+      // The 4th star, drawn 60 to 80, clicked 4 in from its left: 3.2 -> 3.
+      ['left to right', 'ltr', false, 64, 3],
+      ['left to right, with the rtl prop', 'ltr', true, 64, 3],
+      // The 4th star, drawn 20 to 40 as the stars run from the right, clicked
+      // 4 in from its right: 3.2 -> 3.
+      ['right to left', 'rtl', false, 36, 3],
+      ['right to left, with the rtl prop', 'rtl', true, 36, 3],
     ] as const)(
       'reads a click’s fraction from the side the star fills from, %s',
       (_label, direction, rtl, clientX, expected) => {
@@ -912,10 +912,10 @@ describe('Rate', () => {
             <Rate value={0} precision={0.5} rtl={rtl} onChange={handleChange} />
           );
           stubRectsInDrawnOrder(container, direction);
-          const third = container.querySelector<HTMLElement>(
-            '[aria-label="3 stars"]'
+          const fourth = container.querySelector<HTMLElement>(
+            '[aria-label="4 stars"]'
           )!;
-          fireEvent.click(third, { clientX });
+          fireEvent.click(fourth, { clientX });
           expect(handleChange).toHaveBeenCalledWith(expected);
         } finally {
           spy.mockRestore();
@@ -974,10 +974,10 @@ describe('Rate', () => {
     });
 
     it.each([
-      // The 3rd star, 4 in from its left: 2.2 -> 2, two stars.
-      ['left to right, with the rtl prop', 'ltr', true, 44],
-      // The 3rd star, 4 in from its right: 2.2 -> 2.
-      ['right to left', 'rtl', false, 56],
+      // The 4th star, drawn 60 to 80, 4 in from its left: 3.2 -> 3.
+      ['left to right, with the rtl prop', 'ltr', true, 64],
+      // The 4th star, drawn 20 to 40, 4 in from its right: 3.2 -> 3.
+      ['right to left', 'rtl', false, 36],
     ] as const)(
       'reads a hover’s fraction from the side the star fills from, %s',
       (_label, direction, rtl, clientX) => {
@@ -987,22 +987,25 @@ describe('Rate', () => {
             <Rate value={0} precision={0.5} rtl={rtl} />
           );
           stubRectsInDrawnOrder(container, direction);
-          const third = container.querySelector<HTMLElement>(
-            '[aria-label="3 stars"]'
+          const fourth = container.querySelector<HTMLElement>(
+            '[aria-label="4 stars"]'
           )!;
-          fireEvent.mouseEnter(third);
-          fireEvent.mouseMove(third, { clientX });
-          // Two whole stars under the pointer's value, and no third.
+          fireEvent.mouseEnter(fourth);
+          fireEvent.mouseMove(fourth, { clientX });
+          // Three whole stars under the pointer's value, and no fourth.
           expect(
             container.querySelectorAll('.rate-item.is-hovered')
-          ).toHaveLength(2);
+          ).toHaveLength(3);
         } finally {
           spy.mockRestore();
         }
       }
     );
 
-    it('mirrors a half star right to left, so it fills from its right, and marks it for that', () => {
+    // A right-to-left page mirrors this star so it fills from its right. That
+    // is a `:dir(rtl)` rule, which jsdom doesn't match, so Rate.styles.test.ts
+    // holds the rule and this test the class it selects.
+    it('marks the built-in half star, the one a right-to-left page mirrors', () => {
       const { container } = render(
         <ConfigProvider classPrefix="bestax-">
           <Rate defaultValue={3.5} precision={0.5} />
