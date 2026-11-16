@@ -583,6 +583,61 @@ describe('Collapse', () => {
           expect(wrapper.style[property]).toBe(closed);
         }
       );
+
+      it('leaves a slide panel closed when motion is allowed again', () => {
+        // Off at first, then on and off again through the hook's listener
+        let reduce = false;
+        let listener: ((event: { matches: boolean }) => void) | undefined;
+        window.matchMedia = vi.fn().mockImplementation(() => ({
+          get matches() {
+            return reduce;
+          },
+          media: '(prefers-reduced-motion: reduce)',
+          addEventListener: (
+            _type: string,
+            fn: (event: { matches: boolean }) => void
+          ) => {
+            listener = fn;
+          },
+          removeEventListener: () => {},
+        }));
+        const flip = (on: boolean) => {
+          reduce = on;
+          act(() => listener!({ matches: on }));
+        };
+        const scrollHeight = vi
+          .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
+          .mockReturnValue(120);
+        vi.useFakeTimers();
+        try {
+          const { container } = render(
+            <Collapse trigger={<span>Toggle</span>} animation="slide">
+              Content
+            </Collapse>
+          );
+          const wrapper =
+            container.querySelector('.collapse-content')!.parentElement!;
+          const trigger = screen.getByRole('button');
+
+          // Opened with motion, and settled at its natural height
+          fireEvent.click(trigger);
+          act(() => {
+            vi.advanceTimersByTime(300);
+          });
+          expect(wrapper.style.height).toBe('auto');
+
+          // Closed under reduced motion, then motion allowed again
+          flip(true);
+          fireEvent.click(trigger);
+          expect(wrapper.style.height).toBe('0px');
+          flip(false);
+          expect(trigger).toHaveAttribute('aria-expanded', 'false');
+          expect(wrapper.style.height).toBe('0px');
+        } finally {
+          vi.useRealTimers();
+          scrollHeight.mockRestore();
+        }
+      });
     });
   });
 

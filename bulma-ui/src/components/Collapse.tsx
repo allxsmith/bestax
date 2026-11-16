@@ -175,8 +175,14 @@ export const Collapse: React.FC<CollapseProps> = ({
     if (!contentRef.current) return undefined;
     if (animation !== 'slide') return undefined;
 
-    // With no transition to run, the render sets the end height itself.
-    if (reducedMotion) return undefined;
+    // With no transition to run, the render sets the end height itself, and
+    // the state follows it, so the panel is at its height, and not at one it
+    // had before, when motion is allowed again.
+    if (reducedMotion) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- keeps the state in step with the height the render shows
+      setHeight(isOpen ? 'auto' : 0);
+      return undefined;
+    }
 
     if (isOpen) {
       // Opening: set height to content's scrollHeight
