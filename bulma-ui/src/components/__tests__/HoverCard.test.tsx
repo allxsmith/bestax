@@ -9,7 +9,10 @@ import { Modal } from '../Modal';
 import { Button } from '../../elements/Button';
 import { ConfigProvider } from '../../helpers/Config';
 import { resetDevWarnings } from '../../helpers/devWarnings';
-import { clientWidthFollowsWindow } from '../../__tests__/client-width';
+import {
+  clientWidthFollowsWindow,
+  narrowWindow,
+} from '../../__tests__/viewport';
 
 type PointerType = 'mouse' | 'pen' | 'touch';
 
@@ -1166,6 +1169,28 @@ describe('HoverCard', () => {
   describe('placement', () => {
     clientWidthFollowsWindow();
 
+    it('shifts a card in place back inside a narrow window, leaving its fade to the stylesheet', () => {
+      narrowWindow(
+        el => el.classList.contains('hover-card'),
+        '.hover-card-content'
+      );
+      try {
+        render(<Profile defaultOpen position="bottom-left" />);
+        const card = document.querySelector(
+          '.hover-card-content'
+        ) as HTMLElement;
+        expect(card).toHaveClass('is-bottom-left');
+        expect(card.style.getPropertyValue('--bulma-anchored-shift')).toBe(
+          '-40px'
+        );
+        expect(card.style.marginLeft).toBe('');
+        expect(card.style.transform).toBe('');
+        expect(card.style.translate).toBe('');
+      } finally {
+        vi.restoreAllMocks();
+      }
+    });
+
     const originalWidth = window.innerWidth;
     const originalHeight = window.innerHeight;
 
@@ -1223,7 +1248,8 @@ describe('HoverCard', () => {
       render(<Profile defaultOpen />);
       expect(card()).toHaveClass('hover-card-content', 'is-bottom-left');
       expect(card()).not.toHaveClass('is-portal');
-      expect(card()).not.toHaveAttribute('style');
+      // No coordinates, only the shift its corner rules add, 0 here.
+      expect(card()).toHaveAttribute('style', '--bulma-anchored-shift: 0px;');
     });
 
     it('marks the default as start aligned, for the stylesheet to place', () => {
@@ -1316,7 +1342,8 @@ describe('HoverCard', () => {
         }
       );
       expect(card()).toHaveClass('is-top-left');
-      expect(card()).not.toHaveAttribute('style');
+      // No coordinates, only the shift its corner rules add, 0 here.
+      expect(card()).toHaveAttribute('style', '--bulma-anchored-shift: 0px;');
     });
 
     it('portals into document.body with fixed coordinates at the trigger’s edge', () => {
