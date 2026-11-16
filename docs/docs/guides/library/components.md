@@ -376,11 +376,18 @@ Image/content slider with navigation arrows and indicators. Supports auto-play, 
 Expandable/collapsible content panels with smooth animation. Works in controlled or uncontrolled mode. [View full documentation.](../../api/components/collapse.md)
 
 ```tsx live
-<Collapse trigger={<Button>Click to expand</Button>}>
-  <Box mt="3">
+<Collapse
+  bordered
+  trigger={
+    <Block p="3">
+      <Strong>Click to expand</Strong>
+    </Block>
+  }
+>
+  <Block p="3">
     <p>This content is revealed when the collapse is opened.</p>
-    <p>Click the button again to hide it.</p>
-  </Box>
+    <p>Click the header again to hide it.</p>
+  </Block>
 </Collapse>
 ```
 
