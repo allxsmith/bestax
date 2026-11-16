@@ -535,6 +535,9 @@ function example() {
   takes focus. bestax's styles keep its bars visible in the system's button text color. That rule
   ships in `bestax.css` and `extras.css`, not in Bulma's own stylesheet, and an
   [`AppFrame`](../layout/appframe.md)'s burger gets it too.
+- **`Navbar.Divider` in forced colors:** Bulma draws it as a background color too, which forced
+  colors paints in the dropdown's own color, so the line would vanish. bestax's styles draw it in
+  the system's text color there, from the same stylesheets.
 - **In a colored [`Hero`](../layout/hero.md):** Bulma's hero sets the colors its navbar's items
   take on hover and when active, but Bulma's navbar doesn't read them, so a focused or hovered
   item took the scheme's fill under the hero's text, and the active item and the burger took the
