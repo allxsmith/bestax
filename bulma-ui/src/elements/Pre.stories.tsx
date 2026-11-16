@@ -76,9 +76,10 @@ export const LongLine: Story = {
   render: () => (
     <Pre aria-label="Install command">
       <Code>
-        {
-          'pnpm add @allxsmith/bestax-bulma bulma react react-dom @fortawesome/fontawesome-free material-symbols'
-        }
+        {`pnpm add ${Array.from(
+          { length: 16 },
+          (_, i) => `@example/a-long-package-name-${i + 1}`
+        ).join(' ')}`}
       </Code>
     </Pre>
   ),

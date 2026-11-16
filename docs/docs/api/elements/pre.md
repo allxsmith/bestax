@@ -128,8 +128,8 @@ const config = {
 
 - **Whitespace Preservation:** The `<pre>` element preserves all whitespace, which is important for code formatting.
 - **Scrolling:** Bulma scrolls a long line sideways rather than wrapping it. While the content
-  overflows, the block is a tab stop you can scroll with the arrow keys, Safari included, with
-  Bulma's focus ring just inside it, and a region when it has a name. While it fits, it's a plain
+  overflows, the block is a tab stop you can scroll with the arrow keys, Safari included, with a
+  focus ring in Bulma's focus color just inside it, and a region when it has a name. While it fits, it's a plain
   `<pre>` with no tab stop. Name it with `aria-label` or `aria-labelledby` so a screen reader says
   what took focus.
 - **Screen Readers:** Preformatted text is typically announced as such by screen readers.
