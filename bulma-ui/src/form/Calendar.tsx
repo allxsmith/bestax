@@ -23,9 +23,12 @@ import type {
   PickerLabels,
 } from './_pickerInternals/pickerTypes';
 import {
-  addMonths,
   clampDate,
+  fitPage,
   floorMin,
+  monthFromIndex,
+  monthIndex,
+  pageMonthCount,
   startOfDay,
   startOfMonth,
 } from './_pickerInternals/dateUtils';
@@ -363,17 +366,9 @@ export const Calendar = forwardRef<HTMLDivElement, CalendarProps>(
       const start = startOfMonth(
         valueStart ?? clampDate(new Date(), lowerBound, max)
       );
-      const count =
-        granularity === 'day' &&
-        monthsToShow > 1 &&
-        Number.isFinite(monthsToShow)
-          ? Math.floor(monthsToShow)
-          : 1;
+      const count = granularity === 'day' ? pageMonthCount(monthsToShow) : 1;
       if (!max || count === 1) return start;
-      const lastFirst = addMonths(startOfMonth(max), 1 - count);
-      const fitted = start > lastFirst ? lastFirst : start;
-      const floor = startOfMonth(lowerBound);
-      return fitted < floor ? floor : fitted;
+      return monthFromIndex(fitPage(monthIndex(start), count, lowerBound, max));
     };
     const [month, setOwnMonth] = useControlled<Date>(monthProp, firstMonth());
 

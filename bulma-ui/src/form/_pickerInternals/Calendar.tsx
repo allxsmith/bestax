@@ -32,12 +32,17 @@ import {
   canCloseRange,
   clampDate,
   FIRST_YEAR,
+  fitPage,
   floorMin,
   isDayUnselectable,
   isPeriodUnselectable,
   isSameDay,
   isSameMonth,
   makeDate,
+  monthFromIndex,
+  monthIndex,
+  pageHolding,
+  pageMonthCount,
   startOfDay,
   startOfMonth,
 } from './dateUtils';
@@ -324,9 +329,6 @@ const FULL_DATE: Intl.DateTimeFormatOptions = {
   day: 'numeric',
 };
 
-/** A month's place in a count of months, for comparing and subtracting months. */
-const monthIndex = (d: Date) => d.getFullYear() * 12 + d.getMonth();
-
 /** Whether `dayContent` returned something that renders. */
 const rendersContent = (node: React.ReactNode) =>
   node !== undefined &&
@@ -451,12 +453,7 @@ export const Calendar: React.FC<CalendarProps> = ({
   // then shows `monthsToShow` of them. The year list has no month on show.
   const lifted = !!monthProp && !isYearGranularity;
   const monthCount =
-    lifted &&
-    isDayGranularity &&
-    monthsToShow > 1 &&
-    Number.isFinite(monthsToShow)
-      ? Math.floor(monthsToShow)
-      : 1;
+    lifted && isDayGranularity ? pageMonthCount(monthsToShow) : 1;
   // The first month on show (at `'month'` granularity, January of the year
   // on show), as a count of months, so a new Date each render changes
   // nothing.
@@ -478,7 +475,7 @@ export const Calendar: React.FC<CalendarProps> = ({
   const shownMonths = useMemo(
     () =>
       Array.from({ length: monthCount }, (_, i) =>
-        makeDate(Math.floor(firstShownIndex / 12), (firstShownIndex % 12) + i)
+        monthFromIndex(firstShownIndex + i)
       ),
     [firstShownIndex, monthCount]
   );
@@ -627,10 +624,7 @@ export const Calendar: React.FC<CalendarProps> = ({
   // A page of months starting at `first`, kept inside `min` and `max` where
   // they leave room for a whole page. `min` wins when they don't.
   const pageFrom = useCallback(
-    (first: number) => {
-      const last = max ? monthIndex(max) - (monthCount - 1) : first;
-      return Math.max(monthIndex(min), Math.min(first, last));
-    },
+    (first: number) => fitPage(first, monthCount, min, max),
     [min, max, monthCount]
   );
 
@@ -640,7 +634,7 @@ export const Calendar: React.FC<CalendarProps> = ({
     (first: number, d: Date) => {
       onFocusedDateChange(d);
       if (first !== firstShownIndex) {
-        onMonthChange?.(makeDate(Math.floor(first / 12), first % 12));
+        onMonthChange?.(monthFromIndex(first));
       }
     },
     [onFocusedDateChange, firstShownIndex, onMonthChange]
@@ -655,10 +649,8 @@ export const Calendar: React.FC<CalendarProps> = ({
         onFocusedDateChange(d);
       } else if (!isDayGranularity) {
         turnTo(d.getFullYear() * 12, d);
-      } else if (monthIndex(d) < firstShownIndex) {
-        turnTo(pageFrom(monthIndex(d) - (monthCount - 1)), d);
       } else {
-        turnTo(pageFrom(monthIndex(d)), d);
+        turnTo(pageHolding(d, firstShownIndex, monthCount, min, max), d);
       }
     },
     [
@@ -668,8 +660,9 @@ export const Calendar: React.FC<CalendarProps> = ({
       isDayGranularity,
       turnTo,
       firstShownIndex,
-      pageFrom,
       monthCount,
+      min,
+      max,
     ]
   );
 
