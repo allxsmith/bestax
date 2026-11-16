@@ -431,7 +431,7 @@
           "type": "React.ReactNode",
           "default": null,
           "description": "The button elements to render inside the group.",
-          "required": false,
+          "required": true,
           "inherited": true,
           "deprecated": false
         }

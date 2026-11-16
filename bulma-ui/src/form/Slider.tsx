@@ -87,7 +87,11 @@ interface SliderBaseProps
   tooltip?: SliderTooltip;
   /** Shows tick marks along the track. */
   ticks?: boolean;
-  /** Custom labeled marks along the track. Each mark has `{ value: number; label?: ReactNode }`. */
+  /**
+   * Custom labeled marks along the track. Each mark has `{ value: number; label?: ReactNode }`.
+   * A mark's label sits inside its tick, so `--bulma-slider-tick-opacity` dims the label along
+   * with the tick's line, whatever `--bulma-slider-tick-label-color` is.
+   */
   marks?: SliderMark[];
   /** Orientation of the slider. */
   orientation?: SliderOrientation;

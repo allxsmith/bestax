@@ -23,7 +23,7 @@ export interface SidebarProps
     Omit<React.HTMLAttributes<HTMLElement>, 'children' | 'color'>,
     BulmaClassesProps {
   /**
-   * Whether the sidebar is open (required). Opening moves focus into the
+   * Whether the sidebar is open. Opening moves focus into the
    * sidebar, to its first tab stop or the sidebar itself, except for a sidebar
    * without an overlay opened while a modal overlay, such as a Modal, is open:
    * that one leaves focus where it is. That's decided as it opens, and

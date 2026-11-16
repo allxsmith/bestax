@@ -11,6 +11,49 @@ import { ConfigProvider } from '../../helpers/Config';
  * precision-mode click/move handlers can compute a deterministic
  * `relativeX = (clientX - rect.left) / rect.width`.
  */
+/**
+ * Helper: stub each star's rect where the browser draws it. The stars run
+ * left to right by index, or right to left in a right-to-left direction, which
+ * `direction` stands for here, as the page's or a wrapper's `dir` sets it.
+ * Rate's `rtl` prop renders the stars in reverse and its style reverses them
+ * back, so it doesn't change where a star is drawn. The index is the end of
+ * the star's id.
+ */
+function stubRectsInDrawnOrder(
+  container: HTMLElement,
+  direction: 'ltr' | 'rtl',
+  width = 20
+) {
+  const items = container.querySelectorAll<HTMLSpanElement>('.rate-item');
+  items.forEach(item => {
+    const index = Number(item.id.split('-').pop());
+    const slot = direction === 'rtl' ? items.length - 1 - index : index;
+    item.getBoundingClientRect = () =>
+      ({
+        left: slot * width,
+        top: 0,
+        right: slot * width + width,
+        bottom: 24,
+        width,
+        height: 24,
+        x: slot * width,
+        y: 0,
+        toJSON: () => ({}),
+      }) as DOMRect;
+  });
+}
+
+/** Lays every element out in `direction`, as getComputedStyle reads it. */
+function layOutIn(direction: 'ltr' | 'rtl') {
+  const real = window.getComputedStyle;
+  return vi
+    .spyOn(window, 'getComputedStyle')
+    .mockImplementation(
+      (el, pseudo) =>
+        ({ ...real(el, pseudo), direction }) as CSSStyleDeclaration
+    );
+}
+
 function stubRectsOnRateItems(container: HTMLElement, width = 20) {
   const items = container.querySelectorAll<HTMLSpanElement>('.rate-item');
   items.forEach((item, idx) => {
@@ -847,22 +890,38 @@ describe('Rate', () => {
       expect(handleChange).toHaveBeenCalledWith(1);
     });
 
-    it('precision click in RTL inverts relativeX', () => {
-      const handleChange = vi.fn();
-      const { container } = render(
-        <Rate value={0} precision={0.5} rtl onChange={handleChange} />
-      );
-      stubRectsOnRateItems(container);
-
-      const stars = screen.getAllByRole('radio');
-      // In RTL, stars are rendered in reverse iconIndex order. The first
-      // visual star corresponds to iconIndex = max - 1 = 4. Stub left = 0,
-      // width = 20. clientX = 5 -> relativeX = 0.25 -> after rtl invert
-      // becomes 0.75 -> rawValue = 4.75 -> snapped to 5.
-      fireEvent.click(stars[0], { clientX: 5 });
-
-      expect(handleChange).toHaveBeenCalledWith(5);
-    });
+    // A star's fraction is read from the side it fills from: its left edge
+    // left to right, and its right edge right to left, as the page's or a
+    // wrapper's `dir` lays the stars out. The `rtl` prop doesn't change where
+    // a star is drawn, so it doesn't change which side that is (#1825).
+    it.each([
+      // The 4th star, drawn 60 to 80, clicked 4 in from its left: 3.2 -> 3.
+      ['left to right', 'ltr', false, 64, 3],
+      ['left to right, with the rtl prop', 'ltr', true, 64, 3],
+      // The 4th star, drawn 20 to 40 as the stars run from the right, clicked
+      // 4 in from its right: 3.2 -> 3.
+      ['right to left', 'rtl', false, 36, 3],
+      ['right to left, with the rtl prop', 'rtl', true, 36, 3],
+    ] as const)(
+      'reads a click’s fraction from the side the star fills from, %s',
+      (_label, direction, rtl, clientX, expected) => {
+        const spy = layOutIn(direction);
+        try {
+          const handleChange = vi.fn();
+          const { container } = render(
+            <Rate value={0} precision={0.5} rtl={rtl} onChange={handleChange} />
+          );
+          stubRectsInDrawnOrder(container, direction);
+          const fourth = container.querySelector<HTMLElement>(
+            '[aria-label="4 stars"]'
+          )!;
+          fireEvent.click(fourth, { clientX });
+          expect(handleChange).toHaveBeenCalledWith(expected);
+        } finally {
+          spy.mockRestore();
+        }
+      }
+    );
 
     it('precision click clamps to minimum precision step', () => {
       const handleChange = vi.fn();
@@ -914,20 +973,47 @@ describe('Rate', () => {
       expect(widths).toContain('12');
     });
 
-    it('precision hover applies rtl inversion', () => {
-      const { container } = render(<Rate value={0} precision={0.5} rtl />);
-      stubRectsOnRateItems(container);
+    it.each([
+      // The 4th star, drawn 60 to 80, 4 in from its left: 3.2 -> 3.
+      ['left to right, with the rtl prop', 'ltr', true, 64],
+      // The 4th star, drawn 20 to 40, 4 in from its right: 3.2 -> 3.
+      ['right to left', 'rtl', false, 36],
+    ] as const)(
+      'reads a hover’s fraction from the side the star fills from, %s',
+      (_label, direction, rtl, clientX) => {
+        const spy = layOutIn(direction);
+        try {
+          const { container } = render(
+            <Rate value={0} precision={0.5} rtl={rtl} />
+          );
+          stubRectsInDrawnOrder(container, direction);
+          const fourth = container.querySelector<HTMLElement>(
+            '[aria-label="4 stars"]'
+          )!;
+          fireEvent.mouseEnter(fourth);
+          fireEvent.mouseMove(fourth, { clientX });
+          // Three whole stars under the pointer's value, and no fourth.
+          expect(
+            container.querySelectorAll('.rate-item.is-hovered')
+          ).toHaveLength(3);
+        } finally {
+          spy.mockRestore();
+        }
+      }
+    );
 
-      const stars = screen.getAllByRole('radio');
-      // Visual index 0 -> iconIndex 4. clientX = 15 -> relativeX = 0.75 ->
-      // rtl invert -> 0.25 -> rawValue = 4.25 -> snapped to 4.5
-      fireEvent.mouseEnter(stars[0]);
-      fireEvent.mouseMove(stars[0], { clientX: 15 });
-
-      const clipPaths = container.querySelectorAll('clipPath rect');
-      const widths = Array.from(clipPaths).map(r => r.getAttribute('width'));
-      // iconIndex 4 with fillPercent 50 -> width 12
-      expect(widths).toContain('12');
+    // A right-to-left page mirrors this star so it fills from its right. That
+    // is a `:dir(rtl)` rule, which jsdom doesn't match, so Rate.styles.test.ts
+    // holds the rule and this test the class it selects.
+    it('marks the built-in half star, the one a right-to-left page mirrors', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bestax-">
+          <Rate defaultValue={3.5} precision={0.5} />
+        </ConfigProvider>
+      );
+      expect(
+        container.querySelectorAll('svg.bestax-rate-star-partial')
+      ).toHaveLength(1);
     });
 
     it('precision hover is a no-op when disabled', () => {
