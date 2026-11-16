@@ -7,10 +7,10 @@
 // It hides everything inside a loading button, where Bulma hides only the
 // label.
 //
-// It rings a loading button that has keyboard focus. Bulma's `is-loading`
-// takes away the shadow that shows a focused button, which leaves a colored
-// one only a 1px border in the focus color on its own fill, and an outlined
-// or text one nothing at all.
+// It rings a loading button that has keyboard focus, or `isFocused`'s class.
+// Bulma's `is-loading` takes away the shadow that shows a focused button,
+// which leaves a colored one only a 1px border in the focus color on its own
+// fill, and an outlined or text one nothing at all.
 //
 // And it keeps each ring open in forced colors (Windows' contrast themes).
 // Bulma leaves two sides of the ring `transparent`, and forced colors paints

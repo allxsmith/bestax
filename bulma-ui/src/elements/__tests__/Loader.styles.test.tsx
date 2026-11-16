@@ -39,6 +39,7 @@ import {
   DateInput,
   DateTimeInput,
   Icon,
+  IconButton,
   Input,
   LinkButton,
   Loader,
@@ -1587,11 +1588,29 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
     'outline-offset': 'var(--bulma-focus-offset)',
   };
 
-  it.each(
-    LOADING_LOOKS.filter(
+  it.each([
+    ...LOADING_LOOKS.filter(
       ([label]) => !/isDisabled|disabled fieldset/.test(label)
-    )
-  )(
+    ).map(([label, element]): [string, React.ReactElement] => [label, element]),
+    // Over Bulma's static rule, which drops the shadow too, and on the
+    // components that render through Button.
+    [
+      'Button isStatic isLoading',
+      <Button key="x" isStatic isLoading>
+        Save
+      </Button>,
+    ],
+    [
+      'IconButton isLoading',
+      <IconButton key="x" icon="trash" aria-label="Delete" isLoading />,
+    ],
+    [
+      'ToggleButton pressed isLoading',
+      <ToggleButton key="x" defaultPressed isLoading>
+        Bold
+      </ToggleButton>,
+    ],
+  ] as Array<[string, React.ReactElement]>)(
     "%s takes Bulma's focus outline from the keyboard or isFocused, outside forced colors",
     (_label, element) => {
       // Bulma's `is-loading` drops the shadow a focused button shows, and
