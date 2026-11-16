@@ -537,6 +537,53 @@ describe('Collapse', () => {
         container.querySelector('.collapse-content')?.parentElement;
       expect(wrapper?.style.opacity).toBe('0');
     });
+
+    describe('when the system asks for reduced motion', () => {
+      const original = window.matchMedia;
+      beforeEach(() => {
+        window.matchMedia = vi.fn().mockReturnValue({
+          matches: true,
+          media: '(prefers-reduced-motion: reduce)',
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        });
+      });
+      afterEach(() => {
+        window.matchMedia = original;
+      });
+
+      it.each([
+        ['fade', 'opacity', '0', '1'],
+        ['slide', 'height', '0px', 'auto'],
+      ] as const)(
+        'keeps the %s layout and drops its transition, open and closed',
+        (animation, property, closed, open) => {
+          const { container } = render(
+            <Collapse trigger={<span>Toggle</span>} animation={animation}>
+              Content
+            </Collapse>
+          );
+          const wrapper =
+            container.querySelector('.collapse-content')!.parentElement!;
+          const trigger = screen.getByRole('button');
+          // Closed, squeezed to nothing as without reduced motion.
+          expect(wrapper.style.transition).toBe('none');
+          expect(wrapper.style.overflow).toBe('hidden');
+          expect(wrapper.style[property]).toBe(closed);
+
+          // Open at once: a slide panel's full height with no wait.
+          fireEvent.click(trigger);
+          expect(trigger).toHaveAttribute('aria-expanded', 'true');
+          expect(wrapper.style.transition).toBe('none');
+          expect(wrapper.style[property]).toBe(open);
+
+          fireEvent.click(trigger);
+          expect(trigger).toHaveAttribute('aria-expanded', 'false');
+          expect(wrapper.style.transition).toBe('none');
+          expect(wrapper.style[property]).toBe(closed);
+        }
+      );
+    });
   });
 
   describe('position', () => {
