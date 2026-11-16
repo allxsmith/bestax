@@ -41,7 +41,8 @@ export interface TableProps
    * region you can tab to and scroll by keyboard, named by the table's own
    * `aria-label` or `aria-labelledby`, so name the table with one of them; a
    * development build warns when it overflows with neither. While the table
-   * fits, the container is a plain `div`.
+   * fits, the container is a plain `div` with no tab stop, though one that
+   * has focus keeps its tab stop until focus leaves.
    */
   isResponsive?: boolean;
   /** Table content (should use subcomponents). */
