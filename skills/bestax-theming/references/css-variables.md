@@ -415,7 +415,9 @@ cascader isn't one, so retheme the items through these. Their color, size, paddi
 and the sizes, start from Combobox's Sass values. The open path, which follows focus, is
 `is-active` and takes `highlight-background`, and the picked path is `is-checked` and takes the
 `checked-*` pair, as Combobox's highlight and checked items are named. A size on the field sets the `item-size`
-and `item-padding-*` values on the panel. The panel is the picker popover, above, so
+and `item-padding-*` values on the panel. The panel is at least as wide as the field and grows with its
+columns up to `max-width`, the viewport less a margin, so on a narrow screen they scroll sideways in
+it. The panel is the picker popover, above, so
 `--bulma-picker-popover-*` themes it here too.
 
 `--bulma-cascader-chevron-color`, `--bulma-cascader-chevron-focus-color`,
@@ -428,7 +430,8 @@ and `item-padding-*` values on the panel. The panel is the picker popover, above
 `--bulma-cascader-highlight-background`, `--bulma-cascader-item-chevron-size`,
 `--bulma-cascader-item-color`, `--bulma-cascader-item-gap`,
 `--bulma-cascader-item-hover-background`, `--bulma-cascader-item-padding-x`,
-`--bulma-cascader-item-padding-y`, `--bulma-cascader-item-size`, `--bulma-cascader-search-gap`
+`--bulma-cascader-item-padding-y`, `--bulma-cascader-item-size`, `--bulma-cascader-max-width`,
+`--bulma-cascader-search-gap`
 
 ### Checkbox
 

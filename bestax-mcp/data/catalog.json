@@ -1924,6 +1924,7 @@
     "--bulma-cascader-item-padding-x": ["Cascader"],
     "--bulma-cascader-item-padding-y": ["Cascader"],
     "--bulma-cascader-item-size": ["Cascader"],
+    "--bulma-cascader-max-width": ["Cascader"],
     "--bulma-cascader-search-gap": ["Cascader"],
     "--bulma-checkbox-active-color": ["Checkbox"],
     "--bulma-checkbox-background": ["Checkbox"],

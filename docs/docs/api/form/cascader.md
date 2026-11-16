@@ -412,8 +412,9 @@ edge. A `position` you pass stays physical.
   message and its Retry, which Enter, Space or a click run. The live region says when a column
   starts loading and when it's loaded, as TreeView's does.
 - **The search box** is named "Search", or `labels.search`, and its results are a listbox of the
-  paths that match. When nothing matches, `empty` is said once through a polite status region,
-  not again on every key.
+  paths that match. Enter picks the highlighted path unless it's disabled, and with none
+  highlighted it does nothing, so it never submits the form around the field. When nothing matches, `empty` is said once
+  through a polite status region, not again on every key.
 - **`required`** makes the field `aria-required`. A read-only field is left out of the browser's
   own check, so a hidden field over it carries `required`. When the browser stops a submit, it
   focuses that one and shows its message, which every browser takes down as it loses focus. So
@@ -517,6 +518,7 @@ edge. A `position` you pass stays physical.
 | `--bulma-cascader-chevron-z-index`            | `$cascader-chevron-z-index`          | `4`                                                                                                                            |
 | `--bulma-cascader-clear-z-index`              | `$cascader-clear-z-index`            | `5`                                                                                                                            |
 | `--bulma-cascader-search-gap`                 | `$cascader-search-gap`               | `0.5rem`                                                                                                                       |
+| `--bulma-cascader-max-width`                  | `$cascader-max-width`                | `calc(100vw - 2rem)`                                                                                                           |
 | `--bulma-cascader-column-width`               | `$cascader-column-width`             | `11rem`                                                                                                                        |
 | `--bulma-cascader-column-max-height`          | `$cascader-column-max-height`        | `15rem`                                                                                                                        |
 | `--bulma-cascader-column-border-width`        | `$cascader-column-border-width`      | `1px`                                                                                                                          |
