@@ -9,6 +9,7 @@ import { Button } from '../elements/Button';
 import { Icon } from '../elements/Icon';
 import { Link } from '../elements/Link';
 import { Notification } from '../elements/Notification';
+import { Hero } from '../layout/Hero';
 import { Paragraph } from '../elements/Paragraph';
 import { Title } from '../elements/Title';
 import { Column } from '../columns/Column';
@@ -473,6 +474,14 @@ export const InContainers: Story = {
             )
           )}
         </Columns>
+        {/* A colored Hero is the same: its text color, on its background. */}
+        <Hero color="primary">
+          <Hero.Body>
+            <Timeline titleAs="h3" active={1} pending="Out for delivery">
+              {stages(2)}
+            </Timeline>
+          </Hero.Body>
+        </Hero>
       </>
     );
   },

@@ -68,7 +68,10 @@ export interface StepsProps
    * Color variant. The current and completed steps take the color's
    * `-on-scheme` variant, the shade Bulma adjusts to read on the page in
    * either scheme, so a pale color such as `warning` is drawn darker on a
-   * light page.
+   * light page. On a colored `Notification` or `Hero`, leave it off: the
+   * markers then take the surface's text color, as the labels do either way,
+   * while a color you set is kept even where it doesn't stand out from the
+   * surface's.
    */
   color?: StepsColor | undefined;
   /** Show step markers. Default: true. */
