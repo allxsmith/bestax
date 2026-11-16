@@ -10,9 +10,11 @@
  *   1. `isDisplay` — a display, optionally suffixed with a viewport; an array
  *      of those; or an object keyed by display whose values are viewports:
  *        <Box isDisplay="flex-tablet" />            → displayTablet="flex"
- *        <Box isDisplay={['flex', 'block-mobile']} /> → display="flex" displayMobile="block"
+ *        <Box isDisplay={['flex', 'block-mobile']} /> → className="is-flex" displayMobile="block"
  *        <Box isDisplay={{ flex: ['default', 'desktop'] }} />
- *                                                   → display="flex" displayDesktop="flex"
+ *                                                   → className="is-flex" displayDesktop="flex"
+ *      A plain display beside a per-viewport one stays its class, since
+ *      bestax leaves `display` out beside one (`_shared/display.ts`).
  *   2. `isHidden` — a boolean, a viewport, or an array of viewports:
  *        <Box isHidden />                → visibility="hidden"
  *        <Box isHidden="touch" />        → visibilityTouch="hidden"

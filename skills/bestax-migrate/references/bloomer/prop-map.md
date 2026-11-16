@@ -34,18 +34,20 @@ bloomer's `withHelpersModifiers` mixed these into every component.
 Both take three shapes in bloomer; all three flatten onto bestax's per-viewport props. bestax
 declares every Bulma viewport, including `touch` and the `-only` ones, so nothing is lost:
 
-| bloomer                                                        | bestax-bulma                                                  |
-| -------------------------------------------------------------- | ------------------------------------------------------------- |
-| `isDisplay="flex"`                                             | `display="flex"`                                              |
-| `isDisplay="flex-tablet-only"`                                 | `displayTabletOnly="flex"`                                    |
-| `isDisplay={['inline-block', 'flex-desktop']}`                 | `display="inline-block" displayDesktop="flex"`                |
-| `isDisplay={{ flex: ['default', 'tablet'], block: 'mobile' }}` | `display="flex" displayTablet="flex" displayMobile="block"`   |
-| `isHidden`                                                     | `visibility="hidden"`                                         |
-| `isHidden="touch"`                                             | `visibilityTouch="hidden"`                                    |
-| `isHidden={['mobile', 'widescreen-only']}`                     | `visibilityMobile="hidden" visibilityWidescreenOnly="hidden"` |
+| bloomer                                                        | bestax-bulma                                                     |
+| -------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `isDisplay="flex"`                                             | `display="flex"`                                                 |
+| `isDisplay="flex-tablet-only"`                                 | `displayTabletOnly="flex"`                                       |
+| `isDisplay={['inline-block', 'flex-desktop']}`                 | `className="is-inline-block" displayDesktop="flex"`              |
+| `isDisplay={{ flex: ['default', 'tablet'], block: 'mobile' }}` | `className="is-flex" displayTablet="flex" displayMobile="block"` |
+| `isHidden`                                                     | `visibility="hidden"`                                            |
+| `isHidden="touch"`                                             | `visibilityTouch="hidden"`                                       |
+| `isHidden={['mobile', 'widescreen-only']}`                     | `visibilityMobile="hidden" visibilityWidescreenOnly="hidden"`    |
 
-Two entries that land on the same prop, a dynamic value, or a viewport bestax does not know get
-a TODO; the bloomer prop is always removed, because bestax has no `isDisplay`/`isHidden` and a
+A plain display beside a per-viewport one stays its class in `className` (`is-inline-block`),
+since bestax leaves `display` out once a per-viewport display prop is set; see `prop:display-base` in
+[unmappables.md](unmappables.md). Two entries that land on the same prop, a dynamic value, or a
+viewport bestax does not know get a TODO; the bloomer prop is always removed, because bestax has no `isDisplay`/`isHidden` and a
 leftover would be a type error rather than a no-op.
 
 ## Value props
