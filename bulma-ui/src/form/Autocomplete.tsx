@@ -58,10 +58,10 @@ const isComposing = (e: React.KeyboardEvent): boolean =>
 const isEnabled = (item: AutocompleteItem | string): boolean =>
   typeof item === 'string' || !item.disabled;
 
-/** The accessible strings, in your app's language. */
+/** The clear button's name, in your app's language. */
 export interface AutocompleteLabels {
   /**
-   * Names the clear button.
+   * Names the clear button. An empty string counts as none.
    * @defaultValue 'Clear'
    */
   clear?: string;
@@ -113,7 +113,7 @@ export interface AutocompleteProps
    * or `labels.clear`.
    */
   clearable?: boolean;
-  /** The accessible strings, in your app's language. */
+  /** The clear button's name, in your app's language. */
   labels?: AutocompleteLabels;
   /** Open dropdown when input is focused. */
   openOnFocus?: boolean;
