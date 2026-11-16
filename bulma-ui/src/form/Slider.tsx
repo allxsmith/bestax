@@ -68,15 +68,15 @@ interface SliderBaseProps
     [key: string]: unknown;
   };
   /** Minimum value. */
-  min?: number;
+  min?: number | undefined;
   /** Maximum value. */
-  max?: number;
+  max?: number | undefined;
   /** Step increment (default: 1). */
-  step?: number;
+  step?: number | undefined;
   /** Size variant. */
-  size?: SliderSize;
+  size?: SliderSize | undefined;
   /** Color variant. */
-  color?: SliderColor;
+  color?: SliderColor | undefined;
   /** Use rounded track ends. */
   isRounded?: boolean;
   /** Use circular thumb. */
@@ -116,14 +116,14 @@ export interface SliderSingleProps extends SliderBaseProps {
    */
   range?: false;
   /** Controlled value. */
-  value?: number;
+  value?: number | undefined;
   /**
    * Default value for uncontrolled usage.
    * @defaultValue 0
    */
-  defaultValue?: number;
+  defaultValue?: number | undefined;
   /** Callback when value changes. */
-  onChange?: (value: number) => void;
+  onChange?: ((value: number) => void) | undefined;
   /**
    * Minimum distance between thumbs in range mode.
    * @defaultValue 0
@@ -143,14 +143,14 @@ export interface SliderRangeProps extends SliderBaseProps {
    */
   range: true;
   /** Controlled value. */
-  value?: [number, number];
+  value?: [number, number] | undefined;
   /**
    * Default value for uncontrolled usage.
    * @defaultValue 0
    */
-  defaultValue?: [number, number];
+  defaultValue?: [number, number] | undefined;
   /** Callback when value changes. */
-  onChange?: (value: [number, number]) => void;
+  onChange?: ((value: [number, number]) => void) | undefined;
   /**
    * Minimum distance between thumbs in range mode.
    * @defaultValue 0

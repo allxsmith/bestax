@@ -42,16 +42,17 @@ export interface ColumnProps
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes for the column. */
-  className?: string;
+  className?: string | undefined;
   /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Bulma color modifier for the column. */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
 
   /** Column size (see Bulma docs). */
-  size?: BulmaColumnSize;
+  size?: BulmaColumnSize | undefined;
   /** Size for mobile breakpoint. */
   sizeMobile?: BulmaColumnSize;
   /** Size for tablet breakpoint. */

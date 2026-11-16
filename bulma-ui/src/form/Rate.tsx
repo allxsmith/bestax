@@ -66,23 +66,23 @@ export interface RateProps
     [key: string]: unknown;
   };
   /** Form field name. When set, a hidden input is rendered. */
-  name?: string;
+  name?: string | undefined;
   /** Optional id of the form this hidden input belongs to (use when the input lives outside the form element). */
-  form?: string;
+  form?: string | undefined;
   /** Controlled value (0 to max). */
-  value?: number;
+  value?: number | undefined;
   /** Default value for uncontrolled usage. */
-  defaultValue?: number;
+  defaultValue?: number | undefined;
   /** Maximum rating value. */
-  max?: number;
+  max?: number | undefined;
   /** Size variant. */
-  size?: RateSize;
+  size?: RateSize | undefined;
   /**
    * Whether the rating is disabled. A disabled Rate ignores clicks and keys,
    * leaves the tab order, and sets `aria-disabled` on the group and on every
    * star, so a screen reader announces them as unavailable.
    */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /**
    * Show the numeric score next to stars, written the way the `locale` of a
    * `LocaleProvider` around it writes numbers.
@@ -93,7 +93,7 @@ export interface RateProps
   /** Array of text labels for each rating value. */
   texts?: string[];
   /** Callback when rating changes. */
-  onChange?: (value: number) => void;
+  onChange?: ((value: number) => void) | undefined;
   /** Custom icon renderer. */
   customIcon?: (props: RateIconProps) => React.ReactNode;
   /** Add spacing between icons. */
@@ -109,7 +109,7 @@ export interface RateProps
   /** Additional icon modifiers. */
   iconFeatures?: string | string[];
   /** Color of the active rating icons. */
-  color?: BulmaColor;
+  color?: BulmaColor | undefined;
   /** Rating precision (e.g., `0.5` for half stars). */
   precision?: number;
   /** Custom text displayed next to the rating. */

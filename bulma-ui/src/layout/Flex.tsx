@@ -80,7 +80,7 @@ export type FlexProps<T extends LayoutElement = LayoutElement> = FlexOwnProps &
      * restates `role="list"`, which Bulma's list reset takes away in Safari.
      * @defaultValue 'div'
      */
-    as?: T;
+    as?: T | undefined;
   };
 
 /**

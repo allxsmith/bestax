@@ -21,9 +21,10 @@ export interface TextAreaBaseProps
     | 'black'
     | 'dark'
     | 'light'
-    | 'white';
+    | 'white'
+    | undefined;
   /** Size modifier for the textarea. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /**
    * Adds the `is-rounded` class to the `<textarea>`. Bulma styles it on `.input` only, so the
    * textarea's corners don't change.
@@ -48,13 +49,13 @@ export interface TextAreaBaseProps
   /** Fixed textarea size (no resize). */
   hasFixedSize?: boolean;
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Disables the textarea. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Read-only textarea. */
-  readOnly?: boolean;
+  readOnly?: boolean | undefined;
   /** Number of visible text lines. */
-  rows?: number;
+  rows?: number | undefined;
 }
 
 /**

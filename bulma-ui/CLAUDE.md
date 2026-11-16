@@ -154,10 +154,14 @@ either one is fixed.
   list, so write it for a reader ("Top bar for navigation or branding"), not for the compiler.
   Type aliases get the same treatment: a union too long to inline in a cell is rendered as its
   name plus a `**Types:**` footnote built from the alias's own TSDoc.
-  Redeclaring an inherited prop to give it TSDoc keeps the inherited type:
-  `'aria-label'?: React.AriaAttributes['aria-label']`, not `string`, which is narrower under
-  `exactOptionalPropertyTypes` and so a breaking change. `@extraProp` documents one without
-  redeclaring it.
+  An optional prop under a name React's `AllHTMLAttributes` declares keeps `undefined` as
+  React's does, whether it redeclares React's to give it TSDoc, replaces one its base omits, or
+  stands in for the element's in a polymorphic component: `className?: string | undefined`, or
+  the inherited type itself, `'aria-label'?: React.AriaAttributes['aria-label']`. Plain
+  `string` takes no `undefined` under `exactOptionalPropertyTypes`, so narrowing one is a
+  breaking change. `src/__tests__/inherited-prop-types.test.ts` checks every exported `*Props`
+  type for one that leaves it out, and the props tables don't show an optional prop's
+  `undefined`. `@extraProp` documents one without redeclaring it.
 - Multi-part components attach sub-components as statics via `withSubComponents`
   (`src/helpers/withSubComponents.ts`) — it must mutate the base (identity-preserving),
   never wrap it. A compound family ships these artifacts beyond the base anatomy rule:

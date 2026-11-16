@@ -60,7 +60,7 @@ export interface PopoverProps
    * Controlled open state. When set, the trigger and every dismissal only
    * report through `onOpenChange`.
    */
-  open?: boolean;
+  open?: boolean | undefined;
   /**
    * Initial open state when uncontrolled. Opening moves focus into the
    * panel, so a popover that starts open takes focus once the page loads.
@@ -472,7 +472,7 @@ export interface PopoverHeaderProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color' | 'id'>,
     BulmaClassesProps {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**
@@ -512,7 +512,7 @@ export interface PopoverBodyProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     BulmaClassesProps {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**
@@ -547,7 +547,7 @@ export interface PopoverFooterProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     BulmaClassesProps {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**

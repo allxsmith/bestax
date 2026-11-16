@@ -55,9 +55,10 @@ export interface FileProps
     | 'black'
     | 'dark'
     | 'light'
-    | 'white';
+    | 'white'
+    | undefined;
   /** Size modifier for the file input. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Boxed file input. */
   isBoxed?: boolean;
   /** Whether the file input expands to full width. */
@@ -90,7 +91,7 @@ export interface FileProps
    */
   iconRight?: React.ReactNode;
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Additional CSS classes for the `<input>`. */
   inputClassName?: string;
   /**

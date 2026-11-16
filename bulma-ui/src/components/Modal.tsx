@@ -54,7 +54,7 @@ export interface ModalProps
    */
   onClose?: () => void;
   /** Additional CSS classes for the modal. */
-  className?: string;
+  className?: string | undefined;
   /** Text color for modal content. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color for modal content. */
@@ -70,7 +70,7 @@ export interface ModalProps
    * Modal style: `'card'` for modal-card, `'content'` for modal-content. (Legacy API only)
    * @defaultValue auto
    */
-  type?: 'card' | 'content';
+  type?: 'card' | 'content' | undefined;
   /** Modal body/content or compound components. */
   children?: React.ReactNode;
   /**
@@ -118,7 +118,7 @@ export interface ModalProps
  */
 export interface ModalBackgroundProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**
@@ -126,7 +126,7 @@ export interface ModalBackgroundProps extends React.HTMLAttributes<HTMLDivElemen
  */
 export interface ModalContentProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**
@@ -134,7 +134,7 @@ export interface ModalContentProps extends React.HTMLAttributes<HTMLDivElement> 
  */
 export interface ModalCardProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**
@@ -142,7 +142,7 @@ export interface ModalCardProps extends React.HTMLAttributes<HTMLDivElement> {
  */
 export interface ModalCardHeadProps extends React.HTMLAttributes<HTMLElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**
@@ -150,7 +150,7 @@ export interface ModalCardHeadProps extends React.HTMLAttributes<HTMLElement> {
  */
 export interface ModalCardTitleProps extends React.HTMLAttributes<HTMLParagraphElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**
@@ -158,7 +158,7 @@ export interface ModalCardTitleProps extends React.HTMLAttributes<HTMLParagraphE
  */
 export interface ModalCardBodyProps extends React.HTMLAttributes<HTMLElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**
@@ -166,7 +166,7 @@ export interface ModalCardBodyProps extends React.HTMLAttributes<HTMLElement> {
  */
 export interface ModalCardFootProps extends React.HTMLAttributes<HTMLElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**
@@ -177,9 +177,9 @@ export interface ModalCardFootProps extends React.HTMLAttributes<HTMLElement> {
  */
 export interface ModalCloseProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Size of the close button (only applies to 'floating' variant). */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Button variant. 'delete' (default) for modal card headers, 'floating' for overlay close button. */
   variant?: 'delete' | 'floating';
 }

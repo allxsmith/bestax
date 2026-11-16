@@ -68,13 +68,13 @@ export interface RadioProps
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'> {
   /** Color of the radio button. */
-  color?: (typeof radioColors)[number];
+  color?: (typeof radioColors)[number] | undefined;
   /** Size of the radio button. */
-  size?: (typeof radioSizes)[number];
+  size?: (typeof radioSizes)[number] | undefined;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Whether the radio is disabled. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /**
    * Additional CSS classes, on the outer `<label>`. That's the element that
    * declares the `--bulma-radio-*` variables, so a class is how to set one:
@@ -85,7 +85,7 @@ export interface RadioProps
    * `.styled-radio.is-<color>`, which ties that selector, so leave `color`
    * unset when a class sets it.
    */
-  className?: string;
+  className?: string | undefined;
   /** The label/content for the radio. */
   children?: React.ReactNode;
 }

@@ -24,9 +24,10 @@ export interface SelectBaseProps
     | 'black'
     | 'dark'
     | 'light'
-    | 'white';
+    | 'white'
+    | undefined;
   /** Size modifier for the select. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Rounded select corners. */
   isRounded?: boolean;
   /**
@@ -46,11 +47,11 @@ export interface SelectBaseProps
   /** Makes the select span the full width of parent. @deprecated Use `isFullwidth` instead — `isFullwidth` wins if both are set. */
   isFullWidth?: boolean;
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Disables the select. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Allows multiple selections. */
-  multiple?: boolean;
+  multiple?: boolean | undefined;
   /** Number of visible options in multiselect. */
   multipleSize?: number;
   /** `<option>` elements. */

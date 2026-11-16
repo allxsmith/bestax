@@ -80,9 +80,9 @@ export interface PinInputProps
   /** How many characters the code has. Each gets a box, and it is the input's `maxLength`. */
   length?: number;
   /** The code (controlled). Only its first `length` characters are shown and submitted. */
-  value?: string;
+  value?: string | undefined;
   /** The code to start with (uncontrolled). Only its first `length` characters are kept. */
-  defaultValue?: string;
+  defaultValue?: string | undefined;
   /**
    * What the code takes. A digit from any script, such as an Arabic-Indic or
    * a Persian one, goes in as its ASCII digit, so the code reaches
@@ -90,7 +90,7 @@ export interface PinInputProps
    * or pasted is dropped, and the caret stays where it was. The input stays a
    * text field either way, so a code keeps its leading zeros.
    */
-  type?: PinInputType;
+  type?: PinInputType | undefined;
   /**
    * Shows a dot in each filled box in place of its character, and makes the
    * input a password field, so a screen reader doesn't read the code out
@@ -108,19 +108,20 @@ export interface PinInputProps
     | 'black'
     | 'dark'
     | 'light'
-    | 'white';
+    | 'white'
+    | undefined;
   /** Size of the boxes. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Round boxes. */
   isRounded?: boolean;
   /** Whether the input is disabled. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /**
    * Called with the code each time it changes. A paste replaces the whole
    * code with what was pasted, kept to what `type` takes and cut to `length`,
    * and a paste with nothing the code takes changes nothing.
    */
-  onChange?: (value: string) => void;
+  onChange?: ((value: string) => void) | undefined;
   /**
    * Called with the code when a change makes it `length` characters long,
    * such as typing the last character, a paste or autofill. It fires once for

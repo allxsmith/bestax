@@ -86,9 +86,9 @@ export interface DateRangeInputBaseProps
    * Controlled range, start first. Either end may be `null`, and
    * `[null, null]` is empty.
    */
-  value?: DateRangeValue;
+  value?: DateRangeValue | undefined;
   /** Initial range for uncontrolled usage. */
-  defaultValue?: DateRangeValue;
+  defaultValue?: DateRangeValue | undefined;
   /**
    * Fired when the range changes, with the start first. Typing commits one
    * end at a time, so a range half typed arrives as `[start, null]`. The
@@ -96,7 +96,7 @@ export interface DateRangeInputBaseProps
    * inside the calendar and its second commits both ends in one call. The
    * range stays ordered, so the end is never before the start.
    */
-  onChange?: (range: DateRangeValue) => void;
+  onChange?: ((range: DateRangeValue) => void) | undefined;
   /** Fired when the popover opens. */
   onOpen?: () => void;
   /** Fired when the popover closes. */
@@ -105,23 +105,23 @@ export interface DateRangeInputBaseProps
    * Earliest selectable date, for either end. A `min` before year 1 is raised
    * to 1 January of year 1, where the range starts without one too.
    */
-  min?: Date;
+  min?: Date | undefined;
   /** Latest selectable date, for either end. */
-  max?: Date;
+  max?: Date | undefined;
   /**
    * Disable both inputs and the launcher, or an `inline` calendar's days and
    * header buttons. The hidden inputs still submit the range, in every mode,
    * where a disabled input submits nothing.
    */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /**
    * Make both inputs read-only and keep the popover closed. An `inline`
    * calendar still moves through the dates by key and by its header, but a
    * click, Enter or Space picks nothing.
    */
-  readOnly?: boolean;
+  readOnly?: boolean | undefined;
   /** Placeholder text, shown in both inputs while they are empty. */
-  placeholder?: string;
+  placeholder?: string | undefined;
   /**
    * Token format string or `Intl.DateTimeFormat` options, used by both
    * inputs.
@@ -164,7 +164,7 @@ export interface DateRangeInputBaseProps
   /** Allow segmented keyboard typing in both inputs. `false` makes the field picker-only. */
   editable?: boolean;
   /** Whether the calendar popover exists. `false` makes the field input-only. */
-  popover?: boolean;
+  popover?: boolean | undefined;
   /**
    * Open the popover when focus arrives in the field. Moving focus between
    * the two inputs, or back from the launcher, leaves it closed, and so does
@@ -195,9 +195,10 @@ export interface DateRangeInputBaseProps
    * Bulma color modifier for the field, also carried by the calendar, where it
    * colors the range's ends and the band between them.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Size variant. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Render the field with rounded corners. */
   isRounded?: boolean;
   /**
@@ -287,19 +288,19 @@ export interface DateRangeInputBaseProps
    * named `name[start]` and `name[end]`, in every mode. The visible inputs
    * carry no name.
    */
-  name?: string;
+  name?: string | undefined;
   /** Name of the hidden input carrying the start, in place of `name[start]`. */
   startName?: string;
   /** Name of the hidden input carrying the end, in place of `name[end]`. */
   endName?: string;
   /** Form id the hidden inputs belong to. */
-  form?: string;
+  form?: string | undefined;
   /**
    * Mark both visible inputs required, so a form won't submit with either
    * end empty. An `inline` calendar has no visible input, so it is not
    * checked there.
    */
-  required?: boolean;
+  required?: boolean | undefined;
   /** Id of the start input. The end input takes `${id}-end`. */
   id?: React.HTMLAttributes<HTMLElement>['id'];
 }

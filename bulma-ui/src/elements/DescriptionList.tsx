@@ -31,7 +31,7 @@ export interface DescriptionListProps
     Omit<React.HTMLAttributes<HTMLDListElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** `DescriptionList.Item`s, one for each fact. */
   children?: React.ReactNode;
   /**
@@ -97,7 +97,7 @@ export interface DescriptionListItemProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * The label, such as "Order", as a `DescriptionList.Label` before the
    * children.
@@ -135,7 +135,7 @@ export interface DescriptionListLabelProps
     Omit<React.HTMLAttributes<HTMLElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * The label. A button may sit in it, such as one that opens a `Popover`
    * about the label, but not a heading, which HTML doesn't allow here.
@@ -158,7 +158,7 @@ export interface DescriptionListValueProps
     Omit<React.HTMLAttributes<HTMLElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** The value. Anything goes, a list or a paragraph included. */
   children?: React.ReactNode;
   /** Text color helper. */

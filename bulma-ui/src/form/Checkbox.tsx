@@ -67,13 +67,13 @@ export interface CheckboxProps
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'> {
   /** Color of the checkbox. */
-  color?: (typeof checkboxColors)[number];
+  color?: (typeof checkboxColors)[number] | undefined;
   /** Size of the checkbox. */
-  size?: (typeof checkboxSizes)[number];
+  size?: (typeof checkboxSizes)[number] | undefined;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Whether the checkbox is disabled. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /**
    * Shows the mixed state, as in a "Select all" box when some of what it
    * covers is checked. It's a look and an announcement only: `checked` is
@@ -96,7 +96,7 @@ export interface CheckboxProps
    * `color` prop declares the fills again on `.styled-checkbox.is-<color>`,
    * which ties that selector, so leave `color` unset when a class sets them.
    */
-  className?: string;
+  className?: string | undefined;
   /** The label/content for the checkbox. */
   children?: React.ReactNode;
 }

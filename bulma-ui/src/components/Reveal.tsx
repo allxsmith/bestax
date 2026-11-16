@@ -49,9 +49,9 @@ export interface RevealOwnProps extends BulmaClassesProps {
   /** Content to reveal. */
   children?: React.ReactNode;
   /** Additional CSS classes. Applied to the observed element (the wrapper `div` when `as` is a component). */
-  className?: string;
+  className?: string | undefined;
   /** Inline styles, merged after the animation's own. Applied to the observed element. */
-  style?: React.CSSProperties;
+  style?: React.CSSProperties | undefined;
 }
 
 /**
@@ -65,7 +65,7 @@ export interface RevealOwnProps extends BulmaClassesProps {
 export type RevealProps<T extends React.ElementType = 'div'> = RevealOwnProps &
   Omit<React.ComponentPropsWithoutRef<T>, keyof RevealOwnProps | 'as'> & {
     /** Element or component to render as. Default: 'div'. When `as` is a plain intrinsic tag (e.g. `'section'`), your `className`, `style`, and Bulma helper classes plus everything in `...rest` all land on that single element. When `as` is a component (e.g. `Section`, `Card`), scroll detection needs a real DOM node with a ref, so `Reveal` wraps it in an observed `div`: `className`/`style`/helper classes go on that wrapper `div`, while `...rest` (`id`, `aria-*`, `data-*`, event handlers) is forwarded to the inner component. */
-    as?: T;
+    as?: T | undefined;
   };
 
 /**

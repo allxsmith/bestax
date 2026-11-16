@@ -17,9 +17,9 @@ interface CollapsesBaseProps
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Joins the items into one block, with no gap between them and only the outer corners rounded. The joins show on `bordered` items. */
-  seamless?: boolean;
+  seamless?: boolean | undefined;
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** The `Collapse` items. Each child element is one item, indexed from 0 in order, with the children of a fragment counted one by one. A child that sets its own `open` keeps it: the group leaves that item alone. */
   children?: React.ReactNode;
 }
@@ -32,13 +32,13 @@ export interface CollapsesSingleProps extends CollapsesBaseProps {
    * Lets items open independently. Without it, opening one item closes the others.
    * @defaultValue false
    */
-  multiple?: false;
+  multiple?: false | undefined;
   /** Controlled open items: the index of the open item, or `null` for none. With `multiple`, an array of indexes. An index is a position among the children, so rendering an item conditionally or reordering them moves the open state onto a neighbour: render every item and hide one with `visibility="hidden"`, or keep `value` in step yourself. */
-  value?: number | null;
+  value?: number | null | undefined;
   /** Open items for uncontrolled use, as an index or `null` (the default, none open). With `multiple`, an array of indexes, empty by default. Indexes are positions among the children, as for `value`. */
-  defaultValue?: number | null;
+  defaultValue?: number | null | undefined;
   /** Called with the new open items each time a trigger asks for a change, whether or not `value` is set: an index or `null`, or with `multiple` an array of indexes in ascending order. Indexes are positions among the children, as for `value`. */
-  onChange?: (value: number | null) => void;
+  onChange?: ((value: number | null) => void) | undefined;
 }
 
 /**
@@ -51,11 +51,11 @@ export interface CollapsesMultipleProps extends CollapsesBaseProps {
    */
   multiple: true;
   /** Controlled open items: the index of the open item, or `null` for none. With `multiple`, an array of indexes. An index is a position among the children, so rendering an item conditionally or reordering them moves the open state onto a neighbour: render every item and hide one with `visibility="hidden"`, or keep `value` in step yourself. */
-  value?: number[];
+  value?: number[] | undefined;
   /** Open items for uncontrolled use, as an index or `null` (the default, none open). With `multiple`, an array of indexes, empty by default. Indexes are positions among the children, as for `value`. */
-  defaultValue?: number[];
+  defaultValue?: number[] | undefined;
   /** Called with the new open items each time a trigger asks for a change, whether or not `value` is set: an index or `null`, or with `multiple` an array of indexes in ascending order. Indexes are positions among the children, as for `value`. */
-  onChange?: (value: number[]) => void;
+  onChange?: ((value: number[]) => void) | undefined;
 }
 
 /**

@@ -463,7 +463,7 @@
         },
         {
           "name": "aria-expanded",
-          "type": "boolean | null | undefined",
+          "type": "boolean | null",
           "default": "active",
           "description": "Expanded state for assistive technology. It follows `active` unless you pass `true` or `false`, and `null` leaves it off, for a burger whose state isn't known yet; a spread carrying `'aria-expanded': undefined` still follows `active`.",
           "required": false,

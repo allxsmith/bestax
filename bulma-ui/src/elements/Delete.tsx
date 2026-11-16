@@ -13,7 +13,7 @@ import { buttonType } from '../helpers/buttonType';
 interface DeleteProps
   extends React.HTMLAttributes<HTMLButtonElement>, BulmaClassesProps {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
@@ -22,13 +22,14 @@ interface DeleteProps
    * `textColor`, which takes precedence when both are set; use `bgColor` for
    * a colored surface.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Click handler for the button. */
-  onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  onClick?: ((event: React.MouseEvent<HTMLButtonElement>) => void) | undefined;
   /** Size modifier for the delete button. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /**
    * Accessible name for the button. An `aria-label` you pass takes precedence
    * over it, unless it is empty or arrives as `undefined` through a spread.
@@ -38,7 +39,7 @@ interface DeleteProps
    */
   ariaLabel?: string;
   /** Whether the button is disabled (default: false). */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
 }
 
 /**

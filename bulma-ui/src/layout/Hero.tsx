@@ -31,9 +31,17 @@ export interface HeroProps
    * it has an accessible name (`aria-label`, or `aria-labelledby` pointing at
    * its heading).
    */
-  as?: 'section' | 'div' | 'main' | 'header' | 'footer' | 'article' | 'aside';
+  as?:
+    | 'section'
+    | 'div'
+    | 'main'
+    | 'header'
+    | 'footer'
+    | 'article'
+    | 'aside'
+    | undefined;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /**
    * Bulma color modifier for the hero section (renders `is-<color>`).
    *
@@ -43,9 +51,9 @@ export interface HeroProps
    * renders unstyled; those log a console warning in development and will be
    * removed from this union in the next major version.
    */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /** Hero size. */
-  size?: HeroSize;
+  size?: HeroSize | undefined;
   /**
    * Bulma background color helper. `scheme-*` values render as a
    * dark-mode-safe inline `background-color: var(--bulma-scheme-*)` instead
@@ -122,11 +130,11 @@ export interface HeroHeadProps
    * the default `<section>` hero it is not one: render the hero as a `div`
    * for that. A `header` may not sit inside another `header` or a `footer`.
    */
-  as?: 'div' | 'header' | 'nav';
+  as?: 'div' | 'header' | 'nav' | undefined;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Bulma color modifier for text. */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /**
    * Background color. `scheme-*` values render as a dark-mode-safe inline
    * `background-color: var(--bulma-scheme-*)` instead of a class. The
@@ -187,9 +195,9 @@ export interface HeroBodyProps
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Bulma color modifier for text. */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /**
    * Background color. `scheme-*` values render as a dark-mode-safe inline
    * `background-color: var(--bulma-scheme-*)` instead of a class. The
@@ -255,11 +263,11 @@ export interface HeroFootProps
    * the default `<section>` hero it is not one: render the hero as a `div`
    * for that. A `footer` may not sit inside another `footer` or a `header`.
    */
-  as?: 'div' | 'footer' | 'nav';
+  as?: 'div' | 'footer' | 'nav' | undefined;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Bulma color modifier for text. */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /**
    * Background color. `scheme-*` values render as a dark-mode-safe inline
    * `background-color: var(--bulma-scheme-*)` instead of a class. The

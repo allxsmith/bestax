@@ -104,7 +104,7 @@ export type PolymorphicProps<
         Exclude<keyof Own, Forwarded> | 'as'
       > & {
         /** The element or component to render. */
-        as?: T;
+        as?: T | undefined;
       }
   : never;
 
@@ -114,7 +114,7 @@ export type PolymorphicProps<
  * `forwardRef` cannot express a generic component, so the implementation is
  * cast to this. `displayName` is part of the type because the library sets it
  * on every `forwardRef` component, and `withSubComponents` constrains its base
- * to `{ displayName?: string }`.
+ * to `{ displayName?: string | undefined }`.
  *
  * The second, non-generic signature exists for type DERIVATION rather than for
  * calls. `React.ComponentProps<typeof Button>` infers from the last overload;

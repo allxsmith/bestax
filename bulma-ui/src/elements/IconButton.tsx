@@ -94,7 +94,7 @@ export type IconButtonProps<T extends React.ElementType = 'button'> =
        * router `Link`, as on `Button`.
        * @defaultValue 'button'
        */
-      as?: T;
+      as?: T | undefined;
     };
 
 /**

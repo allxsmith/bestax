@@ -19,7 +19,7 @@ export interface LoaderProps
       'color' | 'colorShade' | 'backgroundColor' | 'backgroundColorShade'
     > {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * Accessible name of the progress indicator. Name what is loading
    * (`"Saving row"`) when more than one loader can be on screen at once.

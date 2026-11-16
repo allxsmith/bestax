@@ -192,7 +192,7 @@ export interface AppFrameNavProps
    * the handle reads anything else as the stylesheet's width, and a
    * development build warns about it.
    */
-  width?: number | string;
+  width?: number | string | undefined;
   /**
    * Shows a backdrop behind the drawer and makes it modal: Tab stays inside,
    * the page scroll locks, and the rest of the frame is inert, while what
@@ -304,7 +304,7 @@ export interface AppFrameNavProps
    * moves ten times as far.
    * @defaultValue 10
    */
-  step?: number;
+  step?: number | undefined;
 }
 
 /**
@@ -340,7 +340,7 @@ export interface AppFrameAsideProps
    * page. A number is pixels, and a string any CSS length. It writes
    * `--bulma-app-frame-aside-width`, 20rem by default.
    */
-  width?: number | string;
+  width?: number | string | undefined;
 }
 
 /**

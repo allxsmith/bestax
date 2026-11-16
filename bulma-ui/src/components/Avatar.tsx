@@ -128,9 +128,9 @@ function DefaultAvatarIcon() {
  */
 export interface AvatarOwnProps extends Omit<BulmaClassesProps, 'color'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Image URL. On load error (or if absent), falls back to initials, then `icon`. */
-  src?: string;
+  src?: string | undefined;
   /**
    * Alternate text for the image (used for the accessible name in every render mode). An
    * explicit `alt=""` marks a non-interactive avatar as decorative.
@@ -139,19 +139,19 @@ export interface AvatarOwnProps extends Omit<BulmaClassesProps, 'color'> {
    * component passed to `as` counts as one unless it states otherwise, so `alt=""` on a custom
    * wrapper needs that signal alongside it. `as` documents which props carry it.
    */
-  alt?: string;
+  alt?: string | undefined;
   /** Derives initials and a deterministic background color when no `src` is shown. */
-  name?: string;
+  name?: string | undefined;
   /** Explicit initials override (else derived from `name`). */
   initials?: string;
   /** Final fallback, rendered when there is no `src`, `name`, or `initials`. */
   icon?: React.ReactNode;
   /** Preset size, or a pixel size when a number. */
-  size?: AvatarSize | number;
+  size?: AvatarSize | number | undefined;
   /** Avatar shape. Default `'circle'`. */
-  shape?: AvatarShape;
+  shape?: AvatarShape | undefined;
   /** Background color for initials/icon avatars (else auto-derived from `name`). */
-  color?: AvatarColor;
+  color?: AvatarColor | undefined;
   /**
    * When set, renders the avatar as a link: an `<a>` unless `as` names the element itself. An
    * `as` target declaring its own `href` supersedes this one, and its type and its requiredness
@@ -164,15 +164,15 @@ export interface AvatarOwnProps extends Omit<BulmaClassesProps, 'color'> {
    * link, render it `as="a"` or pass a link component to `as`. An empty `href` asks for no link:
    * with no `as` it renders a `<figure>`, and it draws no warning.
    */
-  href?: string;
+  href?: string | undefined;
   /** Anchor target, passed on only where `href` is (an `a`, a custom element, or a component) and superseded by the target's own declaration the way `href` is. Any other `as` you pass renders without it, with the same development warning as `href`, except `'form'`: it declares its own `target`, so there the attribute is still withheld but draws no warning. */
-  target?: string;
+  target?: string | undefined;
   /** Anchor rel, passed on only where `href` is (an `a`, a custom element, or a component) and superseded by the target's own declaration the way `href` is. */
-  rel?: string;
+  rel?: string | undefined;
   /** Extra props forwarded to the underlying `<img>` (e.g. `loading`, `crossOrigin`); its `onError` is chained before the fallback fires. */
   imageProps?: React.ImgHTMLAttributes<HTMLImageElement>;
   /** Inline styles, merged after the size style. */
-  style?: React.CSSProperties;
+  style?: React.CSSProperties | undefined;
   /**
    * Not accepted. Avatar always renders its own content — the image, the
    * initials, or the icon — so anything a caller passed would be replaced. It
@@ -240,7 +240,7 @@ export type AvatarProps<T extends React.ElementType = 'figure'> = Omit<
      * `'button'` renders `type="button"` unless you pass `type="submit"` or `type="reset"`, so
      * an avatar inside a form does not submit it.
      */
-    as?: T;
+    as?: T | undefined;
   };
 
 /**

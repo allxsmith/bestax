@@ -13,7 +13,7 @@ export interface TheadProps
     Omit<React.HTMLAttributes<HTMLTableSectionElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Table header content (rows). */
   children?: React.ReactNode;
 }

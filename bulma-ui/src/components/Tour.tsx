@@ -155,7 +155,7 @@ export interface TourProps
    */
   children?: React.ReactNode;
   /** Whether the tour is showing (controlled). */
-  open?: boolean;
+  open?: boolean | undefined;
   /**
    * Whether it shows from the start (uncontrolled). A tour has to measure
    * its targets, so it shows from the commit after hydration, never in
@@ -176,13 +176,13 @@ export interface TourProps
    * `mode="beacon"`, the open step's index, or `-1` while only the beacons
    * show, as Timeline's `active` takes `-1` for none.
    */
-  value?: number;
+  value?: number | undefined;
   /**
    * The step it starts on (uncontrolled), and goes back to each time it
    * opens.
    * @defaultValue 0, or -1 with mode="beacon"
    */
-  defaultValue?: number;
+  defaultValue?: number | undefined;
   /**
    * Called with the new index when Back, Next, an arrow key or a beacon
    * changes the step, and with `-1` when a beacon's step closes: Done,
@@ -191,7 +191,7 @@ export interface TourProps
    * it. So keep a beacon tour's list of steps fixed while a tip shows, and
    * drop read ones the next time the tips open.
    */
-  onChange?: (value: number) => void;
+  onChange?: ((value: number) => void) | undefined;
   /**
    * Called when Done on the last step finishes the tour, before
    * `onOpenChange(false)`. Skip, the close button, Escape and a click
@@ -305,7 +305,7 @@ export interface TourStepProps
    * then. A development build warns about a missing target, once for each
    * selector.
    */
-  target?: TourTarget;
+  target?: TourTarget | undefined;
   /**
    * The title, which names the step's dialog. A step without one needs an
    * `aria-label`, and a development build warns when it has neither.

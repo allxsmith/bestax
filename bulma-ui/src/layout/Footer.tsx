@@ -16,9 +16,9 @@ export interface FooterProps
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** The HTML tag to render as. */
-  as?: 'footer' | 'div';
+  as?: 'footer' | 'div' | undefined;
   /** Bulma color modifier. */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /**
    * Background color. `scheme-*` values render as a dark-mode-safe inline
    * `background-color: var(--bulma-scheme-*)` instead of a class. The
@@ -33,7 +33,7 @@ export interface FooterProps
   /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Content inside the footer. */
   children?: React.ReactNode;
 }

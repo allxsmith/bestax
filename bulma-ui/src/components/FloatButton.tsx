@@ -75,7 +75,7 @@ export interface FloatButtonOwnProps {
    * `'small'` (30px), `'normal'` (40px, the same as unset), `'medium'`
    * (50px) or `'large'` (60px), as `Button`'s.
    */
-  size?: FloatButtonSize;
+  size?: FloatButtonSize | undefined;
   /**
    * The corner it's fixed to, as `Affix`'s. Inside `FloatButtons` or a
    * `FloatButton.SpeedDial`, which place it, it's ignored. Its class and
@@ -122,7 +122,7 @@ export type FloatButtonProps<T extends React.ElementType = 'button'> =
        * router `Link`, as on `IconButton`.
        * @defaultValue 'button'
        */
-      as?: T;
+      as?: T | undefined;
     };
 
 /**
@@ -303,11 +303,11 @@ export interface FloatButtonSpeedDialOwnProps extends Omit<
   /** The trigger's Bulma color, as `Button`'s. */
   color?: ButtonOwnProps['color'];
   /** The trigger's size; the actions take their own. */
-  size?: FloatButtonSize;
+  size?: FloatButtonSize | undefined;
   /** `FloatButton`s, the actions, nearest the trigger first. */
   children?: React.ReactNode;
   /** Whether the actions are shown. Controlled; pair it with `onOpenChange`. */
-  open?: boolean;
+  open?: boolean | undefined;
   /**
    * Whether the actions are shown at first, uncontrolled.
    * @defaultValue false

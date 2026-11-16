@@ -39,14 +39,14 @@ export interface SubTitleProps
     >,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * Size of the subtitle (Bulma sizes `1`-`6`, as a string or number). It
    * also picks the heading level: unless `as` is `p`, `size="5"` renders an
    * `<h5>`, whatever `as` says. For a heading whose level and size differ,
    * set the level with `as` and the size with the `textSize` helper.
    */
-  size?: SubTitleSize;
+  size?: SubTitleSize | undefined;
   /**
    * HTML element to render as (`h1`-`h6` or `p`). With neither `as` nor
    * `size` set it's an `<h1>`, so a subtitle that isn't a heading of its own
@@ -54,7 +54,7 @@ export interface SubTitleProps
    * `as="h3" size="5"` renders an `<h5>`. To keep the level `as` sets, size
    * the subtitle with the `textSize` helper instead.
    */
-  as?: SubTitleElement;
+  as?: SubTitleElement | undefined;
   /** Applies the `has-skeleton` class to part of the content. */
   hasSkeleton?: boolean;
   /** Subtitle content. */

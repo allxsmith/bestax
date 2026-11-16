@@ -38,9 +38,10 @@ export interface ButtonOwnProps extends Omit<
     | 'dark'
     | 'black'
     | 'text'
-    | 'ghost';
+    | 'ghost'
+    | undefined;
   /** Size of the button. */
-  size?: 'small' | 'normal' | 'medium' | 'large';
+  size?: 'small' | 'normal' | 'medium' | 'large' | undefined;
   /**
    * Applies the light variant of a colored button, such as `primary`'s.
    * Bulma gives the grayscale colors none, so with no `color`, or with
@@ -83,7 +84,7 @@ export interface ButtonOwnProps extends Omit<
   /** Applies disabled styling. */
   isDisabled?: boolean;
   /** Custom class name. */
-  className?: string;
+  className?: string | undefined;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color helper. */
@@ -103,7 +104,7 @@ export type ButtonProps<T extends React.ElementType = 'button'> =
   ButtonOwnProps &
     Omit<React.ComponentPropsWithoutRef<T>, keyof ButtonOwnProps | 'as'> & {
       /** Render as a `<button>`, `<a>`, or a custom component (e.g. a router `Link`). Defaults to `'button'`; anything else renders through the anchor path, which adds `href`/`target`/`rel` and withholds the submit-override attributes (`formAction` and friends) from an `<a>`. */
-      as?: T;
+      as?: T | undefined;
     };
 
 /**

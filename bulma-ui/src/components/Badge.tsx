@@ -34,19 +34,19 @@ export interface BadgeProps
     Omit<React.HTMLAttributes<HTMLSpanElement>, 'color' | 'content'>,
     Omit<BulmaClassesProps, 'color'> {
   /** Additional CSS classes for the root — the wrapper when `children` are present, else the badge pill. */
-  className?: string;
+  className?: string | undefined;
   /** Additional CSS classes applied to the badge pill itself (unprefixed, like `Tooltip`'s `tooltipClassName`). */
   badgeClassName?: string;
   /** Count, short text, or a custom node to display; omit with `dot` for a plain dot. `max`/`showZero` apply only to numeric content. A numeric count is written the way the `locale` of a `LocaleProvider` around it writes numbers. */
   content?: React.ReactNode;
   /** Numeric `content` above this renders as `"{max}+"`. A negative or non-integer value falls back to the default. */
-  max?: number;
+  max?: number | undefined;
   /** Render a small dot with no content. */
   dot?: boolean;
   /** Show the badge when `content` is `0`. Default `false`. */
   showZero?: boolean;
   /** Status color. Default `'danger'`. */
-  color?: BadgeColor;
+  color?: BadgeColor | undefined;
   /** Corner to overlay the badge on, relative to `children`. Ignored for standalone badges (no `children`). */
   position?: BadgePosition;
   /** Nudges the offset for a round (`'circle'`) vs rectangular (`'square'`) child. Ignored for standalone badges (no `children`). */

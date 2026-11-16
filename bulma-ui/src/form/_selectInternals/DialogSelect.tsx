@@ -79,14 +79,15 @@ export interface DialogSelectProps
   clearLabel: string;
   /** Names the panel in place of the field's label. */
   chooseLabel?: string;
-  placeholder?: string;
-  name?: string;
-  form?: string;
-  required?: boolean;
+  placeholder?: string | undefined;
+  name?: string | undefined;
+  form?: string | undefined;
+  required?: boolean | undefined;
   /** Already including a disabled `Fieldset` around it. */
   disabled: boolean;
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
-  size?: 'small' | 'medium' | 'large';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
+  size?: 'small' | 'medium' | 'large' | undefined;
   isRounded?: boolean;
   /** Left out, the panel lines up with the field's start edge. */
   position?: PickerPosition;

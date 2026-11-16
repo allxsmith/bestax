@@ -59,7 +59,7 @@ export interface FieldsetProps
    * disabled whatever it says. Links and `LinkButton`s stay operable, as in
    * plain HTML.
    */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /**
    * Help text under the group. It describes the fieldset through
    * `aria-describedby`, alongside any ids you pass there. Nothing passes it
@@ -73,7 +73,7 @@ export interface FieldsetProps
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** The group's content, such as `Field`s and inputs. */
   children?: React.ReactNode;
 }

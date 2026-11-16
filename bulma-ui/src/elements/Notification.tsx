@@ -29,7 +29,7 @@ export interface NotificationProps
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * Bulma color modifier for the notification (renders `is-<color>`).
    *
@@ -45,7 +45,7 @@ export interface NotificationProps
    * one shade off a dark notification's background, and on a dark page is
    * hard to read on a light one.
    */
-  color?: (typeof validColors)[number];
+  color?: (typeof validColors)[number] | undefined;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**

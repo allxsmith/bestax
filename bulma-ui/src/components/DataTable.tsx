@@ -72,7 +72,7 @@ export interface DataTableProps<TRow>
    */
   columns?: DataTableColumn<TRow>[];
   /** The rows, as records of your own. Required unless `table` is given. */
-  data?: TRow[];
+  data?: TRow[] | undefined;
   /**
    * A table made by `useDataTable`, rendered in place of one made from
    * `columns`, `data` and the state props, which are then left unread. Use
@@ -136,7 +136,7 @@ export interface DataTableProps<TRow>
    */
   rowProps?: (row: TRow) => DataTableRowProps;
   /** Additional CSS classes, on the wrapper `<div>`. */
-  className?: string;
+  className?: string | undefined;
 }
 
 /** What `rowProps` gives a row's `Tr`: any of its props but the ones the table sets. */

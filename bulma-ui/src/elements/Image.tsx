@@ -14,7 +14,7 @@ export interface ImageProps
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Text color helper for the container. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
@@ -23,7 +23,8 @@ export interface ImageProps
    * `textColor`, which takes precedence when both are set; use `bgColor` for
    * a colored surface.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color helper for the container. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
@@ -55,19 +56,20 @@ export interface ImageProps
     | '3by5'
     | '9by16'
     | '1by2'
-    | '1by3';
+    | '1by3'
+    | undefined;
   /** Renders the image with rounded corners. */
   isRounded?: boolean;
   /** Uses retina (2x) image source. */
   isRetina?: boolean;
   /** Image source URL. */
-  src?: string;
+  src?: string | undefined;
   /** Alternate text for the image. */
-  alt?: string;
+  alt?: string | undefined;
   /** Arbitrary content (e.g., iframe, custom HTML) inside the image container. */
   children?: React.ReactNode;
   /** Container element tag. Defaults to `'figure'` when using aspect-ratio sizes, `'div'` otherwise. */
-  as?: 'figure' | 'div' | 'p';
+  as?: 'figure' | 'div' | 'p' | undefined;
 }
 
 /**

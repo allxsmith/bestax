@@ -122,12 +122,12 @@ interface CalendarBaseProps
    * Days can be focused and read but not picked, and the grids are
    * `aria-readonly`. For a calendar that only shows things.
    */
-  readOnly?: boolean;
+  readOnly?: boolean | undefined;
   /**
    * Nothing can be focused or picked, and the month can't change. A
    * `<Fieldset disabled>` around it does the same.
    */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Stretches the grid to the width of its container (Bulma's `is-fullwidth`). */
   isFullwidth?: boolean;
   /**
@@ -136,14 +136,14 @@ interface CalendarBaseProps
    * `month` or `defaultMonth` says otherwise. One before year 1, or none,
    * counts as the start of year 1.
    */
-  min?: Date;
+  min?: Date | undefined;
   /**
    * Latest day that can be picked. Days after it show disabled, and a
    * `value` after it opens on its month rather than the value's, as the last
    * month on show with `monthsToShow`, unless `month` or `defaultMonth` says
    * otherwise.
    */
-  max?: Date;
+  max?: Date | undefined;
   /** Rules days out, such as weekends. They show disabled and can't be picked. */
   shouldDisableDate?: (date: Date) => boolean;
   /** Days that can't be picked, matched by calendar day. Merged with `shouldDisableDate`. */
@@ -178,9 +178,10 @@ interface CalendarBaseProps
    * `-on-scheme` variant. Unset, the `--bulma-dateinput-*` variables decide,
    * and they follow `primary`.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Size of the cells and their text. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** The visible and accessible strings, in your app's language, as on the date pickers. */
   labels?: PickerLabels;
   /** Text color helper. */
@@ -188,7 +189,7 @@ interface CalendarBaseProps
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
 }
 
 /** Props for a Calendar that picks one day, or one month or year with `granularity`. */
@@ -207,15 +208,15 @@ export interface CalendarSingleProps extends CalendarBaseProps {
    * `defaultValue`, nothing shows as picked. A new value from outside
    * doesn't turn the month on show: hold `month` to show it.
    */
-  value?: Date | null;
+  value?: Date | null | undefined;
   /** The value to begin with, when the Calendar holds its own state. */
-  defaultValue?: Date | null;
+  defaultValue?: Date | null | undefined;
   /**
    * Called with what was picked: the day, typed as `DateInput`'s so one
    * handler fits both, or with `selectionMode="range"` both ends in one call,
    * start first, once the second is picked.
    */
-  onChange?: (value: Date | null) => void;
+  onChange?: ((value: Date | null) => void) | undefined;
   /**
    * `'month'` shows a year's months and `'year'` the year list, and a pick is
    * the first day of that month or year, as on `DateInput`. Only a Calendar
@@ -233,14 +234,14 @@ export interface CalendarRangeProps extends CalendarBaseProps {
    */
   selectionMode: 'range';
   /** The picked range when you hold the state, start first. `[null, null]` is empty. */
-  value?: DateRangeValue;
+  value?: DateRangeValue | undefined;
   /** The range picked to begin with, when the Calendar holds its own state. */
-  defaultValue?: DateRangeValue;
+  defaultValue?: DateRangeValue | undefined;
   /**
    * Called once both ends are picked, in one call, start first, as
    * `DateRangeInput`'s calendar commits.
    */
-  onChange?: (value: DateRangeValue) => void;
+  onChange?: ((value: DateRangeValue) => void) | undefined;
   /** Only the day grid picks a range. */
   granularity?: never;
 }

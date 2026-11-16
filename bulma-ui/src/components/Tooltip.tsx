@@ -65,7 +65,7 @@ export interface TooltipProps
     Omit<React.HTMLAttributes<HTMLSpanElement>, 'color' | 'content'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** The tooltip text content. */
-  label?: string;
+  label?: string | undefined;
   /**
    * Rich tooltip content (alternative to `label`), to read rather than use.
    * Nothing in it should take focus or a click: it isn't in the Tab order
@@ -78,9 +78,9 @@ export interface TooltipProps
   /** Position of the tooltip. Default: 'top'. */
   position?: TooltipPosition;
   /** Color variant for the tooltip. */
-  color?: TooltipColor;
+  color?: TooltipColor | undefined;
   /** Size of the tooltip. */
-  size?: TooltipSize;
+  size?: TooltipSize | undefined;
   /**
    * Force tooltip to be always visible. Hover, focus and Escape leave it
    * shown, so Escape goes on to whatever has focus, or to a `Modal` or
@@ -141,7 +141,7 @@ export interface TooltipProps
    * hover or focus. `active` still shows it.
    * @defaultValue false
    */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Additional classes for the tooltip element. */
   tooltipClassName?: string;
 }

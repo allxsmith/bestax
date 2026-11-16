@@ -50,14 +50,14 @@ export interface LoadingProps
    */
   isFullPage?: boolean;
   /** Size of the loading spinner. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /**
    * Color variant for the spinner, drawn in the color's on-scheme shade, the
    * one Bulma adjusts to read on the page in either scheme, so a pale color
    * such as `warning` is darker on a light page. Without it, the spinner is
    * the scheme's weak text color.
    */
-  color?: LoadingColor;
+  color?: LoadingColor | undefined;
   /**
    * Show a cancel button and allow closing, by a click on the overlay or by
    * Escape. With `isFullPage`, the loading is an overlay like Modal and

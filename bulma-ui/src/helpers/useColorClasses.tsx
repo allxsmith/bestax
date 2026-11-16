@@ -20,7 +20,7 @@ export interface BulmaColorProps {
    * `has-background-white` or `has-background-light`, add
    * `colorShade="dark"`, which reads there on both.
    */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /**
    * Text color shade suffix (e.g., '00', 'invert'). `'dark'` is the one for
    * text on a surface that stays light on both schemes, where the plain

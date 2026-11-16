@@ -64,7 +64,7 @@ export interface HoverCardProps
    * open, so a `Modal` around it doesn't close from the keyboard until the
    * card does.
    */
-  open?: boolean;
+  open?: boolean | undefined;
   /**
    * Initial open state when uncontrolled. A card that starts open stays open
    * until the pointer or focus has been and gone, or Escape closes it.

@@ -41,7 +41,7 @@ export interface EmptyStateProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color' | 'title'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * The picture in the indicator's circle. A string is an `Icon` name, drawn
    * from the icon library `ConfigProvider` sets. Anything else (an `<Icon>`
@@ -75,14 +75,14 @@ export interface EmptyStateProps
    * The indicator's color. It colors the circle and its icon, not the text.
    * Without it the circle is neutral, since an empty list isn't a status.
    */
-  color?: EmptyStateColor;
+  color?: EmptyStateColor | undefined;
   /**
    * `light` is a soft tint of `color` behind the icon in the color. `filled`
    * is the color itself, with the icon in its invert.
    */
   variant?: 'light' | 'filled';
   /** Sizes the indicator, the title, the description and the spacing together. */
-  size?: 'small' | 'normal' | 'medium' | 'large';
+  size?: 'small' | 'normal' | 'medium' | 'large' | undefined;
   /**
    * `center` stacks everything in a centered column. `left` puts the
    * indicator beside the text, at the start of the line, so on the right in
@@ -105,7 +105,7 @@ export interface EmptyStateIndicatorProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * The picture: an `Icon`, an SVG or an `<img>`. The indicator is hidden
    * from assistive tech, an `Icon` with an `ariaLabel` included, so anything
@@ -130,7 +130,7 @@ export interface EmptyStateTitleProps extends Omit<
    * The heading level: the level under the heading of the list the empty
    * state stands in for.
    */
-  as?: EmptyStateHeading;
+  as?: EmptyStateHeading | undefined;
 }
 
 /** Props for EmptyState.Description, a `<p>` under the title. */

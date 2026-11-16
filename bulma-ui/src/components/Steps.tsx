@@ -46,7 +46,7 @@ export interface StepItemProps {
    */
   clickable?: boolean;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**
@@ -59,11 +59,11 @@ export interface StepsProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'> {
   /** Current active step (0-indexed). */
-  value?: number;
+  value?: number | undefined;
   /** Array of step items. */
   items?: StepItemProps[];
   /** Size of the steps. */
-  size?: StepsSize;
+  size?: StepsSize | undefined;
   /**
    * Color variant. The current and completed steps take the color's
    * `-on-scheme` variant, the shade Bulma adjusts to read on the page in
@@ -73,7 +73,7 @@ export interface StepsProps
    * while a color you set is kept even where it doesn't stand out from the
    * surface's.
    */
-  color?: StepsColor;
+  color?: StepsColor | undefined;
   /** Show step markers. Default: true. */
   hasMarker?: boolean;
   /** Enable animations. Default: true. */
@@ -152,7 +152,7 @@ export interface StepProps
    */
   clickable?: boolean;
   /** Click handler */
-  onClick?: () => void;
+  onClick?: (() => void) | undefined;
   /**
    * Step number to display in marker (1-indexed), written the way the
    * `locale` of a `LocaleProvider` around it writes numbers.

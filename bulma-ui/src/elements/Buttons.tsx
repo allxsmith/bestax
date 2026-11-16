@@ -26,7 +26,7 @@ export interface ButtonsProps
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'size'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Text color helper for the button group. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
@@ -35,7 +35,8 @@ export interface ButtonsProps
    * individual `Button`s instead). Prefer `textColor`, which takes precedence
    * when both are set; use `bgColor` for a colored surface.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color helper for the button group. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Center the group of buttons. */
@@ -45,7 +46,7 @@ export interface ButtonsProps
   /** Group buttons together as addons (removes spacing between them). */
   hasAddons?: boolean;
   /** Size of the button group. */
-  size?: ButtonsSize;
+  size?: ButtonsSize | undefined;
   /** The button elements to render inside the group. */
   children: React.ReactNode;
 }

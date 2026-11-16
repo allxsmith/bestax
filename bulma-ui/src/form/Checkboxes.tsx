@@ -36,13 +36,13 @@ export interface CheckboxesProps
     [key: string]: unknown;
   };
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Form field name shared by every Checkbox in the group (via context). */
-  name?: string;
+  name?: string | undefined;
   /** Currently-selected values (controlled mode). */
-  value?: string[];
+  value?: string[] | undefined;
   /** Initial selected values (uncontrolled mode). */
-  defaultValue?: string[];
+  defaultValue?: string[] | undefined;
   /**
    * Fires when the selection changes; receives the new array. Passed without
    * `value` or `defaultValue`, it still has the group manage the selection,
@@ -50,7 +50,7 @@ export interface CheckboxesProps
    * checked stays checked when another is clicked, and the first array holds
    * it.
    */
-  onChange?: (values: string[]) => void;
+  onChange?: ((values: string[]) => void) | undefined;
   /** Checkbox elements to render in the group. */
   children?: React.ReactNode;
   /**
@@ -65,7 +65,7 @@ export interface CheckboxesProps
    * `div`, the default, renders the group as it always has.
    * @defaultValue 'div'
    */
-  as?: 'div' | 'fieldset';
+  as?: 'div' | 'fieldset' | undefined;
 }
 
 /**

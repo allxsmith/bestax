@@ -66,14 +66,14 @@ export interface RadioCardProps
    */
   hasIndicator?: boolean;
   /** The color of the radio and of a picked card's edge. */
-  color?: (typeof radioCardColors)[number];
+  color?: (typeof radioCardColors)[number] | undefined;
   /**
    * Text color helper, on the card. The title and the children take it, and
    * the description keeps its own color.
    */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Whether the card is disabled. A disabled card dims, takes no clicks, and the arrow keys skip it. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /**
    * Additional CSS classes, on the outer `<label>`, the card. That's the
    * element that declares the `--bulma-radio-card-*` variables, and Bulma's
@@ -84,7 +84,7 @@ export interface RadioCardProps
    * active color again on `.radio-card.is-<color>`, which ties that
    * selector, so leave `color` unset when a class sets it.
    */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**

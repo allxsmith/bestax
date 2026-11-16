@@ -35,13 +35,14 @@ export interface PaginationProps
     | 'black'
     | 'dark'
     | 'light'
-    | 'white';
+    | 'white'
+    | undefined;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Size modifier for the pagination. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Alignment for the pagination. */
   align?: 'centered' | 'right';
   /** Renders pagination with rounded corners. */
@@ -72,7 +73,7 @@ export interface PaginationProps
   /** The Next link's content, when rendering from `total`. */
   nextLabel?: React.ReactNode;
   /** Disables every link, when rendering from `total`. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /**
    * The `href` for a page's link, when rendering from `total`, making each
    * one a real link (`page => '?page=' + page`). A click then calls
@@ -89,7 +90,7 @@ export interface PaginationProps
    */
   getPageLabel?: (page: number) => string;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Custom pagination content (usually subcomponents). */
   children?: React.ReactNode;
 }
@@ -145,9 +146,9 @@ function pageItems(
  */
 export interface PaginationPreviousNextProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Whether previous/next is disabled. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Button content. */
   children?: React.ReactNode;
 }
@@ -370,11 +371,12 @@ export interface PaginationListProps
     React.HTMLAttributes<HTMLUListElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Text color for the list. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Bulma color modifier for the list. */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color for the list. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** List items. */
@@ -422,9 +424,10 @@ export interface PaginationLinkProps
     React.AnchorHTMLAttributes<HTMLAnchorElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Bulma color modifier. */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color. */
@@ -432,7 +435,7 @@ export interface PaginationLinkProps
   /** Whether the link is for the current page. */
   active?: boolean;
   /** Whether the link is disabled. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Link content. */
   children?: React.ReactNode;
 }
