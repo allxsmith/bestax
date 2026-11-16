@@ -1,0 +1,23 @@
+// Bestax Extras - Pre Styles
+// Bulma's `<pre>` scrolls a long line sideways. While its content overflows,
+// `Pre` makes it a region you can tab to, and this draws its keyboard focus
+// ring in Bulma's focus color, style and width, as `_table.scss` does for a
+// responsive table's container. It sits just inside the block, since a long
+// `<pre>` fills its parent's width, and a parent that scrolls or clips would
+// cut the sides off a ring drawn outside it. Bulma styles no focus on a
+// `<pre>`, so this wins whichever stylesheet loads first. `:focus-visible`
+// keeps the ring off a mouse click, and a block without keyboard focus looks
+// as it does now.
+
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+pre:focus-visible {
+  outline-color: hsl(
+    cv.getVar('focus-h'),
+    cv.getVar('focus-s'),
+    cv.getVar('focus-l')
+  );
+  outline-style: cv.getVar('focus-style');
+  outline-width: cv.getVar('focus-width');
+  outline-offset: calc(-1 * #{cv.getVar('focus-width')});
+}

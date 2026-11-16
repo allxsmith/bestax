@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
 import { Pre } from '../Pre';
 import { ConfigProvider } from '../../helpers/Config';
 
@@ -144,5 +145,157 @@ line 2
       );
       expect(screen.getByText('Test')).toHaveClass('p-3');
     });
+  });
+});
+
+describe('a Pre that overflows, from the keyboard (#1854)', () => {
+  // jsdom lays nothing out, so a <pre>'s widths and heights come from `sizes`,
+  // which each test sets before it renders or before it scrolls.
+  const sizes = {
+    scrollWidth: 200,
+    clientWidth: 200,
+    scrollHeight: 50,
+    clientHeight: 50,
+  };
+  type Size = keyof typeof sizes;
+  const saved = new Map<Size, PropertyDescriptor | undefined>();
+
+  beforeAll(() => {
+    for (const key of Object.keys(sizes) as Size[]) {
+      saved.set(
+        key,
+        Object.getOwnPropertyDescriptor(HTMLElement.prototype, key)
+      );
+      Object.defineProperty(HTMLElement.prototype, key, {
+        configurable: true,
+        get(this: HTMLElement) {
+          return this.tagName === 'PRE' ? sizes[key] : 0;
+        },
+      });
+    }
+  });
+
+  afterAll(() => {
+    for (const [key, descriptor] of saved) {
+      if (descriptor)
+        Object.defineProperty(HTMLElement.prototype, key, descriptor);
+      else
+        delete (HTMLElement.prototype as unknown as Record<string, unknown>)[
+          key
+        ];
+    }
+  });
+
+  const fit = () =>
+    Object.assign(sizes, {
+      scrollWidth: 200,
+      clientWidth: 200,
+      scrollHeight: 50,
+      clientHeight: 50,
+    });
+  const overflowSideways = () =>
+    Object.assign(sizes, { scrollWidth: 600, clientWidth: 200 });
+  const overflowDown = () =>
+    Object.assign(sizes, { scrollHeight: 400, clientHeight: 50 });
+
+  beforeEach(fit);
+
+  it('is a region you can tab to while a line runs past its edge', () => {
+    overflowSideways();
+    render(<Pre data-testid="pre">npm install a-very-long-package-name</Pre>);
+    const pre = screen.getByTestId('pre');
+    expect(pre).toHaveAttribute('tabindex', '0');
+    expect(pre).toHaveAttribute('role', 'region');
+  });
+
+  it('is one while it overflows downward too, under a height of its own', () => {
+    overflowDown();
+    render(<Pre data-testid="pre">lots of lines</Pre>);
+    expect(screen.getByTestId('pre')).toHaveAttribute('tabindex', '0');
+  });
+
+  it('takes its name from its own aria-label or aria-labelledby', () => {
+    overflowSideways();
+    render(
+      <>
+        <Pre aria-label="Install command">npm install</Pre>
+        <h3 id="config">The config file</h3>
+        <Pre aria-labelledby="config">{'{ "a": 1 }'}</Pre>
+      </>
+    );
+    expect(
+      screen.getByRole('region', { name: 'Install command' })
+    ).toHaveAttribute('tabindex', '0');
+    expect(
+      screen.getByRole('region', { name: 'The config file' })
+    ).toHaveAttribute('tabindex', '0');
+  });
+
+  it('stays a plain pre with no tab stop while it fits, keeping its name', () => {
+    render(
+      <Pre data-testid="pre" aria-label="Install command">
+        npm install
+      </Pre>
+    );
+    const pre = screen.getByTestId('pre');
+    expect(pre).not.toHaveAttribute('tabindex');
+    expect(pre).not.toHaveAttribute('role');
+    expect(pre).toHaveAttribute('aria-label', 'Install command');
+  });
+
+  it('keeps the tab stop while it has focus, and drops it once focus leaves', () => {
+    overflowSideways();
+    render(<Pre data-testid="pre">npm install a-very-long-package-name</Pre>);
+    const pre = screen.getByTestId('pre');
+    act(() => pre.focus());
+    fit();
+    fireEvent.scroll(pre);
+    expect(pre).toHaveAttribute('tabindex', '0');
+    expect(pre).toHaveFocus();
+    act(() => pre.blur());
+    expect(pre).not.toHaveAttribute('tabindex');
+    expect(pre).not.toHaveAttribute('role');
+  });
+
+  it('lets a role and a tabIndex the caller passes win', () => {
+    overflowSideways();
+    render(
+      <Pre data-testid="pre" role="figure" tabIndex={-1}>
+        npm install a-very-long-package-name
+      </Pre>
+    );
+    const pre = screen.getByTestId('pre');
+    expect(pre).toHaveAttribute('role', 'figure');
+    expect(pre).toHaveAttribute('tabindex', '-1');
+  });
+
+  it('still calls the caller’s scroll, focus and blur handlers', () => {
+    overflowSideways();
+    const onScroll = vi.fn();
+    const onFocus = vi.fn();
+    const onBlur = vi.fn();
+    render(
+      <Pre
+        data-testid="pre"
+        onScroll={onScroll}
+        onFocus={onFocus}
+        onBlur={onBlur}
+      >
+        npm install a-very-long-package-name
+      </Pre>
+    );
+    const pre = screen.getByTestId('pre');
+    fireEvent.scroll(pre);
+    act(() => pre.focus());
+    act(() => pre.blur());
+    expect(onScroll).toHaveBeenCalledTimes(1);
+    expect(onFocus).toHaveBeenCalledTimes(1);
+    expect(onBlur).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders a plain pre on the server', () => {
+    overflowSideways();
+    const html = renderToString(<Pre>npm install</Pre>);
+    expect(html).toBe('<pre>npm install</pre>');
   });
 });
