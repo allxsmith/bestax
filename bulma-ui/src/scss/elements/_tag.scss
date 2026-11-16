@@ -1,7 +1,7 @@
 // Tag Styles
 // Bulma already styles the tag; this gives the light variant of its grayscale
-// colors readable text, and keeps a tag in a table cell from making its row
-// taller
+// colors readable text, keeps a tag in a table cell from making its row
+// taller, and gives a button tag the text a span tag has
 
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
@@ -51,4 +51,37 @@
       )
   ) {
   vertical-align: bottom;
+}
+
+// A tag rendered as a button, through `as` or `isDelete`. The browser's own
+// stylesheet gives a button its own font, normal in weight, style, width and
+// the rest, with no letter or word spacing, transform, indent or shadow, and
+// centered, where a span takes all of those from the text around it. Bulma's
+// button reset gives back the family and size, and leaves the rest, so a
+// button tag in a bold heading or an uppercase label would read differently
+// from a span tag beside it. These take them from the text around it again,
+// so the tag looks the same whatever element it is. A link tag takes them
+// already. Its colors and size don't change, and neither does the focus ring
+// Bulma gives a button. The selector weighs one class, as `.tag` does, so an
+// app's own class on a tag meets it the way it meets Bulma's `.tag`.
+.#{iv.$class-prefix}tag:where(button) {
+  font-feature-settings: inherit;
+  font-kerning: inherit;
+  font-language-override: inherit;
+  font-optical-sizing: inherit;
+  font-palette: inherit;
+  font-size-adjust: inherit;
+  font-stretch: inherit;
+  font-style: inherit;
+  font-synthesis: inherit;
+  font-variant: inherit;
+  font-variation-settings: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  text-align: inherit;
+  text-indent: inherit;
+  text-rendering: inherit;
+  text-shadow: inherit;
+  text-transform: inherit;
+  word-spacing: inherit;
 }
