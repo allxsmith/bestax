@@ -291,7 +291,8 @@ Notes:
   contrast themes) drops the shadow and sets the border's color, so a focused button can look
   like an unfocused one there. Forced colors also replaces a colored button's fill, which Bulma
   draws with no border, so an icon-only one shows only its glyph there. The `button` extras
-  partial gives those focused buttons an outline, a colored button a 1px border in forced
+  partial gives those focused buttons an outline, apart from a loading one, which the `loader`
+  partial outlines, a colored button a 1px border in forced
   colors, and an outlined button the lightness Bulma picks for its color's text on the page where
   that's lighter, so a dark color reads on the dark scheme, so include it (`as bestax-button`) in any build that loads Bulma's button module. Its
   rules win over Bulma's either way, so the order of the `@use` lines does not matter.
