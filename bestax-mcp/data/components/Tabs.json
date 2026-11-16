@@ -273,8 +273,8 @@
           "name": "index",
           "type": "number",
           "default": null,
-          "description": "**Required.** Tab index for matching with content.",
-          "required": false,
+          "description": "Tab index for matching with content.",
+          "required": true,
           "inherited": false,
           "deprecated": false
         },
@@ -457,8 +457,8 @@
           "name": "index",
           "type": "number",
           "default": null,
-          "description": "**Required.** Tab index for matching with content.",
-          "required": false,
+          "description": "Tab index for matching with content.",
+          "required": true,
           "inherited": false,
           "deprecated": false
         },

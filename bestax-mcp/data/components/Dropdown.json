@@ -60,7 +60,7 @@
           "type": "React.ReactNode",
           "default": null,
           "description": "The dropdown button/trigger content.",
-          "required": false,
+          "required": true,
           "inherited": false,
           "deprecated": false
         },
@@ -69,7 +69,7 @@
           "type": "React.ReactNode",
           "default": null,
           "description": "Dropdown menu items and dividers.",
-          "required": false,
+          "required": true,
           "inherited": false,
           "deprecated": false
         },

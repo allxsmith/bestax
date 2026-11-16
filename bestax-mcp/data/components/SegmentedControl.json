@@ -202,8 +202,8 @@
           "name": "value",
           "type": "string",
           "default": null,
-          "description": "**Required.** What `onChange` reports when this segment is checked, and what the group's `value` and `defaultValue` name it by. Unique within the group.",
-          "required": false,
+          "description": "What `onChange` reports when this segment is checked, and what the group's `value` and `defaultValue` name it by. Unique within the group.",
+          "required": true,
           "inherited": false,
           "deprecated": false
         },
