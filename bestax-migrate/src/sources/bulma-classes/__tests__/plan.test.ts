@@ -2093,7 +2093,7 @@ describe('plan', () => {
         const half = icon({ 'aria-label': null, 'aria-hidden': 'false' });
         expect(half.todos.map(t => t.rule)).toEqual(['defaults:Icon']);
         expect(half.todos[0].message).toBe(
-          'bestax `Icon` renders `role="img"` when it has a name and `aria-hidden="true"` when it has none, and this element\'s `aria-label` is an expression that may render as either; set `role` here to what you want, then re-run'
+          'bestax `Icon` renders `role="img"` when it has a name and `aria-hidden="true"` when it has none, and this element\'s `aria-label` is an expression that may render as either; set `role` here to what you want and re-run, or convert it by hand'
         );
         // A name written out settles it, whatever the other one is.
         expect(
@@ -2929,7 +2929,7 @@ describe('plan', () => {
         facts(
           'a',
           className,
-          { tabIndex: '0', ...attributes },
+          { tabIndex: '0', href: '#1', ...attributes },
           { soleChildOf: li(), ...extra }
         )
       );
@@ -2999,7 +2999,7 @@ describe('plan', () => {
           facts(
             'a',
             'pagination-link',
-            { tabIndex: '0', ...attributes },
+            { tabIndex: '0', href: '#1', ...attributes },
             { soleChildOf: li(), conditional: [['is-current']] }
           )
         ).conversion?.conditional;
@@ -3007,6 +3007,63 @@ describe('plan', () => {
         ['active', 'is-current'],
       ]);
       expect(conditional({})).toBeUndefined();
+    });
+
+    // Without an `href` a link is a button, and writes `role="button"` (#1919).
+    it('converts a link with no href only beside the role it writes then', () => {
+      for (const root of [
+        'pagination-link',
+        'pagination-previous',
+        'pagination-next',
+      ]) {
+        const without = (attributes: Record<string, string | null>) =>
+          plan(
+            facts(
+              'a',
+              root,
+              { tabIndex: '0', ...attributes },
+              root === 'pagination-link' ? { soleChildOf: li() } : {}
+            )
+          );
+        expect(without({ role: 'button' }).conversion).not.toBeNull();
+        expect(without({}).todos).toEqual([
+          {
+            rule: expect.stringMatching(/^defaults:/),
+            message: expect.stringContaining(
+              'renders `role="button"` when the element does not set it'
+            ),
+          },
+        ]);
+        // An href written as an expression may render as none.
+        expect(without({ href: null }).todos).toEqual([
+          {
+            rule: expect.stringMatching(/^defaults:/),
+            message: expect.stringContaining(
+              'renders `tabIndex="0"` when it has an `href` and `tabIndex="0"` and `role="button"` when it has none'
+            ),
+          },
+        ]);
+        // tabIndex is the same with an href or without, so a missing one
+        // gets the plain TODO.
+        const noTab = plan(
+          facts(
+            'a',
+            root,
+            { href: null, role: 'button' },
+            root === 'pagination-link' ? { soleChildOf: li() } : {}
+          )
+        );
+        expect(noTab.todos.map(todo => todo.message)).toEqual([
+          expect.stringContaining(
+            'renders `tabIndex="0"` when the element does not set it'
+          ),
+        ]);
+        // A role of its own settles it, and the target keeps that role.
+        expect(without({ href: null, role: 'link' }).conversion).not.toBeNull();
+        expect(without({ href: '#2' }).conversion).not.toBeNull();
+        // An empty href is still an href, and the target keeps it a link.
+        expect(without({ href: '' }).conversion).not.toBeNull();
+      }
     });
 
     it('converts an ellipsis holding exactly its own text, and nothing else on it', () => {
