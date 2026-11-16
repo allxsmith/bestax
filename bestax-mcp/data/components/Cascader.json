@@ -65,7 +65,7 @@
           "name": "data",
           "type": "TreeItemData[]",
           "default": null,
-          "description": "**Required.** The tree, as nodes nested through `children`. The same nodes TreeSelect takes.",
+          "description": "The tree, as nodes nested through `children`. The same nodes TreeSelect takes.",
           "required": true,
           "inherited": false,
           "deprecated": false
