@@ -2,12 +2,21 @@
 // never loads on its own, so className assertions cannot see it. These
 // compile the real partial and assert computed style instead (pattern:
 // Collapses.styles.test.tsx). jsdom leaves `var()` unresolved, so values
-// that read a variable are compared as written.
+// that read a variable are compared as written. jsdom evaluates no media
+// query either, so the forced-colors suite below reads its rules another
+// way, which its own comment describes.
 import * as sass from 'sass';
 import path from 'path';
 import { act, render, screen } from '@testing-library/react';
 import Tabs, { type TabsProps } from '../Tabs';
 import { ConfigProvider } from '../../helpers/Config';
+import {
+  bulmaCss,
+  cascade,
+  compilePartial,
+  matches,
+  splitList,
+} from '../../__tests__/css-cascade';
 
 let styleEl: HTMLStyleElement;
 
@@ -133,6 +142,259 @@ describe('Tabs focus ring', () => {
     act(() => home.focus());
     expect(getComputedStyle(home).outlineOffset).toBe(NO_OUTLINE_OFFSET);
     expect(getComputedStyle(home).outlineColor).toBe(NO_OUTLINE_COLOR);
+  });
+});
+
+// Bulma marks the active tab with colors alone, which forced colors replaces,
+// so `_tabs.scss` draws a bar in Highlight along the active tab's bottom
+// there (#1885). jsdom evaluates no media query, and which value wins is a
+// cascade across Bulma's sheet and the partial, in either order, so these
+// compile the real partial, link it with Bulma's own CSS on either side, lift
+// the forced-colors block's rules out of it, as a forced-colors page applies
+// them, and resolve each property with the shared cascade. The cascade skips
+// pseudo-elements, so the bar's own rules are read off the sheet.
+describe('the active tab on a forced-colors page', () => {
+  const FORCED = '(forced-colors: active)';
+
+  /** The sheet's top-level rules, parsed once per sheet. */
+  const parsed = new Map<string, CSSRule[]>();
+  const parse = (css: string) => {
+    const known = parsed.get(css);
+    if (known) return known;
+    const sheet = document.createElement('style');
+    sheet.textContent = css.replace(/@charset "UTF-8";/g, '');
+    document.head.appendChild(sheet);
+    try {
+      const rules = Array.from((sheet.sheet as CSSStyleSheet).cssRules);
+      parsed.set(css, rules);
+      return rules;
+    } finally {
+      sheet.remove();
+    }
+  };
+
+  /**
+   * The sheet as a page with forced colors on reads it: the forced-colors
+   * block's rules in its place.
+   */
+  const forcedPage = (css: string) =>
+    parse(css)
+      .flatMap(rule =>
+        rule instanceof CSSMediaRule && rule.conditionText === FORCED
+          ? Array.from(rule.cssRules, inner => inner.cssText)
+          : [rule.cssText]
+      )
+      .join('\n');
+
+  /** What the rules give one property, read as it's declared. */
+  const valueOf = (el: Element, css: string, ...properties: string[]) =>
+    cascade(
+      el,
+      css,
+      properties,
+      (style, property) => style.getPropertyValue(property).trim() || undefined
+    );
+
+  /**
+   * The declarations of every top-level `::after` rule whose element part
+   * matches `el`, in source order, leaving out Bulma's `*::after` box sizing,
+   * which reaches every element and draws nothing.
+   */
+  const afterOf = (el: Element, css: string) =>
+    parse(css)
+      .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
+      .flatMap(rule =>
+        splitList(rule.selectorText)
+          .filter(part => part.endsWith('::after') && part !== '*::after')
+          .filter(part => matches(el, part.slice(0, -'::after'.length)))
+          .map(() => rule.style.cssText)
+      );
+
+  const bar = (color: string) =>
+    'content: ""; position: absolute; z-index: -1; inset-inline: 1em; ' +
+    `bottom: 0px; height: 0.25em; background-color: ${color};`;
+  const BAR = bar('highlight');
+
+  const STYLES: [string, Partial<TabsProps>][] = [
+    ['plain', {}],
+    ['boxed', { boxed: true }],
+    ['toggle', { toggle: true }],
+    ['rounded toggle', { toggle: true, rounded: true }],
+    ['vertical', { vertical: true }],
+  ];
+
+  /** Two Tabs.Tabs, the first selected, and the links inside each. */
+  const renderStyle = (prefix: string, props: Partial<TabsProps>) => {
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <Tabs {...props}>
+          <Tabs.List>
+            <Tabs.Tab index={0}>One</Tabs.Tab>
+            <Tabs.Tab index={1}>Two</Tabs.Tab>
+          </Tabs.List>
+          <Tabs.Content>
+            <Tabs.Content.Item index={0}>One panel</Tabs.Content.Item>
+            <Tabs.Content.Item index={1}>Two panel</Tabs.Content.Item>
+          </Tabs.Content>
+        </Tabs>
+      </ConfigProvider>
+    );
+    const [active, other] = Array.from(
+      container.querySelectorAll('li[role="tab"] > a')
+    );
+    expect(active.parentElement).toHaveClass(`${prefix}is-active`);
+    expect(other.parentElement).not.toHaveClass(`${prefix}is-active`);
+    return { active, other };
+  };
+
+  // Bulma's CSS can land on either side of the extras: `bestax-no-dark-mode`
+  // emits them first, and an app can link `extras.css` before its own Bulma.
+  describe.each([
+    ['the partial after Bulma', '', 'bulma.css', true],
+    ['the partial before Bulma', '', 'bulma.css', false],
+    [
+      'a prefixed build, the partial after Bulma',
+      'bulma-',
+      'versions/bulma-prefixed.css',
+      true,
+    ],
+    [
+      'a prefixed build, the partial before Bulma',
+      'bulma-',
+      'versions/bulma-prefixed.css',
+      false,
+    ],
+  ])('with %s', (_order, prefix, bulmaFile, after) => {
+    const partial = compilePartial('components/tabs', prefix);
+    const css = forcedPage(
+      after ? bulmaCss(bulmaFile) + partial : partial + bulmaCss(bulmaFile)
+    );
+
+    it.each(STYLES)(
+      'draws the bar on the %s style’s active tab, and on no other',
+      (_style, props) => {
+        const { active, other } = renderStyle(prefix, props);
+        // The bar is the only `::after` on a tab's link, Bulma's or ours.
+        expect(afterOf(active, css)).toEqual([BAR]);
+        expect(afterOf(other, css)).toEqual([]);
+      }
+    );
+
+    // Only the toggle style positions its links in Bulma, so the plain style
+    // is the one that shows the partial positioning the active tab itself.
+    // Isolation makes the tab a stacking context, so the bar's -1 puts it
+    // over the tab's background and under its label and focus ring.
+    it('positions the active tab for the bar, and stacks the bar behind its label', () => {
+      const { active } = renderStyle(prefix, {});
+      expect(valueOf(active, css, 'position')).toBe('relative');
+      expect(valueOf(active, css, 'isolation')).toBe('isolate');
+    });
+
+    // In the toggle style, whose selected label Bulma colors too.
+    it('draws a disabled tab at full strength in GrayText, and a selected one’s bar too', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Tabs toggle>
+            <Tabs.List>
+              <Tabs.Tab index={0} disabled>
+                One
+              </Tabs.Tab>
+              <Tabs.Tab index={1} disabled>
+                Two
+              </Tabs.Tab>
+            </Tabs.List>
+          </Tabs>
+        </ConfigProvider>
+      );
+      const [selected, other] = Array.from(
+        container.querySelectorAll('li[aria-disabled="true"] > a')
+      );
+      expect(selected.parentElement).toHaveClass(`${prefix}is-active`);
+      expect(afterOf(selected, css)).toEqual([
+        BAR,
+        'background-color: graytext;',
+      ]);
+      expect(afterOf(other, css)).toEqual([]);
+      for (const tab of [selected, other]) {
+        expect(valueOf(tab, css, 'opacity')).toBe('1');
+        expect(valueOf(tab, css, 'color')).toBe('graytext');
+      }
+    });
+
+    it('draws the bar on a link in an active Tabs.Item too', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Tabs>
+            <Tabs.List>
+              <Tabs.Item active>
+                <a href="/home">Home</a>
+              </Tabs.Item>
+              <Tabs.Item>
+                <a href="/profile">Profile</a>
+              </Tabs.Item>
+            </Tabs.List>
+          </Tabs>
+        </ConfigProvider>
+      );
+      const [home, profile] = Array.from(container.querySelectorAll('a'));
+      expect(afterOf(home, css)).toEqual([BAR]);
+      expect(afterOf(profile, css)).toEqual([]);
+    });
+  });
+
+  // A fill would need `forced-color-adjust: none`, which an icon, a tag and
+  // the focus ring inside would inherit.
+  it('leaves every color of the tab and what’s in it to the browser', () => {
+    expect(compilePartial('components/tabs')).not.toMatch(
+      /forced-color-adjust/
+    );
+  });
+
+  it('draws nothing on the active tab with Bulma alone, which is the bug', () => {
+    const { active, other } = renderStyle('', { toggle: true });
+    const bulma = forcedPage(bulmaCss());
+    expect(afterOf(active, bulma)).toEqual([]);
+    // Every color Bulma sets that tells the active tab apart, forced colors
+    // replaces with the system's, so nothing else sets it apart either.
+    for (const property of ['background-color', 'border-color', 'color']) {
+      const set = (el: Element) => valueOf(el, bulma, property) !== undefined;
+      expect([property, set(active)]).toEqual([property, true]);
+      expect(valueOf(active, bulma, property)).not.toMatch(
+        /^(highlight|highlighttext|canvas|canvastext)$/i
+      );
+    }
+    expect(afterOf(other, bulma)).toEqual([]);
+  });
+
+  it.each([
+    ['no prefix', ''],
+    ['a class prefix', 'bulma-'],
+  ])('changes nothing outside forced colors, with %s', (_label, prefix) => {
+    const p = (name: string) => `.${prefix}${name}`;
+    const rules = parse(compilePartial('components/tabs', prefix));
+    const forced = rules.filter(
+      (rule): rule is CSSMediaRule =>
+        rule instanceof CSSMediaRule && rule.conditionText === FORCED
+    );
+    const active = `${p('tabs')} li${p('is-active')}`;
+    const disabled = 'li[role=tab][aria-disabled=true]';
+    expect(
+      forced.flatMap(block =>
+        Array.from(block.cssRules, rule => (rule as CSSStyleRule).selectorText)
+      )
+    ).toEqual([
+      `${active} a`,
+      `${active} a::after`,
+      `${p('tabs')}${p('tabs')} ${disabled} > a`,
+      `${p('tabs')} ${disabled}${p('is-active')} > a::after`,
+    ]);
+    // Nothing outside the block, at the top level or in another at-rule,
+    // draws a pseudo-element or a system color.
+    const outside = rules
+      .filter(rule => !forced.includes(rule as CSSMediaRule))
+      .map(rule => rule.cssText)
+      .join('\n');
+    expect(outside).not.toMatch(/::after|highlight|graytext/i);
   });
 });
 

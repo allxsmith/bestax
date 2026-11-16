@@ -71,7 +71,7 @@ export function rulesOf(css: string) {
 }
 
 /** Whether `el` matches `selector`; a pseudo-element never does. */
-const matches = (el: Element, selector: string) => {
+export const matches = (el: Element, selector: string) => {
   if (selector.includes('::')) return false;
   try {
     return el.matches(selector);
@@ -89,7 +89,7 @@ const outranks = (a: number[], b: number[]) => {
 };
 
 /** A selector list split at its own commas, not those inside parentheses. */
-function splitList(list: string): string[] {
+export function splitList(list: string): string[] {
   const parts: string[] = [];
   let depth = 0;
   let part = '';
