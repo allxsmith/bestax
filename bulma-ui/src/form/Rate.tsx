@@ -457,13 +457,9 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
         );
       }
 
-      // Default SVG with clipPath for partial fill. The ids are this Rate's, so
-      // another Rate on the page can't take its clips. The empty star's outline
-      // is clipped to the rest of the star, so the filled part has no rim of
-      // it and draws as a filled star does.
+      // Default SVG with clipPath for partial fill. The id is this Rate's, so
+      // another Rate on the page can't take its clip.
       const clipId = `${starBaseId}-clip-${iconIndex}`;
-      const restClipId = `${clipId}-rest`;
-      const fillWidth = (fillPercent / 100) * 24;
       return (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -472,20 +468,16 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
         >
           <defs>
             <clipPath id={clipId}>
-              <rect x="0" y="0" width={`${fillWidth}`} height="24" />
-            </clipPath>
-            <clipPath id={restClipId}>
               <rect
-                x={`${fillWidth}`}
+                x="0"
                 y="0"
-                width={`${24 - fillWidth}`}
+                width={`${(fillPercent / 100) * 24}`}
                 height="24"
               />
             </clipPath>
           </defs>
-          {/* Background: empty star, on the part that isn't filled */}
+          {/* Background: empty star */}
           <path
-            clipPath={`url(#${restClipId})`}
             fill="none"
             stroke="currentColor"
             strokeWidth={2}

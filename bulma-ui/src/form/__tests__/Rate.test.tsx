@@ -692,13 +692,6 @@ describe('Rate', () => {
         1
       );
       expect(fill).toHaveAttribute('clip-path');
-      // The empty outline behind it is clipped to the part that isn't filled,
-      // so the filled part has no rim of it.
-      const outline = fill?.previousElementSibling;
-      const restId = outline?.getAttribute('clip-path')?.slice(5, -1);
-      const rest = container.querySelector(`[id="${restId}"] rect`);
-      expect(rest).toHaveAttribute('x', '12');
-      expect(rest).toHaveAttribute('width', '12');
     });
 
     it('clips each Rate’s partly filled star with a clip of its own', () => {
