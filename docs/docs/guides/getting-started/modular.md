@@ -155,7 +155,7 @@ bestax's prebuilt stylesheets build Bulma's table with `$table-cell-text-align: 
 );
 ```
 
-A build with a responsive `Table` also wants bestax's `elements/table` partial, for its container's focus ring, as the list of partials below says.
+A build with a responsive `Table` also wants bestax's `elements/table` partial, for its container's focus ring, which the next section lists with the partials that adjust a stock Bulma component.
 
 Pull in only the helper categories you use:
 
@@ -220,6 +220,7 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/form/radiocard';
 @use '@allxsmith/bestax-bulma/scss/form/fieldset';
 @use '@allxsmith/bestax-bulma/scss/form/field';
+@use '@allxsmith/bestax-bulma/scss/form/file' as bestax-file;
 @use '@allxsmith/bestax-bulma/scss/form/dropzone';
 @use '@allxsmith/bestax-bulma/scss/form/colorpicker';
 @use '@allxsmith/bestax-bulma/scss/form/colorinput';
@@ -255,13 +256,13 @@ Some of these partials adjust a stock Bulma component rather than add one of bes
 
 - `elements/table` draws the keyboard focus ring of a responsive table's container, which is a tab stop while the table overflows it, so a build that uses `bulma/sass/elements/table` for a `Table` with `isResponsive` wants it too.
 
-- `elements/tag` gives a light tag, and a white, black or dark one with `isLight`, readable text the same way, and sets a normal-size tag in a table cell at the bottom of its line, where Bulma's baseline makes the row taller than a row of text, so a build that uses `bulma/sass/elements/tag` wants it too.
+- `elements/tag` gives a light tag, and a white, black or dark one with `isLight`, readable text, and sets a normal-size tag in a table cell at the bottom of its line, where Bulma's baseline makes the row taller than a row of text, so a build that uses `bulma/sass/elements/tag` wants it too.
 
 - `components/pagination` draws the page links' keyboard focus ring, which Bulma's own styles turn off, and keeps the current page marked in forced colors (Windows' contrast themes), so a build that uses `bulma/sass/components/pagination`, for a `Pagination` or a `DataTable`'s pager, wants it too.
 
 - `components/tabs` shows only a `Tabs.Content`'s selected panel and lays out vertical tabs, draws a `Tabs.Tab`'s keyboard focus ring and a disabled tab's look, and keeps the active tab marked in forced colors, so a build that uses `bulma/sass/components/tabs` for a `Tabs` needs it too.
 
-- `components/menu` keeps a menu's active item marked in forced colors the same way, draws `Menu.Section`'s heading and chevron, and starts each item's text at the right on a right-to-left page, so a build that uses `bulma/sass/components/menu`, for a `Menu` or a `TableOfContents`, wants it too.
+- `components/menu` keeps a menu's active item marked in forced colors, draws `Menu.Section`'s heading and chevron, and starts each item's text at the right on a right-to-left page, so a build that uses `bulma/sass/components/menu`, for a `Menu` or a `TableOfContents`, wants it too.
 
 - `components/navbar` keeps the burger's bars drawn in forced colors, keeps a `fixed` navbar in place while an overlay locks the page's scrolling, gives an active item's text the invert of the link color it sits on, where Bulma's leaves it in the navbar's text color, draws a navbar in a colored `Hero` in the hero's colors, where Bulma's draws its active item and burger in the link color, and, in a build with a class prefix, draws a dropdown's active link row, other than a tab, as it draws without one, where Bulma's draws it as a plain row, so a build that uses `bulma/sass/components/navbar`, for a `Navbar` or an `AppFrame`'s burger, wants it too.
 
@@ -277,11 +278,13 @@ Some of these partials adjust a stock Bulma component rather than add one of bes
 
 - `form/field` puts the `message` of a horizontal form component (`Input horizontal`, `Checkboxes horizontal` and the like) under its control, where Bulma's row would set it beside, and keeps a horizontal label's text against its control on a right-to-left page, so a build that uses `bulma/sass/form/tools` for horizontal fields wants it too.
 
+- `form/file` lets a file dropped on a `File`'s button or name reach its input, where Bulma's module lets them cover it, draws the button's keyboard focus ring, where Bulma's transparent input shows none, and rounds the bottom corners of a boxed `hasName` File with no name to show, which Bulma's `is-boxed` squares, so a build that uses `bulma/sass/form/file`, for a `File` or a `Dropzone`, wants it too.
+
 - `helpers/color` gives a color's text (`textColor`, `has-text-*`) the color's on-scheme lightness on the dark scheme wherever that's the lighter one, so a dark color such as the bestax blue primary reads there, and a build that uses `bulma/sass/helpers/color` wants it too.
 
 - `helpers/visibility` draws `is-sr-only` at each breakpoint, which Bulma draws only at every width and the viewport visibility props write for `'sr-only'` (`visibilityTablet="sr-only"`), so a build that uses `bulma/sass/helpers/visibility` for those props wants it too.
 
-A partial like that can end in the same name as the Bulma module it adjusts, and Sass refuses two `@use` lines with the same name in one file, so the block above gives those lines a name of their own with `as`. The name changes nothing in the compiled CSS.
+A partial like that can end in the same name as the Bulma module it adjusts, and Sass refuses two `@use` lines with the same name in one file, so the `@use` block above the list gives those lines a name of their own with `as`. The name changes nothing in the compiled CSS.
 
 Others draw on a stock Bulma component without adjusting it.
 
@@ -293,7 +296,7 @@ Others draw on a stock Bulma component without adjusting it.
 
 - `form/dropzone` is Bulma's file widget, so a build that uses it wants `bulma/sass/form/file` and bestax's `form/file`, for the zone's focus ring, too, and its remove buttons are delete buttons, so it wants `bulma/sass/elements/delete` and `elements/delete` as well.
 
-- `layout/appframe`'s drawer closes with a delete button, so it wants those two too, and its burger is Bulma's navbar burger, so it wants `bulma/sass/components/navbar` and `components/navbar` as well. Its icon rail, `AppFrame.Nav rail`, shows each label in a tooltip, so a build with a rail wants `components/tooltip` too, and `components/menu` for the icons in its menu.
+- `layout/appframe`'s drawer closes with a delete button, so it wants `bulma/sass/elements/delete` and `elements/delete` too, and its burger is Bulma's navbar burger, so it wants `bulma/sass/components/navbar` and `components/navbar` as well. Its icon rail, `AppFrame.Nav rail`, shows each label in a tooltip, so a build with a rail wants `components/tooltip` too, and `bulma/sass/components/menu` and `components/menu` for the icons in its menu.
 
 - `form/colorpicker` draws its swatches and its preview with `elements/colorswatch`, and its value field and eye dropper button are Bulma's, so it wants that partial, `bulma/sass/form/input-textarea` and `bulma/sass/elements/button` as well.
 
