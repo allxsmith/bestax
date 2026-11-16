@@ -354,6 +354,7 @@ function example() {
 - A popup in the message, such as a `Popover` or `HoverCard` with `appendToBody`, is portaled into the `alertdialog`, the element with `aria-modal`, so a screen reader that honors it reaches the popup. A `portalContainer` a [`ConfigProvider`](../helpers/config.md#where-portaled-content-goes) sets still takes it
 - The page doesn't scroll while the dialog is open, through the [`Modal`](./modal.md#accessibility)'s ref-counted lock, shared with `Sidebar` and `Loading`
 - Confirm/cancel buttons are keyboard accessible
+- In forced colors (Windows' contrast themes), which drop the dialog's shadow and repaint its background and the backdrop's, the dialog keeps a one pixel edge in the system's text color
 
 ---
 
