@@ -260,7 +260,7 @@
       "name": "Box",
       "kind": "component",
       "category": "elements",
-      "purpose": "The `Box` component renders a bordered, padded container with an optional shadow using Bulma's `.box` class.",
+      "purpose": "The `Box` component renders a padded container with rounded corners and an optional shadow using Bulma's `.box` class.",
       "slug": "elements/box",
       "import": "import { Box } from '@allxsmith/bestax-bulma';",
       "compound": false,
