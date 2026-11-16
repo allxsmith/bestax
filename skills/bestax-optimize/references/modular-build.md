@@ -150,8 +150,9 @@ Notes:
   ButtonText in forced colors, where Chromium paints them in the page's Canvas color, keeps a
   `fixed` navbar in place while an overlay locks the page's scrolling, gives an active item's
   text the invert of the link color it sits on, where Bulma's leaves it in the navbar's text
-  color, and draws a navbar in a colored `Hero` in the hero's colors, where Bulma's draws its active item and burger in the link
-  color), so an app using `Navbar` needs both, in either order. `AppFrame.Burger` renders `Navbar.Burger`, so a build with one
+  color, draws a navbar in a colored `Hero` in the hero's colors, where Bulma's draws its active item and burger in the link
+  color, and, in a build with a class prefix, draws a dropdown's active link row, other than a tab, as it draws without one,
+  where Bulma's draws it as a plain row), so an app using `Navbar` needs both, in either order. `AppFrame.Burger` renders `Navbar.Burger`, so a build with one
   wants this partial too:
 
   ```scss

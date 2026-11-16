@@ -50,6 +50,20 @@
 // still decides it. An item with a background helper (`bgColor`) is left out,
 // since the helper replaces the fill and the navbar's text reads on it as it
 // did. A rule of an app's own that takes the fill off restates `color` too.
+//
+// An active or selected link row in a dropdown, in a build with a class
+// prefix: Bulma draws a dropdown's rows with a selector that leaves the active
+// and selected rows out, so a link row there takes the fill and the text
+// Bulma gives any active link item. Its `:not()` names `.is-active` and
+// `.is-selected` without the prefix, so in a prefixed build it matches those
+// rows too, and they draw as plain rows. The last rule, in a prefixed build
+// only, gives an active or selected link row back that fill, the background
+// Bulma's link item rule builds, and that text, `--bulma-navbar-item-color`,
+// so it draws as the unprefixed build draws it. A tab keeps the look Bulma's
+// prefixed rules give it. `:is(a)` adds an element's weight, which puts the
+// rule over Bulma's two row rules wherever Bulma's CSS loads, and under its
+// transparent navbar's row rule, as the link item rule is without a prefix.
+// Once Bulma builds that `:not()` from the prefix, the rule can go.
 
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
@@ -186,4 +200,23 @@ $-background-helper: '#{iv.$class-prefix}#{iv.$helpers-has-prefix}background-';
       #{cv.getVar('navbar-item-color-l')}
     )
   );
+}
+
+@if iv.$class-prefix != '' {
+  .#{iv.$class-prefix}navbar-dropdown
+    a.#{iv.$class-prefix}navbar-item:is(a):is(
+      .#{iv.$class-prefix}is-active,
+      .#{iv.$class-prefix}is-selected
+    ):where(:not(.#{iv.$class-prefix}is-tab)) {
+    background-color: hsla(
+      #{cv.getVar('navbar-h')},
+      #{cv.getVar('navbar-s')},
+      calc(
+        #{cv.getVar('navbar-item-background-l')} +
+          #{cv.getVar('navbar-item-background-l-delta')}
+      ),
+      #{cv.getVar('navbar-item-background-a')}
+    );
+    color: cv.getVar('navbar-item-color');
+  }
 }
