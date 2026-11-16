@@ -270,6 +270,11 @@ Notes:
 - `ContextMenu`'s menu is Bulma's dropdown markup, so an app using it needs
   `bulma/sass/components/dropdown` and the `dropdown` partial above next to
   `scss/components/contextmenu`.
+- `Dialog` is drawn inside Bulma's modal, which makes it an overlay, with Bulma buttons for its
+  actions, so an app using it needs `bulma/sass/components/modal`, `bulma/sass/elements/button`
+  and the `button` partial next to `scss/components/dialog`. Without the modal module the
+  dialog sits in the page's flow with no backdrop. A `Command.Dialog` is drawn inside the modal
+  too, so an app with one needs it beside `scss/components/command`.
 - `Lightbox`'s viewer is Bulma's modal, with Bulma buttons for its controls and a `Loader` for a
   slow image, so an app using it needs `bulma/sass/components/modal`,
   `bulma/sass/elements/button` and `bulma/sass/elements/loader` next to
