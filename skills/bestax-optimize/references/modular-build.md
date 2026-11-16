@@ -80,7 +80,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 
 **Components** (`@allxsmith/bestax-bulma/scss/components/<name>`):
 `loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `steps`, `sidebar`,
-`toast`, `dialog`, `carousel`, `lightbox`, `tabs`, `menu`, `tableofcontents`, `reveal`, `avatar`, `avatars`,
+`toast`, `dialog`, `modal`, `carousel`, `lightbox`, `tabs`, `menu`, `tableofcontents`, `reveal`, `avatar`, `avatars`,
 `badge`, `emptystate`, `timeline`, `treeview`, `scrollarea`, `command`, `datatable`,
 `pagination`, `affix`, `floatbutton`, `navbar`, `panel`, `tour`
 
@@ -134,6 +134,15 @@ Notes:
   @use 'bulma/sass/components/menu';
   @use '@allxsmith/bestax-bulma/scss/components/menu' as bestax-menu;
   @use '@allxsmith/bestax-bulma/scss/components/tableofcontents'; // TableOfContents only
+  ```
+
+- The `modal` partial **extends** stock Bulma modal (a modal card keeps an edge in forced colors,
+  Windows' contrast themes, where Bulma's card has none and the backdrop's dark fill is
+  replaced), so an app using `Modal` with a card needs both, in either order:
+
+  ```scss
+  @use 'bulma/sass/components/modal';
+  @use '@allxsmith/bestax-bulma/scss/components/modal' as bestax-modal;
   ```
 
 - The `pagination` partial **extends** stock Bulma pagination (the links' keyboard focus ring,
