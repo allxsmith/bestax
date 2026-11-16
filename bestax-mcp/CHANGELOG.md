@@ -1,3 +1,12 @@
+## [1.18.65](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.64...bestax-mcp@1.18.65) (2026-11-16)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** leave room under 10k for the drift warning on get_helper_props ([803c676](https://github.com/allxsmith/bestax/commit/803c67678f4525c37e10e1fc07c410f19d6e8570)), closes [#1835](https://github.com/allxsmith/bestax/issues/1835)
+* **bulma-ui:** draw Steps in Bulma's colors again ([0b37c55](https://github.com/allxsmith/bestax/commit/0b37c55d37530ddbdc976bcf2487659c8c6add61)), closes [#1696](https://github.com/allxsmith/bestax/issues/1696) [#1798](https://github.com/allxsmith/bestax/issues/1798) [#1826](https://github.com/allxsmith/bestax/issues/1826)
+* **bulma-ui:** undo [#1770](https://github.com/allxsmith/bestax/issues/1770)'s recolor of Slider's mark labels and TreeSelect's chevron ([0230b45](https://github.com/allxsmith/bestax/commit/0230b45bc730f5e1651396a4f44f65b3d48698c0)), closes [#1832](https://github.com/allxsmith/bestax/issues/1832)
+
 ## [1.18.64](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.63...bestax-mcp@1.18.64) (2026-11-16)
 
 
