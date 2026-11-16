@@ -65,18 +65,27 @@ export const Pre: React.FC<PreProps> = ({
   // A `<pre>` scrolls sideways, and Safari, unlike Chromium and Firefox,
   // gives a scroller no tab stop of its own, so the keyboard couldn't reach
   // the end of a long line there. While it overflows it's a tab stop, and a
-  // region only when it has a name, since a region with none tells a screen
-  // reader nothing; unnamed, it's the plain focusable scroller the other
-  // browsers make of it. A role, a tab stop or a name the caller passes wins,
-  // and the name stays on as it always has. A ref passed as a prop, as React
-  // 19 passes one, still reaches the `<pre>`.
+  // region only while it overflows and has a name, since a region with none
+  // tells a screen reader nothing; unnamed, it's the plain focusable scroller
+  // the other browsers make of it. A role, a tab stop or a name the caller
+  // passes wins, and the name stays on as it always has. A `ref` React 19
+  // hands over as a prop goes to the hook, so it isn't lost.
   const { ref: callerRef, ...attributes } = rest as typeof rest & {
     ref?: React.ForwardedRef<HTMLPreElement>;
   };
   const named = Boolean(
     attributes['aria-label'] || attributes['aria-labelledby']
   );
-  const { props: region } = useScrollRegion<HTMLPreElement>({
+  const {
+    props: {
+      ref: regionRef,
+      tabIndex: regionTabIndex,
+      onScroll: handleScroll,
+      onFocus: handleFocus,
+      onBlur: handleBlur,
+    },
+    measured,
+  } = useScrollRegion<HTMLPreElement>({
     orientation: 'both',
     ref: callerRef,
     onScroll,
@@ -88,11 +97,12 @@ export const Pre: React.FC<PreProps> = ({
     <pre
       className={preClasses || undefined}
       {...attributes}
-      {...region}
-      role={role ?? (named ? region.role : undefined)}
-      tabIndex={tabIndex ?? region.tabIndex}
-      aria-label={attributes['aria-label']}
-      aria-labelledby={attributes['aria-labelledby']}
+      ref={regionRef}
+      role={role ?? (named && measured?.overflowing ? 'region' : undefined)}
+      tabIndex={tabIndex ?? regionTabIndex}
+      onScroll={handleScroll}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
     >
       {children}
     </pre>

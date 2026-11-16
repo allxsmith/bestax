@@ -1,4 +1,4 @@
-// While a `Pre` overflows, it's a region you can tab to (#1854), and
+// While a `Pre` overflows, it's a tab stop (#1854), and
 // `elements/_pre.scss` draws its keyboard focus ring in Bulma's focus color,
 // style and width, just inside the block, as `_table.scss` does for a
 // responsive table's container. These read the compiled partial, not a

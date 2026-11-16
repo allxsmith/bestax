@@ -256,6 +256,19 @@ describe('a Pre that overflows, from the keyboard (#1854)', () => {
     expect(ref.current?.tagName).toBe('PRE');
   });
 
+  it('keeps a named block that fits a plain pre, even while it has focus', () => {
+    render(
+      <Pre data-testid="pre" aria-label="Config" tabIndex={0}>
+        short
+      </Pre>
+    );
+    const pre = screen.getByTestId('pre');
+    act(() => pre.focus());
+    expect(pre).toHaveFocus();
+    expect(pre).not.toHaveAttribute('role');
+    expect(pre).toHaveAttribute('aria-label', 'Config');
+  });
+
   it('keeps the tab stop while it has focus, and drops it once focus leaves', () => {
     overflowSideways();
     render(<Pre data-testid="pre">npm install a-very-long-package-name</Pre>);
