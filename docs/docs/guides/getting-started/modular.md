@@ -239,6 +239,7 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/elements/ringprogress';
 @use '@allxsmith/bestax-bulma/scss/elements/skeleton' as bestax-skeleton;
 @use '@allxsmith/bestax-bulma/scss/elements/stat';
+@use '@allxsmith/bestax-bulma/scss/elements/table' as bestax-table;
 @use '@allxsmith/bestax-bulma/scss/elements/tag' as bestax-tag;
 @use '@allxsmith/bestax-bulma/scss/helpers/color' as bestax-color;
 @use '@allxsmith/bestax-bulma/scss/helpers/cursor';
@@ -249,6 +250,8 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 Some of these partials adjust a stock Bulma component rather than add one of bestax's.
 
 - `elements/notification` keeps a `Notification`'s text clear of its close button, and gives a dark or light one its color's own text and background, and a white or black one with `isLight` the light color's text, where Bulma's module lets its text inherit the color around it, so a build that uses `bulma/sass/elements/notification` wants it too.
+
+- `elements/table` draws the keyboard focus ring of a responsive table's container, which is a tab stop while the table overflows it, so a build that uses `bulma/sass/elements/table` for a `Table` with `isResponsive` wants it too.
 
 - `elements/tag` gives a light tag, and a white, black or dark one with `isLight`, readable text the same way, and sets a normal-size tag in a table cell at the bottom of its line, where Bulma's baseline makes the row taller than a row of text, so a build that uses `bulma/sass/elements/tag` wants it too.
 
