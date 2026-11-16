@@ -41,9 +41,8 @@ afterAll(() => {
 const FOCUS_COLOR =
   'hsl(var(--bulma-focus-h), var(--bulma-focus-s), var(--bulma-focus-l))';
 
-// What jsdom computes for an outline no rule sets: the initial values.
+// What jsdom computes for an outline colour no rule sets: the initial value.
 const NO_OUTLINE_COLOR = 'rgba(0, 0, 0, 0)';
-const NO_OUTLINE_OFFSET = '0';
 
 const renderTabs = (props: Partial<TabsProps> = {}) =>
   render(
@@ -127,74 +126,288 @@ describe('Tabs focus ring', () => {
     expect(getComputedStyle(link(tab('One'))).opacity).not.toBe('0.5');
     expect(getComputedStyle(link(tab('One'))).pointerEvents).not.toBe('none');
   });
+});
 
-  it('leaves the links of a Tabs.Item navigation to Bulma', () => {
-    render(
-      <Tabs>
-        <Tabs.List>
-          <Tabs.Item active>
-            <a href="/home">Home</a>
-          </Tabs.Item>
-        </Tabs.List>
-      </Tabs>
-    );
-    const home = screen.getByRole('link', { name: 'Home' });
-    act(() => home.focus());
-    expect(getComputedStyle(home).outlineOffset).toBe(NO_OUTLINE_OFFSET);
-    expect(getComputedStyle(home).outlineColor).toBe(NO_OUTLINE_COLOR);
+// What a rule of the partial does next to Bulma is a cascade across Bulma's
+// sheet and the partial, in either order, which jsdom doesn't compute, and
+// jsdom evaluates no media query. So the suites below compile the real
+// partial, link it with Bulma's own CSS on either side, read the result as a
+// page with forced colors off or on reads it, and resolve each property with
+// the shared cascade.
+const FORCED = '(forced-colors: active)';
+
+/** The sheet's top-level rules, parsed once per sheet. */
+const parsed = new Map<string, CSSRule[]>();
+const parse = (css: string) => {
+  const known = parsed.get(css);
+  if (known) return known;
+  const sheet = document.createElement('style');
+  sheet.textContent = css.replace(/@charset "UTF-8";/g, '');
+  document.head.appendChild(sheet);
+  try {
+    const rules = Array.from((sheet.sheet as CSSStyleSheet).cssRules);
+    parsed.set(css, rules);
+    return rules;
+  } finally {
+    sheet.remove();
+  }
+};
+afterAll(() => parsed.clear());
+
+/**
+ * The sheet as a page reads it: with forced colors on, the forced-colors
+ * block's rules in its place, and with them off, the block left out.
+ */
+const pageOf = (css: string, forced: boolean) =>
+  parse(css)
+    .flatMap(rule => {
+      if (!(rule instanceof CSSMediaRule && rule.conditionText === FORCED)) {
+        return [rule.cssText];
+      }
+      return forced ? Array.from(rule.cssRules, inner => inner.cssText) : [];
+    })
+    .join('\n');
+const forcedPage = (css: string) => pageOf(css, true);
+const plainPage = (css: string) => pageOf(css, false);
+
+/** What the rules give one property, read as it's declared. */
+const valueOf = (el: Element, css: string, ...properties: string[]) =>
+  cascade(
+    el,
+    css,
+    properties,
+    (style, property) => style.getPropertyValue(property).trim() || undefined
+  );
+
+/**
+ * Focuses `el` as a keyboard user's first stop would. jsdom guesses whether
+ * a focus is `:focus-visible` from where it came from, so it comes from
+ * nothing, and the guess is checked.
+ */
+const focusVisibly = (el: HTMLElement) => {
+  act(() => {
+    (document.activeElement as HTMLElement | null)?.blur();
+    el.focus();
   });
+  expect(el.matches(':focus-visible')).toBe(true);
+};
+
+// Bulma's CSS can land on either side of the extras: `bestax-no-dark-mode`
+// emits them first, and an app can link `extras.css` before its own Bulma.
+const ORDERS: [string, string, string, boolean][] = [
+  ['the partial after Bulma', '', 'bulma.css', true],
+  ['the partial before Bulma', '', 'bulma.css', false],
+  [
+    'a prefixed build, the partial after Bulma',
+    'bulma-',
+    'versions/bulma-prefixed.css',
+    true,
+  ],
+  [
+    'a prefixed build, the partial before Bulma',
+    'bulma-',
+    'versions/bulma-prefixed.css',
+    false,
+  ],
+];
+
+/** The partial, compiled once per class prefix. */
+const partials = new Map<string, string>();
+const partialFor = (prefix: string) => {
+  if (!partials.has(prefix)) {
+    partials.set(prefix, compilePartial('components/tabs', prefix));
+  }
+  return partials.get(prefix)!;
+};
+
+/** The partial linked with Bulma's CSS, on the side `after` says. */
+const linked = (prefix: string, bulmaFile: string, after: boolean) => {
+  const partial = partialFor(prefix);
+  const bulma = bulmaCss(bulmaFile);
+  return after ? bulma + partial : partial + bulma;
+};
+
+// Bulma draws a link's focus ring just outside it, where the tab row's
+// overflow clips its top and bottom (#1944). The partial moves a Tabs.Item
+// link's ring inside it, except on a selected toggle tab outside forced
+// colors (#1945), and brings a focused toggle tab in front of the neighbours
+// that overlap it, a hovered one included, which Bulma raises to 2.
+describe.each(ORDERS)(
+  'a focused tab’s ring, with %s',
+  (_order, prefix, bulmaFile, after) => {
+    const css = linked(prefix, bulmaFile, after);
+    const page = plainPage(css);
+    const INSET = 'calc(-1 * var(--bulma-focus-width))';
+    const OUTSIDE = 'var(--bulma-focus-offset)';
+
+    /** Two Tabs.Item links, the first selected. */
+    const renderLinks = (props: Partial<TabsProps>) => {
+      render(
+        <ConfigProvider classPrefix={prefix}>
+          <Tabs {...props}>
+            <Tabs.List>
+              <Tabs.Item active>
+                <a href="/home">Home</a>
+              </Tabs.Item>
+              <Tabs.Item>
+                <a href="/profile">Profile</a>
+              </Tabs.Item>
+            </Tabs.List>
+          </Tabs>
+        </ConfigProvider>
+      );
+      return ['Home', 'Profile'].map(name =>
+        screen.getByRole('link', { name })
+      );
+    };
+
+    it.each([
+      ['plain', {}],
+      ['boxed', { boxed: true }],
+    ] as [string, Partial<TabsProps>][])(
+      'draws it inside each link of the %s style',
+      (_style, props) => {
+        for (const link of renderLinks(props)) {
+          focusVisibly(link);
+          expect([
+            link.textContent,
+            valueOf(link, page, 'outline-offset'),
+          ]).toEqual([link.textContent, INSET]);
+        }
+      }
+    );
+
+    /** The outline properties the rules of `sheet` set on `el`. */
+    const outlineOf = (el: Element, sheet: string) =>
+      parse(sheet)
+        .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
+        .filter(rule =>
+          splitList(rule.selectorText).some(part => matches(el, part))
+        )
+        .flatMap(rule =>
+          Array.from({ length: rule.style.length }, (_, i) => rule.style[i])
+        )
+        .filter(property => property.startsWith('outline'));
+
+    it.each([
+      ['plain', {}],
+      ['toggle', { toggle: true }],
+    ] as [string, Partial<TabsProps>][])(
+      'leaves the ring’s colour, style and width to Bulma in the %s style',
+      (_style, props) => {
+        const partial = partialFor(prefix);
+        for (const link of renderLinks(props)) {
+          focusVisibly(link);
+          for (const sheet of [plainPage(partial), forcedPage(partial)]) {
+            expect(
+              outlineOf(link, sheet).filter(p => p !== 'outline-offset')
+            ).toEqual([]);
+          }
+        }
+      }
+    );
+
+    it('draws it inside an unselected toggle tab’s link', () => {
+      const [, profile] = renderLinks({ toggle: true });
+      focusVisibly(profile);
+      expect(valueOf(profile, page, 'outline-offset')).toBe(INSET);
+    });
+
+    it('brings a focused toggle tab’s link in front of its neighbours, selected or not', () => {
+      for (const link of renderLinks({ toggle: true })) {
+        focusVisibly(link);
+        expect([link.textContent, valueOf(link, page, 'z-index')]).toEqual([
+          link.textContent,
+          '3',
+        ]);
+      }
+    });
+
+    // Its fill is the link colour, which the focus colour matches by default,
+    // so a ring inside it wouldn't show (#1945).
+    it('leaves Bulma’s ring on a selected toggle tab’s link', () => {
+      const [home] = renderLinks({ toggle: true });
+      focusVisibly(home);
+      expect(valueOf(home, page, 'outline-offset')).toBe(OUTSIDE);
+    });
+
+    it('leaves a link deeper inside a tab to Bulma', () => {
+      render(
+        <ConfigProvider classPrefix={prefix}>
+          <Tabs>
+            <Tabs.List>
+              <Tabs.Item>
+                <span>
+                  <a href="/help">Help</a>
+                </span>
+              </Tabs.Item>
+            </Tabs.List>
+          </Tabs>
+        </ConfigProvider>
+      );
+      const help = screen.getByRole('link', { name: 'Help' });
+      focusVisibly(help);
+      expect(valueOf(help, page, 'outline-offset')).toBe(OUTSIDE);
+    });
+
+    it('draws it inside a selected toggle tab’s link with forced colors, which draw no fill', () => {
+      const [home] = renderLinks({ toggle: true });
+      focusVisibly(home);
+      expect(valueOf(home, forcedPage(css), 'outline-offset')).toBe(INSET);
+    });
+
+    it('brings a focused Tabs.Tab in a toggle row in front of its neighbours, selected or not', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Tabs toggle>
+            <Tabs.List>
+              <Tabs.Tab index={0}>One</Tabs.Tab>
+              <Tabs.Tab index={1}>Two</Tabs.Tab>
+            </Tabs.List>
+          </Tabs>
+        </ConfigProvider>
+      );
+      for (const tab of container.querySelectorAll<HTMLElement>(
+        'li[role="tab"]'
+      )) {
+        focusVisibly(tab);
+        expect([tab.textContent, valueOf(link(tab), page, 'z-index')]).toEqual([
+          tab.textContent,
+          '3',
+        ]);
+      }
+    });
+  }
+);
+
+it('leaves a Tabs.Item link’s ring outside it with Bulma alone, where the row clips it, which is the bug', () => {
+  render(
+    <Tabs>
+      <Tabs.List>
+        <Tabs.Item active>
+          <a href="/home">Home</a>
+        </Tabs.Item>
+      </Tabs.List>
+    </Tabs>
+  );
+  const bulma = plainPage(bulmaCss());
+  const home = screen.getByRole('link', { name: 'Home' });
+  focusVisibly(home);
+  expect(valueOf(home, bulma, 'outline-offset')).toBe(
+    'var(--bulma-focus-offset)'
+  );
+  // Bulma sets `overflow: hidden` on the row, then `overflow-x: auto`, which
+  // leaves the top and bottom clipped.
+  const row = home.closest('.tabs')!;
+  expect(valueOf(row, bulma, 'overflow-y', 'overflow')).toBe('hidden');
+  expect(valueOf(row, bulma, 'overflow-x', 'overflow')).toBe('auto');
 });
 
 // Bulma marks the active tab with colors alone, which forced colors replaces,
 // so `_tabs.scss` draws a bar in Highlight along the active tab's bottom
-// there (#1885). jsdom evaluates no media query, and which value wins is a
-// cascade across Bulma's sheet and the partial, in either order, so these
-// compile the real partial, link it with Bulma's own CSS on either side, lift
-// the forced-colors block's rules out of it, as a forced-colors page applies
-// them, and resolve each property with the shared cascade. The cascade skips
-// pseudo-elements, so the bar's own rules are read off the sheet.
+// there (#1885). The cascade skips pseudo-elements, so the bar's own rules
+// are read off the sheet.
 describe('the active tab on a forced-colors page', () => {
-  const FORCED = '(forced-colors: active)';
-
-  /** The sheet's top-level rules, parsed once per sheet. */
-  const parsed = new Map<string, CSSRule[]>();
-  const parse = (css: string) => {
-    const known = parsed.get(css);
-    if (known) return known;
-    const sheet = document.createElement('style');
-    sheet.textContent = css.replace(/@charset "UTF-8";/g, '');
-    document.head.appendChild(sheet);
-    try {
-      const rules = Array.from((sheet.sheet as CSSStyleSheet).cssRules);
-      parsed.set(css, rules);
-      return rules;
-    } finally {
-      sheet.remove();
-    }
-  };
-
-  /**
-   * The sheet as a page with forced colors on reads it: the forced-colors
-   * block's rules in its place.
-   */
-  const forcedPage = (css: string) =>
-    parse(css)
-      .flatMap(rule =>
-        rule instanceof CSSMediaRule && rule.conditionText === FORCED
-          ? Array.from(rule.cssRules, inner => inner.cssText)
-          : [rule.cssText]
-      )
-      .join('\n');
-
-  /** What the rules give one property, read as it's declared. */
-  const valueOf = (el: Element, css: string, ...properties: string[]) =>
-    cascade(
-      el,
-      css,
-      properties,
-      (style, property) => style.getPropertyValue(property).trim() || undefined
-    );
-
   /**
    * The declarations of every top-level `::after` rule whose element part
    * matches `el`, in source order, leaving out Bulma's `*::after` box sizing,
@@ -247,28 +460,8 @@ describe('the active tab on a forced-colors page', () => {
     return { active, other };
   };
 
-  // Bulma's CSS can land on either side of the extras: `bestax-no-dark-mode`
-  // emits them first, and an app can link `extras.css` before its own Bulma.
-  describe.each([
-    ['the partial after Bulma', '', 'bulma.css', true],
-    ['the partial before Bulma', '', 'bulma.css', false],
-    [
-      'a prefixed build, the partial after Bulma',
-      'bulma-',
-      'versions/bulma-prefixed.css',
-      true,
-    ],
-    [
-      'a prefixed build, the partial before Bulma',
-      'bulma-',
-      'versions/bulma-prefixed.css',
-      false,
-    ],
-  ])('with %s', (_order, prefix, bulmaFile, after) => {
-    const partial = compilePartial('components/tabs', prefix);
-    const css = forcedPage(
-      after ? bulmaCss(bulmaFile) + partial : partial + bulmaCss(bulmaFile)
-    );
+  describe.each(ORDERS)('with %s', (_order, prefix, bulmaFile, after) => {
+    const css = forcedPage(linked(prefix, bulmaFile, after));
 
     it.each(STYLES)(
       'draws the bar on the %s style’s active tab, and on no other',
@@ -387,6 +580,7 @@ describe('the active tab on a forced-colors page', () => {
       `${active} a::after`,
       `${p('tabs')}${p('tabs')} ${disabled} > a`,
       `${p('tabs')} ${disabled}${p('is-active')} > a::after`,
+      `${p('tabs')}${p('is-toggle')} li${p('is-active')} > a:focus-visible`,
     ]);
     // Nothing outside the block, at the top level or in another at-rule,
     // draws a pseudo-element or a system color.

@@ -31,7 +31,9 @@ $tabs-content-padding: 1rem !default;
 // <li> is clipped by the overflow of .tabs and, in toggle tabs, painted over
 // by the next tab. So the ring is drawn inside the <a>, with Bulma's focus
 // colour, style and width. Plain links in a Tabs.Item have no role="tab"
-// and keep Bulma's own a:focus-visible ring.
+// and keep Bulma's own a:focus-visible ring, which the rules below move
+// inside a link that is the item's own child, on every tab but a selected
+// toggle one.
 .#{iv.$class-prefix}tabs li[role="tab"] {
   &:focus-visible {
     outline: none;
@@ -55,6 +57,37 @@ $tabs-content-padding: 1rem !default;
   > a {
   outline-color: currentColor;
   outline-offset: calc(-2 * #{cv.getVar("focus-width")});
+}
+
+// Keyboard focus ring for a link that is a Tabs.Item's own child, the tab
+// you see; a link deeper inside is left to Bulma. Bulma draws its own
+// a:focus-visible ring just outside the link, where the overflow of .tabs
+// clips its top and bottom, leaving a line at each side. This moves that ring
+// inside the link, at a Tabs.Tab's inset, in place of Bulma's focus offset,
+// which would put it back outside, and leaves its colour, style and width to
+// Bulma. A selected toggle tab keeps Bulma's ring where it is, still clipped:
+// its fill is the link colour, which the focus colour matches by default, so
+// the ring wouldn't show inside it in that colour (#1945). Forced colors draw
+// no such fill, so there it moves inside too, below.
+.#{iv.$class-prefix}tabs:not(.#{iv.$class-prefix}is-toggle) li > a:focus-visible,
+.#{iv.$class-prefix}tabs.#{iv.$class-prefix}is-toggle
+  li:not(.#{iv.$class-prefix}is-active)
+  > a:focus-visible {
+  outline-offset: calc(-1 * #{cv.getVar("focus-width")});
+}
+
+// In toggle tabs each link overlaps the one before it by a border's width,
+// and Bulma stacks the selected one over its neighbours and a hovered one
+// over both, so a neighbour covered the edge of a focused tab's ring. A
+// focused tab comes in front of all of them. The doubled class outranks
+// Bulma's selected tab, wherever its CSS loads.
+.#{iv.$class-prefix}tabs.#{iv.$class-prefix}tabs.#{iv.$class-prefix}is-toggle
+  li
+  > a:focus-visible,
+.#{iv.$class-prefix}tabs.#{iv.$class-prefix}is-toggle
+  li[role="tab"]:focus-visible
+  > a {
+  z-index: 3;
 }
 
 // A disabled Tabs.Tab is marked aria-disabled and skipped by the keyboard,
@@ -217,6 +250,14 @@ $tabs-content-padding: 1rem !default;
     li[role="tab"][aria-disabled="true"].#{iv.$class-prefix}is-active
     > a::after {
     background-color: GrayText;
+  }
+
+  // A selected toggle tab's link has no fill here to hide its focus ring, so
+  // the ring moves inside it, as on every other tab, out of the row's clip.
+  .#{iv.$class-prefix}tabs.#{iv.$class-prefix}is-toggle
+    li.#{iv.$class-prefix}is-active
+    > a:focus-visible {
+    outline-offset: calc(-1 * #{cv.getVar("focus-width")});
   }
 }
 
