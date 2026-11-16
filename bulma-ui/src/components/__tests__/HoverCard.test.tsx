@@ -9,6 +9,7 @@ import { Modal } from '../Modal';
 import { Button } from '../../elements/Button';
 import { ConfigProvider } from '../../helpers/Config';
 import { resetDevWarnings } from '../../helpers/devWarnings';
+import { clientWidthFollowsWindow } from '../../__tests__/client-width';
 
 type PointerType = 'mouse' | 'pen' | 'touch';
 
@@ -1163,6 +1164,8 @@ describe('HoverCard', () => {
   });
 
   describe('placement', () => {
+    clientWidthFollowsWindow();
+
     const originalWidth = window.innerWidth;
     const originalHeight = window.innerHeight;
 

@@ -8,6 +8,7 @@ import {
 } from '../useAnchoredPosition';
 import type { AnchoredSide } from '../useAnchoredPosition';
 import type { PickerPosition } from '../../form/_pickerInternals/pickerTypes';
+import { clientWidthFollowsWindow } from '../../__tests__/client-width';
 
 /** Measures with neither element on the page. */
 const Detached = ({ position }: { position: PickerPosition }) => {
@@ -187,6 +188,8 @@ const Matched = ({
 };
 
 describe('useAnchoredPosition with matchWidth', () => {
+  clientWidthFollowsWindow();
+
   beforeEach(() => {
     vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
       function (this: HTMLElement) {
@@ -815,5 +818,122 @@ describe('useAnchoredPosition on a side', () => {
     };
     render(<SideDetached />);
     expect(screen.getByText('left')).toBeInTheDocument();
+  });
+});
+
+describe('useAnchoredPosition at a corner, kept inside the viewport', () => {
+  /**
+   * A 200 by 100 panel at a corner of a 160 by 30 anchor whose left edge is
+   * at `anchorLeft`, 100px down, in a 375 by 800 client area.
+   */
+  const Corner = ({
+    position,
+    rtl = false,
+  }: {
+    position?: PickerPosition;
+    rtl?: boolean;
+  }) => {
+    const anchorRef = useRef<HTMLButtonElement>(null);
+    const panelRef = useRef<HTMLDivElement>(null);
+    const resolved = useAnchoredPosition(anchorRef, panelRef, {
+      active: true,
+      position,
+      fixed: true,
+      offset: 0,
+    });
+    return (
+      <>
+        <button ref={anchorRef} dir={rtl ? 'rtl' : undefined} type="button">
+          anchor
+        </button>
+        <div ref={panelRef} />
+        <output>{JSON.stringify(resolved)}</output>
+      </>
+    );
+  };
+
+  const read = () => JSON.parse(screen.getByRole('status').textContent!);
+  const root = document.documentElement;
+  let anchorLeft = 0;
+
+  beforeEach(() => {
+    anchorLeft = 0;
+    Object.defineProperty(root, 'clientWidth', {
+      configurable: true,
+      value: 375,
+    });
+    vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(375);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(800);
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+      function (this: HTMLElement) {
+        const box =
+          this.tagName === 'BUTTON'
+            ? { top: 100, left: anchorLeft, width: 160, height: 30 }
+            : { top: 0, left: 0, width: 200, height: 100 };
+        return {
+          ...box,
+          bottom: box.top + box.height,
+          right: box.left + box.width,
+          x: box.left,
+          y: box.top,
+          toJSON: () => ({}),
+        } as DOMRect;
+      }
+    );
+    // jsdom has no `direction` of its own, so the `dir` attribute stands in.
+    const computed = window.getComputedStyle;
+    vi.spyOn(window, 'getComputedStyle').mockImplementation(
+      (el: Element, pseudo?: string | null) => {
+        const style = computed(el, pseudo);
+        if (el.getAttribute('dir') !== 'rtl') return style;
+        return { ...style, direction: 'rtl' } as CSSStyleDeclaration;
+      }
+    );
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    // Back to jsdom's own, which reads 0.
+    Reflect.deleteProperty(root, 'clientWidth');
+  });
+
+  it('keeps a corner that fits where it lines up', () => {
+    anchorLeft = 16;
+    const { rerender } = render(<Corner position="bottom-left" />);
+    expect(read()).toEqual({ position: 'bottom-left', top: 130, left: 16 });
+    anchorLeft = 199;
+    rerender(<Corner position="bottom-right" />);
+    // The right edges line up: 359 less the panel's 200.
+    expect(read()).toEqual({ position: 'bottom-right', top: 130, left: 159 });
+  });
+
+  it('moves a left corner that runs past the right edge back inside, keeping the corner', () => {
+    anchorLeft = 215;
+    render(<Corner position="bottom-left" />);
+    expect(read()).toEqual({ position: 'bottom-left', top: 130, left: 175 });
+  });
+
+  it('moves a right corner that runs past the left edge back inside, keeping the corner', () => {
+    anchorLeft = 0;
+    render(<Corner position="top-right" />);
+    // The right edges would line up at 160 less 200, off the left edge.
+    expect(read()).toEqual({ position: 'top-right', top: 0, left: 0 });
+  });
+
+  it('moves the default back inside on a right-to-left page, where it lines up the right edges', () => {
+    anchorLeft = 0;
+    const { rerender } = render(<Corner rtl />);
+    expect(read()).toEqual({ position: 'bottom-left', top: 130, left: 0 });
+    anchorLeft = 100;
+    rerender(<Corner rtl key="moved" />);
+    // 260 less 200: it fits, so the right edges stay lined up.
+    expect(read()).toEqual({ position: 'bottom-left', top: 130, left: 60 });
+  });
+
+  it('leaves auto’s corner as it was when that corner fits', () => {
+    anchorLeft = 215;
+    render(<Corner position="auto" />);
+    // Lined up on the right, 375 less 200, which fits, so nothing moves.
+    expect(read()).toEqual({ position: 'bottom-right', top: 130, left: 175 });
   });
 });

@@ -21,6 +21,7 @@ import { ColorInput } from '../ColorInput';
 import { TreeSelect } from '../TreeSelect';
 import { Cascader } from '../Cascader';
 import { Modal } from '../../components/Modal';
+import { clientWidthFollowsWindow } from '../../__tests__/client-width';
 
 const Harness: React.FC<{
   appendToBody?: boolean;
@@ -560,6 +561,8 @@ describe('PickerPopover while its onClose changes', () => {
 // -------------------------------------------------------------------------
 
 describe('PickerPopover position resolution', () => {
+  clientWidthFollowsWindow();
+
   const originalInnerWidth = window.innerWidth;
   const originalInnerHeight = window.innerHeight;
 
@@ -711,12 +714,12 @@ describe('PickerPopover position resolution', () => {
     setViewport(1000, 1000);
     const { getByRole } = renderWithRects(
       <PositionedHarness position="bottom-left" />,
-      makeRect({ top: 50, bottom: 70, left: 900, right: 960 }),
+      makeRect({ top: 50, bottom: 70, left: 700, right: 760 }),
       { width: 200, height: 300 }
     );
     const dialog = getByRole('dialog');
     expect(dialog.className).toMatch(/is-bottom-left/);
-    expect(dialog.style.left).toBe('900px');
+    expect(dialog.style.left).toBe('700px');
     expect(dialog.style.top).toBe('70px');
   });
 

@@ -14,6 +14,7 @@ import {
 import { Button } from '../../elements/Button';
 import { ConfigProvider } from '../../helpers/Config';
 import { resetDevWarnings } from '../../helpers/devWarnings';
+import { clientWidthFollowsWindow } from '../../__tests__/client-width';
 
 const FilterPopover: React.FC<
   Partial<React.ComponentProps<typeof Popover>>
@@ -686,6 +687,8 @@ describe('Popover', () => {
   });
 
   describe('placement', () => {
+    clientWidthFollowsWindow();
+
     const originalWidth = window.innerWidth;
     const originalHeight = window.innerHeight;
 

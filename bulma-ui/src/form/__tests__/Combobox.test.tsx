@@ -25,6 +25,7 @@ import {
   announceDelay,
   announcementLifetime,
 } from '../../helpers/statusRegion';
+import { clientWidthFollowsWindow } from '../../__tests__/client-width';
 
 const COUNTRIES = ['Canada', 'France', 'Germany', 'Japan', 'Mexico'];
 
@@ -1502,6 +1503,8 @@ describe('Combobox', () => {
   });
 
   describe('Combobox.Menu', () => {
+    clientWidthFollowsWindow();
+
     it("doesn't show with nothing in it, whatever open says", () => {
       const { container } = render(
         <Combobox open onOpenChange={() => {}}>

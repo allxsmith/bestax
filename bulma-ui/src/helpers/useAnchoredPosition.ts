@@ -48,7 +48,9 @@ export interface UseAnchoredPositionOptions {
    * Left out, the corner is `bottom-left` lined up with the anchor's inline
    * start, which is its right edge right to left. A panel in place gets that
    * from its stylesheet, as Popover's and the pickers' do; a fixed panel's
-   * coordinates read the anchor's direction.
+   * coordinates read the anchor's direction. A fixed panel keeps its corner,
+   * and one that would run past an edge of the viewport moves along the
+   * anchor just far enough to stay inside it.
    *
    * A side centers the panel along that side of the anchor, flips it to the
    * opposite side when it doesn't fit there and does on the other, tries the
@@ -375,16 +377,22 @@ export function useAnchoredPosition(
         position === undefined &&
         fixed &&
         getComputedStyle(anchor).direction === 'rtl';
+      // A fixed panel keeps the corner's edge while it fits, and otherwise
+      // moves along it just far enough to stay inside the viewport, the root
+      // element's client area, as a side placement does.
+      const { clientWidth } = anchor.ownerDocument.documentElement;
       const next: AnchoredPosition = fixed
         ? {
             position: corner,
             top: corner.startsWith('bottom')
               ? rect.bottom + offset
               : rect.top - height - offset,
-            left:
+            left: clampTo(
               corner.endsWith('left') && !startsRight
                 ? rect.left
                 : rect.right - width,
+              clientWidth - width
+            ),
             ...(matchWidth ? { minWidth: rect.width } : {}),
           }
         : { position: corner };
