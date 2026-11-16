@@ -298,9 +298,15 @@ export const Fullwidth: Story = {
   },
 };
 
+/**
+ * A table wider than the view scrolls sideways. While it overflows, its
+ * container is a tab stop named after the table, so it can be scrolled by
+ * keyboard.
+ */
 export const Responsive: Story = {
   args: {
     isResponsive: true,
+    'aria-label': 'Twenty columns',
     children: (
       <>
         <Thead>
