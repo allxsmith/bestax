@@ -40,7 +40,13 @@ export interface BreadcrumbProps
   separator?: BreadcrumbSeparator;
   /** Breadcrumb size. */
   size?: BreadcrumbSize | undefined;
-  /** Breadcrumb items (`<li>`s with `<a>` or `<span>`). */
+  /**
+   * Breadcrumb items (`<li>`s with `<a>` or `<span>`). Mark the current
+   * page's item with Bulma's `is-active` class (with your class prefix, if
+   * you set one) and give its `<a>` or `<span>` `aria-current="page"`, which
+   * is what tells a screen reader it's the page you're on, since the class
+   * only styles it.
+   */
   children?: React.ReactNode;
 }
 

@@ -1303,6 +1303,24 @@ describe('ContextMenu', () => {
         within(document.body).getByRole('menu', { name: 'report.pdf' })
       ).toBeInTheDocument();
     });
+
+    it('marks an active item aria-current, as Dropdown does', () => {
+      render(
+        <ContextMenu aria-label="Move to" trigger={<div data-region>Row</div>}>
+          <ContextMenu.Item as="button" active>
+            Inbox
+          </ContextMenu.Item>
+          <ContextMenu.Item as="button">Archive</ContextMenu.Item>
+        </ContextMenu>
+      );
+      contextMenu(region());
+      const opened = within(document.body).getByRole('menu', {
+        name: 'Move to',
+      });
+      expect(
+        within(opened).getByRole('menuitem', { current: true })
+      ).toHaveTextContent('Inbox');
+    });
   });
 
   describe('props and classes', () => {

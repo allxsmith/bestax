@@ -94,6 +94,100 @@ describe('Link Component', () => {
     expect(screen.getByRole('link')).not.toHaveClass('is-active');
   });
 
+  // Bulma's menus and navbars draw `is-active` as the current page, so the
+  // link says so to assistive tech too.
+  describe('aria-current', () => {
+    test('isActive writes aria-current="page"', () => {
+      render(
+        <Link href="/b" isActive>
+          B
+        </Link>
+      );
+      const link = screen.getByRole('link', { name: 'B', current: 'page' });
+      expect(link).toHaveAttribute('aria-current', 'page');
+      expect(link).toHaveClass('is-active');
+    });
+
+    test('a link that is not active has none', () => {
+      render(
+        <>
+          <Link href="/a">A</Link>
+          <Link href="/c" isActive={false}>
+            C
+          </Link>
+        </>
+      );
+      for (const link of screen.getAllByRole('link')) {
+        expect(link).not.toHaveAttribute('aria-current');
+      }
+    });
+
+    test('an aria-current the caller passes wins', () => {
+      render(
+        <>
+          <Link href="#intro" isActive aria-current="location">
+            Intro
+          </Link>
+          <Link href="/f" isActive aria-current={false}>
+            Filter
+          </Link>
+        </>
+      );
+      expect(screen.getByRole('link', { name: 'Intro' })).toHaveAttribute(
+        'aria-current',
+        'location'
+      );
+      expect(screen.getByRole('link', { name: 'Filter' })).toHaveAttribute(
+        'aria-current',
+        'false'
+      );
+    });
+
+    test('a spread carrying aria-current: undefined wins too', () => {
+      const forwarded: { 'aria-current'?: 'page' | undefined } = {
+        'aria-current': undefined,
+      };
+      render(
+        <Link href="/b" isActive {...forwarded}>
+          B
+        </Link>
+      );
+      expect(screen.getByRole('link', { name: 'B' })).not.toHaveAttribute(
+        'aria-current'
+      );
+    });
+
+    test('passes no aria-current key to a component `as` names unless active', () => {
+      const seen: Array<Record<string, unknown>> = [];
+      const Custom = (props: Record<string, unknown>) => {
+        seen.push(props);
+        return <a href="/x">{props.children as React.ReactNode}</a>;
+      };
+      render(
+        <>
+          <Link as={Custom}>Off</Link>
+          <Link as={Custom} isActive>
+            On
+          </Link>
+        </>
+      );
+      expect('aria-current' in seen[0]).toBe(false);
+      expect(seen[1]['aria-current']).toBe('page');
+    });
+
+    test('reaches the element `as` renders', () => {
+      render(
+        <Link as="button" isActive>
+          Saved
+        </Link>
+      );
+      expect(screen.getByRole('button', { name: 'Saved' })).toHaveAttribute(
+        'aria-current',
+        'page'
+      );
+    });
+  });
+
   test('applies Bulma helper classes', () => {
     render(
       <Link href="#" m="3" p="4" textWeight="bold">

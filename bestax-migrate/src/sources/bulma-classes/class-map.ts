@@ -205,12 +205,18 @@ export interface RootEntry {
   /**
    * What the target renders in place of `defaults` once the element names
    * itself through one of `by`, set to anything but an empty string (`Icon`
-   * makes a named icon an image and hides any other). A name given as an
-   * expression may render as none, so the element then sets both.
+   * makes a named icon an image and hides any other, and a pagination link
+   * with an `href` is a link, and a button without one). A name given as an
+   * expression may render as none, so the element then sets both. `what`
+   * says what one of `by` gives the element, in the TODO for that case:
+   * `a name` unless it says otherwise. With `emptyCounts`, an empty value
+   * gives it too: `href=""` is still a link.
    */
   readonly namedDefaults?: {
     readonly by: readonly string[];
     readonly defaults: Readonly<Record<string, string>>;
+    readonly what?: string;
+    readonly emptyCounts?: boolean;
   };
   /**
    * Attributes that stop the target rendering `defaults` when the element sets
@@ -2341,7 +2347,8 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ownProps: ['textColor', 'color', 'bgColor'],
   },
   // The previous and next links write `tabIndex` before the props they're
-  // given, and take no helper props.
+  // given, and take no helper props. Without an `href` each is a button, and
+  // writes `role="button"` too.
   'pagination-previous': {
     status: 'mapped',
     target: 'Pagination.Previous',
@@ -2349,7 +2356,13 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     textColor: null,
     bgColor: null,
     noHelpers: true,
-    defaults: { tabIndex: '0' },
+    defaults: { tabIndex: '0', role: 'button' },
+    namedDefaults: {
+      by: ['href'],
+      defaults: { tabIndex: '0' },
+      what: 'an `href`',
+      emptyCounts: true,
+    },
     omits: {
       'is-disabled':
         '`disabled` also writes `aria-disabled` and `tabIndex="-1"`',
@@ -2363,7 +2376,13 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     textColor: null,
     bgColor: null,
     noHelpers: true,
-    defaults: { tabIndex: '0' },
+    defaults: { tabIndex: '0', role: 'button' },
+    namedDefaults: {
+      by: ['href'],
+      defaults: { tabIndex: '0' },
+      what: 'an `href`',
+      emptyCounts: true,
+    },
     omits: {
       'is-disabled':
         '`disabled` also writes `aria-disabled` and `tabIndex="-1"`',
@@ -2373,6 +2392,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   // A page link and the ellipsis each render the bare `<li>` around them, so
   // each converts in its `<li>`'s place. A link writes `tabIndex` before the
   // props it's given, and `active` writes `aria-current="page"` the same way.
+  // Without an `href` it's a button, and writes `role="button"` too.
   'pagination-link': {
     ...BASE,
     target: 'Pagination.Link',
@@ -2384,7 +2404,13 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
         needsAttr: { name: 'aria-current', value: 'page' },
       },
     },
-    defaults: { tabIndex: '0' },
+    defaults: { tabIndex: '0', role: 'button' },
+    namedDefaults: {
+      by: ['href'],
+      defaults: { tabIndex: '0' },
+      what: 'an `href`',
+      emptyCounts: true,
+    },
     omits: {
       'is-disabled':
         '`disabled` also writes `aria-disabled` and `tabIndex="-1"`',
@@ -2448,7 +2474,15 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     textColor: null,
     bgColor: null,
     noHelpers: true,
-    modifiers: flags({ 'is-active': 'active' }),
+    // `active` writes `aria-current="page"` unless the block has its own, the
+    // way `Navbar.Item` does, so `is-active` converts only beside one and
+    // stays a class otherwise.
+    modifiers: {
+      'is-active': {
+        writes: [{ prop: 'active' }],
+        needsAttr: { name: 'aria-current', value: 'page' },
+      },
+    },
     // The anchor attributes, and `rel`, reach only an <a>, and the label's
     // only a <label> (`STRIP_FROM_NON_ANCHOR` and `STRIP_FROM_NON_LABEL` in
     // bulma-ui's Panel.tsx).

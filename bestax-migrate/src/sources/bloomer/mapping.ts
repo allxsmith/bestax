@@ -167,7 +167,6 @@ export const HELPERLESS_TARGETS = new Set([
   'Panel.Heading',
   'Panel.Tabs',
   'Panel.Block',
-  'Tabs.List',
   'Tabs.Item',
   'Message.Header',
   'Message.Body',
@@ -797,15 +796,9 @@ export const MAPPING: Record<string, ComponentMapping> = {
       isFullWidth: FULLWIDTH,
     },
   },
-  TabList: {
-    status: 'mapped',
-    target: 'Tabs.List',
-    props: {
-      isAlign: {
-        todo: "Bulma aligns tabs on the `.tabs` container, not the list (bloomer's `is-center` on the <ul> did nothing); set `align` on the `<Tabs>` instead",
-      },
-    },
-  },
+  // A plain <ul>, as bloomer rendered: bestax's `Tabs.List` renders
+  // `role="tablist"`, which the `Tabs.Item`s inside are not the tabs of (#1961).
+  TabList: { status: 'mapped', special: 'tab-list' },
   // bestax's `Tabs.Tab` is the controlled API and requires an `index`;
   // `Tabs.Item` is the plain <li> that bloomer's Tab actually is.
   Tab: { status: 'mapped', target: 'Tabs.Item', props: { isActive: active } },

@@ -87,7 +87,12 @@ export interface TooltipProps
    * `Popover` around it.
    */
   active?: boolean;
-  /** Allow tooltip to wrap to multiple lines. */
+  /**
+   * Give the tooltip a fixed width, `--bulma-tooltip-multiline-width` up to
+   * `--bulma-tooltip-max-width`, whatever its label's length, with its text
+   * centered. Without it, the tooltip is as wide as its text, and wraps a
+   * label once the box reaches `--bulma-tooltip-max-width`.
+   */
   multiline?: boolean;
   /** Enable fade animation. Default: true. */
   animated?: boolean;
