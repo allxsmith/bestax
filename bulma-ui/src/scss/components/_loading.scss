@@ -21,19 +21,16 @@ $loading-icon-border-width: 0.25em !default;
 $loading-icon-border-width-small: 0.2em !default;
 $loading-icon-border-width-medium: 0.3em !default;
 $loading-icon-border-width-large: 0.375em !default;
-// The spinner with no color: the scheme's weak text color, which stands out
-// from the page on either scheme.
-$loading-icon-spin-color: cv.getVar("text-weak") !default;
+// The spinner with no color: Bulma's grey-light.
+$loading-icon-spin-color: cv.getVar("grey-light") !default;
 $loading-text-color: cv.getVar("text") !default;
 $loading-text-size: cv.getVar("size-normal") !default;
 $loading-content-gap: 1rem !default;
-// Text colors that follow the scheme: `text-light` is a fixed light gray,
-// which on the light scheme's white is unreadable.
-$loading-cancel-color: cv.getVar("text") !default;
+$loading-cancel-color: cv.getVar("text-light") !default;
 $loading-cancel-border-color: cv.getVar("border") !default;
 $loading-cancel-background: cv.getVar("scheme-main") !default;
-$loading-cancel-hover-color: cv.getVar("text-strong") !default;
-$loading-cancel-hover-border-color: cv.getVar("border-hover") !default;
+$loading-cancel-hover-color: cv.getVar("text") !default;
+$loading-cancel-hover-border-color: cv.getVar("text-light") !default;
 $loading-cancel-radius: cv.getVar("radius") !default;
 $loading-cancel-size: cv.getVar("size-small") !default;
 $loading-animation-duration: 0.75s !default;
@@ -229,11 +226,11 @@ $loading-animation-duration: 0.75s !default;
   }
 }
 
-// Color variants. The spinner takes the color's on-scheme lightness, which
-// Bulma darkens on a light scheme and lightens on a dark one until it reads on
-// the page. Put together from the color's hue, saturation and that lightness,
-// the way Bulma's `-on-scheme` helper classes do, so a Theme that sets them
-// around the overlay reaches it.
+// Color variants: the spinner in the color itself. It's put together from the
+// color's hue, saturation and lightness, the way Bulma's Button, Tag and
+// Notification do, rather than read from `--bulma-<color>`, which Bulma puts
+// together where it declares its themes: it's the same color, and a Theme that
+// sets the three around the overlay reaches it.
 @each $name in primary, link, info, success, warning, danger {
   .#{iv.$class-prefix}loading.#{iv.$class-prefix}is-#{$name} {
     @include cv.register-vars(
@@ -242,7 +239,7 @@ $loading-animation-duration: 0.75s !default;
           hsl(
             cv.getVar("#{$name}-h"),
             cv.getVar("#{$name}-s"),
-            cv.getVar("#{$name}-on-scheme-l")
+            cv.getVar("#{$name}-l")
           ),
       )
     );
