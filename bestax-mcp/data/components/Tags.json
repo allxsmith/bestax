@@ -108,6 +108,15 @@
       "component": "Tag",
       "props": [
         {
+          "name": "as",
+          "type": "'span' | 'a' | 'button'",
+          "default": "'span'",
+          "description": "Element to render (default `span`). A tag that does something, a filter someone clicks or a topic it links to, takes `button` or `a`, so a keyboard reaches it and a screen reader announces it as a button or a link. Bulma styles both, and bestax's stylesheets give a button tag the font and text a span takes from the text around it. A button renders `type=\"button\"` unless you pass `submit` or `reset`. A link's attributes, such as `href`, need `as=\"a\"`, and a button's, such as `disabled`, `as=\"button\"`. With `isDelete`, the tag renders its delete button whatever this says.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
           "name": "className",
           "type": "string",
           "default": null,
@@ -165,7 +174,7 @@
           "name": "isHoverable",
           "type": "boolean",
           "default": "false",
-          "description": "Adds hover effect to the tag.",
+          "description": "Adds Bulma's hover shade and pointer cursor. It's only a look: a span tag stays out of the keyboard's reach, so a tag that does something takes `as=\"button\"` or `as=\"a\"` instead.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -190,7 +199,7 @@
         }
       ],
       "extraProps": [],
-      "catchAll": "All standard <span> attributes and Bulma helper props",
+      "catchAll": "All standard <a> / <button> / <span> attributes and Bulma helper props",
       "types": [
         {
           "name": "TagColor",
