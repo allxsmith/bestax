@@ -52,7 +52,7 @@ export function Elements() {
           Heads up — something changed.
         </Notification>
         <Progress value={45} max={100} color="info" size="small" />
-        <Table.Container>
+        <Table.Container aria-label="Packages">
           <Table size="fullwidth" striped bordered hoverable textColor="info">
             <thead>
               <tr>

@@ -68,7 +68,8 @@ const meta: Meta<typeof Toast> = {
     },
     duration: {
       control: 'number',
-      description: 'Duration in ms before auto-close (0 = no auto-close)',
+      description:
+        'Duration in ms before auto-close (0 = no auto-close). It waits while focus is inside the toast.',
     },
     indefinite: {
       control: 'boolean',
@@ -80,7 +81,8 @@ const meta: Meta<typeof Toast> = {
     },
     dismissible: {
       control: 'boolean',
-      description: 'Whether clicking the toast dismisses it',
+      description:
+        'Whether clicking the toast (or outside it) dismisses it. With an onClick of your own, a click on it closes it only when you set dismissible yourself',
     },
     closable: {
       control: 'boolean',

@@ -405,7 +405,8 @@ Roles and names:
 - An `active` item has `aria-current="true"`, as in `Dropdown`, and an `aria-current` you pass
   wins.
 - Disabled items, a `button` with `disabled` or an item with `aria-disabled="true"`, are skipped by
-  the arrow keys and by typing, as in `Dropdown`.
+  the arrow keys and by typing, as in `Dropdown`, and they go on from an item that turns disabled
+  while it keeps focus.
 - The trigger gets no ARIA, no role and no tab stop. `aria-haspopup` describes a popup that opens
   when an element is activated, and a right-click on a row isn't that. So nothing tells a screen
   reader user the menu is there, and on macOS only VoiceOver opens it from the keyboard: every action
@@ -419,6 +420,9 @@ And around it:
 - Nothing listens on the page while the menu is closed and no finger is held on its trigger, so a
   table with a menu on every row adds no listeners until one is used.
 - The menu doesn't animate.
+- In forced colors (Windows' contrast themes), a divider is drawn in the system's text color, as in
+  `Dropdown`. That rule ships in `bestax.css` and `extras.css`, from the dropdown partial, so a
+  modular build adds `scss/components/dropdown` for it.
 
 ---
 

@@ -157,110 +157,142 @@ This example showcases the `size` prop to demonstrate the different predefined h
 
 ### Fullheight with Navbar
 
-This example demonstrates using the `fullheightWithNavbar` prop to create a hero that takes the full height of the screen, adjusting for the height of the navbar. This is useful for landing pages or sections that require prominent visibility.
+This example demonstrates using the `fullheightWithNavbar` prop to create a hero that takes the full height of the screen, adjusting for the height of the navbar. This is useful for landing pages or sections that require prominent visibility. On a narrow screen the burger opens the navbar's menu, through `active` on both.
 
 ```tsx live
-<>
-  <Navbar>
-    <Container>
-      <Navbar.Menu id="navMenu">
-        <Navbar.Start>
-          <Navbar.Item as="a">Getting Started</Navbar.Item>
-          <Navbar.Item as="a">APIs</Navbar.Item>
-          <Navbar.Item as="a">Blog</Navbar.Item>
-        </Navbar.Start>
-        <Navbar.End>
-          <Navbar.Item as="span">
-            <Button color="primary" isInverted as="a" mx="2">
-              Github
-            </Button>
-          </Navbar.Item>
-        </Navbar.End>
-      </Navbar.Menu>
-    </Container>
-  </Navbar>
-  <Hero color="link" fullheightWithNavbar>
-    <Hero.Body>
-      <Container>
-        <Title>Fullheight with navbar</Title>
-      </Container>
-    </Hero.Body>
-  </Hero>
-</>
+function example() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Navbar>
+        <Container>
+          <Navbar.Brand>
+            <Navbar.Burger
+              active={open}
+              aria-controls="navMenu"
+              onClick={() => setOpen(o => !o)}
+            />
+          </Navbar.Brand>
+          <Navbar.Menu id="navMenu" active={open}>
+            <Navbar.Start>
+              <Navbar.Item as="a" href="#getting-started">
+                Getting Started
+              </Navbar.Item>
+              <Navbar.Item as="a" href="#apis">
+                APIs
+              </Navbar.Item>
+              <Navbar.Item as="a" href="#blog">
+                Blog
+              </Navbar.Item>
+            </Navbar.Start>
+            <Navbar.End>
+              <Navbar.Item as="span">
+                <Button color="primary" isInverted as="a" href="#github" mx="2">
+                  Github
+                </Button>
+              </Navbar.Item>
+            </Navbar.End>
+          </Navbar.Menu>
+        </Container>
+      </Navbar>
+      <Hero color="link" fullheightWithNavbar>
+        <Hero.Body>
+          <Container>
+            <Title>Fullheight with navbar</Title>
+          </Container>
+        </Hero.Body>
+      </Hero>
+    </>
+  );
+}
 ```
 
 ---
 
 ### Fullheight with Head, Body, and Foot
 
-This example shows a comprehensive usage of the `Hero` component with all its subcomponents: `Hero.Head`, `Hero.Body`, and `Hero.Foot`. It's a complete layout for a hero section, including navigation, main content, and footer tabs.
+This example shows a comprehensive usage of the `Hero` component with all its subcomponents: `Hero.Head`, `Hero.Body`, and `Hero.Foot`. It's a complete layout for a hero section, including navigation, main content, and footer tabs. On a narrow screen the burger opens the navbar's menu, through `active` on both, as on the [`Navbar`](../components/navbar.md) page.
 
 ```tsx live
-<Hero color="primary" size="medium">
-  <Hero.Head>
-    <Navbar>
-      <Container>
-        <Navbar.Brand>
-          <Navbar.Item as="a">
-            <Image src="/img/bestax-type-white.svg" alt="Bestax" mx="2" />
-          </Navbar.Item>
-          <Navbar.Burger />
-        </Navbar.Brand>
-        <Navbar.Menu id="navbarMenuHeroA">
-          <Navbar.End>
-            <Navbar.Item as="a" active>
-              Getting Started
-            </Navbar.Item>
-            <Navbar.Item as="a">APIs</Navbar.Item>
-            <Navbar.Item as="a">Blog</Navbar.Item>
-            <Navbar.Item as="span">
-              <Button color="primary" isInverted as="a" mx="2">
-                <Icon
-                  library="fa"
-                  name="github"
-                  variant="brands"
-                  ariaLabel="github"
-                />
-                <Span>Github</Span>
-              </Button>
-            </Navbar.Item>
-          </Navbar.End>
-        </Navbar.Menu>
-      </Container>
-    </Navbar>
-  </Hero.Head>
+function example() {
+  const [open, setOpen] = useState(false);
+  return (
+    <Hero color="primary" size="medium">
+      <Hero.Head>
+        <Navbar>
+          <Container>
+            <Navbar.Brand>
+              <Navbar.Item as="a" href="#home">
+                <Image src="/img/bestax-type-white.svg" alt="Bestax" mx="2" />
+              </Navbar.Item>
+              <Navbar.Burger
+                active={open}
+                aria-controls="navbarMenuHeroA"
+                onClick={() => setOpen(o => !o)}
+              />
+            </Navbar.Brand>
+            <Navbar.Menu id="navbarMenuHeroA" active={open}>
+              <Navbar.End>
+                <Navbar.Item as="a" href="#getting-started" active>
+                  Getting Started
+                </Navbar.Item>
+                <Navbar.Item as="a" href="#apis">
+                  APIs
+                </Navbar.Item>
+                <Navbar.Item as="a" href="#blog">
+                  Blog
+                </Navbar.Item>
+                <Navbar.Item as="span">
+                  <Button
+                    color="primary"
+                    isInverted
+                    as="a"
+                    href="#github"
+                    mx="2"
+                  >
+                    <Icon library="fa" name="github" variant="brands" />
+                    <Span>Github</Span>
+                  </Button>
+                </Navbar.Item>
+              </Navbar.End>
+            </Navbar.Menu>
+          </Container>
+        </Navbar>
+      </Hero.Head>
 
-  <Hero.Body>
-    <Container textAlign="centered">
-      <Title>Bestax</Title>
-      <SubTitle>A Bulma Component Library</SubTitle>
-    </Container>
-  </Hero.Body>
+      <Hero.Body>
+        <Container textAlign="centered">
+          <Title>Bestax</Title>
+          <SubTitle>A Bulma Component Library</SubTitle>
+        </Container>
+      </Hero.Body>
 
-  <Hero.Foot>
-    <Tabs>
-      <Container>
-        <ul>
-          <Tabs.Item>
-            <a href="#elements">Elements</a>
-          </Tabs.Item>
-          <Tabs.Item>
-            <a href="#components">Components</a>
-          </Tabs.Item>
-          <Tabs.Item>
-            <a href="#columns">Columns</a>
-          </Tabs.Item>
-          <Tabs.Item>
-            <a href="#grid">Grid</a>
-          </Tabs.Item>
-          <Tabs.Item>
-            <a href="#layout">Layout</a>
-          </Tabs.Item>
-        </ul>
-      </Container>
-    </Tabs>
-  </Hero.Foot>
-</Hero>
+      <Hero.Foot>
+        <Tabs>
+          <Container>
+            <ul>
+              <Tabs.Item>
+                <a href="#elements">Elements</a>
+              </Tabs.Item>
+              <Tabs.Item>
+                <a href="#components">Components</a>
+              </Tabs.Item>
+              <Tabs.Item>
+                <a href="#columns">Columns</a>
+              </Tabs.Item>
+              <Tabs.Item>
+                <a href="#grid">Grid</a>
+              </Tabs.Item>
+              <Tabs.Item>
+                <a href="#layout">Layout</a>
+              </Tabs.Item>
+            </ul>
+          </Container>
+        </Tabs>
+      </Hero.Foot>
+    </Hero>
+  );
+}
 ```
 
 ---

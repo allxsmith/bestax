@@ -73,7 +73,7 @@ describe('FloatButton', () => {
 
   it('passes the IconButton props, the helper props and the attributes to the button', () => {
     const onClick = vi.fn();
-    render(
+    const { rerender } = render(
       <FloatButton
         aria-label="Save"
         icon="save"
@@ -98,7 +98,19 @@ describe('FloatButton', () => {
       'm-2',
       'mine'
     );
+    // Loading, it's Button's busy button, which drops the click.
+    expect(button).toHaveAttribute('aria-busy', 'true');
     fireEvent.click(button);
+    expect(onClick).not.toHaveBeenCalled();
+    rerender(
+      <FloatButton
+        aria-label="Save"
+        icon="save"
+        data-testid="save"
+        onClick={onClick}
+      />
+    );
+    fireEvent.click(screen.getByTestId('save'));
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 

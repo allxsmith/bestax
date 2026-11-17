@@ -31,6 +31,7 @@ export const KINDS: ReadonlySet<string> = new Set([
   'family',
   'legacy',
   'modifier',
+  'name',
   'only-child',
   'ref',
   'second-component',

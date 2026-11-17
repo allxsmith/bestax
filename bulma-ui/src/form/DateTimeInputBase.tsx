@@ -47,6 +47,7 @@ import {
 } from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
 import { useFieldLabelTarget, useFieldsetDisabled } from './FormContext';
+import { joinIds, useFieldMessageId } from './useFieldMessage';
 import { Icon } from '../elements/Icon';
 import { getActiveElementInTree } from '../helpers/shadowDom';
 import { inertProps } from '../helpers/inertProps';
@@ -223,7 +224,9 @@ export interface DateTimeInputBaseProps
    * so it shows on the fill. Unset, they use their
    * `--bulma-dateinput-*` and `--bulma-timeinput-wheel-*` variables, which
    * follow `primary` by default. The footer's time pill and Done button do not
-   * follow `color`.
+   * follow `color`. Forced colors (Windows' contrast themes) replaces the
+   * calendar's fill, so there the selected date is drawn in the system's
+   * highlight colors instead, whatever the color, which needs bestax's CSS.
    */
   color?:
     'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
@@ -697,6 +700,11 @@ export const DateTimeInputBase = forwardRef<
     [ref]
   );
 
+  // The wrapper's message describes the input (#1963). The native input
+  // lists it after the caller's ids; the text input takes it alone, since
+  // the caller's attributes go on the container.
+  const messageId = useFieldMessageId();
+
   if (useNative) {
     const nativeStep = enableSeconds ? incrementSeconds : incrementMinutes * 60;
     return (
@@ -704,6 +712,7 @@ export const DateTimeInputBase = forwardRef<
         {...localeScope.rootAttrs}
         {...cleanRest}
         ref={combinedRef}
+        aria-describedby={joinIds(cleanRest['aria-describedby'], messageId)}
         type="datetime-local"
         step={nativeStep}
         className={classNames(inputClass, bulmaHelperClasses, className)}
@@ -900,6 +909,7 @@ export const DateTimeInputBase = forwardRef<
         aria-expanded={open}
         aria-controls={popoverId}
         autoComplete="off"
+        aria-describedby={messageId}
         className={classNames(inputClass, textClasses, backgroundClasses)}
         value={text}
         placeholder={placeholder}

@@ -398,6 +398,23 @@ describe('IconButton', () => {
       expect(iconsOf(button)).toHaveLength(1);
     });
 
+    it('says it is busy and drops the click while loading, as Button does', () => {
+      const onClick = vi.fn();
+      render(
+        <IconButton
+          icon="trash"
+          aria-label="Delete"
+          isLoading
+          onClick={onClick}
+        />
+      );
+      const button = screen.getByRole('button', { name: 'Delete' });
+      expect(button).toHaveAttribute('aria-busy', 'true');
+      expect(button).toHaveAttribute('aria-disabled', 'true');
+      fireEvent.click(button);
+      expect(onClick).not.toHaveBeenCalled();
+    });
+
     it('disables with isDisabled, as Button does', () => {
       const onClick = vi.fn();
       render(

@@ -27,18 +27,26 @@
  */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { describe, it } from 'vitest';
 import {
   REPO,
+  attributeValue,
   attributesOf,
   exampleFiles,
-  isElement,
-  parseTsx,
+  linkingHref,
   sourcesOf,
-  tagOf,
-  ts,
 } from './lib/example-sources.mjs';
+
+const ts = createRequire(join(REPO, 'package.json'))('typescript');
+
+const isElement = node =>
+  ts.isJsxElement(node) || ts.isJsxSelfClosingElement(node);
+const openingOf = node => (ts.isJsxElement(node) ? node.openingElement : node);
+const tagOf = node => openingOf(node).tagName.getText();
+/** An element's attributes by name, and whether any is a spread. */
+const attrsOf = node => attributesOf(openingOf(node).attributes);
 
 /** The guide whose 2.x example stays as written, under a caution. */
 const LEGACY_GUIDE =
@@ -54,14 +62,9 @@ const TAGS = new Set(['Tabs.Item', 'TabItem']);
  */
 function settingOf(prop) {
   if (!prop) return { kind: 'none' };
-  const value = prop.initializer;
-  if (value === undefined) return { kind: 'on' };
-  if (ts.isStringLiteral(value)) return { kind: 'text', text: value.text };
-  const expr = value.expression;
-  if (!expr) return { kind: 'none' };
-  if (ts.isStringLiteral(expr) || ts.isNoSubstitutionTemplateLiteral(expr)) {
-    return { kind: 'text', text: expr.text };
-  }
+  const { bare, text, expr } = attributeValue(prop);
+  if (bare) return { kind: 'on' };
+  if (text !== undefined) return { kind: 'text', text };
   if (
     expr.kind === ts.SyntaxKind.FalseKeyword ||
     expr.kind === ts.SyntaxKind.NullKeyword ||
@@ -73,11 +76,8 @@ function settingOf(prop) {
   return { kind: 'dynamic' };
 }
 
-/** Whether an attribute is set to something other than an empty string. */
-const isSet = prop => {
-  const set = settingOf(prop);
-  return set.kind !== 'none' && !(set.kind === 'text' && set.text === '');
-};
+/** Whether an `href` or `to` holds something a browser can follow. */
+const follows = prop => prop !== undefined && linkingHref(prop);
 
 /** The nearest JSX element around `node`, or undefined. */
 function parentElement(node) {
@@ -94,7 +94,7 @@ function problemsOf(item) {
   if (!list) problems.push('not in a list');
   else if (tagOf(list) === 'Tabs.List') problems.push('in Tabs.List');
   else if (tagOf(list) !== 'ul') problems.push('not in a <ul>');
-  else if (attributesOf(list).byName.has('role')) problems.push('<ul> role');
+  else if (attrsOf(list).byName.has('role')) problems.push('<ul> role');
 
   const children = ts.isJsxElement(item) ? item.children : [];
   // The first child that renders something: an element, or an expression
@@ -109,18 +109,16 @@ function problemsOf(item) {
   );
   // A link passed in as an expression is one this can't see into.
   if (first && !isElement(first)) return problems;
-  const link = first
-    ? attributesOf(first)
-    : { byName: new Map(), spread: false };
+  const link = first ? attrsOf(first) : { byName: new Map(), spread: false };
   if (link.spread) return problems;
   const tag = first ? tagOf(first) : '';
   const component = /^[A-Z]/.test(tag);
   const target =
-    isSet(link.byName.get('href')) ||
-    (component && isSet(link.byName.get('to')));
+    follows(link.byName.get('href')) ||
+    (component && follows(link.byName.get('to')));
   if (!target || !(tag === 'a' || component)) problems.push('no link');
 
-  const own = attributesOf(item);
+  const own = attrsOf(item);
   if (own.spread) return problems;
   const active = settingOf(own.byName.get('active'));
   const current = settingOf(link.byName.get('aria-current'));
@@ -143,7 +141,13 @@ function problemsOf(item) {
 
 /** In one piece of code, every `Tabs.Item` and its problems, by line. */
 function readCode(code) {
-  const sf = parseTsx(code);
+  const sf = ts.createSourceFile(
+    'example.tsx',
+    code,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX
+  );
   const items = [];
   const visit = node => {
     if (isElement(node) && TAGS.has(tagOf(node))) {

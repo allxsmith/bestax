@@ -10,6 +10,7 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { warnOnce } from '../helpers/devWarnings';
 import { inertProps } from '../helpers/inertProps';
+import { usePrefersReducedMotion } from '../helpers/usePrefersReducedMotion';
 import { CollapsesItemContext } from './collapsesContext';
 
 /**
@@ -44,7 +45,11 @@ export interface CollapseProps
    * the first.
    */
   trigger?: React.ReactNode;
-  /** Animation style, or `false` to disable. */
+  /**
+   * Animation style, or `false` to disable. When the user's system asks for
+   * reduced motion, `fade` and `slide` lose their transition, so the panel
+   * opens and closes at once.
+   */
   animation?: 'fade' | 'slide' | false;
   /** Position of the trigger relative to content. */
   position?: 'top' | 'bottom';
@@ -110,6 +115,9 @@ export const Collapse: React.FC<CollapseProps> = ({
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
   const contentRef = useRef<HTMLDivElement>(null);
+  // Reduced motion keeps the panel's layout and drops its transition, so it
+  // opens and closes at once.
+  const reducedMotion = usePrefersReducedMotion();
 
   // Three possible owners of the open state, in order: the caller when `open`
   // is set, an enclosing Collapses group, and this Collapse itself. A caller's
@@ -167,6 +175,15 @@ export const Collapse: React.FC<CollapseProps> = ({
     if (!contentRef.current) return undefined;
     if (animation !== 'slide') return undefined;
 
+    // With no transition to run, the render sets the end height itself, and
+    // the state follows it, so the panel is at its height, and not at one it
+    // had before, when motion is allowed again.
+    if (reducedMotion) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- keeps the state in step with the height the render shows
+      setHeight(isOpen ? 'auto' : 0);
+      return undefined;
+    }
+
     if (isOpen) {
       // Opening: set height to content's scrollHeight
       const contentHeight = contentRef.current.scrollHeight;
@@ -199,7 +216,7 @@ export const Collapse: React.FC<CollapseProps> = ({
     // changes would re-trigger the open/close animation, so it's intentionally
     // excluded from the deps.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, animation]);
+  }, [isOpen, animation, reducedMotion]);
 
   // The trigger reports in every mode, then changes only the state this
   // Collapse owns. `onOpen`/`onClose` belong to that last case alone.
@@ -256,17 +273,20 @@ export const Collapse: React.FC<CollapseProps> = ({
   let contentWrapperStyle: React.CSSProperties;
 
   if (animation === 'slide') {
+    // Under reduced motion it goes straight to its end height, with no
+    // measured step between.
+    const shown = reducedMotion ? (isOpen ? 'auto' : 0) : height;
     contentWrapperStyle = {
-      height: height === 'auto' ? 'auto' : `${height}px`,
+      height: shown === 'auto' ? 'auto' : `${shown}px`,
       overflow: 'hidden',
-      transition: 'height 0.3s ease-in-out',
+      transition: reducedMotion ? 'none' : 'height 0.3s ease-in-out',
     };
   } else if (animation === 'fade') {
     contentWrapperStyle = {
       opacity: isOpen ? 1 : 0,
       overflow: 'hidden',
       height: isOpen ? 'auto' : 0,
-      transition: 'opacity 0.3s ease-in-out',
+      transition: reducedMotion ? 'none' : 'opacity 0.3s ease-in-out',
     };
   } else {
     contentWrapperStyle = {

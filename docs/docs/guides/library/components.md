@@ -696,9 +696,12 @@ function SidebarExample() {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         style={{ position: 'absolute' }}
+        aria-labelledby="sidebar-title-navigation"
       >
         <Sidebar.Header>
-          <Sidebar.Title>Navigation</Sidebar.Title>
+          <Sidebar.Title id="sidebar-title-navigation">
+            Navigation
+          </Sidebar.Title>
           <Sidebar.Close onClick={() => setIsOpen(false)} />
         </Sidebar.Header>
         <Sidebar.Body>

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import Hero from './Hero';
 import { validColors, validSchemeColors } from '../helpers/useBulmaClasses';
@@ -220,113 +221,134 @@ const BestaxBrand = () => (
 // FullHeight with Navbar story
 export const FullHeightWithNavbar: StoryObj<typeof Hero> = {
   name: 'FullHeight with Navbar',
-  render: () => (
-    <>
-      <Navbar>
-        <Container>
-          <Navbar.Brand>
-            <BestaxBrand />
-          </Navbar.Brand>
-          <Navbar.Menu id="navMenu">
-            <Navbar.Start>
-              <Navbar.Item as="a">Getting Started</Navbar.Item>
-              <Navbar.Item as="a">APIs</Navbar.Item>
-              <Navbar.Item as="a">Blog</Navbar.Item>
-            </Navbar.Start>
-            <Navbar.End>
-              <Navbar.Item as="span">
-                <Button color="primary" as="a" mx="2">
-                  Github
-                </Button>
-              </Navbar.Item>
-            </Navbar.End>
-          </Navbar.Menu>
-        </Container>
-      </Navbar>
-      <Hero color="link" fullheightWithNavbar>
-        <Hero.Body>
-          <Container>
-            <Title>Fullheight with navbar</Title>
-          </Container>
-        </Hero.Body>
-      </Hero>
-    </>
-  ),
-};
-
-// FullHeight with Head, Body, Foot story
-export const FullHeightWithHeadBodyFoot: StoryObj<typeof Hero> = {
-  name: 'FullHeight with Head, Body, Foot',
-  render: () => (
-    <Hero color="primary" size="medium">
-      <Hero.Head>
+  render: function FullHeightWithNavbarExample() {
+    const [open, setOpen] = useState(false);
+    return (
+      <>
         <Navbar>
           <Container>
             <Navbar.Brand>
               <BestaxBrand />
-              <span className="navbar-burger" data-target="navbarMenuHeroA">
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-              </span>
+              <Navbar.Burger
+                active={open}
+                aria-controls="navMenu"
+                onClick={() => setOpen(o => !o)}
+              />
             </Navbar.Brand>
-            <Navbar.Menu id="navbarMenuHeroA">
-              <Navbar.End>
-                <Navbar.Item as="a" active>
+            <Navbar.Menu id="navMenu" active={open}>
+              <Navbar.Start>
+                <Navbar.Item as="a" href="#getting-started">
                   Getting Started
                 </Navbar.Item>
-                <Navbar.Item as="a">APIs</Navbar.Item>
-                <Navbar.Item as="a">Blog</Navbar.Item>
+                <Navbar.Item as="a" href="#apis">
+                  APIs
+                </Navbar.Item>
+                <Navbar.Item as="a" href="#blog">
+                  Blog
+                </Navbar.Item>
+              </Navbar.Start>
+              <Navbar.End>
                 <Navbar.Item as="span">
-                  <Button color="primary" isInverted as="a" mx="2">
-                    <Icon
-                      library="fa"
-                      name="github"
-                      variant="brands"
-                      ariaLabel="github"
-                    />
-                    <span>Github</span>
+                  <Button color="primary" as="a" href="#github" mx="2">
+                    Github
                   </Button>
                 </Navbar.Item>
               </Navbar.End>
             </Navbar.Menu>
           </Container>
         </Navbar>
-      </Hero.Head>
+        <Hero color="link" fullheightWithNavbar>
+          <Hero.Body>
+            <Container>
+              <Title>Fullheight with navbar</Title>
+            </Container>
+          </Hero.Body>
+        </Hero>
+      </>
+    );
+  },
+};
 
-      <Hero.Body>
-        <Container className="has-text-centered">
-          <Title>Bestax</Title>
-          <SubTitle>A Bulma Component Library</SubTitle>
-        </Container>
-      </Hero.Body>
+// FullHeight with Head, Body, Foot story
+export const FullHeightWithHeadBodyFoot: StoryObj<typeof Hero> = {
+  name: 'FullHeight with Head, Body, Foot',
+  render: function FullHeightWithHeadBodyFootExample() {
+    const [open, setOpen] = useState(false);
+    return (
+      <Hero color="primary" size="medium">
+        <Hero.Head>
+          <Navbar>
+            <Container>
+              <Navbar.Brand>
+                <BestaxBrand />
+                <Navbar.Burger
+                  active={open}
+                  aria-controls="navbarMenuHeroA"
+                  onClick={() => setOpen(o => !o)}
+                />
+              </Navbar.Brand>
+              <Navbar.Menu id="navbarMenuHeroA" active={open}>
+                <Navbar.End>
+                  <Navbar.Item as="a" href="#getting-started" active>
+                    Getting Started
+                  </Navbar.Item>
+                  <Navbar.Item as="a" href="#apis">
+                    APIs
+                  </Navbar.Item>
+                  <Navbar.Item as="a" href="#blog">
+                    Blog
+                  </Navbar.Item>
+                  <Navbar.Item as="span">
+                    <Button
+                      color="primary"
+                      isInverted
+                      as="a"
+                      href="#github"
+                      mx="2"
+                    >
+                      <Icon library="fa" name="github" variant="brands" />
+                      <span>Github</span>
+                    </Button>
+                  </Navbar.Item>
+                </Navbar.End>
+              </Navbar.Menu>
+            </Container>
+          </Navbar>
+        </Hero.Head>
 
-      <Hero.Foot>
-        <Tabs>
-          <Container>
-            <ul>
-              <Tabs.Item>
-                <a href="#elements">Elements</a>
-              </Tabs.Item>
-              <Tabs.Item>
-                <a href="#components">Components</a>
-              </Tabs.Item>
-              <Tabs.Item>
-                <a href="#columns">Columns</a>
-              </Tabs.Item>
-              <Tabs.Item>
-                <a href="#grid">Grid</a>
-              </Tabs.Item>
-              <Tabs.Item>
-                <a href="#layout">Layout</a>
-              </Tabs.Item>
-            </ul>
+        <Hero.Body>
+          <Container className="has-text-centered">
+            <Title>Bestax</Title>
+            <SubTitle>A Bulma Component Library</SubTitle>
           </Container>
-        </Tabs>
-      </Hero.Foot>
-    </Hero>
-  ),
+        </Hero.Body>
+
+        <Hero.Foot>
+          <Tabs>
+            <Container>
+              <ul>
+                <Tabs.Item>
+                  <a href="#elements">Elements</a>
+                </Tabs.Item>
+                <Tabs.Item>
+                  <a href="#components">Components</a>
+                </Tabs.Item>
+                <Tabs.Item>
+                  <a href="#columns">Columns</a>
+                </Tabs.Item>
+                <Tabs.Item>
+                  <a href="#grid">Grid</a>
+                </Tabs.Item>
+                <Tabs.Item>
+                  <a href="#layout">Layout</a>
+                </Tabs.Item>
+              </ul>
+            </Container>
+          </Tabs>
+        </Hero.Foot>
+      </Hero>
+    );
+  },
 };
 
 export const CompoundUsage: StoryObj<typeof Hero> = {

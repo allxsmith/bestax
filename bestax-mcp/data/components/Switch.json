@@ -42,6 +42,10 @@
       "code": "function example() {\n  return (\n    <Block display=\"flex\" flexDirection=\"column\">\n      <Switch disabled>Disabled unchecked</Switch>\n      <Switch disabled defaultChecked color=\"success\">\n        Disabled checked\n      </Switch>\n    </Block>\n  );\n}"
     },
     {
+      "title": "Announced as a Switch",
+      "code": "<Switch role=\"switch\" defaultChecked>\n  Wi-Fi\n</Switch>"
+    },
+    {
       "title": "Controlled Usage",
       "code": "function example() {\n  const [isEnabled, setIsEnabled] = useState(false);\n\n  return (\n    <Block>\n      <Switch\n        color=\"primary\"\n        checked={isEnabled}\n        onChange={e => setIsEnabled(e.target.checked)}\n      >\n        Feature is {isEnabled ? 'enabled' : 'disabled'}\n      </Switch>\n      <Paragraph mt=\"2\">\n        State: <Strong>{isEnabled ? 'ON' : 'OFF'}</Strong>\n      </Paragraph>\n    </Block>\n  );\n}"
     },
@@ -50,7 +54,7 @@
       "code": "function example() {\n  const [settings, setSettings] = useState({\n    notifications: true,\n    darkMode: false,\n    autoSave: true,\n  });\n\n  const updateSetting =\n    (key: keyof typeof settings) =>\n    (e: React.ChangeEvent<HTMLInputElement>) => {\n      setSettings(prev => ({ ...prev, [key]: e.target.checked }));\n    };\n\n  return (\n    <Block style={{ maxWidth: '300px' }}>\n      <Title size=\"5\">Settings</Title>\n      <Block display=\"flex\" flexDirection=\"column\">\n        <Switch\n          color=\"primary\"\n          checked={settings.notifications}\n          onChange={updateSetting('notifications')}\n        >\n          Push notifications\n        </Switch>\n        <Switch\n          color=\"info\"\n          checked={settings.darkMode}\n          onChange={updateSetting('darkMode')}\n        >\n          Dark mode\n        </Switch>\n        <Switch\n          color=\"success\"\n          checked={settings.autoSave}\n          onChange={updateSetting('autoSave')}\n        >\n          Auto-save\n        </Switch>\n      </Block>\n    </Block>\n  );\n}"
     }
   ],
-  "accessibility": "- The Switch is built on a native checkbox input for proper keyboard navigation\n- Use the `children` prop to provide a visible label\n- For icon-only switches, provide an `aria-label` prop\n- The switch can be focused and toggled with keyboard (Space/Enter)",
+  "accessibility": "- The Switch is built on a native checkbox input for proper keyboard navigation\n- Use the `children` prop to provide a visible label\n- For icon-only switches, provide an `aria-label` prop\n- Space toggles a focused switch, as it does a checkbox.\n- A screen reader announces a Switch as a checkbox, since that's the input it's built on. Pass `role=\"switch\"` to have it announced as a switch, as in [Announced as a Switch](https://bestax.io/docs/api/form/switch#announced-as-a-switch). The input keeps its checked state, so `checked`, `onChange` and the form value work the same either way.\n- In forced colors (Windows contrast themes), the track and the knob take system colors, so the knob shows which side it's on in every style. Off, the knob and the edge are in the system's button text color. On, the default style's track fills with the highlight color and the knob takes the color made to read on it, while a thin or outlined switch, whose track doesn't fill, draws its knob and edge in the highlight color. Disabled, the edge is gray, and so is the knob when off.",
   "related": [],
   "storybook": null,
   "summary": "The `Switch` component provides a toggle switch for boolean on/off states.",
@@ -141,6 +145,15 @@
           "type": "React.ReactNode",
           "default": null,
           "description": "Label content for the switch.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "role",
+          "type": "React.AriaRole",
+          "default": null,
+          "description": "The input's role. Unset, the input is a native checkbox, so a screen reader announces the switch as a checkbox. Pass `\"switch\"` to have it announced as a switch. The input's checked state still carries the value, so `checked`, `onChange` and the form value work the same either way.",
           "required": false,
           "inherited": false,
           "deprecated": false

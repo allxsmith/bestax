@@ -43,35 +43,35 @@ codemod converts it; **Flagged** = it leaves a `TODO(bestax-migrate)` comment (s
 
 ## Compound sub-components
 
-| RBC                                                         | bestax                                                                   |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `Breadcrumb.Item`                                           | plain `<li><a href=…>` (`active` → `is-active`), or the `renderAs` tag   |
-| `Button.Group`                                              | `Buttons` (`align="right"`→`isRight`); unknown or dynamic `size` flagged |
-| `Card.Header` / `.Title` / `.Icon`                          | `Card.Header` / `.Header.Title` / `.Header.Icon`                         |
-| `Card.Image`                                                | `Card.Image` wrapping an inner `<Image>`                                 |
-| `Card.Content`                                              | `Card.Content`                                                           |
-| `Card.Footer` / `Card.Footer.Item`                          | `Card.Footer` / `Card.FooterItem`                                        |
-| `Columns.Column`                                            | `Column` (flat import)                                                   |
-| `Dropdown.Item` / `.Divider`                                | `Dropdown.Item` / `Dropdown.Divider`                                     |
-| `Hero.Header` / `.Body` / `.Footer`                         | `Hero.Head` / `Hero.Body` / `Hero.Foot`                                  |
-| `Icon.Text`                                                 | `IconText`                                                               |
-| `Level.Side align` / `Level.Item`                           | `Level.Left` or `Level.Right` / `Level.Item`                             |
-| `Media.Item align`                                          | `MediaLeft` / `MediaContent` / `MediaRight` (flat)                       |
-| `Menu.List` (+ `title`)                                     | `Menu.List` (+ a `Menu.Label` sibling)                                   |
-| `Menu.List.Item`                                            | `Menu.Item`                                                              |
-| `Message.Header` / `.Body`                                  | `Message.Header` / `Message.Body`                                        |
-| `Modal.Content`                                             | `Modal.Content`                                                          |
-| `Modal.Card` `.Header`/`.Body`/`.Footer`/`.Title`           | `Modal.Card` `.Head`/`.Body`/`.Foot`/`.Title`                            |
-| `Navbar.Brand`/`.Burger`/`.Menu`/`.Item`/`.Link`/`.Divider` | same names                                                               |
-| `Navbar.Container align`                                    | `Navbar.Start` / `Navbar.End`                                            |
-| `Navbar.Item` wrapping a dropdown                           | `Navbar.Dropdown` (container)                                            |
-| `Navbar.Dropdown` (the menu)                                | `Navbar.DropdownMenu`                                                    |
-| `Panel.Header`                                              | `Panel.Heading`                                                          |
-| `Panel.Tabs` / `Panel.Tabs.Tab`                             | `Panel.Tabs` / plain `<a>` children                                      |
-| `Panel.Block` / `Panel.Icon`                                | `Panel.Block` / `Panel.Icon` (icon child → `name`)                       |
-| `Table.Container`                                           | `isResponsive` on the child `Table` (or `<div class="table-container">`) |
-| `Tabs.Tab`                                                  | `Tabs.Item` (inside a generated plain `<ul>`)                            |
-| `Tag.Group`                                                 | `Tags` (`gapless` → `hasAddons`)                                         |
+| RBC                                                         | bestax                                                                                                                                                        |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Breadcrumb.Item`                                           | plain `<li><a href=…>` (`active` → `is-active`), or the `renderAs` tag                                                                                        |
+| `Button.Group`                                              | `Buttons` (`align="right"`→`isRight`); unknown or dynamic `size` flagged                                                                                      |
+| `Card.Header` / `.Title` / `.Icon`                          | `Card.Header` / `.Header.Title` / `.Header.Icon`                                                                                                              |
+| `Card.Image`                                                | `Card.Image` wrapping an inner `<Image>`                                                                                                                      |
+| `Card.Content`                                              | `Card.Content`                                                                                                                                                |
+| `Card.Footer` / `Card.Footer.Item`                          | `Card.Footer` / `Card.FooterItem`                                                                                                                             |
+| `Columns.Column`                                            | `Column` (flat import)                                                                                                                                        |
+| `Dropdown.Item` / `.Divider`                                | `Dropdown.Item` / `Dropdown.Divider`                                                                                                                          |
+| `Hero.Header` / `.Body` / `.Footer`                         | `Hero.Head` / `Hero.Body` / `Hero.Foot`                                                                                                                       |
+| `Icon.Text`                                                 | `IconText`                                                                                                                                                    |
+| `Level.Side align` / `Level.Item`                           | `Level.Left` or `Level.Right` / `Level.Item`                                                                                                                  |
+| `Media.Item align`                                          | `MediaLeft` / `MediaContent` / `MediaRight` (flat)                                                                                                            |
+| `Menu.List` (+ `title`)                                     | `Menu.List` (+ a `Menu.Label` sibling)                                                                                                                        |
+| `Menu.List.Item`                                            | `Menu.Item`                                                                                                                                                   |
+| `Message.Header` / `.Body`                                  | `Message.Header` / `Message.Body`                                                                                                                             |
+| `Modal.Content`                                             | `Modal.Content`                                                                                                                                               |
+| `Modal.Card` `.Header`/`.Body`/`.Footer`/`.Title`           | `Modal.Card` `.Head`/`.Body`/`.Foot`/`.Title`                                                                                                                 |
+| `Navbar.Brand`/`.Burger`/`.Menu`/`.Item`/`.Link`/`.Divider` | same names                                                                                                                                                    |
+| `Navbar.Container align`                                    | `Navbar.Start` / `Navbar.End`                                                                                                                                 |
+| `Navbar.Item` wrapping a dropdown                           | `Navbar.Dropdown` (container)                                                                                                                                 |
+| `Navbar.Dropdown` (the menu)                                | `Navbar.DropdownMenu`                                                                                                                                         |
+| `Panel.Header`                                              | `Panel.Heading`                                                                                                                                               |
+| `Panel.Tabs` / `Panel.Tabs.Tab`                             | `Panel.Tabs` / plain `<a>` children                                                                                                                           |
+| `Panel.Block` / `Panel.Icon`                                | `Panel.Block` / `Panel.Icon` (icon child → `name`)                                                                                                            |
+| `Table.Container`                                           | `isResponsive` on the child `Table`, which takes the container's `aria-label` or `aria-labelledby` unless it has its own (or `<div class="table-container">`) |
+| `Tabs.Tab`                                                  | `Tabs.Item` (inside a generated plain `<ul>`)                                                                                                                 |
+| `Tag.Group`                                                 | `Tags` (`gapless` → `hasAddons`)                                                                                                                              |
 
 ## Form namespace → flat imports
 

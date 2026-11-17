@@ -120,7 +120,10 @@ Field/Control/message props. `TextArea` adds `rows` and `hasFixedSize`.
   checked list. It changes the look and the announcement, not the value: `checked` stays the
   value, so set both from the list.
 - `Checkboxes` — group wrapper managing an **array** value.
-- `Radios` — group wrapper managing a **single** selected value.
+- `Radios` — group wrapper managing a **single** selected value. Its radios share its `name`, or
+  one it generates when you give none, which is what makes them one group to the browser (one Tab
+  stop, the arrow keys, one checked). A checked radio is sent with a form under that name, so pass
+  `name` to choose the key.
 - Both take `as="fieldset"`: their own `Field` renders as a native `<fieldset>` and the `label` as
   its `<legend>`, in the label column when `horizontal`, naming the group with no ids. Inside an
   outer `Field` the group element itself is the `<fieldset>`, named by that `Field`'s label.
@@ -137,7 +140,8 @@ Field/Control/message props. `TextArea` adds `rows` and `hasFixedSize`.
 ## Switch — `form/Switch.tsx`
 
 `color`, `size`, `checked`/`defaultChecked`, `onChange`, `isRounded`, `isThin`, `isOutlined`,
-`passiveType`, plus RTL support.
+`passiveType`, plus RTL support. It's a native checkbox, so a screen reader calls it one and Space
+toggles it. Pass `role="switch"` to have it announced as a switch.
 
 ## File — `form/File.tsx`
 
@@ -341,5 +345,9 @@ helper props place as the date pickers' do.
 There is no validation engine. The props you use to reflect externally-computed validation are:
 
 - `color` — `'danger'` for an error, `'success'` for valid.
-- `message` — the help/validation text (rendered as `<p class="help">`).
+- `message` — the help/validation text (rendered as `<p class="help">`), which describes the control
+  through `aria-describedby`, so it's read when the field takes focus.
 - `messageColor` — colors that help text to match (`'danger'`, `'success'`, …).
+- `aria-invalid` — tells a screen reader the field is invalid, which the colors don't. Set it with
+  the error, on the wrappers whose attributes reach the input (the skill's validation section
+  lists them).

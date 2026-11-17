@@ -86,7 +86,6 @@ const SimpleTrigger = ({
       style={{
         display: 'inline-flex',
         marginRight: '0.5rem',
-        transition: 'transform 0.3s',
         transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
       }}
     >
@@ -396,7 +395,6 @@ export const SemiboldTrigger: Story = {
               style={{
                 display: 'inline-flex',
                 marginRight: '0.5rem',
-                transition: 'transform 0.3s',
                 transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
               }}
             >
