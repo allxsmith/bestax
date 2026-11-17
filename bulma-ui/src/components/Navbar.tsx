@@ -3,6 +3,7 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import type { PolymorphicComponent } from '../helpers/polymorphic';
 import { buttonType } from '../helpers/buttonType';
+import { getActiveElementInTree } from '../helpers/shadowDom';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -703,6 +704,7 @@ export const NavbarLink = forwardRef(function NavbarLink(
 
   const dropdownContext = useContext(NavbarDropdownContext);
   const hasHref = rest.href !== undefined;
+
   // What a custom component renders cannot be read off its input props, and the
   // prop that ends in an anchor belongs to the router, not to us — `to`, `state`,
   // `params` and a dozen further spellings all get there. Sniffing for more names
@@ -792,6 +794,36 @@ export const NavbarLink = forwardRef(function NavbarLink(
 
 NavbarLink.displayName = 'NavbarLink';
 
+/** Whether an element on an event's path is a dialog, by role or by tag. */
+const isDialog = (node: EventTarget) => {
+  const el = node as Element;
+  const role = el.getAttribute?.('role');
+  return (
+    role === 'dialog' || role === 'alertdialog' || el.localName === 'dialog'
+  );
+};
+
+/**
+ * A dropdown's own `Navbar.Link`: the first one in it that isn't inside a menu
+ * in it. Class names are matched as names, not as a selector, so a class
+ * prefix with any characters works.
+ */
+function ownLink(
+  root: HTMLElement,
+  linkClass: string,
+  menuClass: string
+): HTMLElement | undefined {
+  return Array.from(root.getElementsByClassName(linkClass)).find(link => {
+    // Each one is inside `root`, so its parents lead up to it.
+    let el = link.parentElement as Element;
+    while (el !== root) {
+      if (el.classList.contains(menuClass)) return false;
+      el = el.parentElement as Element;
+    }
+    return true;
+  }) as HTMLElement | undefined;
+}
+
 /**
  * Props for the NavbarDropdown component.
  * @extraProp {React.Ref<HTMLDivElement>} [ref] - Ref forwarded to the dropdown container element.
@@ -805,7 +837,15 @@ export interface NavbarDropdownProps extends React.HTMLAttributes<HTMLDivElement
   up?: boolean;
   /** Dropdown opens on hover. */
   hoverable?: boolean;
-  /** Dropdown is open. */
+  /**
+   * Dropdown is open, whether you control it or not. Escape on its
+   * `Navbar.Link`, or anywhere else in the open dropdown, closes it and puts
+   * focus on the link, unless a control there marks the key used, the key
+   * comes from a dialog or from content opened from the menu into a portal,
+   * or focus can't go back to the link. A `hoverable` dropdown's menu still
+   * shows while the pointer is on the dropdown or focus is in it, the link
+   * included.
+   */
   active?: boolean;
   /** Callback when dropdown active state changes. */
   onActiveChange?: (active: boolean) => void;
@@ -830,12 +870,15 @@ export const NavbarDropdown = forwardRef<HTMLDivElement, NavbarDropdownProps>(
       hoverable,
       active: activeProp,
       onActiveChange,
+      onKeyDown,
       children,
       ...props
     },
     ref
   ) {
     const [active, setActive] = useState<boolean>(!!activeProp);
+    const linkClass = usePrefixedClassNames('navbar-link');
+    const menuClass = usePrefixedClassNames('navbar-dropdown');
 
     useEffect(() => {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing to controlled prop
@@ -857,6 +900,35 @@ export const NavbarDropdown = forwardRef<HTMLDivElement, NavbarDropdownProps>(
       onActiveChange?.(false);
     };
 
+    // Escape in an open dropdown puts focus back on its Navbar.Link and closes
+    // it, as Escape on the link itself does. The link's own handler uses the
+    // key first, and so may a control in the dropdown that marks it used. An
+    // IME's Escape only cancels its composition, and one from a dialog opened
+    // from the menu, portaled out of the dropdown or inside it, is the
+    // dialog's. When focus can't go back to the link, the menu stays open and
+    // the key passes on, so focus isn't left on a hidden item.
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+      onKeyDown?.(e);
+      if (e.key !== 'Escape' || e.defaultPrevented || !active) return;
+      if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+      const root = e.currentTarget;
+      const path = e.nativeEvent.composedPath();
+      const at = path.indexOf(root);
+      if (at < 0) return;
+      // A menu marked as a dialog itself is still the dropdown's menu.
+      const dialogAt = path.findIndex(
+        node =>
+          isDialog(node) && !(node as Element).classList.contains(menuClass)
+      );
+      if (dialogAt >= 0 && dialogAt < at) return;
+      const trigger = ownLink(root, linkClass, menuClass);
+      if (!trigger) return;
+      trigger.focus();
+      if (getActiveElementInTree(trigger) !== trigger) return;
+      e.preventDefault();
+      close();
+    };
+
     return (
       <NavbarDropdownContext.Provider value={{ active, toggle, close }}>
         <div
@@ -871,6 +943,7 @@ export const NavbarDropdown = forwardRef<HTMLDivElement, NavbarDropdownProps>(
             className
           )}
           {...props}
+          onKeyDown={handleKeyDown}
         >
           {children}
         </div>

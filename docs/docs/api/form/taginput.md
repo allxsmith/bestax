@@ -497,6 +497,7 @@ function TaginputFormDemo() {
 - The list holds only the suggestions, each a `role="option"` with an id of its own, and the highlighted one has `aria-selected="true"`
 - In forced colors (Windows' contrast themes), which take away the list's shadow and the highlighted suggestion's fill, the open list is drawn with an edge and the highlighted suggestion with an outline in the system's highlight color
 - The `message` describes the input through `aria-describedby`, after the counter while it shows, so a screen reader reads both when the input takes focus.
+- `aria-invalid` and `aria-errormessage` go on the input, while the other attributes you pass go on the wrapper, so a screen reader hears the input is invalid when it takes focus.
 
 ---
 

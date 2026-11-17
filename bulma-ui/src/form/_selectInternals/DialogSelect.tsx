@@ -19,7 +19,11 @@ import {
   useInsideField,
 } from '../FormContext';
 import { useAutoLabelId } from '../useAutoLabelId';
-import { joinIds, useFieldMessage } from '../useFieldMessage';
+import {
+  joinIds,
+  splitControlState,
+  useFieldMessage,
+} from '../useFieldMessage';
 import { PickerPopover } from '../_pickerInternals/PickerPopover';
 import {
   isPopoverToggleKey,
@@ -219,7 +223,10 @@ export function DialogSelect({
   const reactId = useId();
   const panelId = `${controlId ?? reactId}-panel`;
   const localeScope = usePickerLocaleScope(undefined, props.dir);
-  const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+  // The field takes `aria-invalid` and `aria-errormessage`, which report
+  // its state, and the root the rest (#2002).
+  const { control: controlState, rest: rootProps } = splitControlState(props);
+  const { bulmaHelperClasses, rest } = useBulmaClasses(rootProps);
   const rootRef = useRef<HTMLDivElement>(null);
 
   // The field's name, which the panel takes too unless it's given its own.
@@ -337,6 +344,7 @@ export function DialogSelect({
         // A disabled field takes no clicks.
         onClick={() => onOpenChange(!isOpen)}
         onKeyDown={handleKeyDown}
+        {...controlState}
       />
       {showClear && (
         <Delete
@@ -376,6 +384,7 @@ export function DialogSelect({
                 'aria-haspopup': 'dialog' as const,
                 'aria-expanded': false,
                 'aria-describedby': fieldDescription,
+                ...controlState,
               }
             : { 'aria-hidden': true })}
           tabIndex={-1}
