@@ -234,6 +234,8 @@ A partial like that can end in the same name as the Bulma module it adjusts, and
 
 Others draw on a stock Bulma component without adjusting it.
 
+- `components/dialog` is drawn inside Bulma's modal, which makes it an overlay, with Bulma's buttons for its actions, so a build that uses it wants `bulma/sass/components/modal`, `bulma/sass/elements/button` and `elements/button` too. Without the modal module the dialog sits in the page's flow with no backdrop. A `Command.Dialog` is drawn inside the modal too, and `components/lightbox`'s viewer is one as well, with the button, loader and delete modules its controls use.
+
 - `components/tableofcontents` is Bulma's menu, so a build that uses it wants `bulma/sass/components/menu` and `components/menu` too.
 
 - `form/checkboxcard` and `form/radiocard` are Bulma cards, so a build that uses them wants `bulma/sass/components/card` too.
@@ -279,6 +281,7 @@ A realistic modular SCSS entry for an app that uses a few Bulma primitives plus 
 @use 'bulma/sass/elements/title';
 @use 'bulma/sass/form/input-textarea';
 @use 'bulma/sass/components/card';
+@use 'bulma/sass/components/modal'; // Dialog is drawn inside a Modal
 @use 'bulma/sass/grid/columns';
 @use 'bulma/sass/helpers/spacing';
 @use 'bulma/sass/helpers/color';
