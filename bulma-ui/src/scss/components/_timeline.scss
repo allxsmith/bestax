@@ -349,10 +349,20 @@ $timeline-time-size: 0.875em !default;
 // Forced colors paints a `transparent` border in the text color, which would
 // close the ring into an upcoming one. The page's own color keeps the two
 // sides open.
+//
+// A reached icon marker is told from one not reached yet by its tint and its
+// icon's color, which forced colors paints alike, so there its ring is twice
+// as heavy, as a reached dot is a filled one. It's still a border, so the icon
+// keeps the user's colors on the page's, whatever it's drawn with.
 @media (forced-colors: active) {
   .#{iv.$class-prefix}timeline-item.#{iv.$class-prefix}is-pending > .#{iv.$class-prefix}timeline-marker {
     border-inline-end-color: Canvas;
     border-top-color: Canvas;
+  }
+
+  .#{iv.$class-prefix}timeline-item:is(.#{iv.$class-prefix}is-completed, .#{iv.$class-prefix}is-active)
+    > .#{iv.$class-prefix}timeline-marker.#{iv.$class-prefix}is-icon {
+    border-width: calc(#{cv.getVar("timeline-line-width")} * 2);
   }
 }
 

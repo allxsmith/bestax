@@ -361,7 +361,8 @@ function RateFormDemo() {
 - Full keyboard navigation with arrow keys
 - Home/End keys jump to 0/max values
 - `disabled` sets `aria-disabled` on the group and on every star, so a screen reader announces them as unavailable, and takes the group out of the tab order
-- In forced colors (Windows' contrast themes) the built-in star or an `iconName` icon a value only partly fills draws its filled part in the system's highlight color, as a filled star is drawn. A `customIcon` draws its own partial fill, so its forced colors are its own
+- In forced colors (Windows' contrast themes) a disabled Rate draws at full strength rather than dimmed: its empty stars, the empty part of a partly filled one, and its score and text in the system's color for disabled text, and its filled parts in the text color rather than the highlight, so an icon's filled and empty stars, which differ only by color, still show the value
+- In forced colors (Windows' contrast themes) the built-in star or an `iconName` icon a value only partly fills draws its filled part as a filled star is drawn: in the system's highlight color, or its text color while the Rate is disabled. A `customIcon` draws its own partial fill, so its forced colors are its own
 - On a right-to-left page, or inside a wrapper with `dir="rtl"`, the stars run right to left, the built-in star or an `iconName` icon fills a half star from its right, and the pointer reads a star's fraction from its right edge. The `rtl` prop doesn't change any of that. It only reverses the order a screen reader meets the stars in, so set `dir` instead
 - The `message` describes the group through `aria-describedby`, after any ids you pass there, so a screen reader reads it when the group takes focus
 

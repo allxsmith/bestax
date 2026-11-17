@@ -2,6 +2,7 @@ import React from "react";
 import { Button, Card, Hero, Level, Media, Menu, Message, Modal, Navbar } from "@allxsmith/bestax-bulma";
 
 // TODO(bestax-migrate): bestax `Modal` closes on Escape (calling `onClose`) and locks body scroll by default, which bloomer's never did: pass `onClose`, or set `closeOnEscape={false}` / `lockScroll={false}` to keep bloomer's behaviour; it renders inline unless `portal` is set
+// TODO(bestax-migrate): bestax `Modal` is a dialog while it's open, and this one has no `aria-label` or `aria-labelledby` to name it: give it an `aria-label`, or an `aria-labelledby` pointing at the `id` of its title, such as its `Modal.Card.Title` when it has one
 export const Compounds = ({ open }: { open: boolean }) => (
   <>
     <Card>

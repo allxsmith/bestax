@@ -660,6 +660,165 @@ describe('Numberinput', () => {
     });
   });
 
+  // #1976: deleting the last digit put the value straight back, so the
+  // field could never be cleared to type a new number.
+  describe('Editing', () => {
+    it('empties on Backspace and takes a new number', async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      render(
+        <Numberinput label="Quantity" defaultValue={8} onChange={onChange} />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.click(input);
+      await user.keyboard('{End}{Backspace}');
+      expect(input).toHaveValue(null);
+      expect(onChange).not.toHaveBeenCalled();
+      await user.keyboard('3');
+      expect(input).toHaveValue(3);
+      expect(onChange).toHaveBeenLastCalledWith(3);
+    });
+
+    it('takes a number typed over a selected one', async () => {
+      const user = userEvent.setup();
+      render(<Numberinput label="Quantity" defaultValue={8} />);
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.tripleClick(input);
+      await user.keyboard('5');
+      expect(input).toHaveValue(5);
+    });
+
+    it('puts the last value back when left empty', async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      const onBlur = vi.fn();
+      render(
+        <Numberinput
+          label="Quantity"
+          value={8}
+          onChange={onChange}
+          onBlur={onBlur}
+        />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.click(input);
+      await user.clear(input);
+      expect(input).toHaveValue(null);
+      await user.tab();
+      expect(input).toHaveValue(8);
+      expect(onChange).not.toHaveBeenCalled();
+      expect(onBlur).toHaveBeenCalledTimes(1);
+    });
+
+    it('submits the last value when Enter is pressed in an emptied field', async () => {
+      const user = userEvent.setup();
+      let submitted: FormDataEntryValue | null = null;
+      render(
+        <form
+          onSubmit={event => {
+            event.preventDefault();
+            submitted = new FormData(event.currentTarget).get('qty');
+          }}
+        >
+          <Numberinput label="Quantity" name="qty" defaultValue={8} />
+          <button type="submit">Save</button>
+        </form>
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.click(input);
+      await user.clear(input);
+      await user.keyboard('{Enter}');
+      expect(submitted).toBe('8');
+      expect(input).toHaveValue(8);
+    });
+
+    it('shows a new value set from outside over a draft', async () => {
+      const user = userEvent.setup();
+      const { rerender } = render(
+        <Numberinput label="Quantity" value={8} onChange={() => {}} />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.click(input);
+      await user.clear(input);
+      expect(input).toHaveValue(null);
+      rerender(<Numberinput label="Quantity" value={20} onChange={() => {}} />);
+      expect(input).toHaveValue(20);
+    });
+
+    it('keeps a value set from outside after it changes back', async () => {
+      const user = userEvent.setup();
+      const { rerender } = render(
+        <Numberinput label="Quantity" value={8} onChange={() => {}} />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.click(input);
+      await user.clear(input);
+      rerender(<Numberinput label="Quantity" value={20} onChange={() => {}} />);
+      rerender(<Numberinput label="Quantity" value={8} onChange={() => {}} />);
+      expect(input).toHaveValue(8);
+      expect(input).toHaveAttribute('aria-valuenow', '8');
+    });
+
+    it("puts the last value back on Enter beside a caller's onKeyDown", async () => {
+      const user = userEvent.setup();
+      const onKeyDown = vi.fn();
+      render(
+        <Numberinput label="Quantity" defaultValue={8} onKeyDown={onKeyDown} />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.click(input);
+      await user.clear(input);
+      expect(input).not.toHaveAttribute('aria-valuenow');
+      await user.keyboard('{Enter}');
+      expect(input).toHaveValue(8);
+      expect(onKeyDown).toHaveBeenCalled();
+    });
+
+    it("gives a caller's onBlur the value it puts back", async () => {
+      const user = userEvent.setup();
+      let seen = '';
+      render(
+        <Numberinput
+          label="Quantity"
+          defaultValue={8}
+          onBlur={event => {
+            seen = event.target.value;
+          }}
+        />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.click(input);
+      await user.clear(input);
+      await user.tab();
+      expect(seen).toBe('8');
+    });
+
+    it('waits for a number after a lone minus sign', async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      render(
+        <Numberinput label="Change" defaultValue={3} onChange={onChange} />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Change' });
+      await user.tripleClick(input);
+      await user.keyboard('-');
+      expect(onChange).not.toHaveBeenCalled();
+      await user.keyboard('5');
+      expect(onChange).toHaveBeenLastCalledWith(-5);
+      expect(input).toHaveValue(-5);
+    });
+
+    it('steps from the last value while empty', async () => {
+      const user = userEvent.setup();
+      render(<Numberinput label="Quantity" defaultValue={8} />);
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.click(input);
+      await user.clear(input);
+      await user.keyboard('{ArrowUp}');
+      expect(input).toHaveValue(9);
+    });
+  });
+
   describe('Ref Forwarding', () => {
     it('forwards ref to input element', () => {
       const ref = React.createRef<HTMLInputElement>();

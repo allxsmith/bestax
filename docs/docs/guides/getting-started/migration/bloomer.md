@@ -109,6 +109,10 @@ bloomer's own documentation:
 | `prop:as`            | several bestax components narrow `as` to the tags Bulma allows there, and your `tag` names another one                      | Wrap the component in the element you wanted, or restructure                                                              |
 | `prop:href`          | bestax gives an element the attributes of the tag `as` names, so `href` lives on an `<a>` or a custom `as`, not another tag | Drop the `tag` where the link was the point; on the components bloomer switched to an `<a>` the codemod does that for you |
 
+A converted `Modal` with no `aria-label` or `aria-labelledby`, and no spread that could hold one,
+also gets `name:Modal`: bestax's `Modal` is a dialog while it's open, so give it an `aria-label`,
+or point `aria-labelledby` at its title.
+
 `Tile`, the `Nav` family, the three `Dropdown` wrappers and `withHelpersModifiers` have no
 bestax counterpart, so their imports are kept (trimmed and TODO-annotated) — your app still runs
 while you migrate them by hand.

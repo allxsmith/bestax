@@ -202,6 +202,19 @@ describe.each([
     ) as HTMLElement;
     expect(resolve(check, 'opacity')).toBe('0.5');
     expect(resolve(label, 'opacity')).toBe('0.5');
+    // In forced colors they're drawn in GrayText, which the opacity would
+    // only halve, so both draw at full strength there (#1996).
+    const forced = { forcedColors: true };
+    expect(resolve(check, 'opacity', forced)).toBe('1');
+    expect(resolve(label, 'opacity', forced)).toBe('1');
+    expect(resolve(label, 'color', forced)).toBe('graytext');
+    // Checked, its dot is GrayText too, not the highlight of an enabled one.
+    expect(
+      resolve(checkOf({ checked: true, disabled: true }), 'background-color', {
+        ...forced,
+        pseudo: '::before',
+      })
+    ).toBe('graytext');
   });
 
   it('draws the circle and the dot in system colors in forced colors', () => {

@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { Meta, StoryObj } from '@storybook/react-vite';
 import Panel from './Panel';
 import { Table } from '../elements/Table';
@@ -11,372 +12,412 @@ const meta: Meta<typeof Panel> = {
 export default meta;
 type Story = StoryObj<typeof Panel>;
 
+// Each panel is named after its heading through aria-labelledby. The docs page
+// renders every story on one document, the first one twice, so each heading's
+// id comes from useId.
+
 export const RevolutionaryWar: Story = {
-  render: () => (
-    <Panel>
-      <Panel.Heading>Revolutionary Figures</Panel.Heading>
-      <Panel.InputBlock placeholder="Search" />
-      <Panel.Tabs>
-        <a className="is-active">All</a>
-        <a>Patriots</a>
-        <a>Loyalists</a>
-        <a>Battles</a>
-        <a>Documents</a>
-      </Panel.Tabs>
-      <Panel.Block active>
-        <Panel.Icon name="user" variant="solid" />
-        George Washington
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="user" variant="solid" />
-        Alexander Hamilton
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="user" variant="solid" />
-        Benedict Arnold
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="user" variant="solid" />
-        John Adams
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="flag" variant="solid" />
-        Battle of Saratoga
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="flag" variant="solid" />
-        Treaty of Paris
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="flag" variant="solid" />
-        Bunker Hill
-      </Panel.Block>
-      <Panel.CheckboxBlock>remember me</Panel.CheckboxBlock>
-      <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
-    </Panel>
-  ),
+  render: function RevolutionaryWarStory() {
+    const headingId = useId();
+    return (
+      <Panel aria-labelledby={headingId}>
+        <Panel.Heading id={headingId}>Revolutionary Figures</Panel.Heading>
+        <Panel.InputBlock placeholder="Search" />
+        <Panel.Tabs>
+          <a className="is-active">All</a>
+          <a>Patriots</a>
+          <a>Loyalists</a>
+          <a>Battles</a>
+          <a>Documents</a>
+        </Panel.Tabs>
+        <Panel.Block active>
+          <Panel.Icon name="user" variant="solid" />
+          George Washington
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="user" variant="solid" />
+          Alexander Hamilton
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="user" variant="solid" />
+          Benedict Arnold
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="user" variant="solid" />
+          John Adams
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="flag" variant="solid" />
+          Battle of Saratoga
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="flag" variant="solid" />
+          Treaty of Paris
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="flag" variant="solid" />
+          Bunker Hill
+        </Panel.Block>
+        <Panel.CheckboxBlock>remember me</Panel.CheckboxBlock>
+        <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
+      </Panel>
+    );
+  },
 };
 
 export const Primary: Story = {
-  render: () => (
-    <Panel color="primary">
-      <Panel.Heading>Primary Panel</Panel.Heading>
-      <Panel.InputBlock placeholder="Search" />
-      <Panel.Block active>
-        <Panel.Icon name="user" variant="solid" />
-        George Washington
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="user" variant="solid" />
-        Marquis de Lafayette
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="user" variant="solid" />
-        Nathanael Greene
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="flag" variant="solid" />
-        Battle of Trenton
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="flag" variant="solid" />
-        Yorktown
-      </Panel.Block>
-      <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
-    </Panel>
-  ),
+  render: function PrimaryStory() {
+    const headingId = useId();
+    return (
+      <Panel color="primary" aria-labelledby={headingId}>
+        <Panel.Heading id={headingId}>Primary Panel</Panel.Heading>
+        <Panel.InputBlock placeholder="Search" />
+        <Panel.Block active>
+          <Panel.Icon name="user" variant="solid" />
+          George Washington
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="user" variant="solid" />
+          Marquis de Lafayette
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="user" variant="solid" />
+          Nathanael Greene
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="flag" variant="solid" />
+          Battle of Trenton
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="flag" variant="solid" />
+          Yorktown
+        </Panel.Block>
+        <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
+      </Panel>
+    );
+  },
 };
 
 export const Link: Story = {
-  render: () => (
-    <Panel color="link">
-      <Panel.Heading>Link Panel</Panel.Heading>
-      <Panel.InputBlock placeholder="Search" />
-      <Panel.Block active>
-        <Panel.Icon name="user" variant="solid" />
-        Alexander Hamilton
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="user" variant="solid" />
-        Thomas Jefferson
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="user" variant="solid" />
-        John Jay
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="flag" variant="solid" />
-        Federalist Papers
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="flag" variant="solid" />
-        Treaty of Paris
-      </Panel.Block>
-      <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
-    </Panel>
-  ),
+  render: function LinkStory() {
+    const headingId = useId();
+    return (
+      <Panel color="link" aria-labelledby={headingId}>
+        <Panel.Heading id={headingId}>Link Panel</Panel.Heading>
+        <Panel.InputBlock placeholder="Search" />
+        <Panel.Block active>
+          <Panel.Icon name="user" variant="solid" />
+          Alexander Hamilton
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="user" variant="solid" />
+          Thomas Jefferson
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="user" variant="solid" />
+          John Jay
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="flag" variant="solid" />
+          Federalist Papers
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="flag" variant="solid" />
+          Treaty of Paris
+        </Panel.Block>
+        <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
+      </Panel>
+    );
+  },
 };
 
 export const Info: Story = {
-  render: () => (
-    <Panel color="info">
-      <Panel.Heading>Info Panel</Panel.Heading>
-      <Panel.InputBlock placeholder="Search" />
-      <Panel.Block active>
-        <Panel.Icon name="user" variant="solid" />
-        Benedict Arnold
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="user" variant="solid" />
-        John Paul Jones
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="user" variant="solid" />
-        Baron von Steuben
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="flag" variant="solid" />
-        Bunker Hill
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="flag" variant="solid" />
-        Valley Forge
-      </Panel.Block>
-      <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
-    </Panel>
-  ),
+  render: function InfoStory() {
+    const headingId = useId();
+    return (
+      <Panel color="info" aria-labelledby={headingId}>
+        <Panel.Heading id={headingId}>Info Panel</Panel.Heading>
+        <Panel.InputBlock placeholder="Search" />
+        <Panel.Block active>
+          <Panel.Icon name="user" variant="solid" />
+          Benedict Arnold
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="user" variant="solid" />
+          John Paul Jones
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="user" variant="solid" />
+          Baron von Steuben
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="flag" variant="solid" />
+          Bunker Hill
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="flag" variant="solid" />
+          Valley Forge
+        </Panel.Block>
+        <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
+      </Panel>
+    );
+  },
 };
 
 export const Success: Story = {
-  render: () => (
-    <Panel color="success">
-      <Panel.Heading>Success Panel</Panel.Heading>
-      <Panel.InputBlock placeholder="Search" />
-      <Panel.Block active>
-        <Panel.Icon name="user" variant="solid" />
-        Marquis de Lafayette
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="user" variant="solid" />
-        Deborah Sampson
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="user" variant="solid" />
-        Abigail Adams
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="flag" variant="solid" />
-        Yorktown
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="flag" variant="solid" />
-        Declaration of Independence
-      </Panel.Block>
-      <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
-    </Panel>
-  ),
+  render: function SuccessStory() {
+    const headingId = useId();
+    return (
+      <Panel color="success" aria-labelledby={headingId}>
+        <Panel.Heading id={headingId}>Success Panel</Panel.Heading>
+        <Panel.InputBlock placeholder="Search" />
+        <Panel.Block active>
+          <Panel.Icon name="user" variant="solid" />
+          Marquis de Lafayette
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="user" variant="solid" />
+          Deborah Sampson
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="user" variant="solid" />
+          Abigail Adams
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="flag" variant="solid" />
+          Yorktown
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="flag" variant="solid" />
+          Declaration of Independence
+        </Panel.Block>
+        <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
+      </Panel>
+    );
+  },
 };
 
 export const Warning: Story = {
-  render: () => (
-    <Panel color="warning">
-      <Panel.Heading>Warning Panel</Panel.Heading>
-      <Panel.InputBlock placeholder="Search" />
-      <Panel.Block active>
-        <Panel.Icon name="user" variant="solid" />
-        Thomas Paine
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="user" variant="solid" />
-        Samuel Adams
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="user" variant="solid" />
-        Mercy Otis Warren
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="flag" variant="solid" />
-        Valley Forge
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="flag" variant="solid" />
-        Olive Branch Petition
-      </Panel.Block>
-      <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
-    </Panel>
-  ),
+  render: function WarningStory() {
+    const headingId = useId();
+    return (
+      <Panel color="warning" aria-labelledby={headingId}>
+        <Panel.Heading id={headingId}>Warning Panel</Panel.Heading>
+        <Panel.InputBlock placeholder="Search" />
+        <Panel.Block active>
+          <Panel.Icon name="user" variant="solid" />
+          Thomas Paine
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="user" variant="solid" />
+          Samuel Adams
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="user" variant="solid" />
+          Mercy Otis Warren
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="flag" variant="solid" />
+          Valley Forge
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="flag" variant="solid" />
+          Olive Branch Petition
+        </Panel.Block>
+        <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
+      </Panel>
+    );
+  },
 };
 
 export const Danger: Story = {
-  render: () => (
-    <Panel color="danger">
-      <Panel.Heading>Danger Panel</Panel.Heading>
-      <Panel.InputBlock placeholder="Search" />
-      <Panel.Block active>
-        <Panel.Icon name="user" variant="solid" />
-        King George III
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="user" variant="solid" />
-        Charles Cornwallis
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="user" variant="solid" />
-        Benedict Arnold
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="flag" variant="solid" />
-        Boston Massacre
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="flag" variant="solid" />
-        Intolerable Acts
-      </Panel.Block>
-      <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
-    </Panel>
-  ),
+  render: function DangerStory() {
+    const headingId = useId();
+    return (
+      <Panel color="danger" aria-labelledby={headingId}>
+        <Panel.Heading id={headingId}>Danger Panel</Panel.Heading>
+        <Panel.InputBlock placeholder="Search" />
+        <Panel.Block active>
+          <Panel.Icon name="user" variant="solid" />
+          King George III
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="user" variant="solid" />
+          Charles Cornwallis
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="user" variant="solid" />
+          Benedict Arnold
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="flag" variant="solid" />
+          Boston Massacre
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="flag" variant="solid" />
+          Intolerable Acts
+        </Panel.Block>
+        <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
+      </Panel>
+    );
+  },
 };
 
 export const Black: Story = {
-  render: () => (
-    <Panel color="black">
-      <Panel.Heading>Black Panel</Panel.Heading>
-      <Panel.InputBlock placeholder="Search" />
-      <Panel.Block active>
-        <Panel.Icon name="user" variant="solid" />
-        John Adams
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="user" variant="solid" />
-        Crispus Attucks
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="user" variant="solid" />
-        Sybil Ludington
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="flag" variant="solid" />
-        Lexington & Concord
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="flag" variant="solid" />
-        Boston Tea Party
-      </Panel.Block>
-      <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
-    </Panel>
-  ),
+  render: function BlackStory() {
+    const headingId = useId();
+    return (
+      <Panel color="black" aria-labelledby={headingId}>
+        <Panel.Heading id={headingId}>Black Panel</Panel.Heading>
+        <Panel.InputBlock placeholder="Search" />
+        <Panel.Block active>
+          <Panel.Icon name="user" variant="solid" />
+          John Adams
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="user" variant="solid" />
+          Crispus Attucks
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="user" variant="solid" />
+          Sybil Ludington
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="flag" variant="solid" />
+          Lexington & Concord
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="flag" variant="solid" />
+          Boston Tea Party
+        </Panel.Block>
+        <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
+      </Panel>
+    );
+  },
 };
 
 export const Dark: Story = {
-  render: () => (
-    <Panel color="dark">
-      <Panel.Heading>Dark Panel</Panel.Heading>
-      <Panel.InputBlock placeholder="Search" />
-      <Panel.Block active>
-        <Panel.Icon name="user" variant="solid" />
-        Samuel Adams
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="user" variant="solid" />
-        Haym Salomon
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="user" variant="solid" />
-        Roger Sherman
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="flag" variant="solid" />
-        Continental Congress
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="flag" variant="solid" />
-        Articles of Confederation
-      </Panel.Block>
-      <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
-    </Panel>
-  ),
+  render: function DarkStory() {
+    const headingId = useId();
+    return (
+      <Panel color="dark" aria-labelledby={headingId}>
+        <Panel.Heading id={headingId}>Dark Panel</Panel.Heading>
+        <Panel.InputBlock placeholder="Search" />
+        <Panel.Block active>
+          <Panel.Icon name="user" variant="solid" />
+          Samuel Adams
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="user" variant="solid" />
+          Haym Salomon
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="user" variant="solid" />
+          Roger Sherman
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="flag" variant="solid" />
+          Continental Congress
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="flag" variant="solid" />
+          Articles of Confederation
+        </Panel.Block>
+        <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
+      </Panel>
+    );
+  },
 };
 
 export const Light: Story = {
-  render: () => (
-    <Panel color="light">
-      <Panel.Heading>Light Panel</Panel.Heading>
-      <Panel.InputBlock placeholder="Search" />
-      <Panel.Block active>
-        <Panel.Icon name="user" variant="solid" />
-        Abigail Adams
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="user" variant="solid" />
-        Martha Washington
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="user" variant="solid" />
-        Phillis Wheatley
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="flag" variant="solid" />
-        Declaration of Independence
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="flag" variant="solid" />
-        Bill of Rights
-      </Panel.Block>
-      <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
-    </Panel>
-  ),
+  render: function LightStory() {
+    const headingId = useId();
+    return (
+      <Panel color="light" aria-labelledby={headingId}>
+        <Panel.Heading id={headingId}>Light Panel</Panel.Heading>
+        <Panel.InputBlock placeholder="Search" />
+        <Panel.Block active>
+          <Panel.Icon name="user" variant="solid" />
+          Abigail Adams
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="user" variant="solid" />
+          Martha Washington
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="user" variant="solid" />
+          Phillis Wheatley
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="flag" variant="solid" />
+          Declaration of Independence
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="flag" variant="solid" />
+          Bill of Rights
+        </Panel.Block>
+        <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
+      </Panel>
+    );
+  },
 };
 
 export const White: Story = {
-  render: () => (
-    <Panel color="white">
-      <Panel.Heading>White Panel</Panel.Heading>
-      <Panel.InputBlock placeholder="Search" />
-      <Panel.Block active>
-        <Panel.Icon name="user" variant="solid" />
-        Paul Revere
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="user" variant="solid" />
-        John Hancock
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="user" variant="solid" />
-        Patrick Henry
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="flag" variant="solid" />
-        Midnight Ride
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="flag" variant="solid" />
-        Give Me Liberty
-      </Panel.Block>
-      <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
-    </Panel>
-  ),
+  render: function WhiteStory() {
+    const headingId = useId();
+    return (
+      <Panel color="white" aria-labelledby={headingId}>
+        <Panel.Heading id={headingId}>White Panel</Panel.Heading>
+        <Panel.InputBlock placeholder="Search" />
+        <Panel.Block active>
+          <Panel.Icon name="user" variant="solid" />
+          Paul Revere
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="user" variant="solid" />
+          John Hancock
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="user" variant="solid" />
+          Patrick Henry
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="flag" variant="solid" />
+          Midnight Ride
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="flag" variant="solid" />
+          Give Me Liberty
+        </Panel.Block>
+        <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
+      </Panel>
+    );
+  },
 };
 
 export const CompoundUsage: Story = {
-  render: () => (
-    <Panel>
-      <Panel.Heading>Continental Congress</Panel.Heading>
-      <Panel.Tabs>
-        <a className="is-active">All</a>
-        <a>Delegates</a>
-      </Panel.Tabs>
-      <Panel.Block active>
-        <Panel.Icon name="user" variant="solid" />
-        John Adams
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="user" variant="solid" />
-        Benjamin Franklin
-      </Panel.Block>
-      <Panel.CheckboxBlock>remember me</Panel.CheckboxBlock>
-      <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
-    </Panel>
-  ),
+  render: function CompoundUsageStory() {
+    const headingId = useId();
+    return (
+      <Panel aria-labelledby={headingId}>
+        <Panel.Heading id={headingId}>Continental Congress</Panel.Heading>
+        <Panel.Tabs>
+          <a className="is-active">All</a>
+          <a>Delegates</a>
+        </Panel.Tabs>
+        <Panel.Block active>
+          <Panel.Icon name="user" variant="solid" />
+          John Adams
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="user" variant="solid" />
+          Benjamin Franklin
+        </Panel.Block>
+        <Panel.CheckboxBlock>remember me</Panel.CheckboxBlock>
+        <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>
+      </Panel>
+    );
+  },
 };
 
 /**
@@ -385,55 +426,66 @@ export const CompoundUsage: Story = {
  * always overrides `containerClassName`.
  */
 export const CustomNodeIcon: Story = {
-  render: () => (
-    <Panel>
-      <Panel.Heading>Continental Congress</Panel.Heading>
-      <Panel.Block>
-        <Panel.Icon ariaLabel="Custom SVG icon">
-          <svg viewBox="0 0 16 16" width="1em" height="1em" fill="currentColor">
-            <circle cx="8" cy="8" r="6" />
-          </svg>
-        </Panel.Icon>
-        John Adams
-      </Panel.Block>
-      <Panel.Block>
-        <Panel.Icon name="user" variant="solid" />
-        Benjamin Franklin
-      </Panel.Block>
-    </Panel>
-  ),
+  render: function CustomNodeIconStory() {
+    const headingId = useId();
+    return (
+      <Panel aria-labelledby={headingId}>
+        <Panel.Heading id={headingId}>Continental Congress</Panel.Heading>
+        <Panel.Block>
+          <Panel.Icon ariaLabel="Custom SVG icon">
+            <svg
+              viewBox="0 0 16 16"
+              width="1em"
+              height="1em"
+              fill="currentColor"
+            >
+              <circle cx="8" cy="8" r="6" />
+            </svg>
+          </Panel.Icon>
+          John Adams
+        </Panel.Block>
+        <Panel.Block>
+          <Panel.Icon name="user" variant="solid" />
+          Benjamin Franklin
+        </Panel.Block>
+      </Panel>
+    );
+  },
 };
 
 export const NotNavigation: Story = {
-  render: () => (
-    <Panel as="section" color="info" aria-labelledby="panel-sessions">
-      <Panel.Heading id="panel-sessions">Congress Sessions</Panel.Heading>
-      <Panel.Block as="div">
-        <Table isFullwidth>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Date</Table.Th>
-              <Table.Th>Session</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            <Table.Tr>
-              <Table.Td>1774</Table.Td>
-              <Table.Td>First Continental Congress</Table.Td>
-            </Table.Tr>
-            <Table.Tr>
-              <Table.Td>1775</Table.Td>
-              <Table.Td>Second Continental Congress</Table.Td>
-            </Table.Tr>
-          </Table.Tbody>
-        </Table>
-      </Panel.Block>
-      <Panel.Block href="#delegates">
-        <Panel.Icon name="user" variant="solid" />
-        All delegates
-      </Panel.Block>
-    </Panel>
-  ),
+  render: function NotNavigationStory() {
+    const headingId = useId();
+    return (
+      <Panel as="section" color="info" aria-labelledby={headingId}>
+        <Panel.Heading id={headingId}>Congress Sessions</Panel.Heading>
+        <Panel.Block as="div">
+          <Table isFullwidth>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>Date</Table.Th>
+                <Table.Th>Session</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              <Table.Tr>
+                <Table.Td>1774</Table.Td>
+                <Table.Td>First Continental Congress</Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Td>1775</Table.Td>
+                <Table.Td>Second Continental Congress</Table.Td>
+              </Table.Tr>
+            </Table.Tbody>
+          </Table>
+        </Panel.Block>
+        <Panel.Block href="#delegates">
+          <Panel.Icon name="user" variant="solid" />
+          All delegates
+        </Panel.Block>
+      </Panel>
+    );
+  },
   parameters: {
     docs: {
       description: {
