@@ -256,4 +256,49 @@ describe('useDismissTimer', () => {
     });
     expect(onDismiss).toHaveBeenCalledTimes(1);
   });
+
+  // An element that `root` returns can be replaced while the hook stays
+  // mounted, as a toast's is when it moves into its portal after hydrating.
+  const Moving = ({
+    onDismiss,
+    which,
+  }: {
+    onDismiss: () => void;
+    which: 'first' | 'second' | 'none';
+  }) => {
+    const ref = useRef<HTMLDivElement | null>(null);
+    const root = useCallback(() => ref.current, []);
+    useDismissTimer(onDismiss, 1000, root);
+    if (which === 'none') return null;
+    return (
+      <div ref={ref} key={which} data-testid={which}>
+        <input aria-label={which} onFocus={e => e.stopPropagation()} />
+      </div>
+    );
+  };
+
+  it('listens on the element its root returns now, after that element is replaced', () => {
+    const onDismiss = vi.fn();
+    const { rerender } = render(<Moving onDismiss={onDismiss} which="first" />);
+    rerender(<Moving onDismiss={onDismiss} which="second" />);
+    expect(screen.queryByTestId('first')).toBeNull();
+    // React hears nothing here, and the listener is on the new element.
+    act(() => {
+      screen.getByRole('textbox', { name: 'second' }).focus();
+    });
+    waitInSteps(10000);
+    expect(onDismiss).not.toHaveBeenCalled();
+  });
+
+  it('listens again once its root returns an element after returning none', () => {
+    const onDismiss = vi.fn();
+    const { rerender } = render(<Moving onDismiss={onDismiss} which="first" />);
+    rerender(<Moving onDismiss={onDismiss} which="none" />);
+    rerender(<Moving onDismiss={onDismiss} which="second" />);
+    act(() => {
+      screen.getByRole('textbox', { name: 'second' }).focus();
+    });
+    waitInSteps(10000);
+    expect(onDismiss).not.toHaveBeenCalled();
+  });
 });

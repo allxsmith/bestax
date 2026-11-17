@@ -15,6 +15,7 @@ import {
   type ParsedShortcut,
 } from '../helpers/shortcut';
 import { focusWithoutTabStop } from '../helpers/moveFocusOut';
+import { passFocusOn, useFocusOrigin } from '../helpers/focusHandOff';
 import {
   classNames,
   prefixedClassNames,
@@ -181,8 +182,16 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
     const handleClose = useCallback(() => {
       if (closedRef.current) return;
       closedRef.current = true;
-      setIsVisible(false);
-      onClose?.();
+      // `onClose` first, so `ToastContainer` drops the toast from its store
+      // before the render that hides it, or in it, even where React doesn't
+      // batch the two, as a legacy root doesn't outside its own events. The
+      // container reads that to tell a toast closing from one moving. It
+      // hides even when `onClose` throws, since it can't close again.
+      try {
+        onClose?.();
+      } finally {
+        setIsVisible(false);
+      }
     }, [onClose]);
 
     const handleAction = useCallback(() => {
@@ -201,10 +210,13 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
     // action, cancel or close button, so what someone is using doesn't go
     // away under them, whatever pauseOnHover says. It stops once the toast
     // has closed, as the listeners for a click outside and Escape do, since
-    // one the caller keeps mounted stays hidden.
+    // one the caller keeps mounted stays hidden. Given the toast's element,
+    // it also hears focus React doesn't, as when `ToastContainer` moves focus
+    // here while another toast closes.
     const { onFocus: handleTimerFocus } = useDismissTimer(
       handleClose,
-      !isVisible || indefinite || duration === 0 || isPaused ? null : duration
+      !isVisible || indefinite || duration === 0 || isPaused ? null : duration,
+      () => toastRef.current
     );
 
     const handleMouseEnter = useCallback(() => {
@@ -620,8 +632,17 @@ const hotkeyLabel = (hotkey: readonly string[]): string =>
     .join('+');
 
 /**
+ * A toast's first button, which the hotkey and closing a toast send focus to.
+ *
+ * @param el - The toast's element.
+ * @returns The button, or `null` for a toast with none.
+ */
+const firstButtonOf = (el: Element): HTMLElement | null =>
+  el.querySelector<HTMLElement>('button');
+
+/**
  * A toast `ToastContainer` renders, which hands its element to the container
- * by id, for the hotkey to find.
+ * by id, for the hotkey and for passing focus on when a toast closes.
  *
  * @function
  * @param {ToastProps & { toastId: string; register: (id: string, node: HTMLDivElement | null) => void }} props - The toast's props, its id in the store and the container's register.
@@ -666,6 +687,12 @@ const toastStackOrder: readonly ToastPosition[] = [
  * someone who can't reach a toast with a pointer gets there before it closes,
  * and the toast stays open while focus is inside it.
  *
+ * When a toast closes with focus inside it, focus moves to the first button
+ * of the next toast in its stack that stays and has one, or else of the one
+ * before it, or, with neither, back to where it was before it went into a
+ * toast, while that's still on the page. Focus anywhere else stays where it
+ * is.
+ *
  * @function
  * @param {{ position?: ToastPosition; hotkey?: readonly string[]; ariaLabel?: string }} props - Container props.
  * @returns {JSX.Element | null} The rendered toast container, or null if empty.
@@ -707,15 +734,53 @@ export const ToastContainer: React.FC<{
   const resolveContainer = usePortalContainer();
   const classPrefix = useClassPrefix();
 
-  // Each toast's element, by id, for the hotkey to find.
+  // Each toast's element, by id, for the hotkey to find and for passing
+  // focus on.
   const elementsRef = useRef(new Map<string, HTMLDivElement>());
-  const register = useCallback((id: string, node: HTMLDivElement | null) => {
-    if (node) {
-      elementsRef.current.set(id, node);
-    } else {
-      elementsRef.current.delete(id);
+
+  // Where focus last was outside the toasts, for handing it back.
+  const focusOriginRef = useFocusOrigin(target => {
+    for (const el of elementsRef.current.values()) {
+      if (el.contains(target)) return true;
     }
-  }, []);
+    return false;
+  });
+
+  // When a toast closes with focus inside it, as one does from its own
+  // buttons, the browser would drop focus to the page, and the next Tab would
+  // start from the end of it, where the stacks are portaled. So as React lets
+  // go of the toast's element, while it's still on the page, focus moves: to
+  // the first button of the next toast in its stack that stays and has one,
+  // or else of the one before it, and otherwise back to where it was before
+  // it went into a toast, while that's still on the page. Tied to the
+  // element rather than to the toast's unmounting, so it runs in whichever
+  // render removes the element. A toast that leaves the page without
+  // closing, as one that changes stacks does, and focus anywhere else, are
+  // left alone. One that arrives in the same render, as a queued one does,
+  // isn't on the page yet to take it. React hears no focus event for a move
+  // made then, so the toast focus lands in hears it only through its own
+  // element, which holds its timer, and a caller's `onFocus` on it doesn't
+  // run for it.
+  const register = useCallback(
+    (id: string, node: HTMLDivElement | null) => {
+      if (node) {
+        elementsRef.current.set(id, node);
+        return;
+      }
+      // Set when React attached it, which it always does before letting go.
+      const el = elementsRef.current.get(id)!;
+      elementsRef.current.delete(id);
+      passFocusOn({
+        id,
+        closing: el,
+        showing: getVisibleToasts,
+        elements: () => elementsRef.current,
+        pick: firstButtonOf,
+        origin: focusOriginRef.current,
+      });
+    },
+    [focusOriginRef]
+  );
 
   // The hotkey moves focus to the newest toast's first button, or to the
   // toast itself, given `tabindex="-1"` while it holds focus, when it has
@@ -749,7 +814,7 @@ export const ToastContainer: React.FC<{
       );
       const el = newest && elementsRef.current.get(newest.id);
       if (!el) return;
-      const button = el.querySelector<HTMLElement>('button');
+      const button = firstButtonOf(el);
       const moved = button
         ? (button.focus(), getActiveElementInTree(button) === button)
         : focusWithoutTabStop(el);

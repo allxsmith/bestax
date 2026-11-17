@@ -1,5 +1,4 @@
 import React, {
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -22,9 +21,8 @@ import { StatusRegion, spokenText } from '../helpers/statusRegion';
 import { scrollLockOffset } from '../helpers/scrollLock';
 import { useDismissTimer } from '../helpers/useDismissTimer';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
-import { moveFocusOut } from '../helpers/moveFocusOut';
+import { passFocusOn, useFocusOrigin } from '../helpers/focusHandOff';
 import { useLatestRef } from '../helpers/useLatestRef';
-import { getActiveElementInTree } from '../helpers/shadowDom';
 
 /**
  * Props for the Notification component.
@@ -443,8 +441,8 @@ const NotificationItem: React.FC<{
   // The message's element, whose parent is the notification's, since
   // Notification takes no ref. The container keeps it too, to read a polite
   // one's text for its status region and to find the notification. It's
-  // attached for as long as the notification is on the page, which is when
-  // the timer and the cleanup below read it.
+  // attached for as long as the notification is on the page, which covers
+  // every read: the timer's, after each render, and the cleanup below.
   const messageElRef = useRef<HTMLElement | null>(null);
   const notificationEl = useCallback(
     () => messageElRef.current!.parentElement!,
@@ -636,35 +634,13 @@ export const NotificationContainer: React.FC<{
     []
   );
 
-  // Where focus last was outside the notifications, for handing it back. It
-  // follows focus anywhere on the page, so it's where focus came from when it
-  // went into a notification, and it's cleared when focus goes to the page
-  // itself, so a click on the page's background leaves nothing to go back to.
-  const focusOriginRef = useRef<HTMLElement | null>(null);
-  useEffect(() => {
-    const isInNotification = (target: Node) => {
-      for (const message of messageNodesRef.current.values()) {
-        if (message.parentElement!.contains(target)) return true;
-      }
-      return false;
-    };
-    const handleFocusIn = (event: FocusEvent) => {
-      const target = event.composedPath()[0] as HTMLElement;
-      if (!isInNotification(target)) focusOriginRef.current = target;
-    };
-    const handleFocusOut = (event: FocusEvent) => {
-      const target = event.composedPath()[0] as HTMLElement;
-      if (!event.relatedTarget && !isInNotification(target)) {
-        focusOriginRef.current = null;
-      }
-    };
-    document.addEventListener('focusin', handleFocusIn, true);
-    document.addEventListener('focusout', handleFocusOut, true);
-    return () => {
-      document.removeEventListener('focusin', handleFocusIn, true);
-      document.removeEventListener('focusout', handleFocusOut, true);
-    };
-  }, []);
+  // Where focus last was outside the notifications, for handing it back.
+  const focusOriginRef = useFocusOrigin(target => {
+    for (const message of messageNodesRef.current.values()) {
+      if (message.parentElement!.contains(target)) return true;
+    }
+    return false;
+  });
 
   // When a notification closes with focus inside it, as one does from its
   // close button, the browser would drop focus to the page, and the next Tab
@@ -672,7 +648,7 @@ export const NotificationContainer: React.FC<{
   // stack. So focus moves first: to the close button of the next
   // notification in its stack that stays open and has one, or else of the
   // one before it, and otherwise back to where it was before it went into a
-  // notification. One that arrives in the same render, as a queued one does,
+  // notification, while that's still on the page. One that arrives in the same render, as a queued one does,
   // isn't on the page yet to take it. A notification that leaves the page
   // without closing, as one remounting at a new position does, and focus
   // anywhere else, are left alone. React hears no focus event for a move
@@ -680,36 +656,27 @@ export const NotificationContainer: React.FC<{
   // it through its own element instead.
   const deleteClassRef = useLatestRef(usePrefixedClassNames('delete'));
   const handOffFocus = useCallback(
-    (id: string, node: HTMLElement) => {
-      if (!node.contains(getActiveElementInTree(node))) return;
-      const staying = new Set(getVisibleNotifications().map(item => item.id));
-      if (staying.has(id)) return;
-      const stayingEls = new Set<Element>();
-      for (const [otherId, message] of messageNodesRef.current) {
-        if (staying.has(otherId)) stayingEls.add(message.parentElement!);
-      }
-      // A notification's close button, which Notification renders first,
-      // when it stays open and has one.
-      const closeButtonOf = (el: Element) => {
-        const first = el.firstElementChild;
-        return stayingEls.has(el) &&
-          first?.classList.contains(deleteClassRef.current)
-          ? (first as HTMLElement)
-          : null;
-      };
-      let next: HTMLElement | null = null;
-      for (let el = node.nextElementSibling; el && !next;) {
-        next = closeButtonOf(el);
-        el = el.nextElementSibling;
-      }
-      for (let el = node.previousElementSibling; el && !next;) {
-        next = closeButtonOf(el);
-        el = el.previousElementSibling;
-      }
-      const origin = focusOriginRef.current;
-      moveFocusOut([node], next ?? origin, next ? origin : null);
-    },
-    [deleteClassRef]
+    (id: string, node: HTMLElement) =>
+      passFocusOn({
+        id,
+        closing: node,
+        showing: getVisibleNotifications,
+        elements: () =>
+          Array.from(
+            messageNodesRef.current,
+            ([otherId, message]) => [otherId, message.parentElement!] as const
+          ),
+        // A notification's close button, which Notification renders first,
+        // when it has one.
+        pick: el => {
+          const first = el.firstElementChild;
+          return first?.classList.contains(deleteClassRef.current)
+            ? (first as HTMLElement)
+            : null;
+        },
+        origin: focusOriginRef.current,
+      }),
+    [deleteClassRef, focusOriginRef]
   );
 
   // StatusRegion only describes polite notifications that are on screen, and
