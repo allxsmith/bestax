@@ -248,6 +248,8 @@ describe('kitchen-sink e2e', () => {
     ).toBe(true);
     expect(rules).toContain('prop:as');
     expect(rules).toContain('prop:href');
+    // A Modal that nothing names, which bestax's dialog needs (#1941).
+    expect(rules).toContain('name:Modal');
     expect(todos.length).toBeGreaterThanOrEqual(10);
     const migrated = fs.readFileSync(
       path.join(tmpDir, 'src', 'leftovers.tsx'),
@@ -289,9 +291,12 @@ describe('kitchen-sink e2e', () => {
     // let `component:List` pass off the text of `component:List.Item`, and
     // the prop fallback matched any backticked occurrence of the word
     // anywhere in prose — so the guard could pass while the rule it was
-    // meant to pin went undocumented.
+    // meant to pin went undocumented. A `name:` rule is a token too: the
+    // backtick fallback below reads no colon.
     const tokens = new Set(
-      [...refs.matchAll(/(?:component|prop):[A-Za-z][\w.*]*/g)].map(m => m[0])
+      [...refs.matchAll(/(?:component|prop|name):[A-Za-z][\w.*]*/g)].map(
+        m => m[0]
+      )
     );
     // A prop rule may instead be written bare in a row that names the
     // component beside it (`| \`expanded\` on \`Field\` |`).

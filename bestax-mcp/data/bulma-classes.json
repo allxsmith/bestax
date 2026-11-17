@@ -4051,7 +4051,7 @@
       "textColor": null,
       "bgColor": null,
       "part": false,
-      "why": "bestax `Modal` writes `data-testid=\"modal\"` when it's given none, and adds dialog attributes and focus handling, so rebuild the root with it by hand; its parts convert on their own",
+      "why": "bestax `Modal` writes `data-testid=\"modal\"` when it's given none, and adds dialog attributes and focus handling, so rebuild the root with it by hand, keeping or adding a name for the dialog it becomes: an `aria-label`, or an `aria-labelledby` pointing at the `id` of its title; its parts convert on their own",
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,
