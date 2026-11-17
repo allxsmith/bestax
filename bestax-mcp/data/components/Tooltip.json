@@ -47,7 +47,7 @@
     },
     {
       "title": "Form Field Help",
-      "code": "function example() {\n  const id = React.useId();\n  return (\n    <Field>\n      <Block display=\"flex\" alignItems=\"center\" mb=\"2\">\n        <label className=\"label mb-0\" htmlFor={id}>\n          Password\n        </label>\n        <Tooltip\n          label=\"Must be at least 8 characters with one number and one special character\"\n          multiline\n          color=\"info\"\n        >\n          <Button size=\"small\" color=\"ghost\" aria-label=\"Password rules\">\n            <Icon name=\"fas fa-question-circle\" />\n          </Button>\n        </Tooltip>\n      </Block>\n      <Control>\n        <Input id={id} type=\"password\" placeholder=\"Enter password\" />\n      </Control>\n    </Field>\n  );\n}"
+      "code": "function example() {\n  const id = React.useId();\n  return (\n    <Field>\n      <Block display=\"flex\" alignItems=\"center\" mb=\"2\">\n        <label className=\"label mb-0\" htmlFor={id}>\n          Password\n        </label>\n        <Tooltip\n          label=\"Must be at least 8 characters with one number and one special character\"\n          multiline\n          color=\"info\"\n        >\n          <Button size=\"small\" color=\"ghost\" aria-label=\"Password rules\">\n            <Icon name=\"fas fa-question-circle\" />\n          </Button>\n        </Tooltip>\n      </Block>\n      <Control>\n        <Input\n          autoComplete=\"new-password\"\n          id={id}\n          type=\"password\"\n          placeholder=\"Enter password\"\n        />\n      </Control>\n    </Field>\n  );\n}"
     },
     {
       "title": "Abbreviations",
