@@ -7,7 +7,7 @@
   "examples": [
     {
       "title": "Basic Usage",
-      "code": "<Fieldset legend=\"Shipping address\">\n  <Input label=\"Street\" name=\"street\" />\n  <Input label=\"City\" name=\"city\" />\n</Fieldset>"
+      "code": "<Fieldset legend=\"Shipping address\">\n  <Input label=\"Street\" name=\"street\" autoComplete=\"shipping address-line1\" />\n  <Input label=\"City\" name=\"city\" autoComplete=\"shipping address-level2\" />\n</Fieldset>"
     },
     {
       "title": "Variants",
@@ -15,11 +15,11 @@
     },
     {
       "title": "With a Message",
-      "code": "<Fieldset\n  legend=\"Contact\"\n  message=\"Fill in the phone number or the email.\"\n  messageColor=\"info\"\n>\n  <Input label=\"Phone\" name=\"phone\" type=\"tel\" />\n  <Input label=\"Email\" name=\"email\" type=\"email\" />\n</Fieldset>"
+      "code": "<Fieldset\n  legend=\"Contact\"\n  message=\"Fill in the phone number or the email.\"\n  messageColor=\"info\"\n>\n  <Input label=\"Phone\" name=\"phone\" type=\"tel\" autoComplete=\"tel\" />\n  <Input label=\"Email\" name=\"email\" type=\"email\" autoComplete=\"email\" />\n</Fieldset>"
     },
     {
       "title": "Horizontal Fields",
-      "code": "<Fieldset legend=\"Contact details\">\n  <Input horizontal label=\"Phone\" name=\"phone\" type=\"tel\" />\n  <Input horizontal label=\"Email\" name=\"email\" type=\"email\" />\n  <Field horizontal label=\"Subject\">\n    <Control>\n      <Select name=\"subject\">\n        <option>Business</option>\n        <option>Support</option>\n      </Select>\n    </Control>\n  </Field>\n</Fieldset>"
+      "code": "<Fieldset legend=\"Contact details\">\n  <Input horizontal label=\"Phone\" name=\"phone\" type=\"tel\" autoComplete=\"tel\" />\n  <Input\n    horizontal\n    label=\"Email\"\n    name=\"email\"\n    type=\"email\"\n    autoComplete=\"email\"\n  />\n  <Field horizontal label=\"Subject\">\n    <Control>\n      <Select name=\"subject\">\n        <option>Business</option>\n        <option>Support</option>\n      </Select>\n    </Control>\n  </Field>\n</Fieldset>"
     },
     {
       "title": "Disabled",
@@ -27,11 +27,11 @@
     },
     {
       "title": "Turned On From the Legend",
-      "code": "function ShippingAddress() {\n  const [different, setDifferent] = React.useState(false);\n  return (\n    <Fieldset\n      disabled={!different}\n      legend={\n        <Checkbox\n          checked={different}\n          onChange={event => setDifferent(event.target.checked)}\n        >\n          Ship to a different address\n        </Checkbox>\n      }\n    >\n      <Input label=\"Street\" name=\"street\" />\n      <Input label=\"City\" name=\"city\" />\n    </Fieldset>\n  );\n}"
+      "code": "function ShippingAddress() {\n  const [different, setDifferent] = React.useState(false);\n  return (\n    <Fieldset\n      disabled={!different}\n      legend={\n        <Checkbox\n          checked={different}\n          onChange={event => setDifferent(event.target.checked)}\n        >\n          Ship to a different address\n        </Checkbox>\n      }\n    >\n      <Input\n        label=\"Street\"\n        name=\"street\"\n        autoComplete=\"shipping address-line1\"\n      />\n      <Input label=\"City\" name=\"city\" autoComplete=\"shipping address-level2\" />\n    </Fieldset>\n  );\n}"
     },
     {
       "title": "Disabling a Form While It Saves",
-      "code": "function SavingForm() {\n  const [saving, setSaving] = React.useState(false);\n  return (\n    <form\n      onSubmit={event => {\n        event.preventDefault();\n        setSaving(true);\n        setTimeout(() => setSaving(false), 2000);\n      }}\n    >\n      <Fieldset variant=\"unstyled\" disabled={saving}>\n        <Input label=\"Name\" name=\"name\" />\n        <Rate label=\"Rating\" name=\"rating\" defaultValue={4} />\n        <Button type=\"submit\" color=\"primary\" isLoading={saving}>\n          Save\n        </Button>\n      </Fieldset>\n    </form>\n  );\n}"
+      "code": "function SavingForm() {\n  const [saving, setSaving] = React.useState(false);\n  return (\n    <form\n      onSubmit={event => {\n        event.preventDefault();\n        setSaving(true);\n        setTimeout(() => setSaving(false), 2000);\n      }}\n    >\n      <Fieldset variant=\"unstyled\" disabled={saving}>\n        <Input label=\"Name\" name=\"name\" autoComplete=\"name\" />\n        <Rate label=\"Rating\" name=\"rating\" defaultValue={4} />\n        <Button type=\"submit\" color=\"primary\" isLoading={saving}>\n          Save\n        </Button>\n      </Fieldset>\n    </form>\n  );\n}"
     }
   ],
   "accessibility": "- **Name:** the legend names the group natively, so a screen reader announces it as a group\n  called \"Shipping address\" with no ids to wire. A Fieldset with no legend is an unnamed group,\n  which is fine for one that's only there to disable a form. Screen readers differ in how often\n  they repeat a legend, so keep it short and the labels inside complete on their own.\n- **Description:** the `message` is the group's description through `aria-describedby`, added to\n  any ids you pass there.\n- **Errors:** nothing marks the group invalid, since ARIA deprecates `aria-invalid` on a group.\n  Put each input's error on that input with its own `color` and `message`.\n- **Disabled:** native controls are disabled and left out of the form's data, and bestax's own\n  widgets, such as `Rate` and the time wheels, leave the tab order and ignore input. An input's\n  own `disabled`, when you set it, wins over the Fieldset's, though the browser keeps its native\n  parts disabled. Controls in the legend stay enabled, and a Fieldset inside a disabled one is\n  disabled too.\n- **Not disabled:** links, `LinkButton`s and anything else that isn't a form control stay\n  operable, as in plain HTML, so disable or hide those yourself.\n- **Forced colors:** the border takes the system's text color, since the backgrounds are\n  replaced there.",
