@@ -94,7 +94,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `button`, `colorswatch`,
 `delete`, `descriptionlist`, `divider`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`,
-`progress`, `ringprogress`, `skeleton`, `stat`, `table`, `tag`
+`pre`, `progress`, `ringprogress`, `skeleton`, `stat`, `table`, `tag`
 
 **Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `color`, `cursor`, `sizing`, `visibility`
 
@@ -337,6 +337,10 @@ Notes:
   system's text color, so include it in any build that shows a `Divider` or an `<hr>`. Its rule
   wins over Bulma's either way, so the order of the `@use` lines does not matter, and an `<hr>`
   with a class of its own keeps its own rules.
+- `Pre` is a `<pre>`, which Bulma styles in its base (`bulma/sass/base`) and scrolls sideways when a
+  line runs long. While it overflows, `Pre` is a tab stop, and the `pre` extras partial draws its
+  keyboard focus ring in Bulma's focus color, so include it in any build that shows a `Pre`.
+  Bulma styles no focus on a `<pre>`, so the order of the `@use` lines does not matter.
 - `Stats` lays its row out on Bulma's smart grid (`.grid` and `is-col-min-*`), so a build with a
   `Stats` row wants `bulma/sass/grid/grid` beside the `stat` partial, which only resets the row's
   margins.

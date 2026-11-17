@@ -241,6 +241,7 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/elements/linkbutton';
 @use '@allxsmith/bestax-bulma/scss/elements/loader' as bestax-loader;
 @use '@allxsmith/bestax-bulma/scss/elements/notification' as bestax-notification;
+@use '@allxsmith/bestax-bulma/scss/elements/pre';
 @use '@allxsmith/bestax-bulma/scss/elements/progress' as bestax-progress;
 @use '@allxsmith/bestax-bulma/scss/elements/ringprogress';
 @use '@allxsmith/bestax-bulma/scss/elements/skeleton' as bestax-skeleton;
@@ -256,6 +257,8 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 Some of these partials adjust a stock Bulma component rather than add one of bestax's.
 
 - `elements/notification` keeps a `Notification`'s text clear of its close button, and gives a dark or light one its color's own text and background, and a white or black one with `isLight` the light color's text, where Bulma's module lets its text inherit the color around it, so a build that uses `bulma/sass/elements/notification` wants it too.
+
+- `elements/pre` draws a `Pre`'s keyboard focus ring, which is a tab stop while its content overflows, so a build that shows a `Pre` wants it. Bulma draws the `<pre>` in its base, which every build has, so it needs no Bulma module of its own.
 
 - `elements/table` draws the keyboard focus ring of a responsive table's container, which is a tab stop while the table overflows it, and marks a selected row or cell with a double line in forced colors, where Bulma's fill for it is replaced, so a build that uses `bulma/sass/elements/table` for a `Table` with `isResponsive` or selected rows, or for a `DataTable` that selects rows, wants it too.
 

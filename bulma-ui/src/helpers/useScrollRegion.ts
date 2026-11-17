@@ -103,8 +103,9 @@ export interface ScrollRegion<T extends HTMLElement> {
 
 /**
  * Measures an element that scrolls, on the client, and says whether it's a
- * region you can tab to. `ScrollArea`'s viewport and a responsive `Table`'s
- * container share it.
+ * region you can tab to. `ScrollArea`'s viewport, a responsive `Table`'s
+ * container and `Pre` share it; `Pre` takes the tab stop and decides its own
+ * role and name.
  *
  * It measures before paint, and again whenever the element or anything in it
  * changes size, the children change, or the element scrolls. Nothing is known
