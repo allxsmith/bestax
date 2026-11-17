@@ -193,6 +193,18 @@ export const Disabled: Story = {
 };
 
 /**
+ * A Switch is a native checkbox, so a screen reader calls it one.
+ * `role="switch"` has it announced as a switch instead.
+ */
+export const AnnouncedAsSwitch: Story = {
+  args: {
+    role: 'switch',
+    defaultChecked: true,
+    children: 'Wi-Fi',
+  },
+};
+
+/**
  * Controlled switch with state management.
  */
 export const Controlled: Story = {
