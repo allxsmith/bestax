@@ -17,7 +17,7 @@ import { useFieldsetDisabled, useInsideField } from './FormContext';
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
-import { useFieldMessage } from './useFieldMessage';
+import { splitControlState, useFieldMessage } from './useFieldMessage';
 import { useControlLoading } from './controlLoading';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
 import { useLatestRef } from '../helpers/useLatestRef';
@@ -59,7 +59,9 @@ const isEnabled = (item: AutocompleteItem | string): boolean =>
   typeof item === 'string' || !item.disabled;
 
 /**
- * Props for the Autocomplete component.
+ * Props for the Autocomplete component. The other attributes go on the
+ * wrapper `<div>`, except `aria-invalid` and `aria-errormessage`, which
+ * report the input's state and go on the input.
  * @extraProp {string} [className] - Additional CSS classes.
  * @extraProp {React.Ref<HTMLInputElement>} [ref] - Ref forwarded to the input element.
  */
@@ -270,7 +272,11 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       rendersLabel: !insideField,
       needsLabelId: true,
     });
-    const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+    // The input takes `aria-invalid` and `aria-errormessage`, which report
+    // its state, and the wrapper the rest (#2002).
+    const { control: controlState, rest: wrapperProps } =
+      splitControlState(props);
+    const { bulmaHelperClasses, rest } = useBulmaClasses(wrapperProps);
     const matchText = useLocaleMatcher();
     const { classPrefix } = useConfig();
     const containerRef = useRef<HTMLDivElement>(null);
@@ -661,6 +667,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
             aria-autocomplete="list"
             aria-describedby={messageId}
             autoComplete="off"
+            {...controlState}
           />
           {showClear && (
             <button
