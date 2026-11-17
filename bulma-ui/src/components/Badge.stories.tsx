@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Badge } from './Badge';
 import { Avatar } from './Avatar';
 import { Block } from '../elements/Block';
+import { Button } from '../elements/Button';
 import { Icon } from '../elements/Icon';
 
 const meta: Meta<typeof Badge> = {
@@ -159,11 +160,17 @@ export const Standalone: Story = {
   },
 };
 
-export const StandaloneInteractive: Story = {
-  render: function StandaloneInteractiveExample() {
-    const [clicks, setClicks] = useState(0);
+export const StandaloneBesideAControl: Story = {
+  render: function StandaloneBesideAControlExample() {
+    const [likes, setLikes] = useState(0);
     return (
-      <Badge content={clicks} showZero onClick={() => setClicks(c => c + 1)} />
+      <Block display="flex" alignItems="center">
+        <Button onClick={() => setLikes(n => n + 1)} mr="3">
+          Like
+        </Button>
+        <Badge content={likes} showZero color="info" mr="2" />
+        <span>likes</span>
+      </Block>
     );
   },
 };
