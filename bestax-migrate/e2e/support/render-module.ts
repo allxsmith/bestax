@@ -214,6 +214,44 @@ function classesOf(tag: string): string[] {
   return (/\sclass="([^"]*)"/.exec(tag)?.[1] ?? '').split(/\s+/);
 }
 
+/** The two attributes a loading `Button` writes, as `normalizeHtml` writes them. */
+const LOADING_STATE = ['aria-busy="true"', 'aria-disabled="true"'];
+
+/**
+ * `raw`, normalised, with `aria-busy="true"` and `aria-disabled="true"`
+ * written on each element with Bulma's `button` and `is-loading` classes that
+ * sets neither, where the same element in `converted` has both, so the two
+ * compare equal there and nowhere else.
+ *
+ * bestax's `Button` writes them while `isLoading` is set (#1870): it tells a
+ * screen reader the button is busy and won't respond, and drops the click,
+ * where Bulma's spinner stops only a pointer. A raw loading `.button`
+ * converts to `Button isLoading` on purpose, so a migrated app gets that
+ * button. Only those two attributes, both of them, on a loading `.button`
+ * that sets neither: a conversion that writes them anywhere else, writes one
+ * alone, or adds one beside a raw element that set the other, still differs.
+ * A raw element that already set both to `true` is left as it is, and
+ * compares equal to a conversion that keeps them. Elements pair up in
+ * document order, and a pair that doesn't line up differs anyway.
+ */
+export function withLoadingButtonsBusy(raw: string, converted: string): string {
+  const busy = [...normalizeHtml(converted).matchAll(OPEN_TAG)].map(([tag]) =>
+    LOADING_STATE.every(attribute => tag.includes(` ${attribute}`))
+  );
+  let at = 0;
+  return normalizeHtml(
+    raw.replace(OPEN_TAG, tag => {
+      const classes = classesOf(tag);
+      return busy[at++] &&
+        classes.includes('button') &&
+        classes.includes('is-loading') &&
+        !/\saria-(busy|disabled)(=|[\s/>])/.test(tag)
+        ? tag.replace(/^<[a-zA-Z][\w-]*/, `$& ${LOADING_STATE.join(' ')}`)
+        : tag;
+    })
+  );
+}
+
 /**
  * `raw`, normalised, with each Bulma 0.9 class v1 removed written as the v1
  * class `REPLACED_IN_V1` names for it, on each element where `converted` has

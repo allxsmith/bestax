@@ -19,6 +19,7 @@ import {
   normalizeHtml,
   renderExports,
   withImplicitListRoles,
+  withLoadingButtonsBusy,
   withV1Classes,
 } from './support/render-module.js';
 
@@ -217,6 +218,92 @@ describe('withImplicitListRoles', () => {
       ['<ul><li>x</li></ul>', '<ul role="List"><li>x</li></ul>'],
       ['<div>x</div>', '<div role="list">x</div>'],
       ['<ul><li>x</li></ul>', '<ul><li role="list">x</li></ul>'],
+    ]) {
+      expect({ raw, converted, same: same(raw, converted) }).toEqual({
+        raw,
+        converted,
+        same: false,
+      });
+    }
+  });
+});
+
+describe('withLoadingButtonsBusy', () => {
+  // `Button isLoading` writes the busy state and holds still (#1870).
+  const same = (raw: string, converted: string) =>
+    withLoadingButtonsBusy(raw, normalizeHtml(converted)) ===
+    normalizeHtml(converted);
+  const busy = 'aria-busy="true" aria-disabled="true"';
+
+  it('lets the busy state a loading Button writes stand for a raw loading .button with none', () => {
+    for (const tag of ['button', 'a', 'span']) {
+      expect(
+        same(
+          `<${tag} class="button is-loading">x</${tag}>`,
+          `<${tag} ${busy} class="button is-loading">x</${tag}>`
+        )
+      ).toBe(true);
+    }
+    // One that already sets both converts to the same markup, left as it is.
+    expect(
+      same(
+        `<button ${busy} class="button is-loading">x</button>`,
+        `<button ${busy} class="button is-loading">x</button>`
+      )
+    ).toBe(true);
+    // Several, each paired with the element in the same place.
+    expect(
+      same(
+        '<div class="buttons"><button class="button">a</button><button class="button is-primary is-loading">b</button></div>',
+        `<div class="buttons"><button class="button">a</button><button ${busy} class="button is-primary is-loading">b</button></div>`
+      )
+    ).toBe(true);
+  });
+
+  it('still tells a conversion that writes it anywhere else, or only half of it', () => {
+    for (const [raw, converted] of [
+      // On a button that isn't loading.
+      [
+        '<button class="button">x</button>',
+        `<button ${busy} class="button">x</button>`,
+      ],
+      // On a loading control that isn't a button.
+      [
+        '<div class="control is-loading">x</div>',
+        `<div ${busy} class="control is-loading">x</div>`,
+      ],
+      // One of the two alone.
+      [
+        '<button class="button is-loading">x</button>',
+        '<button aria-busy="true" class="button is-loading">x</button>',
+      ],
+      [
+        '<button class="button is-loading">x</button>',
+        '<button aria-disabled="true" class="button is-loading">x</button>',
+      ],
+      // Over a value the raw button set, or beside one it set alone.
+      [
+        '<button aria-disabled="false" class="button is-loading">x</button>',
+        `<button ${busy} class="button is-loading">x</button>`,
+      ],
+      [
+        '<button aria-busy="true" class="button is-loading">x</button>',
+        `<button ${busy} class="button is-loading">x</button>`,
+      ],
+      [
+        '<button aria-disabled="true" class="button is-loading">x</button>',
+        `<button ${busy} class="button is-loading">x</button>`,
+      ],
+      // On another element than the loading button.
+      [
+        '<div><button class="button is-loading">x</button></div>',
+        `<div ${busy}><button class="button is-loading">x</button></div>`,
+      ],
+      // Dropping the loading class.
+      [
+        '<button class="button is-loading">x</button>',
+        `<button ${busy} class="button">x</button>`,
+      ],
     ]) {
       expect({ raw, converted, same: same(raw, converted) }).toEqual({
         raw,

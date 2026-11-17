@@ -46,8 +46,8 @@ assistive tech reads becomes `Icon`, which puts that attribute on the `.icon` in
 glyph is hidden either way. Such a `.icon` around a bare glyph, in a link or button its own
 `aria-label` names, becomes `Icon` too, which hides it, since the label is what a screen reader
 reads there. Font Awesome 6's long style names (`fa-brands`) become `Icon`'s `variant`
-(`brands`), which renders the short name (`fab`), the same style. And Bulma 0.9's
-`is-marginless` and `is-paddingless`, which style nothing under v1, become `m="0"` and `p="0"`. Everything else stays as you wrote it, with a `TODO(bestax-migrate)`
+(`brands`), which renders the short name (`fab`), the same style. Bulma 0.9's
+`is-marginless` and `is-paddingless`, which style nothing under v1, become `m="0"` and `p="0"`. And a loading `.button` becomes `Button isLoading`, which also tells a screen reader it's busy and drops a click while it loads, from the keyboard too, where Bulma's spinner stops only the pointer. Everything else stays as you wrote it, with a `TODO(bestax-migrate)`
 comment when there's a decision to make.
 
 ## Run the codemod
