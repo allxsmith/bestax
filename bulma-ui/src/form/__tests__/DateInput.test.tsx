@@ -1623,11 +1623,15 @@ describe('DateInput label association (#368)', () => {
     expect(getByRole('combobox')).not.toHaveAttribute('id');
   });
 
-  it('renders the label unwired in inline mode', () => {
+  it('names the inline group by its label, which points at no control', () => {
     const { container } = render(<DateInput label="Date" inline />);
     const label = container.querySelector('label.label');
     expect(label).toHaveTextContent('Date');
     expect(label).not.toHaveAttribute('for');
+    expect(container.querySelector('[role="group"]')).toHaveAttribute(
+      'aria-labelledby',
+      label!.id
+    );
   });
 });
 
