@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { Autocomplete } from '../Autocomplete';
 import { Combobox } from '../Combobox';
 import { Taginput } from '../Taginput';
@@ -11,6 +11,9 @@ import { DateTimeInput } from '../DateTimeInput';
 import { DateInputBase } from '../DateInputBase';
 import { TimeInputBase } from '../TimeInputBase';
 import { DateTimeInputBase } from '../DateTimeInputBase';
+import { DateRangeInput } from '../DateRangeInput';
+import { DateRangeInputBase } from '../DateRangeInputBase';
+import { ColorPicker } from '../ColorPicker';
 
 // #2002: these wrappers put the caller's other attributes on an element
 // around their control, so `aria-invalid` and `aria-errormessage`, which
@@ -160,4 +163,194 @@ describe('the date and time bases', () => {
       );
     }
   );
+});
+
+// #2063: a range's two inputs, and ColorPicker.Input's input, take them too.
+describe.each([
+  ['DateRangeInput', DateRangeInput],
+  ['DateRangeInputBase', DateRangeInputBase],
+] as const)('%s', (_name, Range) => {
+  const inputs = () =>
+    Array.from(
+      document.querySelectorAll<HTMLInputElement>('input:not([type="hidden"])')
+    );
+
+  it.each([
+    ['its text inputs', false],
+    ['its native inputs', true],
+  ] as const)(
+    'puts aria-invalid and aria-errormessage on %s, not the group',
+    (_where, mobileNative) => {
+      render(
+        <Range
+          aria-label="Stay"
+          mobileNative={mobileNative}
+          aria-invalid="true"
+          aria-errormessage="stay-error"
+        />
+      );
+      expect(inputs()).toHaveLength(2);
+      for (const input of inputs()) {
+        expect(input).toHaveAttribute('aria-invalid', 'true');
+        expect(input).toHaveAttribute('aria-errormessage', 'stay-error');
+      }
+      expect(screen.getByRole('group', { name: 'Stay' })).not.toHaveAttribute(
+        'aria-invalid'
+      );
+      expect(document.querySelectorAll('[aria-invalid]')).toHaveLength(2);
+    }
+  );
+
+  it('sets neither without them', () => {
+    render(<Range aria-label="Stay" mobileNative={false} />);
+    for (const input of inputs()) {
+      expect(input).not.toHaveAttribute('aria-invalid');
+      expect(input).not.toHaveAttribute('aria-errormessage');
+    }
+  });
+
+  it('keeps them on the group inline, where there is no input', () => {
+    render(<Range aria-label="Stay" inline aria-invalid="true" />);
+    expect(screen.getByRole('group', { name: 'Stay' })).toHaveAttribute(
+      'aria-invalid',
+      'true'
+    );
+  });
+});
+
+describe('ColorPicker.Input', () => {
+  const field = () => screen.getByRole('textbox', { name: 'Color value' });
+
+  it('puts aria-invalid and aria-errormessage on its input, not its row', () => {
+    render(
+      <ColorPicker defaultValue="#ff0000">
+        <ColorPicker.Input
+          aria-invalid="true"
+          aria-errormessage="color-error"
+          data-testid="row"
+        />
+      </ColorPicker>
+    );
+    expect(field()).toHaveAttribute('aria-invalid', 'true');
+    expect(field()).toHaveAttribute('aria-errormessage', 'color-error');
+    expect(screen.getByTestId('row')).not.toHaveAttribute('aria-invalid');
+    expect(screen.getByTestId('row')).not.toHaveAttribute('aria-errormessage');
+  });
+
+  it("keeps marking text it cannot read, whatever the caller's aria-invalid says", () => {
+    render(
+      <ColorPicker defaultValue="#ff0000">
+        <ColorPicker.Input aria-invalid="false" />
+      </ColorPicker>
+    );
+    fireEvent.change(field(), { target: { value: 'not a color' } });
+    expect(field()).toHaveAttribute('aria-invalid', 'true');
+  });
+});
+
+// #2130: the ColorPicker's own aria-invalid and aria-errormessage reach its
+// value field, and stay on its group.
+describe('ColorPicker', () => {
+  const field = () => screen.getByRole('textbox', { name: 'Color value' });
+
+  it('gives its value field the aria-invalid and aria-errormessage it takes', () => {
+    render(
+      <ColorPicker
+        label="Accent"
+        defaultValue="#ff0000"
+        aria-invalid="true"
+        aria-errormessage="accent-error"
+      />
+    );
+    expect(field()).toHaveAttribute('aria-invalid', 'true');
+    expect(field()).toHaveAttribute('aria-errormessage', 'accent-error');
+    const group = screen.getByRole('group', { name: 'Accent' });
+    expect(group).toHaveAttribute('aria-invalid', 'true');
+    expect(group).toHaveAttribute('aria-errormessage', 'accent-error');
+  });
+
+  it('gives them to a ColorPicker.Input among parts of your own', () => {
+    render(
+      <ColorPicker
+        aria-label="Accent"
+        defaultValue="#ff0000"
+        aria-invalid
+        aria-errormessage="accent-error"
+      >
+        <ColorPicker.HueSlider />
+        <ColorPicker.Input />
+      </ColorPicker>
+    );
+    expect(field()).toHaveAttribute('aria-invalid', 'true');
+    expect(field()).toHaveAttribute('aria-errormessage', 'accent-error');
+  });
+
+  it("lets ColorPicker.Input's own win over the picker's", () => {
+    render(
+      <ColorPicker
+        aria-label="Accent"
+        defaultValue="#ff0000"
+        aria-invalid="true"
+        aria-errormessage="accent-error"
+      >
+        <ColorPicker.Input
+          aria-invalid={false}
+          aria-errormessage="value-error"
+        />
+      </ColorPicker>
+    );
+    expect(field()).not.toHaveAttribute('aria-invalid');
+    expect(field()).toHaveAttribute('aria-errormessage', 'value-error');
+  });
+
+  it("takes the picker's as a pair, so the Input's one keeps the other out", () => {
+    render(
+      <ColorPicker
+        aria-label="Accent"
+        defaultValue="#ff0000"
+        aria-invalid="true"
+        aria-errormessage="accent-error"
+      >
+        <ColorPicker.Input aria-invalid={false} />
+      </ColorPicker>
+    );
+    expect(field()).not.toHaveAttribute('aria-invalid');
+    expect(field()).not.toHaveAttribute('aria-errormessage');
+  });
+
+  it("doesn't reach the field of a ColorPicker nested inside it", () => {
+    render(
+      <ColorPicker
+        aria-label="Outer"
+        defaultValue="#ff0000"
+        aria-invalid="true"
+        aria-errormessage="outer-error"
+      >
+        <ColorPicker aria-label="Inner" defaultValue="#00ff00">
+          <ColorPicker.Input />
+        </ColorPicker>
+      </ColorPicker>
+    );
+    expect(field()).not.toHaveAttribute('aria-invalid');
+    expect(field()).not.toHaveAttribute('aria-errormessage');
+  });
+
+  it('sets neither on the field without them', () => {
+    render(<ColorPicker aria-label="Accent" defaultValue="#ff0000" />);
+    expect(field()).not.toHaveAttribute('aria-invalid');
+    expect(field()).not.toHaveAttribute('aria-errormessage');
+  });
+
+  it('still marks text the field cannot read when the picker is valid', () => {
+    render(
+      <ColorPicker
+        aria-label="Accent"
+        defaultValue="#ff0000"
+        aria-invalid="false"
+      />
+    );
+    expect(field()).toHaveAttribute('aria-invalid', 'false');
+    fireEvent.change(field(), { target: { value: 'not a color' } });
+    expect(field()).toHaveAttribute('aria-invalid', 'true');
+  });
 });

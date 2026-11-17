@@ -563,6 +563,12 @@ function example() {
 - **`Navbar.Divider` in forced colors:** Bulma draws it as a background color too, which forced
   colors paints in the dropdown's own color, so the line would vanish. bestax's styles draw it in
   the system's text color there, from the same stylesheets.
+- **An open dropdown's edge in forced colors:** from the desktop breakpoint up, Bulma draws
+  `Navbar.DropdownMenu` as a box over the page, edged with a shadow and, for some, a line on the
+  side it opens from. Forced colors drops the shadow and paints the box in the page's own color, so
+  bestax's styles draw a one pixel line in the system's text color around it there, outside the
+  box, so nothing moves. Under the burger its rows sit in the menu, with no box to edge. This
+  ships in the same stylesheets.
 - **In a colored [`Hero`](../layout/hero.md):** Bulma's hero sets the colors its navbar's items
   take on hover and when active, but Bulma's navbar doesn't read them, so a focused or hovered
   item took the scheme's fill under the hero's text, and the active item and the burger took the

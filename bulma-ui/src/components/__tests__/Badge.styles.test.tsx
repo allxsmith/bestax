@@ -36,7 +36,7 @@ afterAll(() => {
 });
 
 describe('Badge standalone styles', () => {
-  it('keeps the standalone pill clickable (pointer-events: auto)', () => {
+  it('keeps pointer events on the standalone pill (pointer-events: auto)', () => {
     const { getByTestId } = render(<Badge content={5} data-testid="badge" />);
     expect(getComputedStyle(getByTestId('badge')).pointerEvents).toBe('auto');
   });

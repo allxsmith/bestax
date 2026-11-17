@@ -391,7 +391,7 @@ export const InContainers: Story = {
           <Column>
             <Panel>
               <Panel.Heading>Repositories</Panel.Heading>
-              <Panel.Block>
+              <Panel.Block as="div">
                 <EmptyState
                   flexGrow="1"
                   size="small"

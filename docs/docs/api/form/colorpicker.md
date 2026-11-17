@@ -256,7 +256,10 @@ text some other way.
 - **Swatches** are a radio group named "Swatches": each swatch is a radio named by its label or
   its color, the chosen one checked and marked by a check and a ring as well as its color.
 - **The value is always in words:** the field shows it and takes a typed color, and a value it
-  can't read is marked invalid and put back when you leave the field.
+  can't read is marked invalid and put back when you leave the field. An `aria-invalid` or
+  `aria-errormessage` you give `ColorPicker.Input` goes on that field rather than the row around
+  it, so a screen reader hears it with the field. Ones you give the `ColorPicker` reach that field
+  as well, unless `ColorPicker.Input` has either of its own.
 - **The group** is named by its `label`, or by `aria-label`.
 - **Strings** come from `labels`, with English defaults.
 - **Forced colors:** the square, the tracks and the swatches keep their colors with an edge in the

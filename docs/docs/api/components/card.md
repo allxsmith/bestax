@@ -321,6 +321,11 @@ You can combine the traditional prop-based API with compound components:
 - **Image alternate text:** An image URL passed as `image` renders an `<img>` whose `alt` is `imageAlt`. Describe what the picture shows, or pass `imageAlt=""` for a decorative image so screen readers skip it. Without `imageAlt`, the `alt` is "Card image", which tells a screen reader nothing about the picture. An image you render yourself, as a node in `image` or inside `Card.Image`, takes its own `alt`, and `imageAlt` doesn't reach it.
 - **Header and footer landmarks:** a card's header and footer are Bulma's `<header class="card-header">` and `<footer class="card-footer">`, which `header` or `headerIcon`, `footer`, `Card.Header` and `Card.Footer` render. Outside `<main>`, `<article>`, `<aside>`, `<nav>`, `<section>` and elements with one of their roles, a `<header>` is a banner landmark and a `<footer>` a content info landmark, so a screen reader that lists landmarks lists a banner for each card with a header and a content info for each card with a footer, beside the page's own. Inside one of them they aren't landmarks. Put cards in the page's `<main>`. For a card that can't be there, such as one portaled outside it, give the card `role="article"`, or wrap it in an `<article>`, which scopes them the same way, or, built from the parts, pass `role="none"` to its `Card.Header` and `Card.Footer`, which ARIA in HTML allows on both.
 - Use semantic content for the header, body, and footer as needed.
+- **Forced colors:** in Windows' contrast themes, which drop shadows and paint the card in the
+  page's own color, the card's edge is drawn as an outline in the system's text color, so a row of
+  cards still shows which image, text and actions belong together. While the card has keyboard
+  focus, the browser's focus ring shows in its place. CheckboxCard and RadioCard keep the edge they
+  draw themselves.
 
 ---
 
