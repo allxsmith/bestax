@@ -170,6 +170,7 @@ export const HasSkeleton: Story = {
   args: {
     children: 'Title',
     hasSkeleton: true,
+    'aria-hidden': true,
     size: '2',
   },
   parameters: {
@@ -192,7 +193,7 @@ export const IsSkeleton: Story = {
         return () => clearInterval(timer);
       }, []);
       return (
-        <Title skeleton={skeleton} size="2">
+        <Title skeleton={skeleton} aria-hidden={skeleton || undefined} size="2">
           Title
         </Title>
       );

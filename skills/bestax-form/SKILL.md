@@ -11,8 +11,8 @@ This skill covers the form components in `@allxsmith/bestax-bulma` and how to co
 **Important:** bestax-bulma ships **no form/validation library** — there is no integration with
 formik, react-hook-form, yup, or zod, and no `useForm`-style hook. You own your form state with
 plain React (`useState` / `useReducer` or any library you choose) and feed validation results
-back via each input's own `color`, `message`, and `messageColor` props on the convenience inputs
-(`Input`, `Select`, `TextArea`, …). Always put validation state on the **input**: `Field` has no
+back via each input's own `color`, `message` and `messageColor` props on the convenience inputs
+(`Input`, `Select`, `TextArea`, …), and `aria-invalid` where it reaches the input (see below). Always put validation state on the **input**: `Field` has no
 `message`/`messageColor`, and although `FieldProps` types a `color`, `Field` discards it — it
 renders no class, so setting it looks right and does nothing. (`FieldLabel`/`FieldBody` do honor
 `color`, as the `has-text-*` helper.) See **Validation without a library** below.
@@ -159,9 +159,8 @@ once each time a change fills the last box. It takes digits unless `type="alphan
 digit from any script (Arabic-Indic, Persian) into its ASCII digit, drops anything else typed or
 pasted, and `isMasked` shows dots for a PIN. A paste replaces the whole code. Its default `pattern`
 asks for the full length, so `required` rejects a partial code, not just an empty one. Say the
-length in the `label` ("Enter the 6-digit code"): the boxes are hidden from a screen reader, and the
-`message` isn't tied to the input, so it isn't read on focus. Separate help text needs
-`aria-describedby` on the PinInput.
+length in the `label` ("Enter the 6-digit code") or the `message`: the boxes are hidden from a
+screen reader, and the `message` describes the input, so it's read on focus.
 
 **A password field is `PasswordInput`**, not an `Input type="password"` with a button you wire
 yourself. Its button sits inside the field at the right edge: an eye named "Show password" with
@@ -178,18 +177,18 @@ strength recipe does.
 
 Across the convenience inputs (`Input`, `Select`, `TextArea`, and similar):
 
-| Prop                             | Type                                                                  | Purpose                                                                    |
-| -------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `color`                          | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'` | Visual state — use `'danger'` for errors, `'success'` for valid.           |
-| `size`                           | `'small' \| 'medium' \| 'large'`                                      | Input size.                                                                |
-| `value` / `onChange`             | controlled value + handler                                            | Standard React controlled inputs.                                          |
-| `defaultValue`                   | uncontrolled initial value                                            | When not controlling state.                                                |
-| `disabled`, `readOnly`           | `boolean`                                                             | Native states (`readOnly` on `*Base`).                                     |
-| `label`                          | `ReactNode`                                                           | Field label (convenience components; auto-associated via `htmlFor`).       |
-| `message`                        | `ReactNode`                                                           | Help / validation text rendered as `<p class="help">`.                     |
-| `messageColor`                   | a Bulma color                                                         | Colors the help text (`'danger'` for errors).                              |
-| `iconLeftName` / `iconRightName` | `string`                                                              | Icon shortcuts; pair with `hasIconsLeft/Right`.                            |
-| `isLoading`                      | `boolean`                                                             | Loading spinner on the Control; `Select` draws it in place of the chevron. |
+| Prop                             | Type                                                                  | Purpose                                                                                                        |
+| -------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `color`                          | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'` | Visual state — use `'danger'` for errors, `'success'` for valid.                                               |
+| `size`                           | `'small' \| 'medium' \| 'large'`                                      | Input size.                                                                                                    |
+| `value` / `onChange`             | controlled value + handler                                            | Standard React controlled inputs.                                                                              |
+| `defaultValue`                   | uncontrolled initial value                                            | When not controlling state.                                                                                    |
+| `disabled`, `readOnly`           | `boolean`                                                             | Native states (`readOnly` on `*Base`).                                                                         |
+| `label`                          | `ReactNode`                                                           | Field label (convenience components; auto-associated via `htmlFor`).                                           |
+| `message`                        | `ReactNode`                                                           | Help / validation text rendered as `<p class="help">`, which describes the control through `aria-describedby`. |
+| `messageColor`                   | a Bulma color                                                         | Colors the help text (`'danger'` for errors).                                                                  |
+| `iconLeftName` / `iconRightName` | `string`                                                              | Icon shortcuts; pair with `hasIconsLeft/Right`.                                                                |
+| `isLoading`                      | `boolean`                                                             | Loading spinner on the Control; `Select` draws it in place of the chevron.                                     |
 
 Plus the full Bulma **helper props** (`m`, `p`, `textColor`, `display`, …) on every component
 via `useBulmaClasses`.
@@ -262,7 +261,7 @@ keeps it. `labelProps={{ htmlFor: undefined }}` opts out of the association enti
 ## Validation without a library
 
 There is no built-in validation. The pattern is: **own your state, compute errors yourself, and
-reflect them with `color` + `message` + `messageColor`.**
+reflect them with `color` + `message` + `messageColor` + `aria-invalid`.**
 
 ```tsx
 import { useState } from 'react';
@@ -293,6 +292,7 @@ function SignupForm() {
         onChange={e => setEmail(e.target.value)}
         onBlur={() => setTouched(true)}
         color={error ? 'danger' : undefined}
+        aria-invalid={!!error}
         message={error}
         messageColor={error ? 'danger' : undefined}
         iconLeftName="envelope"
@@ -308,7 +308,15 @@ function SignupForm() {
 Rules of thumb:
 
 - Set `color="danger"` on the input **and** `messageColor="danger"` on the help text so both the
-  control and the message read as an error. Use `'success'` to signal a valid field.
+  control and the message look like an error, and `aria-invalid` on the input so a screen reader
+  hears it: the colors say nothing to one. The `message` describes the input through
+  `aria-describedby`, so the error is read when the field takes focus. Use `'success'` to signal a
+  valid field.
+- `aria-invalid` reaches the input on `Input`, `TextArea`, `Select`, `PasswordInput`,
+  `Numberinput`, `PinInput`, `File`, `ColorInput` and `Combobox.Input`. The date and time inputs,
+  `Autocomplete`, `Taginput`, `TreeSelect`, `Cascader` and a `Combobox` with `data` put the other
+  attributes on their wrapper, so there it doesn't reach the input yet; the `message` still
+  carries the error.
 - Want a different validation library? Wire it up yourself — pass its `value`/`onChange`/error
   string into these props. bestax does not prescribe one.
 - For grouped controls, render the `<p class="help">` via the `message` prop of the convenience
@@ -363,7 +371,8 @@ for the expected classes/states, and say plainly that the visual pass is still o
       labeled individually (`aria-label`, `aria-labelledby`, or a `<label htmlFor>` matching
       each control's `id`).
 - [ ] Controlled inputs have both `value` and `onChange` (or use `defaultValue` uncontrolled).
-- [ ] Error state shows via `color="danger"` + `message` + `messageColor="danger"`.
+- [ ] Error state shows via `color="danger"` + `message` + `messageColor="danger"`, and
+      `aria-invalid` marks the control.
 - [ ] Grouped/addon layouts use explicit `Field` + `Control` composition.
 - [ ] No assumption of a built-in validation/form library — state is owned by the app.
 - [ ] Submit feedback is a `Toast` and any "are you sure?" is a `Dialog` — not a hand-placed

@@ -1,5 +1,4 @@
 import React, { forwardRef } from 'react';
-import { usePrefixedClassNames } from '../helpers/classNames';
 import { Field, FieldProps } from './Field';
 import { Control, ControlBaseProps } from './Control';
 import {
@@ -13,6 +12,7 @@ import {
   rendersOwnControl,
 } from './FormContext';
 import { useAutoLabelledBy } from './useAutoLabelId';
+import { useFieldMessage } from './useFieldMessage';
 import { usePickerDirAttrs } from './_pickerInternals/useLocaleDefaults';
 
 /**
@@ -81,7 +81,10 @@ export interface DateRangeInputProps extends DateRangeInputBaseProps {
   isExpanded?: boolean;
   /** Size of the wrapping Control. */
   controlSize?: ControlBaseProps['size'];
-  /** Help/validation text below the field. */
+  /**
+   * Help or validation text under the field. It describes the group through
+   * `aria-describedby`, after any ids you pass there.
+   */
   message?: React.ReactNode;
   /** Color modifier for the help message. */
   messageColor?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
@@ -165,15 +168,18 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
       rendersLabel: ownField,
       callerProps: baseProps,
     });
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
+    const { messageEl, describedBy } = useFieldMessage(
+      message,
+      messageColor,
+      baseProps['aria-describedby']
+    );
 
     let content: React.ReactNode = (
       <DateRangeInputBase
         ref={ref}
         aria-labelledby={ariaLabelledBy}
         {...baseProps}
+        aria-describedby={describedBy}
       />
     );
 
@@ -198,8 +204,6 @@ export const DateRangeInput = forwardRef<HTMLInputElement, DateRangeInputProps>(
         </Control>
       );
     }
-
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
 
     if (ownField) {
       return (
