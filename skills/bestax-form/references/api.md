@@ -341,5 +341,9 @@ helper props place as the date pickers' do.
 There is no validation engine. The props you use to reflect externally-computed validation are:
 
 - `color` — `'danger'` for an error, `'success'` for valid.
-- `message` — the help/validation text (rendered as `<p class="help">`).
+- `message` — the help/validation text (rendered as `<p class="help">`), which describes the control
+  through `aria-describedby`, so it's read when the field takes focus.
 - `messageColor` — colors that help text to match (`'danger'`, `'success'`, …).
+- `aria-invalid` — tells a screen reader the field is invalid, which the colors don't. Set it with
+  the error, on the wrappers whose attributes reach the input (the skill's validation section
+  lists them).

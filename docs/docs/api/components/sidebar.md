@@ -55,9 +55,16 @@ function example() {
       <Button color="primary" onClick={() => setIsOpen(true)}>
         Open Sidebar
       </Button>
-      <Sidebar inline isOpen={isOpen} onClose={() => setIsOpen(false)}>
+      <Sidebar
+        inline
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        aria-labelledby="sidebar-title-navigation"
+      >
         <Sidebar.Header>
-          <Sidebar.Title>Navigation</Sidebar.Title>
+          <Sidebar.Title id="sidebar-title-navigation">
+            Navigation
+          </Sidebar.Title>
           <Sidebar.Close onClick={() => setIsOpen(false)} />
         </Sidebar.Header>
         <Sidebar.Body>
@@ -102,9 +109,10 @@ function example() {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         position="right"
+        aria-labelledby="sidebar-title-settings"
       >
         <Sidebar.Header>
-          <Sidebar.Title>Settings</Sidebar.Title>
+          <Sidebar.Title id="sidebar-title-settings">Settings</Sidebar.Title>
           <Sidebar.Close onClick={() => setIsOpen(false)} />
         </Sidebar.Header>
         <Sidebar.Body>
@@ -135,9 +143,12 @@ function example() {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         width="400px"
+        aria-labelledby="sidebar-title-wide-panel"
       >
         <Sidebar.Header>
-          <Sidebar.Title>Wide Panel</Sidebar.Title>
+          <Sidebar.Title id="sidebar-title-wide-panel">
+            Wide Panel
+          </Sidebar.Title>
           <Sidebar.Close onClick={() => setIsOpen(false)} />
         </Sidebar.Header>
         <Sidebar.Body>
@@ -168,9 +179,12 @@ function example() {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         isFullwidth
+        aria-labelledby="sidebar-title-full-width-panel"
       >
         <Sidebar.Header>
-          <Sidebar.Title>Full Width Panel</Sidebar.Title>
+          <Sidebar.Title id="sidebar-title-full-width-panel">
+            Full Width Panel
+          </Sidebar.Title>
           <Sidebar.Close onClick={() => setIsOpen(false)} />
         </Sidebar.Header>
         <Sidebar.Body>
@@ -215,9 +229,12 @@ function example() {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         overlay={false}
+        aria-labelledby="sidebar-title-no-overlay"
       >
         <Sidebar.Header>
-          <Sidebar.Title>No Overlay</Sidebar.Title>
+          <Sidebar.Title id="sidebar-title-no-overlay">
+            No Overlay
+          </Sidebar.Title>
           <Sidebar.Close onClick={() => setIsOpen(false)} />
         </Sidebar.Header>
         <Sidebar.Body>
@@ -259,9 +276,12 @@ function example() {
         overlayClose={false}
         escapeClose={false}
         canCancel={false}
+        aria-labelledby="sidebar-title-important-action"
       >
         <Sidebar.Header>
-          <Sidebar.Title>Important Action</Sidebar.Title>
+          <Sidebar.Title id="sidebar-title-important-action">
+            Important Action
+          </Sidebar.Title>
         </Sidebar.Header>
         <Sidebar.Body>
           <Paragraph>You must complete this action before closing.</Paragraph>
@@ -289,9 +309,16 @@ function example() {
       <Button color="primary" onClick={() => setIsOpen(true)}>
         Open With Footer
       </Button>
-      <Sidebar inline isOpen={isOpen} onClose={() => setIsOpen(false)}>
+      <Sidebar
+        inline
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        aria-labelledby="sidebar-title-navigation-2"
+      >
         <Sidebar.Header>
-          <Sidebar.Title>Navigation</Sidebar.Title>
+          <Sidebar.Title id="sidebar-title-navigation-2">
+            Navigation
+          </Sidebar.Title>
           <Sidebar.Close onClick={() => setIsOpen(false)} />
         </Sidebar.Header>
         <Sidebar.Body>
@@ -335,7 +362,7 @@ function FiltersSidebar({ isOpen, onClose }) {
 
   return (
     <>
-      <Sidebar isOpen={isOpen} onClose={onClose}>
+      <Sidebar isOpen={isOpen} onClose={onClose} aria-label="Filters">
         <Sidebar.Body>
           <ConfigProvider portalContainer={popups ?? undefined}>
             <DateInput label="From" appendToBody />
@@ -364,9 +391,16 @@ function example() {
       <Button color="primary" onClick={() => setIsOpen(true)}>
         Open Sidebar
       </Button>
-      <Sidebar inline isOpen={isOpen} onClose={() => setIsOpen(false)}>
+      <Sidebar
+        inline
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        aria-labelledby="sidebar-title-dot-notation"
+      >
         <Sidebar.Header>
-          <Sidebar.Title>Dot Notation</Sidebar.Title>
+          <Sidebar.Title id="sidebar-title-dot-notation">
+            Dot Notation
+          </Sidebar.Title>
           <Sidebar.Close onClick={() => setIsOpen(false)} />
         </Sidebar.Header>
         <Sidebar.Body>
@@ -401,6 +435,7 @@ When `canCancel` is true, the sidebar can be closed by:
 ## Accessibility
 
 - Uses `role="dialog"` for proper screen reader announcement
+- **Give the sidebar an accessible name.** Nothing names it on its own, `Sidebar.Title` included: give the title an `id` and the `Sidebar` an `aria-labelledby` pointing at it, as the examples here do, or pass an `aria-label` when there's no visible title. In a component you render more than once, take the `id` from `useId` so each sidebar points at its own title. A `role="dialog"` with no name is announced as just "dialog"
 - Has `aria-modal="true"` when overlay is shown
 - Focus moves into the sidebar when it opens, to its first tab stop or the sidebar itself, unless it has no overlay and a modal overlay is open under it (see below). That's decided as it opens, so changing `overlay` while it's open leaves focus where it is. When it closes, focus goes back to whatever had it when the sidebar opened, unless focus has already left the sidebar, say for an overlay that's still open on top
 - With an overlay, Tab and Shift+Tab stay inside the sidebar while it's the topmost modal overlay, so the keyboard order agrees with what `aria-modal="true"` tells assistive technology. They wrap at the same tab stops [`useFocusTrap`](../helpers/usefocustrap.md) does, so hidden, disabled and `tabIndex={-1}` elements are skipped and a radio group counts once. A Tab from outside the sidebar brings focus back in, and so does a Tab the browser takes out anyway, as Safari does past links when its settings say to
@@ -437,28 +472,29 @@ Use the Sidebar with a Menu component for building navigation drawers in mobile-
 
 <!-- bestax:generated props -->
 
-| Prop           | Type                                                | Default   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| -------------- | --------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `isOpen`       | `boolean`                                           | —         | **Required.** Whether the sidebar is open. Opening moves focus into the sidebar, to its first tab stop or the sidebar itself, except for a sidebar without an overlay opened while a modal overlay, such as a Modal, is open: that one leaves focus where it is. That's decided as it opens, and changing `overlay` while it's open doesn't move focus. Closing hands focus back to whatever had it when the sidebar opened, unless focus has already left the sidebar, as it does for an overlay opened over it. A closed sidebar stays in the page, so it can slide out, and is `inert` and `aria-hidden` there: Tab passes over its content and assistive technology doesn't read it. |
-| `onClose`      | `() => void`                                        | —         | Callback when sidebar should close.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `position`     | `'left'` \| `'right'`                               | `'left'`  | Which side the sidebar appears from. Default: 'left'.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `width`        | `string`                                            | `'260px'` | Custom width of the sidebar.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `isFullwidth`  | `boolean`                                           | `false`   | Sidebar takes full width (mobile-style).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `fullWidth`    | `boolean`                                           | `false`   | **Deprecated.** Use `isFullwidth` instead — `isFullwidth` wins if both are set. Sidebar takes full width (mobile-style).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `overlay`      | `boolean`                                           | `true`    | Show an overlay behind the sidebar, which makes it modal: it gets `aria-modal="true"`, locks page scroll, and keeps Tab and Shift+Tab inside it while it is the topmost modal overlay. A Modal or Dialog opened over it, even one rendered inside it, holds Tab until it closes. Without an overlay the sidebar isn't modal and holds no Tab: on the page, Tab moves in and out of it freely, and opened over a Modal, it leaves the Modal holding Tab, and focus, while still taking Escape first. Whether the sidebar takes focus is decided as it opens: changing this while it's open moves the Tab trap, not focus. Default: true.                                                  |
-| `overlayClose` | `boolean`                                           | `true`    | Close sidebar when overlay is clicked. Default: true.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `escapeClose`  | `boolean`                                           | `true`    | Close sidebar on Escape key. Only the topmost open overlay responds, whichever Modal, Dialog, Sidebar or full-page Loading opened last, so Escape closes one layer at a time. The sidebar marks the Escape it closes on as used with `preventDefault()`, and a Toast waits until no overlay is open. Turned off, a sidebar on top still keeps Escape from the layers under it. A popup inside it, such as a Dropdown's menu or a date picker's calendar, takes its own Escape first, and so does content that calls `preventDefault()` on it. Default: true.                                                                                                                             |
-| `canCancel`    | `boolean`                                           | `true`    | Allow closing the sidebar. Default: true.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `children`     | `React.ReactNode`                                   | —         | Content to display in the sidebar. A popup in it that portals, such as a Popover's or a date picker's panel with `appendToBody`, goes to the end of the page and renders under an open sidebar. To show it above, wrap the popup in a `ConfigProvider` whose `portalContainer` is an element of your own outside the sidebar that stacks above it, such as one with `position: relative` and a higher `z-index`. With an overlay, the sidebar's `aria-modal` still hides the popup there from screen readers that honor it.                                                                                                                                                              |
-| `inline`       | `boolean`                                           | `false`   | Renders inline instead of using a portal. Without it, the sidebar renders inline on the server and while hydrating, moving into the portal once the client takes over, so hydration matches.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `className`    | `string`                                            | —         | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `ref`          | `React.Ref<HTMLElement>`                            | —         | Ref forwarded to the sidebar element.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `...`          | All standard HTML attributes and Bulma helper props | —         | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Prop              | Type                                                | Default   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ----------------- | --------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `isOpen`          | `boolean`                                           | —         | **Required.** Whether the sidebar is open. Opening moves focus into the sidebar, to its first tab stop or the sidebar itself, except for a sidebar without an overlay opened while a modal overlay, such as a Modal, is open: that one leaves focus where it is. That's decided as it opens, and changing `overlay` while it's open doesn't move focus. Closing hands focus back to whatever had it when the sidebar opened, unless focus has already left the sidebar, as it does for an overlay opened over it. A closed sidebar stays in the page, so it can slide out, and is `inert` and `aria-hidden` there: Tab passes over its content and assistive technology doesn't read it. |
+| `onClose`         | `() => void`                                        | —         | Callback when sidebar should close.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `position`        | `'left'` \| `'right'`                               | `'left'`  | Which side the sidebar appears from. Default: 'left'.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `width`           | `string`                                            | `'260px'` | Custom width of the sidebar.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `isFullwidth`     | `boolean`                                           | `false`   | Sidebar takes full width (mobile-style).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `fullWidth`       | `boolean`                                           | `false`   | **Deprecated.** Use `isFullwidth` instead — `isFullwidth` wins if both are set. Sidebar takes full width (mobile-style).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `overlay`         | `boolean`                                           | `true`    | Show an overlay behind the sidebar, which makes it modal: it gets `aria-modal="true"`, locks page scroll, and keeps Tab and Shift+Tab inside it while it is the topmost modal overlay. A Modal or Dialog opened over it, even one rendered inside it, holds Tab until it closes. Without an overlay the sidebar isn't modal and holds no Tab: on the page, Tab moves in and out of it freely, and opened over a Modal, it leaves the Modal holding Tab, and focus, while still taking Escape first. Whether the sidebar takes focus is decided as it opens: changing this while it's open moves the Tab trap, not focus. Default: true.                                                  |
+| `overlayClose`    | `boolean`                                           | `true`    | Close sidebar when overlay is clicked. Default: true.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `escapeClose`     | `boolean`                                           | `true`    | Close sidebar on Escape key. Only the topmost open overlay responds, whichever Modal, Dialog, Sidebar or full-page Loading opened last, so Escape closes one layer at a time. The sidebar marks the Escape it closes on as used with `preventDefault()`, and a Toast waits until no overlay is open. Turned off, a sidebar on top still keeps Escape from the layers under it. A popup inside it, such as a Dropdown's menu or a date picker's calendar, takes its own Escape first, and so does content that calls `preventDefault()` on it. Default: true.                                                                                                                             |
+| `canCancel`       | `boolean`                                           | `true`    | Allow closing the sidebar. Default: true.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `children`        | `React.ReactNode`                                   | —         | Content to display in the sidebar. A popup in it that portals, such as a Popover's or a date picker's panel with `appendToBody`, goes to the end of the page and renders under an open sidebar. To show it above, wrap the popup in a `ConfigProvider` whose `portalContainer` is an element of your own outside the sidebar that stacks above it, such as one with `position: relative` and a higher `z-index`. With an overlay, the sidebar's `aria-modal` still hides the popup there from screen readers that honor it.                                                                                                                                                              |
+| `inline`          | `boolean`                                           | `false`   | Renders inline instead of using a portal. Without it, the sidebar renders inline on the server and while hydrating, moving into the portal once the client takes over, so hydration matches.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `className`       | `string`                                            | —         | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `ref`             | `React.Ref<HTMLElement>`                            | —         | Ref forwarded to the sidebar element.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `aria-labelledby` | `string`                                            | —         | Names the sidebar, a `role="dialog"` that nothing else names: point it at the `id` of its `Sidebar.Title`. With no visible title, pass an `aria-label` instead.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `...`             | All standard HTML attributes and Bulma helper props | —         | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 
 **Subcomponents:**
 
 - `Sidebar.Header`: Container for the sidebar header.
-- `Sidebar.Title`: Title text inside the header.
+- `Sidebar.Title`: Title text inside the header. It doesn't name the sidebar on its own: give it an `id`, and the `Sidebar` an `aria-labelledby` pointing at it.
 - `Sidebar.Close`: Close button for the sidebar.
 - `Sidebar.Body`: Main content area of the sidebar.
 - `Sidebar.Footer`: Footer area of the sidebar.
