@@ -1,8 +1,15 @@
 import React from 'react';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  within,
+  waitFor,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Taginput, TagInput, TaginputTag } from '../Taginput';
 import { Field } from '../Field';
+import { ConfigProvider } from '../../helpers/Config';
 
 const frameworks = ['React', 'Vue', 'Angular', 'Svelte'];
 
@@ -2123,6 +2130,154 @@ describe('TagInput deprecated alias', () => {
   });
 });
 
+describe("Taginput's arrows on a closed list (#2006)", () => {
+  const openThenClose = async () => {
+    const user = userEvent.setup();
+    render(<Taginput label="Tags" data={frameworks} />);
+    const input = screen.getByRole('combobox');
+    await user.type(input, 'e');
+    await user.keyboard('{Escape}');
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+    return { user, input };
+  };
+  const highlighted = (input: HTMLElement) =>
+    document.getElementById(input.getAttribute('aria-activedescendant')!);
+
+  it('opens it on the first suggestion with Down Arrow', async () => {
+    const { user, input } = await openThenClose();
+
+    await user.keyboard('{ArrowDown}');
+
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    expect(highlighted(input)).toBe(screen.getAllByRole('option')[0]);
+  });
+
+  it('opens it on the last suggestion with Up Arrow', async () => {
+    const { user, input } = await openThenClose();
+
+    await user.keyboard('{ArrowUp}');
+
+    const options = screen.getAllByRole('option');
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    expect(highlighted(input)).toBe(options[options.length - 1]);
+  });
+
+  it('opens it with no highlight with Alt+Down Arrow', async () => {
+    const { user, input } = await openThenClose();
+
+    await user.keyboard('{Alt>}{ArrowDown}{/Alt}');
+
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    expect(input).not.toHaveAttribute('aria-activedescendant');
+  });
+
+  it('opens on the last suggestion with openOnFocus and an empty field', async () => {
+    const user = userEvent.setup();
+    render(<Taginput label="Tags" data={frameworks} openOnFocus />);
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+    await user.keyboard('{Escape}');
+
+    await user.keyboard('{ArrowUp}');
+
+    const options = screen.getAllByRole('option');
+    expect(options).toHaveLength(frameworks.length);
+    expect(highlighted(input)).toBe(options[options.length - 1]);
+  });
+
+  it('leaves no highlight when Down Arrow finds no suggestions to show', async () => {
+    const user = userEvent.setup();
+    const onAdd = vi.fn();
+    render(
+      <Taginput label="Tags" data={['javascript', 'java']} onAdd={onAdd} />
+    );
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+
+    // An empty field without openOnFocus shows no list to land on.
+    await user.keyboard('{ArrowDown}');
+    await user.type(input, 'jav');
+    expect(input).not.toHaveAttribute('aria-activedescendant');
+
+    await user.keyboard('{Enter}');
+    expect(onAdd).toHaveBeenCalledWith('jav');
+  });
+
+  it('closes it with Alt+Up Arrow, and Alt+Down Arrow moves no highlight', async () => {
+    const user = userEvent.setup();
+    render(<Taginput label="Tags" data={frameworks} />);
+    const input = screen.getByRole('combobox');
+    await user.type(input, 'e');
+    await user.keyboard('{ArrowDown}');
+    const first = highlighted(input);
+
+    await user.keyboard('{Alt>}{ArrowDown}{/Alt}');
+    expect(highlighted(input)).toBe(first);
+
+    await user.keyboard('{Alt>}{ArrowUp}{/Alt}');
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+
+    // And on a closed list it opens nothing.
+    await user.keyboard('{Alt>}{ArrowUp}{/Alt}');
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('opens nothing at the tag limit, and making room brings back no highlight', async () => {
+    const user = userEvent.setup();
+    render(
+      <Taginput
+        label="Tags"
+        data={frameworks}
+        defaultValue={['React', 'Vue']}
+        maxTags={2}
+        openOnFocus
+      />
+    );
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+
+    await user.keyboard('{ArrowUp}');
+    await user.keyboard('{ArrowDown}');
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+
+    await user.keyboard('{Backspace}');
+    expect(input).not.toHaveAttribute('aria-activedescendant');
+  });
+
+  it('scrolls the highlighted suggestion into view', async () => {
+    const user = userEvent.setup();
+    const scrolled: Element[] = [];
+    const original = Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView = function (this: Element) {
+      scrolled.push(this);
+    };
+    try {
+      render(<Taginput label="Tags" data={frameworks} />);
+      const input = screen.getByRole('combobox');
+      await user.type(input, 'e');
+      await user.keyboard('{Escape}');
+
+      await user.keyboard('{ArrowUp}');
+
+      expect(scrolled).toContain(highlighted(input));
+    } finally {
+      Element.prototype.scrollIntoView = original;
+    }
+  });
+
+  it('keeps the first highlighted with keepFirst, whichever key opens it', async () => {
+    const user = userEvent.setup();
+    render(<Taginput label="Tags" data={frameworks} keepFirst />);
+    const input = screen.getByRole('combobox');
+    await user.type(input, 'e');
+    await user.keyboard('{Escape}');
+
+    await user.keyboard('{ArrowUp}');
+
+    expect(highlighted(input)).toBe(screen.getAllByRole('option')[0]);
+  });
+});
+
 describe("Taginput's remove buttons with ariaCloseLabel (#2007)", () => {
   it('describes each button by its tag, so one name still says which', () => {
     render(
@@ -2206,5 +2361,143 @@ describe("Taginput's remove buttons with ariaCloseLabel (#2007)", () => {
       />
     );
     expect(container.querySelector('.tag [id]')).toBeNull();
+  });
+});
+
+describe("Taginput focus after a tag's button removes it (#2005)", () => {
+  it('moves focus to the button before, when the last tag goes', async () => {
+    const user = userEvent.setup();
+    render(<Taginput label="Tags" defaultValue={['Banana', 'Cherry']} />);
+
+    screen.getByRole('button', { name: 'Remove Cherry' }).focus();
+    await user.keyboard('{Enter}');
+
+    expect(screen.queryByText('Cherry')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remove Banana' })).toHaveFocus();
+  });
+
+  it("finds the button before under a class prefix, past a template's own button", async () => {
+    const user = userEvent.setup();
+    render(
+      <ConfigProvider classPrefix="bestax-">
+        <Taginput
+          label="Tags"
+          defaultValue={['Banana', 'Cherry']}
+          tagTemplate={tag => (
+            <>
+              <b>{String(tag)}</b>
+              <button type="button" className="delete" aria-label="Archive" />
+            </>
+          )}
+        />
+      </ConfigProvider>
+    );
+
+    screen.getByRole('button', { name: 'Remove Cherry' }).focus();
+    await user.keyboard('{Enter}');
+
+    expect(screen.getByRole('button', { name: 'Remove Banana' })).toHaveFocus();
+  });
+
+  it('moves focus to the input, when the only tag goes', async () => {
+    const user = userEvent.setup();
+    render(<Taginput label="Tags" defaultValue={['Banana']} />);
+
+    screen.getByRole('button', { name: 'Remove Banana' }).focus();
+    await user.keyboard(' ');
+
+    expect(screen.queryByText('Banana')).not.toBeInTheDocument();
+    expect(screen.getByRole('textbox')).toHaveFocus();
+  });
+
+  it('keeps focus on the button that takes the place of a tag before the end', async () => {
+    const user = userEvent.setup();
+    render(
+      <Taginput label="Tags" defaultValue={['Apple', 'Banana', 'Cherry']} />
+    );
+
+    screen.getByRole('button', { name: 'Remove Banana' }).focus();
+    await user.keyboard('{Enter}');
+
+    expect(screen.getByRole('button', { name: 'Remove Cherry' })).toHaveFocus();
+  });
+
+  it('moves focus before the owner hears of it, even when the owner keeps the tag', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <Taginput label="Tags" value={['Banana', 'Cherry']} onChange={onChange} />
+    );
+
+    screen.getByRole('button', { name: 'Remove Cherry' }).focus();
+    await user.keyboard('{Enter}');
+
+    expect(onChange).toHaveBeenCalledWith(['Banana']);
+    expect(screen.getByText('Cherry')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remove Banana' })).toHaveFocus();
+  });
+
+  it("moves no focus for a press on a button that didn't take it", () => {
+    render(
+      <>
+        <Taginput label="Tags" defaultValue={['Banana', 'Cherry']} />
+        <input aria-label="Elsewhere" />
+      </>
+    );
+    const elsewhere = screen.getByLabelText('Elsewhere');
+    elsewhere.focus();
+
+    // Safari doesn't focus a button it's pressing.
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Cherry' }));
+
+    expect(screen.queryByText('Cherry')).not.toBeInTheDocument();
+    expect(elsewhere).toHaveFocus();
+  });
+});
+
+describe('Taginput focus after a removal the owner shapes (#2005)', () => {
+  it('waits for a held value the owner updates later', async () => {
+    const user = userEvent.setup();
+    function Deferred() {
+      const [tags, setTags] = React.useState<TaginputTag[]>([
+        'Banana',
+        'Cherry',
+      ]);
+      return (
+        <Taginput
+          label="Tags"
+          value={tags}
+          onChange={next => setTimeout(() => setTags(next), 0)}
+        />
+      );
+    }
+    render(<Deferred />);
+
+    screen.getByRole('button', { name: 'Remove Cherry' }).focus();
+    await user.keyboard('{Enter}');
+    await waitFor(() =>
+      expect(screen.queryByText('Cherry')).not.toBeInTheDocument()
+    );
+
+    expect(screen.getByRole('button', { name: 'Remove Banana' })).toHaveFocus();
+  });
+
+  it('leaves focus where the owner put it', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <Taginput
+          label="Tags"
+          defaultValue={['Banana', 'Cherry']}
+          onRemove={() => screen.getByLabelText('Reason').focus()}
+        />
+        <input aria-label="Reason" />
+      </>
+    );
+
+    screen.getByRole('button', { name: 'Remove Cherry' }).focus();
+    await user.keyboard('{Enter}');
+
+    expect(screen.getByLabelText('Reason')).toHaveFocus();
   });
 });
