@@ -2411,6 +2411,67 @@ describe('ToastContainer hotkey', () => {
     });
     const event = press({ key: 'Alt', code: 'AltLeft', altKey: true });
     expect(event.defaultPrevented).toBe(false);
+    // And names the region with no key, since none works.
+    expect(
+      screen.getByRole('region', { name: 'Notifications' })
+    ).toBeInTheDocument();
+  });
+
+  it('takes a key by its code when the key it types is another, such as Period', () => {
+    render(<ToastContainer hotkey={['ctrlKey', 'Period']} />);
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    expect(
+      screen.getByRole('region', { name: 'Notifications (Ctrl+Period)' })
+    ).toBeInTheDocument();
+    press({ key: '.', code: 'Period' });
+    expect(document.activeElement).toBe(document.body);
+    press({ key: '.', code: 'Period', ctrlKey: true, shiftKey: true });
+    expect(document.activeElement).toBe(document.body);
+    press({ key: '.', code: 'Period', ctrlKey: true });
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus();
+  });
+
+  it('takes a numpad key by its code, and leaves it alone while someone types', () => {
+    render(
+      <>
+        <input aria-label="Amount" />
+        <ToastContainer hotkey={['Numpad1']} />
+      </>
+    );
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    const field = screen.getByRole('textbox', { name: 'Amount' });
+    act(() => {
+      field.focus();
+    });
+    act(() => {
+      field.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: '1',
+          code: 'Numpad1',
+          bubbles: true,
+        })
+      );
+    });
+    expect(field).toHaveFocus();
+    act(() => {
+      document.body.focus();
+    });
+    press({ key: '1', code: 'Numpad1' });
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus();
+  });
+
+  it("takes a letter by its key only, not another layout's letter in its place", () => {
+    render(<ToastContainer hotkey={['altKey', 'KeyT']} />);
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    // On a layout where the KeyT position types another Latin letter.
+    press({ key: 'z', code: 'KeyT', altKey: true });
+    expect(document.activeElement).toBe(document.body);
   });
 
   it('names its region in the language it is given', () => {
