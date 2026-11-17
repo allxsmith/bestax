@@ -9,6 +9,23 @@
 // `_delete.scss`, so the selector names its class twice to outrank Bulma's
 // `.navbar-burger span`, wherever the two load.
 //
+// An active or selected item in forced colors: Bulma marks a link item, a
+// `.navbar-link` and a dropdown's row that are active or selected with a fill
+// and a text color alone, which forced colors replaces with the system's, so
+// the current item looks like every other one there. The same block draws a
+// bar in Highlight, the system's color for a selection, which Menu marks its
+// active item in too. It runs along the bottom of an item in a row, and down
+// the start edge of one where the items stack: a dropdown's rows, and the menu
+// the burger opens. It sits in the item's padding, and Bulma positions the
+// item already. The bar is a pseudo-element's background, a system color the
+// browser keeps, rather than a fill of the item, so the browser goes on
+// adjusting the item and everything in it, its text, an icon and its focus
+// ring, to the user's colors. It's `::before`, since a `.navbar-link`'s arrow
+// is its `::after`. An active tab gets it above Bulma's thicker underline, and
+// a `.has-dropdown` item that's `is-active`, an open dropdown rather than the
+// current page, isn't a link item. It reads the classes Bulma highlights, so a
+// hand-written `.is-active` link gets it too.
+//
 // A navbar fixed to the top or the bottom of the window (`Navbar fixed`)
 // spans it. While an overlay locks the page, the window takes back the room
 // the page's scrollbar had, and the lock pads the page by it, so a margin of
@@ -71,11 +88,44 @@
 @use '../variables' as *;
 @use '../color-classes' as *;
 
+// An active or selected link item or `.navbar-link`.
+$-current: ':is(a.#{iv.$class-prefix}navbar-item, .#{iv.$class-prefix}navbar-link):is(.#{iv.$class-prefix}is-active, .#{iv.$class-prefix}is-selected)';
+
+// The bar down the start edge, where the items stack.
+@mixin -start-edge-bar {
+  inset-block: 0;
+  inset-inline: 0 auto;
+  width: 0.25em;
+  height: auto;
+}
+
 @media (forced-colors: active) {
   .#{iv.$class-prefix}navbar-burger.#{iv.$class-prefix}navbar-burger span {
     // Opt out so Chromium keeps these bars in ButtonText, not Canvas.
     forced-color-adjust: none;
     background-color: ButtonText;
+  }
+
+  #{$-current}::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0.75rem;
+    bottom: 0;
+    height: 0.25em;
+    background-color: Highlight;
+  }
+
+  .#{iv.$class-prefix}navbar-dropdown #{$-current}::before {
+    @include -start-edge-bar;
+  }
+}
+
+// Under the burger, the menu it opens stacks its items.
+@include mx.touch {
+  @media (forced-colors: active) {
+    .#{iv.$class-prefix}navbar-menu #{$-current}::before {
+      @include -start-edge-bar;
+    }
   }
 }
 
