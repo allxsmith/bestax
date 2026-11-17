@@ -990,7 +990,7 @@
       "slug": "components/loading",
       "import": "import { Loading } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 10,
+      "propCount": 11,
       "exampleCount": 7
     },
     {
