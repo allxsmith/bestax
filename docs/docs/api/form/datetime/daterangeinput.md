@@ -276,6 +276,7 @@ function RangeFormDemo() {
 
 - The root is a `role="group"` named by `label` through `aria-labelledby`, since the label names two inputs rather than one. Inside a labeled `Field`, that `Field`'s label names the group the same way, whether the `Field` holds `DateRangeInput` or a `DateRangeInputBase` you composed in a `Control` yourself, `inline` or not. An `aria-label` or `aria-labelledby` you give the group wins over either label.
 - Each input is a `role="combobox"` with `aria-haspopup="dialog"`, `aria-expanded` and `aria-controls`, and its own name: "Start date" or "End date", from the `labels` keys `rangeStart` and `rangeEnd`. The separator between them is hidden from assistive technology.
+- `aria-invalid` and `aria-errormessage` go on both inputs, marking the range as a whole, while the other attributes you pass go on the group, so a screen reader hears an input is invalid when it takes focus. An `inline` picker has no input, and they stay on its group.
 - The popover is a `role="dialog"` named "Choose date range" (`labels.chooseDateRange`). Opening it puts focus on the calendar's focused day, and closing it returns focus to the input you were last in, or to the start input.
 - With `monthsToShow`, each month is a grid of its own, named by its month and year, and the calendar keeps one tab stop across them.
 - The day grid is `aria-multiselectable`, and its days sit in a `role="row"` per week. Every day of the range is `aria-selected`, both ends included. While the end is still being picked, only the start is: the preview is not a selection.
