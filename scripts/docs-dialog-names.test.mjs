@@ -68,14 +68,10 @@ function sourcesOf(rel) {
  * expression other than `undefined`, `null` or `false`.
  */
 function holdsValue(prop) {
-  const value = prop.initializer;
-  if (value === undefined) return false;
-  if (ts.isStringLiteral(value)) return value.text.trim() !== '';
-  const expr = value.expression;
+  const text = literalText(prop);
+  if (text !== undefined) return text.trim() !== '';
+  const expr = prop.initializer?.expression;
   if (expr === undefined) return false;
-  if (ts.isStringLiteral(expr) || ts.isNoSubstitutionTemplateLiteral(expr)) {
-    return expr.text.trim() !== '';
-  }
   return !(
     expr.kind === ts.SyntaxKind.NullKeyword ||
     expr.kind === ts.SyntaxKind.FalseKeyword ||
@@ -92,21 +88,30 @@ function drawnAsContent(attributes) {
     prop =>
       !ts.isJsxSpreadAttribute(prop) &&
       prop.name.getText() === 'type' &&
-      prop.initializer !== undefined &&
-      ts.isStringLiteral(prop.initializer) &&
-      prop.initializer.text === 'content'
+      literalText(prop) === 'content'
   );
+}
+
+/**
+ * An attribute's value when it's written as a string with nothing in it to
+ * work out, `type="content"` or `type={'content'}`, else `undefined`.
+ */
+function literalText(prop) {
+  const value = prop.initializer;
+  if (value === undefined) return undefined;
+  if (ts.isStringLiteral(value)) return value.text;
+  const expr = value.expression;
+  if (expr === undefined) return undefined;
+  return ts.isStringLiteral(expr) || ts.isNoSubstitutionTemplateLiteral(expr)
+    ? expr.text
+    : undefined;
 }
 
 /** Whether an attribute's value is written as a string. */
 function writtenAsText(prop) {
-  const value = prop.initializer;
-  if (ts.isStringLiteral(value)) return true;
-  const expr = value.expression;
   return (
-    ts.isStringLiteral(expr) ||
-    ts.isNoSubstitutionTemplateLiteral(expr) ||
-    ts.isTemplateExpression(expr)
+    literalText(prop) !== undefined ||
+    ts.isTemplateExpression(prop.initializer.expression)
   );
 }
 
@@ -189,7 +194,15 @@ describe('Modal in the examples', () => {
       ['<Modal active type="content" modalCardTitle="Edit">x</Modal>', true],
       ['<Modal active type="content" modalCardTitle={`Edit`}>x</Modal>', true],
       [
+        '<Modal active type="content" modalCardTitle={`Edit ${name}`}>x</Modal>',
+        true,
+      ],
+      [
         '<Modal active type="content" modalCardTitle={<em>Edit</em>}>x</Modal>',
+        false,
+      ],
+      [
+        "<Modal active type={'content'} modalCardTitle={<em>Edit</em>}>x</Modal>",
         false,
       ],
       ['<Modal active modalCardTitle={<em>Edit</em>}>x</Modal>', true],
@@ -222,7 +235,8 @@ describe('Modal in the examples', () => {
     assert.deepEqual(
       nameless,
       [],
-      'These open a dialog with no name. Give each `modalCardTitle`, or an ' +
+      'These open a dialog with no name. Give each `modalCardTitle`, ' +
+        'written as a string when the modal is drawn as content, or an ' +
         '`aria-label`, or an `aria-labelledby` pointing at a heading ' +
         'inside it:\n  ' +
         nameless.join('\n  ')
