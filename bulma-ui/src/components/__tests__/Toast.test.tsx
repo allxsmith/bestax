@@ -2534,6 +2534,27 @@ describe('Focus when a toast closes', () => {
 
   // A toast calls `onClose` before it hides, so the container can tell a
   // toast closing from one moving. One that throws still closes the toast.
+  it('calls onClose once, while the toast is still on the page, and then hides it', () => {
+    const seen: boolean[] = [];
+    render(
+      <Toast
+        message="Saved"
+        duration={2000}
+        closable
+        onClose={() => seen.push(screen.queryByText('Saved') !== null)}
+      />
+    );
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    });
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      vi.advanceTimersByTime(5000);
+    });
+    expect(seen).toEqual([true]);
+    expect(screen.queryByText('Saved')).not.toBeInTheDocument();
+  });
+
   it('hides a toast whose onClose throws', () => {
     const swallow = (event: ErrorEvent) => event.preventDefault();
     window.addEventListener('error', swallow);
