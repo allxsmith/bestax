@@ -314,10 +314,11 @@ Rules of thumb:
   `aria-describedby`, so the error is read when the field takes focus. Use `'success'` to signal a
   valid field.
 - `aria-invalid` reaches the input on `Input`, `TextArea`, `Select`, `PasswordInput`,
-  `Numberinput`, `PinInput`, `File`, `ColorInput` and `Combobox.Input`. The date and time inputs,
-  `Autocomplete`, `Taginput`, `TreeSelect`, `Cascader` and a `Combobox` with `data` put the other
-  attributes on their wrapper, so there it doesn't reach the input yet; the `message` still
-  carries the error.
+  `Numberinput`, `PinInput`, `File`, `ColorInput` and `Combobox.Input`. `DateInput`,
+  `TimeInput`, `DateTimeInput`, `Autocomplete`, `Taginput`, `TreeSelect`, `Cascader` and a
+  `Combobox` with `data` put their other attributes on a wrapper, and `aria-invalid` and
+  `aria-errormessage` on the input. On `DateRangeInput` and `ColorPicker.Input` it doesn't reach
+  the input yet; the `message` still carries the error.
 - A field that asks for the user's own details takes its `autoComplete` token (`name`,
   `given-name`, `family-name`, `email`, `tel`, `address-line1`, `address-level2`, `postal-code`,
   `country`, `new-password`, …; the full list is HTML's autofill field names), so the browser can
