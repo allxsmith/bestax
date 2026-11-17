@@ -140,8 +140,10 @@ export interface SliderSingleProps extends SliderBaseProps {
   /** Controlled value. */
   value?: number | undefined;
   /**
-   * Default value for uncontrolled usage.
-   * @defaultValue 0
+   * Default value for uncontrolled usage. Without it a single Slider starts
+   * at 0, or at `min` when 0 is below it, or at the highest value it holds
+   * when 0 is above that. A range Slider starts at `min` and that highest
+   * value.
    */
   defaultValue?: number | undefined;
   /** Callback when value changes. */
@@ -249,6 +251,18 @@ function highestStep(min: number, max: number, step: number): number {
   // fifteen can round a hair above it, as Chromium and WebKit hold it: with
   // a max and step of 0.7 + 0.1, 0.7999999999999999, they hold 0.8.
   return Number.isInteger(top) ? top : Number(top.toPrecision(15));
+}
+
+/**
+ * Where a single Slider with no `defaultValue` starts: 0, or `min` when 0 is
+ * below it, or the highest step when 0 is above that, which is where the
+ * browser puts the thumb then (#2108). Bounds that aren't finite numbers
+ * leave it at 0.
+ */
+function startInRange(min: number, max: number, step: number): number {
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return 0;
+  const top = highestStep(min, max, step);
+  return 0 < min ? min : 0 > top ? top : 0;
 }
 
 /**
@@ -480,7 +494,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         : [min, min]
     );
     const [internalSingle, setInternalSingle] = useState<number>(() =>
-      !range ? ((defaultValue as number) ?? 0) : 0
+      !range ? ((defaultValue as number) ?? startInRange(min, max, step)) : 0
     );
     const [showTooltip, setShowTooltip] = useState(false);
     const [showTooltipHigh, setShowTooltipHigh] = useState(false);

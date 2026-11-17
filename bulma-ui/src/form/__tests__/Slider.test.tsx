@@ -497,6 +497,77 @@ describe('Slider', () => {
       expect(handleChange).not.toHaveBeenCalled();
     });
 
+    // Without a defaultValue a single Slider started at 0 whatever its range,
+    // so with min above 0 the browser put the thumb, and a form's value, at
+    // min while aria-valuenow, the bubble and the fill said 0 (#2108).
+    describe('start without a defaultValue', () => {
+      it('starts at min when min is above 0', () => {
+        const { container } = render(
+          <Slider aria-label="Volume" min={10} max={90} tooltip="always" />
+        );
+        const input = screen.getByRole('slider') as HTMLInputElement;
+        expect(input).toHaveAttribute('aria-valuenow', '10');
+        expect(container.querySelector('output')).toHaveTextContent('10');
+        expect(input.style.getPropertyValue('--slider-progress')).toBe('0%');
+      });
+
+      it.each([
+        // max below 0.
+        [-10, -2, 4, '-2', '100%'],
+        // 0 is max, but off the grid, so above the highest step.
+        [-10, 0, 3, '-1', '90%'],
+      ])(
+        'starts at the highest step when 0 is above it (min %s, max %s, step %s)',
+        (min, max, step, start, fill) => {
+          const { container } = render(
+            <Slider
+              aria-label="Depth"
+              min={min}
+              max={max}
+              step={step}
+              tooltip="always"
+            />
+          );
+          const input = screen.getByRole('slider') as HTMLInputElement;
+          expect(input).toHaveAttribute('aria-valuenow', start);
+          expect(container.querySelector('output')).toHaveTextContent(start);
+          expect(input.style.getPropertyValue('--slider-progress')).toBe(fill);
+        }
+      );
+
+      it('starts at 0 when 0 is in range, as before', () => {
+        render(<Slider aria-label="Balance" min={-50} max={50} />);
+        expect(screen.getByRole('slider')).toHaveAttribute(
+          'aria-valuenow',
+          '0'
+        );
+      });
+
+      it.each([NaN, -Infinity])('starts at 0 when min is %s', min => {
+        // React warns about the attribute, which this test means to pass.
+        const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+        try {
+          render(<Slider aria-label="Volume" min={min} max={-5} />);
+          expect(screen.getByRole('slider')).toHaveAttribute(
+            'aria-valuenow',
+            '0'
+          );
+        } finally {
+          error.mockRestore();
+        }
+      });
+
+      it('keeps a defaultValue as given', () => {
+        render(
+          <Slider aria-label="Volume" min={10} max={90} defaultValue={5} />
+        );
+        expect(screen.getByRole('slider')).toHaveAttribute(
+          'aria-valuenow',
+          '5'
+        );
+      });
+    });
+
     // The browser holds a range input's value on the steps counted from min,
     // so with max between two steps End reported max while the thumb sat on
     // the last step below it (#2001).
