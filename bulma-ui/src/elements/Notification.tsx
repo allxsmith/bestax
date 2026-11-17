@@ -584,7 +584,8 @@ const notificationStackStyle = (
  * When a notification closes with focus inside it, focus moves to the close
  * button of the next notification in its stack that stays open and has one,
  * or else of the one before it, or, with neither, back to where it was before
- * it went into a notification. Focus anywhere else stays where it is.
+ * it went into a notification, while that's still on the page. Focus anywhere
+ * else stays where it is.
  *
  * @function
  * @param {{ position?: NotificationPosition }} props - Container props.
