@@ -328,6 +328,11 @@ Rules of thumb:
   form the identifier is `username`, even when it's an email, beside a `PasswordInput`, which
   sets `current-password` itself. A form with two addresses puts `shipping` or `billing` in front
   of each token, as the Fieldset above does.
+- A loading spinner (`isLoading`) is only drawn, so a screen reader hears nothing of it. While a
+  field loads, say so in its `message` too (`message="Loading countries…"`), or, on a field with
+  no `message` of its own, in text tied to it with `aria-describedby`: either is read when the
+  field takes focus. A load that starts while the user is in the field, such as a search as they
+  type, isn't reliably heard without a live region, such as a `role="status"` element.
 - Want a different validation library? Wire it up yourself — pass its `value`/`onChange`/error
   string into these props. bestax does not prescribe one.
 - For grouped controls, render the `<p class="help">` via the `message` prop of the convenience
