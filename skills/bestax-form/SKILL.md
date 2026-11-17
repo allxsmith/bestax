@@ -327,7 +327,8 @@ Rules of thumb:
   `address-line1`, since `street-address` is for a whole address in a `TextArea`. On a sign-in
   form the identifier is `username`, even when it's an email, beside a `PasswordInput`, which
   sets `current-password` itself. A form with two addresses puts `shipping` or `billing` in front
-  of each token, as the Fieldset above does.
+  of each token, as the Fieldset above does. A date of birth in a `DateInput` takes `bday`, which
+  goes on its field.
 - Want a different validation library? Wire it up yourself — pass its `value`/`onChange`/error
   string into these props. bestax does not prescribe one.
 - For grouped controls, render the `<p class="help">` via the `message` prop of the convenience
