@@ -360,13 +360,6 @@ describe('Radios', () => {
       expect(screen.getByRole('button', { name: 'After' })).toHaveFocus();
     });
 
-    it('generates a name for an empty one, which groups nothing', () => {
-      render(<Sizes name="" />);
-      const name = radio('Small').name;
-      expect(name).not.toBe('');
-      expect(radio('Large').name).toBe(name);
-    });
-
     it('sends a checked radio with a form under the name it generates', () => {
       render(
         <form aria-label="Order">
@@ -390,6 +383,14 @@ describe('Radios', () => {
       );
       expect(radio('Small').name).toBe('size');
       expect(radio('Medium').name).toBe('own');
+    });
+
+    it('keeps an empty name it is given as it is', () => {
+      // An explicit value keeps its meaning, so an empty name still groups
+      // nothing and sends nothing with a form.
+      render(<Sizes name="" />);
+      expect(radio('Small').name).toBe('');
+      expect(radio('Large').name).toBe('');
     });
 
     it('names its radio cards too', () => {
