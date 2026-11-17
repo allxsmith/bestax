@@ -167,92 +167,24 @@ Pull in only the helper categories you use:
 @use 'bulma/sass/helpers/other';
 ```
 
-With `bulma/sass/helpers/color`, add bestax's `helpers/color` partial too, which the next section lists and says what it adjusts.
+With `bulma/sass/helpers/color`, add bestax's `helpers/color` partial too. The next section says what it adjusts.
 
 #### bestax extras partials
 
-bestax ships SCSS partials for every component it adds on top of Bulma. Import them the same way via the package's `scss/*` export:
+bestax ships SCSS partials for the components it adds on top of Bulma that need styles of their own, and for some of the stock Bulma components it adjusts. Load the ones your app uses the same way, through the package's `scss/*` export. The [extras inventory](https://github.com/allxsmith/bestax/blob/main/skills/bestax-optimize/references/modular-build.md#authoritative-bestax-extras-inventory) in the bestax-optimize skill lists every partial by folder, and is checked against the partials the package ships.
+
+For example, an app with a `Dialog`, a `Tooltip` and an `Autocomplete`, that also uses the Bulma button and navbar modules and the color helpers above:
 
 ```scss
-// bestax components
 @use '@allxsmith/bestax-bulma/scss/components/dialog';
-@use '@allxsmith/bestax-bulma/scss/components/modal' as bestax-modal;
-@use '@allxsmith/bestax-bulma/scss/components/carousel';
-@use '@allxsmith/bestax-bulma/scss/components/lightbox';
 @use '@allxsmith/bestax-bulma/scss/components/tooltip';
-@use '@allxsmith/bestax-bulma/scss/components/loading';
-@use '@allxsmith/bestax-bulma/scss/components/collapse';
-@use '@allxsmith/bestax-bulma/scss/components/sidebar';
-@use '@allxsmith/bestax-bulma/scss/components/toast';
-@use '@allxsmith/bestax-bulma/scss/components/steps';
-@use '@allxsmith/bestax-bulma/scss/components/tabs' as bestax-tabs;
-@use '@allxsmith/bestax-bulma/scss/components/menu' as bestax-menu;
-@use '@allxsmith/bestax-bulma/scss/components/emptystate';
-@use '@allxsmith/bestax-bulma/scss/components/timeline';
-@use '@allxsmith/bestax-bulma/scss/components/treeview';
-@use '@allxsmith/bestax-bulma/scss/components/scrollarea';
-@use '@allxsmith/bestax-bulma/scss/components/tableofcontents';
-@use '@allxsmith/bestax-bulma/scss/components/command';
-@use '@allxsmith/bestax-bulma/scss/components/datatable';
-@use '@allxsmith/bestax-bulma/scss/components/pagination' as bestax-pagination;
-@use '@allxsmith/bestax-bulma/scss/components/affix';
-@use '@allxsmith/bestax-bulma/scss/components/floatbutton';
-@use '@allxsmith/bestax-bulma/scss/components/navbar' as bestax-navbar;
-@use '@allxsmith/bestax-bulma/scss/components/panel' as bestax-panel;
-@use '@allxsmith/bestax-bulma/scss/components/tour';
-
-// bestax layout
-@use '@allxsmith/bestax-bulma/scss/layout/appframe';
-@use '@allxsmith/bestax-bulma/scss/layout/splitter';
-@use '@allxsmith/bestax-bulma/scss/layout/stack';
-
-// bestax form components
 @use '@allxsmith/bestax-bulma/scss/form/autocomplete';
-@use '@allxsmith/bestax-bulma/scss/form/combobox';
-@use '@allxsmith/bestax-bulma/scss/form/taginput';
-@use '@allxsmith/bestax-bulma/scss/form/rate';
-@use '@allxsmith/bestax-bulma/scss/form/slider';
-@use '@allxsmith/bestax-bulma/scss/form/numberinput';
-@use '@allxsmith/bestax-bulma/scss/form/pininput';
-@use '@allxsmith/bestax-bulma/scss/form/switch';
-@use '@allxsmith/bestax-bulma/scss/form/checkbox';
-@use '@allxsmith/bestax-bulma/scss/form/checkboxcard';
-@use '@allxsmith/bestax-bulma/scss/form/radio';
-@use '@allxsmith/bestax-bulma/scss/form/radiocard';
-@use '@allxsmith/bestax-bulma/scss/form/fieldset';
-@use '@allxsmith/bestax-bulma/scss/form/field';
-@use '@allxsmith/bestax-bulma/scss/form/file' as bestax-file;
-@use '@allxsmith/bestax-bulma/scss/form/dropzone';
-@use '@allxsmith/bestax-bulma/scss/form/colorpicker';
-@use '@allxsmith/bestax-bulma/scss/form/colorinput';
-@use '@allxsmith/bestax-bulma/scss/form/passwordinput';
-@use '@allxsmith/bestax-bulma/scss/form/treeselect';
-@use '@allxsmith/bestax-bulma/scss/form/cascader';
-
-// bestax elements and helpers
 @use '@allxsmith/bestax-bulma/scss/elements/button' as bestax-button;
-@use '@allxsmith/bestax-bulma/scss/elements/colorswatch';
-@use '@allxsmith/bestax-bulma/scss/elements/delete' as bestax-delete;
-@use '@allxsmith/bestax-bulma/scss/elements/descriptionlist';
-@use '@allxsmith/bestax-bulma/scss/elements/divider';
-@use '@allxsmith/bestax-bulma/scss/elements/iconbutton';
-@use '@allxsmith/bestax-bulma/scss/elements/kbd';
-@use '@allxsmith/bestax-bulma/scss/elements/linkbutton';
-@use '@allxsmith/bestax-bulma/scss/elements/loader' as bestax-loader;
-@use '@allxsmith/bestax-bulma/scss/elements/notification' as bestax-notification;
-@use '@allxsmith/bestax-bulma/scss/elements/progress' as bestax-progress;
-@use '@allxsmith/bestax-bulma/scss/elements/ringprogress';
-@use '@allxsmith/bestax-bulma/scss/elements/skeleton' as bestax-skeleton;
-@use '@allxsmith/bestax-bulma/scss/elements/stat';
-@use '@allxsmith/bestax-bulma/scss/elements/table' as bestax-table;
-@use '@allxsmith/bestax-bulma/scss/elements/tag' as bestax-tag;
+@use '@allxsmith/bestax-bulma/scss/components/navbar' as bestax-navbar;
 @use '@allxsmith/bestax-bulma/scss/helpers/color' as bestax-color;
-@use '@allxsmith/bestax-bulma/scss/helpers/cursor';
-@use '@allxsmith/bestax-bulma/scss/helpers/sizing';
-@use '@allxsmith/bestax-bulma/scss/helpers/visibility' as bestax-visibility;
 ```
 
-Some of these partials adjust a stock Bulma component rather than add one of bestax's.
+Some partials adjust a stock Bulma component rather than add one of bestax's.
 
 - `elements/notification` keeps a `Notification`'s text clear of its close button, and gives a dark or light one its color's own text and background, and a white or black one with `isLight` the light color's text, where Bulma's module lets its text inherit the color around it, so a build that uses `bulma/sass/elements/notification` wants it too.
 
@@ -292,7 +224,7 @@ Some of these partials adjust a stock Bulma component rather than add one of bes
 
 - `helpers/visibility` draws `is-sr-only` at each breakpoint, which Bulma draws only at every width and the viewport visibility props write for `'sr-only'` (`visibilityTablet="sr-only"`), so a build that uses `bulma/sass/helpers/visibility` for those props wants it too.
 
-A partial like that can end in the same name as the Bulma module it adjusts, and Sass refuses two `@use` lines with the same name in one file, so the `@use` block above the list gives those lines a name of their own with `as`. The name changes nothing in the compiled CSS.
+A partial like that can end in the same name as the Bulma module it adjusts, and Sass refuses two `@use` lines with the same name in one file, so load it with a name of its own, `as bestax-<name>`, as the example above does. The name changes nothing in the compiled CSS.
 
 Others draw on a stock Bulma component without adjusting it.
 
