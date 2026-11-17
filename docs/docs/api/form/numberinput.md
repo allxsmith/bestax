@@ -180,15 +180,18 @@ Number input where you can only use the buttons (not type directly).
 
 The buttons show only a sign or an arrow, so a screen reader and speech input go by their names,
 "Increase value" and "Decrease value". In another language, `labels` names them in the page's
-language.
+language. Here the page is English, so a `lang="fr"` around the field tells a screen reader to
+read it in French.
 
 ```tsx live
-<Numberinput
-  label="Quantité"
-  defaultValue={2}
-  min={1}
-  labels={{ increase: 'Augmenter', decrease: 'Diminuer' }}
-/>
+<Block lang="fr">
+  <Numberinput
+    label="Quantité"
+    defaultValue={2}
+    min={1}
+    labels={{ increase: 'Augmenter', decrease: 'Diminuer' }}
+  />
+</Block>
 ```
 
 ---
