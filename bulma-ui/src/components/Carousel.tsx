@@ -197,8 +197,8 @@ export interface CarouselProps
    */
   itemsToShowFullhd?: number;
   /**
-   * How many items one step moves, for an arrow, an arrow key, a swipe or an
-   * autoplay tick. A whole number, capped at the count in view so a step
+   * How many items one step moves, for an arrow, an arrow key on an arrow, a
+   * swipe or an autoplay tick. A whole number, capped at the count in view so a step
    * never skips an item. Without `repeat`, the last step stops at the last
    * full view, so it can be shorter; with `repeat`, the step after the last
    * position goes on to the first one. The indicators mark these positions,
@@ -220,7 +220,10 @@ export interface CarouselProps
   /**
    * Show slide indicators. Default: true. There is one for each position a
    * step can land on (see `itemsToScroll`). They render `type="button"`, so
-   * a carousel inside a form is not submitted by picking a slide.
+   * a carousel inside a form is not submitted by picking a slide. Left and
+   * Right on an indicator move focus to the indicator beside it and bring
+   * its slide into view, as a click on it does, mirrored on a right-to-left
+   * page.
    */
   indicator?: boolean;
   /**
@@ -283,7 +286,15 @@ export interface CarouselProps
    * arrows take `--bulma-carousel-overlay-arrow-color`.
    */
   arrowColor?: 'light' | 'dark';
-  /** Accessible label for the carousel region. Default: 'Image carousel'. */
+  /**
+   * The carousel region's name. Name it for what it shows, such as
+   * "Featured products", and leave out the word "carousel", which the
+   * region's role description already says. Under a visible heading,
+   * `aria-labelledby` with the heading's id names it instead, ahead of the
+   * `aria-label` the default still sets. The default is a placeholder that
+   * says "carousel" twice with the role description, and is the same on
+   * every carousel left with it. Default: 'Image carousel'.
+   */
   ariaLabel?: string;
   /**
    * Called with the index of the first item in view when an arrow, an arrow
@@ -304,7 +315,7 @@ export interface CarouselProps
  *
  * @example
  * // Basic carousel
- * <Carousel>
+ * <Carousel ariaLabel="Highlights">
  *   <CarouselItem>Slide 1</CarouselItem>
  *   <CarouselItem>Slide 2</CarouselItem>
  *   <CarouselItem>Slide 3</CarouselItem>
@@ -312,7 +323,7 @@ export interface CarouselProps
  *
  * @example
  * // Auto-playing carousel
- * <Carousel autoplay interval={3000}>
+ * <Carousel ariaLabel="Photos" autoplay interval={3000}>
  *   <CarouselItem>
  *     <img src="image1.jpg" alt="Slide 1" />
  *   </CarouselItem>
@@ -323,7 +334,12 @@ export interface CarouselProps
  *
  * @example
  * // Three cards in view on desktop, two on tablet, one on mobile
- * <Carousel itemsToShow={1} itemsToShowTablet={2} itemsToShowDesktop={3}>
+ * <Carousel
+ *   ariaLabel="Featured products"
+ *   itemsToShow={1}
+ *   itemsToShowTablet={2}
+ *   itemsToShowDesktop={3}
+ * >
  *   {cards.map(card => (
  *     <CarouselItem key={card.id}>{card.body}</CarouselItem>
  *   ))}
@@ -521,6 +537,20 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     const goToPrevRef = useLatestRef(goToPrev);
     const goToNextRef = useLatestRef(goToNext);
 
+    // Left and Right on the indicator at `at` go to the one beside it:
+    // focus moves there and its slide comes into view, as a click on it
+    // does. Past either end they go round when the carousel loops, and
+    // stay put when it doesn't.
+    const stepIndicatorRef = useLatestRef((at: number, forward: boolean) => {
+      let to = at + (forward ? 1 : -1);
+      if (to < 0 || to >= positions.length) {
+        if (!looping) return;
+        to = (to + positions.length) % positions.length;
+      }
+      setActiveIndex(positions[to]);
+      (indicatorsRef.current!.children[to] as HTMLElement).focus();
+    });
+
     // Auto-play. Each slide gets the whole interval, so a slide change,
     // autoplay's own or the user's, starts the timer over. A render that
     // leaves the slide where it is doesn't. It waits while focus is anywhere
@@ -612,22 +642,24 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
 
         // The arrow points where the slide comes from: right to left the
         // next one is on the left.
+        // A modified arrow, such as Alt+Left for the browser's Back, is the
+        // browser's, and one the page has handled is the page's.
+        if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+        if (e.altKey || e.ctrlKey || e.metaKey || e.defaultPrevented) return;
+        e.preventDefault();
         const rtl = getComputedStyle(node).direction === 'rtl';
-        switch (e.key) {
-          case 'ArrowLeft':
-            e.preventDefault();
-            (rtl ? goToNextRef : goToPrevRef).current();
-            break;
-          case 'ArrowRight':
-            e.preventDefault();
-            (rtl ? goToPrevRef : goToNextRef).current();
-            break;
-        }
+        const forward = (e.key === 'ArrowRight') !== rtl;
+        const at = Array.prototype.indexOf.call(
+          indicatorsRef.current?.children ?? [],
+          active
+        );
+        if (at >= 0) stepIndicatorRef.current(at, forward);
+        else (forward ? goToNextRef : goToPrevRef).current();
       };
 
       document.addEventListener('keydown', handleKeyDown);
       return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [goToPrevRef, goToNextRef]);
+    }, [goToPrevRef, goToNextRef, stepIndicatorRef]);
 
     // Handle wrap-around transition end: the track's own, since an item's
     // content can end a transition of its own that bubbles up to here

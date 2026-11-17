@@ -519,7 +519,11 @@ function example() {
 - `Navbar.Link` inside a `Navbar.Dropdown` automatically gets `aria-haspopup="true"` and
   `aria-expanded` synced to the dropdown's open state — no manual wiring required.
   <kbd>Enter</kbd>/<kbd>Space</kbd> toggle the dropdown open/closed, and <kbd>Escape</kbd>
-  closes it and keeps focus on the link. When the trigger isn't interactive on its own — no
+  closes it and keeps focus on the link. <kbd>Escape</kbd> anywhere else in the open dropdown, its
+  menu included, puts focus back on the link and closes it too, unless a control there marks the
+  key used, the key comes from a dialog or from content opened from the menu into a portal, or
+  focus can't go back to the link. A `hoverable` dropdown's menu still shows while the pointer is
+  on the dropdown or focus is in it, the link included. When the trigger isn't interactive on its own — no
   `href`, not `as="button"`, and not a custom component — it also gets `role="button"` and
   `tabIndex={0}` so it's reachable and operable by keyboard, and a mouse/touch click on it
   toggles the dropdown too (a caller-supplied `onClick` still runs, and can
@@ -699,17 +703,17 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navba
 
 ### Navbar.Dropdown
 
-| Prop             | Type                            | Default | Description                                      |
-| ---------------- | ------------------------------- | ------- | ------------------------------------------------ |
-| `className`      | `string`                        | —       | Additional CSS classes.                          |
-| `right`          | `boolean`                       | `false` | Dropdown aligned right.                          |
-| `up`             | `boolean`                       | `false` | Dropdown opens upwards.                          |
-| `hoverable`      | `boolean`                       | `false` | Dropdown opens on hover.                         |
-| `active`         | `boolean`                       | `false` | Dropdown is open.                                |
-| `onActiveChange` | `(active: boolean) => void`     | —       | Callback when dropdown active state changes.     |
-| `children`       | `React.ReactNode`               | —       | Dropdown content.                                |
-| `ref`            | `React.Ref<HTMLDivElement>`     | —       | Ref forwarded to the dropdown container element. |
-| `...`            | All standard `<div>` attributes | —       |                                                  |
+| Prop             | Type                            | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ---------------- | ------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className`      | `string`                        | —       | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `right`          | `boolean`                       | `false` | Dropdown aligned right.                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `up`             | `boolean`                       | `false` | Dropdown opens upwards.                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `hoverable`      | `boolean`                       | `false` | Dropdown opens on hover.                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `active`         | `boolean`                       | `false` | Dropdown is open, whether you control it or not. Escape on its `Navbar.Link`, or anywhere else in the open dropdown, closes it and puts focus on the link, unless a control there marks the key used, the key comes from a dialog or from content opened from the menu into a portal, or focus can't go back to the link. A `hoverable` dropdown's menu still shows while the pointer is on the dropdown or focus is in it, the link included. |
+| `onActiveChange` | `(active: boolean) => void`     | —       | Callback when dropdown active state changes.                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `children`       | `React.ReactNode`               | —       | Dropdown content.                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `ref`            | `React.Ref<HTMLDivElement>`     | —       | Ref forwarded to the dropdown container element.                                                                                                                                                                                                                                                                                                                                                                                               |
+| `...`            | All standard `<div>` attributes | —       |                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 
 ### Navbar.DropdownMenu
 

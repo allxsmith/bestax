@@ -329,7 +329,9 @@ export const AddonsStatic: Story = {
         <Input placeholder="Your email" />
       </Control>
       <Control>
-        <Button isStatic>@gmail.com</Button>
+        <Button as="span" isStatic>
+          @gmail.com
+        </Button>
       </Control>
     </Field>
   ),
@@ -532,7 +534,9 @@ export const HorizontalAddons: Story = {
       <Field.Body>
         <Field hasAddons>
           <Control>
-            <Button isStatic>+44</Button>
+            <Button as="span" isStatic>
+              +44
+            </Button>
           </Control>
           <Control isExpanded>
             <Input

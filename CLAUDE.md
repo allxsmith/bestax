@@ -131,7 +131,8 @@ as for a feature. CI catches some of these and not others, so a green run doesn'
   (the inventory, which stock components have a partial, and the starter's worked example), the
   quick example in `skills/bestax-optimize/SKILL.md` and its copy in
   `docs/docs/skills/optimize.mdx`, and `docs/docs/guides/getting-started/modular.md` (the
-  partials block, and the paragraphs on what each partial adjusts and what it needs). Only the
+  lists of what each partial adjusts or draws on, and what it needs). The guide's extras block
+  is a short example that links the inventory, so a new partial doesn't join it. Only the
   inventory has a test.
 - **Changed what a partial does,** for example it now applies outside forced colors: update how
   those same pages describe it.

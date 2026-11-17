@@ -23,7 +23,7 @@ import {
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
-import { useFieldMessage } from './useFieldMessage';
+import { splitControlState, useFieldMessage } from './useFieldMessage';
 import { Icon } from '../elements/Icon';
 
 /**
@@ -56,7 +56,9 @@ const isComposing = (e: React.KeyboardEvent): boolean =>
 const keepFocus = (e: React.MouseEvent) => e.preventDefault();
 
 /**
- * Props for the Taginput component.
+ * Props for the Taginput component. The other attributes go on the wrapper
+ * `<div>`, except `aria-invalid` and `aria-errormessage`, which report the
+ * input's state and go on the input.
  * Inside an outer `Field`, or a `Control` with no `Field` around it, it
  * renders no `Field` of its own. The exception is `label`, `message`,
  * `horizontal` or `fieldClassName` in that bare `Control`: it keeps a `Field`
@@ -287,7 +289,11 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       horizontal,
       fieldClassName,
     });
-    const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+    // The input takes `aria-invalid` and `aria-errormessage`, which report
+    // its state, and the wrapper the rest (#2002).
+    const { control: controlState, rest: wrapperProps } =
+      splitControlState(props);
+    const { bulmaHelperClasses, rest } = useBulmaClasses(wrapperProps);
     const { classPrefix } = useConfig();
     const defaultIconLibrary = useIconLibrary();
     const formatNumber = useScopedNumberFormat();
@@ -799,6 +805,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
               // limit it says why the field takes no more, and then the
               // message does.
               aria-describedby={describedBy}
+              {...controlState}
             />
           </div>
           {loading && (

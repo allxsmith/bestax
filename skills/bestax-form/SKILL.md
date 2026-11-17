@@ -45,12 +45,12 @@ using context (`useInsideField` / `useInsideControl`) to detect their surroundin
 
 ```tsx
 // Convenience: one line, auto-wrapped in Field + Control.
-<Input label="Email" type="email" placeholder="you@example.com" />
+<Input label="Email" type="email" autoComplete="email" placeholder="you@example.com" />
 
 // Explicit composition: full control over layout.
 <Field label="Email">
   <Control iconLeftName="envelope" hasIconsLeft>
-    <InputBase type="email" placeholder="you@example.com" />
+    <InputBase type="email" autoComplete="email" placeholder="you@example.com" />
   </Control>
 </Field>
 ```
@@ -87,8 +87,8 @@ still carries its own error.
 
 ```tsx
 <Fieldset legend="Shipping address" disabled={saving}>
-  <Input label="Street" name="street" />
-  <Input label="City" name="city" />
+  <Input label="Street" name="street" autoComplete="shipping address-line1" />
+  <Input label="City" name="city" autoComplete="shipping address-level2" />
 </Fieldset>
 ```
 
@@ -289,6 +289,7 @@ function SignupForm() {
       <Input
         label="Email"
         type="email"
+        autoComplete="email"
         value={email}
         onChange={e => setEmail(e.target.value)}
         onBlur={() => setTouched(true)}
@@ -314,10 +315,19 @@ Rules of thumb:
   `aria-describedby`, so the error is read when the field takes focus. Use `'success'` to signal a
   valid field.
 - `aria-invalid` reaches the input on `Input`, `TextArea`, `Select`, `PasswordInput`,
-  `Numberinput`, `PinInput`, `File`, `ColorInput` and `Combobox.Input`. The date and time inputs,
-  `Autocomplete`, `Taginput`, `TreeSelect`, `Cascader` and a `Combobox` with `data` put the other
-  attributes on their wrapper, so there it doesn't reach the input yet; the `message` still
-  carries the error.
+  `Numberinput`, `PinInput`, `File`, `ColorInput` and `Combobox.Input`. `DateInput`,
+  `TimeInput`, `DateTimeInput`, `Autocomplete`, `Taginput`, `TreeSelect`, `Cascader` and a
+  `Combobox` with `data` put their other attributes on a wrapper, and `aria-invalid` and
+  `aria-errormessage` on the input. On `DateRangeInput` and `ColorPicker.Input` it doesn't reach
+  the input yet; the `message` still carries the error.
+- A field that asks for the user's own details takes its `autoComplete` token (`name`,
+  `given-name`, `family-name`, `email`, `tel`, `address-line1`, `address-level2`, `postal-code`,
+  `country`, `new-password`, …; the full list is HTML's autofill field names), so the browser can
+  fill it and assistive tools can tell what it's for (WCAG 1.3.5). A one-line street field is
+  `address-line1`, since `street-address` is for a whole address in a `TextArea`. On a sign-in
+  form the identifier is `username`, even when it's an email, beside a `PasswordInput`, which
+  sets `current-password` itself. A form with two addresses puts `shipping` or `billing` in front
+  of each token, as the Fieldset above does.
 - Want a different validation library? Wire it up yourself — pass its `value`/`onChange`/error
   string into these props. bestax does not prescribe one.
 - For grouped controls, render the `<p class="help">` via the `message` prop of the convenience

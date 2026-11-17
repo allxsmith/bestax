@@ -52,7 +52,11 @@ import {
 import { useControlLoading } from './controlLoading';
 import { useFieldLabelTarget, useFieldsetDisabled } from './FormContext';
 import { useAutoLabelledBy } from './useAutoLabelId';
-import { joinIds, useFieldMessageId } from './useFieldMessage';
+import {
+  joinIds,
+  splitControlState,
+  useFieldMessageId,
+} from './useFieldMessage';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { Icon } from '../elements/Icon';
 
@@ -75,6 +79,8 @@ const SKIPPED_SEGMENTS: Record<
 /**
  * Props for the raw DateInput base. Use the higher-level `DateInput` for
  * Field/Control composition; `DateInputBase` is the input + popover only.
+ * `aria-invalid` and `aria-errormessage`, which report the input's state,
+ * go on the `<input>`, and inline, where there is none, on the `<div>`.
  *
  * @helperProps Helper props go on the `.dateinput-container` `<div>`, with
  * `className` and the other attributes, except that the background helpers
@@ -408,6 +414,11 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     const reactId = useId();
     const popoverId = id ? `${id}-popover` : `picker-${reactId}`;
 
+    // The input takes `aria-invalid` and `aria-errormessage`, which report
+    // its state, and the container the rest (#2002). With no input, inline,
+    // the container keeps them, as before.
+    const { control: controlState, rest: containerRest } =
+      splitControlState(rest);
     // The field takes the background and text helpers, since Bulma's `.input`
     // sets its own background and font. The container keeps the rest, and the
     // text helpers too where a popover inside it takes them.
@@ -417,7 +428,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       textClasses,
       otherClasses,
       rest: cleanRest,
-    } = useFieldHelperClasses(rest);
+    } = useFieldHelperClasses(containerRest);
 
     // Inline there's no input for a label's `for` to name, so the picker is a
     // group, as DateRangeInputBase is, when something names it: a labeled
@@ -641,6 +652,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
           {...cleanRest}
           ref={combinedRef}
           aria-describedby={joinIds(cleanRest['aria-describedby'], messageId)}
+          {...controlState}
           type={isDayGranularity ? 'date' : 'month'}
           className={classNames(inputClass, bulmaHelperClasses, className)}
           value={value ? toIsoValue(value, granularity) : ''}
@@ -714,6 +726,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
               messageId
             ),
           })}
+          {...controlState}
           ref={containerRef}
           className={classNames(containerClass, bulmaHelperClasses, className)}
         >
@@ -752,6 +765,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
           aria-controls={popoverId}
           autoComplete="off"
           aria-describedby={messageId}
+          {...controlState}
           className={classNames(inputClass, textClasses, backgroundClasses)}
           value={text}
           placeholder={placeholder}
