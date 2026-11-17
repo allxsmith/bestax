@@ -879,15 +879,15 @@ const SPECIALS: Record<string, SpecialHandler> = {
       );
       // A <caption> names the table too, and a moved `aria-label` would
       // take its place, so the container's name stays out of a table with
-      // one.
+      // one anywhere inside it, a conditional one included.
       const childNamed =
         TABLE_NAMES.some(name => findAttr(child, name)) ||
-        (child.children ?? []).some(
-          (c: any) =>
-            c.type === 'JSXElement' &&
-            c.openingElement.name?.type === 'JSXIdentifier' &&
-            c.openingElement.name.name === 'caption'
-        );
+        ctx
+          .j(child)
+          .find(ctx.j.JSXOpeningElement, {
+            name: { type: 'JSXIdentifier', name: 'caption' },
+          })
+          .size() > 0;
       const labelled = TABLE_NAMES.some(name => findAttr(child, name));
       const moved: any[] = [];
       // The container element is gone after the fold. What else it carried

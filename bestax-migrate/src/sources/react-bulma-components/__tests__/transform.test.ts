@@ -926,6 +926,22 @@ describe('react-bulma-components transform fixtures', () => {
         }
       );
 
+      it('keeps a caption the Table may render as its name', () => {
+        const todos: TodoEntry[] = [];
+        const { output } = runTransform(
+          transform,
+          'caption.tsx',
+          'import { Table } from "react-bulma-components";\n' +
+            'export const A = (p: any) => <Table.Container aria-label="Scroll"><Table>{p.c && <caption>Q3</caption>}</Table></Table.Container>;',
+          { add: entry => todos.push(entry) }
+        );
+        expect(output).not.toContain('Scroll"');
+        expect(todos.map(t => t.rule)).toEqual([
+          'prop:aria-label',
+          'name:Table',
+        ]);
+      });
+
       it('keeps a caption the Table has as its name, and asks for a name the container can take', () => {
         const todos: TodoEntry[] = [];
         const { output } = runTransform(
