@@ -120,7 +120,10 @@ Field/Control/message props. `TextArea` adds `rows` and `hasFixedSize`.
   checked list. It changes the look and the announcement, not the value: `checked` stays the
   value, so set both from the list.
 - `Checkboxes` — group wrapper managing an **array** value.
-- `Radios` — group wrapper managing a **single** selected value.
+- `Radios` — group wrapper managing a **single** selected value. Its radios share its `name`, or
+  one it generates when you give none, which is what makes them one group to the browser (one Tab
+  stop, the arrow keys, one checked). A checked radio is sent with a form under that name, so pass
+  `name` to choose the key.
 - Both take `as="fieldset"`: their own `Field` renders as a native `<fieldset>` and the `label` as
   its `<legend>`, in the label column when `horizontal`, naming the group with no ids. Inside an
   outer `Field` the group element itself is the `<fieldset>`, named by that `Field`'s label.
