@@ -19,6 +19,7 @@ import { Field } from './Field';
 import { Control } from './Control';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelledBy } from './useAutoLabelId';
+import { useFieldMessage } from './useFieldMessage';
 
 /** Available size modifiers for the Rate component. */
 export type RateSize = 'small' | 'medium' | 'large';
@@ -48,6 +49,34 @@ export interface RateIconProps {
 }
 
 /**
+ * The names a Rate gives assistive technology, for another language. Each one
+ * you leave out keeps its English default. A `LocaleProvider` doesn't change
+ * them.
+ */
+export interface RateLabels {
+  /**
+   * The group's name when no label names it and the Rate has no `aria-label`
+   * or `aria-labelledby`. An empty string keeps the default, since the group
+   * needs a name.
+   * @defaultValue 'Rating'
+   */
+  group?: string;
+  /**
+   * A star's name, from the value it stands for: its place, counting from 1,
+   * or on the checked star, the value to hundredths when that's fractional,
+   * as in 3.5. The value arrives as a number, so the plural and the way the
+   * number is written are yours: `useNumberFormat` writes it in a locale. An
+   * empty name keeps the default, since each star needs one.
+   * @defaultValue value => `${value} star${value === 1 ? '' : 's'}`
+   */
+  star?: (value: number) => string;
+}
+
+/** A star's English name, as Rate writes it unless `labels.star` is set. */
+const defaultStarLabel = (value: number) =>
+  `${value} star${value === 1 ? '' : 's'}`;
+
+/**
  * Props for the Rate component.
  * Inside an existing `Control` it renders no `Control` of its own. Inside an
  * outer `Field`, or a `Control` with no `Field` around it, it renders no
@@ -64,7 +93,7 @@ export interface RateProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange' | 'color'>,
     Omit<BulmaClassesProps, 'size'>,
     FormFieldProps {
-  /** Field label naming the rating group. Automatically associated via `aria-labelledby` on the `role="radiogroup"` container — uses your `labelProps.id` when provided, otherwise a generated one; it also replaces the default `aria-label="Rating"`. Dropped inside an outer `Field`, whose own label names the group instead through `aria-labelledby` when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`), and replaces the `aria-label="Rating"` fallback too. An `aria-label` or `aria-labelledby` you set on the group wins over either label, which still renders but no longer names it. An `aria-labelledby` key counts even when undefined, since it is spread over the group's own, and leaves the `"Rating"` fallback. */
+  /** Field label naming the rating group. Automatically associated via `aria-labelledby` on the `role="radiogroup"` container — uses your `labelProps.id` when provided, otherwise a generated one; it also replaces the fallback `aria-label` (`labels.group`, "Rating" by default). Dropped inside an outer `Field`, whose own label names the group instead through `aria-labelledby` when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`), and replaces that fallback too. An `aria-label` or `aria-labelledby` you set on the group wins over either label, which still renders but no longer names it. An `aria-labelledby` key counts even when undefined, since it is spread over the group's own, and leaves the fallback. */
   label?: React.ReactNode;
   /** Props for the label element. An explicit `id` here is used as the `aria-labelledby` target instead of a generated one; any `htmlFor` is ignored (a group label names the group, never a single control). */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
@@ -128,6 +157,12 @@ export interface RateProps
   precision?: number;
   /** Custom text displayed next to the rating. */
   customText?: string;
+  /**
+   * The names a screen reader hears, for another language: the group's
+   * fallback name and each star's. Unset, they're English, "Rating" and
+   * "3 stars". A `LocaleProvider` doesn't change them.
+   */
+  labels?: RateLabels;
 }
 
 /**
@@ -218,6 +253,7 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
       color,
       precision = 1,
       customText,
+      labels,
       name,
       form,
       className,
@@ -527,6 +563,9 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
     // number checks that number's star under its own name, and no two stars
     // share a name.
     const shownValue = Number(currentValue.toFixed(2));
+    // An empty name would leave the star with none, so it keeps the default.
+    const starLabel = (value: number) =>
+      labels?.star?.(value) || defaultStarLabel(value);
     const checkedIndex =
       shownValue > 0 ? Math.min(Math.ceil(shownValue), max) - 1 : -1;
 
@@ -559,11 +598,11 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
             id={`${starBaseId}-${iconIndex}`}
             role="radio"
             aria-checked={iconIndex === checkedIndex}
-            aria-label={
+            aria-label={starLabel(
               iconIndex === checkedIndex && shownValue % 1 !== 0
-                ? `${shownValue} stars`
-                : `${iconIndex + 1} star${iconIndex === 0 ? '' : 's'}`
-            }
+                ? shownValue
+                : iconIndex + 1
+            )}
             // The group's aria-disabled covers its stars too, but a screen
             // reader that doesn't carry it down still hears it here.
             aria-disabled={disabled || undefined}
@@ -579,10 +618,11 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
 
     const text = getText();
 
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+    const { messageEl, describedBy } = useFieldMessage(
+      message,
+      messageColor,
+      props['aria-describedby']
+    );
 
     const rateItemsClass = usePrefixedClassNames('rate-items');
     const rateScoreClass = usePrefixedClassNames('rate-score');
@@ -595,7 +635,7 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
         className={combinedClasses}
         role="radiogroup"
         // Fallback name only: a wired label names the group via labelledby.
-        aria-label={ariaLabelledBy ? undefined : 'Rating'}
+        aria-label={ariaLabelledBy ? undefined : labels?.group || 'Rating'}
         aria-labelledby={ariaLabelledBy}
         // Focus stays on the group, so point it at the checked star for
         // assistive technology to announce as the value changes.
@@ -608,6 +648,7 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
         tabIndex={disabled ? -1 : 0}
         onKeyDown={handleKeyDown}
         {...rest}
+        aria-describedby={describedBy}
       >
         <div className={rateItemsClass}>{renderIcons()}</div>
         {showScore && (

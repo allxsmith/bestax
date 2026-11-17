@@ -84,6 +84,13 @@ export interface SwitchProps
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Label content for the switch. */
   children?: React.ReactNode;
+  /**
+   * The input's role. Unset, the input is a native checkbox, so a screen
+   * reader announces the switch as a checkbox. Pass `"switch"` to have it
+   * announced as a switch. The input's checked state still carries the value,
+   * so `checked`, `onChange` and the form value work the same either way.
+   */
+  role?: React.AriaRole | undefined;
 }
 
 /**

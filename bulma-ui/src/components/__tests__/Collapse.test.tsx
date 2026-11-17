@@ -537,6 +537,108 @@ describe('Collapse', () => {
         container.querySelector('.collapse-content')?.parentElement;
       expect(wrapper?.style.opacity).toBe('0');
     });
+
+    describe('when the system asks for reduced motion', () => {
+      const original = window.matchMedia;
+      beforeEach(() => {
+        window.matchMedia = vi.fn().mockReturnValue({
+          matches: true,
+          media: '(prefers-reduced-motion: reduce)',
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        });
+      });
+      afterEach(() => {
+        window.matchMedia = original;
+      });
+
+      it.each([
+        ['fade', 'opacity', '0', '1'],
+        ['slide', 'height', '0px', 'auto'],
+      ] as const)(
+        'keeps the %s layout and drops its transition, open and closed',
+        (animation, property, closed, open) => {
+          const { container } = render(
+            <Collapse trigger={<span>Toggle</span>} animation={animation}>
+              Content
+            </Collapse>
+          );
+          const wrapper =
+            container.querySelector('.collapse-content')!.parentElement!;
+          const trigger = screen.getByRole('button');
+          // Closed, squeezed to nothing as without reduced motion.
+          expect(wrapper.style.transition).toBe('none');
+          expect(wrapper.style.overflow).toBe('hidden');
+          expect(wrapper.style[property]).toBe(closed);
+
+          // Open at once: a slide panel's full height with no wait.
+          fireEvent.click(trigger);
+          expect(trigger).toHaveAttribute('aria-expanded', 'true');
+          expect(wrapper.style.transition).toBe('none');
+          expect(wrapper.style[property]).toBe(open);
+
+          fireEvent.click(trigger);
+          expect(trigger).toHaveAttribute('aria-expanded', 'false');
+          expect(wrapper.style.transition).toBe('none');
+          expect(wrapper.style[property]).toBe(closed);
+        }
+      );
+
+      it('leaves a slide panel closed when motion is allowed again', () => {
+        // Off at first, then on and off again through the hook's listener
+        let reduce = false;
+        let listener: ((event: { matches: boolean }) => void) | undefined;
+        window.matchMedia = vi.fn().mockImplementation(() => ({
+          get matches() {
+            return reduce;
+          },
+          media: '(prefers-reduced-motion: reduce)',
+          addEventListener: (
+            _type: string,
+            fn: (event: { matches: boolean }) => void
+          ) => {
+            listener = fn;
+          },
+          removeEventListener: () => {},
+        }));
+        const flip = (on: boolean) => {
+          reduce = on;
+          act(() => listener!({ matches: on }));
+        };
+        const scrollHeight = vi
+          .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
+          .mockReturnValue(120);
+        vi.useFakeTimers();
+        try {
+          const { container } = render(
+            <Collapse trigger={<span>Toggle</span>} animation="slide">
+              Content
+            </Collapse>
+          );
+          const wrapper =
+            container.querySelector('.collapse-content')!.parentElement!;
+          const trigger = screen.getByRole('button');
+
+          // Opened with motion, and settled at its natural height
+          fireEvent.click(trigger);
+          act(() => {
+            vi.advanceTimersByTime(300);
+          });
+          expect(wrapper.style.height).toBe('auto');
+
+          // Closed under reduced motion, then motion allowed again
+          flip(true);
+          fireEvent.click(trigger);
+          expect(wrapper.style.height).toBe('0px');
+          flip(false);
+          expect(trigger).toHaveAttribute('aria-expanded', 'false');
+          expect(wrapper.style.height).toBe('0px');
+        } finally {
+          vi.useRealTimers();
+          scrollHeight.mockRestore();
+        }
+      });
+    });
   });
 
   describe('position', () => {

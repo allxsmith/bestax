@@ -974,7 +974,11 @@ test('exports documented with a component reach the index as its parts (#1150, #
   assert.equal(part('Carousel', 'CarouselItem')?.standalone, 'companion');
   assert.deepEqual(
     part('Toast', 'ToastContainer').props.map(p => [p.name, p.default]),
-    [['position', "'top-right'"]]
+    [
+      ['position', "'top-right'"],
+      ['hotkey', "['F8']"],
+      ['ariaLabel', "'Notifications'"],
+    ]
   );
   assert.equal(part('Dialog', 'DialogContainer').noProps, true);
   // A name with a page of its own, or a part already, is no extra.

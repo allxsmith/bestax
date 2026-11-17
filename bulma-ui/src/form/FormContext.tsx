@@ -365,14 +365,15 @@ export const useFieldLabelTarget = (
 
 /**
  * Shape of the Radios group context. The group provides:
- * - `name`: shared form field name (Stage 1)
+ * - `name`: shared form field name, the caller's or, without one, a
+ *   generated one, so the radios are always one group to the browser
  * - `value`: currently-selected radio value (Stage 2 — group-managed selection)
  * - `onChange`: dispatched by child Radios when clicked (Stage 2)
  *
  * Group sets `value`/`onChange` only when actively managing selection
  * (i.e., the user passed `value`, `defaultValue`, or `onChange` to `<Radios>`).
- * When only `name` is provided, the group is in "name-only" mode and child
- * Radios manage their own checked state independently.
+ * Otherwise the group is in "name-only" mode and child Radios manage their
+ * own checked state, which the shared name keeps to one at a time.
  *
  * A group given only `onChange` manages the selection but holds no value
  * until its first change. Until then a Radio with a value shows its own

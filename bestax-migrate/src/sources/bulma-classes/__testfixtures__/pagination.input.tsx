@@ -30,6 +30,7 @@ export function Pages() {
             className="pagination-link is-current"
             aria-label="Page 46"
             aria-current="page"
+            href="#46"
             tabIndex={0}
           >
             46
@@ -55,8 +56,13 @@ export function PageRefusals({ pages = [48, 49] }: { pages?: number[] }) {
           </a>
         </li>
         <li>
-          <a className="pagination-link is-current" tabIndex={0}>
+          <a className="pagination-link is-current" href="#c" tabIndex={0}>
             Current, with no aria-current of its own: the class stays
+          </a>
+        </li>
+        <li>
+          <a className="pagination-link" tabIndex={0}>
+            No href, so a button, with no role of its own
           </a>
         </li>
         <li className="my-item">

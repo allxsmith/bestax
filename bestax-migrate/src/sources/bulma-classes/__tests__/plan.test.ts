@@ -50,6 +50,35 @@ describe('plan', () => {
     });
   });
 
+  it("makes a button's is-loading isLoading only where it sets no busy state of its own", () => {
+    // `isLoading` writes aria-busy="true" and aria-disabled="true" over any
+    // value the element sets (#2040), so beside either one the class stays a
+    // class, which renders the element as written.
+    expect(plan(facts('button', 'button is-loading'))).toMatchObject({
+      conversion: { props: [['isLoading', true]], className: null },
+      todos: [],
+    });
+    for (const own of [
+      { 'aria-busy': 'true' },
+      { 'aria-disabled': 'false' },
+      { 'aria-disabled': null },
+    ]) {
+      expect(plan(facts('button', 'button is-loading', own))).toMatchObject({
+        conversion: { props: [], className: 'is-loading' },
+        todos: [],
+      });
+    }
+    // Under a condition too: beside one, it stays in the call.
+    const conditional = (attributes: Record<string, string>) =>
+      plan(
+        facts('button', 'button', attributes, {
+          conditional: [['is-loading']],
+        })
+      ).conversion?.conditional;
+    expect(conditional({})).toEqual([['isLoading', 'is-loading']]);
+    expect(conditional({ 'aria-busy': 'true' })).toBeUndefined();
+  });
+
   it('refuses a tag the target cannot render', () => {
     const result = plan(facts('div', 'section'));
     expect(result.conversion).toBeNull();
@@ -2093,7 +2122,7 @@ describe('plan', () => {
         const half = icon({ 'aria-label': null, 'aria-hidden': 'false' });
         expect(half.todos.map(t => t.rule)).toEqual(['defaults:Icon']);
         expect(half.todos[0].message).toBe(
-          'bestax `Icon` renders `role="img"` when it has a name and `aria-hidden="true"` when it has none, and this element\'s `aria-label` is an expression that may render as either; set `role` here to what you want, then re-run'
+          'bestax `Icon` renders `role="img"` when it has a name and `aria-hidden="true"` when it has none, and this element\'s `aria-label` is an expression that may render as either; set `role` here to what you want and re-run, or convert it by hand'
         );
         // A name written out settles it, whatever the other one is.
         expect(
@@ -2115,8 +2144,35 @@ describe('plan', () => {
         'Panel.Heading'
       );
       expect(
-        plan(facts('a', 'panel-block is-active')).conversion
+        plan(facts('a', 'panel-block is-active', { 'aria-current': 'page' }))
+          .conversion
       ).toMatchObject({ target: 'Panel.Block', props: [['active', true]] });
+    });
+
+    it("makes a block's is-active active only beside an aria-current of its own", () => {
+      // `active` writes aria-current="page" unless the block has its own.
+      // Without one the class stays a class, which renders the same.
+      expect(
+        plan(facts('a', 'panel-block is-active', { 'aria-current': 'false' }))
+      ).toMatchObject({
+        conversion: { props: [['active', true]], className: null },
+        todos: [],
+      });
+      expect(plan(facts('a', 'panel-block is-active'))).toMatchObject({
+        conversion: { props: [], className: 'is-active' },
+        todos: [],
+      });
+      // Under a condition too: without one, it stays in the call.
+      const conditional = (attributes: Record<string, string>) =>
+        plan(
+          facts('a', 'panel-block', attributes, {
+            conditional: [['is-active']],
+          })
+        ).conversion?.conditional;
+      expect(conditional({ 'aria-current': 'page' })).toEqual([
+        ['active', 'is-active'],
+      ]);
+      expect(conditional({})).toBeUndefined();
     });
 
     it('converts the root and a block on the tags their `as` takes', () => {
@@ -2127,7 +2183,9 @@ describe('plan', () => {
         });
       }
       for (const tag of ['label', 'div']) {
-        expect(plan(facts(tag, 'panel-block is-active'))).toEqual({
+        expect(
+          plan(facts(tag, 'panel-block is-active', { 'aria-current': 'false' }))
+        ).toEqual({
           conversion: {
             target: 'Panel.Block',
             props: [
@@ -2929,7 +2987,7 @@ describe('plan', () => {
         facts(
           'a',
           className,
-          { tabIndex: '0', ...attributes },
+          { tabIndex: '0', href: '#1', ...attributes },
           { soleChildOf: li(), ...extra }
         )
       );
@@ -2999,7 +3057,7 @@ describe('plan', () => {
           facts(
             'a',
             'pagination-link',
-            { tabIndex: '0', ...attributes },
+            { tabIndex: '0', href: '#1', ...attributes },
             { soleChildOf: li(), conditional: [['is-current']] }
           )
         ).conversion?.conditional;
@@ -3007,6 +3065,63 @@ describe('plan', () => {
         ['active', 'is-current'],
       ]);
       expect(conditional({})).toBeUndefined();
+    });
+
+    // Without an `href` a link is a button, and writes `role="button"` (#1919).
+    it('converts a link with no href only beside the role it writes then', () => {
+      for (const root of [
+        'pagination-link',
+        'pagination-previous',
+        'pagination-next',
+      ]) {
+        const without = (attributes: Record<string, string | null>) =>
+          plan(
+            facts(
+              'a',
+              root,
+              { tabIndex: '0', ...attributes },
+              root === 'pagination-link' ? { soleChildOf: li() } : {}
+            )
+          );
+        expect(without({ role: 'button' }).conversion).not.toBeNull();
+        expect(without({}).todos).toEqual([
+          {
+            rule: expect.stringMatching(/^defaults:/),
+            message: expect.stringContaining(
+              'renders `role="button"` when the element does not set it'
+            ),
+          },
+        ]);
+        // An href written as an expression may render as none.
+        expect(without({ href: null }).todos).toEqual([
+          {
+            rule: expect.stringMatching(/^defaults:/),
+            message: expect.stringContaining(
+              'renders `tabIndex="0"` when it has an `href` and `tabIndex="0"` and `role="button"` when it has none'
+            ),
+          },
+        ]);
+        // tabIndex is the same with an href or without, so a missing one
+        // gets the plain TODO.
+        const noTab = plan(
+          facts(
+            'a',
+            root,
+            { href: null, role: 'button' },
+            root === 'pagination-link' ? { soleChildOf: li() } : {}
+          )
+        );
+        expect(noTab.todos.map(todo => todo.message)).toEqual([
+          expect.stringContaining(
+            'renders `tabIndex="0"` when the element does not set it'
+          ),
+        ]);
+        // A role of its own settles it, and the target keeps that role.
+        expect(without({ href: null, role: 'link' }).conversion).not.toBeNull();
+        expect(without({ href: '#2' }).conversion).not.toBeNull();
+        // An empty href is still an href, and the target keeps it a link.
+        expect(without({ href: '' }).conversion).not.toBeNull();
+      }
     });
 
     it('converts an ellipsis holding exactly its own text, and nothing else on it', () => {

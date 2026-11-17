@@ -397,6 +397,67 @@ describe('Modal', () => {
       expect(screen.getByTestId('reset')).toHaveAttribute('type', 'reset');
     });
 
+    // The props form's close buttons are drawn as icons, so their name is all
+    // a screen reader says about them, and it was always English (#1934).
+    it.each([
+      ['the card header’s', { modalCardTitle: 'Modifier le profil' }],
+      ['the floating', {}],
+    ])('names %s close button by ariaCloseLabel', (_label, props) => {
+      render(
+        <Modal active onClose={() => {}} ariaCloseLabel="Fermer" {...props}>
+          Bonjour
+        </Modal>
+      );
+      expect(
+        screen.getByRole('button', { name: 'Fermer' })
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: 'close' })
+      ).not.toBeInTheDocument();
+    });
+
+    it.each([
+      ['no', undefined],
+      ['an empty', ''],
+    ])(
+      'names the close buttons "close" with %s ariaCloseLabel',
+      (_l, label) => {
+        render(
+          <>
+            <Modal
+              active
+              onClose={() => {}}
+              modalCardTitle="Card"
+              ariaCloseLabel={label}
+            >
+              Body
+            </Modal>
+            <Modal active onClose={() => {}} ariaCloseLabel={label}>
+              Body
+            </Modal>
+          </>
+        );
+        expect(screen.getAllByRole('button', { name: 'close' })).toHaveLength(
+          2
+        );
+      }
+    );
+
+    it('keeps ariaCloseLabel off the dialog itself', () => {
+      render(
+        <Modal
+          active
+          onClose={() => {}}
+          ariaCloseLabel="Fermer"
+          aria-label="Profil"
+        >
+          Bonjour
+        </Modal>
+      );
+      const dialog = screen.getByRole('dialog', { name: 'Profil' });
+      expect(dialog).not.toHaveAttribute('ariaCloseLabel');
+    });
+
     it('Modal.Close falls back to its name when given an empty aria-label', () => {
       // `''` names nothing, and the button is drawn as an icon, so an empty
       // label would leave it unnamed. It falls back like a missing one.
@@ -1100,6 +1161,56 @@ describe('Modal', () => {
         screen.getByTestId('modal').getAttribute('aria-labelledby') ?? '';
       expect(labelledBy).not.toBe('');
       expect(document.getElementById(labelledBy)).toHaveTextContent('Settings');
+    });
+
+    // Drawn as content, the modal renders no card head, so pointing
+    // aria-labelledby at the title's id named it nothing (#1947).
+    it('is named by a text title it draws as content, which still shows nowhere', () => {
+      render(
+        <Modal active type="content" modalCardTitle="Edit profile">
+          {latin}
+        </Modal>
+      );
+      const modal = screen.getByTestId('modal');
+      expect(screen.getByRole('dialog')).toHaveAccessibleName('Edit profile');
+      expect(modal).not.toHaveAttribute('aria-labelledby');
+      expect(screen.queryByText('Edit profile')).not.toBeInTheDocument();
+    });
+
+    it('points at nothing missing for a title that is not text, drawn as content', () => {
+      render(
+        <Modal active type="content" modalCardTitle={<em>Edit profile</em>}>
+          {latin}
+        </Modal>
+      );
+      const modal = screen.getByTestId('modal');
+      expect(modal).not.toHaveAttribute('aria-labelledby');
+      expect(modal).not.toHaveAttribute('aria-label');
+    });
+
+    it('names nothing for a blank title drawn as content', () => {
+      render(
+        <Modal active type="content" modalCardTitle=" ">
+          {latin}
+        </Modal>
+      );
+      expect(screen.getByTestId('modal')).not.toHaveAttribute('aria-label');
+    });
+
+    it('takes the name the caller gives a modal drawn as content', () => {
+      render(
+        <Modal
+          active
+          type="content"
+          modalCardTitle="Edit profile"
+          aria-label="Edit your profile"
+        >
+          {latin}
+        </Modal>
+      );
+      expect(screen.getByRole('dialog')).toHaveAccessibleName(
+        'Edit your profile'
+      );
     });
 
     it('has no aria-labelledby when there is no card title', () => {

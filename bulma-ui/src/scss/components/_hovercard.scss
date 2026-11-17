@@ -3,6 +3,7 @@
 
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
+@use '../anchored-shift' as *;
 @use '../variables' as *;
 
 // HoverCard-specific SCSS variables
@@ -48,6 +49,8 @@ $hover-card-animation-duration: 0.15s !default;
 }
 
 .#{iv.$class-prefix}hover-card-content {
+  // The sideways shift the component writes, 0 while the panel fits.
+  @include extras-anchored-shift;
   position: absolute;
   z-index: cv.getVar('hover-card-z-index');
   // As wide as the content wants, within the bounds. An inline card would
@@ -78,11 +81,11 @@ $hover-card-animation-duration: 0.15s !default;
   }
   &.#{iv.$class-prefix}is-bottom-left,
   &.#{iv.$class-prefix}is-top-left {
-    left: 0;
+    @include extras-anchored-left;
   }
   &.#{iv.$class-prefix}is-bottom-right,
   &.#{iv.$class-prefix}is-top-right {
-    right: 0;
+    @include extras-anchored-right;
   }
   // With no `position`, the card lines up with the trigger's inline start,
   // so a trigger at the start of a right-to-left line doesn't push it off the
@@ -93,7 +96,7 @@ $hover-card-animation-duration: 0.15s !default;
       :not(.#{iv.$class-prefix}is-portal):dir(rtl)
     ) {
     left: auto;
-    right: 0;
+    @include extras-anchored-right;
   }
 
   // Portaled: fixed to the viewport at the trigger's edge, which the

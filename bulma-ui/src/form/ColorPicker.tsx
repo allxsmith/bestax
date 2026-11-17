@@ -44,6 +44,7 @@ import {
   useFieldsetDisabled,
 } from './FormContext';
 import { useAutoLabelledBy } from './useAutoLabelId';
+import { useFieldMessage } from './useFieldMessage';
 
 export type { ColorFormat } from './_colorInternals/colorMath';
 
@@ -1033,9 +1034,11 @@ const ColorPickerRoot = forwardRef<HTMLDivElement, ColorPickerProps>(
     const pickerClass = usePrefixedClassNames('color-picker', {
       'is-disabled': disabled,
     });
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
+    const { messageEl, describedBy } = useFieldMessage(
+      message,
+      messageColor,
+      props['aria-describedby']
+    );
 
     const context = useColorPicker({
       value,
@@ -1057,6 +1060,7 @@ const ColorPickerRoot = forwardRef<HTMLDivElement, ColorPickerProps>(
         role="group"
         aria-labelledby={ariaLabelledBy}
         {...rest}
+        aria-describedby={describedBy}
       >
         <ColorPickerContext.Provider value={context}>
           {children ?? (
@@ -1085,8 +1089,6 @@ const ColorPickerRoot = forwardRef<HTMLDivElement, ColorPickerProps>(
     if (rendersOwnControl('ColorPicker', { insideControl })) {
       content = <Control>{content}</Control>;
     }
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
-
     if (ownField) {
       return (
         <Field

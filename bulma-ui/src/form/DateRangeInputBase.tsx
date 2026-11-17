@@ -182,6 +182,9 @@ export interface DateRangeInputBaseProps
    * lines up with the field's start edge, which is its right edge when the
    * picker reads right to left. A corner you pass stays physical, so
    * `bottom-left` lines up the left edges either way.
+   * A panel that would run past the viewport's left or right edge keeps
+   * its corner and moves sideways, just far enough to fit or, wider than
+   * the viewport, to the edge its text starts from.
    * @defaultValue 'bottom-left'
    */
   position?: PickerPosition;
@@ -193,7 +196,10 @@ export interface DateRangeInputBaseProps
   appendToBody?: boolean;
   /**
    * Bulma color modifier for the field, also carried by the calendar, where it
-   * colors the range's ends and the band between them.
+   * colors the range's ends and the band between them. Forced colors
+   * (Windows' contrast themes) replaces both, so there every day of a picked
+   * range is drawn in the system's highlight colors instead, whatever the
+   * color, which needs bestax's CSS.
    */
   color?:
     'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;

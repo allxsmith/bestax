@@ -11,11 +11,11 @@
     },
     {
       "title": "Has Skeleton",
-      "code": "<SubTitle hasSkeleton>SubTitle with Skeleton Effect</SubTitle>"
+      "code": "<SubTitle hasSkeleton aria-hidden=\"true\">\n  SubTitle with Skeleton Effect\n</SubTitle>"
     },
     {
       "title": "Is Skeleton",
-      "code": "<SubTitle skeleton>SubTitle Skeleton Effect</SubTitle>"
+      "code": "<SubTitle skeleton aria-hidden=\"true\">\n  SubTitle Skeleton Effect\n</SubTitle>"
     },
     {
       "title": "Different Sizes",
@@ -38,7 +38,7 @@
       "code": "<Block>\n  <Title as=\"p\" size=\"1\">\n    Title 1\n  </Title>\n  <SubTitle as=\"p\" size=\"3\">\n    Subtitle 3\n  </SubTitle>\n</Block>"
     }
   ],
-  "accessibility": "- **Semantic HTML:** Use appropriate heading levels for document structure.\n- **Screen readers:** Subtitles should be used in conjunction with titles for clarity.\n\n:::tip\n`SubTitle` is visually styled as a heading. Its level comes from `size` when it has one and from\n`as` when it doesn't, and with neither it's an `<h1>`. `as=\"p\"` makes it a paragraph whatever its\nsize, and the `textSize` helper sizes it without changing the level.\n:::",
+  "accessibility": "- **Semantic HTML:** Use appropriate heading levels for document structure.\n- **Screen readers:** Subtitles should be used in conjunction with titles for clarity.\n- **Skeletons:** `skeleton` and `hasSkeleton` follow [Skeleton's accessibility notes](https://bestax.io/docs/api/elements/skeleton#accessibility),\n  forced colors included.\n\n:::tip\n`SubTitle` is visually styled as a heading. Its level comes from `size` when it has one and from\n`as` when it doesn't, and with neither it's an `<h1>`. `as=\"p\"` makes it a paragraph whatever its\nsize, and the `textSize` helper sizes it without changing the level.\n:::",
   "related": ["Block", "Title", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-subtitle--default",
   "summary": "The `SubTitle` component renders a Bulma-styled subtitle (secondary heading), supporting sizes `1-6` and rendering as any heading or paragraph element (`h1-h6`, `p`).",
@@ -82,7 +82,7 @@
           "name": "hasSkeleton",
           "type": "boolean",
           "default": "false",
-          "description": "Applies the `has-skeleton` class to part of the content.",
+          "description": "Applies the `has-skeleton` class to part of the content. A screen reader still reads its text, so give it `aria-hidden=\"true\"` while it's a skeleton.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -122,7 +122,7 @@
           "name": "skeleton",
           "type": "boolean",
           "default": null,
-          "description": "Applies the `is-skeleton` class to the entire component.",
+          "description": "Applies the `is-skeleton` class to the entire component. A screen reader still reads its text, so give it `aria-hidden=\"true\"` while it's a skeleton.",
           "required": false,
           "inherited": false,
           "deprecated": false

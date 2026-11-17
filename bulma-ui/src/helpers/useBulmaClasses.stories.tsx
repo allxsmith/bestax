@@ -228,22 +228,32 @@ function useSkeletonToggle(intervalMs = 3000) {
 // skeleton and its content says so in its name. ---
 
 export const SkeletonButton: Story = {
-  render: () => <Button skeleton>Skeleton Button</Button>,
+  render: () => (
+    <Button skeleton tabIndex={-1} aria-hidden="true">
+      Skeleton Button
+    </Button>
+  ),
 };
 
 export const SkeletonButtons: Story = {
   render: () => (
     <Buttons>
-      <Button skeleton>Skeleton</Button>
-      <Button skeleton>Skeleton</Button>
-      <Button skeleton>Skeleton</Button>
+      <Button skeleton tabIndex={-1} aria-hidden="true">
+        Skeleton
+      </Button>
+      <Button skeleton tabIndex={-1} aria-hidden="true">
+        Skeleton
+      </Button>
+      <Button skeleton tabIndex={-1} aria-hidden="true">
+        Skeleton
+      </Button>
     </Buttons>
   ),
   name: 'Skeleton Buttons Group',
 };
 
 export const SkeletonIcon: Story = {
-  render: () => <Icon name="star" skeleton ariaLabel="Star icon skeleton" />,
+  render: () => <Icon name="star" skeleton />,
 };
 
 export const SkeletonImage: Story = {
@@ -261,7 +271,7 @@ export const SkeletonImage: Story = {
 const SkeletonMediaComponent: React.FC = () => {
   const skeleton = useSkeletonToggle();
   return (
-    <Media skeleton={skeleton}>
+    <Media skeleton={skeleton} aria-hidden={skeleton || undefined}>
       <Media.Left>
         <Image skeleton={skeleton} as="p" size="64x64" src={lioness} alt="" />
       </Media.Left>
@@ -285,17 +295,23 @@ export const SkeletonMedia: Story = {
 
 export const SkeletonNotification: Story = {
   render: () => (
-    <Notification skeleton>Skeleton notification message.</Notification>
+    <Notification skeleton aria-hidden="true">
+      Skeleton notification message.
+    </Notification>
   ),
 };
 
 export const SkeletonTag: Story = {
-  render: () => <Tag skeleton>Skeleton Tag</Tag>,
+  render: () => (
+    <Tag skeleton aria-hidden="true">
+      Skeleton Tag
+    </Tag>
+  ),
 };
 
 export const SkeletonTitle: Story = {
   render: () => (
-    <Title skeleton size="2">
+    <Title skeleton aria-hidden="true" size="2">
       Skeleton Title
     </Title>
   ),
@@ -303,7 +319,7 @@ export const SkeletonTitle: Story = {
 
 export const SkeletonSubTitle: Story = {
   render: () => (
-    <SubTitle skeleton size="4">
+    <SubTitle skeleton aria-hidden="true" size="4">
       Skeleton SubTitle
     </SubTitle>
   ),
@@ -311,11 +327,26 @@ export const SkeletonSubTitle: Story = {
 };
 
 export const SkeletonInput: Story = {
-  render: () => <Input skeleton placeholder="Skeleton Input" />,
+  render: () => (
+    <Input
+      skeleton
+      tabIndex={-1}
+      aria-hidden="true"
+      placeholder="Skeleton Input"
+    />
+  ),
 };
 
 export const SkeletonTextArea: Story = {
-  render: () => <TextArea skeleton placeholder="Skeleton TextArea" rows={3} />,
+  render: () => (
+    <TextArea
+      skeleton
+      tabIndex={-1}
+      aria-hidden="true"
+      placeholder="Skeleton TextArea"
+      rows={3}
+    />
+  ),
   name: 'Skeleton TextArea',
 };
 

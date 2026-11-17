@@ -146,9 +146,10 @@ export interface MenuKeys {
  *
  * - Down and Up move to the next and previous enabled item, wrapping, and
  *   Home and End go to the first and last. From no item, Down goes to the
- *   first and Up to the last. `options` turns the axis sideways, swaps
- *   its arrows, or reads them as they point on the screen, and the other
- *   axis's arrows are left alone.
+ *   first and Up to the last. From an item that turned disabled while it had
+ *   focus, they go on from where it sits, and so does typing. `options`
+ *   turns the axis sideways, swaps its arrows, or reads them as they point
+ *   on the screen, and the other axis's arrows are left alone.
  * - Enter and Space activate the focused item, Space unless
  *   `spaceJoinsSearch` has it join a search. A `<button>`, and a link with
  *   an `href` for Enter, get the browser's own click, and anything else gets
@@ -193,6 +194,21 @@ export function useMenuKeys(options: MenuKeysOptions = {}): MenuKeys {
       const items = disabledReachable ? all : all.filter(isEnabledMenuItem);
       if (!items.length) return;
       const current = items.indexOf(focused as HTMLElement);
+      // An item that turned disabled while it had focus, and kept it, isn't
+      // one of the items any more. It's still an item, so the keys go on
+      // from where it sits: `next` is the first item after it, wrapping, and
+      // the one before that is the item before it. From the menu itself,
+      // Down goes to the first.
+      const stranded = current < 0 && focused !== menu;
+      let next = current + 1;
+      if (stranded) {
+        const after = items.findIndex(
+          item =>
+            (focused as Node).compareDocumentPosition(item) &
+            Node.DOCUMENT_POSITION_FOLLOWING
+        );
+        next = Math.max(after, 0);
+      }
       const step = arrowStep(event.key, menu, orientation, reverse, physical);
       // A key that moves focus ends a search Space could join, so a Space
       // after it acts on the item it reached.
@@ -204,16 +220,13 @@ export function useMenuKeys(options: MenuKeysOptions = {}): MenuKeys {
       }
       if (step === 1) {
         event.preventDefault();
-        items[current >= 0 ? (current + 1) % items.length : 0].focus();
+        items[next % items.length].focus();
         return;
       }
       if (step === -1) {
         event.preventDefault();
-        items[
-          current >= 0
-            ? (current - 1 + items.length) % items.length
-            : items.length - 1
-        ].focus();
+        const previous = (current >= 0 ? current : next) - 1;
+        items[(previous + items.length) % items.length].focus();
         return;
       }
       switch (event.key) {
@@ -269,7 +282,12 @@ export function useMenuKeys(options: MenuKeysOptions = {}): MenuKeys {
         return;
       }
       event.preventDefault();
-      typeaheadMatch(items, typeahead.type(event.key), current)?.focus();
+      // From a stranded item, the search starts at the item after it, as it
+      // does from an item that's still one of them.
+      const order = stranded
+        ? [...items.slice(next), ...items.slice(0, next)]
+        : items;
+      typeaheadMatch(order, typeahead.type(event.key), current)?.focus();
     };
     return { onKeyDown, reset: typeahead.reset };
   }, [

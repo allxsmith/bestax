@@ -6,7 +6,7 @@ No form library — state is plain React, validation is a function, errors surfa
 `color` + `message` + `messageColor`.
 
 ```tsx
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import {
   Input,
   Select,
@@ -43,6 +43,7 @@ export function ProfileForm() {
     agree: false,
   });
   const [submitted, setSubmitted] = useState(false);
+  const agreeErrorId = useId();
 
   const errors = validate(values);
   const show = (k: keyof Values) => (submitted ? errors[k] : undefined);
@@ -61,9 +62,11 @@ export function ProfileForm() {
     >
       <Input
         label="Name"
+        autoComplete="name"
         value={values.name}
         onChange={e => set('name', e.target.value)}
         color={show('name') ? 'danger' : undefined}
+        aria-invalid={!!show('name')}
         message={show('name')}
         messageColor="danger"
       />
@@ -71,9 +74,11 @@ export function ProfileForm() {
       <Input
         label="Email"
         type="email"
+        autoComplete="email"
         value={values.email}
         onChange={e => set('email', e.target.value)}
         color={show('email') ? 'danger' : undefined}
+        aria-invalid={!!show('email')}
         message={show('email')}
         messageColor="danger"
         iconLeftName="envelope"
@@ -81,9 +86,11 @@ export function ProfileForm() {
 
       <Select
         label="Country"
+        autoComplete="country"
         value={values.country}
         onChange={e => set('country', e.target.value)}
         color={show('country') ? 'danger' : undefined}
+        aria-invalid={!!show('country')}
         message={show('country')}
         messageColor="danger"
       >
@@ -103,11 +110,17 @@ export function ProfileForm() {
         <Checkbox
           checked={values.agree}
           onChange={e => set('agree', e.target.checked)}
+          aria-invalid={!!show('agree')}
+          aria-describedby={show('agree') ? agreeErrorId : undefined}
         >
           {' '}
           I accept the terms
         </Checkbox>
-        {show('agree') && <p className="help is-danger">{show('agree')}</p>}
+        {show('agree') && (
+          <p id={agreeErrorId} className="help is-danger">
+            {show('agree')}
+          </p>
+        )}
       </Field>
 
       <Button color="primary" type="submit" mt="4">
@@ -123,7 +136,8 @@ Notes:
 - Validation runs every render as a pure function; `submitted` gates when errors are shown so the
   form isn't red before the user interacts. You could gate per-field on blur instead.
 - For the checkbox the convenience `message` prop isn't used; the help text is rendered manually
-  inside the `Field` — a good illustration of dropping to composition when needed.
+  inside the `Field` — a good illustration of dropping to composition when needed. It gets an `id`
+  the checkbox's `aria-describedby` points at, which `message` does for you on the inputs.
 
 ## Grouped controls and addons
 
@@ -141,10 +155,10 @@ Notes:
 // Two controls on one row.
 <Field grouped>
   <Control>
-    <InputBase placeholder="First" aria-label="First name" />
+    <InputBase placeholder="First" aria-label="First name" autoComplete="given-name" />
   </Control>
   <Control>
-    <InputBase placeholder="Last" aria-label="Last name" />
+    <InputBase placeholder="Last" aria-label="Last name" autoComplete="family-name" />
   </Control>
 </Field>
 ```
@@ -192,6 +206,7 @@ put a `<label className="label">` inside it with `htmlFor` pointing at the input
       <InputBase
         id="horizontal-email"
         type="email"
+        autoComplete="email"
         placeholder="you@example.com"
       />
     </Control>

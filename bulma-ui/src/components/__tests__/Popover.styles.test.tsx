@@ -65,13 +65,13 @@ describe('Popover styles under a class prefix', () => {
     try {
       const { unmount } = renderPrefixed();
       const byDefault = getComputedStyle(screen.getByRole('dialog'));
-      expect(byDefault.right).toBe('0px');
-      expect(byDefault.left).not.toBe('0px');
+      expect(byDefault.right).toBe('calc(-1 * var(--bulma-anchored-shift))');
+      expect(byDefault.left).not.toBe('var(--bulma-anchored-shift)');
       unmount();
       renderPrefixed({ position: 'bottom-left' });
       const named = getComputedStyle(screen.getByRole('dialog'));
-      expect(named.left).toBe('0px');
-      expect(named.right).not.toBe('0px');
+      expect(named.left).toBe('var(--bulma-anchored-shift)');
+      expect(named.right).not.toBe('calc(-1 * var(--bulma-anchored-shift))');
     } finally {
       document.documentElement.removeAttribute('dir');
       rtl.remove();
@@ -93,8 +93,8 @@ describe('Popover styles under a class prefix', () => {
     document.body.appendChild(page);
     try {
       const style = getComputedStyle(page.querySelector('[role="dialog"]')!);
-      expect(style.right).toBe('0px');
-      expect(style.left).not.toBe('0px');
+      expect(style.right).toBe('calc(-1 * var(--bulma-anchored-shift))');
+      expect(style.left).not.toBe('var(--bulma-anchored-shift)');
     } finally {
       page.remove();
     }
@@ -105,7 +105,7 @@ describe('Popover styles under a class prefix', () => {
     const style = getComputedStyle(screen.getByRole('dialog'));
     expect(style.position).toBe('absolute');
     expect(style.top).toBe('100%');
-    expect(style.left).toBe('0px');
+    expect(style.left).toBe('var(--bulma-anchored-shift)');
     expect(style.marginTop).toBe('var(--bulma-popover-offset)');
   });
 
@@ -120,7 +120,7 @@ describe('Popover styles under a class prefix', () => {
     renderPrefixed({ position: 'top-right' });
     const style = getComputedStyle(screen.getByRole('dialog'));
     expect(style.bottom).toBe('100%');
-    expect(style.right).toBe('0px');
+    expect(style.right).toBe('calc(-1 * var(--bulma-anchored-shift))');
     expect(style.marginBottom).toBe('var(--bulma-popover-offset)');
   });
 
