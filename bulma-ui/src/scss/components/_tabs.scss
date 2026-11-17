@@ -60,8 +60,10 @@ $tabs-content-padding: 1rem !default;
 }
 
 // Keyboard focus ring for a link that is a Tabs.Item's own child, the tab
-// you see; a link deeper inside, a nested list's included (`li li`), is left
-// to Bulma. Bulma draws its own
+// you see; a link deeper inside, a list nested in a tab item's included, is
+// left to Bulma. The `.tabs li li` that leaves the nested list out counts only
+// list items inside the row, so a Tabs that sits in a list item of the page's
+// keeps the rules. Bulma draws its own
 // a:focus-visible ring just outside the link, where the overflow of .tabs
 // clips its top and bottom, leaving a line at each side. This moves that ring
 // inside the link, at a Tabs.Tab's inset, in place of Bulma's focus offset,
@@ -71,10 +73,10 @@ $tabs-content-padding: 1rem !default;
 // the ring wouldn't show inside it in that colour (#1945). Forced colors draw
 // no such fill, so there it moves inside too, below.
 .#{iv.$class-prefix}tabs:not(.#{iv.$class-prefix}is-toggle)
-  li:not(li li)
+  li:not(.#{iv.$class-prefix}tabs li li)
   > a:focus-visible,
 .#{iv.$class-prefix}tabs.#{iv.$class-prefix}is-toggle
-  li:not(.#{iv.$class-prefix}is-active):not(li li)
+  li:not(.#{iv.$class-prefix}is-active):not(.#{iv.$class-prefix}tabs li li)
   > a:focus-visible {
   outline-offset: calc(-1 * #{cv.getVar("focus-width")});
 }
@@ -85,7 +87,7 @@ $tabs-content-padding: 1rem !default;
 // focused tab comes in front of all of them. The doubled class outranks
 // Bulma's selected tab, wherever its CSS loads.
 .#{iv.$class-prefix}tabs.#{iv.$class-prefix}tabs.#{iv.$class-prefix}is-toggle
-  li:not(li li)
+  li:not(.#{iv.$class-prefix}tabs li li)
   > a:focus-visible,
 .#{iv.$class-prefix}tabs.#{iv.$class-prefix}is-toggle
   li[role="tab"]:focus-visible

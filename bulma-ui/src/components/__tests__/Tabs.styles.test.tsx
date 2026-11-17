@@ -386,6 +386,39 @@ describe.each(ORDERS)(
       }
     );
 
+    it.each([
+      ['plain', {}],
+      ['toggle', { toggle: true }],
+    ] as [string, Partial<TabsProps>][])(
+      'keeps the rules for a %s Tabs inside a list item of the page',
+      (style, props) => {
+        render(
+          <ul>
+            <li>
+              <ConfigProvider classPrefix={prefix}>
+                <Tabs {...props}>
+                  <ul>
+                    <Tabs.Item active>
+                      <a href="/home">Home</a>
+                    </Tabs.Item>
+                    <Tabs.Item>
+                      <a href="/profile">Profile</a>
+                    </Tabs.Item>
+                  </ul>
+                </Tabs>
+              </ConfigProvider>
+            </li>
+          </ul>
+        );
+        const profile = screen.getByRole('link', { name: 'Profile' });
+        focusVisibly(profile);
+        expect(valueOf(profile, page, 'outline-offset')).toBe(INSET);
+        expect(valueOf(profile, page, 'z-index')).toBe(
+          style === 'toggle' ? '3' : undefined
+        );
+      }
+    );
+
     it('draws it inside a selected toggle tab’s link with forced colors, which draw no fill', () => {
       const [home] = renderLinks({ toggle: true });
       focusVisibly(home);
