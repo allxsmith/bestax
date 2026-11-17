@@ -37,54 +37,26 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { describe, it } from 'vitest';
-import { REPO, exampleFiles, sourcesOf } from './lib/example-sources.mjs';
+import {
+  REPO,
+  attributeValue,
+  attributesOf,
+  exampleFiles,
+  linkingHref,
+  sourcesOf,
+} from './lib/example-sources.mjs';
 
 const ts = createRequire(join(REPO, 'package.json'))('typescript');
 const TAGS = new Set(['Menu.Item', 'MenuItem']);
 const MENU_PAGE = 'docs/docs/api/components/menu.md';
 
-/** An attribute's value as written: a string, an expression, or nothing. */
-function valueOf(prop) {
-  const value = prop.initializer;
-  if (value === undefined) return { bare: true };
-  if (ts.isStringLiteral(value)) return { text: value.text };
-  const expr = value.expression;
-  if (expr === undefined) return { bare: true };
-  if (ts.isStringLiteral(expr) || ts.isNoSubstitutionTemplateLiteral(expr)) {
-    return { text: expr.text };
-  }
-  return { expr };
-}
-
-/** Whether an `href` holds something a browser can follow. */
-function linkHref(prop) {
-  const { bare, text, expr } = valueOf(prop);
-  if (bare) return false;
-  if (text !== undefined) return text !== '';
-  return !(
-    expr.kind === ts.SyntaxKind.NullKeyword ||
-    (ts.isIdentifier(expr) && expr.text === 'undefined')
-  );
-}
-
 /** What an `as` names: a tag, or a component (`'component'`). */
 function asTarget(prop) {
-  const { text, expr } = valueOf(prop);
+  const { text, expr } = attributeValue(prop);
   if (text !== undefined) return text;
   return expr && (ts.isIdentifier(expr) || ts.isPropertyAccessExpression(expr))
     ? 'component'
     : undefined;
-}
-
-/** The attributes by name, and whether any is a spread. */
-function attributesOf(attributes) {
-  const byName = new Map();
-  let spread = false;
-  for (const prop of attributes.properties) {
-    if (ts.isJsxSpreadAttribute(prop)) spread = true;
-    else byName.set(prop.name.getText(), prop);
-  }
-  return { byName, spread };
 }
 
 /** Whether a `Menu.Item` renders something the keyboard can reach. */
@@ -93,13 +65,13 @@ function reachableItem(attributes) {
   if (spread) return true;
   const as = byName.has('as') ? asTarget(byName.get('as')) : 'a';
   if (as === 'component' || as === 'button') return true;
-  return as === 'a' && byName.has('href') && linkHref(byName.get('href'));
+  return as === 'a' && byName.has('href') && linkingHref(byName.get('href'));
 }
 
 /** Whether a hand-written `<a>` has an `href` that links somewhere. */
 function linkingAnchor(attributes) {
   const { byName, spread } = attributesOf(attributes);
-  return spread || (byName.has('href') && linkHref(byName.get('href')));
+  return spread || (byName.has('href') && linkingHref(byName.get('href')));
 }
 
 /**

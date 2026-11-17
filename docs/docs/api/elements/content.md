@@ -187,7 +187,7 @@ The `Content` component does not add ARIA roles. You are responsible for semanti
 ## Related Components
 
 - [`Block`](./block.md): For simple vertical spacing between blocks of content.
-- [`Box`](./box.md): For visually distinct, bordered containers.
+- [`Box`](./box.md): For visually distinct containers.
 - [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing, color, etc.
 
 ---

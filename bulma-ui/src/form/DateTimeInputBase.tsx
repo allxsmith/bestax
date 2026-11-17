@@ -230,7 +230,9 @@ export interface DateTimeInputBaseProps
    * so it shows on the fill. Unset, they use their
    * `--bulma-dateinput-*` and `--bulma-timeinput-wheel-*` variables, which
    * follow `primary` by default. The footer's time pill and Done button do not
-   * follow `color`.
+   * follow `color`. Forced colors (Windows' contrast themes) replaces the
+   * calendar's fill, so there the selected date is drawn in the system's
+   * highlight colors instead, whatever the color, which needs bestax's CSS.
    */
   color?:
     'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;

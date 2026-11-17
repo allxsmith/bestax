@@ -46,7 +46,7 @@ publishes its SCSS sources (`src/scss` ships in the npm package, exposed via the
 
 **Rule:** stock Bulma components map to `bulma/sass/<category>/<lowercased-name>`; bestax
 extras map to `@allxsmith/bestax-bulma/scss/<category>/<lowercased-name>`. Components that
-are pure stock Bulma (Box, Card, Hero, …) have **no** extras partial —
+are pure stock Bulma (Hero, Level, Media, …) have **no** extras partial —
 Bulma's own module is all they need.
 
 Bulma groups its form controls, so their modules don't follow the name: `Input` and `TextArea`
@@ -79,7 +79,7 @@ Every extras partial that exists (from the library's `src/scss/**/_index.scss` �
 is **more complete** than the docs page's Option C example, which omits several):
 
 **Components** (`@allxsmith/bestax-bulma/scss/components/<name>`):
-`loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `steps`, `sidebar`,
+`loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `dropdown`, `steps`, `sidebar`,
 `toast`, `dialog`, `modal`, `carousel`, `lightbox`, `tabs`, `menu`, `tableofcontents`, `reveal`, `avatar`, `avatars`,
 `badge`, `emptystate`, `timeline`, `treeview`, `scrollarea`, `command`, `datatable`,
 `pagination`, `affix`, `floatbutton`, `navbar`, `panel`, `tour`
@@ -92,9 +92,9 @@ is **more complete** than the docs page's Option C example, which omits several)
 `datetimeinput`, `daterangeinput`, `file`, `fieldset`, `field`, `dropzone`, `colorpicker`,
 `colorinput`, `passwordinput`, `treeselect`, `cascader`
 
-**Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `button`, `colorswatch`,
+**Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `box`, `button`, `colorswatch`,
 `delete`, `descriptionlist`, `divider`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`,
-`progress`, `ringprogress`, `skeleton`, `stat`, `table`, `tag`
+`pre`, `progress`, `ringprogress`, `skeleton`, `stat`, `table`, `tag`
 
 **Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `color`, `cursor`, `sizing`, `visibility`
 
@@ -107,9 +107,10 @@ Notes:
   Bulma module (`components/tabs`, `elements/notification`), so give the bestax line a name of
   its own with `as`, the way the notes below do. The name changes nothing in the compiled CSS.
 - Extras `Tabs` **extends** stock Bulma tabs (it shows only the selected `Tabs.Content` panel,
-  lays out the vertical variant, draws a `Tabs.Tab`'s focus ring and a disabled tab's look, and
-  keeps the active tab marked in forced colors, where Bulma's colors for it are replaced), so an
-  app using `Tabs` needs both:
+  lays out the vertical variant, draws a `Tabs.Tab`'s focus ring and a disabled tab's look, moves
+  Bulma's focus ring inside most `Tabs.Item` links, brings a focused toggle tab in front of its
+  neighbors, and keeps the active tab marked in forced colors, where Bulma's colors for it are
+  replaced), so an app using `Tabs` needs both:
 
   ```scss
   @use 'bulma/sass/components/tabs';
@@ -157,10 +158,20 @@ Notes:
   @use '@allxsmith/bestax-bulma/scss/components/pagination' as bestax-pagination;
   ```
 
+- The `dropdown` partial **extends** stock Bulma dropdown (it draws a divider in CanvasText in
+  forced colors, where Bulma's fill takes the menu's own Canvas color), so an app using
+  `Dropdown`, or a `ContextMenu`, whose menu is Bulma's dropdown markup, needs both, in either
+  order:
+
+  ```scss
+  @use 'bulma/sass/components/dropdown';
+  @use '@allxsmith/bestax-bulma/scss/components/dropdown' as bestax-dropdown;
+  ```
+
 - The `navbar` partial **extends** stock Bulma navbar (it keeps the burger's bars in
-  ButtonText in forced colors, where Chromium paints them in the page's Canvas color, marks the
-  active item there with a bar in the system's highlight color, where Bulma's colors for it are
-  replaced, keeps a
+  ButtonText and `Navbar.Divider` in CanvasText in forced colors, where Chromium paints the
+  bars in the page's Canvas color and Bulma's fill takes the menu's, marks the active item there
+  with a bar in the system's highlight color, where Bulma's colors for it are replaced, keeps a
   `fixed` navbar in place while an overlay locks the page's scrolling, gives an active item's
   text the invert of the link color it sits on, where Bulma's leaves it in the navbar's text
   color, draws a navbar in a colored `Hero` in the hero's colors, where Bulma's draws its active item and burger in the link
@@ -257,7 +268,8 @@ Notes:
   button, so an app using it needs `bulma/sass/elements/button`, `bulma/sass/elements/delete`
   and the `delete` partial next to `scss/components/tour`.
 - `ContextMenu`'s menu is Bulma's dropdown markup, so an app using it needs
-  `bulma/sass/components/dropdown` next to `scss/components/contextmenu`.
+  `bulma/sass/components/dropdown` and the `dropdown` partial above next to
+  `scss/components/contextmenu`.
 - `Lightbox`'s viewer is Bulma's modal, with Bulma buttons for its controls and a `Loader` for a
   slow image, so an app using it needs `bulma/sass/components/modal`,
   `bulma/sass/elements/button` and `bulma/sass/elements/loader` next to
@@ -319,12 +331,22 @@ Notes:
   color's text on the page where that's lighter, so a dark color reads on the dark scheme, so
   include it (`as bestax-button`) in any build that loads Bulma's button module. Its rules win over
   Bulma's either way, so the order of the `@use` lines does not matter.
+- `Box` is stock Bulma (`bulma/sass/elements/box`), which draws a box's edge as a shadow with no
+  border. Forced colors (Windows' contrast themes) drops every shadow and paints the box in the
+  page's own color, so its edge vanishes there. The `box` extras partial draws it back as an
+  outline in the system's text color, so include it (`as bestax-box`) next to Bulma's module in
+  any build that shows a `Box`. Its rule wins over Bulma's either way, so the order of the `@use`
+  lines does not matter.
 - `Divider` renders an `<hr>`, which Bulma draws in its base (`bulma/sass/base`) as a background
   color with no border. Forced colors (Windows' contrast themes) replaces that color with the
   page's own, so the line vanishes there. The `divider` extras partial draws it as a border in the
   system's text color, so include it in any build that shows a `Divider` or an `<hr>`. Its rule
   wins over Bulma's either way, so the order of the `@use` lines does not matter, and an `<hr>`
   with a class of its own keeps its own rules.
+- `Pre` is a `<pre>`, which Bulma styles in its base (`bulma/sass/base`) and scrolls sideways when a
+  line runs long. While it overflows, `Pre` is a tab stop, and the `pre` extras partial draws its
+  keyboard focus ring in Bulma's focus color, so include it in any build that shows a `Pre`.
+  Bulma styles no focus on a `<pre>`, so the order of the `@use` lines does not matter.
 - `Stats` lays its row out on Bulma's smart grid (`.grid` and `is-col-min-*`), so a build with a
   `Stats` row wants `bulma/sass/grid/grid` beside the `stat` partial, which only resets the row's
   margins.
@@ -415,7 +437,8 @@ there. It doesn't depend on the order of the two `@use` lines:
 The `npm create bestax` starter renders `Container`, `Section`, `Columns`/`Column`, `Image`,
 `Title`/`SubTitle`, `Box`, `Card`, `Buttons`/`Button`, and `Notification` with its close
 button: all stock Bulma, plus the `notification` and `delete` extras partials for that close
-button and the `button` partial for the buttons' focus outline and edge in forced colors. Its helper
+button, the `button` partial for the buttons' focus outline and edge in forced colors, and the
+`box` partial for the boxes' edge in forced colors. Its helper
 props are `display` (visibility), `flexGrow` (flexbox), and `textAlign` (typography);
 it uses no spacing or color props. That inventory compiles to the following, verified
 pixel-equivalent to the prebuilt `complete` flavor in headless Chromium (light and dark, phone
@@ -447,6 +470,7 @@ Scaffolded with an icon library, the starter also needs `bulma/sass/elements/ico
 @use 'bulma/sass/helpers/flexbox'; // flexGrow
 @use 'bulma/sass/helpers/typography'; // textAlign
 
+@use '@allxsmith/bestax-bulma/scss/elements/box' as bestax-box; // the edge in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/button' as bestax-button; // focus outline and edge in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/delete' as bestax-delete; // the close button in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/notification' as bestax-notification; // text clears the close button

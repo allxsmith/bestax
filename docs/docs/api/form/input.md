@@ -292,7 +292,7 @@ A `hasAddons` Field names none of the controls it holds, and a placeholder disap
 
 #### Input + Static Suffix
 
-A static button is non-interactive — useful for fixed prefixes/suffixes such as an email domain.
+A static button draws a fixed prefix or suffix, such as an email domain. `isStatic` only styles it, so render it `as="span"`, which Tab skips and a screen reader reads as text.
 
 ```tsx live
 <Field hasAddons>
@@ -300,7 +300,9 @@ A static button is non-interactive — useful for fixed prefixes/suffixes such a
     <Input placeholder="Your email" aria-label="Email username" />
   </Control>
   <Control>
-    <Button isStatic>@gmail.com</Button>
+    <Button as="span" isStatic>
+      @gmail.com
+    </Button>
   </Control>
 </Field>
 ```
@@ -564,7 +566,9 @@ Combine `Field horizontal` with a nested `Field hasAddons` inside the body to mi
   <Field.Body>
     <Field hasAddons>
       <Control>
-        <Button isStatic>+44</Button>
+        <Button as="span" isStatic>
+          +44
+        </Button>
       </Control>
       <Control isExpanded>
         <Input id="phone-number" type="tel" placeholder="Your phone number" />
