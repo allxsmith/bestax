@@ -295,7 +295,7 @@ The container's `position` places every toast shown without one. Pass `position`
 
 Toasts shown at one position stack in one box, with a gap between them, in the order they were shown: down from a top position and up from a bottom one. A toast shown with a `container` of its own goes there instead, in a box of its own.
 
-### Reaching a toast from the keyboard
+### Reaching toasts from the keyboard
 
 The container's `hotkey`, F8 unless you give it another, moves keyboard focus to the newest toast's first button, or to the toast itself when it has none, and the toast then stays open while focus is inside it. That's how someone who can't reach a toast with a pointer takes its action before it closes. Each stack is a region named "Notifications" with the hotkey after it, such as "Notifications (F8)", so a screen reader user can find it and learn the key.
 
