@@ -886,7 +886,7 @@ export interface NavbarDropdownProps extends React.HTMLAttributes<HTMLDivElement
    * focus on the link, unless a control there marks the key used, the key
    * comes from a dialog or from content opened from the menu into a portal,
    * or focus can't go back to the link. Focus landing outside the dropdown,
-   * as Tab past its last item does, closes it too, and a controlled one is
+   * as Tab past its last item does, closes it too, and one you control is
    * told through `onActiveChange` and keeps its prop. Focus moving into
    * content opened from the menu into a portal or into a dialog marked
    * `aria-modal` it isn't in, focus going nowhere, as a window losing focus
