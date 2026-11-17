@@ -407,15 +407,19 @@ Inside a `Control` with no `Field` around it, `Taginput` renders no `Field` of i
 
 ## Keyboard Navigation
 
-| Key         | Action                             |
-| ----------- | ---------------------------------- |
-| `Enter`     | Create tag from input              |
-| `,`         | Create tag from input (default)    |
-| `Backspace` | Remove last tag (when input empty) |
-| `↓`         | Open/navigate suggestions          |
-| `↑`         | Navigate suggestions up            |
-| `Escape`    | Close suggestions dropdown         |
-| `Tab`       | Close suggestions and move on      |
+| Key         | Action                                                                   |
+| ----------- | ------------------------------------------------------------------------ |
+| `Enter`     | Create tag from input                                                    |
+| `,`         | Create tag from input (default)                                          |
+| `Backspace` | Remove last tag (when input empty)                                       |
+| `↓`         | Highlight the next suggestion; on a closed list, open it on the first    |
+| `↑`         | Highlight the previous suggestion; on a closed list, open it on the last |
+| `Alt+↓`     | Open the suggestions with no highlight                                   |
+| `Alt+↑`     | Close the suggestions                                                    |
+| `Escape`    | Close suggestions dropdown                                               |
+| `Tab`       | Close suggestions and move on                                            |
+
+The list opens when there's text in the field, or with `openOnFocus`, and with `keepFirst` the first suggestion stays highlighted whichever key opened it.
 
 While an input method editor (IME) is composing text, the keys are left to it, so Enter confirms the composition rather than adding a tag.
 
