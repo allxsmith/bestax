@@ -48,37 +48,39 @@ This example shows a complete panel layout using `Panel` and its subcomponents. 
   </Panel.Heading>
   <Panel.InputBlock placeholder="Search" />
   <Panel.Tabs>
-    <a className="is-active">All</a>
-    <a>Patriots</a>
-    <a>Loyalists</a>
-    <a>Battles</a>
-    <a>Documents</a>
+    <a href="#all" className="is-active" aria-current="true">
+      All
+    </a>
+    <a href="#patriots">Patriots</a>
+    <a href="#loyalists">Loyalists</a>
+    <a href="#battles">Battles</a>
+    <a href="#documents">Documents</a>
   </Panel.Tabs>
-  <Panel.Block active>
+  <Panel.Block href="#george-washington" active>
     <Panel.Icon name="user" variant="solid" />
     George Washington
   </Panel.Block>
-  <Panel.Block>
+  <Panel.Block href="#alexander-hamilton">
     <Panel.Icon name="user" variant="solid" />
     Alexander Hamilton
   </Panel.Block>
-  <Panel.Block>
+  <Panel.Block href="#benedict-arnold">
     <Panel.Icon name="user" variant="solid" />
     Benedict Arnold
   </Panel.Block>
-  <Panel.Block>
+  <Panel.Block href="#john-adams">
     <Panel.Icon name="user" variant="solid" />
     John Adams
   </Panel.Block>
-  <Panel.Block>
+  <Panel.Block href="#battle-of-saratoga">
     <Panel.Icon name="flag" variant="solid" />
     Battle of Saratoga
   </Panel.Block>
-  <Panel.Block>
+  <Panel.Block href="#treaty-of-paris">
     <Panel.Icon name="flag" variant="solid" />
     Treaty of Paris
   </Panel.Block>
-  <Panel.Block>
+  <Panel.Block href="#bunker-hill">
     <Panel.Icon name="flag" variant="solid" />
     Bunker Hill
   </Panel.Block>
@@ -114,23 +116,23 @@ This example demonstrates the `Panel` component's color variants. The `color` pr
         {color.charAt(0).toUpperCase() + color.slice(1)} Panel
       </Panel.Heading>
       <Panel.InputBlock placeholder="Search" />
-      <Panel.Block active>
+      <Panel.Block href="#george-washington" active>
         <Panel.Icon name="user" variant="solid" />
         George Washington
       </Panel.Block>
-      <Panel.Block>
+      <Panel.Block href="#marquis-de-lafayette">
         <Panel.Icon name="user" variant="solid" />
         Marquis de Lafayette
       </Panel.Block>
-      <Panel.Block>
+      <Panel.Block href="#nathanael-greene">
         <Panel.Icon name="user" variant="solid" />
         Nathanael Greene
       </Panel.Block>
-      <Panel.Block>
+      <Panel.Block href="#battle-of-trenton">
         <Panel.Icon name="flag" variant="solid" />
         Battle of Trenton
       </Panel.Block>
-      <Panel.Block>
+      <Panel.Block href="#yorktown">
         <Panel.Icon name="flag" variant="solid" />
         Yorktown
       </Panel.Block>
@@ -185,11 +187,11 @@ Every subcomponent is exported by name (`PanelHeading`, `PanelBlock`, …) and a
 ```tsx live
 <Panel aria-labelledby="panel-documents">
   <Panel.Heading id="panel-documents">Founding Documents</Panel.Heading>
-  <Panel.Block active>
+  <Panel.Block href="#declaration-of-independence" active>
     <Panel.Icon name="file" variant="solid" />
     Declaration of Independence
   </Panel.Block>
-  <Panel.Block>
+  <Panel.Block href="#articles-of-confederation">
     <Panel.Icon name="file" variant="solid" />
     Articles of Confederation
   </Panel.Block>
@@ -204,14 +206,11 @@ Every subcomponent is exported by name (`PanelHeading`, `PanelBlock`, …) and a
 - The root panel renders as a semantic `<nav>`, a navigation landmark, by default. For a panel that is not navigation, set `as` to `article`, `section`, `aside` or `div`, and give a `section` an accessible name (for example `aria-labelledby` pointing at the `Panel.Heading`'s `id`) if it should be a region.
 - `Panel.Heading` renders Bulma's `<p class="panel-heading">`, which assistive tech reads as a plain paragraph: it isn't a heading, and it doesn't name the panel. A screen reader user who moves by heading skips it, and one who moves by landmark hears "navigation" for each panel with nothing to tell them apart. Give the heading `role="heading"` and the `aria-level` that fits the headings already on the page. To name a `nav` panel, the default, after its heading, give the heading an `id` that's unique on the page and write `aria-labelledby` with that id on the `Panel`, the way the bullet above names a `section`. The examples above name each panel this way, and the first also makes its heading one.
 - The `Panel.Block` by default renders as an anchor `<a>`. Its props follow `as`: only an `a` takes the anchor attributes (`href`, `target`, `download` and the rest), and only a `label` takes `htmlFor` and `form`. A block on another tag drops them, and `rel`, at runtime too.
+- Give each `Panel.Block` that opens something an `href`, as the examples do: an `<a>` with no `href` isn't a link, so Tab skips it, Enter does nothing on it, and assistive tech reads it as text. A block that isn't a link takes `as="div"`, or `as="label"` around a control. The links you write in `Panel.Tabs` take an `href` too, and the active one `aria-current="true"` beside its `is-active` class, which is only seen.
 - `Panel.Block active` sets `aria-current="page"` on the element `as` renders, the `<a>` by default, so the current block isn't only a color. An `aria-current` you pass wins: a panel of sections on one page can say `"location"`, and `aria-current={false}` turns it off, as on an active `label` block with a checkbox.
 - A panel with no `color` keeps its heading readable on the dark scheme through bestax's `components/panel` partial, which `extras.css` and `bestax.css` include. Bulma's CSS alone writes that heading white on light gray.
 - A panel with a `color` draws the text of its active block and active tab, the active block's icon and the active tab's underline in that color at the lightness Bulma picks for the color's text on the page, through the same partial, so they read on both schemes. Black takes the title text's lightness, which is white on the dark scheme. Without the partial the text inherits the color's text helper Panel puts on the panel, and the icon and underline take the color's own lightness, which for a light or white panel is near white on white.
 - **Forced colors:** Bulma marks the active tab and the active block with colors alone, which forced colors (Windows' contrast themes) replaces, so bestax's styles draw a bar in the system's highlight color there: along the bottom of the active tab, and down the start edge of the active block. The tab, the block and everything in them stay in the contrast theme's colors. It reads the `is-active` class, on a `Panel.Block` and on the tab links you write in `Panel.Tabs`. The panel's own edge is a shadow, which forced colors drops, so the same styles draw it as a one pixel line in the system's text color around the panel, with a line under the heading in place of its fill. This comes from the same partial.
-
-:::note
-For keyboard navigation, ensure interactive Panel blocks are focusable and provide clear visual states.
-:::
 
 ---
 
@@ -248,8 +247,8 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Panel
 **Subcomponents:**
 
 - `Panel.Heading`: The panel's title: a paragraph to assistive tech, until you give it `role="heading"` and an `aria-level`. It renders Bulma's `<p class="panel-heading">`, which doesn't name the panel either. Pick the level that fits the headings already on the page, so screen reader users can move to it by heading. To name the panel after it, give it an `id` that's unique on the page and write `aria-labelledby` with that id on the `Panel`: two `nav` panels, the default, are then two navigation landmarks a screen reader can tell apart.
-- `Panel.Tabs`: Panel tabs (renders as `<p class="panel-tabs">`)
-- `Panel.Block`: Individual panel block (renders as `<a class="panel-block">` unless `as` says otherwise)
+- `Panel.Tabs`: Panel tabs (renders as `<p class="panel-tabs">`). Its links are yours to write. Give each an `href`, so the keyboard can reach it, and the active one `aria-current="true"` beside its `is-active` class, which is only seen.
+- `Panel.Block`: Individual panel block (renders as `<a class="panel-block">` unless `as` says otherwise). Give a block that opens something an `href`: an `<a>` with no `href` isn't a link, so Tab skips it. A block that isn't a link takes `as="div"`, or `as="label"` around a control.
 - `Panel.Icon`: Icon wrapper with panel styling (renders as `<span class="panel-icon">`, containing an `<i/>` when a `name` is given, or the custom node passed as `children`). Accepts all Icon props (`name`, `variant`, `features`, etc.), or `children` for a custom node.
 - `Panel.InputBlock`: Search input with icon (renders as `<div class="panel-block">`)
 - `Panel.CheckboxBlock`: Checkbox block (renders as `<label class="panel-block">`)

@@ -261,25 +261,27 @@ A vertical panel block for lists, filters, or grouped actions. [View full docume
   <Panel.Heading id="panel-guide-figures">Revolutionary Figures</Panel.Heading>
   <Panel.InputBlock placeholder="Search" />
   <Panel.Tabs>
-    <a className="is-active">All</a>
-    <a>Patriots</a>
-    <a>Loyalists</a>
-    <a>Battles</a>
-    <a>Documents</a>
+    <a href="#all" className="is-active" aria-current="true">
+      All
+    </a>
+    <a href="#patriots">Patriots</a>
+    <a href="#loyalists">Loyalists</a>
+    <a href="#battles">Battles</a>
+    <a href="#documents">Documents</a>
   </Panel.Tabs>
-  <Panel.Block active>
+  <Panel.Block href="#george-washington" active>
     <Panel.Icon>
       <i className="fas fa-user" aria-hidden="true"></i>
     </Panel.Icon>
     George Washington
   </Panel.Block>
-  <Panel.Block>
+  <Panel.Block href="#alexander-hamilton">
     <Panel.Icon>
       <i className="fas fa-user" aria-hidden="true"></i>
     </Panel.Icon>
     Alexander Hamilton
   </Panel.Block>
-  <Panel.Block>
+  <Panel.Block href="#benedict-arnold">
     <Panel.Icon>
       <i className="fas fa-user" aria-hidden="true"></i>
     </Panel.Icon>

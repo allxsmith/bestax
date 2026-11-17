@@ -288,7 +288,11 @@ export const PanelHeading: React.FC<PanelHeadingProps> = ({
 );
 
 /**
- * Panel tabs (renders as `<p class="panel-tabs">`)
+ * Panel tabs (renders as `<p class="panel-tabs">`).
+ *
+ * Its links are yours to write. Give each an `href`, so the keyboard can
+ * reach it, and the active one `aria-current="true"` beside its `is-active`
+ * class, which is only seen.
  *
  * @function
  * @param {PanelTabsProps} props - Props for the PanelTabs component.
@@ -308,7 +312,11 @@ export const PanelTabs: React.FC<PanelTabsProps> = ({
 );
 
 /**
- * Individual panel block (renders as `<a class="panel-block">` unless `as` says otherwise)
+ * Individual panel block (renders as `<a class="panel-block">` unless `as` says otherwise).
+ *
+ * Give a block that opens something an `href`: an `<a>` with no `href` isn't
+ * a link, so Tab skips it. A block that isn't a link takes `as="div"`, or
+ * `as="label"` around a control.
  *
  * @function
  * @param {PanelBlockProps} props - Props for the PanelBlock component.
