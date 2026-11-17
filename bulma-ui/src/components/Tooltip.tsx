@@ -13,6 +13,7 @@ import { chain, useHoverOpen } from '../helpers/useHoverOpen';
 import { isTabbableKind } from '../helpers/useFocusTrap';
 import { isDev, warnOnce } from '../helpers/devWarnings';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
+import { lengthToPx, remPxOf } from '../helpers/cssLength';
 
 /** Screen positions for the tooltip. */
 export type TooltipPosition = 'top' | 'bottom' | 'left' | 'right' | 'auto';
@@ -75,7 +76,14 @@ export interface TooltipProps
    * it's the trigger's description.
    */
   content?: React.ReactNode;
-  /** Position of the tooltip. Default: 'top'. */
+  /**
+   * Position of the tooltip. Default: 'top'. `'auto'` puts it on the first
+   * side with room for it as it is, its own size and its arrow's gap, and at
+   * least 40px, as a one-line tooltip has always had: top, then bottom, then
+   * the wider of right and left. Where none has room, it goes on the side
+   * that falls shortest of it. It's placed as it shows, and again when what
+   * it says, `multiline`, `size` or `tooltipClassName` changes.
+   */
   position?: TooltipPosition;
   /** Color variant for the tooltip. */
   color?: TooltipColor | undefined;
@@ -149,6 +157,21 @@ export interface TooltipProps
   disabled?: boolean | undefined;
   /** Additional classes for the tooltip element. */
   tooltipClassName?: string;
+}
+
+/**
+ * The gap the arrow takes between the trigger and the tooltip, the same on
+ * every side: `--bulma-tooltip-arrow-size` and `--bulma-tooltip-arrow-margin`
+ * as the tooltip has them, which a size or a theme can change. A length that
+ * isn't in `px` or `rem` counts for nothing.
+ */
+function arrowGap(content: HTMLElement): number {
+  const style = getComputedStyle(content);
+  const remPx = remPxOf(content);
+  return ['--bulma-tooltip-arrow-size', '--bulma-tooltip-arrow-margin'].reduce(
+    (gap, name) => gap + (lengthToPx(style.getPropertyValue(name), remPx) ?? 0),
+    0
+  );
 }
 
 /**
@@ -318,21 +341,36 @@ export const Tooltip: React.FC<TooltipProps> = ({
     const wrapperRect = wrapper.getBoundingClientRect();
     const margin = 40;
     const edgePadding = 8; // minimum distance from viewport edge
+    // The viewport is the root element's client area, so a classic scrollbar
+    // doesn't hide the tooltip's edge.
+    const { clientWidth: viewWidth, clientHeight: viewHeight } =
+      wrapper.ownerDocument.documentElement;
+    // The side it goes on, which the overflow correction below goes by.
+    let side = position === 'auto' ? resolvedPosition : position;
 
-    // Step 1: determine position (auto mode only)
+    // Step 1: determine position (auto mode only). A side has room for the
+    // tooltip as it is, its own size and the gap its arrow takes, and never
+    // less than the 40px a one-line tooltip takes. Top first, then bottom,
+    // then the wider of right and left; where none has room, the side that
+    // falls shortest of it.
     if (isAuto) {
-      const spaceTop = wrapperRect.top;
-      const spaceBottom = window.innerHeight - wrapperRect.bottom;
-
-      if (spaceTop >= margin) {
-        setResolvedPosition('top');
-      } else if (spaceBottom >= margin) {
-        setResolvedPosition('bottom');
-      } else if (window.innerWidth - wrapperRect.right >= wrapperRect.left) {
-        setResolvedPosition('right');
-      } else {
-        setResolvedPosition('left');
-      }
+      const gap = arrowGap(content);
+      const tall = Math.max(margin, content.offsetHeight + gap);
+      const wide = Math.max(margin, content.offsetWidth + gap);
+      const spaceRight = viewWidth - wrapperRect.right;
+      const wider = spaceRight >= wrapperRect.left ? 'right' : 'left';
+      const room: Record<Exclude<TooltipPosition, 'auto'>, number> = {
+        top: wrapperRect.top - tall,
+        bottom: viewHeight - wrapperRect.bottom - tall,
+        right: spaceRight - wide,
+        left: wrapperRect.left - wide,
+      };
+      side =
+        (['top', 'bottom', wider] as const).find(pos => room[pos] >= 0) ??
+        (Object.keys(room) as (keyof typeof room)[]).reduce((best, pos) =>
+          room[pos] > room[best] ? pos : best
+        );
+      setResolvedPosition(side);
     }
 
     // Step 2: measure tooltip content and correct overflow.
@@ -347,13 +385,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
       // For top/bottom positions, tooltip is centered horizontally via CSS
       // (left: 50%; transform: translateX(-50%)).
       // Check if it overflows left or right and apply a corrective shift.
-      const pos = isAuto ? undefined : position; // read from state won't be updated yet in auto
-      const effectivePos = pos || 'top'; // fallback, actual is set by state
-      const isVertical =
-        effectivePos === 'top' ||
-        effectivePos === 'bottom' ||
-        resolvedPosition === 'top' ||
-        resolvedPosition === 'bottom';
+      const isVertical = side === 'top' || side === 'bottom';
 
       if (isVertical) {
         if (contentRect.left < edgePadding) {
@@ -362,9 +394,9 @@ export const Tooltip: React.FC<TooltipProps> = ({
           style.left = `calc(50% + ${shift}px)`;
           (style as Record<string, string>)['--tooltip-arrow-offset'] =
             `${-shift}px`;
-        } else if (contentRect.right > window.innerWidth - edgePadding) {
+        } else if (contentRect.right > viewWidth - edgePadding) {
           // Overflows right — shift left
-          const shift = contentRect.right - (window.innerWidth - edgePadding);
+          const shift = contentRect.right - (viewWidth - edgePadding);
           style.left = `calc(50% - ${shift}px)`;
           (style as Record<string, string>)['--tooltip-arrow-offset'] =
             `${shift}px`;
@@ -377,8 +409,8 @@ export const Tooltip: React.FC<TooltipProps> = ({
           style.top = `calc(50% + ${shift}px)`;
           (style as Record<string, string>)['--tooltip-arrow-offset'] =
             `${-shift}px`;
-        } else if (contentRect.bottom > window.innerHeight - edgePadding) {
-          const shift = contentRect.bottom - (window.innerHeight - edgePadding);
+        } else if (contentRect.bottom > viewHeight - edgePadding) {
+          const shift = contentRect.bottom - (viewHeight - edgePadding);
           style.top = `calc(50% - ${shift}px)`;
           (style as Record<string, string>)['--tooltip-arrow-offset'] =
             `${shift}px`;
@@ -387,7 +419,18 @@ export const Tooltip: React.FC<TooltipProps> = ({
 
       setContentStyle(style);
     });
-  }, [position, resolvedPosition, isVisible, alwaysActive, label, content]);
+    // What sizes the tooltip, which auto goes by, as well as what it says.
+  }, [
+    position,
+    resolvedPosition,
+    isVisible,
+    alwaysActive,
+    label,
+    content,
+    multiline,
+    size,
+    tooltipClassName,
+  ]);
 
   // Generate Bulma classes
   const tooltipClasses = usePrefixedClassNames('tooltip', {

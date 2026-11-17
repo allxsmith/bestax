@@ -261,7 +261,14 @@ const PanelComponent: React.FC<PanelProps> = ({
 };
 
 /**
- * Main heading (renders as `<p class="panel-heading">`)
+ * The panel's title: a paragraph to assistive tech, until you give it `role="heading"` and an `aria-level`.
+ *
+ * It renders Bulma's `<p class="panel-heading">`, which doesn't name the
+ * panel either. Pick the level that fits the headings already on the page, so
+ * screen reader users can move to it by heading. To name the panel after it,
+ * give it an `id` that's unique on the page and write `aria-labelledby` with
+ * that id on the `Panel`: two `nav` panels, the default, are then two
+ * navigation landmarks a screen reader can tell apart.
  *
  * @function
  * @param {PanelHeadingProps} props - Props for the PanelHeading component.

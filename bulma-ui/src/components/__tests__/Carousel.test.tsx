@@ -1187,7 +1187,11 @@ const inViewItems = () =>
  */
 const mockViewport = (initialWidth: number) => {
   let width = initialWidth;
-  const listeners: (() => void)[] = [];
+  // Each listener is held with the query it listens to, as each of a
+  // browser's lists holds its own, and called with that query's answer, as a
+  // `change` event carries it.
+  type Listener = (event: { matches: boolean }) => void;
+  const listeners: { query: string; fn: Listener }[] = [];
   const matches = (query: string) =>
     query.split(',').some(part => {
       const min = /min-width:\s*(\d+)px/.exec(part);
@@ -1203,9 +1207,12 @@ const mockViewport = (initialWidth: number) => {
     get matches() {
       return matches(query);
     },
-    addEventListener: (_type: string, fn: () => void) => listeners.push(fn),
-    removeEventListener: (_type: string, fn: () => void) =>
-      listeners.splice(listeners.indexOf(fn), 1),
+    addEventListener: (_type: string, fn: Listener) =>
+      listeners.push({ query, fn }),
+    removeEventListener: (_type: string, fn: Listener) => {
+      const at = listeners.findIndex(l => l.query === query && l.fn === fn);
+      if (at >= 0) listeners.splice(at, 1);
+    },
   }));
   Object.defineProperty(window, 'matchMedia', {
     configurable: true,
@@ -1215,10 +1222,16 @@ const mockViewport = (initialWidth: number) => {
   return {
     matchMedia,
     listeners,
+    // Each handler once, however many lists it listens to.
     resize(next: number) {
       width = next;
+      const called = new Set<Listener>();
       act(() => {
-        [...new Set(listeners)].forEach(fn => fn());
+        listeners.forEach(({ query, fn }) => {
+          if (called.has(fn)) return;
+          called.add(fn);
+          fn({ matches: matches(query) });
+        });
       });
     },
   };
@@ -1679,15 +1692,20 @@ describe('Carousel with several items in view', () => {
       const { unmount } = render(
         <Carousel {...responsive}>{itemsOf(6)}</Carousel>
       );
-      expect(viewport.listeners.length).toBeGreaterThan(0);
+      // The width queries', beside the one for reduced motion
+      expect(
+        viewport.listeners.filter(({ query }) => /width/.test(query)).length
+      ).toBeGreaterThan(0);
       unmount();
       expect(viewport.listeners).toHaveLength(0);
     });
 
-    it('asks nothing of matchMedia with one count everywhere', () => {
+    it('asks matchMedia about no width with one count everywhere', () => {
       const viewport = mockViewport(1100);
       render(<Carousel itemsToShow={3}>{itemsOf(6)}</Carousel>);
-      expect(viewport.matchMedia).not.toHaveBeenCalled();
+      expect(
+        viewport.matchMedia.mock.calls.filter(([query]) => /width/.test(query))
+      ).toEqual([]);
     });
 
     it('uses itemsToShow where matchMedia is missing', () => {
@@ -1920,6 +1938,75 @@ describe('Carousel with several items in view', () => {
       } finally {
         delete (document as { activeElement?: unknown }).activeElement;
       }
+    });
+  });
+
+  describe('when the system asks for reduced motion', () => {
+    const original = window.matchMedia;
+    beforeEach(() => {
+      window.matchMedia = vi.fn((query: string) => ({
+        matches: query.includes('prefers-reduced-motion'),
+        media: query,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+      })) as unknown as typeof window.matchMedia;
+    });
+    afterEach(() => {
+      window.matchMedia = original;
+    });
+
+    it('moves the track with no transition', () => {
+      render(<Carousel>{itemsOf(3)}</Carousel>);
+      expect(track().style.transition).toBe('none');
+    });
+
+    it('steps past either end straight to the other, with no loop to wait out', () => {
+      const onChange = vi.fn();
+      render(<Carousel onChange={onChange}>{itemsOf(3)}</Carousel>);
+      const tabs = () => screen.getAllByRole('tab');
+
+      fireEvent.click(screen.getByLabelText('Previous slide'));
+      expect(onChange).toHaveBeenLastCalledWith(2);
+      expect(tabs()[2]).toHaveAttribute('aria-selected', 'true');
+
+      fireEvent.click(screen.getByLabelText('Next slide'));
+      expect(onChange).toHaveBeenLastCalledWith(0);
+      expect(tabs()[0]).toHaveAttribute('aria-selected', 'true');
+      expect(track().style.transition).toBe('none');
+    });
+
+    it('finishes a step past the end that was under way when it turned on', () => {
+      // Off at first, so the step runs on to the copies of the first slides
+      let reduce = false;
+      const listeners: ((event: { matches: boolean }) => void)[] = [];
+      window.matchMedia = vi.fn((query: string) => ({
+        get matches() {
+          return reduce && query.includes('prefers-reduced-motion');
+        },
+        media: query,
+        addEventListener: (
+          _type: string,
+          fn: (event: { matches: boolean }) => void
+        ) => listeners.push(fn),
+        removeEventListener: () => {},
+      })) as unknown as typeof window.matchMedia;
+      const onChange = vi.fn();
+      render(<Carousel onChange={onChange}>{itemsOf(3)}</Carousel>);
+
+      fireEvent.click(screen.getByLabelText('Previous slide'));
+      expect(onChange).not.toHaveBeenCalled();
+      expect(track().style.transition).not.toBe('none');
+
+      // Turning it on takes the transition away, and the transitionend with
+      // it, so the step finishes without one
+      reduce = true;
+      act(() => listeners.forEach(fn => fn({ matches: true })));
+      expect(onChange).toHaveBeenLastCalledWith(2);
+      expect(screen.getAllByRole('tab')[2]).toHaveAttribute(
+        'aria-selected',
+        'true'
+      );
+      expect(track().style.transition).toBe('none');
     });
   });
 

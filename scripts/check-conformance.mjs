@@ -167,7 +167,6 @@ const HOME_EXEMPT = new Set(['Avatars', 'Collapses', 'FloatButtons', 'Stats']);
 // Legacy API pages missing `## Accessibility`. New pages must have it.
 const ACCESSIBILITY_EXEMPT = new Set([
   'columns/column.md',
-  'columns/columns.md',
   'grid/cell.md',
   'grid/grid.md',
   'helpers/classnames.md',

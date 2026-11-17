@@ -23,8 +23,8 @@ moves along on its own and is reported to the user, like a parcel on its way or 
 rolling out. A journey the user takes themselves, like a wizard or a checkout, is
 [`Steps`](./steps.md).
 
-It's an ordered list, each title is a real heading, and the states are read out as words as well
-as drawn as shapes, so no state is told by color alone.
+It's an ordered list, each title is a real heading, and the states are read out as words. The dots
+also draw each state as a shape of its own.
 
 :::info
 Bulma has no timeline, so `Timeline` brings its own styles, in `bestax.css` and its variants, or in
@@ -181,7 +181,8 @@ screen. In a narrow column on a wide screen, use `start` instead.
 `icon` puts a picture in the marker. A string is an `Icon` name, drawn from the icon library
 `ConfigProvider` sets, and anything else renders as it is. One icon marker widens the rail for every
 item, so the text still lines up. In a progress timeline, a reached icon marker is tinted with the
-progress color.
+progress color, and the current one also has a halo. A completed one and an upcoming one differ by
+color alone. In forced colors, a reached icon marker's ring is twice as heavy.
 
 ```tsx live
 <Timeline titleAs="h3" active={2}>
@@ -386,11 +387,13 @@ has got, use a `Timeline`.
 - **Headings:** each title is a heading, `h2` unless `titleAs` says otherwise, so screen reader
   users can move from event to event. Pick the level under the heading the timeline sits beneath:
   an `h3` under an `h2`. In a busy feed, `titleAs="p"` makes them plain lines.
-- **States in words and shapes:** the current item has `aria-current="step"`. A completed item's
+- **States in words:** the current item has `aria-current="step"`. A completed item's
   title ends with "completed", an upcoming one's with "upcoming", and the pending one's with "in
   progress", in visually hidden text, so its heading reads "Packed completed". Set the words in
-  your app's language with `completedLabel`, `upcomingLabel` and `pendingLabel`. Each state has a
-  shape of its own as well as a color.
+  your app's language with `completedLabel`, `upcomingLabel` and `pendingLabel`. Each dot has a
+  shape of its own for its state as well as a color. Among icon markers, the current one has a
+  halo, but a completed one and an upcoming one differ by color, except in forced colors, where a
+  reached one's ring is heavier.
 - **Colors:** Timeline takes Bulma's colors. A marker with no `color`, in a record or not reached
   yet, is `border-hover`, and an upcoming icon is `text-weak`. Progress is `link`, and a `color`
   draws the markers and progress in that color. `border-hover` falls short of the 3:1 against the
@@ -408,10 +411,12 @@ has got, use a `Timeline`.
 - **Motion:** the pending ring turns, and stands still for users who ask for less motion. Its open
   shape is the cue either way.
 - **In a colored Hero:** a timeline with no `color` draws its markers in the Hero's text color, as
-  its titles are, an upcoming icon included, so there its states differ by their shapes and by the
-  line, which is drawn in that color up to the current item. A `color` you set is kept.
+  its titles are, an upcoming icon included, so there its states differ by the dots' shapes, an
+  icon marker's tint, and the line, which is drawn in that color up to the current item. A `color`
+  you set is kept.
 - **Forced colors:** every line, dot, ring and halo is a border or an outline, so in Windows high
-  contrast mode they keep their shapes, and the pending ring stays open.
+  contrast mode they keep their shapes, and the pending ring stays open. A reached icon marker's
+  ring is twice as heavy as an upcoming one's, so the two don't look alike.
 - **Not interactive and not live:** it has no tab stop and no keys, and links or buttons in an
   item work as they do anywhere. It announces nothing when it changes, so keep a status region
   beside one that changes on screen, as in [A Timeline That Changes](#a-timeline-that-changes).
@@ -470,19 +475,19 @@ has got, use a `Timeline`.
 
 ### Timeline.Item
 
-| Prop        | Type                                                                            | Default | Description                                                                                                                                                                                                                                       |
-| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `className` | `string`                                                                        | —       | Additional CSS classes to apply.                                                                                                                                                                                                                  |
-| `title`     | `React.ReactNode`                                                               | —       | What happened, in a line. It renders as the root's `titleAs`.                                                                                                                                                                                     |
-| `time`      | `React.ReactNode`                                                               | —       | When it happened, as the reader sees it: "14 October 2026", "2 hours ago". Put the whole date in the words, since screen readers mostly read the text.                                                                                            |
-| `dateTime`  | `string`                                                                        | —       | The same moment for machines, as HTML's `datetime` takes it: "2026-10-14", "2026-10-14T08:12", "2026-10". With it, `time` renders in a `<time>`. Keep it the same moment as `time`, since some readers speak it.                                  |
-| `icon`      | `React.ReactNode`                                                               | —       | A picture in the marker. A string is an `Icon` name, drawn from the icon library `ConfigProvider` sets, and anything else renders as it is. Without it, the marker is a dot. It's hidden from assistive tech, so what it means goes in the title. |
-| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | This item's marker color, over the root's. Say what it means in the words too.                                                                                                                                                                    |
-| `children`  | `React.ReactNode`                                                               | —       | Anything else about the event, under the title and the time, as written.                                                                                                                                                                          |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper.                                                                                                                                                                                                                                |
-| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color helper.                                                                                                                                                                                                                          |
-| `ref`       | `React.Ref<HTMLLIElement>`                                                      | —       | Ref forwarded to the `<li>`.                                                                                                                                                                                                                      |
-| `...`       | All standard `<li>` attributes and Bulma helper props                           | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                 |
+| Prop        | Type                                                                            | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ----------- | ------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className` | `string`                                                                        | —       | Additional CSS classes to apply.                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `title`     | `React.ReactNode`                                                               | —       | What happened, in a line. It renders as the root's `titleAs`.                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `time`      | `React.ReactNode`                                                               | —       | When it happened, as the reader sees it: "14 October 2026", "2 hours ago". Put the whole date in the words, since screen readers mostly read the text.                                                                                                                                                                                                                                                                                                                  |
+| `dateTime`  | `string`                                                                        | —       | The same moment for machines, as HTML's `datetime` takes it: "2026-10-14", "2026-10-14T08:12", "2026-10". With it, `time` renders in a `<time>`. Keep it the same moment as `time`, since some readers speak it.                                                                                                                                                                                                                                                        |
+| `icon`      | `React.ReactNode`                                                               | —       | A picture in the marker. A string is an `Icon` name, drawn from the icon library `ConfigProvider` sets, and anything else renders as it is. Without it, the marker is a dot. It's hidden from assistive tech, so what it means goes in the title. A dot draws each state as a shape of its own. Among icon markers the current one has a halo, but a completed one and an upcoming one differ by color, except in forced colors, where a reached one's ring is heavier. |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | This item's marker color, over the root's. Say what it means in the words too.                                                                                                                                                                                                                                                                                                                                                                                          |
+| `children`  | `React.ReactNode`                                                               | —       | Anything else about the event, under the title and the time, as written.                                                                                                                                                                                                                                                                                                                                                                                                |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper.                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color helper.                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `ref`       | `React.Ref<HTMLLIElement>`                                                      | —       | Ref forwarded to the `<li>`.                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `...`       | All standard `<li>` attributes and Bulma helper props                           | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                                       |
 
 <!-- /bestax:generated props -->
 

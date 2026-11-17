@@ -343,6 +343,76 @@ describe('Slider', () => {
       expect(input).toHaveAttribute('aria-valuetext', '9');
     });
 
+    // The thumb said "41" while the output showed "$41" (#1992).
+    it('sets aria-valuetext to what formatOutput shows when no getAriaValueText', () => {
+      render(<Slider value={41} formatOutput={v => `$${v}`} />);
+      expect(screen.getByRole('slider')).toHaveAttribute(
+        'aria-valuetext',
+        '$41'
+      );
+    });
+
+    it('formats the scaled value for aria-valuetext, as the output does', () => {
+      render(
+        <Slider value={3} scale={v => v * v} formatOutput={v => `${v} m²`} />
+      );
+      expect(screen.getByRole('slider')).toHaveAttribute(
+        'aria-valuetext',
+        '9 m²'
+      );
+    });
+
+    it('lets getAriaValueText win over formatOutput', () => {
+      render(
+        <Slider
+          value={41}
+          formatOutput={v => `$${v}`}
+          getAriaValueText={v => `${v} dollars`}
+        />
+      );
+      expect(screen.getByRole('slider')).toHaveAttribute(
+        'aria-valuetext',
+        '41 dollars'
+      );
+    });
+
+    it('formats both range thumbs’ aria-valuetext', () => {
+      render(<Slider range value={[20, 80]} formatOutput={v => `$${v}`} />);
+      expect(
+        screen.getAllByRole('slider').map(t => t.getAttribute('aria-valuetext'))
+      ).toEqual(['$20', '$80']);
+    });
+
+    it('sets no aria-valuetext without formatOutput, scale or getAriaValueText', () => {
+      render(<Slider value={41} />);
+      expect(screen.getByRole('slider')).not.toHaveAttribute('aria-valuetext');
+    });
+
+    it('sets no aria-valuetext where formatOutput writes nothing', () => {
+      // An empty value text would hide the value, so the number reads.
+      render(
+        <Slider value={0} formatOutput={v => (v === 0 ? '' : String(v))} />
+      );
+      expect(screen.getByRole('slider')).not.toHaveAttribute('aria-valuetext');
+    });
+
+    // An output is a polite live region, so it announced each value again
+    // after the thumb did (#1992). It keeps its role.
+    it('keeps every output from announcing what the thumb announces', () => {
+      const { container } = render(
+        <>
+          <Slider value={41} tooltip="always" />
+          <Slider range value={[20, 80]} tooltip="always" />
+        </>
+      );
+      const outputs = container.querySelectorAll('output');
+      expect(outputs).toHaveLength(3);
+      for (const output of outputs) {
+        expect(output).toHaveAttribute('aria-live', 'off');
+      }
+      expect(screen.getAllByRole('status')).toHaveLength(3);
+    });
+
     it('passes aria-label to input', () => {
       render(<Slider ariaLabel="Volume" />);
       const input = screen.getByRole('slider');
@@ -425,6 +495,112 @@ describe('Slider', () => {
       const input = screen.getByRole('slider');
       fireEvent.keyDown(input, { key: 'PageUp' });
       expect(handleChange).not.toHaveBeenCalled();
+    });
+
+    // The browser holds a range input's value on the steps counted from min,
+    // so with max between two steps End reported max while the thumb sat on
+    // the last step below it (#2001).
+    describe('End with max off the step grid', () => {
+      it('moves to the last step below max and reports it', () => {
+        const handleChange = vi.fn();
+        render(
+          <Slider
+            min={0}
+            max={10}
+            step={3}
+            defaultValue={3}
+            onChange={handleChange}
+          />
+        );
+        const input = screen.getByRole('slider') as HTMLInputElement;
+        fireEvent.keyDown(input, { key: 'End' });
+        expect(handleChange).toHaveBeenCalledWith(9);
+        expect(input).toHaveAttribute('aria-valuenow', '9');
+        expect(input.value).toBe('9');
+      });
+
+      it('reports the last step on a controlled slider', () => {
+        const handleChange = vi.fn();
+        render(
+          <Slider min={0} max={10} step={3} value={3} onChange={handleChange} />
+        );
+        fireEvent.keyDown(screen.getByRole('slider'), { key: 'End' });
+        expect(handleChange).toHaveBeenCalledWith(9);
+      });
+
+      it.each([
+        // A decimal step, written without a float's error.
+        [0, 0.95, 0.1, 0.9],
+        // Steps counted from a min that isn't a whole number.
+        [0.5, 10, 1, 9.5],
+        // A step JavaScript writes with an exponent.
+        [0, 0.000001, 0.0000003, 9e-7],
+        // A max just short of a step, which stays below max, as one worked
+        // out in JavaScript often is.
+        [0, 2.9999999995, 1, 2],
+        [0, 2.999999999999, 1, 2],
+        [0, 0.01 * 31 * 3, 0.01, 0.92],
+        [-1.13, -0.7843899999999999, 0.000005, -0.78439],
+        // A min worked out in JavaScript, whose steps fall where it puts them.
+        [0.1 + 0.2, 1, 0.1, 0.9],
+        // A repeating step or min, written to the fifteen significant digits
+        // a browser keeps, and a whole number kept whole.
+        [0, 10, 1 / 3, 10],
+        [0, 1, 0.1 + 0.2, 0.9],
+        [1 / 3, 10, 1, 9.33333333333333],
+        [0, 1700000000000013.5, 1, 1700000000000013],
+        // Fifteen digits next to a max written with more, which Chromium and
+        // WebKit hold a hair above it too.
+        [0, 0.7 + 0.1, 0.7 + 0.1, 0.8],
+        // On the grid, max itself, even where a float's division lands a
+        // hair under a whole number of steps, and at a large scale.
+        [0, 1, 0.1, 1],
+        [0, 0.3, 0.1, 0.3],
+        [0, 0.29, 0.01, 0.29],
+        [0, 1677721.9, 0.1, 1677721.9],
+        [1763000000000, 1763000001000, 1, 1763000001000],
+        [1763000000000, 1763000005999, 1000, 1763000005000],
+        [10, 90, 1, 90],
+      ])('min %s, max %s, step %s ends at %s', (min, max, step, end) => {
+        const handleChange = vi.fn();
+        render(
+          <Slider min={min} max={max} step={step} onChange={handleChange} />
+        );
+        fireEvent.keyDown(screen.getByRole('slider'), { key: 'End' });
+        expect(handleChange).toHaveBeenCalledWith(end);
+      });
+
+      it('leaves End at max when a bound is not a number', () => {
+        // React warns about the NaN attribute, which this test means to pass.
+        const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+        try {
+          const handleChange = vi.fn();
+          render(<Slider min={NaN} max={10} onChange={handleChange} />);
+          fireEvent.keyDown(screen.getByRole('slider'), { key: 'End' });
+          expect(handleChange).toHaveBeenCalledWith(10);
+        } finally {
+          error.mockRestore();
+        }
+      });
+
+      it('ends at min when max is below it', () => {
+        const handleChange = vi.fn();
+        render(<Slider min={10} max={5} step={1} onChange={handleChange} />);
+        fireEvent.keyDown(screen.getByRole('slider'), { key: 'End' });
+        expect(handleChange).toHaveBeenCalledWith(10);
+      });
+
+      it.each([0, -1])(
+        'counts a step of %s as 1, as the browser does',
+        step => {
+          const handleChange = vi.fn();
+          render(
+            <Slider min={0.5} max={10} step={step} onChange={handleChange} />
+          );
+          fireEvent.keyDown(screen.getByRole('slider'), { key: 'End' });
+          expect(handleChange).toHaveBeenCalledWith(9.5);
+        }
+      );
     });
   });
 

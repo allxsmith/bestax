@@ -7,7 +7,14 @@ import React, {
   useSyncExternalStore,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { isEventInside } from '../helpers/shadowDom';
+import { getActiveElementInTree, isEventInside } from '../helpers/shadowDom';
+import {
+  isTyping,
+  matchesShortcut,
+  parseShortcut,
+  type ParsedShortcut,
+} from '../helpers/shortcut';
+import { focusWithoutTabStop } from '../helpers/moveFocusOut';
 import {
   classNames,
   prefixedClassNames,
@@ -19,7 +26,7 @@ import { Portal, usePortalContainer, usePortalProp } from '../helpers/portal';
 import { LocalePortalScope } from '../helpers/LocaleProvider';
 import { groupIntoPositionStacks } from '../helpers/positionStacks';
 import { useLatestRef } from '../helpers/useLatestRef';
-import { useOverlayStack } from '../helpers/overlayStack';
+import { isModalOverlayOpen, useOverlayStack } from '../helpers/overlayStack';
 import { useDismissTimer } from '../helpers/useDismissTimer';
 import { chain } from '../helpers/useHoverOpen';
 
@@ -439,6 +446,9 @@ export interface ToastInstance {
 }
 
 let toastId = 0;
+
+/** The order a toast was shown in, read from its id. */
+const toastNumber = (t: ToastInstance) => Number(t.id.slice('toast-'.length));
 const toastListeners: Set<(toasts: ToastInstance[]) => void> = new Set();
 let toasts: ToastInstance[] = [];
 
@@ -579,6 +589,109 @@ export const toast = {
   },
 };
 
+/** The keys `ToastContainer` moves focus to the newest toast on. */
+const DEFAULT_HOTKEY: readonly string[] = ['F8'];
+
+/** The modifier flags a hotkey entry can name, and their names in a shortcut. */
+const hotkeyModifiers: Record<string, string> = {
+  altKey: 'alt',
+  ctrlKey: 'ctrl',
+  metaKey: 'meta',
+  shiftKey: 'shift',
+};
+
+/** A hotkey, read: the shortcut it makes, and its key's code. */
+interface ReadHotkey {
+  combination: ParsedShortcut;
+  code: string;
+}
+
+/**
+ * Reads a hotkey as a shortcut, modifiers first and its one key last: `F8`
+ * becomes `f8` and `['altKey', 'KeyT']` becomes `alt+t`. The code stays as
+ * given, for a key the shortcut can't name, such as `Period` or `Numpad1`.
+ *
+ * @function
+ * @param {readonly string[]} hotkey - The entries.
+ * @returns {ReadHotkey | null} The combination and the code, or `null` when
+ *   the entries don't name exactly one key.
+ */
+const readHotkey = (hotkey: readonly string[]): ReadHotkey | null => {
+  const isModifier = (entry: string) =>
+    Object.prototype.hasOwnProperty.call(hotkeyModifiers, entry);
+  const modifiers = hotkey.filter(isModifier);
+  const keys = hotkey.filter(entry => !isModifier(entry));
+  if (keys.length !== 1) return null;
+  const key = keys[0].replace(/^(Key|Digit)(?=.$)/, '');
+  const combination = parseShortcut(
+    [...modifiers.map(entry => hotkeyModifiers[entry]), key].join('+')
+  );
+  return combination && { combination, code: keys[0] };
+};
+
+/**
+ * Whether a keydown is the hotkey: by its key, as a shortcut matches, or, for
+ * a code other than a letter's or a digit's, by the code with the same
+ * modifiers, since a key such as `Period` types `.` and `Numpad1` types `1`.
+ * A letter or digit is matched by its key only, as a shortcut's is, so
+ * another layout's letter in its place doesn't count too.
+ *
+ * @function
+ * @param {KeyboardEvent} event - The keydown.
+ * @param {ReadHotkey} hotkey - The hotkey, read.
+ * @returns {boolean} Whether it's the hotkey.
+ */
+const matchesHotkey = (
+  event: KeyboardEvent,
+  { combination, code }: ReadHotkey
+): boolean =>
+  matchesShortcut(event, combination) ||
+  (!/^(Key|Digit)/.test(code) &&
+    event.code === code &&
+    event.altKey === combination.alt &&
+    event.ctrlKey === combination.ctrl &&
+    event.metaKey === combination.meta &&
+    event.shiftKey === combination.shift);
+
+/**
+ * The hotkey as a person reads it: `F8`, or `Alt+T` for
+ * `['altKey', 'KeyT']`.
+ *
+ * @function
+ * @param {readonly string[]} hotkey - The entries.
+ * @returns {string} Them joined with `+`, modifier flags named, and `Key` and
+ *   `Digit` taken off a code.
+ */
+const hotkeyLabel = (hotkey: readonly string[]): string =>
+  hotkey
+    .map(key =>
+      key.endsWith('Key') && key.length > 3
+        ? key[0].toUpperCase() + key.slice(1, -3)
+        : key.replace(/^(Key|Digit)/, '')
+    )
+    .join('+');
+
+/**
+ * A toast `ToastContainer` renders, which hands its element to the container
+ * by id, for the hotkey to find.
+ *
+ * @function
+ * @param {ToastProps & { toastId: string; register: (id: string, node: HTMLDivElement | null) => void }} props - The toast's props, its id in the store and the container's register.
+ * @returns {JSX.Element} The toast.
+ */
+const RegisteredToast: React.FC<
+  ToastProps & {
+    toastId: string;
+    register: (id: string, node: HTMLDivElement | null) => void;
+  }
+> = ({ toastId, register, ...props }) => {
+  const ref = useCallback(
+    (node: HTMLDivElement | null) => register(toastId, node),
+    [register, toastId]
+  );
+  return <Toast ref={ref} {...props} />;
+};
+
 // The order ToastContainer renders its stacks in: across the top of the
 // screen, then across the bottom.
 const toastStackOrder: readonly ToastPosition[] = [
@@ -599,8 +712,14 @@ const toastStackOrder: readonly ToastPosition[] = [
  * the edge of the screen. A toast shown with a `container` of its own, and
  * not `inline`, portals there instead, in a box of its own.
  *
+ * Each stack is a region named "Notifications", with its hotkey after it,
+ * "Notifications (F8)" by default. The hotkey moves keyboard focus to the
+ * newest toast's first button, or to the toast itself when it has none, so
+ * someone who can't reach a toast with a pointer gets there before it closes,
+ * and the toast stays open while focus is inside it.
+ *
  * @function
- * @param {{ position?: ToastPosition }} props - Container props.
+ * @param {{ position?: ToastPosition; hotkey?: readonly string[]; ariaLabel?: string }} props - Container props.
  * @returns {JSX.Element | null} The rendered toast container, or null if empty.
  */
 export const ToastContainer: React.FC<{
@@ -611,7 +730,27 @@ export const ToastContainer: React.FC<{
    * remounts and starts over as if it had just been shown.
    */
   position?: ToastPosition;
-}> = ({ position = 'top-right' }) => {
+  /**
+   * The keys that move keyboard focus to the newest toast: modifier flags
+   * (`altKey`, `ctrlKey`, `metaKey`, `shiftKey`) and one key, by its code
+   * (`F8`, `KeyT`, `Digit1`, `Period`), held together with no other
+   * modifier. A key that types a character, with no Ctrl, Meta or Alt,
+   * doesn't count while someone is typing in a field. `[]` turns the hotkey
+   * off.
+   * @defaultValue ['F8']
+   */
+  hotkey?: readonly string[] | undefined;
+  /**
+   * Names each stack's region, with the hotkey after it, for an app in
+   * another language. Default: `'Notifications'`, read as
+   * "Notifications (F8)".
+   */
+  ariaLabel?: string | undefined;
+}> = ({
+  position = 'top-right',
+  hotkey = DEFAULT_HOTKEY,
+  ariaLabel = 'Notifications',
+}) => {
   // Starts from the toasts already showing instead of an empty list, then
   // follows changes.
   const toastList = useSyncExternalStore(
@@ -621,6 +760,71 @@ export const ToastContainer: React.FC<{
   );
   const resolveContainer = usePortalContainer();
   const classPrefix = useClassPrefix();
+
+  // Each toast's element, by id, for the hotkey to find.
+  const elementsRef = useRef(new Map<string, HTMLDivElement>());
+  const register = useCallback((id: string, node: HTMLDivElement | null) => {
+    if (node) {
+      elementsRef.current.set(id, node);
+    } else {
+      elementsRef.current.delete(id);
+    }
+  }, []);
+
+  // The hotkey moves focus to the newest toast's first button, or to the
+  // toast itself, given `tabindex="-1"` while it holds focus, when it has
+  // none. It leaves the key alone with no toast showing, while a modal
+  // overlay has the page shut off, when the key is typed text in a field,
+  // and when focus can't go there.
+  const hotkeyKey = hotkey.join(' ');
+  useEffect(() => {
+    const read = readHotkey(hotkey);
+    if (!read) return undefined;
+    const onKeyDown = (event: KeyboardEvent) => {
+      // A key that types a character, with no Ctrl, Meta or Alt, is text
+      // while someone types in a field.
+      const typed =
+        event.key.length === 1 &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        !event.altKey;
+      if (
+        event.defaultPrevented ||
+        event.isComposing ||
+        !matchesHotkey(event, read) ||
+        (typed && isTyping(event)) ||
+        isModalOverlayOpen()
+      ) {
+        return;
+      }
+      // The newest is the one shown last, whatever queue it waited in.
+      const newest = getVisibleToasts().reduce<ToastInstance | undefined>(
+        (latest, t) =>
+          !latest || toastNumber(t) > toastNumber(latest) ? t : latest,
+        undefined
+      );
+      const el = newest && elementsRef.current.get(newest.id);
+      if (!el) return;
+      const button = el.querySelector<HTMLElement>('button');
+      const moved = button
+        ? (button.focus(), getActiveElementInTree(button) === button)
+        : focusWithoutTabStop(el);
+      if (moved) event.preventDefault();
+    };
+    // On `window`, where a keydown arrives last, so anything on the page
+    // that used the key first has said so with `preventDefault()`.
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+    // `hotkeyKey` stands for the entries, so an inline array doesn't add the
+    // listener again on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hotkeyKey]);
+
+  // Named with the hotkey only when there's one to press.
+  const regionLabel =
+    readHotkey(hotkey) !== null
+      ? `${ariaLabel} (${hotkeyLabel(hotkey)})`
+      : ariaLabel;
 
   if (typeof document === 'undefined' || toastList.length === 0) {
     return null;
@@ -640,8 +844,10 @@ export const ToastContainer: React.FC<{
   ) => {
     const { queue: _queue, ...toastProps } = t.props;
     return (
-      <Toast
+      <RegisteredToast
         key={t.id}
+        toastId={t.id}
+        register={register}
         {...toastProps}
         position={at}
         inline={inline}
@@ -668,6 +874,8 @@ export const ToastContainer: React.FC<{
             'toast-container',
             `is-${stack.position}`
           )}
+          role="region"
+          aria-label={regionLabel}
         >
           {stack.items.map(t => renderToast(t, stack.position, true))}
         </div>

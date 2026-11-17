@@ -20,6 +20,8 @@ export const MobileColumns: StoryObj = {
       <p style={{ marginBottom: 16 }}>
         Columns are normally in effect from tablet and larger. Using the{' '}
         <code>isMobile</code> flag enables columns on Mobile and larger screens.
+        Keep the row to what fits a phone: Bulma cuts off what runs past the
+        edge of the screen.
       </p>
       <Columns isMobile>
         <Column>
@@ -30,12 +32,6 @@ export const MobileColumns: StoryObj = {
         </Column>
         <Column>
           <Notification color="primary">3</Notification>
-        </Column>
-        <Column>
-          <Notification color="primary">4</Notification>
-        </Column>
-        <Column>
-          <Notification color="primary">5</Notification>
         </Column>
       </Columns>
     </>

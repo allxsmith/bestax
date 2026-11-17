@@ -176,12 +176,16 @@ function specificity(selector: string): number {
  * The value `el` gets for `property` from the top-level rules in `css`: the
  * most specific matching selector wins, and the later rule on a tie. jsdom
  * resolves no specificity, so this does it for the rules that set `property`.
+ * With `media`, the rules inside that at-rule take part too, in their place
+ * in the sheet, as on a page where it matches.
  */
-function winning(css: string, el: Element, property: string) {
+function winning(css: string, el: Element, property: string, media?: string) {
   let best = { score: -1, value: '' };
   for (const { rule, within } of allRulesOf(css)) {
     const value = rule.style.getPropertyValue(property);
-    if (within.length > 0 || !value) continue;
+    const applies =
+      within.length === 0 || (within.length === 1 && within[0] === media);
+    if (!applies || !value) continue;
     for (const selector of selectorsOf(rule.selectorText)) {
       if (el.matches(selector) && specificity(selector) >= best.score) {
         best = { score: specificity(selector), value: value.trim() };
@@ -208,6 +212,7 @@ describe.each([
 ])('the Timeline partial with %s', (_label, prefix) => {
   const p = (name: string) => `.${prefix}${name}`;
   const pending = `${p('timeline-item')}${p('is-pending')} > ${p('timeline-marker')}`;
+  const reachedIcon = `${p('timeline-item')}:is(${p('is-completed')}, ${p('is-active')}) > ${p('timeline-marker')}${p('is-icon')}`;
 
   const renderTracker = () =>
     render(
@@ -437,7 +442,7 @@ describe.each([
     ).toBe('var(--bulma-timeline-marker-icon-background)');
   });
 
-  it('stands the pending ring still under reduced motion, and keeps it open in forced colors', () => {
+  it('writes its reduced-motion and forced-colors rules for the pending ring and a reached icon marker only', () => {
     const nested = allRulesOf(compile(prefix))
       .filter(({ within }) => within.some(at => !/min-width/.test(at)))
       .map(({ rule, within }) => ({
@@ -460,7 +465,62 @@ describe.each([
           'border-top-color: canvas',
         ],
       },
+      {
+        within: ['@media (forced-colors: active)'],
+        selector: reachedIcon,
+        declarations: [
+          'border-width: calc(var(--bulma-timeline-line-width) * 2)',
+        ],
+      },
     ]);
+  });
+
+  // At rest a reached icon marker and one not reached yet are the same ring,
+  // told apart by a tint and the icon's color, which forced colors paints
+  // alike (#1991). There a reached one's ring is heavier, as a reached dot is
+  // filled, and every other marker keeps its own. Still a border, so the
+  // icon keeps the user's colors.
+  it('draws a reached icon marker with a heavier ring in forced colors, and only that one', () => {
+    const css = compile(prefix);
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <Timeline active={1} pending="Out for delivery">
+          <Timeline.Item title="Ordered" icon="check" />
+          <Timeline.Item title="Packed" icon="check" />
+          <Timeline.Item title="Shipped" icon="check" />
+          <Timeline.Item title="Delivered" />
+        </Timeline>
+      </ConfigProvider>
+    );
+    const markers = Array.from(
+      container.querySelectorAll(p('timeline-marker'))
+    );
+    const ring = 'var(--bulma-timeline-line-width)';
+    const heavy = `calc(${ring} * 2)`;
+    const forced = '@media (forced-colors: active)';
+    // Completed, current, upcoming, an upcoming dot, and the pending loader.
+    expect(
+      markers.map(marker => winning(css, marker, 'border-width', forced))
+    ).toEqual([heavy, heavy, ring, ring, ring]);
+    expect(markers.map(marker => winning(css, marker, 'border-width'))).toEqual(
+      [ring, ring, ring, ring, ring]
+    );
+
+    // A record marks no progress, so its icon markers keep the line's ring,
+    // a colored one included.
+    const { container: record } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <Timeline>
+          <Timeline.Item title="Founded" icon="flag" />
+          <Timeline.Item title="Launched" icon="rocket" color="success" />
+        </Timeline>
+      </ConfigProvider>
+    );
+    expect(
+      Array.from(record.querySelectorAll(p('timeline-marker'))).map(marker =>
+        winning(css, marker, 'border-width', forced)
+      )
+    ).toEqual([ring, ring]);
   });
 
   it('lays alternate out only from Bulma’s tablet breakpoint up', () => {

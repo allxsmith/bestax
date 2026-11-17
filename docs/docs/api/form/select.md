@@ -302,7 +302,7 @@ Use `isFullwidth` on the Select with `isExpanded` on its Control to make the dro
 ```tsx live
 <Field hasAddons>
   <Control isExpanded>
-    <Select isFullwidth aria-label="Country">
+    <Select autoComplete="country" isFullwidth aria-label="Country">
       <option>United States</option>
       <option>United Kingdom</option>
       <option>Canada</option>
@@ -351,10 +351,10 @@ The `Select` component is context-aware: it detects whether it is already inside
 #### Default (with label)
 
 ```tsx live
-<Select label="Country">
+<Select autoComplete="country" label="Country">
   <option value="">Please select</option>
   <option value="us">United States</option>
-  <option value="uk">United Kingdom</option>
+  <option value="gb">United Kingdom</option>
   <option value="ca">Canada</option>
 </Select>
 ```
@@ -371,10 +371,10 @@ function example() {
     <Field horizontal label="Country" labelProps={{ htmlFor: 'country-field' }}>
       <Field.Body>
         <Field>
-          <Select id="country-field">
+          <Select autoComplete="country" id="country-field">
             <option value="">Please select</option>
             <option value="us">United States</option>
-            <option value="uk">United Kingdom</option>
+            <option value="gb">United Kingdom</option>
             <option value="ca">Canada</option>
           </Select>
         </Field>
@@ -399,10 +399,10 @@ function example() {
       <Field.Body>
         <Field>
           <Control iconLeftName="globe">
-            <Select id="country-field-control">
+            <Select autoComplete="country" id="country-field-control">
               <option value="">Please select</option>
               <option value="us">United States</option>
-              <option value="uk">United Kingdom</option>
+              <option value="gb">United Kingdom</option>
               <option value="ca">Canada</option>
             </Select>
           </Control>
@@ -424,6 +424,7 @@ Inside a `Control` with no `Field` around it, `Select` renders no `Field` of its
 - Always provide a label. Select's `label` prop is automatically associated with the `<select>` (`htmlFor` plus a generated `id`, or your own `id` if you pass one).
 - When composing with `Field` instead, the `Field`'s own `label` associates with the select automatically when the select sits directly in that labeled `Field` and has no `id` of its own. A nested unlabeled `Field` (as in horizontal multi-field layouts) starts its own scope. With an `id` of your own, or across a nested `Field`, the label names the select only when you pass that `id` as `labelProps={{ htmlFor }}`.
 - Use the `multiple` and `multipleSize` props for multi-select dropdowns.
+- In forced colors (Windows contrast themes), which drop the shadow Bulma shows focus with, a focused select draws an outline in Bulma's focus style and width, painted in a system color, since a select has no text caret to show focus. `isFocused` draws it too.
 - **Help and errors:** the `message` describes the `<select>` through `aria-describedby`, after any ids you pass there, so a screen reader reads it when the select takes focus. A red `color` says nothing to a screen reader, so on an error also set `aria-invalid`, and put the error in the `message`.
 
 ---
