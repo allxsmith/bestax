@@ -107,16 +107,16 @@ export const Positions: Story = {
     return (
       <Block display="flex">
         <Badge content={1} position="top-right" mr="5">
-          <Avatar name="A" shape="square" />
+          <Avatar name="A" alt="A, 1 new message" shape="square" />
         </Badge>
         <Badge content={2} position="top-left" mr="5">
-          <Avatar name="B" shape="square" />
+          <Avatar name="B" alt="B, 2 new messages" shape="square" />
         </Badge>
         <Badge content={3} position="bottom-right" mr="5">
-          <Avatar name="C" shape="square" />
+          <Avatar name="C" alt="C, 3 new messages" shape="square" />
         </Badge>
         <Badge content={4} position="bottom-left">
-          <Avatar name="D" shape="square" />
+          <Avatar name="D" alt="D, 4 new messages" shape="square" />
         </Badge>
       </Block>
     );
@@ -150,7 +150,12 @@ export const ZeroHiddenByDefault: Story = {
 
 export const Standalone: Story = {
   render: function StandaloneExample() {
-    return <Badge content={5} color="info" />;
+    return (
+      <Block display="flex" alignItems="center">
+        <Badge content={5} color="info" mr="2" />
+        <span>new messages</span>
+      </Block>
+    );
   },
 };
 
@@ -165,7 +170,12 @@ export const StandaloneInteractive: Story = {
 
 export const StandalonePulse: Story = {
   render: function StandalonePulseExample() {
-    return <Badge content={5} color="danger" pulse />;
+    return (
+      <Block display="flex" alignItems="center">
+        <Badge content={5} color="danger" pulse mr="2" />
+        <span>new alerts</span>
+      </Block>
+    );
   },
 };
 
