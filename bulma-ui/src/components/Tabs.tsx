@@ -408,7 +408,7 @@ export interface TabListProps extends React.HTMLAttributes<HTMLUListElement> {
 }
 
 /**
- * The `<ul>` container for tab items.
+ * The `<ul role="tablist">` that holds the `Tabs.Tab`s. Navigation built from `Tabs.Item`s goes in a plain `<ul>` instead.
  *
  * @function
  * @param {TabListProps} props - Props for the TabList component.
@@ -615,7 +615,11 @@ export const Tab: React.FC<TabProps> = ({
  * Props for the TabItem component (backward-compatible).
  */
 export interface TabItemProps extends React.LiHTMLAttributes<HTMLLIElement> {
-  /** Whether the tab is active. */
+  /**
+   * Marks the tab as the current one with Bulma's `is-active` class, and
+   * nothing else: no ARIA attribute says so. Put `aria-current="page"` on the
+   * link inside the current tab, so a screen reader announces it.
+   */
   active?: boolean;
   /** Additional CSS classes. */
   className?: string | undefined;
@@ -626,7 +630,7 @@ export interface TabItemProps extends React.LiHTMLAttributes<HTMLLIElement> {
 }
 
 /**
- * Each tab; accepts `active`, `onClick`, etc.
+ * A navigation tab: an `<li>` holding a link of your own, with an `href`. Put the items in a plain `<ul>`, and mark the current one with `active` and its link with `aria-current="page"`. For tabs that switch what's shown in place, use `Tabs.Tab` with `Tabs.Content`, which handle the selection and the keyboard.
  *
  * @function
  * @param {TabItemProps} props - Props for the TabItem component.
