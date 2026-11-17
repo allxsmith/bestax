@@ -2436,3 +2436,41 @@ describe('Autocomplete opens on a highlight and leaves keys to an IME (#1081)', 
     });
   });
 });
+
+describe("Autocomplete's labels (#2008)", () => {
+  it('names the clear button with labels.clear', async () => {
+    const user = userEvent.setup();
+    const onSelect = vi.fn();
+    render(
+      <Autocomplete
+        label="Fruit"
+        data={['Pomme']}
+        clearable
+        value="Pomme"
+        onSelect={onSelect}
+        labels={{ clear: 'Effacer' }}
+      />
+    );
+
+    const clear = screen.getByRole('button', { name: 'Effacer' });
+    expect(screen.queryByRole('button', { name: 'Clear' })).toBeNull();
+
+    await user.click(clear);
+    expect(onSelect).toHaveBeenCalledWith(null);
+  });
+
+  it('keeps "Clear" without one, and puts no labels attribute on the wrapper', () => {
+    const { container } = render(
+      <Autocomplete
+        label="Fruit"
+        data={['Apple']}
+        clearable
+        value="Apple"
+        labels={{}}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: 'Clear' })).toBeInTheDocument();
+    expect(container.querySelector('[labels]')).toBeNull();
+  });
+});
