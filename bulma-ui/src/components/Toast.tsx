@@ -103,7 +103,15 @@ export interface ToastProps
   cancelText?: string;
   /** Callback when the action button is clicked. */
   onAction?: () => void;
-  /** Callback when toast closes. */
+  /**
+   * Callback when the toast closes itself: on its timer, from its buttons,
+   * on Escape when it's cancelable, or, when it's dismissible, on a click on
+   * it or outside it. Through `toast.show()`, it runs before the toast
+   * leaves the store, and not when the app closes the toast with
+   * `toast.close()` or `toast.closeAll()`, so cleanup that has to run
+   * however the toast goes, such as committing a delete, goes beside those
+   * calls too.
+   */
   onClose?: () => void;
   /**
    * CSS selector or DOM node to mount the toast into. Through `toast.show()`,
@@ -783,7 +791,7 @@ export const ToastContainer: React.FC<{
     at: ToastPosition,
     inline: boolean
   ) => {
-    const { queue: _queue, ...toastProps } = t.props;
+    const { queue: _queue, onClose, ...toastProps } = t.props;
     return (
       <RegisteredToast
         key={t.id}
@@ -792,7 +800,15 @@ export const ToastContainer: React.FC<{
         {...toastProps}
         position={at}
         inline={inline}
-        onClose={() => toast.close(t.id)}
+        // The toast's own `onClose`, then out of the store, even when that
+        // throws, so a queue behind it moves on.
+        onClose={() => {
+          try {
+            onClose?.();
+          } finally {
+            toast.close(t.id);
+          }
+        }}
       />
     );
   };
