@@ -414,7 +414,8 @@ field in a caption are the field's.
 - **Contrast:** the counter, the caption and the buttons' icons are white on Bulma's near-black
   modal background in both schemes, well over the 4.5:1 WCAG asks of text.
 - **Forced colors:** the buttons draw their borders in the system's colors and the focus ring
-  shows.
+  shows. A button that does nothing at an end or a zoom limit draws in the system's color for a
+  disabled control, at full strength rather than faded.
 - **Motion:** the open fade, the crossfade between images and the zoom transition stop under
   `prefers-reduced-motion: reduce`.
 
