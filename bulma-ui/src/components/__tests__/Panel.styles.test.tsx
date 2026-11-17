@@ -19,8 +19,11 @@ import { ConfigProvider } from '../../helpers/Config';
 import {
   bulmaCss,
   cascade,
+  compilePartial,
   customProperty,
+  matches,
   rulesOf,
+  splitList,
 } from '../../__tests__/css-cascade';
 import {
   contrast,
@@ -532,5 +535,215 @@ describe('Panel active block contrast', () => {
         root: { '--bulma-link-active': own },
       })
     ).toBe(own);
+  });
+});
+
+// Bulma marks the active tab and the active block with colors alone, which
+// forced colors replaces, so `_panel.scss` draws a bar in Highlight there
+// (#1937): along the bottom of the active tab and down the start edge of the
+// active block. jsdom evaluates no media query, and which value wins is a
+// cascade across Bulma's sheet and the partial, in either order, so these
+// link the real partial with Bulma's own CSS on either side, lift the
+// forced-colors block's rules out of it, as a forced-colors page applies
+// them, and resolve each property with the shared cascade. The cascade skips
+// pseudo-elements, so the bar's own rules are read off the sheet.
+describe('the active tab and block on a forced-colors page', () => {
+  const FORCED = '(forced-colors: active)';
+
+  /** The sheet's top-level rules, parsed once per sheet. */
+  const parsed = new Map<string, CSSRule[]>();
+  const parse = (css: string) => {
+    const known = parsed.get(css);
+    if (known) return known;
+    const sheet = document.createElement('style');
+    sheet.textContent = css.replace(/@charset "UTF-8";/g, '');
+    document.head.appendChild(sheet);
+    try {
+      const rules = Array.from((sheet.sheet as CSSStyleSheet).cssRules);
+      parsed.set(css, rules);
+      return rules;
+    } finally {
+      sheet.remove();
+    }
+  };
+
+  /**
+   * The sheet as a page with forced colors on reads it: the forced-colors
+   * block's rules in its place.
+   */
+  const forcedPage = (css: string) =>
+    parse(css)
+      .flatMap(rule =>
+        rule instanceof CSSMediaRule && rule.conditionText === FORCED
+          ? Array.from(rule.cssRules, inner => inner.cssText)
+          : [rule.cssText]
+      )
+      .join('\n');
+
+  /** What the rules give one property, read as it's declared. */
+  const valueOf = (el: Element, css: string, property: string) =>
+    cascade(
+      el,
+      css,
+      [property],
+      (style, name) => style.getPropertyValue(name).trim() || undefined
+    );
+
+  /**
+   * The declarations of every top-level rule for `pseudo` whose element part
+   * matches `el`, in source order, leaving out Bulma's `*::before` and
+   * `*::after` box sizing, which reaches every element and draws nothing.
+   */
+  const pseudoOf = (el: Element, css: string, pseudo: string) =>
+    parse(css)
+      .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
+      .flatMap(rule =>
+        splitList(rule.selectorText)
+          .filter(part => part.endsWith(pseudo) && part !== `*${pseudo}`)
+          .filter(part => matches(el, part.slice(0, -pseudo.length)))
+          .map(() => rule.style.cssText)
+      );
+
+  const TAB_BAR =
+    'content: ""; position: absolute; inset-inline: 0.75em; bottom: 0px; ' +
+    'height: 0.25em; background-color: highlight;';
+  const BLOCK_BAR =
+    'content: ""; position: absolute; inset-block: 0px; ' +
+    'inset-inline-start: 0px; width: 0.25em; background-color: highlight;';
+
+  /** A panel with two tabs and two blocks, the first of each active. */
+  const renderPanel = (prefix: string, props: Partial<PanelProps> = {}) => {
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <Panel {...props}>
+          <Panel.Heading>Repositories</Panel.Heading>
+          <Panel.Tabs>
+            <a href="#all" className={`${prefix}is-active`}>
+              All
+            </a>
+            <a href="#public">Public</a>
+          </Panel.Tabs>
+          <Panel.Block href="#bulma" active>
+            bulma
+          </Panel.Block>
+          <Panel.Block href="#marksheet">marksheet</Panel.Block>
+        </Panel>
+      </ConfigProvider>
+    );
+    const [activeTab, otherTab] = Array.from(
+      container.querySelectorAll(`.${prefix}panel-tabs a`)
+    );
+    const [activeBlock, otherBlock] = Array.from(
+      container.querySelectorAll(`.${prefix}panel-block`)
+    );
+    expect(activeBlock).toHaveClass(`${prefix}is-active`);
+    expect(otherBlock).not.toHaveClass(`${prefix}is-active`);
+    return { activeTab, otherTab, activeBlock, otherBlock };
+  };
+
+  // Bulma's CSS can land on either side of the extras: `bestax-no-dark-mode`
+  // emits them first, and an app can link `extras.css` before its own Bulma.
+  describe.each([
+    ['the partial after Bulma', '', 'bulma.css', true],
+    ['the partial before Bulma', '', 'bulma.css', false],
+    [
+      'a prefixed build, the partial after Bulma',
+      'bulma-',
+      'versions/bulma-prefixed.css',
+      true,
+    ],
+    [
+      'a prefixed build, the partial before Bulma',
+      'bulma-',
+      'versions/bulma-prefixed.css',
+      false,
+    ],
+  ])('with %s', (_order, prefix, bulmaFile, after) => {
+    const compiled = compilePartial('components/panel', prefix);
+    const css = forcedPage(
+      after ? bulmaCss(bulmaFile) + compiled : compiled + bulmaCss(bulmaFile)
+    );
+
+    it.each([
+      ['with no color', {}],
+      ['with a color', { color: 'info' as const }],
+    ])(
+      'draws the bar along the bottom of the active tab, and on no other, %s',
+      (_label, props) => {
+        const { activeTab, otherTab } = renderPanel(prefix, props);
+        expect(pseudoOf(activeTab, css, '::after')).toEqual([TAB_BAR]);
+        expect(pseudoOf(otherTab, css, '::after')).toEqual([]);
+        expect(valueOf(activeTab, css, 'position')).toBe('relative');
+        expect(valueOf(otherTab, css, 'position')).toBeUndefined();
+      }
+    );
+
+    it.each([
+      ['with no color', {}],
+      ['with a color', { color: 'info' as const }],
+    ])(
+      'draws the bar down the start edge of the active block, and on no other, %s',
+      (_label, props) => {
+        const { activeBlock, otherBlock } = renderPanel(prefix, props);
+        expect(pseudoOf(activeBlock, css, '::before')).toEqual([BLOCK_BAR]);
+        expect(pseudoOf(otherBlock, css, '::before')).toEqual([]);
+        expect(valueOf(activeBlock, css, 'position')).toBe('relative');
+        expect(valueOf(otherBlock, css, 'position')).toBeUndefined();
+      }
+    );
+
+    // Every rule the bars need sits in the forced-colors block, so a page
+    // without forced colors draws and positions nothing new.
+    it('keeps every rule it adds inside the forced-colors block', () => {
+      const rules = parse(compiled);
+      const outside = rules
+        .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
+        .map(rule => rule.cssText);
+      for (const text of outside) {
+        expect(text).not.toMatch(/::(before|after)|position|highlight/i);
+      }
+      const forced = rules.filter(
+        (rule): rule is CSSMediaRule =>
+          rule instanceof CSSMediaRule && rule.conditionText === FORCED
+      );
+      expect(forced).toHaveLength(1);
+      expect(
+        Array.from(forced[0].cssRules, rule =>
+          (rule as CSSStyleRule).selectorText.replace(/\s+/g, ' ')
+        )
+      ).toEqual([
+        `.${prefix}panel-tabs a.${prefix}is-active, .${prefix}panel-block.${prefix}is-active`,
+        `.${prefix}panel-tabs a.${prefix}is-active::after`,
+        `.${prefix}panel-block.${prefix}is-active::before`,
+      ]);
+    });
+  });
+
+  // A fill would need `forced-color-adjust: none`, which an icon and the
+  // focus ring inside would inherit.
+  it('leaves every color of the tab, the block and what’s in them to the browser', () => {
+    expect(compilePartial('components/panel')).not.toMatch(
+      /forced-color-adjust/
+    );
+  });
+
+  it('draws nothing on the active tab or block with Bulma alone, which is the bug', () => {
+    const { activeTab, activeBlock } = renderPanel('');
+    const bulma = forcedPage(bulmaCss());
+    expect(pseudoOf(activeTab, bulma, '::after')).toEqual([]);
+    expect(pseudoOf(activeBlock, bulma, '::before')).toEqual([]);
+    // Every color Bulma sets that tells them apart, forced colors replaces
+    // with the system's, so nothing else sets them apart either.
+    for (const [el, property] of [
+      [activeTab, 'color'],
+      [activeTab, 'border-bottom-color'],
+      [activeBlock, 'color'],
+    ] as const) {
+      const value = valueOf(el, bulma, property);
+      expect(value).toBeDefined();
+      expect(value).not.toMatch(
+        /^(highlight|highlighttext|canvas|canvastext)$/i
+      );
+    }
   });
 });
