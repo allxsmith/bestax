@@ -43,6 +43,12 @@ export interface Modifier {
    */
   needsAttr?: { name: string; value: string };
   /**
+   * Attributes the prop writes over any value the element sets (`Button`'s
+   * `isLoading` and `aria-busy`), so the class converts only where the
+   * element sets none of them.
+   */
+  overridesAttrs?: string[];
+  /**
    * Off the tags in `tagIn`, where the class stays a class, the prop that
    * sizes the element the same without picking its tag (`textSize`).
    */
@@ -969,6 +975,8 @@ export function lookupClasses(
           `with a bare \`${paired}\` on the <${entry.absorbs!.tag}> inside, which it renders`,
         modifier.needsAttr &&
           `beside an \`${modifier.needsAttr.name}\` of the element's own, since the prop renders \`${modifier.needsAttr.name}="${modifier.needsAttr.value}"\` otherwise; without one it stays a class`,
+        modifier.overridesAttrs &&
+          `where the element sets no ${modifier.overridesAttrs.map(name => `\`${name}\``).join(' or ')}, since the prop writes them over any it sets; beside one it stays a class`,
       ].filter(Boolean);
       if (modifier.beside) {
         // Rendered from the layout's value only where that converts, so the

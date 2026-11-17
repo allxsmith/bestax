@@ -674,6 +674,11 @@ The three `cell-content` variables style what a `Calendar`'s `dayTemplate` draws
 number: its color, which a picked day's fill replaces with the picked day's own, its size, and the
 opacity it fades to while the Calendar is `loading`.
 
+In forced colors (Windows' contrast themes) a picked day, month or year, and every day of a picked
+range, are the system's highlight colors whatever `--bulma-dateinput-cell-selected-bg`,
+`--bulma-dateinput-cell-selected-color` and `--bulma-dateinput-cell-range-bg` say, and what
+`dayTemplate` draws in them takes the same color.
+
 ### DateRangeInput
 
 The field around the two inputs. Its calendar is the `DateInput` one, with the variables above.

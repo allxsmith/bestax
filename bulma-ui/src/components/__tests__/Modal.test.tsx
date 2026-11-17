@@ -397,6 +397,67 @@ describe('Modal', () => {
       expect(screen.getByTestId('reset')).toHaveAttribute('type', 'reset');
     });
 
+    // The props form's close buttons are drawn as icons, so their name is all
+    // a screen reader says about them, and it was always English (#1934).
+    it.each([
+      ['the card header’s', { modalCardTitle: 'Modifier le profil' }],
+      ['the floating', {}],
+    ])('names %s close button by ariaCloseLabel', (_label, props) => {
+      render(
+        <Modal active onClose={() => {}} ariaCloseLabel="Fermer" {...props}>
+          Bonjour
+        </Modal>
+      );
+      expect(
+        screen.getByRole('button', { name: 'Fermer' })
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: 'close' })
+      ).not.toBeInTheDocument();
+    });
+
+    it.each([
+      ['no', undefined],
+      ['an empty', ''],
+    ])(
+      'names the close buttons "close" with %s ariaCloseLabel',
+      (_l, label) => {
+        render(
+          <>
+            <Modal
+              active
+              onClose={() => {}}
+              modalCardTitle="Card"
+              ariaCloseLabel={label}
+            >
+              Body
+            </Modal>
+            <Modal active onClose={() => {}} ariaCloseLabel={label}>
+              Body
+            </Modal>
+          </>
+        );
+        expect(screen.getAllByRole('button', { name: 'close' })).toHaveLength(
+          2
+        );
+      }
+    );
+
+    it('keeps ariaCloseLabel off the dialog itself', () => {
+      render(
+        <Modal
+          active
+          onClose={() => {}}
+          ariaCloseLabel="Fermer"
+          aria-label="Profil"
+        >
+          Bonjour
+        </Modal>
+      );
+      const dialog = screen.getByRole('dialog', { name: 'Profil' });
+      expect(dialog).not.toHaveAttribute('ariaCloseLabel');
+    });
+
     it('Modal.Close falls back to its name when given an empty aria-label', () => {
       // `''` names nothing, and the button is drawn as an icon, so an empty
       // label would leave it unnamed. It falls back like a missing one.

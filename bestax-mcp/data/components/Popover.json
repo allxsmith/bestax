@@ -294,7 +294,7 @@
           "name": "isStatic",
           "type": "boolean",
           "default": "false",
-          "description": "Makes the button non-interactive.",
+          "description": "Draws Bulma's static look and stops the pointer. It doesn't change the element: a `<button>` with it is still a tab stop that a screen reader announces as a button and Enter and Space press, and in a form it's a submit button. A label that does nothing, such as \"@gmail.com\" beside an input in a `Field` with addons, is a `Button` rendered `as=\"span\"`, which Tab skips and a screen reader reads as text.",
           "required": false,
           "inherited": true,
           "deprecated": false

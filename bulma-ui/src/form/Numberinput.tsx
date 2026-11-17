@@ -110,6 +110,13 @@ export interface NumberinputProps
   onChange?: ((value: number) => void) | undefined;
 }
 
+// The buttons are out of the Tab order, and a pointer press on one leaves
+// focus where it was, in the input when it had it, so the arrow keys keep
+// working and a button that disables at `min` or `max` takes no focus with it
+// (#1971). A press on a disabled one blurs the input, as a press on any text
+// does.
+const keepFocus = (event: React.MouseEvent) => event.preventDefault();
+
 const ArrowDropUp = () => (
   <svg
     viewBox="0 0 24 24"
@@ -390,6 +397,7 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
                 onClick={handleIncrement}
                 disabled={disabled || isAtMax}
                 tabIndex={-1}
+                onMouseDown={keepFocus}
                 aria-label="Increase value"
               >
                 <ArrowDropUp />
@@ -400,6 +408,7 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
                 onClick={handleDecrement}
                 disabled={disabled || isAtMin}
                 tabIndex={-1}
+                onMouseDown={keepFocus}
                 aria-label="Decrease value"
               >
                 <ArrowDropDown />
@@ -440,6 +449,7 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
         onClick={handleDecrement}
         disabled={disabled || isAtMin}
         tabIndex={-1}
+        onMouseDown={keepFocus}
         aria-label="Decrease value"
       >
         <span className={iconClasses}>
@@ -455,6 +465,7 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
         onClick={handleIncrement}
         disabled={disabled || isAtMax}
         tabIndex={-1}
+        onMouseDown={keepFocus}
         aria-label="Increase value"
       >
         <span className={iconClasses}>

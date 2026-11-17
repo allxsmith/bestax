@@ -187,6 +187,7 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/components/steps';
 @use '@allxsmith/bestax-bulma/scss/components/tabs' as bestax-tabs;
 @use '@allxsmith/bestax-bulma/scss/components/menu' as bestax-menu;
+@use '@allxsmith/bestax-bulma/scss/components/dropdown' as bestax-dropdown;
 @use '@allxsmith/bestax-bulma/scss/components/emptystate';
 @use '@allxsmith/bestax-bulma/scss/components/timeline';
 @use '@allxsmith/bestax-bulma/scss/components/treeview';
@@ -230,6 +231,7 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/form/cascader';
 
 // bestax elements and helpers
+@use '@allxsmith/bestax-bulma/scss/elements/box' as bestax-box;
 @use '@allxsmith/bestax-bulma/scss/elements/button' as bestax-button;
 @use '@allxsmith/bestax-bulma/scss/elements/colorswatch';
 @use '@allxsmith/bestax-bulma/scss/elements/delete' as bestax-delete;
@@ -240,6 +242,7 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/elements/linkbutton';
 @use '@allxsmith/bestax-bulma/scss/elements/loader' as bestax-loader;
 @use '@allxsmith/bestax-bulma/scss/elements/notification' as bestax-notification;
+@use '@allxsmith/bestax-bulma/scss/elements/pre';
 @use '@allxsmith/bestax-bulma/scss/elements/progress' as bestax-progress;
 @use '@allxsmith/bestax-bulma/scss/elements/ringprogress';
 @use '@allxsmith/bestax-bulma/scss/elements/skeleton' as bestax-skeleton;
@@ -256,6 +259,8 @@ Some of these partials adjust a stock Bulma component rather than add one of bes
 
 - `elements/notification` keeps a `Notification`'s text clear of its close button, and gives a dark or light one its color's own text and background, and a white or black one with `isLight` the light color's text, where Bulma's module lets its text inherit the color around it, so a build that uses `bulma/sass/elements/notification` wants it too.
 
+- `elements/pre` draws a `Pre`'s keyboard focus ring, which is a tab stop while its content overflows, so a build that shows a `Pre` wants it. Bulma draws the `<pre>` in its base, which every build has, so it needs no Bulma module of its own.
+
 - `elements/table` draws the keyboard focus ring of a responsive table's container, which is a tab stop while the table overflows it, and marks a selected row or cell with a double line in forced colors, where Bulma's fill for it is replaced, so a build that uses `bulma/sass/elements/table` for a `Table` with `isResponsive` or selected rows, or for a `DataTable` that selects rows, wants it too.
 
 - `elements/tag` gives a light tag, and a white, black or dark one with `isLight`, readable text, sets a normal-size tag in a table cell at the bottom of its line, where Bulma's baseline makes the row taller than a row of text, and gives a button tag (`as="button"`, `isDelete`) the weight, spacing and other text a span tag takes from the text around it, where the browser gives a button its own, so a build that uses `bulma/sass/elements/tag` wants it too.
@@ -264,13 +269,17 @@ Some of these partials adjust a stock Bulma component rather than add one of bes
 
 - `components/pagination` draws the page links' keyboard focus ring, which Bulma's own styles turn off, and keeps the current page marked in forced colors (Windows' contrast themes), so a build that uses `bulma/sass/components/pagination`, for a `Pagination` or a `DataTable`'s pager, wants it too.
 
-- `components/tabs` shows only a `Tabs.Content`'s selected panel and lays out vertical tabs, draws a `Tabs.Tab`'s keyboard focus ring and a disabled tab's look, and keeps the active tab marked in forced colors, so a build that uses `bulma/sass/components/tabs` for a `Tabs` needs it too.
+- `components/tabs` shows only a `Tabs.Content`'s selected panel and lays out vertical tabs, draws a `Tabs.Tab`'s keyboard focus ring and a disabled tab's look, moves Bulma's focus ring inside most `Tabs.Item` links, where the tab row clips it, brings a focused toggle tab in front of its neighbors, and keeps the active tab marked in forced colors, so a build that uses `bulma/sass/components/tabs` for a `Tabs` needs it too.
 
 - `components/menu` keeps a menu's active item marked in forced colors, draws `Menu.Section`'s heading and chevron, and starts each item's text at the right on a right-to-left page, so a build that uses `bulma/sass/components/menu`, for a `Menu` or a `TableOfContents`, wants it too.
 
-- `components/navbar` keeps the burger's bars drawn and the active item marked in forced colors, keeps a `fixed` navbar in place while an overlay locks the page's scrolling, gives an active item's text the invert of the link color it sits on, where Bulma's leaves it in the navbar's text color, draws a navbar in a colored `Hero` in the hero's colors, where Bulma's draws its active item and burger in the link color, and, in a build with a class prefix, draws a dropdown's active link row, other than a tab, as it draws without one, where Bulma's draws it as a plain row, so a build that uses `bulma/sass/components/navbar`, for a `Navbar` or an `AppFrame`'s burger, wants it too.
+- `components/dropdown` keeps a divider drawn in forced colors, where Bulma's fill takes the menu's own color, so a build that uses `bulma/sass/components/dropdown`, for a `Dropdown` or a `ContextMenu`, wants it too.
 
-- `components/panel` keeps the heading of a panel with no color readable on the dark scheme, where Bulma writes it white on light gray, and a colored panel's active block and tab, their text, icon and underline, readable on both schemes, and keeps the active block and tab marked in forced colors, so a build that uses `bulma/sass/components/panel` wants it too.
+- `components/navbar` keeps the burger's bars and `Navbar.Divider` drawn and the active item marked in forced colors, keeps a `fixed` navbar in place while an overlay locks the page's scrolling, gives an active item's text the invert of the link color it sits on, where Bulma's leaves it in the navbar's text color, draws a navbar in a colored `Hero` in the hero's colors, where Bulma's draws its active item and burger in the link color, and, in a build with a class prefix, draws a dropdown's active link row, other than a tab, as it draws without one, where Bulma's draws it as a plain row, so a build that uses `bulma/sass/components/navbar`, for a `Navbar` or an `AppFrame`'s burger, wants it too.
+
+- `components/panel` keeps the heading of a panel with no color readable on the dark scheme, where Bulma writes it white on light gray, and a colored panel's active block and tab, their text, icon and underline, readable on both schemes, and keeps the panel's edge drawn and the active block and tab marked in forced colors, so a build that uses `bulma/sass/components/panel` wants it too.
+
+- `elements/box` draws a box's edge as an outline in the system's text color in forced colors, where Bulma draws it as a shadow, which those themes drop, so a build that uses `bulma/sass/elements/box` wants it too.
 
 - `elements/divider` draws a `Divider`'s line as a border in the system's text color in forced colors, where Bulma draws an `<hr>` as a background color that's replaced with the page's own, so a build that shows a `Divider`, or a plain `<hr>`, wants it. An `<hr>` with a class of its own, such as Bulma's dropdown and navbar dividers, keeps its own rules. Bulma draws the `<hr>` in its base, which every build has, so it needs no Bulma module of its own.
 
@@ -346,6 +355,7 @@ A realistic modular SCSS entry for an app that uses a few Bulma primitives plus 
 @use 'bulma/sass/helpers/color';
 
 // bestax extras — only what the app uses
+@use '@allxsmith/bestax-bulma/scss/elements/box' as bestax-box;
 @use '@allxsmith/bestax-bulma/scss/helpers/color' as bestax-color;
 @use '@allxsmith/bestax-bulma/scss/components/dialog';
 @use '@allxsmith/bestax-bulma/scss/form/autocomplete';

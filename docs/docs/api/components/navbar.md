@@ -541,6 +541,9 @@ function example() {
   the menu the burger opens. The item and everything in it stay in the contrast theme's colors,
   and an active tab gets the bar above Bulma's thicker underline. This ships in the same
   stylesheets.
+- **`Navbar.Divider` in forced colors:** Bulma draws it as a background color too, which forced
+  colors paints in the dropdown's own color, so the line would vanish. bestax's styles draw it in
+  the system's text color there, from the same stylesheets.
 - **In a colored [`Hero`](../layout/hero.md):** Bulma's hero sets the colors its navbar's items
   take on hover and when active, but Bulma's navbar doesn't read them, so a focused or hovered
   item took the scheme's fill under the hero's text, and the active item and the burger took the

@@ -106,9 +106,34 @@ $panel-text-invert-l: cv.getVar('scheme-main-l') !default;
 // the tab or block and everything in it, its text, an icon and its focus ring,
 // to the user's colors. It sits in the item's padding, which Bulma gives both,
 // and positions the item for it. It reads the class Bulma highlights,
-// `is-active`, on a `Panel.Block` and on a tab link you write. Outside forced
-// colors none of this changes anything.
+// `is-active`, on a `Panel.Block` and on a tab link you write.
+//
+// The same block draws the panel's edge. Bulma draws it as a shadow and a
+// faint shadow ring, and sets the heading apart with a fill, and forced colors
+// drops the shadows and paints the fill in the page's own Canvas, so nothing
+// shows where a panel starts and ends. A one pixel outline in CanvasText,
+// which takes no room, draws the edge there, following the panel's rounded
+// corners, the way `_modal.scss` draws a modal card's. It sits outside the
+// panel, since the active block is positioned there and its hover fill would
+// paint over an outline drawn inside. A focused panel, such as a `section`
+// focused from a skip link, gets the browser's own focus ring back. A line in
+// CanvasText under a heading with rows below it stands in for its fill, the
+// way Bulma lines its rows but the last. Bulma sets no outline on a panel and
+// no border on its heading, so one class is enough wherever the two
+// stylesheets load. Outside forced colors none of this changes anything.
 @media (forced-colors: active) {
+  .#{iv.$class-prefix}panel {
+    outline: 1px solid CanvasText;
+
+    &:focus-visible {
+      outline: revert;
+    }
+  }
+
+  .#{iv.$class-prefix}panel-heading:not(:last-child) {
+    border-bottom: 1px solid CanvasText;
+  }
+
   .#{iv.$class-prefix}panel-tabs a.#{iv.$class-prefix}is-active,
   .#{iv.$class-prefix}panel-block.#{iv.$class-prefix}is-active {
     position: relative;

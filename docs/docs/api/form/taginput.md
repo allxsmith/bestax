@@ -415,6 +415,7 @@ Inside a `Control` with no `Field` around it, `Taginput` renders no `Field` of i
 | `↓`         | Open/navigate suggestions          |
 | `↑`         | Navigate suggestions up            |
 | `Escape`    | Close suggestions dropdown         |
+| `Tab`       | Close suggestions and move on      |
 
 While an input method editor (IME) is composing text, the keys are left to it, so Enter confirms the composition rather than adding a tag.
 
@@ -491,6 +492,7 @@ function TaginputFormDemo() {
 - Delete buttons have proper `aria-label`
 - With `data`, the input is a `role="combobox"` with `aria-autocomplete="list"` and `aria-haspopup="listbox"`. Its `aria-expanded` is true only while the suggestion list is on screen, and while it is, `aria-controls` points at the list. While no suggestion matches there's no list, so it stays false. Without `data` there's never a list, so the input stays a plain text field
 - Focus stays in the input, which points `aria-activedescendant` at the highlighted suggestion as the arrow keys or the mouse move it
+- Focus moving from the input to another element closes the suggestion list, as `Tab` to the next field or to a tag's remove button does, so the list doesn't stay open over what has focus. A press on a suggestion keeps focus in the input, so the list stays open for the click, and the list takes no `Tab` stop of its own
 - The list is a `role="listbox"` named through `aria-labelledby` by the label that names the input, when that label has an id: the `label` prop's label always has one, and so does a `Field`'s label that the `Field` wires itself. A `Field` label you wire by hand with `labelProps.htmlFor`, which is how the horizontal examples above name the Taginput, needs an `id` in its `labelProps` as well. Otherwise the list falls back to `aria-label="Suggestions"`
 - The list holds only the suggestions, each a `role="option"` with an id of its own, and the highlighted one has `aria-selected="true"`
 - In forced colors (Windows' contrast themes), which take away the list's shadow and the highlighted suggestion's fill, the open list is drawn with an edge and the highlighted suggestion with an outline in the system's highlight color
