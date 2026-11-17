@@ -271,8 +271,13 @@ function example() {
               <Title size="4" textAlign="centered">
                 Sign in
               </Title>
-              <Input label="Email" type="email" iconLeftName="envelope" />
-              <Input label="Password" type="password" iconLeftName="lock" />
+              <Input
+                label="Email"
+                type="email"
+                autoComplete="username"
+                iconLeftName="envelope"
+              />
+              <PasswordInput label="Password" iconLeftName="lock" />
               <Button color="primary" isFullwidth mt="4">
                 Sign in
               </Button>
