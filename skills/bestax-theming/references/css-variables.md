@@ -1215,6 +1215,12 @@ variable on such a tag through `style`. Bulma's own `--bulma-tag-*` variables se
 `--bulma-timeinput-wheel-item-height` is registered but has no effect: the component sets each
 wheel item's height inline.
 
+In forced colors (Windows' contrast themes) the band is the system's highlight color, with the
+focus ring in the color made to read on it, whatever `--bulma-timeinput-wheel-selected-bg` and
+`--bulma-timeinput-wheel-selected-color` say, and the values take the system's text color. On a
+disabled picker the band and the values take its color for a disabled control, and so does a
+value the picker blocks. The wheels in `DateTimeInput` are these.
+
 ### Timeline
 
 Declared on the root, `.timeline`. The states and the color classes set
