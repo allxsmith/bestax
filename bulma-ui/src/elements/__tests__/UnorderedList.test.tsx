@@ -99,6 +99,40 @@ describe('UnorderedList Component', () => {
     expect(screen.getByText('Item 3')).toBeInTheDocument();
   });
 
+  // Safari drops a `<ul>`'s list role once its bullets are hidden, which
+  // Bulma's reset does outside Content, unless the role is written out.
+  describe('list role', () => {
+    test('writes role="list" on the ul', () => {
+      render(
+        <UnorderedList>
+          <ListItem>Apples</ListItem>
+          <ListItem>Pears</ListItem>
+        </UnorderedList>
+      );
+      const list = screen.getByRole('list');
+      expect(list.tagName).toBe('UL');
+      expect(list).toHaveAttribute('role', 'list');
+      expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    });
+
+    test('a role the caller passes replaces it', () => {
+      render(<UnorderedList role="none" data-testid="list" />);
+      expect(screen.getByTestId('list')).toHaveAttribute('role', 'none');
+      expect(screen.queryByRole('list')).toBeNull();
+    });
+
+    test('a spread carrying role: undefined keeps it', () => {
+      const forwarded: { role?: string } = { role: undefined };
+      render(<UnorderedList {...forwarded} data-testid="list" />);
+      expect(screen.getByTestId('list')).toHaveAttribute('role', 'list');
+    });
+
+    test('an empty role is rendered as written, as on a plain ul', () => {
+      render(<UnorderedList role="" data-testid="list" />);
+      expect(screen.getByTestId('list')).toHaveAttribute('role', '');
+    });
+  });
+
   describe('ClassPrefix', () => {
     it('applies prefix to helper classes', () => {
       render(

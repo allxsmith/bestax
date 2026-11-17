@@ -25,6 +25,7 @@ import {
   normalizeHtml,
   renderExports,
   withImplicitListRoles,
+  withLoadingButtonsBusy,
   withV1Classes,
 } from './support/render-module.js';
 
@@ -246,8 +247,11 @@ describe('bulma-classes kitchen-sink e2e', () => {
           Object.fromEntries(
             Object.entries(exported).map(([name, html]) => [
               name,
-              withImplicitListRoles(
-                withV1Classes(html, after[file]?.[name] ?? ''),
+              withLoadingButtonsBusy(
+                withImplicitListRoles(
+                  withV1Classes(html, after[file]?.[name] ?? ''),
+                  after[file]?.[name] ?? ''
+                ),
                 after[file]?.[name] ?? ''
               ),
             ])

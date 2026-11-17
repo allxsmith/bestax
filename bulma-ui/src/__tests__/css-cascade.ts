@@ -39,7 +39,9 @@ export const bulmaCss = (file = 'bulma.css') =>
 
 /**
  * The sheet's top-level style rules, in source order, and the style rules
- * nested in an at-rule, each with the at-rule it sits in.
+ * nested in an at-rule, each with the outermost at-rule it sits in. `all`
+ * holds every style rule in source order, each with every at-rule around it,
+ * outermost first.
  */
 export function rulesOf(css: string) {
   const sheet = document.createElement('style');
@@ -49,29 +51,43 @@ export function rulesOf(css: string) {
   document.head.appendChild(sheet);
   const rules: CSSStyleRule[] = [];
   const nested: { rule: CSSStyleRule; within: string }[] = [];
-  const walk = (list: CSSRuleList, within?: string) => {
+  const all: { rule: CSSStyleRule; within: string[] }[] = [];
+  const walk = (list: CSSRuleList, within: string[]) => {
     for (const rule of Array.from(list)) {
       if (rule instanceof CSSStyleRule) {
-        if (within) nested.push({ rule, within });
+        if (within.length) nested.push({ rule, within: within[0] });
         else rules.push(rule);
+        all.push({ rule, within });
       } else if ('cssRules' in rule) {
-        walk(
-          (rule as CSSGroupingRule).cssRules,
-          within ?? rule.cssText.split('{')[0].trim()
-        );
+        walk((rule as CSSGroupingRule).cssRules, [
+          ...within,
+          rule.cssText.split('{')[0].trim(),
+        ]);
       }
     }
   };
   try {
-    walk((sheet.sheet as CSSStyleSheet).cssRules);
+    walk((sheet.sheet as CSSStyleSheet).cssRules, []);
   } finally {
     sheet.remove();
   }
-  return { rules, nested };
+  return { rules, nested, all };
 }
 
+/** The at-rule a forced-colors page applies, as `rulesOf` reports it. */
+const FORCED_COLORS = /^@media\s*\(forced-colors:\s*active\)$/;
+
+// The last sheet `cascade` parsed. A suite resolves several properties on
+// several elements from one sheet, and parsing Bulma's whole stylesheet into
+// jsdom each time is slow.
+let lastParsed: { css: string; parsed: ReturnType<typeof rulesOf> } | undefined;
+const parse = (css: string) => {
+  if (lastParsed?.css !== css) lastParsed = { css, parsed: rulesOf(css) };
+  return lastParsed.parsed;
+};
+
 /** Whether `el` matches `selector`; a pseudo-element never does. */
-const matches = (el: Element, selector: string) => {
+export const matches = (el: Element, selector: string) => {
   if (selector.includes('::')) return false;
   try {
     return el.matches(selector);
@@ -89,7 +105,7 @@ const outranks = (a: number[], b: number[]) => {
 };
 
 /** A selector list split at its own commas, not those inside parentheses. */
-function splitList(list: string): string[] {
+export function splitList(list: string): string[] {
   const parts: string[] = [];
   let depth = 0;
   let part = '';
@@ -160,20 +176,41 @@ const matching = (el: Element, rule: CSSStyleRule) =>
  * it sets nothing. Only rules that match `el` count, so a value it would
  * inherit is left out.
  * With `has: false` it resolves them as a browser without `:has()` does,
- * which drops every rule whose selector uses it.
+ * which drops every rule whose selector uses it. With `forcedColors: true` it
+ * resolves them as a forced-colors page does, where the rules in a
+ * `@media (forced-colors: active)` block apply in their place in the sheet,
+ * and with `forcedColors: false` as any other page does, where they don't.
+ * Left out, a rule in that block fails like one in any other at-rule.
  */
 export function cascade(
   el: Element,
   css: string,
   properties: string[],
   valueOf: (style: CSSStyleDeclaration, property: string) => string | undefined,
-  { has = true } = {}
+  { has = true, forcedColors }: { has?: boolean; forcedColors?: boolean } = {}
 ): string | undefined {
-  const parsed = rulesOf(css);
+  const parsed = parse(css);
   const supported = (rule: CSSStyleRule) =>
     has || !rule.selectorText.includes(':has(');
-  const rules = parsed.rules.filter(supported);
-  const nested = parsed.nested.filter(({ rule }) => supported(rule));
+  // Inside a forced-colors block that no other at-rule wraps, at any depth.
+  const forced = (within: string[]) =>
+    within.length > 0 && FORCED_COLORS.test(within[0]);
+  // Applies at the top level, and directly in a forced-colors block on a
+  // forced-colors page. Another at-rule inside that block isn't modelled.
+  const applies = (within: string[]) =>
+    within.length === 0 ||
+    (forcedColors === true && within.length === 1 && forced(within));
+  const rules = parsed.all
+    .filter(({ rule, within }) => supported(rule) && applies(within))
+    .map(({ rule }) => rule);
+  const nested = parsed.all
+    .filter(
+      ({ rule, within }) =>
+        supported(rule) &&
+        !applies(within) &&
+        !(forcedColors === false && forced(within))
+    )
+    .map(({ rule, within }) => ({ rule, within: within.join(' ') }));
   // `@media`, `@supports`, `@layer` and the like change when or in what
   // order their rules apply, which this file doesn't model, so a value set
   // in one fails rather than being read as if it always applied.
@@ -217,6 +254,31 @@ export function cascade(
     });
   });
   return won?.value;
+}
+
+/**
+ * What the rules of `css` that match `el` declare for `properties`, as
+ * `property: value` in source order: the top-level rules' under `atRest`, and
+ * those nested in an at-rule under that at-rule, such as
+ * `@media (forced-colors: active)`. For a value that only applies in a media
+ * query `cascade` doesn't model, where what matters is that it's declared
+ * there and nowhere else.
+ */
+export function declaredFor(el: Element, css: string, properties: string[]) {
+  const { rules, nested } = rulesOf(css);
+  const read = (rule: CSSStyleRule) =>
+    matching(el, rule).length === 0
+      ? []
+      : properties.flatMap(property => {
+          const value = rule.style.getPropertyValue(property);
+          return value ? [`${property}: ${value}`] : [];
+        });
+  const out: Record<string, string[]> = { atRest: rules.flatMap(read) };
+  for (const { rule, within } of nested) {
+    const declared = read(rule);
+    if (declared.length > 0) (out[within] ??= []).push(...declared);
+  }
+  return out;
 }
 
 /** The custom property `name` declared on `el`, as the rules of `css` resolve it. */

@@ -294,6 +294,9 @@ children — where it renders its own background and close button, both wired to
 form instead, which renders only what you wrote; there, wire your own `Modal.Background`'s
 `onClick` to the same `onClose`.
 
+The open modal is a dialog, so give it a name, with `aria-label`, or `aria-labelledby` pointing at
+its title. Only the legacy form's `modalCardTitle` names it for you.
+
 ## `value-reference` — a component used as a value
 
 `const X = Card.Header;` and similar. The codemod rewrites what it can prove safe and flags the

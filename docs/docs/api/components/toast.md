@@ -345,6 +345,7 @@ toast.closeAll();
 - A toast doesn't close on its timer while focus is inside it, on its action, cancel or close button, whatever `pauseOnHover` says, so a keyboard user who reaches it can use it. Once focus leaves, it gets its whole `duration` again.
 - `cancelable` (default `true`) supports Escape-key dismiss. An Escape that closed a popup on the page, such as a Dropdown menu or a date picker's calendar, leaves the toast up.
 - A toast is a notification rather than a layer, so while a [Modal](./modal.md), [Dialog](./dialog.md), [Sidebar](./sidebar.md) or full-page [Loading](./loading.md) is open, Escape goes to that and the toast stays up. Once none is open, Escape dismisses the toast.
+- In forced colors (Windows' contrast themes), which drop the toast's shadow and paint its fill in the page's own color, the toast gets a one pixel edge in the system's text color, and the cancel button's text shows at full strength. A toast given a `tabIndex` shows the browser's focus ring in place of that edge while it has keyboard focus.
 
 ---
 

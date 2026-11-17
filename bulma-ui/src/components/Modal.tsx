@@ -55,11 +55,25 @@ export interface ModalProps
   onClose?: () => void;
   /** Additional CSS classes for the modal. */
   className?: string | undefined;
+  /**
+   * ARIA label for the close button the props form renders with `onClose`,
+   * the card header's or the floating one. It's drawn as an icon, so its name
+   * is all a screen reader says about it: give it one in the page's
+   * language. An empty one falls back to the default. An `aria-label` on
+   * `Modal` names the dialog, not the button, and a `Modal.Close` in the
+   * compound form takes an `aria-label` of its own.
+   * @defaultValue 'close'
+   */
+  ariaCloseLabel?: string | undefined;
   /** Text color for modal content. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color for modal content. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Title/header for modal-card variant. (Legacy API only) */
+  /**
+   * Title/header for modal-card variant, which names the dialog through
+   * `aria-labelledby`. Without one, give the modal an `aria-label`, or an
+   * `aria-labelledby` pointing at a heading inside it. (Legacy API only)
+   */
   modalCardTitle?: React.ReactNode;
   /**
    * Footer for modal-card variant. Group two or more buttons in `Buttons` so
@@ -383,11 +397,11 @@ export const ModalClose: React.FC<ModalCloseProps> = ({
  *
  * @example
  * // Compound Component API
- * <Modal isActive={isOpen} onClose={handleClose}>
+ * <Modal isActive={isOpen} onClose={handleClose} aria-labelledby="modal-title">
  *   <Modal.Background onClick={handleClose} />
  *   <Modal.Card>
  *     <Modal.Card.Head>
- *       <Modal.Card.Title>Title</Modal.Card.Title>
+ *       <Modal.Card.Title id="modal-title">Title</Modal.Card.Title>
  *       <Modal.Close />
  *     </Modal.Card.Head>
  *     <Modal.Card.Body>Content</Modal.Card.Body>
@@ -411,6 +425,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
     closeOnEscape = true,
     lockScroll = true,
     portal = false,
+    ariaCloseLabel,
     role,
     'aria-modal': ariaModalProp,
     ...props
@@ -579,6 +594,9 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
     'is-active': isModalActive,
   });
   const deleteClass = usePrefixedClassNames('delete');
+  // The props form's close button. An empty label names nothing, and the
+  // button is drawn as an icon, so it falls back like a missing one.
+  const closeLabel = ariaCloseLabel || 'close';
 
   const modalClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
@@ -587,8 +605,9 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
     ariaModalProp ??
     (isModalActive && resolvedRole !== 'presentation' ? 'true' : undefined);
   // A dialog needs an accessible name: the legacy card title is wired up
-  // automatically, compound users pass their own aria-label/aria-labelledby
-  // (both arrive in `rest`, which is spread last and so wins).
+  // automatically, and a modal without one, legacy or compound, takes the
+  // caller's own aria-label/aria-labelledby (both arrive in `rest`, which is
+  // spread last and so wins).
   const titleId = modalCardTitle ? generatedTitleId : undefined;
   // A test id the caller passes wins. It's written after `rest`, since a
   // spread carrying `data-testid: undefined` would otherwise erase the default.
@@ -652,7 +671,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
                 {onClose && (
                   <button
                     className={deleteClass}
-                    aria-label="close"
+                    aria-label={closeLabel}
                     onClick={onClose}
                     type="button"
                     data-testid="modal-close"
@@ -690,7 +709,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
               'modal-close',
               'is-large'
             )}
-            aria-label="close"
+            aria-label={closeLabel}
             onClick={onClose}
             type="button"
             data-testid="modal-close-float"

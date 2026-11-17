@@ -18,6 +18,7 @@ import { warnOnce } from '../helpers/devWarnings';
 import { useLocaleMatcher } from '../helpers/localeFormat';
 import {
   AnchoredPosition,
+  anchoredStyle,
   marginGap,
   useAnchoredPosition,
 } from '../helpers/useAnchoredPosition';
@@ -38,6 +39,7 @@ import {
   useInsideField,
 } from './FormContext';
 import { useAutoLabelId } from './useAutoLabelId';
+import { joinIds, useFieldMessage } from './useFieldMessage';
 import { useControlLoading } from './controlLoading';
 import { HiddenValues, ValueTags, tagIds } from './_selectInternals/ValueTags';
 
@@ -146,6 +148,9 @@ interface ComboboxBaseProps
    * start edge, which is its right edge on a right-to-left page, so a menu
    * wider than the field doesn't hang off the screen. A corner you pass
    * stays physical, so `bottom-left` lines up the left edges on either page.
+   * A panel that would run past the viewport's left or right edge keeps
+   * its corner and moves sideways, just far enough to fit or, wider than
+   * the viewport, to the edge its text starts from.
    * @defaultValue 'bottom-left'
    */
   position?: PopoverPosition;
@@ -466,6 +471,8 @@ interface ComboboxContextValue {
    * The field points at it while its own `id` hasn't reached the label yet.
    */
   ownLabelId: string | undefined;
+  /** The id of the Combobox's `message`, which describes the field, or undefined with none. */
+  messageId: string | undefined;
   /** Tells the Combobox the field's `isLoading`, which holds the empty message's announcement. */
   reportLoading: (loading: boolean) => void;
   /** Records the empty message while it's on screen. Returns the function that forgets it. */
@@ -521,6 +528,7 @@ const standalone: ComboboxContextValue = {
   reportInputId: noop,
   labelId: undefined,
   ownLabelId: undefined,
+  messageId: undefined,
   reportLoading: noop,
   reportEmpty: registerNothing,
   onFieldChange: noop,
@@ -641,9 +649,7 @@ const ComboboxParts = forwardRef<HTMLDivElement, ComboboxPartsRootProps>(
       [`is-${validSize}`]: !!validSize,
       'is-inline': inline,
     });
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
+    const { messageEl, messageId } = useFieldMessage(message, messageColor);
 
     // A polite status region, in the page from the start so it's there
     // before anything is written into it, announces `Combobox.Empty` when
@@ -721,6 +727,7 @@ const ComboboxParts = forwardRef<HTMLDivElement, ComboboxPartsRootProps>(
       reportInputId: setGivenInputId,
       labelId: listLabelId,
       ownLabelId: label && ownField ? listLabelId : undefined,
+      messageId,
       reportLoading: setInputLoading,
       reportEmpty,
       onFieldChange,
@@ -769,8 +776,6 @@ const ComboboxParts = forwardRef<HTMLDivElement, ComboboxPartsRootProps>(
           </div>
         </div>
       );
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
-
     if (ownField) {
       return (
         <Field
@@ -857,6 +862,8 @@ export const ComboboxInput = forwardRef<HTMLInputElement, ComboboxInputProps>(
         ref={inputRefs}
         id={id ?? context.inputId}
         aria-labelledby={labelledBy}
+        // The Combobox's message after the caller's ids, as on an `Input`.
+        aria-describedby={joinIds(props['aria-describedby'], context.messageId)}
         isLoading={isLoading}
         size={context.size}
         controlSize={controlSize ?? (insideControl ? undefined : context.size)}
@@ -951,17 +958,7 @@ export const ComboboxMenu: React.FC<ComboboxMenuProps> = ({
         {...props}
         ref={panelRef}
         className={classNames(menuClass, className)}
-        style={
-          appendToBody
-            ? {
-                ...style,
-                position: 'fixed',
-                top: placement.top,
-                left: placement.left,
-                minWidth: placement.minWidth,
-              }
-            : style
-        }
+        style={{ ...style, ...anchoredStyle(placement, appendToBody) }}
         onMouseDown={event => {
           onMouseDown?.(event);
           engine.keepFocus(event);

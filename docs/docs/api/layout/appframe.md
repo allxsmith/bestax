@@ -581,7 +581,7 @@ The parts are attached to `AppFrame`, and also exported on their own as `AppFram
   handles, a pointer can't set a width without dragging; the column works at its default width,
   and the burger collapses and expands it with a click. Its strip is 24 pixels wide for a coarse
   pointer (WCAG 2.5.8), and its line, on hover, focus and drag, is a border, which forced colors
-  keeps in the system's highlight.
+  keeps in the system's highlight, with its focus ring in the text color.
 - **The icon rail** keeps every name: labels are visually hidden, never removed, and icons are
   `aria-hidden`. Each tooltip adds no `aria-describedby` and is `aria-hidden` itself, so the name
   isn't read twice. It shows on keyboard focus as well as hover, stays while the pointer moves

@@ -25,6 +25,11 @@ otherwise, and the prop takes the matching suffix: `is-6-tablet` → `sizeTablet
 element did not have. On any tag but `<button>`, bestax takes the element's `as`
 (`<a className="button">` → `<Button as="a">`).
 
+`is-loading` becomes `isLoading`, so a converted loading button gains what bestax's loading
+`Button` does: it writes `aria-busy="true"` and `aria-disabled="true"`, and drops a click while it
+loads, from the keyboard too, where Bulma's spinner stops only the pointer. Its `onClick` doesn't
+run then, and neither does the form submit, the reset or the link it would have triggered.
+
 ### `.buttons` → `Buttons`, `.tags` → `Tags`
 
 | Classes                                | Prop                                |
@@ -129,6 +134,7 @@ codemod's `modifier:title` (or `modifier:subtitle`) TODO on the element says the
 | `.navbar-dropdown` → `Navbar.DropdownMenu`                                   | `is-right`, `is-up`                                                                                                                              | `right`, `up`                                                                                     |
 | `.notification` → `Notification`                                             | `is-primary`, `is-link`, `is-info`, `is-success`, `is-warning`, `is-danger`, `is-black`, `is-white`, `is-dark`                                   | `color`                                                                                           |
 | `.notification` → `Notification`                                             | `is-light`                                                                                                                                       | `isLight`                                                                                         |
+| `.panel-block` → `Panel.Block`                                               | `is-active`, beside an `aria-current` of the element's own                                                                                       | `active` (without one, it stays a class)                                                          |
 | `.progress` → `Progress`                                                     | the ten `.hero` colors                                                                                                                           | `color`                                                                                           |
 | `.progress` → `Progress`                                                     | `is-small`, `is-medium`, `is-large`                                                                                                              | `size`                                                                                            |
 | `.section` → `Section`                                                       | `is-medium`, `is-large`                                                                                                                          | `size`                                                                                            |

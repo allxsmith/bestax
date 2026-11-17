@@ -74,7 +74,13 @@ function withoutWhere(selector: string): string {
 
 /** Specificity as [ids, classes, types], enough for this partial's rules. */
 const specificity = (selector: string): number[] => {
-  const counted = withoutWhere(selector);
+  // `:not(x)` weighs what `x` does, so only its argument is counted. One
+  // with a list or a nested group weighs its heaviest part, which this
+  // doesn't work out, so it refuses one rather than miscount it.
+  const counted = withoutWhere(selector).replace(/:not\(([^(),]*)\)/g, '$1');
+  if (counted.includes(':not(')) {
+    throw new Error(`can't weigh the :not() in ${selector}`);
+  }
   return [
     (counted.match(/#[\w-]+/g) ?? []).length,
     (counted.match(/\.[\w-]+|\[[^\]]*\]|:(?!:)[\w-]+/g) ?? []).length,
@@ -228,6 +234,71 @@ describe.each([
     ).toBe('highlight');
     expect(resolve(trackOf({ disabled: true }), 'border-color', forced)).toBe(
       'graytext'
+    );
+  });
+
+  describe('the knob in forced colors', () => {
+    // The knob is painted from a variable, which forced colors repaints in
+    // the page's background, so it vanished on the track. A thin or outlined
+    // track never fills, so the knob was all that showed it on (#1965).
+    const forcedKnob = (props: SwitchProps) =>
+      resolve(trackOf(props), 'background-color', {
+        pseudo: '::before',
+        forcedColors: true,
+      });
+    const forcedEdge = (props: SwitchProps) =>
+      resolve(trackOf(props), 'border-color', { forcedColors: true });
+
+    it.each([
+      ['the default', {}],
+      ['a thin', { isThin: true }],
+      ['an outlined', { isOutlined: true }],
+      ['a passive outlined', { isOutlined: true, passiveType: 'danger' }],
+      ['a passive', { passiveType: 'danger' }],
+    ] as const)(
+      'draws %s knob and edge in the text color when off, gray when disabled',
+      (_style, props) => {
+        expect(forcedKnob(props)).toBe('buttontext');
+        expect(forcedEdge(props)).toBe('buttontext');
+        expect(forcedKnob({ ...props, disabled: true })).toBe('graytext');
+        expect(forcedEdge({ ...props, disabled: true })).toBe('graytext');
+      }
+    );
+
+    it.each([
+      ['the default', {}],
+      ['a passive', { passiveType: 'danger' }],
+    ] as const)(
+      'draws %s knob in the highlight text color on its filled track',
+      (_style, props) => {
+        const on = { ...props, checked: true };
+        const fill = (p: SwitchProps) =>
+          resolve(trackOf(p), 'background-color', { forcedColors: true });
+        expect(fill(on)).toBe('highlight');
+        expect(forcedKnob(on)).toBe('highlighttext');
+        expect(forcedKnob({ ...on, disabled: true })).toBe('highlighttext');
+        expect(forcedEdge({ ...on, disabled: true })).toBe('graytext');
+      }
+    );
+
+    it.each([
+      ['thin', { isThin: true }],
+      ['outlined', { isOutlined: true }],
+      ['passive outlined', { isOutlined: true, passiveType: 'danger' }],
+      ['passive thin', { isThin: true, passiveType: 'danger' }],
+    ] as const)(
+      'draws a %s knob and edge in the highlight on an unfilled track when on, the edge gray when disabled',
+      (_style, props) => {
+        const on = { ...props, checked: true };
+        // The knob shows only while the track's own rule outranks the fill.
+        expect(
+          resolve(trackOf(on), 'background-color', { forcedColors: true })
+        ).not.toBe('highlight');
+        expect(forcedKnob(on)).toBe('highlight');
+        expect(forcedEdge(on)).toBe('highlight');
+        expect(forcedKnob({ ...on, disabled: true })).toBe('highlight');
+        expect(forcedEdge({ ...on, disabled: true })).toBe('graytext');
+      }
     );
   });
 

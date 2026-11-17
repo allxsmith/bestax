@@ -8,11 +8,11 @@
     { "title": "Default Title", "code": "<Title>Default Title</Title>" },
     {
       "title": "Has Skeleton",
-      "code": "<Title hasSkeleton>Title with Skeleton Effect</Title>"
+      "code": "<Title hasSkeleton aria-hidden=\"true\">\n  Title with Skeleton Effect\n</Title>"
     },
     {
       "title": "Is Skeleton",
-      "code": "<Title skeleton>Title Skeleton Effect</Title>"
+      "code": "<Title skeleton aria-hidden=\"true\">\n  Title Skeleton Effect\n</Title>"
     },
     {
       "title": "Different Sizes",
@@ -36,7 +36,7 @@
       "code": "<Block>\n  <Title as=\"p\" size=\"1\">\n    Title 1\n  </Title>\n  <SubTitle as=\"p\" size=\"3\">\n    Subtitle 3\n  </SubTitle>\n</Block>"
     }
   ],
-  "accessibility": "- **Semantic HTML:** Use appropriate heading levels for document structure.\n- **Spacing:** Use `isSpaced` for extra margin when needed.\n- **Screen readers:** Headings are key landmarks, so give each one the level the page's hierarchy\n  needs. `size` picks that level as well as the size, unless `as` is `p`: `as=\"h2\" size=\"4\"`\n  renders an `<h4>`. For a heading whose level and size differ, set the level with `as` and the\n  size with the `textSize` helper, as in `<Title as=\"h2\" textSize=\"4\">`.\n\n:::tip\nWhen using `as=\"p\"`, the element is visually styled as a heading but semantically a paragraph.\n:::",
+  "accessibility": "- **Semantic HTML:** Use appropriate heading levels for document structure.\n- **Spacing:** Use `isSpaced` for extra margin when needed.\n- **Screen readers:** Headings are key landmarks, so give each one the level the page's hierarchy\n  needs. `size` picks that level as well as the size, unless `as` is `p`: `as=\"h2\" size=\"4\"`\n  renders an `<h4>`. For a heading whose level and size differ, set the level with `as` and the\n  size with the `textSize` helper, as in `<Title as=\"h2\" textSize=\"4\">`.\n- **Skeletons:** `skeleton` and `hasSkeleton` follow [Skeleton's accessibility notes](https://bestax.io/docs/api/elements/skeleton#accessibility),\n  forced colors included.\n\n:::tip\nWhen using `as=\"p\"`, the element is visually styled as a heading but semantically a paragraph.\n:::",
   "related": ["Block", "SubTitle", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-title--default",
   "summary": "The `Title` component renders a Bulma-styled title (heading), supporting sizes `1`-`6`, spacing, and rendering as any heading or paragraph element (`h1`-`h6`, `p`).",
@@ -89,7 +89,7 @@
           "name": "hasSkeleton",
           "type": "boolean",
           "default": "false",
-          "description": "Applies the `has-skeleton` class to part of the content.",
+          "description": "Applies the `has-skeleton` class to part of the content. A screen reader still reads its text, so give it `aria-hidden=\"true\"` while it's a skeleton.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -129,7 +129,7 @@
           "name": "skeleton",
           "type": "boolean",
           "default": null,
-          "description": "Applies the `is-skeleton` class to the entire component.",
+          "description": "Applies the `is-skeleton` class to the entire component. A screen reader still reads its text, so give it `aria-hidden=\"true\"` while it's a skeleton.",
           "required": false,
           "inherited": false,
           "deprecated": false

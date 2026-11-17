@@ -10,6 +10,7 @@ import {
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
+import { useFieldMessage } from './useFieldMessage';
 
 /** Valid sizes for the Numberinput component. */
 export type NumberinputSize = 'small' | 'medium' | 'large';
@@ -83,7 +84,8 @@ export interface NumberinputProps
    * they join the row of a `Field` with `hasAddons` or `grouped` they sit
    * in. On by default inside a `Field`, unless a `Control` is anywhere above
    * it: a `Control` stacks its children, so there the controls keep their
-   * own row.
+   * own row. Bare plusminus controls render no `message`, so put help text
+   * after that row yourself.
    * @defaultValue auto
    */
   bare?: boolean;
@@ -107,6 +109,13 @@ export interface NumberinputProps
   /** Callback when value changes. */
   onChange?: ((value: number) => void) | undefined;
 }
+
+// The buttons are out of the Tab order, and a pointer press on one leaves
+// focus where it was, in the input when it had it, so the arrow keys keep
+// working and a button that disables at `min` or `max` takes no focus with it
+// (#1971). A press on a disabled one blurs the input, as a press on any text
+// does.
+const keepFocus = (event: React.MouseEvent) => event.preventDefault();
 
 const ArrowDropUp = () => (
   <svg
@@ -330,10 +339,13 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
       className
     );
 
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+    // A bare plusminus Numberinput renders no message, so it describes
+    // nothing with one either.
+    const { messageEl, describedBy } = useFieldMessage(
+      isStepper || !effectiveBare ? message : undefined,
+      messageColor,
+      props['aria-describedby']
+    );
 
     // Use combined ref
     const combinedRef = (node: HTMLInputElement | null) => {
@@ -367,6 +379,7 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
           {...rest}
           // After the spread: an undefined `id` key in rest would wipe it.
           id={controlId}
+          aria-describedby={describedBy}
         />
       </div>
     );
@@ -384,6 +397,7 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
                 onClick={handleIncrement}
                 disabled={disabled || isAtMax}
                 tabIndex={-1}
+                onMouseDown={keepFocus}
                 aria-label="Increase value"
               >
                 <ArrowDropUp />
@@ -394,6 +408,7 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
                 onClick={handleDecrement}
                 disabled={disabled || isAtMin}
                 tabIndex={-1}
+                onMouseDown={keepFocus}
                 aria-label="Decrease value"
               >
                 <ArrowDropDown />
@@ -434,6 +449,7 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
         onClick={handleDecrement}
         disabled={disabled || isAtMin}
         tabIndex={-1}
+        onMouseDown={keepFocus}
         aria-label="Decrease value"
       >
         <span className={iconClasses}>
@@ -449,6 +465,7 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
         onClick={handleIncrement}
         disabled={disabled || isAtMax}
         tabIndex={-1}
+        onMouseDown={keepFocus}
         aria-label="Increase value"
       >
         <span className={iconClasses}>

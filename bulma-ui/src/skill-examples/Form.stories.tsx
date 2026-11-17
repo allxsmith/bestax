@@ -85,6 +85,7 @@ export const Signup: Story = {
             value={name}
             onChange={e => setName(e.target.value)}
             color={show('name') ? 'danger' : undefined}
+            aria-invalid={!!show('name')}
             message={show('name')}
             messageColor="danger"
             iconLeftName="user"
@@ -95,6 +96,7 @@ export const Signup: Story = {
             value={email}
             onChange={e => setEmail(e.target.value)}
             color={show('email') ? 'danger' : undefined}
+            aria-invalid={!!show('email')}
             message={show('email')}
             messageColor="danger"
             iconLeftName="envelope"
@@ -104,6 +106,7 @@ export const Signup: Story = {
             value={country}
             onChange={e => setCountry(e.target.value)}
             color={show('country') ? 'danger' : undefined}
+            aria-invalid={!!show('country')}
             message={show('country')}
             messageColor="danger"
           >

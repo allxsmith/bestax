@@ -424,6 +424,39 @@ describe('Carousel', () => {
       expect(onChange).toHaveBeenCalled();
     });
 
+    it('follows pauseOnHover changed while the pointer is over it', () => {
+      const onChange = vi.fn();
+      const { rerender } = render(
+        <TestCarousel autoplay interval={1000} onChange={onChange} />
+      );
+      fireEvent.mouseEnter(screen.getByRole('region'));
+      rerender(
+        <TestCarousel
+          autoplay
+          interval={1000}
+          pauseOnHover={false}
+          onChange={onChange}
+        />
+      );
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+      expect(onChange).toHaveBeenCalledWith(1);
+
+      rerender(<TestCarousel autoplay interval={1000} onChange={onChange} />);
+      act(() => {
+        vi.advanceTimersByTime(3000);
+      });
+      expect(onChange).toHaveBeenCalledTimes(1);
+
+      // Leaving lets go, whatever the prop said when the pointer came in.
+      fireEvent.mouseLeave(screen.getByRole('region'));
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+      expect(onChange).toHaveBeenLastCalledWith(2);
+    });
+
     it('does not pause when pauseOnHover is false', () => {
       const onChange = vi.fn();
       render(
@@ -1124,6 +1157,12 @@ const itemsOf = (count: number) =>
   ));
 
 const track = () => document.querySelector<HTMLElement>('.carousel-slides')!;
+
+/** Moves focus to `el`. */
+const focusOn = (el: HTMLElement) =>
+  act(() => {
+    el.focus();
+  });
 
 /** The items themselves, in order, without the clones a loop puts at each end. */
 const realItems = (count: number) => {
@@ -1884,6 +1923,169 @@ describe('Carousel with several items in view', () => {
     });
   });
 
+  describe('focus on an arrow or an indicator that is disabled or goes away', () => {
+    // A browser drops focus from a button that's disabled or removed to the
+    // page. jsdom moves it off a removed one but not off a disabled one, so
+    // these read where focus went.
+    const prev = () => screen.getByLabelText('Previous slide');
+    const next = () => screen.getByLabelText('Next slide');
+
+    it('moves to the current indicator when Next is disabled on the last position', () => {
+      // Not to Previous, where an Enter still held down would go back
+      render(<Carousel repeat={false}>{itemsOf(3)}</Carousel>);
+      focusOn(next());
+      fireEvent.click(next());
+      fireEvent.click(next());
+      expect(next()).toBeDisabled();
+      const tabs = screen.getAllByRole('tab');
+      expect(document.activeElement).toBe(tabs[2]);
+      expect(tabs[2]).toHaveAttribute('aria-selected', 'true');
+    });
+
+    it('moves to Next, with no indicators, when a new value disables a focused Previous', () => {
+      const { rerender } = render(
+        <Carousel value={1} repeat={false} indicator={false}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      focusOn(prev());
+      rerender(
+        <Carousel value={0} repeat={false} indicator={false}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      expect(prev()).toBeDisabled();
+      expect(document.activeElement).toBe(next());
+    });
+
+    it('moves to the current indicator when the focused one goes away', () => {
+      const { rerender } = render(
+        <Carousel repeat={false}>{itemsOf(4)}</Carousel>
+      );
+      focusOn(screen.getAllByRole('tab')[3]);
+      rerender(<Carousel repeat={false}>{itemsOf(3)}</Carousel>);
+      const tabs = screen.getAllByRole('tab');
+      expect(tabs).toHaveLength(3);
+      expect(document.activeElement).toBe(tabs[0]);
+      expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
+    });
+
+    it('moves to an arrow that works when the indicators go away', () => {
+      const { rerender } = render(<Carousel>{itemsOf(3)}</Carousel>);
+      focusOn(screen.getAllByRole('tab')[1]);
+      rerender(<Carousel indicator={false}>{itemsOf(3)}</Carousel>);
+      expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+      expect(document.activeElement).toBe(prev());
+    });
+
+    it('moves to the first item in view when every control goes away', () => {
+      const { rerender } = render(<Carousel>{itemsOf(3)}</Carousel>);
+      focusOn(next());
+      rerender(<Carousel>{itemsOf(1)}</Carousel>);
+      expect(screen.queryByLabelText('Next slide')).not.toBeInTheDocument();
+      const item = realItems(1)[0];
+      expect(document.activeElement).toBe(item);
+      expect(item).toHaveAttribute('tabindex', '-1');
+    });
+
+    it('leaves focus alone once it has moved on', () => {
+      const { rerender } = render(
+        <>
+          <Carousel value={1} repeat={false}>
+            {itemsOf(3)}
+          </Carousel>
+          <button type="button">Outside</button>
+        </>
+      );
+      focusOn(prev());
+      const outside = screen.getByRole('button', { name: 'Outside' });
+      focusOn(outside);
+      rerender(
+        <>
+          <Carousel value={0} repeat={false}>
+            {itemsOf(3)}
+          </Carousel>
+          <button type="button">Outside</button>
+        </>
+      );
+      expect(document.activeElement).toBe(outside);
+    });
+
+    it('still hands focus on after another window took focus and gave it back', () => {
+      // Another window taking focus blurs the arrow, which stays the page's
+      // active element, and gets focus back when the page does.
+      const { rerender } = render(
+        <Carousel value={1} repeat={false}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      focusOn(prev());
+      fireEvent.blur(prev(), { relatedTarget: null });
+      expect(document.activeElement).toBe(prev());
+      rerender(
+        <Carousel value={0} repeat={false}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      expect(prev()).toBeDisabled();
+      expect(document.activeElement).toBe(screen.getAllByRole('tab')[0]);
+    });
+
+    it('leaves focus on the page once a click on the page took it there', () => {
+      // The blur goes nowhere, as it does when another window takes focus,
+      // but focus is on the page itself, so the user has left the arrow.
+      const { rerender } = render(
+        <Carousel value={1} repeat={false}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      focusOn(prev());
+      act(() => {
+        prev().blur();
+      });
+      expect(document.activeElement).toBe(document.body);
+      rerender(
+        <Carousel value={0} repeat={false}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      expect(prev()).toBeDisabled();
+      expect(document.activeElement).toBe(document.body);
+    });
+
+    it('leaves focus where it went when it left without the carousel hearing', () => {
+      const { rerender } = render(
+        <>
+          <Carousel value={1} repeat={false}>
+            {itemsOf(3)}
+          </Carousel>
+          <button type="button">Outside</button>
+        </>
+      );
+      focusOn(prev());
+      const focus = vi.spyOn(next(), 'focus');
+      const outside = screen.getByRole('button', { name: 'Outside' });
+      Object.defineProperty(document, 'activeElement', {
+        configurable: true,
+        get: () => outside,
+      });
+      try {
+        rerender(
+          <>
+            <Carousel value={0} repeat={false}>
+              {itemsOf(3)}
+            </Carousel>
+            <button type="button">Outside</button>
+          </>
+        );
+        expect(focus).not.toHaveBeenCalled();
+      } finally {
+        delete (document as { activeElement?: unknown }).activeElement;
+        focus.mockRestore();
+      }
+    });
+  });
+
   describe('accessibility', () => {
     it("keeps an item's own name and role", () => {
       render(
@@ -1993,6 +2195,145 @@ describe('Carousel with several items in view', () => {
       act(() => {
         screen.getByRole('button', { name: 'Outside' }).focus();
       });
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+      expect(onChange).toHaveBeenCalledWith(1);
+    });
+
+    it('holds autoplay while focus is on an arrow or an indicator, and resumes once it leaves', () => {
+      const onChange = vi.fn();
+      render(
+        <>
+          <Carousel autoplay interval={1000} onChange={onChange}>
+            {itemsOf(3)}
+          </Carousel>
+          <button type="button">Outside</button>
+        </>
+      );
+      expect(track()).toHaveAttribute('aria-live', 'off');
+
+      const next = screen.getByLabelText('Next slide');
+      focusOn(next);
+      act(() => {
+        vi.advanceTimersByTime(3000);
+      });
+      expect(onChange).not.toHaveBeenCalled();
+
+      // A step taken from the arrow is announced, and autoplay keeps waiting.
+      fireEvent.keyDown(next, { key: 'ArrowRight' });
+      expect(onChange).toHaveBeenCalledWith(1);
+      expect(track()).toHaveAttribute('aria-live', 'polite');
+      act(() => {
+        vi.advanceTimersByTime(3000);
+      });
+      expect(onChange).toHaveBeenCalledTimes(1);
+
+      focusOn(screen.getAllByRole('tab')[2]);
+      act(() => {
+        vi.advanceTimersByTime(3000);
+      });
+      expect(onChange).toHaveBeenCalledTimes(1);
+
+      focusOn(screen.getByRole('button', { name: 'Outside' }));
+      expect(track()).toHaveAttribute('aria-live', 'off');
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+      expect(onChange).toHaveBeenLastCalledWith(2);
+    });
+
+    it('holds autoplay after a click leaves focus on an arrow, until focus moves on', () => {
+      // Most browsers leave focus on the arrow a click pressed, and the
+      // WAI-ARIA Authoring Practices carousel counts that focus too.
+      const onChange = vi.fn();
+      render(
+        <>
+          <Carousel autoplay interval={1000} onChange={onChange}>
+            {itemsOf(3)}
+          </Carousel>
+          <button type="button">Outside</button>
+        </>
+      );
+      const region = screen.getByRole('region');
+      const next = screen.getByLabelText('Next slide');
+      fireEvent.mouseEnter(region);
+      focusOn(next);
+      fireEvent.click(next);
+      expect(onChange).toHaveBeenLastCalledWith(1);
+      fireEvent.mouseLeave(region);
+      act(() => {
+        vi.advanceTimersByTime(3000);
+      });
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(track()).toHaveAttribute('aria-live', 'polite');
+
+      focusOn(screen.getByRole('button', { name: 'Outside' }));
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+      expect(onChange).toHaveBeenLastCalledWith(2);
+    });
+
+    it('keeps holding while focus on an arrow waits out a switch to another window', () => {
+      // As focus in an item already did: the window losing focus blurs the
+      // arrow with no related target and leaves it the active element.
+      const onChange = vi.fn();
+      render(
+        <Carousel autoplay interval={1000} onChange={onChange}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      const next = screen.getByLabelText('Next slide');
+      focusOn(next);
+      fireEvent.blur(next, { relatedTarget: null });
+      expect(document.activeElement).toBe(next);
+      act(() => {
+        vi.advanceTimersByTime(3000);
+      });
+      expect(onChange).not.toHaveBeenCalled();
+
+      // Coming back focuses it again, so the track is polite once more.
+      fireEvent.focus(next);
+      expect(track()).toHaveAttribute('aria-live', 'polite');
+    });
+
+    it("runs a caller's own focus and pointer handlers along with its own", () => {
+      const onChange = vi.fn();
+      const handlers = {
+        onFocus: vi.fn(),
+        onBlur: vi.fn(),
+        onMouseEnter: vi.fn(),
+        onMouseLeave: vi.fn(),
+      };
+      render(
+        <>
+          <Carousel autoplay interval={1000} onChange={onChange} {...handlers}>
+            {itemsOf(3)}
+          </Carousel>
+          <button type="button">Outside</button>
+        </>
+      );
+      const region = screen.getByRole('region');
+
+      fireEvent.mouseEnter(region);
+      act(() => {
+        vi.advanceTimersByTime(2000);
+      });
+      expect(handlers.onMouseEnter).toHaveBeenCalledTimes(1);
+      expect(onChange).not.toHaveBeenCalled();
+      fireEvent.mouseLeave(region);
+      expect(handlers.onMouseLeave).toHaveBeenCalledTimes(1);
+
+      focusOn(screen.getByLabelText('Next slide'));
+      act(() => {
+        vi.advanceTimersByTime(2000);
+      });
+      expect(handlers.onFocus).toHaveBeenCalledTimes(1);
+      expect(onChange).not.toHaveBeenCalled();
+
+      focusOn(screen.getByRole('button', { name: 'Outside' }));
+      expect(handlers.onBlur).toHaveBeenCalledTimes(1);
       act(() => {
         vi.advanceTimersByTime(1000);
       });

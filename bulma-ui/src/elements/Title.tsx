@@ -21,7 +21,7 @@ export type TitleElement = (typeof validTitleElements)[number];
 
 /**
  * Props for the Title component.
- * @extraProp {boolean} [skeleton] - Applies the `is-skeleton` class to the entire component.
+ * @extraProp {boolean} [skeleton] - Applies the `is-skeleton` class to the entire component. A screen reader still reads its text, so give it `aria-hidden="true"` while it's a skeleton.
  */
 export interface TitleProps
   extends
@@ -47,7 +47,11 @@ export interface TitleProps
    * level `as` sets, size the title with the `textSize` helper instead.
    */
   as?: TitleElement | undefined;
-  /** Applies the `has-skeleton` class to part of the content. */
+  /**
+   * Applies the `has-skeleton` class to part of the content. A screen
+   * reader still reads its text, so give it `aria-hidden="true"` while it's
+   * a skeleton.
+   */
   hasSkeleton?: boolean;
   /** Title content. */
   children?: React.ReactNode;

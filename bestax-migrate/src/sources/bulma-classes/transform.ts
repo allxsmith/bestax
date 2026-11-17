@@ -1829,7 +1829,11 @@ export default function transform(
   const bestaxImportState = seedBestaxImport(ctx, root);
 
   for (const { path: elementPath, plan: result } of elements) {
-    for (const { rule, message } of result.todos) {
+    // A fold's own TODOs too, in reading order, for a fold still on.
+    for (const { rule, message } of [
+      ...result.todos,
+      ...(result.fold?.todos ?? []),
+    ]) {
       todo(elementPath, rule, message);
     }
   }

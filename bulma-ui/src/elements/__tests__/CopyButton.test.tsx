@@ -236,6 +236,19 @@ describe('CopyButton', () => {
       expect(button).toHaveAccessibleName('Copy');
     });
 
+    it('copies nothing while loading, and says it is busy', async () => {
+      const writeText = clipboardWorks();
+      const onClick = vi.fn();
+      render(<CopyButton value="x" isLoading onClick={onClick} />);
+      const button = screen.getByRole('button');
+      expect(button).toHaveAttribute('aria-busy', 'true');
+      expect(button).toHaveAttribute('aria-disabled', 'true');
+      await click(button);
+      expect(onClick).not.toHaveBeenCalled();
+      expect(writeText).not.toHaveBeenCalled();
+      expect(spoken()).toEqual([]);
+    });
+
     it('copies nothing while disabled', async () => {
       const writeText = clipboardWorks();
       render(<CopyButton value="x" disabled />);

@@ -94,9 +94,17 @@ describe('LinkButton Component', () => {
   });
 
   it('passes through isLoading prop to Button', () => {
-    render(<LinkButton isLoading>Loading</LinkButton>);
+    const onClick = vi.fn();
+    render(
+      <LinkButton isLoading onClick={onClick}>
+        Loading
+      </LinkButton>
+    );
     const button = screen.getByRole('button');
     expect(button).toHaveClass('is-loading');
+    expect(button).toHaveAttribute('aria-busy', 'true');
+    fireEvent.click(button);
+    expect(onClick).not.toHaveBeenCalled();
   });
 
   it('merges custom className with link-button classes', () => {

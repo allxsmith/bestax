@@ -30,6 +30,7 @@ import {
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
+import { joinIds, useFieldMessage } from './useFieldMessage';
 
 /** Why a Dropzone refused a file. */
 export type DropzoneRejectionCode =
@@ -729,16 +730,15 @@ export const Dropzone = forwardRef<HTMLInputElement, DropzoneProps>(
     const baseId = useId();
     const hintId = `${baseId}-hint`;
     const refusalsId = `${baseId}-refusals`;
-    const messageId = `${baseId}-message`;
-    const describedBy =
-      [
+    const { messageEl, describedBy } = useFieldMessage(
+      message,
+      messageColor,
+      joinIds(
         ariaDescribedBy,
         hint ? hintId : undefined,
-        refusals.length > 0 ? refusalsId : undefined,
-        message ? messageId : undefined,
-      ]
-        .filter(Boolean)
-        .join(' ') || undefined;
+        refusals.length > 0 ? refusalsId : undefined
+      )
+    );
 
     const rootClass = usePrefixedClassNames('dropzone', {
       'is-dragover': drag === 'over',
@@ -754,10 +754,6 @@ export const Dropzone = forwardRef<HTMLInputElement, DropzoneProps>(
         [`is-${size}`]: !!size,
       }
     );
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
-
     // Each row's key, from the file's details, which the list keeps unique.
     const seen = new Map<string, number>();
     const keyOf = (file: File) => {
@@ -804,7 +800,10 @@ export const Dropzone = forwardRef<HTMLInputElement, DropzoneProps>(
           </p>
         )}
         {showFileList && files.length > 0 && (
-          <ul ref={listRef} className={pcn('dropzone-list')}>
+          // Bulma's reset hides a `<ul>`'s bullets, and WebKit stops treating
+          // a `<ul>` with hidden markers as a list unless the role is written
+          // out, so VoiceOver would read the files with no count.
+          <ul ref={listRef} className={pcn('dropzone-list')} role="list">
             {files.map((file, index) => (
               <li key={keyOf(file)} className={pcn('dropzone-item')}>
                 <span className={pcn('dropzone-name')}>{file.name}</span>
@@ -836,12 +835,6 @@ export const Dropzone = forwardRef<HTMLInputElement, DropzoneProps>(
         <StatusRegion items={announcements} describe={describeAnnouncement} />
       </div>
     );
-
-    const messageEl = message ? (
-      <p id={messageId} className={helpClass}>
-        {message}
-      </p>
-    ) : null;
 
     if (ownField) {
       return (
