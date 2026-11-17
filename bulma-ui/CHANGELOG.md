@@ -1,3 +1,16 @@
+## [5.73.9](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.73.8...@allxsmith/bestax-bulma@5.73.9) (2026-11-17)
+
+
+### Bug Fixes
+
+* **bulma-ui:** describe nothing on a bare Numberinput, and wire Dropzone through the hook ([3f8a5cc](https://github.com/allxsmith/bestax/commit/3f8a5ccac6c388fac540b99a21d12eee6bea16d0)), closes [#1963](https://github.com/allxsmith/bestax/issues/1963)
+* **bulma-ui:** draw a disabled Slider at full strength in forced colors ([7fc38ea](https://github.com/allxsmith/bestax/commit/7fc38ea721ceaa23f95c5d9c2dd0d9e0ec073afb)), closes [#1868](https://github.com/allxsmith/bestax/issues/1868)
+* **bulma-ui:** draw Divider's line in forced colors ([dc3385c](https://github.com/allxsmith/bestax/commit/dc3385cd5595330702b929ebc9482b1bf967fc07)), closes [#1851](https://github.com/allxsmith/bestax/issues/1851)
+* **bulma-ui:** keep a Dialog's and a modal card's edge in forced colors ([bdb1eb0](https://github.com/allxsmith/bestax/commit/bdb1eb03ab8d3ed62baf4c165085cdeff13d3da2)), closes [#1891](https://github.com/allxsmith/bestax/issues/1891)
+* **bulma-ui:** let Escape put away a hoverable Dropdown's menu the pointer shows ([0e195ad](https://github.com/allxsmith/bestax/commit/0e195adefa94dfaaa9df0692c15af653d69016fd))
+* **bulma-ui:** say what names a Sidebar in its TSDoc ([c73a2a0](https://github.com/allxsmith/bestax/commit/c73a2a02ed843feda03a1cbe50d815dabacf84bd)), closes [#1893](https://github.com/allxsmith/bestax/issues/1893)
+* **bulma-ui:** tie each form wrapper's message to its control ([3560070](https://github.com/allxsmith/bestax/commit/3560070ca835bb1e531b4fac903f6ceb87479726)), closes [#1963](https://github.com/allxsmith/bestax/issues/1963)
+
 ## [5.73.8](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.73.7...@allxsmith/bestax-bulma@5.73.8) (2026-11-17)
 
 
