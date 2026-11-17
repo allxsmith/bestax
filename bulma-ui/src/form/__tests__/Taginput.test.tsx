@@ -2122,3 +2122,151 @@ describe('TagInput deprecated alias', () => {
     expect(screen.getByText('alpha')).toBeInTheDocument();
   });
 });
+
+describe("Taginput's arrows on a closed list (#2006)", () => {
+  const openThenClose = async () => {
+    const user = userEvent.setup();
+    render(<Taginput label="Tags" data={frameworks} />);
+    const input = screen.getByRole('combobox');
+    await user.type(input, 'e');
+    await user.keyboard('{Escape}');
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+    return { user, input };
+  };
+  const highlighted = (input: HTMLElement) =>
+    document.getElementById(input.getAttribute('aria-activedescendant')!);
+
+  it('opens it on the first suggestion with Down Arrow', async () => {
+    const { user, input } = await openThenClose();
+
+    await user.keyboard('{ArrowDown}');
+
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    expect(highlighted(input)).toBe(screen.getAllByRole('option')[0]);
+  });
+
+  it('opens it on the last suggestion with Up Arrow', async () => {
+    const { user, input } = await openThenClose();
+
+    await user.keyboard('{ArrowUp}');
+
+    const options = screen.getAllByRole('option');
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    expect(highlighted(input)).toBe(options[options.length - 1]);
+  });
+
+  it('opens it with no highlight with Alt+Down Arrow', async () => {
+    const { user, input } = await openThenClose();
+
+    await user.keyboard('{Alt>}{ArrowDown}{/Alt}');
+
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    expect(input).not.toHaveAttribute('aria-activedescendant');
+  });
+
+  it('opens on the last suggestion with openOnFocus and an empty field', async () => {
+    const user = userEvent.setup();
+    render(<Taginput label="Tags" data={frameworks} openOnFocus />);
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+    await user.keyboard('{Escape}');
+
+    await user.keyboard('{ArrowUp}');
+
+    const options = screen.getAllByRole('option');
+    expect(options).toHaveLength(frameworks.length);
+    expect(highlighted(input)).toBe(options[options.length - 1]);
+  });
+
+  it('leaves no highlight when Down Arrow finds no suggestions to show', async () => {
+    const user = userEvent.setup();
+    const onAdd = vi.fn();
+    render(
+      <Taginput label="Tags" data={['javascript', 'java']} onAdd={onAdd} />
+    );
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+
+    // An empty field without openOnFocus shows no list to land on.
+    await user.keyboard('{ArrowDown}');
+    await user.type(input, 'jav');
+    expect(input).not.toHaveAttribute('aria-activedescendant');
+
+    await user.keyboard('{Enter}');
+    expect(onAdd).toHaveBeenCalledWith('jav');
+  });
+
+  it('closes it with Alt+Up Arrow, and Alt+Down Arrow moves no highlight', async () => {
+    const user = userEvent.setup();
+    render(<Taginput label="Tags" data={frameworks} />);
+    const input = screen.getByRole('combobox');
+    await user.type(input, 'e');
+    await user.keyboard('{ArrowDown}');
+    const first = highlighted(input);
+
+    await user.keyboard('{Alt>}{ArrowDown}{/Alt}');
+    expect(highlighted(input)).toBe(first);
+
+    await user.keyboard('{Alt>}{ArrowUp}{/Alt}');
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+
+    // And on a closed list it opens nothing.
+    await user.keyboard('{Alt>}{ArrowUp}{/Alt}');
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('opens nothing at the tag limit, and making room brings back no highlight', async () => {
+    const user = userEvent.setup();
+    render(
+      <Taginput
+        label="Tags"
+        data={frameworks}
+        defaultValue={['React', 'Vue']}
+        maxTags={2}
+        openOnFocus
+      />
+    );
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+
+    await user.keyboard('{ArrowUp}');
+    await user.keyboard('{ArrowDown}');
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+
+    await user.keyboard('{Backspace}');
+    expect(input).not.toHaveAttribute('aria-activedescendant');
+  });
+
+  it('scrolls the highlighted suggestion into view', async () => {
+    const user = userEvent.setup();
+    const scrolled: Element[] = [];
+    const original = Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView = function (this: Element) {
+      scrolled.push(this);
+    };
+    try {
+      render(<Taginput label="Tags" data={frameworks} />);
+      const input = screen.getByRole('combobox');
+      await user.type(input, 'e');
+      await user.keyboard('{Escape}');
+
+      await user.keyboard('{ArrowUp}');
+
+      expect(scrolled).toContain(highlighted(input));
+    } finally {
+      Element.prototype.scrollIntoView = original;
+    }
+  });
+
+  it('keeps the first highlighted with keepFirst, whichever key opens it', async () => {
+    const user = userEvent.setup();
+    render(<Taginput label="Tags" data={frameworks} keepFirst />);
+    const input = screen.getByRole('combobox');
+    await user.type(input, 'e');
+    await user.keyboard('{Escape}');
+
+    await user.keyboard('{ArrowUp}');
+
+    expect(highlighted(input)).toBe(screen.getAllByRole('option')[0]);
+  });
+});

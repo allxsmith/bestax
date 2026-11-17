@@ -351,17 +351,25 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     };
 
     // Filter autocomplete data
-    const filteredData = data.filter(item => {
-      const displayValue = item.toLowerCase();
-      const matchesInput = matchText
-        ? matchText(item, inputValue)
-        : displayValue.includes(inputValue.toLowerCase());
-      const notAlreadyAdded =
-        allowDuplicates ||
-        !tags.some(tag => getDisplayValue(tag).toLowerCase() === displayValue);
-      const hasInput = inputValue || (openOnFocus && isActive);
-      return matchesInput && notAlreadyAdded && hasInput;
-    });
+    // The suggestions the list shows while it's open (`active`) or not.
+    const suggestionsWhen = (active: boolean) =>
+      data.filter(item => {
+        const displayValue = item.toLowerCase();
+        const matchesInput = matchText
+          ? matchText(item, inputValue)
+          : displayValue.includes(inputValue.toLowerCase());
+        const notAlreadyAdded =
+          allowDuplicates ||
+          !tags.some(
+            tag => getDisplayValue(tag).toLowerCase() === displayValue
+          );
+        const hasInput = inputValue || (openOnFocus && active);
+        return matchesInput && notAlreadyAdded && hasInput;
+      });
+    const filteredData = suggestionsWhen(isActive);
+    // What an arrow key that opens the list lands in.
+    const openingSuggestions =
+      isActive || !openOnFocus ? filteredData : suggestionsWhen(true);
     // At the tag limit the list stays closed, since it could only offer tags
     // past the limit (#1087).
     const listOpen = isActive && !isMaxReached && filteredData.length > 0;
@@ -580,9 +588,17 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
         switch (e.key) {
           case 'ArrowDown':
             e.preventDefault();
+            // At the tag limit the list stays closed (#1087).
+            if (isMaxReached) break;
             if (!isActive && data.length > 0) {
+              // A closed list opens on its first suggestion, as
+              // Autocomplete's does (#2006). Alt+Down Arrow opens it with
+              // no highlight.
               setIsActive(true);
-            } else {
+              setHighlightedIndex(
+                e.altKey || openingSuggestions.length === 0 ? -1 : 0
+              );
+            } else if (!e.altKey) {
               setHighlightedIndex(prev =>
                 prev < filteredData.length - 1 ? prev + 1 : prev
               );
@@ -590,7 +606,18 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
             break;
           case 'ArrowUp':
             e.preventDefault();
-            setHighlightedIndex(prev => (prev > 0 ? prev - 1 : prev));
+            if (isMaxReached) break;
+            if (e.altKey) {
+              // Alt+Up Arrow closes the list, as the combobox pattern has it.
+              setIsActive(false);
+              setHighlightedIndex(-1);
+            } else if (!isActive && data.length > 0) {
+              // And Up Arrow opens it on its last.
+              setIsActive(true);
+              setHighlightedIndex(openingSuggestions.length - 1);
+            } else {
+              setHighlightedIndex(prev => (prev > 0 ? prev - 1 : prev));
+            }
             break;
           case 'Backspace':
             if (removeOnKeys && !inputValue && tags.length > 0) {
@@ -619,6 +646,8 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
         confirmKeys,
         highlightedIndex,
         filteredData,
+        openingSuggestions,
+        isMaxReached,
         addTags,
         inputValue,
         isActive,
@@ -629,6 +658,18 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
         removeTag,
       ]
     );
+
+    // A browser scrolls to what has focus, not to an active descendant, so
+    // the highlighted suggestion is brought into view here, as Autocomplete's
+    // is: an arrow key can open the list on its last suggestion.
+    useEffect(() => {
+      if (highlightedIndex < 0) return;
+      const option =
+        dropdownRef.current?.querySelectorAll('[role="option"]')[
+          highlightedIndex
+        ];
+      option?.scrollIntoView?.({ block: 'nearest' });
+    }, [highlightedIndex]);
 
     // Combined ref
     const combinedRef = useCallback(
