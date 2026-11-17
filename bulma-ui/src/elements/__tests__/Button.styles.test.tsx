@@ -120,8 +120,11 @@ const selects = (rule: Rule) => /is-selected/.test(rule.selector);
 /** Where forced colors sets Bulma's disabled opacity to 1. */
 const UNDIMMED = '.button.button';
 /** A disabled button, which forced colors draws in GrayText. */
-const DISABLED_COLORS =
-  '.button.button.button:disabled, .button.button.button[disabled]';
+const DISABLED_COLORS = [
+  '.button.button.button:disabled',
+  '.button.button.button[disabled]',
+  '.button.button.button.is-disabled',
+].join(', ');
 const disables = (rule: Rule) =>
   rule.selector === UNDIMMED || rule.selector === DISABLED_COLORS;
 
@@ -793,9 +796,11 @@ describe('disabled buttons in forced colors', () => {
         'fieldset[disabled] .button.is-text',
       ])
     );
-    // `_linkbutton.scss` loads after this partial in bestax.css. A disabled
-    // button takes no focus, and the underline variant's hover clears an edge
-    // Bulma draws 0 wide on a text button.
+    // `_linkbutton.scss` loads after this partial in bestax.css. Its hover
+    // and focus rules weigh as much, but `Button` writes `disabled` only on a
+    // form control, which forced colors draws in GrayText whatever color they
+    // name, and the underline variant's hover clears an edge Bulma draws 0
+    // wide on a text button.
     const linkButton = rulesOf(compile(`@use 'elements/linkbutton';`))
       .filter(rule => !rule.context.length && sets(rule))
       .flatMap(rule => rule.selector.split(', '))
@@ -858,10 +863,12 @@ describe('disabled buttons in forced colors', () => {
         );
 
       /** The opacity Bulma's dimming rule gives it, or undefined if none does. */
-      const opacity = (el: Element, forcedColors: boolean) =>
-        resolve(el, 'opacity', forcedColors) === `var(${VARIABLE})`
+      const opacity = (el: Element, forcedColors: boolean) => {
+        const value = resolve(el, 'opacity', forcedColors);
+        return value === `var(${VARIABLE})`
           ? resolve(el, VARIABLE, forcedColors)
-          : resolve(el, 'opacity', forcedColors);
+          : value;
+      };
 
       const inPrefix = (ui: ReactElement) =>
         render(<ConfigProvider classPrefix={prefix}>{ui}</ConfigProvider>);
@@ -950,6 +957,25 @@ describe('disabled buttons in forced colors', () => {
         expect(link.matches(':disabled')).toBe(false);
         expect(opacity(link, false)).toBe('0.5');
         expect(opacity(link, true)).toBe('1');
+        expect(resolve(link, 'color', true)?.toLowerCase()).toBe('graytext');
+        expect(resolve(link, 'border-color', true)?.toLowerCase()).toBe(
+          'graytext'
+        );
+      });
+
+      it("draws a link with isDisabled, which Bulma doesn't dim, in GrayText", () => {
+        const { getByRole } = inPrefix(
+          <Button as="a" href="#save" isDisabled>
+            Save
+          </Button>
+        );
+        const link = getByRole('link', { name: 'Save' });
+        expect(link).not.toHaveAttribute('disabled');
+        expect(opacity(link, false)).toBeUndefined();
+        expect(opacity(link, true)).toBeUndefined();
+        expect(resolve(link, 'color', false)?.toLowerCase()).not.toBe(
+          'graytext'
+        );
         expect(resolve(link, 'color', true)?.toLowerCase()).toBe('graytext');
         expect(resolve(link, 'border-color', true)?.toLowerCase()).toBe(
           'graytext'

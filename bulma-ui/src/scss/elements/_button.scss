@@ -40,13 +40,13 @@
 // dims with it draws at full strength. The disabled rule names GrayText for
 // the text and edge of a button that is disabled, by its own `disabled`
 // attribute or a disabled `<fieldset>`, since Firefox doesn't give its edge
-// that color and an element that isn't a form control gets neither. What
-// Bulma dims but the browser leaves working, a link in a disabled
-// `<fieldset>` or a button in its first `<legend>`, keeps its own colors,
-// since GrayText would say it does nothing. `isDisabled` on a link writes
-// `is-disabled` and no attribute, which Bulma doesn't dim, so it's left as it
-// is. A loading one draws at full strength too, in the colors `_loader.scss`
-// gives it.
+// that color and an element that isn't a form control gets neither. It
+// matches `is-disabled` too, which `Button` writes for `isDisabled` on a link,
+// with no attribute, and which Bulma doesn't dim, so that link doesn't draw
+// like a working one there. What Bulma dims but the browser leaves working, a
+// link in a disabled `<fieldset>` or a button in its first `<legend>`, keeps
+// its own colors, since GrayText would say it does nothing. A loading one
+// draws at full strength too, in the colors `_loader.scss` gives it.
 //
 // A pressed ToggleButton and a checked SegmentedControl segment show their
 // state with a fill, from `is-selected` and a color class, the way Bulma
@@ -87,11 +87,11 @@
 // names `.button` twice to outrank Bulma's `.button`, where Bulma registers
 // the variable. The disabled rule names it three times, to outrank Bulma's
 // disabled edges, `.button.is-<color>[disabled]` and `fieldset[disabled]
-// .button.is-<color>` with `text` among the colors, and LinkButton's colors,
-// which `_linkbutton.scss` sets on three classes after this partial. The
-// selected rule names `is-selected` twice too, so its disabled one outranks Bulma's
-// `.button.is-<color>[disabled]`, and its outline outranks the forced colors
-// one.
+// .button.is-<color>` with `text` among the colors, and LinkButton's resting
+// colors, which `_linkbutton.scss` sets on three classes after this partial.
+// The selected rule names `is-selected` twice too, so its disabled one
+// outranks Bulma's `.button.is-<color>[disabled]`, and its outline outranks
+// the forced colors one.
 
 @use 'sass:list';
 @use 'sass:map';
@@ -148,7 +148,8 @@
   }
 
   .#{iv.$class-prefix}button.#{iv.$class-prefix}button.#{iv.$class-prefix}button:disabled,
-  .#{iv.$class-prefix}button.#{iv.$class-prefix}button.#{iv.$class-prefix}button[disabled] {
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}button.#{iv.$class-prefix}button[disabled],
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}button.#{iv.$class-prefix}button.#{iv.$class-prefix}is-disabled {
     border-color: GrayText;
     color: GrayText;
   }
