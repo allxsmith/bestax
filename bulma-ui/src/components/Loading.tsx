@@ -67,6 +67,13 @@ export interface LoadingProps
    * calling `preventDefault()`, doesn't cancel.
    */
   canCancel?: boolean;
+  /**
+   * The words of the cancel button `canCancel` shows, such as ones in the
+   * page's language. Given, the button shows them and is named by them, so a
+   * screen reader says, and voice control answers to, what it shows. Missing,
+   * empty or only spaces, it shows "Cancel" and is named "Cancel loading".
+   */
+  cancelText?: string | undefined;
   /** Callback when cancel is triggered. */
   onCancel?: () => void;
   /** Additional classes for the overlay. */
@@ -114,6 +121,7 @@ export const Loading: React.FC<LoadingProps> = ({
   size,
   color,
   canCancel = false,
+  cancelText,
   onCancel,
   children,
   className,
@@ -160,6 +168,10 @@ export const Loading: React.FC<LoadingProps> = ({
       onCancel();
     }
   };
+
+  // Words of the caller's own, when there are any, show on the cancel button
+  // and name it, so its name is what it shows.
+  const ownCancelText = cancelText?.trim() ? cancelText : undefined;
 
   // Read when Escape arrives, so the key listener stays put while `onCancel`
   // changes identity, as an inline one does on every render of the parent.
@@ -229,9 +241,9 @@ export const Loading: React.FC<LoadingProps> = ({
             type="button"
             className={loadingCancelClass}
             onClick={onCancel}
-            aria-label="Cancel loading"
+            aria-label={ownCancelText ? undefined : 'Cancel loading'}
           >
-            Cancel
+            {ownCancelText ?? 'Cancel'}
           </button>
         )}
       </div>

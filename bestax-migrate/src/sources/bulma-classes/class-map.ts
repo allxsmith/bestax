@@ -812,6 +812,46 @@ const COLUMNS_AXIS_GAPS =
 
 // ---- Roots ------------------------------------------------------------------
 
+/**
+ * The `dropsAttr` rows for a target whose `as` reaches an `<a>` and a
+ * `<button>`: the anchor attributes but `type`, and `rel`, kept on the tags
+ * in `anchorOn`, and the button attributes kept on those in `buttonOn`.
+ */
+function dropsFor(
+  anchorOn: readonly string[],
+  buttonOn: readonly string[]
+): [string, { except: readonly string[] }][] {
+  return [
+    ...[
+      'href',
+      'target',
+      'download',
+      'hrefLang',
+      'ping',
+      'referrerPolicy',
+      'media',
+      'rel',
+    ].map((name): [string, { except: readonly string[] }] => [
+      name,
+      { except: anchorOn },
+    ]),
+    ...[
+      'disabled',
+      'form',
+      'formAction',
+      'formEncType',
+      'formMethod',
+      'formNoValidate',
+      'formTarget',
+      'name',
+      'value',
+    ].map((name): [string, { except: readonly string[] }] => [
+      name,
+      { except: buttonOn },
+    ]),
+  ];
+}
+
 export const ROOTS: Readonly<Record<string, RootEntry>> = {
   block: {
     ...BASE,
@@ -1037,29 +1077,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     // The anchor attributes but `type`, and `rel`, reach only an <a>, and the
     // button attributes only a <button> (`STRIP_FROM_NON_ANCHOR` and
     // `STRIP_FROM_NON_BUTTON` in bulma-ui's Card.tsx).
-    dropsAttr: Object.fromEntries([
-      ...[
-        'href',
-        'target',
-        'download',
-        'hrefLang',
-        'ping',
-        'referrerPolicy',
-        'media',
-        'rel',
-      ].map(name => [name, { except: ['a'] }]),
-      ...[
-        'disabled',
-        'form',
-        'formAction',
-        'formEncType',
-        'formMethod',
-        'formNoValidate',
-        'formTarget',
-        'name',
-        'value',
-      ].map(name => [name, { except: ['button'] }]),
-    ]),
+    dropsAttr: Object.fromEntries([...dropsFor(['a'], ['button'])]),
     ownProps: ['as', 'color', 'bgColor', 'textColor'],
   },
   columns: {
@@ -1825,6 +1843,21 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Tag',
     tag: 'span',
+    as: ['span', 'a', 'button'],
+    writesAttr: {
+      type: {
+        on: ['button'],
+        fallback: 'button',
+        keeps: ['button', 'submit', 'reset'],
+      },
+    },
+    // A link tag withholds the button attributes and a button tag the anchor
+    // attributes but `type`, and `rel` (`BUTTON_ONLY_ATTRS` in bulma-ui's
+    // anchorAttrs helper, and `STRIP_FROM_BUTTON` in its Tag.tsx). A span tag
+    // passes on what it's given.
+    dropsAttr: Object.fromEntries([
+      ...dropsFor(['a', 'span'], ['button', 'span']),
+    ]),
     textColor: null,
     bgColor: 'backgroundColor',
     modifiers: {
@@ -1845,6 +1878,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
         'bestax `Tag` renders it through `isDelete`, which also turns the tag into a <button>',
     },
     ownProps: [
+      'as',
       'color',
       'size',
       'isLight',

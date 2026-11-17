@@ -162,6 +162,7 @@ export const HasSkeleton: Story = {
   args: {
     children: 'SubTitle',
     hasSkeleton: true,
+    'aria-hidden': true,
     size: '3',
   },
   parameters: {
@@ -182,7 +183,7 @@ const IsSkeletonComponent: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
   return (
-    <SubTitle skeleton={skeleton} size="4">
+    <SubTitle skeleton={skeleton} aria-hidden={skeleton || undefined} size="4">
       SubTitle
     </SubTitle>
   );
