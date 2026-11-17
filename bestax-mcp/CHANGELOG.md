@@ -1,3 +1,11 @@
+## [1.18.71](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.70...bestax-mcp@1.18.71) (2026-11-17)
+
+
+### Bug Fixes
+
+* **bulma-ui:** draw Badge's dot and pill in forced colors ([04236f3](https://github.com/allxsmith/bestax/commit/04236f37566f46aa415cac2f7bb26d0eed5d8357)), closes [#1989](https://github.com/allxsmith/bestax/issues/1989)
+* **bulma-ui:** keep focus in Carousel when its focused arrow or indicator is disabled or goes away ([4ba9543](https://github.com/allxsmith/bestax/commit/4ba95437c96f34a721d6f7e56724d30ae78157a5)), closes [#1922](https://github.com/allxsmith/bestax/issues/1922)
+
 ## [1.18.70](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.69...bestax-mcp@1.18.70) (2026-11-17)
 
 
