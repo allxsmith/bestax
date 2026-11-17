@@ -340,9 +340,10 @@ function renderBoth(
     : renderElement(target, convertedProps, convertedChildren);
   const html = normalizeHtml(converted);
   // The differences a conversion makes on purpose, each compared as it is
-  // meant: a removed 0.9 class as the v1 class written in its place, and
-  // Font Awesome's `aria-hidden` only where the planner says it moved up,
-  // for the element or for an icon it builds.
+  // meant: a removed 0.9 class as the v1 class written in its place, the
+  // busy state a loading `Button` writes, and Font Awesome's `aria-hidden`
+  // only where the planner says it moved up, for the element or for an icon
+  // it builds.
   const moves =
     result.conversion.movesHidden ||
     facts.childElements?.some(child => child.becomes?.movesHidden);
