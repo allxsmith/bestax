@@ -422,9 +422,8 @@ And around it:
 - The menu doesn't animate.
 - In forced colors (Windows' contrast themes), the menu's box has an edge and a divider is drawn
   in the system's text color, and an `active` item is marked with a bar in the system's highlight
-  color, as in `Dropdown`. Those
-  rules ship in `bestax.css` and `extras.css`, from the dropdown partial, so a modular build adds
-  `scss/components/dropdown` for them.
+  color, as in `Dropdown`. Those rules ship in `bestax.css` and `extras.css`, from the dropdown
+  partial, so a modular build adds `scss/components/dropdown` for them.
 
 ---
 

@@ -250,8 +250,8 @@ function SplitButton() {
   `active` item with, so bestax's styles mark it with a bar in the system's highlight color along
   its start edge, as `Menu` does, and every item keeps the bar's width so no label moves. Forced
   colors also drops the shadow Bulma draws the open menu's box with, so bestax's styles give the
-  box an edge in the system's text color. Those rules ship in `bestax.css` and `extras.css`, not in Bulma's
-  own stylesheet.
+  box an edge in the system's text color. Those rules ship in `bestax.css` and `extras.css`, not
+  in Bulma's own stylesheet.
 - A click between items, on a divider say, focuses the menu itself, so the arrow keys still
   reach the items from there.
 - `Dropdown.Item as="button"` defaults to `type="button"`, so a menu item inside a form doesn't

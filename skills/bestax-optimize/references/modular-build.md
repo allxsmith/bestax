@@ -161,9 +161,8 @@ Notes:
 - The `dropdown` partial **extends** stock Bulma dropdown (it draws a divider in CanvasText in
   forced colors, where Bulma's fill takes the menu's own Canvas color, marks an active item there
   with a bar in Highlight, as Menu's partial does, and outlines the open menu there in place of
-  Bulma's shadow), so an app using
-  `Dropdown`, or a `ContextMenu`, whose menu is Bulma's dropdown markup, needs both, in either
-  order:
+  Bulma's shadow), so an app using `Dropdown`, or a `ContextMenu`, whose menu is Bulma's dropdown
+  markup, needs both, in either order:
 
   ```scss
   @use 'bulma/sass/components/dropdown';
