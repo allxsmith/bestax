@@ -9,6 +9,8 @@ import Panel, {
   PanelButtonBlock,
 } from '../Panel';
 import { ConfigProvider } from '../../helpers/Config';
+import { Control } from '../../form/Control';
+import { Input } from '../../form/Input';
 
 describe('Panel', () => {
   it('renders panel nav with panel class', () => {
@@ -516,6 +518,55 @@ describe('Panel.InputBlock', () => {
     const input = screen.getByTestId('input-block').querySelector('input')!;
     fireEvent.change(input, { target: { value: 'abc' } });
     expect(handleChange).toHaveBeenCalled();
+  });
+});
+
+// The field is named by its placeholder alone, and the API page's way to
+// give it a name of its own is a Panel.Block with a Control and an Input.
+describe('naming Panel.InputBlock’s field', () => {
+  // A browser names the field after its placeholder when nothing else does;
+  // Testing Library's name computation doesn't, so this checks the
+  // placeholder reaches the field.
+  it('puts its placeholder on the field', () => {
+    render(
+      <Panel>
+        <Panel.InputBlock placeholder="Search repositories" />
+      </Panel>
+    );
+    expect(screen.getByRole('textbox')).toHaveAttribute(
+      'placeholder',
+      'Search repositories'
+    );
+  });
+
+  // Where the label lands today, which names nothing on a div. Sending it to
+  // the field changes what a caller's aria-label does, so it waits for the
+  // next major (#1998).
+  it('puts an aria-label on the block, not on the field', () => {
+    const { container } = render(
+      <Panel>
+        <Panel.InputBlock aria-label="Search repositories" />
+      </Panel>
+    );
+    expect(screen.getByRole('textbox')).not.toHaveAttribute('aria-label');
+    expect(container.querySelector('div.panel-block')).toHaveAttribute(
+      'aria-label',
+      'Search repositories'
+    );
+  });
+
+  it('gives the field a name of its own through a Control and an Input', () => {
+    const { container } = render(
+      <Panel>
+        <Panel.Block as="div">
+          <Control iconLeftName="search">
+            <Input aria-label="Search repositories" placeholder="Search" />
+          </Control>
+        </Panel.Block>
+      </Panel>
+    );
+    const field = screen.getByRole('textbox', { name: 'Search repositories' });
+    expect(container.querySelector('div.panel-block')).toContainElement(field);
   });
 });
 

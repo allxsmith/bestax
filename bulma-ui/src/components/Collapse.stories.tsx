@@ -580,7 +580,7 @@ export const PanelCollapse: Story = {
           }
         >
           <Panel.InputBlock
-            placeholder="Search"
+            placeholder="Search projects"
             value={searchValue}
             onChange={e => setSearchValue(e.target.value)}
           />
