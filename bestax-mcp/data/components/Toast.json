@@ -259,8 +259,8 @@
         {
           "name": "hotkey",
           "type": "readonly string[]",
-          "default": "DEFAULT_HOTKEY",
-          "description": "The keys that move keyboard focus to the newest toast: modifier flags (`altKey`, `ctrlKey`, `metaKey`, `shiftKey`) and one key, by its code (`F8`, `KeyT`, `Digit1`), held together with no other modifier. A letter or digit with no Ctrl, Meta or Alt doesn't count while someone is typing in a field. `[]` turns the hotkey off. Default: `['F8']`.",
+          "default": "['F8']",
+          "description": "The keys that move keyboard focus to the newest toast: modifier flags (`altKey`, `ctrlKey`, `metaKey`, `shiftKey`) and one key, by its code (`F8`, `KeyT`, `Digit1`), held together with no other modifier. A letter or digit with no Ctrl, Meta or Alt doesn't count while someone is typing in a field. `[]` turns the hotkey off.",
           "required": false,
           "inherited": false,
           "deprecated": false
