@@ -4,6 +4,29 @@ import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { Dialog, DialogContainer, dialog } from '../Dialog';
 import { Popover } from '../Popover';
+import { resetDevWarnings } from '../../helpers/devWarnings';
+
+// A Dialog without a title warns in development (#1896), and many tests here
+// open one, so that warning is held for the tests that read it. Any other
+// warning still reaches the console.
+const UNNAMED = 'A Dialog opened with no accessible name';
+beforeEach(() => {
+  resetDevWarnings();
+  const realWarn = console.warn;
+  vi.spyOn(console, 'warn').mockImplementation((...args: unknown[]) => {
+    if (!String(args[0]).includes(UNNAMED)) realWarn(...args);
+  });
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
+/** The warnings about a dialog with no accessible name. */
+const unnamedWarnings = () =>
+  vi
+    .mocked(console.warn)
+    .mock.calls.filter(([message]) => String(message).includes(UNNAMED));
 
 describe('Dialog', () => {
   afterEach(() => {
@@ -110,6 +133,39 @@ describe('Dialog', () => {
         />
       );
       expect(screen.getByTestId('custom-icon')).toBeInTheDocument();
+    });
+
+    // An svg with no name reads as an unlabelled image, and the icon repeats
+    // what the title and the message say (#1895).
+    it.each(['success', 'danger', 'warning', 'info'] as const)(
+      'hides the built-in %s icon from assistive technology',
+      type => {
+        render(<Dialog isOpen message="Test" type={type} title="Title" />);
+        expect(document.querySelector('.dialog-icon svg')).toBeInTheDocument();
+        expect(document.querySelector('.dialog-icon')).toHaveAttribute(
+          'aria-hidden',
+          'true'
+        );
+      }
+    );
+
+    it('leaves a custom icon as it was passed', () => {
+      render(
+        <Dialog
+          isOpen
+          message="Test"
+          title="Custom"
+          icon={
+            <span role="img" aria-label="Urgent">
+              !
+            </span>
+          }
+        />
+      );
+      expect(screen.getByRole('img', { name: 'Urgent' })).toBeInTheDocument();
+      expect(document.querySelector('.dialog-icon')).not.toHaveAttribute(
+        'aria-hidden'
+      );
     });
 
     it('does not render icon when icon is null', () => {
@@ -263,20 +319,71 @@ describe('Dialog', () => {
       );
     });
 
-    it('has aria-labelledby when title is provided', () => {
+    it('is labelled by its title', () => {
       render(<Dialog isOpen title="Dialog Title" message="Test" />);
-      expect(screen.getByRole('alertdialog')).toHaveAttribute(
-        'aria-labelledby',
-        'dialog-title'
-      );
+      const dialog = screen.getByRole('alertdialog');
+      const title = screen.getByRole('heading', { name: 'Dialog Title' });
+      expect(title.id).not.toBe('');
+      expect(dialog).toHaveAttribute('aria-labelledby', title.id);
+      expect(dialog).toHaveAccessibleName('Dialog Title');
     });
 
-    it('has aria-describedby for message', () => {
+    it('is described by its message', () => {
       render(<Dialog isOpen message="Test" />);
-      expect(screen.getByRole('alertdialog')).toHaveAttribute(
-        'aria-describedby',
-        'dialog-message'
+      const dialog = screen.getByRole('alertdialog');
+      const message = screen.getByText('Test');
+      expect(message.id).not.toBe('');
+      expect(dialog).toHaveAttribute('aria-describedby', message.id);
+      expect(dialog).toHaveAccessibleDescription('Test');
+    });
+
+    // The title's and the message's ids used to be the fixed words
+    // `dialog-title` and `dialog-message`, which an element of the page's
+    // own, or a second dialog, took first (#1890).
+    it('keeps its own name and description when the page uses the ids it once had', () => {
+      render(
+        <>
+          <h2 id="dialog-title">Account settings</h2>
+          <p id="dialog-message">Change your settings here.</p>
+          <Dialog isOpen title="Delete file?" message="This can't be undone." />
+        </>
       );
+      const dialog = screen.getByRole('alertdialog');
+      expect(dialog).toHaveAccessibleName('Delete file?');
+      expect(dialog).toHaveAccessibleDescription("This can't be undone.");
+    });
+
+    it('names and describes each of two open dialogs by its own title and message', () => {
+      render(
+        <>
+          <Dialog isOpen title="First" message="First message" />
+          <Dialog isOpen title="Second" message="Second message" />
+        </>
+      );
+      const [first, second] = screen.getAllByRole('alertdialog');
+      expect(first).toHaveAccessibleName('First');
+      expect(first).toHaveAccessibleDescription('First message');
+      expect(second).toHaveAccessibleName('Second');
+      expect(second).toHaveAccessibleDescription('Second message');
+    });
+
+    it('takes the name and description the caller points it at', () => {
+      render(
+        <>
+          <p id="own-name">Own name</p>
+          <p id="own-description">Own description</p>
+          <Dialog
+            isOpen
+            title="Title"
+            message="Message"
+            aria-labelledby="own-name"
+            aria-describedby="own-description"
+          />
+        </>
+      );
+      const dialog = screen.getByRole('alertdialog');
+      expect(dialog).toHaveAccessibleName('Own name');
+      expect(dialog).toHaveAccessibleDescription('Own description');
     });
 
     it.each([
@@ -553,6 +660,104 @@ describe('Dialog Programmatic API', () => {
   });
 });
 
+// An alertdialog needs an accessible name, and a Dialog without a title has
+// none unless the caller gives it one (#1896).
+describe('Dialog accessible name', () => {
+  afterEach(() => {
+    dialog.close();
+  });
+
+  it('warns once about a dialog with neither a title nor a label, naming both fixes', () => {
+    render(
+      <>
+        <Dialog isOpen message="Saved" />
+        <Dialog isOpen message="Saved again" />
+      </>
+    );
+    expect(screen.getAllByRole('alertdialog')[0]).toHaveAccessibleName('');
+    expect(unnamedWarnings()).toEqual([
+      [expect.stringMatching(/title.*aria-label.*aria-labelledby/)],
+    ]);
+  });
+
+  it.each([
+    ['a title', { title: 'Saved' }, 'Saved'],
+    ['an aria-label', { 'aria-label': 'Saved' }, 'Saved'],
+  ] as const)(
+    'stays quiet about a dialog named by %s',
+    (_label, props, name) => {
+      render(<Dialog isOpen message="Your changes are saved." {...props} />);
+      expect(screen.getByRole('alertdialog')).toHaveAccessibleName(name);
+      expect(unnamedWarnings()).toEqual([]);
+    }
+  );
+
+  it('stays quiet about a dialog named by aria-labelledby', () => {
+    render(
+      <>
+        <p id="named-elsewhere">Named elsewhere</p>
+        <Dialog
+          isOpen
+          message="Your changes are saved."
+          aria-labelledby="named-elsewhere"
+        />
+      </>
+    );
+    expect(screen.getByRole('alertdialog')).toHaveAccessibleName(
+      'Named elsewhere'
+    );
+    expect(unnamedWarnings()).toEqual([]);
+  });
+
+  it.each([
+    ['a blank aria-label', { 'aria-label': ' ' }],
+    [
+      'a title that an empty aria-labelledby replaces',
+      { title: 'Delete?', 'aria-labelledby': '' },
+    ],
+  ] as const)('warns about a dialog named by %s', (_label, props) => {
+    render(<Dialog isOpen message="Your changes are saved." {...props} />);
+    expect(screen.getByRole('alertdialog')).toHaveAccessibleName('');
+    expect(unnamedWarnings()).toHaveLength(1);
+  });
+
+  it('stays quiet while a dialog with no name is closed', () => {
+    render(<Dialog isOpen={false} message="Saved" />);
+    expect(unnamedWarnings()).toEqual([]);
+  });
+
+  it('names a programmatic dialog by the aria-label in its options, and stays quiet', () => {
+    render(<DialogContainer />);
+    act(() => {
+      void dialog.alert({
+        message: 'Your changes are saved.',
+        'aria-label': 'Saved',
+      });
+    });
+    expect(screen.getByRole('alertdialog')).toHaveAccessibleName('Saved');
+    act(() => dialog.close());
+    act(() => {
+      void dialog.confirm({
+        message: 'Leave without saving?',
+        'aria-label': 'Unsaved changes',
+      });
+    });
+    expect(screen.getByRole('alertdialog')).toHaveAccessibleName(
+      'Unsaved changes'
+    );
+    expect(unnamedWarnings()).toEqual([]);
+  });
+
+  it('warns about a programmatic dialog raised with a string', () => {
+    render(<DialogContainer />);
+    act(() => {
+      void dialog.alert('Your changes are saved.');
+    });
+    expect(screen.getByRole('alertdialog')).toHaveAccessibleName('');
+    expect(unnamedWarnings()).toHaveLength(1);
+  });
+});
+
 describe('DialogContainer', () => {
   afterEach(() => {
     dialog.close();
@@ -569,6 +774,32 @@ describe('DialogContainer', () => {
     expect(
       screen.queryByRole('button', { name: 'Cancel' })
     ).not.toBeInTheDocument();
+  });
+
+  it('hides the built-in icon of a programmatic dialog, and leaves its own icon as passed', () => {
+    render(<DialogContainer />);
+    act(() => {
+      dialog.alert({ title: 'Saved', message: 'Done', type: 'success' });
+    });
+    expect(document.querySelector('.dialog-icon')).toHaveAttribute(
+      'aria-hidden',
+      'true'
+    );
+    act(() => dialog.close());
+    act(() => {
+      dialog.alert({
+        title: 'Locked',
+        message: 'Done',
+        icon: (
+          <span role="img" aria-label="Locked file">
+            L
+          </span>
+        ),
+      });
+    });
+    expect(
+      screen.getByRole('img', { name: 'Locked file' })
+    ).toBeInTheDocument();
   });
 
   it('renders confirm dialogs with cancel button', () => {

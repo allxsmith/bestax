@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useId, useMemo, useState } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
@@ -16,6 +16,7 @@ import { FormFieldProps } from './fieldProps';
 import { useAutoLabelledBy } from './useAutoLabelId';
 import { Radio } from './Radio';
 import { GroupFieldset } from './groupFieldset';
+import { useFieldMessage } from './useFieldMessage';
 
 /**
  * Props for the Radios component.
@@ -37,7 +38,17 @@ export interface RadiosProps
   };
   /** Additional CSS classes to apply. */
   className?: string | undefined;
-  /** Form field name shared by every Radio in the group (via context). */
+  /**
+   * Form field name shared by every Radio in the group (via context). Without
+   * one, the group generates a name, since a browser groups radios by their
+   * name: that's what makes them one Tab stop the arrow keys move through,
+   * with one checked at a time. A checked radio is then sent with a form
+   * under the generated name, so pass `name` to choose the key it's sent
+   * under. A generated name comes from React's `useId`, which repeats across
+   * React roots, so on a page with more than one, pass `name` or give each
+   * root an `identifierPrefix`. A `name` on a single Radio still wins for
+   * that Radio.
+   */
   name?: string | undefined;
   /** Currently-selected value (controlled mode). */
   value?: string | undefined;
@@ -134,10 +145,11 @@ const RadiosComponent: React.FC<RadiosProps> = ({
   const mainClass = usePrefixedClassNames('radios');
   const wrapperClass = classNames(mainClass, bulmaHelperClasses, className);
 
-  const helpClass = usePrefixedClassNames('help', {
-    [`is-${messageColor}`]: !!messageColor,
-  });
-  const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+  const { messageEl, describedBy } = useFieldMessage(
+    message,
+    messageColor,
+    (props as React.AriaAttributes)['aria-describedby']
+  );
 
   // The group is "active" (manages child selection) when the user opted in by
   // passing value, defaultValue, or onChange. Otherwise it's name-only and
@@ -170,14 +182,21 @@ const RadiosComponent: React.FC<RadiosProps> = ({
     setInternalValue(current => (current === undefined ? null : current));
   }, []);
 
+  // A browser groups radios by name, so with none the radios would each be a
+  // group of their own: a Tab stop each, and, unmanaged, any number checked.
+  // The group names them itself when the caller gives no name. A name the
+  // caller gives, even an empty one, keeps its meaning.
+  const generatedName = useId();
+  const groupName = name ?? generatedName;
+
   const ctx = useMemo<RadiosGroupContextValue>(
     () => ({
-      name,
+      name: groupName,
       ...(groupActive
         ? { value: currentValue, onChange: handleChange, pickWithoutValue }
         : {}),
     }),
-    [name, groupActive, currentValue, handleChange, pickWithoutValue]
+    [groupName, groupActive, currentValue, handleChange, pickWithoutValue]
   );
 
   const choices = <RadiosProvider value={ctx}>{children}</RadiosProvider>;
@@ -191,6 +210,7 @@ const RadiosComponent: React.FC<RadiosProps> = ({
       role="radiogroup"
       aria-labelledby={ariaLabelledBy}
       {...rest}
+      aria-describedby={describedBy}
     >
       {choices}
     </Group>
@@ -211,7 +231,7 @@ const RadiosComponent: React.FC<RadiosProps> = ({
         horizontal={horizontal}
         fieldClassName={fieldClassName}
         role="radiogroup"
-        attributes={rest}
+        attributes={{ ...rest, 'aria-describedby': describedBy }}
         message={messageEl}
       >
         {content}

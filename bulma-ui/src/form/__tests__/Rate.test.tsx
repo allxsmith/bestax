@@ -5,6 +5,7 @@ import { Rate, RateIconProps } from '../Rate';
 import { Field } from '../Field';
 import { Control } from '../Control';
 import { ConfigProvider } from '../../helpers/Config';
+import { LocaleProvider } from '../../helpers/LocaleProvider';
 
 /**
  * Helper: stub `getBoundingClientRect` on every `.rate-item` span so
@@ -1210,5 +1211,121 @@ describe('Rate group label association (#494)', () => {
     expect(container.querySelectorAll('label').length).toBe(1);
     const group = screen.getByRole('radiogroup', { name: 'Outer' });
     expect(group).not.toHaveAttribute('aria-label');
+  });
+});
+
+describe('Rate labels (#1993)', () => {
+  // The names were written into Rate in English, so an app in another
+  // language had no way to translate them.
+  const french = {
+    group: 'Note',
+    star: (value: number) => `${value} étoile${value >= 2 ? 's' : ''}`,
+  };
+
+  const starNames = () =>
+    screen.getAllByRole('radio').map(star => star.getAttribute('aria-label'));
+
+  it('names the group and its stars from labels', () => {
+    render(<Rate defaultValue={3} labels={french} />);
+    expect(
+      screen.getByRole('radiogroup', { name: 'Note' })
+    ).toBeInTheDocument();
+    expect(starNames()).toEqual([
+      '1 étoile',
+      '2 étoiles',
+      '3 étoiles',
+      '4 étoiles',
+      '5 étoiles',
+    ]);
+    expect(screen.getByRole('radio', { name: '3 étoiles' })).toHaveAttribute(
+      'aria-checked',
+      'true'
+    );
+  });
+
+  it('hands star the fractional value on the star it checks', () => {
+    const star = vi.fn((value: number) => `${value} étoiles`);
+    render(<Rate defaultValue={3.5} precision={0.5} labels={{ star }} />);
+    expect(screen.getByRole('radio', { name: '3.5 étoiles' })).toHaveAttribute(
+      'aria-checked',
+      'true'
+    );
+    expect(star).toHaveBeenCalledWith(3.5);
+    expect(star).not.toHaveBeenCalledWith(4);
+  });
+
+  it('keeps the English name of any it has no label for', () => {
+    render(<Rate defaultValue={2} labels={{ group: 'Note' }} />);
+    expect(
+      screen.getByRole('radiogroup', { name: 'Note' })
+    ).toBeInTheDocument();
+    expect(starNames()).toEqual([
+      '1 star',
+      '2 stars',
+      '3 stars',
+      '4 stars',
+      '5 stars',
+    ]);
+  });
+
+  it('keeps the "Rating" fallback for an empty group label', () => {
+    render(<Rate labels={{ group: '' }} />);
+    expect(screen.getByRole('radiogroup')).toHaveAttribute(
+      'aria-label',
+      'Rating'
+    );
+  });
+
+  it('keeps the English name of a star whose label is empty', () => {
+    // A translation table missing the key returns '', which would leave the
+    // star with no name.
+    render(
+      <Rate
+        defaultValue={2}
+        labels={{ star: value => (value === 2 ? '' : `${value} étoiles`) }}
+      />
+    );
+    expect(starNames()).toEqual([
+      '1 étoiles',
+      '2 stars',
+      '3 étoiles',
+      '4 étoiles',
+      '5 étoiles',
+    ]);
+  });
+
+  it('lets a label or an aria-label win over labels.group', () => {
+    render(
+      <>
+        <Rate label="Your rating" labels={french} />
+        <Rate aria-label="Quality" labels={french} />
+      </>
+    );
+    expect(
+      screen.getByRole('radiogroup', { name: 'Your rating' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('radiogroup', { name: 'Quality' })
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('radiogroup', { name: 'Note' })).toBeNull();
+  });
+
+  it('leaves the default names alone under a LocaleProvider', () => {
+    // A German locale writes 3.5 as "3,5". Writing the default names that
+    // way would rename the stars of every Rate already inside a provider, so
+    // they stay as they were, and `star` is where a caller writes the number
+    // in a locale.
+    render(
+      <LocaleProvider locale="de">
+        <Rate defaultValue={3.5} precision={0.5} />
+      </LocaleProvider>
+    );
+    expect(
+      screen.getByRole('radiogroup', { name: 'Rating' })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: '3.5 stars' })).toHaveAttribute(
+      'aria-checked',
+      'true'
+    );
   });
 });

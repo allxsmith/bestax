@@ -545,16 +545,16 @@ out of the flow and sits at the start of the line, wherever it's written.
 
 ### EmptyState.Title
 
-| Prop          | Type                                                                    | Default | Description                                                                               |
-| ------------- | ----------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------- |
-| `as`          | `'h1'` \| `'h2'` \| `'h3'` \| `'h4'` \| `'h5'` \| `'h6'`                | `'h2'`  | The heading level: the level under the heading of the list the empty state stands in for. |
-| `className`   | `string`                                                                | —       | Additional CSS classes to apply.                                                          |
-| `hasSkeleton` | `boolean`                                                               | `false` | Applies the `has-skeleton` class to part of the content.                                  |
-| `children`    | `React.ReactNode`                                                       | —       | Title content.                                                                            |
-| `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                                                        |
-| `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                                                                  |
-| `skeleton`    | `boolean`                                                               | —       | Applies the `is-skeleton` class to the entire component.                                  |
-| `...`         | All standard `<h1>`–`<h6>` / `<p>` attributes and Bulma helper props    | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                         |
+| Prop          | Type                                                                    | Default | Description                                                                                                                                           |
+| ------------- | ----------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `as`          | `'h1'` \| `'h2'` \| `'h3'` \| `'h4'` \| `'h5'` \| `'h6'`                | `'h2'`  | The heading level: the level under the heading of the list the empty state stands in for.                                                             |
+| `className`   | `string`                                                                | —       | Additional CSS classes to apply.                                                                                                                      |
+| `hasSkeleton` | `boolean`                                                               | `false` | Applies the `has-skeleton` class to part of the content. A screen reader still reads its text, so give it `aria-hidden="true"` while it's a skeleton. |
+| `children`    | `React.ReactNode`                                                       | —       | Title content.                                                                                                                                        |
+| `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                                                                                                                    |
+| `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                                                                                                                              |
+| `skeleton`    | `boolean`                                                               | —       | Applies the `is-skeleton` class to the entire component. A screen reader still reads its text, so give it `aria-hidden="true"` while it's a skeleton. |
+| `...`         | All standard `<h1>`–`<h6>` / `<p>` attributes and Bulma helper props    | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                     |
 
 ### EmptyState.Description
 

@@ -76,7 +76,7 @@ in place:
 - **Structure** — wrappers bestax renders itself fold away: `Page` onto its `PageLink`, the
   literal `<li>` bloomer's docs put around a `MenuLink`, the literal `<ul>` inside a `Breadcrumb`,
   `TabLink` into a plain `<a>` inside `Tabs.Item`. `Help`, `Label`, `Heading`, `BreadcrumbItem`,
-  `PanelTab` and `HeroVideo` become the plain Bulma markup bloomer rendered (`Heading` with a TODO,
+  `PanelTab`, `TabList` and `HeroVideo` become the plain Bulma markup bloomer rendered (`Heading` with a TODO,
   since Bulma v1 has no rule for `.heading`), and so does a `PanelBlock` without `href` on a `tag`
   other than `a`, `div` or `label`. Icon-font classes the
   codemod can read (Font Awesome 5/6, MDI) become `<Icon name="…" library="…" />`, modifiers

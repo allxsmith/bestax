@@ -59,7 +59,7 @@
     },
     {
       "title": "Form Addons › Input + Static Suffix",
-      "code": "<Field hasAddons>\n  <Control isExpanded>\n    <Input placeholder=\"Your email\" aria-label=\"Email username\" />\n  </Control>\n  <Control>\n    <Button isStatic>@gmail.com</Button>\n  </Control>\n</Field>"
+      "code": "<Field hasAddons>\n  <Control isExpanded>\n    <Input placeholder=\"Your email\" aria-label=\"Email username\" />\n  </Control>\n  <Control>\n    <Button as=\"span\" isStatic>\n      @gmail.com\n    </Button>\n  </Control>\n</Field>"
     },
     {
       "title": "Form Addons › Select + Input + Button",
@@ -111,7 +111,7 @@
     },
     {
       "title": "Horizontal — Addons (Phone with Country Code)",
-      "code": "<Field horizontal label=\"Phone\" labelProps={{ htmlFor: 'phone-number' }}>\n  <Field.Body>\n    <Field hasAddons>\n      <Control>\n        <Button isStatic>+44</Button>\n      </Control>\n      <Control isExpanded>\n        <Input id=\"phone-number\" type=\"tel\" placeholder=\"Your phone number\" />\n      </Control>\n    </Field>\n  </Field.Body>\n</Field>"
+      "code": "<Field horizontal label=\"Phone\" labelProps={{ htmlFor: 'phone-number' }}>\n  <Field.Body>\n    <Field hasAddons>\n      <Control>\n        <Button as=\"span\" isStatic>\n          +44\n        </Button>\n      </Control>\n      <Control isExpanded>\n        <Input id=\"phone-number\" type=\"tel\" placeholder=\"Your phone number\" />\n      </Control>\n    </Field>\n  </Field.Body>\n</Field>"
     },
     {
       "title": "Horizontal — Submit Row",
@@ -134,7 +134,7 @@
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Username\"\n      labelProps={{ htmlFor: 'username-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"user\">\n            <Input id=\"username-field-control\" placeholder=\"Enter username\" />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
-  "accessibility": "- Always provide a label. The `label` prop is automatically associated with the input (`htmlFor` plus a generated `id`, or your own `id` if you pass one), so clicking the label focuses the input and assistive technology announces it.\n- When composing with `Field` instead, the `Field`'s own `label` associates with the input automatically when the input sits directly in that labeled `Field` and has no `id` of its own. A nested unlabeled `Field` (as in horizontal multi-field layouts) starts its own scope. With an `id` of your own, or across a nested `Field`, the label names the input only when you pass that `id` as `labelProps={{ htmlFor }}`.\n- Use the correct input `type` for semantics (`text`, `email`, etc.).",
+  "accessibility": "- Always provide a label. The `label` prop is automatically associated with the input (`htmlFor` plus a generated `id`, or your own `id` if you pass one), so clicking the label focuses the input and assistive technology announces it.\n- When composing with `Field` instead, the `Field`'s own `label` associates with the input automatically when the input sits directly in that labeled `Field` and has no `id` of its own. A nested unlabeled `Field` (as in horizontal multi-field layouts) starts its own scope. With an `id` of your own, or across a nested `Field`, the label names the input only when you pass that `id` as `labelProps={{ htmlFor }}`.\n- Use the correct input `type` for semantics (`text`, `email`, etc.).\n- **Help and errors:** the `message` describes the input through `aria-describedby`, after any ids you pass there, so a screen reader reads it when the input takes focus. A red `color` says nothing to a screen reader, so on an error also set `aria-invalid`, and put the error in the `message`.",
   "related": ["Control", "Field"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-input--default",
   "summary": "The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static state, hover/focus/loading states, and all Bulma helper props.",
@@ -286,7 +286,7 @@
           "name": "message",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Help/validation message below the input.",
+          "description": "Help or validation text under the input. It describes the input through `aria-describedby`, after any ids you pass there.",
           "required": false,
           "inherited": false,
           "deprecated": false

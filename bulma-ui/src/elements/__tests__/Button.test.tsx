@@ -1,5 +1,6 @@
 import React, { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { Button } from '../Button';
 import { ConfigProvider } from '../../helpers/Config';
 
@@ -369,6 +370,175 @@ describe('Button Component', () => {
       fireEvent.click(button);
       expect(handleClick).not.toHaveBeenCalled();
       expect(button).toBeDisabled();
+    });
+  });
+
+  // Bulma's spinner stops only a pointer, so a key pressed a loading button,
+  // and sent its action or its form twice (#1870). A loading Button says it's
+  // busy and won't respond, drops the click on every input, and keeps focus,
+  // as ToggleButton does.
+  describe('loading', () => {
+    it("says it is busy and won't respond, and stays focusable", () => {
+      render(<Button isLoading>Save</Button>);
+      const button = screen.getByRole('button', { name: 'Save' });
+      expect(button).toHaveAttribute('aria-busy', 'true');
+      expect(button).toHaveAttribute('aria-disabled', 'true');
+      expect(button).not.toBeDisabled();
+      button.focus();
+      expect(button).toHaveFocus();
+    });
+
+    it('drops Enter, Space and a click', async () => {
+      const onClick = vi.fn();
+      render(
+        <Button isLoading onClick={onClick}>
+          Save
+        </Button>
+      );
+      const user = userEvent.setup();
+      await user.tab();
+      expect(screen.getByRole('button', { name: 'Save' })).toHaveFocus();
+      await user.keyboard('{Enter}');
+      await user.keyboard(' ');
+      // jsdom ignores Bulma's pointer-events: none, so this is the click a
+      // pointer would have sent without it.
+      fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+      expect(onClick).not.toHaveBeenCalled();
+    });
+
+    it('runs again once it is cleared', async () => {
+      const onClick = vi.fn();
+      const { rerender } = render(
+        <Button isLoading onClick={onClick}>
+          Save
+        </Button>
+      );
+      rerender(<Button onClick={onClick}>Save</Button>);
+      const button = screen.getByRole('button', { name: 'Save' });
+      expect(button).not.toHaveAttribute('aria-busy');
+      expect(button).not.toHaveAttribute('aria-disabled');
+      await userEvent.setup().click(button);
+      expect(onClick).toHaveBeenCalledTimes(1);
+    });
+
+    it("doesn't submit its form, from the button or from Enter in a field", async () => {
+      const onSubmit = vi.fn((e: React.FormEvent) => e.preventDefault());
+      const { rerender } = render(
+        <form onSubmit={onSubmit}>
+          <input aria-label="Name" />
+          <Button type="submit" isLoading>
+            Save
+          </Button>
+        </form>
+      );
+      const user = userEvent.setup();
+      await user.click(screen.getByRole('textbox'));
+      await user.keyboard('x{Enter}');
+      await user.tab();
+      await user.keyboard('{Enter}');
+      await user.keyboard(' ');
+      expect(onSubmit).not.toHaveBeenCalled();
+      rerender(
+        <form onSubmit={onSubmit}>
+          <input aria-label="Name" />
+          <Button type="submit">Save</Button>
+        </form>
+      );
+      await user.click(screen.getByRole('textbox'));
+      await user.keyboard('{Enter}');
+      expect(onSubmit).toHaveBeenCalledTimes(1);
+    });
+
+    it("doesn't follow a link, and keeps it in the tab order", async () => {
+      const onClick = vi.fn();
+      render(
+        <Button as="a" href="#next" isLoading onClick={onClick}>
+          Next
+        </Button>
+      );
+      const link = screen.getByRole('link', { name: 'Next' });
+      expect(link).toHaveAttribute('aria-busy', 'true');
+      expect(link).toHaveAttribute('aria-disabled', 'true');
+      expect(link).not.toHaveAttribute('tabindex');
+      const event = new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+      });
+      link.dispatchEvent(event);
+      expect(event.defaultPrevented).toBe(true);
+      expect(onClick).not.toHaveBeenCalled();
+    });
+
+    it('does not throw when a loading custom target has a non-DOM onClick', () => {
+      const Custom = (p: {
+        onClick?: (v: string) => void;
+        children?: React.ReactNode;
+      }) => (
+        <a data-testid="c" onClick={() => p.onClick?.('a string')}>
+          {p.children}
+        </a>
+      );
+      render(
+        <Button as={Custom} isLoading>
+          x
+        </Button>
+      );
+      expect(() => screen.getByTestId('c').click()).not.toThrow();
+    });
+
+    it("keeps a caller's own aria-busy and aria-disabled only while it isn't loading", () => {
+      const { rerender } = render(
+        <Button aria-busy={false} aria-disabled={false}>
+          Save
+        </Button>
+      );
+      const button = screen.getByRole('button', { name: 'Save' });
+      expect(button).toHaveAttribute('aria-busy', 'false');
+      expect(button).toHaveAttribute('aria-disabled', 'false');
+      rerender(
+        <Button aria-busy={false} aria-disabled={false} isLoading>
+          Save
+        </Button>
+      );
+      expect(button).toHaveAttribute('aria-busy', 'true');
+      expect(button).toHaveAttribute('aria-disabled', 'true');
+    });
+  });
+
+  // isStatic only styles the element (#1871): a static <button> is still a
+  // tab stop, and the docs render a label that does nothing as a span.
+  describe('static', () => {
+    it('keeps a <button> a button, which Tab reaches', async () => {
+      render(
+        <>
+          <input aria-label="Email" />
+          <Button isStatic>@gmail.com</Button>
+        </>
+      );
+      const user = userEvent.setup();
+      await user.tab();
+      await user.tab();
+      expect(screen.getByRole('button', { name: '@gmail.com' })).toHaveFocus();
+    });
+
+    it('renders as="span" as text Tab skips, the way the docs show it', async () => {
+      render(
+        <>
+          <input aria-label="Email" />
+          <Button as="span" isStatic>
+            @gmail.com
+          </Button>
+          <button type="button">Next</button>
+        </>
+      );
+      const label = screen.getByText('@gmail.com');
+      expect(label.tagName).toBe('SPAN');
+      expect(label).toHaveClass('button', 'is-static');
+      expect(screen.queryByRole('button', { name: '@gmail.com' })).toBeNull();
+      const user = userEvent.setup();
+      await user.tab();
+      await user.tab();
+      expect(screen.getByRole('button', { name: 'Next' })).toHaveFocus();
     });
   });
 

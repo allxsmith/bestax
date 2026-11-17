@@ -28,6 +28,7 @@ import { groupIntoPositionStacks } from '../helpers/positionStacks';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { isModalOverlayOpen, useOverlayStack } from '../helpers/overlayStack';
 import { useDismissTimer } from '../helpers/useDismissTimer';
+import { chain } from '../helpers/useHoverOpen';
 
 /** Color/style type presets for toast messages. */
 export type ToastType =
@@ -46,6 +47,7 @@ export type ToastPosition =
  * Props for the Toast component.
  * @extraProp {string} [className] - Additional CSS classes.
  * @extraProp {React.Ref<HTMLDivElement>} [ref] - Ref forwarded to the toast element.
+ * @extraProp {React.MouseEventHandler<HTMLDivElement>} [onClick] - Called on a click on the toast. With `dismissible` left out, a toast with an `onClick` stays open on a click on it; with `dismissible` set to `true`, it closes after `onClick` runs.
  */
 export interface ToastProps
   extends
@@ -73,7 +75,12 @@ export interface ToastProps
   duration?: number;
   /** Keeps the toast visible until dismissed. */
   indefinite?: boolean;
-  /** Whether clicking the toast (or outside it) dismisses it. */
+  /**
+   * Whether clicking the toast (or outside it) dismisses it. A toast you
+   * give an `onClick` closes on a click on it only when you set
+   * `dismissible` yourself, and then after your `onClick` runs.
+   * @defaultValue true
+   */
   dismissible?: boolean;
   /** Show an explicit close (X) button. Default: false. */
   closable?: boolean;
@@ -146,7 +153,7 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
       position = 'top-right',
       duration = 2000,
       indefinite = false,
-      dismissible = true,
+      dismissible: dismissibleProp,
       closable = false,
       ariaCloseLabel,
       rounded = false,
@@ -164,6 +171,12 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
     ref
   ) => {
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+    const dismissible = dismissibleProp ?? true;
+    // A caller's own `onClick` used to replace the close on a click, so a
+    // toast given one closes on a click only when it says `dismissible`
+    // itself. A click outside closes it either way.
+    const closesOnClick =
+      dismissible && (dismissibleProp !== undefined || !rest.onClick);
     // A portal has no server-rendered counterpart, so the toast renders in
     // place on the server and while hydrating, and moves into its portal
     // once the client takes over, as Modal's `portal` does.
@@ -328,12 +341,19 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
         aria-live={
           type === 'danger' || type === 'warning' ? 'assertive' : 'polite'
         }
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        onClick={dismissible ? handleClose : undefined}
         {...rest}
-        // After the spread, so a caller's own onFocus runs as well rather
-        // than replacing the one that holds the timer.
+        // After the spread, so a caller's own handler runs as well rather
+        // than replacing the toast's: the hover pause, the close on a click
+        // where it applies, and the focus that holds the timer, which comes
+        // first so it holds whatever the caller's does.
+        onMouseEnter={chain(rest.onMouseEnter, handleMouseEnter)}
+        onMouseLeave={chain(rest.onMouseLeave, handleMouseLeave)}
+        // The caller's first, then the close where it applies, both when the
+        // click comes, so nothing reads the toast's refs while it renders.
+        onClick={e => {
+          rest.onClick?.(e);
+          if (closesOnClick) handleClose();
+        }}
         onFocus={e => {
           handleTimerFocus(e);
           rest.onFocus?.(e);

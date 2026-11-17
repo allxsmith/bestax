@@ -196,6 +196,90 @@ describe('Panel.Block', () => {
     expect(screen.getByTestId('block')).toHaveClass('is-active');
   });
 
+  // Bulma draws the active block as the selected one, so it says so to
+  // assistive tech too, as Menu.Item and Navbar.Item do.
+  describe('aria-current', () => {
+    it('active writes aria-current="page"', () => {
+      render(
+        <Panel>
+          <Panel.Block href="/bulma" active>
+            bulma
+          </Panel.Block>
+          <Panel.Block href="/marksheet">marksheet</Panel.Block>
+        </Panel>
+      );
+      const current = screen.getByRole('link', { current: 'page' });
+      expect(current).toHaveAccessibleName('bulma');
+      expect(current).toHaveClass('is-active');
+      expect(
+        screen.getByRole('link', { name: 'marksheet' })
+      ).not.toHaveAttribute('aria-current');
+    });
+
+    it('a block that is not active has none', () => {
+      render(
+        <Panel.Block href="/a" active={false}>
+          A
+        </Panel.Block>
+      );
+      expect(screen.getByRole('link', { name: 'A' })).not.toHaveAttribute(
+        'aria-current'
+      );
+    });
+
+    it('an aria-current the caller passes wins', () => {
+      render(
+        <>
+          <Panel.Block href="#intro" active aria-current="location">
+            Intro
+          </Panel.Block>
+          <Panel.Block
+            as="label"
+            active
+            aria-current={false}
+            data-testid="label"
+          >
+            <input type="checkbox" /> remember me
+          </Panel.Block>
+        </>
+      );
+      expect(screen.getByRole('link', { name: 'Intro' })).toHaveAttribute(
+        'aria-current',
+        'location'
+      );
+      expect(screen.getByTestId('label')).toHaveAttribute(
+        'aria-current',
+        'false'
+      );
+    });
+
+    it('a spread carrying aria-current: undefined wins too', () => {
+      const forwarded: { 'aria-current'?: 'page' | undefined } = {
+        'aria-current': undefined,
+      };
+      render(
+        <Panel.Block href="/b" active {...forwarded}>
+          B
+        </Panel.Block>
+      );
+      expect(screen.getByRole('link', { name: 'B' })).not.toHaveAttribute(
+        'aria-current'
+      );
+    });
+
+    it('reaches the element `as` renders', () => {
+      render(
+        <Panel.Block as="div" active data-testid="block">
+          Program
+        </Panel.Block>
+      );
+      expect(screen.getByTestId('block')).toHaveAttribute(
+        'aria-current',
+        'page'
+      );
+    });
+  });
+
   it('accepts custom className', () => {
     render(<Panel.Block className="custom-block" data-testid="block" />);
     expect(screen.getByTestId('block')).toHaveClass('custom-block');

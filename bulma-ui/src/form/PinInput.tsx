@@ -25,6 +25,7 @@ import { Field } from './Field';
 import { Control } from './Control';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
+import { useFieldMessage } from './useFieldMessage';
 
 /**
  * What a PinInput takes: `'number'` keeps digits only, and `'alphanumeric'`
@@ -316,9 +317,11 @@ export const PinInput = forwardRef<HTMLInputElement, PinInputProps>(
       className
     );
     const fieldClass = usePrefixedClassNames('pin-input-field');
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
+    const { messageEl, describedBy } = useFieldMessage(
+      message,
+      messageColor,
+      props['aria-describedby']
+    );
 
     // The boxes the selection covers: the one at a caret, or every selected
     // one. A caret after the last character marks the last box.
@@ -379,6 +382,7 @@ export const PinInput = forwardRef<HTMLInputElement, PinInputProps>(
           }}
           // After the spread: an undefined `id` key in rest would wipe it.
           id={controlId}
+          aria-describedby={describedBy}
         />
         {boxes}
       </div>
@@ -387,8 +391,6 @@ export const PinInput = forwardRef<HTMLInputElement, PinInputProps>(
     if (ownControl) {
       content = <Control>{content}</Control>;
     }
-
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
 
     if (ownField) {
       return (

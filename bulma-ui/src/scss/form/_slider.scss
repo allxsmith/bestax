@@ -670,7 +670,12 @@ $slider-vertical-height: 200px !default;
     }
   }
 
+  // A disabled slider is drawn in GrayText, so its usual opacity would only
+  // halve that, and in range mode only on the thumbs. It draws at full
+  // strength here, the track and thumbs alike.
   .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-disabled .#{iv.$class-prefix}slider-input {
+    opacity: 1;
+
     &::-webkit-slider-thumb {
       background: GrayText;
       border-color: GrayText;
@@ -682,12 +687,27 @@ $slider-vertical-height: 200px !default;
     }
   }
 
+  // Forced colors keeps an opacity, and the tick's would dim the line and the
+  // label inside it to half strength, so both draw at full strength here. The
+  // label sits on the page, so it takes the text color paired with it.
   .#{iv.$class-prefix}slider-tick {
     background: ButtonText;
+    opacity: 1;
   }
 
   .#{iv.$class-prefix}slider-tick-label {
-    color: ButtonText;
+    color: CanvasText;
+  }
+
+  // A disabled slider's ticks and labels take the color for disabled text,
+  // the color its track and thumb take. An endpoint's tick keeps no line.
+  .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-disabled
+    .#{iv.$class-prefix}slider-tick:not(.#{iv.$class-prefix}is-endpoint) {
+    background: GrayText;
+  }
+
+  .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-disabled .#{iv.$class-prefix}slider-tick-label {
+    color: GrayText;
   }
 
   .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-range .#{iv.$class-prefix}slider-track {

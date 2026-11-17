@@ -47,6 +47,11 @@ import {
 } from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
 import { useFieldLabelTarget, useFieldsetDisabled } from './FormContext';
+import {
+  joinIds,
+  splitControlState,
+  useFieldMessageId,
+} from './useFieldMessage';
 import { Icon } from '../elements/Icon';
 import { getActiveElementInTree } from '../helpers/shadowDom';
 import { inertProps } from '../helpers/inertProps';
@@ -84,7 +89,9 @@ const fromIsoDateTime = (s: string): Date | null => {
 /**
  * Props for the raw DateTimeInput base. Use the higher-level `DateTimeInput`
  * for Field/Control composition. Combines the prop set of `DateInputBaseProps`
- * and `TimeInputBaseProps`.
+ * and `TimeInputBaseProps`. `aria-invalid` and `aria-errormessage`, which
+ * report the input's state, go on the `<input>`, and inline, where there is
+ * none, on the `<div>`.
  *
  * @helperProps Helper props go on the `.datetimeinput-container` `<div>`, with
  * `className` and the other attributes, except that the background helpers
@@ -201,6 +208,9 @@ export interface DateTimeInputBaseProps
    * lines up with the field's start edge, which is its right edge when the
    * picker reads right to left. A corner you pass stays physical, so
    * `bottom-left` lines up the left edges either way.
+   * A panel that would run past the viewport's left or right edge keeps
+   * its corner and moves sideways, just far enough to fit or, wider than
+   * the viewport, to the edge its text starts from.
    * @defaultValue 'bottom-left'
    */
   position?: PickerPosition;
@@ -220,7 +230,9 @@ export interface DateTimeInputBaseProps
    * so it shows on the fill. Unset, they use their
    * `--bulma-dateinput-*` and `--bulma-timeinput-wheel-*` variables, which
    * follow `primary` by default. The footer's time pill and Done button do not
-   * follow `color`.
+   * follow `color`. Forced colors (Windows' contrast themes) replaces the
+   * calendar's fill, so there the selected date is drawn in the system's
+   * highlight colors instead, whatever the color, which needs bestax's CSS.
    */
   color?:
     'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
@@ -450,6 +462,11 @@ export const DateTimeInputBase = forwardRef<
   const popoverId = id ? `${id}-popover` : `picker-${reactId}`;
   const timeWheelsId = `${popoverId}-time`;
 
+  // The input takes `aria-invalid` and `aria-errormessage`, which report
+  // its state, and the container the rest (#2002). With no input, inline,
+  // the container keeps them, as before.
+  const { control: controlState, rest: containerRest } =
+    splitControlState(rest);
   // The field takes the background and text helpers, since Bulma's `.input`
   // sets its own background and font. The container keeps the rest, and the
   // text helpers too where a popover inside it takes them.
@@ -459,7 +476,7 @@ export const DateTimeInputBase = forwardRef<
     textClasses,
     otherClasses,
     rest: cleanRest,
-  } = useFieldHelperClasses(rest);
+  } = useFieldHelperClasses(containerRest);
 
   const { shouldUseNative, isSmallViewport } = useNativeMobilePicker({
     force: mobileNative === 'auto' ? undefined : mobileNative,
@@ -694,6 +711,11 @@ export const DateTimeInputBase = forwardRef<
     [ref]
   );
 
+  // The wrapper's message describes the input (#1963). The native input
+  // lists it after the caller's ids; the text input takes it alone, since
+  // the caller's attributes go on the container.
+  const messageId = useFieldMessageId();
+
   if (useNative) {
     const nativeStep = enableSeconds ? incrementSeconds : incrementMinutes * 60;
     return (
@@ -701,6 +723,8 @@ export const DateTimeInputBase = forwardRef<
         {...localeScope.rootAttrs}
         {...cleanRest}
         ref={combinedRef}
+        aria-describedby={joinIds(cleanRest['aria-describedby'], messageId)}
+        {...controlState}
         type="datetime-local"
         step={nativeStep}
         className={classNames(inputClass, bulmaHelperClasses, className)}
@@ -860,6 +884,7 @@ export const DateTimeInputBase = forwardRef<
       <div
         {...localeScope.rootAttrs}
         {...cleanRest}
+        {...controlState}
         ref={containerRef}
         className={classNames(containerClass, bulmaHelperClasses, className)}
       >
@@ -897,6 +922,8 @@ export const DateTimeInputBase = forwardRef<
         aria-expanded={open}
         aria-controls={popoverId}
         autoComplete="off"
+        aria-describedby={messageId}
+        {...controlState}
         className={classNames(inputClass, textClasses, backgroundClasses)}
         value={text}
         placeholder={placeholder}

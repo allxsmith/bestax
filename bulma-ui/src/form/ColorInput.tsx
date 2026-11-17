@@ -1,5 +1,4 @@
 import React, { forwardRef } from 'react';
-import { usePrefixedClassNames } from '../helpers/classNames';
 import { Field, FieldProps } from './Field';
 import { Control, ControlBaseProps } from './Control';
 import { ColorInputBase, ColorInputBaseProps } from './ColorInputBase';
@@ -10,6 +9,7 @@ import {
   rendersOwnControl,
 } from './FormContext';
 import { useAutoLabelId } from './useAutoLabelId';
+import { useFieldMessage } from './useFieldMessage';
 
 /**
  * Props for the ColorInput convenience wrapper. Extends
@@ -61,7 +61,10 @@ export interface ColorInputProps extends ColorInputBaseProps {
   isExpanded?: boolean;
   /** Size of the wrapping Control. */
   controlSize?: ControlBaseProps['size'];
-  /** Help/validation text below the field. */
+  /**
+   * Help or validation text under the field. It describes the text input
+   * through `aria-describedby`, after any ids you pass there.
+   */
   message?: React.ReactNode;
   /** Color modifier for the help message. */
   messageColor?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
@@ -124,14 +127,21 @@ export const ColorInput = forwardRef<HTMLInputElement, ColorInputProps>(
       labelProps,
       rendersLabel: ownField,
     });
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
+    const { messageEl, describedBy } = useFieldMessage(
+      message,
+      messageColor,
+      baseProps['aria-describedby']
+    );
 
     // The base hides its launcher while the Control it sits in is loading,
     // whether that is the one rendered below or an enclosing one.
     let content: React.ReactNode = (
-      <ColorInputBase ref={ref} {...baseProps} id={controlId} />
+      <ColorInputBase
+        ref={ref}
+        {...baseProps}
+        id={controlId}
+        aria-describedby={describedBy}
+      />
     );
 
     if (ownControl) {
@@ -146,8 +156,6 @@ export const ColorInput = forwardRef<HTMLInputElement, ColorInputProps>(
         </Control>
       );
     }
-
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
 
     if (ownField) {
       return (

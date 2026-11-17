@@ -6,11 +6,7 @@ import React, {
   useCallback,
   useId,
 } from 'react';
-import {
-  classNames,
-  usePrefixedClassNames,
-  prefixedClassNames,
-} from '../helpers/classNames';
+import { classNames, prefixedClassNames } from '../helpers/classNames';
 import { useConfig, useIconLibrary } from '../helpers/Config';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { isEventInside } from '../helpers/shadowDom';
@@ -27,6 +23,7 @@ import {
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
+import { splitControlState, useFieldMessage } from './useFieldMessage';
 import { Icon } from '../elements/Icon';
 
 /**
@@ -51,8 +48,17 @@ type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
 const isComposing = (e: React.KeyboardEvent): boolean =>
   e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229;
 
+// A press on a suggestion would take focus from the input, since a
+// suggestion can't hold it, and hand it to whatever focusable element is
+// around the Taginput, such as a Modal's, whose focus closes the list before
+// the click lands. Cancelling the press keeps focus in the input, as
+// Autocomplete's list does, and the click still adds the tag.
+const keepFocus = (e: React.MouseEvent) => e.preventDefault();
+
 /**
- * Props for the Taginput component.
+ * Props for the Taginput component. The other attributes go on the wrapper
+ * `<div>`, except `aria-invalid` and `aria-errormessage`, which report the
+ * input's state and go on the input.
  * Inside an outer `Field`, or a `Control` with no `Field` around it, it
  * renders no `Field` of its own. The exception is `label`, `message`,
  * `horizontal` or `fieldClassName` in that bare `Control`: it keeps a `Field`
@@ -283,7 +289,11 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       horizontal,
       fieldClassName,
     });
-    const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+    // The input takes `aria-invalid` and `aria-errormessage`, which report
+    // its state, and the wrapper the rest (#2002).
+    const { control: controlState, rest: wrapperProps } =
+      splitControlState(props);
+    const { bulmaHelperClasses, rest } = useBulmaClasses(wrapperProps);
     const { classPrefix } = useConfig();
     const defaultIconLibrary = useIconLibrary();
     const formatNumber = useScopedNumberFormat();
@@ -516,6 +526,19 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       }
     }, [openOnFocus, data.length, disabled]);
 
+    // Focus moving from the input to another element closes the list, so it
+    // doesn't stay open over the field Tab moved to, or over anything else
+    // that took focus (#2004), unless it moved into the list itself. Focus
+    // going to no element, as when the window loses it, leaves the list to
+    // the press-outside check, and Tab closes it itself, in case it leaves
+    // for a frame.
+    const handleBlur = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
+      const next = e.relatedTarget as Node | null;
+      if (!next || dropdownRef.current?.contains(next)) return;
+      setIsActive(false);
+      setHighlightedIndex(-1);
+    }, []);
+
     // Reaching the limit dismisses the list the way a click outside does, so
     // making room later doesn't bring it back unasked. It's an effect, not a
     // step in addTag, because a click on a suggestion also bubbles to the
@@ -585,6 +608,12 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
             // Closing the suggestions claims the key, so a Modal around the
             // field stays open. With none showing, the key goes on to it.
             if (listOpen) e.preventDefault();
+            setIsActive(false);
+            setHighlightedIndex(-1);
+            break;
+          case 'Tab':
+            // Tab moves on without picking, and the list doesn't stay open
+            // over where it lands.
             setIsActive(false);
             setHighlightedIndex(-1);
             break;
@@ -675,10 +704,13 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     const iconRightClass = pcn('icon', 'is-right');
     const loaderClass = pcn('loader', 'is-loading');
 
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+    // The other attributes go on the wrapper, so the input takes only the
+    // counter's and the message's ids.
+    const { messageEl, describedBy } = useFieldMessage(
+      message,
+      messageColor,
+      showCounter ? counterId : undefined
+    );
 
     // The combobox controls its listbox and points at the highlighted option,
     // the way Autocomplete's does. The listbox takes its name from the label
@@ -760,6 +792,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
               maxLength={maxlength}
               onChange={handleInputChange}
               onFocus={handleFocus}
+              onBlur={handleBlur}
               onKeyDown={handleKeyDown}
               onPaste={handlePaste}
               {...(hasSuggestions && comboboxProps)}
@@ -769,8 +802,10 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
               // keeps the fallback so the input is never nameless.
               aria-label={labelled ? undefined : 'Add tag'}
               // The counter, while it shows, describes the input, so at the
-              // limit it says why the field takes no more.
-              aria-describedby={showCounter ? counterId : undefined}
+              // limit it says why the field takes no more, and then the
+              // message does.
+              aria-describedby={describedBy}
+              {...controlState}
             />
           </div>
           {loading && (
@@ -781,7 +816,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
         </div>
 
         {listOpen && (
-          <div className={dropdownMenuClasses}>
+          <div className={dropdownMenuClasses} onMouseDown={keepFocus}>
             <div
               ref={dropdownRef}
               id={listboxId}
@@ -789,6 +824,9 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
               role="listbox"
               aria-labelledby={listLabelId}
               aria-label={listLabelId ? undefined : 'Suggestions'}
+              // It scrolls, and a browser can make a scroller a Tab stop of
+              // its own, which would take Tab from the input to the list.
+              tabIndex={-1}
             >
               {filteredData.map((item, index) => (
                 <a

@@ -35,17 +35,17 @@
       "code": "<Box textColor=\"success\" bgColor=\"black\" m=\"3\" p=\"3\" textAlign=\"right\">\n  Interactive Box\n</Box>"
     }
   ],
-  "accessibility": "- **Content:** Use semantic HTML inside `Box` for best accessibility.\n- **Shadow:** The shadow is purely visual and does not affect accessibility.\n- **Contrast:** Ensure color combinations provide sufficient contrast.\n\n:::tip\n`Box` is perfect for card-like containers, callouts, or visually separating content.\n:::",
+  "accessibility": "- **Content:** Use semantic HTML inside `Box` for best accessibility.\n- **Shadow:** The shadow is purely visual and does not affect accessibility.\n- **Forced colors:** in Windows' contrast themes, which drop shadows and paint the box in the\n  page's own color, the box's edge is drawn as an outline in the system's text color, so it still\n  shows where its content starts and ends. While the box has keyboard focus, the browser's focus\n  ring shows in its place.\n- **Contrast:** Ensure color combinations provide sufficient contrast.\n\n:::tip\n`Box` is perfect for card-like containers, callouts, or visually separating content.\n:::",
   "related": ["Block", "Content", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-box--default",
-  "summary": "The `Box` component renders a bordered, padded container with an optional shadow using Bulma's `.box` class.",
+  "summary": "The `Box` component renders a padded container with rounded corners and an optional shadow using Bulma's `.box` class.",
   "import": "import { Box } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/elements/Box.tsx",
   "rootClass": "box",
   "parts": [
     {
       "path": "Box",
-      "summary": "The `Box` component renders a bordered, padded container with an optional shadow using Bulma's `.box` class.",
+      "summary": "The `Box` component renders a padded container with rounded corners and an optional shadow using Bulma's `.box` class.",
       "component": null,
       "props": [
         {

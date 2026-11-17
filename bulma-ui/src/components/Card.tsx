@@ -8,7 +8,9 @@ import { withSubComponents } from '../helpers/withSubComponents';
 import { isElementOf } from '../helpers/elementType';
 import {
   type AnchorOnlyAttributes,
+  type ButtonOnlyAttributes,
   ANCHOR_ONLY_ATTRS,
+  BUTTON_ONLY_ATTRS,
   omitAttrs,
 } from '../helpers/anchorAttrs';
 import { buttonType } from '../helpers/buttonType';
@@ -320,35 +322,10 @@ const STRIP_FROM_NON_ANCHOR: Readonly<
 })();
 
 /**
- * What `<button>` adds over the attributes every element has (`disabled`,
- * `form`, `name`, `value` and the `form*` submit overrides), subtracted from
- * React's types the way `AnchorOnlyAttributes` is, so it grows when React's
- * does. Minus `type`, which `AnchorOnlyAttributes` already declares as the
- * `<a>` MIME string: two heritage clauses declaring it differently do not
- * compile, and the `<button>` branch reads it back off the forwarded props.
+ * The set withheld from a non-button `Card.FooterItem` (`span`/`a`): the
+ * button-only attributes, all of them.
  */
-type ButtonOnlyAttributes = Omit<
-  React.ButtonHTMLAttributes<HTMLButtonElement>,
-  keyof React.HTMLAttributes<HTMLButtonElement> | 'type'
->;
-
-/**
- * The set withheld from a non-button `Card.FooterItem` (`span`/`a`), keyed so
- * it stops compiling until a button attribute React adds is named here.
- */
-const STRIP_FROM_NON_BUTTON: Readonly<
-  Record<keyof ButtonOnlyAttributes, true>
-> = {
-  disabled: true,
-  form: true,
-  formAction: true,
-  formEncType: true,
-  formMethod: true,
-  formNoValidate: true,
-  formTarget: true,
-  name: true,
-  value: true,
-};
+const STRIP_FROM_NON_BUTTON = BUTTON_ONLY_ATTRS;
 
 /**
  * Props for the Card.FooterItem compound component.
