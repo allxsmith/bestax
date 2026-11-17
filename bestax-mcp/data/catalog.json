@@ -1243,8 +1243,8 @@
       "slug": "form/rate",
       "import": "import { Rate } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 28,
-      "exampleCount": 12
+      "propCount": 29,
+      "exampleCount": 13
     },
     {
       "name": "Reveal",
