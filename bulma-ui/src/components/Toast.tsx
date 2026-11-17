@@ -703,7 +703,8 @@ export const ToastContainer: React.FC<{
    * (`altKey`, `ctrlKey`, `metaKey`, `shiftKey`) and one key, by its code
    * (`F8`, `KeyT`, `Digit1`), held together with no other modifier. A letter
    * or digit with no Ctrl, Meta or Alt doesn't count while someone is typing
-   * in a field. `[]` turns the hotkey off. Default: `['F8']`.
+   * in a field. `[]` turns the hotkey off.
+   * @defaultValue ['F8']
    */
   hotkey?: readonly string[] | undefined;
   /**
