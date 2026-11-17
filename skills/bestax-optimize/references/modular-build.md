@@ -149,7 +149,9 @@ Notes:
   ```
 
 - The `navbar` partial **extends** stock Bulma navbar (it keeps the burger's bars in
-  ButtonText in forced colors, where Chromium paints them in the page's Canvas color, keeps a
+  ButtonText in forced colors, where Chromium paints them in the page's Canvas color, marks the
+  active item there with a bar in the system's highlight color, where Bulma's colors for it are
+  replaced, keeps a
   `fixed` navbar in place while an overlay locks the page's scrolling, gives an active item's
   text the invert of the link color it sits on, where Bulma's leaves it in the navbar's text
   color, draws a navbar in a colored `Hero` in the hero's colors, where Bulma's draws its active item and burger in the link
@@ -263,7 +265,9 @@ Notes:
   skeleton pulse (`Skeleton`, the `skeleton` prop, `hasSkeleton`) under
   `prefers-reduced-motion: reduce`, the same way and in either order. The `progress` partial
   also keeps the bar drawn in forced colors, its fill and an edge in the text color, where
-  Bulma's module leaves the whole bar the page's color.
+  Bulma's module leaves the whole bar the page's color. The `skeleton` partial keeps each shape
+  drawn there too, in `GrayText`, with the text Bulma hides still hidden, where Bulma's module
+  leaves the shape the page's color and shows that text.
 - `Notification` is stock Bulma too (`bulma/sass/elements/notification`). The `notification`
   extras partial pads the end of one with a close button (`hasDelete`, or a `Delete` passed in)
   so its text clears the button, and gives a dark or light one its color's own text and
@@ -274,9 +278,11 @@ Notes:
 - `Tag` is stock Bulma too (`bulma/sass/elements/tag`). The `tag` extras partial gives a light tag,
   and a white, black or dark one with `isLight`, text that reads on its light background, where
   Bulma's module lets its text inherit the color around it, which on the dark scheme leaves it hard
-  to read, and sets a normal-size tag in a table cell at the bottom of its line, where Bulma's
-  baseline makes the row taller than a row of text. Include it (`as bestax-tag`) next to the Bulma
-  module in any build that shows one of those tags or a tag in a table. It doesn't depend on the
+  to read, sets a normal-size tag in a table cell at the bottom of its line, where Bulma's
+  baseline makes the row taller than a row of text, and gives a button tag (`as="button"`,
+  `isDelete`) the weight, spacing and other text a span tag takes from the text around it, where
+  the browser gives a button its own. Include it (`as bestax-tag`) next to the Bulma module in any
+  build that shows one of those tags, a tag in a table or a button tag. It doesn't depend on the
   order of the two `@use` lines either.
 - `Delete` is stock Bulma too, and it's the close button of `Notification`, `Message`, `Toast`, a
   `Modal` card, `AppFrame`'s drawer and the tags of `Taginput`, `Combobox`, `Dropzone` and
@@ -316,15 +322,17 @@ Notes:
   ```
 
   The `table` extras partial draws the keyboard focus ring of a responsive table's container
-  (`isResponsive`), which is a tab stop while the table overflows it, in Bulma's focus color.
-  Include it next to the Bulma module in any build with a responsive table:
+  (`isResponsive`), which is a tab stop while the table overflows it, in Bulma's focus color, and
+  marks a selected row or cell (`Tr isSelected`, and a `DataTable`'s selected rows) with a double
+  line in forced colors, where Bulma's fill for it is replaced. Include it next to the Bulma module
+  in any build with a responsive table or selected rows:
 
   ```scss
   @use '@allxsmith/bestax-bulma/scss/elements/table' as bestax-table;
   ```
 
-  Bulma's module styles no focus on the container, so the order of the two `@use` lines does
-  not matter.
+  Bulma's module sets no outline on the container or on a selected row or cell, so the order of
+  the two `@use` lines does not matter.
 
 - Stock-Bulma form controls still need their Bulma module (`bulma/sass/form/…`); the extras
   form partials above style only the bestax-specific behavior.

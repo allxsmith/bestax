@@ -265,6 +265,219 @@ describe('the burger bars on a forced-colors page', () => {
   });
 });
 
+// Bulma marks an active or selected link item, `.navbar-link` and dropdown
+// row with a fill and a text color alone, which forced colors replaces, so
+// `_navbar.scss` draws a bar in Highlight inside the item there (#1979): along
+// the bottom of an item in a row, and down the start edge where the items
+// stack, a dropdown's rows and, under the burger, the menu it opens. The bar
+// is a `::before`, which `matches` above never matches, so its rules are read
+// off the sheet: those at the top level and in the forced-colors block, and
+// on a narrow page the touch one's too, whose element part matches the item.
+// A matching `::before` rule in any other block fails the test rather than
+// dropping out.
+describe('an active item on a forced-colors page', () => {
+  const NARROW =
+    '@media screen and (max-width: 1023px) and (forced-colors: active)';
+
+  /**
+   * The declarations of every `::before` rule whose element part matches
+   * `el`, in source order, on a wide or a narrow forced-colors page, leaving
+   * out Bulma's `*::before` box sizing, which reaches every element and draws
+   * nothing.
+   */
+  const beforeOf = (css: string, el: Element, narrow = false) =>
+    rulesOf(css)
+      .filter(rule =>
+        rule.selector
+          .split(/,(?![^(]*\))/)
+          .map(part => part.trim())
+          .some(
+            part =>
+              part.endsWith('::before') &&
+              part !== '*::before' &&
+              matches(el, part.slice(0, -'::before'.length))
+          )
+      )
+      .filter(rule => {
+        if (rule.context.length === 0) return true;
+        const [block] = rule.context;
+        if (rule.context.length === 1 && block === FORCED) return true;
+        if (rule.context.length === 1 && block === NARROW) return narrow;
+        throw new Error(
+          `${rule.context.join(' ')} draws a ::before on ${rule.selector}, ` +
+            'in a block this test does not walk. Extend `beforeOf` before ' +
+            'trusting a result.'
+        );
+      })
+      .map(rule => rule.declarations);
+
+  const BOTTOM = {
+    content: '""',
+    position: 'absolute',
+    'inset-inline': '0.75rem',
+    bottom: '0',
+    height: '0.25em',
+    'background-color': 'Highlight',
+  };
+  const EDGE = {
+    'inset-block': '0',
+    'inset-inline': '0 auto',
+    width: '0.25em',
+    height: 'auto',
+  };
+
+  /** A navbar with a brand, items, links, tabs and an open dropdown. */
+  function navbarOf(prefix: string) {
+    const { getByRole, getByTestId } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <Navbar aria-label="Site">
+          <Navbar.Brand>
+            <Navbar.Item href="/" active>
+              Brand
+            </Navbar.Item>
+          </Navbar.Brand>
+          <Navbar.Menu>
+            <Navbar.Start>
+              <Navbar.Item href="#home" active>
+                Home
+              </Navbar.Item>
+              <Navbar.Item href="#docs">Docs</Navbar.Item>
+              <Navbar.Item href="#tab" active className={`${prefix}is-tab`}>
+                Tab
+              </Navbar.Item>
+              <Navbar.Item
+                href="#selected-tab"
+                className={`${prefix}is-tab ${prefix}is-selected`}
+              >
+                Selected tab
+              </Navbar.Item>
+              <Navbar.Link href="#link" className={`${prefix}is-active`}>
+                Link
+              </Navbar.Link>
+              <Navbar.Link href="#selected" className={`${prefix}is-selected`}>
+                Selected
+              </Navbar.Link>
+              <Navbar.Dropdown active data-testid="dropdown">
+                <Navbar.Link>More</Navbar.Link>
+                <Navbar.DropdownMenu>
+                  <Navbar.Item href="#about" active>
+                    About
+                  </Navbar.Item>
+                  <Navbar.Item href="#jobs">Jobs</Navbar.Item>
+                </Navbar.DropdownMenu>
+              </Navbar.Dropdown>
+            </Navbar.Start>
+          </Navbar.Menu>
+        </Navbar>
+      </ConfigProvider>
+    );
+    const link = (name: string) => getByRole('link', { name });
+    return {
+      brand: link('Brand'),
+      home: link('Home'),
+      docs: link('Docs'),
+      tab: link('Tab'),
+      selectedTab: link('Selected tab'),
+      activeLink: link('Link'),
+      selectedLink: link('Selected'),
+      trigger: getByRole('button', { name: 'More' }),
+      dropdown: getByTestId('dropdown'),
+      about: link('About'),
+      jobs: link('Jobs'),
+    };
+  }
+
+  describe.each([
+    ['the partial after Bulma', '', () => bulmaCss() + compile()],
+    ['the partial before Bulma', '', () => compile() + bulmaCss()],
+    [
+      'a prefixed build, the partial after Bulma',
+      'bulma-',
+      () => bulmaCss('versions/bulma-prefixed.css') + compile('bulma-'),
+    ],
+    [
+      'a prefixed build, the partial before Bulma',
+      'bulma-',
+      () => compile('bulma-') + bulmaCss('versions/bulma-prefixed.css'),
+    ],
+  ])('with %s', (_order, prefix, css) => {
+    it('draws the bar along the bottom of a current item in the bar, tabs included', () => {
+      const sheet = css();
+      const items = navbarOf(prefix);
+      for (const item of [
+        items.home,
+        items.tab,
+        items.selectedTab,
+        items.activeLink,
+        items.selectedLink,
+      ]) {
+        expect(beforeOf(sheet, item)).toEqual([BOTTOM]);
+        // Under the burger, the menu it opens stacks them.
+        expect(beforeOf(sheet, item, true)).toEqual([BOTTOM, EDGE]);
+      }
+    });
+
+    it('keeps the bar along the bottom of a brand item, whose row doesn’t stack', () => {
+      const sheet = css();
+      const { brand } = navbarOf(prefix);
+      expect(beforeOf(sheet, brand)).toEqual([BOTTOM]);
+      expect(beforeOf(sheet, brand, true)).toEqual([BOTTOM]);
+    });
+
+    it('draws it down the start edge of a dropdown’s active row, at any width', () => {
+      const sheet = css();
+      const { about } = navbarOf(prefix);
+      expect(beforeOf(sheet, about)).toEqual([BOTTOM, EDGE]);
+      expect(beforeOf(sheet, about, true)).toEqual([BOTTOM, EDGE, EDGE]);
+    });
+
+    it('draws none on an item that isn’t current, or on an open dropdown', () => {
+      const sheet = css();
+      const { docs, trigger, dropdown, jobs } = navbarOf(prefix);
+      expect(dropdown).toHaveClass(`${prefix}is-active`);
+      for (const el of [docs, trigger, dropdown, jobs]) {
+        expect(beforeOf(sheet, el, true)).toEqual([]);
+      }
+    });
+
+    // The bar is placed in the item, which Bulma's own rule positions.
+    it('places the bar in an item Bulma positions', () => {
+      const bulma = rulesOf(
+        bulmaCss(prefix ? 'versions/bulma-prefixed.css' : undefined)
+      ).filter(rule => rule.context.length === 0);
+      const { home, activeLink } = navbarOf(prefix);
+      for (const item of [home, activeLink]) {
+        expect(
+          bulma
+            .filter(rule =>
+              rule.selector
+                .split(/,(?![^(]*\))/)
+                .some(part => matches(item, part.trim()))
+            )
+            .map(rule => rule.declarations.position)
+        ).toContain('relative');
+      }
+    });
+
+    // A fill would need `forced-color-adjust: none`, which an icon and the
+    // focus ring inside would inherit.
+    it('leaves every color of the item and what’s in it to the browser', () => {
+      const sheet = css();
+      const { home, about } = navbarOf(prefix);
+      for (const item of [home, about]) {
+        expect(resolve(sheet, item, 'forced-color-adjust')).toBeUndefined();
+      }
+    });
+  });
+
+  it('draws nothing on the active item with Bulma alone, which is the bug', () => {
+    const { home, about } = navbarOf('');
+    for (const item of [home, about]) {
+      expect(beforeOf(bulmaCss(), item, true)).toEqual([]);
+    }
+  });
+});
+
 // What Bulma works out on `.navbar` for its items' text, and what the
 // partial works out again on an active one.
 const ITEM_COLOR =
@@ -301,13 +514,21 @@ describe('the Navbar partial', () => {
     ['no prefix', ''],
     ['a class prefix', 'bestax-'],
   ])(
-    'keeps the burger in forced colors, a fixed navbar’s lock margins and an active item’s text at no weight, and a prefixed dropdown’s active row over Bulma’s row rules, with %s, naming only prefixed classes',
+    'keeps the burger and an active item’s bar in forced colors, a fixed navbar’s lock margins and an active item’s text at no weight, and a prefixed dropdown’s active row over Bulma’s row rules, with %s, naming only prefixed classes',
     (_label, prefix) => {
       const rules = rulesOf(compile(prefix));
+      // An active or selected link item or link.
+      const current = `:is(a.${prefix}navbar-item, .${prefix}navbar-link):is(.${prefix}is-active, .${prefix}is-selected)`;
       expect(
-        rules.slice(0, 2).map(rule => [rule.selector, rule.context])
+        rules.slice(0, 5).map(rule => [rule.selector, rule.context])
       ).toEqual([
         [`.${prefix}navbar-burger.${prefix}navbar-burger span`, [FORCED]],
+        [`${current}::before`, [FORCED]],
+        [`.${prefix}navbar-dropdown ${current}::before`, [FORCED]],
+        [
+          `.${prefix}navbar-menu ${current}::before`,
+          ['@media screen and (max-width: 1023px) and (forced-colors: active)'],
+        ],
         [
           `:where(.${prefix}navbar.${prefix}is-fixed-top, .${prefix}navbar.${prefix}is-fixed-bottom)`,
           [],
@@ -317,7 +538,7 @@ describe('the Navbar partial', () => {
       // rows under the burger and a bold hero's menu on a phone.
       // A prefixed build ends with one more rule, for a dropdown's active row.
       const extra = prefix ? 1 : 0;
-      const hero = rules.slice(2, -1 - extra);
+      const hero = rules.slice(5, -1 - extra);
       expect(hero.map(rule => rule.context)).toEqual([
         [],
         ['@media screen and (max-width: 1023px)'],
@@ -336,7 +557,7 @@ describe('the Navbar partial', () => {
         'forced-color-adjust': 'none',
         'background-color': 'ButtonText',
       });
-      expect(rules[1].declarations).toEqual(LOCK_MARGINS);
+      expect(rules[4].declarations).toEqual(LOCK_MARGINS);
       // Then an active item's text color, at no weight either.
       const last = rules[rules.length - 1 - extra];
       expect([last.selector, last.context]).toEqual([
