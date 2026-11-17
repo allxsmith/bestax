@@ -61,7 +61,7 @@ Stock Bulma examples:
 @use 'bulma/sass/elements/box'; // Box
 @use 'bulma/sass/elements/notification'; // Notification
 @use 'bulma/sass/elements/title'; // Title, SubTitle
-@use 'bulma/sass/form/input-textarea'; // Input, TextArea
+@use 'bulma/sass/form/input-textarea'; // Input, TextArea, plus bestax's form/input-textarea (see below)
 @use 'bulma/sass/form/select'; // Select, plus bestax's form/select (see below)
 @use 'bulma/sass/form/tools'; // Field, Control
 @use 'bulma/sass/components/card'; // Card
@@ -90,7 +90,7 @@ guide's Option C shows a short example and links here for the full list:
 `checkbox`, `checkboxcard`, `radio`, `radiocard`, `switch`, `slider`, `numberinput`, `pininput`,
 `rate`, `autocomplete`, `combobox`, `taginput`, `picker-popover`, `dateinput`, `timeinput`,
 `datetimeinput`, `daterangeinput`, `file`, `fieldset`, `field`, `dropzone`, `colorpicker`,
-`colorinput`, `passwordinput`, `treeselect`, `cascader`, `select`
+`colorinput`, `passwordinput`, `treeselect`, `cascader`, `select`, `input-textarea`
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `box`, `button`, `colorswatch`,
 `delete`, `descriptionlist`, `divider`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`,
@@ -216,6 +216,19 @@ Notes:
   @use '@allxsmith/bestax-bulma/scss/form/select' as bestax-select;
   ```
 
+- The `input-textarea` partial **extends** stock Bulma input and textarea (an outline on a focused
+  read-only field in forced colors, where a read-only field shows no caret and only the border's
+  color would change), so an app using `Input` or `TextArea` needs both, in either order.
+  `TreeSelect`'s and `Cascader`'s field is a read-only input, and so is a read-only `ColorInput`'s
+  or `PasswordInput`'s, and a `DateInput`'s, `TimeInput`'s, `DateTimeInput`'s or `Numberinput`'s
+  that can't be typed in, so those want it too:
+
+  ```scss
+  @use 'bulma/sass/form/input-textarea';
+  @use '@allxsmith/bestax-bulma/scss/form/input-textarea' as
+    bestax-input-textarea;
+  ```
+
 - The `field` partial **extends** stock Bulma's field (`bulma/sass/form/tools`): it puts the
   `message` of a horizontal form component (`Input horizontal`, `Checkboxes horizontal`,
   `Rate horizontal` and the rest) under its control, where Bulma's row would set it beside, and
@@ -250,13 +263,14 @@ Notes:
   for the label and help text around it.
 - `TreeSelect` opens a `TreeView` in the pickers' popover, so it needs `components/treeview`,
   `form/checkbox` for its boxes and `picker-popover` next to `treeselect`, with
-  `bulma/sass/form/input-textarea`, `bulma/sass/elements/tag`, `bulma/sass/elements/delete` and
-  `elements/delete` for the field, the tags and the clear button.
+  `bulma/sass/form/input-textarea` and `form/input-textarea`, `bulma/sass/elements/tag`,
+  `bulma/sass/elements/delete` and `elements/delete` for the field, the tags and the clear button.
 - `Cascader` opens its columns in the pickers' popover, with a `Combobox` list for its search, and
   its items are Bulma's dropdown items. Its partial brings `form/combobox` with it, for the search
   and the values its items start from, so it needs `picker-popover` and
-  `bulma/sass/components/dropdown` next to `cascader`, with `bulma/sass/form/input-textarea`,
-  `bulma/sass/elements/delete` and `elements/delete` for the field and the clear button, and
+  `bulma/sass/components/dropdown` next to `cascader`, with `bulma/sass/form/input-textarea` and
+  `form/input-textarea`, `bulma/sass/elements/delete` and `elements/delete` for the field and the
+  clear button, and
   `bulma/sass/elements/loader`, `elements/loader` and `bulma/sass/elements/button` for a column
   that's loading or failed to load.
 - `PinInput`'s boxes are Bulma inputs, so an app using it needs `bulma/sass/form/input-textarea`
