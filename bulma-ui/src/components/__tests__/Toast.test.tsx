@@ -2831,3 +2831,147 @@ describe('Focus when a toast closes', () => {
     expect(document.activeElement).toBe(document.body);
   });
 });
+
+// A toast shown through `toast.show()` calls the `onClose` it was given
+// (#1913).
+describe("A programmatic toast's onClose", () => {
+  afterEach(() => {
+    vi.clearAllTimers();
+    act(() => {
+      toast.closeAll();
+    });
+  });
+
+  it('is called once when the toast closes on its timer', () => {
+    const onClose = vi.fn();
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({ message: 'Deleted', duration: 1000, onClose });
+    });
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('Deleted')).not.toBeInTheDocument();
+  });
+
+  it('is called once when the toast closes from its close button', () => {
+    const onClose = vi.fn();
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({
+        message: 'Deleted',
+        closable: true,
+        indefinite: true,
+        onClose,
+      });
+    });
+    act(() => {
+      fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    });
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('Deleted')).not.toBeInTheDocument();
+  });
+
+  it('is called before the toast leaves the store', () => {
+    const calls: string[] = [];
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({
+        message: 'Deleted',
+        actionText: 'Undo',
+        indefinite: true,
+        onClose: () => calls.push('onClose'),
+      });
+    });
+    const unsubscribe = toast.subscribe(() => calls.push('store'));
+    try {
+      act(() => {
+        fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
+      });
+    } finally {
+      unsubscribe();
+    }
+    expect(calls).toEqual(['onClose', 'store']);
+  });
+
+  it('is not called when the app closes the toast', () => {
+    const onClose = vi.fn();
+    render(<ToastContainer />);
+    let id = '';
+    act(() => {
+      id = toast.show({ message: 'Deleted', indefinite: true, onClose });
+    });
+    act(() => {
+      toast.close(id);
+    });
+    act(() => {
+      toast.show({ message: 'Saved', indefinite: true, onClose });
+    });
+    act(() => {
+      toast.closeAll();
+    });
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('leaves the store even when it throws from a close button', () => {
+    const swallow = (event: ErrorEvent) => event.preventDefault();
+    window.addEventListener('error', swallow);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      render(<ToastContainer />);
+      act(() => {
+        toast.show({
+          message: 'First',
+          closable: true,
+          indefinite: true,
+          queue: true,
+          onClose: () => {
+            throw new Error('onClose failed');
+          },
+        });
+        toast.show({ message: 'Second', indefinite: true, queue: true });
+      });
+      try {
+        act(() => {
+          fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+        });
+      } catch {
+        // Whether the error reaches the test depends on the React version.
+      }
+      expect(screen.queryByText('First')).not.toBeInTheDocument();
+      expect(screen.getByText('Second')).toBeInTheDocument();
+    } finally {
+      errorSpy.mockRestore();
+      window.removeEventListener('error', swallow);
+    }
+  });
+
+  it('leaves the store even when it throws, so the queue moves on', () => {
+    const swallow = (event: ErrorEvent) => event.preventDefault();
+    window.addEventListener('error', swallow);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      render(<ToastContainer />);
+      act(() => {
+        toast.show({
+          message: 'First',
+          indefinite: true,
+          queue: true,
+          onClose: () => {
+            throw new Error('onClose failed');
+          },
+        });
+        toast.show({ message: 'Second', indefinite: true, queue: true });
+      });
+      act(() => {
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      });
+      expect(screen.queryByText('First')).not.toBeInTheDocument();
+      expect(screen.getByText('Second')).toBeInTheDocument();
+    } finally {
+      errorSpy.mockRestore();
+      window.removeEventListener('error', swallow);
+    }
+  });
+});

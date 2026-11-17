@@ -73,6 +73,9 @@ Stock Bulma examples:
 @use 'bulma/sass/layout/section'; // Section
 ```
 
+A stock component that bestax adjusts, such as `Box`, `Button` or `Card`, also wants its bestax
+partial beside Bulma's module; see the notes below.
+
 ## Authoritative bestax extras inventory
 
 Every extras partial that exists, from the library's `src/scss/**/_index.scss`. The Modular
@@ -82,7 +85,7 @@ guide's Option C shows a short example and links here for the full list:
 `loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `dropdown`, `steps`, `sidebar`,
 `toast`, `dialog`, `modal`, `carousel`, `lightbox`, `tabs`, `menu`, `tableofcontents`, `reveal`, `avatar`, `avatars`,
 `badge`, `emptystate`, `timeline`, `treeview`, `scrollarea`, `command`, `datatable`,
-`pagination`, `affix`, `floatbutton`, `navbar`, `panel`, `tour`
+`pagination`, `affix`, `floatbutton`, `navbar`, `panel`, `card`, `tour`
 
 **Layout** (`@allxsmith/bestax-bulma/scss/layout/<name>`): `appframe`, `splitter`, `stack`
 
@@ -171,7 +174,9 @@ Notes:
 
 - The `navbar` partial **extends** stock Bulma navbar (it keeps the burger's bars in
   ButtonText and `Navbar.Divider` in CanvasText in forced colors, where Chromium paints the
-  bars in the page's Canvas color and Bulma's fill takes the menu's, marks the active item there
+  bars in the page's Canvas color and Bulma's fill takes the menu's, draws an open dropdown's
+  edge there from the desktop breakpoint up as a CanvasText outline, where Bulma's shadow is
+  dropped, marks the active item there
   with a bar in the system's highlight color, where Bulma's colors for it are replaced, keeps a
   `fixed` navbar in place while an overlay locks the page's scrolling, gives an active item's
   text the invert of the link color it sits on, where Bulma's leaves it in the navbar's text
@@ -352,6 +357,11 @@ Notes:
   outline in the system's text color, so include it (`as bestax-box`) next to Bulma's module in
   any build that shows a `Box`. Its rule wins over Bulma's either way, so the order of the `@use`
   lines does not matter.
+- `Card` is stock Bulma (`bulma/sass/components/card`), which draws a card's edge as a shadow
+  the same way, so it vanishes in forced colors too. The `card` extras partial draws it back as
+  an outline in the system's text color, so include it (`as bestax-card`) next to Bulma's module
+  in any build that shows a `Card`. Its rule wins over Bulma's either way, so the order of the
+  `@use` lines does not matter.
 - `Divider` renders an `<hr>`, which Bulma draws in its base (`bulma/sass/base`) as a background
   color with no border. Forced colors (Windows' contrast themes) replaces that color with the
   page's own, so the line vanishes there. The `divider` extras partial draws it as a border in the
@@ -453,7 +463,7 @@ The `npm create bestax` starter renders `Container`, `Section`, `Columns`/`Colum
 `Title`/`SubTitle`, `Box`, `Card`, `Buttons`/`Button`, and `Notification` with its close
 button: all stock Bulma, plus the `notification` and `delete` extras partials for that close
 button, the `button` partial for the buttons' focus outline and edge in forced colors, and the
-`box` partial for the boxes' edge in forced colors. Its helper
+`box` and `card` partials for the boxes' and cards' edges in forced colors. Its helper
 props are `display` (visibility), `flexGrow` (flexbox), and `textAlign` (typography);
 it uses no spacing or color props. That inventory compiles to the following, verified
 pixel-equivalent to the prebuilt `complete` flavor in headless Chromium (light and dark, phone
@@ -485,6 +495,7 @@ Scaffolded with an icon library, the starter also needs `bulma/sass/elements/ico
 @use 'bulma/sass/helpers/flexbox'; // flexGrow
 @use 'bulma/sass/helpers/typography'; // textAlign
 
+@use '@allxsmith/bestax-bulma/scss/components/card' as bestax-card; // the edge in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/box' as bestax-box; // the edge in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/button' as bestax-button; // focus outline and edge in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/delete' as bestax-delete; // the close button in forced colors

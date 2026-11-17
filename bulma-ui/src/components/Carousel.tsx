@@ -107,6 +107,39 @@ const focusSlot = (track: HTMLElement, slot: number) => {
 };
 
 /**
+ * The words a Carousel writes for its arrows, indicators and items. Each is
+ * English unless you give your own, and a word that's empty, or a function
+ * that returns one, keeps the English. The role descriptions, "carousel" on
+ * the region and "slide" on each item, take `aria-roledescription` on the
+ * Carousel and on each CarouselItem.
+ */
+export interface CarouselLabels {
+  /**
+   * The previous arrow's name.
+   * @defaultValue 'Previous slide'
+   */
+  previous?: string;
+  /**
+   * The next arrow's name.
+   * @defaultValue 'Next slide'
+   */
+  next?: string;
+  /**
+   * An indicator's name. It gets the place of the first item the indicator
+   * brings into view, counting from 1.
+   * @defaultValue (slide) => 'Go to slide ' + slide
+   */
+  indicator?: (slide: number) => string;
+  /**
+   * The name of an item that has no `aria-label` or `aria-labelledby` of
+   * its own. It gets the item's place, counting from 1, and the number of
+   * items.
+   * @defaultValue (current, total) => current + ' of ' + total
+   */
+  item?: (current: number, total: number) => string;
+}
+
+/**
  * Props for the Carousel component.
  * @extraProp {string} [className] - Additional CSS classes.
  * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the carousel element.
@@ -298,6 +331,11 @@ export interface CarouselProps
    */
   ariaLabel?: string;
   /**
+   * The words it writes for its arrows, indicators and items, for another
+   * language.
+   */
+  labels?: CarouselLabels;
+  /**
    * Called with the index of the first item in view when an arrow, an arrow
    * key, an indicator, a swipe or autoplay moves the carousel.
    */
@@ -378,6 +416,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       arrowBackground = true,
       arrowColor,
       ariaLabel = 'Image carousel',
+      labels,
       onChange,
       className,
       style,
@@ -414,6 +453,15 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     const [skipTransition, setSkipTransition] = useState(false);
     // Under reduced motion each step changes the view at once, with no slide
     const reducedMotion = usePrefersReducedMotion();
+    // The words it writes, English unless the caller gives their own
+    const words = {
+      previous: labels?.previous || 'Previous slide',
+      next: labels?.next || 'Next slide',
+      indicator: (slide: number) =>
+        labels?.indicator?.(slide) || `Go to slide ${slide}`,
+      item: (current: number, total: number) =>
+        labels?.item?.(current, total) || `${current} of ${total}`,
+    };
 
     // Get valid children
     const items = Children.toArray(children).filter(
@@ -819,7 +867,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
           'aria-roledescription': own['aria-roledescription'] ?? 'slide',
           ...(own['aria-label'] || own['aria-labelledby']
             ? {}
-            : { 'aria-label': `${index + 1} of ${itemCount}` }),
+            : { 'aria-label': words.item(index + 1, itemCount) }),
           // Out of view: hidden from assistive tech, and inert, so nothing
           // in it takes focus or a click
           ...(isShown ? {} : { 'aria-hidden': true, ...inertProps(true) }),
@@ -970,7 +1018,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
                 className={carouselArrowPrevClass}
                 onClick={goToPrev}
                 isDisabled={!canGoPrev}
-                aria-label="Previous slide"
+                aria-label={words.previous}
               >
                 {iconPrev ? (
                   <Icon
@@ -990,7 +1038,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
                 className={carouselArrowNextClass}
                 onClick={goToNext}
                 isDisabled={!canGoNext}
-                aria-label="Next slide"
+                aria-label={words.next}
               >
                 {iconNext ? (
                   <Icon
@@ -1024,7 +1072,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
                 onClick={() => setActiveIndex(position)}
                 role="tab"
                 aria-selected={index === activePosition}
-                aria-label={`Go to slide ${position + 1}`}
+                aria-label={words.indicator(position + 1)}
               />
             ))}
           </div>
