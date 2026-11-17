@@ -116,7 +116,7 @@ export const Signup: Story = {
             <option value="">Select…</option>
             <option value="us">United States</option>
             <option value="ca">Canada</option>
-            <option value="uk">United Kingdom</option>
+            <option value="gb">United Kingdom</option>
           </Select>
           <Button color="primary" type="submit">
             Create account
