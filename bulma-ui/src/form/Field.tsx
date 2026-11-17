@@ -254,8 +254,9 @@ const FieldComponent: React.FC<FieldProps> = ({
     label && !userWiredLabel && !grouped && !hasAddons
       ? generatedId
       : undefined;
-  // A group control (Radios, Checkboxes, Rate, DateRangeInput and its base)
-  // cannot take that `for`, so it points `aria-labelledby` at the label
+  // A group control (Radios, Checkboxes, Rate, DateRangeInput and its base,
+  // and an inline date or time picker) cannot take that `for`, so it points
+  // `aria-labelledby` at the label
   // itself (#939).
   // The label gets an id whenever the association is on, unless the caller
   // gave it one.

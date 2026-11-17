@@ -193,19 +193,6 @@ export const MobileLevel: StoryObj<typeof Level> = {
           <Title as="p">123K</Title>
         </div>
       </Level.Item>
-      <Level.Item hasTextCentered>
-        <div>
-          <Paragraph
-            textSize="7"
-            textTransform="uppercase"
-            textWeight="semibold"
-            mb="1"
-          >
-            Likes
-          </Paragraph>
-          <Title as="p">9,876</Title>
-        </div>
-      </Level.Item>
     </Level>
   ),
 };

@@ -56,13 +56,24 @@ export interface CardProps
     | 'current';
   /** Whether the card has a shadow (default: `true`). */
   hasShadow?: boolean;
-  /** Card header content, rendered inside `.card-header-title`. */
+  /**
+   * Card header content, rendered inside `.card-header-title`. The header is
+   * a `<header>`, which is a banner landmark outside `<main>`, the sectioning
+   * elements and their roles.
+   */
   header?: React.ReactNode;
   /** If true, centers the header title. */
   headerCentered?: boolean;
-  /** Card header icon, rendered as a sibling to the header title. */
+  /**
+   * Card header icon, rendered as a sibling to the header title. Even with no
+   * `header`, it renders the card's `<header>`, a landmark where `header`'s is.
+   */
   headerIcon?: React.ReactNode;
-  /** Card footer content; each item is wrapped in `.card-footer-item`. */
+  /**
+   * Card footer content; each item is wrapped in `.card-footer-item`. The
+   * footer is a `<footer>`, which is a content info landmark outside
+   * `<main>`, the sectioning elements and their roles.
+   */
   footer?: React.ReactNode | React.ReactNode[];
   /**
    * Card image node or image src string. An image URL renders an `<img>`
@@ -229,6 +240,7 @@ const CardComponent: React.FC<CardProps> = ({
 
 /**
  * Props for the Card.Header compound component.
+ * @extraProp {React.AriaRole} [role] - Its `<header>` is a banner landmark outside `<main>`, the sectioning elements and their roles. `role="none"` drops the landmark.
  */
 export interface CardHeaderProps
   extends
@@ -288,6 +300,7 @@ export interface CardContentProps
 
 /**
  * Props for the Card.Footer compound component.
+ * @extraProp {React.AriaRole} [role] - Its `<footer>` is a content info landmark outside `<main>`, the sectioning elements and their roles. `role="none"` drops the landmark.
  */
 export interface CardFooterProps
   extends
@@ -410,6 +423,10 @@ export interface CardHeaderIconProps
  * @function
  * @param {CardHeaderProps} props - Props for the CardHeader component.
  * @returns {JSX.Element} The rendered card header.
+ *
+ * @remarks
+ * It renders a `<header>`, which is a banner landmark outside `<main>`, the
+ * sectioning elements and their roles. `role="none"` drops the landmark.
  */
 const CardHeaderComponent: React.FC<CardHeaderProps> = ({
   className,
@@ -611,6 +628,10 @@ export const CardContent: React.FC<CardContentProps> = ({
  * @function
  * @param {CardFooterProps} props - Props for the CardFooter component.
  * @returns {JSX.Element} The rendered card footer.
+ *
+ * @remarks
+ * It renders a `<footer>`, which is a content info landmark outside `<main>`,
+ * the sectioning elements and their roles. `role="none"` drops the landmark.
  */
 export const CardFooter: React.FC<CardFooterProps> = ({
   className,

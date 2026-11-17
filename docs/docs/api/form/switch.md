@@ -321,7 +321,7 @@ function example() {
 - For icon-only switches, provide an `aria-label` prop
 - Space toggles a focused switch, as it does a checkbox.
 - A screen reader announces a Switch as a checkbox, since that's the input it's built on. Pass `role="switch"` to have it announced as a switch, as in [Announced as a Switch](#announced-as-a-switch). The input keeps its checked state, so `checked`, `onChange` and the form value work the same either way.
-- In forced colors (Windows contrast themes), the track and the knob take system colors, so the knob shows which side it's on in every style. Off, the knob and the edge are in the system's button text color. On, the default style's track fills with the highlight color and the knob takes the color made to read on it, while a thin or outlined switch, whose track doesn't fill, draws its knob and edge in the highlight color. Disabled, the edge is gray, and so is the knob when off.
+- In forced colors (Windows contrast themes), the track and the knob take system colors, so the knob shows which side it's on in every style. Off, the knob and the edge are in the system's button text color. On, the default style's track fills with the highlight color and the knob takes the color made to read on it, while a thin or outlined switch, whose track doesn't fill, draws its knob and edge in the highlight color. Disabled, it draws in gray at full strength rather than dimmed: the edge, the knob, the label, and the default style's track when on, with the knob in the page's color on it.
 
 ---
 

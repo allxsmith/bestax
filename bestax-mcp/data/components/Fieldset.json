@@ -23,7 +23,7 @@
     },
     {
       "title": "Disabled",
-      "code": "<Fieldset legend=\"Preferences\" disabled>\n  <Input label=\"Display name\" name=\"display-name\" defaultValue=\"Ada\" />\n  <Rate label=\"Rating\" name=\"rating\" defaultValue={3} />\n  <Slider label=\"Volume\" name=\"volume\" defaultValue={40} />\n  <Checkboxes label=\"Notifications\" name=\"notifications\">\n    <Checkbox value=\"email\">Email</Checkbox>\n    <Checkbox value=\"sms\">SMS</Checkbox>\n  </Checkboxes>\n</Fieldset>"
+      "code": "<Fieldset legend=\"Preferences\" disabled>\n  <Input\n    autoComplete=\"nickname\"\n    label=\"Display name\"\n    name=\"display-name\"\n    defaultValue=\"Ada\"\n  />\n  <Rate label=\"Rating\" name=\"rating\" defaultValue={3} />\n  <Slider label=\"Volume\" name=\"volume\" defaultValue={40} />\n  <Checkboxes label=\"Notifications\" name=\"notifications\">\n    <Checkbox value=\"email\">Email</Checkbox>\n    <Checkbox value=\"sms\">SMS</Checkbox>\n  </Checkboxes>\n</Fieldset>"
     },
     {
       "title": "Turned On From the Legend",

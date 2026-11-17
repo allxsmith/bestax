@@ -1,4 +1,5 @@
 import React, { forwardRef, useState, useCallback, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import type { JSX } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
@@ -122,7 +123,11 @@ export interface NumberinputProps
   isLoading?: boolean;
   /** Enables exponential step increments when holding buttons. */
   exponential?: boolean;
-  /** Callback when value changes. */
+  /**
+   * Called with the new value, clamped to `min` and `max`. While the field is
+   * empty, or holds text that isn't a number yet such as a lone `-`, it isn't
+   * called, and Enter or leaving the field puts the last value back.
+   */
   onChange?: ((value: number) => void) | undefined;
 }
 
@@ -228,6 +233,23 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
     const isControlled = controlledValue !== undefined;
     const currentValue = isControlled ? controlledValue : internalValue;
 
+    // The value the field was emptied over, while it's edited and holds no
+    // number: a number input reports empty, or a lone `-`, as ''. Without it
+    // React wrote the last value straight back, so the field couldn't be
+    // cleared to retype (#1976). A new value, from a number, a step or
+    // outside, ends it, and so do Enter and leaving the field.
+    const [emptied, setEmptied] = useState<{
+      over: number | undefined;
+    } | null>(null);
+    if (emptied && emptied.over !== currentValue) setEmptied(null);
+    // Puts the last value back before a caller's handler, or a form, reads
+    // the field.
+    const restore = () => {
+      if (!emptied) return;
+      // eslint-disable-next-line @eslint-react/dom-no-flush-sync -- the caller's onBlur or the form reads the field right after
+      flushSync(() => setEmptied(null));
+    };
+
     // Layout mode
     const isStepper = variant === 'stepper';
     const isAddons = compact || isStepper;
@@ -256,6 +278,7 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
     const updateValue = useCallback(
       (newValue: number) => {
         const clampedValue = clampValue(newValue);
+        setEmptied(null);
         if (!isControlled) {
           setInternalValue(clampedValue);
         }
@@ -284,11 +307,13 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
     const handleInputChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = parseFloat(e.target.value);
-        if (!isNaN(newValue)) {
+        if (isNaN(newValue)) {
+          setEmptied({ over: currentValue });
+        } else {
           updateValue(newValue);
         }
       },
-      [updateValue]
+      [currentValue, updateValue]
     );
 
     // Handle keyboard
@@ -385,21 +410,33 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
           ref={combinedRef}
           type="number"
           className={inputClasses}
-          value={currentValue ?? ''}
+          value={emptied ? '' : (currentValue ?? '')}
           min={min}
           max={max}
           step={step}
           disabled={disabled}
           readOnly={!editable}
           onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-          aria-valuenow={currentValue ?? undefined}
+          // While it's emptied, the field holds no number to report.
+          aria-valuenow={emptied ? undefined : currentValue}
           aria-valuemin={min}
           aria-valuemax={max}
           {...rest}
           // After the spread: an undefined `id` key in rest would wipe it.
           id={controlId}
           aria-describedby={describedBy}
+          // After the spread, so an emptied field gets its last value back
+          // on Enter or when it's left, before a form or a caller's own
+          // handler reads it. A caller's `onKeyDown` still takes the place
+          // of the arrow keys'.
+          onKeyDown={event => {
+            if (event.key === 'Enter') restore();
+            (props.onKeyDown ?? handleKeyDown)(event);
+          }}
+          onBlur={event => {
+            restore();
+            props.onBlur?.(event);
+          }}
         />
       </div>
     );

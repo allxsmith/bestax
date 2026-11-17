@@ -1,7 +1,7 @@
 // Dropdown Component Styles
 // Stock Bulma's dropdown, kept legible in forced colors (Windows' contrast
-// themes). `ContextMenu` draws its menu with the same markup, so this reaches
-// it too.
+// themes): its dividers and its active item. `ContextMenu` draws its menu
+// with the same markup, so this reaches it too.
 
 @use 'bulma/sass/utilities/initial-variables' as iv;
 
@@ -15,5 +15,29 @@
   .#{iv.$class-prefix}dropdown-divider.#{iv.$class-prefix}dropdown-divider {
     forced-color-adjust: none;
     background-color: CanvasText;
+  }
+
+  // Bulma marks an active item with a fill and a text color alone, which
+  // forced colors replaces with the same system colors every item gets. It's
+  // marked with a bar in Highlight along its start edge instead, as Menu's
+  // active item is, and every item keeps the bar's width in Canvas, so
+  // marking one moves no label. A border, so the item's text and anything in
+  // it keep the user's palette. It outranks the `border: none` Bulma's reset
+  // gives a `<button>` item. Only a `role="menu"` dropdown's menu items,
+  // wrapped in a group or not, the roles its keys move between: the
+  // comboboxes that borrow `.dropdown-item` for their options, even inside
+  // such a menu, are left to their own partials.
+  .#{iv.$class-prefix}dropdown-menu[role='menu']
+    .#{iv.$class-prefix}dropdown-item:is(
+      [role='menuitem'],
+      [role='menuitemcheckbox'],
+      [role='menuitemradio']
+    ) {
+    border-inline-start: 0.25em solid Canvas;
+
+    &.#{iv.$class-prefix}is-active,
+    &.#{iv.$class-prefix}is-selected {
+      border-inline-start-color: Highlight;
+    }
   }
 }

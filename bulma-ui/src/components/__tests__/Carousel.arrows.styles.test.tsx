@@ -119,3 +119,71 @@ describe.each([
     }
   );
 });
+
+describe.each([
+  ['no prefix', '', 'bulma.css'],
+  ['a class prefix', 'bulma-', 'versions/bulma-prefixed.css'],
+])(
+  'the Carousel partial under reduced motion, with %s',
+  (_name, p, bulmaFile) => {
+    const REDUCED = '@media (prefers-reduced-motion: reduce)';
+    /**
+     * `css` with the reduced-motion block's rules in its place when the
+     * preference `holds`, and without them when it doesn't, as a browser
+     * applies the block, since the shared cascade walks no `@media`.
+     */
+    const reduced = (css: string, holds: boolean) => {
+      const start = css.indexOf(REDUCED);
+      expect(start).toBeGreaterThanOrEqual(0);
+      const open = css.indexOf('{', start);
+      let depth = 1;
+      let end = open + 1;
+      for (; depth > 0 && end < css.length; end++) {
+        if (css[end] === '{') depth++;
+        else if (css[end] === '}') depth--;
+      }
+      expect(depth).toBe(0);
+      return (
+        css.slice(0, start) +
+        (holds ? css.slice(open + 1, end - 1) : '') +
+        css.slice(end)
+      );
+    };
+
+    const partial = compilePartial('components/carousel', p);
+    const bulma = bulmaCss(bulmaFile);
+
+    it.each([
+      ['Bulma first', (css: string) => bulma + css],
+      ['the partial first', (css: string) => css + bulma],
+    ])(
+      'takes the transition off the arrows, the indicators and a fading slide, with %s',
+      (_order, withBulma) => {
+        const { container } = render(
+          <ConfigProvider classPrefix={p}>
+            <Carousel className={`${p}is-fade`}>
+              <CarouselItem>One</CarouselItem>
+              <CarouselItem>Two</CarouselItem>
+            </Carousel>
+          </ConfigProvider>
+        );
+        for (const part of [
+          'carousel-arrow',
+          'indicator-item',
+          'carousel-item',
+        ]) {
+          const el = container.querySelector(`.${p}${part}`)!;
+          const transition = (holds: boolean) =>
+            valueOf(
+              el,
+              withBulma(reduced(partial, holds)),
+              'transition',
+              'transition-property'
+            );
+          expect(transition(false)).toMatch(/var\(--/);
+          expect(transition(true)).toBe('none');
+        }
+      }
+    );
+  }
+);

@@ -192,8 +192,8 @@ test('a sub-component imported from a module named something else keeps its tabl
 });
 
 test('props declared inline on the component are read as its props (#1174)', () => {
-  // `ToastContainer: React.FC<{ position?: ToastPosition }>`: the literal's
-  // text named no interface, so the table came back empty.
+  // `ToastContainer: React.FC<{ position?: ToastPosition; … }>`: the
+  // literal's text named no interface, so the table came back empty.
   const [toast] = extractComponent('ToastContainer', {
     markdown: false,
   }).tables;
@@ -201,7 +201,11 @@ test('props declared inline on the component are read as its props (#1174)', () 
   assert.equal(toast.interfaceName, null);
   assert.deepEqual(
     toast.rows.map(r => [r.name, r.default, r.inherited]),
-    [['position', "'top-right'", false]]
+    [
+      ['position', "'top-right'", false],
+      ['hotkey', "['F8']", false],
+      ['ariaLabel', "'Notifications'", false],
+    ]
   );
   assert.match(toast.rows[0].description, /shown without a `position`/);
   // It takes nothing else, not even its element's attributes.

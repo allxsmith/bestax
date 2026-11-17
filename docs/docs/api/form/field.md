@@ -478,6 +478,7 @@ Set `hasAddons` to join controls into one row with no gap between them, such as 
 <Field hasAddons>
   <Control isExpanded>
     <Input
+      autoComplete="email"
       type="email"
       placeholder="you@example.com"
       aria-label="Email address"
@@ -527,7 +528,12 @@ A `hasAddons` Field lays out everything it holds in its row, a `label` included,
 <Field label="Email" labelProps={{ htmlFor: 'addons-email' }}>
   <Field hasAddons>
     <Control isExpanded>
-      <Input id="addons-email" type="email" placeholder="you@example.com" />
+      <Input
+        autoComplete="email"
+        id="addons-email"
+        type="email"
+        placeholder="you@example.com"
+      />
     </Control>
     <Control>
       <Button color="primary">Notify me</Button>
@@ -553,7 +559,7 @@ Alongside the existing `Field.Label` and `Field.Body` statics, `Control` is now 
   </Field.Label>
   <Field.Body>
     <Field.Control>
-      <Input id="compound-name" placeholder="Jane Doe" />
+      <Input autoComplete="name" id="compound-name" placeholder="Jane Doe" />
     </Field.Control>
   </Field.Body>
 </Field>

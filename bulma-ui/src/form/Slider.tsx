@@ -72,7 +72,11 @@ interface SliderBaseProps
   min?: number | undefined;
   /** Maximum value. */
   max?: number | undefined;
-  /** Step increment (default: 1). */
+  /**
+   * Step increment (default: 1). The thumb sits on the steps counted from
+   * `min`, so when `max` falls between two, the highest value the slider
+   * holds is the last step below it, and End takes the thumb there.
+   */
   step?: number | undefined;
   /** Size variant. */
   size?: SliderSize | undefined;
@@ -199,6 +203,51 @@ export interface SliderRangeProps extends SliderBaseProps {
  * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the input element.
  */
 export type SliderProps = SliderSingleProps | SliderRangeProps;
+
+/**
+ * A number as its digits and the place of the last one, read from the way
+ * JavaScript writes it, which is the attribute a browser reads: 0.25 is 25
+ * at -2, and 3e-7 is 3 at -7.
+ */
+function toDecimal(value: number): [bigint, number] {
+  const [digits, exponent = '0'] = String(value).split('e');
+  const [whole, fraction = ''] = digits.split('.');
+  return [BigInt(whole + fraction), Number(exponent) - fraction.length];
+}
+
+/**
+ * The highest value a range input with these bounds holds, as browsers write
+ * it: the last step from `min` at or below `max`, where a browser puts the
+ * thumb when `max` falls between two steps, or `min` when `max` isn't above
+ * it. A step that
+ * isn't a positive number counts as 1, as the browser counts it. Bounds that
+ * aren't finite numbers leave `max` as it is.
+ */
+function highestStep(min: number, max: number, step: number): number {
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return max;
+  if (!(max > min)) return min;
+  const size = step > 0 && Number.isFinite(step) ? step : 1;
+  // Counted in whole numbers of the finest decimal place the three use, as
+  // the browser counts in decimals from the attributes, so 0.3 holds three
+  // steps of 0.1, and a max worked out in JavaScript, such as 0.01 * 31 * 3,
+  // which is 0.9299999999999999, holds 92 steps of 0.01, not 93.
+  const [low, lowPlace] = toDecimal(min);
+  const [high, highPlace] = toDecimal(max);
+  const [unit, unitPlace] = toDecimal(size);
+  const place = Math.min(lowPlace, highPlace, unitPlace);
+  const at = (digits: bigint, from: number) =>
+    digits * BigInt(10) ** BigInt(from - place);
+  const start = at(low, lowPlace);
+  const stride = at(unit, unitPlace);
+  const steps = (at(high, highPlace) - start) / stride;
+  const top = Number(`${start + steps * stride}e${place}`);
+  // Browsers keep a fraction to fifteen significant digits, so a step of 1/3
+  // ends at 10, not 9.999999999999998, and 0.9 is written 0.9. A whole
+  // number they keep as it is. Next to a max written with more digits, the
+  // fifteen can round a hair above it, as Chromium and WebKit hold it: with
+  // a max and step of 0.7 + 0.1, 0.7999999999999999, they hold 0.8.
+  return Number.isInteger(top) ? top : Number(top.toPrecision(15));
+}
 
 /**
  * Helper to compute tick positions.
@@ -525,11 +574,14 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           (onChange as ((v: number) => void) | undefined)?.(min);
         } else if (e.key === 'End') {
           e.preventDefault();
-          if (!isControlled) setInternalSingle(max);
-          (onChange as ((v: number) => void) | undefined)?.(max);
+          // The highest value the input holds, `max` itself unless `max` is
+          // off the step grid, as the browser's own End does (#2001).
+          const top = highestStep(min, max, step);
+          if (!isControlled) setInternalSingle(top);
+          (onChange as ((v: number) => void) | undefined)?.(top);
         }
       },
-      [isControlled, onChange, min, max]
+      [isControlled, onChange, min, max, step]
     );
 
     // Tick positions

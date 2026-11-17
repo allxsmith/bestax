@@ -1,0 +1,30 @@
+// Select styles
+// Bulma already styles the select; this gives a focused one an outline in
+// forced colors
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+
+// Bulma shows a focused select with a border in the focus color and a ring
+// drawn as a box-shadow, and turns the outline off. Forced colors drops the
+// shadow, which leaves only the border's color to show focus, and a select
+// has no text caret to show it the way a text field does. So in forced
+// colors a select that matches `:focus-visible`, or has `is-focused`, draws
+// Bulma's focus outline, as a Button does there. Forced colors paints it in a
+// system color. The root class is doubled
+// so the rule outranks Bulma's `outline: none` whichever stylesheet loads
+// first.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}select.#{iv.$class-prefix}select select:focus-visible,
+  .#{iv.$class-prefix}select.#{iv.$class-prefix}select
+    select.#{iv.$class-prefix}is-focused {
+    outline-color: hsl(
+      cv.getVar("focus-h"),
+      cv.getVar("focus-s"),
+      cv.getVar("focus-l")
+    );
+    outline-offset: cv.getVar("focus-offset");
+    outline-style: cv.getVar("focus-style");
+    outline-width: cv.getVar("focus-width");
+  }
+}

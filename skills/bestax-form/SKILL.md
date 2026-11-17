@@ -214,13 +214,14 @@ an `id` and your own `<label htmlFor>`) and describe it with the wrapper's `mess
 `role="group"`/`"radiogroup"` wrapper through `aria-labelledby` instead. `Checkboxes` and `Radios`
 also take `as="fieldset"`, which renders their own `Field` as a native `<fieldset>` with the `label`
 as its `<legend>` (the label column when `horizontal`), named by the legend with no ids. Inside a
-`Field` a convenience input drops its `label`, and an `inline` date/time picker has no visible
-input to wire.
+`Field` a convenience input drops its `label`. An `inline` date/time picker has no input to wire,
+so its `label` names its root, a `role="group"`, through `aria-labelledby`.
 
 Composed, a labeled `Field` names the one control it holds: a composed `InputBase`/`SelectBase`/
 `TextAreaBase`, a composed `DateInputBase`/`TimeInputBase`/`DateTimeInputBase` that is not
 `inline`, or any input above takes its generated id, and a group (a composed `DateRangeInputBase`
-too, `inline` or not) points `aria-labelledby` at the label's own id. **A control with an `id` of
+too, `inline` or not, and an `inline` `DateInputBase`/`TimeInputBase`/`DateTimeInputBase`)
+points `aria-labelledby` at the label's own id. **A control with an `id` of
 its own never takes that id**, so `<Field label="Email"><Input id="email" /></Field>` renders a
 label that names nothing: leave the `id` off, or pass the same value as
 `labelProps={{ htmlFor: 'email' }}`. Wire it that way too where the association is skipped, in a
@@ -322,8 +323,8 @@ Rules of thumb:
   `Numberinput`, `PinInput`, `File`, `ColorInput` and `Combobox.Input`. `DateInput`,
   `TimeInput`, `DateTimeInput`, `Autocomplete`, `Taginput`, `TreeSelect`, `Cascader` and a
   `Combobox` with `data` put their other attributes on a wrapper, and `aria-invalid` and
-  `aria-errormessage` on the input. On `DateRangeInput` and `ColorPicker.Input` it doesn't reach
-  the input yet; the `message` still carries the error.
+  `aria-errormessage` on the input, as `DateRangeInput` does on both its inputs and
+  `ColorPicker.Input` on its field.
 - A field that asks for the user's own details takes its `autoComplete` token (`name`,
   `given-name`, `family-name`, `email`, `tel`, `address-line1`, `address-level2`, `postal-code`,
   `country`, `new-password`, …; the full list is HTML's autofill field names), so the browser can
