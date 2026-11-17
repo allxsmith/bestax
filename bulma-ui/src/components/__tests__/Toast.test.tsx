@@ -665,20 +665,19 @@ describe('Toast', () => {
     });
 
     it("closes on a click with the caller's onClick when it says dismissible", () => {
-      const onClose = vi.fn();
-      const onClick = vi.fn();
+      const calls: string[] = [];
       render(
         <Toast
           message="Test"
           duration={0}
           dismissible
-          onClick={onClick}
-          onClose={onClose}
+          onClick={() => calls.push('onClick')}
+          onClose={() => calls.push('onClose')}
         />
       );
       fireEvent.click(screen.getByRole('alert'));
-      expect(onClick).toHaveBeenCalledTimes(1);
-      expect(onClose).toHaveBeenCalledTimes(1);
+      // Both run once, the caller's first.
+      expect(calls).toEqual(['onClick', 'onClose']);
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });
 

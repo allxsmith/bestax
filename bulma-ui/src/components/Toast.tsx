@@ -335,9 +335,12 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
         // first so it holds whatever the caller's does.
         onMouseEnter={chain(rest.onMouseEnter, handleMouseEnter)}
         onMouseLeave={chain(rest.onMouseLeave, handleMouseLeave)}
-        onClick={
-          closesOnClick ? chain(rest.onClick, handleClose) : rest.onClick
-        }
+        // The caller's first, then the close where it applies, both when the
+        // click comes, so nothing reads the toast's refs while it renders.
+        onClick={e => {
+          rest.onClick?.(e);
+          if (closesOnClick) handleClose();
+        }}
         onFocus={e => {
           handleTimerFocus(e);
           rest.onFocus?.(e);
