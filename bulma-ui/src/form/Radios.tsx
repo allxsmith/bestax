@@ -42,12 +42,12 @@ export interface RadiosProps
    * Form field name shared by every Radio in the group (via context). Without
    * one, the group generates a name, since a browser groups radios by their
    * name: that's what makes them one Tab stop the arrow keys move through,
-   * with one checked at a time. A checked radio is
-   * then sent with a form under the generated name, so pass `name` to choose
-   * the key it's sent under. A generated name comes from React's `useId`,
-   * which repeats across React roots, so on a page with more than one, pass
-   * `name` or give each root an `identifierPrefix`. A `name` on a single
-   * Radio still wins for that Radio.
+   * with one checked at a time. A checked radio is then sent with a form
+   * under the generated name, so pass `name` to choose the key it's sent
+   * under. A generated name comes from React's `useId`, which repeats across
+   * React roots, so on a page with more than one, pass `name` or give each
+   * root an `identifierPrefix`. A `name` on a single Radio still wins for
+   * that Radio.
    */
   name?: string | undefined;
   /** Currently-selected value (controlled mode). */
