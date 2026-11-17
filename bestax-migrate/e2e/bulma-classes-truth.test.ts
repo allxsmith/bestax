@@ -551,6 +551,25 @@ describe.each(mapped)('`.%s`', (root, entry) => {
       for (const token of tokens)
         if (!kept.includes(token)) converts.add(token);
     }
+    // A class whose prop writes attributes over the element's own
+    // (`is-loading`'s busy state, #2040), beside each one set either way.
+    for (const [token, modifier] of Object.entries(entry.modifiers ?? {})) {
+      for (const name of modifier.overridesAttrs ?? []) {
+        for (const value of ['true', 'false']) {
+          const tokens = [root, token];
+          const given = {
+            ...onTag,
+            ...neededFor(entry, tokens),
+            [name]: value,
+          };
+          const facts = factsFor(tag, tokens, given, child);
+          const both = renderBoth(facts, given, child);
+          if (both) {
+            noteMismatch(mismatches, { tokens, tag, [name]: value }, both);
+          }
+        }
+      }
+    }
     expectNoMismatch(mismatches);
     // No row is dead: the root itself converts on its own tag, and so does
     // it beside each class it omits, which stays in `className`.
@@ -2797,6 +2816,9 @@ describe('a seeded fuzz through the planner', () => {
     ['value', '40'],
     ['tabIndex', '0'],
     ['tabIndex', '-1'],
+    // A loading `Button` writes these over its own (#2040).
+    ['aria-busy', 'true'],
+    ['aria-disabled', 'false'],
     // Numeric, but not spelled the way a number renders: these must refuse.
     ['value', '040'],
     ['tabIndex', '00'],
