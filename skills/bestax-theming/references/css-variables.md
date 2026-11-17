@@ -305,6 +305,10 @@ their variables through `className` (see their entries below).
 | `--bulma-badge-dot-size`                                          | `0.65em`                         |
 | `--bulma-badge-inset-circle` / `--bulma-badge-animation-duration` | `12%` / `1.4s`                   |
 
+In forced colors a badge's fill and `--bulma-badge-ring-color` don't show: a count or text badge
+takes a `CanvasText` edge, and a dot a `CanvasText` fill with its ring in `Canvas`, whatever its
+color or a background helper says.
+
 The remaining extras register the variables below — names only; each default lives in the
 component's SCSS partial under `bulma-ui/src/scss/` as a `$<name> !default` variable. The same
 own-selector override rule applies.
