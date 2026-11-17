@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.73.7"
+    "version": "5.73.9"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -4032,7 +4032,7 @@
     "SidebarTitle": {
       "component": "Sidebar",
       "path": "Sidebar.Title",
-      "purpose": "Title text inside the header."
+      "purpose": "Title text inside the header. It doesn't name the sidebar on its own: give it an `id`, and the `Sidebar` an `aria-labelledby` pointing at it."
     },
     "SplitterPane": {
       "component": "Splitter",

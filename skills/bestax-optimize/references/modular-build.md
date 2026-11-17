@@ -46,7 +46,7 @@ publishes its SCSS sources (`src/scss` ships in the npm package, exposed via the
 
 **Rule:** stock Bulma components map to `bulma/sass/<category>/<lowercased-name>`; bestax
 extras map to `@allxsmith/bestax-bulma/scss/<category>/<lowercased-name>`. Components that
-are pure stock Bulma (Box, Card, Modal, Hero, …) have **no** extras partial —
+are pure stock Bulma (Box, Card, Hero, …) have **no** extras partial —
 Bulma's own module is all they need.
 
 Bulma groups its form controls, so their modules don't follow the name: `Input` and `TextArea`
@@ -80,7 +80,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 
 **Components** (`@allxsmith/bestax-bulma/scss/components/<name>`):
 `loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `steps`, `sidebar`,
-`toast`, `dialog`, `carousel`, `lightbox`, `tabs`, `menu`, `tableofcontents`, `reveal`, `avatar`, `avatars`,
+`toast`, `dialog`, `modal`, `carousel`, `lightbox`, `tabs`, `menu`, `tableofcontents`, `reveal`, `avatar`, `avatars`,
 `badge`, `emptystate`, `timeline`, `treeview`, `scrollarea`, `command`, `datatable`,
 `pagination`, `affix`, `floatbutton`, `navbar`, `panel`, `tour`
 
@@ -93,7 +93,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 `colorinput`, `passwordinput`, `treeselect`, `cascader`
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `button`, `colorswatch`,
-`delete`, `descriptionlist`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`,
+`delete`, `descriptionlist`, `divider`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`,
 `progress`, `ringprogress`, `skeleton`, `stat`, `table`, `tag`
 
 **Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `color`, `cursor`, `sizing`, `visibility`
@@ -138,6 +138,15 @@ Notes:
   @use '@allxsmith/bestax-bulma/scss/components/tableofcontents'; // TableOfContents only
   ```
 
+- The `modal` partial **extends** stock Bulma modal (a modal card keeps an edge in forced colors,
+  Windows' contrast themes, where Bulma's card has none and the backdrop's dark fill is
+  replaced), so an app using `Modal` with a card needs both, in either order:
+
+  ```scss
+  @use 'bulma/sass/components/modal';
+  @use '@allxsmith/bestax-bulma/scss/components/modal' as bestax-modal;
+  ```
+
 - The `pagination` partial **extends** stock Bulma pagination (the links' keyboard focus ring,
   which Bulma's own styles turn off, and the current page marked in forced colors, where Bulma's
   colors for it are replaced), so an app using `Pagination`, or a `DataTable` with pages, whose
@@ -166,7 +175,9 @@ Notes:
 
 - The `panel` partial **extends** stock Bulma panel (it keeps the heading of a panel with no
   `color` readable on the dark scheme, where Bulma writes it white on light gray, and a colored
-  panel's active block and tab, their text, icon and underline, readable on both schemes), so an app using `Panel` needs both,
+  panel's active block and tab, their text, icon and underline, readable on both schemes, and
+  keeps the active block and tab marked in forced colors, where Bulma's colors for them are
+  replaced), so an app using `Panel` needs both,
   in either order:
 
   ```scss
@@ -307,6 +318,12 @@ Notes:
   color's text on the page where that's lighter, so a dark color reads on the dark scheme, so
   include it (`as bestax-button`) in any build that loads Bulma's button module. Its rules win over
   Bulma's either way, so the order of the `@use` lines does not matter.
+- `Divider` renders an `<hr>`, which Bulma draws in its base (`bulma/sass/base`) as a background
+  color with no border. Forced colors (Windows' contrast themes) replaces that color with the
+  page's own, so the line vanishes there. The `divider` extras partial draws it as a border in the
+  system's text color, so include it in any build that shows a `Divider` or an `<hr>`. Its rule
+  wins over Bulma's either way, so the order of the `@use` lines does not matter, and an `<hr>`
+  with a class of its own keeps its own rules.
 - `Stats` lays its row out on Bulma's smart grid (`.grid` and `is-col-min-*`), so a build with a
   `Stats` row wants `bulma/sass/grid/grid` beside the `stat` partial, which only resets the row's
   margins.

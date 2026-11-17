@@ -10,6 +10,7 @@ import {
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
+import { useFieldMessage } from './useFieldMessage';
 
 /** Valid sizes for the Numberinput component. */
 export type NumberinputSize = 'small' | 'medium' | 'large';
@@ -83,7 +84,8 @@ export interface NumberinputProps
    * they join the row of a `Field` with `hasAddons` or `grouped` they sit
    * in. On by default inside a `Field`, unless a `Control` is anywhere above
    * it: a `Control` stacks its children, so there the controls keep their
-   * own row.
+   * own row. Bare plusminus controls render no `message`, so put help text
+   * after that row yourself.
    * @defaultValue auto
    */
   bare?: boolean;
@@ -330,10 +332,13 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
       className
     );
 
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+    // A bare plusminus Numberinput renders no message, so it describes
+    // nothing with one either.
+    const { messageEl, describedBy } = useFieldMessage(
+      isStepper || !effectiveBare ? message : undefined,
+      messageColor,
+      props['aria-describedby']
+    );
 
     // Use combined ref
     const combinedRef = (node: HTMLInputElement | null) => {
@@ -367,6 +372,7 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
           {...rest}
           // After the spread: an undefined `id` key in rest would wipe it.
           id={controlId}
+          aria-describedby={describedBy}
         />
       </div>
     );
