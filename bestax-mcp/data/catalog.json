@@ -1496,8 +1496,8 @@
       "slug": "form/taginput",
       "import": "import { Taginput } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 48,
-      "exampleCount": 13
+      "propCount": 49,
+      "exampleCount": 14
     },
     {
       "name": "Tags",
