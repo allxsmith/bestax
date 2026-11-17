@@ -600,26 +600,58 @@ const hotkeyModifiers: Record<string, string> = {
   shiftKey: 'shift',
 };
 
+/** A hotkey, read: the shortcut it makes, and its key's code. */
+interface ReadHotkey {
+  combination: ParsedShortcut;
+  code: string;
+}
+
 /**
  * Reads a hotkey as a shortcut, modifiers first and its one key last: `F8`
- * becomes `f8` and `['altKey', 'KeyT']` becomes `alt+t`.
+ * becomes `f8` and `['altKey', 'KeyT']` becomes `alt+t`. The code stays as
+ * given, for a key the shortcut can't name, such as `Period` or `Numpad1`.
  *
  * @function
  * @param {readonly string[]} hotkey - The entries.
- * @returns {ParsedShortcut | null} The combination, or `null` when the
- *   entries don't name exactly one key.
+ * @returns {ReadHotkey | null} The combination and the code, or `null` when
+ *   the entries don't name exactly one key.
  */
-const readHotkey = (hotkey: readonly string[]): ParsedShortcut | null => {
+const readHotkey = (hotkey: readonly string[]): ReadHotkey | null => {
   const isModifier = (entry: string) =>
     Object.prototype.hasOwnProperty.call(hotkeyModifiers, entry);
   const modifiers = hotkey.filter(isModifier);
   const keys = hotkey.filter(entry => !isModifier(entry));
   if (keys.length !== 1) return null;
   const key = keys[0].replace(/^(Key|Digit)(?=.$)/, '');
-  return parseShortcut(
+  const combination = parseShortcut(
     [...modifiers.map(entry => hotkeyModifiers[entry]), key].join('+')
   );
+  return combination && { combination, code: keys[0] };
 };
+
+/**
+ * Whether a keydown is the hotkey: by its key, as a shortcut matches, or, for
+ * a code other than a letter's or a digit's, by the code with the same
+ * modifiers, since a key such as `Period` types `.` and `Numpad1` types `1`.
+ * A letter or digit is matched by its key only, as a shortcut's is, so
+ * another layout's letter in its place doesn't count too.
+ *
+ * @function
+ * @param {KeyboardEvent} event - The keydown.
+ * @param {ReadHotkey} hotkey - The hotkey, read.
+ * @returns {boolean} Whether it's the hotkey.
+ */
+const matchesHotkey = (
+  event: KeyboardEvent,
+  { combination, code }: ReadHotkey
+): boolean =>
+  matchesShortcut(event, combination) ||
+  (!/^(Key|Digit)/.test(code) &&
+    event.code === code &&
+    event.altKey === combination.alt &&
+    event.ctrlKey === combination.ctrl &&
+    event.metaKey === combination.meta &&
+    event.shiftKey === combination.shift);
 
 /**
  * The hotkey as a person reads it: `F8`, or `Alt+T` for
@@ -701,9 +733,10 @@ export const ToastContainer: React.FC<{
   /**
    * The keys that move keyboard focus to the newest toast: modifier flags
    * (`altKey`, `ctrlKey`, `metaKey`, `shiftKey`) and one key, by its code
-   * (`F8`, `KeyT`, `Digit1`), held together with no other modifier. A letter
-   * or digit with no Ctrl, Meta or Alt doesn't count while someone is typing
-   * in a field. `[]` turns the hotkey off.
+   * (`F8`, `KeyT`, `Digit1`, `Period`), held together with no other
+   * modifier. A key that types a character, with no Ctrl, Meta or Alt,
+   * doesn't count while someone is typing in a field. `[]` turns the hotkey
+   * off.
    * @defaultValue ['F8']
    */
   hotkey?: readonly string[] | undefined;
@@ -745,18 +778,20 @@ export const ToastContainer: React.FC<{
   // and when focus can't go there.
   const hotkeyKey = hotkey.join(' ');
   useEffect(() => {
-    const combination = readHotkey(hotkey);
-    if (!combination) return undefined;
-    const typed =
-      combination.key.length === 1 &&
-      !combination.ctrl &&
-      !combination.meta &&
-      !combination.alt;
+    const read = readHotkey(hotkey);
+    if (!read) return undefined;
     const onKeyDown = (event: KeyboardEvent) => {
+      // A key that types a character, with no Ctrl, Meta or Alt, is text
+      // while someone types in a field.
+      const typed =
+        event.key.length === 1 &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        !event.altKey;
       if (
         event.defaultPrevented ||
         event.isComposing ||
-        !matchesShortcut(event, combination) ||
+        !matchesHotkey(event, read) ||
         (typed && isTyping(event)) ||
         isModalOverlayOpen()
       ) {
@@ -785,8 +820,11 @@ export const ToastContainer: React.FC<{
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hotkeyKey]);
 
+  // Named with the hotkey only when there's one to press.
   const regionLabel =
-    hotkey.length > 0 ? `${ariaLabel} (${hotkeyLabel(hotkey)})` : ariaLabel;
+    readHotkey(hotkey) !== null
+      ? `${ariaLabel} (${hotkeyLabel(hotkey)})`
+      : ariaLabel;
 
   if (typeof document === 'undefined' || toastList.length === 0) {
     return null;
