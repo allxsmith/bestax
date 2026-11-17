@@ -74,12 +74,20 @@ export interface ModalProps
    * `aria-labelledby`. With `type="content"` it isn't shown, and a title
    * that's a string still names the dialog, as its `aria-label`. Without one, give
    * the modal an `aria-label`, or an `aria-labelledby` pointing at a heading
-   * inside it. (Legacy API only)
+   * inside it. It's drawn in the card's `<header>`, which is a banner
+   * landmark unless the modal sits inside `<main>` or a sectioning element,
+   * and the props form can't give it a role: for a modal card outside
+   * `<main>`, as with `portal`, use the compound form and pass `role="none"`
+   * to `Modal.Card.Head`. (Legacy API only)
    */
   modalCardTitle?: React.ReactNode;
   /**
    * Footer for modal-card variant. Group two or more buttons in `Buttons` so
-   * Bulma spaces them. (Legacy API only)
+   * Bulma spaces them. It's drawn in a `<footer>`, which is a content info
+   * landmark unless the modal sits inside `<main>` or a sectioning element,
+   * and the props form can't give it a role: for a modal card outside
+   * `<main>`, use the compound form and pass `role="none"` to
+   * `Modal.Card.Foot`. (Legacy API only)
    */
   modalCardFoot?: React.ReactNode;
   /**
@@ -239,7 +247,9 @@ export const ModalContent: React.FC<ModalContentProps> = ({
 };
 
 /**
- * Modal.Card.Head - Renders modal card header section.
+ * Modal.Card.Head - Renders modal card header section, a `<header>`. Outside
+ * `<main>` or a sectioning element, as in a modal with `portal`, that's a
+ * banner landmark inside the dialog: pass `role="none"` to drop it.
  *
  * @function
  * @param {ModalCardHeadProps} props - Component props.
@@ -294,7 +304,9 @@ export const ModalCardBody: React.FC<ModalCardBodyProps> = ({
 
 /**
  * Modal.Card.Foot - Renders modal card footer section. Group two or more
- * buttons in `Buttons` so Bulma spaces them.
+ * buttons in `Buttons` so Bulma spaces them. It's a `<footer>`, which outside
+ * `<main>` or a sectioning element is a content info landmark inside the
+ * dialog: pass `role="none"` to drop it.
  *
  * @function
  * @param {ModalCardFootProps} props - Component props.
