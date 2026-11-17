@@ -586,7 +586,8 @@ const notificationStackStyle = (
  * When a notification closes with focus inside it, focus moves to the close
  * button of the next notification in its stack that stays open and has one,
  * or else of the one before it, or, with neither, back to where it was before
- * it went into a notification. Focus anywhere else stays where it is.
+ * it went into a notification, while that's still on the page. Focus anywhere
+ * else stays where it is.
  *
  * @function
  * @param {{ position?: NotificationPosition }} props - Container props.
@@ -672,7 +673,7 @@ export const NotificationContainer: React.FC<{
   // stack. So focus moves first: to the close button of the next
   // notification in its stack that stays open and has one, or else of the
   // one before it, and otherwise back to where it was before it went into a
-  // notification. One that arrives in the same render, as a queued one does,
+  // notification, while that's still on the page. One that arrives in the same render, as a queued one does,
   // isn't on the page yet to take it. A notification that leaves the page
   // without closing, as one remounting at a new position does, and focus
   // anywhere else, are left alone. React hears no focus event for a move
