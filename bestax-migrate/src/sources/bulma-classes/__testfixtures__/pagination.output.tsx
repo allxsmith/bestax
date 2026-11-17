@@ -23,6 +23,7 @@ export function Pages() {
           active
           aria-label="Page 46"
           aria-current="page"
+          href="#46"
           tabIndex={0}
         >
           46
@@ -37,9 +38,11 @@ export function Pages() {
 
 export function PageRefusals({ pages = [48, 49] }: { pages?: number[] }) {
   // TODO(bestax-migrate): bestax `Pagination.Link` renders `tabIndex="0"` when the element does not set it; add it here if that is what you want, then re-run
+  // TODO(bestax-migrate): bestax `Pagination.Link` renders `role="button"` when the element does not set it; add it here if that is what you want, then re-run
   // TODO(bestax-migrate): bestax `Pagination.Link` renders its own bare <li> around the <a>, so this converts only as the only thing inside a bare <li>, which it takes the place of; keep it as markup
   // TODO(bestax-migrate): bestax `Pagination.Ellipsis` writes a `className` it's given in place of `.pagination-ellipsis`, so this converts only with no other class; keep it as markup
   // TODO(bestax-migrate): bestax `Pagination.Ellipsis` renders its own `…` as its content, so this converts only holding exactly that; keep it as markup
+  // TODO(bestax-migrate): bestax `Pagination.Link` renders `tabIndex="0"` when it has an `href` and `tabIndex="0"` and `role="button"` when it has none, and this element's `href` is an expression that may render as either; set `role` here to what you want and re-run, or convert it by hand
   return (
     <Pagination role="navigation" aria-label="pagination">
       <Pagination.List>
@@ -48,9 +51,14 @@ export function PageRefusals({ pages = [48, 49] }: { pages?: number[] }) {
             A link with no tabIndex would gain one
           </a>
         </li>
-        <Pagination.Link className="is-current" tabIndex={0}>
+        <Pagination.Link className="is-current" href="#c" tabIndex={0}>
           Current, with no aria-current of its own: the class stays
         </Pagination.Link>
+        <li>
+          <a className="pagination-link" tabIndex={0}>
+            No href, so a button, with no role of its own
+          </a>
+        </li>
         <li className="my-item">
           <a className="pagination-link" tabIndex={0}>
             A class on the li
@@ -72,9 +80,11 @@ export function PageRefusals({ pages = [48, 49] }: { pages?: number[] }) {
           <span className="pagination-ellipsis">...</span>
         </li>
         {pages.map(page => (
-          <Pagination.Link key={page} href={`#${page}`} tabIndex={0}>
-            {page}
-          </Pagination.Link>
+          <li key={page}>
+            <a className="pagination-link" href={`#${page}`} tabIndex={0}>
+              {page}
+            </a>
+          </li>
         ))}
       </Pagination.List>
     </Pagination>

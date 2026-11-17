@@ -1,5 +1,4 @@
 import React, {
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -20,6 +19,7 @@ import { usePortalContainer } from '../helpers/portal';
 import { LocalePortalScope } from '../helpers/LocaleProvider';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
 import { scrollLockOffset } from '../helpers/scrollLock';
+import { useDismissTimer } from '../helpers/useDismissTimer';
 
 /**
  * Props for the Notification component.
@@ -184,7 +184,13 @@ export interface NotificationOptions {
    * hard to read.
    */
   isLight?: boolean;
-  /** Duration in ms before auto-close. Default 3000. */
+  /**
+   * Duration in ms before auto-close. Default 3000.
+   *
+   * The countdown waits while focus is inside the notification, on its close
+   * button or on a link in its message, whatever `pauseOnHover` says, and once
+   * focus leaves, the notification gets its whole duration again.
+   */
   duration?: number;
   /**
    * Position on the screen. A notification shown without one goes to
@@ -200,7 +206,10 @@ export interface NotificationOptions {
   hasDelete?: boolean;
   /** Stay open until dismissed. */
   indefinite?: boolean;
-  /** Pause auto-close timer on hover. Default true. */
+  /**
+   * Pause auto-close timer on hover. Default true. Focus inside the
+   * notification pauses it either way (see `duration`).
+   */
   pauseOnHover?: boolean;
 }
 
@@ -419,13 +428,13 @@ const NotificationItem: React.FC<{
     [registerMessage, instance.id]
   );
 
-  // Auto-close timer
-  useEffect(() => {
-    if (indefinite || duration === 0 || isPaused) return undefined;
-
-    const timer = setTimeout(handleClose, duration);
-    return () => clearTimeout(timer);
-  }, [duration, indefinite, isPaused, handleClose]);
+  // Auto-close timer. It waits while focus is inside the notification, so
+  // what someone is using doesn't go away under them, whatever pauseOnHover
+  // says.
+  const { onFocus: handleFocus } = useDismissTimer(
+    handleClose,
+    indefinite || duration === 0 || isPaused ? null : duration
+  );
 
   const handleMouseEnter = useCallback(() => {
     if (pauseOnHover) setIsPaused(true);
@@ -443,6 +452,7 @@ const NotificationItem: React.FC<{
       onDelete={handleClose}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onFocus={handleFocus}
       style={{ pointerEvents: 'auto' }}
     >
       {/* Only the message is announced, not the close button Notification

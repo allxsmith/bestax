@@ -68,7 +68,8 @@ const meta: Meta<typeof Toast> = {
     },
     duration: {
       control: 'number',
-      description: 'Duration in ms before auto-close (0 = no auto-close)',
+      description:
+        'Duration in ms before auto-close (0 = no auto-close). It waits while focus is inside the toast.',
     },
     indefinite: {
       control: 'boolean',

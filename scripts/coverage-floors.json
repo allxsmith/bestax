@@ -23,6 +23,7 @@
   "scripts/lib/bypass-annotations.mjs": { "lines": 100, "branches": 89, "functions": 100 },
   "scripts/lib/compiled-css-vars.mjs": { "lines": 98, "branches": 89, "functions": 100 },
   "scripts/lib/docs-url.mjs": { "lines": 100, "branches": 100, "functions": 100 },
+  "scripts/lib/example-sources.mjs": { "lines": 100, "branches": 100, "functions": 100 },
   "scripts/lib/fetch-retry.mjs": { "lines": 97, "branches": 87, "functions": 83 },
   "scripts/lib/fragile-prose.mjs": { "lines": 100, "branches": 96, "functions": 95 },
   "scripts/lib/main-module.mjs": { "lines": 100, "branches": 100, "functions": 100 },

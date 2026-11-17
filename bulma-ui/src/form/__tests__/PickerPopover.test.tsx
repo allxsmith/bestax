@@ -21,6 +21,7 @@ import { ColorInput } from '../ColorInput';
 import { TreeSelect } from '../TreeSelect';
 import { Cascader } from '../Cascader';
 import { Modal } from '../../components/Modal';
+import { clientWidthFollowsWindow } from '../../__tests__/viewport';
 
 const Harness: React.FC<{
   appendToBody?: boolean;
@@ -560,6 +561,8 @@ describe('PickerPopover while its onClose changes', () => {
 // -------------------------------------------------------------------------
 
 describe('PickerPopover position resolution', () => {
+  clientWidthFollowsWindow();
+
   const originalInnerWidth = window.innerWidth;
   const originalInnerHeight = window.innerHeight;
 
@@ -707,16 +710,47 @@ describe('PickerPopover position resolution', () => {
     expect(dialog.style.left).toBe('760px');
   });
 
+  it('shifts a panel in place back inside a narrow window, leaving its fade to the stylesheet', () => {
+    setViewport(375, 800);
+    const result = render(
+      <PositionedHarness position="bottom-left" appendToBody={false} />
+    );
+    const anchor = result.getByTestId('anchor');
+    const dialog = result.getByRole('dialog');
+    vi.spyOn(anchor, 'getBoundingClientRect').mockReturnValue(
+      makeRect({ top: 100, bottom: 130, left: 215, right: 375 })
+    );
+    vi.spyOn(dialog, 'getBoundingClientRect').mockImplementation(() => {
+      const left =
+        215 +
+        (parseFloat(dialog.style.getPropertyValue('--bulma-anchored-shift')) ||
+          0);
+      return makeRect({ top: 130, bottom: 430, left, right: left + 200 });
+    });
+    act(() => {
+      fireEvent(window, new Event('resize'));
+      vi.advanceTimersToNextFrame();
+    });
+    expect(dialog.className).toMatch(/is-bottom-left/);
+    expect(dialog.style.getPropertyValue('--bulma-anchored-shift')).toBe(
+      '-40px'
+    );
+    expect(dialog.style.marginLeft).toBe('');
+    expect(dialog.style.transform).toBe('');
+    expect(dialog.style.translate).toBe('');
+    expect(dialog.style.position).toBe('');
+  });
+
   it('lines an explicit bottom-left up with the physical left', () => {
     setViewport(1000, 1000);
     const { getByRole } = renderWithRects(
       <PositionedHarness position="bottom-left" />,
-      makeRect({ top: 50, bottom: 70, left: 900, right: 960 }),
+      makeRect({ top: 50, bottom: 70, left: 700, right: 760 }),
       { width: 200, height: 300 }
     );
     const dialog = getByRole('dialog');
     expect(dialog.className).toMatch(/is-bottom-left/);
-    expect(dialog.style.left).toBe('900px');
+    expect(dialog.style.left).toBe('700px');
     expect(dialog.style.top).toBe('70px');
   });
 
