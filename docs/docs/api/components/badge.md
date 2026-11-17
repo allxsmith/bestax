@@ -201,17 +201,25 @@ no anchor to name, text beside the badge says what it means.
 </Block>
 ```
 
-### Standalone, Interactive
+### Standalone, Beside a Control
 
-A standalone badge is itself the interactive root — helper props like `onClick` land directly on
-the pill, which stays clickable (`pointer-events: auto`).
+A standalone badge is a status, not a control: it isn't in the tab order and takes no keys, so a
+click handler on the pill would reach only a pointer. Put the click on a control beside it, here a
+`Button` whose name says what the count counts, and let the badge show the count. Helper props,
+such as the margin here, land on the pill itself.
 
 ```tsx live
 function example() {
-  const [clicks, setClicks] = useState(0);
+  const [likes, setLikes] = useState(0);
 
   return (
-    <Badge content={clicks} showZero onClick={() => setClicks(c => c + 1)} />
+    <Block display="flex" alignItems="center">
+      <Button onClick={() => setLikes(n => n + 1)} mr="3">
+        Like
+      </Button>
+      <Badge content={likes} showZero color="info" mr="2" />
+      <span>likes</span>
+    </Block>
   );
 }
 ```
@@ -266,6 +274,9 @@ A plain-text `children` value renders at its natural height alongside the badge.
   the dot, as for any standalone badge. An `Icon` passed as `content` with no `ariaLabel` is
   hidden too, so the badge reads
   nothing; name what it means on the anchor as well.
+- A badge is a status, not a control: it isn't in the tab order and takes no keys, so a click
+  handler on a standalone badge reaches only a pointer. Put the click on a control beside it, as
+  [Standalone, Beside a Control](#standalone-beside-a-control) does.
 - `pulse` respects `prefers-reduced-motion: reduce` and renders without animation.
 - **Forced colors:** a badge is drawn as a fill with a ring, and forced colors (Windows' contrast
   themes) paints the fill in the page's own color and drops the ring, so bestax's styles draw a
