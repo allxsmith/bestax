@@ -196,7 +196,10 @@ export interface DateRangeInputBaseProps
   appendToBody?: boolean;
   /**
    * Bulma color modifier for the field, also carried by the calendar, where it
-   * colors the range's ends and the band between them.
+   * colors the range's ends and the band between them. Forced colors
+   * (Windows' contrast themes) replaces both, so there every day of a picked
+   * range is drawn in the system's highlight colors instead, whatever the
+   * color, which needs bestax's CSS.
    */
   color?:
     'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;

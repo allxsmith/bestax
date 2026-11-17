@@ -305,6 +305,10 @@ their variables through `className` (see their entries below).
 | `--bulma-badge-dot-size`                                          | `0.65em`                         |
 | `--bulma-badge-inset-circle` / `--bulma-badge-animation-duration` | `12%` / `1.4s`                   |
 
+In forced colors a badge's fill and `--bulma-badge-ring-color` don't show: a count or text badge
+takes a `CanvasText` edge, and a dot a `CanvasText` fill with its ring in `Canvas`, whatever its
+color or a background helper says.
+
 The remaining extras register the variables below — names only; each default lives in the
 component's SCSS partial under `bulma-ui/src/scss/` as a `$<name> !default` variable. The same
 own-selector override rule applies.
@@ -667,6 +671,11 @@ them too. Inside a band, a nearby month's day reads `--bulma-dateinput-cell-colo
 The three `cell-content` variables style what a `Calendar`'s `dayTemplate` draws under a day's
 number: its color, which a picked day's fill replaces with the picked day's own, its size, and the
 opacity it fades to while the Calendar is `loading`.
+
+In forced colors (Windows' contrast themes) a picked day, month or year, and every day of a picked
+range, are the system's highlight colors whatever `--bulma-dateinput-cell-selected-bg`,
+`--bulma-dateinput-cell-selected-color` and `--bulma-dateinput-cell-range-bg` say, and what
+`dayTemplate` draws in them takes the same color.
 
 ### DateRangeInput
 

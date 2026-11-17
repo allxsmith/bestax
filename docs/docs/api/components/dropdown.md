@@ -244,6 +244,10 @@ function SplitButton() {
 - `Dropdown.Item active` sets `aria-current="true"`, so the current item isn't only a color. An
   `aria-current` you pass wins: a menu of pages can say `"page"`, and `aria-current={false}`
   turns it off, as on an item that says its state with `aria-checked`.
+- **Forced colors:** Bulma draws `Dropdown.Divider` as a background color, which forced colors
+  (Windows' contrast themes) paints in the menu's own color, so bestax's styles draw it in the
+  system's text color there. That rule ships in `bestax.css` and `extras.css`, not in Bulma's own
+  stylesheet.
 - A click between items, on a divider say, focuses the menu itself, so the arrow keys still
   reach the items from there.
 - `Dropdown.Item as="button"` defaults to `type="button"`, so a menu item inside a form doesn't

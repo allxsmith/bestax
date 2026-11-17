@@ -68,7 +68,14 @@ export interface ButtonOwnProps extends Omit<
    * of the look needs bestax's CSS loaded.
    */
   isLoading?: boolean;
-  /** Makes the button non-interactive. */
+  /**
+   * Draws Bulma's static look and stops the pointer. It doesn't change the
+   * element: a `<button>` with it is still a tab stop that a screen reader
+   * announces as a button and Enter and Space press, and in a form it's a
+   * submit button. A label that does nothing, such as "@gmail.com" beside an
+   * input in a `Field` with addons, is a `Button` rendered `as="span"`, which
+   * Tab skips and a screen reader reads as text.
+   */
   isStatic?: boolean;
   /** Makes the button full-width. */
   isFullwidth?: boolean;
