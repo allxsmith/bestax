@@ -3839,7 +3839,7 @@
     "ModalCardHead": {
       "component": "Modal",
       "path": "Modal.Card.Head",
-      "purpose": "Modal.Card.Head - Renders modal card header section."
+      "purpose": "Modal.Card.Head - Renders modal card header section, a `<header>`."
     },
     "ModalCardTitle": {
       "component": "Modal",
