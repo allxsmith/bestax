@@ -77,6 +77,11 @@ export interface ToastProps
   dismissible?: boolean;
   /** Show an explicit close (X) button. Default: false. */
   closable?: boolean;
+  /**
+   * Names the close button `closable` shows, in place of "Close", for an app
+   * in another language. An empty one keeps that name.
+   */
+  ariaCloseLabel?: string;
   /** Pill-shaped (rounded corners). */
   rounded?: boolean;
   /**
@@ -143,6 +148,7 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
       indefinite = false,
       dismissible: dismissibleProp,
       closable = false,
+      ariaCloseLabel,
       rounded = false,
       pauseOnHover = false,
       cancelable = true,
@@ -387,7 +393,7 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
               e.stopPropagation();
               handleClose();
             }}
-            aria-label="Close"
+            aria-label={ariaCloseLabel || 'Close'}
           />
         )}
       </div>

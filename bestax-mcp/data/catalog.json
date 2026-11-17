@@ -1067,7 +1067,7 @@
       "slug": "elements/notification",
       "import": "import { Notification, NotificationContainer, notification } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 7,
+      "propCount": 8,
       "exampleCount": 7
     },
     {
@@ -1573,7 +1573,7 @@
       "slug": "components/toast",
       "import": "import { Toast, ToastContainer, toast } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 17,
+      "propCount": 18,
       "exampleCount": 7
     },
     {
