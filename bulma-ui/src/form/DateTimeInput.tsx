@@ -27,6 +27,7 @@ import { usePickerDirAttrs } from './_pickerInternals/useLocaleDefaults';
  * `label`, `horizontal` and class name on that `Field`.
  * @extraProp {string} [name] - Form field name.
  * @extraProp {string} [form] - Optional id of the form the input belongs to.
+ * @extraProp {string} [autoComplete=off] - An autofill token for the field. On the text field it's `off` unless you give one, since the browser's own suggestions would cover the calendar. The native input on touch devices takes yours too, and the browser's default without one, and an `inline` picker, with no field, takes none. A date and time that autofill writes commits when it reads in the token `format` (the default one when `format` is `Intl` options) or through your `parse`. One it can't read, or that `min`, `max` or a blocked day or time rules out, isn't committed, as with typing: the field shows it as written, and submits it under a `name`, until focus next leaves the field.
  * @extraProp {boolean} [required=false] - Marks the field as required for native HTML form validation.
  */
 export interface DateTimeInputProps extends DateTimeInputBaseProps {

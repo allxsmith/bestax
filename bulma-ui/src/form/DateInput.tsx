@@ -27,6 +27,7 @@ import { usePickerDirAttrs } from './_pickerInternals/useLocaleDefaults';
  * `label`, `horizontal` and class name on that `Field`.
  * @extraProp {string} [name] - Form field name. The text field submits the text it displays. The native input on touch devices submits the ISO value (`YYYY-MM-DD`, or `YYYY-MM` at month granularity), and an `inline` calendar, which has no visible input, submits it from a hidden input (`YYYY-MM-DD`, `YYYY-MM` or `YYYY`).
  * @extraProp {string} [form] - Form id the input belongs to.
+ * @extraProp {string} [autoComplete=off] - An autofill token for the field, such as `bday` for a date of birth, so the browser and assistive technology know what it asks for. On the text field it's `off` unless you give one, since the browser's own suggestions would cover the calendar. The native input on touch devices takes yours too, and the browser's default without one, and an `inline` calendar, with no field, takes none. A date that autofill writes commits when it reads in the token `format` (the default one when `format` is `Intl` options) or through your `parse`. One it can't read, or that `min`, `max` or a blocked day rules out, isn't committed, as with typing: the field shows it as written, and submits it under a `name`, until focus next leaves the field.
  * @extraProp {boolean} [required=false] - Marks the input as required.
  * @extraProp {string} [className] - Additional CSS classes for the input.
  * @extraProp {React.Ref<HTMLInputElement>} [ref] - Forwarded to the underlying `<input>`.
@@ -105,7 +106,11 @@ export interface DateInputProps extends DateInputBaseProps {
  * @returns {JSX.Element}
  *
  * @example
- * <DateInput label="Date of birth" defaultValue={new Date(1990, 0, 1)} />
+ * <DateInput
+ *   label="Date of birth"
+ *   autoComplete="bday"
+ *   defaultValue={new Date(1990, 0, 1)}
+ * />
  *
  * @example
  * <DateInput
