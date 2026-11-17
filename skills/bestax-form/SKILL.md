@@ -205,7 +205,12 @@ and wire `htmlFor`/`id`, to your `id` when you pass one
 (`<Input label="Email" id="email" horizontal />`); an explicit `labelProps={{ htmlFor }}` wins. `Combobox` renders its `Field` and label too, and wires
 them to its field. Given `data`, its `id`, `aria-label` and `aria-labelledby` go to the field;
 built from parts, put them on `Combobox.Input`, since on the `Combobox` they land on its wrapper
-`div`. The group inputs (`Checkboxes`, `Radios`, `Rate`, `DateRangeInput`) name their
+`div`. `DateInput`, `TimeInput` and `DateTimeInput` (and each `*Base`) put `aria-label`,
+`aria-labelledby` and `aria-describedby` on their wrapper `div`, not the field, except on the native
+input `mobileNative` renders: name the field with `label` (or a labeled `Field` around a `*Base`, or
+an `id` and your own `<label htmlFor>`) and describe it with the wrapper's `message`, since a
+`*Base` on its own can't describe its field. The group inputs (`Checkboxes`,
+`Radios`, `Rate`, `DateRangeInput`) name their
 `role="group"`/`"radiogroup"` wrapper through `aria-labelledby` instead. `Checkboxes` and `Radios`
 also take `as="fieldset"`, which renders their own `Field` as a native `<fieldset>` with the `label`
 as its `<legend>` (the label column when `horizontal`), named by the legend with no ids. Inside a
