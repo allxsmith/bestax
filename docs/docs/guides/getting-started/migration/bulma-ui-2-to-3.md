@@ -68,6 +68,7 @@ You'll need to take action if your code does any of the following:
 
 ```tsx live
 <Input
+  autoComplete="email"
   label="Email"
   type="email"
   iconLeftName="envelope"

@@ -160,7 +160,14 @@ The `isStatic` prop styles the input as static text, useful for displaying value
 
 ```tsx live
 <>
-  <Input horizontal label="Username" isStatic readOnly value="Static value" />
+  <Input
+    autoComplete="username"
+    horizontal
+    label="Username"
+    isStatic
+    readOnly
+    value="Static value"
+  />
   <Input horizontal label="Password" placeholder="Editable value" />
 </>
 ```
@@ -231,6 +238,7 @@ Pair `color` and `messageColor` to produce success and danger validation states 
 ```tsx live
 <>
   <Input
+    autoComplete="username"
     label="Username"
     color="success"
     value="bulma"
@@ -241,6 +249,7 @@ Pair `color` and `messageColor` to produce success and danger validation states 
     onChange={() => {}}
   />
   <Input
+    autoComplete="email"
     label="Email"
     type="email"
     color="danger"
@@ -262,6 +271,7 @@ A field the design shows with no label still needs one for screen readers. Keep 
 
 ```tsx live
 <Input
+  autoComplete="email"
   label="Email"
   labelProps={{ className: 'is-sr-only' }}
   type="email"
@@ -310,7 +320,7 @@ A static button is non-interactive — useful for fixed prefixes/suffixes such a
 ```tsx live
 <Field hasAddons>
   <Control>
-    <Select aria-label="Country code">
+    <Select autoComplete="tel-country-code" aria-label="Country code">
       <option>+1</option>
       <option>+44</option>
       <option>+33</option>
@@ -318,6 +328,7 @@ A static button is non-interactive — useful for fixed prefixes/suffixes such a
   </Control>
   <Control isExpanded>
     <Input
+      autoComplete="tel-national"
       type="tel"
       placeholder="Your phone number"
       aria-label="Phone number"
@@ -540,6 +551,7 @@ Place a `color="danger"` Input and a danger help message inside the horizontal f
     <Field>
       <Control iconLeftName="envelope" iconRightName="exclamation-triangle">
         <Input
+          autoComplete="email"
           id="invalid-email"
           type="email"
           color="danger"
@@ -567,7 +579,12 @@ Combine `Field horizontal` with a nested `Field hasAddons` inside the body to mi
         <Button isStatic>+44</Button>
       </Control>
       <Control isExpanded>
-        <Input id="phone-number" type="tel" placeholder="Your phone number" />
+        <Input
+          autoComplete="tel-national"
+          id="phone-number"
+          type="tel"
+          placeholder="Your phone number"
+        />
       </Control>
     </Field>
   </Field.Body>
@@ -586,7 +603,11 @@ Use an empty `Field.Label` to align the submit button under the inputs above it.
     <Field.Body>
       <Field>
         <Control>
-          <Input id="submit-row-name" placeholder="Your name" />
+          <Input
+            autoComplete="name"
+            id="submit-row-name"
+            placeholder="Your name"
+          />
         </Control>
       </Field>
     </Field.Body>
@@ -612,8 +633,13 @@ Wrap several Inputs in a disabled [`Fieldset`](./fieldset.md) to disable every f
 
 ```tsx live
 <Fieldset variant="unstyled" disabled>
-  <Input label="Name" placeholder="Your name" />
-  <Input label="Email" type="email" placeholder="Your email" />
+  <Input autoComplete="name" label="Name" placeholder="Your name" />
+  <Input
+    autoComplete="email"
+    label="Email"
+    type="email"
+    placeholder="Your email"
+  />
 </Fieldset>
 ```
 
@@ -628,7 +654,7 @@ The `Input` component is context-aware: it detects whether it is already inside 
 The simplest usage — the component automatically renders its own Field and Control wrappers.
 
 ```tsx live
-<Input label="Username" placeholder="Enter username" />
+<Input autoComplete="username" label="Username" placeholder="Enter username" />
 ```
 
 ---
@@ -649,7 +675,11 @@ function example() {
     >
       <Field.Body>
         <Field>
-          <Input id="username-field" placeholder="Enter username" />
+          <Input
+            autoComplete="username"
+            id="username-field"
+            placeholder="Enter username"
+          />
         </Field>
       </Field.Body>
     </Field>
@@ -674,7 +704,11 @@ function example() {
       <Field.Body>
         <Field>
           <Control iconLeftName="user">
-            <Input id="username-field-control" placeholder="Enter username" />
+            <Input
+              autoComplete="username"
+              id="username-field-control"
+              placeholder="Enter username"
+            />
           </Control>
         </Field>
       </Field.Body>

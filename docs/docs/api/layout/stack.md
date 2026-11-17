@@ -91,7 +91,7 @@ A form's fields, spaced evenly. Bulma spaces fields more closely than blocks, 0.
     <Input placeholder="Ada Lovelace" />
   </Field>
   <Field label="Email">
-    <Input type="email" placeholder="ada@example.com" />
+    <Input autoComplete="email" type="email" placeholder="ada@example.com" />
   </Field>
   <Group justifyContent="flex-end" gap="1">
     <Button>Cancel</Button>

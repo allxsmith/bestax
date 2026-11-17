@@ -76,8 +76,8 @@ text field.
     data={['Canada', 'France', 'Germany', 'Japan', 'Kenya', 'Mexico']}
     empty="No countries match"
   />
-  <Input label="City" />
-  <Input label="Postal code" />
+  <Input autoComplete="address-level2" label="City" />
+  <Input autoComplete="postal-code" label="Postal code" />
   <Button type="submit" color="primary">
     Save address
   </Button>
@@ -201,7 +201,7 @@ function example() {
         <Button onClick={() => setCity('paris')}>Paris</Button>
         <Button onClick={() => setCity(null)}>Clear</Button>
       </Buttons>
-      <Input label="Postal code" />
+      <Input autoComplete="postal-code" label="Postal code" />
     </form>
   );
 }
@@ -347,8 +347,8 @@ function example() {
           )}
         </Combobox.Menu>
       </Combobox>
-      <Input label="City" />
-      <Input label="Postal code" />
+      <Input autoComplete="address-level2" label="City" />
+      <Input autoComplete="postal-code" label="Postal code" />
       <Button type="submit" color="primary">
         Save address
       </Button>

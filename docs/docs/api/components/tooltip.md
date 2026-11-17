@@ -304,7 +304,12 @@ function example() {
         </Tooltip>
       </Block>
       <Control>
-        <Input id={id} type="password" placeholder="Enter password" />
+        <Input
+          autoComplete="new-password"
+          id={id}
+          type="password"
+          placeholder="Enter password"
+        />
       </Control>
     </Field>
   );

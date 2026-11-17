@@ -64,17 +64,25 @@ draws no box, with the legend above the content like a label.
 <Columns>
   <Column>
     <Fieldset legend="Default">
-      <Input label="Street" name="street-default" />
+      <Input
+        autoComplete="address-line1"
+        label="Street"
+        name="street-default"
+      />
     </Fieldset>
   </Column>
   <Column>
     <Fieldset variant="filled" legend="Filled">
-      <Input label="Street" name="street-filled" />
+      <Input autoComplete="address-line1" label="Street" name="street-filled" />
     </Fieldset>
   </Column>
   <Column>
     <Fieldset variant="unstyled" legend="Unstyled">
-      <Input label="Street" name="street-unstyled" />
+      <Input
+        autoComplete="address-line1"
+        label="Street"
+        name="street-unstyled"
+      />
     </Fieldset>
   </Column>
 </Columns>
@@ -125,7 +133,12 @@ stop too and show their disabled look.
 
 ```tsx live
 <Fieldset legend="Preferences" disabled>
-  <Input label="Display name" name="display-name" defaultValue="Ada" />
+  <Input
+    autoComplete="nickname"
+    label="Display name"
+    name="display-name"
+    defaultValue="Ada"
+  />
   <Rate label="Rating" name="rating" defaultValue={3} />
   <Slider label="Volume" name="volume" defaultValue={40} />
   <Checkboxes label="Notifications" name="notifications">

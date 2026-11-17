@@ -302,7 +302,7 @@ Use `isFullwidth` on the Select with `isExpanded` on its Control to make the dro
 ```tsx live
 <Field hasAddons>
   <Control isExpanded>
-    <Select isFullwidth aria-label="Country">
+    <Select autoComplete="country" isFullwidth aria-label="Country">
       <option>United States</option>
       <option>United Kingdom</option>
       <option>Canada</option>
@@ -351,7 +351,7 @@ The `Select` component is context-aware: it detects whether it is already inside
 #### Default (with label)
 
 ```tsx live
-<Select label="Country">
+<Select autoComplete="country" label="Country">
   <option value="">Please select</option>
   <option value="us">United States</option>
   <option value="uk">United Kingdom</option>
@@ -371,7 +371,7 @@ function example() {
     <Field horizontal label="Country" labelProps={{ htmlFor: 'country-field' }}>
       <Field.Body>
         <Field>
-          <Select id="country-field">
+          <Select autoComplete="country" id="country-field">
             <option value="">Please select</option>
             <option value="us">United States</option>
             <option value="uk">United Kingdom</option>
@@ -399,7 +399,7 @@ function example() {
       <Field.Body>
         <Field>
           <Control iconLeftName="globe">
-            <Select id="country-field-control">
+            <Select autoComplete="country" id="country-field-control">
               <option value="">Please select</option>
               <option value="us">United States</option>
               <option value="uk">United Kingdom</option>
