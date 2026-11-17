@@ -80,7 +80,11 @@ export interface BulmaOtherProps {
   shadow?: (typeof validShadows)[number];
   /** Responsive behavior (e.g., 'mobile', 'narrow'). */
   responsive?: (typeof validResponsives)[number];
-  /** Add Bulma skeleton class if true. */
+  /**
+   * Add Bulma skeleton class if true. A screen reader still reads the text
+   * it hides, and a control still takes the keyboard, so give a skeleton
+   * `aria-hidden="true"`, and a control `tabIndex={-1}` too.
+   */
   skeleton?: boolean;
   /** Applies clearfix to fix floating children if true. */
   clearfix?: boolean;
