@@ -615,6 +615,37 @@ describe('Numberinput', () => {
       }
     });
 
+    // #1975: the buttons' names can be translated.
+    it.each(['plusminus', 'stepper'] as const)(
+      'names the %s buttons from labels',
+      variant => {
+        render(
+          <Numberinput
+            variant={variant}
+            labels={{ increase: 'Augmenter', decrease: 'Diminuer' }}
+          />
+        );
+        expect(
+          screen.getByRole('button', { name: 'Augmenter' })
+        ).toBeInTheDocument();
+        expect(
+          screen.getByRole('button', { name: 'Diminuer' })
+        ).toBeInTheDocument();
+      }
+    );
+
+    it('keeps the English name for a label left out or empty', () => {
+      render(<Numberinput labels={{ increase: 'Augmenter' }} />);
+      render(<Numberinput labels={{ decrease: 'Diminuer' }} />);
+      render(<Numberinput labels={{ increase: '', decrease: '' }} />);
+      expect(
+        screen.getAllByRole('button', { name: 'Decrease value' })
+      ).toHaveLength(2);
+      expect(
+        screen.getAllByRole('button', { name: 'Increase value' })
+      ).toHaveLength(2);
+    });
+
     it('stepper buttons have tabIndex -1', () => {
       render(<Numberinput defaultValue={5} variant="stepper" />);
       const buttons = screen.getAllByRole('button');
