@@ -1089,8 +1089,8 @@
       "slug": "form/numberinput",
       "import": "import { Numberinput } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 25,
-      "exampleCount": 12
+      "propCount": 26,
+      "exampleCount": 13
     },
     {
       "name": "OrderedList",

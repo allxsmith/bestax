@@ -107,6 +107,10 @@ const meta: Meta<typeof Numberinput> = {
       options: ['plusminus', 'stepper'],
       description: 'Control variant',
     },
+    labels: {
+      control: 'object',
+      description: "The buttons' names, in your app's language",
+    },
     disabled: {
       control: 'boolean',
       description: 'Whether the input is disabled',
@@ -327,6 +331,18 @@ export const Disabled: Story = {
   args: {
     defaultValue: 5,
     disabled: true,
+  },
+};
+
+/**
+ * The buttons named in another language with `labels`.
+ */
+export const OtherLanguage: Story = {
+  args: {
+    label: 'Quantité',
+    defaultValue: 2,
+    min: 1,
+    labels: { increase: 'Augmenter', decrease: 'Diminuer' },
   },
 };
 
