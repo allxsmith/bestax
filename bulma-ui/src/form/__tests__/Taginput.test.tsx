@@ -2047,6 +2047,22 @@ describe('Taginput suggestions when focus leaves (#2004)', () => {
     expect(screen.getByRole('listbox')).toHaveAttribute('tabindex', '-1');
   });
 
+  it('closes the list when focus moves to another element with no Tab', async () => {
+    const user = userEvent.setup();
+    renderWithNext();
+    const input = screen.getByRole('combobox');
+    await user.type(input, 'a');
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+    // A script, or a screen reader's own command, moves focus: no key.
+    fireEvent.blur(input, {
+      relatedTarget: screen.getByLabelText('Next field'),
+    });
+
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+  });
+
   it('closes the list on Tab itself, for focus that leaves for a frame', async () => {
     const user = userEvent.setup();
     renderWithNext();
