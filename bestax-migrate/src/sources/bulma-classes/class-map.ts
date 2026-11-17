@@ -61,7 +61,8 @@ export interface Modifier {
    * Attributes the prop writes over any value the element sets (`Button`'s
    * `isLoading` writes `aria-busy="true"` and `aria-disabled="true"` while it
    * loads), so the class converts only where the element sets none of them,
-   * and stays a class otherwise, which renders the element as written.
+   * and stays a class otherwise, which renders the element as written. Read
+   * on an element's own modifiers; an absorbed child's don't take it.
    */
   readonly overridesAttrs?: readonly string[];
   /**

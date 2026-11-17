@@ -564,9 +564,14 @@ describe.each(mapped)('`.%s`', (root, entry) => {
           };
           const facts = factsFor(tag, tokens, given, child);
           const both = renderBoth(facts, given, child);
-          if (both) {
-            noteMismatch(mismatches, { tokens, tag, [name]: value }, both);
-          }
+          // It converts, with the class left as a class.
+          expect({
+            tokens,
+            tag,
+            [name]: value,
+            kept: both?.conversion.className?.split(' ').includes(token),
+          }).toEqual({ tokens, tag, [name]: value, kept: true });
+          noteMismatch(mismatches, { tokens, tag, [name]: value }, both!);
         }
       }
     }
