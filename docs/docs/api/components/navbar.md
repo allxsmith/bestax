@@ -154,7 +154,7 @@ A more complex example with navigation links and a dropdown menu. The dropdown i
 ```tsx live
 <Navbar>
   <Navbar.Brand>
-    <Navbar.Item>
+    <Navbar.Item href="#">
       <img src="/img/logo.svg" alt="Logo" width="28" height="28" />
     </Navbar.Item>
   </Navbar.Brand>
@@ -181,22 +181,25 @@ A more complex example with navigation links and a dropdown menu. The dropdown i
 
 ### Custom Link Component
 
-Use the `as` prop on `Navbar.Item` to render a custom link component, such as a router link. Its props follow `as`, so props like `to` are forwarded to the link component and are checked against that component's own types, no cast needed. See the [Routing guide](../../guides/features/routing.md) for the full patterns.
+Use the `as` prop on `Navbar.Item` to render a custom link component, such as a router link. Its props follow `as`, so props like `to` are forwarded to the link component and are checked against that component's own types, no cast needed. See the [Routing guide](../../guides/features/routing.md) for the full patterns. The stand-in below renders `to` as the `href`, as a router's link does, so each item is a real link, and passes the item's class on.
 
 ```tsx live
 // import { Link } from 'react-router-dom';
 function example() {
-  const Link = (props: { to: string; children?: React.ReactNode }) => (
-    <a>{props.children}</a>
+  const Link = ({
+    to,
+    ...rest
+  }: { to: string } & React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
+    <a {...rest} href={to} />
   );
   return (
     <Navbar>
       <Navbar.Menu active>
         <Navbar.Start>
-          <Navbar.Item as={Link} to="/">
+          <Navbar.Item as={Link} to="#home">
             Home
           </Navbar.Item>
-          <Navbar.Item as={Link} to="/pricing">
+          <Navbar.Item as={Link} to="#pricing">
             Pricing
           </Navbar.Item>
         </Navbar.Start>
