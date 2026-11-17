@@ -35,7 +35,7 @@ export default function LoginPage() {
               <Input
                 label="Email"
                 type="email"
-                autoComplete="email"
+                autoComplete="username"
                 iconLeftName="envelope"
                 placeholder="you@example.com"
               />

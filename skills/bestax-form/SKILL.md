@@ -87,7 +87,7 @@ still carries its own error.
 
 ```tsx
 <Fieldset legend="Shipping address" disabled={saving}>
-  <Input label="Street" name="street" autoComplete="street-address" />
+  <Input label="Street" name="street" autoComplete="address-line1" />
   <Input label="City" name="city" autoComplete="address-level2" />
 </Fieldset>
 ```
@@ -319,10 +319,13 @@ Rules of thumb:
   attributes on their wrapper, so there it doesn't reach the input yet; the `message` still
   carries the error.
 - A field that asks for the user's own details takes its `autoComplete` token (`name`,
-  `given-name`, `family-name`, `email`, `tel`, `street-address`, `address-level2`, `postal-code`,
-  `country`, `username`, `new-password`, …; the full list is HTML's autofill field names), so
-  the browser can fill it and assistive tools can tell what it's for (WCAG 1.3.5).
-  `PasswordInput` sets `current-password` itself.
+  `given-name`, `family-name`, `email`, `tel`, `address-line1`, `address-level2`, `postal-code`,
+  `country`, `new-password`, …; the full list is HTML's autofill field names), so the browser can
+  fill it and assistive tools can tell what it's for (WCAG 1.3.5). A one-line street field is
+  `address-line1`, since `street-address` is for a whole address in a `TextArea`. On a sign-in
+  form the identifier is `username`, even when it's an email, beside a `PasswordInput`, which
+  sets `current-password` itself. `Combobox`, `Autocomplete` and the date and time inputs turn the
+  browser's autofill off for their own lists and calendars, so a token doesn't apply there.
 - Want a different validation library? Wire it up yourself — pass its `value`/`onChange`/error
   string into these props. bestax does not prescribe one.
 - For grouped controls, render the `<p class="help">` via the `message` prop of the convenience
