@@ -994,6 +994,7 @@ function TimeInputFormDemo() {
 - In a 12-hour picker, AM/PM is one of those spinbutton columns rather than a toggle button. Its `aria-valuetext` is `AM` or `PM`, or the picker's locale's words for them when it has a locale, and it widens to fit a longer word; `↑`, `PageUp` and `End` move it to PM, and `↓`, `PageDown` and `Home` move it to AM. It stops at either end instead of wrapping around. Its accessible name is `AM/PM` unless `labels.ampm` sets another.
 - A `readOnly` inline picker puts `aria-readonly="true"` on each spinbutton and keeps them in the tab order.
 - A `disabled` inline picker puts `aria-disabled="true"` on each spinbutton and takes them out of the tab order.
+- In forced colors (Windows' contrast themes), the band behind the picked values is replaced, so bestax's styles draw it in the system's highlight color there, and the focus ring inside it in the color made to read on it. The values keep the system's text color, so each reads on the band and off it as the wheel turns. When the picker is disabled, the band and the values take the system's color for a disabled control, at full opacity, as a value the picker blocks does.
 - Honors `prefers-reduced-motion`.
 - On a right-to-left page the launcher sits at the end of the line and the clock icon at the start. The wheels keep `dir="ltr"`, so hours stay to the left of minutes.
 - A panel at a corner that would run past the left or right edge of the screen keeps its
