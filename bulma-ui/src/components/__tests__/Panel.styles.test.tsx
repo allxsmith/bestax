@@ -692,7 +692,51 @@ describe('the active tab and block on a forced-colors page', () => {
       }
     );
 
-    // Every rule the bars need sits in the forced-colors block, so a page
+    // Bulma's edge is a shadow, which forced colors drops, and its heading's
+    // band a fill, which it paints in Canvas (#1983). The outline sits outside
+    // the panel, where the positioned active block can't paint over it.
+    it.each([
+      ['with no color', {}],
+      ['with a color', { color: 'info' as const }],
+    ])(
+      'draws the panel’s edge as a CanvasText outline outside it, and a line under its heading, %s',
+      (_label, props) => {
+        const { container } = render(
+          <ConfigProvider classPrefix={prefix}>
+            <Panel {...props}>
+              <Panel.Heading>Repositories</Panel.Heading>
+              <Panel.Block href="#bulma" active>
+                bulma
+              </Panel.Block>
+            </Panel>
+          </ConfigProvider>
+        );
+        const panel = container.querySelector(`.${prefix}panel`)!;
+        expect(valueOf(panel, css, 'outline')?.toLowerCase()).toBe(
+          '1px solid canvastext'
+        );
+        expect(valueOf(panel, css, 'outline-offset')).toBeUndefined();
+        const heading = container.querySelector(`.${prefix}panel-heading`)!;
+        expect(valueOf(heading, css, 'border-bottom')?.toLowerCase()).toBe(
+          '1px solid canvastext'
+        );
+      }
+    );
+
+    // Bulma lines its rows but the last, and the outline is the last edge.
+    it('draws no line under a heading with nothing below it', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Panel>
+            <Panel.Heading>Results</Panel.Heading>
+          </Panel>
+        </ConfigProvider>
+      );
+      const heading = container.querySelector(`.${prefix}panel-heading`)!;
+      expect(valueOf(heading, css, 'border-bottom')).toBeUndefined();
+    });
+
+    // Every rule the fix needs sits in the forced-colors block, so a page
     // without forced colors draws and positions nothing new.
     it('keeps every rule it adds inside the forced-colors block', () => {
       const rules = parse(compiled);
@@ -700,7 +744,9 @@ describe('the active tab and block on a forced-colors page', () => {
         .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
         .map(rule => rule.cssText);
       for (const text of outside) {
-        expect(text).not.toMatch(/::(before|after)|position|highlight/i);
+        expect(text).not.toMatch(
+          /::(before|after)|position|highlight|outline|canvastext/i
+        );
       }
       const forced = rules.filter(
         (rule): rule is CSSMediaRule =>
@@ -712,6 +758,9 @@ describe('the active tab and block on a forced-colors page', () => {
           (rule as CSSStyleRule).selectorText.replace(/\s+/g, ' ')
         )
       ).toEqual([
+        `.${prefix}panel`,
+        `.${prefix}panel:focus-visible`,
+        `.${prefix}panel-heading:not(:last-child)`,
         `.${prefix}panel-tabs a.${prefix}is-active, .${prefix}panel-block.${prefix}is-active`,
         `.${prefix}panel-tabs a.${prefix}is-active::after`,
         `.${prefix}panel-block.${prefix}is-active::before`,
@@ -725,6 +774,29 @@ describe('the active tab and block on a forced-colors page', () => {
     expect(compilePartial('components/panel')).not.toMatch(
       /forced-color-adjust/
     );
+  });
+
+  it('draws the panel’s edge only as shadows with Bulma alone, which is the bug', () => {
+    const { container } = render(
+      <Panel>
+        <Panel.Heading>Repositories</Panel.Heading>
+      </Panel>
+    );
+    const panel = container.querySelector('.panel')!;
+    const bulma = forcedPage(bulmaCss());
+    const heading = container.querySelector('.panel-heading')!;
+    for (const el of [panel, heading]) {
+      for (const property of [
+        'outline',
+        'border-top-width',
+        'border-right-width',
+        'border-bottom-width',
+        'border-left-width',
+      ]) {
+        expect(valueOf(el, bulma, property)).toBeUndefined();
+      }
+    }
+    expect(valueOf(panel, bulma, 'box-shadow')).toBeDefined();
   });
 
   it('draws nothing on the active tab or block with Bulma alone, which is the bug', () => {

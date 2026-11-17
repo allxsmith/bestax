@@ -77,6 +77,11 @@ export interface ToastProps
   dismissible?: boolean;
   /** Show an explicit close (X) button. Default: false. */
   closable?: boolean;
+  /**
+   * Names the close button `closable` shows, in place of "Close", for an app
+   * in another language. An empty one keeps that name.
+   */
+  ariaCloseLabel?: string;
   /** Pill-shaped (rounded corners). */
   rounded?: boolean;
   /**
@@ -143,6 +148,7 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
       indefinite = false,
       dismissible: dismissibleProp,
       closable = false,
+      ariaCloseLabel,
       rounded = false,
       pauseOnHover = false,
       cancelable = true,
@@ -335,9 +341,12 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
         // first so it holds whatever the caller's does.
         onMouseEnter={chain(rest.onMouseEnter, handleMouseEnter)}
         onMouseLeave={chain(rest.onMouseLeave, handleMouseLeave)}
-        onClick={
-          closesOnClick ? chain(rest.onClick, handleClose) : rest.onClick
-        }
+        // The caller's first, then the close where it applies, both when the
+        // click comes, so nothing reads the toast's refs while it renders.
+        onClick={e => {
+          rest.onClick?.(e);
+          if (closesOnClick) handleClose();
+        }}
         onFocus={e => {
           handleTimerFocus(e);
           rest.onFocus?.(e);
@@ -384,7 +393,7 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
               e.stopPropagation();
               handleClose();
             }}
-            aria-label="Close"
+            aria-label={ariaCloseLabel || 'Close'}
           />
         )}
       </div>

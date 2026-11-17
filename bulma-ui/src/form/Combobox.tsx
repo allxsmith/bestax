@@ -39,7 +39,7 @@ import {
   useInsideField,
 } from './FormContext';
 import { useAutoLabelId } from './useAutoLabelId';
-import { joinIds, useFieldMessage } from './useFieldMessage';
+import { joinIds, splitControlState, useFieldMessage } from './useFieldMessage';
 import { useControlLoading } from './controlLoading';
 import { HiddenValues, ValueTags, tagIds } from './_selectInternals/ValueTags';
 
@@ -349,8 +349,10 @@ export interface ComboboxPartsProps extends ComboboxBaseProps {
  * Props for the Combobox component: given `data`, it renders itself and
  * keeps the value, and without it, it's built from parts. The helper props,
  * the other attributes and the `ref` land on the `div.combobox` around the
- * field and the list. It renders the `Field` and the label itself, unless an
- * outer `Field` already does.
+ * field and the list, except that with `data`, `aria-invalid` and
+ * `aria-errormessage`, which report the field's state, go on the field.
+ * Built from parts, pass them to `Combobox.Input`. It renders the `Field`
+ * and the label itself, unless an outer `Field` already does.
  *
  * @extraProp {React.Ref<HTMLDivElement>} [ref] - Ref forwarded to the `div.combobox` around the field and the list.
  */
@@ -1199,8 +1201,11 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
       'aria-labelledby': ariaLabelledBy,
       ariaCloseLabel,
       children,
-      ...rest
+      ...callerProps
     } = props;
+    // The field takes `aria-invalid` and `aria-errormessage`, which report
+    // its state, and the wrapper the rest (#2002).
+    const { control: controlState, rest } = splitControlState(callerProps);
     const disabled = useFieldsetDisabled(disabledProp);
     // A name given in place of a label is the field's and the list's, not
     // the wrapper's. Only the ones given are passed, since an
@@ -1345,6 +1350,7 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
       >
         <ComboboxInput
           {...named}
+          {...controlState}
           ref={inputRef}
           id={id}
           disabled={disabled}

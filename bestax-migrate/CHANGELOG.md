@@ -1,3 +1,37 @@
+## [2.38.5](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.38.4...bestax-migrate@2.38.5) (2026-11-17)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** say lookup_bulma_classes' is-loading converts only without a busy state ([37f2db2](https://github.com/allxsmith/bestax/commit/37f2db282c48e328140a82476156e91fad81e823))
+* **bestax-migrate:** keep is-loading a class on a .button that sets its own busy state ([5cb9c34](https://github.com/allxsmith/bestax/commit/5cb9c34cfaa9ef2d6d1fe99bb3cb0e82d6b0a5d2)), closes [#2040](https://github.com/allxsmith/bestax/issues/2040)
+* **bulma-ui:** build a Toast's click handler as one that runs when the click comes ([441c0a1](https://github.com/allxsmith/bestax/commit/441c0a15fccbb193c1f721eb3e946f8e846e5763)), closes [#2056](https://github.com/allxsmith/bestax/issues/2056)
+* **bulma-ui:** call a Toast's onClose once ([1569240](https://github.com/allxsmith/bestax/commit/1569240f05943d444a30f2c989bfdd2bc849fc1d)), closes [#1902](https://github.com/allxsmith/bestax/issues/1902)
+* **bulma-ui:** close Taginput's suggestion list when focus moves to another element ([20be31f](https://github.com/allxsmith/bestax/commit/20be31f2a39c723f9c9667021728eba18593b013)), closes [#2004](https://github.com/allxsmith/bestax/issues/2004)
+* **bulma-ui:** draw a Tabs.Item link's focus ring inside the link ([27197d3](https://github.com/allxsmith/bestax/commit/27197d39129689710dc86a568bf18d774b9719d5)), closes [#1945](https://github.com/allxsmith/bestax/issues/1945) [#1944](https://github.com/allxsmith/bestax/issues/1944)
+* **bulma-ui:** draw Badge's dot and pill in forced colors ([04236f3](https://github.com/allxsmith/bestax/commit/04236f37566f46aa415cac2f7bb26d0eed5d8357)), closes [#1989](https://github.com/allxsmith/bestax/issues/1989)
+* **bulma-ui:** draw Box's edge in forced colors, where it vanished ([5a54636](https://github.com/allxsmith/bestax/commit/5a54636d7f80ce269fa22412098e2b0426a7c501)), closes [#1853](https://github.com/allxsmith/bestax/issues/1853)
+* **bulma-ui:** draw Dropdown.Divider and Navbar.Divider in forced colors ([ecca83c](https://github.com/allxsmith/bestax/commit/ecca83c207103269fcd5d4588c8d429bd31fe6f7))
+* **bulma-ui:** draw the pickers' picked dates in Highlight in forced colors ([2e8ac2c](https://github.com/allxsmith/bestax/commit/2e8ac2c90b089eb1e48377a59311df2378406da9)), closes [#1888](https://github.com/allxsmith/bestax/issues/1888)
+* **bulma-ui:** give a named Pre the region role only while it overflows ([3e361af](https://github.com/allxsmith/bestax/commit/3e361af622277e5466d064fe39af5baebe2191c4)), closes [#1854](https://github.com/allxsmith/bestax/issues/1854)
+* **bulma-ui:** hide Dialog's built-in icon from assistive technology ([fcc9806](https://github.com/allxsmith/bestax/commit/fcc980645e467d1ecf37a093f98b57bc37603e2c)), closes [#1895](https://github.com/allxsmith/bestax/issues/1895)
+* **bulma-ui:** keep focus in a Numberinput's input when its buttons are clicked ([bec66aa](https://github.com/allxsmith/bestax/commit/bec66aa9c190fd4d269e1d09e5e530bc8b0407ef)), closes [#1971](https://github.com/allxsmith/bestax/issues/1971)
+* **bulma-ui:** keep focus in Carousel when its focused arrow or indicator is disabled or goes away ([4ba9543](https://github.com/allxsmith/bestax/commit/4ba95437c96f34a721d6f7e56724d30ae78157a5)), closes [#1922](https://github.com/allxsmith/bestax/issues/1922)
+* **bulma-ui:** keep Panel's edge in forced colors ([37d5f60](https://github.com/allxsmith/bestax/commit/37d5f6034b8ed0b030394c4bff43a62fbbe8197f)), closes [#1983](https://github.com/allxsmith/bestax/issues/1983)
+* **bulma-ui:** keep the Tabs.Item ring rules for a Tabs inside a list item ([934c4e1](https://github.com/allxsmith/bestax/commit/934c4e1b6e5cf70d02849c2152405ed8bdcc4147)), closes [#1944](https://github.com/allxsmith/bestax/issues/1944)
+* **bulma-ui:** leave a link in a list nested in a Tabs.Item to Bulma ([f23e3f5](https://github.com/allxsmith/bestax/commit/f23e3f5b063cf5c036aa54c6af26523cd190550f)), closes [#1944](https://github.com/allxsmith/bestax/issues/1944)
+* **bulma-ui:** let a caller name Modal's close buttons with ariaCloseLabel ([63259c0](https://github.com/allxsmith/bestax/commit/63259c0623c66aad955d4f72497fe50e777294ad)), closes [#1934](https://github.com/allxsmith/bestax/issues/1934)
+* **bulma-ui:** let the keyboard reach and scroll a Pre that overflows, Safari included ([3985311](https://github.com/allxsmith/bestax/commit/398531164b0ddb5a6f3ced86273b4f06baa8ddb3)), closes [#1854](https://github.com/allxsmith/bestax/issues/1854)
+* **bulma-ui:** make an overflowing Pre a region only when it's named, and keep a ref prop ([62dfe04](https://github.com/allxsmith/bestax/commit/62dfe0441692a899cf0eb4588a59115ab60da1ce)), closes [#1854](https://github.com/allxsmith/bestax/issues/1854)
+* **bulma-ui:** move focus with Left and Right along Carousel's indicators ([0ee6cb7](https://github.com/allxsmith/bestax/commit/0ee6cb7a5e1866a17c82f3e8f891644f95c45e7f)), closes [#1923](https://github.com/allxsmith/bestax/issues/1923)
+* **bulma-ui:** run a Toast's own hover and click handlers beside a caller's ([02d6e36](https://github.com/allxsmith/bestax/commit/02d6e36d7af75f13c4e93a266672e9ce3a9de7cb)), closes [#1904](https://github.com/allxsmith/bestax/issues/1904)
+* **bulma-ui:** say a disabled inline TimeInput's wheels are disabled ([a92d0cf](https://github.com/allxsmith/bestax/commit/a92d0cfb66c87350be9f1f07b51b3d1dee3f5aae)), closes [#2022](https://github.com/allxsmith/bestax/issues/2022)
+
+
+### Features
+
+* **bulma-ui:** name Autocomplete's clear button through labels.clear ([ab068da](https://github.com/allxsmith/bestax/commit/ab068da2ccf6640a179b4ca86acba7669f6d2f51)), closes [#2008](https://github.com/allxsmith/bestax/issues/2008)
+
 ## [2.38.4](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.38.3...bestax-migrate@2.38.4) (2026-11-17)
 
 

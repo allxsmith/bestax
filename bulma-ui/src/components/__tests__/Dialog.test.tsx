@@ -4,6 +4,29 @@ import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { Dialog, DialogContainer, dialog } from '../Dialog';
 import { Popover } from '../Popover';
+import { resetDevWarnings } from '../../helpers/devWarnings';
+
+// A Dialog without a title warns in development (#1896), and many tests here
+// open one, so that warning is held for the tests that read it. Any other
+// warning still reaches the console.
+const UNNAMED = 'A Dialog opened with no accessible name';
+beforeEach(() => {
+  resetDevWarnings();
+  const realWarn = console.warn;
+  vi.spyOn(console, 'warn').mockImplementation((...args: unknown[]) => {
+    if (!String(args[0]).includes(UNNAMED)) realWarn(...args);
+  });
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
+/** The warnings about a dialog with no accessible name. */
+const unnamedWarnings = () =>
+  vi
+    .mocked(console.warn)
+    .mock.calls.filter(([message]) => String(message).includes(UNNAMED));
 
 describe('Dialog', () => {
   afterEach(() => {
@@ -634,6 +657,104 @@ describe('Dialog Programmatic API', () => {
       expect(listener).not.toHaveBeenCalled();
       dialog.close();
     });
+  });
+});
+
+// An alertdialog needs an accessible name, and a Dialog without a title has
+// none unless the caller gives it one (#1896).
+describe('Dialog accessible name', () => {
+  afterEach(() => {
+    dialog.close();
+  });
+
+  it('warns once about a dialog with neither a title nor a label, naming both fixes', () => {
+    render(
+      <>
+        <Dialog isOpen message="Saved" />
+        <Dialog isOpen message="Saved again" />
+      </>
+    );
+    expect(screen.getAllByRole('alertdialog')[0]).toHaveAccessibleName('');
+    expect(unnamedWarnings()).toEqual([
+      [expect.stringMatching(/title.*aria-label.*aria-labelledby/)],
+    ]);
+  });
+
+  it.each([
+    ['a title', { title: 'Saved' }, 'Saved'],
+    ['an aria-label', { 'aria-label': 'Saved' }, 'Saved'],
+  ] as const)(
+    'stays quiet about a dialog named by %s',
+    (_label, props, name) => {
+      render(<Dialog isOpen message="Your changes are saved." {...props} />);
+      expect(screen.getByRole('alertdialog')).toHaveAccessibleName(name);
+      expect(unnamedWarnings()).toEqual([]);
+    }
+  );
+
+  it('stays quiet about a dialog named by aria-labelledby', () => {
+    render(
+      <>
+        <p id="named-elsewhere">Named elsewhere</p>
+        <Dialog
+          isOpen
+          message="Your changes are saved."
+          aria-labelledby="named-elsewhere"
+        />
+      </>
+    );
+    expect(screen.getByRole('alertdialog')).toHaveAccessibleName(
+      'Named elsewhere'
+    );
+    expect(unnamedWarnings()).toEqual([]);
+  });
+
+  it.each([
+    ['a blank aria-label', { 'aria-label': ' ' }],
+    [
+      'a title that an empty aria-labelledby replaces',
+      { title: 'Delete?', 'aria-labelledby': '' },
+    ],
+  ] as const)('warns about a dialog named by %s', (_label, props) => {
+    render(<Dialog isOpen message="Your changes are saved." {...props} />);
+    expect(screen.getByRole('alertdialog')).toHaveAccessibleName('');
+    expect(unnamedWarnings()).toHaveLength(1);
+  });
+
+  it('stays quiet while a dialog with no name is closed', () => {
+    render(<Dialog isOpen={false} message="Saved" />);
+    expect(unnamedWarnings()).toEqual([]);
+  });
+
+  it('names a programmatic dialog by the aria-label in its options, and stays quiet', () => {
+    render(<DialogContainer />);
+    act(() => {
+      void dialog.alert({
+        message: 'Your changes are saved.',
+        'aria-label': 'Saved',
+      });
+    });
+    expect(screen.getByRole('alertdialog')).toHaveAccessibleName('Saved');
+    act(() => dialog.close());
+    act(() => {
+      void dialog.confirm({
+        message: 'Leave without saving?',
+        'aria-label': 'Unsaved changes',
+      });
+    });
+    expect(screen.getByRole('alertdialog')).toHaveAccessibleName(
+      'Unsaved changes'
+    );
+    expect(unnamedWarnings()).toEqual([]);
+  });
+
+  it('warns about a programmatic dialog raised with a string', () => {
+    render(<DialogContainer />);
+    act(() => {
+      void dialog.alert('Your changes are saved.');
+    });
+    expect(screen.getByRole('alertdialog')).toHaveAccessibleName('');
+    expect(unnamedWarnings()).toHaveLength(1);
   });
 });
 

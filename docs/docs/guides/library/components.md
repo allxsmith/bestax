@@ -293,7 +293,7 @@ A vertical panel block for lists, filters, or grouped actions. [View full docume
 Image/content slider with navigation arrows and indicators. Supports auto-play, drag navigation, several items in view at once, and customizable styles. [View full documentation.](../../api/components/carousel.md)
 
 ```tsx live
-<Carousel indicatorStyle="lines" arrowHover>
+<Carousel ariaLabel="Night sky photos" indicatorStyle="lines" arrowHover>
   <CarouselItem>
     <div style={{ position: 'relative' }}>
       <img

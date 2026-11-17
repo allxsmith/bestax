@@ -4,6 +4,7 @@ import { Rate } from './Rate';
 import { Field } from './Field';
 import { Control } from './Control';
 import { Button } from '../elements/Button';
+import { useNumberFormat } from '../helpers/localeFormat';
 
 const meta: Meta<typeof Rate> = {
   title: 'Form/Rate',
@@ -29,6 +30,28 @@ type Story = StoryObj<typeof Rate>;
 export const Default: Story = {
   args: {
     defaultValue: 3,
+  },
+};
+
+/**
+ * Translated names: `labels` names the group and its stars for a screen
+ * reader in another language. `star` gets the value a star stands for, so it
+ * writes the plural and the number, here "3,5 étoiles" through
+ * `useNumberFormat`.
+ */
+export const TranslatedNames: Story = {
+  render: function TranslatedRate() {
+    const number = useNumberFormat('fr');
+    return (
+      <Rate
+        defaultValue={3.5}
+        precision={0.5}
+        labels={{
+          group: 'Note',
+          star: value => `${number(value)} étoile${value >= 2 ? 's' : ''}`,
+        }}
+      />
+    );
   },
 };
 
