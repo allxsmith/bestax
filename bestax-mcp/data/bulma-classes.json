@@ -87,7 +87,10 @@
         "is-large": { "writes": [{ "prop": "size", "value": "large" }] },
         "is-light": { "writes": [{ "prop": "isLight" }] },
         "is-rounded": { "writes": [{ "prop": "isRounded" }] },
-        "is-loading": { "writes": [{ "prop": "isLoading" }] },
+        "is-loading": {
+          "writes": [{ "prop": "isLoading" }],
+          "overridesAttrs": ["aria-busy", "aria-disabled"]
+        },
         "is-static": { "writes": [{ "prop": "isStatic" }] },
         "is-fullwidth": { "writes": [{ "prop": "isFullwidth" }] },
         "is-outlined": { "writes": [{ "prop": "isOutlined" }] },
@@ -2949,7 +2952,7 @@
       "status": "mapped",
       "target": "Tag",
       "tag": "span",
-      "as": null,
+      "as": ["span", "a", "button"],
       "sizeDrivesTag": false,
       "textColor": null,
       "bgColor": "backgroundColor",
@@ -4669,7 +4672,12 @@
       "bgColor": null,
       "part": false,
       "why": null,
-      "modifiers": { "is-active": { "writes": [{ "prop": "active" }] } },
+      "modifiers": {
+        "is-active": {
+          "writes": [{ "prop": "active" }],
+          "needsAttr": { "name": "aria-current", "value": "page" }
+        }
+      },
       "omits": {},
       "wrapsChildren": null,
       "folds": null,

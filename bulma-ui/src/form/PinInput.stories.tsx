@@ -121,7 +121,7 @@ export const Verification: Story = {
         <PinInput
           {...args}
           // The check below is for six digits, whatever the controls say,
-          // and the label says so, since the message isn't read on focus.
+          // and the label says so.
           label="Enter the 6-digit code we sent you"
           length={6}
           value={code}

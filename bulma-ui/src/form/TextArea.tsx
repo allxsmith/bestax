@@ -1,5 +1,4 @@
 import React, { forwardRef } from 'react';
-import { usePrefixedClassNames } from '../helpers/classNames';
 import { Field, FieldProps } from './Field';
 import { Control, ControlBaseProps } from './Control';
 import { TextAreaBase, TextAreaBaseProps } from './TextAreaBase';
@@ -10,6 +9,7 @@ import {
   rendersOwnControl,
 } from './FormContext';
 import { useAutoLabelId } from './useAutoLabelId';
+import { useFieldMessage } from './useFieldMessage';
 
 /**
  * Props for the TextArea component.
@@ -43,7 +43,10 @@ export interface TextAreaProps extends TextAreaBaseProps {
   isLoading?: boolean;
   /** Control size. */
   controlSize?: ControlBaseProps['size'];
-  /** Help/validation message below the textarea. */
+  /**
+   * Help or validation text under the textarea. It describes the textarea
+   * through `aria-describedby`, after any ids you pass there.
+   */
   message?: React.ReactNode;
   /** Bulma color for the message. */
   messageColor?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
@@ -114,11 +117,20 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
       labelProps,
       rendersLabel: ownField,
     });
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
+    const { messageEl, describedBy } = useFieldMessage(
+      message,
+      messageColor,
+      textAreaProps['aria-describedby']
+    );
 
-    let content = <TextAreaBase ref={ref} {...textAreaProps} id={controlId} />;
+    let content = (
+      <TextAreaBase
+        ref={ref}
+        {...textAreaProps}
+        id={controlId}
+        aria-describedby={describedBy}
+      />
+    );
 
     if (ownControl) {
       content = (
@@ -131,8 +143,6 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
         </Control>
       );
     }
-
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
 
     if (ownField) {
       return (

@@ -1166,6 +1166,23 @@ describe('TimeInput inline and readOnly', () => {
     expect(Array.from(data.entries())).toEqual([['start', '10:00']]);
   });
 
+  it('tells assistive tech a disabled wheel is disabled, and an enabled one nothing', () => {
+    const { getAllByRole, rerender } = render(
+      <TimeInput inline disabled defaultValue={at(10, 0)} hourFormat="12" />
+    );
+    const wheels = getAllByRole('spinbutton');
+    expect(wheels).toHaveLength(3);
+    for (const wheel of wheels) {
+      expect(wheel).toHaveAttribute('aria-disabled', 'true');
+      expect(wheel).toHaveAttribute('tabindex', '-1');
+    }
+    rerender(<TimeInput inline defaultValue={at(10, 0)} hourFormat="12" />);
+    for (const wheel of getAllByRole('spinbutton')) {
+      expect(wheel).not.toHaveAttribute('aria-disabled');
+      expect(wheel).toHaveAttribute('tabindex', '0');
+    }
+  });
+
   it('commits nothing from a drag already under way when readOnly turns on', () => {
     const handler = vi.fn();
     const { getAllByRole, rerender } = render(

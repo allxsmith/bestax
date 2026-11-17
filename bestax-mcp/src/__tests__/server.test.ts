@@ -21,6 +21,7 @@ import { join } from 'node:path';
 import ts from 'typescript';
 
 import { DATA_DIR, loadCatalog, loadComponent } from '../data.js';
+import { GROUP_NAMES, reflowTables } from '../helper-props.js';
 import { createServer } from '../server.js';
 import { installLibrary } from './installed-library.js';
 
@@ -1095,6 +1096,18 @@ describe('get_helper_props', () => {
   // get_helper_props was 54,886 characters -- 49% of everything a measured cold-start
   // session read -- on the tool the server's own instructions tell every client to call.
   describe('answers without spending the session', () => {
+    // The rule tables come from a skill, padded for reading, and no model reads
+    // the padding: each row is served as reflowTables writes it.
+    it.each([
+      ['get_helper_props', {}],
+      ['list_components', {}],
+    ])('serves %s with its tables unpadded', async (name, args) => {
+      const out = text(await call(name, args));
+      const rows = out.split('\n').filter(l => l.startsWith('|'));
+      expect(rows.length).toBeGreaterThan(0);
+      for (const row of rows) expect(reflowTables(row)).toBe(row);
+    });
+
     it('keeps the default under 10k while naming every prop', async () => {
       const out = text(await call('get_helper_props'));
       expect(out.length).toBeLessThan(10_000);
@@ -1322,8 +1335,8 @@ describe('lookup_bulma_classes', () => {
   });
 
   it('says "an" before a tag read with a vowel sound', async () => {
-    expect(await lookup('tag', 'a')).toContain(
-      '**Component:** `Tag` renders only <span>, not an <a>. Change the tag to use it, and the rows below are what it takes then; the codemod leaves an <a> as markup.'
+    expect(await lookup('notification', 'a')).toContain(
+      '**Component:** `Notification` renders only <div>, not an <a>. Change the tag to use it, and the rows below are what it takes then; the codemod leaves an <a> as markup.'
     );
     expect(await lookup('section', 'div')).toContain(
       '`Section` renders only <section>, not a <div>'
@@ -2832,11 +2845,70 @@ describe('with the library a minor version ahead of the index', () => {
       'This index documents'
     );
   });
+
+  // The warning follows the answer. get_helper_props is kept under 10k so it
+  // doesn't spend the session, since every client is told to call it, so it
+  // keeps room for the warning, by default and for each group.
+  it.each([undefined, ...GROUP_NAMES])(
+    'keeps get_helper_props (group %s) under 10k with the warning',
+    async group => {
+      const out = text(
+        await ahead.callTool({
+          name: 'get_helper_props',
+          arguments: group ? { group } : {},
+        })
+      );
+      expect(out).toContain('This index documents');
+      expect(out.length).toBeLessThan(10_000);
+    }
+  );
+
+  // The suite holds Theme's table to 10k on the main client, its check that the
+  // default answer is the table and not the page. Here the answer is that table,
+  // the warning after it and nothing more, so it is still the table, though the
+  // warning can take it past 10k.
+  it.each([
+    ['get_props', { component: 'Theme' }],
+    ['get_component', { name: 'Theme' }],
+  ])(
+    'answers %s for Theme with the table and the warning alone',
+    async (name, args) => {
+      const plain = text(await client.callTool({ name, arguments: args }));
+      const warned = text(await ahead.callTool({ name, arguments: args }));
+      expect(warned.startsWith(`${plain}\n\n⚠ This index documents`)).toBe(
+        true
+      );
+      expect(warned.slice(plain.length).trim().split('\n')).toHaveLength(1);
+    }
+  );
 });
 
 // A client that starts the server outside the project used to get answers checked
 // against nothing, and no word of it (#935).
 describe('with no installed library to check against', () => {
+  // Said on a session's first answer, which is usually get_helper_props, the
+  // tool every client is told to call, kept under 10k.
+  it.each([undefined, ...GROUP_NAMES])(
+    'keeps a first get_helper_props (group %s) under 10k with the note',
+    async group => {
+      const empty = await mkdtemp(join(tmpdir(), 'bestax-mcp-first-'));
+      const first = await connectAt(empty);
+      try {
+        const out = text(
+          await first.callTool({
+            name: 'get_helper_props',
+            arguments: group ? { group } : {},
+          })
+        );
+        expect(out).toContain('no installed @allxsmith/bestax-bulma was found');
+        expect(out.length).toBeLessThan(10_000);
+      } finally {
+        await first.close();
+        await rm(empty, { recursive: true, force: true });
+      }
+    }
+  );
+
   let elsewhere: Client;
   let dir: string;
 

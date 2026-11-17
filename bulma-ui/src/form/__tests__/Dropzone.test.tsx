@@ -6,6 +6,7 @@ import {
   fireEvent,
   render,
   screen,
+  within,
 } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
@@ -342,6 +343,15 @@ describe('Dropzone', () => {
       expect(onFilesChange).toHaveBeenCalledWith([report]);
       expect(onChange).toHaveBeenCalledTimes(1);
       expect(namesIn(onChange.mock.calls[0][0].target)).toEqual(['report.pdf']);
+    });
+
+    it('lists the files as a list Safari keeps, with role="list" written out', () => {
+      const { container } = render(<Dropzone multiple />);
+      pick(inputOf(container), [pdf('a.pdf'), pdf('b.pdf')]);
+      const list = screen.getByRole('list');
+      expect(list).toHaveClass('dropzone-list');
+      expect(list).toHaveAttribute('role', 'list');
+      expect(within(list).getAllByRole('listitem')).toHaveLength(2);
     });
 
     it('replaces the file without multiple', () => {

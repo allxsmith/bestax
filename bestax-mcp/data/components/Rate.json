@@ -39,6 +39,10 @@
       "code": "function example() {\n  const [rating, setRating] = useState(3);\n\n  const HeartIcon = ({ isActive }: { isActive: boolean }) => (\n    <svg\n      xmlns=\"http://www.w3.org/2000/svg\"\n      viewBox=\"0 0 24 24\"\n      fill={isActive ? 'currentColor' : 'none'}\n      stroke=\"currentColor\"\n      strokeWidth={isActive ? 0 : 2}\n      style={{ color: '#f14668' }}\n    >\n      <path d=\"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z\" />\n    </svg>\n  );\n\n  return (\n    <Rate\n      value={rating}\n      onChange={setRating}\n      customIcon={({ isActive }) => <HeartIcon isActive={isActive} />}\n      showScore\n    />\n  );\n}"
     },
     {
+      "title": "Translated Names",
+      "code": "function example() {\n  const number = useNumberFormat('fr');\n\n  return (\n    <Rate\n      defaultValue={3.5}\n      precision={0.5}\n      labels={{\n        group: 'Note',\n        star: value => `${number(value)} étoile${value >= 2 ? 's' : ''}`,\n      }}\n    />\n  );\n}"
+    },
+    {
       "title": "Context-Aware Rendering › Default (with label)",
       "code": "<Rate label=\"Rating\" defaultValue={3} />"
     },
@@ -51,7 +55,7 @@
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Rating\"\n      labelProps={{ id: 'rating-label-control', htmlFor: undefined }}\n    >\n      <Field.Body>\n        <Field>\n          <Control>\n            <Rate aria-labelledby=\"rating-label-control\" defaultValue={3} />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
-  "accessibility": "- Uses `role=\"radiogroup\"` for the container\n- The `label` prop names the group via `aria-labelledby` (the rendered `<label>` gets an id — yours via `labelProps.id`, or a generated one); without a label the container falls back to `aria-label=\"Rating\"`. Inside a labeled `Field`, that `Field`'s label names the group the same way and replaces the fallback. An `aria-label` or `aria-labelledby` you set on the Rate yourself wins over either label\n- Each star has `role=\"radio\"` with `aria-checked`, and the star the value falls in is the checked one, so the value travels with it. A fractional value names that star by the value itself (\"3.5 stars\")\n- Focus stays on the group, which points `aria-activedescendant` at the checked star, so a screen reader announces it as the arrow keys change the value\n- Full keyboard navigation with arrow keys\n- Home/End keys jump to 0/max values\n- `disabled` sets `aria-disabled` on the group and on every star, so a screen reader announces them as unavailable, and takes the group out of the tab order\n- In forced colors (Windows' contrast themes) the built-in star a value only partly fills draws its filled part in the system's highlight color, as a filled star is drawn\n- On a right-to-left page, or inside a wrapper with `dir=\"rtl\"`, the stars run right to left, the built-in star or an `iconName` icon fills a half star from its right, and the pointer reads a star's fraction from its right edge. The `rtl` prop doesn't change any of that. It only reverses the order a screen reader meets the stars in, so set `dir` instead",
+  "accessibility": "- Uses `role=\"radiogroup\"` for the container\n- The `label` prop names the group via `aria-labelledby` (the rendered `<label>` gets an id — yours via `labelProps.id`, or a generated one); without a label the container falls back to an `aria-label` of `labels.group`, \"Rating\" by default. Inside a labeled `Field`, that `Field`'s label names the group the same way and replaces the fallback. An `aria-label` or `aria-labelledby` you set on the Rate yourself wins over either label\n- Each star has `role=\"radio\"` with `aria-checked`, and the star the value falls in is the checked one, so the value travels with it. A fractional value names that star by the value itself (\"3.5 stars\")\n- The names are English unless you set `labels`: `labels.star` names each star from the value it stands for, in your language, and a `LocaleProvider` doesn't change them\n- Focus stays on the group, which points `aria-activedescendant` at the checked star, so a screen reader announces it as the arrow keys change the value\n- Full keyboard navigation with arrow keys\n- Home/End keys jump to 0/max values\n- `disabled` sets `aria-disabled` on the group and on every star, so a screen reader announces them as unavailable, and takes the group out of the tab order\n- In forced colors (Windows' contrast themes) the built-in star or an `iconName` icon a value only partly fills draws its filled part in the system's highlight color, as a filled star is drawn. A `customIcon` draws its own partial fill, so its forced colors are its own\n- On a right-to-left page, or inside a wrapper with `dir=\"rtl\"`, the stars run right to left, the built-in star or an `iconName` icon fills a half star from its right, and the pointer reads a star's fraction from its right edge. The `rtl` prop doesn't change any of that. It only reverses the order a screen reader meets the stars in, so set `dir` instead\n- The `message` describes the group through `aria-describedby`, after any ids you pass there, so a screen reader reads it when the group takes focus",
   "related": ["Input", "Slider"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-rate",
   "summary": "The `Rate` component provides a star/icon-based rating system.",
@@ -68,7 +72,7 @@
           "name": "label",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Field label naming the rating group. Automatically associated via `aria-labelledby` on the `role=\"radiogroup\"` container — uses your `labelProps.id` when provided, otherwise a generated one; it also replaces the default `aria-label=\"Rating\"`. Dropped inside an outer `Field`, whose own label names the group instead through `aria-labelledby` when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`), and replaces the `aria-label=\"Rating\"` fallback too. An `aria-label` or `aria-labelledby` you set on the group wins over either label, which still renders but no longer names it. An `aria-labelledby` key counts even when undefined, since it is spread over the group's own, and leaves the `\"Rating\"` fallback.",
+          "description": "Field label naming the rating group. Automatically associated via `aria-labelledby` on the `role=\"radiogroup\"` container — uses your `labelProps.id` when provided, otherwise a generated one; it also replaces the fallback `aria-label` (`labels.group`, \"Rating\" by default). Dropped inside an outer `Field`, whose own label names the group instead through `aria-labelledby` when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`), and replaces that fallback too. An `aria-label` or `aria-labelledby` you set on the group wins over either label, which still renders but no longer names it. An `aria-labelledby` key counts even when undefined, since it is spread over the group's own, and leaves the fallback.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -272,6 +276,15 @@
           "deprecated": false
         },
         {
+          "name": "labels",
+          "type": "{ group?: string; star?: (value: number) => string }",
+          "default": null,
+          "description": "The names a screen reader hears, for another language: the group's fallback name and each star's. Unset, they're English, \"Rating\" and \"3 stars\". A `LocaleProvider` doesn't change them.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
           "name": "labelSize",
           "type": "'small' | 'normal' | 'medium' | 'large'",
           "default": null,
@@ -293,7 +306,7 @@
           "name": "message",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Help/validation message below the input.",
+          "description": "Help or validation text under the widget. It describes the control its label names through `aria-describedby`, so a screen reader reads it there.",
           "required": false,
           "inherited": true,
           "deprecated": false

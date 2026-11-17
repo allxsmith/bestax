@@ -15,7 +15,6 @@ import { ConfigProvider } from '../../helpers/Config';
 import { compileSheet } from '../../__tests__/compile-scss';
 import { bulmaCss, rulesOf as parseSheet } from '../../__tests__/css-cascade';
 import {
-  contrast,
   schemesOf,
   substitute,
   varsOn,
@@ -401,7 +400,7 @@ describe.each([
     }
   );
 
-  it('writes the cancel button in the scheme’s text colors, which read on both schemes', () => {
+  it('writes the cancel button in Bulma’s text-light, and text under the pointer', () => {
     const found = rulesOf(compile(prefix));
     const { container, unmount } = render(
       <ConfigProvider classPrefix={prefix}>
@@ -421,16 +420,18 @@ describe.each([
         .flatMap(({ declarations }) => declarations)
         .filter(({ property }) => property === name)
         .map(({ value }) => value);
-    // Not `text-light`, a fixed light gray that reads at about 1.3:1 on the
-    // light scheme's white. `text` and `text-strong` follow the scheme.
+    // Bulma's colors, which change only when the repo's owner asks (the root
+    // CLAUDE.md, "Bulma's stock colors and the bestax blue"). `text-light`
+    // falls short of the 4.5:1 text needs on a light page, which the Loading
+    // page says, with how a theme gets more.
     expect(declared('--bulma-loading-cancel-color')).toEqual([
-      'var(--bulma-text)',
+      'var(--bulma-text-light)',
     ]);
     expect(declared('--bulma-loading-cancel-hover-color')).toEqual([
-      'var(--bulma-text-strong)',
+      'var(--bulma-text)',
     ]);
     expect(declared('--bulma-loading-cancel-hover-border-color')).toEqual([
-      'var(--bulma-border-hover)',
+      'var(--bulma-text-light)',
     ]);
     // jsdom matches no :hover, so the hover rule is read off the sheet.
     const hover = found.filter(
@@ -477,11 +478,16 @@ describe.each([
   });
 });
 
-// The spinner's color, read off a whole published sheet, resolved through the
-// variables it declares in each scheme, the way a browser does, and measured
-// against the page's color, which the overlay is drawn in (#1679). A spinner
-// is a graphic, so it needs 3:1. `extras.css` takes its colors from the app's
-// Bulma, so it is measured with Bulma's own.
+// The spinner's color in each published sheet: Bulma's `grey-light` with no
+// color, and the color itself with one, put together on the loading from the
+// color's hue, saturation and lightness, so a Theme around it reaches it. In
+// each scheme that resolves to what the sheet's own `--bulma-<color>` does, so
+// it stays Bulma's color if Bulma ever puts `--bulma-<color>` together
+// differently. Variables resolve here as the whole page declares them, not per
+// element. `grey-light` and some of the colors fall short of WCAG's 3:1
+// against a light page, which the Loading page says, with how a theme gets
+// more. `extras.css` takes its colors from the app's Bulma, so it is read with
+// Bulma's own.
 describe.each([
   ['bestax.css', '', () => compileSheet('bestax.scss')],
   [
@@ -494,7 +500,7 @@ describe.each([
     '',
     () => bulmaCss() + compileSheet('extras.scss'),
   ],
-])('Loading contrast in %s', (_name, prefix, sheet) => {
+])('Loading colors in %s', (_name, prefix, sheet) => {
   let schemes: ReturnType<typeof schemesOf>;
   /** The variables a loading declares on itself. */
   let base: Vars;
@@ -509,30 +515,29 @@ describe.each([
     colored = color => varsOn(rules, `.${prefix}loading.${prefix}is-${color}`);
   }, 30_000);
 
-  it.each([
-    'no color',
-    'primary',
-    'link',
-    'info',
-    'success',
-    'warning',
-    'danger',
-  ])('draws the spinner with %s at 3:1, on both schemes', name => {
-    // A color's own rule, or the loading's default.
-    const own = name === 'no color' ? base : colored(name);
-    const spin = own['--bulma-loading-icon-spin-color'];
-    expect(spin).toBeTruthy();
-    const failures: string[] = [];
-    for (const [scheme, page] of Object.entries(schemes)) {
-      const all = { ...page, ...base, ...own };
-      // The overlay at full strength, as `overlay="opaque"` draws it. A
-      // see-through one lets what it covers show around the spinner.
-      const ratio = contrast(
-        substitute(spin, all),
-        substitute('var(--bulma-loading-overlay-background)', all)
-      );
-      if (ratio < 3) failures.push(`${scheme}: ${ratio.toFixed(2)}:1`);
-    }
-    expect(failures).toEqual([]);
+  const plain = (value: string) =>
+    value.replace(/^hsla\((.*),\s*1\)$/, 'hsl($1)').replace(/\s+/g, '');
+
+  it('draws the spinner with no color in Bulma’s grey-light', () => {
+    expect(base['--bulma-loading-icon-spin-color']).toBe(
+      'var(--bulma-grey-light)'
+    );
   });
+
+  it.each(['primary', 'link', 'info', 'success', 'warning', 'danger'])(
+    'draws the spinner with %s in the color itself, on both schemes',
+    name => {
+      const spin = colored(name)['--bulma-loading-icon-spin-color'];
+      expect(plain(spin)).toBe(
+        `hsl(var(--bulma-${name}-h),var(--bulma-${name}-s),var(--bulma-${name}-l))`
+      );
+      for (const [scheme, page] of Object.entries(schemes)) {
+        const all = { ...page, ...base, ...colored(name) };
+        expect([scheme, plain(substitute(spin, all))]).toEqual([
+          scheme,
+          plain(substitute(`var(--bulma-${name})`, all)),
+        ]);
+      }
+    }
+  );
 });

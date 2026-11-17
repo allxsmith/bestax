@@ -98,7 +98,8 @@ export interface CascaderLabels {
 /**
  * Props for the Cascader component. The helper props and the other
  * attributes land on the `div.cascader` around the field, as Combobox's do,
- * and the `ref` on the field. It renders the `Field` and the label itself,
+ * and the `ref` on the field, with `aria-invalid` and `aria-errormessage`,
+ * which report its state. It renders the `Field` and the label itself,
  * unless an outer `Field` already does.
  *
  * @extraProp {React.Ref<HTMLInputElement>} [ref] - Ref forwarded to the field, the read-only `<input role="combobox">`.
@@ -228,6 +229,9 @@ export interface CascaderProps
    * opens below and lines up with the field's start edge, which is its right
    * edge on a right-to-left page. A corner you pass stays physical, so
    * `bottom-left` lines up the left edges either way.
+   * A panel that would run past the viewport's left or right edge keeps
+   * its corner and moves sideways, just far enough to fit or, wider than
+   * the viewport, to the edge its text starts from.
    * @defaultValue 'bottom-left'
    */
   position?: PickerPosition;

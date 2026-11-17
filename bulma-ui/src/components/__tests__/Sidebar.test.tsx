@@ -825,6 +825,19 @@ describe('Sidebar', () => {
   });
 
   describe('Accessibility', () => {
+    // Nothing names the dialog on its own, Sidebar.Title included; the docs
+    // teach pointing aria-labelledby at the title's id (#1893).
+    it('is named by its Sidebar.Title through the aria-labelledby the caller gives it', () => {
+      render(
+        <Sidebar isOpen onClose={() => {}} aria-labelledby="nav-title">
+          <Sidebar.Header>
+            <Sidebar.Title id="nav-title">Navigation</Sidebar.Title>
+          </Sidebar.Header>
+        </Sidebar>
+      );
+      expect(screen.getByRole('dialog')).toHaveAccessibleName('Navigation');
+    });
+
     it('has dialog role', () => {
       render(
         <Sidebar isOpen onClose={() => {}}>

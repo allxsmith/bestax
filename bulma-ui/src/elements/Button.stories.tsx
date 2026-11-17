@@ -54,7 +54,8 @@ const meta: Meta<typeof Button> = {
     },
     isStatic: {
       control: 'boolean',
-      description: 'Makes the button non-interactive.',
+      description:
+        "Bulma's static look, with the pointer stopped. It doesn't change the element, so render a label that does nothing as a span.",
     },
     isFullwidth: {
       control: 'boolean',
@@ -257,12 +258,13 @@ export const Loading: Story = {
   },
 };
 
-// Static
+// Static, as a span, which Tab skips and a screen reader reads as text.
 export const Static: Story = {
   args: {
     isStatic: true,
     children: 'Static Button',
   },
+  render: args => <Button {...(args as ButtonProps<'span'>)} as="span" />,
 };
 
 // FullWidth
