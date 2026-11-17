@@ -313,10 +313,11 @@ Rules of thumb:
   `aria-describedby`, so the error is read when the field takes focus. Use `'success'` to signal a
   valid field.
 - `aria-invalid` reaches the input on `Input`, `TextArea`, `Select`, `PasswordInput`,
-  `Numberinput`, `PinInput`, `File`, `ColorInput` and `Combobox.Input`. The date and time inputs,
-  `Autocomplete`, `Taginput`, `TreeSelect`, `Cascader` and a `Combobox` with `data` put the other
-  attributes on their wrapper, so there it doesn't reach the input yet; the `message` still
-  carries the error.
+  `Numberinput`, `PinInput`, `File`, `ColorInput` and `Combobox.Input`. `DateInput`,
+  `TimeInput`, `DateTimeInput`, `Autocomplete`, `Taginput`, `TreeSelect`, `Cascader` and a
+  `Combobox` with `data` put their other attributes on a wrapper, and `aria-invalid` and
+  `aria-errormessage` on the input. On `DateRangeInput` and `ColorPicker.Input` it doesn't reach
+  the input yet; the `message` still carries the error.
 - Want a different validation library? Wire it up yourself — pass its `value`/`onChange`/error
   string into these props. bestax does not prescribe one.
 - For grouped controls, render the `<p class="help">` via the `message` prop of the convenience
