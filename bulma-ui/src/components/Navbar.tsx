@@ -809,18 +809,18 @@ export const NavbarLink = forwardRef(function NavbarLink(
 
 NavbarLink.displayName = 'NavbarLink';
 
-/** Whether an element on an event's path is a dialog, by role or by tag. */
 /**
  * Whether a focus event lands in a dialog marked `aria-modal` that `root`
  * isn't in, read through shadow roots: the event's composed path for the
- * dialog, and the page's parents for whether it holds `root`.
+ * dialog, and the page's parents for whether it holds `root`. Nodes are read
+ * by their methods, not `instanceof`, so a tree in an iframe is read too.
  */
 function inModalOutside(e: Event, root: Element) {
   const modal = e
     .composedPath()
     .find(
       (node): node is Element =>
-        node instanceof Element && node.getAttribute('aria-modal') === 'true'
+        (node as Element).getAttribute?.('aria-modal') === 'true'
     );
   if (!modal) return false;
   for (let el: Element | undefined = root; el; el = parentInPage(el)) {
@@ -829,6 +829,7 @@ function inModalOutside(e: Event, root: Element) {
   return true;
 }
 
+/** Whether an element on an event's path is a dialog, by role or by tag. */
 const isDialog = (node: EventTarget) => {
   const el = node as Element;
   const role = el.getAttribute?.('role');
