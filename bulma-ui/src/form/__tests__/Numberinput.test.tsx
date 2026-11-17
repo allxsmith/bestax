@@ -567,12 +567,52 @@ describe('Numberinput', () => {
       ).toBeInTheDocument();
     });
 
-    it('buttons have tabIndex -1 to keep focus on input', () => {
+    it('buttons have tabIndex -1, out of the Tab order', () => {
       render(<Numberinput defaultValue={5} />);
       const buttons = screen.getAllByRole('button');
       buttons.forEach(button => {
         expect(button).toHaveAttribute('tabindex', '-1');
       });
+    });
+
+    // #1971: tabIndex -1 keeps a button out of the Tab order, but a click
+    // still focused it, so the arrow keys stopped working, and a button that
+    // disabled at a limit took focus with it.
+    it.each(['plusminus', 'stepper'] as const)(
+      'keeps focus in the input when a %s button is clicked',
+      async variant => {
+        const user = userEvent.setup();
+        render(
+          <Numberinput
+            label="Quantity"
+            defaultValue={8}
+            max={10}
+            variant={variant}
+          />
+        );
+        const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+        const increase = screen.getByRole('button', { name: 'Increase value' });
+        input.focus();
+        await user.click(increase);
+        expect(input).toHaveFocus();
+        await user.click(increase);
+        expect(increase).toBeDisabled();
+        expect(input).toHaveFocus();
+        await user.keyboard('{ArrowDown}');
+        expect(input).toHaveValue(9);
+        await user.click(
+          screen.getByRole('button', { name: 'Decrease value' })
+        );
+        expect(input).toHaveFocus();
+      }
+    );
+
+    it('cancels the mouse down on every button', () => {
+      render(<Numberinput defaultValue={5} />);
+      render(<Numberinput defaultValue={5} variant="stepper" />);
+      for (const button of screen.getAllByRole('button')) {
+        expect(fireEvent.mouseDown(button)).toBe(false);
+      }
     });
 
     it('stepper buttons have tabIndex -1', () => {
