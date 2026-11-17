@@ -113,7 +113,10 @@ export interface TimeInputBaseProps
   min?: Date | undefined;
   /** Latest selectable time. */
   max?: Date | undefined;
-  /** Disable the input. */
+  /**
+   * Disable the input. An `inline` picker's wheels leave the tab order and
+   * carry `aria-disabled`, and nothing turns them.
+   */
   disabled?: boolean | undefined;
   /**
    * Make the input read-only. An `inline` picker's wheels keep their tab
