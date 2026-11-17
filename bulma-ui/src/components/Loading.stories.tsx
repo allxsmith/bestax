@@ -61,6 +61,11 @@ const meta: Meta<typeof Loading> = {
       control: 'boolean',
       description: 'Show a cancel button and allow closing',
     },
+    cancelText: {
+      control: 'text',
+      description:
+        'The cancel button\'s words, which also name it. Default: "Cancel", named "Cancel loading"',
+    },
     children: {
       control: 'text',
       description: 'Loading message to display below the spinner',
@@ -273,6 +278,48 @@ export const WithCancel: Story = {
         {!isLoading && (
           <Button color="primary" mt="4" onClick={() => setIsLoading(true)}>
             Show Loading Again
+          </Button>
+        )}
+      </Block>
+    );
+  },
+};
+
+/**
+ * A loading in the page's language. `cancelText` gives the cancel button its
+ * words, which name it too, and an `aria-label` names the loading itself.
+ */
+export const CancelText: Story = {
+  render: function LoadingCancelText() {
+    const [isLoading, setIsLoading] = useState(true);
+
+    return (
+      <Block lang="fr">
+        <Box relative>
+          <Loading
+            active={isLoading}
+            aria-label="Chargement"
+            canCancel
+            cancelText="Annuler"
+            onCancel={() => setIsLoading(false)}
+          >
+            Chargement des données…
+          </Loading>
+          <Content>
+            <Paragraph>Ce contenu est derrière le chargement.</Paragraph>
+            <Paragraph>
+              Le bouton dit « Annuler », et c'est aussi son nom.
+            </Paragraph>
+            <Paragraph>
+              Un lecteur d'écran lit ce que le bouton affiche.
+            </Paragraph>
+            <Paragraph>La commande vocale y répond aussi.</Paragraph>
+            <Paragraph>Échap ou un clic sur le fond l'annule aussi.</Paragraph>
+          </Content>
+        </Box>
+        {!isLoading && (
+          <Button color="primary" mt="4" onClick={() => setIsLoading(true)}>
+            Afficher à nouveau
           </Button>
         )}
       </Block>

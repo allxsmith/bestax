@@ -11,11 +11,11 @@
     },
     {
       "title": "Has Skeleton",
-      "code": "<SubTitle hasSkeleton>SubTitle with Skeleton Effect</SubTitle>"
+      "code": "<SubTitle hasSkeleton aria-hidden=\"true\">\n  SubTitle with Skeleton Effect\n</SubTitle>"
     },
     {
       "title": "Is Skeleton",
-      "code": "<SubTitle skeleton>SubTitle Skeleton Effect</SubTitle>"
+      "code": "<SubTitle skeleton aria-hidden=\"true\">\n  SubTitle Skeleton Effect\n</SubTitle>"
     },
     {
       "title": "Different Sizes",
@@ -82,7 +82,7 @@
           "name": "hasSkeleton",
           "type": "boolean",
           "default": "false",
-          "description": "Applies the `has-skeleton` class to part of the content.",
+          "description": "Applies the `has-skeleton` class to part of the content. A screen reader still reads its text, so give it `aria-hidden=\"true\"` while it's a skeleton.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -122,7 +122,7 @@
           "name": "skeleton",
           "type": "boolean",
           "default": null,
-          "description": "Applies the `is-skeleton` class to the entire component.",
+          "description": "Applies the `is-skeleton` class to the entire component. A screen reader still reads its text, so give it `aria-hidden=\"true\"` while it's a skeleton.",
           "required": false,
           "inherited": false,
           "deprecated": false

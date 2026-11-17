@@ -15,6 +15,7 @@ import {
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
+import { useFieldMessage } from './useFieldMessage';
 
 /**
  * Props for the File component.
@@ -238,10 +239,11 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
       className
     );
 
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+    const { messageEl, describedBy } = useFieldMessage(
+      message,
+      messageColor,
+      rest['aria-describedby'] as string | undefined
+    );
 
     const fileElement = (
       <div className={fileClass}>
@@ -256,6 +258,7 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
             id={controlId}
             onChange={handleChange}
             {...rest}
+            aria-describedby={describedBy}
           />
           <span className={usePrefixedClassNames('file-cta')}>
             {iconLeft && (

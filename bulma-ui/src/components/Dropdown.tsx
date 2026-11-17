@@ -55,7 +55,10 @@ export interface DropdownProps
   up?: boolean;
   /** Menu is right-aligned. */
   right?: boolean;
-  /** Open on hover instead of click. */
+  /**
+   * Open on hover instead of click. Escape puts away a menu the pointer is
+   * showing, and it stays away until the pointer leaves the Dropdown.
+   */
   hoverable?: boolean;
   /** Disables the dropdown trigger. */
   disabled?: boolean | undefined;
@@ -114,12 +117,23 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
       onActiveChange,
       closeOnClick = true,
       id,
+      onPointerLeave,
       ...props
     },
     ref
   ) {
     const [active, setActive] = useState<boolean>(!!activeProp);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    // A `hoverable` menu shows while the pointer is over the Dropdown, through
+    // Bulma's `:hover` rule. Escape puts it away without moving the pointer
+    // (WCAG 1.4.13, content on hover is dismissible): `is-hoverable` stays off
+    // until the pointer leaves. Whether the pointer is there is read from
+    // `:hover` when the key arrives, the state the menu is drawn from.
+    const [hoverDismissed, setHoverDismissed] = useState(false);
+    const hoverShown = () =>
+      !!hoverable &&
+      !hoverDismissed &&
+      !!dropdownRef.current?.matches(':hover');
     const triggerRef = useRef<HTMLButtonElement>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     const menuKeys = useMenuKeys();
@@ -172,7 +186,7 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
       'is-active': active,
       'is-up': up,
       'is-right': right,
-      'is-hoverable': hoverable,
+      'is-hoverable': hoverable && !hoverDismissed,
       'is-disabled': disabled,
     });
 
@@ -209,6 +223,28 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
       document.addEventListener('mousedown', handleClick);
       return () => document.removeEventListener('mousedown', handleClick);
     }, [active, onActiveChangeRef]);
+
+    // An Escape with focus outside the Dropdown, on the page or in a field
+    // elsewhere, puts the menu away here and goes on to what has focus, as
+    // a tooltip's does. One inside it is the trigger's and the menu's, below.
+    // An IME's Escape cancels its composition and nothing more.
+    useEffect(() => {
+      if (!hoverable || hoverDismissed) return undefined;
+      const doc = (dropdownRef.current as HTMLDivElement).ownerDocument;
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (
+          e.key === 'Escape' &&
+          !e.isComposing &&
+          e.keyCode !== 229 &&
+          !isEventInside(e, dropdownRef.current) &&
+          dropdownRef.current?.matches(':hover')
+        ) {
+          setHoverDismissed(true);
+        }
+      };
+      doc.addEventListener('keydown', handleKeyDown);
+      return () => doc.removeEventListener('keydown', handleKeyDown);
+    }, [hoverable, hoverDismissed]);
 
     // A click the browser dispatched with no pointer behind it (`detail` 0,
     // trusted), as a screen reader's browse mode can send, opens the menu on
@@ -302,6 +338,12 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
           }
           break;
         case 'Escape':
+          // A menu the pointer shows uses the key too, so a Modal around the
+          // Dropdown waits for the next one.
+          if (hoverShown()) {
+            e.preventDefault();
+            setHoverDismissed(true);
+          }
           if (active) {
             e.preventDefault();
             setActive(false);
@@ -323,6 +365,7 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
       if (e.key === 'Escape') {
         if (e.defaultPrevented) return;
         e.preventDefault();
+        if (hoverShown()) setHoverDismissed(true);
         setActive(false);
         onActiveChange?.(false);
         triggerRef.current?.focus();
@@ -364,6 +407,10 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
         id={id}
         data-testid="dropdown-root"
         {...rest}
+        onPointerLeave={e => {
+          onPointerLeave?.(e);
+          if (hoverDismissed) setHoverDismissed(false);
+        }}
       >
         <div className={usePrefixedClassNames('dropdown-trigger')}>
           <button

@@ -1084,7 +1084,9 @@ button is `disabled` or `aria-disabled`, whatever `--bulma-sidebar-close-color` 
 ### Slider
 
 A mark's label sits inside its tick, so outside forced colors `--bulma-slider-tick-opacity` dims
-the label along with the tick's line, whatever `--bulma-slider-tick-label-color` you set.
+the label along with the tick's line, whatever `--bulma-slider-tick-label-color` you set. In forced
+colors neither `--bulma-slider-tick-opacity` nor `--bulma-slider-disabled-opacity` applies, and the
+system's colors replace the tick and label colors.
 
 `--bulma-slider-disabled-opacity`, `--bulma-slider-fill-color`,
 `--bulma-slider-output-background`, `--bulma-slider-output-color`,

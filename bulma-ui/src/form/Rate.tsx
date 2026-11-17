@@ -19,6 +19,7 @@ import { Field } from './Field';
 import { Control } from './Control';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelledBy } from './useAutoLabelId';
+import { useFieldMessage } from './useFieldMessage';
 
 /** Available size modifiers for the Rate component. */
 export type RateSize = 'small' | 'medium' | 'large';
@@ -579,10 +580,11 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
 
     const text = getText();
 
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+    const { messageEl, describedBy } = useFieldMessage(
+      message,
+      messageColor,
+      props['aria-describedby']
+    );
 
     const rateItemsClass = usePrefixedClassNames('rate-items');
     const rateScoreClass = usePrefixedClassNames('rate-score');
@@ -608,6 +610,7 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
         tabIndex={disabled ? -1 : 0}
         onKeyDown={handleKeyDown}
         {...rest}
+        aria-describedby={describedBy}
       >
         <div className={rateItemsClass}>{renderIcons()}</div>
         {showScore && (

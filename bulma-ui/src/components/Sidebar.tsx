@@ -17,6 +17,7 @@ export type SidebarPosition = 'left' | 'right';
  * Props for the Sidebar component.
  * @extraProp {string} [className] - Additional CSS classes.
  * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the sidebar element.
+ * @extraProp {string} [aria-labelledby] - Names the sidebar, a `role="dialog"` that nothing else names: point it at the `id` of its `Sidebar.Title`. With no visible title, pass an `aria-label` instead.
  */
 export interface SidebarProps
   extends
@@ -102,7 +103,7 @@ export interface SidebarProps
  * @example
  * // Basic sidebar
  * const [isOpen, setIsOpen] = useState(false);
- * <Sidebar isOpen={isOpen} onClose={() => setIsOpen(false)}>
+ * <Sidebar isOpen={isOpen} onClose={() => setIsOpen(false)} aria-label="Navigation">
  *   <Menu>...</Menu>
  * </Sidebar>
  *
@@ -113,6 +114,7 @@ export interface SidebarProps
  *   onClose={() => setIsOpen(false)}
  *   position="right"
  *   width="320px"
+ *   aria-label="Details"
  * >
  *   <div>Panel content</div>
  * </Sidebar>
@@ -343,7 +345,8 @@ export interface SidebarTitleProps extends React.HTMLAttributes<HTMLParagraphEle
 }
 
 /**
- * Title text inside the header.
+ * Title text inside the header. It doesn't name the sidebar on its own: give
+ * it an `id`, and the `Sidebar` an `aria-labelledby` pointing at it.
  *
  * @function
  * @param {SidebarTitleProps} props - Props for the SidebarTitle component.

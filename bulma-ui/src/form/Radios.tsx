@@ -16,6 +16,7 @@ import { FormFieldProps } from './fieldProps';
 import { useAutoLabelledBy } from './useAutoLabelId';
 import { Radio } from './Radio';
 import { GroupFieldset } from './groupFieldset';
+import { useFieldMessage } from './useFieldMessage';
 
 /**
  * Props for the Radios component.
@@ -134,10 +135,11 @@ const RadiosComponent: React.FC<RadiosProps> = ({
   const mainClass = usePrefixedClassNames('radios');
   const wrapperClass = classNames(mainClass, bulmaHelperClasses, className);
 
-  const helpClass = usePrefixedClassNames('help', {
-    [`is-${messageColor}`]: !!messageColor,
-  });
-  const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+  const { messageEl, describedBy } = useFieldMessage(
+    message,
+    messageColor,
+    (props as React.AriaAttributes)['aria-describedby']
+  );
 
   // The group is "active" (manages child selection) when the user opted in by
   // passing value, defaultValue, or onChange. Otherwise it's name-only and
@@ -191,6 +193,7 @@ const RadiosComponent: React.FC<RadiosProps> = ({
       role="radiogroup"
       aria-labelledby={ariaLabelledBy}
       {...rest}
+      aria-describedby={describedBy}
     >
       {choices}
     </Group>
@@ -211,7 +214,7 @@ const RadiosComponent: React.FC<RadiosProps> = ({
         horizontal={horizontal}
         fieldClassName={fieldClassName}
         role="radiogroup"
-        attributes={rest}
+        attributes={{ ...rest, 'aria-describedby': describedBy }}
         message={messageEl}
       >
         {content}
