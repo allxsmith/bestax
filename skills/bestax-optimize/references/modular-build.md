@@ -46,7 +46,7 @@ publishes its SCSS sources (`src/scss` ships in the npm package, exposed via the
 
 **Rule:** stock Bulma components map to `bulma/sass/<category>/<lowercased-name>`; bestax
 extras map to `@allxsmith/bestax-bulma/scss/<category>/<lowercased-name>`. Components that
-are pure stock Bulma (Box, Card, Modal, Hero, …) have **no** extras partial —
+are pure stock Bulma (Box, Card, Hero, …) have **no** extras partial —
 Bulma's own module is all they need.
 
 Bulma groups its form controls, so their modules don't follow the name: `Input` and `TextArea`
@@ -80,7 +80,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 
 **Components** (`@allxsmith/bestax-bulma/scss/components/<name>`):
 `loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `steps`, `sidebar`,
-`toast`, `dialog`, `carousel`, `lightbox`, `tabs`, `menu`, `tableofcontents`, `reveal`, `avatar`, `avatars`,
+`toast`, `dialog`, `modal`, `carousel`, `lightbox`, `tabs`, `menu`, `tableofcontents`, `reveal`, `avatar`, `avatars`,
 `badge`, `emptystate`, `timeline`, `treeview`, `scrollarea`, `command`, `datatable`,
 `pagination`, `affix`, `floatbutton`, `navbar`, `panel`, `tour`
 
@@ -93,7 +93,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 `colorinput`, `passwordinput`, `treeselect`, `cascader`
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `button`, `colorswatch`,
-`delete`, `descriptionlist`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`,
+`delete`, `descriptionlist`, `divider`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`,
 `pre`, `progress`, `ringprogress`, `skeleton`, `stat`, `table`, `tag`
 
 **Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `color`, `cursor`, `sizing`, `visibility`
@@ -138,6 +138,15 @@ Notes:
   @use '@allxsmith/bestax-bulma/scss/components/tableofcontents'; // TableOfContents only
   ```
 
+- The `modal` partial **extends** stock Bulma modal (a modal card keeps an edge in forced colors,
+  Windows' contrast themes, where Bulma's card has none and the backdrop's dark fill is
+  replaced), so an app using `Modal` with a card needs both, in either order:
+
+  ```scss
+  @use 'bulma/sass/components/modal';
+  @use '@allxsmith/bestax-bulma/scss/components/modal' as bestax-modal;
+  ```
+
 - The `pagination` partial **extends** stock Bulma pagination (the links' keyboard focus ring,
   which Bulma's own styles turn off, and the current page marked in forced colors, where Bulma's
   colors for it are replaced), so an app using `Pagination`, or a `DataTable` with pages, whose
@@ -149,7 +158,9 @@ Notes:
   ```
 
 - The `navbar` partial **extends** stock Bulma navbar (it keeps the burger's bars in
-  ButtonText in forced colors, where Chromium paints them in the page's Canvas color, keeps a
+  ButtonText in forced colors, where Chromium paints them in the page's Canvas color, marks the
+  active item there with a bar in the system's highlight color, where Bulma's colors for it are
+  replaced, keeps a
   `fixed` navbar in place while an overlay locks the page's scrolling, gives an active item's
   text the invert of the link color it sits on, where Bulma's leaves it in the navbar's text
   color, draws a navbar in a colored `Hero` in the hero's colors, where Bulma's draws its active item and burger in the link
@@ -276,9 +287,11 @@ Notes:
 - `Tag` is stock Bulma too (`bulma/sass/elements/tag`). The `tag` extras partial gives a light tag,
   and a white, black or dark one with `isLight`, text that reads on its light background, where
   Bulma's module lets its text inherit the color around it, which on the dark scheme leaves it hard
-  to read, and sets a normal-size tag in a table cell at the bottom of its line, where Bulma's
-  baseline makes the row taller than a row of text. Include it (`as bestax-tag`) next to the Bulma
-  module in any build that shows one of those tags or a tag in a table. It doesn't depend on the
+  to read, sets a normal-size tag in a table cell at the bottom of its line, where Bulma's
+  baseline makes the row taller than a row of text, and gives a button tag (`as="button"`,
+  `isDelete`) the weight, spacing and other text a span tag takes from the text around it, where
+  the browser gives a button its own. Include it (`as bestax-tag`) next to the Bulma module in any
+  build that shows one of those tags, a tag in a table or a button tag. It doesn't depend on the
   order of the two `@use` lines either.
 - `Delete` is stock Bulma too, and it's the close button of `Notification`, `Message`, `Toast`, a
   `Modal` card, `AppFrame`'s drawer and the tags of `Taginput`, `Combobox`, `Dropzone` and
@@ -303,6 +316,12 @@ Notes:
   color's text on the page where that's lighter, so a dark color reads on the dark scheme, so
   include it (`as bestax-button`) in any build that loads Bulma's button module. Its rules win over
   Bulma's either way, so the order of the `@use` lines does not matter.
+- `Divider` renders an `<hr>`, which Bulma draws in its base (`bulma/sass/base`) as a background
+  color with no border. Forced colors (Windows' contrast themes) replaces that color with the
+  page's own, so the line vanishes there. The `divider` extras partial draws it as a border in the
+  system's text color, so include it in any build that shows a `Divider` or an `<hr>`. Its rule
+  wins over Bulma's either way, so the order of the `@use` lines does not matter, and an `<hr>`
+  with a class of its own keeps its own rules.
 - `Pre` is a `<pre>`, which Bulma styles in its base (`bulma/sass/base`) and scrolls sideways when a
   line runs long. While it overflows, `Pre` is a tab stop, and the `pre` extras partial draws its
   keyboard focus ring in Bulma's focus color, so include it in any build that shows a `Pre`.

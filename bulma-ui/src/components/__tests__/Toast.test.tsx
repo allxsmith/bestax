@@ -4,6 +4,7 @@ import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { Toast, ToastContainer, toast } from '../Toast';
 import { ConfigProvider } from '../../helpers/Config';
+import { focusCheckInterval } from '../../helpers/useDismissTimer';
 
 vi.useFakeTimers();
 
@@ -503,6 +504,99 @@ describe('Toast', () => {
       render(<Toast message="Test" duration={3000} pauseOnHover={false} />);
       const toastEl = screen.getByRole('alert');
       expect(() => fireEvent.mouseLeave(toastEl)).not.toThrow();
+    });
+  });
+
+  // Someone using a toast's action, cancel or close button keeps it while
+  // focus is there, as a pointer over it does with pauseOnHover.
+  describe('while focus is inside', () => {
+    // Advances the clock a check at a time, letting React render between
+    // steps, so a timer that changes state mid-wait runs as it would live.
+    const waitInSteps = (ms: number) => {
+      for (let waited = 0; waited < ms; waited += focusCheckInterval) {
+        act(() => {
+          vi.advanceTimersByTime(focusCheckInterval);
+        });
+      }
+    };
+
+    it('waits, whatever pauseOnHover says', () => {
+      const onClose = vi.fn();
+      render(
+        <Toast
+          message="Deleted"
+          actionText="Undo"
+          duration={2000}
+          pauseOnHover={false}
+          onClose={onClose}
+        />
+      );
+      act(() => {
+        screen.getByRole('button', { name: 'Undo' }).focus();
+      });
+      waitInSteps(10000);
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('gets its whole duration again once focus leaves', () => {
+      const onClose = vi.fn();
+      render(
+        <>
+          <button>Save</button>
+          <Toast message="Saved" closable duration={2000} onClose={onClose} />
+        </>
+      );
+      act(() => {
+        screen.getByRole('button', { name: 'Close' }).focus();
+      });
+      waitInSteps(10000);
+      act(() => {
+        screen.getByRole('button', { name: 'Save' }).focus();
+      });
+      // The next check finds focus gone and starts the countdown over.
+      act(() => {
+        vi.advanceTimersByTime(focusCheckInterval);
+      });
+      act(() => {
+        vi.advanceTimersByTime(1999);
+      });
+      expect(onClose).not.toHaveBeenCalled();
+      act(() => {
+        vi.advanceTimersByTime(1);
+      });
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it("still calls the caller's own onFocus", () => {
+      const onFocus = vi.fn();
+      const onClose = vi.fn();
+      render(
+        <Toast
+          message="Deleted"
+          actionText="Undo"
+          duration={2000}
+          onFocus={onFocus}
+          onClose={onClose}
+        />
+      );
+      act(() => {
+        screen.getByRole('button', { name: 'Undo' }).focus();
+      });
+      expect(onFocus).toHaveBeenCalledTimes(1);
+      waitInSteps(10000);
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('holds a toast shown through toast.show', () => {
+      render(<ToastContainer />);
+      act(() => {
+        toast.show({ message: 'Deleted', actionText: 'Undo' });
+      });
+      act(() => {
+        screen.getByRole('button', { name: 'Undo' }).focus();
+      });
+      waitInSteps(10000);
+      expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument();
     });
   });
 

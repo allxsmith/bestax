@@ -1,3 +1,47 @@
+## [5.73.9](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.73.8...@allxsmith/bestax-bulma@5.73.9) (2026-11-17)
+
+
+### Bug Fixes
+
+* **bulma-ui:** describe nothing on a bare Numberinput, and wire Dropzone through the hook ([3f8a5cc](https://github.com/allxsmith/bestax/commit/3f8a5ccac6c388fac540b99a21d12eee6bea16d0)), closes [#1963](https://github.com/allxsmith/bestax/issues/1963)
+* **bulma-ui:** draw a disabled Slider at full strength in forced colors ([7fc38ea](https://github.com/allxsmith/bestax/commit/7fc38ea721ceaa23f95c5d9c2dd0d9e0ec073afb)), closes [#1868](https://github.com/allxsmith/bestax/issues/1868)
+* **bulma-ui:** draw Divider's line in forced colors ([dc3385c](https://github.com/allxsmith/bestax/commit/dc3385cd5595330702b929ebc9482b1bf967fc07)), closes [#1851](https://github.com/allxsmith/bestax/issues/1851)
+* **bulma-ui:** keep a Dialog's and a modal card's edge in forced colors ([bdb1eb0](https://github.com/allxsmith/bestax/commit/bdb1eb03ab8d3ed62baf4c165085cdeff13d3da2)), closes [#1891](https://github.com/allxsmith/bestax/issues/1891)
+* **bulma-ui:** let Escape put away a hoverable Dropdown's menu the pointer shows ([0e195ad](https://github.com/allxsmith/bestax/commit/0e195adefa94dfaaa9df0692c15af653d69016fd))
+* **bulma-ui:** say what names a Sidebar in its TSDoc ([c73a2a0](https://github.com/allxsmith/bestax/commit/c73a2a02ed843feda03a1cbe50d815dabacf84bd)), closes [#1893](https://github.com/allxsmith/bestax/issues/1893)
+* **bulma-ui:** tie each form wrapper's message to its control ([3560070](https://github.com/allxsmith/bestax/commit/3560070ca835bb1e531b4fac903f6ceb87479726)), closes [#1963](https://github.com/allxsmith/bestax/issues/1963)
+
+## [5.73.8](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.73.7...@allxsmith/bestax-bulma@5.73.8) (2026-11-17)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** carry Tag's new as over, and convert a link or button .tag ([a36a92a](https://github.com/allxsmith/bestax/commit/a36a92a5f5409cb5de854b49d5ba960215360546))
+* **bulma-ui:** draw a Rate icon's half star in system colors in forced colors ([baa649e](https://github.com/allxsmith/bestax/commit/baa649edf9250864930b6ca898e560fee911a90a)), closes [#1967](https://github.com/allxsmith/bestax/issues/1967)
+* **bulma-ui:** draw the Switch's knob in system colors in forced colors ([80aa0af](https://github.com/allxsmith/bestax/commit/80aa0afb197b25af5b0f274c47aa7ecb4241c08e)), closes [#1965](https://github.com/allxsmith/bestax/issues/1965)
+* **bulma-ui:** drop Bulma's shadows from a selected button and dim-match every disabled one ([8adf86c](https://github.com/allxsmith/bestax/commit/8adf86c587261452198f9fefd93539fef8a0eed3))
+* **bulma-ui:** give a Toast an edge, and its cancel button full strength, in forced colors ([f022e35](https://github.com/allxsmith/bestax/commit/f022e35829b26987a3cc5012f3d006b1be810688)), closes [#1906](https://github.com/allxsmith/bestax/issues/1906)
+* **bulma-ui:** give Dialog's title and message ids of their own ([56e8a74](https://github.com/allxsmith/bestax/commit/56e8a74c2a30e09bcff4f78ed502de44fb2c3389)), closes [#1890](https://github.com/allxsmith/bestax/issues/1890)
+* **bulma-ui:** keep a disabled selected button opaque in forced colors ([0306eb5](https://github.com/allxsmith/bestax/commit/0306eb524874c6fa00ec9002dab7ae8999b62f5e))
+* **bulma-ui:** keep a Toast open while focus is on its buttons ([ee060a5](https://github.com/allxsmith/bestax/commit/ee060a548c6dd3c0883dbf5142ef9914595b3c2b)), closes [#1836](https://github.com/allxsmith/bestax/issues/1836)
+* **bulma-ui:** keep skeletons drawn and their text hidden in forced colors ([a47b996](https://github.com/allxsmith/bestax/commit/a47b99675d63e2297ba9a5e3fdb575edc1fb51c8)), closes [#1847](https://github.com/allxsmith/bestax/issues/1847)
+* **bulma-ui:** keep the menu keys' place on an item that turns disabled while focused ([9e82338](https://github.com/allxsmith/bestax/commit/9e82338fd3452e76e6696460da8ec55060094063))
+* **bulma-ui:** let a caller give Loading's cancel button its words with cancelText ([1639040](https://github.com/allxsmith/bestax/commit/1639040ae445733a344b95b5672e4f98b5b24e9f)), closes [#1914](https://github.com/allxsmith/bestax/issues/1914)
+* **bulma-ui:** let a Tag render the link or button Bulma styles ([f0231ec](https://github.com/allxsmith/bestax/commit/f0231eccb5b1b88976353051b01e1a14a3f51cbf)), closes [#1841](https://github.com/allxsmith/bestax/issues/1841)
+* **bulma-ui:** let Home and End move a range Slider's low thumb ([e09a9b1](https://github.com/allxsmith/bestax/commit/e09a9b1265056398f9f5d8f588183f6234c4023a)), closes [#1966](https://github.com/allxsmith/bestax/issues/1966)
+* **bulma-ui:** mark a Navbar's active item in forced colors ([#2036](https://github.com/allxsmith/bestax/issues/2036)) ([27cfb86](https://github.com/allxsmith/bestax/commit/27cfb8665d34d44ab8b919066e4a3bee2a0c263f))
+* **bulma-ui:** mark a pressed ToggleButton and a checked segment in forced colors ([ef128e5](https://github.com/allxsmith/bestax/commit/ef128e52d7cae9c4f9fbff2fe4dd60bb44c9d960)), closes [#1869](https://github.com/allxsmith/bestax/issues/1869)
+* **bulma-ui:** mark a selected table row with a double line so focus can't pass for it ([faf309e](https://github.com/allxsmith/bestax/commit/faf309e7d74f28237d263f8418bb65bae08db6d1)), closes [#1843](https://github.com/allxsmith/bestax/issues/1843)
+* **bulma-ui:** outline a selected table row or cell in forced colors ([eb8a377](https://github.com/allxsmith/bestax/commit/eb8a377825af2a9ba35756619ecf8ef163b64dbc)), closes [#1843](https://github.com/allxsmith/bestax/issues/1843)
+* **bulma-ui:** outline Autocomplete's and Taginput's list and highlight in forced colors ([36816e0](https://github.com/allxsmith/bestax/commit/36816e0b82fc31b81abb0a88ec49ae319487ba3d)), closes [#2003](https://github.com/allxsmith/bestax/issues/2003)
+* **bulma-ui:** say what Combobox does for its list in forced colors, and name the walker alike ([2e4db8a](https://github.com/allxsmith/bestax/commit/2e4db8aa6a408fffe1834f5cfb277eecb5e4b87f))
+* **bulma-ui:** show a focus indicator on Carousel's transparent and arrowHover arrows ([7f88634](https://github.com/allxsmith/bestax/commit/7f886348a5c3651302838ab323233c1d7158eeb9)), closes [#1921](https://github.com/allxsmith/bestax/issues/1921)
+* **bulma-ui:** show focus on a selected table row given a tabIndex in forced colors ([819ef64](https://github.com/allxsmith/bestax/commit/819ef64476a89aa584495fcd3f4e0423059a6002)), closes [#1843](https://github.com/allxsmith/bestax/issues/1843)
+* **bulma-ui:** turn forcing off on a selected button so its label shows on Highlight ([cf52ff1](https://github.com/allxsmith/bestax/commit/cf52ff1e0a1cdff068aa012103831762c0a2678d))
+* **bulma-ui:** wrap Loading's text inside the overlay rather than off its sides ([023489c](https://github.com/allxsmith/bestax/commit/023489c14e2fb98a326dd8d3c4f405af8709df85)), closes [#1910](https://github.com/allxsmith/bestax/issues/1910)
+* **bulma-ui:** write role="list" on Dropzone's file list, so Safari keeps it a list ([189ded6](https://github.com/allxsmith/bestax/commit/189ded68aef2137fbf2c0dbcc8e078e1dcec8211)), closes [#1863](https://github.com/allxsmith/bestax/issues/1863)
+* **eslint-plugin:** read a .tag link or button as one the codemod converts ([d63f2cd](https://github.com/allxsmith/bestax/commit/d63f2cd773b6e5f795c8d18f9642e80af17f53ed))
+
 ## [5.73.7](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.73.6...@allxsmith/bestax-bulma@5.73.7) (2026-11-16)
 
 

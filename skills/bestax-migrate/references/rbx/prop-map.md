@@ -111,6 +111,7 @@ The components that accept it:
 | `Hero.Foot`                  | `'div' \| 'footer' \| 'nav'`                                                            |
 | `Panel`                      | `'nav' \| 'article' \| 'section' \| 'aside' \| 'div'`                                   |
 | `Panel.Block`                | `'a' \| 'div' \| 'label'`                                                               |
+| `Tag`                        | `'span' \| 'a' \| 'button'`                                                             |
 
 Three traps worth naming, because rbx supplies `as` universally and the obvious guesses are
 wrong:

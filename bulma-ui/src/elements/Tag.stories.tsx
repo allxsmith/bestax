@@ -48,6 +48,12 @@ const meta: Meta<typeof Tag> = {
   component: Tag,
   tags: ['autodocs'],
   argTypes: {
+    as: {
+      control: 'select',
+      options: ['span', 'a', 'button'],
+      description:
+        'Element to render. A tag that does something takes `button` or `a`, so a keyboard reaches it.',
+    },
     color: {
       control: 'select',
       options: [
@@ -222,7 +228,7 @@ export const HoverState: Story = {
     docs: {
       description: {
         story:
-          'Demonstrates the hover state with the is-hoverable class. Hover to see a slight opacity and scale change.',
+          'Demonstrates Bulma\'s hover shade with the is-hoverable class. It\'s only a look: a tag that does something takes `as="button"` or `as="a"`.',
       },
     },
   },
@@ -237,6 +243,27 @@ export const TagWithDelete: Story = {
       description: {
         story:
           'Shows a tag with a Delete component, dismissible when the delete button is clicked.',
+      },
+    },
+  },
+};
+
+export const LinkOrButton: Story = {
+  render: () => (
+    <Tags>
+      <Tag as="a" href="#components" color="info">
+        Components
+      </Tag>
+      <Tag as="button" color="primary" onClick={() => {}}>
+        Open issues
+      </Tag>
+    </Tags>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'A tag that does something renders the link or button Bulma styles with `as`, so a keyboard reaches it and a screen reader announces it as one.',
       },
     },
   },

@@ -11,7 +11,11 @@ export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: 'block' | 'lines';
   /** Number of lines (only for `lines` variant). */
   lines?: number;
-  /** Content inside the block (only for block variant). */
+  /**
+   * Content inside the block (only for block variant). Bulma hides it, but
+   * a screen reader still reads it, so give a block that holds placeholder
+   * text `aria-hidden="true"`.
+   */
   children?: React.ReactNode;
 }
 

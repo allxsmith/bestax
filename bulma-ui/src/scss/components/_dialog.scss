@@ -132,3 +132,16 @@ $dialog-animation-duration: 0.2s !default;
     animation: none;
   }
 }
+
+// Forced colors (Windows' contrast themes) drop the dialog's shadow and paint
+// its background and the backdrop's in the system's Canvas, so the box loses
+// its edge there. A one pixel outline in CanvasText, inside the box so it
+// takes no room, draws it, as `_modal.scss` does for a modal card. It comes
+// after the `outline: none` above, which it replaces. Outside forced colors
+// it changes nothing.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}dialog {
+    outline: 1px solid CanvasText;
+    outline-offset: -1px;
+  }
+}

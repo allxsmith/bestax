@@ -585,7 +585,15 @@ export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
       'button',
       { component: 'Button', converts: true, tag: 'button', tags: 'any' },
     ],
-    ['tag', { component: 'Tag', converts: true, tag: 'span', tags: ['span'] }],
+    [
+      'tag',
+      {
+        component: 'Tag',
+        converts: true,
+        tag: 'span',
+        tags: ['span', 'a', 'button'],
+      },
+    ],
     [
       'delete',
       { component: 'Delete', converts: true, tag: 'button', tags: ['button'] },
