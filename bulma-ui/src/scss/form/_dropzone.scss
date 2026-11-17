@@ -158,6 +158,20 @@ $dropzone-size-font-size: cv.getVar('size-small') !default;
     .#{iv.$class-prefix}file-cta {
     border-color: CanvasText;
   }
+
+  // A disabled zone draws at full strength, its border and text in GrayText,
+  // the system's colour for a disabled control, since its usual opacity would
+  // only fade them.
+  .#{iv.$class-prefix}dropzone.#{iv.$class-prefix}is-disabled {
+    .#{iv.$class-prefix}file {
+      opacity: 1;
+    }
+
+    .#{iv.$class-prefix}file-cta {
+      border-color: GrayText;
+      color: GrayText;
+    }
+  }
 }
 
 // The chosen files, a bordered row each, and the refusals.

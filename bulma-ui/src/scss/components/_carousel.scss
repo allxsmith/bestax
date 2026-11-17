@@ -734,6 +734,16 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
   }
 }
 
+// Reduced motion: the arrows, the indicators and a fading slide change at
+// once, as the track does (Carousel reads the same preference).
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}carousel .#{iv.$class-prefix}carousel-arrow,
+  .#{iv.$class-prefix}carousel .#{iv.$class-prefix}indicator-item,
+  .#{iv.$class-prefix}carousel.#{iv.$class-prefix}is-fade .#{iv.$class-prefix}carousel-item {
+    transition: none;
+  }
+}
+
 // Forced colors (Windows' contrast themes) replaces the fills, which are what
 // tell the current indicator from the others, so it's filled in the buttons'
 // text color there, as its ring is, in the overlay look too. Kept
@@ -750,6 +760,18 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
       outline: cv.getVar("focus-width") cv.getVar("focus-style") CanvasText !important;
       outline-offset: cv.getVar("focus-offset") !important;
       box-shadow: none !important;
+    }
+  }
+
+  // A disabled arrow is drawn in GrayText, so its usual opacity would only
+  // fade that. It draws at full strength here. With `arrowHover` it's left as
+  // it is (#2145).
+  .#{iv.$class-prefix}carousel:not(.#{iv.$class-prefix}has-arrow-hover)
+    .#{iv.$class-prefix}carousel-arrow.#{iv.$class-prefix}button {
+    &:disabled,
+    &.#{iv.$class-prefix}is-disabled {
+      color: GrayText;
+      opacity: 1;
     }
   }
 }

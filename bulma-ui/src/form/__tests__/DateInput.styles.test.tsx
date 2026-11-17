@@ -9,6 +9,7 @@ import { DateInput } from '../DateInput';
 import { DateTimeInput } from '../DateTimeInput';
 import { DateRangeInput } from '../DateRangeInput';
 import { ConfigProvider } from '../../helpers/Config';
+import { cascade, compilePartial } from '../../__tests__/css-cascade';
 
 const colors = [
   'primary',
@@ -203,6 +204,74 @@ describe('calendar header while disabled', () => {
     for (const button of header(container, 'bestax-')) {
       expect(look(button)).toBe('0.4/not-allowed');
     }
+  });
+});
+
+// In forced colors a disabled part is drawn in GrayText, which its disabled
+// opacity would only fade, so there it draws at full strength in GrayText
+// (#2049). jsdom evaluates no media query, so these resolve the partial's
+// rules with the shared cascade, on a forced-colors page and on any other.
+describe.each([
+  ['no prefix', ''],
+  ['a class prefix', 'bestax-'],
+])('a disabled calendar in forced colors, with %s', (_name, prefix) => {
+  const css = compilePartial('form/dateinput', prefix);
+  const resolve = (el: Element, property: string, forcedColors: boolean) =>
+    cascade(
+      el,
+      css,
+      [property],
+      (style, p) => style.getPropertyValue(p) || undefined,
+      { forcedColors }
+    );
+
+  /** A disabled month or year cell, which the calendar shows in its other views. */
+  const cell = (part: string) => {
+    const el = document.createElement('button');
+    el.className = `${prefix}${part}`;
+    el.disabled = true;
+    return el;
+  };
+
+  it('draws the header, the days, the months and the years at full strength in GrayText', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <DateInput inline disabled />
+      </ConfigProvider>
+    );
+    const header = ['month-trigger', 'nav-prev', 'nav-next'].map(part =>
+      container.querySelector(`.${prefix}dateinput-${part}`)!
+    );
+    const day = container.querySelector(`.${prefix}dateinput-cell`)!;
+    expect(day).toBeDisabled();
+    expect(day).toHaveClass(`${prefix}is-disabled`);
+    const parts = [
+      ...header,
+      day,
+      cell('dateinput-month-cell'),
+      cell('dateinput-year-cell'),
+    ];
+    for (const part of parts) {
+      expect(part).toBeDisabled();
+      expect(resolve(part, 'opacity', false)).toMatch(/^0\.\d+$/);
+      expect(resolve(part, 'opacity', true)).toBe('1');
+      expect(resolve(part, 'color', true)).toBe('graytext');
+    }
+  });
+
+  it('keeps a picked disabled day filled with GrayText and its number in Canvas', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <DateInput inline disabled defaultValue={new Date(2026, 10, 12)} />
+      </ConfigProvider>
+    );
+    const picked = container.querySelector(
+      `.${prefix}dateinput-cell.${prefix}is-selected`
+    )!;
+    expect(picked).toBeDisabled();
+    expect(resolve(picked, 'opacity', true)).toBe('1');
+    expect(resolve(picked, 'background-color', true)).toBe('graytext');
+    expect(resolve(picked, 'color', true)).toBe('canvas');
   });
 });
 

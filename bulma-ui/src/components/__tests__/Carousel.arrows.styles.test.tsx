@@ -59,8 +59,11 @@ describe.each([
     ['the partial first', partial + bulma],
   ];
 
-  /** The Next arrow of a carousel rendered with `props`. */
-  const nextArrow = (props: React.ComponentProps<typeof Carousel>) => {
+  /** An arrow, Next unless `side` says, of a carousel rendered with `props`. */
+  const nextArrow = (
+    props: React.ComponentProps<typeof Carousel>,
+    side: 'next' | 'prev' = 'next'
+  ) => {
     const { container } = render(
       <ConfigProvider classPrefix={prefix}>
         <Carousel {...props}>
@@ -71,7 +74,7 @@ describe.each([
       </ConfigProvider>
     );
     return container.querySelector(
-      `.${prefix}carousel-arrow.${prefix}is-next`
+      `.${prefix}carousel-arrow.${prefix}is-${side}`
     )!;
   };
 
@@ -102,6 +105,34 @@ describe.each([
         const arrow = nextArrow(props);
         expect(valueOf(arrow, css, 'opacity')).toBe('0');
         expect(valueOf(arrow, focused(css), 'opacity')).toBe('1');
+      }
+    });
+
+    it('draws a disabled arrow at full strength in GrayText in forced colors, and faded elsewhere', () => {
+      // On the first slide, not looping, there's nothing before it.
+      const prev = nextArrow({ repeat: false }, 'prev');
+      expect(prev).toBeDisabled();
+      const opacity = (forcedColors: boolean) =>
+        cascade(prev, css, ['opacity'], declared, { forcedColors });
+      expect(opacity(false)).toBe(
+        'var(--bulma-carousel-arrow-disabled-opacity)'
+      );
+      // GrayText marks it there, which the opacity would only fade (#2049),
+      // over Bulma's own disabled button's.
+      expect(opacity(true)).toBe('1');
+      expect(
+        cascade(prev, css, ['color'], declared, { forcedColors: true })
+      ).toBe('graytext');
+    });
+
+    it('leaves a disabled arrowHover arrow as it was in forced colors', () => {
+      // Whether it shows at rest is #2145, so it keeps its fade there.
+      const prev = nextArrow({ repeat: false, arrowHover: true }, 'prev');
+      expect(prev).toBeDisabled();
+      for (const forcedColors of [false, true]) {
+        expect(
+          cascade(prev, css, ['opacity'], declared, { forcedColors })
+        ).toBe('var(--bulma-carousel-arrow-disabled-opacity)');
       }
     });
 

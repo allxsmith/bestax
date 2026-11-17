@@ -289,13 +289,16 @@ describe('Lightbox styles', () => {
     expect(find(PLAIN, CONTROLS, forced)).toEqual({
       'border-color': 'ButtonText',
     });
+    // A disabled one draws in GrayText at full strength there, since the
+    // disabled opacity would only fade it (#2049). The rule matches the one
+    // that fades it, and comes later, so it wins.
     expect(
       find(
         PLAIN,
         `${ROOT} .lightbox-toolbar .button[aria-disabled=true], ${ROOT} .lightbox-arrow[aria-disabled=true]`,
         forced
       )
-    ).toEqual({ 'border-color': 'GrayText', color: 'GrayText' });
+    ).toEqual({ 'border-color': 'GrayText', color: 'GrayText', opacity: '1' });
   });
 
   it('keeps a trigger to what it holds at no specificity, unless it’s a Bulma button', () => {
