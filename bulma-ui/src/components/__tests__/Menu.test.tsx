@@ -313,6 +313,38 @@ describe('list role', () => {
   });
 });
 
+// The label is a paragraph to assistive tech, and the API page's fixes rely
+// on the label and the list passing these attributes through.
+describe('a label tied to its list', () => {
+  it('names a list after its label through aria-labelledby', () => {
+    render(
+      <Menu>
+        <Menu.Label id="general">General</Menu.Label>
+        <Menu.List aria-labelledby="general">
+          <Menu.Item href="#dashboard">Dashboard</Menu.Item>
+        </Menu.List>
+      </Menu>
+    );
+    expect(screen.getByRole('list', { name: 'General' })).toBeInTheDocument();
+  });
+
+  it('makes a label a heading at the level it is given', () => {
+    render(
+      <Menu>
+        <Menu.Label role="heading" aria-level={2}>
+          General
+        </Menu.Label>
+        <Menu.List>
+          <Menu.Item href="#dashboard">Dashboard</Menu.Item>
+        </Menu.List>
+      </Menu>
+    );
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'General' })
+    ).toHaveClass('menu-label');
+  });
+});
+
 describe('Compound components', () => {
   it('Menu.Label is the MenuLabel component', () => {
     expect(Menu.Label).toBe(MenuLabel);

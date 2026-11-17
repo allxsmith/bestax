@@ -38,7 +38,7 @@
       "code": "<Message color=\"danger\" title=\"Mixed Approach\">\n  <Message.Body>\n    <Paragraph>\n      You can mix prop-based and compound component approaches!\n    </Paragraph>\n    <Paragraph>\n      This message uses the title prop but compound components for the body.\n    </Paragraph>\n  </Message.Body>\n</Message>"
     }
   ],
-  "accessibility": "- The message is rendered as `<article class=\"message\">`.\n- If `onClose` is provided, a close button with `aria-label=\"delete\"` is rendered.\n- For optimal accessibility, use clear and descriptive titles/content.\n\n:::note\nAlways provide a visible or accessible way to dismiss important, interruptive messages.\n:::",
+  "accessibility": "- The message is rendered as `<article class=\"message\">`.\n- If `onClose` is provided, a close button is rendered, named \"delete\" unless `ariaCloseLabel` names it. It's drawn as an icon, so its name is all a screen reader says about it: in an app in another language, give it one in the page's language. An `aria-label` on `Message` names the `<article>`, not the button.\n- For optimal accessibility, use clear and descriptive titles/content.\n\n:::note\nAlways provide a visible or accessible way to dismiss important, interruptive messages.\n:::",
   "related": ["Notification", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-message--primary",
   "summary": "The `Message` component provides Bulma's flexible notice/message box for your Bulma React UI.",
@@ -112,6 +112,15 @@
           "type": "() => void",
           "default": null,
           "description": "Callback for the close (\"X\") button.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ariaCloseLabel",
+          "type": "string",
+          "default": "'delete'",
+          "description": "ARIA label for the close button `onClose` renders. The button is drawn as an icon, so its name is all a screen reader says about it: give it one in the page's language. An empty one falls back to the default. An `aria-label` on `Message` names the `<article>`, not the button.",
           "required": false,
           "inherited": false,
           "deprecated": false

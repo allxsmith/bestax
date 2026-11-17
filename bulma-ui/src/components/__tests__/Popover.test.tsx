@@ -14,6 +14,10 @@ import {
 import { Button } from '../../elements/Button';
 import { ConfigProvider } from '../../helpers/Config';
 import { resetDevWarnings } from '../../helpers/devWarnings';
+import {
+  clientWidthFollowsWindow,
+  narrowWindow,
+} from '../../__tests__/viewport';
 
 const FilterPopover: React.FC<
   Partial<React.ComponentProps<typeof Popover>>
@@ -686,6 +690,34 @@ describe('Popover', () => {
   });
 
   describe('placement', () => {
+    clientWidthFollowsWindow();
+
+    it('shifts a panel in place back inside a narrow window, leaving its fade to the stylesheet', () => {
+      narrowWindow(el => el.classList.contains('popover'), '.popover-content');
+      try {
+        render(
+          <Popover
+            trigger={<button type="button">Open</button>}
+            ariaLabel="Details"
+            defaultOpen
+            position="bottom-left"
+          >
+            Details
+          </Popover>
+        );
+        const panel = document.querySelector('.popover-content') as HTMLElement;
+        expect(panel).toHaveClass('is-bottom-left');
+        expect(panel.style.getPropertyValue('--bulma-anchored-shift')).toBe(
+          '-40px'
+        );
+        expect(panel.style.marginLeft).toBe('');
+        expect(panel.style.transform).toBe('');
+        expect(panel.style.translate).toBe('');
+      } finally {
+        vi.restoreAllMocks();
+      }
+    });
+
     const originalWidth = window.innerWidth;
     const originalHeight = window.innerHeight;
 
@@ -862,7 +894,8 @@ describe('Popover', () => {
       const dialog = screen.getByRole('dialog');
       expect(dialog).toHaveClass('popover-content', 'is-bottom-left');
       expect(dialog).not.toHaveClass('is-portal');
-      expect(dialog).not.toHaveAttribute('style');
+      // No coordinates, only the shift its corner rules add, 0 here.
+      expect(dialog).toHaveAttribute('style', '--bulma-anchored-shift: 0px;');
     });
 
     it.each(['bottom-right', 'top-left', 'top-right'] as const)(
@@ -887,7 +920,11 @@ describe('Popover', () => {
         }
       );
       expect(screen.getByRole('dialog')).toHaveClass('is-top-left');
-      expect(screen.getByRole('dialog')).not.toHaveAttribute('style');
+      // No coordinates, only the shift its corner rules add, 0 here.
+      expect(screen.getByRole('dialog')).toHaveAttribute(
+        'style',
+        '--bulma-anchored-shift: 0px;'
+      );
     });
 
     it('portals into document.body with fixed coordinates at the trigger’s edge', () => {

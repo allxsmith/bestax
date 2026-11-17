@@ -2,6 +2,7 @@ import React, {
   forwardRef,
   useCallback,
   useEffect,
+  useId,
   useRef,
   useState,
   useSyncExternalStore,
@@ -25,9 +26,15 @@ export interface DialogProps
     Omit<BulmaClassesProps, 'color'> {
   /** Whether the dialog is open. */
   isOpen: boolean;
-  /** Dialog title. */
+  /**
+   * Dialog title, which names the dialog through `aria-labelledby` unless
+   * you pass an `aria-labelledby` of your own.
+   */
   title?: string | undefined;
-  /** Dialog message/content. */
+  /**
+   * Dialog message/content, which describes the dialog through
+   * `aria-describedby` unless you pass an `aria-describedby` of your own.
+   */
   message: string | React.ReactNode;
   /** The type/color of the dialog. Default: 'default'. */
   type?: DialogType | undefined;
@@ -116,6 +123,12 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
     const [scopeNode, setScopeNode] = useState<HTMLDivElement | null>(null);
     const confirmRef = useRef<HTMLButtonElement>(null);
     const cancelRef = useRef<HTMLButtonElement>(null);
+    // Ids of its own for the title and the message, so another dialog open
+    // at the same time, or an element of the page's with the same id, can't
+    // take its name or its description.
+    const baseId = useId();
+    const titleId = `${baseId}-title`;
+    const messageId = `${baseId}-message`;
 
     // Handle cancel
     const handleCancel = useCallback(() => {
@@ -288,8 +301,8 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
             className={combinedClasses}
             role="alertdialog"
             aria-modal="true"
-            aria-labelledby={title ? 'dialog-title' : undefined}
-            aria-describedby="dialog-message"
+            aria-labelledby={title ? titleId : undefined}
+            aria-describedby={messageId}
             {...rest}
           >
             {title && (
@@ -297,12 +310,12 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
                 {displayIcon && (
                   <span className={iconClass}>{displayIcon}</span>
                 )}
-                <h3 id="dialog-title" className={titleClass}>
+                <h3 id={titleId} className={titleClass}>
                   {title}
                 </h3>
               </div>
             )}
-            <div id="dialog-message" className={bodyClass}>
+            <div id={messageId} className={bodyClass}>
               {message}
             </div>
             <div className={footerClass}>

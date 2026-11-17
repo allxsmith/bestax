@@ -61,6 +61,11 @@ const meta: Meta<typeof Loading> = {
       control: 'boolean',
       description: 'Show a cancel button and allow closing',
     },
+    cancelText: {
+      control: 'text',
+      description:
+        'The cancel button\'s words, which also name it. Default: "Cancel", named "Cancel loading"',
+    },
     children: {
       control: 'text',
       description: 'Loading message to display below the spinner',
@@ -281,6 +286,48 @@ export const WithCancel: Story = {
 };
 
 /**
+ * A loading in the page's language. `cancelText` gives the cancel button its
+ * words, which name it too, and an `aria-label` names the loading itself.
+ */
+export const CancelText: Story = {
+  render: function LoadingCancelText() {
+    const [isLoading, setIsLoading] = useState(true);
+
+    return (
+      <Block lang="fr">
+        <Box relative>
+          <Loading
+            active={isLoading}
+            aria-label="Chargement"
+            canCancel
+            cancelText="Annuler"
+            onCancel={() => setIsLoading(false)}
+          >
+            Chargement des données…
+          </Loading>
+          <Content>
+            <Paragraph>Ce contenu est derrière le chargement.</Paragraph>
+            <Paragraph>
+              Le bouton dit « Annuler », et c'est aussi son nom.
+            </Paragraph>
+            <Paragraph>
+              Un lecteur d'écran lit ce que le bouton affiche.
+            </Paragraph>
+            <Paragraph>La commande vocale y répond aussi.</Paragraph>
+            <Paragraph>Échap ou un clic sur le fond l'annule aussi.</Paragraph>
+          </Content>
+        </Box>
+        {!isLoading && (
+          <Button color="primary" mt="4" onClick={() => setIsLoading(true)}>
+            Afficher à nouveau
+          </Button>
+        )}
+      </Block>
+    );
+  },
+};
+
+/**
  * Full page loading overlay.
  * Note: This will cover the entire viewport in the actual implementation.
  */
@@ -400,6 +447,46 @@ export const CustomIndicator: Story = {
         <Paragraph>This content is behind the loading overlay.</Paragraph>
       </Content>
     </Box>
+  ),
+};
+
+/**
+ * Text wider than the overlay wraps onto more lines inside it, while text
+ * that fits stays on one line.
+ */
+export const LongText: Story = {
+  render: () => (
+    <Grid isFixed fixedCols={4}>
+      <Cell>
+        <Box relative>
+          <Loading active>
+            Loading your account details, your recent activity and your saved
+            reports, please wait a moment
+          </Loading>
+          <Content>
+            <Paragraph>This content is behind the loading overlay.</Paragraph>
+            <Paragraph>The message is wider than the box.</Paragraph>
+            <Paragraph>So it wraps onto more than one line.</Paragraph>
+            <Paragraph>Each line stays centered under the spinner.</Paragraph>
+            <Paragraph>None of it runs off the sides of the box.</Paragraph>
+            <Paragraph>The box is as tall as this content.</Paragraph>
+          </Content>
+        </Box>
+      </Cell>
+      <Cell>
+        <Box relative>
+          <Loading active>Loading...</Loading>
+          <Content>
+            <Paragraph>Short text stays on one line while it fits.</Paragraph>
+            <Paragraph>This content is behind the loading overlay.</Paragraph>
+            <Paragraph>It sits in a box of the same width.</Paragraph>
+            <Paragraph>The text and the spinner are centered.</Paragraph>
+            <Paragraph>It wraps only once it's wider than the box.</Paragraph>
+            <Paragraph>The box is as tall as this content.</Paragraph>
+          </Content>
+        </Box>
+      </Cell>
+    </Grid>
   ),
 };
 

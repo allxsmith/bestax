@@ -245,6 +245,29 @@ describe('Tooltip styles under a class prefix', () => {
     );
   });
 
+  // A label wider than the box used to run out of it, light text on the page
+  // (#1909). jsdom lays nothing out, so this reads what the box is told to
+  // do; a browser sizes `max-content` to the text's one line, which is what
+  // an absolutely placed `nowrap` box took, until `max-width` wraps it.
+  it('sizes the box to its text, wrapping a label wider than the max width inside it', () => {
+    renderPrefixed();
+    const style = getComputedStyle(content());
+    expect(style.width).toBe('max-content');
+    expect(style.whiteSpace).toBe('normal');
+    expect(style.overflowWrap).toBe('break-word');
+    expect(style.maxWidth).toBe('var(--bulma-tooltip-max-width)');
+    // It sets no alignment of its own, as before, so rich content with its
+    // own line breaks lines up as it did.
+    expect(style.textAlign).toBe('start');
+  });
+
+  it('keeps a multiline tooltip at its own width, its text centered', () => {
+    renderPrefixed({ multiline: true });
+    const style = getComputedStyle(content());
+    expect(style.width).toBe('var(--bulma-tooltip-multiline-width)');
+    expect(style.textAlign).toBe('center');
+  });
+
   describe('in forced colors', () => {
     /** The declarations of the one forced-colors rule for `selector`. */
     const forcedRule = (selector: string) => {
@@ -279,5 +302,51 @@ describe('Tooltip styles under a class prefix', () => {
           .toLowerCase()
       ).toBe('canvastext');
     });
+  });
+});
+
+// The same rules in the default build, with no class prefix (#1909).
+describe('Tooltip box width in the default build', () => {
+  let plainSheet: HTMLStyleElement;
+
+  beforeAll(() => {
+    plainSheet = document.createElement('style');
+    plainSheet.textContent = sass.compileString(
+      `@use 'bulma/sass/utilities/initial-variables';
+       @use 'components/tooltip';`,
+      {
+        loadPaths: [SCSS, NODE_MODULES],
+        quietDeps: true,
+        logger: sass.Logger.silent,
+      }
+    ).css;
+    document.head.appendChild(plainSheet);
+  });
+
+  afterAll(() => {
+    plainSheet.remove();
+  });
+
+  it('sizes the box to its text, wrapping inside the max width', () => {
+    render(
+      <Tooltip label="Tip">
+        <button>Trigger</button>
+      </Tooltip>
+    );
+    const style = getComputedStyle(content());
+    expect(style.width).toBe('max-content');
+    expect(style.whiteSpace).toBe('normal');
+    expect(style.overflowWrap).toBe('break-word');
+  });
+
+  it('keeps a multiline tooltip at its own width, its text centered', () => {
+    render(
+      <Tooltip label="Tip" multiline>
+        <button>Trigger</button>
+      </Tooltip>
+    );
+    const style = getComputedStyle(content());
+    expect(style.width).toBe('var(--bulma-tooltip-multiline-width)');
+    expect(style.textAlign).toBe('center');
   });
 });

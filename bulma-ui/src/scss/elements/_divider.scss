@@ -1,0 +1,23 @@
+// Bestax Extras - Divider Styles
+// Bulma draws an `<hr>`, which is what `Divider` renders, as a background
+// color with no border. Forced colors (Windows' contrast themes) replaces
+// background colors with the system's Canvas, the page's own color, so the
+// line vanishes there while the break is still in the markup. This draws it
+// as a top border in CanvasText instead, at the height Bulma gives the line,
+// and takes the height off the background. Nothing opts out of forced colors,
+// so the user's palette still decides every color, and a `bgColor` gets the
+// same line. Outside forced colors it changes nothing.
+//
+// `hr:is(hr)` counts as two element selectors, so it outranks Bulma's own `hr`
+// rule whichever loads first, and loses to any rule with a class, so an `<hr>`
+// an app styles with a class of its own, and Bulma's dropdown and navbar
+// dividers, keep their own rules.
+
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+@media (forced-colors: active) {
+  hr:is(hr) {
+    border-top: cv.getVar('hr-height') solid CanvasText;
+    height: 0;
+  }
+}
