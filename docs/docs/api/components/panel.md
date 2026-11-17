@@ -253,7 +253,7 @@ Every subcomponent is exported by name (`PanelHeading`, `PanelBlock`, …) and a
 - [Storybook: Panel Stories](https://bestax.io/storybook/?path=/story/components-panel--revolutionary-war)
 
 :::tip Pro Tip
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Panel />` and its subcomponents for powerful utility-based styling.
+You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Panel />` for powerful utility-based styling.
 :::
 
 ---
@@ -334,26 +334,26 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Panel
 | `onChange`      | `React.ChangeEventHandler<HTMLInputElement>` | —                 | Input change handler.                                                                                               |
 | `placeholder`   | `string`                                     | —                 | The field's placeholder, which browsers fall back to for its name, so say what it searches ("Search repositories"). |
 | `iconClassName` | `string`                                     | `'fas fa-search'` | Icon class for left icon (default 'fas fa-search').                                                                 |
-| `className`     | `string`                                     | —                 | Additional CSS classes.                                                                                             |
+| `className`     | `string`                                     | —                 | Additional CSS classes, added to the block's own `panel-block` class.                                               |
 | `...`           | All standard `<div>` attributes              | —                 |                                                                                                                     |
 
 ### Panel.CheckboxBlock
 
-| Prop        | Type                                         | Default | Description                      |
-| ----------- | -------------------------------------------- | ------- | -------------------------------- |
-| `checked`   | `boolean`                                    | `false` | Whether the checkbox is checked. |
-| `onChange`  | `React.ChangeEventHandler<HTMLInputElement>` | —       | Checkbox change handler.         |
-| `children`  | `React.ReactNode`                            | —       | Label/content.                   |
-| `className` | `string`                                     | —       | Additional CSS classes.          |
-| `...`       | All standard `<label>` attributes            | —       |                                  |
+| Prop        | Type                                         | Default | Description                                                           |
+| ----------- | -------------------------------------------- | ------- | --------------------------------------------------------------------- |
+| `checked`   | `boolean`                                    | `false` | Whether the checkbox is checked.                                      |
+| `onChange`  | `React.ChangeEventHandler<HTMLInputElement>` | —       | Checkbox change handler.                                              |
+| `children`  | `React.ReactNode`                            | —       | Label/content.                                                        |
+| `className` | `string`                                     | —       | Additional CSS classes, added to the block's own `panel-block` class. |
+| `...`       | All standard `<label>` attributes            | —       |                                                                       |
 
 ### Panel.ButtonBlock
 
-| Prop        | Type                               | Default | Description             |
-| ----------- | ---------------------------------- | ------- | ----------------------- |
-| `children`  | `React.ReactNode`                  | —       | Button content.         |
-| `className` | `string`                           | —       | Additional CSS classes. |
-| `...`       | All standard `<button>` attributes | —       |                         |
+| Prop        | Type                               | Default | Description                                                                                                                                     |
+| ----------- | ---------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `children`  | `React.ReactNode`                  | —       | Button content.                                                                                                                                 |
+| `className` | `string`                           | —       | Additional CSS classes, added to the button's own. Like the block's other props, it goes on the `<button>`, not on the `panel-block` around it. |
+| `...`       | All standard `<button>` attributes | —       |                                                                                                                                                 |
 
 <!-- /bestax:generated props -->
 
