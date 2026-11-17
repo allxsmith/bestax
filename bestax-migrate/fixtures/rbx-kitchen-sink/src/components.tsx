@@ -59,11 +59,11 @@ export const Components = () => (
       <Message.Header>Header</Message.Header>
       <Message.Body>Body</Message.Body>
     </Message>
-    <Modal active>
+    <Modal active aria-labelledby="modal-title">
       <Modal.Background />
       <Modal.Card>
         <Modal.Card.Head>
-          <Modal.Card.Title>Title</Modal.Card.Title>
+          <Modal.Card.Title id="modal-title">Title</Modal.Card.Title>
         </Modal.Card.Head>
         <Modal.Card.Body>Body</Modal.Card.Body>
         <Modal.Card.Foot>Foot</Modal.Card.Foot>

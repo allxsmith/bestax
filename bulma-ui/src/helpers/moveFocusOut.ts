@@ -34,21 +34,28 @@ export function moveFocusOut(
     return;
   }
   if (target && takesFocus(target)) return;
-  if (!fallback) return;
-  if (fallback.hasAttribute('tabindex')) {
-    fallback.focus();
-    return;
-  }
-  fallback.setAttribute('tabindex', '-1');
+  if (fallback) focusWithoutTabStop(fallback);
+}
+
+/**
+ * Focuses `el`, which need not take focus on its own, by giving it
+ * `tabindex="-1"` for as long as it keeps focus, unless it has a `tabindex`
+ * of its own.
+ *
+ * @param el - The element to focus.
+ * @returns Whether it took focus.
+ */
+export function focusWithoutTabStop(el: HTMLElement): boolean {
+  if (el.hasAttribute('tabindex')) return takesFocus(el);
+  el.setAttribute('tabindex', '-1');
   // One that can't take focus either, such as a hidden one, gets no blur to
   // take the tabindex off again, so it goes now.
-  if (!takesFocus(fallback)) {
-    fallback.removeAttribute('tabindex');
-    return;
+  if (!takesFocus(el)) {
+    el.removeAttribute('tabindex');
+    return false;
   }
-  fallback.addEventListener(
-    'blur',
-    () => fallback.removeAttribute('tabindex'),
-    { once: true }
-  );
+  el.addEventListener('blur', () => el.removeAttribute('tabindex'), {
+    once: true,
+  });
+  return true;
 }

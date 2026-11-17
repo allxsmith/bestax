@@ -186,7 +186,7 @@ export const ItemsNavLinksAndDropdown: Story = {
   render: () => (
     <Navbar>
       <Navbar.Brand>
-        <Navbar.Item>
+        <Navbar.Item href="#">
           <img src={logo} alt="Logo" width="28" height="28" />
         </Navbar.Item>
       </Navbar.Brand>

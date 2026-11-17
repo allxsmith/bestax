@@ -519,7 +519,9 @@ that selector. A checked card's edge is `--bulma-checkbox-card-checked-border-wi
 `--bulma-checkbox-card-border-width`, so the selection isn't color alone; keep it thicker. The focus
 outline is Bulma's focus color, not the active color. `--bulma-checkbox-card-min-width` is how
 narrow a card gets in a `Checkboxes` row before the row wraps. In forced colors the edge takes
-`CanvasText`, and `Highlight` when checked, whatever these say.
+`CanvasText`, and `Highlight` when checked, whatever these say, and
+`--bulma-checkbox-card-disabled-opacity` doesn't apply: a disabled card draws at full strength in
+the system's color for disabled text.
 
 ### Collapse
 
@@ -1025,7 +1027,8 @@ the label text inside the `Radio`, since the whole label is the click target.
 `--bulma-radio-card-transition-duration`
 
 The same as CheckboxCard's, on the `.radio-card` label, with a ring and a dot for the indicator and
-`--bulma-radio-card-min-width` for a `Radios` row.
+`--bulma-radio-card-min-width` for a `Radios` row. In forced colors
+`--bulma-radio-card-disabled-opacity` doesn't apply either.
 
 ### Rate
 
@@ -1037,6 +1040,10 @@ The same as CheckboxCard's, on the `.radio-card` label, with a ring and a dot fo
 `--bulma-rate-pop-scale`, `--bulma-rate-score-color`, `--bulma-rate-score-weight`,
 `--bulma-rate-spaced-gap`, `--bulma-rate-text-color`, `--bulma-rate-text-size`,
 `--bulma-rate-transition-duration`
+
+In forced colors `--bulma-rate-disabled-opacity` doesn't apply: a disabled Rate draws at full
+strength, its empty stars, score and text in the system's color for disabled text and its filled
+parts in the text color.
 
 ### RingProgress
 

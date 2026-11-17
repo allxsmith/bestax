@@ -160,6 +160,36 @@ describe('Panel.Heading', () => {
   });
 });
 
+// The heading is a paragraph to assistive tech, and the API page's fixes rely
+// on the heading and the panel passing these attributes through.
+describe('a heading tied to its panel', () => {
+  it('names the panel’s navigation landmark after its heading', () => {
+    render(
+      <Panel aria-labelledby="repos">
+        <Panel.Heading id="repos">Repositories</Panel.Heading>
+        <Panel.Block href="#bulma">bulma</Panel.Block>
+      </Panel>
+    );
+    expect(
+      screen.getByRole('navigation', { name: 'Repositories' })
+    ).toHaveClass('panel');
+  });
+
+  it('makes the heading a heading at the level it is given', () => {
+    render(
+      <Panel>
+        <Panel.Heading role="heading" aria-level={2}>
+          Repositories
+        </Panel.Heading>
+        <Panel.Block href="#bulma">bulma</Panel.Block>
+      </Panel>
+    );
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Repositories' })
+    ).toHaveClass('panel-heading');
+  });
+});
+
 describe('Panel.Tabs', () => {
   it('renders tabs', () => {
     render(

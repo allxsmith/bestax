@@ -88,7 +88,7 @@ export const Leftovers = ({ where }: { where: "left" | "right" }) => (
       </Dropdown.Menu>
     </Dropdown>
 
-    {/* closeOnEsc renames; closeOnBlur is still yours to wire, and every conversion is flagged about the portal */}
+    {/* closeOnEsc renames; closeOnBlur is still yours to wire, every conversion is flagged about the portal, and nothing names this one */}
     <Modal active closeOnEsc closeOnBlur>
       <Modal.Content>body</Modal.Content>
     </Modal>

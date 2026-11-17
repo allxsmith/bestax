@@ -1913,6 +1913,16 @@ describe('Tooltip', () => {
         writable: true,
         configurable: true,
       });
+      // The root element's client area, which the tooltip measures against.
+      for (const [name, value] of Object.entries({
+        clientWidth: width,
+        clientHeight: height,
+      })) {
+        Object.defineProperty(document.documentElement, name, {
+          value,
+          configurable: true,
+        });
+      }
     };
 
     const mockRects = (
@@ -1949,6 +1959,12 @@ describe('Tooltip', () => {
         configurable: true,
       });
       Element.prototype.getBoundingClientRect = originalGetBoundingClientRect;
+      const root = document.documentElement as {
+        clientWidth?: number;
+        clientHeight?: number;
+      };
+      delete root.clientWidth;
+      delete root.clientHeight;
     });
 
     it('resolves auto position to top when there is space above', () => {
@@ -2040,6 +2056,182 @@ describe('Tooltip', () => {
 
       expect(wrapper()).toHaveClass('is-active', 'is-bottom');
     });
+
+    // #1953: the room a side needs is the tooltip's own size, not 40px.
+    describe('by the size of the tooltip', () => {
+      const sizes = { offsetWidth: 0, offsetHeight: 0 };
+      /** Gives the tooltip `width` x `height`, which jsdom leaves at 0. */
+      const sizeTooltip = (width: number, height: number) => {
+        sizes.offsetWidth = width;
+        sizes.offsetHeight = height;
+      };
+      const descriptors = Object.fromEntries(
+        Object.keys(sizes).map(name => [
+          name,
+          Object.getOwnPropertyDescriptor(HTMLElement.prototype, name),
+        ])
+      );
+
+      beforeEach(() => {
+        for (const name of Object.keys(sizes) as (keyof typeof sizes)[]) {
+          Object.defineProperty(HTMLElement.prototype, name, {
+            configurable: true,
+            get(this: HTMLElement) {
+              return this.classList.contains('tooltip-content')
+                ? sizes[name]
+                : 0;
+            },
+          });
+        }
+      });
+
+      afterEach(() => {
+        for (const [name, descriptor] of Object.entries(descriptors)) {
+          Object.defineProperty(HTMLElement.prototype, name, descriptor!);
+        }
+        sizeTooltip(0, 0);
+        document.head.querySelector('style[data-gap]')?.remove();
+      });
+
+      const renderAuto = () =>
+        render(
+          <Tooltip
+            label="A label long enough to wrap onto several lines inside the box at its maximum width"
+            position="auto"
+            multiline
+            active
+          >
+            <button>Trigger</button>
+          </Tooltip>
+        );
+
+      it('puts a tooltip taller than the room above it below, as the trigger near the top of the window leaves it', () => {
+        setViewport(1024, 768);
+        mockRects({ top: 45, bottom: 65, left: 500, right: 540 });
+        sizeTooltip(240, 88);
+
+        renderAuto();
+        act(() => {
+          vi.runAllTimers();
+        });
+
+        expect(wrapper()).toHaveClass('is-bottom');
+      });
+
+      it('keeps a one-line tooltip above where 40px are free, as before', () => {
+        setViewport(1024, 768);
+        mockRects({ top: 45, bottom: 65, left: 500, right: 540 });
+        sizeTooltip(120, 28);
+
+        renderAuto();
+        act(() => {
+          vi.runAllTimers();
+        });
+
+        expect(wrapper()).toHaveClass('is-top');
+      });
+
+      it('counts the gap its arrow takes, where the stylesheet puts it past the trigger', () => {
+        // A theme's 20px arrow 1.875rem (30px) from the trigger makes a 50px
+        // gap, so a 30px tooltip needs 80px, more than the 60px above the
+        // trigger.
+        const style = document.createElement('style');
+        style.dataset.gap = '';
+        style.textContent =
+          '.tooltip-content { --bulma-tooltip-arrow-size: 20px; --bulma-tooltip-arrow-margin: 1.875rem; }';
+        document.head.appendChild(style);
+        setViewport(1024, 768);
+        mockRects({ top: 60, bottom: 80, left: 500, right: 540 });
+        sizeTooltip(120, 30);
+
+        renderAuto();
+        act(() => {
+          vi.runAllTimers();
+        });
+
+        expect(wrapper()).toHaveClass('is-bottom');
+      });
+
+      it('goes on a side only where the tooltip fits across, and where no side has room, on the one that falls shortest', () => {
+        // 10px above and below for a 200px tooltip, and 934px to the right
+        // for a 960px one: the right falls 26px short, the least.
+        setViewport(1024, 100);
+        mockRects({ top: 10, bottom: 90, left: 50, right: 90 });
+        sizeTooltip(960, 200);
+
+        renderAuto();
+        act(() => {
+          vi.runAllTimers();
+        });
+
+        expect(wrapper()).toHaveClass('is-right');
+      });
+
+      it('keeps a tooltip auto puts on a side in the viewport up and down, not across', () => {
+        // On the right, the 200px tooltip runs past the 100px viewport's top
+        // and bottom, and its right edge past the window's.
+        setViewport(1024, 100);
+        mockRects(
+          { top: 10, bottom: 90, left: 50, right: 90 },
+          { top: -50, bottom: 150, left: 100, right: 1060 }
+        );
+        sizeTooltip(960, 200);
+
+        renderAuto();
+        act(() => {
+          vi.runAllTimers();
+        });
+
+        const content = document.querySelector(
+          '.tooltip-content'
+        ) as HTMLElement;
+        expect(wrapper()).toHaveClass('is-right');
+        expect(content.style.left).toBe('');
+        expect(content.style.top).toBe('calc(50% + 58px)');
+      });
+
+      it('places it again when it becomes multiline while it shows', () => {
+        setViewport(1024, 768);
+        mockRects({ top: 45, bottom: 65, left: 500, right: 540 });
+        sizeTooltip(120, 28);
+        const { rerender } = render(
+          <Tooltip label="A label that wraps" position="auto" active>
+            <button>Trigger</button>
+          </Tooltip>
+        );
+        act(() => {
+          vi.runAllTimers();
+        });
+        expect(wrapper()).toHaveClass('is-top');
+
+        sizeTooltip(240, 88);
+        rerender(
+          <Tooltip label="A label that wraps" position="auto" multiline active>
+            <button>Trigger</button>
+          </Tooltip>
+        );
+        act(() => {
+          vi.runAllTimers();
+        });
+
+        expect(wrapper()).toHaveClass('is-bottom');
+      });
+
+      it('puts a tooltip too wide for either side above or below, where it falls shortest, rather than on the wider side', () => {
+        // 30px above and below for a 40px tooltip, 10px short, and 934px to
+        // the right for a 1000px one, 66px short.
+        setViewport(1024, 100);
+        mockRects({ top: 30, bottom: 70, left: 50, right: 90 });
+        sizeTooltip(1000, 40);
+
+        renderAuto();
+        act(() => {
+          vi.runAllTimers();
+        });
+
+        expect(wrapper()).toHaveClass('is-top');
+      });
+    });
   });
 
   describe('overflow correction', () => {
@@ -2060,6 +2252,16 @@ describe('Tooltip', () => {
         writable: true,
         configurable: true,
       });
+      // The root element's client area, which the tooltip measures against.
+      for (const [name, value] of Object.entries({
+        clientWidth: width,
+        clientHeight: height,
+      })) {
+        Object.defineProperty(document.documentElement, name, {
+          value,
+          configurable: true,
+        });
+      }
     };
 
     const mockRects = (
@@ -2105,6 +2307,12 @@ describe('Tooltip', () => {
         configurable: true,
       });
       Element.prototype.getBoundingClientRect = originalGetBoundingClientRect;
+      const root = document.documentElement as {
+        clientWidth?: number;
+        clientHeight?: number;
+      };
+      delete root.clientWidth;
+      delete root.clientHeight;
     });
 
     it('shifts vertical-position tooltip right when content overflows the left edge', () => {

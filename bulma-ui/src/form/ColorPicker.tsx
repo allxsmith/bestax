@@ -44,7 +44,7 @@ import {
   useFieldsetDisabled,
 } from './FormContext';
 import { useAutoLabelledBy } from './useAutoLabelId';
-import { useFieldMessage } from './useFieldMessage';
+import { splitControlState, useFieldMessage } from './useFieldMessage';
 
 export type { ColorFormat } from './_colorInternals/colorMath';
 
@@ -771,7 +771,10 @@ const CheckIcon = ({ haloClass }: { haloClass: string }) => (
 
 /**
  * Props for ColorPicker.Input. The helper props, the other attributes and
- * the `ref` land on the row's `<div>`.
+ * the `ref` land on the row's `<div>`, except `aria-invalid` and
+ * `aria-errormessage`, which report the field's state and go on its
+ * `<input>`. A caller's `aria-invalid` adds to the field's own, which marks
+ * text it can't read.
  *
  * @extraProp {React.Ref<HTMLDivElement>} [ref] - Ref forwarded to the row's `<div>`.
  */
@@ -798,7 +801,11 @@ export const ColorPickerInput = forwardRef<
   const picker = usePicker('Input');
   const live = picker ?? standalone;
   const { color, text, change, disabled, labels } = live;
-  const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+  const { bulmaHelperClasses, rest: helperRest } = useBulmaClasses(props);
+  // The input takes `aria-invalid` and `aria-errormessage`, which report its
+  // state, and the row the rest (#2063). A caller's `aria-invalid` adds to
+  // the input's own, which marks text it can't read, as on ColorInput.
+  const { control: controlState, rest } = splitControlState(helperRest);
   const rowClass = usePrefixedClassNames('color-picker-value');
   const previewClass = usePrefixedClassNames('color-picker-preview');
   // What's been typed and not yet committed, or null while the field
@@ -847,7 +854,8 @@ export const ColorPickerInput = forwardRef<
         value={draft ?? text}
         disabled={disabled}
         aria-label={labels.value}
-        aria-invalid={invalid || undefined}
+        {...controlState}
+        aria-invalid={invalid || controlState['aria-invalid'] || undefined}
         spellCheck={false}
         autoComplete="off"
         autoCapitalize="off"

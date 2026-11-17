@@ -74,10 +74,7 @@ export function useBulmaBreakpoint(
   const [atOrPast, setAtOrPast] = useState<boolean | null>(null);
 
   useClientLayoutEffect(() => {
-    const list =
-      typeof window.matchMedia === 'function'
-        ? window.matchMedia(VIEWPORT_QUERIES[VIEWPORT_INDEX[breakpoint]])
-        : null;
+    const list = breakpointList(breakpoint, window);
     const update = () => setAtOrPast(list ? list.matches : true);
     update();
     list?.addEventListener('change', update);
@@ -85,4 +82,37 @@ export function useBulmaBreakpoint(
   }, [breakpoint]);
 
   return atOrPast;
+}
+
+/**
+ * The media query list for one of Bulma's breakpoints in `win`, or `null`
+ * where `matchMedia` isn't there.
+ */
+function breakpointList(
+  breakpoint: keyof typeof VIEWPORT_INDEX,
+  win: Window | null
+): MediaQueryList | null {
+  return win && typeof win.matchMedia === 'function'
+    ? win.matchMedia(VIEWPORT_QUERIES[VIEWPORT_INDEX[breakpoint]])
+    : null;
+}
+
+/**
+ * Whether a window is at or past one of Bulma's breakpoints, at its default
+ * width, read once when it's called, for a handler that needs the answer only
+ * when an event arrives and so subscribes to nothing. Pass the window an
+ * element is in, so one in an iframe reads the iframe's width. Where
+ * `matchMedia` or the window isn't there, it's `true`, as
+ * `useBulmaBreakpoint`'s is.
+ *
+ * @function isAtBulmaBreakpoint
+ * @param breakpoint - The breakpoint: `tablet`, `desktop` or `widescreen`.
+ * @param win - The window to read, as an element's `ownerDocument.defaultView`.
+ * @returns Whether the window is at or past it.
+ */
+export function isAtBulmaBreakpoint(
+  breakpoint: keyof typeof VIEWPORT_INDEX,
+  win: Window | null
+): boolean {
+  return breakpointList(breakpoint, win)?.matches ?? true;
 }
