@@ -276,9 +276,11 @@ Notes:
 - `Tag` is stock Bulma too (`bulma/sass/elements/tag`). The `tag` extras partial gives a light tag,
   and a white, black or dark one with `isLight`, text that reads on its light background, where
   Bulma's module lets its text inherit the color around it, which on the dark scheme leaves it hard
-  to read, and sets a normal-size tag in a table cell at the bottom of its line, where Bulma's
-  baseline makes the row taller than a row of text. Include it (`as bestax-tag`) next to the Bulma
-  module in any build that shows one of those tags or a tag in a table. It doesn't depend on the
+  to read, sets a normal-size tag in a table cell at the bottom of its line, where Bulma's
+  baseline makes the row taller than a row of text, and gives a button tag (`as="button"`,
+  `isDelete`) the weight, spacing and other text a span tag takes from the text around it, where
+  the browser gives a button its own. Include it (`as bestax-tag`) next to the Bulma module in any
+  build that shows one of those tags, a tag in a table or a button tag. It doesn't depend on the
   order of the two `@use` lines either.
 - `Delete` is stock Bulma too, and it's the close button of `Notification`, `Message`, `Toast`, a
   `Modal` card, `AppFrame`'s drawer and the tags of `Taginput`, `Combobox`, `Dropzone` and
