@@ -637,7 +637,12 @@ describe('Numberinput', () => {
     it('keeps the English name for a label left out or empty', () => {
       render(<Numberinput labels={{ increase: 'Augmenter' }} />);
       render(<Numberinput labels={{ decrease: 'Diminuer' }} />);
-      render(<Numberinput labels={{ increase: '', decrease: '' }} />);
+      render(
+        <Numberinput
+          variant="stepper"
+          labels={{ increase: '', decrease: '' }}
+        />
+      );
       expect(
         screen.getAllByRole('button', { name: 'Decrease value' })
       ).toHaveLength(2);
