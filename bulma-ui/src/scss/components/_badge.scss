@@ -98,8 +98,8 @@ $badge-animation-duration: 1.4s !default;
 //   .is-pulse::after resolves against, instead of the halo escaping to cover
 //   whatever positioned container the badge sits in.
 // - pointer-events: auto overrides the base .badge reset (needed for the
-//   anchored overlay so clicks pass through to the child) because in
-//   standalone mode the pill itself is the interactive root.
+//   anchored overlay so clicks pass through to the child), since a standalone
+//   badge has no child to pass them to.
 .#{iv.$class-prefix}badge.#{iv.$class-prefix}is-standalone {
   position: relative;
   display: inline-flex;
