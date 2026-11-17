@@ -228,9 +228,45 @@ describe.each([
     expect(find(PLAIN, `${input}:focus-visible + ${edge}`, FORCED)).toEqual({
       'outline-color': 'Highlight',
     });
+    // A disabled card is drawn in GrayText, which its opacity would only
+    // halve, so it draws at full strength there, its description in GrayText
+    // too (#1996).
     expect(find(PLAIN, `${input}:disabled + ${content}`, FORCED)).toEqual({
       color: 'GrayText',
+      opacity: '1',
     });
+    expect(
+      find(
+        PLAIN,
+        `${input}:disabled + ${content} .${kind}-card-description`,
+        FORCED
+      )
+    ).toEqual({ color: 'GrayText' });
+    // Checked, the indicator is GrayText too, not the highlight of an
+    // enabled one.
+    const check = `${content} > .${kind}-card-check`;
+    if (kind === 'checkbox') {
+      expect(
+        find(PLAIN, `${input}:checked:disabled + ${check}`, FORCED)
+      ).toEqual({ 'background-color': 'GrayText' });
+      expect(
+        find(PLAIN, `${input}:checked:disabled + ${check}::after`, FORCED)
+      ).toEqual({ 'background-color': 'Canvas' });
+      expect(
+        find(PLAIN, `${input}:indeterminate:disabled + ${check}`, FORCED)
+      ).toEqual({ 'background-color': 'Canvas' });
+      expect(
+        find(
+          PLAIN,
+          `${input}:indeterminate:disabled + ${check}::before`,
+          FORCED
+        )
+      ).toEqual({ 'background-color': 'GrayText' });
+    } else {
+      expect(
+        find(PLAIN, `${input}:checked:disabled + ${check}::before`, FORCED)
+      ).toEqual({ 'background-color': 'GrayText' });
+    }
     expect(find(PLAIN, `${input}:disabled + ${edge}`, FORCED)).toEqual({
       'border-color': 'GrayText',
     });

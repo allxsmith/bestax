@@ -1,12 +1,13 @@
 /**
- * Hold every link in the layout, grid and columns examples to an `href`.
+ * Hold every link in the layout, grid, columns and Navbar examples to an `href`.
  *
  * An `<a>` with no `href` isn't a link: Tab skips it, Enter does nothing on
  * it, and assistive tech reads it as text. The Hero and Level examples wrote
  * their navbars, tabs and toolbars that way, the way Bulma's own examples
- * are, and they render fine, so nothing else caught it (#2020). This reads
- * the jsx and tsx fences on the layout, grid and columns API pages, and
- * those folders' stories.
+ * are, and they render fine, so nothing else caught it (#2020), and the
+ * Navbar examples did the same with a brand item and a router-link stand-in
+ * (#2048). This reads the jsx and tsx fences on the layout, grid and columns
+ * API pages and the Navbar page, and those folders' stories and Navbar's.
  *
  * An element renders an `<a>` when it's a hand-written `<a>`, when its `as`
  * is `"a"`, or when it's one of `ANCHOR_BY_DEFAULT` with no `as`. It passes
@@ -65,9 +66,12 @@ function inDropdown(node) {
   return false;
 }
 
-/** The examples this holds: the layout, grid and columns pages and stories. */
+/**
+ * The examples this holds: the layout, grid and columns pages and stories,
+ * and the Navbar page and stories.
+ */
 const IN_SCOPE =
-  /^(docs\/docs\/api\/(layout|grid|columns)\/|bulma-ui\/src\/(layout|grid|columns)\/)/;
+  /^(docs\/docs\/api\/(layout|grid|columns)\/|bulma-ui\/src\/(layout|grid|columns)\/|docs\/docs\/api\/components\/navbar\.md$|bulma-ui\/src\/components\/Navbar\.stories\.tsx$)/;
 
 /**
  * Every element in one piece of code that renders an `<a>`, each with its
@@ -121,7 +125,7 @@ function readFile(rel) {
 
 const FILES = exampleFiles().filter(rel => IN_SCOPE.test(rel));
 
-describe('links in the layout, grid and columns examples', () => {
+describe('links in the layout, grid, columns and Navbar examples', () => {
   const anchors = FILES.flatMap(readFile);
 
   it('holds each way of writing a link to what it renders', () => {
@@ -177,7 +181,7 @@ describe('links in the layout, grid and columns examples', () => {
     }
   });
 
-  it('reads the pages and stories the Hero and Level links live on', () => {
+  it('reads the pages and stories the Hero, Level and Navbar links live on', () => {
     // So a moved page or a parse that finds nothing can't pass by reading
     // no links at all.
     for (const rel of [
@@ -185,6 +189,8 @@ describe('links in the layout, grid and columns examples', () => {
       'docs/docs/api/layout/level.md',
       'bulma-ui/src/layout/Hero.stories.tsx',
       'bulma-ui/src/layout/Level.stories.tsx',
+      'docs/docs/api/components/navbar.md',
+      'bulma-ui/src/components/Navbar.stories.tsx',
     ]) {
       assert.ok(
         anchors.some(anchor => anchor.at.startsWith(`${rel}:`)),

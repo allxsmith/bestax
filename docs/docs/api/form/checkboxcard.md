@@ -296,7 +296,8 @@ Here the padding is tighter and a checked edge is three pixels:
 - In forced colors (Windows contrast themes), Bulma's card loses its shadow, so the edge is a
   real border there: the system's text color, `Highlight` and still thicker when checked, and
   gray when disabled. The checkbox takes system colors as `Checkbox`'s does, and the focus outline
-  is `Highlight`.
+  is `Highlight`. A disabled card draws at full strength there, its text, description and
+  checkbox gray, rather than dimmed.
 - The edge and the checkbox change without a transition under `prefers-reduced-motion: reduce`.
 
 ---

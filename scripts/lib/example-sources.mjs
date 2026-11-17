@@ -3,8 +3,9 @@
  * skills, the `.tsx` examples in the skills, and bulma-ui's stories. The tests
  * that hold an example to the markup a component needs from its caller
  * (`docs-menu-item-links.test.mjs`, `docs-breadcrumb-current.test.mjs`,
- * `docs-layout-links.test.mjs`) read it through here, so they agree on what a
- * fence is, and the two link tests on what an `href` is.
+ * `docs-layout-links.test.mjs`, `docs-tabs-item-links.test.mjs`) read it
+ * through here, so they agree on what a fence is, and the link tests on what
+ * an `href` is.
  */
 import { readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -44,6 +45,11 @@ export function attributeValue(prop) {
   return { expr };
 }
 
+/** Whether an expression is `null` or `undefined`, which React writes as no attribute. */
+export const isNothing = expr =>
+  expr.kind === ts.SyntaxKind.NullKeyword ||
+  (ts.isIdentifier(expr) && expr.text === 'undefined');
+
 /**
  * Whether an `href` attribute holds something a browser can follow: not
  * bare, `""`, `{undefined}` or `{null}`.
@@ -52,10 +58,7 @@ export function linkingHref(prop) {
   const { bare, text, expr } = attributeValue(prop);
   if (bare) return false;
   if (text !== undefined) return text !== '';
-  return !(
-    expr.kind === ts.SyntaxKind.NullKeyword ||
-    (ts.isIdentifier(expr) && expr.text === 'undefined')
-  );
+  return !isNothing(expr);
 }
 
 /**

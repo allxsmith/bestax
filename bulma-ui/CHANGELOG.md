@@ -1,3 +1,23 @@
+# [5.75.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.74.0...@allxsmith/bestax-bulma@5.75.0) (2026-11-17)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** read Notification's new ariaCloseLabel prop as its own ([68bdbad](https://github.com/allxsmith/bestax/commit/68bdbad36f6c00a5e68c57c6e71b68c052eab0ed))
+* **bulma-ui:** close an open Navbar.Dropdown on Escape from inside its menu ([6e8d151](https://github.com/allxsmith/bestax/commit/6e8d1514a598714d6fbf1d96a8f83263b055baaa)), closes [#1982](https://github.com/allxsmith/bestax/issues/1982)
+* **bulma-ui:** give a Slider's thumb the bubble's formatted text, and quiet the bubble ([2298ac9](https://github.com/allxsmith/bestax/commit/2298ac9377b1c5007450e8d9f0a1c355e80d9caf)), closes [#1992](https://github.com/allxsmith/bestax/issues/1992)
+* **bulma-ui:** let a caller name Notification's and Toast's close buttons ([b20bb21](https://github.com/allxsmith/bestax/commit/b20bb212638203de3b22fd9de5da89936c684afb)), closes [#1838](https://github.com/allxsmith/bestax/issues/1838)
+* **bulma-ui:** measure a scroll region again once a web font finishes loading ([a78abb0](https://github.com/allxsmith/bestax/commit/a78abb0a7ac5b879d516de98d147746c63ce8e63)), closes [#2027](https://github.com/allxsmith/bestax/issues/2027)
+* **bulma-ui:** name a Modal drawn as content by its string title ([2925308](https://github.com/allxsmith/bestax/commit/2925308342e03b2240c5222606b0d08aef21af68)), closes [#1947](https://github.com/allxsmith/bestax/issues/1947)
+* **bulma-ui:** put aria-invalid and aria-errormessage on the wrappers' focusable input ([93559e9](https://github.com/allxsmith/bestax/commit/93559e94adb4a9109b610e6e36775955b8b21e94)), closes [#2002](https://github.com/allxsmith/bestax/issues/2002)
+
+
+### Features
+
+* **bulma-ui:** let a Numberinput's button names be translated, with labels ([f237931](https://github.com/allxsmith/bestax/commit/f2379310db3d939816973ddd23380be1644edeb9)), closes [#1975](https://github.com/allxsmith/bestax/issues/1975)
+* **bulma-ui:** name a programmatic Dialog with an aria-label, and warn about one with no name ([9c30819](https://github.com/allxsmith/bestax/commit/9c3081906e139b7b0deb2cb9f606e8214f9af1af)), closes [#1896](https://github.com/allxsmith/bestax/issues/1896)
+* **bulma-ui:** name Rate's group and stars through labels ([e996933](https://github.com/allxsmith/bestax/commit/e9969339860e24f752b8260cbc87dfa5a83e694e)), closes [#1993](https://github.com/allxsmith/bestax/issues/1993)
+
 # [5.74.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.73.11...@allxsmith/bestax-bulma@5.74.0) (2026-11-17)
 
 

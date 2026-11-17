@@ -259,8 +259,36 @@ $-check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' 
       outline-color: Highlight;
     }
 
+    // A disabled box is drawn in GrayText, so its usual opacity would only
+    // halve that. It and its label draw at full strength here, the label in
+    // GrayText too.
     input[type="checkbox"]:disabled + .#{iv.$class-prefix}check {
       border-color: GrayText;
+      opacity: 1;
+    }
+
+    input[type="checkbox"]:disabled ~ .#{iv.$class-prefix}control-label {
+      color: GrayText;
+      opacity: 1;
+    }
+
+    // Checked, it fills with GrayText rather than the highlight, its mark in
+    // the page's color on it, and a mixed dash takes GrayText, so a disabled
+    // box doesn't draw as an enabled one.
+    input[type="checkbox"]:checked:disabled + .#{iv.$class-prefix}check {
+      background-color: GrayText;
+
+      &::after {
+        background-color: Canvas;
+      }
+    }
+
+    input[type="checkbox"]:indeterminate:disabled + .#{iv.$class-prefix}check {
+      background-color: Canvas;
+
+      &::before {
+        background-color: GrayText;
+      }
     }
   }
 }

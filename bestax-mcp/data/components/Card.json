@@ -62,7 +62,7 @@
       "code": "<Card>\n  <Card.Header>\n    <Card.Header.Title as=\"p\">Component</Card.Header.Title>\n  </Card.Header>\n  <Card.Content>Card content goes here.</Card.Content>\n  <Card.Footer>\n    <Card.FooterItem as=\"a\" href=\"#save\">\n      Save\n    </Card.FooterItem>\n    <Card.FooterItem as=\"a\" href=\"#edit\">\n      Edit\n    </Card.FooterItem>\n  </Card.Footer>\n</Card>"
     }
   ],
-  "accessibility": "- **Image alternate text:** An image URL passed as `image` renders an `<img>` whose `alt` is `imageAlt`. Describe what the picture shows, or pass `imageAlt=\"\"` for a decorative image so screen readers skip it. Without `imageAlt`, the `alt` is \"Card image\", which tells a screen reader nothing about the picture. An image you render yourself, as a node in `image` or inside `Card.Image`, takes its own `alt`, and `imageAlt` doesn't reach it.\n- Use semantic content for the header, body, and footer as needed.",
+  "accessibility": "- **Image alternate text:** An image URL passed as `image` renders an `<img>` whose `alt` is `imageAlt`. Describe what the picture shows, or pass `imageAlt=\"\"` for a decorative image so screen readers skip it. Without `imageAlt`, the `alt` is \"Card image\", which tells a screen reader nothing about the picture. An image you render yourself, as a node in `image` or inside `Card.Image`, takes its own `alt`, and `imageAlt` doesn't reach it.\n- **Header and footer landmarks:** a card's header and footer are Bulma's `<header class=\"card-header\">` and `<footer class=\"card-footer\">`, which `header` or `headerIcon`, `footer`, `Card.Header` and `Card.Footer` render. Outside `<main>`, `<article>`, `<aside>`, `<nav>`, `<section>` and elements with one of their roles, a `<header>` is a banner landmark and a `<footer>` a content info landmark, so a screen reader that lists landmarks lists a banner for each card with a header and a content info for each card with a footer, beside the page's own. Inside one of them they aren't landmarks. Put cards in the page's `<main>`. For a card that can't be there, such as one portaled outside it, give the card `role=\"article\"`, or wrap it in an `<article>`, which scopes them the same way, or, built from the parts, pass `role=\"none\"` to its `Card.Header` and `Card.Footer`, which ARIA in HTML allows on both.\n- Use semantic content for the header, body, and footer as needed.",
   "related": ["Icon", "Image", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-card--default",
   "summary": "The `Card` component renders a Bulma-styled card with optional header, image, content, and footer.",
@@ -126,7 +126,7 @@
           "name": "header",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Card header content, rendered inside `.card-header-title`.",
+          "description": "Card header content, rendered inside `.card-header-title`. The header is a `<header>`, which is a banner landmark outside `<main>`, the sectioning elements and their roles.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -144,7 +144,7 @@
           "name": "headerIcon",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Card header icon, rendered as a sibling to the header title.",
+          "description": "Card header icon, rendered as a sibling to the header title. Even with no `header`, it renders the card's `<header>`, a landmark where `header`'s is.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -153,7 +153,7 @@
           "name": "footer",
           "type": "React.ReactNode | React.ReactNode[]",
           "default": null,
-          "description": "Card footer content; each item is wrapped in `.card-footer-item`.",
+          "description": "Card footer content; each item is wrapped in `.card-footer-item`. The footer is a `<footer>`, which is a content info landmark outside `<main>`, the sectioning elements and their roles.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -263,7 +263,17 @@
           "deprecated": false
         }
       ],
-      "extraProps": [],
+      "extraProps": [
+        {
+          "name": "role",
+          "type": "React.AriaRole",
+          "default": null,
+          "description": "Its `<header>` is a banner landmark outside `<main>`, the sectioning elements and their roles. `role=\"none\"` drops the landmark.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
       "catchAll": "All standard HTML attributes and Bulma helper props",
       "types": []
     },
@@ -590,7 +600,17 @@
           "deprecated": false
         }
       ],
-      "extraProps": [],
+      "extraProps": [
+        {
+          "name": "role",
+          "type": "React.AriaRole",
+          "default": null,
+          "description": "Its `<footer>` is a content info landmark outside `<main>`, the sectioning elements and their roles. `role=\"none\"` drops the landmark.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
       "catchAll": "All standard HTML attributes and Bulma helper props",
       "types": []
     },

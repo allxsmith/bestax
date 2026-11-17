@@ -237,7 +237,7 @@ A radio button drawn as a card, with a title and a description, picked wherever 
 A Bulma-styled dropdown for single or multiple selections. Supports color, size, rounded, loading, and multiselect. Accepts `label`, `iconLeftName`, and `message`/`messageColor` to auto-wrap with `Field` and `Control`.
 
 ```tsx live
-<Select label="Country" iconLeftName="globe">
+<Select autoComplete="country" label="Country" iconLeftName="globe">
   <option>United States</option>
   <option>Canada</option>
   <option>United Kingdom</option>
@@ -697,7 +697,7 @@ A Bulma-styled wrapper for form controls, providing consistent spacing, icon pla
 
 ```tsx live
 <Control>
-  <Input placeholder="Username" />
+  <Input autoComplete="username" placeholder="Username" />
 </Control>
 ```
 

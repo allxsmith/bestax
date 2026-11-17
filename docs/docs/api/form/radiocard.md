@@ -292,7 +292,8 @@ Here the padding is tighter and the cards wrap sooner:
 - In forced colors (Windows contrast themes), Bulma's card loses its shadow, so the edge is a
   real border there: the system's text color, `Highlight` and still thicker when picked, and gray
   when disabled. The radio takes system colors as `Radio`'s does, and the focus outline is
-  `Highlight`.
+  `Highlight`. A disabled card draws at full strength there, its text, description and
+  radio gray, rather than dimmed.
 - The edge and the radio change without a transition under `prefers-reduced-motion: reduce`.
 
 ---

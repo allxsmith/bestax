@@ -29,8 +29,15 @@ export interface LevelProps
    * `main` is around it.
    */
   as?: 'nav' | 'div' | 'header' | 'footer' | undefined;
-  /** Keeps the level horizontal on mobile (Bulma `is-mobile`). Without it
-   * the level stacks vertically below tablet. */
+  /**
+   * Keeps the level's own items, and its `Level.Left` and `Level.Right`, in a
+   * row on mobile (Bulma `is-mobile`), where they otherwise stack below
+   * tablet. Items inside `Level.Left` and `Level.Right` still stack there.
+   * Bulma doesn't let a level's items shrink, so a row that doesn't fit a
+   * 320px screen runs past its edge, where Bulma's default `overflow-x:
+   * hidden` on the page cuts it off (WCAG 1.4.10 Reflow): keep it for a row
+   * that fits.
+   */
   isMobile?: boolean;
   /** Bulma color modifier for the level. */
   color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;

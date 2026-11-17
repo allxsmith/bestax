@@ -131,7 +131,12 @@ stop too and show their disabled look.
 
 ```tsx live
 <Fieldset legend="Preferences" disabled>
-  <Input label="Display name" name="display-name" defaultValue="Ada" />
+  <Input
+    autoComplete="nickname"
+    label="Display name"
+    name="display-name"
+    defaultValue="Ada"
+  />
   <Rate label="Rating" name="rating" defaultValue={3} />
   <Slider label="Volume" name="volume" defaultValue={40} />
   <Checkboxes label="Notifications" name="notifications">
