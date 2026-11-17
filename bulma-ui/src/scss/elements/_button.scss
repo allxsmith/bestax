@@ -33,18 +33,20 @@
 // one at rest the outline above is what shows focus.
 //
 // Bulma dims a disabled button, one with the `disabled` attribute or inside a
-// disabled `<fieldset>`, with its disabled opacity. Forced colors draws a
-// disabled `<button>`'s text in GrayText, the system's color for a disabled
-// control, so there the opacity only halves that color. The dimmed rule
-// draws what Bulma dims at full strength in forced colors. The disabled rule
-// names GrayText for the text and edge of a button that is disabled, since
-// Firefox doesn't give its edge that color, and its color loop outranks
-// Bulma's edge for each color. What Bulma dims but the browser leaves
-// working, a link in a disabled `<fieldset>` or a button in its first
-// `<legend>`, keeps its own colors, since GrayText would say it does nothing.
-// `isDisabled` on a link writes `is-disabled` and no attribute, which Bulma
-// doesn't dim, so it's left as it is. A loading one draws at full strength
-// too, in the colors `_loader.scss` gives it.
+// disabled `<fieldset>`, with `--bulma-button-disabled-opacity`. Forced
+// colors draws a disabled `<button>`'s text in GrayText, the system's color
+// for a disabled control, so there the opacity only halves that color. In
+// forced colors the opacity rule sets that variable to 1, so whatever Bulma
+// dims with it draws at full strength. The disabled rule names GrayText for
+// the text and edge of a button that is disabled, by its own `disabled`
+// attribute or a disabled `<fieldset>`, since Firefox doesn't give its edge
+// that color and an element that isn't a form control gets neither. What
+// Bulma dims but the browser leaves working, a link in a disabled
+// `<fieldset>` or a button in its first `<legend>`, keeps its own colors,
+// since GrayText would say it does nothing. `isDisabled` on a link writes
+// `is-disabled` and no attribute, which Bulma doesn't dim, so it's left as it
+// is. A loading one draws at full strength too, in the colors `_loader.scss`
+// gives it.
 //
 // A pressed ToggleButton and a checked SegmentedControl segment show their
 // state with a fill, from `is-selected` and a color class, the way Bulma
@@ -66,8 +68,8 @@
 // own attribute or a disabled `<fieldset>`, and `is-disabled`, which `Button`
 // writes for `isDisabled` on any element, a link included, where it renders
 // no `disabled` attribute. One that still works, a link in a disabled
-// `<fieldset>`, keeps the selection colors, at the dimmed rule's full
-// strength. A loading one is left to `_loader.scss`, which
+// `<fieldset>`, keeps the selection colors, at full strength. A loading one
+// is left to `_loader.scss`, which
 // draws it as it draws any loading button, so while it loads it looks like
 // one that isn't pressed, with its label hidden behind the spinner either
 // way.
@@ -81,13 +83,13 @@
 // says, so each selector outranks Bulma's rule by its classes: the ghost and
 // static rule has four to the mixin's two, the forced colors outline names
 // `.button` twice, as `_delete.scss` does, and the border names the color
-// class twice to outrank Bulma's `.button.is-<color>`. The dimmed rule and
-// the disabled one name `.button` twice to outrank Bulma's `.button[disabled]`
-// and `fieldset[disabled] .button`, and no more, so a component's own
-// disabled look on its button still wins, and the disabled color loop names
-// the color class twice to outrank Bulma's `.button.is-<color>[disabled]` and
-// `fieldset[disabled] .button.is-<color>`. The selected rule names
-// `is-selected` twice too, so its disabled one outranks Bulma's
+// class twice to outrank Bulma's `.button.is-<color>`. The opacity rule
+// names `.button` twice to outrank Bulma's `.button`, where Bulma registers
+// the variable. The disabled rule names it three times, to outrank Bulma's
+// disabled edges, `.button.is-<color>[disabled]` and `fieldset[disabled]
+// .button.is-<color>` with `text` among the colors, and LinkButton's colors,
+// which `_linkbutton.scss` sets on three classes after this partial. The
+// selected rule names `is-selected` twice too, so its disabled one outranks Bulma's
 // `.button.is-<color>[disabled]`, and its outline outranks the forced colors
 // one.
 
@@ -141,20 +143,14 @@
     }
   }
 
-  .#{iv.$class-prefix}button.#{iv.$class-prefix}button[disabled],
-  fieldset[disabled] .#{iv.$class-prefix}button.#{iv.$class-prefix}button {
-    opacity: 1;
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}button {
+    @include cv.register-var('button-disabled-opacity', 1);
   }
 
-  .#{iv.$class-prefix}button.#{iv.$class-prefix}button:disabled {
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}button.#{iv.$class-prefix}button:disabled,
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}button.#{iv.$class-prefix}button[disabled] {
     border-color: GrayText;
     color: GrayText;
-  }
-
-  @each $name in map.keys(map.remove(dv.$colors, 'text')) {
-    .#{iv.$class-prefix}button.#{iv.$class-prefix}is-#{$name}.#{iv.$class-prefix}is-#{$name}:disabled {
-      border-color: GrayText;
-    }
   }
 
   .#{iv.$class-prefix}button.#{iv.$class-prefix}is-selected.#{iv.$class-prefix}is-selected:not(
@@ -171,6 +167,7 @@
       outline-color: CanvasText;
     }
 
+    &[disabled],
     &:disabled,
     &.#{iv.$class-prefix}is-disabled {
       background-color: GrayText;

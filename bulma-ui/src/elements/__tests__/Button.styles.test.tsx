@@ -30,6 +30,7 @@ import {
   bulmaCss,
   cascade,
   compilePartial,
+  compileSource,
   customProperty,
   rulesOf as cascadeRules,
 } from '../../__tests__/css-cascade';
@@ -116,17 +117,13 @@ const borders = (rule: Rule) =>
   '--bulma-button-border-width' in rule.declarations;
 const lightnesses = (rule: Rule) => '--bulma-button-l' in rule.declarations;
 const selects = (rule: Rule) => /is-selected/.test(rule.selector);
-/** What Bulma dims, which forced colors draws at full strength. */
-const DIMMED = '.button.button[disabled], fieldset[disabled] .button.button';
-/** A button that is disabled, which forced colors draws in GrayText. */
-const DISABLED_COLORS = '.button.button:disabled';
-/** A disabled button's edge on one of Bulma's colors. */
-const disabledEdge = (name: string, prefix = '') =>
-  `.${prefix}button.${prefix}is-${name}.${prefix}is-${name}:disabled`;
+/** Where forced colors sets Bulma's disabled opacity to 1. */
+const UNDIMMED = '.button.button';
+/** A disabled button, which forced colors draws in GrayText. */
+const DISABLED_COLORS =
+  '.button.button.button:disabled, .button.button.button[disabled]';
 const disables = (rule: Rule) =>
-  rule.selector === DIMMED ||
-  rule.selector === DISABLED_COLORS ||
-  COLORS.some(name => rule.selector === disabledEdge(name));
+  rule.selector === UNDIMMED || rule.selector === DISABLED_COLORS;
 
 /**
  * Bulma's button colors, the keys of `$colors` in the order it ships them,
@@ -521,9 +518,11 @@ describe('colored buttons in forced colors', () => {
 // so the partial draws a selected button in the system's selection colors
 // there (#1869), and a disabled one in its disabled colors.
 describe('selected buttons in forced colors', () => {
-  const DISABLED = [`${SELECTED}:disabled`, `${SELECTED}.is-disabled`].join(
-    ', '
-  );
+  const DISABLED = [
+    `${SELECTED}[disabled]`,
+    `${SELECTED}:disabled`,
+    `${SELECTED}.is-disabled`,
+  ].join(', ');
 
   it("draws a selected button in the system's selection colors, in forced colors only", () => {
     expect(find(PLAIN, SELECTED, [FORCED])).toEqual({
@@ -626,6 +625,12 @@ describe('selected buttons in forced colors', () => {
         </Button>
       </div>
     );
+    // And a selected element with the disabled attribute that is no form
+    // control, which Bulma dims.
+    const raw = document.createElement('a');
+    raw.className = 'button is-selected';
+    raw.setAttribute('disabled', '');
+    getByRole('link', { name: 'Underline' }).after(raw);
     const anyOf = (element: Element) =>
       DISABLED.split(', ').some(part => element.matches(part));
     for (const element of [
@@ -633,6 +638,7 @@ describe('selected buttons in forced colors', () => {
       getByRole('button', { name: 'Italic' }),
       getByRole('radio', { name: 'Week' }),
       getByRole('link', { name: 'Underline' }),
+      raw,
     ]) {
       expect(element.matches(SELECTED)).toBe(true);
       expect(anyOf(element)).toBe(true);
@@ -660,7 +666,7 @@ describe('selected buttons in forced colors', () => {
       expect(DISABLED.split(', ').some(part => element.matches(part))).toBe(
         false
       );
-      expect(DIMMED.split(', ').some(part => element.matches(part))).toBe(true);
+      expect(element.matches('fieldset[disabled] .button')).toBe(true);
     }
   });
 
@@ -726,73 +732,86 @@ describe('selected buttons in forced colors', () => {
   });
 });
 
-// Bulma dims a disabled button with an opacity, and forced colors draws its
-// text in GrayText, so the opacity only halves the system's color for a
-// disabled control. The partial draws what Bulma dims at full strength there,
-// and a button that is disabled in GrayText, text and edge (#2144). What
+// Bulma dims a disabled button with `--bulma-button-disabled-opacity`, and
+// forced colors draws its text in GrayText, so the opacity only halves the
+// system's color for a disabled control. In forced colors the partial sets the
+// variable to 1, so whatever Bulma dims with it draws at full strength, and
+// draws a button that is disabled in GrayText, text and edge (#2144). What
 // Bulma dims but the browser leaves working, a link in a disabled fieldset or
 // a button in its first legend, keeps its own colors. These read the rules as
-// text, and resolve them beside Bulma's CSS in either order, with no class
-// prefix and under one, with `css-cascade.ts`, on a forced-colors page and on
-// any other.
+// text, and resolve them beside Bulma's CSS and LinkButton's partial in either
+// order, with no class prefix and under one, with `css-cascade.ts`, on a
+// forced-colors page and on any other.
 describe('disabled buttons in forced colors', () => {
+  const VARIABLE = '--bulma-button-disabled-opacity';
+
   it('draws what Bulma dims at full strength, and a disabled one in GrayText, in forced colors only', () => {
-    expect(find(PLAIN, DIMMED, [FORCED])).toEqual({ opacity: '1' });
+    expect(find(PLAIN, UNDIMMED, [FORCED])).toEqual({ [VARIABLE]: '1' });
     expect(find(PLAIN, DISABLED_COLORS, [FORCED])).toEqual({
       'border-color': 'GrayText',
       color: 'GrayText',
     });
-    for (const name of COLORS) {
-      expect(find(PLAIN, disabledEdge(name), [FORCED])).toEqual({
-        'border-color': 'GrayText',
-      });
-    }
     expect(
       PLAIN.filter(disables).map(r => [r.context.join(' '), r.selector])
     ).toEqual([
-      [FORCED, DIMMED],
+      [FORCED, UNDIMMED],
       [FORCED, DISABLED_COLORS],
-      ...COLORS.map(name => [FORCED, disabledEdge(name)]),
     ]);
   });
 
-  it("matches what Bulma dims, and outranks Bulma's opacity and disabled edges, whichever stylesheet loads first", () => {
+  it('outranks where Bulma sets its disabled opacity, which its dimming rules read, whichever stylesheet loads first', () => {
     const top = BULMA.filter(rule => !rule.context.length);
-    const dimmed = top
-      .filter(rule => 'opacity' in rule.declarations)
-      .flatMap(rule => rule.selector.split(', '));
-    expect(dimmed).toEqual(['.button[disabled]', 'fieldset[disabled] .button']);
-    const ours = DIMMED.split(', ');
-    expect(ours).toEqual(
-      dimmed.map(part => part.replace('.button', '.button.button'))
-    );
-    for (const part of ours) {
-      for (const other of dimmed) {
-        expect(weight(asClasses(part))).toBeGreaterThan(
-          weight(asClasses(other))
-        );
-      }
+    expect(
+      top
+        .filter(rule => VARIABLE in rule.declarations)
+        .flatMap(rule => rule.selector.split(', '))
+    ).toEqual(['.button']);
+    expect(weight(UNDIMMED)).toBeGreaterThan(weight('.button'));
+    const dimming = top.filter(rule => 'opacity' in rule.declarations);
+    expect(dimming.flatMap(rule => rule.selector.split(', '))).toEqual([
+      '.button[disabled]',
+      'fieldset[disabled] .button',
+    ]);
+    for (const rule of dimming) {
+      expect(rule.declarations.opacity).toBe(`var(${VARIABLE})`);
     }
-    // Bulma's disabled edges: its own and each color's. A text button has no
-    // edge to draw.
-    const edges = top
-      .filter(rule => 'border-color' in rule.declarations)
+  });
+
+  it("outranks Bulma's disabled edges and colors, and LinkButton's colors, whichever stylesheet loads first", () => {
+    const sets = (rule: Rule) =>
+      'color' in rule.declarations || 'border-color' in rule.declarations;
+    const bulma = BULMA.filter(rule => !rule.context.length && sets(rule))
       .flatMap(rule => rule.selector.split(', '))
-      .filter(part => part.includes('[disabled]') && !part.includes('is-text'));
-    expect(edges).toEqual(
+      .filter(part => part.includes('[disabled]'));
+    expect(bulma).toEqual(
       expect.arrayContaining([
         '.button[disabled]',
         'fieldset[disabled] .button',
         '.button.is-link[disabled]',
         'fieldset[disabled] .button.is-link',
+        '.button.is-text[disabled]',
+        'fieldset[disabled] .button.is-text',
       ])
     );
-    for (const part of edges) {
-      const name = COLORS.find(color =>
-        new RegExp(`\\.is-${color}(?![\\w-])`).test(part)
-      );
-      const mine = name ? disabledEdge(name) : DISABLED_COLORS;
-      expect(weight(asClasses(mine))).toBeGreaterThan(weight(asClasses(part)));
+    // `_linkbutton.scss` loads after this partial in bestax.css. A disabled
+    // button takes no focus, and the underline variant's hover clears an edge
+    // Bulma draws 0 wide on a text button.
+    const linkButton = rulesOf(compile(`@use 'elements/linkbutton';`))
+      .filter(rule => !rule.context.length && sets(rule))
+      .flatMap(rule => rule.selector.split(', '))
+      .filter(part => !/:hover|:focus/.test(part));
+    expect(linkButton).toEqual(
+      expect.arrayContaining([
+        '.button.link-button.link-button-danger',
+        '.button.link-button.link-button-underline',
+      ])
+    );
+    for (const part of DISABLED_COLORS.split(', ')) {
+      for (const other of [...bulma, ...linkButton]) {
+        expect(weight(asClasses(part))).toBeGreaterThan(
+          weight(asClasses(other))
+        );
+      }
     }
   });
 
@@ -802,9 +821,8 @@ describe('disabled buttons in forced colors', () => {
     expect(
       PREFIXED.filter(
         rule =>
-          rule.selector === prefixed(DIMMED) ||
-          rule.selector === prefixed(DISABLED_COLORS) ||
-          COLORS.some(name => rule.selector === disabledEdge(name, 'bestax-'))
+          rule.selector === prefixed(UNDIMMED) ||
+          rule.selector === prefixed(DISABLED_COLORS)
       ).map(rule => [rule.context.join(' '), rule.selector, rule.declarations])
     ).toEqual(
       PLAIN.filter(disables).map(rule => [
@@ -819,27 +837,37 @@ describe('disabled buttons in forced colors', () => {
     ['no prefix', '', 'bulma.css'],
     ['a class prefix', 'bulma-', 'versions/bulma-prefixed.css'],
   ])('with %s', (_name, prefix, bulmaFile) => {
-    const partial = compilePartial('elements/button', prefix);
+    const partials = compileSource(
+      `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+       @use 'elements/button';
+       @use 'elements/linkbutton';`
+    );
     const bulma = bulmaCss(bulmaFile);
 
     describe.each([
-      ['Bulma first', bulma + partial],
-      ['the partial first', partial + bulma],
+      ['Bulma first', bulma + partials],
+      ['the partials first', partials + bulma],
     ])('and %s', (_order, css) => {
       const resolve = (el: Element, property: string, forcedColors: boolean) =>
         cascade(
           el,
           css,
           [property],
-          (style, p) => style.getPropertyValue(p) || undefined,
+          (style, p) => style.getPropertyValue(p).trim() || undefined,
           { forcedColors }
         );
+
+      /** The opacity Bulma's dimming rule gives it, or undefined if none does. */
+      const opacity = (el: Element, forcedColors: boolean) =>
+        resolve(el, 'opacity', forcedColors) === `var(${VARIABLE})`
+          ? resolve(el, VARIABLE, forcedColors)
+          : resolve(el, 'opacity', forcedColors);
 
       const inPrefix = (ui: ReactElement) =>
         render(<ConfigProvider classPrefix={prefix}>{ui}</ConfigProvider>);
 
-      it.each<[string, () => ReactElement, string]>([
-        ['a Button', () => <Button disabled>Save</Button>, 'button'],
+      it.each<[string, () => ReactElement]>([
+        ['a Button', () => <Button disabled>Save</Button>],
         [
           'a colored Button',
           () => (
@@ -847,7 +875,6 @@ describe('disabled buttons in forced colors', () => {
               Save
             </Button>
           ),
-          'button',
         ],
         [
           'an outlined Button',
@@ -856,7 +883,6 @@ describe('disabled buttons in forced colors', () => {
               Save
             </Button>
           ),
-          'button',
         ],
         [
           'a ghost Button',
@@ -865,7 +891,23 @@ describe('disabled buttons in forced colors', () => {
               Save
             </Button>
           ),
-          'button',
+        ],
+        [
+          'a text Button',
+          () => (
+            <Button color="text" disabled>
+              Save
+            </Button>
+          ),
+        ],
+        ['a LinkButton', () => <LinkButton disabled>Save</LinkButton>],
+        [
+          'a colored underline LinkButton',
+          () => (
+            <LinkButton color="danger" variant="underline" disabled>
+              Save
+            </LinkButton>
+          ),
         ],
         [
           'a Button in a disabled fieldset',
@@ -874,7 +916,6 @@ describe('disabled buttons in forced colors', () => {
               <Button>Save</Button>
             </fieldset>
           ),
-          'button',
         ],
         [
           'a colored Button in a disabled fieldset',
@@ -883,23 +924,37 @@ describe('disabled buttons in forced colors', () => {
               <Button color="danger">Save</Button>
             </fieldset>
           ),
-          'button',
         ],
       ])(
         'draws %s at full strength in GrayText in forced colors, and dimmed elsewhere',
-        (_case, ui, role) => {
+        (_case, ui) => {
           const { getByRole } = inPrefix(ui());
-          const el = getByRole(role, { name: 'Save' });
-          expect(resolve(el, 'opacity', false)).toBe(
-            'var(--bulma-button-disabled-opacity)'
-          );
-          expect(resolve(el, 'opacity', true)).toBe('1');
+          const el = getByRole('button', { name: 'Save' });
+          expect(opacity(el, false)).toBe('0.5');
+          expect(opacity(el, true)).toBe('1');
           expect(resolve(el, 'color', true)?.toLowerCase()).toBe('graytext');
           expect(resolve(el, 'border-color', true)?.toLowerCase()).toBe(
             'graytext'
           );
         }
       );
+
+      it('draws an element with the disabled attribute that is no form control in GrayText too', () => {
+        // Bulma dims it, and with no other cue a full-strength one would look
+        // like it works.
+        const { container } = render(<div />);
+        const link = document.createElement('a');
+        link.className = `${prefix}button ${prefix}is-primary`;
+        link.setAttribute('disabled', '');
+        container.appendChild(link);
+        expect(link.matches(':disabled')).toBe(false);
+        expect(opacity(link, false)).toBe('0.5');
+        expect(opacity(link, true)).toBe('1');
+        expect(resolve(link, 'color', true)?.toLowerCase()).toBe('graytext');
+        expect(resolve(link, 'border-color', true)?.toLowerCase()).toBe(
+          'graytext'
+        );
+      });
 
       it('draws what Bulma dims but leaves working at full strength, in its own colors', () => {
         const { getByRole } = inPrefix(
@@ -917,10 +972,8 @@ describe('disabled buttons in forced colors', () => {
           getByRole('link', { name: 'Help' }),
         ]) {
           expect(el).not.toBeDisabled();
-          expect(resolve(el, 'opacity', false)).toBe(
-            'var(--bulma-button-disabled-opacity)'
-          );
-          expect(resolve(el, 'opacity', true)).toBe('1');
+          expect(opacity(el, false)).toBe('0.5');
+          expect(opacity(el, true)).toBe('1');
           expect(resolve(el, 'color', true)?.toLowerCase()).not.toBe(
             'graytext'
           );
@@ -947,10 +1000,8 @@ describe('disabled buttons in forced colors', () => {
         const previous = getByRole('button', { name: 'Previous' });
         for (const el of [minus, previous]) {
           expect(el).toBeDisabled();
-          expect(resolve(el, 'opacity', false)).toBe(
-            'var(--bulma-button-disabled-opacity)'
-          );
-          expect(resolve(el, 'opacity', true)).toBe('1');
+          expect(opacity(el, false)).toBe('0.5');
+          expect(opacity(el, true)).toBe('1');
           expect(resolve(el, 'color', true)?.toLowerCase()).toBe('graytext');
         }
         for (const name of ['Increase value', 'Next']) {
