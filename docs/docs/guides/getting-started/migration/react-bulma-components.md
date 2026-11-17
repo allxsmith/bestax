@@ -60,7 +60,7 @@ in place:
   `tablet={{ display: 'flex' }}` to `displayTablet="flex"`, and so on. A plain `display` beside
   one stays its class (`display="flex" mobile={{ display: 'block' }}` → `className="is-flex"
 displayMobile="block"`), since bestax leaves `display` out beside a per-viewport display prop.
-- **Structure** — `Table.Container` folds into `isResponsive` on the `Table`, Navbar dropdown
+- **Structure** — `Table.Container` folds into `isResponsive` on the `Table`, which takes the container's `aria-label` or `aria-labelledby` unless it has its own (a `Table` with neither gets a TODO asking for one), Navbar dropdown
   markup is restructured to bestax's `Navbar.Dropdown`/`Navbar.DropdownMenu` split, icon-font
   children become `<Icon name="…" library="…">` props, and `Menu.List title` becomes a
   `Menu.Label` sibling.
@@ -106,6 +106,7 @@ errors. The recurring cases:
 | Dynamic prop values (`state={x}`, `textSize={n}`)                           | Convert at the source of the expression                                                                                                      |
 | `Pagination` extras (`showFirstLast`, `autoHide`)                           | bestax Pagination always shows the first and last pages; render conditionally instead of `autoHide`                                          |
 | `Modal closeOnBlur/showClose`                                               | the compound form renders only your children — add `Modal.Background`/`Modal.Close` yourself                                                 |
+| A `Modal` with no name (`name:Modal`)                                       | bestax's `Modal` is a dialog while it's open: give it an `aria-label`, or point `aria-labelledby` at its title                               |
 | `renderAs` outside a narrowed `as`                                          | several bestax components render only certain tags — wrap the component in the element you wanted                                            |
 | `href` beside a non-anchor `renderAs`                                       | bestax types `href` onto an `<a>` or a custom `as`, not another tag — drop the `renderAs` where the link was the point                       |
 | `textColor` on `Tag`, `Tabs`, `Hero`, `Progress` and others                 | these take no `textColor` prop: move the color to a `has-text-*` class in `className` (on `Table`, `Menu` and `Dropdown` it becomes `color`) |

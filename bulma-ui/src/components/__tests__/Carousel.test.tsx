@@ -1187,7 +1187,11 @@ const inViewItems = () =>
  */
 const mockViewport = (initialWidth: number) => {
   let width = initialWidth;
-  const listeners: (() => void)[] = [];
+  // Each listener is held with the query it listens to, as each of a
+  // browser's lists holds its own, and called with that query's answer, as a
+  // `change` event carries it.
+  type Listener = (event: { matches: boolean }) => void;
+  const listeners: { query: string; fn: Listener }[] = [];
   const matches = (query: string) =>
     query.split(',').some(part => {
       const min = /min-width:\s*(\d+)px/.exec(part);
@@ -1203,9 +1207,12 @@ const mockViewport = (initialWidth: number) => {
     get matches() {
       return matches(query);
     },
-    addEventListener: (_type: string, fn: () => void) => listeners.push(fn),
-    removeEventListener: (_type: string, fn: () => void) =>
-      listeners.splice(listeners.indexOf(fn), 1),
+    addEventListener: (_type: string, fn: Listener) =>
+      listeners.push({ query, fn }),
+    removeEventListener: (_type: string, fn: Listener) => {
+      const at = listeners.findIndex(l => l.query === query && l.fn === fn);
+      if (at >= 0) listeners.splice(at, 1);
+    },
   }));
   Object.defineProperty(window, 'matchMedia', {
     configurable: true,
@@ -1215,10 +1222,16 @@ const mockViewport = (initialWidth: number) => {
   return {
     matchMedia,
     listeners,
+    // Each handler once, however many lists it listens to.
     resize(next: number) {
       width = next;
+      const called = new Set<Listener>();
       act(() => {
-        [...new Set(listeners)].forEach(fn => fn());
+        listeners.forEach(({ query, fn }) => {
+          if (called.has(fn)) return;
+          called.add(fn);
+          fn({ matches: matches(query) });
+        });
       });
     },
   };
@@ -1679,15 +1692,20 @@ describe('Carousel with several items in view', () => {
       const { unmount } = render(
         <Carousel {...responsive}>{itemsOf(6)}</Carousel>
       );
-      expect(viewport.listeners.length).toBeGreaterThan(0);
+      // The width queries', beside the one for reduced motion
+      expect(
+        viewport.listeners.filter(({ query }) => /width/.test(query)).length
+      ).toBeGreaterThan(0);
       unmount();
       expect(viewport.listeners).toHaveLength(0);
     });
 
-    it('asks nothing of matchMedia with one count everywhere', () => {
+    it('asks matchMedia about no width with one count everywhere', () => {
       const viewport = mockViewport(1100);
       render(<Carousel itemsToShow={3}>{itemsOf(6)}</Carousel>);
-      expect(viewport.matchMedia).not.toHaveBeenCalled();
+      expect(
+        viewport.matchMedia.mock.calls.filter(([query]) => /width/.test(query))
+      ).toEqual([]);
     });
 
     it('uses itemsToShow where matchMedia is missing', () => {
@@ -1919,6 +1937,395 @@ describe('Carousel with several items in view', () => {
         expect(track()).toHaveAttribute('aria-live', 'off');
       } finally {
         delete (document as { activeElement?: unknown }).activeElement;
+      }
+    });
+  });
+
+  describe('when the system asks for reduced motion', () => {
+    const original = window.matchMedia;
+    beforeEach(() => {
+      window.matchMedia = vi.fn((query: string) => ({
+        matches: query.includes('prefers-reduced-motion'),
+        media: query,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+      })) as unknown as typeof window.matchMedia;
+    });
+    afterEach(() => {
+      window.matchMedia = original;
+    });
+
+    it('moves the track with no transition', () => {
+      render(<Carousel>{itemsOf(3)}</Carousel>);
+      expect(track().style.transition).toBe('none');
+    });
+
+    it('steps past either end straight to the other, with no loop to wait out', () => {
+      const onChange = vi.fn();
+      render(<Carousel onChange={onChange}>{itemsOf(3)}</Carousel>);
+      const tabs = () => screen.getAllByRole('tab');
+
+      fireEvent.click(screen.getByLabelText('Previous slide'));
+      expect(onChange).toHaveBeenLastCalledWith(2);
+      expect(tabs()[2]).toHaveAttribute('aria-selected', 'true');
+
+      fireEvent.click(screen.getByLabelText('Next slide'));
+      expect(onChange).toHaveBeenLastCalledWith(0);
+      expect(tabs()[0]).toHaveAttribute('aria-selected', 'true');
+      expect(track().style.transition).toBe('none');
+    });
+
+    it('finishes a step past the end that was under way when it turned on', () => {
+      // Off at first, so the step runs on to the copies of the first slides
+      let reduce = false;
+      const listeners: ((event: { matches: boolean }) => void)[] = [];
+      window.matchMedia = vi.fn((query: string) => ({
+        get matches() {
+          return reduce && query.includes('prefers-reduced-motion');
+        },
+        media: query,
+        addEventListener: (
+          _type: string,
+          fn: (event: { matches: boolean }) => void
+        ) => listeners.push(fn),
+        removeEventListener: () => {},
+      })) as unknown as typeof window.matchMedia;
+      const onChange = vi.fn();
+      render(<Carousel onChange={onChange}>{itemsOf(3)}</Carousel>);
+
+      fireEvent.click(screen.getByLabelText('Previous slide'));
+      expect(onChange).not.toHaveBeenCalled();
+      expect(track().style.transition).not.toBe('none');
+
+      // Turning it on takes the transition away, and the transitionend with
+      // it, so the step finishes without one
+      reduce = true;
+      act(() => listeners.forEach(fn => fn({ matches: true })));
+      expect(onChange).toHaveBeenLastCalledWith(2);
+      expect(screen.getAllByRole('tab')[2]).toHaveAttribute(
+        'aria-selected',
+        'true'
+      );
+      expect(track().style.transition).toBe('none');
+    });
+  });
+
+  describe('focus on an indicator', () => {
+    const tabs = () => screen.getAllByRole('tab');
+
+    it('moves with Left and Right to the indicator beside it, and shows its slide', () => {
+      const onChange = vi.fn();
+      render(<Carousel onChange={onChange}>{itemsOf(3)}</Carousel>);
+      focusOn(tabs()[0]);
+      fireEvent.keyDown(tabs()[0], { key: 'ArrowRight' });
+      expect(onChange).toHaveBeenLastCalledWith(1);
+      expect(tabs()[1]).toHaveAttribute('aria-selected', 'true');
+      expect(document.activeElement).toBe(tabs()[1]);
+
+      fireEvent.keyDown(tabs()[1], { key: 'ArrowLeft' });
+      expect(onChange).toHaveBeenLastCalledWith(0);
+      expect(document.activeElement).toBe(tabs()[0]);
+    });
+
+    it('goes from the indicator focus is on, not the selected one', () => {
+      const onChange = vi.fn();
+      render(<Carousel onChange={onChange}>{itemsOf(5)}</Carousel>);
+      focusOn(tabs()[3]);
+      fireEvent.keyDown(tabs()[3], { key: 'ArrowRight' });
+      expect(onChange).toHaveBeenLastCalledWith(4);
+      expect(tabs()[4]).toHaveAttribute('aria-selected', 'true');
+      expect(document.activeElement).toBe(tabs()[4]);
+    });
+
+    it('goes round past either end when the carousel loops', () => {
+      render(<Carousel>{itemsOf(3)}</Carousel>);
+      focusOn(tabs()[0]);
+      fireEvent.keyDown(tabs()[0], { key: 'ArrowLeft' });
+      expect(tabs()[2]).toHaveAttribute('aria-selected', 'true');
+      expect(document.activeElement).toBe(tabs()[2]);
+
+      fireEvent.keyDown(tabs()[2], { key: 'ArrowRight' });
+      expect(tabs()[0]).toHaveAttribute('aria-selected', 'true');
+      expect(document.activeElement).toBe(tabs()[0]);
+    });
+
+    it('goes to the position beside it when the view sits between two', () => {
+      // Positions 0, 2 and 4; a value of 3 sits after the second one.
+      const onChange = vi.fn();
+      render(
+        <Carousel
+          value={3}
+          itemsToShow={2}
+          itemsToScroll={2}
+          onChange={onChange}
+        >
+          {itemsOf(5)}
+        </Carousel>
+      );
+      expect(tabs()[1]).toHaveAttribute('aria-selected', 'true');
+      focusOn(tabs()[1]);
+      fireEvent.keyDown(tabs()[1], { key: 'ArrowLeft' });
+      expect(onChange).toHaveBeenLastCalledWith(0);
+      expect(document.activeElement).toBe(tabs()[0]);
+    });
+
+    it('leaves a modified arrow key to the browser, on an indicator or an arrow', () => {
+      const onChange = vi.fn();
+      render(<Carousel onChange={onChange}>{itemsOf(3)}</Carousel>);
+      for (const control of [tabs()[0], screen.getByLabelText('Next slide')]) {
+        focusOn(control);
+        for (const modifier of ['altKey', 'ctrlKey', 'metaKey']) {
+          const event = new KeyboardEvent('keydown', {
+            key: 'ArrowRight',
+            bubbles: true,
+            cancelable: true,
+            [modifier]: true,
+          });
+          control.dispatchEvent(event);
+          expect(event.defaultPrevented).toBe(false);
+        }
+        expect(document.activeElement).toBe(control);
+      }
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('leaves a key the page has handled alone', () => {
+      const onChange = vi.fn();
+      render(
+        <Carousel
+          onChange={onChange}
+          onKeyDown={e => {
+            if (e.key === 'ArrowRight') e.preventDefault();
+          }}
+        >
+          {itemsOf(3)}
+        </Carousel>
+      );
+      focusOn(tabs()[0]);
+      fireEvent.keyDown(tabs()[0], { key: 'ArrowRight' });
+      expect(onChange).not.toHaveBeenCalled();
+      expect(document.activeElement).toBe(tabs()[0]);
+    });
+
+    it('stays on the first indicator without a loop', () => {
+      const onChange = vi.fn();
+      render(
+        <Carousel repeat={false} onChange={onChange}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      focusOn(tabs()[0]);
+      fireEvent.keyDown(tabs()[0], { key: 'ArrowLeft' });
+      expect(onChange).not.toHaveBeenCalled();
+      expect(document.activeElement).toBe(tabs()[0]);
+    });
+
+    it('stays on the last indicator without a loop', () => {
+      const onChange = vi.fn();
+      render(
+        <Carousel repeat={false} onChange={onChange}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      focusOn(tabs()[2]);
+      fireEvent.keyDown(tabs()[2], { key: 'ArrowRight' });
+      expect(onChange).not.toHaveBeenCalled();
+      expect(document.activeElement).toBe(tabs()[2]);
+    });
+
+    describe('right to left', () => {
+      // jsdom maps no `dir` to `direction`, which the keys read.
+      let rtl: HTMLStyleElement;
+      beforeEach(() => {
+        rtl = document.createElement('style');
+        rtl.textContent = '[dir="rtl"] { direction: rtl; }';
+        document.head.appendChild(rtl);
+      });
+      afterEach(() => rtl.remove());
+
+      it('goes to the next indicator with Left and back with Right', () => {
+        render(
+          <div dir="rtl">
+            <Carousel>{itemsOf(3)}</Carousel>
+          </div>
+        );
+        focusOn(tabs()[0]);
+        fireEvent.keyDown(tabs()[0], { key: 'ArrowLeft' });
+        expect(document.activeElement).toBe(tabs()[1]);
+        fireEvent.keyDown(tabs()[1], { key: 'ArrowRight' });
+        expect(document.activeElement).toBe(tabs()[0]);
+      });
+    });
+
+    it('leaves focus on an arrow there', () => {
+      render(<Carousel>{itemsOf(3)}</Carousel>);
+      const next = screen.getByLabelText('Next slide');
+      focusOn(next);
+      fireEvent.keyDown(next, { key: 'ArrowRight' });
+      expect(tabs()[1]).toHaveAttribute('aria-selected', 'true');
+      expect(document.activeElement).toBe(next);
+    });
+  });
+
+  describe('focus on an arrow or an indicator that is disabled or goes away', () => {
+    // A browser drops focus from a button that's disabled or removed to the
+    // page. jsdom moves it off a removed one but not off a disabled one, so
+    // these read where focus went.
+    const prev = () => screen.getByLabelText('Previous slide');
+    const next = () => screen.getByLabelText('Next slide');
+
+    it('moves to the current indicator when Next is disabled on the last position', () => {
+      // Not to Previous, where an Enter still held down would go back
+      render(<Carousel repeat={false}>{itemsOf(3)}</Carousel>);
+      focusOn(next());
+      fireEvent.click(next());
+      fireEvent.click(next());
+      expect(next()).toBeDisabled();
+      const tabs = screen.getAllByRole('tab');
+      expect(document.activeElement).toBe(tabs[2]);
+      expect(tabs[2]).toHaveAttribute('aria-selected', 'true');
+    });
+
+    it('moves to Next, with no indicators, when a new value disables a focused Previous', () => {
+      const { rerender } = render(
+        <Carousel value={1} repeat={false} indicator={false}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      focusOn(prev());
+      rerender(
+        <Carousel value={0} repeat={false} indicator={false}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      expect(prev()).toBeDisabled();
+      expect(document.activeElement).toBe(next());
+    });
+
+    it('moves to the current indicator when the focused one goes away', () => {
+      const { rerender } = render(
+        <Carousel repeat={false}>{itemsOf(4)}</Carousel>
+      );
+      focusOn(screen.getAllByRole('tab')[3]);
+      rerender(<Carousel repeat={false}>{itemsOf(3)}</Carousel>);
+      const tabs = screen.getAllByRole('tab');
+      expect(tabs).toHaveLength(3);
+      expect(document.activeElement).toBe(tabs[0]);
+      expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
+    });
+
+    it('moves to an arrow that works when the indicators go away', () => {
+      const { rerender } = render(<Carousel>{itemsOf(3)}</Carousel>);
+      focusOn(screen.getAllByRole('tab')[1]);
+      rerender(<Carousel indicator={false}>{itemsOf(3)}</Carousel>);
+      expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+      expect(document.activeElement).toBe(prev());
+    });
+
+    it('moves to the first item in view when every control goes away', () => {
+      const { rerender } = render(<Carousel>{itemsOf(3)}</Carousel>);
+      focusOn(next());
+      rerender(<Carousel>{itemsOf(1)}</Carousel>);
+      expect(screen.queryByLabelText('Next slide')).not.toBeInTheDocument();
+      const item = realItems(1)[0];
+      expect(document.activeElement).toBe(item);
+      expect(item).toHaveAttribute('tabindex', '-1');
+    });
+
+    it('leaves focus alone once it has moved on', () => {
+      const { rerender } = render(
+        <>
+          <Carousel value={1} repeat={false}>
+            {itemsOf(3)}
+          </Carousel>
+          <button type="button">Outside</button>
+        </>
+      );
+      focusOn(prev());
+      const outside = screen.getByRole('button', { name: 'Outside' });
+      focusOn(outside);
+      rerender(
+        <>
+          <Carousel value={0} repeat={false}>
+            {itemsOf(3)}
+          </Carousel>
+          <button type="button">Outside</button>
+        </>
+      );
+      expect(document.activeElement).toBe(outside);
+    });
+
+    it('still hands focus on after another window took focus and gave it back', () => {
+      // Another window taking focus blurs the arrow, which stays the page's
+      // active element, and gets focus back when the page does.
+      const { rerender } = render(
+        <Carousel value={1} repeat={false}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      focusOn(prev());
+      fireEvent.blur(prev(), { relatedTarget: null });
+      expect(document.activeElement).toBe(prev());
+      rerender(
+        <Carousel value={0} repeat={false}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      expect(prev()).toBeDisabled();
+      expect(document.activeElement).toBe(screen.getAllByRole('tab')[0]);
+    });
+
+    it('leaves focus on the page once a click on the page took it there', () => {
+      // The blur goes nowhere, as it does when another window takes focus,
+      // but focus is on the page itself, so the user has left the arrow.
+      const { rerender } = render(
+        <Carousel value={1} repeat={false}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      focusOn(prev());
+      act(() => {
+        prev().blur();
+      });
+      expect(document.activeElement).toBe(document.body);
+      rerender(
+        <Carousel value={0} repeat={false}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      expect(prev()).toBeDisabled();
+      expect(document.activeElement).toBe(document.body);
+    });
+
+    it('leaves focus where it went when it left without the carousel hearing', () => {
+      const { rerender } = render(
+        <>
+          <Carousel value={1} repeat={false}>
+            {itemsOf(3)}
+          </Carousel>
+          <button type="button">Outside</button>
+        </>
+      );
+      focusOn(prev());
+      const focus = vi.spyOn(next(), 'focus');
+      const outside = screen.getByRole('button', { name: 'Outside' });
+      Object.defineProperty(document, 'activeElement', {
+        configurable: true,
+        get: () => outside,
+      });
+      try {
+        rerender(
+          <>
+            <Carousel value={0} repeat={false}>
+              {itemsOf(3)}
+            </Carousel>
+            <button type="button">Outside</button>
+          </>
+        );
+        expect(focus).not.toHaveBeenCalled();
+      } finally {
+        delete (document as { activeElement?: unknown }).activeElement;
+        focus.mockRestore();
       }
     });
   });

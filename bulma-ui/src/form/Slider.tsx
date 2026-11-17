@@ -72,7 +72,11 @@ interface SliderBaseProps
   min?: number | undefined;
   /** Maximum value. */
   max?: number | undefined;
-  /** Step increment (default: 1). */
+  /**
+   * Step increment (default: 1). The thumb sits on the steps counted from
+   * `min`, so when `max` falls between two, the highest value the slider
+   * holds is the last step below it, and End takes the thumb there.
+   */
   step?: number | undefined;
   /** Size variant. */
   size?: SliderSize | undefined;
@@ -82,9 +86,15 @@ interface SliderBaseProps
   isRounded?: boolean;
   /** Use circular thumb. */
   isCircle?: boolean;
-  /** Show current value tooltip. */
+  /**
+   * Show current value tooltip. The tooltip doesn't announce its changes:
+   * a thumb announces its value as it's moved.
+   */
   showOutput?: boolean;
-  /** Controls tooltip visibility on the thumb. */
+  /**
+   * Controls tooltip visibility on the thumb. The tooltip doesn't announce
+   * its changes: a thumb announces its value as it's moved.
+   */
   tooltip?: SliderTooltip;
   /** Shows tick marks along the track. */
   ticks?: boolean;
@@ -98,15 +108,22 @@ interface SliderBaseProps
   orientation?: SliderOrientation;
   /**
    * Function to scale the displayed value. With it, and no `getAriaValueText`,
-   * the scaled value is also the thumb's `aria-valuetext`.
+   * the output's text is also the thumb's `aria-valuetext`, whether or not
+   * the output shows.
    */
   scale?: (value: number) => number;
-  /** Function to generate the `aria-valuetext` attribute. */
+  /**
+   * Function to generate the `aria-valuetext` attribute. It wins over the
+   * text `formatOutput` and `scale` give the thumb, and it gets the value
+   * before `scale`.
+   */
   getAriaValueText?: (value: number) => string;
   /**
    * Format function for output display. Without it, the output shows the
    * value as it is, or inside a `LocaleProvider` with a `locale`, written
-   * the way that locale writes numbers, to at most three decimals.
+   * the way that locale writes numbers, to at most three decimals. With it,
+   * and no `getAriaValueText`, its text is also the thumb's
+   * `aria-valuetext`, whether or not the output shows.
    */
   formatOutput?: (value: number) => string;
 }
@@ -186,6 +203,51 @@ export interface SliderRangeProps extends SliderBaseProps {
  * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the input element.
  */
 export type SliderProps = SliderSingleProps | SliderRangeProps;
+
+/**
+ * A number as its digits and the place of the last one, read from the way
+ * JavaScript writes it, which is the attribute a browser reads: 0.25 is 25
+ * at -2, and 3e-7 is 3 at -7.
+ */
+function toDecimal(value: number): [bigint, number] {
+  const [digits, exponent = '0'] = String(value).split('e');
+  const [whole, fraction = ''] = digits.split('.');
+  return [BigInt(whole + fraction), Number(exponent) - fraction.length];
+}
+
+/**
+ * The highest value a range input with these bounds holds, as browsers write
+ * it: the last step from `min` at or below `max`, where a browser puts the
+ * thumb when `max` falls between two steps, or `min` when `max` isn't above
+ * it. A step that
+ * isn't a positive number counts as 1, as the browser counts it. Bounds that
+ * aren't finite numbers leave `max` as it is.
+ */
+function highestStep(min: number, max: number, step: number): number {
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return max;
+  if (!(max > min)) return min;
+  const size = step > 0 && Number.isFinite(step) ? step : 1;
+  // Counted in whole numbers of the finest decimal place the three use, as
+  // the browser counts in decimals from the attributes, so 0.3 holds three
+  // steps of 0.1, and a max worked out in JavaScript, such as 0.01 * 31 * 3,
+  // which is 0.9299999999999999, holds 92 steps of 0.01, not 93.
+  const [low, lowPlace] = toDecimal(min);
+  const [high, highPlace] = toDecimal(max);
+  const [unit, unitPlace] = toDecimal(size);
+  const place = Math.min(lowPlace, highPlace, unitPlace);
+  const at = (digits: bigint, from: number) =>
+    digits * BigInt(10) ** BigInt(from - place);
+  const start = at(low, lowPlace);
+  const stride = at(unit, unitPlace);
+  const steps = (at(high, highPlace) - start) / stride;
+  const top = Number(`${start + steps * stride}e${place}`);
+  // Browsers keep a fraction to fifteen significant digits, so a step of 1/3
+  // ends at 10, not 9.999999999999998, and 0.9 is written 0.9. A whole
+  // number they keep as it is. Next to a max written with more digits, the
+  // fifteen can round a hair above it, as Chromium and WebKit hold it: with
+  // a max and step of 0.7 + 0.1, 0.7999999999999999, they hold 0.8.
+  return Number.isInteger(top) ? top : Number(top.toPrecision(15));
+}
 
 /**
  * Helper to compute tick positions.
@@ -512,11 +574,14 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           (onChange as ((v: number) => void) | undefined)?.(min);
         } else if (e.key === 'End') {
           e.preventDefault();
-          if (!isControlled) setInternalSingle(max);
-          (onChange as ((v: number) => void) | undefined)?.(max);
+          // The highest value the input holds, `max` itself unless `max` is
+          // off the step grid, as the browser's own End does (#2001).
+          const top = highestStep(min, max, step);
+          if (!isControlled) setInternalSingle(top);
+          (onChange as ((v: number) => void) | undefined)?.(top);
         }
       },
-      [isControlled, onChange, min, max]
+      [isControlled, onChange, min, max, step]
     );
 
     // Tick positions
@@ -608,13 +673,16 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
     const showTipHigh =
       tooltipMode === 'always' || (tooltipMode === 'auto' && showTooltipHigh);
 
-    // Aria value text
+    // The thumb's value text: `getAriaValueText`'s, or else the output's
+    // text when `formatOutput` or `scale` is set.
     const getAriaProps = (value: number) => {
       const ariaProps: Record<string, string> = {};
       if (getAriaValueText) {
         ariaProps['aria-valuetext'] = getAriaValueText(value);
-      } else if (scale) {
-        ariaProps['aria-valuetext'] = writeNumber(scaleValue(value));
+      } else if (formatOutput || scale) {
+        // An empty text would hide the value, so the thumb's own number reads.
+        const text = formatValue(value);
+        if (text) ariaProps['aria-valuetext'] = text;
       }
       return ariaProps;
     };
@@ -791,6 +859,9 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         {tooltipMode !== 'hidden' && (
           <output
             ref={outputRef}
+            // An output is a live region, and the thumb announces the value
+            // as it changes, so this one doesn't announce it again.
+            aria-live="off"
             className={prefixedClassNames(classPrefix, 'slider-output', {
               'is-visible': showTipLow,
               'is-flipped': flipped,
@@ -911,6 +982,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         {tooltipMode !== 'hidden' && (
           <output
             ref={outputRef}
+            aria-live="off"
             className={prefixedClassNames(
               classPrefix,
               'slider-output',
@@ -948,6 +1020,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         {tooltipMode !== 'hidden' && (
           <output
             ref={outputHighRef}
+            aria-live="off"
             className={prefixedClassNames(
               classPrefix,
               'slider-output',

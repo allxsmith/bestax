@@ -305,6 +305,10 @@ their variables through `className` (see their entries below).
 | `--bulma-badge-dot-size`                                          | `0.65em`                         |
 | `--bulma-badge-inset-circle` / `--bulma-badge-animation-duration` | `12%` / `1.4s`                   |
 
+In forced colors a badge's fill and `--bulma-badge-ring-color` don't show: a count or text badge
+takes a `CanvasText` edge, and a dot a `CanvasText` fill with its ring in `Canvas`, whatever its
+color or a background helper says.
+
 The remaining extras register the variables below — names only; each default lives in the
 component's SCSS partial under `bulma-ui/src/scss/` as a `$<name> !default` variable. The same
 own-selector override rule applies.
@@ -515,7 +519,9 @@ that selector. A checked card's edge is `--bulma-checkbox-card-checked-border-wi
 `--bulma-checkbox-card-border-width`, so the selection isn't color alone; keep it thicker. The focus
 outline is Bulma's focus color, not the active color. `--bulma-checkbox-card-min-width` is how
 narrow a card gets in a `Checkboxes` row before the row wraps. In forced colors the edge takes
-`CanvasText`, and `Highlight` when checked, whatever these say.
+`CanvasText`, and `Highlight` when checked, whatever these say, and
+`--bulma-checkbox-card-disabled-opacity` doesn't apply: a disabled card draws at full strength in
+the system's color for disabled text.
 
 ### Collapse
 
@@ -667,6 +673,11 @@ them too. Inside a band, a nearby month's day reads `--bulma-dateinput-cell-colo
 The three `cell-content` variables style what a `Calendar`'s `dayTemplate` draws under a day's
 number: its color, which a picked day's fill replaces with the picked day's own, its size, and the
 opacity it fades to while the Calendar is `loading`.
+
+In forced colors (Windows' contrast themes) a picked day, month or year, and every day of a picked
+range, are the system's highlight colors whatever `--bulma-dateinput-cell-selected-bg`,
+`--bulma-dateinput-cell-selected-color` and `--bulma-dateinput-cell-range-bg` say, and what
+`dayTemplate` draws in them takes the same color.
 
 ### DateRangeInput
 
@@ -1016,7 +1027,8 @@ the label text inside the `Radio`, since the whole label is the click target.
 `--bulma-radio-card-transition-duration`
 
 The same as CheckboxCard's, on the `.radio-card` label, with a ring and a dot for the indicator and
-`--bulma-radio-card-min-width` for a `Radios` row.
+`--bulma-radio-card-min-width` for a `Radios` row. In forced colors
+`--bulma-radio-card-disabled-opacity` doesn't apply either.
 
 ### Rate
 
@@ -1028,6 +1040,10 @@ The same as CheckboxCard's, on the `.radio-card` label, with a ring and a dot fo
 `--bulma-rate-pop-scale`, `--bulma-rate-score-color`, `--bulma-rate-score-weight`,
 `--bulma-rate-spaced-gap`, `--bulma-rate-text-color`, `--bulma-rate-text-size`,
 `--bulma-rate-transition-duration`
+
+In forced colors `--bulma-rate-disabled-opacity` doesn't apply: a disabled Rate draws at full
+strength, its empty stars, score and text in the system's color for disabled text and its filled
+parts in the text color.
 
 ### RingProgress
 

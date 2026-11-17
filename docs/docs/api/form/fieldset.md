@@ -50,8 +50,8 @@ it, as they would at the top of a form.
 
 ```tsx live
 <Fieldset legend="Shipping address">
-  <Input label="Street" name="street" />
-  <Input label="City" name="city" />
+  <Input label="Street" name="street" autoComplete="shipping address-line1" />
+  <Input label="City" name="city" autoComplete="shipping address-level2" />
 </Fieldset>
 ```
 
@@ -92,8 +92,8 @@ the group as a whole; each input keeps its own `message` for its own errors.
   message="Fill in the phone number or the email."
   messageColor="info"
 >
-  <Input label="Phone" name="phone" type="tel" />
-  <Input label="Email" name="email" type="email" />
+  <Input label="Phone" name="phone" type="tel" autoComplete="tel" />
+  <Input label="Email" name="email" type="email" autoComplete="email" />
 </Fieldset>
 ```
 
@@ -103,8 +103,14 @@ Horizontal fields go inside it as they would anywhere else.
 
 ```tsx live
 <Fieldset legend="Contact details">
-  <Input horizontal label="Phone" name="phone" type="tel" />
-  <Input horizontal label="Email" name="email" type="email" />
+  <Input horizontal label="Phone" name="phone" type="tel" autoComplete="tel" />
+  <Input
+    horizontal
+    label="Email"
+    name="email"
+    type="email"
+    autoComplete="email"
+  />
   <Field horizontal label="Subject">
     <Control>
       <Select name="subject">
@@ -125,7 +131,12 @@ stop too and show their disabled look.
 
 ```tsx live
 <Fieldset legend="Preferences" disabled>
-  <Input label="Display name" name="display-name" defaultValue="Ada" />
+  <Input
+    autoComplete="nickname"
+    label="Display name"
+    name="display-name"
+    defaultValue="Ada"
+  />
   <Rate label="Rating" name="rating" defaultValue={3} />
   <Slider label="Volume" name="volume" defaultValue={40} />
   <Checkboxes label="Notifications" name="notifications">
@@ -155,8 +166,12 @@ function ShippingAddress() {
         </Checkbox>
       }
     >
-      <Input label="Street" name="street" />
-      <Input label="City" name="city" />
+      <Input
+        label="Street"
+        name="street"
+        autoComplete="shipping address-line1"
+      />
+      <Input label="City" name="city" autoComplete="shipping address-level2" />
     </Fieldset>
   );
 }
@@ -179,7 +194,7 @@ function SavingForm() {
       }}
     >
       <Fieldset variant="unstyled" disabled={saving}>
-        <Input label="Name" name="name" />
+        <Input label="Name" name="name" autoComplete="name" />
         <Rate label="Rating" name="rating" defaultValue={4} />
         <Button type="submit" color="primary" isLoading={saving}>
           Save

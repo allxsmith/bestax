@@ -19,6 +19,8 @@ A Bulma-styled text input supporting color, size, rounded, static, and loading s
 ```tsx live
 <Input
   label="Email"
+  type="email"
+  autoComplete="email"
   placeholder="you@example.com"
   iconLeftName="envelope"
   message="We'll never share your email"
@@ -235,7 +237,7 @@ A radio button drawn as a card, with a title and a description, picked wherever 
 A Bulma-styled dropdown for single or multiple selections. Supports color, size, rounded, loading, and multiselect. Accepts `label`, `iconLeftName`, and `message`/`messageColor` to auto-wrap with `Field` and `Control`.
 
 ```tsx live
-<Select label="Country" iconLeftName="globe">
+<Select autoComplete="country" label="Country" iconLeftName="globe">
   <option>United States</option>
   <option>Canada</option>
   <option>United Kingdom</option>
@@ -677,7 +679,7 @@ A Bulma-styled form field container for labels, grouped controls, and horizontal
 
 ```tsx live
 <Field label="Email">
-  <Input placeholder="you@example.com" />
+  <Input type="email" autoComplete="email" placeholder="you@example.com" />
 </Field>
 ```
 
@@ -695,7 +697,7 @@ A Bulma-styled wrapper for form controls, providing consistent spacing, icon pla
 
 ```tsx live
 <Control>
-  <Input placeholder="Username" />
+  <Input autoComplete="username" placeholder="Username" />
 </Control>
 ```
 
@@ -715,8 +717,8 @@ A section of a form in a native `<fieldset>`, named by its legend, bordered, fil
 
 ```tsx live
 <Fieldset legend="Shipping address" message="We only ship within the EU.">
-  <Input label="Street" name="street" />
-  <Input label="City" name="city" />
+  <Input label="Street" name="street" autoComplete="shipping address-line1" />
+  <Input label="City" name="city" autoComplete="shipping address-level2" />
 </Fieldset>
 ```
 

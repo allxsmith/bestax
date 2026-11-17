@@ -47,7 +47,12 @@ import {
 } from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
 import { useFieldLabelTarget, useFieldsetDisabled } from './FormContext';
-import { joinIds, useFieldMessageId } from './useFieldMessage';
+import { useAutoLabelledBy } from './useAutoLabelId';
+import {
+  joinIds,
+  splitControlState,
+  useFieldMessageId,
+} from './useFieldMessage';
 import { Icon } from '../elements/Icon';
 import { getActiveElementInTree } from '../helpers/shadowDom';
 import { inertProps } from '../helpers/inertProps';
@@ -85,7 +90,9 @@ const fromIsoDateTime = (s: string): Date | null => {
 /**
  * Props for the raw DateTimeInput base. Use the higher-level `DateTimeInput`
  * for Field/Control composition. Combines the prop set of `DateInputBaseProps`
- * and `TimeInputBaseProps`.
+ * and `TimeInputBaseProps`. `aria-invalid` and `aria-errormessage`, which
+ * report the input's state, go on the `<input>`, and inline, where there is
+ * none, on the `<div>`.
  *
  * @helperProps Helper props go on the `.datetimeinput-container` `<div>`, with
  * `className` and the other attributes, except that the background helpers
@@ -180,6 +187,10 @@ export interface DateTimeInputBaseProps
    * Reset in its footer goes back to the value it mounted with, or, when
    * controlled, to the latest `value` the parent set other than an echo of
    * `onChange`. The ✓ beside it has no popover to close.
+   * Inline, the root is a `role="group"` when something names it: a labeled
+   * `Field` around it that isn't `grouped` or `hasAddons` and has no
+   * `labelProps.htmlFor`, or an `aria-label` or `aria-labelledby` you give
+   * it. The `message` of a wrapper around it describes it then.
    */
   inline?: boolean;
   /** Use `<input type="datetime-local">` on coarse-pointer devices. */
@@ -224,7 +235,9 @@ export interface DateTimeInputBaseProps
    * so it shows on the fill. Unset, they use their
    * `--bulma-dateinput-*` and `--bulma-timeinput-wheel-*` variables, which
    * follow `primary` by default. The footer's time pill and Done button do not
-   * follow `color`.
+   * follow `color`. Forced colors (Windows' contrast themes) replaces the
+   * calendar's fill, so there the selected date is drawn in the system's
+   * highlight colors instead, whatever the color, which needs bestax's CSS.
    */
   color?:
     'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
@@ -454,6 +467,11 @@ export const DateTimeInputBase = forwardRef<
   const popoverId = id ? `${id}-popover` : `picker-${reactId}`;
   const timeWheelsId = `${popoverId}-time`;
 
+  // The input takes `aria-invalid` and `aria-errormessage`, which report
+  // its state, and the container the rest (#2002). With no input, inline,
+  // the container keeps them, as before.
+  const { control: controlState, rest: containerRest } =
+    splitControlState(rest);
   // The field takes the background and text helpers, since Bulma's `.input`
   // sets its own background and font. The container keeps the rest, and the
   // text helpers too where a popover inside it takes them.
@@ -463,7 +481,17 @@ export const DateTimeInputBase = forwardRef<
     textClasses,
     otherClasses,
     rest: cleanRest,
-  } = useFieldHelperClasses(rest);
+  } = useFieldHelperClasses(containerRest);
+
+  // Inline there's no input for a label's `for` to name, so the picker is a
+  // group, as DateRangeInputBase is, when something names it: a labeled
+  // Field around it, or an `aria-label` or `aria-labelledby` you give it,
+  // which wins. The wrapper's message describes the group then.
+  const { ariaLabelledBy, named } = useAutoLabelledBy({
+    label: undefined,
+    rendersLabel: false,
+    callerProps: rest,
+  });
 
   const { shouldUseNative, isSmallViewport } = useNativeMobilePicker({
     force: mobileNative === 'auto' ? undefined : mobileNative,
@@ -711,6 +739,7 @@ export const DateTimeInputBase = forwardRef<
         {...cleanRest}
         ref={combinedRef}
         aria-describedby={joinIds(cleanRest['aria-describedby'], messageId)}
+        {...controlState}
         type="datetime-local"
         step={nativeStep}
         className={classNames(inputClass, bulmaHelperClasses, className)}
@@ -868,8 +897,14 @@ export const DateTimeInputBase = forwardRef<
   if (inline) {
     return (
       <div
+        role={named ? 'group' : undefined}
+        aria-labelledby={ariaLabelledBy}
         {...localeScope.rootAttrs}
         {...cleanRest}
+        {...(named && {
+          'aria-describedby': joinIds(cleanRest['aria-describedby'], messageId),
+        })}
+        {...controlState}
         ref={containerRef}
         className={classNames(containerClass, bulmaHelperClasses, className)}
       >
@@ -908,6 +943,7 @@ export const DateTimeInputBase = forwardRef<
         aria-controls={popoverId}
         autoComplete="off"
         aria-describedby={messageId}
+        {...controlState}
         className={classNames(inputClass, textClasses, backgroundClasses)}
         value={text}
         placeholder={placeholder}

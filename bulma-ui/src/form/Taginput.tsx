@@ -23,7 +23,7 @@ import {
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
-import { useFieldMessage } from './useFieldMessage';
+import { splitControlState, useFieldMessage } from './useFieldMessage';
 import { Icon } from '../elements/Icon';
 
 /**
@@ -48,8 +48,17 @@ type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
 const isComposing = (e: React.KeyboardEvent): boolean =>
   e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229;
 
+// A press on a suggestion would take focus from the input, since a
+// suggestion can't hold it, and hand it to whatever focusable element is
+// around the Taginput, such as a Modal's, whose focus closes the list before
+// the click lands. Cancelling the press keeps focus in the input, as
+// Autocomplete's list does, and the click still adds the tag.
+const keepFocus = (e: React.MouseEvent) => e.preventDefault();
+
 /**
- * Props for the Taginput component.
+ * Props for the Taginput component. The other attributes go on the wrapper
+ * `<div>`, except `aria-invalid` and `aria-errormessage`, which report the
+ * input's state and go on the input.
  * Inside an outer `Field`, or a `Control` with no `Field` around it, it
  * renders no `Field` of its own. The exception is `label`, `message`,
  * `horizontal` or `fieldClassName` in that bare `Control`: it keeps a `Field`
@@ -148,7 +157,13 @@ export interface TaginputProps
    * drawn (with bestax's CSS loaded).
    */
   loading?: boolean;
-  /** ARIA label for tag close buttons. */
+  /**
+   * Names each tag's remove button in place of "Remove" and the tag's text,
+   * the same name for every button, as for a translation. Each button is
+   * then described by its tag's text, so it still says which tag it
+   * removes, except with a `tagTemplate`, whose content is left as it
+   * renders.
+   */
   ariaCloseLabel?: string;
   /** Icon name for the input field. */
   icon?: string;
@@ -280,7 +295,11 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       horizontal,
       fieldClassName,
     });
-    const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+    // The input takes `aria-invalid` and `aria-errormessage`, which report
+    // its state, and the wrapper the rest (#2002).
+    const { control: controlState, rest: wrapperProps } =
+      splitControlState(props);
+    const { bulmaHelperClasses, rest } = useBulmaClasses(wrapperProps);
     const { classPrefix } = useConfig();
     const defaultIconLibrary = useIconLibrary();
     const formatNumber = useScopedNumberFormat();
@@ -513,6 +532,19 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       }
     }, [openOnFocus, data.length, disabled]);
 
+    // Focus moving from the input to another element closes the list, so it
+    // doesn't stay open over the field Tab moved to, or over anything else
+    // that took focus (#2004), unless it moved into the list itself. Focus
+    // going to no element, as when the window loses it, leaves the list to
+    // the press-outside check, and Tab closes it itself, in case it leaves
+    // for a frame.
+    const handleBlur = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
+      const next = e.relatedTarget as Node | null;
+      if (!next || dropdownRef.current?.contains(next)) return;
+      setIsActive(false);
+      setHighlightedIndex(-1);
+    }, []);
+
     // Reaching the limit dismisses the list the way a click outside does, so
     // making room later doesn't bring it back unasked. It's an effect, not a
     // step in addTag, because a click on a suggestion also bubbles to the
@@ -582,6 +614,12 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
             // Closing the suggestions claims the key, so a Modal around the
             // field stays open. With none showing, the key goes on to it.
             if (listOpen) e.preventDefault();
+            setIsActive(false);
+            setHighlightedIndex(-1);
+            break;
+          case 'Tab':
+            // Tab moves on without picking, and the list doesn't stay open
+            // over where it lands.
             setIsActive(false);
             setHighlightedIndex(-1);
             break;
@@ -667,6 +705,8 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
 
     const counterClasses = pcn('help', 'counter');
     const tagsClasses = pcn('tags');
+    // Whether each tag has its remove button.
+    const removable = closable && !disabled && !readonly;
     const dropdownMenuClasses = pcn('dropdown-menu', 'is-active');
     const dropdownContentClasses = pcn('dropdown-content');
     const iconRightClass = pcn('icon', 'is-right');
@@ -722,16 +762,29 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
           <div className={tagsClasses}>
             {tags.map((tag, index) => {
               const displayVal = getDisplayValue(tag);
+              // With one name for every remove button, each is described
+              // by its tag's text, as Combobox's tags are (#2007), so the
+              // text takes an id then. A tagTemplate's content is left as it
+              // renders, since a span around it would change its spacing.
+              const tagTextId =
+                ariaCloseLabel && removable && !tagTemplate
+                  ? `${baseId}-tag-${index}`
+                  : undefined;
               return (
                 <span key={index} className={tagClasses}>
                   {tagTemplate ? (
                     tagTemplate(tag)
-                  ) : ellipsis ? (
-                    <span title={displayVal}>{displayVal}</span>
+                  ) : ellipsis || tagTextId ? (
+                    <span
+                      id={tagTextId}
+                      title={ellipsis ? displayVal : undefined}
+                    >
+                      {displayVal}
+                    </span>
                   ) : (
                     displayVal
                   )}
-                  {closable && !disabled && !readonly && (
+                  {removable && (
                     <button
                       type="button"
                       className={pcn('delete', 'is-small')}
@@ -740,6 +793,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
                         removeTag(index);
                       }}
                       aria-label={ariaCloseLabel || `Remove ${displayVal}`}
+                      aria-describedby={tagTextId}
                     />
                   )}
                 </span>
@@ -760,6 +814,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
               maxLength={maxlength}
               onChange={handleInputChange}
               onFocus={handleFocus}
+              onBlur={handleBlur}
               onKeyDown={handleKeyDown}
               onPaste={handlePaste}
               {...(hasSuggestions && comboboxProps)}
@@ -772,6 +827,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
               // limit it says why the field takes no more, and then the
               // message does.
               aria-describedby={describedBy}
+              {...controlState}
             />
           </div>
           {loading && (
@@ -782,7 +838,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
         </div>
 
         {listOpen && (
-          <div className={dropdownMenuClasses}>
+          <div className={dropdownMenuClasses} onMouseDown={keepFocus}>
             <div
               ref={dropdownRef}
               id={listboxId}
@@ -790,6 +846,9 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
               role="listbox"
               aria-labelledby={listLabelId}
               aria-label={listLabelId ? undefined : 'Suggestions'}
+              // It scrolls, and a browser can make a scroller a Tab stop of
+              // its own, which would take Tab from the input to the list.
+              tabIndex={-1}
             >
               {filteredData.map((item, index) => (
                 <a

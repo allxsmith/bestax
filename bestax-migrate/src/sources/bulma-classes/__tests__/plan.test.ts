@@ -50,6 +50,35 @@ describe('plan', () => {
     });
   });
 
+  it("makes a button's is-loading isLoading only where it sets no busy state of its own", () => {
+    // `isLoading` writes aria-busy="true" and aria-disabled="true" over any
+    // value the element sets (#2040), so beside either one the class stays a
+    // class, which renders the element as written.
+    expect(plan(facts('button', 'button is-loading'))).toMatchObject({
+      conversion: { props: [['isLoading', true]], className: null },
+      todos: [],
+    });
+    for (const own of [
+      { 'aria-busy': 'true' },
+      { 'aria-disabled': 'false' },
+      { 'aria-disabled': null },
+    ]) {
+      expect(plan(facts('button', 'button is-loading', own))).toMatchObject({
+        conversion: { props: [], className: 'is-loading' },
+        todos: [],
+      });
+    }
+    // Under a condition too: beside one, it stays in the call.
+    const conditional = (attributes: Record<string, string>) =>
+      plan(
+        facts('button', 'button', attributes, {
+          conditional: [['is-loading']],
+        })
+      ).conversion?.conditional;
+    expect(conditional({})).toEqual([['isLoading', 'is-loading']]);
+    expect(conditional({ 'aria-busy': 'true' })).toBeUndefined();
+  });
+
   it('refuses a tag the target cannot render', () => {
     const result = plan(facts('div', 'section'));
     expect(result.conversion).toBeNull();
@@ -2302,6 +2331,16 @@ describe('plan', () => {
           facts('header', 'modal-card-head', {}, { bestaxAround: ['Modal'] })
         ).conversion?.target
       ).toBe('Modal.Card.Head');
+    });
+
+    // The root stays markup, and the `Modal` it's rebuilt with is a dialog
+    // while it's open, so its TODO says to name it (#1941).
+    it("asks for the rebuilt root's name", () => {
+      const [todo] = plan(facts('div', 'modal')).todos;
+      expect(todo.rule).toBe('family:modal');
+      expect(todo.message).toContain(
+        'keeping or adding a name for the dialog it becomes: an `aria-label`, or an `aria-labelledby` pointing at the `id` of its title'
+      );
     });
   });
 

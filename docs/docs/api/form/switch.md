@@ -224,6 +224,18 @@ function example() {
 
 ---
 
+### Announced as a Switch
+
+A Switch is a native checkbox, so a screen reader calls it one. `role="switch"` has it announced as a switch instead.
+
+```tsx live
+<Switch role="switch" defaultChecked>
+  Wi-Fi
+</Switch>
+```
+
+---
+
 ### Controlled Usage
 
 Switch with controlled state.
@@ -307,8 +319,9 @@ function example() {
 - The Switch is built on a native checkbox input for proper keyboard navigation
 - Use the `children` prop to provide a visible label
 - For icon-only switches, provide an `aria-label` prop
-- The switch can be focused and toggled with keyboard (Space/Enter)
-- In forced colors (Windows contrast themes), the track and the knob take system colors, so the knob shows which side it's on in every style. Off, the knob and the edge are in the system's button text color. On, the default style's track fills with the highlight color and the knob takes the color made to read on it, while a thin or outlined switch, whose track doesn't fill, draws its knob and edge in the highlight color. Disabled, the edge is gray, and so is the knob when off.
+- Space toggles a focused switch, as it does a checkbox.
+- A screen reader announces a Switch as a checkbox, since that's the input it's built on. Pass `role="switch"` to have it announced as a switch, as in [Announced as a Switch](#announced-as-a-switch). The input keeps its checked state, so `checked`, `onChange` and the form value work the same either way.
+- In forced colors (Windows contrast themes), the track and the knob take system colors, so the knob shows which side it's on in every style. Off, the knob and the edge are in the system's button text color. On, the default style's track fills with the highlight color and the knob takes the color made to read on it, while a thin or outlined switch, whose track doesn't fill, draws its knob and edge in the highlight color. Disabled, it draws in gray at full strength rather than dimmed: the edge, the knob, the label, and the default style's track when on, with the knob in the page's color on it.
 
 ---
 
@@ -323,24 +336,25 @@ function example() {
 
 <!-- bestax:generated props -->
 
-| Prop             | Type                                                                            | Default | Description                                                                                                                                           |
-| ---------------- | ------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `color`          | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Color variant for the switch.                                                                                                                         |
-| `size`           | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size of the switch.                                                                                                                                   |
-| `isRounded`      | `boolean`                                                                       | `false` | Use rounded switch style.                                                                                                                             |
-| `isThin`         | `boolean`                                                                       | `false` | Use thin switch style.                                                                                                                                |
-| `isOutlined`     | `boolean`                                                                       | `false` | Use outlined switch style.                                                                                                                            |
-| `isRtl`          | `boolean`                                                                       | `false` | Right-to-left layout (label on left).                                                                                                                 |
-| `passiveType`    | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Color when the switch is in the off/passive state.                                                                                                    |
-| `textColor`      | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper.                                                                                                                                    |
-| `children`       | `React.ReactNode`                                                               | —       | Label content for the switch.                                                                                                                         |
-| `checked`        | `boolean`                                                                       | —       | Controlled checked state.                                                                                                                             |
-| `defaultChecked` | `boolean`                                                                       | `false` | Default checked state for uncontrolled usage.                                                                                                         |
-| `disabled`       | `boolean`                                                                       | `false` | Whether the switch is disabled.                                                                                                                       |
-| `className`      | `string`                                                                        | —       | Additional CSS classes.                                                                                                                               |
-| `onChange`       | `(event: React.ChangeEvent<HTMLInputElement>) => void`                          | —       | Callback when switch state changes.                                                                                                                   |
-| `ref`            | `React.Ref<HTMLInputElement>`                                                   | —       | Ref forwarded to the input element.                                                                                                                   |
-| `...`            | All standard `<input>` attributes and Bulma helper props                        | —       | Helper props go on the outer `<label>`, with `className`. The other attributes go on the `<input>`. See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop             | Type                                                                            | Default | Description                                                                                                                                                                                                                                                                                |
+| ---------------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `color`          | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Color variant for the switch.                                                                                                                                                                                                                                                              |
+| `size`           | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size of the switch.                                                                                                                                                                                                                                                                        |
+| `isRounded`      | `boolean`                                                                       | `false` | Use rounded switch style.                                                                                                                                                                                                                                                                  |
+| `isThin`         | `boolean`                                                                       | `false` | Use thin switch style.                                                                                                                                                                                                                                                                     |
+| `isOutlined`     | `boolean`                                                                       | `false` | Use outlined switch style.                                                                                                                                                                                                                                                                 |
+| `isRtl`          | `boolean`                                                                       | `false` | Right-to-left layout (label on left).                                                                                                                                                                                                                                                      |
+| `passiveType`    | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Color when the switch is in the off/passive state.                                                                                                                                                                                                                                         |
+| `textColor`      | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper.                                                                                                                                                                                                                                                                         |
+| `children`       | `React.ReactNode`                                                               | —       | Label content for the switch.                                                                                                                                                                                                                                                              |
+| `role`           | `React.AriaRole`                                                                | —       | The input's role. Unset, the input is a native checkbox, so a screen reader announces the switch as a checkbox. Pass `"switch"` to have it announced as a switch. The input's checked state still carries the value, so `checked`, `onChange` and the form value work the same either way. |
+| `checked`        | `boolean`                                                                       | —       | Controlled checked state.                                                                                                                                                                                                                                                                  |
+| `defaultChecked` | `boolean`                                                                       | `false` | Default checked state for uncontrolled usage.                                                                                                                                                                                                                                              |
+| `disabled`       | `boolean`                                                                       | `false` | Whether the switch is disabled.                                                                                                                                                                                                                                                            |
+| `className`      | `string`                                                                        | —       | Additional CSS classes.                                                                                                                                                                                                                                                                    |
+| `onChange`       | `(event: React.ChangeEvent<HTMLInputElement>) => void`                          | —       | Callback when switch state changes.                                                                                                                                                                                                                                                        |
+| `ref`            | `React.Ref<HTMLInputElement>`                                                   | —       | Ref forwarded to the input element.                                                                                                                                                                                                                                                        |
+| `...`            | All standard `<input>` attributes and Bulma helper props                        | —       | Helper props go on the outer `<label>`, with `className`. The other attributes go on the `<input>`. See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                      |
 
 <!-- /bestax:generated props -->
 

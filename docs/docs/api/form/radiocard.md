@@ -272,8 +272,9 @@ Here the padding is tighter and the cards wrap sooner:
 - The card is a `<label>` around a native `<input type="radio">`, so a click anywhere on it picks
   the radio and it sends its value with a form.
 - Cards that share a `name` are one group to the browser: Tab lands on the picked card, or the
-  first, and the arrow keys move and pick, skipping disabled cards. Give `Radios` a `name`, or
-  each card the same one; without it each card is a group of its own.
+  first, and the arrow keys move and pick, skipping disabled cards. Inside `Radios` the cards
+  share its `name`, or one it generates when you give it none. Outside one, give each card the
+  same `name`; without it each card is a group of its own.
 - The radio is named by the title, through `aria-labelledby`, and described by the description,
   through `aria-describedby`. An `aria-label` or `aria-labelledby` you pass wins. Without a title,
   the card's own text names it, as a label's text does.
@@ -291,7 +292,8 @@ Here the padding is tighter and the cards wrap sooner:
 - In forced colors (Windows contrast themes), Bulma's card loses its shadow, so the edge is a
   real border there: the system's text color, `Highlight` and still thicker when picked, and gray
   when disabled. The radio takes system colors as `Radio`'s does, and the focus outline is
-  `Highlight`.
+  `Highlight`. A disabled card draws at full strength there, its text, description and
+  radio gray, rather than dimmed.
 - The edge and the radio change without a transition under `prefers-reduced-motion: reduce`.
 
 ---

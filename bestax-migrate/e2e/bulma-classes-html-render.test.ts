@@ -39,6 +39,7 @@ import {
   normalizeHtml,
   renderExports,
   withImplicitListRoles,
+  withLoadingButtonsBusy,
   withV1Classes,
 } from './support/render-module.js';
 
@@ -95,8 +96,9 @@ function threeWays(file: string, source: string) {
     // compared with what the planner changes on purpose restated: Font
     // Awesome's own `aria-hidden` moved up off the <i>, the one `Icon` writes
     // on an icon in a link or button its own label names, a Bulma 0.9 class
-    // v1 removed written as the v1 class in its place, and Font Awesome 6's
-    // long name for a style written as its short one.
+    // v1 removed written as the v1 class in its place, Font Awesome 6's long
+    // name for a style written as its short one, and the busy state a loading
+    // `Button` writes.
     restated: canonicalOf(
       moveGlyphHidden(
         [
@@ -104,6 +106,7 @@ function threeWays(file: string, source: string) {
           withImplicitListRoles,
           withShortStyles,
           withLabelledGlyphsHidden,
+          withLoadingButtonsBusy,
         ].reduce((markup, restate) => restate(markup, after), before)
       ),
       document

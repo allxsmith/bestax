@@ -46,8 +46,8 @@ assistive tech reads becomes `Icon`, which puts that attribute on the `.icon` in
 glyph is hidden either way. Such a `.icon` around a bare glyph, in a link or button its own
 `aria-label` names, becomes `Icon` too, which hides it, since the label is what a screen reader
 reads there. Font Awesome 6's long style names (`fa-brands`) become `Icon`'s `variant`
-(`brands`), which renders the short name (`fab`), the same style. And Bulma 0.9's
-`is-marginless` and `is-paddingless`, which style nothing under v1, become `m="0"` and `p="0"`. Everything else stays as you wrote it, with a `TODO(bestax-migrate)`
+(`brands`), which renders the short name (`fab`), the same style. Bulma 0.9's
+`is-marginless` and `is-paddingless`, which style nothing under v1, become `m="0"` and `p="0"`. And a loading `.button` becomes `Button isLoading`, which also tells a screen reader it's busy and drops a click while it loads, from the keyboard too, where Bulma's spinner stops only the pointer. Everything else stays as you wrote it, with a `TODO(bestax-migrate)`
 comment when there's a decision to make.
 
 ## Run the codemod
@@ -95,7 +95,9 @@ stock stylesheet.
 - **Wrappers a component renders itself** fold into it: a `.table-container` around a table
   becomes `<Table isResponsive>`, and a `.fixed-grid` around a grid becomes
   `<Grid isFixed fixedCols={3}>`, as long as the wrapper holds nothing else and carries nothing
-  of its own.
+  of its own. A table that writes no `aria-label` or `aria-labelledby`, and spreads no props that
+  could, gets a TODO asking for one, since `Table isResponsive` names its scrolling container from
+  them.
 - **An element a component renders inside itself** converts with it: a `.select` and its
   `<select>` become one `SelectBase` with the `<select>`'s attributes, a `.breadcrumb` and its
   `<ul>` become one `Breadcrumb` around the same `<li>`s, and an `.image` and its `<img>` become
@@ -107,7 +109,9 @@ stock stylesheet.
   becomes `<Skeleton variant="lines" lines={5} />`, which renders those `<div>`s from the count.
 - **Classes added under a condition** in a `clsx` or `classnames` call: a flag becomes its prop,
   set to the condition (`clsx('button', busy && 'is-loading')` → `<Button isLoading={busy}>`), and
-  whatever else the call adds stays in it.
+  whatever else the call adds stays in it. A flag whose prop writes over an attribute the element
+  sets stays in the call too, the way it stays a class when written out: `is-loading` beside the
+  button's own `aria-busy` or `aria-disabled`.
 - **Your own classes** stay in `className`, which every bestax component passes through.
 
 The full tables, class by class, are in the migrate skill's

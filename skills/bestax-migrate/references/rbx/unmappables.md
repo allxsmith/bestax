@@ -295,7 +295,27 @@ form instead, which renders only what you wrote; there, wire your own `Modal.Bac
 `onClick` to the same `onClose`.
 
 The open modal is a dialog, so give it a name, with `aria-label`, or `aria-labelledby` pointing at
-its title. Only the legacy form's `modalCardTitle` names it for you.
+its title (`name:Modal`).
+
+## `name:Modal`: a modal with no name
+
+A converted `Modal` (or `Modal.Container`) with no `aria-label` or `aria-labelledby`, and no
+spread that could hold one. bestax's `Modal` is a dialog while it's open, and a
+dialog with no name is announced as just "dialog". Only the legacy form's `modalCardTitle` names
+it for you, and the codemod never writes that. Give the `Modal` an `aria-label`, or point
+`aria-labelledby` at the `id` of its title, such as its `Modal.Card.Title` when it has one:
+
+```tsx
+<Modal active={open} onClose={close} aria-labelledby="terms-title">
+  <Modal.Background onClick={close} />
+  <Modal.Card>
+    <Modal.Card.Head>
+      <Modal.Card.Title id="terms-title">Terms</Modal.Card.Title>
+    </Modal.Card.Head>
+    <Modal.Card.Body>…</Modal.Card.Body>
+  </Modal.Card>
+</Modal>
+```
 
 ## `value-reference` — a component used as a value
 

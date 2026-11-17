@@ -193,7 +193,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Displays a loading spinner, with everything inside the button hidden behind it, in forced colors (Windows' contrast themes) too. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn. It keeps focus, and shows Bulma's focus outline while it has it from the keyboard. Bulma alone hides only the label and takes away the shadow that shows a focused button, so the rest needs bestax's CSS loaded.",
+          "description": "Displays a loading spinner, with everything inside the button hidden behind it, in forced colors (Windows' contrast themes) too, and holds the button still: a click, Enter or Space does nothing, so `onClick` doesn't run, a submit button doesn't submit its form and a click on a link doesn't follow its `href`, until it's cleared. A custom `as` component gets that dropped click as its `onClick`, so it holds still as far as it acts through it. Set it while an action is in progress, so nobody sends it twice. The button carries `aria-busy` and `aria-disabled` meanwhile, so a screen reader can tell it won't respond, and stays focusable, so focus isn't lost, with Bulma's focus outline showing it from the keyboard. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn. Bulma alone stops only the pointer, hides only the label and takes away the shadow that shows a focused button, so the rest of the look needs bestax's CSS loaded.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -202,7 +202,7 @@
           "name": "isStatic",
           "type": "boolean",
           "default": "false",
-          "description": "Makes the button non-interactive.",
+          "description": "Draws Bulma's static look and stops the pointer. It doesn't change the element: a `<button>` with it is still a tab stop that a screen reader announces as a button and Enter and Space press, and in a form it's a submit button. A label that does nothing, such as \"@gmail.com\" beside an input in a `Field` with addons, is a `Button` rendered `as=\"span\"`, which Tab skips and a screen reader reads as text.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -387,7 +387,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Displays a loading spinner, with everything inside the button hidden behind it, in forced colors (Windows' contrast themes) too. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn. It keeps focus, and shows Bulma's focus outline while it has it from the keyboard. Bulma alone hides only the label and takes away the shadow that shows a focused button, so the rest needs bestax's CSS loaded.",
+          "description": "Displays a loading spinner, with everything inside the button hidden behind it, in forced colors (Windows' contrast themes) too, and holds the button still: a click, Enter or Space does nothing, so `onClick` doesn't run, a submit button doesn't submit its form and a click on a link doesn't follow its `href`, until it's cleared. A custom `as` component gets that dropped click as its `onClick`, so it holds still as far as it acts through it. Set it while an action is in progress, so nobody sends it twice. The button carries `aria-busy` and `aria-disabled` meanwhile, so a screen reader can tell it won't respond, and stays focusable, so focus isn't lost, with Bulma's focus outline showing it from the keyboard. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn. Bulma alone stops only the pointer, hides only the label and takes away the shadow that shows a focused button, so the rest of the look needs bestax's CSS loaded.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -396,7 +396,7 @@
           "name": "isStatic",
           "type": "boolean",
           "default": "false",
-          "description": "Makes the button non-interactive.",
+          "description": "Draws Bulma's static look and stops the pointer. It doesn't change the element: a `<button>` with it is still a tab stop that a screen reader announces as a button and Enter and Space press, and in a form it's a submit button. A label that does nothing, such as \"@gmail.com\" beside an input in a `Field` with addons, is a `Button` rendered `as=\"span\"`, which Tab skips and a screen reader reads as text.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -746,7 +746,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Displays a loading spinner, with everything inside the button hidden behind it, in forced colors (Windows' contrast themes) too. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn. It keeps focus, and shows Bulma's focus outline while it has it from the keyboard. Bulma alone hides only the label and takes away the shadow that shows a focused button, so the rest needs bestax's CSS loaded.",
+          "description": "Displays a loading spinner, with everything inside the button hidden behind it, in forced colors (Windows' contrast themes) too, and holds the button still: a click, Enter or Space does nothing, so `onClick` doesn't run, a submit button doesn't submit its form and a click on a link doesn't follow its `href`, until it's cleared. A custom `as` component gets that dropped click as its `onClick`, so it holds still as far as it acts through it. Set it while an action is in progress, so nobody sends it twice. The button carries `aria-busy` and `aria-disabled` meanwhile, so a screen reader can tell it won't respond, and stays focusable, so focus isn't lost, with Bulma's focus outline showing it from the keyboard. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn. Bulma alone stops only the pointer, hides only the label and takes away the shadow that shows a focused button, so the rest of the look needs bestax's CSS loaded.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -755,7 +755,7 @@
           "name": "isStatic",
           "type": "boolean",
           "default": "false",
-          "description": "Makes the button non-interactive.",
+          "description": "Draws Bulma's static look and stops the pointer. It doesn't change the element: a `<button>` with it is still a tab stop that a screen reader announces as a button and Enter and Space press, and in a form it's a submit button. A label that does nothing, such as \"@gmail.com\" beside an input in a `Field` with addons, is a `Button` rendered `as=\"span\"`, which Tab skips and a screen reader reads as text.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -985,7 +985,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Displays a loading spinner, with everything inside the button hidden behind it, in forced colors (Windows' contrast themes) too. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn. It keeps focus, and shows Bulma's focus outline while it has it from the keyboard. Bulma alone hides only the label and takes away the shadow that shows a focused button, so the rest needs bestax's CSS loaded.",
+          "description": "Displays a loading spinner, with everything inside the button hidden behind it, in forced colors (Windows' contrast themes) too, and holds the button still: a click, Enter or Space does nothing, so `onClick` doesn't run, a submit button doesn't submit its form and a click on a link doesn't follow its `href`, until it's cleared. A custom `as` component gets that dropped click as its `onClick`, so it holds still as far as it acts through it. Set it while an action is in progress, so nobody sends it twice. The button carries `aria-busy` and `aria-disabled` meanwhile, so a screen reader can tell it won't respond, and stays focusable, so focus isn't lost, with Bulma's focus outline showing it from the keyboard. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn. Bulma alone stops only the pointer, hides only the label and takes away the shadow that shows a focused button, so the rest of the look needs bestax's CSS loaded.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -994,7 +994,7 @@
           "name": "isStatic",
           "type": "boolean",
           "default": "false",
-          "description": "Makes the button non-interactive.",
+          "description": "Draws Bulma's static look and stops the pointer. It doesn't change the element: a `<button>` with it is still a tab stop that a screen reader announces as a button and Enter and Space press, and in a form it's a submit button. A label that does nothing, such as \"@gmail.com\" beside an input in a `Field` with addons, is a `Button` rendered `as=\"span\"`, which Tab skips and a screen reader reads as text.",
           "required": false,
           "inherited": true,
           "deprecated": false

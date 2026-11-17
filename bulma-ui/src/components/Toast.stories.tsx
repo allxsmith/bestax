@@ -81,11 +81,17 @@ const meta: Meta<typeof Toast> = {
     },
     dismissible: {
       control: 'boolean',
-      description: 'Whether clicking the toast dismisses it',
+      description:
+        'Whether clicking the toast (or outside it) dismisses it. With an onClick of your own, a click on it closes it only when you set dismissible yourself',
     },
     closable: {
       control: 'boolean',
       description: 'Show an explicit close (X) button',
+    },
+    ariaCloseLabel: {
+      control: 'text',
+      description:
+        'Names the close button, in place of "Close", for an app in another language',
     },
     rounded: {
       control: 'boolean',
@@ -511,6 +517,33 @@ export const ProgrammaticAPI: Story = {
           </Button>
         </Buttons>
       </div>
+    );
+  },
+};
+
+/**
+ * The container's hotkey, F8 by default, moves keyboard focus to the newest
+ * toast's first button, and the toast stays open while focus is in it.
+ */
+export const KeyboardHotkey: Story = {
+  render: function KeyboardHotkeyExample() {
+    return (
+      <>
+        <ToastContainer position="top-right" />
+        <Button
+          onClick={() =>
+            toast.show({
+              message: 'File moved to trash. Press F8 to reach Undo.',
+              actionText: 'Undo',
+              actionType: 'info',
+              duration: 5000,
+              onAction: () => toast.success('File restored'),
+            })
+          }
+        >
+          Delete file
+        </Button>
+      </>
     );
   },
 };

@@ -149,7 +149,8 @@ RBC modal has) selects the **compound** form, and that renders only the children
 
 So `closeOnBlur` and `showClose={true}` mean "add those two children"; passing either as `false`
 means "drop the prop", since the compound form gives you neither unless you ask. The open modal
-is a dialog, so give it a name too, with `aria-label`, or `aria-labelledby` pointing at its title.
+is a dialog, so give it a name too, with `aria-label`, or `aria-labelledby` pointing at its title
+(`name:Modal`).
 
 ## `responsive` — `touch` / `untilWidescreen` / `untilFullhd` / `{ only: true }` breakpoints
 
@@ -232,6 +233,40 @@ a `textSize` from `'1'` to `'7'`.
 
 The same TODO marks a `Heading` that sets `size` and `textSize` both: drop `size` and let
 `textSize` set the font size.
+
+## `name:Table` — a responsive table with no name
+
+`Table.Container` folded into `isResponsive` on a `Table` with no `aria-label` and no
+`aria-labelledby`. While the table overflows, `Table isResponsive` makes its container a region you
+can tab to, named by those two alone, and a development build warns when it has neither. Look
+for a name the container carried in a TODO beside this one (`prop:aria-label`, or `prop:spread`
+for one in a spread). Otherwise give the `Table` an `aria-label`, or point `aria-labelledby` at a
+heading, or at its `<caption>`'s `id` when it has one.
+
+The container's `role` and `tabIndex` go with it (`prop:role`, `prop:tabIndex`): `Table isResponsive`
+writes them on its container itself while the table overflows. When the `Table` already names
+itself, with an attribute of its own or a `<caption>`, the container's name goes with the container
+too (`prop:aria-label`, `prop:aria-labelledby`), so check that the `Table`'s is the one you want.
+
+## `name:Modal`: a modal with no name
+
+A converted `Modal` with no `aria-label` or `aria-labelledby`, and no spread that could hold one.
+bestax's `Modal` is a dialog while it's open, and a dialog with no name is announced as just
+"dialog". Only the legacy form's `modalCardTitle` names it for you, and the
+codemod never writes that. Give the `Modal` an `aria-label`, or point `aria-labelledby` at the `id`
+of its title, such as its `Modal.Card.Title` when it has one:
+
+```tsx
+<Modal active={show} onClose={close} aria-labelledby="terms-title">
+  <Modal.Background onClick={close} />
+  <Modal.Card>
+    <Modal.Card.Head>
+      <Modal.Card.Title id="terms-title">Terms</Modal.Card.Title>
+    </Modal.Card.Head>
+    <Modal.Card.Body>…</Modal.Card.Body>
+  </Modal.Card>
+</Modal>
+```
 
 ## `domRef`
 

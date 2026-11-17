@@ -224,6 +224,14 @@ describe.each([
   it('dims the track and its label when disabled', () => {
     expect(resolve(trackOf({ disabled: true }), 'opacity')).toBe('0.5');
     expect(resolve(labelOf({ disabled: true }), 'opacity')).toBe('0.5');
+    // In forced colors they're drawn in GrayText, which the opacity would
+    // only halve, so both draw at full strength there (#1996).
+    const forced = { forcedColors: true };
+    expect(resolve(trackOf({ disabled: true }), 'opacity', forced)).toBe('1');
+    expect(resolve(labelOf({ disabled: true }), 'opacity', forced)).toBe('1');
+    expect(resolve(labelOf({ disabled: true }), 'color', forced)).toBe(
+      'graytext'
+    );
   });
 
   it('draws the track in system colors in forced colors', () => {
@@ -276,8 +284,12 @@ describe.each([
           resolve(trackOf(p), 'background-color', { forcedColors: true });
         expect(fill(on)).toBe('highlight');
         expect(forcedKnob(on)).toBe('highlighttext');
-        expect(forcedKnob({ ...on, disabled: true })).toBe('highlighttext');
-        expect(forcedEdge({ ...on, disabled: true })).toBe('graytext');
+        // Disabled, the fill is GrayText and the knob the page's color on
+        // it, so it doesn't draw as an enabled switch (#1996).
+        const disabledOn = { ...on, disabled: true };
+        expect(fill(disabledOn)).toBe('graytext');
+        expect(forcedKnob(disabledOn)).toBe('canvas');
+        expect(forcedEdge(disabledOn)).toBe('graytext');
       }
     );
 
@@ -287,7 +299,7 @@ describe.each([
       ['passive outlined', { isOutlined: true, passiveType: 'danger' }],
       ['passive thin', { isThin: true, passiveType: 'danger' }],
     ] as const)(
-      'draws a %s knob and edge in the highlight on an unfilled track when on, the edge gray when disabled',
+      'draws a %s knob and edge in the highlight on an unfilled track when on, gray when disabled',
       (_style, props) => {
         const on = { ...props, checked: true };
         // The knob shows only while the track's own rule outranks the fill.
@@ -296,8 +308,16 @@ describe.each([
         ).not.toBe('highlight');
         expect(forcedKnob(on)).toBe('highlight');
         expect(forcedEdge(on)).toBe('highlight');
-        expect(forcedKnob({ ...on, disabled: true })).toBe('highlight');
-        expect(forcedEdge({ ...on, disabled: true })).toBe('graytext');
+        // Disabled, the knob and edge are GrayText on a track that still
+        // doesn't fill (#1996).
+        const disabledOn = { ...on, disabled: true };
+        expect(forcedKnob(disabledOn)).toBe('graytext');
+        expect(forcedEdge(disabledOn)).toBe('graytext');
+        expect(
+          resolve(trackOf(disabledOn), 'background-color', {
+            forcedColors: true,
+          })
+        ).toBe('transparent');
       }
     );
   });

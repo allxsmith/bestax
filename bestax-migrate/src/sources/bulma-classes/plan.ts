@@ -384,6 +384,11 @@ export interface Plan {
     target: string;
     props: Array<[name: string, value: string | true]>;
     numbers: string[];
+    /**
+     * TODOs about the component the fold makes, written only once the fold
+     * is: a fold the transform calls off takes them with it.
+     */
+    todos?: Todo[];
   };
   todos: Todo[];
 }
@@ -1221,6 +1226,7 @@ function planElement(facts: ElementFacts): Plan {
       !modifier!.onlyTrue &&
       (!modifier!.tagIn || modifier!.tagIn.includes(tag)) &&
       (!modifier!.needsAttr || attributes.has(modifier!.needsAttr.name)) &&
+      !modifier!.overridesAttrs?.some(name => attributes.has(name)) &&
       !writes.has(write.prop) &&
       !conditional.some(([prop]) => prop === write.prop);
     // Written as a prop, the condition is evaluated before any left in the
@@ -1706,6 +1712,9 @@ function propsFrom(
       if (modifier.beside && !paired(token)) continue;
       if (modifier.tagIn && !modifier.tagIn.includes(tag)) continue;
       if (modifier.needsAttr && !attributes.has(modifier.needsAttr.name)) {
+        continue;
+      }
+      if (modifier.overridesAttrs?.some(name => attributes.has(name))) {
         continue;
       }
       if (modifier.writes.some(write => writes.has(write.prop))) continue;
@@ -2195,5 +2204,30 @@ function planFold(facts: ElementFacts, wrapper: string, todos: Todo[]): Plan {
       `bestax ${renders} renders \`.${wrapper}\` itself, so this element converts only around a single element that becomes a \`${target}\`, with nothing else beside it`
     );
   }
-  return { conversion: null, fold: { target, props, numbers }, todos };
+  // What the fold renders takes its name from the target inside, so one with
+  // no name asks for one. A spread there could hold it.
+  const inner = facts.soleChild;
+  const names = entry.namedFrom ?? [];
+  const unnamed =
+    names.length > 0 &&
+    inner !== undefined &&
+    !inner.hasSpread &&
+    !names.some(name => inner.attributes.has(name));
+  return {
+    conversion: null,
+    fold: {
+      target,
+      props,
+      numbers,
+      ...(unnamed && {
+        todos: [
+          {
+            rule: ruleId('name', target),
+            message: `give this \`${target}\` a name in ${names.map(name => `\`${name}\``).join(' or ')}, such as an \`aria-labelledby\` pointing at a heading or at its caption's \`id\`: while it overflows, bestax ${renders} makes its \`.${wrapper}\` a region you can tab to, named by those alone`,
+          },
+        ],
+      }),
+    },
+    todos,
+  };
 }

@@ -40,7 +40,12 @@ import {
 } from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
 import { useFieldLabelTarget, useFieldsetDisabled } from './FormContext';
-import { joinIds, useFieldMessageId } from './useFieldMessage';
+import { useAutoLabelledBy } from './useAutoLabelId';
+import {
+  joinIds,
+  splitControlState,
+  useFieldMessageId,
+} from './useFieldMessage';
 import { Icon } from '../elements/Icon';
 import { Buttons } from '../elements/Buttons';
 
@@ -72,6 +77,8 @@ const fromIsoTime = (s: string): Date | null => {
 /**
  * Props for the raw TimeInput base. Use the higher-level `TimeInput` for
  * Field/Control composition; `TimeInputBase` is the input + popover only.
+ * `aria-invalid` and `aria-errormessage`, which report the input's state,
+ * go on the `<input>`, and inline, where there is none, on the `<div>`.
  *
  * @helperProps Helper props go on the `.timeinput-container` `<div>`, with
  * `className` and the other attributes, except that the background helpers
@@ -113,7 +120,10 @@ export interface TimeInputBaseProps
   min?: Date | undefined;
   /** Latest selectable time. */
   max?: Date | undefined;
-  /** Disable the input. */
+  /**
+   * Disable the input. An `inline` picker's wheels leave the tab order and
+   * carry `aria-disabled`, and nothing turns them.
+   */
   disabled?: boolean | undefined;
   /**
    * Make the input read-only. An `inline` picker's wheels keep their tab
@@ -142,7 +152,13 @@ export interface TimeInputBaseProps
    * the wheels keep plain digits and AM and PM.
    */
   locale?: string;
-  /** Render the spinner inline (no popover). */
+  /**
+   * Render the spinner inline (no popover).
+   * Inline, the root is a `role="group"` when something names it: a labeled
+   * `Field` around it that isn't `grouped` or `hasAddons` and has no
+   * `labelProps.htmlFor`, or an `aria-label` or `aria-labelledby` you give
+   * it. The `message` of a wrapper around it describes it then.
+   */
   inline?: boolean;
   /** Use `<input type="time">` on coarse-pointer + small-viewport devices. */
   mobileNative?: boolean | 'auto';
@@ -346,6 +362,11 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
     const reactId = useId();
     const popoverId = id ? `${id}-popover` : `picker-${reactId}`;
 
+    // The input takes `aria-invalid` and `aria-errormessage`, which report
+    // its state, and the container the rest (#2002). With no input, inline,
+    // the container keeps them, as before.
+    const { control: controlState, rest: containerRest } =
+      splitControlState(rest);
     // The field takes the background and text helpers, since Bulma's `.input`
     // sets its own background and font. The container keeps the rest, and the
     // text helpers too where a popover inside it takes them.
@@ -355,7 +376,17 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       textClasses,
       otherClasses,
       rest: cleanRest,
-    } = useFieldHelperClasses(rest);
+    } = useFieldHelperClasses(containerRest);
+
+    // Inline there's no input for a label's `for` to name, so the picker is a
+    // group, as DateRangeInputBase is, when something names it: a labeled
+    // Field around it, or an `aria-label` or `aria-labelledby` you give it,
+    // which wins. The wrapper's message describes the group then.
+    const { ariaLabelledBy, named } = useAutoLabelledBy({
+      label: undefined,
+      rendersLabel: false,
+      callerProps: rest,
+    });
 
     const { shouldUseNative, isSmallViewport } = useNativeMobilePicker({
       force: mobileNative === 'auto' ? undefined : mobileNative,
@@ -526,6 +557,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
           {...cleanRest}
           ref={combinedRef}
           aria-describedby={joinIds(cleanRest['aria-describedby'], messageId)}
+          {...controlState}
           type="time"
           step={nativeStep}
           className={classNames(inputClass, bulmaHelperClasses, className)}
@@ -662,8 +694,17 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
     if (inline) {
       return (
         <div
+          role={named ? 'group' : undefined}
+          aria-labelledby={ariaLabelledBy}
           {...localeScope.rootAttrs}
           {...cleanRest}
+          {...(named && {
+            'aria-describedby': joinIds(
+              cleanRest['aria-describedby'],
+              messageId
+            ),
+          })}
+          {...controlState}
           ref={containerRef}
           className={classNames(containerClass, bulmaHelperClasses, className)}
         >
@@ -702,6 +743,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
           aria-controls={popoverId}
           autoComplete="off"
           aria-describedby={messageId}
+          {...controlState}
           className={classNames(inputClass, textClasses, backgroundClasses)}
           value={text}
           placeholder={placeholder}

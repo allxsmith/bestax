@@ -27,8 +27,10 @@
  *
  * The Menu page also writes its own `<a>`, the stand-in for a router link in
  * its Custom Link example, which a reader copies into an app. An `<a>` there
- * is held to the same `href` rule. A hand-written `<a>` anywhere else is out
- * of scope.
+ * is held to the same `href` rule, and to passing on the rest of its props
+ * with a spread, as a router's link does, since `Menu.Item` hands it its class
+ * and, on an `active` item, `aria-current` (#2117). A hand-written `<a>`
+ * anywhere else is out of scope.
  *
  * Each source is parsed with TypeScript as a `.tsx` file and nothing is
  * compiled, so a fence that is only a fragment still reads.
@@ -37,54 +39,26 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { describe, it } from 'vitest';
-import { REPO, exampleFiles, sourcesOf } from './lib/example-sources.mjs';
+import {
+  REPO,
+  attributeValue,
+  attributesOf,
+  exampleFiles,
+  linkingHref,
+  sourcesOf,
+} from './lib/example-sources.mjs';
 
 const ts = createRequire(join(REPO, 'package.json'))('typescript');
 const TAGS = new Set(['Menu.Item', 'MenuItem']);
 const MENU_PAGE = 'docs/docs/api/components/menu.md';
 
-/** An attribute's value as written: a string, an expression, or nothing. */
-function valueOf(prop) {
-  const value = prop.initializer;
-  if (value === undefined) return { bare: true };
-  if (ts.isStringLiteral(value)) return { text: value.text };
-  const expr = value.expression;
-  if (expr === undefined) return { bare: true };
-  if (ts.isStringLiteral(expr) || ts.isNoSubstitutionTemplateLiteral(expr)) {
-    return { text: expr.text };
-  }
-  return { expr };
-}
-
-/** Whether an `href` holds something a browser can follow. */
-function linkHref(prop) {
-  const { bare, text, expr } = valueOf(prop);
-  if (bare) return false;
-  if (text !== undefined) return text !== '';
-  return !(
-    expr.kind === ts.SyntaxKind.NullKeyword ||
-    (ts.isIdentifier(expr) && expr.text === 'undefined')
-  );
-}
-
 /** What an `as` names: a tag, or a component (`'component'`). */
 function asTarget(prop) {
-  const { text, expr } = valueOf(prop);
+  const { text, expr } = attributeValue(prop);
   if (text !== undefined) return text;
   return expr && (ts.isIdentifier(expr) || ts.isPropertyAccessExpression(expr))
     ? 'component'
     : undefined;
-}
-
-/** The attributes by name, and whether any is a spread. */
-function attributesOf(attributes) {
-  const byName = new Map();
-  let spread = false;
-  for (const prop of attributes.properties) {
-    if (ts.isJsxSpreadAttribute(prop)) spread = true;
-    else byName.set(prop.name.getText(), prop);
-  }
-  return { byName, spread };
 }
 
 /** Whether a `Menu.Item` renders something the keyboard can reach. */
@@ -93,13 +67,13 @@ function reachableItem(attributes) {
   if (spread) return true;
   const as = byName.has('as') ? asTarget(byName.get('as')) : 'a';
   if (as === 'component' || as === 'button') return true;
-  return as === 'a' && byName.has('href') && linkHref(byName.get('href'));
+  return as === 'a' && byName.has('href') && linkingHref(byName.get('href'));
 }
 
 /** Whether a hand-written `<a>` has an `href` that links somewhere. */
 function linkingAnchor(attributes) {
   const { byName, spread } = attributesOf(attributes);
-  return spread || (byName.has('href') && linkHref(byName.get('href')));
+  return spread || (byName.has('href') && linkingHref(byName.get('href')));
 }
 
 /**
@@ -123,7 +97,11 @@ function readCode(code) {
       if (TAGS.has(tag)) {
         items.push({ offset, ok: reachableItem(node.attributes) });
       } else if (tag === 'a') {
-        anchors.push({ offset, ok: linkingAnchor(node.attributes) });
+        anchors.push({
+          offset,
+          ok: linkingAnchor(node.attributes),
+          passesOn: attributesOf(node.attributes).spread,
+        });
       }
     }
     ts.forEachChild(node, visit);
@@ -132,13 +110,19 @@ function readCode(code) {
   return { items, anchors };
 }
 
-/** The same, for a whole file, each found as `{ at, ok }` (`file:line`). */
+/**
+ * The same, for a whole file, each found as `{ at, ok }` (`file:line`), an
+ * `<a>` with `passesOn` as well.
+ */
 function readFile(rel) {
   const items = [];
   const anchors = [];
   for (const { code, line } of sourcesOf(rel)) {
     const found = readCode(code);
-    const place = ({ offset, ok }) => ({ at: `${rel}:${line + offset}`, ok });
+    const place = ({ offset, ...rest }) => ({
+      at: `${rel}:${line + offset}`,
+      ...rest,
+    });
     items.push(...found.items.map(place));
     anchors.push(...found.anchors.map(place));
   }
@@ -231,6 +215,32 @@ describe('the Menu page’s own links', () => {
       'These render an <a> with no href, which Tab skips. A stand-in for a ' +
         "router link should render the `to` it's given as the `href`:\n  " +
         hrefless.join('\n  ')
+    );
+  });
+
+  it('reads a spread as passing on what an item gives the <a>', () => {
+    const verdicts = [
+      ['<a {...rest} href={to} />', true],
+      ['<a href={to} {...rest}>x</a>', true],
+      ['<a href={props.to}>{props.children}</a>', false],
+      ['<a>{props.children}</a>', false],
+    ];
+    const wrong = verdicts
+      .filter(([code, ok]) => readCode(code).anchors[0].passesOn !== ok)
+      .map(([code]) => code);
+    assert.deepEqual(wrong, []);
+  });
+
+  it('passes on what an item gives the <a> it writes', () => {
+    const dropping = anchors.filter(anchor => !anchor.passesOn).map(a => a.at);
+    assert.deepEqual(
+      dropping,
+      [],
+      'An <a> the Menu page writes is its stand-in for a router link, and ' +
+        'these drop the props a Menu.Item hands them, its class and, on an ' +
+        'active item, aria-current. Spread the rest of the props onto the ' +
+        '<a>:\n  ' +
+        dropping.join('\n  ')
     );
   });
 });

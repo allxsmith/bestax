@@ -76,8 +76,8 @@ text field.
     data={['Canada', 'France', 'Germany', 'Japan', 'Kenya', 'Mexico']}
     empty="No countries match"
   />
-  <Input label="City" />
-  <Input label="Postal code" />
+  <Input autoComplete="address-level2" label="City" />
+  <Input autoComplete="postal-code" label="Postal code" />
   <Button type="submit" color="primary">
     Save address
   </Button>
@@ -201,7 +201,7 @@ function example() {
         <Button onClick={() => setCity('paris')}>Paris</Button>
         <Button onClick={() => setCity(null)}>Clear</Button>
       </Buttons>
-      <Input label="Postal code" />
+      <Input autoComplete="postal-code" label="Postal code" />
     </form>
   );
 }
@@ -347,8 +347,8 @@ function example() {
           )}
         </Combobox.Menu>
       </Combobox>
-      <Input label="City" />
-      <Input label="Postal code" />
+      <Input autoComplete="address-level2" label="City" />
+      <Input autoComplete="postal-code" label="Postal code" />
       <Button type="submit" color="primary">
         Save address
       </Button>
@@ -839,6 +839,7 @@ and a click in the field opens the list. A press in the list never takes focus f
   field mid-row, keeps its corner and moves sideways just far enough to fit, or, wider than
   the screen, to the edge its text starts from.
 - The `message` describes the field through `aria-describedby`, after any ids you pass to `Combobox.Input` and, with `data` and `multiple`, after the picked tags.
+- With `data`, `aria-invalid` and `aria-errormessage` go on the field, while the Combobox's other attributes go on the wrapper, so a screen reader hears the field is invalid when it takes focus. Built from parts, pass them to `Combobox.Input`.
 
 ---
 

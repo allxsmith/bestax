@@ -41,16 +41,16 @@ export const Default: StoryObj<typeof Level> = {
           <strong>All</strong>
         </Level.Item>
         <Level.Item as="p">
-          <a>Published</a>
+          <a href="#published">Published</a>
         </Level.Item>
         <Level.Item as="p">
-          <a>Drafts</a>
+          <a href="#drafts">Drafts</a>
         </Level.Item>
         <Level.Item as="p">
-          <a>Deleted</a>
+          <a href="#deleted">Deleted</a>
         </Level.Item>
         <Level.Item as="p">
-          <Button color="success" as="a">
+          <Button color="success" as="a" href="#new-post">
             New
           </Button>
         </Level.Item>
@@ -124,19 +124,27 @@ export const LevelCenteredMenu: StoryObj<typeof Level> = {
   render: () => (
     <Level>
       <Level.Item as="p" hasTextCentered>
-        <a className="link is-info">Getting Started</a>
+        <a href="#getting-started" className="link is-info">
+          Getting Started
+        </a>
       </Level.Item>
       <Level.Item as="p" hasTextCentered>
-        <a className="link is-info">APIs</a>
+        <a href="#apis" className="link is-info">
+          APIs
+        </a>
       </Level.Item>
       <Level.Item as="p" hasTextCentered>
         <img src="/img/bestax-type.svg" alt="Bestax" style={{ height: 30 }} />
       </Level.Item>
       <Level.Item as="p" hasTextCentered>
-        <a className="link is-info">Versions</a>
+        <a href="#versions" className="link is-info">
+          Versions
+        </a>
       </Level.Item>
       <Level.Item as="p" hasTextCentered>
-        <a className="link is-info">FAQ</a>
+        <a href="#faq" className="link is-info">
+          FAQ
+        </a>
       </Level.Item>
     </Level>
   ),
@@ -185,19 +193,6 @@ export const MobileLevel: StoryObj<typeof Level> = {
           <Title as="p">123K</Title>
         </div>
       </Level.Item>
-      <Level.Item hasTextCentered>
-        <div>
-          <Paragraph
-            textSize="7"
-            textTransform="uppercase"
-            textWeight="semibold"
-            mb="1"
-          >
-            Likes
-          </Paragraph>
-          <Title as="p">9,876</Title>
-        </div>
-      </Level.Item>
     </Level>
   ),
 };
@@ -215,10 +210,10 @@ export const CompoundUsage: StoryObj<typeof Level> = {
       </Level.Left>
       <Level.Right>
         <Level.Item as="p">
-          <a>Published</a>
+          <a href="#published">Published</a>
         </Level.Item>
         <Level.Item as="p">
-          <Button color="success" as="a">
+          <Button color="success" as="a" href="#new-post">
             New
           </Button>
         </Level.Item>

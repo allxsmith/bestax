@@ -317,7 +317,8 @@ export interface TreeSelectCheckboxProps extends TreeSelectBaseProps {
 /**
  * Props for the TreeSelect component. The helper props and the other
  * attributes land on the `div.tree-select` around the field, and the `ref`
- * on the field. It renders the `Field` and the label itself, unless an outer
+ * on the field, with `aria-invalid` and `aria-errormessage`, which report its
+ * state. It renders the `Field` and the label itself, unless an outer
  * `Field` already does.
  *
  * @extraProp {React.Ref<HTMLInputElement>} [ref] - Ref forwarded to the field, the read-only `<input role="combobox">`.

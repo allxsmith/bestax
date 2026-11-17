@@ -53,6 +53,33 @@ function setRefs<T>(
   if (theirs) theirs.current = node;
 }
 
+/**
+ * Calls `onLoad` once the fonts the document is loading now, or starts
+ * loading later, are ready, and returns the function that stops it. It waits
+ * on `ready` rather than listening for `loadingdone`, which not every browser
+ * fires for a stylesheet's font, and waits on each `ready` once, since a load
+ * that is under way already also fires `loading` as it starts. Where the Font
+ * Loading API is missing it does nothing.
+ */
+function whenFontsLoad(doc: Document, onLoad: () => void): () => void {
+  const fonts: FontFaceSet | undefined = doc.fonts;
+  if (!fonts) return () => {};
+  // Cleared on stop, so a load still pending holds no element.
+  let callback: (() => void) | null = onLoad;
+  let waitingOn: Promise<FontFaceSet> | undefined;
+  const wait = () => {
+    if (fonts.ready === waitingOn) return;
+    waitingOn = fonts.ready;
+    waitingOn.then(() => callback?.());
+  };
+  if (fonts.status === 'loading') wait();
+  fonts.addEventListener('loading', wait);
+  return () => {
+    callback = null;
+    fonts.removeEventListener('loading', wait);
+  };
+}
+
 export interface UseScrollRegionOptions<T extends HTMLElement> {
   /** The axes the element scrolls, which are the ones it measures. */
   orientation: ScrollRegionOrientation;
@@ -103,13 +130,14 @@ export interface ScrollRegion<T extends HTMLElement> {
 
 /**
  * Measures an element that scrolls, on the client, and says whether it's a
- * region you can tab to. `ScrollArea`'s viewport and a responsive `Table`'s
- * container share it.
+ * region you can tab to. `ScrollArea`'s viewport, a responsive `Table`'s
+ * container and `Pre` share it; `Pre` takes the tab stop and decides its own
+ * role and name.
  *
  * It measures before paint, and again whenever the element or anything in it
- * changes size, the children change, or the element scrolls. Nothing is known
- * until the client measures, so the server renders a plain scroller and
- * hydrates as one.
+ * changes size, the children change, the page's fonts finish loading, or the
+ * element scrolls. Nothing is known until the client measures, so the server
+ * renders a plain scroller and hydrates as one.
  *
  * @function useScrollRegion
  * @param options - The axes it scrolls, its name, and a ref and handlers of the caller's own.
@@ -180,7 +208,7 @@ export function useScrollRegion<T extends HTMLElement>({
 
   // Layout: the direction and the bars' sizes, then the overflow. It runs
   // before paint, and again whenever the element or anything in it changes
-  // size, or the children change.
+  // size, the children change, or the page's fonts finish loading.
   useClientLayoutEffect(() => {
     const el = elementRef.current;
     /* istanbul ignore next: the effect only runs once it's mounted */
@@ -208,7 +236,12 @@ export function useScrollRegion<T extends HTMLElement>({
       measure(false);
     };
     relayout();
-    if (typeof ResizeObserver === 'undefined') return;
+    // A web font that loads after the first measurement widens or narrows
+    // the text without resizing the element or any element in it, which
+    // neither observer below reports: a line of code in a `Pre` set in a
+    // monospace web font is the common case.
+    const unfont = whenFontsLoad(el.ownerDocument, relayout);
+    if (typeof ResizeObserver === 'undefined') return unfont;
     const resizes = new ResizeObserver(relayout);
     const observeAll = () => {
       resizes.disconnect();
@@ -239,6 +272,7 @@ export function useScrollRegion<T extends HTMLElement>({
       subtree: true,
     });
     return () => {
+      unfont();
       resizes.disconnect();
       mutations?.disconnect();
     };

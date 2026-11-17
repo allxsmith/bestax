@@ -1,5 +1,6 @@
 import { Cell, Grid, Table } from "@allxsmith/bestax-bulma";
 export function Wrappers() {
+  // TODO(bestax-migrate): give this `Table` a name in `aria-label` or `aria-labelledby`, such as an `aria-labelledby` pointing at a heading or at its caption's `id`: while it overflows, bestax `Table isResponsive` makes its `.table-container` a region you can tab to, named by those alone
   // TODO(bestax-migrate): bestax `Table isResponsive` renders `.table-container` itself, so this element converts only around a single element that becomes a `Table`, with nothing else beside it
   return (
     <section>

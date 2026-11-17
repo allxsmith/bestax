@@ -50,6 +50,11 @@ const meta: Meta<typeof Notification> = {
       control: 'boolean',
       description: 'Shows a close (delete) button in the notification.',
     },
+    ariaCloseLabel: {
+      control: 'text',
+      description:
+        'Names the close button, in place of "Close notification", for an app in another language.',
+    },
     m: {
       control: 'select',
       options: ['0', '1', '2', '3', '4', '5', '6', 'auto'],

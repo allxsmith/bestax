@@ -6,8 +6,9 @@
  * Awesome's own `aria-hidden` moved up off the `<i>`, and the one `Icon`
  * writes on an icon in a link or button its own label names
  * (`support/hidden-glyph.ts`), a Bulma 0.9 class v1 removed written as the v1
- * class that replaced it (`withV1Classes`), and Font Awesome 6's long name for
- * a style written as its short one (`support/font-awesome-styles.ts`).
+ * class that replaced it (`withV1Classes`), Font Awesome 6's long name for a
+ * style written as its short one (`support/font-awesome-styles.ts`), and the
+ * busy state a loading `Button` writes (`withLoadingButtonsBusy`).
  */
 
 import classNames from 'classnames';
@@ -25,6 +26,7 @@ import {
   normalizeHtml,
   renderExports,
   withImplicitListRoles,
+  withLoadingButtonsBusy,
   withV1Classes,
 } from './support/render-module.js';
 
@@ -80,6 +82,7 @@ describe('bulma-classes fixtures render the same before and after', () => {
             withImplicitListRoles,
             withShortStyles,
             withLabelledGlyphsHidden,
+            withLoadingButtonsBusy,
           ].reduce((markup, restate) => restate(markup, converted), html);
           return [exported, restated];
         })

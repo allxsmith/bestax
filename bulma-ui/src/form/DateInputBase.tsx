@@ -51,7 +51,12 @@ import {
 } from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
 import { useFieldLabelTarget, useFieldsetDisabled } from './FormContext';
-import { joinIds, useFieldMessageId } from './useFieldMessage';
+import { useAutoLabelledBy } from './useAutoLabelId';
+import {
+  joinIds,
+  splitControlState,
+  useFieldMessageId,
+} from './useFieldMessage';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { Icon } from '../elements/Icon';
 
@@ -74,6 +79,8 @@ const SKIPPED_SEGMENTS: Record<
 /**
  * Props for the raw DateInput base. Use the higher-level `DateInput` for
  * Field/Control composition; `DateInputBase` is the input + popover only.
+ * `aria-invalid` and `aria-errormessage`, which report the input's state,
+ * go on the `<input>`, and inline, where there is none, on the `<div>`.
  *
  * @helperProps Helper props go on the `.dateinput-container` `<div>`, with
  * `className` and the other attributes, except that the background helpers
@@ -184,6 +191,10 @@ export interface DateInputBaseProps
    * `defaultValue` it opens on the month the clock reads, and around the end
    * of a month the server's clock and the browser's can read different
    * months, so give it a date both render the same.
+   * Inline, the root is a `role="group"` when something names it: a labeled
+   * `Field` around it that isn't `grouped` or `hasAddons` and has no
+   * `labelProps.htmlFor`, or an `aria-label` or `aria-labelledby` you give
+   * it. The `message` of a wrapper around it describes it then.
    */
   inline?: boolean;
   /**
@@ -232,7 +243,9 @@ export interface DateInputBaseProps
    * the color's `-on-scheme` variant, which Bulma adjusts to contrast with the
    * background, so pale colors stay readable. Unset, the calendar uses its
    * `--bulma-dateinput-*` variables, which follow `primary` the same way by
-   * default.
+   * default. Forced colors (Windows' contrast themes) replaces the fill, so
+   * there the selected date is drawn in the system's highlight colors instead,
+   * whatever the color, which needs bestax's CSS.
    */
   color?:
     'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
@@ -401,6 +414,11 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     const reactId = useId();
     const popoverId = id ? `${id}-popover` : `picker-${reactId}`;
 
+    // The input takes `aria-invalid` and `aria-errormessage`, which report
+    // its state, and the container the rest (#2002). With no input, inline,
+    // the container keeps them, as before.
+    const { control: controlState, rest: containerRest } =
+      splitControlState(rest);
     // The field takes the background and text helpers, since Bulma's `.input`
     // sets its own background and font. The container keeps the rest, and the
     // text helpers too where a popover inside it takes them.
@@ -410,7 +428,17 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       textClasses,
       otherClasses,
       rest: cleanRest,
-    } = useFieldHelperClasses(rest);
+    } = useFieldHelperClasses(containerRest);
+
+    // Inline there's no input for a label's `for` to name, so the picker is a
+    // group, as DateRangeInputBase is, when something names it: a labeled
+    // Field around it, or an `aria-label` or `aria-labelledby` you give it,
+    // which wins. The wrapper's message describes the group then.
+    const { ariaLabelledBy, named } = useAutoLabelledBy({
+      label: undefined,
+      rendersLabel: false,
+      callerProps: rest,
+    });
 
     const { shouldUseNative } = useNativeMobilePicker({
       force: mobileNative === 'auto' ? undefined : mobileNative,
@@ -624,6 +652,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
           {...cleanRest}
           ref={combinedRef}
           aria-describedby={joinIds(cleanRest['aria-describedby'], messageId)}
+          {...controlState}
           type={isDayGranularity ? 'date' : 'month'}
           className={classNames(inputClass, bulmaHelperClasses, className)}
           value={value ? toIsoValue(value, granularity) : ''}
@@ -687,8 +716,17 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     if (inline) {
       return (
         <div
+          role={named ? 'group' : undefined}
+          aria-labelledby={ariaLabelledBy}
           {...localeScope.rootAttrs}
           {...cleanRest}
+          {...(named && {
+            'aria-describedby': joinIds(
+              cleanRest['aria-describedby'],
+              messageId
+            ),
+          })}
+          {...controlState}
           ref={containerRef}
           className={classNames(containerClass, bulmaHelperClasses, className)}
         >
@@ -727,6 +765,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
           aria-controls={popoverId}
           autoComplete="off"
           aria-describedby={messageId}
+          {...controlState}
           className={classNames(inputClass, textClasses, backgroundClasses)}
           value={text}
           placeholder={placeholder}

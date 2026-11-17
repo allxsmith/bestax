@@ -38,11 +38,14 @@ import { Panel } from '@allxsmith/bestax-bulma';
 
 ### Complete Panel (Revolutionary Figures)
 
-This example shows a complete panel layout using `Panel` and its subcomponents. The `Panel.Heading` provides a title, `Panel.InputBlock` adds a search field, and `Panel.Tabs` enables filtering. Use `Panel.Block` for each item, with `active` on the current one, and `Panel.Icon` to display icons. This structure is ideal for sidebars, filter lists, or admin menus. The `color` prop customizes the panel's appearance.
+This example shows a complete panel layout using `Panel` and its subcomponents. The `Panel.Heading` provides a title, `Panel.InputBlock` adds a search field, and `Panel.Tabs` enables filtering. Use `Panel.Block` for each item, with `active` on the current one, and `Panel.Icon` to display icons. This structure is ideal for sidebars, filter lists, or admin menus. The `color` prop customizes the panel's appearance. The panel takes its name from its heading through `aria-labelledby`, and `role="heading"` with an `aria-level` makes the heading one, at the level that fits the headings around it.
 
 ```tsx live
-<Panel>
-  <Panel.Heading>Revolutionary Figures</Panel.Heading>
+<Panel aria-labelledby="panel-figures">
+  {/* The level that fits the headings around the panel: 4 here, under an h3. */}
+  <Panel.Heading id="panel-figures" role="heading" aria-level={4}>
+    Revolutionary Figures
+  </Panel.Heading>
   <Panel.InputBlock placeholder="Search" />
   <Panel.Tabs>
     <a className="is-active">All</a>
@@ -106,8 +109,8 @@ This example demonstrates the `Panel` component's color variants. The `color` pr
       'white',
     ] as const
   ).map(color => (
-    <Panel key={color} color={color}>
-      <Panel.Heading>
+    <Panel key={color} color={color} aria-labelledby={`panel-${color}`}>
+      <Panel.Heading id={`panel-${color}`}>
         {color.charAt(0).toUpperCase() + color.slice(1)} Panel
       </Panel.Heading>
       <Panel.InputBlock placeholder="Search" />
@@ -180,8 +183,8 @@ This example demonstrates the `Panel` component's color variants. The `color` pr
 Every subcomponent is exported by name (`PanelHeading`, `PanelBlock`, …) and attached to `Panel` as a static, so a whole panel can be composed from the single `Panel` import.
 
 ```tsx live
-<Panel>
-  <Panel.Heading>Founding Documents</Panel.Heading>
+<Panel aria-labelledby="panel-documents">
+  <Panel.Heading id="panel-documents">Founding Documents</Panel.Heading>
   <Panel.Block active>
     <Panel.Icon name="file" variant="solid" />
     Declaration of Independence
@@ -199,11 +202,12 @@ Every subcomponent is exported by name (`PanelHeading`, `PanelBlock`, …) and a
 ## Accessibility
 
 - The root panel renders as a semantic `<nav>`, a navigation landmark, by default. For a panel that is not navigation, set `as` to `article`, `section`, `aside` or `div`, and give a `section` an accessible name (for example `aria-labelledby` pointing at the `Panel.Heading`'s `id`) if it should be a region.
-- Use headings, links, and buttons with appropriate labels for best accessibility.
+- `Panel.Heading` renders Bulma's `<p class="panel-heading">`, which assistive tech reads as a plain paragraph: it isn't a heading, and it doesn't name the panel. A screen reader user who moves by heading skips it, and one who moves by landmark hears "navigation" for each panel with nothing to tell them apart. Give the heading `role="heading"` and the `aria-level` that fits the headings already on the page. To name a `nav` panel, the default, after its heading, give the heading an `id` that's unique on the page and write `aria-labelledby` with that id on the `Panel`, the way the bullet above names a `section`. The examples above name each panel this way, and the first also makes its heading one.
 - The `Panel.Block` by default renders as an anchor `<a>`. Its props follow `as`: only an `a` takes the anchor attributes (`href`, `target`, `download` and the rest), and only a `label` takes `htmlFor` and `form`. A block on another tag drops them, and `rel`, at runtime too.
 - `Panel.Block active` sets `aria-current="page"` on the element `as` renders, the `<a>` by default, so the current block isn't only a color. An `aria-current` you pass wins: a panel of sections on one page can say `"location"`, and `aria-current={false}` turns it off, as on an active `label` block with a checkbox.
 - A panel with no `color` keeps its heading readable on the dark scheme through bestax's `components/panel` partial, which `extras.css` and `bestax.css` include. Bulma's CSS alone writes that heading white on light gray.
 - A panel with a `color` draws the text of its active block and active tab, the active block's icon and the active tab's underline in that color at the lightness Bulma picks for the color's text on the page, through the same partial, so they read on both schemes. Black takes the title text's lightness, which is white on the dark scheme. Without the partial the text inherits the color's text helper Panel puts on the panel, and the icon and underline take the color's own lightness, which for a light or white panel is near white on white.
+- **Forced colors:** Bulma marks the active tab and the active block with colors alone, which forced colors (Windows' contrast themes) replaces, so bestax's styles draw a bar in the system's highlight color there: along the bottom of the active tab, and down the start edge of the active block. The tab, the block and everything in them stay in the contrast theme's colors. It reads the `is-active` class, on a `Panel.Block` and on the tab links you write in `Panel.Tabs`. The panel's own edge is a shadow, which forced colors drops, so the same styles draw it as a one pixel line in the system's text color around the panel, with a line under the heading in place of its fill. This comes from the same partial.
 
 :::note
 For keyboard navigation, ensure interactive Panel blocks are focusable and provide clear visual states.
@@ -243,7 +247,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Panel
 
 **Subcomponents:**
 
-- `Panel.Heading`: Main heading (renders as `<p class="panel-heading">`)
+- `Panel.Heading`: The panel's title: a paragraph to assistive tech, until you give it `role="heading"` and an `aria-level`. It renders Bulma's `<p class="panel-heading">`, which doesn't name the panel either. Pick the level that fits the headings already on the page, so screen reader users can move to it by heading. To name the panel after it, give it an `id` that's unique on the page and write `aria-labelledby` with that id on the `Panel`: two `nav` panels, the default, are then two navigation landmarks a screen reader can tell apart.
 - `Panel.Tabs`: Panel tabs (renders as `<p class="panel-tabs">`)
 - `Panel.Block`: Individual panel block (renders as `<a class="panel-block">` unless `as` says otherwise)
 - `Panel.Icon`: Icon wrapper with panel styling (renders as `<span class="panel-icon">`, containing an `<i/>` when a `name` is given, or the custom node passed as `children`). Accepts all Icon props (`name`, `variant`, `features`, etc.), or `children` for a custom node.

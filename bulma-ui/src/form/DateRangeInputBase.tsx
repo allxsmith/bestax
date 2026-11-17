@@ -50,6 +50,7 @@ import {
 } from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
 import { useAutoLabelledBy } from './useAutoLabelId';
+import { splitControlState } from './useFieldMessage';
 import { useFieldsetDisabled } from './FormContext';
 import { Icon } from '../elements/Icon';
 
@@ -66,7 +67,9 @@ const today = (): Date => startOfDay(new Date());
 /**
  * Props for the raw DateRangeInput base. Use the higher-level
  * `DateRangeInput` for Field/Control composition; `DateRangeInputBase` is the
- * two inputs and the popover only.
+ * two inputs and the popover only. `aria-invalid` and `aria-errormessage`,
+ * which report the inputs' state, go on both `<input>`s, so they mark the
+ * range as a whole, and inline, where there are none, on the root.
  *
  * @helperProps Helper props go on the root `.daterangeinput` `<div>`, with
  * `className` and the other attributes, except that the background helpers
@@ -196,7 +199,10 @@ export interface DateRangeInputBaseProps
   appendToBody?: boolean;
   /**
    * Bulma color modifier for the field, also carried by the calendar, where it
-   * colors the range's ends and the band between them.
+   * colors the range's ends and the band between them. Forced colors
+   * (Windows' contrast themes) replaces both, so there every day of a picked
+   * range is drawn in the system's highlight colors instead, whatever the
+   * color, which needs bestax's CSS.
    */
   color?:
     'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
@@ -480,6 +486,10 @@ export const DateRangeInputBase = forwardRef<
   const reactId = useId();
   const popoverId = id ? `${id}-popover` : `picker-${reactId}`;
 
+  // Both inputs take `aria-invalid` and `aria-errormessage`, which report
+  // their state, and the group the rest (#2063), as the other pickers'
+  // inputs do (#2002). Inline, with no input, the group keeps them.
+  const { control: controlState, rest: groupRest } = splitControlState(rest);
   // The field takes the background helpers, since Bulma's `.input` sets its
   // own background. The text helpers stay on the root, which the popover and
   // the separator take them from, and go on both inputs too, since an input
@@ -490,7 +500,7 @@ export const DateRangeInputBase = forwardRef<
     textClasses,
     otherClasses,
     rest: cleanRest,
-  } = useFieldHelperClasses(rest);
+  } = useFieldHelperClasses(groupRest);
   // Two inputs can't share a labeled Field's `for`, so inside one the group
   // points `aria-labelledby` at that Field's label, as `DateRangeInput`
   // does, in every mode. A name the caller gave the group wins, and so does
@@ -791,6 +801,7 @@ export const DateRangeInputBase = forwardRef<
             type="date"
             id={id}
             aria-label={t.rangeStart}
+            {...controlState}
             className={classNames(inputClass, textClasses)}
             value={isoDay(start)}
             onChange={nativeChange(commitStart, isBlockedDay)}
@@ -806,6 +817,7 @@ export const DateRangeInputBase = forwardRef<
             type="date"
             id={id ? `${id}-end` : undefined}
             aria-label={t.rangeEnd}
+            {...controlState}
             className={classNames(inputClass, textClasses)}
             value={isoDay(end)}
             onChange={nativeChange(commitEnd, isBlockedEnd)}
@@ -859,6 +871,7 @@ export const DateRangeInputBase = forwardRef<
         aria-labelledby={ariaLabelledBy}
         {...localeScope.rootAttrs}
         {...cleanRest}
+        {...controlState}
         ref={containerRef}
         role="group"
         className={classNames(containerClass, bulmaHelperClasses, className)}
@@ -902,6 +915,7 @@ export const DateRangeInputBase = forwardRef<
     disabled,
     readOnly: inputReadOnly,
     required,
+    ...controlState,
   };
 
   return (

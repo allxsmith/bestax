@@ -67,7 +67,8 @@ describe('every refusal the planner can produce', () => {
     const rules = new Set<string>();
     const messages = new Set<string>();
     const collect = (input: ElementFacts) => {
-      for (const todo of plan(input).todos) {
+      const planned = plan(input);
+      for (const todo of [...planned.todos, ...(planned.fold?.todos ?? [])]) {
         rules.add(todo.rule);
         messages.add(todo.message);
       }
@@ -76,6 +77,21 @@ describe('every refusal the planner can produce', () => {
     for (const [root, entry] of Object.entries(ROOTS)) {
       collect(facts('div', [root], []));
       collect(facts('div', [root, 'box'], []));
+      // A fold that goes through, onto a target with and without a name.
+      if (entry.status === 'fold' && entry.target) {
+        const onto = (attributes: Array<[string, string | true | null]>) =>
+          facts(entry.tag!, [root], [], {
+            soleChildTarget: entry.target,
+            soleChild: {
+              tag: 'table',
+              attributes: new Map(attributes),
+              hasSpread: false,
+              isEmpty: false,
+            },
+          });
+        collect(onto([]));
+        for (const name of entry.namedFrom ?? []) collect(onto([[name, 'x']]));
+      }
       if (entry.status !== 'mapped') continue;
       const names = new Set([
         ...(entry.ownProps ?? []),

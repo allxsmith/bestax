@@ -250,6 +250,8 @@ function App() {
 
 ### Programmatic Alert
 
+`dialog.alert` and `dialog.confirm` take a string as the message alone, or options. Give the options a `title`, or an `aria-label` when the dialog shows no title, so the dialog has a name.
+
 ```tsx live
 function example() {
   return (
@@ -258,7 +260,12 @@ function example() {
       <Buttons>
         <Button
           color="info"
-          onClick={() => dialog.alert('Something happened!')}
+          onClick={() =>
+            dialog.alert({
+              message: 'Something happened!',
+              'aria-label': 'Notice',
+            })
+          }
         >
           Simple Alert
         </Button>
@@ -347,7 +354,9 @@ function example() {
 
 - Uses `role="alertdialog"` for proper screen reader announcement
 - Has `aria-modal="true"` to indicate modal behavior — note this does not make background content inert; no `inert` attribute is applied, so background content stays reachable by pointer
+- **Give every dialog a name.** A dialog with no `title` has none unless you give it an `aria-label`, which `dialog.alert` and `dialog.confirm` take in their options too, or an `aria-labelledby` pointing at text of your own. A development build warns about an open dialog with none of them
 - `title`, when there is one, is wired up as `aria-labelledby` and `message` as `aria-describedby`, through ids the dialog makes for itself, so a second dialog open at the same time, or an element of your own with the same id, doesn't take its name or its description. An `aria-labelledby` or `aria-describedby` you pass replaces them
+- The built-in icon of a `success`, `danger`, `warning` or `info` dialog is `aria-hidden`, and the type's color isn't announced either, so say in the title or the message what kind of dialog it is when that matters, as for a destructive action. An `icon` you pass is rendered as you pass it
 - Focus moves to the confirm (or cancel, with `focusCancel`) button when opened
 - Escape key closes the dialog (when `canCancel` is true). The underlying [`Modal`](./modal.md#accessibility) handles it, so one Escape closes the topmost overlay only: a dialog opened over a Modal or a [Sidebar](./sidebar.md) closes first, and the one under it on the next Escape
 - Tab and Shift+Tab cycle within the dialog while it is the topmost modal overlay, also from the underlying [`Modal`](./modal.md)
@@ -379,24 +388,25 @@ Use the programmatic `dialog.confirm()` with async/await to create clean, sequen
 
 <!-- bestax:generated props -->
 
-| Prop          | Type                                                                | Default     | Description                                                                                                                                    |
-| ------------- | ------------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `isOpen`      | `boolean`                                                           | —           | **Required.** Whether the dialog is open.                                                                                                      |
-| `title`       | `string`                                                            | —           | Dialog title, which names the dialog through `aria-labelledby` unless you pass an `aria-labelledby` of your own.                               |
-| `message`     | `string` \| `React.ReactNode`                                       | —           | **Required.** Dialog message/content, which describes the dialog through `aria-describedby` unless you pass an `aria-describedby` of your own. |
-| `type`        | `'default'` \| `'success'` \| `'danger'` \| `'warning'` \| `'info'` | `'default'` | The type/color of the dialog. Default: 'default'.                                                                                              |
-| `confirmText` | `string`                                                            | `'OK'`      | Text for confirm button. Default: 'OK'.                                                                                                        |
-| `cancelText`  | `string`                                                            | `'Cancel'`  | Text for cancel button. Default: 'Cancel'.                                                                                                     |
-| `onConfirm`   | `() => void`                                                        | —           | Callback when confirm button is clicked.                                                                                                       |
-| `onCancel`    | `() => void`                                                        | —           | Callback when cancel button is clicked or dismissed.                                                                                           |
-| `showCancel`  | `boolean`                                                           | `true`      | Whether to show cancel button. Default: true for confirm dialogs.                                                                              |
-| `canCancel`   | `boolean`                                                           | `true`      | Whether the dialog can be dismissed. Default: true.                                                                                            |
-| `focusCancel` | `boolean`                                                           | `false`     | Focus cancel button instead of confirm. Default: false.                                                                                        |
-| `icon`        | `React.ReactNode`                                                   | —           | Custom icon to display.                                                                                                                        |
-| `portal`      | `boolean` \| `string` \| `HTMLElement`                              | `false`     | Renders the dialog into a portal target instead of inline. Forwarded to the underlying `Modal`; see its `portal` prop for the accepted values. |
-| `className`   | `string`                                                            | —           | Additional CSS classes.                                                                                                                        |
-| `ref`         | `React.Ref<HTMLElement>`                                            | —           | Ref forwarded to the dialog element.                                                                                                           |
-| `...`         | All standard `<div>` attributes and Bulma helper props              | —           | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                              |
+| Prop          | Type                                                                | Default     | Description                                                                                                                                                                                                                                                                                   |
+| ------------- | ------------------------------------------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `isOpen`      | `boolean`                                                           | —           | **Required.** Whether the dialog is open.                                                                                                                                                                                                                                                     |
+| `title`       | `string`                                                            | —           | Dialog title, which names the dialog through `aria-labelledby` unless you pass an `aria-labelledby` of your own. A dialog with no title has no name unless you give it an `aria-label`, or an `aria-labelledby` pointing at text of yours, and a development build warns about one with none. |
+| `message`     | `string` \| `React.ReactNode`                                       | —           | **Required.** Dialog message/content, which describes the dialog through `aria-describedby` unless you pass an `aria-describedby` of your own.                                                                                                                                                |
+| `type`        | `'default'` \| `'success'` \| `'danger'` \| `'warning'` \| `'info'` | `'default'` | The type/color of the dialog. Default: 'default'. Its color and its built-in icon aren't announced, so say in the title or the message what kind of dialog it is when that matters, as for a destructive action.                                                                              |
+| `confirmText` | `string`                                                            | `'OK'`      | Text for confirm button. Default: 'OK'.                                                                                                                                                                                                                                                       |
+| `cancelText`  | `string`                                                            | `'Cancel'`  | Text for cancel button. Default: 'Cancel'.                                                                                                                                                                                                                                                    |
+| `onConfirm`   | `() => void`                                                        | —           | Callback when confirm button is clicked.                                                                                                                                                                                                                                                      |
+| `onCancel`    | `() => void`                                                        | —           | Callback when cancel button is clicked or dismissed.                                                                                                                                                                                                                                          |
+| `showCancel`  | `boolean`                                                           | `true`      | Whether to show cancel button. Default: true for confirm dialogs.                                                                                                                                                                                                                             |
+| `canCancel`   | `boolean`                                                           | `true`      | Whether the dialog can be dismissed. Default: true.                                                                                                                                                                                                                                           |
+| `focusCancel` | `boolean`                                                           | `false`     | Focus cancel button instead of confirm. Default: false.                                                                                                                                                                                                                                       |
+| `icon`        | `React.ReactNode`                                                   | —           | Custom icon to display beside the title, so only when there is one, in place of the type's built-in icon, which is hidden from assistive technology. Yours is rendered as you pass it.                                                                                                        |
+| `portal`      | `boolean` \| `string` \| `HTMLElement`                              | `false`     | Renders the dialog into a portal target instead of inline. Forwarded to the underlying `Modal`; see its `portal` prop for the accepted values.                                                                                                                                                |
+| `className`   | `string`                                                            | —           | Additional CSS classes.                                                                                                                                                                                                                                                                       |
+| `ref`         | `React.Ref<HTMLElement>`                                            | —           | Ref forwarded to the dialog element.                                                                                                                                                                                                                                                          |
+| `aria-label`  | `string`                                                            | —           | The dialog's accessible name, for a dialog with no `title`. A development build warns about an open dialog with no title, `aria-label` or `aria-labelledby`.                                                                                                                                  |
+| `...`         | All standard `<div>` attributes and Bulma helper props              | —           | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                             |
 
 <!-- /bestax:generated props -->
 

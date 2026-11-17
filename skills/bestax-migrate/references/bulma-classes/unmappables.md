@@ -319,7 +319,8 @@ What it can read is a `clsx` or `classnames` call made of class strings and clas
 under a condition: `busy && 'is-loading'`, `{ 'is-loading': busy }`, `busy ? 'is-loading' : ''`
 (or `: null`). Those convert without a TODO. A condition on one of the component's flags
 becomes that prop (`isLoading={busy}`, or `isLight={!quiet}` for `quiet ? '' : 'is-light'`),
-anything else stays in the call, and the call goes once nothing is left in it. `Field`'s
+unless the prop writes over an attribute the element sets (`is-loading` beside the button's own
+`aria-busy` or `aria-disabled`); that one and anything else stays in the call, and the call goes once nothing is left in it. `Field`'s
 `is-grouped` stays in the call too, since `grouped` renders it for `true` alone. A prop is
 evaluated before the call, so a condition moves ahead of one left in the call only when neither
 can have side effects (a call, an assignment); otherwise it stays. A condition that isn't a
@@ -364,6 +365,14 @@ move it to a component of its own:
   it often is on a sized `.image`, write `mx="auto"` in its place
   (`<Image size="128x128" mx="auto">`), which centers it and does nothing else `.container`
   does. Otherwise wrap the element in a `Container`. Either way, check the layout.
+
+## A table it folded with no name: `name:<Target>`
+
+A `.table-container` folded into `Table isResponsive` around a table that writes no `aria-label`
+and no `aria-labelledby`, and spreads no props that could. While the table overflows, `Table isResponsive` makes `.table-container` a region
+you can tab to, named by those two alone, and a development build warns when it has neither. Give
+the `Table` an `aria-label`, or point `aria-labelledby` at a heading, or at its `<caption>`'s `id`
+when it has one, which names both the table and the region.
 
 ## A family it leaves as markup: `family:<class>`
 
@@ -756,7 +765,9 @@ read for the burger, a carousel and a theme toggle too, and its TODO names the f
   `ariaCloseLabel` to keep a name the page gave its `.delete`; render the element only while
   it's in state.
 - **`html-script:carousel`** drives a carousel. `Carousel` takes its slides as `CarouselItem`
-  children and renders its own arrows and indicators (`autoplay` for a timed one). For several
+  children and renders its own arrows and indicators (`autoplay` for a timed one). Name it for
+  what it shows with `ariaLabel`, without the word "carousel", which its role description
+  already says. For several
   slides in view, set `itemsToShow`, with a variant per viewport (`itemsToShowMobile`,
   `itemsToShowTablet`, …), and `itemsToScroll`: bulma-carousel calls them `slidesToShow` and
   `slidesToScroll`. bulma-carousel's `breakpoints` replace both at and below pixel widths of its

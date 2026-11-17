@@ -41,7 +41,11 @@ export interface BadgeProps
   content?: React.ReactNode;
   /** Numeric `content` above this renders as `"{max}+"`. A negative or non-integer value falls back to the default. */
   max?: number | undefined;
-  /** Render a small dot with no content. */
+  /**
+   * Render a small dot with no content. In forced colors (Windows' contrast
+   * themes) a dot is filled in the system's text color, whatever its `color`
+   * or a background helper says, so it shows there.
+   */
   dot?: boolean;
   /** Show the badge when `content` is `0`. Default `false`. */
   showZero?: boolean;
@@ -66,13 +70,18 @@ export interface BadgeProps
  * @param {BadgeProps} props - Props for the Badge component.
  * @returns {JSX.Element | null} The rendered badge (and children, if provided).
  *
+ * @remarks
+ * A dot isn't read out and a count reads only what it shows, so the name of
+ * what a badge sits on says what the badge means, or, for a standalone
+ * badge, text beside it.
+ *
  * @example
  * <Badge dot color="success" overlap="circle">
- *   <Avatar src="/users/ada.jpg" name="Ada" />
+ *   <Avatar src="/users/ada.jpg" name="Ada" alt="Ada, online" />
  * </Badge>
  * @example
  * <Badge content={128} max={99} color="danger">
- *   <Icon name="bell" />
+ *   <Icon name="bell" ariaLabel="Notifications, 128 unread" />
  * </Badge>
  */
 export const Badge: React.FC<BadgeProps> = ({
