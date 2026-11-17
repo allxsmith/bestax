@@ -10,6 +10,11 @@ import {
   prefixedClassNames,
   usePrefixedClassNames,
 } from '../helpers/classNames';
+import {
+  clippingAncestors,
+  scrollsOverflow,
+} from '../helpers/clippingAncestors';
+import type { Clipper } from '../helpers/clippingAncestors';
 import { useClassPrefix } from '../helpers/Config';
 import type { PolymorphicComponentWithoutRef } from '../helpers/polymorphic';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
@@ -41,11 +46,12 @@ export interface RevealOwnProps extends BulmaClassesProps {
   /**
    * Fraction (0-1) of the element that must be visible to trigger the
    * reveal. Clamped to the 0-1 range; non-finite values fall back to `0.15`.
-   * An element too big for the viewport ever to show that fraction of it,
-   * such as a long section on a phone or at a high browser zoom, reveals as
-   * soon as any of it is in view. The viewport is what that's judged against, so an
-   * element in a scrolling container that shows less of it than the viewport
-   * would can still wait for a fraction it never reaches.
+   * An element that can never show that fraction of it where it is reveals
+   * as soon as any of it is in view: one too big for the viewport, such as a
+   * long section on a phone or at a high browser zoom, or for the scrolling
+   * container it's in, one kept partly out of view sideways, and one that
+   * grows that big, or whose viewport or container shrinks that small, after
+   * it comes into view.
    */
   threshold?: number;
   /** Animate only the first time the element enters the viewport. If `false`, it re-animates on every entry/exit. */
@@ -76,26 +82,104 @@ export type RevealProps<T extends React.ElementType = 'div'> = RevealOwnProps &
     as?: T | undefined;
   };
 
+/** A width and a height. */
+interface Size {
+  width: number;
+  height: number;
+}
+
+/**
+ * The viewport's size: the entry's root's, or the window's where the browser
+ * gives no root, as in a cross-origin frame.
+ */
+const viewportOf = ({ rootBounds }: IntersectionObserverEntry): Size =>
+  rootBounds ?? { width: window.innerWidth, height: window.innerHeight };
+
+/** The largest view of an element, and whether it can be scrolled sideways. */
+interface View extends Size {
+  scrollsAcross: boolean;
+}
+
+/**
+ * The largest the area the element can be seen through gets: the viewport,
+ * or, in each direction, the inside of an ancestor that clips what overflows
+ * it that way, such as a scrolling container, when that's smaller. Sizes, not
+ * positions, since a container partly off the screen can still scroll into
+ * view whole. Measured as drawn, so a transform that scales the container
+ * counts. It can be scrolled sideways only when the nearest container that
+ * clips it sideways scrolls that way, since scrolling one further out moves
+ * that one with it. The page doesn't count, which Bulma doesn't let scroll
+ * sideways.
+ */
+function viewOf(viewport: Size, clippers: Clipper[]): View {
+  let { width, height } = viewport;
+  let scrollsAcross: boolean | undefined;
+  for (const { element, style, clipsX, clipsY } of clippers) {
+    const drawn = element.getBoundingClientRect();
+    // An SVG element has no layout size apart from how it's drawn.
+    const { offsetWidth, offsetHeight } = element as Partial<HTMLElement>;
+    // An inline element, which overflow doesn't apply to, has no inside.
+    if (clipsX && element.clientWidth > 0) {
+      const scale = offsetWidth ? drawn.width / offsetWidth : 1;
+      width = Math.min(width, element.clientWidth * scale);
+      scrollsAcross ??= scrollsOverflow(style.overflowX);
+    }
+    if (clipsY && element.clientHeight > 0) {
+      const scale = offsetHeight ? drawn.height / offsetHeight : 1;
+      height = Math.min(height, element.clientHeight * scale);
+    }
+  }
+  return { width, height, scrollsAcross: !!scrollsAcross };
+}
+
+/** `part` of `whole`, from 0 to 1. */
+const shareOf = (part: number, whole: number) =>
+  Math.min(1, Math.max(0, part / whole));
+
 /**
  * Whether an observer entry shows enough of the element to reveal it:
- * `threshold` of it, or any of it for an element too big for the viewport
- * ever to show that much, which would otherwise never reveal. The viewport is
- * the entry's root, or, where the browser doesn't give the root's size, as in
- * a cross-origin frame, the window the element is in.
+ * `threshold` of it, or any of it for an element that can never show that
+ * much where it is, which would otherwise never reveal. That's judged by the
+ * most of it that can show at once as it scrolls down, or sideways where it
+ * can: the share of it the largest view of it holds that way, times the share
+ * of it across that way in view now, which scrolling that way leaves as it
+ * is. So a part a sideways offset keeps out of the viewport, or out of a
+ * container that clips it, stays out. An element coming in at a corner,
+ * partly off the side of a horizontal scroller as the scroller comes up into
+ * view, shows little either way, and reveals early: this errs toward showing
+ * it, never toward keeping it hidden. `watch` hears of each container
+ * measured, so a change in its size can ask again.
  */
-function showsEnough(entry: IntersectionObserverEntry, threshold: number) {
+function showsEnough(
+  entry: IntersectionObserverEntry,
+  threshold: number,
+  node: Element,
+  watch: (clippers: Clipper[]) => void
+) {
   if (!entry.isIntersecting) return false;
   if (entry.intersectionRatio >= threshold) return true;
-  const box = entry.boundingClientRect;
-  const view = entry.rootBounds ?? {
-    width: window.innerWidth,
-    height: window.innerHeight,
+  // An element with no area reports a ratio of 1 once it's in view, so it
+  // never gets here.
+  const { boundingClientRect: box, intersectionRect: seen } = entry;
+  const acrossNow = shareOf(seen.width, box.width);
+  const downNow = shareOf(seen.height, box.height);
+  const most = (view: Size, scrollsAcross: boolean) => {
+    const tall = shareOf(view.height, box.height);
+    const wide = shareOf(view.width, box.width);
+    return Math.max(
+      Math.min(acrossNow, wide) * tall,
+      scrollsAcross ? Math.min(downNow, tall) * wide : 0
+    );
   };
-  // The most of the element the viewport can hold at once. An element with
-  // no area reports a ratio of 1 once it's in view, so it never gets here.
-  const most =
-    Math.min(1, view.width / box.width) * Math.min(1, view.height / box.height);
-  return most < threshold;
+  // A container can only make the view smaller, and only it lets the element
+  // scroll sideways, so the viewport alone, scrolling both ways, may settle
+  // it without measuring any.
+  const viewport = viewportOf(entry);
+  if (most(viewport, true) < threshold) return true;
+  const clippers = [...clippingAncestors(node, { throughBody: true })];
+  watch(clippers);
+  const view = viewOf(viewport, clippers);
+  return most(view, view.scrollsAcross) < threshold;
 }
 
 /**
@@ -174,20 +258,83 @@ function RevealImpl(revealProps: RevealProps) {
     // once `node` becomes available since it's a dependency.
     if (!node) return undefined;
 
+    // An element that grows after it comes into view, as one whose images
+    // load does, or a viewport or container that shrinks, as a phone turned
+    // on its side or a resized pane does, can leave it unable to reach
+    // `threshold` with no entry to say so, since none comes until it crosses
+    // one. So can its own
+    // transition into the place it's hidden in, as `slide-left` and
+    // `slide-right` move it sideways, since the browser reports where it is
+    // partway through. Each asks for a fresh entry by observing it again.
+    const askAgain = () => {
+      observer.unobserve(node);
+      observer.observe(node);
+    };
+    const settled = (event: Event) => {
+      if (event.target === node) askAgain();
+    };
+    // A ResizeObserver reports the size each element starts with too, which
+    // isn't a change.
+    const sizes = new WeakMap<Element, Size>();
+    const resize =
+      typeof ResizeObserver === 'undefined'
+        ? null
+        : new ResizeObserver(entries => {
+            let changed = false;
+            for (const { target, contentRect: now } of entries) {
+              const was = sizes.get(target);
+              if (
+                was &&
+                (was.width !== now.width || was.height !== now.height)
+              ) {
+                changed = true;
+              }
+              sizes.set(target, now);
+            }
+            if (changed) askAgain();
+          });
+    // The containers it's measured against, watched from when it's first
+    // measured against them.
+    const watched = new WeakSet<Element>();
+    const watch = (clippers: Clipper[]) => {
+      for (const { element } of clippers) {
+        if (watched.has(element)) continue;
+        watched.add(element);
+        resize?.observe(element);
+      }
+    };
+    const view = node.ownerDocument.defaultView ?? window;
+    // Revealed before it showed `threshold` of itself, with `once` off, it
+    // stays revealed until it leaves the viewport: hiding it can bring back
+    // the sideways offset that kept it from reaching `threshold`, and no
+    // entry would come to reveal it again.
+    let early = false;
+    const stopWatching = () => {
+      resize?.disconnect();
+      view.removeEventListener('resize', askAgain);
+      node.removeEventListener('transitionend', settled);
+      node.removeEventListener('transitioncancel', settled);
+    };
+
     const observer = new IntersectionObserver(
       entries => {
         // Several can arrive at once, oldest first, and the newest is where
         // the element is now.
         const entry = entries[entries.length - 1];
-        if (showsEnough(entry, observerThreshold)) {
+        if (showsEnough(entry, observerThreshold, node, watch)) {
+          if (entry.intersectionRatio < observerThreshold) early = true;
           setIsRevealed(true);
-          if (once) observer.unobserve(node);
-        } else if (!once) {
+          if (once) {
+            observer.unobserve(node);
+            stopWatching();
+          }
+        } else if (!once && !(early && entry.isIntersecting)) {
+          early = false;
           setIsRevealed(false);
         }
       },
-      // At 0 too, so an element too big ever to reach `threshold` hears when
-      // it comes into view: the browser reports nothing between thresholds.
+      // At 0 too, so an element that can't reach `threshold` hears when it
+      // comes into view: the browser reports nothing between thresholds.
       {
         threshold:
           observerThreshold > 0 ? [0, observerThreshold] : observerThreshold,
@@ -195,7 +342,14 @@ function RevealImpl(revealProps: RevealProps) {
     );
 
     observer.observe(node);
-    return () => observer.disconnect();
+    resize?.observe(node);
+    view.addEventListener('resize', askAgain);
+    node.addEventListener('transitionend', settled);
+    node.addEventListener('transitioncancel', settled);
+    return () => {
+      observer.disconnect();
+      stopWatching();
+    };
   }, [node, prefersReducedMotion, once, observerThreshold]);
 
   // Only apply the hidden/animating state once mounted on the client with
