@@ -109,7 +109,9 @@ stock stylesheet.
   becomes `<Skeleton variant="lines" lines={5} />`, which renders those `<div>`s from the count.
 - **Classes added under a condition** in a `clsx` or `classnames` call: a flag becomes its prop,
   set to the condition (`clsx('button', busy && 'is-loading')` → `<Button isLoading={busy}>`), and
-  whatever else the call adds stays in it.
+  whatever else the call adds stays in it. A flag whose prop writes over an attribute the element
+  sets stays in the call too, the way it stays a class when written out: `is-loading` beside the
+  button's own `aria-busy` or `aria-disabled`.
 - **Your own classes** stay in `className`, which every bestax component passes through.
 
 The full tables, class by class, are in the migrate skill's

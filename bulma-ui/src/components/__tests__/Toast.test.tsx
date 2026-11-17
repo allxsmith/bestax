@@ -660,6 +660,141 @@ describe('Toast', () => {
     });
   });
 
+  // A caller's own handler runs beside the toast's rather than replacing it
+  // (#1904).
+  describe('with handlers of its own', () => {
+    it("still pauses on hover with the caller's onMouseEnter", () => {
+      const onClose = vi.fn();
+      const onMouseEnter = vi.fn();
+      render(
+        <Toast
+          message="Test"
+          duration={3000}
+          pauseOnHover
+          onMouseEnter={onMouseEnter}
+          onClose={onClose}
+        />
+      );
+      fireEvent.mouseEnter(screen.getByRole('alert'));
+      act(() => {
+        vi.advanceTimersByTime(5000);
+      });
+      expect(onMouseEnter).toHaveBeenCalledTimes(1);
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it("still resumes when the pointer leaves with the caller's onMouseLeave", () => {
+      const onClose = vi.fn();
+      const onMouseLeave = vi.fn();
+      render(
+        <Toast
+          message="Test"
+          duration={2000}
+          pauseOnHover
+          onMouseLeave={onMouseLeave}
+          onClose={onClose}
+        />
+      );
+      const el = screen.getByRole('alert');
+      fireEvent.mouseEnter(el);
+      fireEvent.mouseLeave(el);
+      act(() => {
+        vi.advanceTimersByTime(5000);
+      });
+      expect(onMouseLeave).toHaveBeenCalledTimes(1);
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it("closes on a click with the caller's onClick when it says dismissible", () => {
+      const onClose = vi.fn();
+      const onClick = vi.fn();
+      render(
+        <Toast
+          message="Test"
+          duration={0}
+          dismissible
+          onClick={onClick}
+          onClose={onClose}
+        />
+      );
+      fireEvent.click(screen.getByRole('alert'));
+      expect(onClick).toHaveBeenCalledTimes(1);
+      expect(onClose).toHaveBeenCalledTimes(1);
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+
+    // A caller's onClick used to replace the close on a click, and a toast
+    // that leaves `dismissible` out keeps that, for code that relies on it.
+    it("stays open on a click with the caller's onClick and dismissible left out", () => {
+      const onClose = vi.fn();
+      const onClick = vi.fn();
+      render(
+        <Toast
+          message="Test"
+          duration={0}
+          onClick={onClick}
+          onClose={onClose}
+        />
+      );
+      fireEvent.click(screen.getByRole('alert'));
+      expect(onClick).toHaveBeenCalledTimes(1);
+      expect(onClose).not.toHaveBeenCalled();
+      // A click outside still closes it.
+      act(() => {
+        vi.advanceTimersByTime(16);
+      });
+      act(() => {
+        fireEvent.click(document.body);
+      });
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it("runs the caller's onClick alone on a toast that isn't dismissible", () => {
+      const onClose = vi.fn();
+      const onClick = vi.fn();
+      render(
+        <Toast
+          message="Test"
+          duration={0}
+          dismissible={false}
+          onClick={onClick}
+          onClose={onClose}
+        />
+      );
+      fireEvent.click(screen.getByRole('alert'));
+      expect(onClick).toHaveBeenCalledTimes(1);
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('passes the handlers on to a toast shown through toast.show', () => {
+      const onMouseEnter = vi.fn();
+      const onClick = vi.fn();
+      render(<ToastContainer />);
+      act(() => {
+        toast.show({
+          message: 'Saved',
+          duration: 3000,
+          pauseOnHover: true,
+          dismissible: true,
+          onMouseEnter,
+          onClick,
+        });
+      });
+      const el = screen.getByRole('alert');
+      fireEvent.mouseEnter(el);
+      act(() => {
+        vi.advanceTimersByTime(5000);
+      });
+      expect(onMouseEnter).toHaveBeenCalledTimes(1);
+      expect(screen.getByText('Saved')).toBeInTheDocument();
+      act(() => {
+        fireEvent.click(el);
+      });
+      expect(onClick).toHaveBeenCalledTimes(1);
+      expect(screen.queryByText('Saved')).not.toBeInTheDocument();
+    });
+  });
+
   // Someone using a toast's action, cancel or close button keeps it while
   // focus is there, as a pointer over it does with pauseOnHover.
   describe('while focus is inside', () => {

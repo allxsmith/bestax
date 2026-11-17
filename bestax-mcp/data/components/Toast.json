@@ -105,7 +105,7 @@
           "name": "dismissible",
           "type": "boolean",
           "default": "true",
-          "description": "Whether clicking the toast (or outside it) dismisses it.",
+          "description": "Whether clicking the toast (or outside it) dismisses it. A toast you give an `onClick` closes on a click on it only when you set `dismissible` yourself, and then after your `onClick` runs.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -225,6 +225,15 @@
           "type": "React.Ref<HTMLDivElement>",
           "default": null,
           "description": "Ref forwarded to the toast element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onClick",
+          "type": "React.MouseEventHandler<HTMLDivElement>",
+          "default": null,
+          "description": "Called on a click on the toast. With `dismissible` left out, a toast with an `onClick` stays open on a click on it; with `dismissible` set to `true`, it closes after `onClick` runs.",
           "required": false,
           "inherited": false,
           "deprecated": false

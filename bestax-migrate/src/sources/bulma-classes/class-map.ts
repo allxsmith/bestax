@@ -58,6 +58,14 @@ export interface Modifier {
    */
   readonly needsAttr?: { readonly name: string; readonly value: string };
   /**
+   * Attributes the prop writes over any value the element sets (`Button`'s
+   * `isLoading` writes `aria-busy="true"` and `aria-disabled="true"` while it
+   * loads), so the class converts only where the element sets none of them,
+   * and stays a class otherwise, which renders the element as written. Read
+   * on an element's own modifiers; an absorbed child's don't take it.
+   */
+  readonly overridesAttrs?: readonly string[];
+  /**
    * Off the tags in `tagIn`, where the class stays a class, the prop that
    * sizes the element the same without picking its tag (`textSize`, whose
    * `is-size-4` Bulma sizes as it does `Title`'s `is-4`). The MCP lookup reads
@@ -902,7 +910,13 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       ...flags({
         'is-light': 'isLight',
         'is-rounded': 'isRounded',
-        'is-loading': 'isLoading',
+      }),
+      // `isLoading` writes the busy state over the element's own.
+      'is-loading': {
+        writes: [{ prop: 'isLoading' }],
+        overridesAttrs: ['aria-busy', 'aria-disabled'],
+      },
+      ...flags({
         'is-static': 'isStatic',
         'is-fullwidth': 'isFullwidth',
         'is-outlined': 'isOutlined',

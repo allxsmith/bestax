@@ -81,7 +81,8 @@ const meta: Meta<typeof Toast> = {
     },
     dismissible: {
       control: 'boolean',
-      description: 'Whether clicking the toast dismisses it',
+      description:
+        'Whether clicking the toast (or outside it) dismisses it. With an onClick of your own, a click on it closes it only when you set dismissible yourself',
     },
     closable: {
       control: 'boolean',

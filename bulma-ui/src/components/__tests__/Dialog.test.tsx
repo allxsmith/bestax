@@ -112,6 +112,39 @@ describe('Dialog', () => {
       expect(screen.getByTestId('custom-icon')).toBeInTheDocument();
     });
 
+    // An svg with no name reads as an unlabelled image, and the icon repeats
+    // what the title and the message say (#1895).
+    it.each(['success', 'danger', 'warning', 'info'] as const)(
+      'hides the built-in %s icon from assistive technology',
+      type => {
+        render(<Dialog isOpen message="Test" type={type} title="Title" />);
+        expect(document.querySelector('.dialog-icon svg')).toBeInTheDocument();
+        expect(document.querySelector('.dialog-icon')).toHaveAttribute(
+          'aria-hidden',
+          'true'
+        );
+      }
+    );
+
+    it('leaves a custom icon as it was passed', () => {
+      render(
+        <Dialog
+          isOpen
+          message="Test"
+          title="Custom"
+          icon={
+            <span role="img" aria-label="Urgent">
+              !
+            </span>
+          }
+        />
+      );
+      expect(screen.getByRole('img', { name: 'Urgent' })).toBeInTheDocument();
+      expect(document.querySelector('.dialog-icon')).not.toHaveAttribute(
+        'aria-hidden'
+      );
+    });
+
     it('does not render icon when icon is null', () => {
       render(
         <Dialog
@@ -620,6 +653,32 @@ describe('DialogContainer', () => {
     expect(
       screen.queryByRole('button', { name: 'Cancel' })
     ).not.toBeInTheDocument();
+  });
+
+  it('hides the built-in icon of a programmatic dialog, and leaves its own icon as passed', () => {
+    render(<DialogContainer />);
+    act(() => {
+      dialog.alert({ title: 'Saved', message: 'Done', type: 'success' });
+    });
+    expect(document.querySelector('.dialog-icon')).toHaveAttribute(
+      'aria-hidden',
+      'true'
+    );
+    act(() => dialog.close());
+    act(() => {
+      dialog.alert({
+        title: 'Locked',
+        message: 'Done',
+        icon: (
+          <span role="img" aria-label="Locked file">
+            L
+          </span>
+        ),
+      });
+    });
+    expect(
+      screen.getByRole('img', { name: 'Locked file' })
+    ).toBeInTheDocument();
   });
 
   it('renders confirm dialogs with cancel button', () => {
