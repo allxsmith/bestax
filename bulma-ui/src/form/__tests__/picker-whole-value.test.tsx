@@ -125,6 +125,46 @@ describe('TimeInput with a value', () => {
   });
 });
 
+describe('a format that leaves out part of the date', () => {
+  it("keeps the value's year when the format shows none", () => {
+    const onChange = vi.fn();
+    render(
+      <DateTimeInput
+        aria-label="When"
+        format="MM/DD HH:mm"
+        mobileNative={false}
+        openOnFocus={false}
+        defaultValue={new Date(2027, 2, 5, 10, 0)}
+        onChange={onChange}
+      />
+    );
+    const input = screen.getByRole('combobox') as HTMLInputElement;
+    act(() => input.focus());
+    fireEvent.paste(input, {
+      clipboardData: { getData: () => '07/04 09:00' },
+    });
+    expect(onChange).toHaveBeenCalledWith(new Date(2027, 6, 4, 9, 0));
+  });
+
+  it("keeps the value's day, clamped to the new month's length", () => {
+    const onChange = vi.fn();
+    render(
+      <DateInput
+        aria-label="When"
+        format="MM/YYYY"
+        mobileNative={false}
+        openOnFocus={false}
+        defaultValue={new Date(2027, 0, 31)}
+        onChange={onChange}
+      />
+    );
+    const input = screen.getByRole('combobox') as HTMLInputElement;
+    act(() => input.focus());
+    fireEvent.paste(input, { clipboardData: { getData: () => '02/2027' } });
+    expect(onChange).toHaveBeenCalledWith(new Date(2027, 1, 28));
+  });
+});
+
 describe('DateInput at month granularity', () => {
   it('keeps the month it holds when a day in that month is written in', () => {
     const onChange = vi.fn();

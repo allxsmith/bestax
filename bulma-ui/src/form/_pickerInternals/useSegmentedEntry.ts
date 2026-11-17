@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import { useClientLayoutEffect } from '../../helpers/useClientLayoutEffect';
 import { DateFormatOption } from './formatters';
-import { isWithin } from './dateUtils';
+import { isWithin, makeDate } from './dateUtils';
 import {
   buildSegmentMap,
   incrementSegmentValue,
@@ -296,9 +296,15 @@ export function useSegmentedEntry(
         const shows = (kind: SegmentKind) =>
           segmentMap.segments.some(seg => seg.kind === kind);
         const from = (kind: SegmentKind) => (shows(kind) ? parsed : value);
-        next = new Date(
-          shows('year') || shows('month') || shows('day') ? parsed : value
+        const year = from('year').getFullYear();
+        const month = from('month').getMonth();
+        // A kept day clamps to the new month's length, as a typed month does.
+        const day = Math.min(
+          from('day').getDate(),
+          makeDate(year, month + 1, 0).getDate()
         );
+        next = new Date(value);
+        next.setFullYear(year, month, day);
         next.setHours(
           from('hours').getHours(),
           from('minutes').getMinutes(),
