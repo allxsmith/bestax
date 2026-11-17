@@ -1,25 +1,29 @@
 /**
- * Hold every `Tabs.Item` (or `TabItem`, its flat export) in the examples to
- * the markup a keyboard and a screen reader can use (#1918).
+ * Hold every `Tabs.Item` in the examples to the markup a keyboard and a
+ * screen reader can use (#1918). The flat `TabItem` export isn't read, since
+ * Docusaurus's own tab item has the same name.
  *
  * `Tabs.Item` renders a bare `<li>` and the caller writes the link inside, so
  * the examples are where that markup comes from. Four things are checked:
  *
  * - the item's first element is a link: an `<a>` with an `href`, or a
- *   component (a router's link) with an `href` or a `to`, since an `<a>`
+ *   component (a router's link, `motion.a`) with an `href` or a `to`, since an `<a>`
  *   without one is skipped by the keyboard and isn't offered as a link;
  * - an item marked `active` has `aria-current="page"` on that link, since
  *   `active` only adds Bulma's class (an expression for it passes);
  * - a link whose item isn't marked `active` doesn't say it's the current page,
  *   and neither does one that says so always while its item's `active` is an
  *   expression;
- * - the item sits in a plain `<ul>`, not in a `Tabs.List`, which always
- *   renders `role="tablist"`, a tab list with no tabs in it here, nor in a
- *   `<ul>` given a role of its own.
+ * - the item sits in a plain `<ul>`, not in a `Tabs.List`, which renders
+ *   `role="tablist"`, a tab list with no tabs in it here, nor in a `<ul>`
+ *   given a role of its own.
  *
- * A link with a spread passes the link checks, and an item with one passes
- * the current-page checks, since this can't see into either, and an item whose
- * link is an expression (`{link}`) passes them all but where it sits. The
+ * A link with a spread passes the link checks, and the current-page checks
+ * unless it writes `aria-current` itself. An item with a spread passes the
+ * current-page checks, since this can't see into either. An item whose first
+ * child is an expression other than text (`{link}`) passes them all but where
+ * it sits, and so does an item outside any JSX, such as a component of the
+ * example's own, since where it renders isn't written there. The
  * `bestax-migrate` references are left out, since their fences show the
  * markup a codemod keeps rather than markup to copy, and so is the blog,
  * whose posts are dated. So is the 2-to-3 migration guide, which shows 2.x
@@ -35,6 +39,7 @@ import {
   attributeValue,
   attributesOf,
   exampleFiles,
+  isNothing,
   linkingHref,
   sourcesOf,
 } from './lib/example-sources.mjs';
@@ -52,8 +57,8 @@ const attrsOf = node => attributesOf(openingOf(node).attributes);
 const LEGACY_GUIDE =
   'docs/docs/guides/getting-started/migration/bulma-ui-2-to-3.md';
 
-/** The tags a `Tabs.Item` is written with. */
-const TAGS = new Set(['Tabs.Item', 'TabItem']);
+/** The tags a tab list is written with, which renders `role="tablist"`. */
+const TAB_LISTS = new Set(['Tabs.List', 'TabList']);
 
 /**
  * How an attribute is set: not at all (`none`, which `false`, `null` and
@@ -65,11 +70,7 @@ function settingOf(prop) {
   const { bare, text, expr } = attributeValue(prop);
   if (bare) return { kind: 'on' };
   if (text !== undefined) return { kind: 'text', text };
-  if (
-    expr.kind === ts.SyntaxKind.FalseKeyword ||
-    expr.kind === ts.SyntaxKind.NullKeyword ||
-    (ts.isIdentifier(expr) && expr.text === 'undefined')
-  ) {
+  if (expr.kind === ts.SyntaxKind.FalseKeyword || isNothing(expr)) {
     return { kind: 'none' };
   }
   if (expr.kind === ts.SyntaxKind.TrueKeyword) return { kind: 'on' };
@@ -91,35 +92,40 @@ function parentElement(node) {
 function problemsOf(item) {
   const problems = [];
   const list = parentElement(item);
-  if (!list) problems.push('not in a list');
-  else if (tagOf(list) === 'Tabs.List') problems.push('in Tabs.List');
-  else if (tagOf(list) !== 'ul') problems.push('not in a <ul>');
-  else if (attrsOf(list).byName.has('role')) problems.push('<ul> role');
+  if (list && TAB_LISTS.has(tagOf(list))) problems.push('in Tabs.List');
+  else if (list && tagOf(list) !== 'ul') problems.push('not in a <ul>');
+  else if (list && attrsOf(list).byName.has('role')) problems.push('<ul> role');
 
   const children = ts.isJsxElement(item) ? item.children : [];
   // The first child that renders something: an element, or an expression
-  // other than a string (`{' '}` is text, like the text around it).
+  // other than text (`{' '}`, `{`Tab ${n}`}` and `{1}` are text, like the
+  // text around them).
   const first = children.find(
     child =>
       isElement(child) ||
       (ts.isJsxExpression(child) &&
         child.expression &&
         !ts.isStringLiteral(child.expression) &&
-        !ts.isNoSubstitutionTemplateLiteral(child.expression))
+        !ts.isNoSubstitutionTemplateLiteral(child.expression) &&
+        !ts.isTemplateExpression(child.expression) &&
+        !ts.isNumericLiteral(child.expression))
   );
   // A link passed in as an expression is one this can't see into.
   if (first && !isElement(first)) return problems;
   const link = first ? attrsOf(first) : { byName: new Map(), spread: false };
-  if (link.spread) return problems;
   const tag = first ? tagOf(first) : '';
-  const component = /^[A-Z]/.test(tag);
+  // A component, a router's link or a member tag such as `motion.a`.
+  const component = /^[A-Z]/.test(tag) || tag.includes('.');
   const target =
     follows(link.byName.get('href')) ||
     (component && follows(link.byName.get('to')));
-  if (!target || !(tag === 'a' || component)) problems.push('no link');
+  if (!link.spread && (!target || !(tag === 'a' || component))) {
+    problems.push('no link');
+  }
 
   const own = attrsOf(item);
-  if (own.spread) return problems;
+  const written = link.byName.has('aria-current');
+  if (own.spread || (link.spread && !written)) return problems;
   const active = settingOf(own.byName.get('active'));
   const current = settingOf(link.byName.get('aria-current'));
   const page = current.kind === 'text' && current.text === 'page';
@@ -150,7 +156,7 @@ function readCode(code) {
   );
   const items = [];
   const visit = node => {
-    if (isElement(node) && TAGS.has(tagOf(node))) {
+    if (isElement(node) && tagOf(node) === 'Tabs.Item') {
       items.push({
         offset: sf.getLineAndCharacterOfPosition(node.getStart(sf)).line,
         problems: problemsOf(node),
@@ -165,7 +171,7 @@ function readCode(code) {
 const FILES = exampleFiles().filter(
   rel =>
     rel !== LEGACY_GUIDE &&
-    /<(Tabs\.Item|TabItem)\b/.test(readFileSync(join(REPO, rel), 'utf8'))
+    readFileSync(join(REPO, rel), 'utf8').includes('<Tabs.Item')
 );
 
 describe('Tabs.Item in the examples', () => {
@@ -241,8 +247,20 @@ describe('Tabs.Item in the examples', () => {
         '<Tabs.Item {...tab}><a href="#a" aria-current="page">A</a></Tabs.Item>',
         [],
       ],
-      // The flat export reads the same.
-      ['<TabItem><a>B</a></TabItem>', ['no link']],
+      // A member tag that renders an <a>.
+      ['<Tabs.Item><motion.a href="/b">B</motion.a></Tabs.Item>', []],
+      // Text in an expression is no link.
+      ['<Tabs.Item>{`Tab ${n}`}</Tabs.Item>', ['no link']],
+      ['<Tabs.Item>{1}</Tabs.Item>', ['no link']],
+      // A link's spread hides its href, but not an aria-current it writes.
+      [
+        '<Tabs.Item><a {...p} aria-current="page">B</a></Tabs.Item>',
+        ['aria-current on an item that is not active'],
+      ],
+      [
+        '<Tabs.Item active><a {...p} aria-current="false">A</a></Tabs.Item>',
+        ['active without aria-current="page"'],
+      ],
     ];
     for (const [item, problems] of cases) {
       assert.deepEqual(read(nav(item)), [problems], item);
@@ -256,7 +274,10 @@ describe('Tabs.Item in the examples', () => {
       ['<ul> role'],
     ]);
     assert.deepEqual(read(`<Tabs>${item}</Tabs>`), [['not in a <ul>']]);
-    assert.deepEqual(read(item), [['not in a list']]);
+    // Outside any JSX, as in a component of the example's own, where it
+    // renders isn't written.
+    assert.deepEqual(read(item), [[]]);
+    assert.deepEqual(read(`<TabList>${item}</TabList>`), [['in Tabs.List']]);
     assert.deepEqual(read(`<ul>{xs.map(x => (${item}))}</ul>`), [[]]);
   });
 

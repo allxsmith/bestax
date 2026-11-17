@@ -45,6 +45,11 @@ export function attributeValue(prop) {
   return { expr };
 }
 
+/** Whether an expression is `null` or `undefined`, which React writes as no attribute. */
+export const isNothing = expr =>
+  expr.kind === ts.SyntaxKind.NullKeyword ||
+  (ts.isIdentifier(expr) && expr.text === 'undefined');
+
 /**
  * Whether an `href` attribute holds something a browser can follow: not
  * bare, `""`, `{undefined}` or `{null}`.
@@ -53,10 +58,7 @@ export function linkingHref(prop) {
   const { bare, text, expr } = attributeValue(prop);
   if (bare) return false;
   if (text !== undefined) return text !== '';
-  return !(
-    expr.kind === ts.SyntaxKind.NullKeyword ||
-    (ts.isIdentifier(expr) && expr.text === 'undefined')
-  );
+  return !isNothing(expr);
 }
 
 /**
