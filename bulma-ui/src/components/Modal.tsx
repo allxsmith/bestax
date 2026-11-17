@@ -76,17 +76,19 @@ export interface ModalProps
    * the modal an `aria-label`, or an `aria-labelledby` pointing at a heading
    * inside it. It's drawn in the card's `<header>`, which is a banner
    * landmark unless the modal sits inside `<main>` or a sectioning element,
-   * and the props form can't give it a role: for a modal card outside
-   * `<main>`, as with `portal`, use the compound form and pass `role="none"`
-   * to `Modal.Card.Head`. (Legacy API only)
+   * as it doesn't when `portal` renders it at the end of `<body>`. The props
+   * form can't give the header a role, so point `portal` at an element
+   * inside `<main>`, or use the compound form with `role="none"` on
+   * `Modal.Card.Head`. (Legacy API only)
    */
   modalCardTitle?: React.ReactNode;
   /**
    * Footer for modal-card variant. Group two or more buttons in `Buttons` so
    * Bulma spaces them. It's drawn in a `<footer>`, which is a content info
    * landmark unless the modal sits inside `<main>` or a sectioning element,
-   * and the props form can't give it a role: for a modal card outside
-   * `<main>`, use the compound form and pass `role="none"` to
+   * as it doesn't when `portal` renders it at the end of `<body>`. The props
+   * form can't give the footer a role, so point `portal` at an element
+   * inside `<main>`, or use the compound form with `role="none"` on
    * `Modal.Card.Foot`. (Legacy API only)
    */
   modalCardFoot?: React.ReactNode;
@@ -248,8 +250,9 @@ export const ModalContent: React.FC<ModalContentProps> = ({
 
 /**
  * Modal.Card.Head - Renders modal card header section, a `<header>`. Outside
- * `<main>` or a sectioning element, as in a modal with `portal`, that's a
- * banner landmark inside the dialog: pass `role="none"` to drop it.
+ * `<main>` or a sectioning element, as at the end of `<body>` where `portal`
+ * renders by default, that's a banner landmark inside the dialog: pass
+ * `role="none"`, with no `aria-*` attribute or tab stop beside it, to drop it.
  *
  * @function
  * @param {ModalCardHeadProps} props - Component props.
@@ -306,7 +309,8 @@ export const ModalCardBody: React.FC<ModalCardBodyProps> = ({
  * Modal.Card.Foot - Renders modal card footer section. Group two or more
  * buttons in `Buttons` so Bulma spaces them. It's a `<footer>`, which outside
  * `<main>` or a sectioning element is a content info landmark inside the
- * dialog: pass `role="none"` to drop it.
+ * dialog: pass `role="none"`, with no `aria-*` attribute or tab stop beside
+ * it, to drop it.
  *
  * @function
  * @param {ModalCardFootProps} props - Component props.
