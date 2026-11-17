@@ -219,19 +219,20 @@ const LOADING_STATE = ['aria-busy="true"', 'aria-disabled="true"'];
 
 /**
  * `raw`, normalised, with `aria-busy="true"` and `aria-disabled="true"`
- * written on each element with Bulma's `button` and `is-loading` classes,
- * where the same element in `converted` has both, so the two compare equal
- * there and nowhere else.
+ * written on each element with Bulma's `button` and `is-loading` classes that
+ * sets neither, where the same element in `converted` has both, so the two
+ * compare equal there and nowhere else.
  *
  * bestax's `Button` writes them while `isLoading` is set (#1870): it tells a
  * screen reader the button is busy and won't respond, and drops the click,
  * where Bulma's spinner stops only a pointer. A raw loading `.button`
  * converts to `Button isLoading` on purpose, so a migrated app gets that
- * button. Only those two attributes, both of them, on a loading `.button`: a
- * conversion that writes them anywhere else, or writes one alone, still
- * differs, and so does one over a value the raw element set, which then has
- * that attribute twice. Elements pair up in document order, and a pair that
- * doesn't line up differs anyway.
+ * button. Only those two attributes, both of them, on a loading `.button`
+ * that sets neither: a conversion that writes them anywhere else, writes one
+ * alone, or adds one beside a raw element that set the other, still differs.
+ * A raw element that already set both to `true` is left as it is, and
+ * compares equal to a conversion that keeps them. Elements pair up in
+ * document order, and a pair that doesn't line up differs anyway.
  */
 export function withLoadingButtonsBusy(raw: string, converted: string): string {
   const busy = [...normalizeHtml(converted).matchAll(OPEN_TAG)].map(([tag]) =>
@@ -243,7 +244,8 @@ export function withLoadingButtonsBusy(raw: string, converted: string): string {
       const classes = classesOf(tag);
       return busy[at++] &&
         classes.includes('button') &&
-        classes.includes('is-loading')
+        classes.includes('is-loading') &&
+        !/\saria-(busy|disabled)(=|[\s/>])/.test(tag)
         ? tag.replace(/^<[a-zA-Z][\w-]*/, `$& ${LOADING_STATE.join(' ')}`)
         : tag;
     })

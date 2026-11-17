@@ -244,6 +244,13 @@ describe('withLoadingButtonsBusy', () => {
         )
       ).toBe(true);
     }
+    // One that already sets both converts to the same markup, left as it is.
+    expect(
+      same(
+        `<button ${busy} class="button is-loading">x</button>`,
+        `<button ${busy} class="button is-loading">x</button>`
+      )
+    ).toBe(true);
     // Several, each paired with the element in the same place.
     expect(
       same(
@@ -274,9 +281,17 @@ describe('withLoadingButtonsBusy', () => {
         '<button class="button is-loading">x</button>',
         '<button aria-disabled="true" class="button is-loading">x</button>',
       ],
-      // Over a value the raw button set.
+      // Over a value the raw button set, or beside one it set alone.
       [
         '<button aria-disabled="false" class="button is-loading">x</button>',
+        `<button ${busy} class="button is-loading">x</button>`,
+      ],
+      [
+        '<button aria-busy="true" class="button is-loading">x</button>',
+        `<button ${busy} class="button is-loading">x</button>`,
+      ],
+      [
+        '<button aria-disabled="true" class="button is-loading">x</button>',
         `<button ${busy} class="button is-loading">x</button>`,
       ],
       // On another element than the loading button.
