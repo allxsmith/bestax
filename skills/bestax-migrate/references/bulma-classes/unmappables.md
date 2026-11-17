@@ -447,6 +447,10 @@ in the browser:
   a `<label>` or `<div>` `.panel-block` included, as `Panel.Block` with `as` and its contents as
   written. `Panel.CheckboxBlock`, `Panel.InputBlock` and `Panel.ButtonBlock` build the usual
   checkbox, search and button blocks from props, if you would rather write those by hand.
+  `Panel.InputBlock` renders its `<input>` as `type="text"` with only a value, a change handler
+  and a placeholder, and puts any other attribute on the block, so keep a search field whose input
+  has anything more (an `aria-label`, an `id`, a `name`, `type="search"`) as the converted
+  `Panel.Block` and its contents.
 
 ## A class Bulma v1 removed: `legacy:<class>`
 
