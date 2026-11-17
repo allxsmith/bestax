@@ -55,7 +55,7 @@
     },
     {
       "title": "Standalone, Pulse",
-      "code": "<Badge content={5} color=\"danger\" pulse />"
+      "code": "<Block display=\"flex\" alignItems=\"center\">\n  <Badge content={5} color=\"danger\" pulse mr=\"2\" />\n  <span>new alerts</span>\n</Block>"
     },
     {
       "title": "Text Child",
