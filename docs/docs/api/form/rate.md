@@ -331,7 +331,7 @@ function RateFormDemo() {
 - Full keyboard navigation with arrow keys
 - Home/End keys jump to 0/max values
 - `disabled` sets `aria-disabled` on the group and on every star, so a screen reader announces them as unavailable, and takes the group out of the tab order
-- In forced colors (Windows' contrast themes) the built-in star a value only partly fills draws its filled part in the system's highlight color, as a filled star is drawn
+- In forced colors (Windows' contrast themes) the built-in star or an `iconName` icon a value only partly fills draws its filled part in the system's highlight color, as a filled star is drawn. A `customIcon` draws its own partial fill, so its forced colors are its own
 - On a right-to-left page, or inside a wrapper with `dir="rtl"`, the stars run right to left, the built-in star or an `iconName` icon fills a half star from its right, and the pointer reads a star's fraction from its right edge. The `rtl` prop doesn't change any of that. It only reverses the order a screen reader meets the stars in, so set `dir` instead
 
 ---
