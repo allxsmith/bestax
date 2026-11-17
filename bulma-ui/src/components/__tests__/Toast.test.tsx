@@ -243,6 +243,118 @@ describe('Toast', () => {
     });
   });
 
+  // A Toast the caller keeps mounted stays hidden once it closes, and
+  // nothing closes it a second time (#1902).
+  describe('Closing once', () => {
+    // Steps through the timers, letting React render between them.
+    const waitInSteps = (ms: number) => {
+      for (let waited = 0; waited < ms; waited += focusCheckInterval) {
+        act(() => {
+          vi.advanceTimersByTime(focusCheckInterval);
+        });
+      }
+    };
+
+    const closes: [string, () => void][] = [
+      [
+        'its close button',
+        () => fireEvent.click(screen.getByLabelText('Close')),
+      ],
+      ['its cancel button', () => fireEvent.click(screen.getByText('Keep'))],
+      ['its action button', () => fireEvent.click(screen.getByText('Undo'))],
+      ['a click on it', () => fireEvent.click(screen.getByRole('alert'))],
+      ['Escape', () => fireEvent.keyDown(document, { key: 'Escape' })],
+      ['a click outside it', () => fireEvent.click(document.body)],
+    ];
+
+    it.each(closes)(
+      'calls onClose once when closed by %s and its timer runs out after',
+      (_how, close) => {
+        const onClose = vi.fn();
+        render(
+          <Toast
+            message="Deleted"
+            actionText="Undo"
+            cancelText="Keep"
+            closable
+            duration={2000}
+            onClose={onClose}
+          />
+        );
+        act(() => {
+          // The listener for a click outside goes on a frame after mount.
+          vi.advanceTimersByTime(16);
+        });
+        act(() => {
+          close();
+        });
+        waitInSteps(5000);
+        expect(onClose).toHaveBeenCalledTimes(1);
+      }
+    );
+
+    it('calls onClose once after an action pressed with focus on it', () => {
+      const onClose = vi.fn();
+      render(
+        <Toast
+          message="Deleted"
+          actionText="Undo"
+          duration={2000}
+          onClose={onClose}
+        />
+      );
+      const undo = screen.getByRole('button', { name: 'Undo' });
+      act(() => {
+        undo.focus();
+      });
+      fireEvent.click(undo);
+      waitInSteps(5000);
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('stops its timer once it has closed', () => {
+      render(<Toast message="Saved" closable duration={2000} />);
+      act(() => {
+        fireEvent.click(screen.getByLabelText('Close'));
+      });
+      act(() => {
+        vi.advanceTimersByTime(0);
+      });
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it('calls onClose once for a click and Escape before the render that hides it', () => {
+      const onClose = vi.fn();
+      render(<Toast message="Saved" duration={2000} onClose={onClose} />);
+      act(() => {
+        fireEvent.click(screen.getByRole('alert'));
+        fireEvent.keyDown(document, { key: 'Escape' });
+      });
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it("doesn't run its action once it has closed, before the render that hides it", () => {
+      const onAction = vi.fn();
+      const onClose = vi.fn();
+      render(
+        <Toast
+          message="Deleted"
+          actionText="Undo"
+          cancelText="Keep"
+          duration={2000}
+          onAction={onAction}
+          onClose={onClose}
+        />
+      );
+      act(() => {
+        fireEvent.click(screen.getByText('Keep'));
+        fireEvent.click(screen.getByText('Undo'));
+      });
+      expect(onClose).toHaveBeenCalledTimes(1);
+      expect(onAction).not.toHaveBeenCalled();
+    });
+  });
+
   describe('Action Button', () => {
     it('renders action button when actionText is provided', () => {
       render(<Toast message="Test" actionText="Undo" duration={0} />);
