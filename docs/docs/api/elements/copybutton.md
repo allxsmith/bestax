@@ -373,7 +373,7 @@ It copies plain text you already have, so fetch the text before the click, as
   `isLoading` is set it copies nothing, as `Button` drops the click, and carries `aria-busy` and
   `aria-disabled`.
 - **Forced colors:** the glyphs are drawn in `currentColor`, so they take the system's button text
-  color.
+  color, and on a disabled one the system's color for a disabled control, at full strength.
 
 ---
 
