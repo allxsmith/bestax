@@ -20,6 +20,7 @@ import { LocalePortalScope } from '../helpers/LocaleProvider';
 import { groupIntoPositionStacks } from '../helpers/positionStacks';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { useOverlayStack } from '../helpers/overlayStack';
+import { useDismissTimer } from '../helpers/useDismissTimer';
 
 /** Color/style type presets for toast messages. */
 export type ToastType =
@@ -55,7 +56,13 @@ export interface ToastProps
    * shown without one goes to `ToastContainer`'s `position` instead.
    */
   position?: ToastPosition;
-  /** Duration in ms before auto-close. `0` disables auto-close. */
+  /**
+   * Duration in ms before auto-close. `0` disables auto-close.
+   *
+   * The countdown waits while focus is inside the toast, on its action,
+   * cancel or close button, whatever `pauseOnHover` says, and once focus
+   * leaves, the toast gets its whole duration again.
+   */
   duration?: number;
   /** Keeps the toast visible until dismissed. */
   indefinite?: boolean;
@@ -65,7 +72,10 @@ export interface ToastProps
   closable?: boolean;
   /** Pill-shaped (rounded corners). */
   rounded?: boolean;
-  /** Pause auto-close timer on hover. Default: false. */
+  /**
+   * Pause auto-close timer on hover. Default: false. Focus inside the toast
+   * holds it open either way (see `duration`).
+   */
   pauseOnHover?: boolean;
   /**
    * Whether the toast can be dismissed with Escape. While a Modal, Dialog,
@@ -161,21 +171,19 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
       handleClose();
     }, [onAction, handleClose]);
 
-    // Read when the timer runs out, a click lands outside or Escape arrives,
-    // so the timer and the listeners stay put while `onClose` changes
-    // identity, as an inline one does on every render of the parent. An
-    // inline one from `ToastContainer` changes whenever another toast shows.
+    // Read when a click lands outside or Escape arrives, so the listeners
+    // stay put while `onClose` changes identity, as an inline one does on
+    // every render of the parent. An inline one from `ToastContainer` changes
+    // whenever another toast shows.
     const handleCloseRef = useLatestRef(handleClose);
 
-    useEffect(() => {
-      if (indefinite || duration === 0 || isPaused) return undefined;
-
-      const timer = setTimeout(() => {
-        handleCloseRef.current();
-      }, duration);
-
-      return () => clearTimeout(timer);
-    }, [duration, indefinite, isPaused, handleCloseRef]);
+    // Auto-close timer. It waits while focus is inside the toast, on its
+    // action, cancel or close button, so what someone is using doesn't go
+    // away under them, whatever pauseOnHover says.
+    const { onFocus: handleTimerFocus } = useDismissTimer(
+      handleClose,
+      indefinite || duration === 0 || isPaused ? null : duration
+    );
 
     const handleMouseEnter = useCallback(() => {
       if (pauseOnHover) {
@@ -302,6 +310,12 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
         onMouseLeave={handleMouseLeave}
         onClick={dismissible ? handleClose : undefined}
         {...rest}
+        // After the spread, so a caller's own onFocus runs as well rather
+        // than replacing the one that holds the timer.
+        onFocus={e => {
+          handleTimerFocus(e);
+          rest.onFocus?.(e);
+        }}
       >
         <span className={toastMessageClass}>{message}</span>
         {(cancelText || actionText) && (
