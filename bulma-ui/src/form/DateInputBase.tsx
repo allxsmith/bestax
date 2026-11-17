@@ -51,6 +51,7 @@ import {
 } from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
 import { useFieldLabelTarget, useFieldsetDisabled } from './FormContext';
+import { useAutoLabelledBy } from './useAutoLabelId';
 import { joinIds, useFieldMessageId } from './useFieldMessage';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { Icon } from '../elements/Icon';
@@ -184,6 +185,10 @@ export interface DateInputBaseProps
    * `defaultValue` it opens on the month the clock reads, and around the end
    * of a month the server's clock and the browser's can read different
    * months, so give it a date both render the same.
+   * Inline, the root is a `role="group"` when something names it: a labeled
+   * `Field` around it that isn't `grouped` or `hasAddons` and has no
+   * `labelProps.htmlFor`, or an `aria-label` or `aria-labelledby` you give
+   * it. The `message` of a wrapper around it describes it then.
    */
   inline?: boolean;
   /**
@@ -413,6 +418,16 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       otherClasses,
       rest: cleanRest,
     } = useFieldHelperClasses(rest);
+
+    // Inline there's no input for a label's `for` to name, so the picker is a
+    // group, as DateRangeInputBase is, when something names it: a labeled
+    // Field around it, or an `aria-label` or `aria-labelledby` you give it,
+    // which wins. The wrapper's message describes the group then.
+    const { ariaLabelledBy, named } = useAutoLabelledBy({
+      label: undefined,
+      rendersLabel: false,
+      callerProps: rest,
+    });
 
     const { shouldUseNative } = useNativeMobilePicker({
       force: mobileNative === 'auto' ? undefined : mobileNative,
@@ -689,8 +704,16 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     if (inline) {
       return (
         <div
+          role={named ? 'group' : undefined}
+          aria-labelledby={ariaLabelledBy}
           {...localeScope.rootAttrs}
           {...cleanRest}
+          {...(named && {
+            'aria-describedby': joinIds(
+              cleanRest['aria-describedby'],
+              messageId
+            ),
+          })}
           ref={containerRef}
           className={classNames(containerClass, bulmaHelperClasses, className)}
         >
