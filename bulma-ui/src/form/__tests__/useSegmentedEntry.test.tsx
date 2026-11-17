@@ -239,6 +239,7 @@ describe('useSegmentedEntry', () => {
       <Harness format={{ hour: '2-digit', minute: '2-digit' }} />
     );
     const input = getByTestId('seg') as HTMLInputElement;
+    focusSeg(input);
     fireEvent.change(input, { target: { value: '08:30' } });
     expect(input.value).toBe('08:30');
   });
@@ -261,7 +262,9 @@ describe('useSegmentedEntry', () => {
       <Harness format="H:mm" onChange={handler} />
     );
     const input = getByTestId('seg') as HTMLInputElement;
+    focusSeg(input);
     fireEvent.change(input, { target: { value: '8:30' } });
+    expect(handler).not.toHaveBeenCalled();
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(handler).toHaveBeenCalled();
     expect((handler.mock.calls[0][0] as Date).getHours()).toBe(8);
@@ -340,6 +343,7 @@ describe('useSegmentedEntry', () => {
       <Harness format="H:mm" closeOnSelect onChange={handler} />
     );
     const input = getByTestId('seg') as HTMLInputElement;
+    focusSeg(input);
     fireEvent.click(input); // open
     fireEvent.change(input, { target: { value: '8:30' } });
     fireEvent.keyDown(input, { key: 'Enter' });
@@ -426,6 +430,7 @@ describe('useSegmentedEntry', () => {
       />
     );
     const input = getByTestId('seg') as HTMLInputElement;
+    focusSeg(input);
     fireEvent.change(input, { target: { value: '12:30' } });
     fireEvent.blur(input);
     expect(handler).not.toHaveBeenCalled();
@@ -585,7 +590,7 @@ describe('useSegmentedEntry', () => {
     expect(handler).not.toHaveBeenCalled();
   });
 
-  it('ignores browser input events while in segment mode', () => {
+  it("drops browser input it can't read while in segment mode", () => {
     const { getByTestId } = render(<Harness initial={at(13, 45)} />);
     const input = getByTestId('seg') as HTMLInputElement;
     focusSeg(input);
@@ -886,6 +891,256 @@ describe('useSegmentedEntry', () => {
       });
       expect(onChange).not.toHaveBeenCalled();
       expect(input.value).toBe('');
+    });
+  });
+
+  describe('a whole value the browser writes', () => {
+    // Paste and autofill write the field as a whole, which segment mode used
+    // to drop and an unfocused field held until a blur that never came.
+    it('takes a value it reads in segment mode, and stays in segment mode', () => {
+      const handler = vi.fn();
+      const { getByTestId } = render(
+        <Harness initial={at(13, 45)} onChange={handler} />
+      );
+      const input = getByTestId('seg') as HTMLInputElement;
+      focusSeg(input);
+      fireEvent.change(input, { target: { value: '08:30' } });
+      expect(handler).toHaveBeenCalledTimes(1);
+      expect((handler.mock.calls[0][0] as Date).getHours()).toBe(8);
+      expect((handler.mock.calls[0][0] as Date).getMinutes()).toBe(30);
+      expect(input.value).toBe('08:30');
+      expect(input.dataset.active).toBe('0');
+    });
+
+    it('drops a value it reads but may not take, in segment mode', () => {
+      const handler = vi.fn();
+      const { getByTestId } = render(
+        <Harness
+          initial={at(13, 45)}
+          isBlocked={d => d.getHours() === 8}
+          onChange={handler}
+        />
+      );
+      const input = getByTestId('seg') as HTMLInputElement;
+      focusSeg(input);
+      fireEvent.change(input, { target: { value: '08:30' } });
+      expect(handler).not.toHaveBeenCalled();
+      expect(input.value).toBe('13:45');
+    });
+
+    it('starts the next digit in a fresh segment after taking one', () => {
+      const { getByTestId } = render(<Harness initial={at(13, 45)} />);
+      const input = getByTestId('seg') as HTMLInputElement;
+      focusSeg(input);
+      fireEvent.keyDown(input, { key: '1' });
+      expect(input.value).toBe('01:45');
+      fireEvent.change(input, { target: { value: '08:30' } });
+      fireEvent.keyDown(input, { key: '2' });
+      expect(input.value).toBe('02:30');
+    });
+
+    it('replaces the whole field with a pasted value it reads', () => {
+      const handler = vi.fn();
+      const { getByTestId } = render(
+        <Harness initial={at(13, 45)} onChange={handler} />
+      );
+      const input = getByTestId('seg') as HTMLInputElement;
+      focusSeg(input);
+      const pasted = fireEvent.paste(input, {
+        clipboardData: { getData: () => '08:30' },
+      });
+      expect(pasted).toBe(false);
+      expect((handler.mock.calls[0][0] as Date).getHours()).toBe(8);
+      expect(input.value).toBe('08:30');
+    });
+
+    it('drops a paste it cannot read as a value, as before', () => {
+      const handler = vi.fn();
+      const { getByTestId } = render(
+        <Harness initial={at(13, 45)} onChange={handler} />
+      );
+      const input = getByTestId('seg') as HTMLInputElement;
+      focusSeg(input);
+      const pasted = fireEvent.paste(input, {
+        clipboardData: { getData: () => '08' },
+      });
+      expect(pasted).toBe(true);
+      // What the browser's paste into the segment leaves reads as a time, but
+      // a paste or drop into one segment would rebuild the rest of the value
+      // from the text, so it's dropped.
+      fireEvent.input(input, {
+        target: { value: '08:45' },
+        inputType: 'insertFromPaste',
+      });
+      expect(handler).not.toHaveBeenCalled();
+      expect(input.value).toBe('13:45');
+    });
+
+    it('drops a paste with no clipboard data', () => {
+      const handler = vi.fn();
+      const { getByTestId } = render(
+        <Harness initial={at(13, 45)} onChange={handler} />
+      );
+      const input = getByTestId('seg') as HTMLInputElement;
+      focusSeg(input);
+      // React 19 reports a handler's error to the window rather than throwing.
+      const errors: unknown[] = [];
+      const onError = (e: ErrorEvent) => {
+        errors.push(e.error);
+        e.preventDefault();
+      };
+      window.addEventListener('error', onError);
+      try {
+        expect(() => fireEvent.paste(input)).not.toThrow();
+      } finally {
+        window.removeEventListener('error', onError);
+      }
+      expect(errors).toEqual([]);
+      expect(handler).not.toHaveBeenCalled();
+    });
+
+    it('drops typing that reaches the change in segment mode', () => {
+      // A virtual keyboard's digits come as keydown 'Unidentified', which
+      // segment mode doesn't handle, and then as input.
+      const handler = vi.fn();
+      const { getByTestId } = render(
+        <Harness initial={at(13, 45)} onChange={handler} />
+      );
+      const input = getByTestId('seg') as HTMLInputElement;
+      focusSeg(input);
+      fireEvent.input(input, {
+        target: { value: '1:45' },
+        inputType: 'insertText',
+      });
+      expect(handler).not.toHaveBeenCalled();
+      expect(input.value).toBe('13:45');
+    });
+
+    it('takes a replacement the browser writes in segment mode', () => {
+      const handler = vi.fn();
+      const { getByTestId } = render(
+        <Harness initial={at(13, 45)} onChange={handler} />
+      );
+      const input = getByTestId('seg') as HTMLInputElement;
+      focusSeg(input);
+      fireEvent.input(input, {
+        target: { value: '08:30' },
+        inputType: 'insertReplacementText',
+      });
+      expect((handler.mock.calls[0][0] as Date).getHours()).toBe(8);
+    });
+
+    it('keeps the parts of the value the format does not show', () => {
+      // The parse puts a time on today with no seconds; typing into each
+      // segment would keep the value's day and seconds, and so does this.
+      const handler = vi.fn();
+      const initial = new Date(2020, 4, 6, 13, 45, 30, 250);
+      const { getByTestId } = render(
+        <Harness initial={initial} onChange={handler} />
+      );
+      const input = getByTestId('seg') as HTMLInputElement;
+      focusSeg(input);
+      fireEvent.paste(input, { clipboardData: { getData: () => '08:30' } });
+      expect(handler).toHaveBeenCalledWith(
+        new Date(2020, 4, 6, 8, 30, 30, 250)
+      );
+    });
+
+    it('checks min and max against the value it keeps', () => {
+      const handler = vi.fn();
+      const { getByTestId } = render(
+        <Harness
+          initial={new Date(2020, 4, 6, 13, 45)}
+          min={new Date(2020, 4, 6, 9, 0)}
+          max={new Date(2020, 4, 6, 17, 0)}
+          onChange={handler}
+        />
+      );
+      const input = getByTestId('seg') as HTMLInputElement;
+      focusSeg(input);
+      fireEvent.paste(input, { clipboardData: { getData: () => '10:00' } });
+      expect(handler).toHaveBeenCalledWith(new Date(2020, 4, 6, 10, 0));
+    });
+
+    it('takes a whole pasted value with focus and no segment selected', () => {
+      const handler = vi.fn();
+      const { getByTestId } = render(
+        <Harness initial={at(13, 45)} onChange={handler} />
+      );
+      const input = getByTestId('seg') as HTMLInputElement;
+      focusSeg(input);
+      fireEvent.keyDown(input, { key: 'Tab' });
+      expect(input.dataset.active).toBe('none');
+      const pasted = fireEvent.paste(input, {
+        clipboardData: { getData: () => '08:30' },
+      });
+      expect(pasted).toBe(false);
+      expect((handler.mock.calls[0][0] as Date).getHours()).toBe(8);
+    });
+
+    it('leaves a paste outside segment mode to the browser', () => {
+      const { getByTestId } = render(
+        <Harness format="H:mm" initial={at(13, 45)} />
+      );
+      const input = getByTestId('seg') as HTMLInputElement;
+      focusSeg(input);
+      const pasted = fireEvent.paste(input, {
+        clipboardData: { getData: () => '8:30' },
+      });
+      expect(pasted).toBe(true);
+    });
+
+    it('commits a value it reads written into a field without focus', () => {
+      const handler = vi.fn();
+      const { getByTestId } = render(<Harness onChange={handler} />);
+      const input = getByTestId('seg') as HTMLInputElement;
+      fireEvent.change(input, { target: { value: '08:30' } });
+      expect((handler.mock.calls[0][0] as Date).getHours()).toBe(8);
+      expect(input.value).toBe('08:30');
+      // Nothing is left to commit when focus later comes and goes.
+      focusSeg(input);
+      fireEvent.blur(input);
+      expect(handler).toHaveBeenCalledTimes(1);
+    });
+
+    it("keeps text it can't read in a field without focus, as before", () => {
+      const handler = vi.fn();
+      const { getByTestId } = render(<Harness onChange={handler} />);
+      const input = getByTestId('seg') as HTMLInputElement;
+      fireEvent.change(input, { target: { value: '8.30pm' } });
+      expect(handler).not.toHaveBeenCalled();
+      expect(input.value).toBe('8.30pm');
+    });
+
+    it.each([
+      ['disabled', { disabled: true }],
+      ['read-only', { readOnly: true }],
+      ['not editable', { editable: false }],
+    ])('commits nothing written into a %s field', (_state, props) => {
+      const handler = vi.fn();
+      const { getByTestId } = render(<Harness {...props} onChange={handler} />);
+      const input = getByTestId('seg') as HTMLInputElement;
+      fireEvent.change(input, { target: { value: '08:30' } });
+      expect(handler).not.toHaveBeenCalled();
+    });
+
+    it('reads focus inside a shadow root, so typing there waits for a blur', () => {
+      const handler = vi.fn();
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const root = host.attachShadow({ mode: 'open' });
+      const mount = document.createElement('div');
+      root.appendChild(mount);
+      const { unmount } = render(<Harness format="H:mm" onChange={handler} />, {
+        container: mount,
+      });
+      const input = mount.querySelector('input') as HTMLInputElement;
+      focusSeg(input);
+      expect(root.activeElement).toBe(input);
+      fireEvent.change(input, { target: { value: '8:30' } });
+      expect(handler).not.toHaveBeenCalled();
+      unmount();
+      host.remove();
     });
   });
 });

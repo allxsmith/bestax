@@ -868,6 +868,8 @@ Focus the input — the **year** segment highlights automatically and the keyboa
 
 Digit auto-advance honors each segment's range: the month advances after a first digit ≥ 2 (no month 20+) but waits after `1` (for 10/11/12); the day advances after ≥ 4 but waits after `3` (for 30/31); the year buffers all four digits. Two-digit values clamp (month → 12, day → the month's length).
 
+Paste a whole date and it replaces the field and commits at once, when it reads in a token `format` or through your `parse`. A date the browser writes into the field itself, as autofill does, commits the same way, with focus or without. A paste that isn't a whole date changes nothing, and text the browser writes that doesn't read commits nothing. In free-form entry, a paste or a write into the focused field is typed text, committed on blur or `Enter`.
+
 In free-form entry there is no segment to step, so a plain `↓` opens the popover as well.
 
 ### On the popover calendar

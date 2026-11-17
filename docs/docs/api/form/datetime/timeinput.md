@@ -933,6 +933,8 @@ Focus the input — the **hours** segment is automatically highlighted. Segment 
 | `Escape`              | Close popover                                                                  |
 | `Enter`               | Close popover when `closeOnSelect={true}` (value is already committed live)    |
 
+Paste a whole time and it replaces the field and commits at once, when it reads in a token `format` or through your `parse`. A time the browser writes into the field itself, as autofill does, commits the same way, with focus or without. A paste that isn't a whole time changes nothing, and text the browser writes that doesn't read commits nothing. In free-form entry, a paste or a write into the focused field is typed text, committed on blur or `Enter`.
+
 In free-form entry there is no segment to step, so a plain `↓` opens the popover as well.
 
 ### On a wheel column (when the popover is open)
