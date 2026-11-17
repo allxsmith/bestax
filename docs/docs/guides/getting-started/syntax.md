@@ -69,7 +69,7 @@ Try toggling between light and dark mode using the theme switcher in the top nav
 
   <Field label="Email">
     <Control>
-      <Input autoComplete="email" placeholder="Enter your email" />
+      <Input type="email" autoComplete="email" placeholder="Enter your email" />
     </Control>
   </Field>
 

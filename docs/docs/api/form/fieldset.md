@@ -64,25 +64,17 @@ draws no box, with the legend above the content like a label.
 <Columns>
   <Column>
     <Fieldset legend="Default">
-      <Input
-        autoComplete="address-line1"
-        label="Street"
-        name="street-default"
-      />
+      <Input label="Street" name="street-default" />
     </Fieldset>
   </Column>
   <Column>
     <Fieldset variant="filled" legend="Filled">
-      <Input autoComplete="address-line1" label="Street" name="street-filled" />
+      <Input label="Street" name="street-filled" />
     </Fieldset>
   </Column>
   <Column>
     <Fieldset variant="unstyled" legend="Unstyled">
-      <Input
-        autoComplete="address-line1"
-        label="Street"
-        name="street-unstyled"
-      />
+      <Input label="Street" name="street-unstyled" />
     </Fieldset>
   </Column>
 </Columns>

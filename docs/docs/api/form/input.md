@@ -160,14 +160,7 @@ The `isStatic` prop styles the input as static text, useful for displaying value
 
 ```tsx live
 <>
-  <Input
-    autoComplete="username"
-    horizontal
-    label="Username"
-    isStatic
-    readOnly
-    value="Static value"
-  />
+  <Input horizontal label="Username" isStatic readOnly value="Static value" />
   <Input horizontal label="Password" placeholder="Editable value" />
 </>
 ```
