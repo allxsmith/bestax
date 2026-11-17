@@ -990,6 +990,7 @@ function TimeInputFormDemo() {
 
 - Trigger uses `role="combobox"` with `aria-haspopup="dialog"`, `aria-expanded`, and `aria-controls`.
 - Popover panel has `role="dialog"` with an accessible name.
+- An `inline` picker has no input for its `label` to name, so its root is a `role="group"` the `label` names through `aria-labelledby` and its `message` describes. A labeled `Field` around it names it the same way, unless the `Field` is `grouped` or `hasAddons`, or a label is wired by hand with `labelProps.htmlFor`. An `aria-label` or `aria-labelledby` you give it names it instead. With no name it stays a plain `div`, and its wheels inside keep their own names.
 - Each spinner column has `role="spinbutton"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`, whose text is the number as the column shows it, in the picker's locale's digits when it has a locale. The values drawn above and below are click targets hidden from assistive technology, which reads the value from the spinbutton.
 - In a 12-hour picker, AM/PM is one of those spinbutton columns rather than a toggle button. Its `aria-valuetext` is `AM` or `PM`, or the picker's locale's words for them when it has a locale, and it widens to fit a longer word; `↑`, `PageUp` and `End` move it to PM, and `↓`, `PageDown` and `Home` move it to AM. It stops at either end instead of wrapping around. Its accessible name is `AM/PM` unless `labels.ampm` sets another.
 - A `readOnly` inline picker puts `aria-readonly="true"` on each spinbutton and keeps them in the tab order.
@@ -1000,7 +1001,7 @@ function TimeInputFormDemo() {
   corner and moves sideways just far enough to fit, or, wider than the screen, to the edge its
   text starts from. On a narrow screen the panel in place is a sheet across the screen
   instead, which fits as it is.
-- The `message` describes the input through `aria-describedby`, so a screen reader reads it when the input takes focus. Ids you pass in `aria-describedby` go on the container with the other attributes, except on a phone's native input, which lists them first. An `inline` picker has no input, so there the message describes nothing.
+- The `message` describes the input through `aria-describedby`, so a screen reader reads it when the input takes focus. Ids you pass in `aria-describedby` go on the container with the other attributes, except on a phone's native input, which lists them first. An `inline` picker has no input, so there the message describes the picker's group, when something names it.
 
 ---
 

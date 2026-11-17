@@ -843,6 +843,7 @@ function DateTimeInputFormDemo() {
 
 - Trigger uses `role="combobox"` with `aria-haspopup="dialog"`, `aria-expanded`, and `aria-controls`.
 - Popover panel has `role="dialog"` with an accessible name. Opening it puts focus on the focused date.
+- An `inline` picker has no input for its `label` to name, so its root is a `role="group"` the `label` names through `aria-labelledby` and its `message` describes. A labeled `Field` around it names it the same way, unless the `Field` is `grouped` or `hasAddons`, or a label is wired by hand with `labelProps.htmlFor`. An `aria-label` or `aria-labelledby` you give it names it instead. With no name it stays a plain `div`, and its grid and its wheels inside keep their own names.
 - Closing the popover with `Escape`, the ✓ button or `Enter` on a time wheel returns focus to the input, whether the input or the launcher opened it. Under `openOnFocus` that returning focus leaves the popover closed; focusing or clicking the input again opens it. Closing it commits nothing by itself: an empty field stays empty, and leaving afterwards commits only what you typed, so seconds the display leaves out are kept.
 - Calendar uses `role="grid"`. Its first row holds the weekday names as `role="columnheader"`s, each named by the full weekday in the picker's locale, so a screen reader can name the weekday as focus moves to another column. A server-rendered calendar adds those full names once the page hydrates, and with `dayNames` the columns are named by the names you give instead. Each day keeps its number as its name.
 - Cells expose `aria-selected`, `aria-disabled`, and `aria-current="date"` for today. On a server-rendered page, today gets it once the page hydrates, so the reader's clock decides which day.
@@ -858,7 +859,7 @@ function DateTimeInputFormDemo() {
 - A panel that would run past the left or right edge of the screen, as on a phone with the
   field mid-row, keeps its corner and moves sideways just far enough to fit, or, wider than
   the screen, to the edge its text starts from.
-- The `message` describes the input through `aria-describedby`, so a screen reader reads it when the input takes focus. Ids you pass in `aria-describedby` go on the container with the other attributes, except on a phone's native input, which lists them first. An `inline` picker has no input, so there the message describes nothing.
+- The `message` describes the input through `aria-describedby`, so a screen reader reads it when the input takes focus. Ids you pass in `aria-describedby` go on the container with the other attributes, except on a phone's native input, which lists them first. An `inline` picker has no input, so there the message describes the picker's group, when something names it.
 
 ---
 
