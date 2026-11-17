@@ -17,6 +17,7 @@ import { useFieldsetDisabled, useInsideField } from './FormContext';
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
+import { useFieldMessage } from './useFieldMessage';
 import { useControlLoading } from './controlLoading';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
 import { useLatestRef } from '../helpers/useLatestRef';
@@ -56,6 +57,15 @@ const isComposing = (e: React.KeyboardEvent): boolean =>
 // a screen reader user finds it.
 const isEnabled = (item: AutocompleteItem | string): boolean =>
   typeof item === 'string' || !item.disabled;
+
+/** The clear button's name, in your app's language. */
+export interface AutocompleteLabels {
+  /**
+   * Names the clear button. An empty string counts as none.
+   * @defaultValue 'Clear'
+   */
+  clear?: string;
+}
 
 /**
  * Props for the Autocomplete component.
@@ -99,9 +109,12 @@ export interface AutocompleteProps
    * Whether to show a clear button while the input holds a value.
    * It hides while the input is disabled, and gives way to a loading
    * spinner at the same right edge: the one `loading` draws, or that of a
-   * `Control` with `isLoading` around the Autocomplete.
+   * `Control` with `isLoading` around the Autocomplete. It's named "Clear",
+   * or `labels.clear`.
    */
   clearable?: boolean;
+  /** The clear button's name, in your app's language. */
+  labels?: AutocompleteLabels;
   /** Open dropdown when input is focused. */
   openOnFocus?: boolean;
   /**
@@ -213,6 +226,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       placeholder,
       field = 'label',
       clearable = false,
+      labels,
       openOnFocus = false,
       keepFirst = false,
       keepOpen = false,
@@ -584,10 +598,9 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       className
     );
 
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+    // The other attributes go on the wrapper, so the input takes only the
+    // message's id.
+    const { messageEl, messageId } = useFieldMessage(message, messageColor);
 
     // The clear button gives way to a spinner at its spot: the `loading` one,
     // or that of a loading Control this sits in.
@@ -659,6 +672,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
             aria-activedescendant={activeOptionId}
             aria-haspopup="listbox"
             aria-autocomplete="list"
+            aria-describedby={messageId}
             autoComplete="off"
           />
           {showClear && (
@@ -666,7 +680,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
               type="button"
               className={iconRightClickableClass}
               onClick={handleClear}
-              aria-label="Clear"
+              aria-label={labels?.clear || 'Clear'}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

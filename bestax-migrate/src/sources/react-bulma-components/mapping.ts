@@ -805,6 +805,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     status: 'mapped',
     target: 'Tag',
     props: {
+      renderAs: { rename: 'as' },
       color: {},
       size: {},
       rounded: { booleanToProp: { name: 'isRounded' } },

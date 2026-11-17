@@ -401,7 +401,21 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
 
       &:focus {
         box-shadow: none;
-        outline: none;
+      }
+
+      // With no border, no fill and no shadow, a focused transparent arrow
+      // shows Bulma's focus outline, in its focus color, style, width and
+      // offset, as a ghost Button does (`elements/_button.scss`). Forced
+      // colors keeps the outline, in the system's colors.
+      &:focus-visible {
+        outline-color: hsl(
+          #{cv.getVar("focus-h")},
+          #{cv.getVar("focus-s")},
+          #{cv.getVar("focus-l")}
+        );
+        outline-offset: cv.getVar("focus-offset");
+        outline-style: cv.getVar("focus-style");
+        outline-width: cv.getVar("focus-width");
       }
     }
   }
@@ -419,10 +433,15 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
     }
   }
 
-  // Arrow hover variant
+  // Arrow hover variant: the arrows show under the pointer, and an arrow
+  // shows while keyboard focus is on it, so the focus can be seen.
   &.#{iv.$class-prefix}has-arrow-hover {
     .#{iv.$class-prefix}carousel-arrow {
       opacity: 0;
+
+      &:focus-visible {
+        opacity: 1;
+      }
     }
 
     &:hover {
@@ -599,7 +618,8 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
         }
       }
 
-      // Transparent variant within overlay
+      // Transparent variant within overlay. It leaves the outline alone, so
+      // a focused one shows the plain variant's focus outline.
       &.#{iv.$class-prefix}is-transparent {
         background-color: transparent;
         box-shadow: none;
@@ -632,7 +652,6 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
 
         &:focus {
           box-shadow: none;
-          outline: none;
         }
       }
     }

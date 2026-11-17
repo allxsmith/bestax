@@ -1,7 +1,7 @@
 ---
 title: Box
 sidebar_label: Box
-description: The `Box` component renders a bordered, padded container with an optional shadow using Bulma's `.box` class.
+description: The `Box` component renders a padded container with rounded corners and an optional shadow using Bulma's `.box` class.
 ---
 
 # Box
@@ -10,7 +10,7 @@ description: The `Box` component renders a bordered, padded container with an op
 
 <!-- bestax:generated overview -->
 
-The `Box` component renders a bordered, padded container with an optional shadow using Bulma's `.box` class.
+The `Box` component renders a padded container with rounded corners and an optional shadow using Bulma's `.box` class.
 
 <!-- /bestax:generated overview -->
 
@@ -38,7 +38,7 @@ import { Box } from '@allxsmith/bestax-bulma';
 
 ### Default Box
 
-The default usage of the `Box` component creates a bordered, padded container with a subtle shadow. Use this for grouping related content, highlighting sections, or providing visual separation in your layout.
+The default usage of the `Box` component creates a padded container with rounded corners and a subtle shadow. Use this for grouping related content, highlighting sections, or providing visual separation in your layout.
 
 ```tsx live
 <Box>Default Box</Box>
@@ -112,6 +112,10 @@ Combine multiple props such as `textColor`, `bgColor`, `m`, `p`, and `textAlign`
 
 - **Content:** Use semantic HTML inside `Box` for best accessibility.
 - **Shadow:** The shadow is purely visual and does not affect accessibility.
+- **Forced colors:** in Windows' contrast themes, which drop shadows and paint the box in the
+  page's own color, the box's edge is drawn as an outline in the system's text color, so it still
+  shows where its content starts and ends. While the box has keyboard focus, the browser's focus
+  ring shows in its place.
 - **Contrast:** Ensure color combinations provide sufficient contrast.
 
 :::tip

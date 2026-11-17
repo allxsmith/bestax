@@ -68,7 +68,9 @@ export interface ToggleButtonProps
    * is the difference people see. `white`, `light`, `dark` and `black` aren't
    * offered, since in one theme or the other each fills about as light or dark
    * as a plain button already is. Of the rest, a pale one such as `warning`
-   * changes less than the default `link`.
+   * changes less than the default `link`. Forced colors (Windows' contrast
+   * themes) replaces the fill, so there a pressed one is drawn in the system's
+   * highlight colors instead, whatever the `color`, which needs bestax's CSS.
    */
   color?: ToggleButtonColor | undefined;
   /**
@@ -83,11 +85,12 @@ export interface ToggleButtonProps
    * it is: a click, Enter or Space does nothing, so neither `onClick` nor
    * `onPressedChange` fires, until it's cleared. Set it while a change is
    * saving. The button carries `aria-busy` and `aria-disabled` meanwhile, and
-   * stays focusable, so focus isn't lost mid-save. Everything inside it is
-   * hidden behind the spinner, in forced colors (Windows' contrast themes)
-   * too, and under `prefers-reduced-motion: reduce` the spinner stops and
-   * stays drawn. Bulma alone hides only the label, so the rest needs bestax's
-   * CSS loaded.
+   * stays focusable, so focus isn't lost mid-save, with Bulma's focus outline
+   * showing it from the keyboard. Everything inside it is hidden behind the
+   * spinner, in forced colors (Windows' contrast themes) too, and under
+   * `prefers-reduced-motion: reduce` the spinner stops and stays drawn. Bulma
+   * alone hides only the label and takes away the shadow that shows a focused
+   * button, so the rest needs bestax's CSS loaded.
    */
   isLoading?: boolean;
   /**
@@ -133,8 +136,6 @@ export const ToggleButton = forwardRef<HTMLButtonElement, ToggleButtonProps>(
       onPressedChange,
       color = 'link',
       isLoading,
-      'aria-busy': ariaBusy,
-      'aria-disabled': ariaDisabled,
       className,
       onClick,
       ...props
@@ -153,12 +154,9 @@ export const ToggleButton = forwardRef<HTMLButtonElement, ToggleButtonProps>(
     // The caller's onClick runs first, so a `preventDefault()` there vetoes
     // the toggle, as it does in Radix, MUI and Zag. Enter and Space reach here
     // through the button's own click, and a disabled button gets no click.
-    //
-    // A loading one gets the click but drops it. Bulma's spinner only stops a
-    // pointer, so without this a key flipped a toggle the mouse couldn't.
-    // `disabled` would stop both, but it takes focus away mid-save.
+    // Nor does a loading one: Button drops its click, on every input, and
+    // marks it `aria-busy` and `aria-disabled`.
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-      if (isLoading) return;
       onClick?.(event);
       if (event.defaultPrevented) return;
       const next = !pressed;
@@ -168,9 +166,9 @@ export const ToggleButton = forwardRef<HTMLButtonElement, ToggleButtonProps>(
 
     // The props are spread first, so what a toggle depends on wins over
     // anything a JavaScript caller or a spread object passes along: it stays
-    // a button, never submits, reports the state it's in, and says it's busy
-    // and won't respond while it's loading. A caller's own `aria-busy` or
-    // `aria-disabled` stays when it isn't loading.
+    // a button, never submits and reports the state it's in. Button says it's
+    // busy and won't respond while it's loading, and leaves a caller's own
+    // `aria-busy` or `aria-disabled` when it isn't.
     return (
       <Button
         {...props}
@@ -178,8 +176,6 @@ export const ToggleButton = forwardRef<HTMLButtonElement, ToggleButtonProps>(
         as="button"
         type="button"
         isLoading={isLoading}
-        aria-busy={isLoading || ariaBusy}
-        aria-disabled={isLoading || ariaDisabled}
         aria-pressed={pressed}
         color={pressed ? color : undefined}
         className={classNames(selectedClass, className)}

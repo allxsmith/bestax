@@ -2,6 +2,7 @@ import React, {
   forwardRef,
   useCallback,
   useEffect,
+  useId,
   useRef,
   useState,
   useSyncExternalStore,
@@ -25,11 +26,21 @@ export interface DialogProps
     Omit<BulmaClassesProps, 'color'> {
   /** Whether the dialog is open. */
   isOpen: boolean;
-  /** Dialog title. */
+  /**
+   * Dialog title, which names the dialog through `aria-labelledby` unless
+   * you pass an `aria-labelledby` of your own.
+   */
   title?: string | undefined;
-  /** Dialog message/content. */
+  /**
+   * Dialog message/content, which describes the dialog through
+   * `aria-describedby` unless you pass an `aria-describedby` of your own.
+   */
   message: string | React.ReactNode;
-  /** The type/color of the dialog. Default: 'default'. */
+  /**
+   * The type/color of the dialog. Default: 'default'. Its color and its
+   * built-in icon aren't announced, so say in the title or the message what
+   * kind of dialog it is when that matters, as for a destructive action.
+   */
   type?: DialogType | undefined;
   /** Text for confirm button. Default: 'OK'. */
   confirmText?: string;
@@ -45,7 +56,11 @@ export interface DialogProps
   canCancel?: boolean;
   /** Focus cancel button instead of confirm. Default: false. */
   focusCancel?: boolean;
-  /** Custom icon to display. */
+  /**
+   * Custom icon to display beside the title, so only when there is one, in
+   * place of the type's built-in icon, which is hidden from assistive
+   * technology. Yours is rendered as you pass it.
+   */
   icon?: React.ReactNode;
   /**
    * Renders the dialog into a portal target instead of inline. Forwarded to
@@ -116,6 +131,12 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
     const [scopeNode, setScopeNode] = useState<HTMLDivElement | null>(null);
     const confirmRef = useRef<HTMLButtonElement>(null);
     const cancelRef = useRef<HTMLButtonElement>(null);
+    // Ids of its own for the title and the message, so another dialog open
+    // at the same time, or an element of the page's with the same id, can't
+    // take its name or its description.
+    const baseId = useId();
+    const titleId = `${baseId}-title`;
+    const messageId = `${baseId}-message`;
 
     // Handle cancel
     const handleCancel = useCallback(() => {
@@ -268,7 +289,8 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
       }
     };
 
-    const displayIcon = icon !== undefined ? icon : getDefaultIcon();
+    const builtInIcon = icon === undefined;
+    const displayIcon = builtInIcon ? getDefaultIcon() : icon;
 
     if (!isOpen) {
       return null;
@@ -288,21 +310,29 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
             className={combinedClasses}
             role="alertdialog"
             aria-modal="true"
-            aria-labelledby={title ? 'dialog-title' : undefined}
-            aria-describedby="dialog-message"
+            aria-labelledby={title ? titleId : undefined}
+            aria-describedby={messageId}
             {...rest}
           >
             {title && (
               <div className={headerClass}>
                 {displayIcon && (
-                  <span className={iconClass}>{displayIcon}</span>
+                  <span
+                    className={iconClass}
+                    // The built-in icon is hidden from assistive technology,
+                    // where an svg with no name reads as an unlabelled image.
+                    // A custom one is left as the caller passes it.
+                    aria-hidden={builtInIcon || undefined}
+                  >
+                    {displayIcon}
+                  </span>
                 )}
-                <h3 id="dialog-title" className={titleClass}>
+                <h3 id={titleId} className={titleClass}>
                   {title}
                 </h3>
               </div>
             )}
-            <div id="dialog-message" className={bodyClass}>
+            <div id={messageId} className={bodyClass}>
               {message}
             </div>
             <div className={footerClass}>
@@ -344,11 +374,19 @@ export interface AlertOptions {
   title?: string;
   /** Dialog message/content. */
   message: string | React.ReactNode;
-  /** Dialog type/color. */
+  /**
+   * Dialog type/color. Its color and its built-in icon aren't announced, so
+   * say in the title or the message what kind of dialog it is when that
+   * matters, as for a destructive action.
+   */
   type?: DialogType;
   /** Text for the confirm button. */
   confirmText?: string;
-  /** Custom icon to display. */
+  /**
+   * Custom icon to display beside the title, so only when there is one, in
+   * place of the type's built-in icon, which is hidden from assistive
+   * technology. Yours is rendered as you pass it.
+   */
   icon?: React.ReactNode;
 }
 

@@ -16,6 +16,7 @@ import { FormFieldProps } from './fieldProps';
 import { useAutoLabelledBy } from './useAutoLabelId';
 import { Checkbox } from './Checkbox';
 import { GroupFieldset } from './groupFieldset';
+import { useFieldMessage } from './useFieldMessage';
 
 /**
  * Props for the Checkboxes component.
@@ -137,10 +138,11 @@ const CheckboxesComponent: React.FC<CheckboxesProps> = ({
   const mainClass = usePrefixedClassNames('checkboxes');
   const wrapperClass = classNames(mainClass, bulmaHelperClasses, className);
 
-  const helpClass = usePrefixedClassNames('help', {
-    [`is-${messageColor}`]: !!messageColor,
-  });
-  const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+  const { messageEl, describedBy } = useFieldMessage(
+    message,
+    messageColor,
+    (props as React.AriaAttributes)['aria-describedby']
+  );
 
   const groupActive =
     value !== undefined || defaultValue !== undefined || onChange !== undefined;
@@ -211,6 +213,7 @@ const CheckboxesComponent: React.FC<CheckboxesProps> = ({
       role={asFieldset ? undefined : 'group'}
       aria-labelledby={ariaLabelledBy}
       {...rest}
+      aria-describedby={describedBy}
     >
       {choices}
     </Group>
@@ -230,7 +233,7 @@ const CheckboxesComponent: React.FC<CheckboxesProps> = ({
         labelProps={labelProps}
         horizontal={horizontal}
         fieldClassName={fieldClassName}
-        attributes={rest}
+        attributes={{ ...rest, 'aria-describedby': describedBy }}
         message={messageEl}
       >
         {content}

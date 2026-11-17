@@ -974,6 +974,23 @@ describe('Dropdown keyboard navigation', () => {
     expect(screen.getByText('First')).toHaveAttribute('tabindex', '-1');
   });
 
+  test('Down from an item that turned disabled while focused goes to the item after it', () => {
+    const Menu = ({ busy }: { busy?: boolean }) => (
+      <Dropdown label="Menu" active>
+        <DropdownItem as="button">First</DropdownItem>
+        <DropdownItem as="button" aria-disabled={busy || undefined}>
+          Second
+        </DropdownItem>
+        <DropdownItem as="button">Third</DropdownItem>
+      </Dropdown>
+    );
+    const { rerender } = render(<Menu />);
+    screen.getByText('Second').focus();
+    rerender(<Menu busy />);
+    fireEvent.keyDown(screen.getByText('Second'), { key: 'ArrowDown' });
+    expect(screen.getByText('Third')).toHaveFocus();
+  });
+
   test('arrow keys reach items given menuitemcheckbox or menuitemradio', () => {
     render(
       <Dropdown label="Menu">
@@ -2369,5 +2386,212 @@ describe('href routing', () => {
       </Dropdown>
     );
     expect(screen.getByTestId('dropdown-item')).not.toHaveAttribute('href');
+  });
+});
+
+describe('the current item', () => {
+  it('marks an active item aria-current, so it is more than a color', () => {
+    render(
+      <Dropdown label="Go to" active>
+        <Dropdown.Item href="#inbox" active>
+          Inbox
+        </Dropdown.Item>
+        <Dropdown.Item href="#archive">Archive</Dropdown.Item>
+      </Dropdown>
+    );
+    expect(screen.getByRole('menuitem', { current: true })).toHaveTextContent(
+      'Inbox'
+    );
+    expect(screen.getByRole('menuitem', { name: 'Inbox' })).toHaveAttribute(
+      'aria-current',
+      'true'
+    );
+    expect(
+      screen.getByRole('menuitem', { name: 'Archive' })
+    ).not.toHaveAttribute('aria-current');
+  });
+
+  it('marks it under every element `as` takes', () => {
+    render(
+      <Dropdown label="Menu" active>
+        <Dropdown.Item as="button" active>
+          Button
+        </Dropdown.Item>
+        <Dropdown.Item as="div" active>
+          Div
+        </Dropdown.Item>
+      </Dropdown>
+    );
+    expect(screen.getByRole('menuitem', { name: 'Button' })).toHaveAttribute(
+      'aria-current',
+      'true'
+    );
+    expect(screen.getByRole('menuitem', { name: 'Div' })).toHaveAttribute(
+      'aria-current',
+      'true'
+    );
+  });
+
+  it('lets a caller’s own aria-current win, false included', () => {
+    render(
+      <Dropdown label="Pages" active>
+        <Dropdown.Item href="/a" active aria-current="page">
+          Page
+        </Dropdown.Item>
+        {/* An item that says its state with aria-checked, as the TSDoc has it. */}
+        <Dropdown.Item
+          as="button"
+          role="menuitemradio"
+          aria-checked
+          active
+          aria-current={false}
+        >
+          Off
+        </Dropdown.Item>
+      </Dropdown>
+    );
+    expect(screen.getByRole('menuitem', { name: 'Page' })).toHaveAttribute(
+      'aria-current',
+      'page'
+    );
+    const off = screen.getByRole('menuitemradio', { name: 'Off' });
+    expect(off).toHaveClass('is-active');
+    expect(off).toHaveAttribute('aria-current', 'false');
+  });
+
+  it('lets a caller’s aria-current decide even when it’s undefined', () => {
+    const spread: { 'aria-current'?: 'true' } = { 'aria-current': undefined };
+    render(
+      <Dropdown label="Menu" active>
+        <Dropdown.Item as="button" active {...spread}>
+          Item
+        </Dropdown.Item>
+      </Dropdown>
+    );
+    expect(screen.getByRole('menuitem', { name: 'Item' })).not.toHaveAttribute(
+      'aria-current'
+    );
+  });
+});
+
+// Bulma shows a hoverable menu with `.dropdown.is-hoverable:hover`, so the
+// class is what jsdom can see: Escape puts the menu away without moving the
+// pointer (WCAG 1.4.13) by leaving it off until the pointer leaves.
+describe('Escape on a menu the pointer shows', () => {
+  const Page = (props: Partial<DropdownProps>) => (
+    <>
+      <Dropdown label="Hover me" hoverable {...props}>
+        <DropdownItem as="button">One</DropdownItem>
+        <DropdownItem as="button">Two</DropdownItem>
+      </Dropdown>
+      <button type="button">Elsewhere</button>
+    </>
+  );
+  const root = () => screen.getByTestId('dropdown-root');
+  // jsdom never matches `:hover`, which the Dropdown reads when the key
+  // arrives, so the pointer resting on it is its root matching it.
+  const point = (over: boolean) => {
+    const el = root();
+    const own = Element.prototype.matches;
+    Object.defineProperty(el, 'matches', {
+      configurable: true,
+      value: (selector: string) =>
+        selector === ':hover' ? over : own.call(el, selector),
+    });
+    if (!over) fireEvent.pointerLeave(el);
+  };
+  const escape = (target: Element, init: Partial<KeyboardEventInit> = {}) =>
+    fireEvent.keyDown(target, { key: 'Escape', ...init });
+
+  it('puts it away from the page until the pointer leaves, and lets the key go on', () => {
+    render(<Page />);
+    point(true);
+    expect(escape(document.body)).toBe(true);
+    expect(root()).not.toHaveClass('is-hoverable');
+    point(false);
+    expect(root()).toHaveClass('is-hoverable');
+  });
+
+  it('puts it away with focus in a field elsewhere, even one that used the key', () => {
+    render(<Page />);
+    const elsewhere = screen.getByRole('button', { name: 'Elsewhere' });
+    elsewhere.addEventListener('keydown', e => e.preventDefault());
+    point(true);
+    escape(elsewhere);
+    expect(root()).not.toHaveClass('is-hoverable');
+  });
+
+  it('puts it away with focus on the trigger, and uses the key', () => {
+    render(<Page />);
+    point(true);
+    const trigger = screen.getByRole('button', { name: 'Hover me' });
+    // Used, so a Modal around the Dropdown waits for the next Escape.
+    expect(escape(trigger)).toBe(false);
+    expect(root()).not.toHaveClass('is-hoverable');
+    // Put away already, the next Escape on the trigger goes on.
+    expect(escape(trigger)).toBe(true);
+  });
+
+  it('keeps it away once Escape closes a menu opened from the keyboard', () => {
+    render(<Page />);
+    point(true);
+    const trigger = screen.getByRole('button', { name: 'Hover me' });
+    fireEvent.keyDown(trigger, { key: 'Enter' });
+    expect(root()).toHaveClass('is-active');
+    escape(screen.getByRole('menuitem', { name: 'One' }));
+    expect(root()).not.toHaveClass('is-active');
+    expect(root()).not.toHaveClass('is-hoverable');
+    expect(trigger).toHaveFocus();
+  });
+
+  it('leaves it shown for an Escape a field in the menu used itself', () => {
+    render(
+      <Dropdown label="Hover me" hoverable closeOnClick={false}>
+        <input
+          aria-label="Filter"
+          onKeyDown={e => {
+            if (e.key === 'Escape') e.preventDefault();
+          }}
+        />
+        <DropdownItem as="button">One</DropdownItem>
+      </Dropdown>
+    );
+    point(true);
+    escape(screen.getByRole('textbox', { name: 'Filter' }));
+    expect(root()).toHaveClass('is-hoverable');
+  });
+
+  it('does nothing while the pointer is elsewhere, or for an IME’s Escape', () => {
+    render(<Page />);
+    point(false);
+    escape(document.body);
+    escape(screen.getByRole('button', { name: 'Hover me' }));
+    expect(root()).toHaveClass('is-hoverable');
+    point(true);
+    escape(document.body, { isComposing: true });
+    // Safari's, which says so through keyCode 229 alone.
+    escape(document.body, { keyCode: 229 });
+    expect(root()).toHaveClass('is-hoverable');
+  });
+
+  it('puts it away under a class prefix', () => {
+    render(
+      <ConfigProvider classPrefix="bestax-">
+        <Page />
+      </ConfigProvider>
+    );
+    expect(root()).toHaveClass('bestax-is-hoverable');
+    point(true);
+    escape(document.body);
+    expect(root()).not.toHaveClass('bestax-is-hoverable');
+    expect(root()).toHaveClass('bestax-dropdown');
+  });
+
+  it('runs a caller’s own onPointerLeave too', () => {
+    const onPointerLeave = vi.fn();
+    render(<Page onPointerLeave={onPointerLeave} />);
+    point(true);
+    point(false);
+    expect(onPointerLeave).toHaveBeenCalledTimes(1);
   });
 });

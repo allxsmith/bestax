@@ -15,7 +15,11 @@ import { withSubComponents } from '../helpers/withSubComponents';
 import { PopupPortal } from '../helpers/portal';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { focusTabStop, useFocusTrap } from '../helpers/useFocusTrap';
-import { marginGap, useAnchoredPosition } from '../helpers/useAnchoredPosition';
+import {
+  anchoredStyle,
+  marginGap,
+  useAnchoredPosition,
+} from '../helpers/useAnchoredPosition';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { getDeepestActiveElement } from '../helpers/shadowDom';
 import { useOutsidePress } from '../helpers/useOutsidePress';
@@ -79,6 +83,9 @@ export interface PopoverProps
    * right-to-left page, so a trigger at the start of the line doesn't push
    * the panel off the screen. A corner you pass stays physical, so
    * `bottom-left` lines up the left edges on either page.
+   * A panel that would run past the viewport's left or right edge keeps
+   * its corner and moves sideways, just far enough to fit or, wider than
+   * the viewport, to the edge its text starts from.
    * @defaultValue 'bottom-left'
    */
   position?: PopoverPosition;
@@ -376,15 +383,7 @@ const PopoverComponent: React.FC<PopoverProps> = ({
             close={close}
             id={panelId}
             className={panelClasses}
-            style={
-              appendToBody
-                ? {
-                    position: 'fixed',
-                    top: resolved.top,
-                    left: resolved.left,
-                  }
-                : undefined
-            }
+            style={anchoredStyle(resolved, appendToBody)}
             onKeyDown={handlePanelKeyDown}
             onPointerDownCapture={markInsidePress}
           >

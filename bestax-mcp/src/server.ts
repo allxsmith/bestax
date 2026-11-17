@@ -62,6 +62,7 @@ import {
 } from './format.js';
 import {
   GROUP_NAMES,
+  reflowTables,
   renderHelperDefault,
   renderHelperGroup,
   resolveGroup,
@@ -377,6 +378,24 @@ export async function createServer(
     `\`get_skill({ name: "bestax-custom-component" })\` has the spine every reusable ` +
     `component needs. \`list_skills\` has all seven.`;
 
+  // A section of a skill, from its heading to the next, with its tables
+  // reflowed, since no model reads their column padding. Null when the skill or
+  // the heading is missing, which costs the caller its preamble and nothing else.
+  const skillSection = async (
+    skill: string,
+    heading: string
+  ): Promise<string | null> => {
+    try {
+      const md = await loadSkillFile(skill);
+      const start = md.indexOf(heading);
+      if (start < 0) return null;
+      const end = md.indexOf('\n## ', start + 1);
+      return reflowTables(md.slice(start, end < 0 ? undefined : end).trimEnd());
+    } catch {
+      return null;
+    }
+  };
+
   // The three components that lose to a core-Bulma near-miss, for the unfiltered
   // list_components answer only.
   //
@@ -398,19 +417,11 @@ export async function createServer(
   // paragraph is skipped — how our eval went is not something a builder needs in context.
   const nearMissRule = async (): Promise<string> => {
     const heading = '## Three components core Bulma will talk you out of';
-    try {
-      const md = await loadSkillFile('bestax-layout-scaffold');
-      const start = md.indexOf(heading);
-      if (start < 0) return '';
-      const end = md.indexOf('\n## ', start + 1);
-      const section = md.slice(start, end < 0 ? undefined : end).trimEnd();
-      // Keep the heading and everything from the table onward; drop the prose between them.
-      const table = section.indexOf('\n| ');
-      if (table < 0) return '';
-      return `\n\n${heading}\n${section.slice(table)}`;
-    } catch {
-      return '';
-    }
+    const section = await skillSection('bestax-layout-scaffold', heading);
+    // Keep the heading and everything from the table onward; drop the prose between them.
+    const table = section?.indexOf('\n| ') ?? -1;
+    if (!section || table < 0) return '';
+    return `\n\n${heading}\n${section.slice(table)}`;
   };
 
   // The single highest-leverage thing this server says, prepended to every
@@ -426,26 +437,25 @@ export async function createServer(
   //
   // Sourced from the skill rather than copied, so the two cannot drift. Failure is
   // non-fatal: a missing or restructured skill costs the preamble, never the reference.
+  //
+  // Its table goes without the column padding, as the reference after it has:
+  // every call carried it, and it left no room under 10k for the version warning
+  // after the answer.
   const inlineStyleRule = async (): Promise<string> => {
-    const heading = '## Inline style → helper prop mapping';
-    try {
-      const md = await loadSkillFile('bestax-layout-scaffold');
-      const start = md.indexOf(heading);
-      if (start < 0) return '';
-      const end = md.indexOf('\n## ', start + 1);
-      const section = md.slice(start, end < 0 ? undefined : end).trimEnd();
-      return (
-        `**Do not write inline \`style={{ … }}\`, and do not hand-write Bulma ` +
-        `\`className\`s** (\`lookup_bulma_classes\` translates one you had in ` +
-        `mind). Spacing, colour, typography, flex and visibility are ` +
-        `props on every component. Translate the declaration you were about to ` +
-        `inline using the table below; if nothing matches (\`maxWidth\`, a ` +
-        `one-off gradient), add a named class to the project stylesheet and pass ` +
-        `it via \`className\` — still never inline \`style\`.\n\n${section}\n\n---\n\n`
-      );
-    } catch {
-      return '';
-    }
+    const section = await skillSection(
+      'bestax-layout-scaffold',
+      '## Inline style → helper prop mapping'
+    );
+    if (!section) return '';
+    return (
+      `**Do not write inline \`style={{ … }}\`, and do not hand-write Bulma ` +
+      `\`className\`s** (\`lookup_bulma_classes\` translates one you had in ` +
+      `mind). Spacing, colour, typography, flex and visibility are ` +
+      `props on every component. Translate the declaration you were about to ` +
+      `inline using the table below; if nothing matches (\`maxWidth\`, a ` +
+      `one-off gradient), add a named class to the project stylesheet and pass ` +
+      `it via \`className\` — still never inline \`style\`.\n\n${section}\n\n---\n\n`
+    );
   };
 
   const notFound = async (name: string) => {
@@ -960,9 +970,9 @@ export async function createServer(
 
       const resolved = resolveGroup(group);
       if (!resolved) {
-        // No rule preamble here: this answered nothing, and 3,832 characters of
-        // prohibition on top of a 124-character "try again" was 97% overhead. An error,
-        // as list_components marks an unknown category.
+        // No rule preamble here: this answered nothing, and the prohibition on top
+        // of a one-line "try again" was nearly all overhead. An error, as
+        // list_components marks an unknown category.
         return errorResult(
           `No helper-prop group matches "${group}". Groups: ` +
             `${GROUP_NAMES.join(', ')}. Call get_helper_props with no argument ` +

@@ -1,0 +1,19 @@
+// Dropdown Component Styles
+// Stock Bulma's dropdown, kept legible in forced colors (Windows' contrast
+// themes). `ContextMenu` draws its menu with the same markup, so this reaches
+// it too.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+
+@media (forced-colors: active) {
+  // Bulma draws `.dropdown-divider` as a background with no border, and
+  // forced colors paints backgrounds in Canvas, which is the menu's own color
+  // there, so the line vanishes. It's drawn in the system's text color
+  // instead, at the height Bulma gives it, with `forced-color-adjust: none`
+  // on the `<hr>` alone. Both classes, so this wins over Bulma's rule
+  // whichever stylesheet loads last.
+  .#{iv.$class-prefix}dropdown-divider.#{iv.$class-prefix}dropdown-divider {
+    forced-color-adjust: none;
+    background-color: CanvasText;
+  }
+}
