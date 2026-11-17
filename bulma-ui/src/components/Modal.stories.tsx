@@ -81,6 +81,21 @@ export const ModalCardFooterOnly: StoryObj<ModalProps> = {
   ),
 };
 
+// The close buttons are drawn as icons, so their name is all a screen reader
+// says about them. Here it's in the language of the modal, which `lang`
+// declares.
+export const CloseLabel: StoryObj<ModalProps> = {
+  render: () => (
+    <ControlledModal
+      lang="fr"
+      modalCardTitle="Modifier le profil"
+      ariaCloseLabel="Fermer"
+    >
+      Vos modifications seront enregistrées.
+    </ControlledModal>
+  ),
+};
+
 // modal-content (no card title or foot)
 export const ModalContent: StoryObj<ModalProps> = {
   render: () => (

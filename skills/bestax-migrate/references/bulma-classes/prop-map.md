@@ -28,7 +28,9 @@ element did not have. On any tag but `<button>`, bestax takes the element's `as`
 `is-loading` becomes `isLoading`, so a converted loading button gains what bestax's loading
 `Button` does: it writes `aria-busy="true"` and `aria-disabled="true"`, and drops a click while it
 loads, from the keyboard too, where Bulma's spinner stops only the pointer. Its `onClick` doesn't
-run then, and neither does the form submit, the reset or the link it would have triggered.
+run then, and neither does the form submit, the reset or the link it would have triggered. A
+`.button` that sets its own `aria-busy` or `aria-disabled` keeps `is-loading` as a class instead,
+since `isLoading` would write both over it, so it renders as written.
 
 ### `.buttons` → `Buttons`, `.tags` → `Tags`
 

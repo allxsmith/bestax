@@ -1956,6 +1956,162 @@ describe.each([
   });
 });
 
+describe('Taginput suggestions when focus leaves (#2004)', () => {
+  const renderWithNext = () =>
+    render(
+      <>
+        <Taginput label="Tags" data={frameworks} defaultValue={['Svelte']} />
+        <input aria-label="Next field" />
+      </>
+    );
+
+  it('closes the list when Tab moves on to the next field', async () => {
+    const user = userEvent.setup();
+    renderWithNext();
+    const input = screen.getByRole('combobox');
+    await user.type(input, 'a');
+    await user.keyboard('{ArrowDown}');
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+    await user.tab();
+
+    expect(screen.getByLabelText('Next field')).toHaveFocus();
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+    expect(input).not.toHaveAttribute('aria-activedescendant');
+  });
+
+  it("closes the list when Shift+Tab moves to a tag's remove button", async () => {
+    const user = userEvent.setup();
+    renderWithNext();
+    const input = screen.getByRole('combobox');
+    await user.type(input, 'a');
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+    await user.tab({ shift: true });
+
+    expect(screen.getByRole('button', { name: 'Remove Svelte' })).toHaveFocus();
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('still adds a clicked suggestion, with focus in the input', async () => {
+    const user = userEvent.setup();
+    const onAdd = vi.fn();
+    render(<Taginput label="Tags" data={frameworks} onAdd={onAdd} />);
+    const input = screen.getByRole('combobox');
+    await user.type(input, 'vu');
+
+    await user.click(screen.getByRole('option', { name: 'Vue' }));
+
+    expect(onAdd).toHaveBeenCalledWith('Vue');
+    expect(input).toHaveFocus();
+  });
+
+  it("keeps the list open through a press on a tag's text", async () => {
+    const user = userEvent.setup();
+    renderWithNext();
+    const input = screen.getByRole('combobox');
+    await user.type(input, 'a');
+
+    await user.click(screen.getByText('Svelte'));
+
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    expect(input).toHaveFocus();
+  });
+
+  // A Modal, a Sidebar or AppFrame.Main takes focus itself (tabIndex -1), so
+  // a press on a suggestion, which takes none, would hand focus to it.
+  it('adds a clicked suggestion inside an element that takes focus', async () => {
+    const user = userEvent.setup();
+    const onAdd = vi.fn();
+    render(
+      <main tabIndex={-1}>
+        <Taginput label="Tags" data={frameworks} onAdd={onAdd} />
+      </main>
+    );
+    const input = screen.getByRole('combobox');
+    await user.type(input, 'vu');
+
+    await user.click(screen.getByRole('option', { name: 'Vue' }));
+
+    expect(onAdd).toHaveBeenCalledWith('Vue');
+    expect(input).toHaveFocus();
+  });
+
+  it('keeps the scrolling list out of the Tab order', async () => {
+    const user = userEvent.setup();
+    renderWithNext();
+    await user.type(screen.getByRole('combobox'), 'a');
+
+    expect(screen.getByRole('listbox')).toHaveAttribute('tabindex', '-1');
+  });
+
+  it('closes the list when focus moves to another element with no Tab', async () => {
+    const user = userEvent.setup();
+    renderWithNext();
+    const input = screen.getByRole('combobox');
+    await user.type(input, 'a');
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+    // A script, or a screen reader's own command, moves focus: no key.
+    fireEvent.blur(input, {
+      relatedTarget: screen.getByLabelText('Next field'),
+    });
+
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('closes the list on Tab itself, for focus that leaves for a frame', async () => {
+    const user = userEvent.setup();
+    renderWithNext();
+    const input = screen.getByRole('combobox');
+    await user.type(input, 'a');
+
+    // Into a frame, focus leaves for no element of this page.
+    fireEvent.keyDown(input, { key: 'Tab' });
+    fireEvent.blur(input, { relatedTarget: null });
+
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('keeps the list open when focus moves into it', async () => {
+    const user = userEvent.setup();
+    renderWithNext();
+    const input = screen.getByRole('combobox');
+    await user.type(input, 'a');
+
+    fireEvent.blur(input, { relatedTarget: screen.getByRole('listbox') });
+
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+  });
+
+  it('keeps focus in the input for a press anywhere in the open menu', async () => {
+    const user = userEvent.setup();
+    const { container } = renderWithNext();
+    await user.type(screen.getByRole('combobox'), 'a');
+    const menu = container.querySelector('.dropdown-menu') as HTMLElement;
+
+    // fireEvent returns false when the event's default was prevented.
+    expect(fireEvent.mouseDown(menu)).toBe(false);
+    expect(fireEvent.mouseDown(screen.getByRole('listbox'))).toBe(false);
+  });
+
+  it('keeps the list open when focus goes nowhere, as when the window loses it', async () => {
+    const user = userEvent.setup();
+    renderWithNext();
+    const input = screen.getByRole('combobox');
+    await user.type(input, 'a');
+
+    fireEvent.blur(input, { relatedTarget: null });
+
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+  });
+});
+
 describe('TagInput deprecated alias', () => {
   it('is the same component as Taginput', () => {
     expect(TagInput).toBe(Taginput);

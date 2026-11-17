@@ -505,6 +505,43 @@ describe('Button Component', () => {
     });
   });
 
+  // isStatic only styles the element (#1871): a static <button> is still a
+  // tab stop, and the docs render a label that does nothing as a span.
+  describe('static', () => {
+    it('keeps a <button> a button, which Tab reaches', async () => {
+      render(
+        <>
+          <input aria-label="Email" />
+          <Button isStatic>@gmail.com</Button>
+        </>
+      );
+      const user = userEvent.setup();
+      await user.tab();
+      await user.tab();
+      expect(screen.getByRole('button', { name: '@gmail.com' })).toHaveFocus();
+    });
+
+    it('renders as="span" as text Tab skips, the way the docs show it', async () => {
+      render(
+        <>
+          <input aria-label="Email" />
+          <Button as="span" isStatic>
+            @gmail.com
+          </Button>
+          <button type="button">Next</button>
+        </>
+      );
+      const label = screen.getByText('@gmail.com');
+      expect(label.tagName).toBe('SPAN');
+      expect(label).toHaveClass('button', 'is-static');
+      expect(screen.queryByRole('button', { name: '@gmail.com' })).toBeNull();
+      const user = userEvent.setup();
+      await user.tab();
+      await user.tab();
+      expect(screen.getByRole('button', { name: 'Next' })).toHaveFocus();
+    });
+  });
+
   describe('Fullwidth', () => {
     it('applies is-fullwidth via the canonical isFullwidth prop', () => {
       render(<Button isFullwidth>Wide</Button>);

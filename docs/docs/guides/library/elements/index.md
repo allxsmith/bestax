@@ -28,7 +28,7 @@ A simple container with vertical margin for grouping or spacing content sections
 
 ### Box
 
-A bordered, padded container with optional shadow, ideal for grouping or highlighting content. [View full documentation.](../../../api/elements/box.md)
+A padded container with rounded corners and an optional shadow, ideal for grouping or highlighting content. [View full documentation.](../../../api/elements/box.md)
 
 ```tsx live
 <Box>Default Box</Box>
