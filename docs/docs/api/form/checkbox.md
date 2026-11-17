@@ -198,7 +198,7 @@ Keep the label text inside the `Checkbox` when you shrink the box. The whole lab
 - Browsers expose a box with `indeterminate` set as mixed, so the component adds no ARIA for it.
 - The box is at least 24px square, the minimum size WCAG 2.2 sets for a target (2.5.8), whatever `--bulma-checkbox-size` says. [Box Size](#box-size) shows how to make it smaller, and why to keep the label text inside the `Checkbox` when you do.
 - An unchecked box shows only its border, `--bulma-checkbox-border-color`. It defaults to `--bulma-text-weak`, which holds the 3:1 contrast WCAG asks of a control's boundary (non-text contrast) on Bulma's page and card surfaces in light and dark. Hold a replacement border, and a custom check color on its fill, to 3:1 as well.
-- In forced colors (Windows contrast themes), the box, the check mark and the mixed dash take system colors, so they stay visible whatever the variables hold.
+- In forced colors (Windows contrast themes), the box, the check mark and the mixed dash take system colors, so they stay visible whatever the variables hold. A disabled box and its label draw in the system's color for disabled text there, at full strength rather than dimmed, a checked one filled with it and a mixed one with its dash in it.
 
 ---
 
