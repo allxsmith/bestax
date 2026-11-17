@@ -174,7 +174,9 @@ Notes:
 
 - The `navbar` partial **extends** stock Bulma navbar (it keeps the burger's bars in
   ButtonText and `Navbar.Divider` in CanvasText in forced colors, where Chromium paints the
-  bars in the page's Canvas color and Bulma's fill takes the menu's, marks the active item there
+  bars in the page's Canvas color and Bulma's fill takes the menu's, draws an open dropdown's
+  edge there from the desktop breakpoint up as a CanvasText outline, where Bulma's shadow is
+  dropped, marks the active item there
   with a bar in the system's highlight color, where Bulma's colors for it are replaced, keeps a
   `fixed` navbar in place while an overlay locks the page's scrolling, gives an active item's
   text the invert of the link color it sits on, where Bulma's leaves it in the navbar's text
