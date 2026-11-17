@@ -87,6 +87,15 @@ const SKIPPED_SEGMENTS: Record<
  * sets its own background and font, and the popover inside the `<div>`
  * takes the text ones. Inline they all go on the `<div>`, and on the native
  * mobile input, on the `<input>`.
+ *
+ * Among the other attributes, `aria-label`, `aria-labelledby` and
+ * `aria-describedby` go on the `<div>` too, so they don't name or describe
+ * the `<input>`, except the native one `mobileNative` renders. Name it with
+ * `DateInput`'s `label`; with a labeled `Field` that isn't `grouped` or
+ * `hasAddons`, if you give it no `id`; or with an `id` and a
+ * `<label htmlFor>` of your own. Describe it with `DateInput`'s `message`:
+ * `DateInputBase` on its own has no way to describe it. Inline there is no
+ * `<input>` to name.
  */
 export interface DateInputBaseProps
   extends
