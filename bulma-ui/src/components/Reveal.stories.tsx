@@ -49,7 +49,7 @@ const meta: Meta<typeof Reveal> = {
     threshold: {
       control: 'number',
       description:
-        'Fraction (0-1) of the element that must be visible to trigger the reveal. An element too big for the viewport ever to show that much reveals as soon as any of it is in view.',
+        'Fraction (0-1) of the element that must be visible to trigger the reveal. An element that can never show that much where it is, such as one too big for the viewport or for its scrolling container, reveals as soon as any of it is in view.',
     },
     once: {
       control: 'boolean',

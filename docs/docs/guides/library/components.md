@@ -257,8 +257,8 @@ A Bulma-styled card with optional header, image, content, and footer. [View full
 A vertical panel block for lists, filters, or grouped actions. [View full documentation.](../../api/components/panel.md)
 
 ```tsx live
-<Panel>
-  <Panel.Heading>Revolutionary Figures</Panel.Heading>
+<Panel aria-labelledby="panel-guide-figures">
+  <Panel.Heading id="panel-guide-figures">Revolutionary Figures</Panel.Heading>
   <Panel.InputBlock placeholder="Search" />
   <Panel.Tabs>
     <a className="is-active">All</a>

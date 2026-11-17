@@ -62,7 +62,7 @@ Stock Bulma examples:
 @use 'bulma/sass/elements/notification'; // Notification
 @use 'bulma/sass/elements/title'; // Title, SubTitle
 @use 'bulma/sass/form/input-textarea'; // Input, TextArea
-@use 'bulma/sass/form/select'; // Select
+@use 'bulma/sass/form/select'; // Select, plus bestax's form/select (see below)
 @use 'bulma/sass/form/tools'; // Field, Control
 @use 'bulma/sass/components/card'; // Card
 @use 'bulma/sass/components/modal'; // Modal
@@ -90,7 +90,7 @@ guide's Option C shows a short example and links here for the full list:
 `checkbox`, `checkboxcard`, `radio`, `radiocard`, `switch`, `slider`, `numberinput`, `pininput`,
 `rate`, `autocomplete`, `combobox`, `taginput`, `picker-popover`, `dateinput`, `timeinput`,
 `datetimeinput`, `daterangeinput`, `file`, `fieldset`, `field`, `dropzone`, `colorpicker`,
-`colorinput`, `passwordinput`, `treeselect`, `cascader`
+`colorinput`, `passwordinput`, `treeselect`, `cascader`, `select`
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `box`, `button`, `colorswatch`,
 `delete`, `descriptionlist`, `divider`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`,
@@ -207,6 +207,15 @@ Notes:
   @use '@allxsmith/bestax-bulma/scss/form/file' as bestax-file;
   ```
 
+- The `select` partial **extends** stock Bulma select (an outline on a focused `Select` in forced
+  colors, where Bulma's focus ring is a shadow those themes drop), so an app using
+  `Select` needs both, in either order:
+
+  ```scss
+  @use 'bulma/sass/form/select';
+  @use '@allxsmith/bestax-bulma/scss/form/select' as bestax-select;
+  ```
+
 - The `field` partial **extends** stock Bulma's field (`bulma/sass/form/tools`): it puts the
   `message` of a horizontal form component (`Input horizontal`, `Checkboxes horizontal`,
   `Rate horizontal` and the rest) under its control, where Bulma's row would set it beside, and
@@ -271,6 +280,11 @@ Notes:
 - `ContextMenu`'s menu is Bulma's dropdown markup, so an app using it needs
   `bulma/sass/components/dropdown` and the `dropdown` partial above next to
   `scss/components/contextmenu`.
+- `Dialog` is drawn inside Bulma's modal, which makes it an overlay, with Bulma buttons for its
+  actions, so an app using it needs `bulma/sass/components/modal`, `bulma/sass/elements/button`
+  and the `button` partial next to `scss/components/dialog`. Without the modal module the
+  dialog sits in the page's flow with no backdrop. A `Command.Dialog` is drawn inside the modal
+  too, so an app with one needs it beside `scss/components/command`.
 - `Lightbox`'s viewer is Bulma's modal, with Bulma buttons for its controls and a `Loader` for a
   slow image, so an app using it needs `bulma/sass/components/modal`,
   `bulma/sass/elements/button` and `bulma/sass/elements/loader` next to

@@ -107,6 +107,10 @@ rbx's own documentation examples:
 | `prop:textColor`       | `Tag`, `Tabs`, `Hero`, `Progress` and others take no `textColor` prop (on `Table`, `Menu` and `Dropdown` it becomes `color`) | Move the color to a `has-text-*` class in `className`                                   |
 | `prop:backgroundColor` | `Notification`, `Table`, `Tabs`, `Checkbox` and others take no background color prop                                         | Move the color to a `has-background-*` class in `className`                             |
 
+A converted `Modal` with no `aria-label` or `aria-labelledby`, and no spread that could hold one,
+gets `name:Modal`: bestax's `Modal` is a dialog while it's open, so give it an `aria-label`, or
+point `aria-labelledby` at its title.
+
 `Generic`, `Tile`, `List`, `Numeric` and `Highlight` have no bestax counterpart, so
 their imports are kept (trimmed and TODO-annotated) — your app still runs while you migrate
 them by hand.

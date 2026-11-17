@@ -1,4 +1,10 @@
-import { render, screen, fireEvent, createEvent } from '@testing-library/react';
+import {
+  act,
+  render,
+  screen,
+  fireEvent,
+  createEvent,
+} from '@testing-library/react';
 import { createRef } from 'react';
 import { createPortal } from 'react-dom';
 import type { ComponentProps } from 'react';
@@ -972,6 +978,281 @@ describe('Navbar.Dropdown', () => {
     );
     fireEvent.keyDown(screen.getByText('More'), { key: 'Escape' });
     expect(onActiveChange).not.toHaveBeenCalled();
+  });
+
+  // Bulma shows a hoverable navbar dropdown's menu with
+  // `.navbar-item.is-hoverable:hover` and `:focus-within`, so the class is
+  // what jsdom can see: Escape puts the menu away (WCAG 1.4.13) by leaving it
+  // off until the pointer has left and focus has too (#1981).
+  describe('Escape on a menu the pointer or focus shows', () => {
+    const renderHoverable = (
+      props: Partial<ComponentProps<typeof Navbar.Dropdown>> = {},
+      prefix = ''
+    ) => {
+      render(
+        <ConfigProvider classPrefix={prefix}>
+          <Navbar.Dropdown hoverable data-testid="dropdown" {...props}>
+            <Navbar.Link>More</Navbar.Link>
+            <Navbar.DropdownMenu>
+              <Navbar.Item href="#about">About</Navbar.Item>
+            </Navbar.DropdownMenu>
+          </Navbar.Dropdown>
+          <button type="button">Elsewhere</button>
+        </ConfigProvider>
+      );
+      return {
+        root: screen.getByTestId('dropdown'),
+        trigger: screen.getByRole('button', { name: 'More' }),
+        item: screen.getByRole('link', { name: 'About' }),
+        elsewhere: screen.getByRole('button', { name: 'Elsewhere' }),
+      };
+    };
+    // jsdom never matches `:hover`, which the dropdown reads when the key
+    // arrives, so the pointer resting on it is its root matching it.
+    const point = (el: Element, over: boolean) => {
+      const own = Element.prototype.matches;
+      Object.defineProperty(el, 'matches', {
+        configurable: true,
+        value: (selector: string) =>
+          selector === ':hover' ? over : own.call(el, selector),
+      });
+      if (!over) fireEvent.pointerLeave(el);
+    };
+    const escape = (target: Element, init: Partial<KeyboardEventInit> = {}) =>
+      fireEvent.keyDown(target, { key: 'Escape', ...init });
+
+    afterEach(() => {
+      delete (window as { matchMedia?: unknown }).matchMedia;
+    });
+
+    it.each([
+      ['no prefix', ''],
+      ['a class prefix', 'bestax-'],
+    ])(
+      'puts it away from the page until the pointer leaves, with %s',
+      (_label, prefix) => {
+        const { root } = renderHoverable({}, prefix);
+        expect(root).toHaveClass(`${prefix}is-hoverable`);
+        point(root, true);
+        expect(escape(document.body)).toBe(true);
+        expect(root).not.toHaveClass(`${prefix}is-hoverable`);
+        expect(root).toHaveClass(`${prefix}has-dropdown`);
+        point(root, false);
+        expect(root).toHaveClass(`${prefix}is-hoverable`);
+      }
+    );
+
+    it('puts it away with focus on the link, uses the key, and keeps it away while focus stays', () => {
+      const { root, trigger, elsewhere } = renderHoverable();
+      trigger.focus();
+      expect(escape(trigger)).toBe(false);
+      expect(root).not.toHaveClass('is-hoverable');
+      expect(trigger).toHaveFocus();
+      // Put away already, the next Escape goes on.
+      expect(escape(trigger)).toBe(true);
+      // Focus still keeps it away once the pointer leaves.
+      point(root, false);
+      expect(root).not.toHaveClass('is-hoverable');
+      act(() => elsewhere.focus());
+      expect(root).toHaveClass('is-hoverable');
+    });
+
+    it('puts focus on the link for an Escape from an item', () => {
+      const { root, trigger, item } = renderHoverable();
+      item.focus();
+      expect(escape(item)).toBe(false);
+      expect(trigger).toHaveFocus();
+      expect(root).not.toHaveClass('is-hoverable');
+    });
+
+    it('keeps it away while the pointer stays, once focus leaves', () => {
+      const { root, trigger, elsewhere } = renderHoverable();
+      point(root, true);
+      trigger.focus();
+      escape(trigger);
+      act(() => elsewhere.focus());
+      expect(root).not.toHaveClass('is-hoverable');
+      point(root, false);
+      expect(root).toHaveClass('is-hoverable');
+    });
+
+    it('closes an open one and puts it away with one Escape', () => {
+      const onActiveChange = vi.fn();
+      const { root, trigger, item } = renderHoverable({ onActiveChange });
+      fireEvent.keyDown(trigger, { key: 'Enter' });
+      item.focus();
+      escape(item);
+      expect(onActiveChange).toHaveBeenLastCalledWith(false);
+      expect(root).not.toHaveClass('is-active');
+      expect(root).not.toHaveClass('is-hoverable');
+      expect(trigger).toHaveFocus();
+    });
+
+    // A window `width` pixels wide, as `matchMedia` answers Bulma's
+    // min-width queries.
+    const windowOf = (width: number) =>
+      Object.defineProperty(window, 'matchMedia', {
+        configurable: true,
+        writable: true,
+        value: (query: string) => ({
+          media: query,
+          matches: query
+            .split(',')
+            .some(
+              part =>
+                width >=
+                Number(/min-width:\s*(\d+)px/.exec(part)?.[1] ?? Infinity)
+            ),
+        }),
+      });
+
+    it('uses the key at the desktop breakpoint', () => {
+      windowOf(1024);
+      const { root, trigger, item } = renderHoverable();
+      item.focus();
+      expect(escape(item)).toBe(false);
+      expect(trigger).toHaveFocus();
+      expect(root).not.toHaveClass('is-hoverable');
+    });
+
+    it('leaves the key alone below it, where the menu always shows', () => {
+      windowOf(1023);
+      const { root, item } = renderHoverable();
+      item.focus();
+      expect(escape(item)).toBe(true);
+      expect(item).toHaveFocus();
+      expect(root).toHaveClass('is-hoverable');
+    });
+
+    it('puts it away from the page only at the desktop breakpoint', () => {
+      windowOf(1023);
+      const { root } = renderHoverable();
+      point(root, true);
+      escape(document.body);
+      expect(root).toHaveClass('is-hoverable');
+    });
+
+    it('closes an open one and puts it away with one Escape on the link', () => {
+      const { root, trigger } = renderHoverable();
+      trigger.focus();
+      fireEvent.keyDown(trigger, { key: 'Enter' });
+      expect(root).toHaveClass('is-active');
+      expect(escape(trigger)).toBe(false);
+      expect(root).not.toHaveClass('is-active');
+      expect(root).not.toHaveClass('is-hoverable');
+      expect(trigger).toHaveFocus();
+    });
+
+    it('keeps it away when the window loses focus and gets it back', () => {
+      const { root, trigger, elsewhere } = renderHoverable();
+      trigger.focus();
+      escape(trigger);
+      // A window blur: a blur with nothing taking focus, which stays put,
+      // and focus coming back with the window, from nowhere.
+      fireEvent.blur(trigger);
+      expect(trigger).toHaveFocus();
+      expect(root).not.toHaveClass('is-hoverable');
+      fireEvent.focus(trigger);
+      expect(root).not.toHaveClass('is-hoverable');
+      // A window blur that focus comes back from elsewhere leaves nothing
+      // behind: the next focus onto the link is a new one.
+      fireEvent.blur(trigger);
+      act(() => elsewhere.focus());
+      point(root, true);
+      escape(document.body);
+      expect(root).not.toHaveClass('is-hoverable');
+      act(() => trigger.focus());
+      expect(root).toHaveClass('is-hoverable');
+    });
+
+    it('brings it back when the pointer comes back, focus still in it', () => {
+      const { root, trigger } = renderHoverable();
+      trigger.focus();
+      escape(trigger);
+      point(root, false);
+      expect(root).not.toHaveClass('is-hoverable');
+      fireEvent.pointerEnter(root);
+      expect(root).toHaveClass('is-hoverable');
+    });
+
+    it('brings it back when focus moves onto something in it', () => {
+      const { root, trigger, item, elsewhere } = renderHoverable();
+      // Put away from the page, then Tab onto the link.
+      point(root, true);
+      elsewhere.focus();
+      escape(elsewhere);
+      expect(root).not.toHaveClass('is-hoverable');
+      act(() => trigger.focus());
+      expect(root).toHaveClass('is-hoverable');
+      // Put away from the page with focus nowhere, then Tab in from there.
+      act(() => trigger.blur());
+      escape(document.body);
+      expect(root).not.toHaveClass('is-hoverable');
+      act(() => trigger.focus());
+      expect(root).toHaveClass('is-hoverable');
+      // Put away from the link, then Tab on into a menu Bulma only fades,
+      // as a boxed one, so focus isn't on an item nobody can see.
+      escape(trigger);
+      expect(root).not.toHaveClass('is-hoverable');
+      act(() => item.focus());
+      expect(root).toHaveClass('is-hoverable');
+    });
+
+    it('keeps the menu, and lets the key go on, when focus can’t go back to the link', () => {
+      render(
+        <Navbar.Dropdown hoverable data-testid="dropdown">
+          <Navbar.Link as="button" disabled>
+            More
+          </Navbar.Link>
+          <Navbar.DropdownMenu>
+            <Navbar.Item href="#about">About</Navbar.Item>
+          </Navbar.DropdownMenu>
+        </Navbar.Dropdown>
+      );
+      const item = screen.getByRole('link', { name: 'About' });
+      item.focus();
+      expect(escape(item)).toBe(true);
+      expect(item).toHaveFocus();
+      expect(screen.getByTestId('dropdown')).toHaveClass('is-hoverable');
+    });
+
+    it('does nothing with neither the pointer nor focus on it, or for an IME’s Escape', () => {
+      const { root, trigger } = renderHoverable();
+      point(root, false);
+      expect(escape(document.body)).toBe(true);
+      expect(root).toHaveClass('is-hoverable');
+      trigger.focus();
+      expect(escape(trigger, { isComposing: true })).toBe(true);
+      expect(escape(trigger, { keyCode: 229 })).toBe(true);
+      expect(root).toHaveClass('is-hoverable');
+    });
+
+    it('still calls the pointer and focus handlers it is given', () => {
+      const onPointerEnter = vi.fn();
+      const onPointerLeave = vi.fn();
+      const onFocus = vi.fn();
+      const onBlur = vi.fn();
+      const { root, trigger, elsewhere } = renderHoverable({
+        onPointerEnter,
+        onPointerLeave,
+        onFocus,
+        onBlur,
+      });
+      trigger.focus();
+      act(() => elsewhere.focus());
+      fireEvent.pointerEnter(root);
+      fireEvent.pointerLeave(root);
+      expect(onFocus).toHaveBeenCalledTimes(1);
+      expect(onBlur).toHaveBeenCalledTimes(1);
+      expect(onPointerEnter).toHaveBeenCalledTimes(1);
+      expect(onPointerLeave).toHaveBeenCalledTimes(1);
+    });
+
+    it('still forwards its ref to the root', () => {
+      const ref = createRef<HTMLDivElement>();
+      const { root } = renderHoverable({ ref });
+      expect(ref.current).toBe(root);
+    });
   });
 
   describe('Escape inside the open menu', () => {
