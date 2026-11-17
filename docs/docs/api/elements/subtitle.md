@@ -128,6 +128,8 @@ Combine `Title` and `SubTitle` components for a structured heading and subheadin
 
 - **Semantic HTML:** Use appropriate heading levels for document structure.
 - **Screen readers:** Subtitles should be used in conjunction with titles for clarity.
+- **Skeletons:** `skeleton` and `hasSkeleton` follow [Skeleton's accessibility notes](./skeleton.md#accessibility),
+  forced colors included.
 
 :::tip
 `SubTitle` is visually styled as a heading. Its level comes from `size` when it has one and from

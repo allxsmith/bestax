@@ -1126,22 +1126,25 @@ describe('Field expanded is a Control modifier in Bulma', () => {
 });
 
 describe('Tab.Group needs the list bestax does not render itself', () => {
-  it('wraps the items in Tabs.List', () => {
-    // rbx renders div.tabs > ul > li; bestax's Tabs renders only the div and
-    // leaves the ul to Tabs.List, so a straight rename put <li> directly
-    // inside the div.
+  it('wraps the items in a plain <ul>', () => {
+    // rbx renders div.tabs > ul > li; bestax's Tabs renders only the div, so
+    // a straight rename put <li> directly inside the div. Not in a Tabs.List,
+    // which renders role="tablist" around items that aren't tabs (#1961).
     const { output } = migrate(
       'import { Tab } from "rbx";\nexport const A = () => (<Tab.Group><Tab active>One</Tab></Tab.Group>);'
     );
-    expect(output).toContain('<Tabs><Tabs.List>');
-    expect(output).toContain('<Tabs.Item active>One</Tabs.Item>');
+    expect(output).toContain(
+      '<Tabs><ul><Tabs.Item active>One</Tabs.Item></ul></Tabs>'
+    );
+    expect(output).not.toContain('Tabs.List');
   });
 
   it('inserts exactly one list for bare Tab children', () => {
     const { output } = migrate(
       'import { Tab } from "rbx";\nexport const A = () => (<Tab.Group><Tab>One</Tab><Tab>Two</Tab></Tab.Group>);'
     );
-    expect((output.match(/Tabs\.List/g) ?? []).length).toBe(2); // open + close
+    expect((output.match(/<ul>/g) ?? []).length).toBe(1);
+    expect((output.match(/<\/ul>/g) ?? []).length).toBe(1);
   });
 
   it('does not wrap again when a list is already there', () => {

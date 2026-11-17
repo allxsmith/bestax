@@ -4,14 +4,38 @@
 // motion. The bar keeps the gradient Bulma draws when it is not moving, so
 // it holds still rather than going blank.
 //
+// And it keeps the bar drawn in forced colors (Windows' contrast themes).
+// Bulma paints the track and the fill as background colors, and the
+// indeterminate bar as a gradient, with no border, so forced colors turns
+// all of it into the page's color and the bar disappears.
+//
 // Bulma's CSS can land on either side of this partial, as it can for
 // `_loader.scss`, which says why. `!important` wins in every case, so the
 // override does not depend on where this file lands.
 
 @use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
 
 @media (prefers-reduced-motion: reduce) {
   .#{iv.$class-prefix}progress:indeterminate {
     animation: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  // Every rule Bulma paints the bar with reads these two variables, the
+  // indeterminate gradient included, so setting them here reaches each
+  // state and color. With forcing off the bar keeps them, so the track is
+  // the page's color inside an edge in its text color, and the fill is the
+  // text color. Firefox draws a determinate bar's track as the element's own
+  // background, which Bulma leaves to the browser's gray, so that is set
+  // too. Nothing inside a `<progress>` renders, so the opt-out reaches
+  // nothing else.
+  .#{iv.$class-prefix}progress {
+    forced-color-adjust: none;
+    #{cv.buildVarName('progress-bar-background-color')}: Canvas !important;
+    #{cv.buildVarName('progress-value-background-color')}: CanvasText !important;
+    background-color: Canvas !important;
+    border: 1px solid CanvasText !important;
   }
 }

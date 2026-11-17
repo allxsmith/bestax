@@ -211,6 +211,14 @@ A textarea with a skeleton loader, useful for simulating multi-line text input l
   drawn in the skeleton color. That covers `Skeleton`, the `skeleton` prop and `hasSkeleton`. The
   rule ships in bestax's stylesheets: `bestax.css` and its variants, or `extras.css` next to your
   own Bulma, in either order.
+- **Forced colors:** Bulma paints each shape as a background color, which a contrast theme
+  replaces with the page's color, and hides the text inside with a transparent color, which the
+  theme paints in its text color. In forced colors, bestax draws every shape in `GrayText`, the
+  theme's color for something unavailable, such as a disabled control, and turns the theme's
+  colors off on the skeleton so the text Bulma hides stays hidden. That reaches what's inside it
+  too, so anything there that Bulma draws in colors of its own, such as a control's edge and focus
+  ring or a link, keeps Bulma's colors rather than the theme's. That covers `Skeleton`, the
+  `skeleton` prop and `hasSkeleton`, and ships in the same stylesheets as the reduced-motion rule.
 
 :::tip
 Skeleton loaders provide a visual cue for loading but should not block navigation or accessibility.

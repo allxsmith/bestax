@@ -38,7 +38,7 @@
       "code": "<Block>\n  <Title as=\"p\" size=\"1\">\n    Title 1\n  </Title>\n  <SubTitle as=\"p\" size=\"3\">\n    Subtitle 3\n  </SubTitle>\n</Block>"
     }
   ],
-  "accessibility": "- **Semantic HTML:** Use appropriate heading levels for document structure.\n- **Screen readers:** Subtitles should be used in conjunction with titles for clarity.\n\n:::tip\n`SubTitle` is visually styled as a heading. Its level comes from `size` when it has one and from\n`as` when it doesn't, and with neither it's an `<h1>`. `as=\"p\"` makes it a paragraph whatever its\nsize, and the `textSize` helper sizes it without changing the level.\n:::",
+  "accessibility": "- **Semantic HTML:** Use appropriate heading levels for document structure.\n- **Screen readers:** Subtitles should be used in conjunction with titles for clarity.\n- **Skeletons:** `skeleton` and `hasSkeleton` follow [Skeleton's accessibility notes](https://bestax.io/docs/api/elements/skeleton#accessibility),\n  forced colors included.\n\n:::tip\n`SubTitle` is visually styled as a heading. Its level comes from `size` when it has one and from\n`as` when it doesn't, and with neither it's an `<h1>`. `as=\"p\"` makes it a paragraph whatever its\nsize, and the `textSize` helper sizes it without changing the level.\n:::",
   "related": ["Block", "Title", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-subtitle--default",
   "summary": "The `SubTitle` component renders a Bulma-styled subtitle (secondary heading), supporting sizes `1-6` and rendering as any heading or paragraph element (`h1-h6`, `p`).",

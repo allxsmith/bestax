@@ -122,7 +122,7 @@ Display file or directory paths.
 
 ## Accessibility
 
-- **Code Semantics:** Screen readers may indicate code content differently, helping users understand it's technical content.
+- **Code Semantics:** browsers tell assistive tech that `<code>` is code, but don't count on a screen reader saying so.
 - **Monospace Font:** The `<code>` element typically renders in a monospace font, aiding readability of technical content.
 - **Context:** Provide context around code snippets so users understand what the code represents.
 

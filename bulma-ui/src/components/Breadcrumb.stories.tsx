@@ -34,17 +34,17 @@ const defaultItems = (
   <>
     <li>
       <a href="#">
-        <Icon name="fas fa-home" ariaLabel="home icon" /> Home
+        <Icon name="fas fa-home" /> Home
       </a>
     </li>
     <li>
       <a href="#">
-        <Icon name="fas fa-folder" ariaLabel="category icon" /> Category
+        <Icon name="fas fa-folder" /> Category
       </a>
     </li>
     <li className="is-active">
-      <a href="#">
-        <Icon name="fas fa-file" ariaLabel="item icon" /> Item
+      <a href="#" aria-current="page">
+        <Icon name="fas fa-file" /> Item
       </a>
     </li>
   </>
@@ -213,35 +213,17 @@ export const WithIconsAndStyling: Story = {
       <>
         <li>
           <a href="#">
-            <Icon
-              name="fas fa-home"
-              textColor="primary"
-              size="small"
-              ariaLabel="home icon"
-            />{' '}
-            Home
+            <Icon name="fas fa-home" textColor="primary" size="small" /> Home
           </a>
         </li>
         <li>
           <a href="#">
-            <Icon
-              name="fas fa-folder"
-              textColor="info"
-              size="small"
-              ariaLabel="category icon"
-            />{' '}
-            Category
+            <Icon name="fas fa-folder" textColor="info" size="small" /> Category
           </a>
         </li>
         <li className="is-active">
-          <a href="#">
-            <Icon
-              name="fas fa-file"
-              textColor="success"
-              size="small"
-              ariaLabel="item icon"
-            />{' '}
-            Item
+          <a href="#" aria-current="page">
+            <Icon name="fas fa-file" textColor="success" size="small" /> Item
           </a>
         </li>
       </>

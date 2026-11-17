@@ -92,7 +92,14 @@ export interface MenuLabelProps
 }
 
 /**
- * Bulma Menu label component.
+ * The label over a group of the menu's items: a paragraph to assistive tech, until you give it `role="heading"` and an `aria-level`.
+ *
+ * It renders Bulma's `<p class="menu-label">`, which isn't a heading and
+ * doesn't name the `Menu.List` under it. Give it `role="heading"` and the
+ * `aria-level` that fits the headings already on the page, so screen reader
+ * users can move between the groups by heading. To name the list after it as
+ * well, give it an `id` that's unique on the page and write
+ * `aria-labelledby` with that id on the list.
  *
  * @function
  * @param {MenuLabelProps} props - Props for the MenuLabel component.

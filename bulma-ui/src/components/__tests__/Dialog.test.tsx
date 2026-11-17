@@ -263,20 +263,71 @@ describe('Dialog', () => {
       );
     });
 
-    it('has aria-labelledby when title is provided', () => {
+    it('is labelled by its title', () => {
       render(<Dialog isOpen title="Dialog Title" message="Test" />);
-      expect(screen.getByRole('alertdialog')).toHaveAttribute(
-        'aria-labelledby',
-        'dialog-title'
-      );
+      const dialog = screen.getByRole('alertdialog');
+      const title = screen.getByRole('heading', { name: 'Dialog Title' });
+      expect(title.id).not.toBe('');
+      expect(dialog).toHaveAttribute('aria-labelledby', title.id);
+      expect(dialog).toHaveAccessibleName('Dialog Title');
     });
 
-    it('has aria-describedby for message', () => {
+    it('is described by its message', () => {
       render(<Dialog isOpen message="Test" />);
-      expect(screen.getByRole('alertdialog')).toHaveAttribute(
-        'aria-describedby',
-        'dialog-message'
+      const dialog = screen.getByRole('alertdialog');
+      const message = screen.getByText('Test');
+      expect(message.id).not.toBe('');
+      expect(dialog).toHaveAttribute('aria-describedby', message.id);
+      expect(dialog).toHaveAccessibleDescription('Test');
+    });
+
+    // The title's and the message's ids used to be the fixed words
+    // `dialog-title` and `dialog-message`, which an element of the page's
+    // own, or a second dialog, took first (#1890).
+    it('keeps its own name and description when the page uses the ids it once had', () => {
+      render(
+        <>
+          <h2 id="dialog-title">Account settings</h2>
+          <p id="dialog-message">Change your settings here.</p>
+          <Dialog isOpen title="Delete file?" message="This can't be undone." />
+        </>
       );
+      const dialog = screen.getByRole('alertdialog');
+      expect(dialog).toHaveAccessibleName('Delete file?');
+      expect(dialog).toHaveAccessibleDescription("This can't be undone.");
+    });
+
+    it('names and describes each of two open dialogs by its own title and message', () => {
+      render(
+        <>
+          <Dialog isOpen title="First" message="First message" />
+          <Dialog isOpen title="Second" message="Second message" />
+        </>
+      );
+      const [first, second] = screen.getAllByRole('alertdialog');
+      expect(first).toHaveAccessibleName('First');
+      expect(first).toHaveAccessibleDescription('First message');
+      expect(second).toHaveAccessibleName('Second');
+      expect(second).toHaveAccessibleDescription('Second message');
+    });
+
+    it('takes the name and description the caller points it at', () => {
+      render(
+        <>
+          <p id="own-name">Own name</p>
+          <p id="own-description">Own description</p>
+          <Dialog
+            isOpen
+            title="Title"
+            message="Message"
+            aria-labelledby="own-name"
+            aria-describedby="own-description"
+          />
+        </>
+      );
+      const dialog = screen.getByRole('alertdialog');
+      expect(dialog).toHaveAccessibleName('Own name');
+      expect(dialog).toHaveAccessibleDescription('Own description');
     });
 
     it.each([

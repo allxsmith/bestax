@@ -64,10 +64,11 @@ bloomer's `Modal` was an inert shell: `isActive` toggled the class and nothing e
 and renders inline unless `portal` is set. So every conversion changes behaviour, and every one
 is flagged. Pass `onClose` for Escape and `Modal.Close` to close it. `Modal.Background` doesn't
 call `onClose` on its own, so give it the same handler as `onClick` for the background to close
-it too:
+it too. The open modal is a dialog, so give it a name with `aria-label`, or `aria-labelledby`
+pointing at its title:
 
 ```jsx
-<Modal active={open} onClose={() => setOpen(false)}>
+<Modal active={open} onClose={() => setOpen(false)} aria-label="Edit profile">
   <Modal.Background onClick={() => setOpen(false)} />
 ```
 
@@ -241,7 +242,7 @@ instead of leaving a TODO: `Hero isBold` → `className="is-bold"`, `isHalfHeigh
 isFlexible` → `is-flexible`, `NavbarDropdown`/`NavbarDivider` `isBoxed` → `is-boxed`. The same
 goes for a universal helper on a part that takes no helper props (`Pagination.Previous`/`Next`/
 `Ellipsis`, `Navbar.Dropdown`/`DropdownMenu`/`Divider`, `Panel.Heading`/`Tabs`/`Block`,
-`Tabs.List`/`Item`, `Message.Header`/`Body`, the `Modal` parts): `isPulled="right"` →
+`Tabs.Item`, `Message.Header`/`Body`, the `Modal` parts): `isPulled="right"` →
 `is-pulled-right`, `isMarginless` → `m-0`, `isHidden="mobile"` → `is-hidden-mobile`. A dynamic
 value, or a dynamic `className` the class cannot be spliced into, is flagged with the class to add.
 
@@ -334,7 +335,8 @@ does not know. Convert either to a named import from `'bloomer'` and re-run the 
 ## `plain-element` — helper props on markup that became plain HTML
 
 When a component becomes plain markup (`Help`, `Label`, `PanelTab`, …), bloomer's helper props
-on it have no home and are dropped with this flag. Re-apply them as classes
+on it have no home and are dropped with this flag. On the `<ul>` a `TabList` becomes, a helper whose
+literal value names one class becomes that class instead, as on the parts that take none. Re-apply them as classes
 (`className="is-pulled-right"`), or wrap the element in a bestax `Box`/`Block` that takes them.
 
 ## Dynamic values

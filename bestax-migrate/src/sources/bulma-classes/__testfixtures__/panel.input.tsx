@@ -6,7 +6,7 @@ export function Repositories() {
         <a className="is-active">All</a>
         <a>Public</a>
       </p>
-      <a className="panel-block is-active" href="/bulma">
+      <a className="panel-block is-active" href="/bulma" aria-current="page">
         <span className="panel-icon">
           <i className="fas fa-book" aria-hidden="true"></i>
         </span>

@@ -172,6 +172,58 @@ describe('useMenuKeys', () => {
       }
       expect(item('Rename')).toHaveFocus();
     });
+
+    describe('from an item that turned disabled while it had focus', () => {
+      // `aria-disabled` keeps focus where `disabled` would drop it, as a
+      // loading item's does.
+      const Actions = ({
+        busy,
+        names = ['Open', 'Share', 'Archive', 'Delete'],
+      }: {
+        busy?: string;
+        names?: string[];
+      }) => (
+        <Menu>
+          {names.map(name => (
+            <button
+              key={name}
+              role="menuitem"
+              aria-disabled={busy === name ? 'true' : undefined}
+            >
+              {name}
+            </button>
+          ))}
+        </Menu>
+      );
+
+      it('moves down to the item after it and up to the one before it', () => {
+        const { rerender } = render(<Actions />);
+        item('Share').focus();
+        rerender(<Actions busy="Share" />);
+        press('ArrowDown');
+        expect(item('Archive')).toHaveFocus();
+        item('Share').focus();
+        press('ArrowUp');
+        expect(item('Open')).toHaveFocus();
+      });
+
+      it('wraps from the last item to the first', () => {
+        const { rerender } = render(<Actions />);
+        item('Delete').focus();
+        rerender(<Actions busy="Delete" />);
+        press('ArrowDown');
+        expect(item('Open')).toHaveFocus();
+      });
+
+      it('searches from the item after it', () => {
+        const names = ['Add', 'Share', 'Archive', 'Delete'];
+        const { rerender } = render(<Actions names={names} />);
+        item('Share').focus();
+        rerender(<Actions names={names} busy="Share" />);
+        press('a');
+        expect(item('Archive')).toHaveFocus();
+      });
+    });
   });
 
   describe('orientation and reverse', () => {

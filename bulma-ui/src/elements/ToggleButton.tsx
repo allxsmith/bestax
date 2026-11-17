@@ -68,7 +68,9 @@ export interface ToggleButtonProps
    * is the difference people see. `white`, `light`, `dark` and `black` aren't
    * offered, since in one theme or the other each fills about as light or dark
    * as a plain button already is. Of the rest, a pale one such as `warning`
-   * changes less than the default `link`.
+   * changes less than the default `link`. Forced colors (Windows' contrast
+   * themes) replaces the fill, so there a pressed one is drawn in the system's
+   * highlight colors instead, whatever the `color`, which needs bestax's CSS.
    */
   color?: ToggleButtonColor | undefined;
   /**
@@ -83,11 +85,12 @@ export interface ToggleButtonProps
    * it is: a click, Enter or Space does nothing, so neither `onClick` nor
    * `onPressedChange` fires, until it's cleared. Set it while a change is
    * saving. The button carries `aria-busy` and `aria-disabled` meanwhile, and
-   * stays focusable, so focus isn't lost mid-save. Everything inside it is
-   * hidden behind the spinner, in forced colors (Windows' contrast themes)
-   * too, and under `prefers-reduced-motion: reduce` the spinner stops and
-   * stays drawn. Bulma alone hides only the label, so the rest needs bestax's
-   * CSS loaded.
+   * stays focusable, so focus isn't lost mid-save, with Bulma's focus outline
+   * showing it from the keyboard. Everything inside it is hidden behind the
+   * spinner, in forced colors (Windows' contrast themes) too, and under
+   * `prefers-reduced-motion: reduce` the spinner stops and stays drawn. Bulma
+   * alone hides only the label and takes away the shadow that shows a focused
+   * button, so the rest needs bestax's CSS loaded.
    */
   isLoading?: boolean;
   /**

@@ -321,6 +321,14 @@ $rate-pop-scale: 1.2 !default;
       fill: Highlight !important;
     }
 
+    // An icon a value only partly fills is two copies of it, whose colors
+    // forced colors repaints alike, so it would draw as an empty star. The
+    // front copy, its filled part, takes a filled star's color, and the back
+    // one keeps the star's own, as the built-in star's outline does.
+    .#{iv.$class-prefix}rate-icon-fg {
+      color: Highlight;
+    }
+
     &:focus-visible {
       outline-color: Highlight;
     }
