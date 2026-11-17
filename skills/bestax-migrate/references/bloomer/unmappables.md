@@ -65,7 +65,7 @@ and renders inline unless `portal` is set. So every conversion changes behaviour
 is flagged. Pass `onClose` for Escape and `Modal.Close` to close it. `Modal.Background` doesn't
 call `onClose` on its own, so give it the same handler as `onClick` for the background to close
 it too. The open modal is a dialog, so give it a name with `aria-label`, or `aria-labelledby`
-pointing at its title:
+pointing at its title (`name:Modal`):
 
 ```jsx
 <Modal active={open} onClose={() => setOpen(false)} aria-label="Edit profile">
@@ -74,6 +74,26 @@ pointing at its title:
 
 or keep bloomer's inert behaviour with `closeOnEscape={false} lockScroll={false}`. Add
 `portal` if the modal must escape a transformed ancestor.
+
+## `name:Modal`: a modal with no name
+
+A converted `Modal` with no `aria-label` or `aria-labelledby`, and no spread that could hold one.
+bestax's `Modal` is a dialog while it's open, and a dialog with no name is announced as just
+"dialog". Only the legacy form's `modalCardTitle` names it for you, and the
+codemod never writes that. Give the `Modal` an `aria-label`, as above, or point `aria-labelledby`
+at the `id` of its title, such as its `Modal.Card.Title` when it has one:
+
+```jsx
+<Modal active={open} onClose={close} aria-labelledby="terms-title">
+  <Modal.Background onClick={close} />
+  <Modal.Card>
+    <Modal.Card.Head>
+      <Modal.Card.Title id="terms-title">Terms</Modal.Card.Title>
+    </Modal.Card.Head>
+    <Modal.Card.Body>…</Modal.Card.Body>
+  </Modal.Card>
+</Modal>
+```
 
 ## `component:Dropdown` and its parts
 

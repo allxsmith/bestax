@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useCallback, useRef, useState, type ReactNode } from 'react';
 import { render, screen, act } from '@testing-library/react';
 import { createPortal } from 'react-dom';
 import { focusCheckInterval, useDismissTimer } from '../useDismissTimer';
@@ -12,15 +12,23 @@ afterEach(() => {
 const Closing = ({
   onDismiss,
   duration,
+  withRoot = false,
   children,
 }: {
   onDismiss: () => void;
   duration: number | null;
+  withRoot?: boolean;
   children?: ReactNode;
 }) => {
-  const { onFocus } = useDismissTimer(onDismiss, duration);
+  const ref = useRef<HTMLDivElement | null>(null);
+  const root = useCallback(() => ref.current, []);
+  const { onFocus } = useDismissTimer(
+    onDismiss,
+    duration,
+    withRoot ? root : undefined
+  );
   return (
-    <div data-testid="closing" onFocus={onFocus}>
+    <div ref={ref} data-testid="closing" onFocus={onFocus}>
       <button>Inside</button>
       {children}
     </div>
@@ -102,6 +110,89 @@ describe('useDismissTimer', () => {
     });
     waitInSteps(10000);
     expect(onDismiss).not.toHaveBeenCalled();
+  });
+
+  it("hears focus coming into its root that React doesn't report", () => {
+    const onDismiss = vi.fn();
+    render(
+      <>
+        <button>Outside</button>
+        <Closing onDismiss={onDismiss} duration={1000} withRoot>
+          <input aria-label="Quiet" onFocus={e => e.stopPropagation()} />
+        </Closing>
+      </>
+    );
+    // The first focus inside is one the hook never hears.
+    act(() => {
+      screen.getByRole('textbox', { name: 'Quiet' }).focus();
+    });
+    waitInSteps(10000);
+    expect(onDismiss).not.toHaveBeenCalled();
+    act(() => {
+      screen.getByRole('button', { name: 'Outside' }).focus();
+    });
+    act(() => {
+      vi.advanceTimersByTime(focusCheckInterval);
+    });
+    act(() => {
+      vi.advanceTimersByTime(999);
+    });
+    expect(onDismiss).not.toHaveBeenCalled();
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it('counts focus already in its root when it mounts, as autoFocus puts it', () => {
+    const onDismiss = vi.fn();
+    render(
+      <Closing onDismiss={onDismiss} duration={1000} withRoot>
+        <input aria-label="First" autoFocus />
+      </Closing>
+    );
+    expect(document.activeElement).toBe(
+      screen.getByRole('textbox', { name: 'First' })
+    );
+    waitInSteps(10000);
+    expect(onDismiss).not.toHaveBeenCalled();
+  });
+
+  it('counts from the first check that finds focus gone, through checks before the next render', () => {
+    const onDismiss = vi.fn();
+    render(
+      <>
+        <button>Outside</button>
+        <Closing onDismiss={onDismiss} duration={1000} />
+      </>
+    );
+    act(() => {
+      screen.getByRole('button', { name: 'Inside' }).focus();
+    });
+    act(() => {
+      screen.getByRole('button', { name: 'Outside' }).focus();
+    });
+    // Several checks run before React renders again.
+    act(() => {
+      vi.advanceTimersByTime(focusCheckInterval * 3);
+    });
+    act(() => {
+      vi.advanceTimersByTime(999);
+    });
+    expect(onDismiss).not.toHaveBeenCalled();
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onDismiss when its root holds no focus as the time runs out', () => {
+    const onDismiss = vi.fn();
+    render(<Closing onDismiss={onDismiss} duration={1000} withRoot />);
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(onDismiss).toHaveBeenCalledTimes(1);
   });
 
   it('reads focus inside a shadow root from that root', () => {

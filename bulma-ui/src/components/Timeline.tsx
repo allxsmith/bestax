@@ -147,7 +147,10 @@ export interface TimelineItemProps
    * A picture in the marker. A string is an `Icon` name, drawn from the icon
    * library `ConfigProvider` sets, and anything else renders as it is.
    * Without it, the marker is a dot. It's hidden from assistive tech, so
-   * what it means goes in the title.
+   * what it means goes in the title. A dot draws each state as a shape of
+   * its own. Among icon markers the current one has a halo, but a completed
+   * one and an upcoming one differ by color, except in forced colors, where
+   * a reached one's ring is heavier.
    */
   icon?: React.ReactNode;
   /**

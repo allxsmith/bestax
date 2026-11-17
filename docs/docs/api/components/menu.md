@@ -77,22 +77,26 @@ To create a sidebar or section menu with multiple levels, use the `Menu` compone
 
 ### Custom Link Component
 
-Use the `as` prop on `Menu.Item` to render a custom link component, such as a router link. Its props follow `as`, so props like `to` or `href` are checked against whatever you render and are forwarded to it. `icon` is Menu.Item's own (see [Icons](#icons)), so the component you render never receives an `icon` of its own: pass that one under another name.
+Use the `as` prop on `Menu.Item` to render a custom link component, such as a router link. Its props follow `as`, so props like `to` or `href` are checked against whatever you render and are forwarded to it. `icon` is Menu.Item's own (see [Icons](#icons)), so the component you render never receives an `icon` of its own: pass that one under another name. The stand-in below spreads what `Menu.Item` passes it onto the `<a>`, as a router's link does, so an `active` item keeps `is-active` and `aria-current="page"`, and sets the `href` from `to` after the spread. Its items point at fragments so the preview stays on the page, and `active` is set by hand. In an app they're your routes, and `active` comes from the router, as the [Routing guide](../../guides/features/routing.md) shows.
 
 ```tsx live
 // import { Link } from 'react-router-dom';
 function example() {
-  const Link = (props: { to: string; children?: React.ReactNode }) => (
-    <a href={props.to}>{props.children}</a>
-  );
+  const Link = ({
+    to,
+    ...rest
+  }: { to: string } & Omit<
+    React.AnchorHTMLAttributes<HTMLAnchorElement>,
+    'href'
+  >) => <a {...rest} href={to} />;
   return (
     <Menu>
       <Menu.Label>App</Menu.Label>
       <Menu.List>
-        <Menu.Item as={Link} to="/dashboard">
+        <Menu.Item as={Link} to="#dashboard" active>
           Dashboard
         </Menu.Item>
-        <Menu.Item as={Link} to="/settings">
+        <Menu.Item as={Link} to="#settings">
           Settings
         </Menu.Item>
       </Menu.List>

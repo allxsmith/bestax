@@ -96,4 +96,48 @@ describe.each([
     );
     expect(forced(`${p('rate')} ${p('rate-icon-bg')}`)).toBeUndefined();
   });
+
+  // A disabled Rate drew at half strength in forced colors, where GrayText
+  // already says it's disabled (#1996).
+  it('draws a disabled Rate at full strength in forced colors, its filled parts in the text color', () => {
+    const forced = (selector: string) =>
+      nested.find(
+        ({ rule, within }) =>
+          within === '@media (forced-colors: active)' &&
+          rule.selectorText
+            .split(/,(?![^(]*\))/)
+            .map(s => s.trim())
+            .includes(selector)
+      )?.rule;
+    const disabled = `${p('rate')}${p('is-disabled')}`;
+    expect(declared(disabled, 'opacity')).toBe(
+      'var(--bulma-rate-disabled-opacity)'
+    );
+    expect(forced(disabled)?.style.getPropertyValue('opacity')).toBe('1');
+    for (const part of [
+      p('rate-item'),
+      p('rate-icon-bg'),
+      p('rate-score'),
+      p('rate-text'),
+      p('rate-custom-text'),
+    ]) {
+      expect(
+        forced(`${disabled} ${part}`)?.style.getPropertyValue('color')
+      ).toBe('graytext');
+    }
+    // The filled parts take the text color, not the highlight, so it doesn't
+    // draw as an enabled Rate, and an icon's filled stars still differ from
+    // its empty ones.
+    for (const part of [
+      `${p('rate-item')}${p('is-active')}`,
+      p('rate-icon-fg'),
+    ]) {
+      expect(
+        forced(`${disabled} ${part}`)?.style.getPropertyValue('color')
+      ).toBe('canvastext');
+    }
+    const fill = forced(`${disabled} ${p('rate-star-fill')}`)?.style;
+    expect(fill?.getPropertyValue('fill')).toBe('canvastext');
+    expect(fill?.getPropertyPriority('fill')).toBe('important');
+  });
 });
