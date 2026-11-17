@@ -1,0 +1,26 @@
+// Bestax Extras - Card Styles
+// Bulma draws a card's edge as a shadow, with no border. Forced colors
+// (Windows' contrast themes) drops every shadow and paints the card's
+// background in the system's Canvas, the page's own color, so nothing shows
+// where a card starts and ends there, and in a row of cards their images,
+// text and actions run into each other. This draws the edge back as a 1px
+// CanvasText outline, as `_box.scss` does for Box. It sits outside the card,
+// so a card's image, which is positioned, doesn't paint over it. Nothing opts
+// out of forced colors, so the user's palette still decides the color.
+// Outside forced colors it changes nothing.
+//
+// CheckboxCard and RadioCard are cards too, and draw an edge of their own in
+// forced colors whose thickness marks the picked one, so they're left out.
+// While a card has keyboard focus the outline steps aside, so the browser's
+// own focus ring shows. Bulma sets no outline on a card, so the order the
+// stylesheets load in doesn't matter.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}card:not(.#{iv.$class-prefix}checkbox-card):not(
+      .#{iv.$class-prefix}radio-card
+    ):not(:focus-visible) {
+    outline: 1px solid CanvasText;
+  }
+}

@@ -588,15 +588,22 @@ export const PanelCollapse: Story = {
             {tabs.map(tab => (
               <a
                 key={tab}
+                href={`#${tab.toLowerCase()}`}
                 className={activeTab === tab.toLowerCase() ? 'is-active' : ''}
-                onClick={() => setActiveTab(tab.toLowerCase())}
+                aria-current={
+                  activeTab === tab.toLowerCase() ? 'true' : undefined
+                }
+                onClick={e => {
+                  e.preventDefault();
+                  setActiveTab(tab.toLowerCase());
+                }}
               >
                 {tab}
               </a>
             ))}
           </Panel.Tabs>
           {projects.map(project => (
-            <Panel.Block key={project.name}>
+            <Panel.Block key={project.name} href={`#${project.name}`}>
               <Panel.Icon name={project.icon} variant="solid" />
               {project.name}
             </Panel.Block>

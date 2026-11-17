@@ -138,6 +138,24 @@ $-current: ':is(a.#{iv.$class-prefix}navbar-item, .#{iv.$class-prefix}navbar-lin
   }
 }
 
+// From the desktop breakpoint up, a dropdown is a box over the page, its edge
+// a shadow and, for some, a line on the side it opens from. Forced colors
+// drops the shadow and paints the box in the page's own Canvas, so its rows
+// run into the page around them. That line, where there is one, stays, with
+// the outline just past it. A one pixel outline in CanvasText, which takes
+// no room, draws the edge there, the way `_modal.scss` draws a modal card's.
+// It sits outside the box, since the rows are positioned and would paint over
+// an outline drawn inside. Under the burger a dropdown's rows sit in the menu,
+// with no box to draw. Bulma sets no outline on a dropdown, so one class is
+// enough wherever the two stylesheets load.
+@include mx.desktop {
+  @media (forced-colors: active) {
+    .#{iv.$class-prefix}navbar-dropdown {
+      outline: 1px solid CanvasText;
+    }
+  }
+}
+
 :where(
     .#{iv.$class-prefix}navbar.#{iv.$class-prefix}is-fixed-top,
     .#{iv.$class-prefix}navbar.#{iv.$class-prefix}is-fixed-bottom
