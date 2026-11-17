@@ -232,6 +232,8 @@ lone class loses to and `style` does not. Each component's API page lists its va
 **CSS & Sass Variables** and says where Bulma declares them; the extras below follow the same
 rule. In forced colors a colored button's `--bulma-button-border-width` is `1px`, so it keeps an
 edge when the theme replaces its fill, and an outlined button or a `text` one keeps its own.
+`--bulma-button-disabled-opacity` doesn't apply in forced colors: a disabled button draws at full
+strength in the system's color for a disabled control.
 
 ## Shadow — override the upstream token, not the derived one
 
