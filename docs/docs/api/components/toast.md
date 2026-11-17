@@ -295,6 +295,16 @@ The container's `position` places every toast shown without one. Pass `position`
 
 Toasts shown at one position stack in one box, with a gap between them, in the order they were shown: down from a top position and up from a bottom one. A toast shown with a `container` of its own goes there instead, in a box of its own.
 
+### Reaching toasts from the keyboard
+
+The container's `hotkey`, F8 unless you give it another, moves keyboard focus to the newest toast's first button, or to the toast itself when it has none, and the toast then stays open while focus is inside it. That's how someone who can't reach a toast with a pointer takes its action before it closes. Each stack is a region named "Notifications" with the hotkey after it, such as "Notifications (F8)", so a screen reader user can find it and learn the key.
+
+The entries are modifier flags (`altKey`, `ctrlKey`, `metaKey`, `shiftKey`) and one key by its code (`F8`, `KeyT`, `Digit1`, `Period`), held together with no other modifier, and `[]` turns the hotkey off. A key that types a character, without Ctrl, Meta or Alt, doesn't count while someone types in a field, and nothing happens while a modal overlay is open. `ariaLabel` names the regions in your app's language:
+
+```tsx
+<ToastContainer hotkey={['altKey', 'KeyT']} ariaLabel="Avis" />
+```
+
 ### API Methods
 
 ```tsx
@@ -343,6 +353,7 @@ toast.closeAll();
 - The closable button is named "Close". Pass `ariaCloseLabel` to name it in your app's language.
 - `pauseOnHover` lets users keep the toast visible while reading.
 - A toast doesn't close on its timer while focus is inside it, on its action, cancel or close button, whatever `pauseOnHover` says, so a keyboard user who reaches it can use it. Once focus leaves, it gets its whole `duration` again.
+- `ToastContainer`'s `hotkey`, F8 by default, moves focus to the newest toast's first button, or to the toast itself when it has none, so a keyboard or screen reader user reaches it before it closes. Each stack is a region named "Notifications" with the hotkey after it, such as "Notifications (F8)".
 - `cancelable` (default `true`) supports Escape-key dismiss. An Escape that closed a popup on the page, such as a Dropdown menu or a date picker's calendar, leaves the toast up.
 - A toast is a notification rather than a layer, so while a [Modal](./modal.md), [Dialog](./dialog.md), [Sidebar](./sidebar.md) or full-page [Loading](./loading.md) is open, Escape goes to that and the toast stays up. Once none is open, Escape dismisses the toast.
 - In forced colors (Windows' contrast themes), which drop the toast's shadow and paint its fill in the page's own color, the toast gets a one pixel edge in the system's text color, and the cancel button's text shows at full strength. A toast given a `tabIndex` shows the browser's focus ring in place of that edge while it has keyboard focus.

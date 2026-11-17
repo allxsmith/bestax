@@ -2332,6 +2332,16 @@ describe('plan', () => {
         ).conversion?.target
       ).toBe('Modal.Card.Head');
     });
+
+    // The root stays markup, and the `Modal` it's rebuilt with is a dialog
+    // while it's open, so its TODO says to name it (#1941).
+    it("asks for the rebuilt root's name", () => {
+      const [todo] = plan(facts('div', 'modal')).todos;
+      expect(todo.rule).toBe('family:modal');
+      expect(todo.message).toContain(
+        'keeping or adding a name for the dialog it becomes: an `aria-label`, or an `aria-labelledby` pointing at the `id` of its title'
+      );
+    });
   });
 
   describe('Image', () => {

@@ -1,9 +1,19 @@
-import React, { forwardRef, useContext, useEffect, useState } from 'react';
+import React, {
+  forwardRef,
+  useContext,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import type { PolymorphicComponent } from '../helpers/polymorphic';
 import { buttonType } from '../helpers/buttonType';
 import { getActiveElementInTree } from '../helpers/shadowDom';
+import { useHoverDismiss } from '../helpers/useHoverDismiss';
+import { chain } from '../helpers/useHoverOpen';
+import { isAtBulmaBreakpoint } from '../helpers/useBulmaViewport';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -19,7 +29,11 @@ interface NavbarDropdownContextValue {
   active: boolean;
   /** Flips the open state. */
   toggle: () => void;
-  /** Closes the dropdown (no-op if already closed). */
+  /**
+   * What the link's Escape does on an open dropdown: closes it, and puts the
+   * menu away if the pointer or focus would still show it. The root's own
+   * Escape handles a menu only the pointer or focus shows.
+   */
   close: () => void;
 }
 
@@ -835,16 +849,22 @@ export interface NavbarDropdownProps extends React.HTMLAttributes<HTMLDivElement
   right?: boolean;
   /** Dropdown opens upwards. */
   up?: boolean;
-  /** Dropdown opens on hover. */
+  /**
+   * Dropdown opens on hover, and while focus is in it, as Bulma's navbar
+   * shows it on a desktop-wide window. Escape puts away a menu the pointer or
+   * focus is showing there, and it stays away until the pointer has left the
+   * dropdown and focus has too, or until the pointer comes back or focus moves
+   * onto something in it. Escape from inside the dropdown puts focus on its
+   * `Navbar.Link` first, and leaves the menu as it is in the cases `active`
+   * lists, such as when focus can't go back to the link.
+   */
   hoverable?: boolean;
   /**
    * Dropdown is open, whether you control it or not. Escape on its
    * `Navbar.Link`, or anywhere else in the open dropdown, closes it and puts
    * focus on the link, unless a control there marks the key used, the key
    * comes from a dialog or from content opened from the menu into a portal,
-   * or focus can't go back to the link. A `hoverable` dropdown's menu still
-   * shows while the pointer is on the dropdown or focus is in it, the link
-   * included.
+   * or focus can't go back to the link.
    */
   active?: boolean;
   /** Callback when dropdown active state changes. */
@@ -871,12 +891,31 @@ export const NavbarDropdown = forwardRef<HTMLDivElement, NavbarDropdownProps>(
       active: activeProp,
       onActiveChange,
       onKeyDown,
+      onPointerLeave,
+      onPointerEnter,
+      onFocus,
+      onBlur,
       children,
       ...props
     },
     ref
   ) {
     const [active, setActive] = useState<boolean>(!!activeProp);
+    const rootRef = useRef<HTMLDivElement>(null);
+    useImperativeHandle(ref, () => rootRef.current as HTMLDivElement, []);
+    // Bulma shows a `hoverable` dropdown's menu while the pointer is on it or
+    // focus is in it, on a desktop-wide window; narrower, the menu is always
+    // shown under the burger. Escape puts a menu shown that way away (WCAG
+    // 1.4.13, content on hover is dismissible).
+    const hover = useHoverDismiss(rootRef, {
+      enabled: !!hoverable,
+      withFocus: true,
+      applies: () =>
+        isAtBulmaBreakpoint(
+          'desktop',
+          (rootRef.current as HTMLElement).ownerDocument.defaultView
+        ),
+    });
     const linkClass = usePrefixedClassNames('navbar-link');
     const menuClass = usePrefixedClassNames('navbar-dropdown');
 
@@ -894,14 +933,14 @@ export const NavbarDropdown = forwardRef<HTMLDivElement, NavbarDropdownProps>(
     };
 
     const close = () => {
-      /* istanbul ignore next: close() is only invoked once already active */
       if (!active) return;
       setActive(false);
       onActiveChange?.(false);
     };
 
-    // Escape in an open dropdown puts focus back on its Navbar.Link and closes
-    // it, as Escape on the link itself does. The link's own handler uses the
+    // Escape in an open dropdown, or one the pointer or focus shows, puts
+    // focus back on its Navbar.Link and closes it or puts it away, as Escape
+    // on the link itself does. The link's own handler uses the
     // key first, and so may a control in the dropdown that marks it used. An
     // IME's Escape only cancels its composition, and one from a dialog opened
     // from the menu, portaled out of the dropdown or inside it, is the
@@ -909,7 +948,9 @@ export const NavbarDropdown = forwardRef<HTMLDivElement, NavbarDropdownProps>(
     // the key passes on, so focus isn't left on a hidden item.
     const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
       onKeyDown?.(e);
-      if (e.key !== 'Escape' || e.defaultPrevented || !active) return;
+      if (e.key !== 'Escape' || e.defaultPrevented) return;
+      const hoverShown = hover.shown();
+      if (!active && !hoverShown) return;
       if (e.nativeEvent.isComposing || e.keyCode === 229) return;
       const root = e.currentTarget;
       const path = e.nativeEvent.composedPath();
@@ -926,24 +967,37 @@ export const NavbarDropdown = forwardRef<HTMLDivElement, NavbarDropdownProps>(
       trigger.focus();
       if (getActiveElementInTree(trigger) !== trigger) return;
       e.preventDefault();
+      closeOnEscape();
+    };
+
+    // The link's own Escape, which closes an open dropdown before the key
+    // reaches the root, puts away a menu hover or focus shows too.
+    const closeOnEscape = () => {
+      if (hover.shown()) hover.dismiss();
       close();
     };
 
     return (
-      <NavbarDropdownContext.Provider value={{ active, toggle, close }}>
+      <NavbarDropdownContext.Provider
+        value={{ active, toggle, close: closeOnEscape }}
+      >
         <div
-          ref={ref}
+          ref={rootRef}
           className={classNames(
             usePrefixedClassNames('navbar-item', 'has-dropdown', {
               'has-dropdown-up': up,
               'is-right': right,
-              'is-hoverable': hoverable,
+              'is-hoverable': hoverable && !hover.dismissed,
               'is-active': active,
             }),
             className
           )}
           {...props}
           onKeyDown={handleKeyDown}
+          onPointerLeave={chain(onPointerLeave, hover.onPointerLeave)}
+          onPointerEnter={chain(onPointerEnter, hover.onPointerEnter)}
+          onFocus={chain(onFocus, hover.onFocus)}
+          onBlur={chain(onBlur, hover.onBlur)}
         >
           {children}
         </div>

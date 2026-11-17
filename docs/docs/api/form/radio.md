@@ -171,6 +171,7 @@ Keep the label text inside the `Radio` when you shrink the circle. The whole lab
 - Radios that share a `name` are one group: only one can be checked, and the arrow keys move between them. Inside `Radios` they take the group's `name`, or one it generates when you give it none. Outside one, give each the same `name`.
 - The circle is at least 24px across, the minimum size WCAG 2.2 sets for a target (2.5.8), whatever `--bulma-radio-size` says. [Circle Size](#circle-size) shows how to make it smaller, and why to keep the label text inside the `Radio` when you do.
 - An unchecked radio shows only its ring, `--bulma-radio-border-color`. It defaults to `--bulma-text-weak`, which holds the 3:1 contrast WCAG asks of a control's boundary (non-text contrast) on Bulma's page and card surfaces in light and dark. Set a replacement on a class you pass through `className`, since `style` goes to the `<input>`, naming the label's class too (`.styled-radio.my-radio`) so load order can't undo it, and hold it to 3:1 as well.
+- In forced colors (Windows contrast themes), the circle and the dot take system colors. A disabled radio, its dot and its label draw in the system's color for disabled text there, at full strength rather than dimmed.
 
 ---
 
