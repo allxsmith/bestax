@@ -11,7 +11,7 @@
     },
     {
       "title": "Columns on Mobile and Desktop",
-      "code": "<>\n  {\n    // Columns enabled on mobile screens and up\n  }\n  <Columns isMobile>\n    <Column>\n      <Notification color=\"primary\">1</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">2</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">3</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">4</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">5</Notification>\n    </Column>\n  </Columns>\n\n  {\n    // Columns enabled on desktop screens and up\n  }\n  <Columns isDesktop>\n    <Column>\n      <Notification color=\"primary\">1</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">2</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">3</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">4</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">5</Notification>\n    </Column>\n  </Columns>\n</>"
+      "code": "<>\n  {\n    // Columns side by side on mobile screens and up\n  }\n  <Columns isMobile>\n    <Column>\n      <Notification color=\"primary\">1</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">2</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">3</Notification>\n    </Column>\n  </Columns>\n\n  {\n    // Columns enabled on desktop screens and up\n  }\n  <Columns isDesktop>\n    <Column>\n      <Notification color=\"primary\">1</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">2</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">3</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">4</Notification>\n    </Column>\n    <Column>\n      <Notification color=\"primary\">5</Notification>\n    </Column>\n  </Columns>\n</>"
     },
     {
       "title": "Different Column Sizes Per Breakpoint",
@@ -70,7 +70,7 @@
       "code": "<Columns>\n  <Columns.Column>\n    <Notification color=\"primary\">First column</Notification>\n  </Columns.Column>\n  <Columns.Column>\n    <Notification color=\"info\">Second column</Notification>\n  </Columns.Column>\n</Columns>"
     }
   ],
-  "accessibility": null,
+  "accessibility": "- **No role of its own:** `Columns` and `Column` render `<div>`s, which add nothing to the\n  accessibility tree. Columns are read, and tabbed through, in the order they're written, so lay\n  them out in that order: a reversed `flexDirection` changes only what's seen (WCAG 1.3.2 and\n  2.4.3). An offset only adds room before a column.\n- **Reflow:** below tablet, columns stack. `isMobile` keeps them side by side at every width, and\n  a row that doesn't fit a 320px screen runs past its edge, where Bulma's default\n  `overflow-x: hidden` on the page cuts it off (WCAG 1.4.10 Reflow). Keep it for a row that fits.",
   "related": [],
   "storybook": null,
   "summary": "The `Columns` component provides Bulma's flexible, responsive grid container for aligning and distributing [`Column`](https://bestax.io/docs/api/columns/column) components.",
@@ -161,7 +161,7 @@
           "name": "isMobile",
           "type": "boolean",
           "default": "false",
-          "description": "Apply columns layout on mobile and up.",
+          "description": "Keeps the columns side by side on a phone too (Bulma's `is-mobile`). Without it they stack below tablet. A row that doesn't fit a 320px screen runs past its edge, where Bulma's default `overflow-x: hidden` on the page cuts it off (WCAG 1.4.10 Reflow), so keep it for a row that fits.",
           "required": false,
           "inherited": false,
           "deprecated": false
