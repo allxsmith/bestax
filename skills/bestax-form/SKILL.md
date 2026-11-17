@@ -317,8 +317,8 @@ Rules of thumb:
   `Numberinput`, `PinInput`, `File`, `ColorInput` and `Combobox.Input`. `DateInput`,
   `TimeInput`, `DateTimeInput`, `Autocomplete`, `Taginput`, `TreeSelect`, `Cascader` and a
   `Combobox` with `data` put their other attributes on a wrapper, and `aria-invalid` and
-  `aria-errormessage` on the input. On `DateRangeInput` and `ColorPicker.Input` it doesn't reach
-  the input yet; the `message` still carries the error.
+  `aria-errormessage` on the input, as `DateRangeInput` does on both its inputs and
+  `ColorPicker.Input` on its field.
 - A field that asks for the user's own details takes its `autoComplete` token (`name`,
   `given-name`, `family-name`, `email`, `tel`, `address-line1`, `address-level2`, `postal-code`,
   `country`, `new-password`, …; the full list is HTML's autofill field names), so the browser can
