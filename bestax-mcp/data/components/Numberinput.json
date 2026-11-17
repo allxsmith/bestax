@@ -39,7 +39,7 @@
     },
     {
       "title": "Buttons in Another Language",
-      "code": "<Numberinput\n  label=\"Quantité\"\n  defaultValue={2}\n  min={1}\n  labels={{ increase: 'Augmenter', decrease: 'Diminuer' }}\n/>"
+      "code": "<Block lang=\"fr\">\n  <Numberinput\n    label=\"Quantité\"\n    defaultValue={2}\n    min={1}\n    labels={{ increase: 'Augmenter', decrease: 'Diminuer' }}\n  />\n</Block>"
     },
     {
       "title": "Disabled State",
