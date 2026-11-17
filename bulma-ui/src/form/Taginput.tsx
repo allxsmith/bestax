@@ -155,7 +155,13 @@ export interface TaginputProps
    * drawn (with bestax's CSS loaded).
    */
   loading?: boolean;
-  /** ARIA label for tag close buttons. */
+  /**
+   * Names each tag's remove button in place of "Remove" and the tag's text,
+   * the same name for every button, as for a translation. Each button is
+   * then described by its tag's text, so it still says which tag it
+   * removes, except with a `tagTemplate`, whose content is left as it
+   * renders.
+   */
   ariaCloseLabel?: string;
   /** Icon name for the input field. */
   icon?: string;
@@ -693,6 +699,8 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
 
     const counterClasses = pcn('help', 'counter');
     const tagsClasses = pcn('tags');
+    // Whether each tag has its remove button.
+    const removable = closable && !disabled && !readonly;
     const dropdownMenuClasses = pcn('dropdown-menu', 'is-active');
     const dropdownContentClasses = pcn('dropdown-content');
     const iconRightClass = pcn('icon', 'is-right');
@@ -748,16 +756,29 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
           <div className={tagsClasses}>
             {tags.map((tag, index) => {
               const displayVal = getDisplayValue(tag);
+              // With one name for every remove button, each is described
+              // by its tag's text, as Combobox's tags are (#2007), so the
+              // text takes an id then. A tagTemplate's content is left as it
+              // renders, since a span around it would change its spacing.
+              const tagTextId =
+                ariaCloseLabel && removable && !tagTemplate
+                  ? `${baseId}-tag-${index}`
+                  : undefined;
               return (
                 <span key={index} className={tagClasses}>
                   {tagTemplate ? (
                     tagTemplate(tag)
-                  ) : ellipsis ? (
-                    <span title={displayVal}>{displayVal}</span>
+                  ) : ellipsis || tagTextId ? (
+                    <span
+                      id={tagTextId}
+                      title={ellipsis ? displayVal : undefined}
+                    >
+                      {displayVal}
+                    </span>
                   ) : (
                     displayVal
                   )}
-                  {closable && !disabled && !readonly && (
+                  {removable && (
                     <button
                       type="button"
                       className={pcn('delete', 'is-small')}
@@ -766,6 +787,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
                         removeTag(index);
                       }}
                       aria-label={ariaCloseLabel || `Remove ${displayVal}`}
+                      aria-describedby={tagTextId}
                     />
                   )}
                 </span>
