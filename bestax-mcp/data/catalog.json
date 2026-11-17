@@ -1441,8 +1441,8 @@
       "slug": "form/switch",
       "import": "import { Switch } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 9,
-      "exampleCount": 11
+      "propCount": 10,
+      "exampleCount": 12
     },
     {
       "name": "Table",
