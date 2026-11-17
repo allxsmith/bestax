@@ -46,7 +46,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 ## Elements
 
 - [Block](https://bestax.io/docs/api/elements/block) — The `Block` component renders a simple container with Bulma's `.block` class, adding vertical margin between sections of content.
-- [Box](https://bestax.io/docs/api/elements/box) — The `Box` component renders a bordered, padded container with an optional shadow using Bulma's `.box` class.
+- [Box](https://bestax.io/docs/api/elements/box) — The `Box` component renders a padded container with rounded corners and an optional shadow using Bulma's `.box` class.
 - [Button](https://bestax.io/docs/api/elements/button) — The `Button` component provides a flexible and highly customizable button for your Bulma React UI.
 - [Buttons](https://bestax.io/docs/api/elements/buttons) — The `Buttons` component lets you group multiple `Button` elements together with Bulma's spacing, alignment, and add-on features.
 - [Code](https://bestax.io/docs/api/elements/code) — The `Code` component renders a styled `<code>` element with Bulma helper class integration.

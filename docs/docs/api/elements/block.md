@@ -135,7 +135,7 @@ Use `Block` for logical, visually separated sections of content.
 
 ## Related Components
 
-- [`Box`](./box.md): For bordered, padded containers.
+- [`Box`](./box.md): For padded containers with an optional shadow.
 - [`Content`](./content.md): For typographically styled rich content.
 - [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing, color, etc.
 
