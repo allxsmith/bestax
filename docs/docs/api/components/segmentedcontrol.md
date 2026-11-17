@@ -347,7 +347,8 @@ is in the pressed state, the toggles behave like radio buttons."
   fills that wouldn't be, the same way `ToggleButton` does.
 - **Forced colors:** Windows' contrast themes replace the fill, so bestax's styles draw the checked
   segment in the system's highlight colors there, whatever its `color`, and a disabled checked one
-  in the system's color for a disabled control, filled.
+  in the system's color for a disabled control, filled. A disabled segment that isn't checked
+  is drawn in that color at full strength, as any disabled `Button` is.
 - **Not a form field:** it's always `type="button"`, so it never submits a form, and it carries no
   value. A choice the form should send is `Radios`.
 
