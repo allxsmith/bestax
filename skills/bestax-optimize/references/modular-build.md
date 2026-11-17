@@ -62,7 +62,7 @@ Stock Bulma examples:
 @use 'bulma/sass/elements/notification'; // Notification
 @use 'bulma/sass/elements/title'; // Title, SubTitle
 @use 'bulma/sass/form/input-textarea'; // Input, TextArea
-@use 'bulma/sass/form/select'; // Select
+@use 'bulma/sass/form/select'; // Select, plus bestax's form/select (see below)
 @use 'bulma/sass/form/tools'; // Field, Control
 @use 'bulma/sass/components/card'; // Card
 @use 'bulma/sass/components/modal'; // Modal
@@ -90,7 +90,7 @@ guide's Option C shows a short example and links here for the full list:
 `checkbox`, `checkboxcard`, `radio`, `radiocard`, `switch`, `slider`, `numberinput`, `pininput`,
 `rate`, `autocomplete`, `combobox`, `taginput`, `picker-popover`, `dateinput`, `timeinput`,
 `datetimeinput`, `daterangeinput`, `file`, `fieldset`, `field`, `dropzone`, `colorpicker`,
-`colorinput`, `passwordinput`, `treeselect`, `cascader`
+`colorinput`, `passwordinput`, `treeselect`, `cascader`, `select`
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `box`, `button`, `colorswatch`,
 `delete`, `descriptionlist`, `divider`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`,
@@ -205,6 +205,15 @@ Notes:
   ```scss
   @use 'bulma/sass/form/file';
   @use '@allxsmith/bestax-bulma/scss/form/file' as bestax-file;
+  ```
+
+- The `select` partial **extends** stock Bulma select (an outline on a focused `Select` in forced
+  colors, where Bulma's focus ring is a shadow those themes drop), so an app using
+  `Select` needs both, in either order:
+
+  ```scss
+  @use 'bulma/sass/form/select';
+  @use '@allxsmith/bestax-bulma/scss/form/select' as bestax-select;
   ```
 
 - The `field` partial **extends** stock Bulma's field (`bulma/sass/form/tools`): it puts the
