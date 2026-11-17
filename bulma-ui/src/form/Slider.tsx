@@ -216,9 +216,10 @@ function toDecimal(value: number): [bigint, number] {
 }
 
 /**
- * The highest value a range input with these bounds holds: the last step
- * from `min` at or below `max`, where a browser puts the thumb when `max`
- * falls between two steps, or `min` when `max` isn't above it. A step that
+ * The highest value a range input with these bounds holds, as browsers write
+ * it: the last step from `min` at or below `max`, where a browser puts the
+ * thumb when `max` falls between two steps, or `min` when `max` isn't above
+ * it. A step that
  * isn't a positive number counts as 1, as the browser counts it. Bounds that
  * aren't finite numbers leave `max` as it is.
  */
@@ -242,7 +243,9 @@ function highestStep(min: number, max: number, step: number): number {
   const top = Number(`${start + steps * stride}e${place}`);
   // Browsers keep a fraction to fifteen significant digits, so a step of 1/3
   // ends at 10, not 9.999999999999998, and 0.9 is written 0.9. A whole
-  // number they keep as it is.
+  // number they keep as it is. Next to a max written with more digits, the
+  // fifteen can round a hair above it, as Chromium and WebKit hold it: with
+  // a max and step of 0.7 + 0.1, 0.7999999999999999, they hold 0.8.
   return Number.isInteger(top) ? top : Number(top.toPrecision(15));
 }
 

@@ -549,6 +549,9 @@ describe('Slider', () => {
         [0, 1, 0.1 + 0.2, 0.9],
         [1 / 3, 10, 1, 9.33333333333333],
         [0, 1700000000000013.5, 1, 1700000000000013],
+        // Fifteen digits next to a max written with more, which Chromium and
+        // WebKit hold a hair above it too.
+        [0, 0.7 + 0.1, 0.7 + 0.1, 0.8],
         // On the grid, max itself, even where a float's division lands a
         // hair under a whole number of steps, and at a large scale.
         [0, 1, 0.1, 1],
