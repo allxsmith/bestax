@@ -86,8 +86,9 @@ Run these steps in order. Don't hand-convert what the codemod converts automatic
    import the codemod could not rewrite and left in place; `unsupported-file` names
    a file type it cannot parse (`.vue`, `.astro`) that still imports the source;
    `value-reference` marks a component used as a value rather than as JSX. Rules
-   named `component:X` and `prop:y` are per-component and per-prop, and each is
-   documented in the per-source `references/` pages.
+   named `component:X` and `prop:y` are per-component and per-prop, `name:X` asks
+   for an accessible name the codemod can't write, and each is documented in the
+   per-source `references/` pages.
 
    The report's `peer-deps` entries predict install failures: bestax-bulma needs
    **React 18/19** (react-bulma-components also ran on 17, while rbx and bloomer peer-depended
