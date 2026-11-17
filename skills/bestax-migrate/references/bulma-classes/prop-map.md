@@ -22,13 +22,13 @@ otherwise, and the prop takes the matching suffix: `is-6-tablet` → `sizeTablet
 | `is-fullwidth`                                                                                                                        | `isFullwidth`                                                    |
 
 `is-disabled` stays a class: `isDisabled` also writes `disabled` or `aria-disabled`, which the
-element did not have.
+element did not have. On any tag but `<button>`, bestax takes the element's `as`
+(`<a className="button">` → `<Button as="a">`).
 
 `is-loading` becomes `isLoading`, so a converted loading button gains what bestax's loading
-`Button` does: it writes `aria-busy="true"` and `aria-disabled="true"`, and ignores presses while
-it loads, Enter and Space included, where Bulma's spinner stops only the pointer. A handler that
-should run on a loading button doesn't any more. On any tag but `<button>`, bestax takes the element's `as`
-(`<a className="button">` → `<Button as="a">`).
+`Button` does: it writes `aria-busy="true"` and `aria-disabled="true"`, and drops a click while it
+loads, from the keyboard too, where Bulma's spinner stops only the pointer. Its `onClick` doesn't
+run then, and neither does the form submit or the link it would have triggered.
 
 ### `.buttons` → `Buttons`, `.tags` → `Tags`
 
