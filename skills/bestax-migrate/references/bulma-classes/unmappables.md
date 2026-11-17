@@ -319,7 +319,8 @@ What it can read is a `clsx` or `classnames` call made of class strings and clas
 under a condition: `busy && 'is-loading'`, `{ 'is-loading': busy }`, `busy ? 'is-loading' : ''`
 (or `: null`). Those convert without a TODO. A condition on one of the component's flags
 becomes that prop (`isLoading={busy}`, or `isLight={!quiet}` for `quiet ? '' : 'is-light'`),
-anything else stays in the call, and the call goes once nothing is left in it. `Field`'s
+unless the prop writes over an attribute the element sets (`is-loading` beside the button's own
+`aria-busy` or `aria-disabled`); that one and anything else stays in the call, and the call goes once nothing is left in it. `Field`'s
 `is-grouped` stays in the call too, since `grouped` renders it for `true` alone. A prop is
 evaluated before the call, so a condition moves ahead of one left in the call only when neither
 can have side effects (a call, an assignment); otherwise it stays. A condition that isn't a
