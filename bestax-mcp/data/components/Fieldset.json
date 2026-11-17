@@ -11,7 +11,7 @@
     },
     {
       "title": "Variants",
-      "code": "<Columns>\n  <Column>\n    <Fieldset legend=\"Default\">\n      <Input label=\"Street\" name=\"street-default\" />\n    </Fieldset>\n  </Column>\n  <Column>\n    <Fieldset variant=\"filled\" legend=\"Filled\">\n      <Input label=\"Street\" name=\"street-filled\" />\n    </Fieldset>\n  </Column>\n  <Column>\n    <Fieldset variant=\"unstyled\" legend=\"Unstyled\">\n      <Input label=\"Street\" name=\"street-unstyled\" />\n    </Fieldset>\n  </Column>\n</Columns>"
+      "code": "<Columns>\n  <Column>\n    <Fieldset legend=\"Default\">\n      <Input\n        autoComplete=\"address-line1\"\n        label=\"Street\"\n        name=\"street-default\"\n      />\n    </Fieldset>\n  </Column>\n  <Column>\n    <Fieldset variant=\"filled\" legend=\"Filled\">\n      <Input autoComplete=\"address-line1\" label=\"Street\" name=\"street-filled\" />\n    </Fieldset>\n  </Column>\n  <Column>\n    <Fieldset variant=\"unstyled\" legend=\"Unstyled\">\n      <Input\n        autoComplete=\"address-line1\"\n        label=\"Street\"\n        name=\"street-unstyled\"\n      />\n    </Fieldset>\n  </Column>\n</Columns>"
     },
     {
       "title": "With a Message",
@@ -23,7 +23,7 @@
     },
     {
       "title": "Disabled",
-      "code": "<Fieldset legend=\"Preferences\" disabled>\n  <Input label=\"Display name\" name=\"display-name\" defaultValue=\"Ada\" />\n  <Rate label=\"Rating\" name=\"rating\" defaultValue={3} />\n  <Slider label=\"Volume\" name=\"volume\" defaultValue={40} />\n  <Checkboxes label=\"Notifications\" name=\"notifications\">\n    <Checkbox value=\"email\">Email</Checkbox>\n    <Checkbox value=\"sms\">SMS</Checkbox>\n  </Checkboxes>\n</Fieldset>"
+      "code": "<Fieldset legend=\"Preferences\" disabled>\n  <Input\n    autoComplete=\"nickname\"\n    label=\"Display name\"\n    name=\"display-name\"\n    defaultValue=\"Ada\"\n  />\n  <Rate label=\"Rating\" name=\"rating\" defaultValue={3} />\n  <Slider label=\"Volume\" name=\"volume\" defaultValue={40} />\n  <Checkboxes label=\"Notifications\" name=\"notifications\">\n    <Checkbox value=\"email\">Email</Checkbox>\n    <Checkbox value=\"sms\">SMS</Checkbox>\n  </Checkboxes>\n</Fieldset>"
     },
     {
       "title": "Turned On From the Legend",

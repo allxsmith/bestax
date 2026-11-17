@@ -51,7 +51,7 @@
     },
     {
       "title": "Form Addons › Fullwidth Select + Button",
-      "code": "<Field hasAddons>\n  <Control isExpanded>\n    <Select isFullwidth aria-label=\"Country\">\n      <option>United States</option>\n      <option>United Kingdom</option>\n      <option>Canada</option>\n      <option>France</option>\n      <option>Germany</option>\n    </Select>\n  </Control>\n  <Control>\n    <Button color=\"primary\">Choose</Button>\n  </Control>\n</Field>"
+      "code": "<Field hasAddons>\n  <Control isExpanded>\n    <Select autoComplete=\"country\" isFullwidth aria-label=\"Country\">\n      <option>United States</option>\n      <option>United Kingdom</option>\n      <option>Canada</option>\n      <option>France</option>\n      <option>Germany</option>\n    </Select>\n  </Control>\n  <Control>\n    <Button color=\"primary\">Choose</Button>\n  </Control>\n</Field>"
     },
     {
       "title": "Horizontal — Select in Narrow Field",
@@ -59,15 +59,15 @@
     },
     {
       "title": "Context-Aware Rendering › Default (with label)",
-      "code": "<Select label=\"Country\">\n  <option value=\"\">Please select</option>\n  <option value=\"us\">United States</option>\n  <option value=\"uk\">United Kingdom</option>\n  <option value=\"ca\">Canada</option>\n</Select>"
+      "code": "<Select autoComplete=\"country\" label=\"Country\">\n  <option value=\"\">Please select</option>\n  <option value=\"us\">United States</option>\n  <option value=\"uk\">United Kingdom</option>\n  <option value=\"ca\">Canada</option>\n</Select>"
     },
     {
       "title": "Context-Aware Rendering › With Field Wrapper",
-      "code": "function example() {\n  return (\n    <Field horizontal label=\"Country\" labelProps={{ htmlFor: 'country-field' }}>\n      <Field.Body>\n        <Field>\n          <Select id=\"country-field\">\n            <option value=\"\">Please select</option>\n            <option value=\"us\">United States</option>\n            <option value=\"uk\">United Kingdom</option>\n            <option value=\"ca\">Canada</option>\n          </Select>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Country\" labelProps={{ htmlFor: 'country-field' }}>\n      <Field.Body>\n        <Field>\n          <Select autoComplete=\"country\" id=\"country-field\">\n            <option value=\"\">Please select</option>\n            <option value=\"us\">United States</option>\n            <option value=\"uk\">United Kingdom</option>\n            <option value=\"ca\">Canada</option>\n          </Select>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
       "title": "Context-Aware Rendering › With Field and Control Wrappers",
-      "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Country\"\n      labelProps={{ htmlFor: 'country-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"globe\">\n            <Select id=\"country-field-control\">\n              <option value=\"\">Please select</option>\n              <option value=\"us\">United States</option>\n              <option value=\"uk\">United Kingdom</option>\n              <option value=\"ca\">Canada</option>\n            </Select>\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Country\"\n      labelProps={{ htmlFor: 'country-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"globe\">\n            <Select autoComplete=\"country\" id=\"country-field-control\">\n              <option value=\"\">Please select</option>\n              <option value=\"us\">United States</option>\n              <option value=\"uk\">United Kingdom</option>\n              <option value=\"ca\">Canada</option>\n            </Select>\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
   "accessibility": "- Always provide a label. Select's `label` prop is automatically associated with the `<select>` (`htmlFor` plus a generated `id`, or your own `id` if you pass one).\n- When composing with `Field` instead, the `Field`'s own `label` associates with the select automatically when the select sits directly in that labeled `Field` and has no `id` of its own. A nested unlabeled `Field` (as in horizontal multi-field layouts) starts its own scope. With an `id` of your own, or across a nested `Field`, the label names the select only when you pass that `id` as `labelProps={{ htmlFor }}`.\n- Use the `multiple` and `multipleSize` props for multi-select dropdowns.\n- **Help and errors:** the `message` describes the `<select>` through `aria-describedby`, after any ids you pass there, so a screen reader reads it when the select takes focus. A red `color` says nothing to a screen reader, so on an error also set `aria-invalid`, and put the error in the `message`.",
