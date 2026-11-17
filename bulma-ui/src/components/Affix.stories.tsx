@@ -232,9 +232,15 @@ export const UnderAModal: Story = {
         <Affix>
           <Button color="primary">Help</Button>
         </Affix>
-        <Modal active={open} onClose={() => setOpen(false)}>
+        <Modal
+          active={open}
+          onClose={() => setOpen(false)}
+          aria-labelledby="affix-modal-title"
+        >
           <Box>
-            <Title size="4">Over the Affix</Title>
+            <Title size="4" id="affix-modal-title">
+              Over the Affix
+            </Title>
             <Paragraph>
               The modal and its background stack over the Affix, as a navbar,
               menus, popovers, the Sidebar, Tooltip and Toast do.

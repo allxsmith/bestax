@@ -74,7 +74,14 @@ const hockeyTeams = [
 
 export const HockeyTeamRecords: Story = {
   render: () => (
-    <Table isBordered isStriped isHoverable isFullwidth isResponsive>
+    <Table
+      isBordered
+      isStriped
+      isHoverable
+      isFullwidth
+      isResponsive
+      aria-label="Team records"
+    >
       <Thead>
         <Tr>
           <Th isAligned="left">Team</Th>
@@ -298,9 +305,15 @@ export const Fullwidth: Story = {
   },
 };
 
+/**
+ * A table wider than the view scrolls sideways. While it overflows, its
+ * container is a tab stop named after the table, so it can be scrolled by
+ * keyboard.
+ */
 export const Responsive: Story = {
   args: {
     isResponsive: true,
+    'aria-label': 'Twenty columns',
     children: (
       <>
         <Thead>
@@ -335,6 +348,7 @@ export const AllModifiers: Story = {
     isHoverable: true,
     isFullwidth: true,
     isResponsive: true,
+    'aria-label': 'Every modifier',
     children: (
       <>
         <Thead>

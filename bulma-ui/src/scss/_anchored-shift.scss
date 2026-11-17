@@ -1,0 +1,25 @@
+// Bestax Extras - the shift of a panel in place at a corner
+// `useAnchoredPosition` keeps a panel in place inside the viewport by writing
+// how far to move it sideways on the panel, as `--bulma-anchored-shift`, 0
+// while it fits. The component sets it, not a theme, so it has the fixed name
+// the component writes, whatever Bulma's `$cssvars-prefix` is, and it isn't
+// registered with the theming variables. Popover, HoverCard, Combobox's menu
+// and the pickers' popover use these on their panel and its corner rules.
+
+$-shift: var(--bulma-anchored-shift);
+
+// On the panel: 0 unless the component writes another, so a panel inside a
+// shifted one doesn't inherit that one's shift.
+@mixin extras-anchored-shift {
+  --bulma-anchored-shift: 0px;
+}
+
+// A left corner's edge, moved by the shift.
+@mixin extras-anchored-left {
+  left: $-shift;
+}
+
+// A right corner's edge, moved by the shift.
+@mixin extras-anchored-right {
+  right: calc(-1 * #{$-shift});
+}

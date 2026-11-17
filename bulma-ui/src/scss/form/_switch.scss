@@ -311,7 +311,9 @@ $switch-thin-circle-size: 1.25em !default;
 // High Contrast Mode support
 @media (forced-colors: active) {
   .#{iv.$class-prefix}switch {
-    .#{iv.$class-prefix}check {
+    // Named on the input's state, which outranks the edge the thin, outlined
+    // and passive styles set, so every style's edge is ButtonText when off.
+    input[type="checkbox"]:not(:checked) + .#{iv.$class-prefix}check {
       border-color: ButtonText;
     }
 
@@ -325,6 +327,42 @@ $switch-thin-circle-size: 1.25em !default;
     }
 
     input[type="checkbox"]:disabled + .#{iv.$class-prefix}check {
+      border-color: GrayText;
+    }
+
+    // The knob is painted from a variable, which forced colors repaints in
+    // the page's background, so it would vanish on the track, and a thin or
+    // outlined switch, whose track never fills, would look the same on and
+    // off. Off, it takes ButtonText, or GrayText when disabled.
+    input[type="checkbox"]:not(:checked) + .#{iv.$class-prefix}check::before {
+      background-color: ButtonText;
+    }
+
+    input[type="checkbox"]:disabled:not(:checked)
+      + .#{iv.$class-prefix}check::before {
+      background-color: GrayText;
+    }
+
+    // On, it's the color made to read on the default style's filled track.
+    input[type="checkbox"]:checked + .#{iv.$class-prefix}check::before {
+      background-color: HighlightText;
+    }
+  }
+
+  // The thin and outlined tracks don't fill when on, since their own rules
+  // outrank the fill above, so the knob and the edge take the highlight. A
+  // disabled one's edge is gray, as the default style's is beside its fill.
+  .#{iv.$class-prefix}switch.#{iv.$class-prefix}is-thin,
+  .#{iv.$class-prefix}switch.#{iv.$class-prefix}is-outlined {
+    input[type="checkbox"]:checked + .#{iv.$class-prefix}check {
+      border-color: Highlight;
+
+      &::before {
+        background-color: Highlight;
+      }
+    }
+
+    input[type="checkbox"]:checked:disabled + .#{iv.$class-prefix}check {
       border-color: GrayText;
     }
   }

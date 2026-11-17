@@ -45,7 +45,8 @@ const meta: Meta<typeof Link> = {
     },
     isActive: {
       control: 'boolean',
-      description: 'Whether the link appears active',
+      description:
+        'Marks the link as the current one: the is-active class and aria-current="page"',
     },
     href: {
       control: 'text',

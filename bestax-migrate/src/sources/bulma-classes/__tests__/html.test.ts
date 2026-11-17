@@ -124,12 +124,12 @@ describe('what writes nothing', () => {
   it('names the module as where each re-run its TODOs ask for goes', () => {
     const dir = tempDir();
     const { output, entries } = convert(
-      '<a class="tag" href="/x">x</a>\n<a class="tag" href="/y">y</a>\n',
+      '<a class="notification" href="/x">x</a>\n<a class="notification" href="/y">y</a>\n',
       {},
       path.join(dir, 'tags.html')
     );
     const message =
-      'bestax `Tag` renders only <span>, not an <a>; keep the markup, or change the tag and re-run on `tags.jsx`';
+      'bestax `Notification` renders only <div>, not an <a>; keep the markup, or change the tag and re-run on `tags.jsx`';
     // In the report, against each element's line on the page, and in the
     // module, once, with the page's lines.
     expect(entries.map(({ line, message }) => [line, message])).toEqual([

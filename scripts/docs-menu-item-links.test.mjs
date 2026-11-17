@@ -34,40 +34,14 @@
  * compiled, so a fence that is only a fragment still reads.
  */
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { dirname, join, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 import { describe, it } from 'vitest';
-import { fenceSpans, splitLines } from './lib/api-page.mjs';
+import { REPO, exampleFiles, sourcesOf } from './lib/example-sources.mjs';
 
-const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 const ts = createRequire(join(REPO, 'package.json'))('typescript');
 const TAGS = new Set(['Menu.Item', 'MenuItem']);
 const MENU_PAGE = 'docs/docs/api/components/menu.md';
-const LEFT_OUT = 'skills/bestax-migrate/references/';
-
-/** Repo-relative paths under `dir` whose name passes `keep`. */
-function filesUnder(dir, keep) {
-  return readdirSync(join(REPO, dir), { recursive: true })
-    .map(name => join(dir, name).split(sep).join('/'))
-    .filter(rel => !rel.includes('/node_modules/') && keep(rel));
-}
-
-/** The jsx and tsx in one file, each with the line its code starts on. */
-function sourcesOf(rel) {
-  const src = readFileSync(join(REPO, rel), 'utf8');
-  if (rel.endsWith('.tsx')) return [{ code: src, line: 1 }];
-  const { lines } = splitLines(src);
-  return fenceSpans(lines)
-    .filter(({ open }) =>
-      /^ {0,3}(`{3,}|~{3,})\s*(jsx|tsx)\b/.test(lines[open])
-    )
-    .map(({ open, close }) => ({
-      code: lines.slice(open + 1, close).join('\n'),
-      line: open + 2,
-    }));
-}
 
 /** An attribute's value as written: a string, an expression, or nothing. */
 function valueOf(prop) {
@@ -171,14 +145,7 @@ function readFile(rel) {
   return { items, anchors };
 }
 
-const FILES = [
-  ...filesUnder('docs/docs', rel => /\.mdx?$/.test(rel)),
-  ...filesUnder(
-    'skills',
-    rel => /\.(mdx?|tsx)$/.test(rel) && !rel.startsWith(LEFT_OUT)
-  ),
-  ...filesUnder('bulma-ui/src', rel => rel.endsWith('.stories.tsx')),
-];
+const FILES = exampleFiles();
 
 describe('Menu.Item in the examples', () => {
   const items = FILES.flatMap(rel => readFile(rel).items);
