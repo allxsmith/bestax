@@ -186,7 +186,7 @@
           "name": "onClose",
           "type": "() => void",
           "default": null,
-          "description": "Callback when toast closes.",
+          "description": "Callback when the toast closes itself: on its timer, from its buttons, on Escape when it's cancelable, or, when it's dismissible, on a click on it or outside it. Through `toast.show()`, it runs before the toast leaves the store, and not when the app closes the toast with `toast.close()` or `toast.closeAll()`, so cleanup that has to run however the toast goes, such as committing a delete, goes beside those calls too.",
           "required": false,
           "inherited": false,
           "deprecated": false

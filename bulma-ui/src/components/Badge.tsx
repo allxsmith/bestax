@@ -73,7 +73,9 @@ export interface BadgeProps
  * @remarks
  * A dot isn't read out and a count reads only what it shows, so the name of
  * what a badge sits on says what the badge means, or, for a standalone
- * badge, text beside it.
+ * badge, text beside it. A badge is a status, not a control: it isn't in the
+ * tab order and takes no keys, so a click handler on a standalone one reaches
+ * only a pointer. Put the click on a control beside it.
  *
  * @example
  * <Badge dot color="success" overlap="circle">

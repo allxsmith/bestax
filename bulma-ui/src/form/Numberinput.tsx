@@ -110,7 +110,13 @@ export interface NumberinputProps
   labels?: NumberinputLabels;
   /** Whether the input is disabled. */
   disabled?: boolean | undefined;
-  /** Whether the input can be typed in. */
+  /**
+   * Whether the input can be typed in. With `false` the input is `readOnly`,
+   * so nothing can be typed or pasted, but the arrow keys and the buttons
+   * still change the value, and a screen reader announces the field as
+   * read-only all the same. Say that the buttons set it in its label, or in
+   * its `message` where it renders one.
+   */
   editable?: boolean;
   /**
    * Shows a loading spinner on the input's control.
