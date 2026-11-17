@@ -1,6 +1,8 @@
 import React, {
+  createContext,
   forwardRef,
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -44,7 +46,11 @@ import {
   useFieldsetDisabled,
 } from './FormContext';
 import { useAutoLabelledBy } from './useAutoLabelId';
-import { splitControlState, useFieldMessage } from './useFieldMessage';
+import {
+  ControlStateProps,
+  splitControlState,
+  useFieldMessage,
+} from './useFieldMessage';
 
 export type { ColorFormat } from './_colorInternals/colorMath';
 
@@ -769,12 +775,20 @@ const CheckIcon = ({ haloClass }: { haloClass: string }) => (
 // ColorPicker.Input
 // ---------------------------------------------------------------------------
 
+// The `aria-invalid` and `aria-errormessage` given to the ColorPicker, which
+// mark the whole picker. A screen reader doesn't read them on its group as
+// focus moves inside, so the value field takes them too (#2130). This sits
+// beside ColorPickerContext rather than in it, since ColorInput provides that
+// one too and has its own field for them.
+const PickerStateContext = createContext<ControlStateProps>({});
+
 /**
  * Props for ColorPicker.Input. The helper props, the other attributes and
  * the `ref` land on the row's `<div>`, except `aria-invalid` and
  * `aria-errormessage`, which report the field's state and go on its
  * `<input>`. A caller's `aria-invalid` adds to the field's own, which marks
- * text it can't read.
+ * text it can't read. Given neither, the field takes the ones given to the
+ * `ColorPicker`.
  *
  * @extraProp {React.Ref<HTMLDivElement>} [ref] - Ref forwarded to the row's `<div>`.
  */
@@ -806,6 +820,10 @@ export const ColorPickerInput = forwardRef<
   // state, and the row the rest (#2063). A caller's `aria-invalid` adds to
   // the input's own, which marks text it can't read, as on ColorInput.
   const { control: controlState, rest } = splitControlState(helperRest);
+  // Given neither, it takes the picker's, as a pair, so an error message
+  // never belongs to another state than the one it's shown with.
+  const pickerState = useContext(PickerStateContext);
+  const state = Object.keys(controlState).length ? controlState : pickerState;
   const rowClass = usePrefixedClassNames('color-picker-value');
   const previewClass = usePrefixedClassNames('color-picker-preview');
   // What's been typed and not yet committed, or null while the field
@@ -854,8 +872,8 @@ export const ColorPickerInput = forwardRef<
         value={draft ?? text}
         disabled={disabled}
         aria-label={labels.value}
-        {...controlState}
-        aria-invalid={invalid || controlState['aria-invalid'] || undefined}
+        aria-errormessage={state['aria-errormessage']}
+        aria-invalid={invalid || state['aria-invalid'] || undefined}
         spellCheck={false}
         autoComplete="off"
         autoCapitalize="off"
@@ -886,6 +904,11 @@ ColorPickerInput.displayName = 'ColorPicker.Input';
  * `Field` for them, nested in the `.control`, and warns in development.
  * Wrap the `Control` in a `Field` instead, and set the `label`, `horizontal`
  * and class name on that `Field`.
+ *
+ * `aria-invalid` and `aria-errormessage` reach the value field of a
+ * `ColorPicker.Input` inside, in the default layout or among parts of your
+ * own, so a screen reader hears the picker is invalid where you type its
+ * value. A `ColorPicker.Input` given either of its own keeps its own.
  *
  * @extraProp {React.Ref<HTMLDivElement>} [ref] - Ref forwarded to the picker's `<div>`.
  * @extraProp {string} [aria-label] - Names the picker's group when there's no `label`.
@@ -1039,6 +1062,16 @@ const ColorPickerRoot = forwardRef<HTMLDivElement, ColorPickerProps>(
       callerProps: props,
     });
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+    // The value field takes these too, through context.
+    const pickerInvalid = props['aria-invalid'];
+    const pickerError = props['aria-errormessage'];
+    const pickerState = useMemo(
+      () => ({
+        'aria-invalid': pickerInvalid,
+        'aria-errormessage': pickerError,
+      }),
+      [pickerInvalid, pickerError]
+    );
     const pickerClass = usePrefixedClassNames('color-picker', {
       'is-disabled': disabled,
     });
@@ -1071,15 +1104,17 @@ const ColorPickerRoot = forwardRef<HTMLDivElement, ColorPickerProps>(
         aria-describedby={describedBy}
       >
         <ColorPickerContext.Provider value={context}>
-          {children ?? (
-            <>
-              <ColorPickerArea />
-              <ColorPickerHueSlider />
-              {alpha && <ColorPickerAlphaSlider />}
-              <ColorPickerInput />
-              {swatches && <ColorPickerSwatches />}
-            </>
-          )}
+          <PickerStateContext.Provider value={pickerState}>
+            {children ?? (
+              <>
+                <ColorPickerArea />
+                <ColorPickerHueSlider />
+                {alpha && <ColorPickerAlphaSlider />}
+                <ColorPickerInput />
+                {swatches && <ColorPickerSwatches />}
+              </>
+            )}
+          </PickerStateContext.Provider>
         </ColorPickerContext.Provider>
         {name && (
           <input
