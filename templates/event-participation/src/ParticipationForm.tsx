@@ -69,8 +69,10 @@ function ParticipationForm() {
     <form id="participation-form" onSubmit={confirm}>
       <Columns isVCentered>
         <Column sizeMobile="full">
-          <Panel as="section">
-            <Panel.Heading>Program</Panel.Heading>
+          <Panel as="section" aria-labelledby="program-heading">
+            <Panel.Heading id="program-heading" role="heading" aria-level={2}>
+              Program
+            </Panel.Heading>
             <Panel.Block as="div">
               <Table isFullwidth>
                 <Table.Thead>
