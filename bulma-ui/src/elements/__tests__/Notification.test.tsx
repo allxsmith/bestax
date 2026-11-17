@@ -99,6 +99,29 @@ describe('Notification Component', () => {
     );
   });
 
+  test('names the delete button with ariaCloseLabel, for an app in another language', () => {
+    render(
+      <Notification hasDelete ariaCloseLabel="Fermer la notification">
+        Bonjour
+      </Notification>
+    );
+    expect(
+      screen.getByRole('button', { name: 'Fermer la notification' })
+    ).toBeInTheDocument();
+    expect(screen.getByText('Bonjour')).not.toHaveAttribute('ariaCloseLabel');
+  });
+
+  test('keeps the delete button named with an empty ariaCloseLabel', () => {
+    render(
+      <Notification hasDelete ariaCloseLabel="">
+        Hello
+      </Notification>
+    );
+    expect(
+      screen.getByRole('button', { name: 'Close notification' })
+    ).toBeInTheDocument();
+  });
+
   test('calls onDelete when delete button is clicked', () => {
     const onDelete = vi.fn();
     render(<Notification {...defaultProps} hasDelete onDelete={onDelete} />);
@@ -612,6 +635,22 @@ describe('Notification Programmatic API', () => {
       act(() => {
         toast.closeAll();
       });
+    });
+  });
+
+  describe('ariaCloseLabel', () => {
+    it("names a programmatic notification's close button", () => {
+      render(<NotificationContainer />);
+      act(() => {
+        notification.show({
+          message: 'Enregistré',
+          ariaCloseLabel: 'Fermer',
+          duration: 0,
+        });
+      });
+      expect(
+        screen.getByRole('button', { name: 'Fermer' })
+      ).toBeInTheDocument();
     });
   });
 

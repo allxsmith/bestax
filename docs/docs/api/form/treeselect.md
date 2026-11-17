@@ -543,6 +543,7 @@ field's right edge. A `position` you pass stays physical.
   field mid-row, keeps its corner and moves sideways just far enough to fit, or, wider than
   the screen, to the edge its text starts from.
 - The `message` describes the field through `aria-describedby`, after any ids you pass there and, with checkboxes, after the picked tags.
+- `aria-invalid` and `aria-errormessage` go on the field, while the other attributes you pass go on the wrapper, so a screen reader hears the field is invalid when it takes focus.
 
 ---
 

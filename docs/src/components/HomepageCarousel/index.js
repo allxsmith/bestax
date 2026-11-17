@@ -31,12 +31,15 @@ const SLIDE_CSS = `
   }
 `;
 
-function CarouselSlides({ slides, autoplay, interval, hasDrag, arrow }) {
+function CarouselSlides({ label, slides, autoplay, interval, hasDrag, arrow }) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   return (
     <ShadowPreview extraStyles={SLIDE_CSS}>
+      {/* Named with the heading's text, since the carousel renders in a
+          shadow root, where aria-labelledby can't reach the heading */}
       <Carousel
+        ariaLabel={label}
         autoplay={autoplay}
         interval={interval}
         pauseOnHover
@@ -139,6 +142,7 @@ export default function HomepageCarousel({
         >
           {() => (
             <CarouselSlides
+              label={heading}
               slides={slides}
               autoplay={autoplay && inView}
               interval={interval}
