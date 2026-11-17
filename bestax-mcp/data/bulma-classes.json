@@ -87,7 +87,10 @@
         "is-large": { "writes": [{ "prop": "size", "value": "large" }] },
         "is-light": { "writes": [{ "prop": "isLight" }] },
         "is-rounded": { "writes": [{ "prop": "isRounded" }] },
-        "is-loading": { "writes": [{ "prop": "isLoading" }] },
+        "is-loading": {
+          "writes": [{ "prop": "isLoading" }],
+          "overridesAttrs": ["aria-busy", "aria-disabled"]
+        },
         "is-static": { "writes": [{ "prop": "isStatic" }] },
         "is-fullwidth": { "writes": [{ "prop": "isFullwidth" }] },
         "is-outlined": { "writes": [{ "prop": "isOutlined" }] },

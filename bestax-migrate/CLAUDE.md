@@ -171,8 +171,9 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   pointer. A migrated app gets the library's loading button, which is the point of converting
   it. The render tests restate the two attributes on the raw side (`withLoadingButtonsBusy` in
   the same file), both together, only on a loading `.button` that sets neither, where the
-  converted element has them. A raw one that sets either converts with no TODO, which #2040
-  tracks.
+  converted element has them. One that sets either keeps `is-loading` as a class (the class
+  map's `overridesAttrs`, #2040), since `isLoading` would write over it, so it renders as
+  written.
 - The bulma-classes HTML input is `bulma-classes/html.ts`: parse the page, drop its scripts
   (each a report), emit its body as JSX with `pageDisplayOf` (an element's inline display, else
   the displays `display.ts` says Bulma's classes give it across viewports, else its tag's; a
