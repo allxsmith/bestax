@@ -55,6 +55,16 @@ export interface ModalProps
   onClose?: () => void;
   /** Additional CSS classes for the modal. */
   className?: string | undefined;
+  /**
+   * ARIA label for the close button the props form renders with `onClose`,
+   * the card header's or the floating one. It's drawn as an icon, so its name
+   * is all a screen reader says about it: give it one in the page's
+   * language. An empty one falls back to the default. An `aria-label` on
+   * `Modal` names the dialog, not the button, and a `Modal.Close` in the
+   * compound form takes an `aria-label` of its own.
+   * @defaultValue 'close'
+   */
+  ariaCloseLabel?: string | undefined;
   /** Text color for modal content. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color for modal content. */
@@ -417,6 +427,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
     closeOnEscape = true,
     lockScroll = true,
     portal = false,
+    ariaCloseLabel,
     role,
     'aria-modal': ariaModalProp,
     ...props
@@ -585,6 +596,9 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
     'is-active': isModalActive,
   });
   const deleteClass = usePrefixedClassNames('delete');
+  // The props form's close button. An empty label names nothing, and the
+  // button is drawn as an icon, so it falls back like a missing one.
+  const closeLabel = ariaCloseLabel || 'close';
 
   const modalClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
@@ -667,7 +681,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
                 {onClose && (
                   <button
                     className={deleteClass}
-                    aria-label="close"
+                    aria-label={closeLabel}
                     onClick={onClose}
                     type="button"
                     data-testid="modal-close"
@@ -705,7 +719,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
               'modal-close',
               'is-large'
             )}
-            aria-label="close"
+            aria-label={closeLabel}
             onClick={onClose}
             type="button"
             data-testid="modal-close-float"

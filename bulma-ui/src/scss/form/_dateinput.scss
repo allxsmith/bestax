@@ -480,6 +480,54 @@ $calendar-radius: cv.getVar('radius') !default;
   opacity: cv.getVar('dateinput-cell-content-loading-opacity');
 }
 
+// Forced colors (Windows' contrast themes) replaces the fills that mark a
+// picked day, month or year and the days of a picked range, so there they'd
+// look like every other cell. These draw them in Highlight and HighlightText,
+// the pair the system keeps for a selection, as `_pagination.scss` draws the
+// current page. `forced-color-adjust: none` keeps them: with forcing on,
+// Chromium draws the page's color behind the number, which in some themes is
+// HighlightText's own color. With forcing off on the cell, the rules above
+// would show through instead, the hover fills and today's tint among them,
+// and some of those outrank a class or two, so these are `!important`. The
+// focus ring sits inside the cell, on the fill, so it takes HighlightText. A
+// picked cell that's disabled takes GrayText, the system's color for a
+// disabled control, for its fill and Canvas for its number, at full opacity,
+// since the disabled opacity would blend the fill into the page and the
+// number into the fill. What a Calendar's `dayTemplate` draws under the
+// number takes the cell's color, as it does on a picked day outside forced
+// colors, and markup with a color of its own keeps it, as on Pagination's
+// current page. The day a pending range would end on keeps its dashed edge.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}dateinput-cell.#{iv.$class-prefix}is-selected,
+  .#{iv.$class-prefix}dateinput-cell.#{iv.$class-prefix}is-in-range:not(
+      .#{iv.$class-prefix}is-preview
+    ),
+  .#{iv.$class-prefix}dateinput-month-cell.#{iv.$class-prefix}is-selected,
+  .#{iv.$class-prefix}dateinput-year-cell.#{iv.$class-prefix}is-selected {
+    forced-color-adjust: none;
+    background-color: Highlight !important;
+    background-image: none !important;
+    color: HighlightText !important;
+
+    &:focus-visible {
+      outline-color: HighlightText;
+    }
+
+    &:disabled {
+      background-color: GrayText !important;
+      color: Canvas !important;
+      opacity: 1;
+    }
+  }
+
+  .#{iv.$class-prefix}dateinput-cell.#{iv.$class-prefix}is-in-range:not(
+      .#{iv.$class-prefix}is-preview
+    )
+    .#{iv.$class-prefix}dateinput-cell-content {
+    color: inherit;
+  }
+}
+
 // Colour variants. `color` lands on the calendar root as `is-<colour>`, and
 // the root re-points its accent variables at that colour: the selection fill
 // paired with its `-invert` for the selected value. Today's tint and the focus

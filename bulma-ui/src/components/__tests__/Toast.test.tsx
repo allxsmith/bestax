@@ -243,6 +243,118 @@ describe('Toast', () => {
     });
   });
 
+  // A Toast the caller keeps mounted stays hidden once it closes, and
+  // nothing closes it a second time (#1902).
+  describe('Closing once', () => {
+    // Steps through the timers, letting React render between them.
+    const waitInSteps = (ms: number) => {
+      for (let waited = 0; waited < ms; waited += focusCheckInterval) {
+        act(() => {
+          vi.advanceTimersByTime(focusCheckInterval);
+        });
+      }
+    };
+
+    const closes: [string, () => void][] = [
+      [
+        'its close button',
+        () => fireEvent.click(screen.getByLabelText('Close')),
+      ],
+      ['its cancel button', () => fireEvent.click(screen.getByText('Keep'))],
+      ['its action button', () => fireEvent.click(screen.getByText('Undo'))],
+      ['a click on it', () => fireEvent.click(screen.getByRole('alert'))],
+      ['Escape', () => fireEvent.keyDown(document, { key: 'Escape' })],
+      ['a click outside it', () => fireEvent.click(document.body)],
+    ];
+
+    it.each(closes)(
+      'calls onClose once when closed by %s and its timer runs out after',
+      (_how, close) => {
+        const onClose = vi.fn();
+        render(
+          <Toast
+            message="Deleted"
+            actionText="Undo"
+            cancelText="Keep"
+            closable
+            duration={2000}
+            onClose={onClose}
+          />
+        );
+        act(() => {
+          // The listener for a click outside goes on a frame after mount.
+          vi.advanceTimersByTime(16);
+        });
+        act(() => {
+          close();
+        });
+        waitInSteps(5000);
+        expect(onClose).toHaveBeenCalledTimes(1);
+      }
+    );
+
+    it('calls onClose once after an action pressed with focus on it', () => {
+      const onClose = vi.fn();
+      render(
+        <Toast
+          message="Deleted"
+          actionText="Undo"
+          duration={2000}
+          onClose={onClose}
+        />
+      );
+      const undo = screen.getByRole('button', { name: 'Undo' });
+      act(() => {
+        undo.focus();
+      });
+      fireEvent.click(undo);
+      waitInSteps(5000);
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('stops its timer once it has closed', () => {
+      render(<Toast message="Saved" closable duration={2000} />);
+      act(() => {
+        fireEvent.click(screen.getByLabelText('Close'));
+      });
+      act(() => {
+        vi.advanceTimersByTime(0);
+      });
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it('calls onClose once for a click and Escape before the render that hides it', () => {
+      const onClose = vi.fn();
+      render(<Toast message="Saved" duration={2000} onClose={onClose} />);
+      act(() => {
+        fireEvent.click(screen.getByRole('alert'));
+        fireEvent.keyDown(document, { key: 'Escape' });
+      });
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it("doesn't run its action once it has closed, before the render that hides it", () => {
+      const onAction = vi.fn();
+      const onClose = vi.fn();
+      render(
+        <Toast
+          message="Deleted"
+          actionText="Undo"
+          cancelText="Keep"
+          duration={2000}
+          onAction={onAction}
+          onClose={onClose}
+        />
+      );
+      act(() => {
+        fireEvent.click(screen.getByText('Keep'));
+        fireEvent.click(screen.getByText('Undo'));
+      });
+      expect(onClose).toHaveBeenCalledTimes(1);
+      expect(onAction).not.toHaveBeenCalled();
+    });
+  });
+
   describe('Action Button', () => {
     it('renders action button when actionText is provided', () => {
       render(<Toast message="Test" actionText="Undo" duration={0} />);
@@ -504,6 +616,141 @@ describe('Toast', () => {
       render(<Toast message="Test" duration={3000} pauseOnHover={false} />);
       const toastEl = screen.getByRole('alert');
       expect(() => fireEvent.mouseLeave(toastEl)).not.toThrow();
+    });
+  });
+
+  // A caller's own handler runs beside the toast's rather than replacing it
+  // (#1904).
+  describe('with handlers of its own', () => {
+    it("still pauses on hover with the caller's onMouseEnter", () => {
+      const onClose = vi.fn();
+      const onMouseEnter = vi.fn();
+      render(
+        <Toast
+          message="Test"
+          duration={3000}
+          pauseOnHover
+          onMouseEnter={onMouseEnter}
+          onClose={onClose}
+        />
+      );
+      fireEvent.mouseEnter(screen.getByRole('alert'));
+      act(() => {
+        vi.advanceTimersByTime(5000);
+      });
+      expect(onMouseEnter).toHaveBeenCalledTimes(1);
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it("still resumes when the pointer leaves with the caller's onMouseLeave", () => {
+      const onClose = vi.fn();
+      const onMouseLeave = vi.fn();
+      render(
+        <Toast
+          message="Test"
+          duration={2000}
+          pauseOnHover
+          onMouseLeave={onMouseLeave}
+          onClose={onClose}
+        />
+      );
+      const el = screen.getByRole('alert');
+      fireEvent.mouseEnter(el);
+      fireEvent.mouseLeave(el);
+      act(() => {
+        vi.advanceTimersByTime(5000);
+      });
+      expect(onMouseLeave).toHaveBeenCalledTimes(1);
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it("closes on a click with the caller's onClick when it says dismissible", () => {
+      const onClose = vi.fn();
+      const onClick = vi.fn();
+      render(
+        <Toast
+          message="Test"
+          duration={0}
+          dismissible
+          onClick={onClick}
+          onClose={onClose}
+        />
+      );
+      fireEvent.click(screen.getByRole('alert'));
+      expect(onClick).toHaveBeenCalledTimes(1);
+      expect(onClose).toHaveBeenCalledTimes(1);
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+
+    // A caller's onClick used to replace the close on a click, and a toast
+    // that leaves `dismissible` out keeps that, for code that relies on it.
+    it("stays open on a click with the caller's onClick and dismissible left out", () => {
+      const onClose = vi.fn();
+      const onClick = vi.fn();
+      render(
+        <Toast
+          message="Test"
+          duration={0}
+          onClick={onClick}
+          onClose={onClose}
+        />
+      );
+      fireEvent.click(screen.getByRole('alert'));
+      expect(onClick).toHaveBeenCalledTimes(1);
+      expect(onClose).not.toHaveBeenCalled();
+      // A click outside still closes it.
+      act(() => {
+        vi.advanceTimersByTime(16);
+      });
+      act(() => {
+        fireEvent.click(document.body);
+      });
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it("runs the caller's onClick alone on a toast that isn't dismissible", () => {
+      const onClose = vi.fn();
+      const onClick = vi.fn();
+      render(
+        <Toast
+          message="Test"
+          duration={0}
+          dismissible={false}
+          onClick={onClick}
+          onClose={onClose}
+        />
+      );
+      fireEvent.click(screen.getByRole('alert'));
+      expect(onClick).toHaveBeenCalledTimes(1);
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('passes the handlers on to a toast shown through toast.show', () => {
+      const onMouseEnter = vi.fn();
+      const onClick = vi.fn();
+      render(<ToastContainer />);
+      act(() => {
+        toast.show({
+          message: 'Saved',
+          duration: 3000,
+          pauseOnHover: true,
+          dismissible: true,
+          onMouseEnter,
+          onClick,
+        });
+      });
+      const el = screen.getByRole('alert');
+      fireEvent.mouseEnter(el);
+      act(() => {
+        vi.advanceTimersByTime(5000);
+      });
+      expect(onMouseEnter).toHaveBeenCalledTimes(1);
+      expect(screen.getByText('Saved')).toBeInTheDocument();
+      act(() => {
+        fireEvent.click(el);
+      });
+      expect(onClick).toHaveBeenCalledTimes(1);
+      expect(screen.queryByText('Saved')).not.toBeInTheDocument();
     });
   });
 

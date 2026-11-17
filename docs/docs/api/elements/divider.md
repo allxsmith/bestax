@@ -131,7 +131,7 @@ Use dividers for thematic breaks between content sections, not just for visual s
 ## Related Components
 
 - [`Block`](./block.md): For content containers with vertical spacing.
-- [`Box`](./box.md): For bordered content containers.
+- [`Box`](./box.md): For padded content containers.
 - [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing, color, etc.
 
 ---

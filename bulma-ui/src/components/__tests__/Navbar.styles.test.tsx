@@ -514,15 +514,16 @@ describe('the Navbar partial', () => {
     ['no prefix', ''],
     ['a class prefix', 'bestax-'],
   ])(
-    'keeps the burger and an active item’s bar in forced colors, a fixed navbar’s lock margins and an active item’s text at no weight, and a prefixed dropdown’s active row over Bulma’s row rules, with %s, naming only prefixed classes',
+    'keeps the burger, the divider and an active item’s bar in forced colors, a fixed navbar’s lock margins and an active item’s text at no weight, and a prefixed dropdown’s active row over Bulma’s row rules, with %s, naming only prefixed classes',
     (_label, prefix) => {
       const rules = rulesOf(compile(prefix));
       // An active or selected link item or link.
       const current = `:is(a.${prefix}navbar-item, .${prefix}navbar-link):is(.${prefix}is-active, .${prefix}is-selected)`;
       expect(
-        rules.slice(0, 5).map(rule => [rule.selector, rule.context])
+        rules.slice(0, 6).map(rule => [rule.selector, rule.context])
       ).toEqual([
         [`.${prefix}navbar-burger.${prefix}navbar-burger span`, [FORCED]],
+        [`.${prefix}navbar-divider.${prefix}navbar-divider`, [FORCED]],
         [`${current}::before`, [FORCED]],
         [`.${prefix}navbar-dropdown ${current}::before`, [FORCED]],
         [
@@ -538,7 +539,7 @@ describe('the Navbar partial', () => {
       // rows under the burger and a bold hero's menu on a phone.
       // A prefixed build ends with one more rule, for a dropdown's active row.
       const extra = prefix ? 1 : 0;
-      const hero = rules.slice(5, -1 - extra);
+      const hero = rules.slice(6, -1 - extra);
       expect(hero.map(rule => rule.context)).toEqual([
         [],
         ['@media screen and (max-width: 1023px)'],
@@ -557,7 +558,11 @@ describe('the Navbar partial', () => {
         'forced-color-adjust': 'none',
         'background-color': 'ButtonText',
       });
-      expect(rules[4].declarations).toEqual(LOCK_MARGINS);
+      expect(rules[1].declarations).toEqual({
+        'forced-color-adjust': 'none',
+        'background-color': 'CanvasText',
+      });
+      expect(rules[5].declarations).toEqual(LOCK_MARGINS);
       // Then an active item's text color, at no weight either.
       const last = rules[rules.length - 1 - extra];
       expect([last.selector, last.context]).toEqual([

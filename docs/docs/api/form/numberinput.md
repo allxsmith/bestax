@@ -305,6 +305,7 @@ Use `defaultValue` for internal state management:
 - Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes
 - +/- buttons have `aria-label` for screen readers
 - Arrow keys increment/decrement the value
+- The +/- buttons stay out of the Tab order, and a press on one leaves focus where it was, in the input when it had it, so the arrow keys keep working after a click and a button that disables at `min` or `max` doesn't take focus with it. A press on a button that's already disabled reaches nothing, as a press on any text does, so focus leaves the input then
 - Buttons are disabled at min/max boundaries
 - The `message` describes the number input through `aria-describedby`, after any ids you pass there, so a screen reader reads it when the input takes focus.
 

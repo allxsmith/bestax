@@ -46,7 +46,7 @@ export interface BoxProps
 }
 
 /**
- * The `Box` component renders a bordered, padded container with an optional shadow using Bulma's `.box` class.
+ * The `Box` component renders a padded container with rounded corners and an optional shadow using Bulma's `.box` class.
  *
  * @function
  * @param {BoxProps} props - Props for the Box component.
