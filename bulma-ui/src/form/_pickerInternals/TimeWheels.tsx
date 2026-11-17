@@ -721,6 +721,7 @@ const WheelInner = <T,>(
       aria-valuenow={toActual(virtualIdx)}
       aria-valuetext={ariaText}
       aria-readonly={readOnly || undefined}
+      aria-disabled={disabled || undefined}
       tabIndex={disabled ? -1 : 0}
       className={rootClass}
       style={{ height: containerHeight }}

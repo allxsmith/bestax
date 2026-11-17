@@ -567,12 +567,88 @@ describe('Numberinput', () => {
       ).toBeInTheDocument();
     });
 
-    it('buttons have tabIndex -1 to keep focus on input', () => {
+    it('buttons have tabIndex -1, out of the Tab order', () => {
       render(<Numberinput defaultValue={5} />);
       const buttons = screen.getAllByRole('button');
       buttons.forEach(button => {
         expect(button).toHaveAttribute('tabindex', '-1');
       });
+    });
+
+    // #1971: tabIndex -1 keeps a button out of the Tab order, but a click
+    // still focused it, so the arrow keys stopped working, and a button that
+    // disabled at a limit took focus with it.
+    it.each(['plusminus', 'stepper'] as const)(
+      'keeps focus in the input when a %s button is clicked',
+      async variant => {
+        const user = userEvent.setup();
+        render(
+          <Numberinput
+            label="Quantity"
+            defaultValue={8}
+            max={10}
+            variant={variant}
+          />
+        );
+        const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+        const increase = screen.getByRole('button', { name: 'Increase value' });
+        input.focus();
+        await user.click(increase);
+        expect(input).toHaveFocus();
+        await user.click(increase);
+        expect(increase).toBeDisabled();
+        expect(input).toHaveFocus();
+        await user.keyboard('{ArrowDown}');
+        expect(input).toHaveValue(9);
+        await user.click(
+          screen.getByRole('button', { name: 'Decrease value' })
+        );
+        expect(input).toHaveFocus();
+      }
+    );
+
+    it('cancels the mouse down on every button', () => {
+      render(<Numberinput defaultValue={5} />);
+      render(<Numberinput defaultValue={5} variant="stepper" />);
+      for (const button of screen.getAllByRole('button')) {
+        expect(fireEvent.mouseDown(button)).toBe(false);
+      }
+    });
+
+    // #1975: the buttons' names can be translated.
+    it.each(['plusminus', 'stepper'] as const)(
+      'names the %s buttons from labels',
+      variant => {
+        render(
+          <Numberinput
+            variant={variant}
+            labels={{ increase: 'Augmenter', decrease: 'Diminuer' }}
+          />
+        );
+        expect(
+          screen.getByRole('button', { name: 'Augmenter' })
+        ).toBeInTheDocument();
+        expect(
+          screen.getByRole('button', { name: 'Diminuer' })
+        ).toBeInTheDocument();
+      }
+    );
+
+    it('keeps the English name for a label left out or empty', () => {
+      render(<Numberinput labels={{ increase: 'Augmenter' }} />);
+      render(<Numberinput labels={{ decrease: 'Diminuer' }} />);
+      render(
+        <Numberinput
+          variant="stepper"
+          labels={{ increase: '', decrease: '' }}
+        />
+      );
+      expect(
+        screen.getAllByRole('button', { name: 'Decrease value' })
+      ).toHaveLength(2);
+      expect(
+        screen.getAllByRole('button', { name: 'Increase value' })
+      ).toHaveLength(2);
     });
 
     it('stepper buttons have tabIndex -1', () => {

@@ -2,12 +2,18 @@ import { useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import {
+  anchoredStyle,
   marginGap,
   sideMarginGap,
   useAnchoredPosition,
 } from '../useAnchoredPosition';
 import type { AnchoredSide } from '../useAnchoredPosition';
 import type { PickerPosition } from '../../form/_pickerInternals/pickerTypes';
+import {
+  clientWidthFollowsWindow,
+  clientWidthIs,
+  directionFromDir,
+} from '../../__tests__/viewport';
 
 /** Measures with neither element on the page. */
 const Detached = ({ position }: { position: PickerPosition }) => {
@@ -187,6 +193,8 @@ const Matched = ({
 };
 
 describe('useAnchoredPosition with matchWidth', () => {
+  clientWidthFollowsWindow();
+
   beforeEach(() => {
     vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
       function (this: HTMLElement) {
@@ -815,5 +823,290 @@ describe('useAnchoredPosition on a side', () => {
     };
     render(<SideDetached />);
     expect(screen.getByText('left')).toBeInTheDocument();
+  });
+});
+
+describe('useAnchoredPosition at a corner, kept inside the viewport', () => {
+  clientWidthIs(375);
+  directionFromDir();
+
+  /**
+   * A 200 by 100 panel at a corner of a 160 by 30 anchor whose left edge is
+   * at `anchorLeft`, 100px down, in a 375 by 800 client area.
+   */
+  const Corner = ({
+    position,
+    rtl = false,
+  }: {
+    position?: PickerPosition;
+    rtl?: boolean;
+  }) => {
+    const anchorRef = useRef<HTMLButtonElement>(null);
+    const panelRef = useRef<HTMLDivElement>(null);
+    const resolved = useAnchoredPosition(anchorRef, panelRef, {
+      active: true,
+      position,
+      fixed: true,
+      offset: 0,
+    });
+    return (
+      <>
+        <button ref={anchorRef} dir={rtl ? 'rtl' : undefined} type="button">
+          anchor
+        </button>
+        <div ref={panelRef} />
+        <output>{JSON.stringify(resolved)}</output>
+      </>
+    );
+  };
+
+  const read = () => JSON.parse(screen.getByRole('status').textContent!);
+  let anchorLeft = 0;
+  let panelWidth = 200;
+
+  beforeEach(() => {
+    anchorLeft = 0;
+    panelWidth = 200;
+    vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(375);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(800);
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+      function (this: HTMLElement) {
+        const box =
+          this.tagName === 'BUTTON'
+            ? { top: 100, left: anchorLeft, width: 160, height: 30 }
+            : { top: 0, left: 0, width: panelWidth, height: 100 };
+        return {
+          ...box,
+          bottom: box.top + box.height,
+          right: box.left + box.width,
+          x: box.left,
+          y: box.top,
+          toJSON: () => ({}),
+        } as DOMRect;
+      }
+    );
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('keeps a corner that fits where it lines up', () => {
+    anchorLeft = 16;
+    const { rerender } = render(<Corner position="bottom-left" />);
+    expect(read()).toEqual({ position: 'bottom-left', top: 130, left: 16 });
+    anchorLeft = 199;
+    rerender(<Corner position="bottom-right" />);
+    // The right edges line up: 359 less the panel's 200.
+    expect(read()).toEqual({ position: 'bottom-right', top: 130, left: 159 });
+  });
+
+  it('moves a left corner that runs past the right edge back inside, keeping the corner', () => {
+    anchorLeft = 215;
+    render(<Corner position="bottom-left" />);
+    expect(read()).toEqual({ position: 'bottom-left', top: 130, left: 175 });
+  });
+
+  it('moves a right corner that runs past the left edge back inside, keeping the corner', () => {
+    anchorLeft = 0;
+    render(<Corner position="top-right" />);
+    // The right edges would line up at 160 less 200, off the left edge.
+    expect(read()).toEqual({ position: 'top-right', top: 0, left: 0 });
+  });
+
+  it('moves the default back inside on a right-to-left page, where it lines up the right edges', () => {
+    anchorLeft = 0;
+    const { rerender } = render(<Corner rtl />);
+    expect(read()).toEqual({ position: 'bottom-left', top: 130, left: 0 });
+    anchorLeft = 100;
+    rerender(<Corner rtl key="moved" />);
+    // 260 less 200: it fits, so the right edges stay lined up.
+    expect(read()).toEqual({ position: 'bottom-left', top: 130, left: 60 });
+  });
+
+  it('leaves auto’s corner as it was when that corner fits', () => {
+    anchorLeft = 215;
+    render(<Corner position="auto" />);
+    // Lined up on the right, 375 less 200, which fits, so nothing moves.
+    expect(read()).toEqual({ position: 'bottom-right', top: 130, left: 175 });
+  });
+
+  it('keeps a panel wider than the viewport at the edge its text starts from', () => {
+    anchorLeft = 100;
+    panelWidth = 420;
+    const { rerender } = render(<Corner />);
+    expect(read()).toEqual({ position: 'bottom-left', top: 130, left: 0 });
+    // Right to left, its right edge stays at the viewport's: 375 less 420.
+    rerender(<Corner rtl key="rtl" />);
+    expect(read()).toEqual({ position: 'bottom-left', top: 130, left: -45 });
+  });
+});
+
+describe('useAnchoredPosition at a corner, in place', () => {
+  clientWidthIs(375);
+  directionFromDir();
+
+  /**
+   * A 200 by 100 panel in place at a corner of a 160 by 30 anchor whose left
+   * edge is at `anchorLeft`, in a 375 by 800 client area. The mocked box
+   * stands in for the stylesheet: the panel's left edge lines up with the
+   * anchor's at a left corner and its right edge at a right one, or the
+   * default on a right-to-left page, and the `--bulma-anchored-shift` it's
+   * drawn with moves it, as its corner rules and a browser's box would.
+   */
+  const InPlace = ({
+    position,
+    rtl = false,
+    sheet = false,
+    matchWidth = false,
+  }: {
+    position?: PickerPosition;
+    rtl?: boolean;
+    matchWidth?: boolean;
+    /** Drawn by its own rule as a sheet across the screen, 16px in from each side. */
+    sheet?: boolean;
+  }) => {
+    const anchorRef = useRef<HTMLButtonElement>(null);
+    const panelRef = useRef<HTMLDivElement>(null);
+    const resolved = useAnchoredPosition(anchorRef, panelRef, {
+      active: true,
+      position,
+      fixed: false,
+      offset: 0,
+      matchWidth,
+    });
+    const endAligned =
+      resolved.position.endsWith('right') || (rtl && position === undefined);
+    return (
+      <>
+        <button ref={anchorRef} dir={rtl ? 'rtl' : undefined} type="button">
+          anchor
+        </button>
+        <div
+          ref={panelRef}
+          data-end={endAligned ? '' : undefined}
+          data-sheet={sheet ? '' : undefined}
+          style={anchoredStyle(resolved, false)}
+        />
+        <output>{JSON.stringify(resolved)}</output>
+      </>
+    );
+  };
+
+  const read = () => JSON.parse(screen.getByRole('status').textContent!);
+  const panel = () =>
+    screen.getByRole('status').previousElementSibling as HTMLElement;
+  let anchorLeft = 0;
+  let panelWidth = 200;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    anchorLeft = 0;
+    panelWidth = 200;
+    vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(375);
+    vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(800);
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+      function (this: HTMLElement) {
+        let box = { top: 100, left: anchorLeft, width: 160, height: 30 };
+        if (this.tagName !== 'BUTTON') {
+          const moved =
+            parseFloat(this.style.getPropertyValue('--bulma-anchored-shift')) ||
+            0;
+          const start =
+            this.dataset.end === undefined
+              ? anchorLeft
+              : anchorLeft + 160 - panelWidth;
+          box =
+            this.dataset.sheet === undefined
+              ? {
+                  top: 130,
+                  left: start + moved,
+                  width: panelWidth,
+                  height: 100,
+                }
+              : { top: 684, left: 16 + moved, width: 343, height: 100 };
+        }
+        return {
+          ...box,
+          bottom: box.top + box.height,
+          right: box.left + box.width,
+          x: box.left,
+          y: box.top,
+          toJSON: () => ({}),
+        } as DOMRect;
+      }
+    );
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it('leaves a corner that fits where its stylesheet puts it, with no shift', () => {
+    anchorLeft = 16;
+    render(<InPlace position="bottom-left" />);
+    expect(read()).toEqual({ position: 'bottom-left' });
+    expect(panel().style.getPropertyValue('--bulma-anchored-shift')).toBe(
+      '0px'
+    );
+  });
+
+  it('shifts a left corner that runs past the right edge back inside, and keeps the shift when measured again', () => {
+    anchorLeft = 215;
+    render(<InPlace position="bottom-left" />);
+    expect(read()).toEqual({ position: 'bottom-left', shift: -40 });
+    expect(panel().style.getPropertyValue('--bulma-anchored-shift')).toBe(
+      '-40px'
+    );
+    // Measured again without the shift it's drawn with, it comes out the
+    // same rather than adding to itself.
+    act(() => {
+      fireEvent(window, new Event('resize'));
+      vi.advanceTimersToNextFrame();
+    });
+    expect(read()).toEqual({ position: 'bottom-left', shift: -40 });
+  });
+
+  it('shifts a right corner that runs past the left edge back inside', () => {
+    anchorLeft = 0;
+    render(<InPlace position="top-right" />);
+    // Its right edge at 160 would put its left edge at -40.
+    expect(read()).toEqual({ position: 'top-right', shift: 40 });
+  });
+
+  it('shifts the default on a right-to-left page, where its stylesheet lines up the right edges', () => {
+    anchorLeft = 0;
+    render(<InPlace rtl />);
+    expect(read()).toEqual({ position: 'bottom-left', shift: 40 });
+  });
+
+  it('leaves a panel its own rule draws elsewhere where it is while it fits, as a sheet across a phone', () => {
+    anchorLeft = 215;
+    render(<InPlace position="bottom-left" sheet />);
+    expect(read()).toEqual({ position: 'bottom-left' });
+    expect(panel().style.getPropertyValue('--bulma-anchored-shift')).toBe(
+      '0px'
+    );
+  });
+
+  it('measures again where auto’s new corner draws it, and shifts only if that runs past an edge', () => {
+    anchorLeft = 215;
+    render(<InPlace position="auto" />);
+    // First measured at the corner it started from, then again at
+    // bottom-right, where its right edge, at 375, fits.
+    expect(read()).toEqual({ position: 'bottom-right' });
+    expect(panel().style.getPropertyValue('--bulma-anchored-shift')).toBe(
+      '0px'
+    );
+  });
+
+  it('clamps a panel in place by the width it’s drawn at, even narrower than its anchor', () => {
+    // A theme's rule leaves it 120px wide under a 160px anchor running past
+    // the right edge, where all 120px of it still fit.
+    anchorLeft = 230;
+    panelWidth = 120;
+    render(<InPlace position="bottom-left" matchWidth />);
+    expect(read()).toEqual({ position: 'bottom-left' });
   });
 });

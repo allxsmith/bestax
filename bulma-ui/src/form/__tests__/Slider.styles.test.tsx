@@ -469,9 +469,57 @@ describe.each([
     ]);
   });
 
-  it('paint the tick in the system text color in forced colors', () => {
+  it('paint the label in the page’s text color in forced colors, and the line in the button text color', () => {
+    // The label sits on the page, so it takes the color paired with it. The
+    // line crosses the track and the fill, so it keeps the button text color.
     expect(
       values(p('slider-tick'), 'background', [FORCED]).map(v => v.toLowerCase())
     ).toEqual(['buttontext']);
+    expect(
+      values(p('slider-tick-label'), 'color', [FORCED]).map(v =>
+        v.toLowerCase()
+      )
+    ).toEqual(['canvastext']);
+  });
+
+  it('draw the tick and its label at full strength in forced colors', () => {
+    // Forced colors keeps an opacity, so the tick's would halve the line and
+    // the label inside it there.
+    expect(values(p('slider-tick'), 'opacity', [FORCED])).toEqual(['1']);
+  });
+
+  it('draw a disabled slider’s ticks and labels in the color for disabled text in forced colors', () => {
+    const disabled = `${p('slider')}${p('is-disabled')}`;
+    expect(
+      values(
+        `${disabled} ${p('slider-tick')}:not(${p('is-endpoint')})`,
+        'background',
+        [FORCED]
+      ).map(v => v.toLowerCase())
+    ).toEqual(['graytext']);
+    expect(
+      values(`${disabled} ${p('slider-tick-label')}`, 'color', [FORCED]).map(
+        v => v.toLowerCase()
+      )
+    ).toEqual(['graytext']);
+  });
+
+  it('draw a disabled slider’s input at full strength in forced colors', () => {
+    // Its usual opacity sits on the input, which holds the thumbs and, but for
+    // a range slider, the track, and would halve the GrayText they're drawn in.
+    const input = `${p('slider')}${p('is-disabled')} ${p('slider-input')}`;
+    expect(values(input, 'opacity', [])).toEqual([
+      'var(--bulma-slider-disabled-opacity)',
+    ]);
+    expect(values(input, 'opacity', [FORCED])).toEqual(['1']);
+    // The two rules tie on specificity, so the reset wins by coming later.
+    const at = (within: string[]) =>
+      rules.findIndex(
+        r =>
+          r.within.join() === within.join() &&
+          r.rule.selectorText === input &&
+          r.rule.style.getPropertyValue('opacity')
+      );
+    expect(at([FORCED])).toBeGreaterThan(at([]));
   });
 });

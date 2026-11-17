@@ -1,6 +1,7 @@
 import type { MockInstance } from 'vitest';
-import { Profiler, StrictMode } from 'react';
+import { Profiler, StrictMode, useState } from 'react';
 import { render, screen, fireEvent, act, within } from '@testing-library/react';
+import { createPortal } from 'react-dom';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import {
@@ -15,6 +16,7 @@ import {
   announceDelay,
   announcementLifetime,
 } from '../../helpers/statusRegion';
+import { focusCheckInterval } from '../../helpers/useDismissTimer';
 import { ToastContainer, toast } from '../../components/Toast';
 
 describe('Notification Component', () => {
@@ -95,6 +97,29 @@ describe('Notification Component', () => {
       'type',
       'button'
     );
+  });
+
+  test('names the delete button with ariaCloseLabel, for an app in another language', () => {
+    render(
+      <Notification hasDelete ariaCloseLabel="Fermer la notification">
+        Bonjour
+      </Notification>
+    );
+    expect(
+      screen.getByRole('button', { name: 'Fermer la notification' })
+    ).toBeInTheDocument();
+    expect(screen.getByText('Bonjour')).not.toHaveAttribute('ariaCloseLabel');
+  });
+
+  test('keeps the delete button named with an empty ariaCloseLabel', () => {
+    render(
+      <Notification hasDelete ariaCloseLabel="">
+        Hello
+      </Notification>
+    );
+    expect(
+      screen.getByRole('button', { name: 'Close notification' })
+    ).toBeInTheDocument();
   });
 
   test('calls onDelete when delete button is clicked', () => {
@@ -613,6 +638,22 @@ describe('Notification Programmatic API', () => {
     });
   });
 
+  describe('ariaCloseLabel', () => {
+    it("names a programmatic notification's close button", () => {
+      render(<NotificationContainer />);
+      act(() => {
+        notification.show({
+          message: 'Enregistré',
+          ariaCloseLabel: 'Fermer',
+          duration: 0,
+        });
+      });
+      expect(
+        screen.getByRole('button', { name: 'Fermer' })
+      ).toBeInTheDocument();
+    });
+  });
+
   describe('notification.success', () => {
     it('creates a success notification', () => {
       render(<NotificationContainer />);
@@ -929,6 +970,196 @@ describe('Notification Programmatic API', () => {
         vi.advanceTimersByTime(3000);
       });
       expect(screen.queryByText('NoPause')).not.toBeInTheDocument();
+    });
+  });
+
+  // Someone using a notification's close button, or a link or button in its
+  // message, keeps it while focus is there, as a pointer over it does with
+  // pauseOnHover.
+  describe('while focus is inside', () => {
+    const isShowing = (text: string) =>
+      Array.from(document.querySelectorAll('.notification')).some(
+        notif => notif.textContent === text
+      );
+
+    // Advances the clock a check at a time, letting React render between
+    // steps, so a timer that changes state mid-wait runs as it would live.
+    const waitInSteps = (ms: number) => {
+      for (let waited = 0; waited < ms; waited += focusCheckInterval) {
+        act(() => {
+          vi.advanceTimersByTime(focusCheckInterval);
+        });
+      }
+    };
+
+    // Runs the next check of where focus is.
+    const runFocusCheck = () =>
+      act(() => {
+        vi.advanceTimersByTime(focusCheckInterval);
+      });
+
+    // Expects the notification to close exactly a whole duration from now.
+    const expectClosesAfter = (text: string, duration: number) => {
+      act(() => {
+        vi.advanceTimersByTime(duration - 1);
+      });
+      expect(isShowing(text)).toBe(true);
+      act(() => {
+        vi.advanceTimersByTime(1);
+      });
+      expect(isShowing(text)).toBe(false);
+    };
+
+    // A link that takes itself off the page when clicked, taking focus with
+    // it, with no blur.
+    const VanishingLink = () => {
+      const [shown, setShown] = useState(true);
+      return shown ? (
+        <a href="#undo" onClick={() => setShown(false)}>
+          Undo
+        </a>
+      ) : (
+        <>Undone</>
+      );
+    };
+
+    it('waits, whatever pauseOnHover says', () => {
+      render(<NotificationContainer />);
+      act(() => {
+        notification.show({
+          message: 'Saved',
+          duration: 3000,
+          pauseOnHover: false,
+        });
+      });
+
+      act(() => {
+        screen.getByRole('button', { name: 'Close notification' }).focus();
+      });
+      waitInSteps(10000);
+      expect(isShowing('Saved')).toBe(true);
+    });
+
+    it('keeps waiting while focus moves inside it', () => {
+      render(<NotificationContainer />);
+      act(() => {
+        notification.show({
+          message: (
+            <>
+              Saved. <a href="#details">Details</a>
+            </>
+          ),
+          duration: 3000,
+        });
+      });
+
+      act(() => {
+        screen.getByRole('button', { name: 'Close notification' }).focus();
+      });
+      waitInSteps(2000);
+      act(() => {
+        screen.getByRole('link', { name: 'Details' }).focus();
+      });
+      waitInSteps(10000);
+      expect(isShowing('Saved. Details')).toBe(true);
+    });
+
+    it('gets its whole duration again once focus leaves', () => {
+      render(
+        <>
+          <button>Save</button>
+          <NotificationContainer />
+        </>
+      );
+      act(() => {
+        notification.show({ message: 'Saved', duration: 3000 });
+      });
+
+      act(() => {
+        screen.getByRole('button', { name: 'Close notification' }).focus();
+      });
+      waitInSteps(10000);
+      act(() => {
+        screen.getByRole('button', { name: 'Save' }).focus();
+      });
+      runFocusCheck();
+      expectClosesAfter('Saved', 3000);
+    });
+
+    it('gets its whole duration again when focus goes with the element that had it', () => {
+      render(<NotificationContainer />);
+      act(() => {
+        notification.show({ message: <VanishingLink />, duration: 3000 });
+      });
+
+      const link = screen.getByRole('link', { name: 'Undo' });
+      act(() => {
+        link.focus();
+      });
+      waitInSteps(2000);
+      act(() => {
+        fireEvent.click(link);
+      });
+      expect(document.activeElement).toBe(document.body);
+      runFocusCheck();
+      expectClosesAfter('Undone', 3000);
+    });
+
+    it('keeps waiting while the window loses focus, which leaves focus where it was', () => {
+      render(<NotificationContainer />);
+      act(() => {
+        notification.show({ message: 'Saved', duration: 3000 });
+      });
+
+      const close = screen.getByRole('button', { name: 'Close notification' });
+      act(() => {
+        close.focus();
+      });
+      // What switching tabs or apps fires: a blur with nowhere it went to.
+      act(() => {
+        fireEvent.focusOut(close, { relatedTarget: null });
+        fireEvent.blur(close, { relatedTarget: null });
+      });
+      expect(document.activeElement).toBe(close);
+      waitInSteps(10000);
+      expect(isShowing('Saved')).toBe(true);
+    });
+
+    it('counts focus in a popup its message portals elsewhere as inside', () => {
+      const PortaledButton = () =>
+        createPortal(<button>Choose</button>, document.body);
+      render(
+        <>
+          <button>Save</button>
+          <NotificationContainer />
+        </>
+      );
+      act(() => {
+        notification.show({
+          message: (
+            <>
+              Pick one <PortaledButton />
+            </>
+          ),
+          duration: 3000,
+        });
+      });
+
+      act(() => {
+        screen.getByRole('button', { name: 'Close notification' }).focus();
+      });
+      waitInSteps(2000);
+      act(() => {
+        screen.getByRole('button', { name: 'Choose' }).focus();
+      });
+      waitInSteps(10000);
+      expect(isShowing('Pick one ')).toBe(true);
+
+      act(() => {
+        screen.getByRole('button', { name: 'Save' }).focus();
+      });
+      runFocusCheck();
+      expectClosesAfter('Pick one ', 3000);
     });
   });
 });

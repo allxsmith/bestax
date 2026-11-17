@@ -121,7 +121,7 @@ Use emphasis when introducing technical terms.
 
 ## Accessibility
 
-- **Stress Emphasis:** Screen readers may announce `<em>` content with a change in tone or stress.
+- **Stress Emphasis:** browsers tell assistive tech that `<em>` is emphasis, but don't count on a screen reader saying so. When the meaning hangs on the stress, let the words carry it too.
 - **Appropriate Use:** Use `<em>` for content that requires stress emphasis, not just for visual styling.
 - **Nested Emphasis:** Multiple levels of `<em>` indicate greater degrees of emphasis.
 

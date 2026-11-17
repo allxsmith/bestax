@@ -1,0 +1,64 @@
+// Bestax Extras - Table Styles
+// Two adjustments to stock Bulma's table: the focus ring of a responsive
+// table's container, and a selected row or cell marked in forced colors.
+//
+// Bulma's `.table-container` scrolls a wide table sideways. While the table
+// overflows it, `Table isResponsive` makes the container a region you can tab
+// to, and this draws its keyboard focus ring in Bulma's focus color, style
+// and width, as Bulma draws its own on a link or a button. It sits just inside
+// the container, as Tabs' ring does, since an overflowing container fills its
+// parent's width, and a parent that scrolls or clips, such as a modal card's
+// body, would cut the sides off a ring drawn outside it. Bulma styles no focus
+// on the container, so one class wins whichever stylesheet loads first.
+// `:focus-visible` keeps the ring off a mouse click, and a container without
+// keyboard focus looks as it does now.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+.#{iv.$class-prefix}table-container:focus-visible {
+  outline-color: hsl(
+    cv.getVar('focus-h'),
+    cv.getVar('focus-s'),
+    cv.getVar('focus-l')
+  );
+  outline-style: cv.getVar('focus-style');
+  outline-width: cv.getVar('focus-width');
+  outline-offset: calc(-1 * #{cv.getVar('focus-width')});
+}
+
+// Bulma marks a selected row or cell (`Tr isSelected`, or a cell with its
+// `is-selected` class) with a fill and a text color, and nothing else, and
+// forced colors (Windows' contrast themes) replaces both, so there a selected
+// row looks like every other row. This draws a double line around it, inside
+// its edge, in Highlight, the color the system keeps for a selection, rather
+// than fill it: a Highlight fill would need `forced-color-adjust: none` to
+// keep its text readable, and that would leave a checkbox, a tag or a link in
+// a cell in its author colors on the fill. Drawn inside, it moves nothing.
+// Bulma sets no outline on these, so the rule wins whichever stylesheet loads
+// first, and outside forced colors nothing changes.
+//
+// The line is an outline, where a browser draws its focus ring, which a row
+// or a cell shows only when it's given a `tabIndex`. A browser's ring is a
+// single line, which Chromium draws in Highlight there too, so the selection
+// is a double one, and a selected row or cell with keyboard focus keeps it,
+// in the system's text color: the shape still says selected, and the color
+// says focused.
+// The double line's width. It sits that far inside the edge, so it moves
+// nothing.
+$-selected-line: 4px;
+
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}table {
+    tr.#{iv.$class-prefix}is-selected,
+    td.#{iv.$class-prefix}is-selected,
+    th.#{iv.$class-prefix}is-selected {
+      outline: $-selected-line double Highlight;
+      outline-offset: -$-selected-line;
+
+      &:focus-visible {
+        outline-color: CanvasText;
+      }
+    }
+  }
+}

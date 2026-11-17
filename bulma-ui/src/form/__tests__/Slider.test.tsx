@@ -343,6 +343,76 @@ describe('Slider', () => {
       expect(input).toHaveAttribute('aria-valuetext', '9');
     });
 
+    // The thumb said "41" while the output showed "$41" (#1992).
+    it('sets aria-valuetext to what formatOutput shows when no getAriaValueText', () => {
+      render(<Slider value={41} formatOutput={v => `$${v}`} />);
+      expect(screen.getByRole('slider')).toHaveAttribute(
+        'aria-valuetext',
+        '$41'
+      );
+    });
+
+    it('formats the scaled value for aria-valuetext, as the output does', () => {
+      render(
+        <Slider value={3} scale={v => v * v} formatOutput={v => `${v} m²`} />
+      );
+      expect(screen.getByRole('slider')).toHaveAttribute(
+        'aria-valuetext',
+        '9 m²'
+      );
+    });
+
+    it('lets getAriaValueText win over formatOutput', () => {
+      render(
+        <Slider
+          value={41}
+          formatOutput={v => `$${v}`}
+          getAriaValueText={v => `${v} dollars`}
+        />
+      );
+      expect(screen.getByRole('slider')).toHaveAttribute(
+        'aria-valuetext',
+        '41 dollars'
+      );
+    });
+
+    it('formats both range thumbs’ aria-valuetext', () => {
+      render(<Slider range value={[20, 80]} formatOutput={v => `$${v}`} />);
+      expect(
+        screen.getAllByRole('slider').map(t => t.getAttribute('aria-valuetext'))
+      ).toEqual(['$20', '$80']);
+    });
+
+    it('sets no aria-valuetext without formatOutput, scale or getAriaValueText', () => {
+      render(<Slider value={41} />);
+      expect(screen.getByRole('slider')).not.toHaveAttribute('aria-valuetext');
+    });
+
+    it('sets no aria-valuetext where formatOutput writes nothing', () => {
+      // An empty value text would hide the value, so the number reads.
+      render(
+        <Slider value={0} formatOutput={v => (v === 0 ? '' : String(v))} />
+      );
+      expect(screen.getByRole('slider')).not.toHaveAttribute('aria-valuetext');
+    });
+
+    // An output is a polite live region, so it announced each value again
+    // after the thumb did (#1992). It keeps its role.
+    it('keeps every output from announcing what the thumb announces', () => {
+      const { container } = render(
+        <>
+          <Slider value={41} tooltip="always" />
+          <Slider range value={[20, 80]} tooltip="always" />
+        </>
+      );
+      const outputs = container.querySelectorAll('output');
+      expect(outputs).toHaveLength(3);
+      for (const output of outputs) {
+        expect(output).toHaveAttribute('aria-live', 'off');
+      }
+      expect(screen.getAllByRole('status')).toHaveLength(3);
+    });
+
     it('passes aria-label to input', () => {
       render(<Slider ariaLabel="Volume" />);
       const input = screen.getByRole('slider');
@@ -874,17 +944,17 @@ describe('Slider', () => {
       expect(highOutput).not.toHaveClass('is-visible');
     });
 
-    it('keyDown on high thumb does not throw and does not change values', () => {
-      // High thumb has no onKeyDown wired, but it should accept the event silently.
+    it('leaves Home and End on either thumb to the browser', () => {
+      // The low thumb's handler cancelled both keys and set nothing, so they
+      // did nothing there (#1966). The browser moves a range thumb to its
+      // end, which jsdom doesn't, so this checks the keys reach it.
       const handleChange = vi.fn();
       render(<Slider range value={[20, 80]} onChange={handleChange} />);
-      const inputs = screen.getAllByRole('slider') as HTMLInputElement[];
-
-      // Pressing Home on a range slider's low thumb is a no-op
-      // (range branch in handleKeyDown is intentionally empty),
-      // exercising the `if (!range)` false branch on lines 328 and 334.
-      fireEvent.keyDown(inputs[0], { key: 'Home' });
-      fireEvent.keyDown(inputs[0], { key: 'End' });
+      for (const thumb of screen.getAllByRole('slider')) {
+        for (const key of ['Home', 'End']) {
+          expect(fireEvent.keyDown(thumb, { key })).toBe(true);
+        }
+      }
       expect(handleChange).not.toHaveBeenCalled();
     });
   });

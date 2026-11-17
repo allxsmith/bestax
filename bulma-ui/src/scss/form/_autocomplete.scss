@@ -259,3 +259,21 @@ $autocomplete-item-large-padding: 0.625rem 1.5rem !default;
     font-style: italic;
   }
 }
+
+// Forced colors takes away the dropdown's shadow and the highlighted option's
+// fill, so the open dropdown gets an edge there, which Combobox's border gives
+// its list, and the highlighted option the outline Combobox's highlighted
+// item gets. Both are drawn inside their own boxes, so nothing moves.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}autocomplete {
+    .#{iv.$class-prefix}dropdown-content {
+      outline: 1px solid CanvasText;
+      outline-offset: -1px;
+    }
+
+    .#{iv.$class-prefix}dropdown-item.#{iv.$class-prefix}is-active {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
+  }
+}

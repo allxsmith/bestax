@@ -180,7 +180,7 @@ Do not use `Image` for decorative images without `alt=""`, unless purely present
 
 ## Related Components
 
-- [`Box`](./box.md): For bordered, padded containers.
+- [`Box`](./box.md): For padded containers with an optional shadow.
 - [`Content`](./content.md): For typographically styled rich content.
 - [`Card`](../components/card.md): For cards with responsive images and proper aspect ratios.
 - [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing, color, etc.

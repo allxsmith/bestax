@@ -26,6 +26,7 @@ import { Field } from './Field';
 import { Control } from './Control';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
+import { useFieldMessage } from './useFieldMessage';
 
 /** Valid sizes for the Slider component. */
 export type SliderSize = 'small' | 'medium' | 'large';
@@ -81,31 +82,44 @@ interface SliderBaseProps
   isRounded?: boolean;
   /** Use circular thumb. */
   isCircle?: boolean;
-  /** Show current value tooltip. */
+  /**
+   * Show current value tooltip. The tooltip doesn't announce its changes:
+   * a thumb announces its value as it's moved.
+   */
   showOutput?: boolean;
-  /** Controls tooltip visibility on the thumb. */
+  /**
+   * Controls tooltip visibility on the thumb. The tooltip doesn't announce
+   * its changes: a thumb announces its value as it's moved.
+   */
   tooltip?: SliderTooltip;
   /** Shows tick marks along the track. */
   ticks?: boolean;
   /**
    * Custom labeled marks along the track. Each mark has `{ value: number; label?: ReactNode }`.
-   * A mark's label sits inside its tick, so `--bulma-slider-tick-opacity` dims the label along
-   * with the tick's line, whatever `--bulma-slider-tick-label-color` is.
+   * A mark's label sits inside its tick, so outside forced colors `--bulma-slider-tick-opacity`
+   * dims the label along with the tick's line, whatever `--bulma-slider-tick-label-color` is.
    */
   marks?: SliderMark[];
   /** Orientation of the slider. */
   orientation?: SliderOrientation;
   /**
    * Function to scale the displayed value. With it, and no `getAriaValueText`,
-   * the scaled value is also the thumb's `aria-valuetext`.
+   * the output's text is also the thumb's `aria-valuetext`, whether or not
+   * the output shows.
    */
   scale?: (value: number) => number;
-  /** Function to generate the `aria-valuetext` attribute. */
+  /**
+   * Function to generate the `aria-valuetext` attribute. It wins over the
+   * text `formatOutput` and `scale` give the thumb, and it gets the value
+   * before `scale`.
+   */
   getAriaValueText?: (value: number) => string;
   /**
    * Format function for output display. Without it, the output shows the
    * value as it is, or inside a `LocaleProvider` with a `locale`, written
-   * the way that locale writes numbers, to at most three decimals.
+   * the way that locale writes numbers, to at most three decimals. With it,
+   * and no `getAriaValueText`, its text is also the thumb's
+   * `aria-valuetext`, whether or not the output shows.
    */
   formatOutput?: (value: number) => string;
 }
@@ -500,24 +514,22 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       [isControlled, onChange, currentRange, minDistance]
     );
 
-    // Key handler for Home/End
+    // Home and End on a single Slider's thumb. A range's thumbs leave them to
+    // the browser, which moves a thumb to its end, and their change handlers
+    // keep it from passing the other thumb, as they do for the arrow keys.
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Home') {
           e.preventDefault();
-          if (!range) {
-            if (!isControlled) setInternalSingle(min);
-            (onChange as ((v: number) => void) | undefined)?.(min);
-          }
+          if (!isControlled) setInternalSingle(min);
+          (onChange as ((v: number) => void) | undefined)?.(min);
         } else if (e.key === 'End') {
           e.preventDefault();
-          if (!range) {
-            if (!isControlled) setInternalSingle(max);
-            (onChange as ((v: number) => void) | undefined)?.(max);
-          }
+          if (!isControlled) setInternalSingle(max);
+          (onChange as ((v: number) => void) | undefined)?.(max);
         }
       },
-      [range, isControlled, onChange, min, max]
+      [isControlled, onChange, min, max]
     );
 
     // Tick positions
@@ -609,13 +621,16 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
     const showTipHigh =
       tooltipMode === 'always' || (tooltipMode === 'auto' && showTooltipHigh);
 
-    // Aria value text
+    // The thumb's value text: `getAriaValueText`'s, or else the output's
+    // text when `formatOutput` or `scale` is set.
     const getAriaProps = (value: number) => {
       const ariaProps: Record<string, string> = {};
       if (getAriaValueText) {
         ariaProps['aria-valuetext'] = getAriaValueText(value);
-      } else if (scale) {
-        ariaProps['aria-valuetext'] = writeNumber(scaleValue(value));
+      } else if (formatOutput || scale) {
+        // An empty text would hide the value, so the thumb's own number reads.
+        const text = formatValue(value);
+        if (text) ariaProps['aria-valuetext'] = text;
       }
       return ariaProps;
     };
@@ -747,10 +762,13 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       );
     };
 
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+    // The caller's ids go where the other attributes do, on the only thumb
+    // or the low one, and the message describes both thumbs.
+    const { messageEl, messageId, describedBy } = useFieldMessage(
+      message,
+      messageColor,
+      rest['aria-describedby'] as string | undefined
+    );
 
     // --- Single slider ---
     const sliderElement = !range ? (
@@ -784,10 +802,14 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           {...rest}
           // After the spread: an undefined `id` key in rest would wipe it.
           id={controlId}
+          aria-describedby={describedBy}
         />
         {tooltipMode !== 'hidden' && (
           <output
             ref={outputRef}
+            // An output is a live region, and the thumb announces the value
+            // as it changes, so this one doesn't announce it again.
+            aria-live="off"
             className={prefixedClassNames(classPrefix, 'slider-output', {
               'is-visible': showTipLow,
               'is-flipped': flipped,
@@ -846,7 +868,6 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           value={currentRange[0]}
           disabled={disabled}
           onChange={handleRangeLowChange}
-          onKeyDown={handleKeyDown}
           onMouseEnter={() => setShowTooltip(true)}
           onMouseLeave={() => setShowTooltip(false)}
           onFocus={() => setShowTooltip(true)}
@@ -864,6 +885,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           {...getAriaProps(currentRange[0])}
           {...thumbRest}
           id={controlId}
+          aria-describedby={describedBy}
           {...(nameLow !== undefined ? { name: nameLow } : {})}
         />
         {/* High thumb */}
@@ -891,6 +913,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           aria-orientation={isVertical ? 'vertical' : undefined}
           {...highThumb.aria}
           {...getAriaProps(currentRange[1])}
+          aria-describedby={messageId}
           name={nameHigh}
         />
         {/* Each wired thumb's own text, read after the label. A hidden element
@@ -907,6 +930,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         {tooltipMode !== 'hidden' && (
           <output
             ref={outputRef}
+            aria-live="off"
             className={prefixedClassNames(
               classPrefix,
               'slider-output',
@@ -944,6 +968,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         {tooltipMode !== 'hidden' && (
           <output
             ref={outputHighRef}
+            aria-live="off"
             className={prefixedClassNames(
               classPrefix,
               'slider-output',

@@ -122,10 +122,10 @@ than a silent rewrite. The components whose `tag` becomes `as`:
 
 `Button`, `Image`, `Title`, `Subtitle`, `Footer`, `Media`, `MediaLeft`, `Level`, `LevelItem`, `Control`,
 `DropdownItem`, `MenuLink`, `NavbarItem`, `NavbarLink`, `Container`, `Hero`, `HeroHeader`,
-`HeroFooter`, `Panel`.
+`HeroFooter`, `Panel`, `Tag`.
 
 Everywhere else `tag` is left in place with a TODO. On the components that become plain markup
-(`Help`, `Label`, `Heading`, `BreadcrumbItem`, `PanelTab`, `TabLink`, `Page`, `HeroVideo`) a
+(`Help`, `Label`, `Heading`, `BreadcrumbItem`, `PanelTab`, `TabLink`, `TabList`, `Page`, `HeroVideo`) a
 literal `tag` is honoured — `<Help tag="span">` becomes `<span className="help">`.
 
 A literal `tag` outside the union its bestax target narrows `as` to — `<Media tag="section">`,
@@ -179,7 +179,7 @@ written. Where the link was the intent, drop the `tag`.
 
 A few bestax parts extend only React's HTML attributes and take no Bulma helper props at all:
 `Pagination.Previous`/`Next`/`Ellipsis`, `Navbar.Dropdown`/`DropdownMenu`/`Divider`,
-`Panel.Heading`/`Tabs`/`Block`, `Tabs.List`/`Item`, `Message.Header`/`Body` and the `Modal`
+`Panel.Heading`/`Tabs`/`Block`, `Tabs.Item`, `Message.Header`/`Body` and the `Modal`
 parts. A bloomer helper on one of those becomes the Bulma class in `className` — except on
 `Pagination.Ellipsis` and `Dropdown.Divider`, which write their own className last or take no
 props at all: there the helper is named in a TODO instead, and an element
@@ -188,6 +188,13 @@ carrying a spread is left as bloomer's. Otherwise it is the Bulma class in `clas
 value is flagged. The same conversion covers the modifiers bestax has no prop for anywhere —
 `Hero isBold`, `Media isSize`, `Subtitle isSpaced`, `Input isActive`, `PanelBlock isWrapped`,
 `LevelItem isFlexible`, `NavbarDivider isBoxed`, the pagination parts' `isActive`/`isFocused`.
+
+bloomer's `TabList` becomes the plain `<ul>` it rendered, since bestax's `Tabs.List` adds
+`role="tablist"` and the `Tabs.Item`s in it aren't tabs. A helper on it whose literal value
+names one class becomes that class the same way, and one set to `false` goes. Any other (a
+dynamic value, an object, a bare `isPulled`) is dropped with a `plain-element` TODO, as on the
+other components that become plain markup. A dynamic `className` on it stays as written, and a
+helper's class beside it is named in a `prop:className` TODO, to merge by hand.
 
 ## Refs
 

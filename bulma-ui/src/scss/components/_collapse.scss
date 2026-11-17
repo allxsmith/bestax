@@ -133,3 +133,13 @@ $collapse-group-gap: 0.5rem !default;
     }
   }
 }
+
+// Reduced motion: the chevron turns and the bordered trigger's edge appears
+// at once, as the panel itself opens at once (Collapse reads the same
+// preference).
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}collapse-trigger-icon,
+  .#{iv.$class-prefix}collapse.#{iv.$class-prefix}is-bordered .#{iv.$class-prefix}collapse-trigger {
+    transition: none;
+  }
+}
