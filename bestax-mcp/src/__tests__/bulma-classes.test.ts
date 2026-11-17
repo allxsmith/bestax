@@ -171,6 +171,20 @@ describe('a layout class beside its base, behind every modifier gate', () => {
 
 // What styles a class Bulma 1 has no rule for, where the index knows: bestax's own
 // stylesheet, an icon font's, a Bulma extension's (#1236).
+describe('a class whose prop writes over attributes of its own', () => {
+  it("says a button's is-loading converts only where it sets no busy state", () => {
+    // `isLoading` writes aria-busy and aria-disabled over the element's own
+    // (#2040).
+    const { rows } = lookupClasses(table, 'button is-loading', 'button');
+    expect(rows.find(row => row.token === 'is-loading')?.verdict).toEqual({
+      kind: 'prop',
+      writes: [{ prop: 'isLoading' }],
+      condition:
+        'where the element sets no `aria-busy` or `aria-disabled`, since the prop writes them over any it sets; beside one it stays a class',
+    });
+  });
+});
+
 describe('the note on a class another stylesheet styles', () => {
   const elsewhere = table.elsewhere.map(group => ({
     ...group,
