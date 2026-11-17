@@ -302,7 +302,7 @@ Others draw on a stock Bulma component without adjusting it.
 
 - `elements/stat`'s `Stats` row is Bulma's smart grid, so a build with one wants `bulma/sass/grid/grid` too.
 
-- `form/dropzone` is Bulma's file widget, so a build that uses it wants `bulma/sass/form/file` and bestax's `form/file`, for the zone's focus ring and so a file dropped on its button or name reaches its input, too, and its remove buttons are delete buttons, so it wants `bulma/sass/elements/delete` and `elements/delete` as well.
+- `form/dropzone` is Bulma's file widget, so a build that uses it wants `bulma/sass/form/file` and bestax's `form/file`, for the zone's focus ring, too, and its remove buttons are delete buttons, so it wants `bulma/sass/elements/delete` and `elements/delete` as well.
 
 - `layout/appframe`'s drawer closes with a delete button, so it wants `bulma/sass/elements/delete` and `elements/delete` too, and its burger is Bulma's navbar burger, so it wants `bulma/sass/components/navbar` and `components/navbar` as well. Its icon rail, `AppFrame.Nav rail`, shows each label in a tooltip, so a build with a rail wants `components/tooltip` too, and `bulma/sass/components/menu` and `components/menu` for the icons in its menu.
 

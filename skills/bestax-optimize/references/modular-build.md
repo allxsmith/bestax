@@ -205,8 +205,7 @@ Notes:
   ```
 
 - `Dropzone`'s zone is Bulma's file widget, so an app using it needs `bulma/sass/form/file` and the
-  `file` partial (its keyboard focus ring, and a file dropped on its button or name reaching its
-  input) next to `scss/form/dropzone`, plus
+  `file` partial (its keyboard focus ring) next to `scss/form/dropzone`, plus
   `bulma/sass/elements/delete` and the `delete` partial for the remove buttons and
   `bulma/sass/form/tools` for its help lines.
 - `DateInput`/`TimeInput`/`DateTimeInput` also need `picker-popover`.
