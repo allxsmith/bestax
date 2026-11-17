@@ -299,7 +299,7 @@ Toasts shown at one position stack in one box, with a gap between them, in the o
 
 The container's `hotkey`, F8 unless you give it another, moves keyboard focus to the newest toast's first button, or to the toast itself when it has none, and the toast then stays open while focus is inside it. That's how someone who can't reach a toast with a pointer takes its action before it closes. Each stack is a region named "Notifications" with the hotkey after it, such as "Notifications (F8)", so a screen reader user can find it and learn the key.
 
-The entries are modifier flags (`altKey`, `ctrlKey`, `metaKey`, `shiftKey`) and one key by its code (`F8`, `KeyT`, `Digit1`), held together with no other modifier, and `[]` turns the hotkey off. A letter or digit without Ctrl, Meta or Alt doesn't count while someone types in a field, and nothing happens while a modal overlay is open. `ariaLabel` names the regions in your app's language:
+The entries are modifier flags (`altKey`, `ctrlKey`, `metaKey`, `shiftKey`) and one key by its code (`F8`, `KeyT`, `Digit1`, `Period`), held together with no other modifier, and `[]` turns the hotkey off. A key that types a character, without Ctrl, Meta or Alt, doesn't count while someone types in a field, and nothing happens while a modal overlay is open. `ariaLabel` names the regions in your app's language:
 
 ```tsx
 <ToastContainer hotkey={['altKey', 'KeyT']} ariaLabel="Avis" />
