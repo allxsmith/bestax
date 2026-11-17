@@ -45,6 +45,7 @@ export const Default: Story = {
 export const SkeletonBlockText: Story = {
   args: {
     variant: 'block',
+    'aria-hidden': true,
     children:
       'We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness. That to secure these rights, Governments are instituted among Men, deriving their just powers from the consent of the governed.',
   },
