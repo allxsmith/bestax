@@ -155,7 +155,7 @@ bestax's prebuilt stylesheets build Bulma's table with `$table-cell-text-align: 
 );
 ```
 
-A build with a responsive `Table` also wants bestax's `elements/table` partial, for its container's focus ring, as the list of partials below says.
+A build with a responsive `Table` also wants bestax's `elements/table` partial, for its container's focus ring, and so does one with selected rows, in a `Table` or a `DataTable`, which the partial marks in forced colors.
 
 Pull in only the helper categories you use:
 
@@ -253,9 +253,9 @@ Some of these partials adjust a stock Bulma component rather than add one of bes
 
 - `elements/notification` keeps a `Notification`'s text clear of its close button, and gives a dark or light one its color's own text and background, and a white or black one with `isLight` the light color's text, where Bulma's module lets its text inherit the color around it, so a build that uses `bulma/sass/elements/notification` wants it too.
 
-- `elements/table` draws the keyboard focus ring of a responsive table's container, which is a tab stop while the table overflows it, so a build that uses `bulma/sass/elements/table` for a `Table` with `isResponsive` wants it too.
+- `elements/table` draws the keyboard focus ring of a responsive table's container, which is a tab stop while the table overflows it, and marks a selected row or cell with a double line in forced colors, where Bulma's fill for it is replaced, so a build that uses `bulma/sass/elements/table` for a `Table` with `isResponsive` or selected rows, or for a `DataTable` that selects rows, wants it too.
 
-- `elements/tag` gives a light tag, and a white, black or dark one with `isLight`, readable text the same way, and sets a normal-size tag in a table cell at the bottom of its line, where Bulma's baseline makes the row taller than a row of text, so a build that uses `bulma/sass/elements/tag` wants it too.
+- `elements/tag` gives a light tag, and a white, black or dark one with `isLight`, readable text the same way, sets a normal-size tag in a table cell at the bottom of its line, where Bulma's baseline makes the row taller than a row of text, and gives a button tag (`as="button"`, `isDelete`) the weight, spacing and other text a span tag takes from the text around it, where the browser gives a button its own, so a build that uses `bulma/sass/elements/tag` wants it too.
 
 - `components/pagination` draws the page links' keyboard focus ring, which Bulma's own styles turn off, and keeps the current page marked in forced colors (Windows' contrast themes), so a build that uses `bulma/sass/components/pagination`, for a `Pagination` or a `DataTable`'s pager, wants it too.
 
@@ -263,7 +263,7 @@ Some of these partials adjust a stock Bulma component rather than add one of bes
 
 - `components/menu` keeps a menu's active item marked in forced colors the same way, draws `Menu.Section`'s heading and chevron, and starts each item's text at the right on a right-to-left page, so a build that uses `bulma/sass/components/menu`, for a `Menu` or a `TableOfContents`, wants it too.
 
-- `components/navbar` keeps the burger's bars drawn in forced colors, keeps a `fixed` navbar in place while an overlay locks the page's scrolling, gives an active item's text the invert of the link color it sits on, where Bulma's leaves it in the navbar's text color, draws a navbar in a colored `Hero` in the hero's colors, where Bulma's draws its active item and burger in the link color, and, in a build with a class prefix, draws a dropdown's active link row, other than a tab, as it draws without one, where Bulma's draws it as a plain row, so a build that uses `bulma/sass/components/navbar`, for a `Navbar` or an `AppFrame`'s burger, wants it too.
+- `components/navbar` keeps the burger's bars drawn and the active item marked in forced colors, keeps a `fixed` navbar in place while an overlay locks the page's scrolling, gives an active item's text the invert of the link color it sits on, where Bulma's leaves it in the navbar's text color, draws a navbar in a colored `Hero` in the hero's colors, where Bulma's draws its active item and burger in the link color, and, in a build with a class prefix, draws a dropdown's active link row, other than a tab, as it draws without one, where Bulma's draws it as a plain row, so a build that uses `bulma/sass/components/navbar`, for a `Navbar` or an `AppFrame`'s burger, wants it too.
 
 - `components/panel` keeps the heading of a panel with no color readable on the dark scheme, where Bulma writes it white on light gray, and a colored panel's active block and tab, their text, icon and underline, readable on both schemes, so a build that uses `bulma/sass/components/panel` wants it too.
 
@@ -274,6 +274,8 @@ Some of these partials adjust a stock Bulma component rather than add one of bes
 - `elements/loader` stops Bulma's spinners under `prefers-reduced-motion: reduce`, hides everything inside a loading button where Bulma hides only the label, outlines a loading button that has keyboard focus, whose focus shadow Bulma takes away, and keeps each spinner's ring open in forced colors, so a build that shows a `Loader` or a loading `Button`, `Control` or `Select` wants it too.
 
 - `elements/progress` keeps a `Progress` bar drawn in forced colors (Windows' contrast themes), its fill and an edge in the text color, where Bulma paints it in colors a contrast theme turns into the page's, and stops an indeterminate bar's sweep under `prefers-reduced-motion: reduce`, so a build that uses `bulma/sass/elements/progress` wants it too.
+
+- `elements/skeleton` keeps every skeleton shape (`Skeleton`, the `skeleton` prop and `hasSkeleton`) drawn in forced colors (Windows' contrast themes), in `GrayText` with the text Bulma hides still hidden, where a contrast theme turns Bulma's shape into the page's color and shows that text, and stops the shapes' pulse under `prefers-reduced-motion: reduce`, so a build that uses `bulma/sass/base/skeleton` wants it too.
 
 - `form/field` puts the `message` of a horizontal form component (`Input horizontal`, `Checkboxes horizontal` and the like) under its control, where Bulma's row would set it beside, and keeps a horizontal label's text against its control on a right-to-left page, so a build that uses `bulma/sass/form/tools` for horizontal fields wants it too.
 

@@ -123,6 +123,7 @@ describe('AS_UNIONS matches the `as` each bestax component declares', () => {
       'Panel',
       'Panel.Block',
       'SubTitle',
+      'Tag',
       'Title',
     ]);
   });
@@ -211,6 +212,7 @@ describe('the href and `as` tables match what the library accepts', () => {
       'Pagination.Next': 'a',
       'Pagination.Previous': 'a',
       'Panel.Block': 'a',
+      Tag: 'span',
     });
   });
 

@@ -2592,6 +2592,7 @@ describe("the table's claims about the library", () => {
       'card-footer-item',
       'level-item',
       'panel-block',
+      'tag',
     ]);
     for (const [root, entry] of withRows) {
       for (const tag of tagsFor(entry)) {

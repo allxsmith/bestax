@@ -131,11 +131,27 @@ describe('Loading', () => {
   });
 
   describe('cancel functionality', () => {
-    it('renders cancel button when canCancel is true', () => {
+    it('renders a cancel button when canCancel is true, showing "Cancel" and named "Cancel loading"', () => {
       render(<Loading active canCancel />);
+      const button = screen.getByRole('button', { name: 'Cancel loading' });
+      expect(button).toHaveTextContent(/^Cancel$/);
+    });
+
+    it('shows cancelText and is named by it, with no name of its own', () => {
+      render(<Loading active canCancel cancelText="Annuler" />);
+      const button = screen.getByRole('button', { name: 'Annuler' });
+      expect(button).toHaveTextContent(/^Annuler$/);
+      expect(button).not.toHaveAttribute('aria-label');
+    });
+
+    it.each([
+      ['an empty', ''],
+      ['a spaces-only', '  '],
+    ])('falls back to "Cancel" for %s cancelText', (_label, cancelText) => {
+      render(<Loading active canCancel cancelText={cancelText} />);
       expect(
-        screen.getByRole('button', { name: /cancel/i })
-      ).toBeInTheDocument();
+        screen.getByRole('button', { name: 'Cancel loading' })
+      ).toHaveTextContent(/^Cancel$/);
     });
 
     it('does not render cancel button when canCancel is false', () => {

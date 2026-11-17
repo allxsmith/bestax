@@ -140,6 +140,8 @@ Combine `Title` with `SubTitle` for a structured heading and subheading layout. 
   needs. `size` picks that level as well as the size, unless `as` is `p`: `as="h2" size="4"`
   renders an `<h4>`. For a heading whose level and size differ, set the level with `as` and the
   size with the `textSize` helper, as in `<Title as="h2" textSize="4">`.
+- **Skeletons:** `skeleton` and `hasSkeleton` follow [Skeleton's accessibility notes](./skeleton.md#accessibility),
+  forced colors included.
 
 :::tip
 When using `as="p"`, the element is visually styled as a heading but semantically a paragraph.
