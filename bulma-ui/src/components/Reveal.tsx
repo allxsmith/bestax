@@ -95,10 +95,20 @@ interface Size {
 const viewportOf = ({ rootBounds }: IntersectionObserverEntry): Size =>
   rootBounds ?? { width: window.innerWidth, height: window.innerHeight };
 
-/** The largest view of an element, and whether it can be scrolled sideways. */
+/**
+ * The largest view of an element, and the nearest container that clips it
+ * sideways, where that one scrolls that way.
+ */
 interface View extends Size {
-  scrollsAcross: boolean;
+  sideways: Clipper | null;
 }
+
+/** How much of `element`'s laid-out size it's drawn at, sideways. */
+const scaleOf = (element: Element, drawn: DOMRect) => {
+  const { offsetWidth } = element as Partial<HTMLElement>;
+  // An SVG element has no layout size apart from how it's drawn.
+  return offsetWidth ? drawn.width / offsetWidth : 1;
+};
 
 /**
  * The largest the area the element can be seen through gets: the viewport,
@@ -106,30 +116,54 @@ interface View extends Size {
  * it that way, such as a scrolling container, when that's smaller. Sizes, not
  * positions, since a container partly off the screen can still scroll into
  * view whole. Measured as drawn, so a transform that scales the container
- * counts. It can be scrolled sideways only when the nearest container that
- * clips it sideways scrolls that way, since scrolling one further out moves
- * that one with it. The page doesn't count, which Bulma doesn't let scroll
- * sideways.
+ * counts. Only the nearest container that clips it sideways can scroll it
+ * that way, since scrolling one further out moves that one with it. The page
+ * doesn't count, which Bulma doesn't let scroll sideways.
  */
 function viewOf(viewport: Size, clippers: Clipper[]): View {
   let { width, height } = viewport;
-  let scrollsAcross: boolean | undefined;
-  for (const { element, style, clipsX, clipsY } of clippers) {
+  let sideways: Clipper | null | undefined;
+  for (const clipper of clippers) {
+    const { element, style, clipsX, clipsY } = clipper;
     const drawn = element.getBoundingClientRect();
-    // An SVG element has no layout size apart from how it's drawn.
-    const { offsetWidth, offsetHeight } = element as Partial<HTMLElement>;
     // An inline element, which overflow doesn't apply to, has no inside.
     if (clipsX && element.clientWidth > 0) {
-      const scale = offsetWidth ? drawn.width / offsetWidth : 1;
-      width = Math.min(width, element.clientWidth * scale);
-      scrollsAcross ??= scrollsOverflow(style.overflowX);
+      width = Math.min(width, element.clientWidth * scaleOf(element, drawn));
+      sideways ??= scrollsOverflow(style.overflowX) ? clipper : null;
     }
     if (clipsY && element.clientHeight > 0) {
+      const { offsetHeight } = element as Partial<HTMLElement>;
       const scale = offsetHeight ? drawn.height / offsetHeight : 1;
       height = Math.min(height, element.clientHeight * scale);
     }
   }
-  return { width, height, scrollsAcross: !!scrollsAcross };
+  return { width, height, sideways: sideways ?? null };
+}
+
+/**
+ * The share of an element's width that can show once `scroller` scrolls as
+ * far as it can toward the parts of it the scroller cuts off: what's in view
+ * now, and on each side what's cut off, as far as the scroller has room to
+ * scroll that way. Nothing scrolls past the start, so an offset off that edge
+ * stays off.
+ */
+function acrossReach(
+  { element, style }: Clipper,
+  box: DOMRectReadOnly,
+  seen: DOMRectReadOnly
+) {
+  const drawn = element.getBoundingClientRect();
+  const scale = scaleOf(element, drawn);
+  const left = drawn.left + element.clientLeft * scale;
+  const right = left + element.clientWidth * scale;
+  const range = element.scrollWidth - element.clientWidth;
+  // Right to left, `scrollLeft` runs from -range, at the far left, up to 0.
+  const fromLeft =
+    style.direction === 'rtl' ? element.scrollLeft + range : element.scrollLeft;
+  const more =
+    Math.min(Math.max(0, left - box.left), fromLeft * scale) +
+    Math.min(Math.max(0, box.right - right), (range - fromLeft) * scale);
+  return shareOf(seen.width + more, box.width);
 }
 
 /** `part` of `whole`, from 0 to 1. */
@@ -140,15 +174,16 @@ const shareOf = (part: number, whole: number) =>
  * Whether an observer entry shows enough of the element to reveal it:
  * `threshold` of it, or any of it for an element that can never show that
  * much where it is, which would otherwise never reveal. That's judged by the
- * most of it that can show at once as it scrolls down, or sideways where it
- * can: the share of it the largest view of it holds that way, times the share
- * of it across that way in view now, which scrolling that way leaves as it
- * is. So a part a sideways offset keeps out of the viewport, or out of a
- * container that clips it, stays out. An element coming in at a corner,
- * partly off the side of a horizontal scroller as the scroller comes up into
- * view, shows little either way, and reveals early: this errs toward showing
- * it, never toward keeping it hidden. `watch` hears of each container
- * measured, so a change in its size can ask again.
+ * most of it that can show at once as it scrolls down, the share of it across
+ * in view now staying as it is, or sideways, the share of it down in view now
+ * staying as it is, as far as the nearest container that clips it sideways
+ * can scroll toward the part of it cut off. So a part a sideways offset keeps
+ * out of the viewport, or out of a container that can't scroll to it, stays
+ * out. An element coming in at a corner, partly off the side of a horizontal
+ * scroller as the scroller comes up into view, shows little either way, and
+ * reveals early: this errs toward showing it, never toward keeping it hidden.
+ * `watch` hears of each container measured, so a change in its size can ask
+ * again.
  */
 function showsEnough(
   entry: IntersectionObserverEntry,
@@ -163,23 +198,24 @@ function showsEnough(
   const { boundingClientRect: box, intersectionRect: seen } = entry;
   const acrossNow = shareOf(seen.width, box.width);
   const downNow = shareOf(seen.height, box.height);
-  const most = (view: Size, scrollsAcross: boolean) => {
+  const most = (view: Size, across: number) => {
     const tall = shareOf(view.height, box.height);
     const wide = shareOf(view.width, box.width);
     return Math.max(
       Math.min(acrossNow, wide) * tall,
-      scrollsAcross ? Math.min(downNow, tall) * wide : 0
+      Math.min(downNow, tall) * Math.min(across, wide)
     );
   };
   // A container can only make the view smaller, and only it lets the element
-  // scroll sideways, so the viewport alone, scrolling both ways, may settle
-  // it without measuring any.
+  // scroll sideways, so the viewport alone, scrolling all of it into view
+  // sideways, may settle it without measuring any.
   const viewport = viewportOf(entry);
-  if (most(viewport, true) < threshold) return true;
+  if (most(viewport, 1) < threshold) return true;
   const clippers = [...clippingAncestors(node, { throughBody: true })];
   watch(clippers);
   const view = viewOf(viewport, clippers);
-  return most(view, view.scrollsAcross) < threshold;
+  const across = view.sideways ? acrossReach(view.sideways, box, seen) : 0;
+  return most(view, across) < threshold;
 }
 
 /**

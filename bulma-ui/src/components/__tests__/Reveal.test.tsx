@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, act } from '@testing-library/react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Reveal } from '../Reveal';
+import type { RevealAnimation } from '../Reveal';
 import { ConfigProvider } from '../../helpers/Config';
 
 type Listener = (event: { matches: boolean }) => void;
@@ -101,6 +102,11 @@ type Place = {
    * bottom of a container that clips it higher up.
    */
   bottom?: number;
+  /**
+   * Where its left edge is, for a part cut off on the left. By default, the
+   * part out of view is off the right.
+   */
+  left?: number;
 };
 
 /**
@@ -113,12 +119,12 @@ function entryOf(
   ratio: number,
   view: Size | null,
   box: Size,
-  { across = 1, bottom }: Place = {}
+  { across = 1, bottom, left: leftEdge }: Place = {}
 ): Partial<IntersectionObserverEntry> {
   const edge = bottom ?? (view ? view.height : window.innerHeight);
   const seenHeight = ratio > 0 ? (ratio * box.height) / across : 0;
   const top = edge - seenHeight;
-  const left = box.width * (1 - across);
+  const left = leftEdge ?? box.width * (1 - across);
   const placed = (width: number, height: number, x: number, y: number) =>
     ({
       left: x,
@@ -136,7 +142,7 @@ function entryOf(
     intersectionRect: placed(
       ratio > 0 ? box.width * across : 0,
       seenHeight,
-      left,
+      Math.max(left, 0),
       top
     ),
   };
@@ -799,38 +805,6 @@ describe('Reveal', () => {
       expect(revealed(container)).toBe(true);
     });
 
-    it('waits for `threshold` from a card partly off the side of a container that scrolls sideways', () => {
-      // 10% of a 300px card shows at the side of an `overflow-x: auto` row
-      // that's all in view up and down; scrolling the row can show all of it.
-      const { container } = render(
-        <div data-testid="row" style={{ overflowX: 'auto' }}>
-          <Reveal animation="fade">Content</Reveal>
-        </div>
-      );
-      const row = screen.getByTestId('row');
-      const rect = rectOf({ width: 1024, height: 300 }) as DOMRect;
-      row.getBoundingClientRect = () => rect;
-      row.getClientRects = () => [rect] as unknown as DOMRectList;
-      for (const [name, value] of Object.entries({
-        clientWidth: 1024,
-        clientHeight: 300,
-        offsetWidth: 1024,
-        offsetHeight: 300,
-      })) {
-        Object.defineProperty(row, name, { value });
-      }
-      const instance = MockIntersectionObserver.instances[0];
-
-      instance.scrollThrough(
-        [0.1],
-        { width: 1024, height: 1000 },
-        { width: 300, height: 300 },
-        { across: 0.1 }
-      );
-
-      expect(revealed(container)).toBe(false);
-    });
-
     it('reveals a card kept partly outside a container that clips it sideways once any of it is in view, when it can never show `threshold` of itself', () => {
       // 64px of a 200px card at the right edge of an `overflow-x: hidden`
       // container, narrower than the viewport, sits outside it until it
@@ -850,7 +824,100 @@ describe('Reveal', () => {
         across: 0.68,
       });
 
-      expect(revealed(container.firstElementChild as HTMLElement)).toBe(true);
+      expect(revealed(container)).toBe(true);
+    });
+
+    describe('in a container that scrolls sideways', () => {
+      /**
+       * Lays `row` out `width` wide at the viewport's left, with `room` more
+       * to scroll to, and scrolled `scrollLeft` along.
+       */
+      const layOutRow = (
+        row: HTMLElement,
+        width: number,
+        room: number,
+        scrollLeft = 0
+      ) => {
+        const rect = rectOf({ width, height: 300 }) as DOMRect;
+        row.getBoundingClientRect = () => rect;
+        row.getClientRects = () => [rect] as unknown as DOMRectList;
+        for (const [name, value] of Object.entries({
+          clientWidth: width,
+          clientHeight: 300,
+          offsetWidth: width,
+          offsetHeight: 300,
+          scrollWidth: width + room,
+          scrollLeft,
+        })) {
+          Object.defineProperty(row, name, { value });
+        }
+      };
+      const renderInRow = (
+        style: React.CSSProperties,
+        props: { animation?: RevealAnimation; threshold?: number } = {}
+      ) => {
+        const { container } = render(
+          <div data-testid="row" style={style}>
+            <Reveal animation="fade" {...props}>
+              Content
+            </Reveal>
+          </div>
+        );
+        return { container, row: screen.getByTestId('row') };
+      };
+      const desktop = { width: 1024, height: 1000 };
+      const card = { width: 300, height: 300 };
+
+      it('waits for `threshold` from a card cut off on the side it can scroll to', () => {
+        // 30px of a 300px card shows at the right edge of a 300px
+        // `overflow-x: auto` row that's all in view up and down, with 300px
+        // more to scroll to: scrolling it can show all of the card.
+        const { container, row } = renderInRow({ overflowX: 'auto' });
+        layOutRow(row, 300, 300);
+        const instance = MockIntersectionObserver.instances[0];
+
+        instance.scrollThrough([0.1], desktop, card, { across: 0.1 });
+
+        expect(revealed(container)).toBe(false);
+      });
+
+      it('reveals a card an offset keeps off the start of a container scrolling up and down, which no scroll reaches', () => {
+        // A browser reports `overflow-x: auto` for an `overflow-y: auto`
+        // pane. A 300px `slide-right` card sits 64px off its left edge, all
+        // in view up and down, waiting for 90%, and the pane has nothing to
+        // scroll to sideways.
+        const { container, row } = renderInRow(
+          { overflowX: 'auto', overflowY: 'auto' },
+          { animation: 'slide-right', threshold: 0.9 }
+        );
+        layOutRow(row, 300, 0);
+        const instance = MockIntersectionObserver.instances[0];
+
+        instance.scrollThrough([0.79], desktop, card, {
+          across: 0.79,
+          left: -64,
+        });
+
+        expect(revealed(container)).toBe(true);
+      });
+
+      it('counts the room a right-to-left row has to scroll left', () => {
+        // Right to left, a row at its start has all its room to the left,
+        // where 270px of the card are cut off.
+        const { container, row } = renderInRow({
+          overflowX: 'auto',
+          direction: 'rtl',
+        });
+        layOutRow(row, 300, 300, 0);
+        const instance = MockIntersectionObserver.instances[0];
+
+        instance.scrollThrough([0.1], desktop, card, {
+          across: 0.1,
+          left: -270,
+        });
+
+        expect(revealed(container)).toBe(false);
+      });
     });
 
     describe('when its size or the window changes', () => {
