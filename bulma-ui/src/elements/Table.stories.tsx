@@ -408,7 +408,9 @@ export const CheckboxColumn: Story = {
                   onChange={() => toggle(team.name)}
                 />
               </Td>
-              <Td isVcentered>{team.name}</Td>
+              <Th scope="row" isVcentered>
+                {team.name}
+              </Th>
               <Td isVcentered isAligned="right">
                 {team.points}
               </Td>

@@ -36,7 +36,11 @@ export interface DialogProps
    * `aria-describedby` unless you pass an `aria-describedby` of your own.
    */
   message: string | React.ReactNode;
-  /** The type/color of the dialog. Default: 'default'. */
+  /**
+   * The type/color of the dialog. Default: 'default'. Its color and its
+   * built-in icon aren't announced, so say in the title or the message what
+   * kind of dialog it is when that matters, as for a destructive action.
+   */
   type?: DialogType | undefined;
   /** Text for confirm button. Default: 'OK'. */
   confirmText?: string;
@@ -52,7 +56,11 @@ export interface DialogProps
   canCancel?: boolean;
   /** Focus cancel button instead of confirm. Default: false. */
   focusCancel?: boolean;
-  /** Custom icon to display. */
+  /**
+   * Custom icon to display beside the title, so only when there is one, in
+   * place of the type's built-in icon, which is hidden from assistive
+   * technology. Yours is rendered as you pass it.
+   */
   icon?: React.ReactNode;
   /**
    * Renders the dialog into a portal target instead of inline. Forwarded to
@@ -281,7 +289,8 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
       }
     };
 
-    const displayIcon = icon !== undefined ? icon : getDefaultIcon();
+    const builtInIcon = icon === undefined;
+    const displayIcon = builtInIcon ? getDefaultIcon() : icon;
 
     if (!isOpen) {
       return null;
@@ -308,7 +317,15 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
             {title && (
               <div className={headerClass}>
                 {displayIcon && (
-                  <span className={iconClass}>{displayIcon}</span>
+                  <span
+                    className={iconClass}
+                    // The built-in icon is hidden from assistive technology,
+                    // where an svg with no name reads as an unlabelled image.
+                    // A custom one is left as the caller passes it.
+                    aria-hidden={builtInIcon || undefined}
+                  >
+                    {displayIcon}
+                  </span>
                 )}
                 <h3 id={titleId} className={titleClass}>
                   {title}
@@ -357,11 +374,19 @@ export interface AlertOptions {
   title?: string;
   /** Dialog message/content. */
   message: string | React.ReactNode;
-  /** Dialog type/color. */
+  /**
+   * Dialog type/color. Its color and its built-in icon aren't announced, so
+   * say in the title or the message what kind of dialog it is when that
+   * matters, as for a destructive action.
+   */
   type?: DialogType;
   /** Text for the confirm button. */
   confirmText?: string;
-  /** Custom icon to display. */
+  /**
+   * Custom icon to display beside the title, so only when there is one, in
+   * place of the type's built-in icon, which is hidden from assistive
+   * technology. Yours is rendered as you pass it.
+   */
   icon?: React.ReactNode;
 }
 

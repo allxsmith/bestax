@@ -82,6 +82,7 @@ export const Signup: Story = {
         >
           <Input
             label="Name"
+            autoComplete="name"
             value={name}
             onChange={e => setName(e.target.value)}
             color={show('name') ? 'danger' : undefined}
@@ -92,6 +93,7 @@ export const Signup: Story = {
           />
           <Input
             label="Email"
+            autoComplete="email"
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
@@ -103,6 +105,7 @@ export const Signup: Story = {
           />
           <Select
             label="Country"
+            autoComplete="country"
             value={country}
             onChange={e => setCountry(e.target.value)}
             color={show('country') ? 'danger' : undefined}
@@ -113,7 +116,7 @@ export const Signup: Story = {
             <option value="">Select…</option>
             <option value="us">United States</option>
             <option value="ca">Canada</option>
-            <option value="uk">United Kingdom</option>
+            <option value="gb">United Kingdom</option>
           </Select>
           <Button color="primary" type="submit">
             Create account

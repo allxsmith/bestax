@@ -288,4 +288,66 @@ describe('Switch', () => {
       expect(label).toHaveClass('m-2', 'p-3');
     });
   });
+
+  describe('role', () => {
+    // It's a native checkbox, so that's what a screen reader calls it.
+    // role="switch" makes it a switch and keeps the checked state (#1970).
+    it('is a checkbox by default', () => {
+      render(<Switch>Wi-Fi</Switch>);
+      expect(
+        screen.getByRole('checkbox', { name: 'Wi-Fi' })
+      ).toBeInTheDocument();
+      expect(screen.queryByRole('switch')).toBeNull();
+    });
+
+    it('is a switch with role="switch", which keeps its checked state', () => {
+      render(
+        <Switch role="switch" defaultChecked>
+          Wi-Fi
+        </Switch>
+      );
+      const wifi = screen.getByRole('switch', { name: 'Wi-Fi' });
+      expect(wifi).toBeChecked();
+      fireEvent.click(wifi);
+      expect(wifi).not.toBeChecked();
+    });
+
+    it('keeps onChange and the form value with role="switch"', () => {
+      const onChange = vi.fn();
+      const { rerender } = render(
+        <form aria-label="Settings">
+          <Switch
+            role="switch"
+            name="wifi"
+            value="on"
+            checked
+            onChange={onChange}
+          >
+            Wi-Fi
+          </Switch>
+        </form>
+      );
+      fireEvent.click(screen.getByRole('switch', { name: 'Wi-Fi' }));
+      expect(onChange).toHaveBeenCalledTimes(1);
+      const form = () =>
+        new FormData(
+          screen.getByRole('form', { name: 'Settings' }) as HTMLFormElement
+        );
+      expect(Array.from(form())).toEqual([['wifi', 'on']]);
+      rerender(
+        <form aria-label="Settings">
+          <Switch
+            role="switch"
+            name="wifi"
+            value="on"
+            checked={false}
+            onChange={onChange}
+          >
+            Wi-Fi
+          </Switch>
+        </form>
+      );
+      expect(Array.from(form())).toEqual([]);
+    });
+  });
 });

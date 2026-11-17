@@ -191,3 +191,37 @@ $badge-animation-duration: 1.4s !default;
     display: none;
   }
 }
+
+// Forced colors (Windows' contrast themes): a badge is a background color with
+// a ring made of a shadow, and forced colors paints the background in the
+// page's own Canvas and drops the shadow. A dot, which is nothing but its
+// fill, disappears, and a count or text badge loses its pill. This draws the
+// pill's edge as a one pixel outline in CanvasText, inside its own box so
+// nothing moves, a system color the browser keeps, so the badge's text stays
+// in the user's colors. A dot has no text, so it alone opts out of the
+// browser's colors and takes a CanvasText fill, with its ring in Canvas to
+// part it from what it sits on, as the ring in the page's color does at rest.
+// The fill outranks a background helper on the dot, which would otherwise
+// draw it in a color the browser no longer replaces. A pulsing badge's halo
+// reads the badge's fill: a dot's pulses in CanvasText, and a count's or a
+// text badge's, whose fill is Canvas there, pulses as a CanvasText ring, so it
+// never covers the text. The halo is hidden for users who ask for less motion,
+// as it is at rest. Outside forced colors none of this changes anything.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}badge {
+    outline: 1px solid CanvasText;
+    outline-offset: -1px;
+
+    &.#{iv.$class-prefix}is-dot {
+      forced-color-adjust: none;
+      background-color: CanvasText !important;
+      box-shadow: 0 0 0 #{cv.getVar('badge-ring-width')} Canvas;
+    }
+
+    &.#{iv.$class-prefix}is-pulse:not(.#{iv.$class-prefix}is-dot)::after {
+      background-color: transparent;
+      outline: 1px solid CanvasText;
+      outline-offset: -1px;
+    }
+  }
+}

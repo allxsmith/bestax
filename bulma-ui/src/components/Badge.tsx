@@ -41,7 +41,11 @@ export interface BadgeProps
   content?: React.ReactNode;
   /** Numeric `content` above this renders as `"{max}+"`. A negative or non-integer value falls back to the default. */
   max?: number | undefined;
-  /** Render a small dot with no content. */
+  /**
+   * Render a small dot with no content. In forced colors (Windows' contrast
+   * themes) a dot is filled in the system's text color, whatever its `color`
+   * or a background helper says, so it shows there.
+   */
   dot?: boolean;
   /** Show the badge when `content` is `0`. Default `false`. */
   showZero?: boolean;
