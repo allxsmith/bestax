@@ -62,6 +62,7 @@ export function ProfileForm() {
     >
       <Input
         label="Name"
+        autoComplete="name"
         value={values.name}
         onChange={e => set('name', e.target.value)}
         color={show('name') ? 'danger' : undefined}
@@ -73,6 +74,7 @@ export function ProfileForm() {
       <Input
         label="Email"
         type="email"
+        autoComplete="email"
         value={values.email}
         onChange={e => set('email', e.target.value)}
         color={show('email') ? 'danger' : undefined}
@@ -84,6 +86,7 @@ export function ProfileForm() {
 
       <Select
         label="Country"
+        autoComplete="country"
         value={values.country}
         onChange={e => set('country', e.target.value)}
         color={show('country') ? 'danger' : undefined}
@@ -152,10 +155,10 @@ Notes:
 // Two controls on one row.
 <Field grouped>
   <Control>
-    <InputBase placeholder="First" aria-label="First name" />
+    <InputBase placeholder="First" aria-label="First name" autoComplete="given-name" />
   </Control>
   <Control>
-    <InputBase placeholder="Last" aria-label="Last name" />
+    <InputBase placeholder="Last" aria-label="Last name" autoComplete="family-name" />
   </Control>
 </Field>
 ```
@@ -203,6 +206,7 @@ put a `<label className="label">` inside it with `htmlFor` pointing at the input
       <InputBase
         id="horizontal-email"
         type="email"
+        autoComplete="email"
         placeholder="you@example.com"
       />
     </Control>

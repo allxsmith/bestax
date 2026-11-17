@@ -232,7 +232,9 @@ export interface DateInputBaseProps
    * the color's `-on-scheme` variant, which Bulma adjusts to contrast with the
    * background, so pale colors stay readable. Unset, the calendar uses its
    * `--bulma-dateinput-*` variables, which follow `primary` the same way by
-   * default.
+   * default. Forced colors (Windows' contrast themes) replaces the fill, so
+   * there the selected date is drawn in the system's highlight colors instead,
+   * whatever the color, which needs bestax's CSS.
    */
   color?:
     'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;

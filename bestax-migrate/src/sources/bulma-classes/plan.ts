@@ -1226,6 +1226,7 @@ function planElement(facts: ElementFacts): Plan {
       !modifier!.onlyTrue &&
       (!modifier!.tagIn || modifier!.tagIn.includes(tag)) &&
       (!modifier!.needsAttr || attributes.has(modifier!.needsAttr.name)) &&
+      !modifier!.overridesAttrs?.some(name => attributes.has(name)) &&
       !writes.has(write.prop) &&
       !conditional.some(([prop]) => prop === write.prop);
     // Written as a prop, the condition is evaluated before any left in the
@@ -1711,6 +1712,9 @@ function propsFrom(
       if (modifier.beside && !paired(token)) continue;
       if (modifier.tagIn && !modifier.tagIn.includes(tag)) continue;
       if (modifier.needsAttr && !attributes.has(modifier.needsAttr.name)) {
+        continue;
+      }
+      if (modifier.overridesAttrs?.some(name => attributes.has(name))) {
         continue;
       }
       if (modifier.writes.some(write => writes.has(write.prop))) continue;

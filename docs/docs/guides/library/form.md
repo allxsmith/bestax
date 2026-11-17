@@ -19,6 +19,8 @@ A Bulma-styled text input supporting color, size, rounded, static, and loading s
 ```tsx live
 <Input
   label="Email"
+  type="email"
+  autoComplete="email"
   placeholder="you@example.com"
   iconLeftName="envelope"
   message="We'll never share your email"
@@ -677,7 +679,7 @@ A Bulma-styled form field container for labels, grouped controls, and horizontal
 
 ```tsx live
 <Field label="Email">
-  <Input placeholder="you@example.com" />
+  <Input type="email" autoComplete="email" placeholder="you@example.com" />
 </Field>
 ```
 
@@ -715,8 +717,8 @@ A section of a form in a native `<fieldset>`, named by its legend, bordered, fil
 
 ```tsx live
 <Fieldset legend="Shipping address" message="We only ship within the EU.">
-  <Input label="Street" name="street" />
-  <Input label="City" name="city" />
+  <Input label="Street" name="street" autoComplete="shipping address-line1" />
+  <Input label="City" name="city" autoComplete="shipping address-level2" />
 </Fieldset>
 ```
 
