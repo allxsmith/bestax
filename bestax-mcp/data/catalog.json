@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.73.4"
+    "version": "5.73.10"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -990,7 +990,7 @@
       "slug": "components/loading",
       "import": "import { Loading } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 10,
+      "propCount": 11,
       "exampleCount": 7
     },
     {
@@ -1034,7 +1034,7 @@
       "slug": "components/message",
       "import": "import { Message, MessageHeader, MessageBody } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 12,
+      "propCount": 13,
       "exampleCount": 8
     },
     {
@@ -1485,8 +1485,8 @@
       "slug": "elements/tag",
       "import": "import { Tag } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 9,
-      "exampleCount": 12
+      "propCount": 10,
+      "exampleCount": 13
     },
     {
       "name": "Taginput",
@@ -1507,7 +1507,7 @@
       "slug": "elements/tags",
       "import": "import { Tags } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 14,
+      "propCount": 15,
       "exampleCount": 8
     },
     {
@@ -3794,7 +3794,7 @@
     "MenuLabel": {
       "component": "Menu",
       "path": "Menu.Label",
-      "purpose": "Bulma Menu label component."
+      "purpose": "The label over a group of the menu's items: a paragraph to assistive tech, until you give it `role=\"heading\"` and an `aria-level`."
     },
     "MenuList": {
       "component": "Menu",
@@ -4032,7 +4032,7 @@
     "SidebarTitle": {
       "component": "Sidebar",
       "path": "Sidebar.Title",
-      "purpose": "Title text inside the header."
+      "purpose": "Title text inside the header. It doesn't name the sidebar on its own: give it an `id`, and the `Sidebar` an `aria-labelledby` pointing at it."
     },
     "SplitterPane": {
       "component": "Splitter",

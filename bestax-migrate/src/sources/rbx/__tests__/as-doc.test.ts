@@ -69,6 +69,7 @@ const CASES: Array<[string, string, boolean, string?]> = [
   ['Hero', '<Hero.Foot as="footer">x</Hero.Foot>', true, 'Hero.Foot'],
   ['Panel', '<Panel as="section">x</Panel>', true, 'Panel'],
   ['Panel', '<Panel.Block as="label">x</Panel.Block>', true, 'Panel.Block'],
+  ['Tag', '<Tag as="button">x</Tag>', true, 'Tag'],
 
   // Documented as NOT accepting it — including the target-dependent cases.
   ['Dropdown', '<Dropdown as="div">x</Dropdown>', false],
@@ -79,7 +80,6 @@ const CASES: Array<[string, string, boolean, string?]> = [
   ['Level', '<Level.Item align="right" as="a">x</Level.Item>', false],
   ['Navbar', '<Navbar.Item dropdown as="div">x</Navbar.Item>', false],
   ['Box', '<Box as="section">x</Box>', false],
-  ['Tag', '<Tag as="span">x</Tag>', false],
 ];
 
 describe('the documented `as` behaviour is the actual behaviour', () => {

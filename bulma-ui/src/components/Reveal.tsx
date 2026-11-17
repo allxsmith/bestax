@@ -38,7 +38,15 @@ export interface RevealOwnProps extends BulmaClassesProps {
   delay?: number;
   /** Animation duration in milliseconds. Default: 600. */
   duration?: number;
-  /** Fraction (0-1) of the element that must be visible to trigger the reveal. Clamped to the 0-1 range; non-finite values fall back to `0.15`. */
+  /**
+   * Fraction (0-1) of the element that must be visible to trigger the
+   * reveal. Clamped to the 0-1 range; non-finite values fall back to `0.15`.
+   * An element too big for the viewport ever to show that fraction of it,
+   * such as a long section on a phone or at a high browser zoom, reveals as
+   * soon as any of it is in view. The viewport is what that's judged against, so an
+   * element in a scrolling container that shows less of it than the viewport
+   * would can still wait for a fraction it never reaches.
+   */
   threshold?: number;
   /** Animate only the first time the element enters the viewport. If `false`, it re-animates on every entry/exit. */
   once?: boolean;
@@ -67,6 +75,28 @@ export type RevealProps<T extends React.ElementType = 'div'> = RevealOwnProps &
     /** Element or component to render as. Default: 'div'. When `as` is a plain intrinsic tag (e.g. `'section'`), your `className`, `style`, and Bulma helper classes plus everything in `...rest` all land on that single element. When `as` is a component (e.g. `Section`, `Card`), scroll detection needs a real DOM node with a ref, so `Reveal` wraps it in an observed `div`: `className`/`style`/helper classes go on that wrapper `div`, while `...rest` (`id`, `aria-*`, `data-*`, event handlers) is forwarded to the inner component. */
     as?: T | undefined;
   };
+
+/**
+ * Whether an observer entry shows enough of the element to reveal it:
+ * `threshold` of it, or any of it for an element too big for the viewport
+ * ever to show that much, which would otherwise never reveal. The viewport is
+ * the entry's root, or, where the browser doesn't give the root's size, as in
+ * a cross-origin frame, the window the element is in.
+ */
+function showsEnough(entry: IntersectionObserverEntry, threshold: number) {
+  if (!entry.isIntersecting) return false;
+  if (entry.intersectionRatio >= threshold) return true;
+  const box = entry.boundingClientRect;
+  const view = entry.rootBounds ?? {
+    width: window.innerWidth,
+    height: window.innerHeight,
+  };
+  // The most of the element the viewport can hold at once. An element with
+  // no area reports a ratio of 1 once it's in view, so it never gets here.
+  const most =
+    Math.min(1, view.width / box.width) * Math.min(1, view.height / box.height);
+  return most < threshold;
+}
 
 /**
  * The shape the implementation destructures. The public contract is the generic
@@ -145,15 +175,23 @@ function RevealImpl(revealProps: RevealProps) {
     if (!node) return undefined;
 
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
+      entries => {
+        // Several can arrive at once, oldest first, and the newest is where
+        // the element is now.
+        const entry = entries[entries.length - 1];
+        if (showsEnough(entry, observerThreshold)) {
           setIsRevealed(true);
           if (once) observer.unobserve(node);
         } else if (!once) {
           setIsRevealed(false);
         }
       },
-      { threshold: observerThreshold }
+      // At 0 too, so an element too big ever to reach `threshold` hears when
+      // it comes into view: the browser reports nothing between thresholds.
+      {
+        threshold:
+          observerThreshold > 0 ? [0, observerThreshold] : observerThreshold,
+      }
     );
 
     observer.observe(node);

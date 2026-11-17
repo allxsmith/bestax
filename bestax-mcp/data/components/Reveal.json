@@ -26,7 +26,7 @@
       "code": "function example() {\n  return (\n    <Reveal animation=\"fade\" once={false}>\n      <Notification color=\"info\">\n        Scroll me out of view and back in to see this animate again.\n      </Notification>\n    </Reveal>\n  );\n}"
     }
   ],
-  "accessibility": "- `Reveal` never removes content from the accessibility tree — it only animates `opacity` and\n  `transform`, so screen reader users always have access to the content regardless of scroll\n  position.\n- When the user's OS is set to reduce motion (`prefers-reduced-motion: reduce`), `Reveal` skips\n  the animation entirely and renders the final, visible state immediately.\n- During server-side rendering and the first client render (before hydration effects run),\n  `Reveal` renders the final, visible state — content is never hidden if JavaScript fails to\n  load, ensuring crawlers and no-JS visitors always see the full page.",
+  "accessibility": "- `Reveal` never removes content from the accessibility tree — it only animates `opacity` and\n  `transform`, so screen reader users always have access to the content regardless of scroll\n  position.\n- An element reveals once `threshold` of it is in view. One too big for the viewport ever to show\n  that much of itself, such as a long section on a phone or at a high browser zoom, reveals as soon as any\n  of it is in view, so its content shows as it's scrolled to, and so does a link that keyboard\n  focus lands on inside it.\n- When the user's OS is set to reduce motion (`prefers-reduced-motion: reduce`), `Reveal` skips\n  the animation entirely and renders the final, visible state immediately.\n- During server-side rendering and the first client render (before hydration effects run),\n  `Reveal` renders the final, visible state — content is never hidden if JavaScript fails to\n  load, ensuring crawlers and no-JS visitors always see the full page.",
   "related": [],
   "storybook": null,
   "summary": "The `Reveal` component animates its content into view as it scrolls into the viewport, backed by `IntersectionObserver`.",
@@ -79,7 +79,7 @@
           "name": "threshold",
           "type": "number",
           "default": "0.15",
-          "description": "Fraction (0-1) of the element that must be visible to trigger the reveal. Clamped to the 0-1 range; non-finite values fall back to `0.15`.",
+          "description": "Fraction (0-1) of the element that must be visible to trigger the reveal. Clamped to the 0-1 range; non-finite values fall back to `0.15`. An element too big for the viewport ever to show that fraction of it, such as a long section on a phone or at a high browser zoom, reveals as soon as any of it is in view. The viewport is what that's judged against, so an element in a scrolling container that shows less of it than the viewport would can still wait for a fraction it never reaches.",
           "required": false,
           "inherited": false,
           "deprecated": false

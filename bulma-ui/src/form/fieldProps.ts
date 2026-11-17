@@ -21,7 +21,10 @@ export interface FormFieldProps {
   };
   /** Horizontal field layout. */
   horizontal?: boolean;
-  /** Help/validation message below the input. */
+  /**
+   * Help or validation text under the widget. It describes the control its
+   * label names through `aria-describedby`, so a screen reader reads it there.
+   */
   message?: React.ReactNode;
   /** Bulma color for the message. */
   messageColor?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';

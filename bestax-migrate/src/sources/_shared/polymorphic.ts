@@ -74,6 +74,7 @@ const AS_UNION_TABLE = {
   Panel: ['nav', 'article', 'section', 'aside', 'div'],
   'Panel.Block': ['a', 'div', 'label'],
   SubTitle: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'],
+  Tag: ['span', 'a', 'button'],
   Title: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'],
 } as const;
 
@@ -124,6 +125,7 @@ const HREF_OK: Record<string, string> = {
   'Pagination.Next': 'a',
   'Pagination.Previous': 'a',
   'Panel.Block': 'a',
+  Tag: 'span',
 };
 
 /**
@@ -710,6 +712,7 @@ const TYPES_ITS_BUTTON = new Set([
   'Menu.Item',
   'Navbar.Item',
   'Navbar.Link',
+  'Tag',
 ]);
 
 /** The `type` values a <button> keeps under `buttonType`. */

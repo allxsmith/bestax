@@ -8,7 +8,7 @@ export function Repositories() {
         <a className="is-active">All</a>
         <a>Public</a>
       </Panel.Tabs>
-      <Panel.Block active href="/bulma">
+      <Panel.Block active href="/bulma" aria-current="page">
         <span className="panel-icon">
           <i className="fas fa-book" aria-hidden="true"></i>
         </span>

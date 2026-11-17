@@ -98,7 +98,9 @@ submit, a confirmation). For plain external URLs, no router is needed:
 `Navbar.Item` and `Menu.Item` both take an `active` boolean for you to drive from the router.
 Both set `aria-current="page"` on the element `as` renders while `active` is true, so assistive
 tech hears which item is current with nothing more to pass. An `aria-current` you pass wins, even
-`undefined`, so `aria-current="location"` or `aria-current={false}` still work.
+`undefined`, so `aria-current="location"` or `aria-current={false}` still work. Bestax's own
+`Link`, from `@allxsmith/bestax-bulma` rather than the router, does the same with `isActive`, for a
+link outside a navbar or a menu.
 
 ```tsx
 <Navbar.Item as={Link} to="/about" active={pathname === '/about'}>

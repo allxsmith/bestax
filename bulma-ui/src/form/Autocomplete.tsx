@@ -17,6 +17,7 @@ import { useFieldsetDisabled, useInsideField } from './FormContext';
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
+import { useFieldMessage } from './useFieldMessage';
 import { useControlLoading } from './controlLoading';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
 import { useLatestRef } from '../helpers/useLatestRef';
@@ -584,10 +585,9 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       className
     );
 
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+    // The other attributes go on the wrapper, so the input takes only the
+    // message's id.
+    const { messageEl, messageId } = useFieldMessage(message, messageColor);
 
     // The clear button gives way to a spinner at its spot: the `loading` one,
     // or that of a loading Control this sits in.
@@ -659,6 +659,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
             aria-activedescendant={activeOptionId}
             aria-haspopup="listbox"
             aria-autocomplete="list"
+            aria-describedby={messageId}
             autoComplete="off"
           />
           {showClear && (
