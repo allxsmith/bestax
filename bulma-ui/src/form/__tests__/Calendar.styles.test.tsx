@@ -2,11 +2,12 @@
 // content live in `_dateinput.scss`, which jsdom never loads. These compile
 // the partial, with no prefix and under one, render a Calendar, and resolve
 // what its elements get from it, the way a browser would.
-import { render } from '@testing-library/react';
+import type { ReactElement } from 'react';
+import { fireEvent, render } from '@testing-library/react';
 import { Calendar } from '../Calendar';
 import type { CalendarSingleProps } from '../Calendar';
 import { ConfigProvider } from '../../helpers/Config';
-import { cascade, compilePartial } from '../../__tests__/css-cascade';
+import { cascade, compilePartial, rulesOf } from '../../__tests__/css-cascade';
 
 const NOV_2026 = new Date(2026, 10, 1);
 
@@ -200,5 +201,227 @@ describe.each([
     const { q } = renderCalendar(prefix, { size: 'small' });
     expect(value(q('.calendar'), css(), 'display')).toBe('inline-block');
     expect(value(q('.dateinput-cell'), css(), 'width')).toBe('1.75rem');
+  });
+});
+
+describe.each([
+  ['', () => PLAIN],
+  ['bestax-', () => PREFIXED],
+])('Calendar cells in forced colors (prefix "%s")', (prefix, css) => {
+  // Today is November 12th 2026, inside the range below.
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 10, 12, 12));
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  // jsdom matches neither `:hover` nor `:focus-visible`, so the sheet reads
+  // each as a class, which `under` puts on the element it means.
+  let sheet = '';
+  beforeAll(() => {
+    sheet = css()
+      .replace(/:hover/g, '.jsdom-hover')
+      .replace(/:focus-visible/g, '.jsdom-focus-visible');
+  });
+
+  /** What `el` gets for `property` in forced colors, with `states` on it. */
+  const under = (states: string[], el: Element, property: string) => {
+    el.classList.add(...states);
+    try {
+      return cascade(
+        el,
+        sheet,
+        [property],
+        (style, p) => style.getPropertyValue(p).trim() || undefined,
+        { forcedColors: true }
+      );
+    } finally {
+      el.classList.remove(...states);
+    }
+  };
+  const forced = (el: Element, property: string) => under([], el, property);
+
+  const mount = (ui: ReactElement) => {
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>{ui}</ConfigProvider>
+    );
+    /** The cell of the month on show whose text starts with `text`. */
+    const cell = (text: string) => {
+      const found = Array.from(
+        container.querySelectorAll<HTMLElement>('[role="gridcell"]')
+      ).find(
+        c =>
+          !c.classList.contains(`${prefix}is-other-month`) &&
+          c.textContent!.startsWith(text)
+      );
+      if (!found) throw new Error(`no cell ${text}`);
+      return found;
+    };
+    return { container, cell };
+  };
+
+  /**
+   * Asserts `el` is drawn in the system's selection colors, unforced, at
+   * rest, under the pointer and focused from the keyboard.
+   */
+  const expectHighlighted = (el: Element) => {
+    expect(forced(el, 'forced-color-adjust')).toBe('none');
+    for (const states of [
+      [],
+      ['jsdom-hover'],
+      ['jsdom-focus-visible'],
+      ['jsdom-hover', 'jsdom-focus-visible'],
+    ]) {
+      expect(under(states, el, 'background-color')).toBe('highlight');
+      expect(under(states, el, 'background-image')).toBe('none');
+      expect(under(states, el, 'color')).toBe('highlighttext');
+    }
+    // The ring sits inside the cell, on the fill.
+    expect(under(['jsdom-focus-visible'], el, 'outline-color')).toBe(
+      'highlighttext'
+    );
+  };
+
+  it('draws a picked day in Highlight, under the pointer and focused too', () => {
+    const { cell } = mount(
+      <Calendar
+        locale="en-US"
+        defaultMonth={NOV_2026}
+        defaultValue={new Date(2026, 10, 5)}
+      />
+    );
+    expectHighlighted(cell('5'));
+    // The days beside it keep the theme's colors.
+    expect(forced(cell('6'), 'forced-color-adjust')).toBeUndefined();
+    expect(forced(cell('6'), 'background-color')).not.toBe('highlight');
+  });
+
+  it("draws every day of a picked range in Highlight, today and the days' content included", () => {
+    const { cell } = mount(
+      <Calendar
+        locale="en-US"
+        selectionMode="range"
+        defaultMonth={NOV_2026}
+        defaultValue={[new Date(2026, 10, 10), new Date(2026, 10, 14)]}
+        dayTemplate={() => '$90'}
+      />
+    );
+    for (const day of ['10', '11', '12', '14']) expectHighlighted(cell(day));
+    expect(cell('12')).toHaveClass(`${prefix}is-today`, `${prefix}is-in-range`);
+    // Between the ends the content takes the day's color, which outside
+    // forced colors it doesn't.
+    const content = cell('11').querySelector(
+      `.${prefix}dateinput-cell-content`
+    )!;
+    expect(forced(content, 'color')).toBe('inherit');
+    expect(forced(cell('15'), 'background-color')).not.toBe('highlight');
+  });
+
+  it('fills only the start of a pending range, and leaves its preview as it is', () => {
+    const { cell } = mount(
+      <Calendar locale="en-US" selectionMode="range" defaultMonth={NOV_2026} />
+    );
+    fireEvent.click(cell('20'));
+    fireEvent.mouseOver(cell('23'));
+    expectHighlighted(cell('20'));
+    for (const day of ['21', '22', '23']) {
+      expect(cell(day)).toHaveClass(`${prefix}is-preview`);
+      expect(forced(cell(day), 'forced-color-adjust')).toBeUndefined();
+    }
+    expect(forced(cell('23'), 'border-style')).toBe('dashed');
+  });
+
+  it.each([
+    [
+      'day',
+      <Calendar
+        key="day"
+        locale="en-US"
+        disabled
+        defaultMonth={NOV_2026}
+        defaultValue={new Date(2026, 10, 5)}
+      />,
+      '5',
+    ],
+    [
+      'day between the ends of a range',
+      <Calendar
+        key="range"
+        locale="en-US"
+        selectionMode="range"
+        disabled
+        defaultMonth={NOV_2026}
+        defaultValue={[new Date(2026, 10, 10), new Date(2026, 10, 14)]}
+        dayTemplate={() => '$90'}
+      />,
+      '11',
+    ],
+    [
+      'month',
+      <Calendar
+        key="month"
+        locale="en-US"
+        granularity="month"
+        disabled
+        defaultValue={new Date(2026, 1, 1)}
+      />,
+      'Feb',
+    ],
+  ])(
+    'fills a picked %s that is disabled in GrayText, at full opacity',
+    (_name, ui, text) => {
+      const { container } = mount(ui);
+      const picked = Array.from(
+        container.querySelectorAll<HTMLElement>(
+          `.${prefix}is-selected, .${prefix}is-in-range`
+        )
+      ).find(el => el.textContent!.startsWith(text))!;
+      expect(picked).toBeDisabled();
+      expect(forced(picked, 'forced-color-adjust')).toBe('none');
+      expect(forced(picked, 'background-color')).toBe('graytext');
+      expect(forced(picked, 'color')).toBe('canvas');
+      expect(forced(picked, 'opacity')).toBe('1');
+      // What a dayTemplate draws takes the cell's color.
+      const content = picked.querySelector(`.${prefix}dateinput-cell-content`);
+      if (content) expect(forced(content, 'color')).toBe('inherit');
+    }
+  );
+
+  it.each(['month', 'year'] as const)(
+    'draws a picked %s in Highlight',
+    granularity => {
+      const { container } = mount(
+        <Calendar
+          locale="en-US"
+          granularity={granularity}
+          defaultValue={new Date(2026, 1, 1)}
+        />
+      );
+      const picked = container.querySelector(
+        `.${prefix}dateinput-${granularity}-cell.${prefix}is-selected`
+      )!;
+      expect(picked.textContent).toBe(granularity === 'month' ? 'Feb' : '2026');
+      expectHighlighted(picked);
+    }
+  );
+
+  it('names the system colors only inside the forced-colors block', () => {
+    const { all } = rulesOf(css());
+    const system = /\b(highlight|highlighttext|graytext|canvas)\b/i;
+    const outside = all.filter(({ within }) => within.length === 0);
+    expect(outside.length).toBeGreaterThan(0);
+    for (const { rule } of outside) {
+      expect(rule.style.cssText).not.toMatch(system);
+      expect(rule.style.getPropertyValue('forced-color-adjust')).toBe('');
+    }
+    const inside = all.filter(({ within }) =>
+      within.includes('@media (forced-colors: active)')
+    );
+    expect(inside.length).toBeGreaterThan(0);
+    for (const { within } of inside) {
+      expect(within).toEqual(['@media (forced-colors: active)']);
+    }
   });
 });

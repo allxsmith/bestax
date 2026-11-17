@@ -18,7 +18,8 @@ export interface TrProps
   /**
    * Whether the row is selected (adds Bulma's is-selected class). It's a look
    * only: it says nothing to assistive tech, so pair it with a checkbox named
-   * for the row when the selection matters. Forced colors replaces its fill,
+   * for the row when the selection matters, and say in the row why it stands
+   * out when it marks something else, such as a search result. Forced colors replaces its fill,
    * so there the `elements/table` partial draws a double line just inside the
    * row's edge in the system's highlight color instead. A bestax `Checkbox` or `Radio`
    * placed straight in one of the row's cells takes the row's text color, so

@@ -161,12 +161,19 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
 
     // Cleanup returned by a consumer's callback ref on attach, held until detach.
     const consumerCleanupRef = useRef<(() => void) | null>(null);
+    // A toast closes once. Events that land in the same batch as the close,
+    // before the render that hides it, would otherwise close it again, or run
+    // its action after it closed, and call `onClose` a second time.
+    const closedRef = useRef(false);
     const handleClose = useCallback(() => {
+      if (closedRef.current) return;
+      closedRef.current = true;
       setIsVisible(false);
       onClose?.();
     }, [onClose]);
 
     const handleAction = useCallback(() => {
+      if (closedRef.current) return;
       onAction?.();
       handleClose();
     }, [onAction, handleClose]);
@@ -179,10 +186,12 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
 
     // Auto-close timer. It waits while focus is inside the toast, on its
     // action, cancel or close button, so what someone is using doesn't go
-    // away under them, whatever pauseOnHover says.
+    // away under them, whatever pauseOnHover says. It stops once the toast
+    // has closed, as the listeners for a click outside and Escape do, since
+    // one the caller keeps mounted stays hidden.
     const { onFocus: handleTimerFocus } = useDismissTimer(
       handleClose,
-      indefinite || duration === 0 || isPaused ? null : duration
+      !isVisible || indefinite || duration === 0 || isPaused ? null : duration
     );
 
     const handleMouseEnter = useCallback(() => {

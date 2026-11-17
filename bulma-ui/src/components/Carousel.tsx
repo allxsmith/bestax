@@ -96,6 +96,15 @@ const COUNT_SUFFIXES = [
 const wholeCount = (count: number | undefined) =>
   count === undefined ? undefined : Math.max(1, Math.floor(count) || 1);
 
+// Focuses the track's item at `slot`, given `tabindex="-1"` unless it has a
+// tabindex of its own. Nothing, when no item is there.
+const focusSlot = (track: HTMLElement, slot: number) => {
+  const item = track.children[slot] as HTMLElement | undefined;
+  if (!item) return;
+  if (!item.hasAttribute('tabindex')) item.tabIndex = -1;
+  item.focus({ preventScroll: true });
+};
+
 /**
  * Props for the Carousel component.
  * @extraProp {string} [className] - Additional CSS classes.
@@ -135,7 +144,9 @@ export interface CarouselProps
    * Loop back to the first position after the last. Default: true. With
    * several items in view, the view runs on past the last item into the
    * first ones, so it can show the end and the start side by side. Only
-   * loops when some item is out of view.
+   * loops when some item is out of view. Without it, the arrows are
+   * disabled at the ends, and focus on the one disabled moves to the current
+   * indicator, or to the other arrow when there are no indicators.
    */
   repeat?: boolean;
   /**
@@ -371,6 +382,12 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     // The item (a child of the track) that holds focus, until focus leaves
     // the items for somewhere else
     const focusedItemRef = useRef<Element | undefined>(undefined);
+    // The arrows and the indicators, and the one of them that holds focus,
+    // until focus moves on to somewhere else
+    const prevRef = useRef<HTMLButtonElement>(null);
+    const nextRef = useRef<HTMLButtonElement>(null);
+    const indicatorsRef = useRef<HTMLDivElement>(null);
+    const focusedControlRef = useRef<HTMLElement | undefined>(undefined);
 
     const [internalValue, setInternalValue] = useState(0);
     const [isHovered, setIsHovered] = useState(false);
@@ -537,10 +554,32 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     // rather than replacing these.
     const handleMouseEnter = chain(onMouseEnter, () => setIsHovered(true));
     const handleMouseLeave = chain(onMouseLeave, () => setIsHovered(false));
-    const handleFocus = chain(onFocus, () => setIsFocusInside(true));
-    const handleBlur = chain(onBlur, (e: React.FocusEvent<HTMLDivElement>) =>
-      setIsFocusInside(e.currentTarget.contains(e.relatedTarget))
+    const handleFocus = chain(
+      onFocus,
+      (e: React.FocusEvent<HTMLDivElement>) => {
+        setIsFocusInside(true);
+        const target = e.target as HTMLElement;
+        focusedControlRef.current =
+          target === prevRef.current ||
+          target === nextRef.current ||
+          indicatorsRef.current?.contains(target)
+            ? target
+            : undefined;
+      }
     );
+    const handleBlur = chain(onBlur, (e: React.FocusEvent<HTMLDivElement>) => {
+      setIsFocusInside(e.currentTarget.contains(e.relatedTarget));
+      // Focus that went somewhere, or a click on the page around the
+      // carousel, lets go of the control. Another window taking focus leaves
+      // the control the page's active element, so it stays held, for the
+      // hand-off below.
+      if (
+        e.relatedTarget ||
+        getActiveElementInTree(e.currentTarget) !== e.target
+      ) {
+        focusedControlRef.current = undefined;
+      }
+    });
 
     // Right to left the track runs the other way, so the next slide is on
     // the left. Read when a swipe or key arrives, as Lightbox does, so a
@@ -734,8 +773,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     // of view is inert, and a browser drops focus from an inert element to
     // the page, so a swipe, a change of count with the window's width, a new
     // controlled value or the item's removal would leave a keyboard or
-    // screen reader user nowhere. Focus goes to the first item in view,
-    // given `tabindex="-1"` for it unless it has a tabindex of its own. A
+    // screen reader user nowhere. Focus goes to the first item in view. A
     // layout effect runs before the browser gets to drop the focus; the
     // focused item's removal drops it at once, so focus on the page itself
     // still counts as the item's.
@@ -751,11 +789,57 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
         return;
       }
       focusedItemRef.current = undefined;
-      const first = track.children[start] as HTMLElement | undefined;
-      if (!first) return;
-      if (!first.hasAttribute('tabindex')) first.tabIndex = -1;
-      first.focus({ preventScroll: true });
+      focusSlot(track, start);
     }, [shownIndex, cloneCount, inView, itemCount]);
+
+    // The places the view can start, as a dependency of the effect below
+    const positionsKey = positions.join();
+
+    // Hand focus on when the arrow or indicator holding it is disabled or
+    // goes away: Next on the last position without `repeat`, an indicator
+    // for a position a change of count took away, or every control once all
+    // the items fit. A browser drops focus from either to the page. Focus
+    // goes to the current indicator, which says where the view is and keeps
+    // it there for an Enter still held down, else to an arrow that works,
+    // else to the first item in view. As above, a layout effect runs
+    // before the browser drops the focus, and focus on the page itself still
+    // counts as the control's.
+    useClientLayoutEffect(() => {
+      const held = focusedControlRef.current;
+      if (
+        !held ||
+        (held.isConnected && !(held as HTMLButtonElement).disabled)
+      ) {
+        return;
+      }
+      focusedControlRef.current = undefined;
+      const active = getActiveElementInTree(carouselRef.current);
+      if (active !== held && active !== held.ownerDocument.body) return;
+      const works = (el: HTMLButtonElement | null | undefined) =>
+        el && !el.disabled ? el : undefined;
+      const to =
+        works(
+          indicatorsRef.current?.querySelector<HTMLButtonElement>(
+            '[aria-selected="true"]'
+          )
+        ) ??
+        works(prevRef.current) ??
+        works(nextRef.current);
+      if (to) to.focus({ preventScroll: true });
+      else
+        focusSlot(slidesRef.current as HTMLDivElement, shownIndex + cloneCount);
+      // What disables an arrow or takes a control away, and where the view
+      // starts, for the item focus goes to when no control is left
+    }, [
+      canGoPrev,
+      canGoNext,
+      canMove,
+      arrow,
+      indicator,
+      positionsKey,
+      shownIndex,
+      cloneCount,
+    ]);
 
     return (
       <div
@@ -824,6 +908,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
             <>
               <Button
                 type="button"
+                ref={prevRef}
                 className={carouselArrowPrevClass}
                 onClick={goToPrev}
                 isDisabled={!canGoPrev}
@@ -843,6 +928,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
               </Button>
               <Button
                 type="button"
+                ref={nextRef}
                 className={carouselArrowNextClass}
                 onClick={goToNext}
                 isDisabled={!canGoNext}
@@ -865,7 +951,11 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
         </div>
 
         {indicator && canMove && (
-          <div className={carouselIndicatorClass} role="tablist">
+          <div
+            ref={indicatorsRef}
+            className={carouselIndicatorClass}
+            role="tablist"
+          >
             {positions.map((position, index) => (
               <Button
                 key={position}

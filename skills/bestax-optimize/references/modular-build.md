@@ -94,7 +94,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `button`, `colorswatch`,
 `delete`, `descriptionlist`, `divider`, `iconbutton`, `kbd`, `linkbutton`, `loader`, `notification`,
-`progress`, `ringprogress`, `skeleton`, `stat`, `table`, `tag`
+`pre`, `progress`, `ringprogress`, `skeleton`, `stat`, `table`, `tag`
 
 **Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `color`, `cursor`, `sizing`, `visibility`
 
@@ -107,9 +107,10 @@ Notes:
   Bulma module (`components/tabs`, `elements/notification`), so give the bestax line a name of
   its own with `as`, the way the notes below do. The name changes nothing in the compiled CSS.
 - Extras `Tabs` **extends** stock Bulma tabs (it shows only the selected `Tabs.Content` panel,
-  lays out the vertical variant, draws a `Tabs.Tab`'s focus ring and a disabled tab's look, and
-  keeps the active tab marked in forced colors, where Bulma's colors for it are replaced), so an
-  app using `Tabs` needs both:
+  lays out the vertical variant, draws a `Tabs.Tab`'s focus ring and a disabled tab's look, moves
+  Bulma's focus ring inside most `Tabs.Item` links, brings a focused toggle tab in front of its
+  neighbors, and keeps the active tab marked in forced colors, where Bulma's colors for it are
+  replaced), so an app using `Tabs` needs both:
 
   ```scss
   @use 'bulma/sass/components/tabs';
@@ -186,7 +187,9 @@ Notes:
 
 - The `panel` partial **extends** stock Bulma panel (it keeps the heading of a panel with no
   `color` readable on the dark scheme, where Bulma writes it white on light gray, and a colored
-  panel's active block and tab, their text, icon and underline, readable on both schemes), so an app using `Panel` needs both,
+  panel's active block and tab, their text, icon and underline, readable on both schemes, and
+  keeps the active block and tab marked in forced colors, where Bulma's colors for them are
+  replaced), so an app using `Panel` needs both,
   in either order:
 
   ```scss
@@ -194,7 +197,8 @@ Notes:
   @use '@allxsmith/bestax-bulma/scss/components/panel' as bestax-panel;
   ```
 
-- The `file` partial **extends** stock Bulma file (File's keyboard focus ring, and the rounded
+- The `file` partial **extends** stock Bulma file (File's keyboard focus ring, a file dropped on
+  its button or name reaching its input, which Bulma's module draws them over, and the rounded
   corners of a boxed `hasName` File with no name to show), so an app using `File` needs both, in
   either order:
 
@@ -284,7 +288,7 @@ Notes:
   `bulma/sass/base/skeleton`). The `progress` and `skeleton` extras partials
   (`as bestax-progress`, `as bestax-skeleton`) stop the indeterminate bar's sweep and the
   skeleton pulse (`Skeleton`, the `skeleton` prop, `hasSkeleton`) under
-  `prefers-reduced-motion: reduce`, the same way and in either order. The `progress` partial
+  `prefers-reduced-motion: reduce`, in either order. The `progress` partial
   also keeps the bar drawn in forced colors, its fill and an edge in the text color, where
   Bulma's module leaves the whole bar the page's color. The `skeleton` partial keeps each shape
   drawn there too, in `GrayText`, with the text Bulma hides still hidden, where Bulma's module
@@ -334,6 +338,10 @@ Notes:
   system's text color, so include it in any build that shows a `Divider` or an `<hr>`. Its rule
   wins over Bulma's either way, so the order of the `@use` lines does not matter, and an `<hr>`
   with a class of its own keeps its own rules.
+- `Pre` is a `<pre>`, which Bulma styles in its base (`bulma/sass/base`) and scrolls sideways when a
+  line runs long. While it overflows, `Pre` is a tab stop, and the `pre` extras partial draws its
+  keyboard focus ring in Bulma's focus color, so include it in any build that shows a `Pre`.
+  Bulma styles no focus on a `<pre>`, so the order of the `@use` lines does not matter.
 - `Stats` lays its row out on Bulma's smart grid (`.grid` and `is-col-min-*`), so a build with a
   `Stats` row wants `bulma/sass/grid/grid` beside the `stat` partial, which only resets the row's
   margins.

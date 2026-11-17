@@ -489,13 +489,19 @@ html:has(.#{iv.$class-prefix}app-frame) {
   }
 
   // The handle's line is a border, which forced colors keeps, in the
-  // system's highlight, and its focus ring in the text color.
-  .#{iv.$class-prefix}app-frame-handle::before {
-    border-color: Highlight;
-  }
+  // system's highlight, and its focus ring in the text color. The handle
+  // shows only from the breakpoint up, where its own rules carry the root's
+  // and the breakpoint's classes, so these name the root's class twice to
+  // weigh the same, and win by coming after them.
+  .#{iv.$class-prefix}app-frame.#{iv.$class-prefix}app-frame
+    > .#{iv.$class-prefix}app-frame-handle {
+    &::before {
+      border-color: Highlight;
+    }
 
-  .#{iv.$class-prefix}app-frame-handle:focus-visible {
-    outline-color: CanvasText;
+    &:focus-visible {
+      outline-color: CanvasText;
+    }
   }
 }
 
