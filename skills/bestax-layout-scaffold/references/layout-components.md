@@ -130,12 +130,12 @@ which the frame renders: don't wrap the items in a `Tooltip` of your own.
 `<Level>` is a horizontal toolbar (left/right groups). Subcomponents: `Level.Left`, `Level.Right`,
 `Level.Item`.
 
-| Prop                         | Type                                                     |
-| ---------------------------- | -------------------------------------------------------- |
-| `Level.as`                   | `'nav'` (default) \| `'div'` \| `'header'` \| `'footer'` |
-| `Level.isMobile`             | `boolean` (keep horizontal on mobile)                    |
-| `Level.Item.as`              | `'div' \| 'p' \| 'a'`                                    |
-| `Level.Item.hasTextCentered` | `boolean`                                                |
+| Prop                         | Type                                                                                                                                                                                                                    |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Level.as`                   | `'nav'` (default) \| `'div'` \| `'header'` \| `'footer'`                                                                                                                                                                |
+| `Level.isMobile`             | `boolean` (keep its own items in a row on mobile, though the items inside `Level.Left` and `Level.Right` still stack; they never shrink, and Bulma cuts off what runs past a 320px screen, so only for a row that fits) |
+| `Level.Item.as`              | `'div' \| 'p' \| 'a'`                                                                                                                                                                                                   |
+| `Level.Item.hasTextCentered` | `boolean`                                                                                                                                                                                                               |
 
 A `nav` is a navigation landmark, so keep the default for a row of links. A row that isn't
 navigation takes `as="div"`, or `as="header"` when it opens a section and `as="footer"` when it
@@ -178,15 +178,15 @@ The responsive grid. `Columns` is the row; `Column` is a cell (also reachable as
 
 **Columns**
 
-| Prop                                                                             | Type                                                       |
-| -------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| `isMultiline`                                                                    | `boolean` (wrap cells onto new rows)                       |
-| `isCentered`                                                                     | `boolean` (center the row)                                 |
-| `isVCentered`                                                                    | `boolean` (vertical centering — capital V)                 |
-| `isGapless`                                                                      | `boolean`                                                  |
-| `isMobile`                                                                       | `boolean` (stay side-by-side on mobile)                    |
-| `isDesktop`                                                                      | `boolean`                                                  |
-| `gap` / `gapMobile` / `gapTablet` / `gapDesktop` / `gapWidescreen` / `gapFullhd` | `0`–`8` whole steps (number or string), the columns gutter |
+| Prop                                                                             | Type                                                                                                               |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `isMultiline`                                                                    | `boolean` (wrap cells onto new rows)                                                                               |
+| `isCentered`                                                                     | `boolean` (center the row)                                                                                         |
+| `isVCentered`                                                                    | `boolean` (vertical centering — capital V)                                                                         |
+| `isGapless`                                                                      | `boolean`                                                                                                          |
+| `isMobile`                                                                       | `boolean` (stay side-by-side on mobile; Bulma cuts off what runs past a 320px screen, so only for a row that fits) |
+| `isDesktop`                                                                      | `boolean`                                                                                                          |
+| `gap` / `gapMobile` / `gapTablet` / `gapDesktop` / `gapWidescreen` / `gapFullhd` | `0`–`8` whole steps (number or string), the columns gutter                                                         |
 
 **Column**
 
