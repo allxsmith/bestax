@@ -35,22 +35,25 @@ import { Badge } from '@allxsmith/bestax-bulma';
 
 ### Status Dot on an Avatar
 
-A `dot` badge drops the content and renders a small indicator — pair it with `overlap="circle"`
-so it hugs a round avatar.
+A `dot` badge drops the content and renders a small indicator. Pair it with `overlap="circle"`
+so it hugs a round avatar. A dot isn't read out, and only its look tells what it means, so say
+that in the anchor's name, as the avatar's `alt` does here.
 
 ```tsx live
 <Badge dot color="success" overlap="circle">
-  <Avatar name="Ada Lovelace" />
+  <Avatar name="Ada Lovelace" alt="Ada Lovelace, online" />
 </Badge>
 ```
 
 ### Unread Count
 
-Numeric `content` above `max` renders as `"{max}+"`.
+Numeric `content` above `max` renders as `"{max}+"`. The badge reads out only what it shows,
+`99+` here, so give the anchor a name that says what it counts, built from the same value as
+`content`.
 
 ```tsx live
 <Badge content={128} max={99} color="danger">
-  <Icon name="bell" ariaLabel="Notifications" />
+  <Icon name="bell" ariaLabel="Notifications, 128 unread" />
 </Badge>
 ```
 
@@ -67,12 +70,13 @@ control.
 
 ### Badge on a Button
 
-Wrap any element — here a cart button carries its item count.
+Wrap any element — here a cart button carries its item count, and its name says what the count
+is.
 
 ```tsx live
 <Badge content={3} color="danger" overlap="square">
-  <Button color="primary">
-    <Icon name="shopping-cart" ariaLabel="Cart" />
+  <Button color="primary" aria-label="Cart, 3 items">
+    <Icon name="shopping-cart" />
     <span>Cart</span>
   </Button>
 </Badge>
@@ -86,16 +90,16 @@ colliding.
 ```tsx live
 <Block display="flex">
   <Badge content={1} position="top-right" mr="5">
-    <Avatar name="A" shape="square" />
+    <Avatar name="A" alt="A, 1 new message" shape="square" />
   </Badge>
   <Badge content={2} position="top-left" mr="5">
-    <Avatar name="B" shape="square" />
+    <Avatar name="B" alt="B, 2 new messages" shape="square" />
   </Badge>
   <Badge content={3} position="bottom-right" mr="5">
-    <Avatar name="C" shape="square" />
+    <Avatar name="C" alt="C, 3 new messages" shape="square" />
   </Badge>
   <Badge content={4} position="bottom-left">
-    <Avatar name="D" shape="square" />
+    <Avatar name="D" alt="D, 4 new messages" shape="square" />
   </Badge>
 </Block>
 ```
@@ -107,10 +111,10 @@ colliding.
 ```tsx live
 <Block display="flex">
   <Badge content={5} overlap="square" mr="5">
-    <Avatar name="Square" shape="square" />
+    <Avatar name="Square" alt="Square, 5 new messages" shape="square" />
   </Badge>
   <Badge content={5} overlap="circle">
-    <Avatar name="Circle" shape="circle" />
+    <Avatar name="Circle" alt="Circle, 5 new messages" shape="circle" />
   </Badge>
 </Block>
 ```
@@ -122,19 +126,19 @@ colliding.
 ```tsx live
 <Block display="flex">
   <Badge content={1} color="primary" mr="5">
-    <Icon name="bell" ariaLabel="Notifications" size="large" />
+    <Icon name="bell" ariaLabel="Notifications, 1 unread" size="large" />
   </Badge>
   <Badge content={2} color="info" mr="5">
-    <Icon name="bell" ariaLabel="Notifications" size="large" />
+    <Icon name="bell" ariaLabel="Notifications, 2 unread" size="large" />
   </Badge>
   <Badge content={3} color="success" mr="5">
-    <Icon name="bell" ariaLabel="Notifications" size="large" />
+    <Icon name="bell" ariaLabel="Notifications, 3 unread" size="large" />
   </Badge>
   <Badge content={4} color="warning" mr="5">
-    <Icon name="bell" ariaLabel="Notifications" size="large" />
+    <Icon name="bell" ariaLabel="Notifications, 4 unread" size="large" />
   </Badge>
   <Badge content={5} color="danger">
-    <Icon name="bell" ariaLabel="Notifications" size="large" />
+    <Icon name="bell" ariaLabel="Notifications, 5 unread" size="large" />
   </Badge>
 </Block>
 ```
@@ -145,7 +149,7 @@ colliding.
 
 ```tsx live
 <Badge dot color="success" pulse overlap="circle">
-  <Avatar name="Ada Lovelace" />
+  <Avatar name="Ada Lovelace" alt="Ada Lovelace, syncing" />
 </Badge>
 ```
 
@@ -160,7 +164,7 @@ function example() {
   return (
     <Block display="flex" alignItems="center">
       <Badge content={4} color="danger" invisible={muted} mr="5">
-        <Icon name="bell" ariaLabel="Notifications" size="large" />
+        <Icon name="bell" ariaLabel="Notifications, 4 unread" size="large" />
       </Badge>
       <Button onClick={() => setMuted(m => !m)}>
         {muted ? 'Show badge' : 'Hide badge'}
@@ -177,20 +181,24 @@ A numeric `content` of `0` hides the badge by default; pass `showZero` to keep i
 ```tsx live
 <Block display="flex">
   <Badge content={0} mr="5">
-    <Icon name="bell" ariaLabel="Notifications" size="large" />
+    <Icon name="bell" ariaLabel="Notifications, none unread" size="large" />
   </Badge>
   <Badge content={0} showZero>
-    <Icon name="bell" ariaLabel="Notifications" size="large" />
+    <Icon name="bell" ariaLabel="Notifications, none unread" size="large" />
   </Badge>
 </Block>
 ```
 
 ### Standalone
 
-Omit `children` to render the pill inline in normal flow; `position`/`overlap` are ignored.
+Omit `children` to render the pill inline in normal flow; `position`/`overlap` are ignored. With
+no anchor to name, text beside the badge says what it means.
 
 ```tsx live
-<Badge content={5} color="info" />
+<Block display="flex" alignItems="center">
+  <Badge content={5} color="info" mr="2" />
+  <span>new messages</span>
+</Block>
 ```
 
 ### Standalone, Interactive
@@ -234,7 +242,7 @@ A plain-text `children` value renders at its natural height alongside the badge.
 
 ```tsx live
 <Badge content={<Icon name="check" />} color="success">
-  <Avatar name="Ada Lovelace" />
+  <Avatar name="Ada Lovelace" alt="Ada Lovelace, verified" />
 </Badge>
 ```
 
@@ -249,7 +257,12 @@ A plain-text `children` value renders at its natural height alongside the badge.
 - A bare number in a `role="status"` span is not enough context on its own — put the full
   meaning on the anchor itself, e.g. `<Icon ariaLabel="Inbox, 4 unread messages" />` rather than
   relying on the badge to read out just "4".
-- A decorative `dot` badge is `aria-hidden`.
+- A `dot` badge is `aria-hidden`, and only its look tells what it means, so say what a dot means
+  in words in the anchor's name: an `Avatar`'s `alt`, an `Icon`'s `ariaLabel`, or the
+  `aria-label` of a button it sits on. A standalone dot has no anchor, so say it in text beside
+  the dot, as for any standalone badge. An `Icon` passed as `content` with no `ariaLabel` is
+  hidden too, so the badge reads
+  nothing; name what it means on the anchor as well.
 - `pulse` respects `prefers-reduced-motion: reduce` and renders without animation.
 - **Forced colors:** a badge is drawn as a fill with a ring, and forced colors (Windows' contrast
   themes) paints the fill in the page's own color and drops the ring, so bestax's styles draw a

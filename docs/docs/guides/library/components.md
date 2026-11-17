@@ -963,18 +963,22 @@ A search field over a list of things to do, which narrows as you type and runs t
 
 ### Badge
 
-A small status/count indicator overlaid on a corner of its `children` (or standalone). Renders `"{max}+"` past a threshold, hides at `0` unless `showZero`, and supports a plain `dot` mode. [View full documentation.](../../api/components/badge.md)
+A small status/count indicator overlaid on a corner of its `children` (or standalone). Renders `"{max}+"` past a threshold, hides at `0` unless `showZero`, and supports a plain `dot` mode. A dot isn't read out and a count reads only what it shows, so the anchor's name says what each means. [View full documentation.](../../api/components/badge.md)
 
 ```tsx live
 <Block display="flex">
   <Badge content={4} color="danger" mr="6">
-    <Avatar name="Ada Lovelace" />
+    <Avatar name="Ada Lovelace" alt="Ada Lovelace, 4 new messages" />
   </Badge>
   <Badge content={128} max={99} color="info" mr="6">
-    <Avatar name="Grace Hopper" shape="square" />
+    <Avatar
+      name="Grace Hopper"
+      alt="Grace Hopper, 128 new messages"
+      shape="square"
+    />
   </Badge>
   <Badge dot color="success" overlap="circle">
-    <Avatar name="Katherine Johnson" />
+    <Avatar name="Katherine Johnson" alt="Katherine Johnson, online" />
   </Badge>
 </Block>
 ```
