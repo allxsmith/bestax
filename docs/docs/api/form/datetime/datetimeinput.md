@@ -859,6 +859,7 @@ function DateTimeInputFormDemo() {
   field mid-row, keeps its corner and moves sideways just far enough to fit, or, wider than
   the screen, to the edge its text starts from.
 - The `message` describes the input through `aria-describedby`, so a screen reader reads it when the input takes focus. Ids you pass in `aria-describedby` go on the container with the other attributes, except on a phone's native input, which lists them first. An `inline` picker has no input, so there the message describes nothing.
+- `aria-invalid` and `aria-errormessage` go on the input, while the other attributes you pass go on the container, so a screen reader hears the input is invalid when it takes focus. An `inline` picker has no input, and they stay on its container.
 
 ---
 

@@ -36,6 +36,20 @@ export type NumberinputControlsPosition = 'left' | 'right' | 'both';
 /** Visual variant for the Numberinput controls. */
 export type NumberinputVariant = 'plusminus' | 'stepper';
 
+/** The buttons' names, in your app's language. */
+export interface NumberinputLabels {
+  /**
+   * Names the button that raises the value. An empty string counts as none.
+   * @defaultValue 'Increase value'
+   */
+  increase?: string;
+  /**
+   * Names the button that lowers the value. An empty string counts as none.
+   * @defaultValue 'Decrease value'
+   */
+  decrease?: string;
+}
+
 /**
  * Props for the Numberinput component.
  * @helperProps Helper props go on the outer `.numberinput` `<div>`, with
@@ -91,6 +105,8 @@ export interface NumberinputProps
   bare?: boolean;
   /** Style variant for the control buttons. */
   variant?: NumberinputVariant;
+  /** The buttons' names, in your app's language, in both variants. */
+  labels?: NumberinputLabels;
   /** Whether the input is disabled. */
   disabled?: boolean | undefined;
   /** Whether the input can be typed in. */
@@ -184,6 +200,7 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
       compact = false,
       bare,
       variant = 'plusminus',
+      labels,
       disabled: disabledProp,
       editable = true,
       isLoading = false,
@@ -287,6 +304,9 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
       },
       [handleIncrement, handleDecrement]
     );
+
+    const increaseLabel = labels?.increase || 'Increase value';
+    const decreaseLabel = labels?.decrease || 'Decrease value';
 
     // Check if at limits
     const isAtMin =
@@ -398,7 +418,7 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
                 disabled={disabled || isAtMax}
                 tabIndex={-1}
                 onMouseDown={keepFocus}
-                aria-label="Increase value"
+                aria-label={increaseLabel}
               >
                 <ArrowDropUp />
               </button>
@@ -409,7 +429,7 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
                 disabled={disabled || isAtMin}
                 tabIndex={-1}
                 onMouseDown={keepFocus}
-                aria-label="Decrease value"
+                aria-label={decreaseLabel}
               >
                 <ArrowDropDown />
               </button>
@@ -450,7 +470,7 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
         disabled={disabled || isAtMin}
         tabIndex={-1}
         onMouseDown={keepFocus}
-        aria-label="Decrease value"
+        aria-label={decreaseLabel}
       >
         <span className={iconClasses}>
           <span aria-hidden="true">&minus;</span>
@@ -466,7 +486,7 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
         disabled={disabled || isAtMax}
         tabIndex={-1}
         onMouseDown={keepFocus}
-        aria-label="Increase value"
+        aria-label={increaseLabel}
       >
         <span className={iconClasses}>
           <span aria-hidden="true">+</span>

@@ -82,9 +82,15 @@ interface SliderBaseProps
   isRounded?: boolean;
   /** Use circular thumb. */
   isCircle?: boolean;
-  /** Show current value tooltip. */
+  /**
+   * Show current value tooltip. The tooltip doesn't announce its changes:
+   * a thumb announces its value as it's moved.
+   */
   showOutput?: boolean;
-  /** Controls tooltip visibility on the thumb. */
+  /**
+   * Controls tooltip visibility on the thumb. The tooltip doesn't announce
+   * its changes: a thumb announces its value as it's moved.
+   */
   tooltip?: SliderTooltip;
   /** Shows tick marks along the track. */
   ticks?: boolean;
@@ -98,15 +104,22 @@ interface SliderBaseProps
   orientation?: SliderOrientation;
   /**
    * Function to scale the displayed value. With it, and no `getAriaValueText`,
-   * the scaled value is also the thumb's `aria-valuetext`.
+   * the output's text is also the thumb's `aria-valuetext`, whether or not
+   * the output shows.
    */
   scale?: (value: number) => number;
-  /** Function to generate the `aria-valuetext` attribute. */
+  /**
+   * Function to generate the `aria-valuetext` attribute. It wins over the
+   * text `formatOutput` and `scale` give the thumb, and it gets the value
+   * before `scale`.
+   */
   getAriaValueText?: (value: number) => string;
   /**
    * Format function for output display. Without it, the output shows the
    * value as it is, or inside a `LocaleProvider` with a `locale`, written
-   * the way that locale writes numbers, to at most three decimals.
+   * the way that locale writes numbers, to at most three decimals. With it,
+   * and no `getAriaValueText`, its text is also the thumb's
+   * `aria-valuetext`, whether or not the output shows.
    */
   formatOutput?: (value: number) => string;
 }
@@ -608,13 +621,16 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
     const showTipHigh =
       tooltipMode === 'always' || (tooltipMode === 'auto' && showTooltipHigh);
 
-    // Aria value text
+    // The thumb's value text: `getAriaValueText`'s, or else the output's
+    // text when `formatOutput` or `scale` is set.
     const getAriaProps = (value: number) => {
       const ariaProps: Record<string, string> = {};
       if (getAriaValueText) {
         ariaProps['aria-valuetext'] = getAriaValueText(value);
-      } else if (scale) {
-        ariaProps['aria-valuetext'] = writeNumber(scaleValue(value));
+      } else if (formatOutput || scale) {
+        // An empty text would hide the value, so the thumb's own number reads.
+        const text = formatValue(value);
+        if (text) ariaProps['aria-valuetext'] = text;
       }
       return ariaProps;
     };
@@ -791,6 +807,9 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         {tooltipMode !== 'hidden' && (
           <output
             ref={outputRef}
+            // An output is a live region, and the thumb announces the value
+            // as it changes, so this one doesn't announce it again.
+            aria-live="off"
             className={prefixedClassNames(classPrefix, 'slider-output', {
               'is-visible': showTipLow,
               'is-flipped': flipped,
@@ -911,6 +930,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         {tooltipMode !== 'hidden' && (
           <output
             ref={outputRef}
+            aria-live="off"
             className={prefixedClassNames(
               classPrefix,
               'slider-output',
@@ -948,6 +968,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         {tooltipMode !== 'hidden' && (
           <output
             ref={outputHighRef}
+            aria-live="off"
             className={prefixedClassNames(
               classPrefix,
               'slider-output',

@@ -117,7 +117,7 @@ Outside a provider a picker keeps Sunday, even with a `locale` of its own, so pa
 
 ### Numbers and Matching
 
-With a `locale`, the numbers the library writes itself are written the way that locale writes them, with its digits and separators: `Pagination`'s page numbers, `Steps` markers, a `Badge` count, the `Avatars` surplus, a `RingProgress` in sections, `Rate`'s score, the `Slider` output, `Taginput`'s counter and the count of files `File` shows. Where an accessible name repeats a number on screen, as a page link's does, it's written the same way, so the name still holds the text. A label function you pass, such as `getPageLabel` or `formatOutput`, takes over as before.
+With a `locale`, the numbers the library writes itself are written the way that locale writes them, with its digits and separators: `Pagination`'s page numbers, `Steps` markers, a `Badge` count, the `Avatars` surplus, a `RingProgress` in sections, `Rate`'s score, the `Slider` output, `Taginput`'s counter and the count of files `File` shows. Where an accessible name repeats a number on screen, as a page link's does, it's written the same way, so the name still holds the text. A label function you pass, such as `getPageLabel` or `formatOutput`, takes over as before. `Rate`'s star names keep their numbers as they were: write them in its `labels.star`, with `useNumberFormat`.
 
 ```tsx live
 <LocaleProvider locale="ar-EG">

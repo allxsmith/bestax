@@ -228,6 +228,47 @@ describe('Toast', () => {
       ).toBeInTheDocument();
     });
 
+    it('names the close button with ariaCloseLabel, for an app in another language', () => {
+      render(
+        <Toast
+          message="Enregistré"
+          duration={0}
+          closable
+          ariaCloseLabel="Fermer"
+        />
+      );
+      expect(
+        screen.getByRole('button', { name: 'Fermer' })
+      ).toBeInTheDocument();
+    });
+
+    it("names a programmatic toast's close button", () => {
+      render(<ToastContainer />);
+      act(() => {
+        toast.show({
+          message: 'Enregistré',
+          closable: true,
+          ariaCloseLabel: 'Fermer',
+          duration: 0,
+        });
+      });
+      expect(
+        screen.getByRole('button', { name: 'Fermer' })
+      ).toBeInTheDocument();
+    });
+
+    it('keeps the close button named with an empty ariaCloseLabel', () => {
+      render(<Toast message="Saved" duration={0} closable ariaCloseLabel="" />);
+      expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
+    });
+
+    it('keeps ariaCloseLabel off the toast element', () => {
+      render(
+        <Toast message="Saved" duration={0} closable ariaCloseLabel="Fermer" />
+      );
+      expect(screen.getByRole('alert')).not.toHaveAttribute('ariaCloseLabel');
+    });
+
     it('close button triggers onClose', () => {
       const onClose = vi.fn();
       render(<Toast message="Test" duration={0} closable onClose={onClose} />);
@@ -665,20 +706,19 @@ describe('Toast', () => {
     });
 
     it("closes on a click with the caller's onClick when it says dismissible", () => {
-      const onClose = vi.fn();
-      const onClick = vi.fn();
+      const calls: string[] = [];
       render(
         <Toast
           message="Test"
           duration={0}
           dismissible
-          onClick={onClick}
-          onClose={onClose}
+          onClick={() => calls.push('onClick')}
+          onClose={() => calls.push('onClose')}
         />
       );
       fireEvent.click(screen.getByRole('alert'));
-      expect(onClick).toHaveBeenCalledTimes(1);
-      expect(onClose).toHaveBeenCalledTimes(1);
+      // Both run once, the caller's first.
+      expect(calls).toEqual(['onClick', 'onClose']);
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });
 

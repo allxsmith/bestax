@@ -463,6 +463,7 @@ function AutocompleteFormDemo() {
 - The `clearable` clear button is a native button named "Clear", or `labels.clear`: `Tab` from the input reaches it, and `Enter` or `Space` clears the input and puts focus back in it
 - Full keyboard navigation support
 - The `message` describes the input through `aria-describedby`, so a screen reader reads it when the input takes focus.
+- `aria-invalid` and `aria-errormessage` go on the input, while the other attributes you pass go on the wrapper, so a screen reader hears the input is invalid when it takes focus.
 
 ---
 

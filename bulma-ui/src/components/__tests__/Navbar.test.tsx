@@ -1,5 +1,6 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, createEvent } from '@testing-library/react';
 import { createRef } from 'react';
+import { createPortal } from 'react-dom';
 import type { ComponentProps } from 'react';
 import Navbar, {
   NavbarBrand,
@@ -971,6 +972,301 @@ describe('Navbar.Dropdown', () => {
     );
     fireEvent.keyDown(screen.getByText('More'), { key: 'Escape' });
     expect(onActiveChange).not.toHaveBeenCalled();
+  });
+
+  describe('Escape inside the open menu', () => {
+    const renderOpen = (
+      props: Partial<ComponentProps<typeof Navbar.Dropdown>> = {},
+      prefix = ''
+    ) => {
+      const onActiveChange = vi.fn();
+      render(
+        <ConfigProvider classPrefix={prefix}>
+          <Navbar.Dropdown
+            onActiveChange={onActiveChange}
+            data-testid="dropdown"
+            {...props}
+          >
+            <Navbar.Link>More</Navbar.Link>
+            <Navbar.DropdownMenu>
+              <Navbar.Item href="#about">About</Navbar.Item>
+            </Navbar.DropdownMenu>
+          </Navbar.Dropdown>
+        </ConfigProvider>
+      );
+      const trigger = screen.getByRole('button', { name: 'More' });
+      const item = screen.getByRole('link', { name: 'About' });
+      return { onActiveChange, trigger, item };
+    };
+
+    it.each([
+      ['no prefix', ''],
+      ['a class prefix', 'bestax-'],
+    ])(
+      'closes the dropdown and puts focus on its link, with %s',
+      (_label, prefix) => {
+        const { onActiveChange, trigger, item } = renderOpen({}, prefix);
+        fireEvent.keyDown(trigger, { key: 'Enter' });
+        expect(trigger).toHaveAttribute('aria-expanded', 'true');
+        item.focus();
+        fireEvent.keyDown(item, { key: 'Escape' });
+        expect(onActiveChange).toHaveBeenLastCalledWith(false);
+        expect(onActiveChange).toHaveBeenCalledTimes(2);
+        expect(screen.getByTestId('dropdown')).not.toHaveClass(
+          `${prefix}is-active`
+        );
+        expect(trigger).toHaveAttribute('aria-expanded', 'false');
+        expect(trigger).toHaveFocus();
+      }
+    );
+
+    it('closes a dropdown opened through `active` too', () => {
+      const { onActiveChange, trigger, item } = renderOpen({ active: true });
+      item.focus();
+      fireEvent.keyDown(item, { key: 'Escape' });
+      expect(onActiveChange).toHaveBeenCalledWith(false);
+      expect(trigger).toHaveFocus();
+    });
+
+    it('closes once for an Escape on the link', () => {
+      const { onActiveChange, trigger } = renderOpen({ active: true });
+      trigger.focus();
+      fireEvent.keyDown(trigger, { key: 'Escape' });
+      expect(onActiveChange).toHaveBeenCalledTimes(1);
+      expect(onActiveChange).toHaveBeenCalledWith(false);
+    });
+
+    it('does nothing in a closed dropdown, and passes the key on', () => {
+      const { onActiveChange, item } = renderOpen();
+      const escape = createEvent.keyDown(item, { key: 'Escape' });
+      fireEvent(item, escape);
+      expect(onActiveChange).not.toHaveBeenCalled();
+      expect(escape.defaultPrevented).toBe(false);
+    });
+
+    it('leaves the dropdown open for an Escape something inside already used', () => {
+      const onActiveChange = vi.fn();
+      render(
+        <Navbar.Dropdown active onActiveChange={onActiveChange}>
+          <Navbar.Link>More</Navbar.Link>
+          <Navbar.DropdownMenu>
+            <Navbar.Item href="#about" onKeyDown={e => e.preventDefault()}>
+              About
+            </Navbar.Item>
+          </Navbar.DropdownMenu>
+        </Navbar.Dropdown>
+      );
+      const item = screen.getByRole('link', { name: 'About' });
+      item.focus();
+      fireEvent.keyDown(item, { key: 'Escape' });
+      expect(onActiveChange).not.toHaveBeenCalled();
+      expect(item).toHaveFocus();
+    });
+
+    it('finds a Navbar.Link wrapped in another element', () => {
+      const onActiveChange = vi.fn();
+      render(
+        <Navbar.Dropdown active onActiveChange={onActiveChange}>
+          <span>
+            <Navbar.Link>More</Navbar.Link>
+          </span>
+          <Navbar.DropdownMenu>
+            <Navbar.Item href="#about">About</Navbar.Item>
+          </Navbar.DropdownMenu>
+        </Navbar.Dropdown>
+      );
+      const item = screen.getByRole('link', { name: 'About' });
+      item.focus();
+      fireEvent.keyDown(item, { key: 'Escape' });
+      expect(onActiveChange).toHaveBeenCalledWith(false);
+      expect(screen.getByRole('button', { name: 'More' })).toHaveFocus();
+    });
+
+    it('goes back to its own link, not one in its menu', () => {
+      // The menu comes first here, as it can in a dropdown that opens up.
+      render(
+        <Navbar.Dropdown active up>
+          <Navbar.DropdownMenu>
+            <Navbar.Link href="#nested">Nested</Navbar.Link>
+            <Navbar.Item href="#about">About</Navbar.Item>
+          </Navbar.DropdownMenu>
+          <Navbar.Link>More</Navbar.Link>
+        </Navbar.Dropdown>
+      );
+      const item = screen.getByRole('link', { name: 'About' });
+      item.focus();
+      fireEvent.keyDown(item, { key: 'Escape' });
+      expect(screen.getByRole('button', { name: 'More' })).toHaveFocus();
+    });
+
+    it('closes the inner of two nested dropdowns, back to its own link', () => {
+      const outerChange = vi.fn();
+      const innerChange = vi.fn();
+      render(
+        <Navbar.Dropdown active onActiveChange={outerChange}>
+          <Navbar.Link>More</Navbar.Link>
+          <Navbar.DropdownMenu>
+            <Navbar.Dropdown active onActiveChange={innerChange}>
+              <Navbar.Link>Team</Navbar.Link>
+              <Navbar.DropdownMenu>
+                <Navbar.Item href="#people">People</Navbar.Item>
+              </Navbar.DropdownMenu>
+            </Navbar.Dropdown>
+          </Navbar.DropdownMenu>
+        </Navbar.Dropdown>
+      );
+      const item = screen.getByRole('link', { name: 'People' });
+      item.focus();
+      fireEvent.keyDown(item, { key: 'Escape' });
+      expect(innerChange).toHaveBeenCalledWith(false);
+      expect(outerChange).not.toHaveBeenCalled();
+      expect(screen.getByRole('button', { name: 'Team' })).toHaveFocus();
+    });
+
+    it('leaves a dropdown with no Navbar.Link open, and passes the key on', () => {
+      const onActiveChange = vi.fn();
+      render(
+        <Navbar.Dropdown active onActiveChange={onActiveChange}>
+          <Navbar.DropdownMenu>
+            <Navbar.Item href="#about">About</Navbar.Item>
+          </Navbar.DropdownMenu>
+        </Navbar.Dropdown>
+      );
+      const item = screen.getByRole('link', { name: 'About' });
+      const escape = createEvent.keyDown(item, { key: 'Escape' });
+      fireEvent(item, escape);
+      expect(onActiveChange).not.toHaveBeenCalled();
+      expect(escape.defaultPrevented).toBe(false);
+    });
+
+    it('stays open, and passes the key on, when focus can’t go back to the link', () => {
+      const onActiveChange = vi.fn();
+      render(
+        <Navbar.Dropdown active onActiveChange={onActiveChange}>
+          <Navbar.Link as="button" disabled>
+            More
+          </Navbar.Link>
+          <Navbar.DropdownMenu>
+            <Navbar.Item href="#about">About</Navbar.Item>
+          </Navbar.DropdownMenu>
+        </Navbar.Dropdown>
+      );
+      const item = screen.getByRole('link', { name: 'About' });
+      item.focus();
+      const escape = createEvent.keyDown(item, { key: 'Escape' });
+      fireEvent(item, escape);
+      expect(onActiveChange).not.toHaveBeenCalled();
+      expect(escape.defaultPrevented).toBe(false);
+      expect(item).toHaveFocus();
+    });
+
+    it('finds the link only while it’s there, and never one in the menu', () => {
+      const onActiveChange = vi.fn();
+      const Menu = ({ link, nested }: { link: boolean; nested: boolean }) => (
+        <Navbar.Dropdown active onActiveChange={onActiveChange}>
+          {link && <Navbar.Link>More</Navbar.Link>}
+          <Navbar.DropdownMenu>
+            {nested && <Navbar.Link href="#nested">Nested</Navbar.Link>}
+            <Navbar.Item href="#about">About</Navbar.Item>
+          </Navbar.DropdownMenu>
+        </Navbar.Dropdown>
+      );
+      const { rerender } = render(<Menu link nested />);
+      rerender(<Menu link nested={false} />);
+      const item = screen.getByRole('link', { name: 'About' });
+      item.focus();
+      fireEvent.keyDown(item, { key: 'Escape' });
+      expect(onActiveChange).toHaveBeenCalledTimes(1);
+      expect(screen.getByRole('button', { name: 'More' })).toHaveFocus();
+
+      onActiveChange.mockClear();
+      rerender(<Menu link={false} nested={false} />);
+      const again = screen.getByRole('link', { name: 'About' });
+      again.focus();
+      fireEvent.keyDown(again, { key: 'Escape' });
+      expect(onActiveChange).not.toHaveBeenCalled();
+    });
+
+    it('still closes from a menu that is itself marked as a dialog', () => {
+      const onActiveChange = vi.fn();
+      render(
+        <Navbar.Dropdown active onActiveChange={onActiveChange}>
+          <Navbar.Link>More</Navbar.Link>
+          <Navbar.DropdownMenu role="dialog" aria-label="Products">
+            <Navbar.Item href="#about">About</Navbar.Item>
+          </Navbar.DropdownMenu>
+        </Navbar.Dropdown>
+      );
+      const item = screen.getByRole('link', { name: 'About' });
+      item.focus();
+      fireEvent.keyDown(item, { key: 'Escape' });
+      expect(onActiveChange).toHaveBeenCalledWith(false);
+      expect(screen.getByRole('button', { name: 'More' })).toHaveFocus();
+    });
+
+    it('leaves an IME’s Escape to its composition', () => {
+      const { onActiveChange, item } = renderOpen({ active: true });
+      fireEvent.keyDown(item, { key: 'Escape', isComposing: true });
+      fireEvent.keyDown(item, { key: 'Escape', keyCode: 229 });
+      expect(onActiveChange).not.toHaveBeenCalled();
+    });
+
+    it('closes a dropdown that sits in a dialog, leaving the dialog to the next Escape', () => {
+      const onActiveChange = vi.fn();
+      render(
+        <div role="dialog" aria-label="Settings">
+          <Navbar.Dropdown active onActiveChange={onActiveChange}>
+            <Navbar.Link>More</Navbar.Link>
+            <Navbar.DropdownMenu>
+              <Navbar.Item href="#about">About</Navbar.Item>
+            </Navbar.DropdownMenu>
+          </Navbar.Dropdown>
+        </div>
+      );
+      const item = screen.getByRole('link', { name: 'About' });
+      item.focus();
+      const escape = createEvent.keyDown(item, { key: 'Escape' });
+      fireEvent(item, escape);
+      expect(onActiveChange).toHaveBeenCalledWith(false);
+      expect(escape.defaultPrevented).toBe(true);
+    });
+
+    it('leaves an Escape from a dialog in the menu, or from content portaled out of it, alone', () => {
+      const onActiveChange = vi.fn();
+      render(
+        <Navbar.Dropdown active onActiveChange={onActiveChange}>
+          <Navbar.Link>More</Navbar.Link>
+          <Navbar.DropdownMenu>
+            <div role="dialog" aria-label="Inline">
+              <button type="button">Inside</button>
+            </div>
+            <dialog open aria-label="Native">
+              <button type="button">Native inside</button>
+            </dialog>
+            {createPortal(
+              <div role="dialog" aria-label="Portaled">
+                <button type="button">Portaled inside</button>
+              </div>,
+              document.body
+            )}
+          </Navbar.DropdownMenu>
+        </Navbar.Dropdown>
+      );
+      for (const name of ['Inside', 'Native inside', 'Portaled inside']) {
+        const button = screen.getByRole('button', { name });
+        const escape = createEvent.keyDown(button, { key: 'Escape' });
+        fireEvent(button, escape);
+        expect(escape.defaultPrevented).toBe(false);
+      }
+      expect(onActiveChange).not.toHaveBeenCalled();
+    });
+
+    it('still runs an onKeyDown passed to the dropdown', () => {
+      const onKeyDown = vi.fn();
+      const { item } = renderOpen({ active: true, onKeyDown });
+      fireEvent.keyDown(item, { key: 'Escape' });
+      expect(onKeyDown).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('other keys on the trigger are ignored', () => {

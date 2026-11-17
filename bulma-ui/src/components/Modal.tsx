@@ -71,8 +71,10 @@ export interface ModalProps
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
    * Title/header for modal-card variant, which names the dialog through
-   * `aria-labelledby`. Without one, give the modal an `aria-label`, or an
-   * `aria-labelledby` pointing at a heading inside it. (Legacy API only)
+   * `aria-labelledby`. With `type="content"` it isn't shown, and a title
+   * that's a string still names the dialog, as its `aria-label`. Without one, give
+   * the modal an `aria-label`, or an `aria-labelledby` pointing at a heading
+   * inside it. (Legacy API only)
    */
   modalCardTitle?: React.ReactNode;
   /**
@@ -637,13 +639,21 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
     else if (type === 'content') isModalCard = false;
     else isModalCard = !!modalCardTitle || !!modalCardFoot;
 
+    // The title names the dialog from the card head. Drawn as content, the
+    // modal renders no head to point at, so a title of plain text names it
+    // through `aria-label` instead, and nothing points at the missing head.
+    const titleText =
+      typeof modalCardTitle === 'string' ? modalCardTitle.trim() : '';
+    const titleLabel = !isModalCard && titleText ? titleText : undefined;
+
     modalElement = (
       <div
         className={modalClasses}
         ref={combinedRef}
         role={resolvedRole}
         aria-modal={resolvedAriaModal}
-        aria-labelledby={titleId}
+        aria-labelledby={isModalCard ? titleId : undefined}
+        aria-label={titleLabel}
         tabIndex={-1}
         {...rest}
         data-testid={testId}

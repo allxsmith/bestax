@@ -75,8 +75,8 @@ Stock Bulma examples:
 
 ## Authoritative bestax extras inventory
 
-Every extras partial that exists (from the library's `src/scss/**/_index.scss` — this list
-is **more complete** than the docs page's Option C example, which omits several):
+Every extras partial that exists, from the library's `src/scss/**/_index.scss`. The Modular
+guide's Option C shows a short example and links here for the full list:
 
 **Components** (`@allxsmith/bestax-bulma/scss/components/<name>`):
 `loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `dropdown`, `steps`, `sidebar`,
