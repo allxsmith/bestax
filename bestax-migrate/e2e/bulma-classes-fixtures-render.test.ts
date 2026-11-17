@@ -25,6 +25,7 @@ import {
   normalizeHtml,
   renderExports,
   withImplicitListRoles,
+  withLoadingButtonsBusy,
   withV1Classes,
 } from './support/render-module.js';
 
@@ -80,6 +81,7 @@ describe('bulma-classes fixtures render the same before and after', () => {
             withImplicitListRoles,
             withShortStyles,
             withLabelledGlyphsHidden,
+            withLoadingButtonsBusy,
           ].reduce((markup, restate) => restate(markup, converted), html);
           return [exported, restated];
         })

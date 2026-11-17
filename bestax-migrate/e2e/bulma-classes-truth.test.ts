@@ -34,6 +34,10 @@
  *     the v1 helper that does its job (`is-marginless` as `m="0"`, which
  *     renders `m-0`), so the raw side has that class restated where the
  *     conversion wrote it (`withV1Classes`).
+ *   - A loading `.button` becomes `Button isLoading`, which writes
+ *     `aria-busy="true"` and `aria-disabled="true"` and holds still while it
+ *     loads (#1870), so the raw side has the two restated on each loading
+ *     `.button` the conversion wrote them on (`withLoadingButtonsBusy`).
  */
 
 import fs from 'node:fs';
@@ -91,6 +95,7 @@ import {
   normalizeHtml,
   renderElement,
   withImplicitListRoles,
+  withLoadingButtonsBusy,
   withV1Classes,
 } from './support/render-module.js';
 
@@ -350,7 +355,10 @@ function renderBoth(
     facts.childElements?.some(
       child => child.becomes?.glyph?.longStyle !== undefined
     );
-  const restated = withImplicitListRoles(withV1Classes(raw, html), html);
+  const restated = withLoadingButtonsBusy(
+    withImplicitListRoles(withV1Classes(raw, html), html),
+    html
+  );
   return {
     raw: compared(restyles ? withShortStyles(restated, html) : restated),
     converted: compared(html),
