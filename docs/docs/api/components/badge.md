@@ -222,7 +222,10 @@ function example() {
 positioned ancestor.
 
 ```tsx live
-<Badge content={5} color="danger" pulse />
+<Block display="flex" alignItems="center">
+  <Badge content={5} color="danger" pulse mr="2" />
+  <span>new alerts</span>
+</Block>
 ```
 
 ### Text Child
