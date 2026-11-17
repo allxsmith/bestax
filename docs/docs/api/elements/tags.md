@@ -56,7 +56,11 @@ Set the `hasAddons` prop to group tags together as add-ons, removing spacing bet
 <Tags hasAddons>
   <Tag color="primary">Package</Tag>
   <Tag color="success">Ready</Tag>
-  <Tag isDelete onDelete={() => alert('Deleted!')} />
+  <Tag
+    isDelete
+    aria-label="Remove Package Ready"
+    onDelete={() => alert('Removed Package Ready')}
+  />
 </Tags>
 ```
 
@@ -103,7 +107,7 @@ You can use Bulma helper props like `m="4"` to add margin around the tag group f
 
 ### Mixed Tags
 
-Combine props such as `size`, `isRounded`, and `isDelete` to create flexible, interactive tag groups for advanced UIs.
+Combine props such as `size` and `isRounded`, and a [`Delete`](./delete.md) inside a tag to make it removable, to create flexible, interactive tag groups for advanced UIs.
 
 ```tsx live
 function example() {
@@ -118,7 +122,16 @@ function example() {
         Success Rounded
       </Tag>
       {/* Dismissible tag */}
-      {show && <Tag color="danger" isDelete onDelete={() => setShow(false)} />}
+      {show && (
+        <Tag color="danger">
+          Danger
+          <Delete
+            size="small"
+            ariaLabel="Remove Danger"
+            onClick={() => setShow(false)}
+          />
+        </Tag>
+      )}
       <Tag color="info">Info</Tag>
     </Tags>
   );
@@ -132,7 +145,11 @@ You can combine `hasAddons` with a delete tag to create a tightly grouped, dismi
 ```tsx live
 <Tags hasAddons>
   <Tag color="danger">Allxsmith</Tag>
-  <Tag isDelete onDelete={() => alert('Deleted!')} />
+  <Tag
+    isDelete
+    aria-label="Remove Allxsmith"
+    onDelete={() => alert('Removed Allxsmith')}
+  />
 </Tags>
 ```
 
@@ -154,7 +171,7 @@ You can combine `hasAddons` with a delete tag to create a tightly grouped, dismi
 ## Accessibility
 
 - **Grouping:** The container is a `<div class="tags">`, which is semantically neutral.
-- **Delete buttons:** If using delete tags, ensure each has an accessible label.
+- **Delete buttons:** A delete tag is named "Delete tag", and a `Delete` inside a tag "Close", unless you name them, and neither name says which tag it removes. Name each one after its tag, as these examples do: `aria-label="Remove Allxsmith"` on a delete tag, `ariaLabel="Remove Danger"` on a `Delete`.
 - **Wrapping:** Tags wrap onto multiple lines by default for better readability on small screens.
 
 :::tip

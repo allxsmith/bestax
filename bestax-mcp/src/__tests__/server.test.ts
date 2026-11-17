@@ -1335,8 +1335,8 @@ describe('lookup_bulma_classes', () => {
   });
 
   it('says "an" before a tag read with a vowel sound', async () => {
-    expect(await lookup('tag', 'a')).toContain(
-      '**Component:** `Tag` renders only <span>, not an <a>. Change the tag to use it, and the rows below are what it takes then; the codemod leaves an <a> as markup.'
+    expect(await lookup('notification', 'a')).toContain(
+      '**Component:** `Notification` renders only <div>, not an <a>. Change the tag to use it, and the rows below are what it takes then; the codemod leaves an <a> as markup.'
     );
     expect(await lookup('section', 'div')).toContain(
       '`Section` renders only <section>, not a <div>'

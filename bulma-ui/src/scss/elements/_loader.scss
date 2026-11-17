@@ -7,6 +7,11 @@
 // It hides everything inside a loading button, where Bulma hides only the
 // label.
 //
+// It rings a loading button that has keyboard focus, or `isFocused`'s class.
+// Bulma's `is-loading` takes away the shadow that shows a focused button,
+// which leaves a colored one only a 1px border in the focus color on its own
+// fill, and an outlined or text one nothing at all.
+//
 // And it keeps each ring open in forced colors (Windows' contrast themes).
 // Bulma leaves two sides of the ring `transparent`, and forced colors paints
 // those in the text color like any other border, so the ring closes, and a
@@ -25,6 +30,7 @@
 // without Bulma at all, so each ring is named here.
 
 @use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
 
 // Bulma hides a loading button's label with a transparent text color, which
 // only reaches what inherits it. A child with a color of its own, a `Tag`, an
@@ -42,6 +48,24 @@
 // nobody can see.
 .#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading > :focus-within {
   opacity: 1 !important;
+}
+
+// Bulma's focus outline, in its focus color, style, width and offset, the
+// one `_button.scss` gives a ghost or static button, from the keyboard or
+// from `isFocused`. Two classes and the state outrank the `outline: none` Bulma's
+// control mixin sets on a focused button, whichever stylesheet loads first.
+// The forced colors block below rings it in the system's colors instead, and
+// wins there by coming later in this file with the same selector.
+.#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading:focus-visible,
+.#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading.#{iv.$class-prefix}is-focused {
+  outline-color: hsl(
+    #{cv.getVar("focus-h")},
+    #{cv.getVar("focus-s")},
+    #{cv.getVar("focus-l")}
+  );
+  outline-offset: cv.getVar("focus-offset");
+  outline-style: cv.getVar("focus-style");
+  outline-width: cv.getVar("focus-width");
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -67,10 +91,12 @@
   // label would show through the spinner. With forcing off on the button,
   // the label stays transparent, and the button names its own colors, all of
   // them system ones the theme picks. They're the ones the browser gives the
-  // element when it's idle, so it doesn't change look when it starts
-  // loading: the page's own colors for most elements, a button's for a
-  // `<button>`, a link's for a link, and no surface for a variant that has
-  // none, as below. Forcing off reaches everything inside too, which the
+  // element when it's idle: the page's own colors for most elements, a
+  // button's for a `<button>`, a link's for a link, and no surface for a
+  // variant that has none, as below. So a button doesn't change look when it
+  // starts loading, unless it's selected: `_button.scss` draws a selected
+  // button in Highlight while it's idle, and skips a loading one, which
+  // takes a button's colors here like any other. Forcing off reaches everything inside too, which the
   // rule at the top already hides. It also stops the browser recoloring the
   // border to show focus, so a focused one gets an outline, and so does one
   // with `is-focused`.

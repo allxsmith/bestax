@@ -2949,7 +2949,7 @@
       "status": "mapped",
       "target": "Tag",
       "tag": "span",
-      "as": null,
+      "as": ["span", "a", "button"],
       "sizeDrivesTag": false,
       "textColor": null,
       "bgColor": "backgroundColor",
@@ -4669,7 +4669,12 @@
       "bgColor": null,
       "part": false,
       "why": null,
-      "modifiers": { "is-active": { "writes": [{ "prop": "active" }] } },
+      "modifiers": {
+        "is-active": {
+          "writes": [{ "prop": "active" }],
+          "needsAttr": { "name": "aria-current", "value": "page" }
+        }
+      },
       "omits": {},
       "wrapsChildren": null,
       "folds": null,

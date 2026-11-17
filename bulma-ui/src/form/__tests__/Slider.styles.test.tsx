@@ -474,4 +474,26 @@ describe.each([
       values(p('slider-tick'), 'background', [FORCED]).map(v => v.toLowerCase())
     ).toEqual(['buttontext']);
   });
+
+  it('draw the tick and its label at full strength in forced colors', () => {
+    // Forced colors keeps an opacity, so the tick's would halve the line and
+    // the label inside it there.
+    expect(values(p('slider-tick'), 'opacity', [FORCED])).toEqual(['1']);
+  });
+
+  it('draw a disabled slider’s ticks and labels in the color for disabled text in forced colors', () => {
+    const disabled = `${p('slider')}${p('is-disabled')}`;
+    expect(
+      values(
+        `${disabled} ${p('slider-tick')}:not(${p('is-endpoint')})`,
+        'background',
+        [FORCED]
+      ).map(v => v.toLowerCase())
+    ).toEqual(['graytext']);
+    expect(
+      values(`${disabled} ${p('slider-tick-label')}`, 'color', [FORCED]).map(
+        v => v.toLowerCase()
+      )
+    ).toEqual(['graytext']);
+  });
 });

@@ -27,13 +27,62 @@ class MockIntersectionObserver {
     MockIntersectionObserver.instances.push(this);
   }
 
-  trigger(isIntersecting: boolean) {
+  /** Hands the observer's callback `entries`, as one delivery. */
+  deliver(entries: Partial<IntersectionObserverEntry>[]) {
     act(() => {
       this.callback(
-        [{ isIntersecting } as IntersectionObserverEntry],
+        entries as IntersectionObserverEntry[],
         this as unknown as IntersectionObserver
       );
     });
+  }
+
+  trigger(isIntersecting: boolean) {
+    this.deliver([
+      { isIntersecting, intersectionRatio: isIntersecting ? 1 : 0 },
+    ]);
+  }
+
+  /** The thresholds the observer was made with, as a list. */
+  get thresholdList(): number[] {
+    const { threshold = 0 } = this.options ?? {};
+    return Array.isArray(threshold) ? threshold : [threshold];
+  }
+
+  /** How many thresholds the element was past at the last entry reported. */
+  past = 0;
+
+  /**
+   * Scrolls the element on through `ratios` of it in view, inside a viewport
+   * of `view` for an element of `box`, and reports entries the way browsers
+   * do: only when the ratio crosses one of the observer's thresholds, with
+   * `isIntersecting` true from the lowest one up, where 0 means any of it.
+   * That's what Chromium, Firefox and WebKit report for a section observed
+   * at [0.15] and at [0, 0.15] (#1907). The element starts out of view, as
+   * `observe()` reports it, and each call carries on from where the last left
+   * it.
+   */
+  scrollThrough(
+    ratios: number[],
+    view: { width: number; height: number },
+    box: { width: number; height: number }
+  ) {
+    const thresholds = this.thresholdList;
+    const pastAt = (ratio: number) =>
+      thresholds.filter(t => (t === 0 ? ratio > 0 : ratio >= t)).length;
+    for (const ratio of ratios) {
+      const past = pastAt(ratio);
+      if (past === this.past) continue;
+      this.past = past;
+      this.deliver([
+        {
+          isIntersecting: past > 0,
+          intersectionRatio: ratio,
+          rootBounds: view as DOMRectReadOnly,
+          boundingClientRect: box as DOMRectReadOnly,
+        },
+      ]);
+    }
   }
 }
 
@@ -159,13 +208,13 @@ describe('Reveal', () => {
       render(<Reveal threshold={0.4}>Content</Reveal>);
       const instance = MockIntersectionObserver.instances[0];
       expect(instance.observe).toHaveBeenCalled();
-      expect(instance.options).toEqual({ threshold: 0.4 });
+      expect(instance.options).toEqual({ threshold: [0, 0.4] });
     });
 
     it('clamps a threshold above 1 down to 1', () => {
       render(<Reveal threshold={2}>Content</Reveal>);
       const instance = MockIntersectionObserver.instances[0];
-      expect(instance.options).toEqual({ threshold: 1 });
+      expect(instance.options).toEqual({ threshold: [0, 1] });
     });
 
     it('clamps a negative threshold up to 0', () => {
@@ -177,7 +226,7 @@ describe('Reveal', () => {
     it('falls back to the default threshold for a non-finite value', () => {
       render(<Reveal threshold={NaN}>Content</Reveal>);
       const instance = MockIntersectionObserver.instances[0];
-      expect(instance.options).toEqual({ threshold: 0.15 });
+      expect(instance.options).toEqual({ threshold: [0, 0.15] });
     });
 
     it('adds is-revealed once the element intersects', () => {
@@ -222,6 +271,116 @@ describe('Reveal', () => {
       instance.trigger(false);
       expect(container.querySelector('.reveal')).not.toHaveClass('is-revealed');
       expect(instance.unobserve).not.toHaveBeenCalled();
+    });
+
+    // On a 320 by 256 viewport (400% zoom of 1280 by 1024), a section 2000px
+    // tall can show at most 12.8% of itself, under the default 15%.
+    const zoomed = { width: 320, height: 256 };
+    const tall = { width: 320, height: 2000 };
+    // On a 320 by 568 phone, a 400px section can show all of itself.
+    const phone = { width: 320, height: 568 };
+    const fits = { width: 320, height: 400 };
+    const revealed = (container: HTMLElement) =>
+      container.querySelector('.reveal')!.classList.contains('is-revealed');
+
+    it('reveals a section too tall ever to show `threshold` of itself as soon as any of it is in view', () => {
+      const { container } = render(<Reveal animation="fade">Content</Reveal>);
+      const instance = MockIntersectionObserver.instances[0];
+
+      instance.scrollThrough([0.02], zoomed, tall);
+
+      expect(revealed(container)).toBe(true);
+    });
+
+    it('waits for `threshold` on a section that can show it', () => {
+      const { container } = render(<Reveal animation="fade">Content</Reveal>);
+      const instance = MockIntersectionObserver.instances[0];
+
+      instance.scrollThrough([0.02, 0.1], phone, fits);
+      expect(revealed(container)).toBe(false);
+
+      instance.scrollThrough([0.14, 0.22], phone, fits);
+      expect(revealed(container)).toBe(true);
+    });
+
+    it('measures against the window when the browser gives no root size, as in a cross-origin frame', () => {
+      const { container } = render(<Reveal animation="fade">Content</Reveal>);
+      const instance = MockIntersectionObserver.instances[0];
+      /** An entry at 2% in view, with no root size, for an element `height` tall. */
+      const entryFor = (height: number) => ({
+        isIntersecting: true,
+        intersectionRatio: 0.02,
+        rootBounds: null,
+        boundingClientRect: { width: 320, height } as DOMRectReadOnly,
+      });
+
+      // jsdom's window is 768px tall, so a 2000px element can show 38% of
+      // itself, and waits for 15%.
+      instance.deliver([entryFor(2000)]);
+      expect(revealed(container)).toBe(false);
+
+      // A 6000px one can show 12.8%, under 15%.
+      instance.deliver([entryFor(6000)]);
+      expect(revealed(container)).toBe(true);
+    });
+
+    it('goes by the newest entry when several arrive at once', () => {
+      const { container } = render(
+        <Reveal once={false} animation="fade">
+          Content
+        </Reveal>
+      );
+      const instance = MockIntersectionObserver.instances[0];
+      const entryAt = (ratio: number) => ({
+        isIntersecting: ratio > 0,
+        intersectionRatio: ratio,
+        rootBounds: phone as DOMRectReadOnly,
+        boundingClientRect: fits as DOMRectReadOnly,
+      });
+
+      // Past 0, then past `threshold`, in one delivery: it's 40% in view.
+      instance.deliver([entryAt(0.05), entryAt(0.4)]);
+      expect(revealed(container)).toBe(true);
+
+      // Back below `threshold`, then out of view.
+      instance.deliver([entryAt(0.1), entryAt(0)]);
+      expect(revealed(container)).toBe(false);
+    });
+
+    it('with once=false, hides a section that drops below `threshold`', () => {
+      const { container } = render(
+        <Reveal once={false} animation="fade">
+          Content
+        </Reveal>
+      );
+      const instance = MockIntersectionObserver.instances[0];
+
+      instance.scrollThrough([0.05, 0.22], phone, fits);
+      expect(revealed(container)).toBe(true);
+      instance.scrollThrough([0.095], phone, fits);
+      expect(revealed(container)).toBe(false);
+      instance.scrollThrough([0.22], phone, fits);
+      expect(revealed(container)).toBe(true);
+    });
+
+    it('with once=false, keeps a too-tall section shown while any of it is in view, and hides it once it leaves', () => {
+      const { container } = render(
+        <Reveal once={false} animation="fade">
+          Content
+        </Reveal>
+      );
+      const instance = MockIntersectionObserver.instances[0];
+
+      instance.scrollThrough([0.02, 0.06, 0.1, 0.128, 0.1], zoomed, tall);
+      expect(revealed(container)).toBe(true);
+      instance.scrollThrough([0.06, 0.02, 0], zoomed, tall);
+      expect(revealed(container)).toBe(false);
+    });
+
+    it('observes a threshold of 0 at 0 alone', () => {
+      render(<Reveal threshold={0}>Content</Reveal>);
+      const instance = MockIntersectionObserver.instances[0];
+      expect(instance.thresholdList).toEqual([0]);
     });
 
     it('reveals immediately when IntersectionObserver is unavailable', () => {

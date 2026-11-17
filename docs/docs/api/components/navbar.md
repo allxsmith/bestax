@@ -534,7 +534,13 @@ function example() {
   (Windows' contrast themes) replaces, so the burger would vanish there while it still works and
   takes focus. bestax's styles keep its bars visible in the system's button text color. That rule
   ships in `bestax.css` and `extras.css`, not in Bulma's own stylesheet, and an
-  [`AppFrame`](../layout/appframe.md)'s burger gets it too.
+  [`AppFrame`](../layout/appframe.md)'s burger gets it too. Bulma marks an active or selected
+  link item, `Navbar.Link` and dropdown row with a fill and a text color alone, which forced
+  colors replaces, so bestax's styles draw a bar in the system's highlight color inside it there:
+  along its bottom in a row, and down its start edge where the items stack, in a dropdown and in
+  the menu the burger opens. The item and everything in it stay in the contrast theme's colors,
+  and an active tab gets the bar above Bulma's thicker underline. This ships in the same
+  stylesheets.
 - **`Navbar.Divider` in forced colors:** Bulma draws it as a background color too, which forced
   colors paints in the dropdown's own color, so the line would vanish. bestax's styles draw it in
   the system's text color there, from the same stylesheets.

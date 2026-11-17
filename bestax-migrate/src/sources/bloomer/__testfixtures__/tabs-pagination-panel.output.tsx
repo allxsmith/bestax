@@ -15,14 +15,14 @@ export const Navigation = ({ onSelect }: { onSelect: () => void }) => (
       </li>
     </Breadcrumb>
     <Tabs align="centered" boxed size="small" isFullwidth>
-      <Tabs.List>
+      <ul>
         <Tabs.Item active>
           <a href="#one">One</a>
         </Tabs.Item>
         <Tabs.Item>
           <a onClick={onSelect}>Two</a>
         </Tabs.Item>
-      </Tabs.List>
+      </ul>
     </Tabs>
     <Pagination size="medium">
       <Pagination.Previous>Previous</Pagination.Previous>

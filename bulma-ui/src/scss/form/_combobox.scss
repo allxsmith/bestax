@@ -13,6 +13,7 @@
 @use 'sass:map';
 @use 'bulma/sass/utilities/initial-variables' as iv;
 @use 'bulma/sass/utilities/css-variables' as cv;
+@use '../anchored-shift' as *;
 @use '../variables' as *;
 
 // In place, it stacks like Bulma's dropdown, under a fixed navbar.
@@ -131,6 +132,8 @@ $combobox-sizes: (
 // Doubled up to outrank Bulma's `.dropdown-menu`, which hides itself outside
 // an active `.dropdown`, wherever the two stylesheets load.
 .#{iv.$class-prefix}dropdown-menu.#{iv.$class-prefix}combobox-menu {
+  // The sideways shift the component writes, 0 while the panel fits.
+  @include extras-anchored-shift;
   display: block;
   position: absolute;
   z-index: cv.getVar('combobox-menu-z-index');
@@ -156,14 +159,14 @@ $combobox-sizes: (
 
   &.#{iv.$class-prefix}is-bottom-left,
   &.#{iv.$class-prefix}is-top-left {
-    left: 0;
+    @include extras-anchored-left;
     right: auto;
   }
 
   &.#{iv.$class-prefix}is-bottom-right,
   &.#{iv.$class-prefix}is-top-right {
     left: auto;
-    right: 0;
+    @include extras-anchored-right;
   }
 
   // With no `position`, the menu lines up with the field's inline start, so
@@ -175,7 +178,7 @@ $combobox-sizes: (
       :not(.#{iv.$class-prefix}is-portal):dir(rtl)
     ) {
     left: auto;
-    right: 0;
+    @include extras-anchored-right;
   }
 
   // Portaled: fixed to the viewport at the field's edge, which the component
