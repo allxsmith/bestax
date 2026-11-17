@@ -321,6 +321,7 @@ Use `defaultValue` for internal state management:
 ## Accessibility
 
 - Uses native number input element
+- In forced colors (Windows' contrast themes), a focused input with `editable={false}` draws an outline in Bulma's focus style and width, painted in a system color, since it shows no text caret and only its border's color would change there
 - The `label` prop, or the label of a `Field` the Numberinput sits in, names its input. A `Field` with `hasAddons` or `grouped` holds several controls and names none, so wire that one with `labelProps={{ htmlFor }}` and a matching `id`.
 - Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes, with `aria-valuenow` left off while the field holds no number
 - The increase and decrease buttons are named "Increase value" and "Decrease value", in both variants, and `labels` names them in the page's language

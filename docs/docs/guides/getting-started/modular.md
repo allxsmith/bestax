@@ -159,6 +159,8 @@ A build with a responsive `Table` also wants bestax's `elements/table` partial, 
 
 A build with a `Select` also wants bestax's `form/select` partial, which outlines a focused select in forced colors.
 
+A build with an `Input` or a `TextArea` also wants bestax's `form/input-textarea` partial, which outlines a focused read-only field in forced colors, and so does one with a `TreeSelect` or a `Cascader`, whose field is read-only.
+
 Pull in only the helper categories you use:
 
 ```scss
@@ -230,6 +232,8 @@ Some partials adjust a stock Bulma component rather than add one of bestax's.
 
 - `form/select` outlines a focused `Select` in forced colors (Windows' contrast themes), where Bulma's focus ring is a shadow those themes drop and only the border's color would change, so a build that uses `bulma/sass/form/select` wants it too.
 
+- `form/input-textarea` outlines a focused read-only `Input` or `TextArea` in forced colors (Windows' contrast themes), and the read-only field of a `TreeSelect`, a `Cascader`, a `ColorInput` or `PasswordInput`, or a `DateInput`, `TimeInput`, `DateTimeInput` or `Numberinput` that can't be typed in, where a read-only field shows no caret and only the border's color would change, so a build that uses `bulma/sass/form/input-textarea` wants it too.
+
 - `helpers/color` gives a color's text (`textColor`, `has-text-*`) the color's on-scheme lightness on the dark scheme wherever that's the lighter one, so a dark color such as the bestax blue primary reads there, and a build that uses `bulma/sass/helpers/color` wants it too.
 
 - `helpers/visibility` draws `is-sr-only` at each breakpoint, which Bulma draws only at every width and the viewport visibility props write for `'sr-only'` (`visibilityTablet="sr-only"`), so a build that uses `bulma/sass/helpers/visibility` for those props wants it too.
@@ -256,9 +260,9 @@ Others draw on a stock Bulma component without adjusting it.
 
 - `form/passwordinput` lays its button over Bulma's input, so it wants `bulma/sass/form/input-textarea` as well.
 
-- `form/treeselect` opens a `components/treeview` in `form/picker-popover`, and its field, tags and clear button are Bulma's, so it wants those two, `form/checkbox` for the boxes, `bulma/sass/form/input-textarea`, `bulma/sass/elements/tag`, `bulma/sass/elements/delete` and `elements/delete` as well.
+- `form/treeselect` opens a `components/treeview` in `form/picker-popover`, and its field, tags and clear button are Bulma's, so it wants those two, `form/checkbox` for the boxes, `bulma/sass/form/input-textarea` and `form/input-textarea`, `bulma/sass/elements/tag`, `bulma/sass/elements/delete` and `elements/delete` as well.
 
-- `form/cascader` opens its columns in `form/picker-popover`, and brings `form/combobox` with it, for its search and the values its items start from. Its items are Bulma's dropdown items, so it wants `form/picker-popover`, `bulma/sass/components/dropdown`, `bulma/sass/form/input-textarea`, `bulma/sass/elements/delete` and `elements/delete` for the field and its clear button, and `bulma/sass/elements/loader`, `elements/loader` and `bulma/sass/elements/button` for a column that's loading or failed to load.
+- `form/cascader` opens its columns in `form/picker-popover`, and brings `form/combobox` with it, for its search and the values its items start from. Its items are Bulma's dropdown items, so it wants `form/picker-popover`, `bulma/sass/components/dropdown`, `bulma/sass/form/input-textarea` and `form/input-textarea`, `bulma/sass/elements/delete` and `elements/delete` for the field and its clear button, and `bulma/sass/elements/loader`, `elements/loader` and `bulma/sass/elements/button` for a column that's loading or failed to load.
 
 - `components/tour` draws a step's Skip, Back and Next with Bulma's buttons and its close button with a delete button, so a build that uses it wants `bulma/sass/elements/button`, `bulma/sass/elements/delete` and `elements/delete` too.
 
