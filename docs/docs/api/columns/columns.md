@@ -58,12 +58,12 @@ This example shows the `Columns` component containing multiple `Column` children
 
 ### Columns on Mobile and Desktop
 
-This example demonstrates the `isMobile` prop, which enables the columns layout on mobile screens and up. Use this to ensure your layout is responsive and adapts to smaller devices.
+Columns stack below tablet by default. `isMobile` keeps them side by side on a phone too, and `isDesktop` keeps them stacked until desktop. Keep an `isMobile` row to what fits a phone: a row that doesn't fit runs past the edge of the screen, where Bulma's default `overflow-x: hidden` on the page cuts it off (WCAG 1.4.10 Reflow).
 
 ```tsx live
 <>
   {
-    // Columns enabled on mobile screens and up
+    // Columns side by side on mobile screens and up
   }
   <Columns isMobile>
     <Column>
@@ -74,12 +74,6 @@ This example demonstrates the `isMobile` prop, which enables the columns layout 
     </Column>
     <Column>
       <Notification color="primary">3</Notification>
-    </Column>
-    <Column>
-      <Notification color="primary">4</Notification>
-    </Column>
-    <Column>
-      <Notification color="primary">5</Notification>
     </Column>
   </Columns>
 
@@ -619,6 +613,18 @@ This example shows how to combine the `isCentered` prop with multiline columns. 
 
 ---
 
+## Accessibility
+
+- **No role of its own:** `Columns` and `Column` render `<div>`s, which add nothing to the
+  accessibility tree. Columns are read, and tabbed through, in the order they're written, so lay
+  them out in that order: a reversed `flexDirection` changes only what's seen (WCAG 1.3.2 and
+  2.4.3). An offset only adds room before a column.
+- **Reflow:** below tablet, columns stack. `isMobile` keeps them side by side at every width, and
+  a row that doesn't fit a 320px screen runs past its edge, where Bulma's default
+  `overflow-x: hidden` on the page cuts it off (WCAG 1.4.10 Reflow). Keep it for a row that fits.
+
+---
+
 ## See Also
 
 - [Column component](./column.md)
@@ -641,7 +647,7 @@ This example shows how to combine the `isCentered` prop with multiline columns. 
 | `isGapless`         | `boolean`                                                                                                                                    | `false` | Remove gap between columns.                                                                                                                                                                                                                                                                                                                                                   |
 | `isMultiline`       | `boolean`                                                                                                                                    | `false` | Allow columns to wrap to multiple lines.                                                                                                                                                                                                                                                                                                                                      |
 | `isVCentered`       | `boolean`                                                                                                                                    | `false` | Vertically center columns within the container.                                                                                                                                                                                                                                                                                                                               |
-| `isMobile`          | `boolean`                                                                                                                                    | `false` | Apply columns layout on mobile and up.                                                                                                                                                                                                                                                                                                                                        |
+| `isMobile`          | `boolean`                                                                                                                                    | `false` | Keeps the columns side by side on a phone too (Bulma's `is-mobile`). Without it they stack below tablet. A row that doesn't fit a 320px screen runs past its edge, where Bulma's default `overflow-x: hidden` on the page cuts it off (WCAG 1.4.10 Reflow), so keep it for a row that fits.                                                                                   |
 | `isDesktop`         | `boolean`                                                                                                                                    | `false` | Apply columns layout on desktop and up.                                                                                                                                                                                                                                                                                                                                       |
 | `gap`               | `0` \| `1` \| `2` \| `3` \| `4` \| `5` \| `6` \| `7` \| `8` \| `'0'` \| `'1'` \| `'2'` \| `'3'` \| `'4'` \| `'5'` \| `'6'` \| `'7'` \| `'8'` | —       | Gap size for all breakpoints, the columns gutter (`is-<value>`). Whole steps of the same scale as `Grid`'s `gap` prop; wins over `gapSize` if both are set. This is not the `gap` helper prop other components take, which renders `is-gap-<value>`: on `Columns` the gutter is padding inside each column, so the helper's CSS `gap` would add to it rather than replace it. |
 | `gapMobile`         | `0` \| `1` \| `2` \| `3` \| `4` \| `5` \| `6` \| `7` \| `8` \| `'0'` \| `'1'` \| `'2'` \| `'3'` \| `'4'` \| `'5'` \| `'6'` \| `'7'` \| `'8'` | —       | Gap size for mobile. Wins over `gapSizeMobile` if both are set.                                                                                                                                                                                                                                                                                                               |
