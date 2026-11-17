@@ -384,6 +384,11 @@ export interface Plan {
     target: string;
     props: Array<[name: string, value: string | true]>;
     numbers: string[];
+    /**
+     * TODOs about the component the fold makes, written only once the fold
+     * is: a fold the transform calls off takes them with it.
+     */
+    todos?: Todo[];
   };
   todos: Todo[];
 }
@@ -1090,7 +1095,11 @@ function planElement(facts: ElementFacts): Plan {
       `bestax \`${target}\` renders this element's children itself, \`${counts.prop}\` bare, empty <${counts.tag}>s, so it converts only when its children are just that; keep it as markup`
     );
   }
-  if (missing.length > 0 && naming === 'unsure') {
+  // An attribute the target writes alike with a name and without one is no
+  // question of the name, so the plain TODO below asks for it.
+  const varies = ([name]: [string, string]) =>
+    entry.namedDefaults?.defaults[name] !== entry.defaults?.[name];
+  if (naming === 'unsure' && missing.some(varies)) {
     const list = (set: Readonly<Record<string, string>> = {}) =>
       Object.entries(set)
         .map(([name, value]) => `\`${name}="${value}"\``)
@@ -1100,7 +1109,7 @@ function planElement(facts: ElementFacts): Plan {
     return refuse(
       'defaults',
       target,
-      `bestax \`${target}\` renders ${list(entry.namedDefaults!.defaults)} when it has a name and ${list(entry.defaults)} when it has none, and this element's \`${by}\` is an expression that may render as either; set ${add} here to what you want, then re-run`
+      `bestax \`${target}\` renders ${list(entry.namedDefaults!.defaults)} when it has ${entry.namedDefaults!.what ?? 'a name'} and ${list(entry.defaults)} when it has none, and this element's \`${by}\` is an expression that may render as either; set ${add} here to what you want and re-run, or convert it by hand`
     );
   }
   if (missing.length > 0) {
@@ -1362,8 +1371,9 @@ function buildFile(
 /**
  * Whether the element names itself through one of `entry.namedDefaults.by`,
  * which picks the defaults its target renders: a string written out names
- * it unless empty, as a bare attribute does, and an expression may or may
- * not. An entry with no `namedDefaults` is never named.
+ * it unless empty (or even then, with `emptyCounts`), as a bare attribute
+ * does, and an expression may or may not. An entry with no `namedDefaults`
+ * is never named.
  */
 function namingOf(
   entry: RootEntry,
@@ -1372,7 +1382,13 @@ function namingOf(
   const given = (entry.namedDefaults?.by ?? [])
     .filter(name => attributes.has(name))
     .map(name => attributes.get(name));
-  if (given.some(value => value === true || (value !== '' && value !== null))) {
+  const emptyCounts = entry.namedDefaults?.emptyCounts ?? false;
+  if (
+    given.some(
+      value =>
+        value === true || (value !== null && (value !== '' || emptyCounts))
+    )
+  ) {
     return 'named';
   }
   return given.includes(null) ? 'unsure' : 'unnamed';
@@ -2184,5 +2200,30 @@ function planFold(facts: ElementFacts, wrapper: string, todos: Todo[]): Plan {
       `bestax ${renders} renders \`.${wrapper}\` itself, so this element converts only around a single element that becomes a \`${target}\`, with nothing else beside it`
     );
   }
-  return { conversion: null, fold: { target, props, numbers }, todos };
+  // What the fold renders takes its name from the target inside, so one with
+  // no name asks for one. A spread there could hold it.
+  const inner = facts.soleChild;
+  const names = entry.namedFrom ?? [];
+  const unnamed =
+    names.length > 0 &&
+    inner !== undefined &&
+    !inner.hasSpread &&
+    !names.some(name => inner.attributes.has(name));
+  return {
+    conversion: null,
+    fold: {
+      target,
+      props,
+      numbers,
+      ...(unnamed && {
+        todos: [
+          {
+            rule: ruleId('name', target),
+            message: `give this \`${target}\` a name in ${names.map(name => `\`${name}\``).join(' or ')}, such as an \`aria-labelledby\` pointing at a heading or at its caption's \`id\`: while it overflows, bestax ${renders} makes its \`.${wrapper}\` a region you can tab to, named by those alone`,
+          },
+        ],
+      }),
+    },
+    todos,
+  };
 }

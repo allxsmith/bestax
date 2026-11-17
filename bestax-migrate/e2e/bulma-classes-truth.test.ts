@@ -34,6 +34,10 @@
  *     the v1 helper that does its job (`is-marginless` as `m="0"`, which
  *     renders `m-0`), so the raw side has that class restated where the
  *     conversion wrote it (`withV1Classes`).
+ *   - A loading `.button` becomes `Button isLoading`, which writes
+ *     `aria-busy="true"` and `aria-disabled="true"` and holds still while it
+ *     loads (#1870), so the raw side has the two restated on each loading
+ *     `.button` the conversion wrote them on (`withLoadingButtonsBusy`).
  */
 
 import fs from 'node:fs';
@@ -91,6 +95,7 @@ import {
   normalizeHtml,
   renderElement,
   withImplicitListRoles,
+  withLoadingButtonsBusy,
   withV1Classes,
 } from './support/render-module.js';
 
@@ -335,9 +340,10 @@ function renderBoth(
     : renderElement(target, convertedProps, convertedChildren);
   const html = normalizeHtml(converted);
   // The differences a conversion makes on purpose, each compared as it is
-  // meant: a removed 0.9 class as the v1 class written in its place, and
-  // Font Awesome's `aria-hidden` only where the planner says it moved up,
-  // for the element or for an icon it builds.
+  // meant: a removed 0.9 class as the v1 class written in its place, the
+  // busy state a loading `Button` writes, and Font Awesome's `aria-hidden`
+  // only where the planner says it moved up, for the element or for an icon
+  // it builds.
   const moves =
     result.conversion.movesHidden ||
     facts.childElements?.some(child => child.becomes?.movesHidden);
@@ -350,7 +356,10 @@ function renderBoth(
     facts.childElements?.some(
       child => child.becomes?.glyph?.longStyle !== undefined
     );
-  const restated = withImplicitListRoles(withV1Classes(raw, html), html);
+  const restated = withLoadingButtonsBusy(
+    withImplicitListRoles(withV1Classes(raw, html), html),
+    html
+  );
   return {
     raw: compared(restyles ? withShortStyles(restated, html) : restated),
     converted: compared(html),
@@ -2583,6 +2592,7 @@ describe("the table's claims about the library", () => {
       'card-footer-item',
       'level-item',
       'panel-block',
+      'tag',
     ]);
     for (const [root, entry] of withRows) {
       for (const tag of tagsFor(entry)) {

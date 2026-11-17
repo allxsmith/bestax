@@ -27,6 +27,7 @@ const TARGET_PROVIDING_SPECIALS = [
   'page-control',
   'panel-tab',
   'tab-link',
+  'tab-list',
   'hero-video',
   'navbar-item',
   'navbar-dropdown',

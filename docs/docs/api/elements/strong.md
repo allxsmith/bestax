@@ -111,7 +111,7 @@ A common pattern for callouts with a strong lead word.
 
 ## Accessibility
 
-- **Semantic Importance:** Screen readers typically announce `<strong>` content with additional emphasis.
+- **Semantic Importance:** browsers tell assistive tech that `<strong>` is strong importance, but don't count on a screen reader saying so. Put what matters in the words too: "Don't delete this file", not only the bold.
 - **Appropriate Use:** Use `<strong>` for content that is truly important, not just for visual styling.
 - **Color Contrast:** When adding color, ensure sufficient contrast for readability.
 

@@ -1,4 +1,4 @@
-import React, { forwardRef, useId } from 'react';
+import React, { forwardRef } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
@@ -17,6 +17,7 @@ import {
   useFieldsetDisabled,
 } from './FormContext';
 import type { FormFieldProps } from './fieldProps';
+import { useFieldMessage } from './useFieldMessage';
 
 /** The looks a Fieldset comes in. */
 export type FieldsetVariant = 'default' | 'filled' | 'unstyled';
@@ -136,9 +137,6 @@ export const Fieldset = forwardRef<HTMLFieldSetElement, FieldsetProps>(
       'is-unstyled': variant === 'unstyled',
     });
     const legendClass = usePrefixedClassNames('fieldset-legend');
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
 
     // The legend's controls take the state from outside, as the browser
     // leaves the first legend's controls enabled, and the content takes this
@@ -146,11 +144,11 @@ export const Fieldset = forwardRef<HTMLFieldSetElement, FieldsetProps>(
     const outerDisabled = useFieldsetDisabled(undefined);
     const groupDisabled = !!disabled || outerDisabled;
 
-    const messageId = `${useId()}-message`;
-    const describedBy =
-      [ariaDescribedBy, message ? messageId : undefined]
-        .filter(Boolean)
-        .join(' ') || undefined;
+    const { messageEl, describedBy } = useFieldMessage(
+      message,
+      messageColor,
+      ariaDescribedBy
+    );
 
     return (
       <FieldProvider value={false}>
@@ -184,11 +182,7 @@ export const Fieldset = forwardRef<HTMLFieldSetElement, FieldsetProps>(
                     <FieldsetDisabledProvider value={groupDisabled}>
                       {children}
                     </FieldsetDisabledProvider>
-                    {message ? (
-                      <p id={messageId} className={helpClass}>
-                        {message}
-                      </p>
-                    ) : null}
+                    {messageEl}
                   </fieldset>
                 </FieldLabelForReportProvider>
               </FieldLabelForProvider>

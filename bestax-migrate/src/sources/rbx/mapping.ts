@@ -329,6 +329,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     status: 'mapped',
     target: 'Tag',
     props: {
+      as: AS_OK,
       color: {},
       size: {},
       rounded: { booleanToProp: { name: 'isRounded' } },

@@ -51,6 +51,7 @@ import {
 } from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
 import { useFieldLabelTarget, useFieldsetDisabled } from './FormContext';
+import { joinIds, useFieldMessageId } from './useFieldMessage';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { Icon } from '../elements/Icon';
 
@@ -213,6 +214,9 @@ export interface DateInputBaseProps
    * lines up with the field's start edge, which is its right edge when the
    * picker reads right to left. A corner you pass stays physical, so
    * `bottom-left` lines up the left edges either way.
+   * A panel that would run past the viewport's left or right edge keeps
+   * its corner and moves sideways, just far enough to fit or, wider than
+   * the viewport, to the edge its text starts from.
    * @defaultValue 'bottom-left'
    */
   position?: PickerPosition;
@@ -606,6 +610,11 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       [ref]
     );
 
+    // The wrapper's message describes the input (#1963). The native input
+    // lists it after the caller's ids; the text input takes it alone, since
+    // the caller's attributes go on the container.
+    const messageId = useFieldMessageId();
+
     // Native mobile path renders <input type="date"> (type="month" for a
     // month picker).
     if (useNative) {
@@ -614,6 +623,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
           {...localeScope.rootAttrs}
           {...cleanRest}
           ref={combinedRef}
+          aria-describedby={joinIds(cleanRest['aria-describedby'], messageId)}
           type={isDayGranularity ? 'date' : 'month'}
           className={classNames(inputClass, bulmaHelperClasses, className)}
           value={value ? toIsoValue(value, granularity) : ''}
@@ -716,6 +726,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
           aria-expanded={open}
           aria-controls={popoverId}
           autoComplete="off"
+          aria-describedby={messageId}
           className={classNames(inputClass, textClasses, backgroundClasses)}
           value={text}
           placeholder={placeholder}

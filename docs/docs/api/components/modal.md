@@ -113,7 +113,7 @@ function example() {
 
 ### Modal Card (footer only)
 
-Provide only the `modalCardFoot` prop to display a modal card with a footer and body, but no header. This is useful for footer-driven actions that do not require a title.
+Provide only the `modalCardFoot` prop to display a modal card with a footer and body, but no header. This is useful for footer-driven actions that do not require a title. With no title to name the dialog, give it an `aria-label`.
 
 ```tsx live
 function example() {
@@ -128,6 +128,7 @@ function example() {
         active={open}
         onClose={() => setOpen(false)}
         modalCardFoot={<Button color="success">Save</Button>}
+        aria-label="Save changes"
       >
         Modal body content...
       </Modal>
@@ -140,7 +141,7 @@ function example() {
 
 ### Modal Content (no card title or footer)
 
-Omit both `modalCardTitle` and `modalCardFoot` to render a modal with only custom content. This is ideal for custom layouts, or when you want full control over the modal's appearance.
+Omit both `modalCardTitle` and `modalCardFoot` to render a modal with only custom content. This is ideal for custom layouts, or when you want full control over the modal's appearance. Name the dialog by pointing `aria-labelledby` at a heading inside it, or with an `aria-label`.
 
 ```tsx live
 function example() {
@@ -151,9 +152,15 @@ function example() {
       <Button color="success" onClick={() => setOpen(true)}>
         Show Modal
       </Button>
-      <Modal active={open} onClose={() => setOpen(false)}>
+      <Modal
+        active={open}
+        onClose={() => setOpen(false)}
+        aria-labelledby="content-modal-title"
+      >
         <Box>
-          <Title size="4">Custom Content</Title>
+          <Title size="4" id="content-modal-title">
+            Custom Content
+          </Title>
           <Paragraph>Put any content here!</Paragraph>
         </Box>
       </Modal>
@@ -179,7 +186,12 @@ function example() {
       <Button color="success" onClick={() => setOpen(true)}>
         Show Modal
       </Button>
-      <Modal active={open} onClose={() => setOpen(false)} type="content">
+      <Modal
+        active={open}
+        onClose={() => setOpen(false)}
+        type="content"
+        aria-label="Content style example"
+      >
         <div>Custom content modal (forced type="content")</div>
       </Modal>
     </>
@@ -200,7 +212,12 @@ function example() {
       <Button color="success" onClick={() => setOpen(true)}>
         Show Modal
       </Button>
-      <Modal active={open} onClose={() => setOpen(false)} type="card">
+      <Modal
+        active={open}
+        onClose={() => setOpen(false)}
+        type="card"
+        aria-label="Card style example"
+      >
         Modal card body (forced type="card")
       </Modal>
     </>
@@ -374,7 +391,7 @@ function example() {
 ## Accessibility
 
 - The modal root gets `role="dialog"` and `aria-modal="true"` while active — pass an explicit `role` to override (e.g. `Dialog` passes `role="presentation"` on the `Modal` it wraps so its own `role="alertdialog"` is the only one announced).
-- **Give the dialog an accessible name.** With the legacy API, `modalCardTitle` is wired up as `aria-labelledby` for you. With the compound API, pass your own `aria-label` or `aria-labelledby` on `<Modal>` — a `role="dialog"` with no name is announced as just "dialog". An explicit `aria-labelledby` always wins over the generated one.
+- **Give the dialog an accessible name.** With the legacy API, `modalCardTitle` is wired up as `aria-labelledby` for you. Without one, and with the compound API, pass your own `aria-label` or `aria-labelledby` on `<Modal>` — a `role="dialog"` with no name is announced as just "dialog". An explicit `aria-labelledby` always wins over the generated one.
 - Escape closes the modal (calls `onClose`) by default; opt out with `closeOnEscape={false}`. One Escape closes the topmost overlay only, whichever open Modal, [Dialog](./dialog.md), [Sidebar](./sidebar.md) or full-page [Loading](./loading.md) opened last, and the next Escape closes the one under it. A modal on top with `closeOnEscape={false}` still keeps Escape from the layers under it. A [Toast](./toast.md) waits until no overlay is open.
 - The modal calls `preventDefault()` on the Escape it closes on, so a listener of your own that runs after it can tell the key was used.
 - A popup inside the modal takes its own Escape first. With an Autocomplete list, a Dropdown menu, a Popover or a date picker's calendar open, the first Escape closes that and the next one closes the modal.
@@ -385,6 +402,7 @@ function example() {
 - Tab and Shift+Tab cycle within the modal while it is the topmost modal overlay, so the keyboard order agrees with what `aria-modal="true"` tells assistive technology. They wrap at the same tab stops [`useFocusTrap`](../helpers/usefocustrap.md) does, so disabled, hidden and `tabIndex={-1}` elements are skipped, and so is inert content, such as a closed [Sidebar](./sidebar.md) inside the modal, and the content of a closed `<details>`. A radio group counts once. A Tab from outside the modal brings focus back in, and so does a Tab the browser takes out anyway, as Safari does past links when its settings say to. With another Modal or Dialog, a [Sidebar](./sidebar.md) with an overlay or a full-page Loading opened over it, the modal leaves Tab alone until that one closes. A Sidebar without an overlay isn't modal: opened over the modal, it takes Escape first, but the modal keeps holding Tab and keeps focus, so the sidebar doesn't take focus when it opens, and a Tab from its controls comes back into the modal. A focus trap of your own inside it, such as a portaled panel's, keeps a Tab it calls `preventDefault()` on, and the modal leaves focus where your trap put it. Note that `aria-modal` does not by itself make background content inert, and no `inert` attribute is applied, so background content remains reachable by pointer and by browser UI such as find-in-page.
 - In the props form, the background closes the modal on click, and a close button is provided for both modal-card and modal-content variants (both call `onClose`, so pass it).
 - In the compound form, `Modal.Close` calls the modal's `onClose` unless you give it an `onClick` of your own, and `Modal.Background` closes the modal only when you pass it `onClick={onClose}`.
+- In forced colors (Windows' contrast themes), which repaint the card's backgrounds and the backdrop's, a modal card keeps a one pixel edge in the system's text color, from bestax's `components/modal` partial, which `bestax.css` includes.
 
 :::note
 Always provide an `onClose` handler for accessibility and to allow users to dismiss the modal.
@@ -427,7 +445,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Modal
 | `className`      | `string`                                                                | —       | Additional CSS classes for the modal.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | `textColor`      | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color for modal content.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `bgColor`        | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color for modal content.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `modalCardTitle` | `React.ReactNode`                                                       | —       | Title/header for modal-card variant. (Legacy API only)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `modalCardTitle` | `React.ReactNode`                                                       | —       | Title/header for modal-card variant, which names the dialog through `aria-labelledby`. Without one, give the modal an `aria-label`, or an `aria-labelledby` pointing at a heading inside it. (Legacy API only)                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `modalCardFoot`  | `React.ReactNode`                                                       | —       | Footer for modal-card variant. Group two or more buttons in `Buttons` so Bulma spaces them. (Legacy API only)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `type`           | `'card'` \| `'content'`                                                 | `auto`  | Modal style: `'card'` for modal-card, `'content'` for modal-content. (Legacy API only)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `children`       | `React.ReactNode`                                                       | —       | Modal body/content or compound components.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |

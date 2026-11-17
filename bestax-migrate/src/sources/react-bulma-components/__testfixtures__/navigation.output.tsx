@@ -42,10 +42,10 @@ export function Chrome({ page, setPage }: { page: number; setPage: (p: number) =
         </Menu.List>
       </Menu>
       <Tabs align="centered" isFullwidth toggle rounded>
-        <Tabs.List>
+        <ul>
           <Tabs.Item active><a>Pictures</a></Tabs.Item>
           <Tabs.Item><a>Music</a></Tabs.Item>
-        </Tabs.List>
+        </ul>
       </Tabs>
       <Panel color="info">
         <Panel.Heading>Repositories</Panel.Heading>
