@@ -1923,6 +1923,169 @@ describe('Carousel with several items in view', () => {
     });
   });
 
+  describe('focus on an arrow or an indicator that is disabled or goes away', () => {
+    // A browser drops focus from a button that's disabled or removed to the
+    // page. jsdom moves it off a removed one but not off a disabled one, so
+    // these read where focus went.
+    const prev = () => screen.getByLabelText('Previous slide');
+    const next = () => screen.getByLabelText('Next slide');
+
+    it('moves to the current indicator when Next is disabled on the last position', () => {
+      // Not to Previous, where an Enter still held down would go back
+      render(<Carousel repeat={false}>{itemsOf(3)}</Carousel>);
+      focusOn(next());
+      fireEvent.click(next());
+      fireEvent.click(next());
+      expect(next()).toBeDisabled();
+      const tabs = screen.getAllByRole('tab');
+      expect(document.activeElement).toBe(tabs[2]);
+      expect(tabs[2]).toHaveAttribute('aria-selected', 'true');
+    });
+
+    it('moves to Next, with no indicators, when a new value disables a focused Previous', () => {
+      const { rerender } = render(
+        <Carousel value={1} repeat={false} indicator={false}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      focusOn(prev());
+      rerender(
+        <Carousel value={0} repeat={false} indicator={false}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      expect(prev()).toBeDisabled();
+      expect(document.activeElement).toBe(next());
+    });
+
+    it('moves to the current indicator when the focused one goes away', () => {
+      const { rerender } = render(
+        <Carousel repeat={false}>{itemsOf(4)}</Carousel>
+      );
+      focusOn(screen.getAllByRole('tab')[3]);
+      rerender(<Carousel repeat={false}>{itemsOf(3)}</Carousel>);
+      const tabs = screen.getAllByRole('tab');
+      expect(tabs).toHaveLength(3);
+      expect(document.activeElement).toBe(tabs[0]);
+      expect(tabs[0]).toHaveAttribute('aria-selected', 'true');
+    });
+
+    it('moves to an arrow that works when the indicators go away', () => {
+      const { rerender } = render(<Carousel>{itemsOf(3)}</Carousel>);
+      focusOn(screen.getAllByRole('tab')[1]);
+      rerender(<Carousel indicator={false}>{itemsOf(3)}</Carousel>);
+      expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+      expect(document.activeElement).toBe(prev());
+    });
+
+    it('moves to the first item in view when every control goes away', () => {
+      const { rerender } = render(<Carousel>{itemsOf(3)}</Carousel>);
+      focusOn(next());
+      rerender(<Carousel>{itemsOf(1)}</Carousel>);
+      expect(screen.queryByLabelText('Next slide')).not.toBeInTheDocument();
+      const item = realItems(1)[0];
+      expect(document.activeElement).toBe(item);
+      expect(item).toHaveAttribute('tabindex', '-1');
+    });
+
+    it('leaves focus alone once it has moved on', () => {
+      const { rerender } = render(
+        <>
+          <Carousel value={1} repeat={false}>
+            {itemsOf(3)}
+          </Carousel>
+          <button type="button">Outside</button>
+        </>
+      );
+      focusOn(prev());
+      const outside = screen.getByRole('button', { name: 'Outside' });
+      focusOn(outside);
+      rerender(
+        <>
+          <Carousel value={0} repeat={false}>
+            {itemsOf(3)}
+          </Carousel>
+          <button type="button">Outside</button>
+        </>
+      );
+      expect(document.activeElement).toBe(outside);
+    });
+
+    it('still hands focus on after another window took focus and gave it back', () => {
+      // Another window taking focus blurs the arrow, which stays the page's
+      // active element, and gets focus back when the page does.
+      const { rerender } = render(
+        <Carousel value={1} repeat={false}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      focusOn(prev());
+      fireEvent.blur(prev(), { relatedTarget: null });
+      expect(document.activeElement).toBe(prev());
+      rerender(
+        <Carousel value={0} repeat={false}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      expect(prev()).toBeDisabled();
+      expect(document.activeElement).toBe(screen.getAllByRole('tab')[0]);
+    });
+
+    it('leaves focus on the page once a click on the page took it there', () => {
+      // The blur goes nowhere, as it does when another window takes focus,
+      // but focus is on the page itself, so the user has left the arrow.
+      const { rerender } = render(
+        <Carousel value={1} repeat={false}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      focusOn(prev());
+      act(() => {
+        prev().blur();
+      });
+      expect(document.activeElement).toBe(document.body);
+      rerender(
+        <Carousel value={0} repeat={false}>
+          {itemsOf(3)}
+        </Carousel>
+      );
+      expect(prev()).toBeDisabled();
+      expect(document.activeElement).toBe(document.body);
+    });
+
+    it('leaves focus where it went when it left without the carousel hearing', () => {
+      const { rerender } = render(
+        <>
+          <Carousel value={1} repeat={false}>
+            {itemsOf(3)}
+          </Carousel>
+          <button type="button">Outside</button>
+        </>
+      );
+      focusOn(prev());
+      const focus = vi.spyOn(next(), 'focus');
+      const outside = screen.getByRole('button', { name: 'Outside' });
+      Object.defineProperty(document, 'activeElement', {
+        configurable: true,
+        get: () => outside,
+      });
+      try {
+        rerender(
+          <>
+            <Carousel value={0} repeat={false}>
+              {itemsOf(3)}
+            </Carousel>
+            <button type="button">Outside</button>
+          </>
+        );
+        expect(focus).not.toHaveBeenCalled();
+      } finally {
+        delete (document as { activeElement?: unknown }).activeElement;
+        focus.mockRestore();
+      }
+    });
+  });
+
   describe('accessibility', () => {
     it("keeps an item's own name and role", () => {
       render(
