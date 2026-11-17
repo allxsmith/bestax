@@ -15,7 +15,7 @@
     },
     {
       "title": "Forms",
-      "code": "<Stack as=\"form\" gap=\"1.5\" aria-label=\"Profile\">\n  <Field label=\"Name\">\n    <Input placeholder=\"Ada Lovelace\" />\n  </Field>\n  <Field label=\"Email\">\n    <Input autoComplete=\"email\" type=\"email\" placeholder=\"ada@example.com\" />\n  </Field>\n  <Group justifyContent=\"flex-end\" gap=\"1\">\n    <Button>Cancel</Button>\n    <Button color=\"primary\">Save</Button>\n  </Group>\n</Stack>"
+      "code": "<Stack as=\"form\" gap=\"1.5\" aria-label=\"Profile\">\n  <Field label=\"Name\">\n    <Input autoComplete=\"name\" placeholder=\"Ada Lovelace\" />\n  </Field>\n  <Field label=\"Email\">\n    <Input autoComplete=\"email\" type=\"email\" placeholder=\"ada@example.com\" />\n  </Field>\n  <Group justifyContent=\"flex-end\" gap=\"1\">\n    <Button>Cancel</Button>\n    <Button color=\"primary\">Save</Button>\n  </Group>\n</Stack>"
     },
     {
       "title": "Alignment",
