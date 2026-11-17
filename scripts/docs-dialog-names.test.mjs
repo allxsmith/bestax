@@ -16,6 +16,8 @@
  *
  * A modal passes when it has `modalCardTitle`, `aria-label` or
  * `aria-labelledby` with a value, or a spread, which this can't see into.
+ * Drawn as content, a modal shows no title, and only one written as a string
+ * names it.
  *
  * Each source is parsed with TypeScript as a `.tsx` file and nothing is
  * compiled, so a fence that is only a fragment still reads.
@@ -81,14 +83,43 @@ function holdsValue(prop) {
   );
 }
 
+/**
+ * Whether a modal is drawn as `.modal-content`, which renders no card head,
+ * so `modalCardTitle` names it only as text, through `aria-label` (#1947).
+ */
+function drawnAsContent(attributes) {
+  return attributes.properties.some(
+    prop =>
+      !ts.isJsxSpreadAttribute(prop) &&
+      prop.name.getText() === 'type' &&
+      prop.initializer !== undefined &&
+      ts.isStringLiteral(prop.initializer) &&
+      prop.initializer.text === 'content'
+  );
+}
+
+/** Whether an attribute's value is written as a string. */
+function writtenAsText(prop) {
+  const value = prop.initializer;
+  if (ts.isStringLiteral(value)) return true;
+  const expr = value.expression;
+  return (
+    ts.isStringLiteral(expr) ||
+    ts.isNoSubstitutionTemplateLiteral(expr) ||
+    ts.isTemplateExpression(expr)
+  );
+}
+
 /** Whether a dialog component's attributes give it a name. */
 function named(tag, attributes) {
   const names = [...NAMING[tag], ...ARIA];
-  return attributes.properties.some(
-    prop =>
-      ts.isJsxSpreadAttribute(prop) ||
-      (names.includes(prop.name.getText()) && holdsValue(prop))
-  );
+  const content = drawnAsContent(attributes);
+  return attributes.properties.some(prop => {
+    if (ts.isJsxSpreadAttribute(prop)) return true;
+    const name = prop.name.getText();
+    if (!names.includes(name) || !holdsValue(prop)) return false;
+    return name !== 'modalCardTitle' || !content || writtenAsText(prop);
+  });
 }
 
 /** Every dialog component in one piece of code, with its line and verdict. */
@@ -156,6 +187,12 @@ describe('Modal in the examples', () => {
       ['<Modal active title="Edit">x</Modal>', false],
       ['<Modal active modalCardTitle={false}>x</Modal>', false],
       ['<Modal active type="content" modalCardTitle="Edit">x</Modal>', true],
+      ['<Modal active type="content" modalCardTitle={`Edit`}>x</Modal>', true],
+      [
+        '<Modal active type="content" modalCardTitle={<em>Edit</em>}>x</Modal>',
+        false,
+      ],
+      ['<Modal active modalCardTitle={<em>Edit</em>}>x</Modal>', true],
       ['<Modal active type="card" modalCardTitle="Edit">x</Modal>', true],
     ];
     // Every shape the rule gets wrong, so a failure names all of them.
