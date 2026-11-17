@@ -137,7 +137,7 @@ function example() {
               }}
             >
               <Box mt="3">
-                <Input autoComplete="email" label="Email" type="email" />
+                <Input label="Email" type="email" />
                 <Buttons>
                   <Button color="primary" onClick={() => setOpen(false)}>
                     Send

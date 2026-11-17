@@ -354,7 +354,7 @@ The `Select` component is context-aware: it detects whether it is already inside
 <Select autoComplete="country" label="Country">
   <option value="">Please select</option>
   <option value="us">United States</option>
-  <option value="uk">United Kingdom</option>
+  <option value="gb">United Kingdom</option>
   <option value="ca">Canada</option>
 </Select>
 ```
@@ -374,7 +374,7 @@ function example() {
           <Select autoComplete="country" id="country-field">
             <option value="">Please select</option>
             <option value="us">United States</option>
-            <option value="uk">United Kingdom</option>
+            <option value="gb">United Kingdom</option>
             <option value="ca">Canada</option>
           </Select>
         </Field>
@@ -402,7 +402,7 @@ function example() {
             <Select autoComplete="country" id="country-field-control">
               <option value="">Please select</option>
               <option value="us">United States</option>
-              <option value="uk">United Kingdom</option>
+              <option value="gb">United Kingdom</option>
               <option value="ca">Canada</option>
             </Select>
           </Control>

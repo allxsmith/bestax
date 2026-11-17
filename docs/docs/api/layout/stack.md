@@ -88,7 +88,7 @@ A form's fields, spaced evenly. Bulma spaces fields more closely than blocks, 0.
 ```tsx live
 <Stack as="form" gap="1.5" aria-label="Profile">
   <Field label="Name">
-    <Input placeholder="Ada Lovelace" />
+    <Input autoComplete="name" placeholder="Ada Lovelace" />
   </Field>
   <Field label="Email">
     <Input autoComplete="email" type="email" placeholder="ada@example.com" />
