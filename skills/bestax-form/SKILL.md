@@ -45,12 +45,12 @@ using context (`useInsideField` / `useInsideControl`) to detect their surroundin
 
 ```tsx
 // Convenience: one line, auto-wrapped in Field + Control.
-<Input label="Email" type="email" placeholder="you@example.com" />
+<Input label="Email" type="email" autoComplete="email" placeholder="you@example.com" />
 
 // Explicit composition: full control over layout.
 <Field label="Email">
   <Control iconLeftName="envelope" hasIconsLeft>
-    <InputBase type="email" placeholder="you@example.com" />
+    <InputBase type="email" autoComplete="email" placeholder="you@example.com" />
   </Control>
 </Field>
 ```
@@ -87,8 +87,8 @@ still carries its own error.
 
 ```tsx
 <Fieldset legend="Shipping address" disabled={saving}>
-  <Input label="Street" name="street" />
-  <Input label="City" name="city" />
+  <Input label="Street" name="street" autoComplete="street-address" />
+  <Input label="City" name="city" autoComplete="address-level2" />
 </Fieldset>
 ```
 
@@ -288,6 +288,7 @@ function SignupForm() {
       <Input
         label="Email"
         type="email"
+        autoComplete="email"
         value={email}
         onChange={e => setEmail(e.target.value)}
         onBlur={() => setTouched(true)}
@@ -317,6 +318,11 @@ Rules of thumb:
   `Autocomplete`, `Taginput`, `TreeSelect`, `Cascader` and a `Combobox` with `data` put the other
   attributes on their wrapper, so there it doesn't reach the input yet; the `message` still
   carries the error.
+- A field that asks for the user's own details takes its `autoComplete` token (`name`,
+  `given-name`, `family-name`, `email`, `tel`, `street-address`, `address-level2`, `postal-code`,
+  `country`, `username`, `new-password`, …; the full list is HTML's autofill field names), so
+  the browser can fill it and assistive tools can tell what it's for (WCAG 1.3.5).
+  `PasswordInput` sets `current-password` itself.
 - Want a different validation library? Wire it up yourself — pass its `value`/`onChange`/error
   string into these props. bestax does not prescribe one.
 - For grouped controls, render the `<p class="help">` via the `message` prop of the convenience

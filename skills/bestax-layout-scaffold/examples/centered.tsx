@@ -10,6 +10,7 @@ import {
   Title,
   SubTitle,
   Input,
+  PasswordInput,
   Button,
 } from '@allxsmith/bestax-bulma';
 
@@ -34,15 +35,11 @@ export default function LoginPage() {
               <Input
                 label="Email"
                 type="email"
+                autoComplete="email"
                 iconLeftName="envelope"
                 placeholder="you@example.com"
               />
-              <Input
-                label="Password"
-                type="password"
-                iconLeftName="lock"
-                placeholder="••••••••"
-              />
+              <PasswordInput label="Password" iconLeftName="lock" />
               <Button color="primary" isFullwidth mt="4">
                 Sign in
               </Button>
