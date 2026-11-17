@@ -1,3 +1,21 @@
+## [5.73.10](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.73.9...@allxsmith/bestax-bulma@5.73.10) (2026-11-17)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** carry a folded table container's name to the Table, and ask for one ([787b710](https://github.com/allxsmith/bestax/commit/787b7102d3f732659198a0726d4066619b97c33d)), closes [#2016](https://github.com/allxsmith/bestax/issues/2016)
+* **bestax-migrate:** keep a Table.Container's name ahead of a spread, and write fold TODOs in order ([cff9c30](https://github.com/allxsmith/bestax/commit/cff9c3031c981be23d3b535db1ac183b11f80184)), closes [#2016](https://github.com/allxsmith/bestax/issues/2016)
+* **bestax-migrate:** leave a Table's caption as its name, and sweep fold TODOs for rule ids ([7833b24](https://github.com/allxsmith/bestax/commit/7833b2458d24cacee96edc1545b0a73b5ef37395)), closes [#2016](https://github.com/allxsmith/bestax/issues/2016)
+* **bestax-migrate:** say why a folded container's name, role and tab stop don't move ([818f914](https://github.com/allxsmith/bestax/commit/818f914abb92f87510530a49c066e497fdab8731)), closes [#2016](https://github.com/allxsmith/bestax/issues/2016)
+* **bestax-migrate:** see a caption anywhere in the Table before moving a name over it ([58262ef](https://github.com/allxsmith/bestax/commit/58262ef8b312355d1115cb5d41ef8d26728f1d1f)), closes [#2016](https://github.com/allxsmith/bestax/issues/2016)
+* **bulma-ui:** draw AppFrame's resize handle in forced colors as its page says ([#2046](https://github.com/allxsmith/bestax/issues/2046)) ([393cf8b](https://github.com/allxsmith/bestax/commit/393cf8b79caba10197e6392cf65d40dbef1f6400))
+* **bulma-ui:** hold a loading Button still and tell a screen reader it's busy ([ef9fb16](https://github.com/allxsmith/bestax/commit/ef9fb16b91749b624b0ecb3a06b265b3952b23e9)), closes [#1870](https://github.com/allxsmith/bestax/issues/1870)
+* **bulma-ui:** keep a slide Collapse's height state in step under reduced motion ([d77582f](https://github.com/allxsmith/bestax/commit/d77582ff6b88d93389bfb6416c68cc19c8082f7e)), closes [#1929](https://github.com/allxsmith/bestax/issues/1929)
+* **bulma-ui:** keep an empty name a Radios group is given as it is ([b8119b4](https://github.com/allxsmith/bestax/commit/b8119b4979bd033214f2666c9cd61ac7740a177f))
+* **bulma-ui:** mark Panel's active tab and block in forced colors ([#2041](https://github.com/allxsmith/bestax/issues/2041)) ([82f2a77](https://github.com/allxsmith/bestax/commit/82f2a77ac277d91860db39be9d058a67c0a763f9))
+* **bulma-ui:** name a Radios group's radios when it's given no name ([51ef547](https://github.com/allxsmith/bestax/commit/51ef5476f54491a30b678d497863da29cf43e880)), closes [#1968](https://github.com/allxsmith/bestax/issues/1968)
+* **bulma-ui:** open and close Collapse at once under reduced motion ([3138b0b](https://github.com/allxsmith/bestax/commit/3138b0b97be674dc954add5c52f5709defe292b8)), closes [#1929](https://github.com/allxsmith/bestax/issues/1929)
+
 ## [5.73.9](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.73.8...@allxsmith/bestax-bulma@5.73.9) (2026-11-17)
 
 
