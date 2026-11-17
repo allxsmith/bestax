@@ -122,8 +122,13 @@ which renders the `<i>` the script draws from. Inside a `.control` with `has-ico
 after the `Control`'s children. Each TODO says which of these applies, and what the icon converts
 to.
 `Pagination` renders Bulma's own `role="navigation"` and `aria-label="pagination"`, and
-`Pagination.Previous`, `Pagination.Next` and `Pagination.Link` render `tabIndex={0}`, so give each
-element the attribute it's missing.
+`Pagination.Previous`, `Pagination.Next` and `Pagination.Link` render `tabIndex={0}`, and
+`role="button"` when they have no `href`, since a link without one is no link and they make it a
+button, so give each element the attribute it's missing. One whose `href` is an expression, which
+may render as none, gets a TODO asking for a `role`, since no one role fits both cases: convert it
+by hand instead, keeping the `href` (`<Pagination.Link href={url}>`, in place of the `<li>` around
+it, since it renders its own), which renders a link while the `href` is set and a button while it
+isn't.
 `Card.FooterItem`, `Card.Header.Icon` and `Navbar.Item` render `type="button"` on a `<button>` that
 sets none, and `Card.Header.Icon` renders `aria-label="more options"` too. One whose `type` isn't
 `button`, `submit` or `reset` gets an `attr:type` TODO instead, since bestax writes `button` in its
@@ -360,6 +365,14 @@ move it to a component of its own:
   (`<Image size="128x128" mx="auto">`), which centers it and does nothing else `.container`
   does. Otherwise wrap the element in a `Container`. Either way, check the layout.
 
+## A table it folded with no name: `name:<Target>`
+
+A `.table-container` folded into `Table isResponsive` around a table that writes no `aria-label`
+and no `aria-labelledby`, and spreads no props that could. While the table overflows, `Table isResponsive` makes `.table-container` a region
+you can tab to, named by those two alone, and a development build warns when it has neither. Give
+the `Table` an `aria-label`, or point `aria-labelledby` at a heading, or at its `<caption>`'s `id`
+when it has one, which names both the table and the region.
+
 ## A family it leaves as markup: `family:<class>`
 
 The bestax component renders parts of its own, or adds attributes, so a one-element-at-a-time
@@ -411,7 +424,8 @@ in the browser:
 - **`family:modal`**: `Modal` writes `data-testid="modal"` when it's given none and adds dialog
   attributes and focus handling, so the `.modal` root stays markup while its background, content and card parts
   convert on their own. Rebuild the root with `Modal` around them, drive it with its open prop,
-  and pass `onClose`, which Escape and `Modal.Close` call. The converted `Modal.Background`
+  and pass `onClose`, which Escape and `Modal.Close` call, and a name, `aria-label` or
+  `aria-labelledby` pointing at the card's title, since the open modal is a dialog. The converted `Modal.Background`
   doesn't call it on its own: give it `onClick={onClose}` for the background to close the modal.
   A `.modal-close` stays too, since `Modal.Close` renders `.delete` unless it's floating: write
   `<Modal.Close variant="floating" />` in its place. A card head's `.delete` converts to `Delete`,
@@ -746,8 +760,9 @@ read for the burger, a carousel and a theme toggle too, and its TODO names the f
   doesn't call it on its own, so give it `onClick={onClose}` for the background to close the
   modal. Keep the open state in `useState` (the `family:modal` TODO covers rebuilding the markup).
 - **`html-script:dismiss`** removes an element when its `.delete` is clicked. `Notification`
-  takes `hasDelete` and `onDelete`, `Tag` takes `onDelete` and `Message` takes `onClose`; render
-  the element only while it's in state.
+  takes `hasDelete` and `onDelete`, `Tag` takes `onDelete` and `Message` takes `onClose`, with
+  `ariaCloseLabel` to keep a name the page gave its `.delete`; render the element only while
+  it's in state.
 - **`html-script:carousel`** drives a carousel. `Carousel` takes its slides as `CarouselItem`
   children and renders its own arrows and indicators (`autoplay` for a timed one). For several
   slides in view, set `itemsToShow`, with a variant per viewport (`itemsToShowMobile`,

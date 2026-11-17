@@ -176,12 +176,11 @@ Disabled, by its own `disabled` or a disabled [`Fieldset`](./fieldset.md), the b
 
 ### Strength Recipe
 
-`PasswordInput` doesn't score passwords. Scoring belongs to your app or your server, which can check a password against lists of breached and common ones, as NIST asks; character-class rules ("one number, one symbol") are what it asks you not to require. The example reads the field in `onChange` and passes it no `value`, so it stays uncontrolled. Once you have a score, say it in words in the `message`, so it doesn't rest on color, and point the input's `aria-describedby` at those words so a screen reader reads them with the field. A bar beside the words is a meter, a level in a range, so it's a native `<meter>`; [`Progress`](../elements/progress.md) is a `<progress>`, which reports how far along a task is.
+`PasswordInput` doesn't score passwords. Scoring belongs to your app or your server, which can check a password against lists of breached and common ones, as NIST asks; character-class rules ("one number, one symbol") are what it asks you not to require. The example reads the field in `onChange` and passes it no `value`, so it stays uncontrolled. Once you have a score, say it in words in the `message`, so it doesn't rest on color. The `message` describes the input, so a screen reader reads the words with the field. A bar beside the words is a meter, a level in a range, so it's a native `<meter>`; [`Progress`](../elements/progress.md) is a `<progress>`, which reports how far along a task is. The words already say the level, so the bar is hidden from assistive tech, which would otherwise read its number into the field's description too.
 
 ```tsx live
 function StrengthRecipe() {
   const [password, setPassword] = useState('');
-  const id = React.useId();
   // Your app or server scores the password; this demo counts its length.
   const score = Math.min(4, Math.floor(password.length / 4));
   const words = ['Too short', 'Weak', 'Fair', 'Good', 'Strong'];
@@ -192,7 +191,6 @@ function StrengthRecipe() {
       label="New password"
       autoComplete="new-password"
       onChange={event => setPassword(event.target.value)}
-      aria-describedby={id}
       messageColor={password ? colors[score] : undefined}
       message={
         <>
@@ -203,9 +201,9 @@ function StrengthRecipe() {
             high={3}
             optimum={4}
             value={score}
-            aria-label="Password strength"
+            aria-hidden="true"
           />{' '}
-          <span id={id}>Strength: {password ? words[score] : 'none yet'}</span>
+          Strength: {password ? words[score] : 'none yet'}
         </>
       }
     />
@@ -250,6 +248,7 @@ The button stays at the physical right in a right-to-left page, as Bulma's right
 - **Edge's own reveal button** is hidden on this input, so there's one eye, not two.
 - **Focus** shows as an outline around the button. **Forced colors:** the glyph and the words take the system's button text color, and a disabled button its gray.
 - **Strings** come from `labels`, with English defaults.
+- **Help and errors:** the `message` describes the input through `aria-describedby`, after any ids you pass there, so a screen reader reads a rule such as "At least 15 characters" when the field takes focus. A red `color` says nothing to a screen reader, so on an error also set `aria-invalid`, and put the error in the `message`.
 
 ---
 
@@ -290,7 +289,7 @@ The button stays at the physical right in a right-to-left page, as Bulma's right
 | `isLoading`        | `boolean`                                                                                                                          | `false`              | Shows a loading spinner on the `Control` it renders, at the edge the toggle uses, so the toggle isn't drawn meanwhile, and a shown password is hidden until it's back. Inside your own `Control` it renders none, so this draws nothing and warns in development; set `isLoading` on that `Control`, which hides the toggle too.                                                                                                                                                                                                                                                      |
 | `isExpanded`       | `boolean`                                                                                                                          | `false`              | Expand the control.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `controlSize`      | `'small'` \| `'medium'` \| `'large'`                                                                                               | —                    | Control size.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `message`          | `React.ReactNode`                                                                                                                  | —                    | Help/validation message below the input.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `message`          | `React.ReactNode`                                                                                                                  | —                    | Help or validation text under the input. It describes the input through `aria-describedby`, after any ids you pass there.                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | `messageColor`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                                                    | —                    | Bulma color for the message.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | `fieldClassName`   | `string`                                                                                                                           | —                    | Additional CSS classes for the Field.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `controlClassName` | `string`                                                                                                                           | —                    | Additional CSS classes for the Control.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |

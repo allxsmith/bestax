@@ -8,12 +8,16 @@ import * as sass from 'sass';
 import fs from 'fs';
 import path from 'path';
 import type { ReactElement } from 'react';
-import { render } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 import { Taginput } from '../Taginput';
 import { Control } from '../Control';
 import { Field } from '../Field';
 import { Input } from '../Input';
 import { ConfigProvider } from '../../helpers/Config';
+import {
+  compilePartial,
+  declaredFor as declarationsFor,
+} from '../../__tests__/css-cascade';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 const NODE_MODULES = path.resolve(__dirname, '../../../../node_modules');
@@ -116,6 +120,53 @@ function declaredFor(css: string, el: Element, property: string): string[] {
   }
   return out;
 }
+
+// Forced colors takes away the open list's shadow and the highlighted
+// suggestion's fill, so the partial gives them an edge and an outline there,
+// and nothing at rest (#2003).
+describe.each([
+  ['no prefix', ''],
+  ['a class prefix', 'bestax-'],
+])('the open suggestion list in forced colors, with %s', (_n, prefix) => {
+  const css = compilePartial('form/taginput', prefix);
+  const OUTLINE = ['outline', 'outline-offset'];
+  const FORCED = '@media (forced-colors: active)';
+
+  const openList = () => {
+    const { getByRole, getAllByRole } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <Taginput label="Tags" data={['Apple', 'Apricot', 'Avocado']} />
+      </ConfigProvider>
+    );
+    const input = getByRole('combobox');
+    fireEvent.change(input, { target: { value: 'A' } });
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    const options = getAllByRole('option');
+    // The arrow put the highlight on the first suggestion.
+    expect(input).toHaveAttribute('aria-activedescendant', options[0].id);
+    return { list: getByRole('listbox'), options };
+  };
+
+  it('outlines the highlighted suggestion, and only it', () => {
+    const {
+      options: [highlighted, other],
+    } = openList();
+    expect(declarationsFor(highlighted, css, OUTLINE)).toEqual({
+      atRest: [],
+      [FORCED]: ['outline: 2px solid Highlight', 'outline-offset: -2px'],
+    });
+    expect(declarationsFor(other, css, OUTLINE)).toEqual({ atRest: [] });
+  });
+
+  it('draws an edge around the open list', () => {
+    const { list } = openList();
+    expect(list).toHaveClass(`${prefix}dropdown-content`);
+    expect(declarationsFor(list, css, OUTLINE)).toEqual({
+      atRest: [],
+      [FORCED]: ['outline: 1px solid CanvasText', 'outline-offset: -1px'],
+    });
+  });
+});
 
 describe("a tag's remove button", () => {
   // The button comes after the tag's text, so its gap from the text belongs

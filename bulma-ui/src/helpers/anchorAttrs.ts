@@ -42,6 +42,39 @@ export const ANCHOR_ONLY_ATTRS: Readonly<
 };
 
 /**
+ * What `<button>` adds over the attributes every element has (`disabled`,
+ * `form`, `name`, `value` and the `form*` submit overrides), subtracted from
+ * React's types the way `AnchorOnlyAttributes` is, so it grows when React's
+ * does. Minus `type`, which `AnchorOnlyAttributes` already declares as the
+ * `<a>` MIME string: two heritage clauses declaring it differently do not
+ * compile, and a component's `<button>` branch reads it back off the
+ * forwarded props.
+ */
+export type ButtonOnlyAttributes = Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  keyof React.HTMLAttributes<HTMLButtonElement> | 'type'
+>;
+
+/**
+ * The runtime mirror of `ButtonOnlyAttributes`, keyed the way
+ * `ANCHOR_ONLY_ATTRS` is, so it stops compiling until a button attribute
+ * React adds is named here.
+ */
+export const BUTTON_ONLY_ATTRS: Readonly<
+  Record<keyof ButtonOnlyAttributes, true>
+> = {
+  disabled: true,
+  form: true,
+  formAction: true,
+  formEncType: true,
+  formMethod: true,
+  formNoValidate: true,
+  formTarget: true,
+  name: true,
+  value: true,
+};
+
+/**
  * `props` without the keys named in `strip`.
  *
  * The SET is per component and deliberately not shared, because the right

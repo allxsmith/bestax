@@ -70,6 +70,39 @@ describe('Message', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
+  describe('close button name', () => {
+    it('is "delete" by default', () => {
+      render(<Message title="Closable" onClose={() => {}} />);
+      expect(screen.getByRole('button', { name: 'delete' })).toBe(
+        screen.getByTestId('message-close')
+      );
+    });
+
+    it('is ariaCloseLabel when given, and not on the article', () => {
+      render(
+        <Message
+          title="Avis"
+          onClose={() => {}}
+          ariaCloseLabel="Fermer le message"
+          aria-label="Avis important"
+        />
+      );
+      expect(screen.getByRole('button', { name: 'Fermer le message' })).toBe(
+        screen.getByTestId('message-close')
+      );
+      // An aria-label on Message still names the article.
+      const article = screen.getByRole('article', { name: 'Avis important' });
+      expect(article).not.toHaveAttribute('ariaCloseLabel');
+    });
+
+    it('falls back to "delete" for an empty ariaCloseLabel', () => {
+      render(<Message title="Closable" onClose={() => {}} ariaCloseLabel="" />);
+      expect(
+        screen.getByRole('button', { name: 'delete' })
+      ).toBeInTheDocument();
+    });
+  });
+
   it('renders without header if neither title nor onClose is provided', () => {
     render(<Message>Just body</Message>);
     expect(screen.queryByText('message-header')).not.toBeInTheDocument();

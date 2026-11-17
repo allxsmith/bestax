@@ -4,7 +4,7 @@
 of their own — Bulma provides it. A partial exists only for components that extend beyond Bulma
 (Carousel, Collapse, Dialog, the extended form inputs, …) — or that extend a stock component
 (e.g. `_tabs.scss` adds vertical Tabs, `_navbar.scss` keeps the burger's bars in forced
-colors). The `_index.scss` files are the authoritative inventory.
+colors, `_modal.scss` keeps a modal card's edge there). The `_index.scss` files are the authoritative inventory.
 
 ## Structure
 
@@ -26,6 +26,11 @@ colors). The `_index.scss` files are the authoritative inventory.
 - `_select-field.scss` — `extras-select-field($name)`, the read-only field a tree picker opens its
   panel from: the chevron and the clear button at its inline end and the room they keep, which
   TreeSelect and Cascader share; it reads Bulma's class prefix and variables too
+- `_anchored-shift.scss` — `extras-anchored-shift`, `extras-anchored-left` and `extras-anchored-right`,
+  the sideways shift `useAnchoredPosition` writes on a panel in place as `--bulma-anchored-shift`
+  to keep it inside the viewport, and the corner edges that add it, which Popover, HoverCard,
+  Combobox's menu and the pickers' popover share; the component sets the property, so it has a
+  fixed name and isn't registered with the theming variables
 - `_pulse.scss` — the pulse keyframes and the `extras-pulse` mixin that runs them, which Badge's
   halo and Tour's beacons share; a module of its own, so a build with both emits the keyframes once
 - `versions/` — the flavor builds: `bestax-prefixed`, `bestax-no-helpers`, `bestax-no-dark-mode`,

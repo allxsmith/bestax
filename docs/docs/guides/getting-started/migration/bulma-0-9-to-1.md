@@ -134,9 +134,13 @@ Each of the 7 primary colors now has a complete palette with shades:
 ```tsx live
 <Card>
   <Box p="4">
-    <Title skeleton>Loading title…</Title>
-    <Button skeleton>Loading button</Button>
-    <Icon name="star" skeleton ariaLabel="Loading icon" />
+    <Title skeleton aria-hidden="true">
+      Loading title…
+    </Title>
+    <Button skeleton tabIndex={-1} aria-hidden="true">
+      Loading button
+    </Button>
+    <Icon name="star" skeleton />
   </Box>
 </Card>
 ```

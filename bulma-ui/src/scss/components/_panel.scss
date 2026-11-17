@@ -92,3 +92,43 @@ $panel-text-invert-l: cv.getVar('scheme-main-l') !default;
     }
   }
 }
+
+// Forced colors (Windows' contrast themes): the active tab and the active
+// block. Bulma marks the active tab with a text and an underline color, and
+// the active block with a text and an icon color, and forced colors replaces
+// every one of those with the system's, so the active tab looks like every
+// other tab and the active block like every other block. This draws a bar in
+// Highlight, the system's color for a selection, which Menu and Tabs mark
+// their active item in too: along the bottom of the active tab, as Tabs draws
+// its, and down the start edge of the active block, where the blocks stack, as
+// Menu draws its. The bar is a pseudo-element's background, a system
+// color the browser keeps, rather than a fill, so the browser goes on adjusting
+// the tab or block and everything in it, its text, an icon and its focus ring,
+// to the user's colors. It sits in the item's padding, which Bulma gives both,
+// and positions the item for it. It reads the class Bulma highlights,
+// `is-active`, on a `Panel.Block` and on a tab link you write. Outside forced
+// colors none of this changes anything.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}panel-tabs a.#{iv.$class-prefix}is-active,
+  .#{iv.$class-prefix}panel-block.#{iv.$class-prefix}is-active {
+    position: relative;
+  }
+
+  .#{iv.$class-prefix}panel-tabs a.#{iv.$class-prefix}is-active::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0.75em;
+    bottom: 0;
+    height: 0.25em;
+    background-color: Highlight;
+  }
+
+  .#{iv.$class-prefix}panel-block.#{iv.$class-prefix}is-active::before {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: 0.25em;
+    background-color: Highlight;
+  }
+}

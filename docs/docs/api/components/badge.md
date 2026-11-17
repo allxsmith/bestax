@@ -251,6 +251,11 @@ A plain-text `children` value renders at its natural height alongside the badge.
   relying on the badge to read out just "4".
 - A decorative `dot` badge is `aria-hidden`.
 - `pulse` respects `prefers-reduced-motion: reduce` and renders without animation.
+- **Forced colors:** a badge is drawn as a fill with a ring, and forced colors (Windows' contrast
+  themes) paints the fill in the page's own color and drops the ring, so bestax's styles draw a
+  count or text badge's edge in the system's text color there, and fill a dot in it, with its ring
+  in the page's color. A pulsing badge pulses in the same color. A badge's text stays in the
+  contrast theme's colors.
 - Note the two hide mechanisms differ: the Bulma `visibility="invisible"` helper hides the whole
   wrapper (anchor included), while the `invisible` **prop** hides only the badge pill.
 
@@ -281,7 +286,7 @@ A plain-text `children` value renders at its natural height alongside the badge.
 | `badgeClassName` | `string`                                                             | —             | Additional CSS classes applied to the badge pill itself (unprefixed, like `Tooltip`'s `tooltipClassName`).                                                                                                                       |
 | `content`        | `React.ReactNode`                                                    | —             | Count, short text, or a custom node to display; omit with `dot` for a plain dot. `max`/`showZero` apply only to numeric content. A numeric count is written the way the `locale` of a `LocaleProvider` around it writes numbers. |
 | `max`            | `number`                                                             | `99`          | Numeric `content` above this renders as `"{max}+"`. A negative or non-integer value falls back to the default.                                                                                                                   |
-| `dot`            | `boolean`                                                            | `false`       | Render a small dot with no content.                                                                                                                                                                                              |
+| `dot`            | `boolean`                                                            | `false`       | Render a small dot with no content. In forced colors (Windows' contrast themes) a dot is filled in the system's text color, whatever its `color` or a background helper says, so it shows there.                                 |
 | `showZero`       | `boolean`                                                            | `false`       | Show the badge when `content` is `0`. Default `false`.                                                                                                                                                                           |
 | `color`          | `BadgeColor`                                                         | `'danger'`    | Status color. Default `'danger'`.                                                                                                                                                                                                |
 | `position`       | `'top-right'` \| `'top-left'` \| `'bottom-right'` \| `'bottom-left'` | `'top-right'` | Corner to overlay the badge on, relative to `children`. Ignored for standalone badges (no `children`).                                                                                                                           |
