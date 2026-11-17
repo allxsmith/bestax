@@ -87,8 +87,8 @@ still carries its own error.
 
 ```tsx
 <Fieldset legend="Shipping address" disabled={saving}>
-  <Input label="Street" name="street" autoComplete="address-line1" />
-  <Input label="City" name="city" autoComplete="address-level2" />
+  <Input label="Street" name="street" autoComplete="shipping address-line1" />
+  <Input label="City" name="city" autoComplete="shipping address-level2" />
 </Fieldset>
 ```
 
@@ -324,8 +324,8 @@ Rules of thumb:
   fill it and assistive tools can tell what it's for (WCAG 1.3.5). A one-line street field is
   `address-line1`, since `street-address` is for a whole address in a `TextArea`. On a sign-in
   form the identifier is `username`, even when it's an email, beside a `PasswordInput`, which
-  sets `current-password` itself. `Combobox`, `Autocomplete` and the date and time inputs turn the
-  browser's autofill off for their own lists and calendars, so a token doesn't apply there.
+  sets `current-password` itself. A form with two addresses puts `shipping` or `billing` in front
+  of each token, as the Fieldset above does.
 - Want a different validation library? Wire it up yourself — pass its `value`/`onChange`/error
   string into these props. bestax does not prescribe one.
 - For grouped controls, render the `<p class="help">` via the `message` prop of the convenience

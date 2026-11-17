@@ -206,6 +206,7 @@ put a `<label className="label">` inside it with `htmlFor` pointing at the input
       <InputBase
         id="horizontal-email"
         type="email"
+        autoComplete="email"
         placeholder="you@example.com"
       />
     </Control>
