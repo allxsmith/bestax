@@ -216,7 +216,7 @@ Inside a `Control`, `DateRangeInput` renders no `Control` of its own, so the pro
 
 ### On the inputs
 
-Each input takes the keys of [`DateInput`'s segmented entry](./dateinput.md#on-the-input-segmented-entry), so `Alt+↓` opens the popover and `Alt+↑` closes it. Moving between the inputs leaves the popover as it is; arriving in the field opens it under `openOnFocus`, and so does a click on either input.
+Each input takes the keys of [`DateInput`'s segmented entry](./dateinput.md#on-the-input-segmented-entry), so `Alt+↓` opens the popover and `Alt+↑` closes it. Each takes a pasted date the way `DateInput` does. Moving between the inputs leaves the popover as it is; arriving in the field opens it under `openOnFocus`, and so does a click on either input.
 
 ### On the calendar
 
