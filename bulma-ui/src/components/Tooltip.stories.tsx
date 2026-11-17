@@ -613,6 +613,33 @@ export const AutoPlacement: Story = {
 };
 
 /**
+ * Auto placement measures the tooltip. Seen on its own, with its triggers
+ * near the top of the window, a `multiline` one opens below, where there's
+ * room for all of it, rather than above, where its first lines would run off
+ * the screen, while a one-line one beside it still fits above.
+ */
+export const AutoPlacementTall: Story = {
+  parameters: {
+    layout: 'fullscreen',
+  },
+  render: () => (
+    <Buttons pt="6" px="4">
+      <Tooltip
+        label="A label long enough to wrap onto several lines inside the box at its maximum width"
+        position="auto"
+        multiline
+        active
+      >
+        <Button>Multiline</Button>
+      </Tooltip>
+      <Tooltip label="Fits above" position="auto" active>
+        <Button>One line</Button>
+      </Tooltip>
+    </Buttons>
+  ),
+};
+
+/**
  * Tooltip with different trigger elements. Each one takes focus, so keyboard
  * users can reach it: the icon, text and image through `tabIndex={0}`, and
  * the icon has a name of its own in `ariaLabel`.
