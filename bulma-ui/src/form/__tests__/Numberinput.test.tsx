@@ -487,6 +487,18 @@ describe('Numberinput', () => {
       expect(input).toHaveAttribute('readonly');
     });
 
+    // #1978: the documented behavior, that only typing stops.
+    it('still steps with the arrow keys and the buttons when not editable', async () => {
+      const user = userEvent.setup();
+      render(<Numberinput label="Seats" defaultValue={5} editable={false} />);
+      const input = screen.getByRole('spinbutton', { name: 'Seats' });
+      input.focus();
+      await user.keyboard('{ArrowUp}');
+      expect(input).toHaveValue(6);
+      await user.click(screen.getByRole('button', { name: 'Decrease value' }));
+      expect(input).toHaveValue(5);
+    });
+
     it('allows typing by default', () => {
       render(<Numberinput defaultValue={5} />);
       const input = screen.getByRole('spinbutton');
