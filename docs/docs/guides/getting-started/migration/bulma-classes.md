@@ -95,7 +95,9 @@ stock stylesheet.
 - **Wrappers a component renders itself** fold into it: a `.table-container` around a table
   becomes `<Table isResponsive>`, and a `.fixed-grid` around a grid becomes
   `<Grid isFixed fixedCols={3}>`, as long as the wrapper holds nothing else and carries nothing
-  of its own.
+  of its own. A table that writes no `aria-label` or `aria-labelledby`, and spreads no props that
+  could, gets a TODO asking for one, since `Table isResponsive` names its scrolling container from
+  them.
 - **An element a component renders inside itself** converts with it: a `.select` and its
   `<select>` become one `SelectBase` with the `<select>`'s attributes, a `.breadcrumb` and its
   `<ul>` become one `Breadcrumb` around the same `<li>`s, and an `.image` and its `<img>` become

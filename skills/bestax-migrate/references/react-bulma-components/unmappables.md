@@ -233,6 +233,20 @@ a `textSize` from `'1'` to `'7'`.
 The same TODO marks a `Heading` that sets `size` and `textSize` both: drop `size` and let
 `textSize` set the font size.
 
+## `name:Table` — a responsive table with no name
+
+`Table.Container` folded into `isResponsive` on a `Table` with no `aria-label` and no
+`aria-labelledby`. While the table overflows, `Table isResponsive` makes its container a region you
+can tab to, named by those two alone, and a development build warns when it has neither. Look
+for a name the container carried in a TODO beside this one (`prop:aria-label`, or `prop:spread`
+for one in a spread). Otherwise give the `Table` an `aria-label`, or point `aria-labelledby` at a
+heading, or at its `<caption>`'s `id` when it has one.
+
+The container's `role` and `tabIndex` go with it (`prop:role`, `prop:tabIndex`): `Table isResponsive`
+writes them on its container itself while the table overflows. When the `Table` already names
+itself, with an attribute of its own or a `<caption>`, the container's name goes with the container
+too (`prop:aria-label`, `prop:aria-labelledby`), so check that the `Table`'s is the one you want.
+
 ## `domRef`
 
 bestax components don't take `domRef`, but many forward a plain `ref` — the form controls, plus
