@@ -58,13 +58,19 @@ const isComposing = (e: React.KeyboardEvent): boolean =>
 const isEnabled = (item: AutocompleteItem | string): boolean =>
   typeof item === 'string' || !item.disabled;
 
-/** The clear button's name, in your app's language. */
+/** The accessible names Autocomplete gives its parts, in your app's language. */
 export interface AutocompleteLabels {
   /**
    * Names the clear button. An empty string counts as none.
    * @defaultValue 'Clear'
    */
   clear?: string;
+  /**
+   * Names the suggestion list when no label with an id names the field. An
+   * empty string counts as none.
+   * @defaultValue 'Suggestions'
+   */
+  suggestions?: string;
 }
 
 /**
@@ -79,7 +85,7 @@ export interface AutocompleteProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onSelect' | 'onInput'>,
     Omit<BulmaClassesProps, 'color'>,
     FormFieldProps {
-  /** Field label, associated with the text input via `htmlFor`: through your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose label names the input instead when it points at it. The `Field` points its label there itself when the Autocomplete has no `id` and no inner `Field` sits between them (and the `Field` is not `grouped` or `hasAddons`); a label you wire by hand with `labelProps.htmlFor` points at the input with that `id`. The label naming the input also names the open suggestion list, through `aria-labelledby`, when it has an id: this label always does, and an outer `Field`'s does unless you wired it by hand without an `id` in its `labelProps`. Otherwise the list is named "Suggestions". */
+  /** Field label, associated with the text input via `htmlFor`: through your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose label names the input instead when it points at it. The `Field` points its label there itself when the Autocomplete has no `id` and no inner `Field` sits between them (and the `Field` is not `grouped` or `hasAddons`); a label you wire by hand with `labelProps.htmlFor` points at the input with that `id`. The label naming the input also names the open suggestion list, through `aria-labelledby`, when it has an id: this label always does, and an outer `Field`'s does unless you wired it by hand without an `id` in its `labelProps`. Otherwise the list is named "Suggestions", or `labels.suggestions`. */
   label?: React.ReactNode;
   /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (the input then gets no generated id). While the label names the input, the suggestion list's `aria-labelledby` points at it, through an `id` here when you give one and a generated one otherwise. */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
@@ -115,7 +121,7 @@ export interface AutocompleteProps
    * or `labels.clear`.
    */
   clearable?: boolean;
-  /** The clear button's name, in your app's language. */
+  /** The accessible names it gives its parts, in your app's language. A `LocaleProvider` doesn't change them. */
   labels?: AutocompleteLabels;
   /** Open dropdown when input is focused. */
   openOnFocus?: boolean;
@@ -726,7 +732,11 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
                   id={listboxId}
                   role="listbox"
                   aria-labelledby={listLabelId}
-                  aria-label={listLabelId ? undefined : 'Suggestions'}
+                  aria-label={
+                    listLabelId
+                      ? undefined
+                      : labels?.suggestions || 'Suggestions'
+                  }
                   onMouseDown={keepFocus}
                 >
                   {filteredData.map((item, index) => {
