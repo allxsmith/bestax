@@ -287,7 +287,15 @@ export interface CarouselProps
    * arrows take `--bulma-carousel-overlay-arrow-color`.
    */
   arrowColor?: 'light' | 'dark';
-  /** Accessible label for the carousel region. Default: 'Image carousel'. */
+  /**
+   * The carousel region's name. Name it for what it shows, such as
+   * "Featured products", and leave out the word "carousel", which the
+   * region's role description already says. Under a visible heading,
+   * `aria-labelledby` with the heading's id names it instead, ahead of the
+   * `aria-label` the default still sets. The default is a placeholder that
+   * says "carousel" twice with the role description, and is the same on
+   * every carousel left with it. Default: 'Image carousel'.
+   */
   ariaLabel?: string;
   /**
    * Called with the index of the first item in view when an arrow, an arrow
@@ -308,7 +316,7 @@ export interface CarouselProps
  *
  * @example
  * // Basic carousel
- * <Carousel>
+ * <Carousel ariaLabel="Highlights">
  *   <CarouselItem>Slide 1</CarouselItem>
  *   <CarouselItem>Slide 2</CarouselItem>
  *   <CarouselItem>Slide 3</CarouselItem>
@@ -316,7 +324,7 @@ export interface CarouselProps
  *
  * @example
  * // Auto-playing carousel
- * <Carousel autoplay interval={3000}>
+ * <Carousel ariaLabel="Photos" autoplay interval={3000}>
  *   <CarouselItem>
  *     <img src="image1.jpg" alt="Slide 1" />
  *   </CarouselItem>
@@ -327,7 +335,12 @@ export interface CarouselProps
  *
  * @example
  * // Three cards in view on desktop, two on tablet, one on mobile
- * <Carousel itemsToShow={1} itemsToShowTablet={2} itemsToShowDesktop={3}>
+ * <Carousel
+ *   ariaLabel="Featured products"
+ *   itemsToShow={1}
+ *   itemsToShowTablet={2}
+ *   itemsToShowDesktop={3}
+ * >
  *   {cards.map(card => (
  *     <CarouselItem key={card.id}>{card.body}</CarouselItem>
  *   ))}

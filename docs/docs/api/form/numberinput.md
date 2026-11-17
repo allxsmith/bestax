@@ -176,6 +176,26 @@ Number input where you can only use the buttons (not type directly).
 
 ---
 
+### Buttons in Another Language
+
+The buttons show only a sign or an arrow, so a screen reader and speech input go by their names,
+"Increase value" and "Decrease value". In another language, `labels` names them in the page's
+language. Here the page is English, so a `lang="fr"` around the field tells a screen reader to
+read it in French.
+
+```tsx live
+<Block lang="fr">
+  <Numberinput
+    label="Quantité"
+    defaultValue={2}
+    min={1}
+    labels={{ increase: 'Augmenter', decrease: 'Diminuer' }}
+  />
+</Block>
+```
+
+---
+
 ### Disabled State
 
 A disabled number input.
@@ -303,7 +323,7 @@ Use `defaultValue` for internal state management:
 - Uses native number input element
 - The `label` prop, or the label of a `Field` the Numberinput sits in, names its input. A `Field` with `hasAddons` or `grouped` holds several controls and names none, so wire that one with `labelProps={{ htmlFor }}` and a matching `id`.
 - Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes
-- +/- buttons have `aria-label` for screen readers
+- The increase and decrease buttons are named "Increase value" and "Decrease value", in both variants, and `labels` names them in the page's language
 - Arrow keys increment/decrement the value
 - The +/- buttons stay out of the Tab order, and a press on one leaves focus where it was, in the input when it had it, so the arrow keys keep working after a click and a button that disables at `min` or `max` doesn't take focus with it. A press on a button that's already disabled reaches nothing, as a press on any text does, so focus leaves the input then
 - Buttons are disabled at min/max boundaries
@@ -349,6 +369,7 @@ Set `editable={false}` when you want users to only use the +/- buttons, preventi
 | `compact`          | `boolean`                                                                                                | `false`       | Uses compact button spacing.                                                                                                                                                                                                                                                                                                                                                                                      |
 | `bare`             | `boolean`                                                                                                | `auto`        | Renders the plusminus controls without a `.field` row of their own, so they join the row of a `Field` with `hasAddons` or `grouped` they sit in. On by default inside a `Field`, unless a `Control` is anywhere above it: a `Control` stacks its children, so there the controls keep their own row. Bare plusminus controls render no `message`, so put help text after that row yourself.                       |
 | `variant`          | `'plusminus'` \| `'stepper'`                                                                             | `'plusminus'` | Style variant for the control buttons.                                                                                                                                                                                                                                                                                                                                                                            |
+| `labels`           | `{ increase?: string; decrease?: string }`                                                               | —             | The buttons' names, in your app's language, in both variants.                                                                                                                                                                                                                                                                                                                                                     |
 | `disabled`         | `boolean`                                                                                                | `false`       | Whether the input is disabled.                                                                                                                                                                                                                                                                                                                                                                                    |
 | `editable`         | `boolean`                                                                                                | `true`        | Whether the input can be typed in.                                                                                                                                                                                                                                                                                                                                                                                |
 | `isLoading`        | `boolean`                                                                                                | `false`       | Shows a loading spinner on the input's control. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded). Use this rather than `isLoading` on a `Control` around the Numberinput: that spinner sits at the `Control`'s right edge, on top of whichever button is there, while this one stays inside the input.                                                         |

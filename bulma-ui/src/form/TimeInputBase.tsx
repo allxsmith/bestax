@@ -40,7 +40,11 @@ import {
 } from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
 import { useFieldLabelTarget, useFieldsetDisabled } from './FormContext';
-import { joinIds, useFieldMessageId } from './useFieldMessage';
+import {
+  joinIds,
+  splitControlState,
+  useFieldMessageId,
+} from './useFieldMessage';
 import { Icon } from '../elements/Icon';
 import { Buttons } from '../elements/Buttons';
 
@@ -72,6 +76,8 @@ const fromIsoTime = (s: string): Date | null => {
 /**
  * Props for the raw TimeInput base. Use the higher-level `TimeInput` for
  * Field/Control composition; `TimeInputBase` is the input + popover only.
+ * `aria-invalid` and `aria-errormessage`, which report the input's state,
+ * go on the `<input>`, and inline, where there is none, on the `<div>`.
  *
  * @helperProps Helper props go on the `.timeinput-container` `<div>`, with
  * `className` and the other attributes, except that the background helpers
@@ -349,6 +355,11 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
     const reactId = useId();
     const popoverId = id ? `${id}-popover` : `picker-${reactId}`;
 
+    // The input takes `aria-invalid` and `aria-errormessage`, which report
+    // its state, and the container the rest (#2002). With no input, inline,
+    // the container keeps them, as before.
+    const { control: controlState, rest: containerRest } =
+      splitControlState(rest);
     // The field takes the background and text helpers, since Bulma's `.input`
     // sets its own background and font. The container keeps the rest, and the
     // text helpers too where a popover inside it takes them.
@@ -358,7 +369,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       textClasses,
       otherClasses,
       rest: cleanRest,
-    } = useFieldHelperClasses(rest);
+    } = useFieldHelperClasses(containerRest);
 
     const { shouldUseNative, isSmallViewport } = useNativeMobilePicker({
       force: mobileNative === 'auto' ? undefined : mobileNative,
@@ -529,6 +540,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
           {...cleanRest}
           ref={combinedRef}
           aria-describedby={joinIds(cleanRest['aria-describedby'], messageId)}
+          {...controlState}
           type="time"
           step={nativeStep}
           className={classNames(inputClass, bulmaHelperClasses, className)}
@@ -667,6 +679,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
         <div
           {...localeScope.rootAttrs}
           {...cleanRest}
+          {...controlState}
           ref={containerRef}
           className={classNames(containerClass, bulmaHelperClasses, className)}
         >
@@ -705,6 +718,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
           aria-controls={popoverId}
           autoComplete="off"
           aria-describedby={messageId}
+          {...controlState}
           className={classNames(inputClass, textClasses, backgroundClasses)}
           value={text}
           placeholder={placeholder}
