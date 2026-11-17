@@ -43,6 +43,11 @@ const meta: Meta<typeof Autocomplete> = {
       control: 'boolean',
       description: 'Show clear button',
     },
+    labels: {
+      control: 'object',
+      description:
+        'Accessible strings in your language: clear names the clear button',
+    },
     openOnFocus: {
       control: 'boolean',
       description: 'Open dropdown when focused',
@@ -188,6 +193,25 @@ export const Clearable: Story = {
           data={fruits}
           placeholder="Search and clear..."
           clearable
+        />
+      </ResponsiveWrapper>
+    );
+  },
+};
+
+export const ClearButtonInAnotherLanguage: Story = {
+  render: function ClearButtonInAnotherLanguageExample() {
+    const [value, setValue] = useState('Pomme');
+    return (
+      <ResponsiveWrapper>
+        <Autocomplete
+          label="Fruit"
+          data={['Pomme', 'Poire', 'Prune']}
+          placeholder="Chercher un fruit"
+          value={value}
+          onInput={setValue}
+          clearable
+          labels={{ clear: 'Effacer' }}
         />
       </ResponsiveWrapper>
     );

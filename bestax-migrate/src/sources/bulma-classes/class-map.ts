@@ -58,6 +58,14 @@ export interface Modifier {
    */
   readonly needsAttr?: { readonly name: string; readonly value: string };
   /**
+   * Attributes the prop writes over any value the element sets (`Button`'s
+   * `isLoading` writes `aria-busy="true"` and `aria-disabled="true"` while it
+   * loads), so the class converts only where the element sets none of them,
+   * and stays a class otherwise, which renders the element as written. Read
+   * on an element's own modifiers; an absorbed child's don't take it.
+   */
+  readonly overridesAttrs?: readonly string[];
+  /**
    * Off the tags in `tagIn`, where the class stays a class, the prop that
    * sizes the element the same without picking its tag (`textSize`, whose
    * `is-size-4` Bulma sizes as it does `Title`'s `is-4`). The MCP lookup reads
@@ -205,12 +213,18 @@ export interface RootEntry {
   /**
    * What the target renders in place of `defaults` once the element names
    * itself through one of `by`, set to anything but an empty string (`Icon`
-   * makes a named icon an image and hides any other). A name given as an
-   * expression may render as none, so the element then sets both.
+   * makes a named icon an image and hides any other, and a pagination link
+   * with an `href` is a link, and a button without one). A name given as an
+   * expression may render as none, so the element then sets both. `what`
+   * says what one of `by` gives the element, in the TODO for that case:
+   * `a name` unless it says otherwise. With `emptyCounts`, an empty value
+   * gives it too: `href=""` is still a link.
    */
   readonly namedDefaults?: {
     readonly by: readonly string[];
     readonly defaults: Readonly<Record<string, string>>;
+    readonly what?: string;
+    readonly emptyCounts?: boolean;
   };
   /**
    * Attributes that stop the target rendering `defaults` when the element sets
@@ -301,6 +315,14 @@ export interface RootEntry {
    * modifiers add their props beside these.
    */
   readonly folds?: readonly PropWrite[];
+  /**
+   * For a `fold` root: the attributes of the target inside that name what the
+   * fold renders (a responsive `Table` names its container after the table's
+   * `aria-label` or `aria-labelledby` while it overflows). A fold onto one
+   * with none of them, and no spread, gets a `name:` TODO asking for one,
+   * whose words describe that container, the only fold that sets this.
+   */
+  readonly namedFrom?: readonly string[];
   /** The target renders the element's only child itself. */
   readonly absorbs?: Absorbs;
   /**
@@ -806,6 +828,46 @@ const COLUMNS_AXIS_GAPS =
 
 // ---- Roots ------------------------------------------------------------------
 
+/**
+ * The `dropsAttr` rows for a target whose `as` reaches an `<a>` and a
+ * `<button>`: the anchor attributes but `type`, and `rel`, kept on the tags
+ * in `anchorOn`, and the button attributes kept on those in `buttonOn`.
+ */
+function dropsFor(
+  anchorOn: readonly string[],
+  buttonOn: readonly string[]
+): [string, { except: readonly string[] }][] {
+  return [
+    ...[
+      'href',
+      'target',
+      'download',
+      'hrefLang',
+      'ping',
+      'referrerPolicy',
+      'media',
+      'rel',
+    ].map((name): [string, { except: readonly string[] }] => [
+      name,
+      { except: anchorOn },
+    ]),
+    ...[
+      'disabled',
+      'form',
+      'formAction',
+      'formEncType',
+      'formMethod',
+      'formNoValidate',
+      'formTarget',
+      'name',
+      'value',
+    ].map((name): [string, { except: readonly string[] }] => [
+      name,
+      { except: buttonOn },
+    ]),
+  ];
+}
+
 export const ROOTS: Readonly<Record<string, RootEntry>> = {
   block: {
     ...BASE,
@@ -848,7 +910,13 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       ...flags({
         'is-light': 'isLight',
         'is-rounded': 'isRounded',
-        'is-loading': 'isLoading',
+      }),
+      // `isLoading` writes the busy state over the element's own.
+      'is-loading': {
+        writes: [{ prop: 'isLoading' }],
+        overridesAttrs: ['aria-busy', 'aria-disabled'],
+      },
+      ...flags({
         'is-static': 'isStatic',
         'is-fullwidth': 'isFullwidth',
         'is-outlined': 'isOutlined',
@@ -1031,29 +1099,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     // The anchor attributes but `type`, and `rel`, reach only an <a>, and the
     // button attributes only a <button> (`STRIP_FROM_NON_ANCHOR` and
     // `STRIP_FROM_NON_BUTTON` in bulma-ui's Card.tsx).
-    dropsAttr: Object.fromEntries([
-      ...[
-        'href',
-        'target',
-        'download',
-        'hrefLang',
-        'ping',
-        'referrerPolicy',
-        'media',
-        'rel',
-      ].map(name => [name, { except: ['a'] }]),
-      ...[
-        'disabled',
-        'form',
-        'formAction',
-        'formEncType',
-        'formMethod',
-        'formNoValidate',
-        'formTarget',
-        'name',
-        'value',
-      ].map(name => [name, { except: ['button'] }]),
-    ]),
+    dropsAttr: Object.fromEntries([...dropsFor(['a'], ['button'])]),
     ownProps: ['as', 'color', 'bgColor', 'textColor'],
   },
   columns: {
@@ -1755,7 +1801,14 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       ),
       ...flags({ 'is-light': 'isLight' }),
     },
-    ownProps: ['color', 'textColor', 'isLight', 'hasDelete', 'onDelete'],
+    ownProps: [
+      'color',
+      'textColor',
+      'isLight',
+      'hasDelete',
+      'onDelete',
+      'ariaCloseLabel',
+    ],
   },
   progress: {
     ...BASE,
@@ -1819,6 +1872,21 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Tag',
     tag: 'span',
+    as: ['span', 'a', 'button'],
+    writesAttr: {
+      type: {
+        on: ['button'],
+        fallback: 'button',
+        keeps: ['button', 'submit', 'reset'],
+      },
+    },
+    // A link tag withholds the button attributes and a button tag the anchor
+    // attributes but `type`, and `rel` (`BUTTON_ONLY_ATTRS` in bulma-ui's
+    // anchorAttrs helper, and `STRIP_FROM_BUTTON` in its Tag.tsx). A span tag
+    // passes on what it's given.
+    dropsAttr: Object.fromEntries([
+      ...dropsFor(['a', 'span'], ['button', 'span']),
+    ]),
     textColor: null,
     bgColor: 'backgroundColor',
     modifiers: {
@@ -1839,6 +1907,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
         'bestax `Tag` renders it through `isDelete`, which also turns the tag into a <button>',
     },
     ownProps: [
+      'as',
       'color',
       'size',
       'isLight',
@@ -2307,7 +2376,8 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ownProps: ['textColor', 'color', 'bgColor'],
   },
   // The previous and next links write `tabIndex` before the props they're
-  // given, and take no helper props.
+  // given, and take no helper props. Without an `href` each is a button, and
+  // writes `role="button"` too.
   'pagination-previous': {
     status: 'mapped',
     target: 'Pagination.Previous',
@@ -2315,7 +2385,13 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     textColor: null,
     bgColor: null,
     noHelpers: true,
-    defaults: { tabIndex: '0' },
+    defaults: { tabIndex: '0', role: 'button' },
+    namedDefaults: {
+      by: ['href'],
+      defaults: { tabIndex: '0' },
+      what: 'an `href`',
+      emptyCounts: true,
+    },
     omits: {
       'is-disabled':
         '`disabled` also writes `aria-disabled` and `tabIndex="-1"`',
@@ -2329,7 +2405,13 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     textColor: null,
     bgColor: null,
     noHelpers: true,
-    defaults: { tabIndex: '0' },
+    defaults: { tabIndex: '0', role: 'button' },
+    namedDefaults: {
+      by: ['href'],
+      defaults: { tabIndex: '0' },
+      what: 'an `href`',
+      emptyCounts: true,
+    },
     omits: {
       'is-disabled':
         '`disabled` also writes `aria-disabled` and `tabIndex="-1"`',
@@ -2339,6 +2421,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   // A page link and the ellipsis each render the bare `<li>` around them, so
   // each converts in its `<li>`'s place. A link writes `tabIndex` before the
   // props it's given, and `active` writes `aria-current="page"` the same way.
+  // Without an `href` it's a button, and writes `role="button"` too.
   'pagination-link': {
     ...BASE,
     target: 'Pagination.Link',
@@ -2350,7 +2433,13 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
         needsAttr: { name: 'aria-current', value: 'page' },
       },
     },
-    defaults: { tabIndex: '0' },
+    defaults: { tabIndex: '0', role: 'button' },
+    namedDefaults: {
+      by: ['href'],
+      defaults: { tabIndex: '0' },
+      what: 'an `href`',
+      emptyCounts: true,
+    },
     omits: {
       'is-disabled':
         '`disabled` also writes `aria-disabled` and `tabIndex="-1"`',
@@ -2414,7 +2503,15 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     textColor: null,
     bgColor: null,
     noHelpers: true,
-    modifiers: flags({ 'is-active': 'active' }),
+    // `active` writes `aria-current="page"` unless the block has its own, the
+    // way `Navbar.Item` does, so `is-active` converts only beside one and
+    // stays a class otherwise.
+    modifiers: {
+      'is-active': {
+        writes: [{ prop: 'active' }],
+        needsAttr: { name: 'aria-current', value: 'page' },
+      },
+    },
     // The anchor attributes, and `rel`, reach only an <a>, and the label's
     // only a <label> (`STRIP_FROM_NON_ANCHOR` and `STRIP_FROM_NON_LABEL` in
     // bulma-ui's Panel.tsx).
@@ -2502,6 +2599,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     target: 'Table',
     tag: 'div',
     folds: [{ prop: 'isResponsive' }],
+    namedFrom: ['aria-label', 'aria-labelledby'],
   },
   'fixed-grid': {
     status: 'fold',

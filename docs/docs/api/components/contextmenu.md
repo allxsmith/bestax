@@ -402,8 +402,11 @@ Roles and names:
   button to borrow a name from, and a development build warns when a menu opens without one.
 - Items are `menuitem` by default, and `menuitemcheckbox` or `menuitemradio` with `aria-checked`
   through the item's `role`. A divider is an `<hr>`, which is a separator.
+- An `active` item has `aria-current="true"`, as in `Dropdown`, and an `aria-current` you pass
+  wins.
 - Disabled items, a `button` with `disabled` or an item with `aria-disabled="true"`, are skipped by
-  the arrow keys and by typing, as in `Dropdown`.
+  the arrow keys and by typing, as in `Dropdown`, and they go on from an item that turns disabled
+  while it keeps focus.
 - The trigger gets no ARIA, no role and no tab stop. `aria-haspopup` describes a popup that opens
   when an element is activated, and a right-click on a row isn't that. So nothing tells a screen
   reader user the menu is there, and on macOS only VoiceOver opens it from the keyboard: every action
@@ -417,6 +420,9 @@ And around it:
 - Nothing listens on the page while the menu is closed and no finger is held on its trigger, so a
   table with a menu on every row adds no listeners until one is used.
 - The menu doesn't animate.
+- In forced colors (Windows' contrast themes), a divider is drawn in the system's text color, as in
+  `Dropdown`. That rule ships in `bestax.css` and `extras.css`, from the dropdown partial, so a
+  modular build adds `scss/components/dropdown` for it.
 
 ---
 
@@ -463,14 +469,14 @@ And around it:
 
 ### ContextMenu.Item
 
-| Prop        | Type                                                                   | Default | Description                                                                                                                                                                      |
-| ----------- | ---------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `as`        | `'a'` \| `'div'` \| `'button'`                                         | `'a'`   | The element type to render. `'button'` renders `type="button"` unless you pass `type="submit"` or `type="reset"`, so an item inside a form does not submit it.                   |
-| `active`    | `boolean`                                                              | `false` | Whether the item is active.                                                                                                                                                      |
-| `className` | `string`                                                               | —       | Additional CSS classes.                                                                                                                                                          |
-| `disabled`  | `boolean`                                                              | `false` | Marks the item as disabled; disabled items are skipped during keyboard navigation. Use with `as="button"` for a native disabled control, or pair with `aria-disabled` on a link. |
-| `children`  | `React.ReactNode`                                                      | —       | Item content.                                                                                                                                                                    |
-| `...`       | Remaining props of the element selected by `as` and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                |
+| Prop        | Type                                                                   | Default | Description                                                                                                                                                                                                                                                                                                                                        |
+| ----------- | ---------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `as`        | `'a'` \| `'div'` \| `'button'`                                         | `'a'`   | The element type to render. `'button'` renders `type="button"` unless you pass `type="submit"` or `type="reset"`, so an item inside a form does not submit it.                                                                                                                                                                                     |
+| `active`    | `boolean`                                                              | `false` | Marks the item as the current one. It adds Bulma's `is-active` class, and `aria-current="true"`, so assistive tech can tell which item is current too. An `aria-current` you pass wins, `false` and `undefined` included, so an item that says its state another way, such as a `menuitemradio` with `aria-checked`, takes `aria-current={false}`. |
+| `className` | `string`                                                               | —       | Additional CSS classes.                                                                                                                                                                                                                                                                                                                            |
+| `disabled`  | `boolean`                                                              | `false` | Marks the item as disabled; disabled items are skipped during keyboard navigation. Use with `as="button"` for a native disabled control, or pair with `aria-disabled` on a link.                                                                                                                                                                   |
+| `children`  | `React.ReactNode`                                                      | —       | Item content.                                                                                                                                                                                                                                                                                                                                      |
+| `...`       | Remaining props of the element selected by `as` and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                  |
 
 <!-- /bestax:generated props -->
 

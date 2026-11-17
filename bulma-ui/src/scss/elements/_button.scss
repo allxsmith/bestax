@@ -6,12 +6,19 @@
 //
 // - A ghost button, which Bulma draws with no border and no shadow, so it
 //   shows no focus at all. This one applies outside forced colors too.
+// - A static button, which shows none either: Bulma's `is-static` sets no
+//   shadow, and its border color outranks the focus one. `isStatic` still
+//   renders a `<button>`, so Tab reaches it. This one applies outside forced
+//   colors too.
 // - Every button in forced colors (Windows' contrast themes), which drops the
 //   shadow and forces the border's color, so a focused button can look just
-//   like an unfocused one there. A ghost button matches both rules there,
-//   and they draw the same outline. A loading button is left to
-//   `_loader.scss`, which turns forcing off on it and rings it in the
-//   system's colors.
+//   like an unfocused one there. A ghost or static button matches both rules
+//   there, and they draw the same outline.
+//
+// A loading button, ghost and static ones included, is left to
+// `_loader.scss`, which rings it in and out of forced colors, since Bulma's
+// `is-loading` drops the shadow as well. Neither outline here reaches one, so
+// the order the two partials load in doesn't decide its ring.
 //
 // `.is-focused` is the class `isFocused` sets, so it gets the outline too.
 // The ghost rule doesn't ask for LinkButton's class, since a ghost Button has
@@ -25,16 +32,43 @@
 // gives a colored button that same border only while it's focused, so with
 // one at rest the outline above is what shows focus.
 //
+// A pressed ToggleButton and a checked SegmentedControl segment show their
+// state with a fill, from `is-selected` and a color class, the way Bulma
+// marks the selected button of a group. Forced colors replaces the fill, so
+// there they look like the buttons beside them. The selected rule draws them
+// in Highlight and HighlightText, the pair the system keeps for a selection,
+// as `_pagination.scss` draws the current page. `forced-color-adjust: none`
+// keeps them: with forcing on, Chromium draws the page's color behind the
+// label, which in some themes is HighlightText's own color, and the label
+// would vanish. It reaches everything inside the button too, as on the
+// current page, so a child with a color of its own keeps it. With forcing
+// off, the forced colors outline would keep Bulma's focus color, so a
+// selected one names CanvasText, the color made to read on the page the
+// outline sits on, and Bulma's shadows, the focus one included, would show,
+// so it has none. A disabled one takes GrayText for its fill and edge and
+// Canvas for its text, so it still reads as pressed and as disabled, at full
+// opacity, since Bulma's disabled opacity would blend the fill into the page
+// and the text into the fill. It matches what Bulma dims, a `disabled`
+// attribute and anything in a disabled `<fieldset>`, and `is-disabled`, which
+// `Button` writes for `isDisabled` on any element, a link included, where it
+// renders no `disabled` attribute. A loading one is left to `_loader.scss`, which
+// draws it as it draws any loading button, so while it loads it looks like
+// one that isn't pressed, with its label hidden behind the spinner either
+// way.
+//
 // Bulma's colors include `text`, but `.button.is-text` is a text button, as
 // `Button color="text"` and LinkButton's text and underline variants render
 // it. It has no fill to lose, and a border at rest would draw a box around a
 // link, so the loop leaves it out.
 //
 // Bulma's CSS can land on either side of this partial, as `_loader.scss`
-// says, so each selector outranks Bulma's rule by its classes: the ghost rule
-// has three to the mixin's two, the forced colors outline names `.button`
-// twice, as `_delete.scss` does, and the border names the color class twice
-// to outrank Bulma's `.button.is-<color>`.
+// says, so each selector outranks Bulma's rule by its classes: the ghost and
+// static rule has four to the mixin's two, the forced colors outline names
+// `.button` twice, as `_delete.scss` does, and the border names the color
+// class twice to outrank Bulma's `.button.is-<color>`. The selected rule
+// names `is-selected` twice too, so its disabled one outranks Bulma's
+// `.button.is-<color>[disabled]`, and its outline outranks the forced colors
+// one.
 
 @use 'sass:list';
 @use 'sass:map';
@@ -53,8 +87,18 @@
   outline-width: cv.getVar('focus-width');
 }
 
-.#{iv.$class-prefix}button.#{iv.$class-prefix}is-ghost:focus-visible,
-.#{iv.$class-prefix}button.#{iv.$class-prefix}is-ghost.#{iv.$class-prefix}is-focused {
+.#{iv.$class-prefix}button.#{iv.$class-prefix}is-ghost:not(
+    .#{iv.$class-prefix}is-loading
+  ):focus-visible,
+.#{iv.$class-prefix}button.#{iv.$class-prefix}is-ghost:not(
+    .#{iv.$class-prefix}is-loading
+  ).#{iv.$class-prefix}is-focused,
+.#{iv.$class-prefix}button.#{iv.$class-prefix}is-static:not(
+    .#{iv.$class-prefix}is-loading
+  ):focus-visible,
+.#{iv.$class-prefix}button.#{iv.$class-prefix}is-static:not(
+    .#{iv.$class-prefix}is-loading
+  ).#{iv.$class-prefix}is-focused {
   @include -focus-outline;
 }
 
@@ -73,6 +117,30 @@
         .#{iv.$class-prefix}is-outlined
       ) {
       @include cv.register-var('button-border-width', 1px);
+    }
+  }
+
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}is-selected.#{iv.$class-prefix}is-selected:not(
+      .#{iv.$class-prefix}is-loading
+    ) {
+    forced-color-adjust: none;
+    background-color: Highlight;
+    border-color: Highlight;
+    box-shadow: none;
+    color: HighlightText;
+
+    &:focus-visible,
+    &.#{iv.$class-prefix}is-focused {
+      outline-color: CanvasText;
+    }
+
+    &[disabled],
+    &.#{iv.$class-prefix}is-disabled,
+    fieldset[disabled] & {
+      background-color: GrayText;
+      border-color: GrayText;
+      color: Canvas;
+      opacity: 1;
     }
   }
 }

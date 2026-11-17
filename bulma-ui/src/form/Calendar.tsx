@@ -176,7 +176,9 @@ interface CalendarBaseProps
   /**
    * Bulma color for the picked days. Today and the focus ring take its
    * `-on-scheme` variant. Unset, the `--bulma-dateinput-*` variables decide,
-   * and they follow `primary`.
+   * and they follow `primary`. Forced colors (Windows' contrast themes)
+   * replaces the fill, so there the picked days are drawn in the system's
+   * highlight colors instead, whatever the color, which needs bestax's CSS.
    */
   color?:
     'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;

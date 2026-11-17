@@ -53,12 +53,29 @@ export interface ButtonOwnProps extends Omit<
   isRounded?: boolean;
   /**
    * Displays a loading spinner, with everything inside the button hidden
-   * behind it, in forced colors (Windows' contrast themes) too. Under
-   * `prefers-reduced-motion: reduce` the spinner stops and stays drawn.
-   * Bulma alone hides only the label, so the rest needs bestax's CSS loaded.
+   * behind it, in forced colors (Windows' contrast themes) too, and holds the
+   * button still: a click, Enter or Space does nothing, so `onClick` doesn't
+   * run, a submit button doesn't submit its form and a click on a link
+   * doesn't follow its `href`, until it's cleared. A custom `as` component
+   * gets that dropped click as its `onClick`, so it holds still as far as it
+   * acts through it. Set it while an action is in progress, so
+   * nobody sends it twice. The button carries `aria-busy` and `aria-disabled`
+   * meanwhile, so a screen reader can tell it won't respond, and stays
+   * focusable, so focus isn't lost, with Bulma's focus outline showing it
+   * from the keyboard. Under `prefers-reduced-motion: reduce` the spinner
+   * stops and stays drawn. Bulma alone stops only the pointer, hides only the
+   * label and takes away the shadow that shows a focused button, so the rest
+   * of the look needs bestax's CSS loaded.
    */
   isLoading?: boolean;
-  /** Makes the button non-interactive. */
+  /**
+   * Draws Bulma's static look and stops the pointer. It doesn't change the
+   * element: a `<button>` with it is still a tab stop that a screen reader
+   * announces as a button and Enter and Space press, and in a form it's a
+   * submit button. A label that does nothing, such as "@gmail.com" beside an
+   * input in a `Field` with addons, is a `Button` rendered `as="span"`, which
+   * Tab skips and a screen reader reads as text.
+   */
   isStatic?: boolean;
   /** Makes the button full-width. */
   isFullwidth?: boolean;
@@ -195,6 +212,28 @@ export const Button = forwardRef(function Button(
   // Combine prefixed Bulma classes with unprefixed user className and prefixed helper classes
   const buttonClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
+  // Drops a click: a disabled link's, and a loading button's on any element.
+  // Guarded, because this handler is installed into whatever `as` renders
+  // and a custom component's `onClick` need not be a DOM event handler at
+  // all. One declaring `onClick: (v: string) => void` calls this with a
+  // string, and an unguarded `e.preventDefault()` throws `is not a
+  // function`. Blocking the real event is the point; a foreign payload is
+  // simply not ours to act on.
+  const dropClick = (e: React.MouseEvent<HTMLElement>) => {
+    if (typeof e?.preventDefault === 'function') e.preventDefault();
+  };
+
+  // Bulma's spinner stops only a pointer, so without this a key pressed a
+  // loading button the mouse couldn't, and sent its action, or its form,
+  // twice. `disabled` would stop both, but it takes focus away mid-action,
+  // so a loading button says it's busy and won't respond, and drops the
+  // click, as ToggleButton does. After the caller's attributes, so they
+  // can't undo it while it loads; a caller's own `aria-busy` or
+  // `aria-disabled` stays when it isn't loading.
+  const loading = isLoading
+    ? ({ 'aria-busy': true, 'aria-disabled': true } as const)
+    : undefined;
+
   if (Component !== 'button') {
     // Strip the form-control attributes a link-like element cannot carry, so a
     // JavaScript consumer or a spread object doesn't put them on the DOM. The
@@ -280,21 +319,13 @@ export const Button = forwardRef(function Button(
         aria-disabled={isDisabled}
         tabIndex={isDisabled ? -1 : undefined}
         onClick={
-          isDisabled
-            ? // Guarded, because this handler is installed into whatever `as`
-              // renders and a custom component's `onClick` need not be a DOM
-              // event handler at all. One declaring `onClick: (v: string) =>
-              // void` calls this with a string, and an unguarded
-              // `e.preventDefault()` throws `is not a function`. Blocking the
-              // real event is the point; a foreign payload is simply not ours
-              // to act on.
-              (e: React.MouseEvent<HTMLAnchorElement>) => {
-                if (typeof e?.preventDefault === 'function') e.preventDefault();
-              }
+          isDisabled || isLoading
+            ? dropClick
             : (onClick as
                 React.MouseEventHandler<HTMLAnchorElement> | undefined)
         }
         {...(forwardedRest as React.AnchorHTMLAttributes<HTMLAnchorElement>)}
+        {...loading}
       >
         {children}
       </Component>
@@ -307,9 +338,12 @@ export const Button = forwardRef(function Button(
       className={buttonClasses}
       disabled={isDisabled}
       onClick={
-        onClick as React.MouseEventHandler<HTMLButtonElement> | undefined
+        isLoading
+          ? dropClick
+          : (onClick as React.MouseEventHandler<HTMLButtonElement> | undefined)
       }
       {...rest}
+      {...loading}
     >
       {children}
     </button>

@@ -40,6 +40,7 @@ import {
 } from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
 import { useFieldLabelTarget, useFieldsetDisabled } from './FormContext';
+import { joinIds, useFieldMessageId } from './useFieldMessage';
 import { Icon } from '../elements/Icon';
 import { Buttons } from '../elements/Buttons';
 
@@ -112,7 +113,10 @@ export interface TimeInputBaseProps
   min?: Date | undefined;
   /** Latest selectable time. */
   max?: Date | undefined;
-  /** Disable the input. */
+  /**
+   * Disable the input. An `inline` picker's wheels leave the tab order and
+   * carry `aria-disabled`, and nothing turns them.
+   */
   disabled?: boolean | undefined;
   /**
    * Make the input read-only. An `inline` picker's wheels keep their tab
@@ -163,6 +167,9 @@ export interface TimeInputBaseProps
    * lines up with the field's start edge, which is its right edge when the
    * picker reads right to left. A corner you pass stays physical, so
    * `bottom-left` lines up the left edges either way.
+   * A panel that would run past the viewport's left or right edge keeps
+   * its corner and moves sideways, just far enough to fit or, wider than
+   * the viewport, to the edge its text starts from.
    * @defaultValue 'bottom-left'
    */
   position?: PickerPosition;
@@ -507,6 +514,11 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       [ref]
     );
 
+    // The wrapper's message describes the input (#1963). The native input
+    // lists it after the caller's ids; the text input takes it alone, since
+    // the caller's attributes go on the container.
+    const messageId = useFieldMessageId();
+
     if (useNative) {
       const nativeStep = enableSeconds
         ? incrementSeconds
@@ -516,6 +528,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
           {...localeScope.rootAttrs}
           {...cleanRest}
           ref={combinedRef}
+          aria-describedby={joinIds(cleanRest['aria-describedby'], messageId)}
           type="time"
           step={nativeStep}
           className={classNames(inputClass, bulmaHelperClasses, className)}
@@ -691,6 +704,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
           aria-expanded={open}
           aria-controls={popoverId}
           autoComplete="off"
+          aria-describedby={messageId}
           className={classNames(inputClass, textClasses, backgroundClasses)}
           value={text}
           placeholder={placeholder}

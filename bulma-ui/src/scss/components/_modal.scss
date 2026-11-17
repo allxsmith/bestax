@@ -1,0 +1,22 @@
+// Bestax Extras - Modal Styles
+// Bulma draws a modal card with no border: its edge is where the card's
+// header, body and footer backgrounds meet the backdrop's dark fill. Forced
+// colors (Windows' contrast themes) paints all of them in the system's Canvas,
+// the backdrop keeping only its alpha, so the card has no edge there and its
+// content runs into the page dimmed behind it. This draws the card a one pixel
+// outline in CanvasText, which takes no room, the way `_tooltip.scss` draws
+// Tooltip's edge. It sits outside the card, in the margin Bulma keeps around
+// it, since the header and footer are positioned and would paint over an
+// outline drawn inside. Outside forced colors it changes nothing.
+//
+// Bulma sets no outline on `.modal-card`, so one class is enough wherever the
+// two stylesheets load. A `Dialog` draws its own box, which `_dialog.scss`
+// keeps the same way.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}modal-card {
+    outline: 1px solid CanvasText;
+  }
+}

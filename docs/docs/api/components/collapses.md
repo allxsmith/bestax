@@ -468,6 +468,8 @@ Measured against the
   and an `aria-controls` that points at its own panel. A closed panel is `aria-hidden` and
   `inert`, so its links and fields leave the tab order until it opens. The group only decides
   which items are open.
+- When the system asks for reduced motion, each item opens and closes at once, with no
+  transition, as `Collapse` does.
 - **Not implemented: the heading.** The pattern wraps each trigger button in a heading
   (`role="heading"` with an `aria-level`), so screen reader users can move between items by
   heading. `Collapse` renders the button itself and has no prop to wrap it, and a heading

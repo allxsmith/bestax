@@ -292,7 +292,7 @@ A `hasAddons` Field names none of the controls it holds, and a placeholder disap
 
 #### Input + Static Suffix
 
-A static button is non-interactive — useful for fixed prefixes/suffixes such as an email domain.
+A static button draws a fixed prefix or suffix, such as an email domain. `isStatic` only styles it, so render it `as="span"`, which Tab skips and a screen reader reads as text.
 
 ```tsx live
 <Field hasAddons>
@@ -300,7 +300,9 @@ A static button is non-interactive — useful for fixed prefixes/suffixes such a
     <Input placeholder="Your email" aria-label="Email username" />
   </Control>
   <Control>
-    <Button isStatic>@gmail.com</Button>
+    <Button as="span" isStatic>
+      @gmail.com
+    </Button>
   </Control>
 </Field>
 ```
@@ -564,7 +566,9 @@ Combine `Field horizontal` with a nested `Field hasAddons` inside the body to mi
   <Field.Body>
     <Field hasAddons>
       <Control>
-        <Button isStatic>+44</Button>
+        <Button as="span" isStatic>
+          +44
+        </Button>
       </Control>
       <Control isExpanded>
         <Input id="phone-number" type="tel" placeholder="Your phone number" />
@@ -694,6 +698,7 @@ Inside a `Control` with no `Field` around it, `Input` renders no `Field` of its 
 - Always provide a label. The `label` prop is automatically associated with the input (`htmlFor` plus a generated `id`, or your own `id` if you pass one), so clicking the label focuses the input and assistive technology announces it.
 - When composing with `Field` instead, the `Field`'s own `label` associates with the input automatically when the input sits directly in that labeled `Field` and has no `id` of its own. A nested unlabeled `Field` (as in horizontal multi-field layouts) starts its own scope. With an `id` of your own, or across a nested `Field`, the label names the input only when you pass that `id` as `labelProps={{ htmlFor }}`.
 - Use the correct input `type` for semantics (`text`, `email`, etc.).
+- **Help and errors:** the `message` describes the input through `aria-describedby`, after any ids you pass there, so a screen reader reads it when the input takes focus. A red `color` says nothing to a screen reader, so on an error also set `aria-invalid`, and put the error in the `message`.
 
 ---
 
@@ -732,7 +737,7 @@ Inside a `Control` with no `Field` around it, `Input` renders no `Field` of its 
 | `isLoading`        | `boolean`                                                                                                                          | `false` | Shows a loading spinner on the `Control` it renders. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded). The spinner sits at the right edge, where `iconRight` also sits, and the two overlap; leave the right icon out while loading.                                           |
 | `isExpanded`       | `boolean`                                                                                                                          | `false` | Expand the control.                                                                                                                                                                                                                                                                                                               |
 | `controlSize`      | `'small'` \| `'medium'` \| `'large'`                                                                                               | —       | Control size.                                                                                                                                                                                                                                                                                                                     |
-| `message`          | `React.ReactNode`                                                                                                                  | —       | Help/validation message below the input.                                                                                                                                                                                                                                                                                          |
+| `message`          | `React.ReactNode`                                                                                                                  | —       | Help or validation text under the input. It describes the input through `aria-describedby`, after any ids you pass there.                                                                                                                                                                                                         |
 | `messageColor`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                                                    | —       | Bulma color for the message.                                                                                                                                                                                                                                                                                                      |
 | `fieldClassName`   | `string`                                                                                                                           | —       | Additional CSS classes for the Field.                                                                                                                                                                                                                                                                                             |
 | `controlClassName` | `string`                                                                                                                           | —       | Additional CSS classes for the Control.                                                                                                                                                                                                                                                                                           |

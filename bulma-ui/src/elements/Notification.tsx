@@ -1,5 +1,4 @@
 import React, {
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -20,6 +19,7 @@ import { usePortalContainer } from '../helpers/portal';
 import { LocalePortalScope } from '../helpers/LocaleProvider';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
 import { scrollLockOffset } from '../helpers/scrollLock';
+import { useDismissTimer } from '../helpers/useDismissTimer';
 
 /**
  * Props for the Notification component.
@@ -71,6 +71,12 @@ export interface NotificationProps
   hasDelete?: boolean;
   /** Callback fired when the delete button is clicked. */
   onDelete?: () => void;
+  /**
+   * Names the close button `hasDelete` shows, in place of "Close
+   * notification", for an app in another language. An empty one keeps that
+   * name.
+   */
+  ariaCloseLabel?: string;
   /** Content inside the notification. */
   children?: React.ReactNode;
 }
@@ -90,6 +96,7 @@ export const Notification: React.FC<NotificationProps> = ({
   isLight,
   hasDelete,
   onDelete,
+  ariaCloseLabel,
   children,
   ...props
 }) => {
@@ -126,7 +133,7 @@ export const Notification: React.FC<NotificationProps> = ({
           type="button"
           className={deleteClasses}
           onClick={onDelete}
-          aria-label="Close notification"
+          aria-label={ariaCloseLabel || 'Close notification'}
         />
       )}
       {children}
@@ -184,7 +191,13 @@ export interface NotificationOptions {
    * hard to read.
    */
   isLight?: boolean;
-  /** Duration in ms before auto-close. Default 3000. */
+  /**
+   * Duration in ms before auto-close. Default 3000.
+   *
+   * The countdown waits while focus is inside the notification, on its close
+   * button or on a link in its message, whatever `pauseOnHover` says, and once
+   * focus leaves, the notification gets its whole duration again.
+   */
   duration?: number;
   /**
    * Position on the screen. A notification shown without one goes to
@@ -198,9 +211,17 @@ export interface NotificationOptions {
   queue?: boolean;
   /** Show a delete (close) button. Default true. */
   hasDelete?: boolean;
+  /**
+   * Names the close button, in place of "Close notification", for an app in
+   * another language. An empty one keeps that name.
+   */
+  ariaCloseLabel?: string;
   /** Stay open until dismissed. */
   indefinite?: boolean;
-  /** Pause auto-close timer on hover. Default true. */
+  /**
+   * Pause auto-close timer on hover. Default true. Focus inside the
+   * notification pauses it either way (see `duration`).
+   */
   pauseOnHover?: boolean;
 }
 
@@ -401,6 +422,7 @@ const NotificationItem: React.FC<{
     isLight,
     duration = 3000,
     hasDelete = true,
+    ariaCloseLabel,
     indefinite = false,
     pauseOnHover = true,
   } = instance.options;
@@ -419,13 +441,13 @@ const NotificationItem: React.FC<{
     [registerMessage, instance.id]
   );
 
-  // Auto-close timer
-  useEffect(() => {
-    if (indefinite || duration === 0 || isPaused) return undefined;
-
-    const timer = setTimeout(handleClose, duration);
-    return () => clearTimeout(timer);
-  }, [duration, indefinite, isPaused, handleClose]);
+  // Auto-close timer. It waits while focus is inside the notification, so
+  // what someone is using doesn't go away under them, whatever pauseOnHover
+  // says.
+  const { onFocus: handleFocus } = useDismissTimer(
+    handleClose,
+    indefinite || duration === 0 || isPaused ? null : duration
+  );
 
   const handleMouseEnter = useCallback(() => {
     if (pauseOnHover) setIsPaused(true);
@@ -440,9 +462,11 @@ const NotificationItem: React.FC<{
       color={color}
       isLight={isLight}
       hasDelete={hasDelete}
+      ariaCloseLabel={ariaCloseLabel}
       onDelete={handleClose}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onFocus={handleFocus}
       style={{ pointerEvents: 'auto' }}
     >
       {/* Only the message is announced, not the close button Notification
