@@ -1,4 +1,5 @@
 import React, {
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -20,6 +21,10 @@ import { LocalePortalScope } from '../helpers/LocaleProvider';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
 import { scrollLockOffset } from '../helpers/scrollLock';
 import { useDismissTimer } from '../helpers/useDismissTimer';
+import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
+import { moveFocusOut } from '../helpers/moveFocusOut';
+import { useLatestRef } from '../helpers/useLatestRef';
+import { getActiveElementInTree } from '../helpers/shadowDom';
 
 /**
  * Props for the Notification component.
@@ -71,6 +76,12 @@ export interface NotificationProps
   hasDelete?: boolean;
   /** Callback fired when the delete button is clicked. */
   onDelete?: () => void;
+  /**
+   * Names the close button `hasDelete` shows, in place of "Close
+   * notification", for an app in another language. An empty one keeps that
+   * name.
+   */
+  ariaCloseLabel?: string;
   /** Content inside the notification. */
   children?: React.ReactNode;
 }
@@ -90,6 +101,7 @@ export const Notification: React.FC<NotificationProps> = ({
   isLight,
   hasDelete,
   onDelete,
+  ariaCloseLabel,
   children,
   ...props
 }) => {
@@ -126,7 +138,7 @@ export const Notification: React.FC<NotificationProps> = ({
           type="button"
           className={deleteClasses}
           onClick={onDelete}
-          aria-label="Close notification"
+          aria-label={ariaCloseLabel || 'Close notification'}
         />
       )}
       {children}
@@ -204,6 +216,11 @@ export interface NotificationOptions {
   queue?: boolean;
   /** Show a delete (close) button. Default true. */
   hasDelete?: boolean;
+  /**
+   * Names the close button, in place of "Close notification", for an app in
+   * another language. An empty one keeps that name.
+   */
+  ariaCloseLabel?: string;
   /** Stay open until dismissed. */
   indefinite?: boolean;
   /**
@@ -396,20 +413,22 @@ const isUrgentColor = (color: NotificationOptions['color']): boolean =>
  * Single auto-dismissing notification item used by NotificationContainer.
  *
  * @function
- * @param {{ instance: NotificationInstance; onClose: (id: string) => void; registerMessage: (id: string, node: HTMLElement | null) => void }} props - Component props.
+ * @param {{ instance: NotificationInstance; onClose: (id: string) => void; registerMessage: (id: string, node: HTMLElement | null) => void; handOffFocus: (id: string, node: HTMLElement) => void }} props - Component props.
  * @returns {JSX.Element} The rendered notification item.
  */
 const NotificationItem: React.FC<{
   instance: NotificationInstance;
   onClose: (id: string) => void;
   registerMessage: (id: string, node: HTMLElement | null) => void;
-}> = ({ instance, onClose, registerMessage }) => {
+  handOffFocus: (id: string, node: HTMLElement) => void;
+}> = ({ instance, onClose, registerMessage, handOffFocus }) => {
   const {
     message,
     color,
     isLight,
     duration = 3000,
     hasDelete = true,
+    ariaCloseLabel,
     indefinite = false,
     pauseOnHover = true,
   } = instance.options;
@@ -421,8 +440,19 @@ const NotificationItem: React.FC<{
     onClose(instance.id);
   }, [onClose, instance.id]);
 
+  // The message's element, whose parent is the notification's, since
+  // Notification takes no ref. The container keeps it too, to read a polite
+  // one's text for its status region and to find the notification. It's
+  // attached for as long as the notification is on the page, which is when
+  // the timer and the cleanup below read it.
+  const messageElRef = useRef<HTMLElement | null>(null);
+  const notificationEl = useCallback(
+    () => messageElRef.current!.parentElement!,
+    []
+  );
   const messageRef = useCallback(
     (node: HTMLElement | null) => {
+      messageElRef.current = node;
       registerMessage(instance.id, node);
     },
     [registerMessage, instance.id]
@@ -433,7 +463,16 @@ const NotificationItem: React.FC<{
   // says.
   const { onFocus: handleFocus } = useDismissTimer(
     handleClose,
-    indefinite || duration === 0 || isPaused ? null : duration
+    indefinite || duration === 0 || isPaused ? null : duration,
+    notificationEl
+  );
+
+  // A layout effect's cleanup, because it runs before the notification's
+  // element leaves the page, while focus can still be in it. The container
+  // decides where focus goes.
+  useClientLayoutEffect(
+    () => () => handOffFocus(instance.id, notificationEl()),
+    [handOffFocus, instance.id, notificationEl]
   );
 
   const handleMouseEnter = useCallback(() => {
@@ -449,6 +488,7 @@ const NotificationItem: React.FC<{
       color={color}
       isLight={isLight}
       hasDelete={hasDelete}
+      ariaCloseLabel={ariaCloseLabel}
       onDelete={handleClose}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -463,7 +503,7 @@ const NotificationItem: React.FC<{
           this span, so it carries no role of its own that would announce them
           a second time. */}
       {urgent ? (
-        <span role="alert" aria-live="assertive">
+        <span role="alert" aria-live="assertive" ref={messageRef}>
           {message}
         </span>
       ) : (
@@ -543,6 +583,12 @@ const notificationStackStyle = (
  * notifications announce themselves as assertive alerts. The region is hidden
  * with inline styles, so it needs no stylesheet.
  *
+ * When a notification closes with focus inside it, focus moves to the close
+ * button of the next notification in its stack that stays open and has one,
+ * or else of the one before it, or, with neither, back to where it was before
+ * it went into a notification, while that's still on the page. Focus anywhere
+ * else stays where it is.
+ *
  * @function
  * @param {{ position?: NotificationPosition }} props - Container props.
  * @returns {JSX.Element | null} The rendered notification container, or null on the server and while hydrating.
@@ -576,8 +622,9 @@ export const NotificationContainer: React.FC<{
     [items]
   );
 
-  // Each polite notification's message element, so the text the region
-  // announces is the text on screen, whatever the message renders.
+  // Each notification's message element: the status region reads a polite
+  // one's text, so it announces the text on screen, whatever the message
+  // renders, and its parent is the notification, for handing focus on.
   const messageNodesRef = useRef(new Map<string, HTMLElement>());
   const registerMessage = useCallback(
     (id: string, node: HTMLElement | null) => {
@@ -589,6 +636,83 @@ export const NotificationContainer: React.FC<{
     },
     []
   );
+
+  // Where focus last was outside the notifications, for handing it back. It
+  // follows focus anywhere on the page, so it's where focus came from when it
+  // went into a notification, and it's cleared when focus goes to the page
+  // itself, so a click on the page's background leaves nothing to go back to.
+  const focusOriginRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    const isInNotification = (target: Node) => {
+      for (const message of messageNodesRef.current.values()) {
+        if (message.parentElement!.contains(target)) return true;
+      }
+      return false;
+    };
+    const handleFocusIn = (event: FocusEvent) => {
+      const target = event.composedPath()[0] as HTMLElement;
+      if (!isInNotification(target)) focusOriginRef.current = target;
+    };
+    const handleFocusOut = (event: FocusEvent) => {
+      const target = event.composedPath()[0] as HTMLElement;
+      if (!event.relatedTarget && !isInNotification(target)) {
+        focusOriginRef.current = null;
+      }
+    };
+    document.addEventListener('focusin', handleFocusIn, true);
+    document.addEventListener('focusout', handleFocusOut, true);
+    return () => {
+      document.removeEventListener('focusin', handleFocusIn, true);
+      document.removeEventListener('focusout', handleFocusOut, true);
+    };
+  }, []);
+
+  // When a notification closes with focus inside it, as one does from its
+  // close button, the browser would drop focus to the page, and the next Tab
+  // would start from wherever it resumes, the end of the page for a portaled
+  // stack. So focus moves first: to the close button of the next
+  // notification in its stack that stays open and has one, or else of the
+  // one before it, and otherwise back to where it was before it went into a
+  // notification, while that's still on the page. One that arrives in the same render, as a queued one does,
+  // isn't on the page yet to take it. A notification that leaves the page
+  // without closing, as one remounting at a new position does, and focus
+  // anywhere else, are left alone. React hears no focus event for a move
+  // made while notifications leave, so the notification focus lands in hears
+  // it through its own element instead.
+  const deleteClassRef = useLatestRef(usePrefixedClassNames('delete'));
+  const handOffFocus = useCallback(
+    (id: string, node: HTMLElement) => {
+      if (!node.contains(getActiveElementInTree(node))) return;
+      const staying = new Set(getVisibleNotifications().map(item => item.id));
+      if (staying.has(id)) return;
+      const stayingEls = new Set<Element>();
+      for (const [otherId, message] of messageNodesRef.current) {
+        if (staying.has(otherId)) stayingEls.add(message.parentElement!);
+      }
+      // A notification's close button, which Notification renders first,
+      // when it stays open and has one.
+      const closeButtonOf = (el: Element) => {
+        const first = el.firstElementChild;
+        return stayingEls.has(el) &&
+          first?.classList.contains(deleteClassRef.current)
+          ? (first as HTMLElement)
+          : null;
+      };
+      let next: HTMLElement | null = null;
+      for (let el = node.nextElementSibling; el && !next;) {
+        next = closeButtonOf(el);
+        el = el.nextElementSibling;
+      }
+      for (let el = node.previousElementSibling; el && !next;) {
+        next = closeButtonOf(el);
+        el = el.previousElementSibling;
+      }
+      const origin = focusOriginRef.current;
+      moveFocusOut([node], next ?? origin, next ? origin : null);
+    },
+    [deleteClassRef]
+  );
+
   // StatusRegion only describes polite notifications that are on screen, and
   // each of those registered its message element when it mounted. The
   // fallback is for a notification announced without being rendered, should
@@ -626,6 +750,7 @@ export const NotificationContainer: React.FC<{
               instance={item}
               onClose={notification.close}
               registerMessage={registerMessage}
+              handOffFocus={handOffFocus}
             />
           ))}
         </div>

@@ -71,13 +71,25 @@ export interface ModalProps
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
    * Title/header for modal-card variant, which names the dialog through
-   * `aria-labelledby`. Without one, give the modal an `aria-label`, or an
-   * `aria-labelledby` pointing at a heading inside it. (Legacy API only)
+   * `aria-labelledby`. With `type="content"` it isn't shown, and a title
+   * that's a string still names the dialog, as its `aria-label`. Without one, give
+   * the modal an `aria-label`, or an `aria-labelledby` pointing at a heading
+   * inside it. It's drawn in the card's `<header>`, which is a banner
+   * landmark unless the modal sits inside `<main>` or a sectioning element,
+   * as it doesn't when `portal` renders it at the end of `<body>`. The props
+   * form can't give the header a role, so point `portal` at an element
+   * inside `<main>` that doesn't clip the modal, or use the compound form
+   * with `role="none"` on `Modal.Card.Head`. (Legacy API only)
    */
   modalCardTitle?: React.ReactNode;
   /**
    * Footer for modal-card variant. Group two or more buttons in `Buttons` so
-   * Bulma spaces them. (Legacy API only)
+   * Bulma spaces them. It's drawn in a `<footer>`, which is a content info
+   * landmark unless the modal sits inside `<main>` or a sectioning element,
+   * as it doesn't when `portal` renders it at the end of `<body>`. The props
+   * form can't give the footer a role, so point `portal` at an element
+   * inside `<main>` that doesn't clip the modal, or use the compound form
+   * with `role="none"` on `Modal.Card.Foot`. (Legacy API only)
    */
   modalCardFoot?: React.ReactNode;
   /**
@@ -237,7 +249,12 @@ export const ModalContent: React.FC<ModalContentProps> = ({
 };
 
 /**
- * Modal.Card.Head - Renders modal card header section.
+ * Modal.Card.Head - Renders modal card header section, a `<header>`. Outside
+ * `<main>` or a sectioning element, as when `portal` renders the modal at the
+ * end of `<body>`, that's a banner landmark inside the dialog: pass
+ * `role="none"` to drop it, with no `aria-label` or other global ARIA
+ * attribute and no `tabIndex` beside it, since a browser ignores the role
+ * then.
  *
  * @function
  * @param {ModalCardHeadProps} props - Component props.
@@ -292,7 +309,11 @@ export const ModalCardBody: React.FC<ModalCardBodyProps> = ({
 
 /**
  * Modal.Card.Foot - Renders modal card footer section. Group two or more
- * buttons in `Buttons` so Bulma spaces them.
+ * buttons in `Buttons` so Bulma spaces them. It's a `<footer>`, which outside
+ * `<main>` or a sectioning element is a content info landmark inside the
+ * dialog: pass `role="none"` to drop it, with no `aria-label` or other global
+ * ARIA attribute and no `tabIndex` beside it, since a browser ignores the role
+ * then.
  *
  * @function
  * @param {ModalCardFootProps} props - Component props.
@@ -637,13 +658,21 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
     else if (type === 'content') isModalCard = false;
     else isModalCard = !!modalCardTitle || !!modalCardFoot;
 
+    // The title names the dialog from the card head. Drawn as content, the
+    // modal renders no head to point at, so a title of plain text names it
+    // through `aria-label` instead, and nothing points at the missing head.
+    const titleText =
+      typeof modalCardTitle === 'string' ? modalCardTitle.trim() : '';
+    const titleLabel = !isModalCard && titleText ? titleText : undefined;
+
     modalElement = (
       <div
         className={modalClasses}
         ref={combinedRef}
         role={resolvedRole}
         aria-modal={resolvedAriaModal}
-        aria-labelledby={titleId}
+        aria-labelledby={isModalCard ? titleId : undefined}
+        aria-label={titleLabel}
         tabIndex={-1}
         {...rest}
         data-testid={testId}

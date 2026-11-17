@@ -8,7 +8,7 @@ import {
   rendersOwnField,
   rendersOwnControl,
 } from './FormContext';
-import { useAutoLabelId } from './useAutoLabelId';
+import { useAutoLabelId, useAutoLabelledBy } from './useAutoLabelId';
 import { FieldMessageIdProvider, useFieldMessage } from './useFieldMessage';
 import { usePickerDirAttrs } from './_pickerInternals/useLocaleDefaults';
 
@@ -32,7 +32,7 @@ import { usePickerDirAttrs } from './_pickerInternals/useLocaleDefaults';
  * @extraProp {React.Ref<HTMLInputElement>} [ref] - Forwarded to the underlying `<input>`.
  */
 export interface DateInputProps extends DateInputBaseProps {
-  /** Field label (component auto-wraps in a `Field` if not already inside). Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired in `inline` mode (no visible input to label). Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here. */
+  /** Field label (component auto-wraps in a `Field` if not already inside). Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. In `inline` mode, where there's no input, it names the picker instead, which is then a `role="group"`, through `aria-labelledby`, unless `labelProps.htmlFor` wires it by hand. An `aria-label` or `aria-labelledby` you set names the picker over it, and an `aria-labelledby` key counts even when undefined. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here. Inline, that `Field`'s label names the picker's group whatever the `id`. */
   label?: React.ReactNode;
   /** Size for the label. */
   labelSize?: FieldProps['labelSize'];
@@ -85,7 +85,8 @@ export interface DateInputProps extends DateInputBaseProps {
   controlSize?: ControlBaseProps['size'];
   /**
    * Help or validation text under the input. It describes the input through
-   * `aria-describedby`; inline, with no input, it describes nothing.
+   * `aria-describedby`; inline, with no input, it describes the picker's
+   * group when something names it.
    */
   message?: React.ReactNode;
   /** Color modifier for the help message. */
@@ -179,13 +180,29 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
       rendersLabel: ownField && !baseProps.inline,
       hasInput: !baseProps.inline,
     });
+    // Inline there's no input for the label's `for`, so the label names the
+    // picker, a group, through `aria-labelledby`, as DateRangeInput's does,
+    // unless you wired it yourself with `labelProps.htmlFor`.
+    const labelsGroup =
+      !!baseProps.inline && !(labelProps && 'htmlFor' in labelProps);
+    const group = useAutoLabelledBy({
+      label,
+      labelProps,
+      rendersLabel: ownField && labelsGroup,
+      callerProps: baseProps,
+    });
     const { messageEl, messageId } = useFieldMessage(message, messageColor);
 
     // The base hides its launcher while the Control it sits in is loading,
     // whether that is the one rendered below or an enclosing one.
     let content: React.ReactNode = (
       <FieldMessageIdProvider value={messageId}>
-        <DateInputBase ref={ref} {...baseProps} id={controlId} />
+        <DateInputBase
+          ref={ref}
+          {...(labelsGroup && { 'aria-labelledby': group.ariaLabelledBy })}
+          {...baseProps}
+          id={controlId}
+        />
       </FieldMessageIdProvider>
     );
 
@@ -216,7 +233,7 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
         <Field
           label={label}
           labelSize={labelSize}
-          labelProps={fieldLabelProps}
+          labelProps={labelsGroup ? group.fieldLabelProps : fieldLabelProps}
           horizontal={horizontal}
           className={fieldClassName}
         >

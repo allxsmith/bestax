@@ -299,12 +299,19 @@ $-check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' 
       outline-color: Highlight;
     }
 
+    // A disabled card is drawn in GrayText, its description included, so its
+    // usual opacity would only halve that. It draws at full strength here.
     > input[type='checkbox']:disabled
       + .#{iv.$class-prefix}checkbox-card-content {
       color: GrayText;
+      opacity: 1;
 
       &::before {
         border-color: GrayText;
+      }
+
+      .#{iv.$class-prefix}checkbox-card-description {
+        color: GrayText;
       }
     }
 
@@ -340,6 +347,29 @@ $-check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' 
       + .#{iv.$class-prefix}checkbox-card-content
       > .#{iv.$class-prefix}checkbox-card-check {
       border-color: GrayText;
+    }
+
+    // Checked, a disabled card's checkbox fills with GrayText rather than
+    // the highlight, its mark in the page's color, and a mixed dash takes
+    // GrayText, as Checkbox's does.
+    > input[type='checkbox']:checked:disabled
+      + .#{iv.$class-prefix}checkbox-card-content
+      > .#{iv.$class-prefix}checkbox-card-check {
+      background-color: GrayText;
+
+      &::after {
+        background-color: Canvas;
+      }
+    }
+
+    > input[type='checkbox']:indeterminate:disabled
+      + .#{iv.$class-prefix}checkbox-card-content
+      > .#{iv.$class-prefix}checkbox-card-check {
+      background-color: Canvas;
+
+      &::before {
+        background-color: GrayText;
+      }
     }
   }
 }

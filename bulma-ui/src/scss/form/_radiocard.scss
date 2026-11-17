@@ -250,11 +250,18 @@ $-line-height: 1.5;
       outline-color: Highlight;
     }
 
+    // A disabled card is drawn in GrayText, its description included, so its
+    // usual opacity would only halve that. It draws at full strength here.
     > input[type='radio']:disabled + .#{iv.$class-prefix}radio-card-content {
       color: GrayText;
+      opacity: 1;
 
       &::before {
         border-color: GrayText;
+      }
+
+      .#{iv.$class-prefix}radio-card-description {
+        color: GrayText;
       }
     }
 
@@ -276,6 +283,14 @@ $-line-height: 1.5;
       + .#{iv.$class-prefix}radio-card-content
       > .#{iv.$class-prefix}radio-card-check {
       border-color: GrayText;
+    }
+
+    // Checked, a disabled card's dot takes GrayText rather than the
+    // highlight, as Radio's does.
+    > input[type='radio']:checked:disabled
+      + .#{iv.$class-prefix}radio-card-content
+      > .#{iv.$class-prefix}radio-card-check::before {
+      background-color: GrayText;
     }
   }
 }

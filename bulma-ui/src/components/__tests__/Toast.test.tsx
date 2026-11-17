@@ -3,6 +3,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { Toast, ToastContainer, toast } from '../Toast';
+import { Modal } from '../Modal';
 import { ConfigProvider } from '../../helpers/Config';
 import { focusCheckInterval } from '../../helpers/useDismissTimer';
 
@@ -226,6 +227,47 @@ describe('Toast', () => {
       expect(
         screen.getByRole('button', { name: /close/i })
       ).toBeInTheDocument();
+    });
+
+    it('names the close button with ariaCloseLabel, for an app in another language', () => {
+      render(
+        <Toast
+          message="Enregistré"
+          duration={0}
+          closable
+          ariaCloseLabel="Fermer"
+        />
+      );
+      expect(
+        screen.getByRole('button', { name: 'Fermer' })
+      ).toBeInTheDocument();
+    });
+
+    it("names a programmatic toast's close button", () => {
+      render(<ToastContainer />);
+      act(() => {
+        toast.show({
+          message: 'Enregistré',
+          closable: true,
+          ariaCloseLabel: 'Fermer',
+          duration: 0,
+        });
+      });
+      expect(
+        screen.getByRole('button', { name: 'Fermer' })
+      ).toBeInTheDocument();
+    });
+
+    it('keeps the close button named with an empty ariaCloseLabel', () => {
+      render(<Toast message="Saved" duration={0} closable ariaCloseLabel="" />);
+      expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
+    });
+
+    it('keeps ariaCloseLabel off the toast element', () => {
+      render(
+        <Toast message="Saved" duration={0} closable ariaCloseLabel="Fermer" />
+      );
+      expect(screen.getByRole('alert')).not.toHaveAttribute('ariaCloseLabel');
     });
 
     it('close button triggers onClose', () => {
@@ -1601,7 +1643,7 @@ describe('ToastContainer with toasts shown at their own position', () => {
         .filter(el => el !== container)
         .map(el => el.outerHTML)
     ).toEqual([
-      '<div class="toast-container is-bottom-left"><div class="toast" role="alert" aria-live="polite"><span class="toast-message">One</span></div><div class="toast" role="alert" aria-live="polite"><span class="toast-message">Two</span></div></div>',
+      '<div class="toast-container is-bottom-left" role="region" aria-label="Notifications (F8)"><div class="toast" role="alert" aria-live="polite"><span class="toast-message">One</span></div><div class="toast" role="alert" aria-live="polite"><span class="toast-message">Two</span></div></div>',
     ]);
   });
 
@@ -2130,5 +2172,325 @@ describe('Toast hydration', () => {
       errorSpy.mockRestore();
       container.remove();
     }
+  });
+});
+
+// A keyboard or screen reader user reaches a toast's action with a hotkey,
+// before the toast closes on its own (#1915).
+describe('ToastContainer hotkey', () => {
+  afterEach(() => {
+    vi.clearAllTimers();
+    act(() => {
+      toast.closeAll();
+    });
+  });
+
+  const press = (init: KeyboardEventInit) => {
+    const event = new KeyboardEvent('keydown', {
+      bubbles: true,
+      cancelable: true,
+      ...init,
+    });
+    act(() => {
+      document.body.dispatchEvent(event);
+    });
+    return event;
+  };
+
+  it("moves focus to the newest toast's first button on F8", () => {
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({ message: 'Saved', actionText: 'View' });
+      toast.show({
+        message: 'Deleted',
+        cancelText: 'Keep',
+        actionText: 'Undo',
+      });
+    });
+    const event = press({ key: 'F8', code: 'F8' });
+    expect(event.defaultPrevented).toBe(true);
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Keep' })
+    );
+  });
+
+  it('keeps the toast open while focus is in it', () => {
+    const onUndo = vi.fn();
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({
+        message: 'Deleted',
+        actionText: 'Undo',
+        onAction: onUndo,
+        duration: 2000,
+      });
+    });
+    press({ key: 'F8', code: 'F8' });
+    for (let waited = 0; waited < 10000; waited += focusCheckInterval) {
+      act(() => {
+        vi.advanceTimersByTime(focusCheckInterval);
+      });
+    }
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus();
+  });
+
+  it('focuses a toast with no button itself, until focus leaves it', () => {
+    render(
+      <>
+        <button>Save</button>
+        <ToastContainer />
+      </>
+    );
+    act(() => {
+      toast.show({ message: 'Saved', indefinite: true });
+    });
+    press({ key: 'F8', code: 'F8' });
+    const alert = screen.getByRole('alert');
+    expect(alert).toHaveFocus();
+    expect(alert).toHaveAttribute('tabindex', '-1');
+    // Pressed again, it keeps the tabindex it gave and the one way it goes.
+    press({ key: 'F8', code: 'F8' });
+    expect(alert).toHaveFocus();
+    act(() => {
+      screen.getByRole('button', { name: 'Save' }).focus();
+    });
+    expect(alert).not.toHaveAttribute('tabindex');
+  });
+
+  it('leaves the key alone with no toast showing', () => {
+    render(<ToastContainer />);
+    const event = press({ key: 'F8', code: 'F8' });
+    expect(event.defaultPrevented).toBe(false);
+  });
+
+  it('takes a hotkey of its own, with a modifier', () => {
+    render(<ToastContainer hotkey={['altKey', 'KeyT']} />);
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    expect(
+      screen.getByRole('region', { name: 'Notifications (Alt+T)' })
+    ).toBeInTheDocument();
+    press({ key: 'F8', code: 'F8' });
+    expect(document.activeElement).toBe(document.body);
+    press({ key: 't', code: 'KeyT' });
+    expect(document.activeElement).toBe(document.body);
+    press({ key: 't', code: 'KeyT', altKey: true });
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus();
+  });
+
+  it('turns the hotkey off with an empty list', () => {
+    render(<ToastContainer hotkey={[]} />);
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    expect(
+      screen.getByRole('region', { name: 'Notifications' })
+    ).toBeInTheDocument();
+    const event = press({ key: 'F8', code: 'F8' });
+    expect(event.defaultPrevented).toBe(false);
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it('names each stack a region with its hotkey', () => {
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({ message: 'One' });
+      toast.show({ message: 'Two', position: 'bottom-left' });
+    });
+    expect(
+      screen.getAllByRole('region', { name: 'Notifications (F8)' })
+    ).toHaveLength(2);
+  });
+
+  it('leaves the key alone with another modifier held', () => {
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    const event = press({ key: 'F8', code: 'F8', ctrlKey: true });
+    expect(event.defaultPrevented).toBe(false);
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it('takes F8 while someone types in a field, and leaves a typed letter alone', () => {
+    render(
+      <>
+        <input aria-label="Name" />
+        <ToastContainer hotkey={['KeyN']} />
+      </>
+    );
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    const field = screen.getByRole('textbox', { name: 'Name' });
+    act(() => {
+      field.focus();
+    });
+    act(() => {
+      field.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'n', code: 'KeyN', bubbles: true })
+      );
+    });
+    expect(field).toHaveFocus();
+  });
+
+  it('moves focus from a field with F8', () => {
+    render(
+      <>
+        <input aria-label="Name" />
+        <ToastContainer />
+      </>
+    );
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    const field = screen.getByRole('textbox', { name: 'Name' });
+    act(() => {
+      field.focus();
+    });
+    act(() => {
+      field.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'F8', code: 'F8', bubbles: true })
+      );
+    });
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus();
+  });
+
+  it('leaves the key alone while a modal overlay is open', () => {
+    render(
+      <>
+        <Modal active onClose={() => {}}>
+          <button>Inside</button>
+        </Modal>
+        <ToastContainer />
+      </>
+    );
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    const event = press({ key: 'F8', code: 'F8' });
+    expect(event.defaultPrevented).toBe(false);
+    expect(screen.getByRole('button', { name: 'Undo' })).not.toHaveFocus();
+  });
+
+  it('goes to the toast shown last, past a queued one', () => {
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({ message: 'Waited', actionText: 'Open', queue: true });
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    press({ key: 'F8', code: 'F8' });
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus();
+  });
+
+  it("keeps a toast's own id, and still finds it", () => {
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({ id: 'save-toast', message: 'Saved', actionText: 'View' });
+    });
+    expect(screen.getByRole('alert')).toHaveAttribute('id', 'save-toast');
+    press({ key: 'F8', code: 'F8' });
+    expect(screen.getByRole('button', { name: 'View' })).toHaveFocus();
+  });
+
+  it("leaves the key alone when focus can't go to the toast", () => {
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    screen.getByRole('button', { name: 'Undo' }).setAttribute('disabled', '');
+    const event = press({ key: 'F8', code: 'F8' });
+    expect(event.defaultPrevented).toBe(false);
+  });
+
+  it('turns the hotkey off when its entries name no single key', () => {
+    render(<ToastContainer hotkey={['altKey']} />);
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    const event = press({ key: 'Alt', code: 'AltLeft', altKey: true });
+    expect(event.defaultPrevented).toBe(false);
+    // And names the region with no key, since none works.
+    expect(
+      screen.getByRole('region', { name: 'Notifications' })
+    ).toBeInTheDocument();
+  });
+
+  it('takes a key by its code when the key it types is another, such as Period', () => {
+    render(<ToastContainer hotkey={['ctrlKey', 'Period']} />);
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    expect(
+      screen.getByRole('region', { name: 'Notifications (Ctrl+Period)' })
+    ).toBeInTheDocument();
+    press({ key: '.', code: 'Period' });
+    expect(document.activeElement).toBe(document.body);
+    press({ key: '.', code: 'Period', ctrlKey: true, shiftKey: true });
+    expect(document.activeElement).toBe(document.body);
+    press({ key: '.', code: 'Period', ctrlKey: true });
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus();
+  });
+
+  it('takes a numpad key by its code, and leaves it alone while someone types', () => {
+    render(
+      <>
+        <input aria-label="Amount" />
+        <ToastContainer hotkey={['Numpad1']} />
+      </>
+    );
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    const field = screen.getByRole('textbox', { name: 'Amount' });
+    act(() => {
+      field.focus();
+    });
+    act(() => {
+      field.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: '1',
+          code: 'Numpad1',
+          bubbles: true,
+        })
+      );
+    });
+    expect(field).toHaveFocus();
+    act(() => {
+      document.body.focus();
+    });
+    press({ key: '1', code: 'Numpad1' });
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus();
+  });
+
+  it("takes a letter by its key only, not another layout's letter in its place", () => {
+    render(<ToastContainer hotkey={['altKey', 'KeyT']} />);
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    // On a layout where the KeyT position types another Latin letter.
+    press({ key: 'z', code: 'KeyT', altKey: true });
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it('names its region in the language it is given', () => {
+    render(<ToastContainer ariaLabel="Avis" />);
+    act(() => {
+      toast.show({ message: 'Enregistré' });
+    });
+    expect(
+      screen.getByRole('region', { name: 'Avis (F8)' })
+    ).toBeInTheDocument();
+  });
+
+  it('names a digit key without its prefix', () => {
+    render(<ToastContainer hotkey={['ctrlKey', 'shiftKey', 'Digit1']} />);
+    act(() => {
+      toast.show({ message: 'One' });
+    });
+    expect(
+      screen.getByRole('region', { name: 'Notifications (Ctrl+Shift+1)' })
+    ).toBeInTheDocument();
   });
 });

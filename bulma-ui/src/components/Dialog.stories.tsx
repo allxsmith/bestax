@@ -343,11 +343,20 @@ export const ProgrammaticAPI: Story = {
       }
     };
 
+    // With no title to name it, the dialog takes its name from aria-label.
+    const handleUntitled = async () => {
+      await dialog.alert({
+        message: 'Your changes are saved.',
+        'aria-label': 'Saved',
+      });
+    };
+
     return (
       <Section>
         <DialogContainer />
         <Buttons>
           <Button onClick={handleAlert}>Show Alert</Button>
+          <Button onClick={handleUntitled}>Alert Without a Title</Button>
           <Button color="primary" onClick={handleConfirm}>
             Show Confirm
           </Button>

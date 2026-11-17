@@ -20,6 +20,8 @@ import {
   Input,
   Media,
   MenuLink,
+  Modal,
+  ModalContent,
   Nav,
   NavItem,
   NavLeft,
@@ -73,6 +75,11 @@ export const Leftovers = ({
         </DropdownContent>
       </DropdownMenu>
     </Dropdown>
+
+    {/* the open modal is a dialog, and nothing names this one */}
+    <Modal isActive>
+      <ModalContent>unnamed</ModalContent>
+    </Modal>
 
     {/* bestax narrows `as` on these, and a <span> is not in either union */}
     <Media tag="span">span media</Media>

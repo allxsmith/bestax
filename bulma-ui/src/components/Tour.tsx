@@ -40,10 +40,10 @@ import { useLatestRef } from '../helpers/useLatestRef';
 import { useScopedNumberFormat } from '../helpers/localeFormat';
 import { spokenText, visuallyHidden } from '../helpers/statusRegion';
 import {
-  flatParent,
   getActiveElementInTree,
   listenInShadowRoots,
 } from '../helpers/shadowDom';
+import { clippingAncestors } from '../helpers/clippingAncestors';
 import { isDev, warnOnce } from '../helpers/devWarnings';
 import { buttonType } from '../helpers/buttonType';
 import { Button, ButtonOwnProps } from '../elements/Button';
@@ -851,12 +851,8 @@ const isFullyVisible = (element: HTMLElement): boolean =>
 
 /**
  * Whether `rect`, a box on the screen that `element` draws in, is all in
- * view: inside the viewport, and inside each ancestor that clips what
- * overflows it. Only an ancestor the element is laid out in clips it: a
- * fixed element is laid out in the viewport, and an absolutely positioned
- * one in its nearest positioned ancestor, unless an ancestor on the way
- * holds it as `holdsPositioned` says, so it escapes every ancestor in
- * between.
+ * view: inside the viewport, and inside each ancestor that clips it, as
+ * `clippingAncestors` finds them.
  */
 function isInView(element: HTMLElement, rect: Edges): boolean {
   const doc = element.ownerDocument;
@@ -870,29 +866,7 @@ function isInView(element: HTMLElement, rect: Edges): boolean {
   if (!inside({ top: 0, left: 0, bottom: clientHeight, right: clientWidth })) {
     return false;
   }
-  // How the element, or the last ancestor it's laid out in, is positioned.
-  let position = getComputedStyle(element).position;
-  for (
-    let node = flatParent(element) as Element | null;
-    node && node !== doc.body && node !== doc.documentElement;
-    node = flatParent(node) as Element | null
-  ) {
-    // An ancestor with no box, as a slot is by default, clips nothing.
-    if (node.getClientRects().length === 0) continue;
-    const style = getComputedStyle(node);
-    const holds =
-      position === 'fixed'
-        ? holdsPositioned(style)
-        : position !== 'absolute' ||
-          style.position !== 'static' ||
-          holdsPositioned(style);
-    if (!holds) continue;
-    position = style.position;
-    // Each axis clips on its own: `overflow-x: clip` leaves the other one
-    // visible.
-    const clipsX = /auto|scroll|hidden|clip/.test(style.overflowX);
-    const clipsY = /auto|scroll|hidden|clip/.test(style.overflowY);
-    if (!clipsX && !clipsY) continue;
+  for (const { element: node, clipsX, clipsY } of clippingAncestors(element)) {
     const box = node.getBoundingClientRect();
     const clip = {
       top: clipsY ? box.top : -Infinity,
@@ -904,27 +878,6 @@ function isInView(element: HTMLElement, rect: Edges): boolean {
   }
   return true;
 }
-
-/**
- * Whether an element holds its fixed and absolutely positioned descendants
- * whatever its own position, as a transform, a perspective, a filter, layout
- * or paint containment, a size container or a `will-change` naming one of
- * them makes it.
- */
-const holdsPositioned = (style: CSSStyleDeclaration): boolean =>
-  [
-    style.transform,
-    style.translate,
-    style.scale,
-    style.rotate,
-    style.perspective,
-    style.filter,
-  ].some(value => !!value && value !== 'none') ||
-  (!!style.containerType && style.containerType !== 'normal') ||
-  /transform|translate|scale|rotate|perspective|filter/.test(
-    style.willChange ?? ''
-  ) ||
-  /paint|layout|strict|content/.test(style.contain ?? '');
 
 /**
  * Whether a title or a body has something to show: any child but `null`,

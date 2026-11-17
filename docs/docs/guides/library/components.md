@@ -67,21 +67,23 @@ A responsive navigation bar with support for branding, menus, dropdowns, and mor
 
 ### Tabs
 
-A flexible tab navigation system for switching between views or filtering content. [View full documentation.](../../api/components/tabs.md)
+A flexible tab system for navigation, or for switching between views in place. This example is navigation: a link in each `Tabs.Item`, with the current one marked `aria-current="page"`. Tabs that switch views in place are built from `Tabs.Tab` and `Tabs.Content`. [View full documentation.](../../api/components/tabs.md)
 
 ```tsx live
 <Tabs align="centered">
-  <Tabs.List>
+  <ul>
     <Tabs.Item active>
-      <a>Home</a>
+      <a href="#home" aria-current="page">
+        Home
+      </a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>Profile</a>
+      <a href="#profile">Profile</a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>Settings</a>
+      <a href="#settings">Settings</a>
     </Tabs.Item>
-  </Tabs.List>
+  </ul>
 </Tabs>
 ```
 
@@ -255,8 +257,8 @@ A Bulma-styled card with optional header, image, content, and footer. [View full
 A vertical panel block for lists, filters, or grouped actions. [View full documentation.](../../api/components/panel.md)
 
 ```tsx live
-<Panel>
-  <Panel.Heading>Revolutionary Figures</Panel.Heading>
+<Panel aria-labelledby="panel-guide-figures">
+  <Panel.Heading id="panel-guide-figures">Revolutionary Figures</Panel.Heading>
   <Panel.InputBlock placeholder="Search" />
   <Panel.Tabs>
     <a className="is-active">All</a>
@@ -293,7 +295,7 @@ A vertical panel block for lists, filters, or grouped actions. [View full docume
 Image/content slider with navigation arrows and indicators. Supports auto-play, drag navigation, several items in view at once, and customizable styles. [View full documentation.](../../api/components/carousel.md)
 
 ```tsx live
-<Carousel indicatorStyle="lines" arrowHover>
+<Carousel ariaLabel="Night sky photos" indicatorStyle="lines" arrowHover>
   <CarouselItem>
     <div style={{ position: 'relative' }}>
       <img
@@ -963,18 +965,22 @@ A search field over a list of things to do, which narrows as you type and runs t
 
 ### Badge
 
-A small status/count indicator overlaid on a corner of its `children` (or standalone). Renders `"{max}+"` past a threshold, hides at `0` unless `showZero`, and supports a plain `dot` mode. [View full documentation.](../../api/components/badge.md)
+A small status/count indicator overlaid on a corner of its `children` (or standalone). Renders `"{max}+"` past a threshold, hides at `0` unless `showZero`, and supports a plain `dot` mode. A dot isn't read out and a count reads only what it shows, so the anchor's name says what each means. [View full documentation.](../../api/components/badge.md)
 
 ```tsx live
 <Block display="flex">
   <Badge content={4} color="danger" mr="6">
-    <Avatar name="Ada Lovelace" />
+    <Avatar name="Ada Lovelace" alt="Ada Lovelace, 4 new messages" />
   </Badge>
   <Badge content={128} max={99} color="info" mr="6">
-    <Avatar name="Grace Hopper" shape="square" />
+    <Avatar
+      name="Grace Hopper"
+      alt="Grace Hopper, 128 new messages"
+      shape="square"
+    />
   </Badge>
   <Badge dot color="success" overlap="circle">
-    <Avatar name="Katherine Johnson" />
+    <Avatar name="Katherine Johnson" alt="Katherine Johnson, online" />
   </Badge>
 </Block>
 ```

@@ -106,6 +106,7 @@ Create `src/styles.scss` — base + themes always come first:
 // One line per stock Bulma component the app imports…
 @use 'bulma/sass/elements/button';
 @use 'bulma/sass/components/card';
+@use 'bulma/sass/components/modal'; // Dialog is drawn inside a Modal
 // …and per bestax extras component:
 @use '@allxsmith/bestax-bulma/scss/components/dialog';
 // …and bestax's partial for each stock component that has one:

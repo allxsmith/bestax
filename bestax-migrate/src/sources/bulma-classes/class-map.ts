@@ -1801,7 +1801,14 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       ),
       ...flags({ 'is-light': 'isLight' }),
     },
-    ownProps: ['color', 'textColor', 'isLight', 'hasDelete', 'onDelete'],
+    ownProps: [
+      'color',
+      'textColor',
+      'isLight',
+      'hasDelete',
+      'onDelete',
+      'ariaCloseLabel',
+    ],
   },
   progress: {
     ...BASE,
@@ -2243,7 +2250,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   'message-body': part(),
   modal: todo(
     'Modal',
-    'bestax `Modal` writes `data-testid="modal"` when it\'s given none, and adds dialog attributes and focus handling, so rebuild the root with it by hand; its parts convert on their own'
+    'bestax `Modal` writes `data-testid="modal"` when it\'s given none, and adds dialog attributes and focus handling, so rebuild the root with it by hand, keeping or adding a name for the dialog it becomes: an `aria-label`, or an `aria-labelledby` pointing at the `id` of its title; its parts convert on their own'
   ),
   // Modal's parts are plain elements with their class, and take no helper
   // props. `.modal-close` stays a part of the root's family: `Modal.Close`

@@ -10,6 +10,8 @@ import React, {
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { PortalScope, usePortalProp } from '../helpers/portal';
+import { warnOnce } from '../helpers/devWarnings';
+import { hasText } from '../helpers/iconGlyph';
 import { Modal } from './Modal';
 
 /** Valid dialog type/color values. */
@@ -19,6 +21,7 @@ export type DialogType = 'default' | 'success' | 'danger' | 'warning' | 'info';
  * Props for the Dialog component.
  * @extraProp {string} [className] - Additional CSS classes.
  * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the dialog element.
+ * @extraProp {string} [aria-label] - The dialog's accessible name, for a dialog with no `title`. A development build warns about an open dialog with no title, `aria-label` or `aria-labelledby`.
  */
 export interface DialogProps
   extends
@@ -28,7 +31,9 @@ export interface DialogProps
   isOpen: boolean;
   /**
    * Dialog title, which names the dialog through `aria-labelledby` unless
-   * you pass an `aria-labelledby` of your own.
+   * you pass an `aria-labelledby` of your own. A dialog with no title has no
+   * name unless you give it an `aria-label`, or an `aria-labelledby` pointing
+   * at text of yours, and a development build warns about one with none.
    */
   title?: string | undefined;
   /**
@@ -137,6 +142,25 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
     const baseId = useId();
     const titleId = `${baseId}-title`;
     const messageId = `${baseId}-message`;
+
+    // An alertdialog needs a name: a label of the caller's own, or the title,
+    // unless an `aria-labelledby` the caller passed, which is spread over the
+    // title's, replaces it.
+    const named =
+      hasText(rest['aria-label']) ||
+      ('aria-labelledby' in rest
+        ? hasText(rest['aria-labelledby'])
+        : hasText(title));
+    useEffect(() => {
+      if (isOpen && !named) {
+        warnOnce(
+          'Dialog:unnamed',
+          '[bestax-bulma] A Dialog opened with no accessible name. Give it a ' +
+            'title, an aria-label or an aria-labelledby. dialog.alert and ' +
+            'dialog.confirm take a title or an aria-label in their options.'
+        );
+      }
+    }, [isOpen, named]);
 
     // Handle cancel
     const handleCancel = useCallback(() => {
@@ -370,8 +394,13 @@ Dialog.displayName = 'Dialog';
  * Options for showing a programmatic alert dialog.
  */
 export interface AlertOptions {
-  /** Dialog title. */
+  /** Dialog title, which names the dialog. */
   title?: string;
+  /**
+   * The dialog's accessible name when it has no `title`. With a title, the
+   * title names it. A development build warns about a dialog with neither.
+   */
+  'aria-label'?: React.AriaAttributes['aria-label'];
   /** Dialog message/content. */
   message: string | React.ReactNode;
   /**
@@ -440,7 +469,9 @@ const notifyDialogListeners = () => {
  */
 export const dialog = {
   /**
-   * Show an alert dialog. Returns a promise that resolves when closed.
+   * Show an alert dialog. Returns a promise that resolves when closed. A
+   * string is the message alone, which leaves the dialog without a name, so
+   * pass options with a `title` or an `aria-label` instead.
    */
   alert: (options: AlertOptions | string): Promise<void> => {
     return new Promise<void>(resolve => {
@@ -455,7 +486,9 @@ export const dialog = {
   },
 
   /**
-   * Show a confirm dialog. Returns a promise that resolves to true/false.
+   * Show a confirm dialog. Returns a promise that resolves to true/false. A
+   * string is the message alone, which leaves the dialog without a name, so
+   * pass options with a `title` or an `aria-label` instead.
    */
   confirm: (options: ConfirmOptions | string): Promise<boolean> => {
     return new Promise<boolean>(resolve => {
@@ -519,6 +552,7 @@ export const DialogContainer: React.FC = () => {
       confirmText={options.confirmText}
       cancelText={options.cancelText}
       icon={options.icon}
+      aria-label={options['aria-label']}
       showCancel={type === 'confirm'}
       focusCancel={options.focusCancel}
       onConfirm={() => dialog.close(type === 'confirm' ? true : undefined)}

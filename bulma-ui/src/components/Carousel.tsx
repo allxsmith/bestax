@@ -21,6 +21,7 @@ import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { MOBILE, useBulmaViewport } from '../helpers/useBulmaViewport';
 import { inertProps } from '../helpers/inertProps';
 import { useSwipe } from '../helpers/useSwipe';
+import { usePrefersReducedMotion } from '../helpers/usePrefersReducedMotion';
 import { chain } from '../helpers/useHoverOpen';
 import { ChevronNextIcon, ChevronPrevIcon } from '../helpers/chevronIcons';
 import { Icon } from '../elements/Icon';
@@ -286,7 +287,15 @@ export interface CarouselProps
    * arrows take `--bulma-carousel-overlay-arrow-color`.
    */
   arrowColor?: 'light' | 'dark';
-  /** Accessible label for the carousel region. Default: 'Image carousel'. */
+  /**
+   * The carousel region's name. Name it for what it shows, such as
+   * "Featured products", and leave out the word "carousel", which the
+   * region's role description already says. Under a visible heading,
+   * `aria-labelledby` with the heading's id names it instead, ahead of the
+   * `aria-label` the default still sets. The default is a placeholder that
+   * says "carousel" twice with the role description, and is the same on
+   * every carousel left with it. Default: 'Image carousel'.
+   */
   ariaLabel?: string;
   /**
    * Called with the index of the first item in view when an arrow, an arrow
@@ -307,7 +316,7 @@ export interface CarouselProps
  *
  * @example
  * // Basic carousel
- * <Carousel>
+ * <Carousel ariaLabel="Highlights">
  *   <CarouselItem>Slide 1</CarouselItem>
  *   <CarouselItem>Slide 2</CarouselItem>
  *   <CarouselItem>Slide 3</CarouselItem>
@@ -315,7 +324,7 @@ export interface CarouselProps
  *
  * @example
  * // Auto-playing carousel
- * <Carousel autoplay interval={3000}>
+ * <Carousel ariaLabel="Photos" autoplay interval={3000}>
  *   <CarouselItem>
  *     <img src="image1.jpg" alt="Slide 1" />
  *   </CarouselItem>
@@ -326,7 +335,12 @@ export interface CarouselProps
  *
  * @example
  * // Three cards in view on desktop, two on tablet, one on mobile
- * <Carousel itemsToShow={1} itemsToShowTablet={2} itemsToShowDesktop={3}>
+ * <Carousel
+ *   ariaLabel="Featured products"
+ *   itemsToShow={1}
+ *   itemsToShowTablet={2}
+ *   itemsToShowDesktop={3}
+ * >
  *   {cards.map(card => (
  *     <CarouselItem key={card.id}>{card.body}</CarouselItem>
  *   ))}
@@ -398,6 +412,8 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     const [isWrapping, setIsWrapping] = useState(false);
     const [displayIndex, setDisplayIndex] = useState(0);
     const [skipTransition, setSkipTransition] = useState(false);
+    // Under reduced motion each step changes the view at once, with no slide
+    const reducedMotion = usePrefersReducedMotion();
 
     // Get valid children
     const items = Children.toArray(children).filter(
@@ -499,24 +515,37 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     const goToPrev = useCallback(() => {
       if (prevIndex !== undefined) {
         setActiveIndex(prevIndex);
+      } else if (looping && reducedMotion) {
+        // No transition to end, so straight to the last position
+        setActiveIndex(lastPosition);
       } else if (looping) {
         // Animate to the clones before the first item, which show the last
         // position, and snap to the real one when the transition ends
         setDisplayIndex(lastPosition - itemCount);
         setIsWrapping(true);
       }
-    }, [prevIndex, looping, lastPosition, itemCount, setActiveIndex]);
+    }, [
+      prevIndex,
+      looping,
+      reducedMotion,
+      lastPosition,
+      itemCount,
+      setActiveIndex,
+    ]);
 
     const goToNext = useCallback(() => {
       if (nextIndex !== undefined) {
         setActiveIndex(nextIndex);
+      } else if (looping && reducedMotion) {
+        // No transition to end, so straight to the first position
+        setActiveIndex(0);
       } else if (looping) {
         // Animate to the clones after the last item, which show the first
         // position, and snap to the real one when the transition ends
         setDisplayIndex(itemCount);
         setIsWrapping(true);
       }
-    }, [nextIndex, looping, itemCount, setActiveIndex]);
+    }, [nextIndex, looping, reducedMotion, itemCount, setActiveIndex]);
 
     // Read when the timer fires or an arrow key arrives, so neither the
     // timer nor the key listener starts over while `onChange` changes
@@ -668,6 +697,15 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       },
       [isWrapping, displayIndex, itemCount, setActiveIndex]
     );
+
+    // A wrap under way when reduced motion turns on loses its transition, and
+    // with it the transitionend that would finish it, so finish it here,
+    // before it paints.
+    useClientLayoutEffect(() => {
+      if (reducedMotion && isWrapping) {
+        setActiveIndex(((displayIndex % itemCount) + itemCount) % itemCount);
+      }
+    }, [reducedMotion, isWrapping, displayIndex, itemCount, setActiveIndex]);
 
     // Combined ref
     const combinedRef = useCallback(
@@ -901,9 +939,10 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
               // reverses, and the stylesheet sets the sign to +1 so the
               // same shift keeps a slide in view.
               transform: `translateX(calc(var(--carousel-shift-sign, -1) * ${shownIndex + cloneCount} * (100% + var(--bulma-carousel-item-gap, 0px)) / var(--bulma-carousel-items-in-view, 1)))`,
-              // Disable transition during drag or instant snap after wrap-around
+              // Disable transition during drag, for the instant snap after
+              // wrap-around, and when the system asks for reduced motion
               transition:
-                isDragging || skipTransition
+                isDragging || skipTransition || reducedMotion
                   ? 'none'
                   : 'transform 0.3s ease-in-out',
             }}

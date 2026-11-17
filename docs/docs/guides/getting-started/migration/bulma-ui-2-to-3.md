@@ -68,6 +68,7 @@ You'll need to take action if your code does any of the following:
 
 ```tsx live
 <Input
+  autoComplete="email"
   label="Email"
   type="email"
   iconLeftName="envelope"
@@ -228,6 +229,10 @@ function example() {
 
 :::note Wrap children in `<a>`
 The legacy `<Tabs.Item>` renders a `<li>` only — Bulma's tab CSS expects an `<a>` link inside it for the click target styling. The new `<Tabs.Tab>` component below does this for you.
+:::
+
+:::caution Click-only tabs
+The 2.x code above keeps working, but a keyboard can't reach an `<a>` without an `href`, and a screen reader hears a tab list with no tabs in it. For tabs that switch what's shown in place, move to `<Tabs.Tab>` below. For navigation, give each link an `href` and the current one `aria-current="page"`, in a plain `<ul>`, as the [Tabs page](../../../api/components/tabs.md) shows.
 :::
 
 A new opt-in `<Tabs.Tab index={n}>` component DOES consume the context and lets you control active state via `<Tabs value={n} onChange={...}>` or uncontrolled via `<Tabs defaultValue={n}>`:

@@ -39,6 +39,11 @@
  * only while the library's `scss` exports name no condition but `default`,
  * which a test below holds.
  *
+ * A fence that loads a partial whose component is always drawn inside a Bulma
+ * module, as a Dialog is inside the modal, has to load that module too, which
+ * a compile doesn't show: it compiles, and the overlay renders with no
+ * backdrop. `DRAWN_INSIDE` lists those partials.
+ *
  * Bulma's own deprecation warnings are silenced: a compile error is what this
  * is about, and bulma-ui's `scss-deprecations` test holds the library's
  * sources to the warnings.
@@ -213,6 +218,36 @@ function scssFences(rel) {
 const folders = indexedFolders();
 const listed = inventory();
 
+/**
+ * The Bulma module each bestax partial's component is always drawn inside,
+ * which a stylesheet using the partial needs too: without it the overlay sits
+ * in the page's flow with no backdrop (#1955). `command` isn't here, since an
+ * inline Command needs no modal; the skill says a `Command.Dialog` does.
+ */
+const DRAWN_INSIDE = new Map([
+  ['components/dialog', 'bulma/sass/components/modal'],
+  ['components/lightbox', 'bulma/sass/components/modal'],
+]);
+
+/**
+ * Whether one of `uses` loads `url`: that file, or a folder above it, whose
+ * index loads what the folder holds.
+ */
+const loads = (uses, url) =>
+  uses.some(use => use === url || url.startsWith(`${use}/`));
+
+/** What `code` loads with a bestax partial but not the module it's drawn in. */
+function missingModules(code) {
+  // At the start of a line, so a commented-out `@use` doesn't count.
+  const uses = [...code.matchAll(/^\s*@use\s+(['"])(.+?)\1/gm)].map(m => m[2]);
+  return [...DRAWN_INSIDE]
+    .filter(
+      ([partial, module]) =>
+        loads(uses, `${LIBRARY}/scss/${partial}`) && !loads(uses, module)
+    )
+    .map(([partial, module]) => `${partial} without ${module}`);
+}
+
 describe('the optimize skill’s extras inventory', () => {
   it('has a line for each folder with an index, and only those', () => {
     const missing = folders.filter(folder => !listed.has(folder));
@@ -337,22 +372,53 @@ describe('the scss fences in the modular build pages', () => {
     );
   });
 
-  it('compiles the Modular guide’s Option C blocks as one stylesheet', () => {
-    // A reader builds one file from the blocks under these headings, so a
-    // Bulma module in one block and the bestax partial extending it in
-    // another clash only once they are joined. The complete example after
-    // them is a stylesheet of its own and repeats their URLs.
+  /** The Modular guide's Option C blocks, which a reader joins into one file. */
+  const optionC = () => {
     const { lines } = splitLines(readFileSync(join(REPO, GUIDE), 'utf8'));
     // A heading's line number, counted from 1 like a fence's, or 0.
     const lineOf = heading => lines.indexOf(heading) + 1;
     const from = lineOf('#### Required base styles');
     const to = lineOf('#### Complete example');
     assert.ok(from > 0 && to > from, `${GUIDE} lost an Option C heading`);
-    const blocks = scssFences(GUIDE).filter(
-      ({ line }) => line > from && line < to
-    );
+    return scssFences(GUIDE).filter(({ line }) => line > from && line < to);
+  };
+
+  it('compiles the Modular guide’s Option C blocks as one stylesheet', () => {
+    // A reader builds one file from the blocks under these headings, so a
+    // Bulma module in one block and the bestax partial extending it in
+    // another clash only once they are joined. The complete example after
+    // them is a stylesheet of its own and repeats their URLs.
+    const blocks = optionC();
     assert.ok(blocks.length > 1, `${GUIDE} has no Option C blocks to join`);
     compile(blocks.map(({ code }) => code).join('\n'));
+  });
+
+  it('loads the Bulma module each overlay partial is drawn inside', () => {
+    // Each fence is a stylesheet of its own, apart from the Option C
+    // blocks, which are one.
+    const blocks = optionC();
+    const missing = [
+      ...missingModules(blocks.map(({ code }) => code).join('\n')).map(
+        gap => `${GUIDE} Option C: ${gap}`
+      ),
+      ...PAGES.flatMap(page =>
+        scssFences(page)
+          .filter(
+            ({ line }) =>
+              page !== GUIDE || !blocks.some(block => block.line === line)
+          )
+          .flatMap(({ code, line }) =>
+            missingModules(code).map(gap => `${page}:${line}: ${gap}`)
+          )
+      ),
+    ];
+    assert.deepEqual(
+      missing,
+      [],
+      'These load a bestax partial whose component is drawn inside a Bulma ' +
+        'module they leave out, so the overlay has no backdrop. Add the ' +
+        'module beside it.'
+    );
   });
 
   for (const page of PAGES) {

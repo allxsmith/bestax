@@ -7,8 +7,9 @@
 // forced-colors page applies them, link them with Bulma's CSS on either
 // side, and resolve each divider through `css-cascade`.
 import type React from 'react';
-import { render } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { Dropdown } from '../Dropdown';
+import { ContextMenu } from '../ContextMenu';
 import { Navbar } from '../Navbar';
 import { ConfigProvider } from '../../helpers/Config';
 import {
@@ -128,5 +129,137 @@ describe.each([
       'none',
       'none',
     ]);
+  });
+});
+
+// Bulma marks an active item with a fill and a text color, which forced
+// colors replaces (#1876). `_dropdown.scss` gives every menu item a bar's
+// width in Canvas there, and an active or selected one the bar in Highlight,
+// as `_menu.scss` does for Menu. These check the rules and what they match.
+describe.each([
+  ['unprefixed', ''],
+  ['under a class prefix', 'bestax-'],
+])('the active item in forced colors, %s', (_label, prefix) => {
+  const itemRules = () => {
+    const { rules, nested } = rulesOf(
+      compilePartial('components/dropdown', prefix)
+    );
+    expect(rules).toEqual([]);
+    const found = nested
+      .filter(
+        ({ within, rule }) =>
+          within === FORCED && /dropdown-item/.test(rule.selectorText)
+      )
+      .map(({ rule }) => rule);
+    expect(found).toHaveLength(2);
+    return found;
+  };
+
+  it('reserves the bar on every item and colors it on an active or selected one', () => {
+    const [every, current] = itemRules();
+    expect(every.style.getPropertyValue('border-inline-start')).toBe(
+      '0.25em solid Canvas'
+    );
+    // The same items, when active or selected.
+    for (const state of ['is-active', 'is-selected']) {
+      expect(current.selectorText).toContain(
+        `${every.selectorText}.${prefix}${state}`
+      );
+    }
+    expect(current.style.getPropertyValue('border-inline-start-color')).toBe(
+      'highlight'
+    );
+    // Inherited, so on an item it would leave an icon or a tag in the label
+    // in its author colors. Only the divider opts out.
+    expect(every.style.getPropertyValue('forced-color-adjust')).toBe('');
+  });
+
+  it('marks the active Dropdown and ContextMenu items, and no combobox option, even one inside the menu', () => {
+    const [every, current] = itemRules();
+    render(
+      <ConfigProvider classPrefix={prefix}>
+        <Dropdown label="Workspace" active closeOnClick={false}>
+          <Dropdown.Item as="button">Design</Dropdown.Item>
+          <Dropdown.Item as="button" active>
+            Marketing
+          </Dropdown.Item>
+          {/* Choices in a group, as APG's radio menu has them. */}
+          <div role="group" aria-label="Sort">
+            <Dropdown.Item
+              as="button"
+              role="menuitemradio"
+              aria-checked
+              active
+              aria-current={false}
+            >
+              Name
+            </Dropdown.Item>
+            <Dropdown.Item
+              as="button"
+              role="menuitemradio"
+              aria-checked={false}
+              className={`${prefix}is-selected`}
+            >
+              Date
+            </Dropdown.Item>
+          </div>
+          {/* An Autocomplete's list in the menu: a menu of its own. */}
+          <div className={`${prefix}dropdown-menu`}>
+            <div className={`${prefix}dropdown-content`} role="listbox">
+              <a
+                className={`${prefix}dropdown-item ${prefix}is-active`}
+                role="option"
+                aria-selected
+              >
+                Nested option
+              </a>
+            </div>
+          </div>
+        </Dropdown>
+        <ContextMenu
+          aria-label="Actions"
+          trigger={<div data-testid="row">Row</div>}
+        >
+          <ContextMenu.Item as="button">Rename</ContextMenu.Item>
+          <ContextMenu.Item as="button" active>
+            Share
+          </ContextMenu.Item>
+        </ContextMenu>
+        {/* A combobox's list beside the menus. */}
+        <div className={`${prefix}dropdown-menu`} role="listbox">
+          <div className={`${prefix}dropdown-content`}>
+            <a
+              className={`${prefix}dropdown-item ${prefix}is-active`}
+              role="option"
+              aria-selected
+            >
+              Option
+            </a>
+          </div>
+        </div>
+      </ConfigProvider>
+    );
+    fireEvent.contextMenu(screen.getByTestId('row'));
+    const names = [
+      'Design',
+      'Marketing',
+      'Name',
+      'Date',
+      'Nested option',
+      'Rename',
+      'Share',
+      'Option',
+    ];
+    const matched = (rule: CSSStyleRule) =>
+      names.filter(name => screen.getByText(name).matches(rule.selectorText));
+    expect(matched(every)).toEqual([
+      'Design',
+      'Marketing',
+      'Name',
+      'Date',
+      'Rename',
+      'Share',
+    ]);
+    expect(matched(current)).toEqual(['Marketing', 'Name', 'Date', 'Share']);
   });
 });

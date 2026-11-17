@@ -63,13 +63,13 @@ Try toggling between light and dark mode using the theme switcher in the top nav
 <>
   <Field label="Name">
     <Control>
-      <Input placeholder="Enter your name" />
+      <Input autoComplete="name" placeholder="Enter your name" />
     </Control>
   </Field>
 
   <Field label="Email">
     <Control>
-      <Input placeholder="Enter your email" />
+      <Input type="email" autoComplete="email" placeholder="Enter your email" />
     </Control>
   </Field>
 
@@ -426,6 +426,7 @@ In addition to helper classes, each component has its own specific properties th
     <Field label="Input-specific properties">
       <Control>
         <Input
+          autoComplete="email"
           type="email"
           placeholder="Email"
           color="success"

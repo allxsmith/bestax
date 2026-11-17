@@ -50,6 +50,7 @@ import {
 } from '../_shared/props.js';
 import { enforcePolymorphicProps } from '../_shared/polymorphic.js';
 import { keepBaseDisplay } from '../_shared/display.js';
+import { askForModalName } from '../_shared/modal-name.js';
 import {
   bestaxValueLocals,
   buildBestaxImport,
@@ -467,6 +468,9 @@ export default function transform(
     // Last: bestax's props follow `as`, so the element decides which of the
     // props just written it can actually take.
     enforcePolymorphicProps(ctx, path, element, target);
+
+    // Read off the attributes the element ends up with.
+    askForModalName(ctx, path, element, target);
   });
 
   // ---- 2b. Value references to bloomer components ---------------------------
