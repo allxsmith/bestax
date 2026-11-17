@@ -35,7 +35,7 @@
     },
     {
       "title": "Static State",
-      "code": "<>\n  <Input\n    autoComplete=\"username\"\n    horizontal\n    label=\"Username\"\n    isStatic\n    readOnly\n    value=\"Static value\"\n  />\n  <Input horizontal label=\"Password\" placeholder=\"Editable value\" />\n</>"
+      "code": "<>\n  <Input horizontal label=\"Username\" isStatic readOnly value=\"Static value\" />\n  <Input horizontal label=\"Password\" placeholder=\"Editable value\" />\n</>"
     },
     {
       "title": "With Icons (Left and Right)",

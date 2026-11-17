@@ -11,7 +11,7 @@
     },
     {
       "title": "Variants",
-      "code": "<Columns>\n  <Column>\n    <Fieldset legend=\"Default\">\n      <Input\n        autoComplete=\"address-line1\"\n        label=\"Street\"\n        name=\"street-default\"\n      />\n    </Fieldset>\n  </Column>\n  <Column>\n    <Fieldset variant=\"filled\" legend=\"Filled\">\n      <Input autoComplete=\"address-line1\" label=\"Street\" name=\"street-filled\" />\n    </Fieldset>\n  </Column>\n  <Column>\n    <Fieldset variant=\"unstyled\" legend=\"Unstyled\">\n      <Input\n        autoComplete=\"address-line1\"\n        label=\"Street\"\n        name=\"street-unstyled\"\n      />\n    </Fieldset>\n  </Column>\n</Columns>"
+      "code": "<Columns>\n  <Column>\n    <Fieldset legend=\"Default\">\n      <Input label=\"Street\" name=\"street-default\" />\n    </Fieldset>\n  </Column>\n  <Column>\n    <Fieldset variant=\"filled\" legend=\"Filled\">\n      <Input label=\"Street\" name=\"street-filled\" />\n    </Fieldset>\n  </Column>\n  <Column>\n    <Fieldset variant=\"unstyled\" legend=\"Unstyled\">\n      <Input label=\"Street\" name=\"street-unstyled\" />\n    </Fieldset>\n  </Column>\n</Columns>"
     },
     {
       "title": "With a Message",
