@@ -127,7 +127,11 @@ const config = {
 ## Accessibility
 
 - **Whitespace Preservation:** The `<pre>` element preserves all whitespace, which is important for code formatting.
-- **Scrolling:** Consider horizontal scrolling for long lines to prevent layout issues.
+- **Scrolling:** Bulma scrolls a long line sideways rather than wrapping it. While the content
+  overflows, the block is a tab stop you can scroll with the arrow keys, Safari included, with a
+  focus ring in Bulma's focus color just inside it, and a region when it has a name. While it fits, it's a plain
+  `<pre>` with no tab stop. Name it with `aria-label` or `aria-labelledby` so a screen reader says
+  what took focus.
 - **Screen Readers:** a `<pre>` has no role of its own, so a screen reader reads its text like any other and doesn't say it's preformatted. Say what the block is in the text before it ("The config file:").
 
 :::info
@@ -155,13 +159,16 @@ For code blocks, wrap content in both `<Pre>` and `<Code>` for proper semantics:
 
 <!-- bestax:generated props -->
 
-| Prop        | Type                                                                    | Default | Description                                       |
-| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                                                                | —       | Additional CSS classes to apply.                  |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                |
-| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                          |
-| `children`  | `React.ReactNode`                                                       | —       | Preformatted content to render.                   |
-| `...`       | All standard `<pre>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop              | Type                                                                    | Default | Description                                                                                                                                           |
+| ----------------- | ----------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className`       | `string`                                                                | —       | Additional CSS classes to apply.                                                                                                                      |
+| `textColor`       | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                                                                                                                    |
+| `bgColor`         | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                                                                                                                              |
+| `children`        | `React.ReactNode`                                                       | —       | Preformatted content to render.                                                                                                                       |
+| `aria-label`      | `string`                                                                | —       | Names the block, such as "Install command". While it overflows, a named block is a region, and this is what a screen reader says when it takes focus. |
+| `aria-labelledby` | `string`                                                                | —       | The id of a visible heading or caption that names the block, in place of `aria-label`.                                                                |
+| `tabIndex`        | `number`                                                                | —       | Replaces the tab stop `Pre` gives itself while it overflows: `-1` keeps it out of the Tab order.                                                      |
+| `...`             | All standard `<pre>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                     |
 
 <!-- /bestax:generated props -->
 
