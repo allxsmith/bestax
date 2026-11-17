@@ -1084,7 +1084,9 @@ button is `disabled` or `aria-disabled`, whatever `--bulma-sidebar-close-color` 
 ### Slider
 
 A mark's label sits inside its tick, so outside forced colors `--bulma-slider-tick-opacity` dims
-the label along with the tick's line, whatever `--bulma-slider-tick-label-color` you set.
+the label along with the tick's line, whatever `--bulma-slider-tick-label-color` you set. In forced
+colors neither `--bulma-slider-tick-opacity` nor `--bulma-slider-disabled-opacity` applies, and the
+system's colors replace the tick and label colors.
 
 `--bulma-slider-disabled-opacity`, `--bulma-slider-fill-color`,
 `--bulma-slider-output-background`, `--bulma-slider-output-color`,
@@ -1236,6 +1238,9 @@ one there, set these on the timeline itself, through its `style` or a class load
 stylesheet, or give it a `color`.
 
 ### Toast
+
+Forced colors drop the toast's shadow and repaint its fill in the system's `Canvas`, so there the
+toast takes a one pixel `CanvasText` edge, and the cancel button's text is drawn at full strength.
 
 `--bulma-toast-action-hover-opacity`, `--bulma-toast-action-radius`,
 `--bulma-toast-action-weight`, `--bulma-toast-animation-duration`, `--bulma-toast-background`,

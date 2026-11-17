@@ -27,7 +27,10 @@
 // the open sides' colors with forced colors on, and checks each ring stays
 // open. Bulma paints a progress bar's track and fill as background colors,
 // which forced colors turns into the page's color, so the walk also checks
-// `_progress.scss` names system colors for them there.
+// `_progress.scss` names system colors for them there. Bulma's skeleton
+// shapes are background colors too, with their text hidden in a transparent
+// color that forced colors paints, so it checks `_skeleton.scss` draws them
+// in `GrayText` there and keeps their text hidden.
 import fs from 'fs';
 import path from 'path';
 import React from 'react';
@@ -36,6 +39,7 @@ import { SCSS, compileSheet } from '../../__tests__/compile-scss';
 import { ConfigProvider } from '../../helpers/Config';
 import {
   Autocomplete,
+  Box,
   Button,
   Control,
   DateInput,
@@ -1295,6 +1299,98 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
   });
 
   /**
+   * Each kind of skeleton: `Skeleton`'s block and lines, the `skeleton` prop
+   * on text and on controls, and `hasSkeleton`, with whether it holds text
+   * Bulma hides.
+   */
+  const SHAPES: Array<[string, React.ReactElement, boolean]> = [
+    ['Skeleton block', <Skeleton key="x">Placeholder</Skeleton>, true],
+    ['Skeleton lines', <Skeleton key="x" variant="lines" />, false],
+    [
+      'Title skeleton',
+      <Title key="x" skeleton>
+        Heading
+      </Title>,
+      true,
+    ],
+    [
+      'Button skeleton',
+      <Button key="x" color="dark" skeleton>
+        Delete
+      </Button>,
+      true,
+    ],
+    ['Input skeleton', <Input key="x" skeleton placeholder="Name" />, true],
+    [
+      'Title hasSkeleton',
+      <Title key="x" hasSkeleton>
+        Heading
+      </Title>,
+      true,
+    ],
+    // Its text is in a child, which inherits the transparent color and the
+    // opt-out both. A child with a color of its own, such as a Tag, keeps
+    // Bulma's, which the API page says.
+    [
+      'Box skeleton holding a paragraph and a Tag',
+      <Box key="x" skeleton>
+        <p>Paragraph</p>
+        <Tag color="primary">New</Tag>
+      </Box>,
+      true,
+    ],
+  ];
+
+  it.each(SHAPES)(
+    '%s keeps its shape and hides its text in forced colors, and only there',
+    (_label, element, holdsText) => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>{element}</ConfigProvider>
+      );
+      // The shapes are what Bulma pulses.
+      const shapes = animatedIn(container, rules);
+      expect(shapes.length).toBeGreaterThan(0);
+      const fill = (el: Element, pseudo: string, when: When) =>
+        resolved(rules, el, pseudo, when, ['background-color', 'background']);
+      for (const { el, pseudo } of shapes) {
+        // Forced colors paints a shape's own background in the page's
+        // color, and leaves a system color alone.
+        expect(fill(el, pseudo, { forcedColors: true })).toBe('GrayText');
+        // Anywhere else it keeps Bulma's.
+        expect(fill(el, pseudo, {})).not.toBe('GrayText');
+        expect(fill(el, pseudo, {})).not.toBeNull();
+      }
+      // Forced colors paints a transparent text color in the theme's own,
+      // so wherever Bulma hides text that way, forcing has to be off. An
+      // input's text is its value and placeholder.
+      const hidden = Array.from(container.querySelectorAll('*')).filter(
+        el =>
+          (el.tagName === 'INPUT' ||
+            Array.from(el.childNodes).some(
+              node => node.nodeType === 3 && node.textContent?.trim()
+            )) &&
+          inherited(rules, el, '', 'color') === 'transparent'
+      );
+      expect(hidden.length > 0).toBe(holdsText);
+      for (const el of hidden) {
+        expect({
+          el: describeEl(el, ''),
+          forcing: forcing(rules, el, ''),
+        }).toEqual({ el: describeEl(el, ''), forcing: 'none' });
+        // None of it reaches anyone not in forced colors.
+        expect(resolved(rules, el, '', {}, ['forced-color-adjust'])).toBeNull();
+      }
+      // A child with a color of its own is inside the opt-out too, so it
+      // keeps Bulma's color rather than the theme's, as the API page says.
+      for (const tag of Array.from(
+        container.querySelectorAll(`.${prefix}tag`)
+      )) {
+        expect(forcing(rules, tag, '')).toBe('none');
+      }
+    }
+  );
+
+  /**
    * Each kind of loading button, with what forced colors gives it when it's
    * idle, which is what it keeps while it loads: a `<button>` a button's
    * surface and text color, a link a link's, anything else the page's own.
@@ -1402,6 +1498,16 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
         <Button isLoading>Save</Button>
       </fieldset>,
       { surface: 'ButtonFace', border: 'GrayText' },
+    ],
+    // Pressed, it takes these colors too while it loads: `_button.scss`
+    // draws a selected button in Highlight in forced colors, and skips a
+    // loading one.
+    [
+      'ToggleButton pressed isLoading',
+      <ToggleButton key="x" defaultPressed isLoading>
+        Bold
+      </ToggleButton>,
+      { surface: 'ButtonFace', border: 'ButtonText' },
     ],
   ];
 
@@ -1689,8 +1795,8 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
     ...LOADING_LOOKS.filter(
       ([label]) => !/isDisabled|disabled fieldset/.test(label)
     ).map(([label, element]): [string, React.ReactElement] => [label, element]),
-    // Over Bulma's static rule, which drops the shadow too, and on the
-    // components that render through Button.
+    // Over Bulma's static rule, which drops the shadow too, and on a
+    // component that renders through Button.
     [
       'Button isStatic isLoading',
       <Button key="x" isStatic isLoading>
@@ -1700,12 +1806,6 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
     [
       'IconButton isLoading',
       <IconButton key="x" icon="trash" aria-label="Delete" isLoading />,
-    ],
-    [
-      'ToggleButton pressed isLoading',
-      <ToggleButton key="x" defaultPressed isLoading>
-        Bold
-      </ToggleButton>,
     ],
   ] as Array<[string, React.ReactElement]>)(
     "%s takes Bulma's focus outline from the keyboard or isFocused, outside forced colors",

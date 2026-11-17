@@ -68,7 +68,9 @@ export interface ToggleButtonProps
    * is the difference people see. `white`, `light`, `dark` and `black` aren't
    * offered, since in one theme or the other each fills about as light or dark
    * as a plain button already is. Of the rest, a pale one such as `warning`
-   * changes less than the default `link`.
+   * changes less than the default `link`. Forced colors (Windows' contrast
+   * themes) replaces the fill, so there a pressed one is drawn in the system's
+   * highlight colors instead, whatever the `color`, which needs bestax's CSS.
    */
   color?: ToggleButtonColor | undefined;
   /**

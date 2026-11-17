@@ -347,13 +347,14 @@ function example() {
 
 - Uses `role="alertdialog"` for proper screen reader announcement
 - Has `aria-modal="true"` to indicate modal behavior — note this does not make background content inert; no `inert` attribute is applied, so background content stays reachable by pointer
-- `title` is wired up as `aria-labelledby` and `message` as `aria-describedby`
+- `title`, when there is one, is wired up as `aria-labelledby` and `message` as `aria-describedby`, through ids the dialog makes for itself, so a second dialog open at the same time, or an element of your own with the same id, doesn't take its name or its description. An `aria-labelledby` or `aria-describedby` you pass replaces them
 - Focus moves to the confirm (or cancel, with `focusCancel`) button when opened
 - Escape key closes the dialog (when `canCancel` is true). The underlying [`Modal`](./modal.md#accessibility) handles it, so one Escape closes the topmost overlay only: a dialog opened over a Modal or a [Sidebar](./sidebar.md) closes first, and the one under it on the next Escape
 - Tab and Shift+Tab cycle within the dialog while it is the topmost modal overlay, also from the underlying [`Modal`](./modal.md)
 - A popup in the message, such as a `Popover` or `HoverCard` with `appendToBody`, is portaled into the `alertdialog`, the element with `aria-modal`, so a screen reader that honors it reaches the popup. A `portalContainer` a [`ConfigProvider`](../helpers/config.md#where-portaled-content-goes) sets still takes it
 - The page doesn't scroll while the dialog is open, through the [`Modal`](./modal.md#accessibility)'s ref-counted lock, shared with `Sidebar` and `Loading`
 - Confirm/cancel buttons are keyboard accessible
+- In forced colors (Windows' contrast themes), which drop the dialog's shadow and repaint its background and the backdrop's, the dialog keeps a one pixel edge in the system's text color
 
 ---
 
@@ -381,8 +382,8 @@ Use the programmatic `dialog.confirm()` with async/await to create clean, sequen
 | Prop          | Type                                                                | Default     | Description                                                                                                                                    |
 | ------------- | ------------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | `isOpen`      | `boolean`                                                           | —           | **Required.** Whether the dialog is open.                                                                                                      |
-| `title`       | `string`                                                            | —           | Dialog title.                                                                                                                                  |
-| `message`     | `string` \| `React.ReactNode`                                       | —           | **Required.** Dialog message/content.                                                                                                          |
+| `title`       | `string`                                                            | —           | Dialog title, which names the dialog through `aria-labelledby` unless you pass an `aria-labelledby` of your own.                               |
+| `message`     | `string` \| `React.ReactNode`                                       | —           | **Required.** Dialog message/content, which describes the dialog through `aria-describedby` unless you pass an `aria-describedby` of your own. |
 | `type`        | `'default'` \| `'success'` \| `'danger'` \| `'warning'` \| `'info'` | `'default'` | The type/color of the dialog. Default: 'default'.                                                                                              |
 | `confirmText` | `string`                                                            | `'OK'`      | Text for confirm button. Default: 'OK'.                                                                                                        |
 | `cancelText`  | `string`                                                            | `'Cancel'`  | Text for cancel button. Default: 'Cancel'.                                                                                                     |
