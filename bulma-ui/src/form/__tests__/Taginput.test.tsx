@@ -2270,3 +2270,89 @@ describe("Taginput's arrows on a closed list (#2006)", () => {
     expect(highlighted(input)).toBe(screen.getAllByRole('option')[0]);
   });
 });
+
+describe("Taginput's remove buttons with ariaCloseLabel (#2007)", () => {
+  it('describes each button by its tag, so one name still says which', () => {
+    render(
+      <Taginput
+        label="Tags"
+        defaultValue={['Banana', 'Cherry']}
+        ariaCloseLabel="Supprimer"
+      />
+    );
+
+    const [banana, cherry] = screen.getAllByRole('button');
+    expect(banana).toHaveAccessibleName('Supprimer');
+    expect(banana).toHaveAccessibleDescription('Banana');
+    expect(cherry).toHaveAccessibleName('Supprimer');
+    expect(cherry).toHaveAccessibleDescription('Cherry');
+  });
+
+  it('adds no description without it, since the name says which', () => {
+    render(<Taginput label="Tags" defaultValue={['Banana']} />);
+
+    const button = screen.getByRole('button', { name: 'Remove Banana' });
+    expect(button).not.toHaveAttribute('aria-describedby');
+  });
+
+  it('adds no text, and keeps the button last in its tag', () => {
+    const { container } = render(
+      <Taginput
+        label="Tags"
+        defaultValue={['Banana']}
+        ariaCloseLabel="Supprimer"
+      />
+    );
+
+    const tag = container.querySelector('.tag') as HTMLElement;
+    expect(tag.textContent).toBe('Banana');
+    expect(screen.getAllByText('Banana')).toHaveLength(1);
+    expect(tag.lastElementChild).toBe(screen.getByRole('button'));
+  });
+
+  it('describes it by the ellipsis span, which takes the id', () => {
+    render(
+      <Taginput
+        label="Tags"
+        defaultValue={['Banana']}
+        ellipsis
+        ariaCloseLabel="Supprimer"
+      />
+    );
+    expect(screen.getByRole('button')).toHaveAccessibleDescription('Banana');
+    expect(screen.getByTitle('Banana')).toHaveAttribute(
+      'id',
+      screen.getByRole('button').getAttribute('aria-describedby')
+    );
+  });
+
+  it("leaves a tagTemplate's content as it renders, with no description", () => {
+    const { container } = render(
+      <Taginput
+        label="Tags"
+        defaultValue={['Banana']}
+        tagTemplate={tag => <b>{String(tag)}</b>}
+        ariaCloseLabel="Supprimer"
+      />
+    );
+    const tag = container.querySelector('.tag') as HTMLElement;
+    expect(tag.firstElementChild?.tagName).toBe('B');
+    expect(screen.getByRole('button')).not.toHaveAttribute('aria-describedby');
+  });
+
+  it.each([
+    ['disabled', { disabled: true }],
+    ['readonly', { readonly: true }],
+    ['not closable', { closable: false }],
+  ])('gives no tag an id when %s, with no button to point at it', (_n, p) => {
+    const { container } = render(
+      <Taginput
+        label="Tags"
+        defaultValue={['Banana']}
+        ariaCloseLabel="Supprimer"
+        {...p}
+      />
+    );
+    expect(container.querySelector('.tag [id]')).toBeNull();
+  });
+});

@@ -43,6 +43,34 @@ export function useFieldMessage(
   return { messageEl, messageId, describedBy };
 }
 
+/** The caller's attributes that report the control's state, not the wrapper's. */
+export interface ControlStateProps {
+  'aria-invalid'?: React.AriaAttributes['aria-invalid'];
+  'aria-errormessage'?: React.AriaAttributes['aria-errormessage'];
+}
+
+/**
+ * Splits a wrapper's caller attributes into the ones that report the
+ * control's state, `aria-invalid` and `aria-errormessage`, and the rest. A
+ * wrapper that puts the rest on an element around its control puts these on
+ * the control the label names, after any props spread, where a screen reader
+ * reads them as it reads the message (#2002). Only the ones given are in
+ * `control`, so it never sets one to undefined. Internal.
+ */
+export function splitControlState<P extends ControlStateProps>(
+  props: P
+): { control: ControlStateProps; rest: Omit<P, keyof ControlStateProps> } {
+  const {
+    'aria-invalid': invalid,
+    'aria-errormessage': errorMessage,
+    ...rest
+  } = props;
+  const control: ControlStateProps = {};
+  if (invalid !== undefined) control['aria-invalid'] = invalid;
+  if (errorMessage !== undefined) control['aria-errormessage'] = errorMessage;
+  return { control, rest };
+}
+
 const FieldMessageIdContext = createContext<string | undefined>(undefined);
 
 /**

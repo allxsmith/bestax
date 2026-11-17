@@ -139,7 +139,8 @@ describe('rbx kitchen-sink e2e', () => {
     // rbx on Escape-to-close and scroll locking since #633, but still renders
     // inline unless `portal` is set. The markup migrates cleanly — this file
     // still typechecks — but that one behaviour differs, and nothing else
-    // would tell the user.
+    // would tell the user. The fixture's Modal is named, so it doesn't ask
+    // for a name (`name:Modal`).
     for (const [file, todos] of app.todosByFile) {
       if (file === 'leftovers.tsx') continue;
       const unexpected = todos.filter(t => t.rule !== 'component:Modal');
@@ -261,6 +262,8 @@ describe('rbx kitchen-sink e2e', () => {
     expect(rules).toContain('prop:backgroundColor');
     // A group size bestax does not take, or cannot be read, stays a TODO.
     expect(rules).toContain('prop:size');
+    // A Modal that nothing names, which bestax's dialog needs (#1941).
+    expect(rules).toContain('name:Modal');
     // So does a Title size it cannot read, which bestax would turn into a level.
     expect(
       todos.some(t => t.rule === 'prop:size' && t.message.includes('textSize'))
@@ -302,9 +305,12 @@ describe('rbx kitchen-sink e2e', () => {
     // let `component:List` pass off the text of `component:List.Item`, and
     // the prop fallback matched any backticked occurrence of the word
     // anywhere in prose — so the guard could pass while the rule it was
-    // meant to pin went undocumented.
+    // meant to pin went undocumented. A `name:` rule is a token too: the
+    // backtick fallback below reads no colon.
     const tokens = new Set(
-      [...refs.matchAll(/(?:component|prop):[A-Za-z][\w.*]*/g)].map(m => m[0])
+      [...refs.matchAll(/(?:component|prop|name):[A-Za-z][\w.*]*/g)].map(
+        m => m[0]
+      )
     );
     // A prop rule may instead be written bare in a row that names the
     // component beside it (`| \`expanded\` on \`Field\` |`).

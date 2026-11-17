@@ -203,8 +203,23 @@ $radio-transition-duration: cv.getVar("duration") !default;
       outline-color: Highlight;
     }
 
+    // A disabled circle is drawn in GrayText, so its usual opacity would only
+    // halve that. It and its label draw at full strength here, the label in
+    // GrayText too.
     input[type="radio"]:disabled + .#{iv.$class-prefix}check {
       border-color: GrayText;
+      opacity: 1;
+    }
+
+    input[type="radio"]:disabled ~ .#{iv.$class-prefix}control-label {
+      color: GrayText;
+      opacity: 1;
+    }
+
+    // Checked, its dot takes GrayText rather than the highlight, so a
+    // disabled radio doesn't draw as an enabled one.
+    input[type="radio"]:checked:disabled + .#{iv.$class-prefix}check::before {
+      background-color: GrayText;
     }
   }
 }

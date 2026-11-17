@@ -326,8 +326,17 @@ $switch-thin-circle-size: 1.25em !default;
       outline-color: Highlight;
     }
 
+    // A disabled track is drawn in GrayText, so its usual opacity would only
+    // halve that. It and its label draw at full strength here, the label in
+    // GrayText too.
     input[type="checkbox"]:disabled + .#{iv.$class-prefix}check {
       border-color: GrayText;
+      opacity: 1;
+    }
+
+    input[type="checkbox"]:disabled ~ .#{iv.$class-prefix}control-label {
+      color: GrayText;
+      opacity: 1;
     }
 
     // The knob is painted from a variable, which forced colors repaints in
@@ -347,6 +356,17 @@ $switch-thin-circle-size: 1.25em !default;
     input[type="checkbox"]:checked + .#{iv.$class-prefix}check::before {
       background-color: HighlightText;
     }
+
+    // On and disabled, the track fills with GrayText rather than the
+    // highlight, the knob in the page's color on it, so a disabled switch
+    // doesn't draw as an enabled one.
+    input[type="checkbox"]:checked:disabled + .#{iv.$class-prefix}check {
+      background-color: GrayText;
+
+      &::before {
+        background-color: Canvas;
+      }
+    }
   }
 
   // The thin and outlined tracks don't fill when on, since their own rules
@@ -363,7 +383,12 @@ $switch-thin-circle-size: 1.25em !default;
     }
 
     input[type="checkbox"]:checked:disabled + .#{iv.$class-prefix}check {
+      background-color: transparent;
       border-color: GrayText;
+
+      &::before {
+        background-color: GrayText;
+      }
     }
   }
 }

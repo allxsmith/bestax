@@ -27,8 +27,10 @@
  *
  * The Menu page also writes its own `<a>`, the stand-in for a router link in
  * its Custom Link example, which a reader copies into an app. An `<a>` there
- * is held to the same `href` rule. A hand-written `<a>` anywhere else is out
- * of scope.
+ * is held to the same `href` rule, and to passing on the rest of its props
+ * with a spread, as a router's link does, since `Menu.Item` hands it its class
+ * and, on an `active` item, `aria-current` (#2117). A hand-written `<a>`
+ * anywhere else is out of scope.
  *
  * Each source is parsed with TypeScript as a `.tsx` file and nothing is
  * compiled, so a fence that is only a fragment still reads.
@@ -95,7 +97,11 @@ function readCode(code) {
       if (TAGS.has(tag)) {
         items.push({ offset, ok: reachableItem(node.attributes) });
       } else if (tag === 'a') {
-        anchors.push({ offset, ok: linkingAnchor(node.attributes) });
+        anchors.push({
+          offset,
+          ok: linkingAnchor(node.attributes),
+          passesOn: attributesOf(node.attributes).spread,
+        });
       }
     }
     ts.forEachChild(node, visit);
@@ -104,13 +110,19 @@ function readCode(code) {
   return { items, anchors };
 }
 
-/** The same, for a whole file, each found as `{ at, ok }` (`file:line`). */
+/**
+ * The same, for a whole file, each found as `{ at, ok }` (`file:line`), an
+ * `<a>` with `passesOn` as well.
+ */
 function readFile(rel) {
   const items = [];
   const anchors = [];
   for (const { code, line } of sourcesOf(rel)) {
     const found = readCode(code);
-    const place = ({ offset, ok }) => ({ at: `${rel}:${line + offset}`, ok });
+    const place = ({ offset, ...rest }) => ({
+      at: `${rel}:${line + offset}`,
+      ...rest,
+    });
     items.push(...found.items.map(place));
     anchors.push(...found.anchors.map(place));
   }
@@ -203,6 +215,32 @@ describe('the Menu page’s own links', () => {
       'These render an <a> with no href, which Tab skips. A stand-in for a ' +
         "router link should render the `to` it's given as the `href`:\n  " +
         hrefless.join('\n  ')
+    );
+  });
+
+  it('reads a spread as passing on what an item gives the <a>', () => {
+    const verdicts = [
+      ['<a {...rest} href={to} />', true],
+      ['<a href={to} {...rest}>x</a>', true],
+      ['<a href={props.to}>{props.children}</a>', false],
+      ['<a>{props.children}</a>', false],
+    ];
+    const wrong = verdicts
+      .filter(([code, ok]) => readCode(code).anchors[0].passesOn !== ok)
+      .map(([code]) => code);
+    assert.deepEqual(wrong, []);
+  });
+
+  it('passes on what an item gives the <a> it writes', () => {
+    const dropping = anchors.filter(anchor => !anchor.passesOn).map(a => a.at);
+    assert.deepEqual(
+      dropping,
+      [],
+      'An <a> the Menu page writes is its stand-in for a router link, and ' +
+        'these drop the props a Menu.Item hands them, its class and, on an ' +
+        'active item, aria-current. Spread the rest of the props onto the ' +
+        '<a>:\n  ' +
+        dropping.join('\n  ')
     );
   });
 });

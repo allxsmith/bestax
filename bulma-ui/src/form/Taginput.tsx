@@ -23,7 +23,7 @@ import {
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
-import { useFieldMessage } from './useFieldMessage';
+import { splitControlState, useFieldMessage } from './useFieldMessage';
 import { Icon } from '../elements/Icon';
 
 /**
@@ -56,7 +56,9 @@ const isComposing = (e: React.KeyboardEvent): boolean =>
 const keepFocus = (e: React.MouseEvent) => e.preventDefault();
 
 /**
- * Props for the Taginput component.
+ * Props for the Taginput component. The other attributes go on the wrapper
+ * `<div>`, except `aria-invalid` and `aria-errormessage`, which report the
+ * input's state and go on the input.
  * Inside an outer `Field`, or a `Control` with no `Field` around it, it
  * renders no `Field` of its own. The exception is `label`, `message`,
  * `horizontal` or `fieldClassName` in that bare `Control`: it keeps a `Field`
@@ -155,7 +157,13 @@ export interface TaginputProps
    * drawn (with bestax's CSS loaded).
    */
   loading?: boolean;
-  /** ARIA label for tag close buttons. */
+  /**
+   * Names each tag's remove button in place of "Remove" and the tag's text,
+   * the same name for every button, as for a translation. Each button is
+   * then described by its tag's text, so it still says which tag it
+   * removes, except with a `tagTemplate`, whose content is left as it
+   * renders.
+   */
   ariaCloseLabel?: string;
   /** Icon name for the input field. */
   icon?: string;
@@ -287,7 +295,11 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       horizontal,
       fieldClassName,
     });
-    const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+    // The input takes `aria-invalid` and `aria-errormessage`, which report
+    // its state, and the wrapper the rest (#2002).
+    const { control: controlState, rest: wrapperProps } =
+      splitControlState(props);
+    const { bulmaHelperClasses, rest } = useBulmaClasses(wrapperProps);
     const { classPrefix } = useConfig();
     const defaultIconLibrary = useIconLibrary();
     const formatNumber = useScopedNumberFormat();
@@ -734,6 +746,8 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
 
     const counterClasses = pcn('help', 'counter');
     const tagsClasses = pcn('tags');
+    // Whether each tag has its remove button.
+    const removable = closable && !disabled && !readonly;
     const dropdownMenuClasses = pcn('dropdown-menu', 'is-active');
     const dropdownContentClasses = pcn('dropdown-content');
     const iconRightClass = pcn('icon', 'is-right');
@@ -789,16 +803,29 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
           <div className={tagsClasses}>
             {tags.map((tag, index) => {
               const displayVal = getDisplayValue(tag);
+              // With one name for every remove button, each is described
+              // by its tag's text, as Combobox's tags are (#2007), so the
+              // text takes an id then. A tagTemplate's content is left as it
+              // renders, since a span around it would change its spacing.
+              const tagTextId =
+                ariaCloseLabel && removable && !tagTemplate
+                  ? `${baseId}-tag-${index}`
+                  : undefined;
               return (
                 <span key={index} className={tagClasses}>
                   {tagTemplate ? (
                     tagTemplate(tag)
-                  ) : ellipsis ? (
-                    <span title={displayVal}>{displayVal}</span>
+                  ) : ellipsis || tagTextId ? (
+                    <span
+                      id={tagTextId}
+                      title={ellipsis ? displayVal : undefined}
+                    >
+                      {displayVal}
+                    </span>
                   ) : (
                     displayVal
                   )}
-                  {closable && !disabled && !readonly && (
+                  {removable && (
                     <button
                       type="button"
                       className={pcn('delete', 'is-small')}
@@ -807,6 +834,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
                         removeTag(index);
                       }}
                       aria-label={ariaCloseLabel || `Remove ${displayVal}`}
+                      aria-describedby={tagTextId}
                     />
                   )}
                 </span>
@@ -840,6 +868,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
               // limit it says why the field takes no more, and then the
               // message does.
               aria-describedby={describedBy}
+              {...controlState}
             />
           </div>
           {loading && (

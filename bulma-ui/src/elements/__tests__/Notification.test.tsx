@@ -1164,6 +1164,423 @@ describe('Notification Programmatic API', () => {
   });
 });
 
+// Closing a notification that holds focus hands focus on, rather than
+// dropping it to the page (#1842).
+describe('Focus when a notification closes', () => {
+  afterEach(() => {
+    vi.clearAllTimers();
+    act(() => {
+      notification.closeAll();
+    });
+  });
+
+  const closeButtons = () =>
+    screen.getAllByRole('button', { name: 'Close notification' });
+
+  it("moves focus to the next notification's close button in the stack", () => {
+    render(<NotificationContainer />);
+    act(() => {
+      notification.show({ message: 'One', indefinite: true });
+      notification.show({ message: 'Two', indefinite: true });
+    });
+    const [first, second] = closeButtons();
+    act(() => {
+      first.focus();
+    });
+    act(() => {
+      fireEvent.click(first);
+    });
+    expect(screen.queryByText('One')).not.toBeInTheDocument();
+    expect(document.activeElement).toBe(second);
+  });
+
+  it('moves focus to the one before when the last in the stack closes', () => {
+    render(<NotificationContainer />);
+    act(() => {
+      notification.show({ message: 'One', indefinite: true });
+      notification.show({ message: 'Two', indefinite: true });
+    });
+    const [first, second] = closeButtons();
+    act(() => {
+      second.focus();
+    });
+    act(() => {
+      fireEvent.click(second);
+    });
+    expect(document.activeElement).toBe(first);
+  });
+
+  it('hands focus back to where it came from once none is left beside it', () => {
+    render(
+      <>
+        <button>Save</button>
+        <NotificationContainer />
+      </>
+    );
+    act(() => {
+      notification.show({ message: 'One', indefinite: true });
+      notification.show({ message: 'Two', indefinite: true });
+    });
+    const save = screen.getByRole('button', { name: 'Save' });
+    act(() => {
+      save.focus();
+    });
+    act(() => {
+      closeButtons()[0].focus();
+    });
+    act(() => {
+      fireEvent.click(closeButtons()[0]);
+    });
+    // Focus moved on to Two's close button, which keeps where it came from.
+    act(() => {
+      fireEvent.click(closeButtons()[0]);
+    });
+    expect(document.activeElement).toBe(save);
+  });
+
+  it('moves focus when the app closes the notification that holds it', () => {
+    render(
+      <>
+        <button>Save</button>
+        <NotificationContainer />
+      </>
+    );
+    let id = '';
+    act(() => {
+      id = notification.show({
+        message: <a href="#details">Details</a>,
+        indefinite: true,
+      });
+    });
+    act(() => {
+      screen.getByRole('button', { name: 'Save' }).focus();
+    });
+    act(() => {
+      screen.getByRole('link', { name: 'Details' }).focus();
+    });
+    act(() => {
+      notification.close(id);
+    });
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Save' })
+    );
+  });
+
+  it('leaves focus that is somewhere else where it is', () => {
+    render(
+      <>
+        <button>Save</button>
+        <button>Cancel</button>
+        <NotificationContainer />
+      </>
+    );
+    let id = '';
+    act(() => {
+      id = notification.show({ message: 'One', indefinite: true });
+      notification.show({ message: 'Two', indefinite: true });
+    });
+    act(() => {
+      screen.getByRole('button', { name: 'Save' }).focus();
+    });
+    act(() => {
+      closeButtons()[0].focus();
+    });
+    act(() => {
+      screen.getByRole('button', { name: 'Cancel' }).focus();
+    });
+    act(() => {
+      notification.close(id);
+    });
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Cancel' })
+    );
+  });
+
+  it('keeps where focus came from when it comes back with nowhere it came from', () => {
+    render(
+      <>
+        <button>Save</button>
+        <NotificationContainer />
+      </>
+    );
+    act(() => {
+      notification.show({ message: 'One', indefinite: true });
+    });
+    act(() => {
+      screen.getByRole('button', { name: 'Save' }).focus();
+    });
+    act(() => {
+      closeButtons()[0].focus();
+    });
+    // The window loses focus and gets it back, which comes from nowhere.
+    act(() => {
+      closeButtons()[0].blur();
+    });
+    act(() => {
+      closeButtons()[0].focus();
+    });
+    act(() => {
+      fireEvent.click(closeButtons()[0]);
+    });
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Save' })
+    );
+  });
+
+  it('has nowhere to go back to once focus went to the page itself', () => {
+    render(
+      <>
+        <button>Save</button>
+        <NotificationContainer />
+      </>
+    );
+    act(() => {
+      notification.show({ message: 'One', indefinite: true });
+    });
+    act(() => {
+      screen.getByRole('button', { name: 'Save' }).focus();
+    });
+    // A click on the page's background sends focus to the page itself.
+    act(() => {
+      screen.getByRole('button', { name: 'Save' }).blur();
+    });
+    act(() => {
+      closeButtons()[0].focus();
+    });
+    act(() => {
+      fireEvent.click(closeButtons()[0]);
+    });
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it('takes where focus came from anew when it comes in from somewhere else', () => {
+    render(
+      <>
+        <button>Save</button>
+        <button>Cancel</button>
+        <NotificationContainer />
+      </>
+    );
+    act(() => {
+      notification.show({ message: 'One', indefinite: true });
+    });
+    act(() => {
+      screen.getByRole('button', { name: 'Save' }).focus();
+    });
+    act(() => {
+      closeButtons()[0].focus();
+    });
+    act(() => {
+      screen.getByRole('button', { name: 'Cancel' }).focus();
+    });
+    act(() => {
+      closeButtons()[0].focus();
+    });
+    act(() => {
+      fireEvent.click(closeButtons()[0]);
+    });
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Cancel' })
+    );
+  });
+
+  it('gives the notification focus moves on to its whole duration once focus leaves it', () => {
+    render(
+      <>
+        <button>Save</button>
+        <NotificationContainer />
+      </>
+    );
+    act(() => {
+      notification.show({ message: 'One', duration: 3000 });
+      notification.show({ message: 'Two', duration: 3000 });
+    });
+    const [first, second] = closeButtons();
+    act(() => {
+      first.focus();
+    });
+    act(() => {
+      vi.advanceTimersByTime(2500);
+    });
+    act(() => {
+      fireEvent.click(first);
+    });
+    expect(document.activeElement).toBe(second);
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+    act(() => {
+      screen.getByRole('button', { name: 'Save' }).focus();
+    });
+    act(() => {
+      vi.advanceTimersByTime(focusCheckInterval);
+    });
+    act(() => {
+      vi.advanceTimersByTime(2999);
+    });
+    expect(screen.getByText('Two')).toBeInTheDocument();
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(screen.queryByText('Two')).not.toBeInTheDocument();
+  });
+
+  it('holds the notification focus moves on to, though no focus event announced it', () => {
+    render(<NotificationContainer />);
+    act(() => {
+      notification.show({ message: 'One', duration: 3000 });
+      notification.show({ message: 'Two', duration: 3000 });
+    });
+    const [first, second] = closeButtons();
+    act(() => {
+      first.focus();
+    });
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    act(() => {
+      fireEvent.click(first);
+    });
+    expect(document.activeElement).toBe(second);
+    // Two's own countdown, started when it appeared, finds focus in it.
+    for (let waited = 0; waited < 10000; waited += focusCheckInterval) {
+      act(() => {
+        vi.advanceTimersByTime(focusCheckInterval);
+      });
+    }
+    expect(screen.getByText('Two')).toBeInTheDocument();
+  });
+
+  it('hands focus back to where it came from when every notification closes at once', () => {
+    render(
+      <>
+        <button>Save</button>
+        <NotificationContainer />
+      </>
+    );
+    act(() => {
+      notification.show({ message: 'One', indefinite: true });
+      notification.show({ message: 'Two', indefinite: true });
+      notification.show({ message: 'Three', indefinite: true });
+    });
+    act(() => {
+      screen.getByRole('button', { name: 'Save' }).focus();
+    });
+    act(() => {
+      closeButtons()[1].focus();
+    });
+    act(() => {
+      notification.closeAll();
+    });
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Save' })
+    );
+  });
+
+  it('passes over a notification beside it that has no close button', () => {
+    render(<NotificationContainer />);
+    act(() => {
+      notification.show({ message: 'One', indefinite: true });
+      notification.show({ message: 'Two', indefinite: true, hasDelete: false });
+      notification.show({ message: 'Three', indefinite: true });
+    });
+    const [first, third] = closeButtons();
+    act(() => {
+      first.focus();
+    });
+    act(() => {
+      fireEvent.click(first);
+    });
+    expect(document.activeElement).toBe(third);
+  });
+
+  it('stays in its own stack', () => {
+    render(
+      <>
+        <button>Save</button>
+        <NotificationContainer />
+      </>
+    );
+    act(() => {
+      notification.show({ message: 'Here', indefinite: true });
+      notification.show({
+        message: 'Elsewhere',
+        indefinite: true,
+        position: 'bottom-left',
+      });
+    });
+    const here = within(
+      screen.getByText('Here').closest('.notification') as HTMLElement
+    ).getByRole('button');
+    act(() => {
+      screen.getByRole('button', { name: 'Save' }).focus();
+    });
+    act(() => {
+      here.focus();
+    });
+    act(() => {
+      fireEvent.click(here);
+    });
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Save' })
+    );
+  });
+
+  it('leaves focus alone when a notification leaves without closing', () => {
+    const { rerender } = render(
+      <>
+        <button>Save</button>
+        <NotificationContainer position="top-right" />
+      </>
+    );
+    act(() => {
+      notification.show({
+        message: <a href="#moving">Moving</a>,
+        indefinite: true,
+        hasDelete: false,
+        position: 'top-left',
+      });
+    });
+    act(() => {
+      screen.getByRole('button', { name: 'Save' }).focus();
+    });
+    act(() => {
+      screen.getByRole('link', { name: 'Moving' }).focus();
+    });
+    // A notification shown at the container's new position remounts.
+    rerender(
+      <>
+        <button>Save</button>
+        <NotificationContainer position="top-left" />
+      </>
+    );
+    expect(screen.getByText('Moving')).toBeInTheDocument();
+    expect(document.activeElement).not.toBe(
+      screen.getByRole('button', { name: 'Save' })
+    );
+  });
+
+  it('finds the next close button under a class prefix', () => {
+    render(
+      <ConfigProvider classPrefix="bestax-">
+        <NotificationContainer />
+      </ConfigProvider>
+    );
+    act(() => {
+      notification.show({ message: 'One', indefinite: true });
+      notification.show({ message: 'Two', indefinite: true });
+    });
+    const [first, second] = closeButtons();
+    act(() => {
+      first.focus();
+    });
+    act(() => {
+      fireEvent.click(first);
+    });
+    expect(document.activeElement).toBe(second);
+  });
+});
+
 describe('NotificationContainer mounted after notifications are raised', () => {
   afterEach(() => {
     vi.clearAllTimers();

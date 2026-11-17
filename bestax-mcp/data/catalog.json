@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.74.0"
+    "version": "5.75.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -1089,8 +1089,8 @@
       "slug": "form/numberinput",
       "import": "import { Numberinput } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 25,
-      "exampleCount": 12
+      "propCount": 26,
+      "exampleCount": 13
     },
     {
       "name": "OrderedList",
@@ -1243,8 +1243,8 @@
       "slug": "form/rate",
       "import": "import { Rate } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 28,
-      "exampleCount": 12
+      "propCount": 29,
+      "exampleCount": 13
     },
     {
       "name": "Reveal",
@@ -3839,7 +3839,7 @@
     "ModalCardHead": {
       "component": "Modal",
       "path": "Modal.Card.Head",
-      "purpose": "Modal.Card.Head - Renders modal card header section."
+      "purpose": "Modal.Card.Head - Renders modal card header section, a `<header>`."
     },
     "ModalCardTitle": {
       "component": "Modal",
@@ -3955,7 +3955,7 @@
     "PanelHeading": {
       "component": "Panel",
       "path": "Panel.Heading",
-      "purpose": "Main heading (renders as `<p class=\"panel-heading\">`)"
+      "purpose": "The panel's title: a paragraph to assistive tech, until you give it `role=\"heading\"` and an `aria-level`."
     },
     "PanelIcon": {
       "component": "Panel",
@@ -4077,12 +4077,12 @@
     "TabItem": {
       "component": "Tabs",
       "path": "Tabs.Item",
-      "purpose": "Each tab; accepts `active`, `onClick`, etc."
+      "purpose": "A navigation tab: an `<li>` holding a link of your own, with an `href`."
     },
     "TabList": {
       "component": "Tabs",
       "path": "Tabs.List",
-      "purpose": "The `<ul>` container for tab items."
+      "purpose": "The `<ul role=\"tablist\">` that holds the `Tabs.Tab`s."
     },
     "TabsContent": {
       "component": "Tabs",

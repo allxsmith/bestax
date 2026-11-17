@@ -38,6 +38,10 @@
       "code": "<Numberinput defaultValue={5} editable={false} color=\"primary\" />"
     },
     {
+      "title": "Buttons in Another Language",
+      "code": "<Block lang=\"fr\">\n  <Numberinput\n    label=\"Quantité\"\n    defaultValue={2}\n    min={1}\n    labels={{ increase: 'Augmenter', decrease: 'Diminuer' }}\n  />\n</Block>"
+    },
+    {
       "title": "Disabled State",
       "code": "<Numberinput defaultValue={5} disabled />"
     },
@@ -54,7 +58,7 @@
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Quantity\"\n      labelProps={{ htmlFor: 'quantity-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control>\n            <Numberinput\n              id=\"quantity-field-control\"\n              defaultValue={1}\n              min={1}\n              max={10}\n              color=\"primary\"\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
-  "accessibility": "- Uses native number input element\n- The `label` prop, or the label of a `Field` the Numberinput sits in, names its input. A `Field` with `hasAddons` or `grouped` holds several controls and names none, so wire that one with `labelProps={{ htmlFor }}` and a matching `id`.\n- Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes\n- +/- buttons have `aria-label` for screen readers\n- Arrow keys increment/decrement the value\n- The +/- buttons stay out of the Tab order, and a press on one leaves focus where it was, in the input when it had it, so the arrow keys keep working after a click and a button that disables at `min` or `max` doesn't take focus with it. A press on a button that's already disabled reaches nothing, as a press on any text does, so focus leaves the input then\n- Buttons are disabled at min/max boundaries\n- The `message` describes the number input through `aria-describedby`, after any ids you pass there, so a screen reader reads it when the input takes focus.",
+  "accessibility": "- Uses native number input element\n- The `label` prop, or the label of a `Field` the Numberinput sits in, names its input. A `Field` with `hasAddons` or `grouped` holds several controls and names none, so wire that one with `labelProps={{ htmlFor }}` and a matching `id`.\n- Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes, with `aria-valuenow` left off while the field holds no number\n- The increase and decrease buttons are named \"Increase value\" and \"Decrease value\", in both variants, and `labels` names them in the page's language\n- Arrow keys increment/decrement the value\n- While you edit, the field can be empty or hold a lone `-` on the way to a negative number. `onChange` waits for a number, and Enter or leaving the field while it holds none puts the last value back\n- The +/- buttons stay out of the Tab order, and a press on one leaves focus where it was, in the input when it had it, so the arrow keys keep working after a click and a button that disables at `min` or `max` doesn't take focus with it. A press on a button that's already disabled reaches nothing, as a press on any text does, so focus leaves the input then\n- Buttons are disabled at min/max boundaries\n- The `message` describes the number input through `aria-describedby`, after any ids you pass there, so a screen reader reads it when the input takes focus.",
   "related": ["Input", "Slider"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-numberinput",
   "summary": "The `Numberinput` component provides a number input with increment/decrement buttons.",
@@ -203,6 +207,15 @@
           "deprecated": false
         },
         {
+          "name": "labels",
+          "type": "{ increase?: string; decrease?: string }",
+          "default": null,
+          "description": "The buttons' names, in your app's language, in both variants.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
           "name": "disabled",
           "type": "boolean",
           "default": "false",
@@ -242,7 +255,7 @@
           "name": "onChange",
           "type": "(value: number) => void",
           "default": null,
-          "description": "Callback when value changes.",
+          "description": "Called with the new value, clamped to `min` and `max`. While the field is empty, or holds text that isn't a number yet such as a lone `-`, it isn't called, and Enter or leaving the field puts the last value back.",
           "required": false,
           "inherited": false,
           "deprecated": false

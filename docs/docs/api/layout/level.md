@@ -188,7 +188,7 @@ This example shows how to create a centered navigation menu using the `Level` co
 
 ### Mobile Level
 
-This example demonstrates the `Level` component's mobile layout. A level stacks its items vertically below tablet by default; setting the `isMobile` prop keeps them laid out horizontally on mobile too. Like the statistics above, these figures aren't navigation, so the level takes `as="div"`.
+This example demonstrates the `Level` component's mobile layout. A level stacks its items vertically below tablet by default; setting the `isMobile` prop keeps them laid out horizontally on mobile too. Bulma doesn't let a level's items shrink, so keep an `isMobile` level to what fits a phone: a row that doesn't fit runs past the edge of the screen, where Bulma's default `overflow-x: hidden` on the page cuts it off (WCAG 1.4.10 Reflow). Like the statistics above, these figures aren't navigation, so the level takes `as="div"`.
 
 ```tsx live
 <Level as="div" isMobile>
@@ -231,19 +231,6 @@ This example demonstrates the `Level` component's mobile layout. A level stacks 
       <Title as="p">123K</Title>
     </Block>
   </Level.Item>
-  <Level.Item hasTextCentered>
-    <Block>
-      <Paragraph
-        textSize="7"
-        textTransform="uppercase"
-        textWeight="semibold"
-        mb="1"
-      >
-        Likes
-      </Paragraph>
-      <Title as="p">9,876</Title>
-    </Block>
-  </Level.Item>
 </Level>
 ```
 
@@ -281,6 +268,7 @@ This example demonstrates the `Level` component's mobile layout. A level stacks 
 
 - `Level` renders a `<nav>` by default, as Bulma's markup does. A `nav` is a navigation landmark, which a screen reader user can list and jump to, so keep it for a row of links. A row that isn't navigation, such as the statistics above, takes `as="div"`, which adds no landmark. `as="header"` suits a level that opens a section and `as="footer"` one that closes it.
 - Items can be rendered as `<div>`, `<p>`, or `<a>`. Use `as="a"` for links, with an `href`: an `<a>` without one isn't a link, and Tab skips it. Provide clear text or accessible labels.
+- Below tablet a level's items stack. `isMobile` keeps its own items, and its `Level.Left` and `Level.Right`, in a row there, and Bulma doesn't let a level's items shrink, so a row that doesn't fit a 320px screen runs past its edge, where Bulma's default `overflow-x: hidden` on the page cuts it off (WCAG 1.4.10 Reflow). Keep it for a row that fits.
 - Use Bulma helper props for spacing and color to improve contrast and readability.
 
 :::note
@@ -316,7 +304,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Level
 | Prop        | Type                                                                    | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | ----------- | ----------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `as`        | `'nav'` \| `'div'` \| `'header'` \| `'footer'`                          | `'nav'` | HTML element to render (default: `nav`, as in Bulma's markup). A `nav` is a `navigation` landmark, so keep it for a row of links. A row that is not navigation, such as figures or a toolbar, takes `div`, which is no landmark. `header` suits a level that opens a section and `footer` one that closes it. A `header` is a `banner` landmark, and a `footer` a `contentinfo` one, only when no `section`, `article`, `aside`, `nav` or `main` is around it. |
-| `isMobile`  | `boolean`                                                               | `false` | Keeps the level horizontal on mobile (Bulma `is-mobile`). Without it the level stacks vertically below tablet.                                                                                                                                                                                                                                                                                                                                                 |
+| `isMobile`  | `boolean`                                                               | `false` | Keeps the level's own items, and its `Level.Left` and `Level.Right`, in a row on mobile (Bulma `is-mobile`), where they otherwise stack below tablet. Items inside `Level.Left` and `Level.Right` still stack there. Bulma doesn't let a level's items shrink, so a row that doesn't fit a 320px screen runs past its edge, where Bulma's default `overflow-x: hidden` on the page cuts it off (WCAG 1.4.10 Reflow): keep it for a row that fits.              |
 | `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma color modifier for the level.                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma background color helper.                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Bulma text color helper.                                                                                                                                                                                                                                                                                                                                                                                                                                       |

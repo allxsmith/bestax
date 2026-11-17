@@ -185,6 +185,35 @@ describe.each([
       ) as HTMLElement;
       expect(resolve(check, 'opacity')).toBe('0.5');
       expect(resolve(label, 'opacity')).toBe('0.5');
+      // In forced colors they're drawn in GrayText, which the opacity would
+      // only halve, so both draw at full strength there (#1996).
+      const forced = { forcedColors: true };
+      expect(resolve(check, 'opacity', forced)).toBe('1');
+      expect(resolve(label, 'opacity', forced)).toBe('1');
+      expect(resolve(label, 'color', forced)).toBe('graytext');
+    });
+
+    it('draws a disabled checked or mixed box in GrayText in forced colors', () => {
+      // At full strength a highlighted fill would draw it as an enabled box.
+      const forced = { forcedColors: true };
+      const checked = checkOf({ checked: true, disabled: true });
+      expect(resolve(checked, 'background-color', forced)).toBe('graytext');
+      expect(resolve(checked, 'border-color', forced)).toBe('graytext');
+      expect(
+        resolve(checked, 'background-color', { ...forced, pseudo: '::after' })
+      ).toBe('canvas');
+      // Mixed, checked or not, it shows a GrayText dash on the page's color.
+      for (const checkedToo of [false, true]) {
+        const mixed = checkOf({
+          indeterminate: true,
+          checked: checkedToo,
+          disabled: true,
+        });
+        expect(resolve(mixed, 'background-color', forced)).toBe('canvas');
+        expect(
+          resolve(mixed, 'background-color', { ...forced, pseudo: '::before' })
+        ).toBe('graytext');
+      }
     });
 
     it('outlines the box in system colors in forced colors', () => {

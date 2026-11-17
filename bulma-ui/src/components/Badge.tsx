@@ -70,13 +70,18 @@ export interface BadgeProps
  * @param {BadgeProps} props - Props for the Badge component.
  * @returns {JSX.Element | null} The rendered badge (and children, if provided).
  *
+ * @remarks
+ * A dot isn't read out and a count reads only what it shows, so the name of
+ * what a badge sits on says what the badge means, or, for a standalone
+ * badge, text beside it.
+ *
  * @example
  * <Badge dot color="success" overlap="circle">
- *   <Avatar src="/users/ada.jpg" name="Ada" />
+ *   <Avatar src="/users/ada.jpg" name="Ada" alt="Ada, online" />
  * </Badge>
  * @example
  * <Badge content={128} max={99} color="danger">
- *   <Icon name="bell" />
+ *   <Icon name="bell" ariaLabel="Notifications, 128 unread" />
  * </Badge>
  */
 export const Badge: React.FC<BadgeProps> = ({
