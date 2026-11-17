@@ -187,6 +187,10 @@ export interface TimeInputBaseProps
    * inside the band in the color's `-invert`, like the selected value, so it
    * shows on the fill. Unset, the wheels use
    * `--bulma-timeinput-wheel-selected-bg`, which defaults to `primary`.
+   * Forced colors (Windows' contrast themes) replaces the band, so there it's
+   * drawn in the system's highlight color instead, with the ring in the color
+   * made to read on it, or in its color for a disabled control while the
+   * picker is disabled, whatever the color, which needs bestax's CSS.
    */
   color?:
     'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;

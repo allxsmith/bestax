@@ -317,6 +317,42 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
   }
 }
 
+// Forced colors (Windows' contrast themes) replaces the band's fill, so there
+// the band is gone and the picked value looks like the values around it
+// (#2021). This draws the band in Highlight, the system's color for a
+// selection, with `forced-color-adjust: none` so it keeps it. The values stay
+// forced, in the system's text color on the page's color, which the browser
+// draws behind them, so each reads on the band and off it, as it slides
+// through while the wheel turns. The focus ring sits inside the band, so it
+// takes HighlightText. A disabled wheel's band, and a disabled value, take
+// GrayText, the system's color for a disabled control, and keep their full
+// opacity, since GrayText marks them, and the disabled opacity would blend the
+// band into the page and the value into the page's color.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}timeinput-wheel-band {
+    forced-color-adjust: none;
+    background-color: Highlight;
+  }
+
+  .#{iv.$class-prefix}timeinput-wheel:focus-visible
+    .#{iv.$class-prefix}timeinput-wheel-band {
+    outline-color: HighlightText;
+  }
+
+  .#{iv.$class-prefix}timeinput-wheel.#{iv.$class-prefix}is-disabled {
+    opacity: 1;
+
+    .#{iv.$class-prefix}timeinput-wheel-band {
+      background-color: GrayText;
+    }
+  }
+
+  .#{iv.$class-prefix}timeinput-wheel-item:disabled {
+    color: GrayText;
+    opacity: 1;
+  }
+}
+
 // Mobile (small viewport): bigger touch targets, larger numbers, more iOS-native
 // feel. Item *height* is set inline by JS, and made taller on small viewports by
 // the component; the rules below adjust everything that's CSS-only (font size,
