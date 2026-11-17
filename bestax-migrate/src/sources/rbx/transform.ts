@@ -45,6 +45,7 @@ import { applyBackgroundColor } from '../_shared/background-props.js';
 import { applyPropAction, applyUniversalProps } from '../_shared/props.js';
 import { applyTextColor } from '../_shared/text-color-props.js';
 import { enforcePolymorphicProps } from '../_shared/polymorphic.js';
+import { askForModalName } from '../_shared/modal-name.js';
 import {
   BESTAX,
   bestaxValueLocals,
@@ -633,6 +634,9 @@ export default function transform(
     // pair either way.
     // rbx spells its element prop `as`, so a spread here really can carry one.
     enforcePolymorphicProps(ctx, path, element, target, true);
+
+    // Read off the attributes the element ends up with.
+    askForModalName(ctx, path, element, target);
 
     // ---- 2a. badge/tooltip helper props → wrapping components ------------
     // Last, so the inner element is already fully migrated. Both families are
