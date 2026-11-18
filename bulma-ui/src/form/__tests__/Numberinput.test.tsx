@@ -829,6 +829,191 @@ describe('Numberinput', () => {
       await user.keyboard('{ArrowUp}');
       expect(input).toHaveValue(9);
     });
+
+    // #2110: each keystroke was clamped, so with `min` 10 the `2` of `25`
+    // became 10 and the `5` made it 105, clamped to 100.
+    it('takes a number typed digit by digit through one below min', async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      render(
+        <Numberinput
+          label="Quantity"
+          min={10}
+          max={100}
+          defaultValue={50}
+          onChange={onChange}
+        />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.tripleClick(input);
+      await user.keyboard('2');
+      expect(input).toHaveValue(2);
+      expect(onChange).not.toHaveBeenCalled();
+      await user.keyboard('5');
+      expect(input).toHaveValue(25);
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenLastCalledWith(25);
+    });
+
+    it('clamps a number outside min and max when the field is left', async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      let seen = '';
+      render(
+        <Numberinput
+          label="Quantity"
+          min={0}
+          max={100}
+          defaultValue={50}
+          onChange={onChange}
+          onBlur={event => {
+            seen = event.target.value;
+          }}
+        />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.tripleClick(input);
+      await user.keyboard('150');
+      expect(input).toHaveValue(150);
+      expect(onChange).toHaveBeenLastCalledWith(15);
+      await user.tab();
+      expect(input).toHaveValue(100);
+      expect(onChange).toHaveBeenLastCalledWith(100);
+      expect(seen).toBe('100');
+    });
+
+    it('submits the clamped value when Enter is pressed over a number out of range', async () => {
+      const user = userEvent.setup();
+      let submitted: FormDataEntryValue | null = null;
+      render(
+        <form
+          onSubmit={event => {
+            event.preventDefault();
+            submitted = new FormData(event.currentTarget).get('qty');
+          }}
+        >
+          <Numberinput label="Quantity" name="qty" min={10} defaultValue={50} />
+          <button type="submit">Save</button>
+        </form>
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.tripleClick(input);
+      await user.keyboard('2{Enter}');
+      expect(submitted).toBe('10');
+      expect(input).toHaveValue(10);
+    });
+
+    it('judges the buttons from a number typed outside min and max', async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      render(
+        <Numberinput
+          label="Quantity"
+          min={10}
+          max={100}
+          defaultValue={100}
+          onChange={onChange}
+        />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      const increase = screen.getByRole('button', { name: 'Increase value' });
+      const decrease = screen.getByRole('button', { name: 'Decrease value' });
+      expect(increase).toBeDisabled();
+      await user.tripleClick(input);
+      await user.keyboard('5');
+      expect(increase).toBeEnabled();
+      expect(decrease).toBeDisabled();
+      await user.click(increase);
+      expect(input).toHaveValue(10);
+      expect(onChange).toHaveBeenLastCalledWith(10);
+    });
+
+    it('steps from a number typed outside min and max as a native input does', async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      render(
+        <Numberinput
+          label="Quantity"
+          min={10}
+          max={100}
+          defaultValue={50}
+          onChange={onChange}
+        />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.tripleClick(input);
+      await user.keyboard('2{ArrowDown}');
+      expect(input).toHaveValue(2);
+      expect(onChange).not.toHaveBeenCalled();
+      await user.keyboard('{ArrowUp}');
+      expect(input).toHaveValue(10);
+      expect(onChange).toHaveBeenLastCalledWith(10);
+      await user.tripleClick(input);
+      // The 12 on the way is in range, so it's reported as it's typed.
+      await user.keyboard('120{ArrowUp}');
+      expect(input).toHaveValue(120);
+      expect(onChange).toHaveBeenLastCalledWith(12);
+      await user.keyboard('{ArrowDown}');
+      expect(input).toHaveValue(100);
+      expect(onChange).toHaveBeenLastCalledWith(100);
+    });
+
+    it('lands an exponential step from far outside on the nearest bound', async () => {
+      const user = userEvent.setup();
+      render(
+        <Numberinput
+          label="Quantity"
+          min={0}
+          max={100}
+          defaultValue={50}
+          exponential
+        />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.tripleClick(input);
+      await user.keyboard('5000{ArrowDown}');
+      expect(input).toHaveValue(100);
+    });
+
+    it('steps from a typed number that a new max brings into range', async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      const { rerender } = render(
+        <Numberinput
+          label="Quantity"
+          max={100}
+          defaultValue={50}
+          onChange={onChange}
+        />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.tripleClick(input);
+      await user.keyboard('120');
+      rerender(
+        <Numberinput
+          label="Quantity"
+          max={200}
+          defaultValue={50}
+          onChange={onChange}
+        />
+      );
+      await user.keyboard('{ArrowUp}');
+      expect(input).toHaveValue(121);
+      expect(onChange).toHaveBeenLastCalledWith(121);
+    });
+
+    it('shows a value set from outside over a number out of range', () => {
+      const { rerender } = render(
+        <Numberinput label="Quantity" min={10} value={50} onChange={() => {}} />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      fireEvent.change(input, { target: { value: '2' } });
+      expect(input).toHaveValue(2);
+      rerender(
+        <Numberinput label="Quantity" min={10} value={30} onChange={() => {}} />
+      );
+      expect(input).toHaveValue(30);
+    });
   });
 
   describe('Ref Forwarding', () => {
