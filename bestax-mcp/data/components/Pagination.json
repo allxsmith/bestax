@@ -371,9 +371,19 @@
       "path": "Pagination.Ellipsis",
       "summary": "Ellipsis separator.",
       "component": null,
-      "props": [],
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes, added to the ellipsis's own `pagination-ellipsis` class on its `<span>`. The part's other attributes go on the `<span>` too, though they're typed as the `<li>`'s.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
       "extraProps": [],
-      "catchAll": null,
+      "catchAll": "All standard <li> attributes",
       "types": []
     },
     {
