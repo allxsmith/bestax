@@ -1123,7 +1123,7 @@
       "import": "import { Panel } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 37,
-      "exampleCount": 4
+      "exampleCount": 5
     },
     {
       "name": "Paragraph",
@@ -3965,7 +3965,7 @@
     "PanelInputBlock": {
       "component": "Panel",
       "path": "Panel.InputBlock",
-      "purpose": "Search input with icon (renders as `<div class=\"panel-block\">`)"
+      "purpose": "Search input with icon (renders as `<div class=\"panel-block\">` around the `<input>`)."
     },
     "PanelTabs": {
       "component": "Panel",
