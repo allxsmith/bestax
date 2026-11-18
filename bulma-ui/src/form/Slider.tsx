@@ -167,8 +167,10 @@ export interface SliderRangeProps extends SliderBaseProps {
   /** Controlled value. */
   value?: [number, number] | undefined;
   /**
-   * Default value for uncontrolled usage.
-   * @defaultValue 0
+   * Default value for uncontrolled usage. Without it the low thumb starts at
+   * `min` and the high one at the highest value the slider holds, which is
+   * `max` unless `max` falls between two steps.
+   * @defaultValue [min, the highest step]
    */
   defaultValue?: [number, number] | undefined;
   /** Callback when value changes. */
@@ -468,7 +470,14 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
 
     // --- Range mode state ---
     const [internalRange, setInternalRange] = useState<[number, number]>(() =>
-      range ? ((defaultValue as [number, number]) ?? [min, max]) : [min, min]
+      range
+        ? ((defaultValue as [number, number]) ?? [
+            min,
+            // Where the browser puts the high thumb, `max` unless `max` is
+            // off the step grid (#2102).
+            highestStep(min, max, step),
+          ])
+        : [min, min]
     );
     const [internalSingle, setInternalSingle] = useState<number>(() =>
       !range ? ((defaultValue as number) ?? 0) : 0
@@ -541,15 +550,21 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       [isControlled, onChange]
     );
 
+    // The low thumb stops `minDistance` short of the high one, and never
+    // below `min`, where a `minDistance` wider than the room above `min`
+    // would otherwise push it.
     const handleRangeLowChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
         const raw = parseFloat(e.target.value);
-        const clamped = Math.min(raw, currentRange[1] - minDistance);
+        const clamped = Math.max(
+          min,
+          Math.min(raw, currentRange[1] - minDistance)
+        );
         const newRange: [number, number] = [clamped, currentRange[1]];
         if (!isControlled) setInternalRange(newRange);
         (onChange as ((v: [number, number]) => void) | undefined)?.(newRange);
       },
-      [isControlled, onChange, currentRange, minDistance]
+      [isControlled, onChange, currentRange, minDistance, min]
     );
 
     const handleRangeHighChange = useCallback(
