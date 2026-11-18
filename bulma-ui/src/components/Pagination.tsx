@@ -535,17 +535,36 @@ export const PaginationLink: React.FC<PaginationLinkProps> = ({
 };
 
 /**
+ * Props for the PaginationEllipsis component.
+ */
+export interface PaginationEllipsisProps extends React.LiHTMLAttributes<HTMLLIElement> {
+  /**
+   * Additional CSS classes, added to the ellipsis's own `pagination-ellipsis`
+   * class on its `<span>`. The part's other attributes go on the `<span>`
+   * too, though they're typed as the `<li>`'s.
+   */
+  className?: string | undefined;
+}
+
+/**
  * Ellipsis separator.
  *
  * @function
- * @param {React.LiHTMLAttributes<HTMLLIElement>} props - Standard li props.
+ * @param {PaginationEllipsisProps} props - Props for the PaginationEllipsis component.
  * @returns {JSX.Element} The rendered ellipsis.
  */
-export const PaginationEllipsis: React.FC<
-  React.LiHTMLAttributes<HTMLLIElement>
-> = props => (
+export const PaginationEllipsis: React.FC<PaginationEllipsisProps> = ({
+  className,
+  ...props
+}) => (
   <li>
-    <span className={usePrefixedClassNames('pagination-ellipsis')} {...props}>
+    <span
+      className={classNames(
+        usePrefixedClassNames('pagination-ellipsis'),
+        className
+      )}
+      {...props}
+    >
       &hellip;
     </span>
   </li>

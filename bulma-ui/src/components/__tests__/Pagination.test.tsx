@@ -230,6 +230,33 @@ describe('Pagination.Ellipsis', () => {
     expect(ellipsis).toHaveClass('pagination-ellipsis');
     expect(ellipsis).toHaveTextContent('…');
   });
+
+  // A className adds to the ellipsis's own class, as on the other Pagination
+  // parts, rather than taking its place (#2168).
+  it.each([
+    ['no prefix', undefined],
+    ['a class prefix', 'bestax-'],
+  ])(
+    'keeps its pagination-ellipsis class beside a className, with %s',
+    (_label, prefix) => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Pagination>
+            <Pagination.List>
+              <Pagination.Ellipsis className="has-text-grey" />
+            </Pagination.List>
+          </Pagination>
+        </ConfigProvider>
+      );
+      const classed = container.querySelectorAll('.has-text-grey');
+      expect(classed).toHaveLength(1);
+      expect(classed[0].tagName).toBe('SPAN');
+      expect(classed[0]).toHaveClass(
+        `${prefix ?? ''}pagination-ellipsis`,
+        'has-text-grey'
+      );
+    }
+  );
 });
 
 // Tests for Pagination.Previous and Pagination.Next
