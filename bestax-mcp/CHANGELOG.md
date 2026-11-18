@@ -1,3 +1,22 @@
+## [1.18.75](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.74...bestax-mcp@1.18.75) (2026-11-18)
+
+
+### Bug Fixes
+
+* **bulma-ui:** call the onClose a toast is shown with through toast.show ([4eb81ef](https://github.com/allxsmith/bestax/commit/4eb81ef63d6bfe8ab598f46ce5c9490c57350c9f)), closes [#1913](https://github.com/allxsmith/bestax/issues/1913)
+* **bulma-ui:** draw Card's edge in forced colors, where it vanished ([91b02d9](https://github.com/allxsmith/bestax/commit/91b02d960ccb95736a8b693e7e41dd3fd2ef7991)), closes [#1860](https://github.com/allxsmith/bestax/issues/1860)
+* **bulma-ui:** give a ColorPicker's aria-invalid to its value field too ([c3b822b](https://github.com/allxsmith/bestax/commit/c3b822b910b99b7a8ca74f24ba4e7ff73f59e9b0)), closes [#2130](https://github.com/allxsmith/bestax/issues/2130)
+* **bulma-ui:** keep an open Navbar dropdown's edge in forced colors ([6947091](https://github.com/allxsmith/bestax/commit/69470919d43779753bd9d04fe2d0eda4f73a5d08)), closes [#1980](https://github.com/allxsmith/bestax/issues/1980)
+* **bulma-ui:** keep focus in a Taginput when the last tag's remove button takes it off ([d4f022b](https://github.com/allxsmith/bestax/commit/d4f022bb9143e5b467bd828c03554a9959e54a2a)), closes [#2005](https://github.com/allxsmith/bestax/issues/2005)
+* **bulma-ui:** open Taginput's suggestions on a highlight with Down or Up Arrow ([81c7047](https://github.com/allxsmith/bestax/commit/81c704767a9a73af844119b1736d5d59d9712fc0)), closes [#2006](https://github.com/allxsmith/bestax/issues/2006)
+* **bulma-ui:** set a Slider's tick lines apart from its track in forced colors ([571811a](https://github.com/allxsmith/bestax/commit/571811a2ccb20d3a1dee64f1e13359dd6136242f)), closes [#2032](https://github.com/allxsmith/bestax/issues/2032)
+* **docs:** make the Event Participation template's Program title a heading ([352eb2d](https://github.com/allxsmith/bestax/commit/352eb2d8a1a4de97c3416c4dbb1b5ddb194d1c9e)), closes [#2111](https://github.com/allxsmith/bestax/issues/2111)
+
+
+### Features
+
+* **bulma-ui:** name Carousel's arrows, indicators and items in another language with labels ([5a02e39](https://github.com/allxsmith/bestax/commit/5a02e39ba3c7aa7bef9f538d40fa74dabc236e72)), closes [#1927](https://github.com/allxsmith/bestax/issues/1927)
+
 ## [1.18.74](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.73...bestax-mcp@1.18.74) (2026-11-17)
 
 
