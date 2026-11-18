@@ -178,7 +178,7 @@ The `Field` component can be used with `Input` controls to demonstrate different
 
   <Field label="Loading">
     <Control isLoading>
-      <Input placeholder="Loading state" />
+      <Input placeholder="Loading state" message="Loading…" />
     </Control>
   </Field>
 </>
@@ -381,7 +381,7 @@ In this example, the `Field` component is used with a `Select` that has various 
 
   <Field label="Loading">
     <Control isLoading>
-      <Select isLoading>
+      <Select isLoading message="Loading options…">
         <option value="">Please select</option>
         <option value="option1">Option 1</option>
         <option value="option2">Option 2</option>
@@ -439,7 +439,7 @@ This example demonstrates the versatility of the `TextArea` component used withi
 
   <Field label="Loading">
     <Control isLoading>
-      <TextArea placeholder="Loading state" />
+      <TextArea placeholder="Loading state" message="Loading…" />
     </Control>
   </Field>
 
