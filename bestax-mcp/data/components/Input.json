@@ -23,11 +23,11 @@
     },
     {
       "title": "States",
-      "code": "<>\n  <Input label=\"Normal\" placeholder=\"Normal state\" />\n  <Input label=\"Hover\" isHovered placeholder=\"Hovered state\" />\n  <Input label=\"Focus\" isFocused placeholder=\"Focused state\" />\n  <Input label=\"Loading\" isLoading placeholder=\"Loading state\" />\n</>"
+      "code": "<>\n  <Input label=\"Normal\" placeholder=\"Normal state\" />\n  <Input label=\"Hover\" isHovered placeholder=\"Hovered state\" />\n  <Input label=\"Focus\" isFocused placeholder=\"Focused state\" />\n  <Input\n    label=\"Loading\"\n    isLoading\n    message=\"Loading…\"\n    placeholder=\"Loading state\"\n  />\n</>"
     },
     {
       "title": "Loading States by Size",
-      "code": "<>\n  <Input\n    label=\"Loading Small\"\n    size=\"small\"\n    controlSize=\"small\"\n    isLoading\n    placeholder=\"Loading small\"\n  />\n  <Input label=\"Loading Normal\" isLoading placeholder=\"Loading normal\" />\n  <Input\n    label=\"Loading Medium\"\n    size=\"medium\"\n    controlSize=\"medium\"\n    isLoading\n    placeholder=\"Loading medium\"\n  />\n  <Input\n    label=\"Loading Large\"\n    size=\"large\"\n    controlSize=\"large\"\n    isLoading\n    placeholder=\"Loading large\"\n  />\n</>"
+      "code": "<>\n  <Input\n    label=\"Loading Small\"\n    size=\"small\"\n    controlSize=\"small\"\n    isLoading\n    message=\"Loading…\"\n    placeholder=\"Loading small\"\n  />\n  <Input\n    label=\"Loading Normal\"\n    isLoading\n    message=\"Loading…\"\n    placeholder=\"Loading normal\"\n  />\n  <Input\n    label=\"Loading Medium\"\n    size=\"medium\"\n    controlSize=\"medium\"\n    isLoading\n    message=\"Loading…\"\n    placeholder=\"Loading medium\"\n  />\n  <Input\n    label=\"Loading Large\"\n    size=\"large\"\n    controlSize=\"large\"\n    isLoading\n    message=\"Loading…\"\n    placeholder=\"Loading large\"\n  />\n</>"
     },
     {
       "title": "Disabled & Read Only",
@@ -259,7 +259,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Shows a loading spinner on the `Control` it renders. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded). The spinner sits at the right edge, where `iconRight` also sits, and the two overlap; leave the right icon out while loading.",
+          "description": "Shows a loading spinner on the `Control` it renders. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded). The spinner sits at the right edge, where `iconRight` also sits, and the two overlap; leave the right icon out while loading. The spinner is only drawn, so a screen reader hears nothing of it. Say that the field is loading in text that describes it, tied to it with `aria-describedby`, which a screen reader reads when the field takes focus. A load that starts while the user is in the field, such as a search as they type, isn't reliably heard without a live region, such as a `role=\"status\"` element.",
           "required": false,
           "inherited": false,
           "deprecated": false

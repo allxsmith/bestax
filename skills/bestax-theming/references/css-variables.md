@@ -232,6 +232,8 @@ lone class loses to and `style` does not. Each component's API page lists its va
 **CSS & Sass Variables** and says where Bulma declares them; the extras below follow the same
 rule. In forced colors a colored button's `--bulma-button-border-width` is `1px`, so it keeps an
 edge when the theme replaces its fill, and an outlined button or a `text` one keeps its own.
+In forced colors bestax's CSS sets `--bulma-button-disabled-opacity` to `1` on each button, so what
+Bulma dims with it draws at full strength there.
 
 ## Shadow — override the upstream token, not the derived one
 
@@ -361,6 +363,9 @@ header taller than Bulma's navbar sets it there. `AppFrame.Nav width` writes
 `--bulma-autocomplete-scrollbar-thumb-hover`, `--bulma-autocomplete-scrollbar-track`,
 `--bulma-autocomplete-scrollbar-width`
 
+In forced colors `--bulma-autocomplete-item-disabled-opacity` doesn't apply: a disabled item
+draws at full strength in the system's color for disabled text.
+
 `--bulma-autocomplete-border-hover-color` is registered but has no effect: the input's hover
 border is Bulma's own.
 
@@ -403,6 +408,9 @@ the class prefix in a prefixed build) keeps what's inside it on the light scheme
 `--bulma-carousel-overlay-indicator-background`,
 `--bulma-carousel-overlay-indicator-background-active`,
 `--bulma-carousel-overlay-indicator-background-hover`, `--bulma-carousel-transition-duration`
+
+In forced colors `--bulma-carousel-arrow-disabled-opacity` doesn't apply without `arrowHover`: a
+disabled arrow draws at full strength in the system's color for a disabled control.
 
 `--bulma-carousel-item-gap` (a length, default `0px`) is the space between items in view; set it
 on the carousel's own element through a class. The `--bulma-carousel-items-to-show*` variables
@@ -544,6 +552,10 @@ input's size, and they swap sides right to left. The panel is a `.color-picker` 
 `--bulma-colorinput-disabled-opacity`, `--bulma-colorinput-side-width`,
 `--bulma-colorinput-swatch-size`, `--bulma-colorinput-trigger-color`,
 `--bulma-colorinput-trigger-hover-color`
+
+In forced colors `--bulma-colorinput-disabled-opacity` doesn't apply to the launcher, which draws
+at full strength in the system's color for a disabled control. The swatch keeps it, since its
+color is the value it shows.
 
 ### ColorPicker
 
@@ -733,6 +745,9 @@ system highlight color whatever these say.
 `--bulma-dropzone-name-color`, `--bulma-dropzone-reject-border-color`,
 `--bulma-dropzone-size-color`, `--bulma-dropzone-size-font-size`, `--bulma-dropzone-spacing`
 
+In forced colors `--bulma-dropzone-disabled-opacity` doesn't apply: a disabled zone draws at full
+strength, its border and text in the system's color for a disabled control.
+
 ### EmptyState
 
 Declared on the root, `.empty-state`. Each size class (`.is-small`, `.is-medium`, `.is-large`)
@@ -817,6 +832,9 @@ so each follows the other until you set it apart. The fades and the zoom take Bu
 `--bulma-lightbox-image-max-height`, `--bulma-lightbox-loader-size`, `--bulma-lightbox-spacing`,
 `--bulma-lightbox-toolbar-button-background`, `--bulma-lightbox-toolbar-button-background-hover`,
 `--bulma-lightbox-toolbar-color`, `--bulma-lightbox-toolbar-gap`, `--bulma-lightbox-toolbar-icon-size`
+
+In forced colors `--bulma-lightbox-disabled-opacity` doesn't apply: a button that does nothing at
+an end or a zoom limit draws at full strength in the system's color for a disabled control.
 
 ### LinkButton
 
@@ -907,6 +925,10 @@ through `style`. Bulma's own `--bulma-notification-*` variables set the rest.
 `--bulma-numberinput-stepper-button-hover-bg`, `--bulma-numberinput-stepper-button-hover-color`,
 `--bulma-numberinput-stepper-width`
 
+In forced colors `--bulma-numberinput-disabled-opacity` doesn't apply: a disabled Numberinput
+isn't faded as a whole, and a stepper button disabled at a limit draws at full strength in the
+system's color for a disabled control.
+
 ### Panel
 
 Declared on the root, `.panel`, where Bulma declares its own `--bulma-panel-*`. Bulma writes the
@@ -969,6 +991,10 @@ DateRangeInput's with `monthsToShow`, past which the months wrap to a column.
 `--bulma-picker-popover-shadow`, `--bulma-picker-popover-z-index`,
 `--bulma-picker-trigger-color`, `--bulma-picker-trigger-disabled-opacity`,
 `--bulma-picker-trigger-hover-color`, `--bulma-picker-trigger-width`
+
+In forced colors `--bulma-picker-trigger-disabled-opacity` doesn't apply: a disabled launcher
+draws at full strength in the system's color for a disabled control, as PasswordInput's toggle
+does.
 
 ### A panel's shift at a corner (Popover / HoverCard / Combobox / the pickers)
 
@@ -1102,7 +1128,8 @@ button is `disabled` or `aria-disabled`, whatever `--bulma-sidebar-close-color` 
 A mark's label sits inside its tick, so outside forced colors `--bulma-slider-tick-opacity` dims
 the label along with the tick's line, whatever `--bulma-slider-tick-label-color` you set. In forced
 colors neither `--bulma-slider-tick-opacity` nor `--bulma-slider-disabled-opacity` applies, and the
-system's colors replace the tick and label colors.
+system's colors replace the tick and label colors. Where a tick's line crosses the track there, it
+has a hairline in the page's color as long as `--bulma-slider-track-height`.
 
 `--bulma-slider-disabled-opacity`, `--bulma-slider-fill-color`,
 `--bulma-slider-output-background`, `--bulma-slider-output-color`,
@@ -1221,6 +1248,12 @@ variable on such a tag through `style`. Bulma's own `--bulma-tag-*` variables se
 
 `--bulma-timeinput-wheel-item-height` is registered but has no effect: the component sets each
 wheel item's height inline.
+
+In forced colors (Windows' contrast themes) the band is the system's highlight color, with the
+focus ring in the color made to read on it, whatever `--bulma-timeinput-wheel-selected-bg` and
+`--bulma-timeinput-wheel-selected-color` say, and the values take the system's text color. On a
+disabled picker the band and the values take its color for a disabled control, and so does a
+value the picker blocks. The wheels in `DateTimeInput` are these.
 
 ### Timeline
 

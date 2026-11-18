@@ -275,5 +275,16 @@ $autocomplete-item-large-padding: 0.625rem 1.5rem !default;
       outline: 2px solid Highlight;
       outline-offset: -2px;
     }
+
+    // A disabled option draws at full strength in GrayText, the system's
+    // color for disabled text, rather than faded, hovered or not.
+    .#{iv.$class-prefix}dropdown-item.#{iv.$class-prefix}is-disabled {
+      opacity: 1;
+
+      &,
+      &:hover {
+        color: GrayText;
+      }
+    }
   }
 }

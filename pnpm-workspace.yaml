@@ -165,7 +165,19 @@ overrides:
 # and re-run `pnpm audit --audit-level=high` once its package publishes a fix
 # or GitHub withdraws the advisory.
 auditConfig:
-  ignoreGhsas: []
+  ignoreGhsas:
+    # bestax:review 2026-12-01 — drop once picomatch publishes a fix and the
+    # tree resolves to it; re-run `pnpm audit --audit-level=high` either way.
+    # picomatch ReDoS through single-branch repeated extglobs, every version
+    # through 4.0.7. GitHub lists no patched release (`first_patched_version:
+    # null`; the ">=4.0.8" in audit output is unpublished) and npm's latest is
+    # 4.0.7, so there is no version an override could force. The attack needs
+    # the attacker to supply the glob. Every copy here is build, lint or test
+    # tooling matching this repo's own patterns, except jscodeshift under
+    # bestax-migrate: it loads picomatch only in its Runner, for the ignore
+    # patterns its own CLI user passes, and bestax-migrate imports jscodeshift's
+    # core API, which never loads the Runner.
+    - GHSA-fc5q-39xc-vjpf
 
 # Strict, symlinked node_modules prevents phantom dependencies (using packages
 # we never declared). Narrow public hoists only for tooling that needs a flat

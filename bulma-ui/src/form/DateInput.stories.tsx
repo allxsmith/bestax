@@ -357,6 +357,7 @@ export const MobileNative: Story = {
 export const HorizontalField: Story = {
   args: {
     label: 'Date of birth',
+    autoComplete: 'bday',
     horizontal: true,
     placeholder: 'YYYY-MM-DD',
   },
@@ -666,6 +667,7 @@ export const ManualEntryColors: Story = {
 export const ManualEntryHorizontalField: Story = {
   args: {
     label: 'Date of birth',
+    autoComplete: 'bday',
     horizontal: true,
     placeholder: 'YYYY-MM-DD',
     openOnFocus: false,

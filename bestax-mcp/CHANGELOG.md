@@ -1,3 +1,62 @@
+## [1.18.78](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.77...bestax-mcp@1.18.78) (2026-11-18)
+
+
+### Bug Fixes
+
+* **bulma-ui:** draw more disabled parts at full strength in forced colors ([29a75da](https://github.com/allxsmith/bestax/commit/29a75da1fc88012b3930aa83ee342c021d2ee727)), closes [#1996](https://github.com/allxsmith/bestax/issues/1996) [#2049](https://github.com/allxsmith/bestax/issues/2049)
+
+## [1.18.77](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.76...bestax-mcp@1.18.77) (2026-11-18)
+
+
+### Bug Fixes
+
+* **bulma-ui:** draw Pagination's disabled controls and a disabled select's arrow in GrayText ([e64c575](https://github.com/allxsmith/bestax/commit/e64c5756ec4bf76cc94c8c25efec8edd72ecb2c8)), closes [#2163](https://github.com/allxsmith/bestax/issues/2163)
+* **bulma-ui:** give an open Dropdown or ContextMenu menu an edge in forced colors ([0b8f3d0](https://github.com/allxsmith/bestax/commit/0b8f3d0e9a0d195791ae174f257e595858c50442))
+* **bulma-ui:** keep Panel.InputBlock's and Panel.CheckboxBlock's panel-block class ([411ae24](https://github.com/allxsmith/bestax/commit/411ae2421b0b830cd994c95f5834ea84087d07f5)), closes [#2132](https://github.com/allxsmith/bestax/issues/2132)
+* **bulma-ui:** let a Numberinput take a number typed through one out of range ([4c08d4b](https://github.com/allxsmith/bestax/commit/4c08d4baf2d95c3cf37f3b006ae8644647838883)), closes [#2110](https://github.com/allxsmith/bestax/issues/2110)
+* **bulma-ui:** pass focus on when a programmatic toast that holds it closes ([15d27e1](https://github.com/allxsmith/bestax/commit/15d27e141ca5860892f49a9160a3be81d6986d5d)), closes [#1939](https://github.com/allxsmith/bestax/issues/1939)
+* **bulma-ui:** send a date or time picker's autoComplete to its field ([a5add8b](https://github.com/allxsmith/bestax/commit/a5add8b3f245a07e1846d77c9f23c41deccd0c60)), closes [#2064](https://github.com/allxsmith/bestax/issues/2064)
+* **bulma-ui:** start the focus origin from focus already outside, and restore it without a tab stop ([bf31f68](https://github.com/allxsmith/bestax/commit/bf31f6848ab731d0cfae788e5f5150b552e2e246))
+* **bulma-ui:** stop a range Slider's thumb on a step when minDistance holds it back ([#2173](https://github.com/allxsmith/bestax/issues/2173)) ([84ea55e](https://github.com/allxsmith/bestax/commit/84ea55ec841a89f1606eb3ffd853a6259a7d1b00))
+
+## [1.18.76](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.75...bestax-mcp@1.18.76) (2026-11-18)
+
+
+### Bug Fixes
+
+* **bulma-ui:** close an open Navbar.Dropdown when focus lands outside it ([8ff6c98](https://github.com/allxsmith/bestax/commit/8ff6c98d5045c8d4fdfb4c3e22b1c46d0fafe28f)), closes [#2073](https://github.com/allxsmith/bestax/issues/2073)
+* **bulma-ui:** draw a disabled button at full strength in forced colors ([1c9177e](https://github.com/allxsmith/bestax/commit/1c9177efcd0dd147499a749630f825dd90f34576)), closes [#2144](https://github.com/allxsmith/bestax/issues/2144)
+* **bulma-ui:** draw a link with isDisabled in GrayText in forced colors ([25bd80b](https://github.com/allxsmith/bestax/commit/25bd80b756e13964a2bb6af0dbff6b1182ce7813)), closes [#2144](https://github.com/allxsmith/bestax/issues/2144)
+* **bulma-ui:** draw the time wheels' band in Highlight in forced colors ([239b783](https://github.com/allxsmith/bestax/commit/239b783c10b3f1f76aac1b89e6181c385d0efb43)), closes [#2021](https://github.com/allxsmith/bestax/issues/2021)
+* **bulma-ui:** keep the line under a Card's header in forced colors ([22043f4](https://github.com/allxsmith/bestax/commit/22043f49e1a4bfd12eb733fc2035df474ddb661a)), closes [#1987](https://github.com/allxsmith/bestax/issues/1987)
+* **bulma-ui:** read Navbar.Dropdown's aria-modal check across realms ([193d742](https://github.com/allxsmith/bestax/commit/193d742c2b8b165d944e9ecc91de2e4ef07d1bd6))
+* **bulma-ui:** set Bulma's disabled opacity in forced colors, and outrank its disabled edges ([aa57a94](https://github.com/allxsmith/bestax/commit/aa57a945ae76e225f231db1d04da8e9af3a20c3c)), closes [#2144](https://github.com/allxsmith/bestax/issues/2144)
+* **bulma-ui:** start a range Slider's high thumb at the highest step it holds ([7faf287](https://github.com/allxsmith/bestax/commit/7faf287ca631d207c85151081191b2720c90b8b6)), closes [#2102](https://github.com/allxsmith/bestax/issues/2102)
+
+
+### Features
+
+* **bulma-ui:** name Taginput's input and the suggestion lists through labels ([990a33d](https://github.com/allxsmith/bestax/commit/990a33d333c00b5a64179377ddca23b6a28df472)), closes [#2097](https://github.com/allxsmith/bestax/issues/2097)
+
+## [1.18.75](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.74...bestax-mcp@1.18.75) (2026-11-18)
+
+
+### Bug Fixes
+
+* **bulma-ui:** call the onClose a toast is shown with through toast.show ([4eb81ef](https://github.com/allxsmith/bestax/commit/4eb81ef63d6bfe8ab598f46ce5c9490c57350c9f)), closes [#1913](https://github.com/allxsmith/bestax/issues/1913)
+* **bulma-ui:** draw Card's edge in forced colors, where it vanished ([91b02d9](https://github.com/allxsmith/bestax/commit/91b02d960ccb95736a8b693e7e41dd3fd2ef7991)), closes [#1860](https://github.com/allxsmith/bestax/issues/1860)
+* **bulma-ui:** give a ColorPicker's aria-invalid to its value field too ([c3b822b](https://github.com/allxsmith/bestax/commit/c3b822b910b99b7a8ca74f24ba4e7ff73f59e9b0)), closes [#2130](https://github.com/allxsmith/bestax/issues/2130)
+* **bulma-ui:** keep an open Navbar dropdown's edge in forced colors ([6947091](https://github.com/allxsmith/bestax/commit/69470919d43779753bd9d04fe2d0eda4f73a5d08)), closes [#1980](https://github.com/allxsmith/bestax/issues/1980)
+* **bulma-ui:** keep focus in a Taginput when the last tag's remove button takes it off ([d4f022b](https://github.com/allxsmith/bestax/commit/d4f022bb9143e5b467bd828c03554a9959e54a2a)), closes [#2005](https://github.com/allxsmith/bestax/issues/2005)
+* **bulma-ui:** open Taginput's suggestions on a highlight with Down or Up Arrow ([81c7047](https://github.com/allxsmith/bestax/commit/81c704767a9a73af844119b1736d5d59d9712fc0)), closes [#2006](https://github.com/allxsmith/bestax/issues/2006)
+* **bulma-ui:** set a Slider's tick lines apart from its track in forced colors ([571811a](https://github.com/allxsmith/bestax/commit/571811a2ccb20d3a1dee64f1e13359dd6136242f)), closes [#2032](https://github.com/allxsmith/bestax/issues/2032)
+* **docs:** make the Event Participation template's Program title a heading ([352eb2d](https://github.com/allxsmith/bestax/commit/352eb2d8a1a4de97c3416c4dbb1b5ddb194d1c9e)), closes [#2111](https://github.com/allxsmith/bestax/issues/2111)
+
+
+### Features
+
+* **bulma-ui:** name Carousel's arrows, indicators and items in another language with labels ([5a02e39](https://github.com/allxsmith/bestax/commit/5a02e39ba3c7aa7bef9f538d40fa74dabc236e72)), closes [#1927](https://github.com/allxsmith/bestax/issues/1927)
+
 ## [1.18.74](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.73...bestax-mcp@1.18.74) (2026-11-17)
 
 

@@ -370,7 +370,8 @@ written in its locale, and the list follows its direction.
   refuses; the drop's result is what counts.
 - **Forced colors:** the drop target's border takes the system highlight color, and the remove
   buttons keep their circle and cross in the system's button colors, which Bulma's delete button
-  otherwise loses there.
+  otherwise loses there. A disabled zone draws its border and text in the system's color for a
+  disabled control, at full strength rather than faded.
 - **No ARIA drag attributes:** `aria-dropeffect` and `aria-grabbed` are deprecated, and nothing
   overrides the input's role.
 

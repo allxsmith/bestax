@@ -117,7 +117,8 @@ const meta: Meta<typeof Numberinput> = {
     },
     editable: {
       control: 'boolean',
-      description: 'Whether the input can be typed in',
+      description:
+        'Whether the input can be typed in. Off, the buttons and arrow keys still step it, and a screen reader announces it as read-only',
     },
     bare: {
       control: 'boolean',
@@ -351,6 +352,8 @@ export const OtherLanguage: Story = {
  */
 export const NonEditable: Story = {
   args: {
+    label: 'Seats',
+    message: 'Set it with the buttons.',
     defaultValue: 5,
     editable: false,
     color: 'info',

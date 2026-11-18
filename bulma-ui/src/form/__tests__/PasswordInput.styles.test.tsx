@@ -142,8 +142,11 @@ describe('PasswordInput styles', () => {
       'padding-right',
       'right',
     ]);
+    // The mixin's rules, which apply everywhere. Each partial draws its own
+    // in forced colors, which the next tests check.
     const launcher = PICKERS.filter(
       r =>
+        r.context.length === 0 &&
         r.selector.startsWith('.dateinput-container') &&
         !r.selector.includes('is-rounded')
     );
@@ -307,6 +310,26 @@ describe('PasswordInput styles', () => {
         declarations: { color: 'GrayText', opacity: '1' },
       },
     ]);
+  });
+
+  it('draws a disabled picker launcher in the system gray in forced colors, as it does the toggle', () => {
+    // GrayText marks it there, which its opacity would only fade (#2049).
+    // Each rule matches the mixin's that fades it, and comes later.
+    const forced = PICKERS.filter(r =>
+      r.context.includes('@media (forced-colors: active)')
+    );
+    expect(forced).toEqual(
+      ['dateinput', 'timeinput', 'datetimeinput'].map(picker => ({
+        context: ['@media (forced-colors: active)'],
+        selector: `.${picker}-container > .${picker}-trigger:disabled`,
+        declarations: { color: 'GrayText', opacity: '1' },
+      }))
+    );
+    expect(
+      find(PICKERS, '.dateinput-container > .dateinput-trigger:disabled')
+    ).toMatchObject({
+      opacity: 'var(--bulma-picker-trigger-disabled-opacity)',
+    });
   });
 
   it('prefixes every class under a class prefix', () => {

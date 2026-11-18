@@ -247,3 +247,110 @@ describe('ColorPicker.Input', () => {
     expect(field()).toHaveAttribute('aria-invalid', 'true');
   });
 });
+
+// #2130: the ColorPicker's own aria-invalid and aria-errormessage reach its
+// value field, and stay on its group.
+describe('ColorPicker', () => {
+  const field = () => screen.getByRole('textbox', { name: 'Color value' });
+
+  it('gives its value field the aria-invalid and aria-errormessage it takes', () => {
+    render(
+      <ColorPicker
+        label="Accent"
+        defaultValue="#ff0000"
+        aria-invalid="true"
+        aria-errormessage="accent-error"
+      />
+    );
+    expect(field()).toHaveAttribute('aria-invalid', 'true');
+    expect(field()).toHaveAttribute('aria-errormessage', 'accent-error');
+    const group = screen.getByRole('group', { name: 'Accent' });
+    expect(group).toHaveAttribute('aria-invalid', 'true');
+    expect(group).toHaveAttribute('aria-errormessage', 'accent-error');
+  });
+
+  it('gives them to a ColorPicker.Input among parts of your own', () => {
+    render(
+      <ColorPicker
+        aria-label="Accent"
+        defaultValue="#ff0000"
+        aria-invalid
+        aria-errormessage="accent-error"
+      >
+        <ColorPicker.HueSlider />
+        <ColorPicker.Input />
+      </ColorPicker>
+    );
+    expect(field()).toHaveAttribute('aria-invalid', 'true');
+    expect(field()).toHaveAttribute('aria-errormessage', 'accent-error');
+  });
+
+  it("lets ColorPicker.Input's own win over the picker's", () => {
+    render(
+      <ColorPicker
+        aria-label="Accent"
+        defaultValue="#ff0000"
+        aria-invalid="true"
+        aria-errormessage="accent-error"
+      >
+        <ColorPicker.Input
+          aria-invalid={false}
+          aria-errormessage="value-error"
+        />
+      </ColorPicker>
+    );
+    expect(field()).not.toHaveAttribute('aria-invalid');
+    expect(field()).toHaveAttribute('aria-errormessage', 'value-error');
+  });
+
+  it("takes the picker's as a pair, so the Input's one keeps the other out", () => {
+    render(
+      <ColorPicker
+        aria-label="Accent"
+        defaultValue="#ff0000"
+        aria-invalid="true"
+        aria-errormessage="accent-error"
+      >
+        <ColorPicker.Input aria-invalid={false} />
+      </ColorPicker>
+    );
+    expect(field()).not.toHaveAttribute('aria-invalid');
+    expect(field()).not.toHaveAttribute('aria-errormessage');
+  });
+
+  it("doesn't reach the field of a ColorPicker nested inside it", () => {
+    render(
+      <ColorPicker
+        aria-label="Outer"
+        defaultValue="#ff0000"
+        aria-invalid="true"
+        aria-errormessage="outer-error"
+      >
+        <ColorPicker aria-label="Inner" defaultValue="#00ff00">
+          <ColorPicker.Input />
+        </ColorPicker>
+      </ColorPicker>
+    );
+    expect(field()).not.toHaveAttribute('aria-invalid');
+    expect(field()).not.toHaveAttribute('aria-errormessage');
+  });
+
+  it('sets neither on the field without them', () => {
+    render(<ColorPicker aria-label="Accent" defaultValue="#ff0000" />);
+    expect(field()).not.toHaveAttribute('aria-invalid');
+    expect(field()).not.toHaveAttribute('aria-errormessage');
+  });
+
+  it('still marks text the field cannot read when the picker is valid', () => {
+    render(
+      <ColorPicker
+        aria-label="Accent"
+        defaultValue="#ff0000"
+        aria-invalid="false"
+      />
+    );
+    expect(field()).toHaveAttribute('aria-invalid', 'false');
+    fireEvent.change(field(), { target: { value: 'not a color' } });
+    expect(field()).toHaveAttribute('aria-invalid', 'true');
+  });
+});

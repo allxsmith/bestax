@@ -137,6 +137,27 @@ describe('ColorInput styles', () => {
     ).toEqual({ 'font-size': 'var(--bulma-size-large)' });
   });
 
+  it('draws a disabled launcher at full strength in GrayText in forced colors, and leaves the swatch faded', () => {
+    expect(
+      find(
+        PLAIN,
+        '.colorinput > .colorinput-swatch:disabled, .colorinput > .colorinput-trigger:disabled'
+      )
+    ).toMatchObject({ opacity: 'var(--bulma-colorinput-disabled-opacity)' });
+    // GrayText marks the launcher there, which the opacity would only fade
+    // (#2049). The swatch is its color, which forced colors leaves alone, so
+    // the opacity still marks it.
+    expect(
+      PLAIN.filter(r => r.context.includes('@media (forced-colors: active)'))
+    ).toEqual([
+      {
+        context: ['@media (forced-colors: active)'],
+        selector: '.colorinput > .colorinput-trigger:disabled',
+        declarations: { color: 'GrayText', opacity: '1' },
+      },
+    ]);
+  });
+
   it('prefixes every class under a class prefix', () => {
     expect(PREFIXED.map(r => r.selector)).toEqual(
       PLAIN.map(r =>

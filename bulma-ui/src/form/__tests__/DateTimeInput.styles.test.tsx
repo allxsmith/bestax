@@ -8,6 +8,7 @@ import path from 'path';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { DateTimeInput } from '../DateTimeInput';
 import { ConfigProvider } from '../../helpers/Config';
+import { cascade, compilePartial } from '../../__tests__/css-cascade';
 
 const compile = (file: string) =>
   sass.compile(path.resolve(__dirname, '../../scss', file), {
@@ -148,6 +149,38 @@ describe('DateTimeInput footer while disabled', () => {
       prefixed.remove();
     }
   });
+
+  // GrayText marks them in forced colors, which the opacity would only fade
+  // (#2049). jsdom evaluates no media query, so this resolves the partial's
+  // rules with the shared cascade, on a forced-colors page and on any other.
+  it.each([
+    ['no prefix', ''],
+    ['a class prefix', 'bestax-'],
+  ])(
+    'draws them at full strength in GrayText in forced colors, with %s',
+    (_name, prefix) => {
+      const css = compilePartial('form/datetimeinput', prefix);
+      const resolve = (el: Element, property: string, forcedColors: boolean) =>
+        cascade(
+          el,
+          css,
+          [property],
+          (style, p) => style.getPropertyValue(p) || undefined,
+          { forcedColors }
+        );
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <DateTimeInput inline disabled />
+        </ConfigProvider>
+      );
+      for (const button of footer(container, prefix)) {
+        expect(button).toBeDisabled();
+        expect(resolve(button, 'opacity', false)).toBe('0.5');
+        expect(resolve(button, 'opacity', true)).toBe('1');
+        expect(resolve(button, 'color', true)).toBe('graytext');
+      }
+    }
+  );
 
   // jsdom's getComputedStyle can't match :hover, so this reads the rule.
   it('keeps the hover fill off a disabled Reset', () => {

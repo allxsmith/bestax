@@ -222,6 +222,19 @@ describe('Dropzone styles', () => {
     });
   });
 
+  it('draws a disabled zone at full strength in GrayText in forced colours', () => {
+    // GrayText marks it there, which the opacity would only fade (#2049).
+    // The rule matches the one that fades it, and comes later, so it wins,
+    // and the zone's border and text outrank Bulma's one-class `.file-cta`.
+    expect(find(PLAIN, '.dropzone.is-disabled .file', FORCED)).toEqual({
+      opacity: '1',
+    });
+    expect(find(PLAIN, '.dropzone.is-disabled .file-cta', FORCED)).toEqual({
+      'border-color': 'GrayText',
+      color: 'GrayText',
+    });
+  });
+
   it('prefixes every class in a prefixed build', () => {
     expect(PREFIXED).toHaveLength(PLAIN.length);
     for (const { selector } of PREFIXED) {

@@ -35,11 +35,11 @@
     },
     {
       "title": "Loading State",
-      "code": "<Field label=\"Loading\">\n  <Control isLoading>\n    <Input placeholder=\"Loading state\" />\n  </Control>\n</Field>"
+      "code": "<Field label=\"Loading\">\n  <Control isLoading>\n    <Input placeholder=\"Loading state\" message=\"Loading…\" />\n  </Control>\n</Field>"
     },
     {
       "title": "Loading State with Size Variations",
-      "code": "<>\n  <Field label=\"Loading Small\">\n    <Control isLoading size=\"small\">\n      <Input size=\"small\" placeholder=\"Loading small\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Loading Medium\">\n    <Control isLoading size=\"medium\">\n      <Input size=\"medium\" placeholder=\"Loading medium\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Loading Large\">\n    <Control isLoading size=\"large\">\n      <Input size=\"large\" placeholder=\"Loading large\" />\n    </Control>\n  </Field>\n</>"
+      "code": "<>\n  <Field label=\"Loading Small\">\n    <Control isLoading size=\"small\">\n      <Input size=\"small\" placeholder=\"Loading small\" message=\"Loading…\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Loading Medium\">\n    <Control isLoading size=\"medium\">\n      <Input size=\"medium\" placeholder=\"Loading medium\" message=\"Loading…\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Loading Large\">\n    <Control isLoading size=\"large\">\n      <Input size=\"large\" placeholder=\"Loading large\" message=\"Loading…\" />\n    </Control>\n  </Field>\n</>"
     },
     {
       "title": "Expanded Control",
@@ -115,7 +115,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Shows a loading spinner inside the control. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded). The spinner sits at the right edge, where a right icon also sits, and the two overlap; leave the right icon out while loading.",
+          "description": "Shows a loading spinner inside the control. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded). The spinner sits at the right edge, where a right icon also sits, and the two overlap; leave the right icon out while loading. The spinner is only drawn, so a screen reader hears nothing of it. Say that the field is loading in text that describes the input, select or textarea inside, such as its `message`, or text tied to that control with `aria-describedby`, which a screen reader reads when the control takes focus. A load that starts while the user is in the field, such as a search as they type, isn't reliably heard without a live region, such as a `role=\"status\"` element.",
           "required": false,
           "inherited": true,
           "deprecated": false

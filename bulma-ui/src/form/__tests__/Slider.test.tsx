@@ -799,6 +799,222 @@ describe('Slider', () => {
       expect(container.querySelector('.slider')).toHaveClass('is-range');
     });
 
+    // Without a defaultValue the high thumb started at max, and with max off
+    // the step grid the browser put it a step below while aria-valuenow, the
+    // bubble and the fill said max (#2102).
+    it('starts the high thumb at the highest step when max is off the grid', () => {
+      const { container } = render(
+        <Slider range min={0} max={10} step={3} tooltip="always" />
+      );
+      const [low, high] = screen.getAllByRole('slider') as HTMLInputElement[];
+      expect(low).toHaveAttribute('aria-valuenow', '0');
+      expect(high).toHaveAttribute('aria-valuenow', '9');
+      expect(high.value).toBe('9');
+      expect(
+        Array.from(container.querySelectorAll('output'), o => o.textContent)
+      ).toEqual(['0', '9']);
+      expect(
+        (
+          container.querySelector('.slider-track') as HTMLElement
+        ).style.getPropertyValue('--slider-progress-high')
+      ).toBe('90%');
+    });
+
+    it('starts the high thumb at max when max is on the grid', () => {
+      render(<Slider range min={0} max={10} step={2} />);
+      expect(screen.getAllByRole('slider')[1]).toHaveAttribute(
+        'aria-valuenow',
+        '10'
+      );
+    });
+
+    it('keeps a defaultValue as given, even off the grid', () => {
+      render(<Slider range min={0} max={10} step={3} defaultValue={[0, 10]} />);
+      expect(
+        screen.getAllByRole('slider').map(t => t.getAttribute('aria-valuenow'))
+      ).toEqual(['0', '10']);
+    });
+
+    // With a minDistance wider than the room above min, the clamp that keeps
+    // the thumbs apart pushed the low one below min, as from the highest-step
+    // start: 9 - 10 put it at -1.
+    it('keeps the low thumb at or above min when minDistance is wider than the room', () => {
+      const handleChange = vi.fn();
+      render(
+        <Slider
+          range
+          min={0}
+          max={10}
+          step={3}
+          minDistance={10}
+          onChange={handleChange}
+        />
+      );
+      fireEvent.change(screen.getAllByRole('slider')[0], {
+        target: { value: '3' },
+      });
+      expect(handleChange).toHaveBeenLastCalledWith([0, 9]);
+    });
+
+    // A minDistance that isn't a whole number of steps stopped a thumb
+    // between two: the browser held it on a step, and a form submitted that,
+    // while aria-valuenow, the bubble and onChange said the value in between
+    // (#2141).
+    describe('minDistance off the step grid', () => {
+      const renderRange = (
+        minDistance: number,
+        defaultValue: [number, number]
+      ) => {
+        const handleChange = vi.fn();
+        render(
+          <Slider
+            range
+            min={0}
+            max={9}
+            step={3}
+            minDistance={minDistance}
+            defaultValue={defaultValue}
+            onChange={handleChange}
+          />
+        );
+        const [low, high] = screen.getAllByRole('slider');
+        return { handleChange, low, high };
+      };
+
+      it('stops the high thumb on the nearest step at least minDistance above the low one', () => {
+        const { handleChange, high } = renderRange(4, [0, 9]);
+        fireEvent.change(high, { target: { value: '3' } });
+        expect(handleChange).toHaveBeenLastCalledWith([0, 6]);
+        expect(high).toHaveAttribute('aria-valuenow', '6');
+      });
+
+      it('stops the low thumb on the nearest step at least minDistance below the high one', () => {
+        const { handleChange, low } = renderRange(4, [0, 9]);
+        fireEvent.change(low, { target: { value: '9' } });
+        expect(handleChange).toHaveBeenLastCalledWith([3, 9]);
+        expect(low).toHaveAttribute('aria-valuenow', '3');
+      });
+
+      it('stops a whole number of steps apart, as before', () => {
+        const { handleChange, high } = renderRange(3, [0, 9]);
+        fireEvent.change(high, { target: { value: '0' } });
+        expect(handleChange).toHaveBeenLastCalledWith([0, 3]);
+      });
+
+      // A decimal minDistance from a decimal value lands a hair off a step,
+      // as 0.2 + 0.1 does, which mustn't move the thumb a whole step.
+      it.each([
+        ['high', [0.2, 1], '0', [0.2, 0.3]],
+        ['low', [0, 0.3], '0.3', [0.2, 0.3]],
+      ] as const)(
+        'stops the %s thumb one step of 0.1 from the other',
+        (_thumb, defaultValue, moveTo, expected) => {
+          const handleChange = vi.fn();
+          render(
+            <Slider
+              range
+              min={0}
+              max={1}
+              step={0.1}
+              minDistance={0.1}
+              defaultValue={[...defaultValue]}
+              onChange={handleChange}
+            />
+          );
+          const [low, high] = screen.getAllByRole('slider');
+          fireEvent.change(_thumb === 'high' ? high : low, {
+            target: { value: moveTo },
+          });
+          expect(handleChange).toHaveBeenLastCalledWith([...expected]);
+        }
+      );
+
+      it('stops the high thumb on a step of 1/3 at least minDistance away', () => {
+        const handleChange = vi.fn();
+        render(
+          <Slider
+            range
+            min={0}
+            max={10}
+            step={1 / 3}
+            minDistance={1 / 3}
+            defaultValue={[0.333333333333333, 10]}
+            onChange={handleChange}
+          />
+        );
+        fireEvent.change(screen.getAllByRole('slider')[1], {
+          target: { value: '0' },
+        });
+        expect(handleChange).toHaveBeenLastCalledWith([
+          0.333333333333333, 0.666666666666667,
+        ]);
+      });
+
+      it('keeps the high thumb at the low one when that is past the highest step', () => {
+        // A caller's off-grid defaultValue can put the low thumb above the
+        // highest step; capping the high thumb there would put it below.
+        const handleChange = vi.fn();
+        render(
+          <Slider
+            range
+            min={0}
+            max={10}
+            step={3}
+            defaultValue={[10, 10]}
+            onChange={handleChange}
+          />
+        );
+        fireEvent.change(screen.getAllByRole('slider')[1], {
+          target: { value: '6' },
+        });
+        expect(handleChange).toHaveBeenLastCalledWith([10, 10]);
+      });
+
+      it('lets a negative minDistance cross the thumbs, as before', () => {
+        const handleChange = vi.fn();
+        render(
+          <Slider
+            range
+            min={0}
+            max={10}
+            minDistance={-2}
+            defaultValue={[2, 5]}
+            onChange={handleChange}
+          />
+        );
+        const [low, high] = screen.getAllByRole('slider');
+        fireEvent.change(low, { target: { value: '7' } });
+        expect(handleChange).toHaveBeenLastCalledWith([7, 5]);
+        fireEvent.change(high, { target: { value: '1' } });
+        expect(handleChange).toHaveBeenLastCalledWith([7, 5]);
+      });
+
+      it('counts a step of 0 as 1 when it stops the high thumb', () => {
+        const handleChange = vi.fn();
+        render(
+          <Slider
+            range
+            min={0}
+            max={9}
+            step={0}
+            minDistance={0.5}
+            defaultValue={[2, 9]}
+            onChange={handleChange}
+          />
+        );
+        fireEvent.change(screen.getAllByRole('slider')[1], {
+          target: { value: '2' },
+        });
+        expect(handleChange).toHaveBeenLastCalledWith([2, 3]);
+      });
+
+      it('stops the high thumb at the highest step when there isn’t room for minDistance', () => {
+        const { handleChange, high } = renderRange(8, [3, 9]);
+        fireEvent.change(high, { target: { value: '3' } });
+        expect(handleChange).toHaveBeenLastCalledWith([3, 9]);
+      });
+    });
+
     it('sets low and high values', () => {
       render(<Slider range value={[25, 75]} />);
       const inputs = screen.getAllByRole('slider') as HTMLInputElement[];

@@ -166,6 +166,11 @@ const meta: Meta<typeof Carousel> = {
       control: 'text',
       description: 'Additional icon modifiers',
     },
+    labels: {
+      control: false,
+      description:
+        'The words it writes for its arrows, indicators and items, for another language: previous, next, indicator(slide) and item(current, total). English unless given',
+    },
   },
 };
 
@@ -483,6 +488,40 @@ export const NoIndicators: Story = {
               <Hero color={color} size="medium">
                 <Hero.Body textAlign="centered">
                   <Title as="p">Slide {i + 1}</Title>
+                </Hero.Body>
+              </Hero>
+            </CarouselItem>
+          ))}
+        </Carousel>
+      </Block>
+    );
+  },
+};
+
+/**
+ * The arrows, the indicators and the items named in French with `labels`,
+ * and the role descriptions with `aria-roledescription`.
+ */
+export const Labels: Story = {
+  render: function LabelsExample() {
+    return (
+      <Block p="5">
+        <Carousel
+          lang="fr"
+          aria-roledescription="carrousel"
+          ariaLabel="Couleurs"
+          labels={{
+            previous: 'Diapositive précédente',
+            next: 'Diapositive suivante',
+            indicator: slide => `Aller à la diapositive ${slide}`,
+            item: (current, total) => `${current} sur ${total}`,
+          }}
+        >
+          {heroColors.map((color, i) => (
+            <CarouselItem key={i} aria-roledescription="diapositive">
+              <Hero color={color} size="medium">
+                <Hero.Body textAlign="centered">
+                  <Title as="p">Diapositive {i + 1}</Title>
                 </Hero.Body>
               </Hero>
             </CarouselItem>

@@ -9,6 +9,8 @@ import Panel, {
   PanelButtonBlock,
 } from '../Panel';
 import { ConfigProvider } from '../../helpers/Config';
+import { Control } from '../../form/Control';
+import { Input } from '../../form/Input';
 
 describe('Panel', () => {
   it('renders panel nav with panel class', () => {
@@ -518,6 +520,97 @@ describe('Panel.InputBlock', () => {
     expect(handleChange).toHaveBeenCalled();
   });
 });
+
+// The field is named by its placeholder alone, and the API page's way to
+// give it a name of its own is a Panel.Block with a Control and an Input.
+describe('naming Panel.InputBlock’s field', () => {
+  // A browser names the field after its placeholder when nothing else does;
+  // Testing Library's name computation doesn't, so this checks the
+  // placeholder reaches the field.
+  it('puts its placeholder on the field', () => {
+    render(
+      <Panel>
+        <Panel.InputBlock placeholder="Search repositories" />
+      </Panel>
+    );
+    expect(screen.getByRole('textbox')).toHaveAttribute(
+      'placeholder',
+      'Search repositories'
+    );
+  });
+
+  // Where the label lands today, which names nothing on a div. Sending it to
+  // the field changes what a caller's aria-label does, so it waits for the
+  // next major (#1998).
+  it('puts an aria-label on the block, not on the field', () => {
+    const { container } = render(
+      <Panel>
+        <Panel.InputBlock aria-label="Search repositories" />
+      </Panel>
+    );
+    expect(screen.getByRole('textbox')).not.toHaveAttribute('aria-label');
+    expect(container.querySelector('div.panel-block')).toHaveAttribute(
+      'aria-label',
+      'Search repositories'
+    );
+  });
+
+  it('gives the field a name of its own through a Control and an Input', () => {
+    const { container } = render(
+      <Panel>
+        <Panel.Block as="div">
+          <Control iconLeftName="search">
+            <Input aria-label="Search repositories" placeholder="Search" />
+          </Control>
+        </Panel.Block>
+      </Panel>
+    );
+    const field = screen.getByRole('textbox', { name: 'Search repositories' });
+    expect(container.querySelector('div.panel-block')).toContainElement(field);
+  });
+});
+
+// A className adds to the block's own class, as on the other Panel parts,
+// rather than taking its place (#2132).
+describe.each([
+  ['no prefix', undefined],
+  ['a class prefix', 'bestax-'],
+])(
+  'a className on the input and checkbox blocks, with %s',
+  (_label, prefix) => {
+    const block = `${prefix ?? ''}panel-block`;
+
+    it('keeps Panel.InputBlock’s panel-block class', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Panel>
+            <Panel.InputBlock className="mb-2" placeholder="Search" />
+          </Panel>
+        </ConfigProvider>
+      );
+      const div = screen.getByRole('textbox').closest('div');
+      expect(div).toHaveClass(block, 'mb-2');
+      expect(container.querySelectorAll(`.${block}`)).toHaveLength(1);
+    });
+
+    it('keeps Panel.CheckboxBlock’s panel-block class', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Panel>
+            <Panel.CheckboxBlock className="mb-2">
+              remember me
+            </Panel.CheckboxBlock>
+          </Panel>
+        </ConfigProvider>
+      );
+      expect(screen.getByText('remember me').closest('label')).toHaveClass(
+        block,
+        'mb-2'
+      );
+      expect(container.querySelectorAll(`.${block}`)).toHaveLength(1);
+    });
+  }
+);
 
 describe('Panel.CheckboxBlock', () => {
   it('renders checkbox and label', () => {

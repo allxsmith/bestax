@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.76.0"
+    "version": "5.78.2"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -330,8 +330,8 @@
       "slug": "components/carousel",
       "import": "import { Carousel, CarouselItem } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 31,
-      "exampleCount": 16
+      "propCount": 32,
+      "exampleCount": 17
     },
     {
       "name": "Cascader",
@@ -1123,7 +1123,7 @@
       "import": "import { Panel } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 37,
-      "exampleCount": 4
+      "exampleCount": 5
     },
     {
       "name": "Paragraph",
@@ -1496,8 +1496,8 @@
       "slug": "form/taginput",
       "import": "import { Taginput } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 48,
-      "exampleCount": 13
+      "propCount": 49,
+      "exampleCount": 14
     },
     {
       "name": "Tags",
@@ -3940,7 +3940,7 @@
     "PanelBlock": {
       "component": "Panel",
       "path": "Panel.Block",
-      "purpose": "Individual panel block (renders as `<a class=\"panel-block\">` unless `as` says otherwise)"
+      "purpose": "Individual panel block (renders as `<a class=\"panel-block\">` unless `as` says otherwise)."
     },
     "PanelButtonBlock": {
       "component": "Panel",
@@ -3965,12 +3965,12 @@
     "PanelInputBlock": {
       "component": "Panel",
       "path": "Panel.InputBlock",
-      "purpose": "Search input with icon (renders as `<div class=\"panel-block\">`)"
+      "purpose": "Search input with icon (renders as `<div class=\"panel-block\">` around the `<input>`)."
     },
     "PanelTabs": {
       "component": "Panel",
       "path": "Panel.Tabs",
-      "purpose": "Panel tabs (renders as `<p class=\"panel-tabs\">`)"
+      "purpose": "Panel tabs (renders as `<p class=\"panel-tabs\">`)."
     },
     "PasswordInputBase": {
       "component": "PasswordInput",

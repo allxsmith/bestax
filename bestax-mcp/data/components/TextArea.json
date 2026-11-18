@@ -23,11 +23,11 @@
     },
     {
       "title": "States",
-      "code": "<>\n  <TextArea label=\"Normal\" placeholder=\"Normal textarea\" />\n  <TextArea label=\"Hover\" isHovered placeholder=\"Hovered textarea\" />\n  <TextArea label=\"Focus\" isFocused placeholder=\"Focused textarea\" />\n  <TextArea label=\"Loading\" isLoading placeholder=\"Loading textarea\" />\n</>"
+      "code": "<>\n  <TextArea label=\"Normal\" placeholder=\"Normal textarea\" />\n  <TextArea label=\"Hover\" isHovered placeholder=\"Hovered textarea\" />\n  <TextArea label=\"Focus\" isFocused placeholder=\"Focused textarea\" />\n  <TextArea\n    label=\"Loading\"\n    isLoading\n    message=\"Loading…\"\n    placeholder=\"Loading textarea\"\n  />\n</>"
     },
     {
       "title": "Loading States by Size",
-      "code": "<>\n  <TextArea\n    label=\"Loading Small\"\n    size=\"small\"\n    controlSize=\"small\"\n    isLoading\n    placeholder=\"Small loading textarea\"\n  />\n  <TextArea\n    label=\"Loading Normal\"\n    isLoading\n    placeholder=\"Normal loading textarea\"\n  />\n  <TextArea\n    label=\"Loading Medium\"\n    size=\"medium\"\n    controlSize=\"medium\"\n    isLoading\n    placeholder=\"Medium loading textarea\"\n  />\n  <TextArea\n    label=\"Loading Large\"\n    size=\"large\"\n    controlSize=\"large\"\n    isLoading\n    placeholder=\"Large loading textarea\"\n  />\n</>"
+      "code": "<>\n  <TextArea\n    label=\"Loading Small\"\n    size=\"small\"\n    controlSize=\"small\"\n    isLoading\n    message=\"Loading…\"\n    placeholder=\"Small loading textarea\"\n  />\n  <TextArea\n    label=\"Loading Normal\"\n    isLoading\n    message=\"Loading…\"\n    placeholder=\"Normal loading textarea\"\n  />\n  <TextArea\n    label=\"Loading Medium\"\n    size=\"medium\"\n    controlSize=\"medium\"\n    isLoading\n    message=\"Loading…\"\n    placeholder=\"Medium loading textarea\"\n  />\n  <TextArea\n    label=\"Loading Large\"\n    size=\"large\"\n    controlSize=\"large\"\n    isLoading\n    message=\"Loading…\"\n    placeholder=\"Large loading textarea\"\n  />\n</>"
     },
     {
       "title": "Disabled & Read Only",
@@ -107,7 +107,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Shows a loading spinner on the `Control` it renders. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
+          "description": "Shows a loading spinner on the `Control` it renders. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded). The spinner is only drawn, so a screen reader hears nothing of it. Say that the field is loading in its `message` as well, such as `message=\"Loading…\"`, which describes the textarea, so a screen reader reads it when the field takes focus. A load that starts while the user is in the field, such as a search as they type, isn't reliably heard without a live region, such as a `role=\"status\"` element.",
           "required": false,
           "inherited": false,
           "deprecated": false

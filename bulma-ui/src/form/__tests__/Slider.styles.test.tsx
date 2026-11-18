@@ -331,12 +331,23 @@ describe.each([
       own.rule.style.getPropertyValue('--bulma-slider-output-background').trim()
     ).toMatch(/^canvastext$/i);
     // The bubble keeps the user's palette: only the arrow opts out, besides
-    // the elements that paint the track's gradient.
+    // the elements that paint the track's gradient and the ticks that paint
+    // a gap in their line.
     const optedOut = rules
-      .filter(({ rule }) => rule.style.getPropertyValue('forced-color-adjust'))
+      .filter(
+        ({ rule }) =>
+          rule.style.getPropertyValue('forced-color-adjust') === 'none'
+      )
       .map(({ rule }) => rule.selectorText.split(/\s*,\s*/).join(', '));
     const track = `${p('slider')}${p('is-range')} ${p('slider-track')}`;
-    expect(optedOut).toEqual([`${p('slider-input')}, ${track}`, track, arrow]);
+    const line = `${p('slider-tick')}:not(${p('is-endpoint')})`;
+    const ticks = `${p('slider')}:not(${p('is-range')}) ${line}, ${p('slider')}${p('is-vertical')} ${line}`;
+    expect(optedOut).toEqual([
+      `${p('slider-input')}, ${track}`,
+      ticks,
+      track,
+      arrow,
+    ]);
   });
 
   // The color above reaches every way the arrow points because each one
@@ -437,12 +448,16 @@ describe.each([
     return out;
   })();
 
+  /** A selector list's text on one line, as `a, b`. */
+  const oneLine = (selector: string) => selector.split(/\s*,\s*/).join(', ');
+
   /** A property's values across the rules for exactly `selector`. */
   const values = (selector: string, property: string, within: string[]) =>
     rules
       .filter(
         r =>
-          r.within.join() === within.join() && r.rule.selectorText === selector
+          r.within.join() === within.join() &&
+          oneLine(r.rule.selectorText) === selector
       )
       .map(r => r.rule.style.getPropertyValue(property))
       .filter(Boolean);
@@ -480,6 +495,80 @@ describe.each([
         v.toLowerCase()
       )
     ).toEqual(['canvastext']);
+  });
+
+  it('run a hairline in the page’s color down a tick’s line across the track in forced colors', () => {
+    // The track is drawn in CanvasText, which most contrast themes make the
+    // same color as ButtonText, the line's, so the line merged into the track
+    // where it crossed it (#2032). A Canvas hairline, half the line's width
+    // and the track's height, now runs down its middle. Every slider but a
+    // horizontal range one gets it, since that one's ticks hang below its
+    // track (#2101). jsdom drops a gradient, so it's read from the compiled
+    // sheet, with its whitespace collapsed.
+    const line = `${p('slider-tick')}:not(${p('is-endpoint')})`;
+    const across = `${p('slider')}:not(${p('is-range')}) ${line}`;
+    const vertical = `${p('slider')}${p('is-vertical')} ${line}`;
+    const flat = compiled.replace(/\s+/g, ' ');
+    const block = (selector: string) => {
+      const at = flat.lastIndexOf(`${selector} {`);
+      expect(at).toBeGreaterThan(-1);
+      return flat.slice(at, flat.indexOf('}', at));
+    };
+    const band = 'var(--bulma-slider-track-height)';
+    expect(block(`${across}, ${vertical}`)).toContain(
+      `background: linear-gradient(Canvas, Canvas) center/50% ${band} no-repeat, currentColor;`
+    );
+    expect(block(vertical)).toContain(`background-size: ${band} 50%;`);
+    // Forced colors drops a gradient unless the tick opts out. The line is
+    // painted from the tick's color, ButtonText, or GrayText while disabled.
+    expect(
+      values(`${across}, ${vertical}`, 'forced-color-adjust', [FORCED])
+    ).toEqual(['none']);
+    expect(
+      values(p('slider-tick'), 'color', [FORCED]).map(v => v.toLowerCase())
+    ).toEqual(['buttontext']);
+    expect(
+      values(`${p('slider')}${p('is-disabled')} ${line}`, 'color', [
+        FORCED,
+      ]).map(v => v.toLowerCase())
+    ).toEqual(['graytext']);
+    // None of it applies outside forced colors.
+    expect(
+      rules.some(
+        r =>
+          !r.within.length &&
+          (r.rule.selectorText.includes(across) ||
+            r.rule.selectorText.includes(vertical))
+      )
+    ).toBe(false);
+  });
+
+  it('hand a tick’s label back to the user’s palette, since the opt-out is inherited', () => {
+    const line = `${p('slider-tick')}:not(${p('is-endpoint')})`;
+    const label = p('slider-tick-label');
+    expect(
+      values(
+        `${p('slider')}:not(${p('is-range')}) ${line} ${label}, ${p('slider')}${p('is-vertical')} ${line} ${label}`,
+        'forced-color-adjust',
+        [FORCED]
+      )
+    ).toEqual(['auto']);
+  });
+
+  it('draw the hairline after a disabled line’s plain one, which ties with it on specificity', () => {
+    const line = `${p('slider-tick')}:not(${p('is-endpoint')})`;
+    const at = (selector: string) =>
+      rules.findIndex(
+        r =>
+          r.within.join() === FORCED &&
+          oneLine(r.rule.selectorText) === selector
+      );
+    const hairline = at(
+      `${p('slider')}:not(${p('is-range')}) ${line}, ${p('slider')}${p('is-vertical')} ${line}`
+    );
+    const plain = at(`${p('slider')}${p('is-disabled')} ${line}`);
+    expect(plain).toBeGreaterThan(-1);
+    expect(hairline).toBeGreaterThan(plain);
   });
 
   it('draw the tick and its label at full strength in forced colors', () => {

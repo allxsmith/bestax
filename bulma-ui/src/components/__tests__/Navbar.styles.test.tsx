@@ -501,26 +501,112 @@ function fixedNavbarOf(prefix: string, fixed: 'top' | 'bottom') {
   return getByRole('navigation');
 }
 
+/** Every rule of `css` that matches `el`, with the block it sits in. */
+const rulesOn = (css: string, el: Element) =>
+  rulesOf(css).filter(rule =>
+    rule.selector.split(/,(?![^(]*\))/).some(part => matches(el, part.trim()))
+  );
+
 /** Every rule of `css` that sets a margin on `el`, in any block. */
 const marginRulesOn = (css: string, el: Element) =>
-  rulesOf(css).filter(
-    rule =>
-      Object.keys(rule.declarations).some(name => name.startsWith('margin')) &&
-      rule.selector.split(/,(?![^(]*\))/).some(part => matches(el, part.trim()))
+  rulesOn(css, el).filter(rule =>
+    Object.keys(rule.declarations).some(name => name.startsWith('margin'))
   );
+
+// From the desktop breakpoint up Bulma draws an open dropdown as a box whose
+// edge is a shadow, and a line along its top unless it's boxed, which forced
+// colors drops, so `_navbar.scss` draws it a CanvasText outline there
+// (#1980). The rules are read off the sheet with the block each sits in.
+describe('an open dropdown on a forced-colors page', () => {
+  const WIDE =
+    '@media screen and (min-width: 1024px) and (forced-colors: active)';
+
+  /** An open dropdown, and a boxed one in a spaced navbar. */
+  function dropdownsOf(prefix: string) {
+    const { getAllByTestId } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <Navbar aria-label="Site">
+          <Navbar.Dropdown active>
+            <Navbar.Link>More</Navbar.Link>
+            <Navbar.DropdownMenu data-testid="menu">
+              <Navbar.Item href="#about">About</Navbar.Item>
+            </Navbar.DropdownMenu>
+          </Navbar.Dropdown>
+        </Navbar>
+        <Navbar aria-label="Spaced" isSpaced>
+          <Navbar.Dropdown active>
+            <Navbar.Link>Boxed</Navbar.Link>
+            <Navbar.DropdownMenu
+              className={`${prefix}is-boxed`}
+              data-testid="menu"
+            >
+              <Navbar.Item href="#jobs">Jobs</Navbar.Item>
+            </Navbar.DropdownMenu>
+          </Navbar.Dropdown>
+        </Navbar>
+      </ConfigProvider>
+    );
+    return getAllByTestId('menu');
+  }
+
+  describe.each([
+    ['the partial after Bulma', '', () => bulmaCss() + compile()],
+    ['the partial before Bulma', '', () => compile() + bulmaCss()],
+    [
+      'a prefixed build, the partial after Bulma',
+      'bulma-',
+      () => bulmaCss('versions/bulma-prefixed.css') + compile('bulma-'),
+    ],
+    [
+      'a prefixed build, the partial before Bulma',
+      'bulma-',
+      () => compile('bulma-') + bulmaCss('versions/bulma-prefixed.css'),
+    ],
+  ])('with %s', (_order, prefix, css) => {
+    it('draws a one pixel CanvasText edge outside the box, from the desktop breakpoint up only', () => {
+      const sheet = css();
+      for (const menu of dropdownsOf(prefix)) {
+        const outlines = rulesOn(sheet, menu).filter(rule =>
+          Object.keys(rule.declarations).some(name =>
+            name.startsWith('outline')
+          )
+        );
+        expect(outlines.map(rule => [rule.context, rule.declarations])).toEqual(
+          [[[WIDE], { outline: '1px solid CanvasText' }]]
+        );
+      }
+    });
+  });
+
+  it('draws no edge around the box with Bulma alone, which is the bug', () => {
+    const [menu, boxed] = dropdownsOf('');
+    // Any outline, or a border on the sides or the bottom, physical or
+    // logical; Bulma's own line along the top is left out.
+    const edges = (el: Element) =>
+      rulesOn(bulmaCss(), el).flatMap(rule =>
+        Object.keys(rule.declarations).filter(name =>
+          /^(outline(-\w+)?|border(-(left|right|bottom|inline|inline-start|inline-end|block-end))?(-(width|style|color))?)$/.test(
+            name
+          )
+        )
+      );
+    expect(edges(menu)).toEqual([]);
+    expect(edges(boxed)).toEqual([]);
+  });
+});
 
 describe('the Navbar partial', () => {
   it.each([
     ['no prefix', ''],
     ['a class prefix', 'bestax-'],
   ])(
-    'keeps the burger, the divider and an active item’s bar in forced colors, a fixed navbar’s lock margins and an active item’s text at no weight, and a prefixed dropdown’s active row over Bulma’s row rules, with %s, naming only prefixed classes',
+    'keeps the burger, the divider, an active item’s bar and an open dropdown’s edge in forced colors, a fixed navbar’s lock margins and an active item’s text at no weight, and a prefixed dropdown’s active row over Bulma’s row rules, with %s, naming only prefixed classes',
     (_label, prefix) => {
       const rules = rulesOf(compile(prefix));
       // An active or selected link item or link.
       const current = `:is(a.${prefix}navbar-item, .${prefix}navbar-link):is(.${prefix}is-active, .${prefix}is-selected)`;
       expect(
-        rules.slice(0, 6).map(rule => [rule.selector, rule.context])
+        rules.slice(0, 7).map(rule => [rule.selector, rule.context])
       ).toEqual([
         [`.${prefix}navbar-burger.${prefix}navbar-burger span`, [FORCED]],
         [`.${prefix}navbar-divider.${prefix}navbar-divider`, [FORCED]],
@@ -531,6 +617,10 @@ describe('the Navbar partial', () => {
           ['@media screen and (max-width: 1023px) and (forced-colors: active)'],
         ],
         [
+          `.${prefix}navbar-dropdown`,
+          ['@media screen and (min-width: 1024px) and (forced-colors: active)'],
+        ],
+        [
           `:where(.${prefix}navbar.${prefix}is-fixed-top, .${prefix}navbar.${prefix}is-fixed-bottom)`,
           [],
         ],
@@ -539,7 +629,7 @@ describe('the Navbar partial', () => {
       // rows under the burger and a bold hero's menu on a phone.
       // A prefixed build ends with one more rule, for a dropdown's active row.
       const extra = prefix ? 1 : 0;
-      const hero = rules.slice(6, -1 - extra);
+      const hero = rules.slice(7, -1 - extra);
       expect(hero.map(rule => rule.context)).toEqual([
         [],
         ['@media screen and (max-width: 1023px)'],
@@ -562,7 +652,10 @@ describe('the Navbar partial', () => {
         'forced-color-adjust': 'none',
         'background-color': 'CanvasText',
       });
-      expect(rules[5].declarations).toEqual(LOCK_MARGINS);
+      expect(rules[5].declarations).toEqual({
+        outline: '1px solid CanvasText',
+      });
+      expect(rules[6].declarations).toEqual(LOCK_MARGINS);
       // Then an active item's text color, at no weight either.
       const last = rules[rules.length - 1 - extra];
       expect([last.selector, last.context]).toEqual([

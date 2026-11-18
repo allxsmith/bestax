@@ -217,3 +217,16 @@ $picker-trigger-pairs: (
     inset-inline-start: 0;
   }
 }
+
+// In forced colors a disabled launcher draws at full strength in GrayText, the
+// system's color for a disabled control, as PasswordInput's toggle does, since
+// its usual opacity would only fade that.
+@media (forced-colors: active) {
+  @each $container, $trigger in $picker-trigger-pairs {
+    .#{iv.$class-prefix}#{$container}
+      > .#{iv.$class-prefix}#{$trigger}:disabled {
+      color: GrayText;
+      opacity: 1;
+    }
+  }
+}
