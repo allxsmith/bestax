@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import { Collapse } from './Collapse';
 import { Collapses } from './Collapses';
 import { Card } from './Card';
@@ -539,6 +539,9 @@ export const Nested: Story = {
  */
 export const PanelCollapse: Story = {
   render: function PanelCollapseExample() {
+    // The heading sits in the Collapse's trigger, a button, so it can't be a
+    // heading itself, but the panel still takes its name from it.
+    const headingId = useId();
     const [isOpen, setIsOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('all');
     const [searchValue, setSearchValue] = useState('');
@@ -555,13 +558,13 @@ export const PanelCollapse: Story = {
     ];
 
     return (
-      <Panel color="primary">
+      <Panel color="primary" aria-labelledby={headingId}>
         <Collapse
           open={isOpen}
           onOpenChange={setIsOpen}
           animation="slide"
           trigger={
-            <Panel.Heading style={{ cursor: 'pointer' }}>
+            <Panel.Heading id={headingId} style={{ cursor: 'pointer' }}>
               <span
                 style={{
                   display: 'flex',
@@ -580,7 +583,7 @@ export const PanelCollapse: Story = {
           }
         >
           <Panel.InputBlock
-            placeholder="Search"
+            placeholder="Search projects"
             value={searchValue}
             onChange={e => setSearchValue(e.target.value)}
           />
@@ -588,15 +591,22 @@ export const PanelCollapse: Story = {
             {tabs.map(tab => (
               <a
                 key={tab}
+                href={`#${tab.toLowerCase()}`}
                 className={activeTab === tab.toLowerCase() ? 'is-active' : ''}
-                onClick={() => setActiveTab(tab.toLowerCase())}
+                aria-current={
+                  activeTab === tab.toLowerCase() ? 'true' : undefined
+                }
+                onClick={e => {
+                  e.preventDefault();
+                  setActiveTab(tab.toLowerCase());
+                }}
               >
                 {tab}
               </a>
             ))}
           </Panel.Tabs>
           {projects.map(project => (
-            <Panel.Block key={project.name}>
+            <Panel.Block key={project.name} href={`#${project.name}`}>
               <Panel.Icon name={project.icon} variant="solid" />
               {project.name}
             </Panel.Block>

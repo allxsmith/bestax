@@ -65,6 +65,13 @@ export interface InputProps extends InputBaseProps {
    * drawn (with bestax's CSS loaded).
    * The spinner sits at the right edge, where `iconRight` also sits, and the
    * two overlap; leave the right icon out while loading.
+   * The spinner is only drawn, so a screen reader hears nothing of it. Say
+   * that the field is loading in text that describes it, tied to it with
+   * `aria-describedby`, which a screen reader reads when the field takes
+   * focus.
+   * A load that starts while the user is in the field, such as a search as
+   * they type, isn't reliably heard without a live region, such as a
+   * `role="status"` element.
    */
   isLoading?: boolean;
   /** Expand the control. */

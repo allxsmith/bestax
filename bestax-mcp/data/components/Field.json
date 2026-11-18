@@ -35,7 +35,7 @@
     },
     {
       "title": "With Input (States)",
-      "code": "<>\n  <Field label=\"Normal\">\n    <Control>\n      <Input placeholder=\"Normal state\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Hover\">\n    <Control>\n      <Input isHovered placeholder=\"Hovered state\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Focus\">\n    <Control>\n      <Input isFocused placeholder=\"Focused state\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Loading\">\n    <Control isLoading>\n      <Input placeholder=\"Loading state\" />\n    </Control>\n  </Field>\n</>"
+      "code": "<>\n  <Field label=\"Normal\">\n    <Control>\n      <Input placeholder=\"Normal state\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Hover\">\n    <Control>\n      <Input isHovered placeholder=\"Hovered state\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Focus\">\n    <Control>\n      <Input isFocused placeholder=\"Focused state\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Loading\">\n    <Control isLoading>\n      <Input placeholder=\"Loading state\" message=\"Loading…\" />\n    </Control>\n  </Field>\n</>"
     },
     {
       "title": "With Input (Disabled & Read Only)",
@@ -67,7 +67,7 @@
     },
     {
       "title": "With Select (Colors, Sizes, Rounded, Loading, Icons)",
-      "code": "<>\n  <Field label=\"Primary\">\n    <Control>\n      <Select color=\"primary\">\n        <option value=\"1\">Option 1</option>\n        <option value=\"2\">Option 2</option>\n      </Select>\n    </Control>\n  </Field>\n\n  <Field label=\"Rounded\">\n    <Control>\n      <Select isRounded>\n        <option value=\"\">Please select</option>\n        <option value=\"option1\">Option 1</option>\n        <option value=\"option2\">Option 2</option>\n      </Select>\n    </Control>\n  </Field>\n\n  <Field label=\"With Icons\">\n    <Control hasIconsLeft iconLeft={{ name: 'person' }}>\n      <Select>\n        <option value=\"huck\">Huckleberry Finn</option>\n        <option value=\"tom\">Tom Sawyer</option>\n      </Select>\n    </Control>\n  </Field>\n\n  <Field label=\"Loading\">\n    <Control isLoading>\n      <Select isLoading>\n        <option value=\"\">Please select</option>\n        <option value=\"option1\">Option 1</option>\n        <option value=\"option2\">Option 2</option>\n      </Select>\n    </Control>\n  </Field>\n</>"
+      "code": "<>\n  <Field label=\"Primary\">\n    <Control>\n      <Select color=\"primary\">\n        <option value=\"1\">Option 1</option>\n        <option value=\"2\">Option 2</option>\n      </Select>\n    </Control>\n  </Field>\n\n  <Field label=\"Rounded\">\n    <Control>\n      <Select isRounded>\n        <option value=\"\">Please select</option>\n        <option value=\"option1\">Option 1</option>\n        <option value=\"option2\">Option 2</option>\n      </Select>\n    </Control>\n  </Field>\n\n  <Field label=\"With Icons\">\n    <Control hasIconsLeft iconLeft={{ name: 'person' }}>\n      <Select>\n        <option value=\"huck\">Huckleberry Finn</option>\n        <option value=\"tom\">Tom Sawyer</option>\n      </Select>\n    </Control>\n  </Field>\n\n  <Field label=\"Loading\">\n    <Control isLoading>\n      <Select isLoading message=\"Loading options…\">\n        <option value=\"\">Please select</option>\n        <option value=\"option1\">Option 1</option>\n        <option value=\"option2\">Option 2</option>\n      </Select>\n    </Control>\n  </Field>\n</>"
     },
     {
       "title": "With TextArea",
@@ -75,7 +75,7 @@
     },
     {
       "title": "With TextArea (Rows, Colors, Sizes, States, Loading, Fixed Size)",
-      "code": "<>\n  <Field label=\"Rows\">\n    <Control>\n      <TextArea rows={8} placeholder=\"8 rows\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Primary\">\n    <Control>\n      <TextArea color=\"primary\" placeholder=\"Primary (color='primary')\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Small\">\n    <Control>\n      <TextArea size=\"small\" placeholder=\"Small\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Hover\">\n    <Control>\n      <TextArea isHovered placeholder=\"Hovered state\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Loading\">\n    <Control isLoading>\n      <TextArea placeholder=\"Loading state\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Fixed Size\">\n    <Control>\n      <TextArea hasFixedSize placeholder=\"Fixed size textarea\" rows={3} />\n    </Control>\n  </Field>\n</>"
+      "code": "<>\n  <Field label=\"Rows\">\n    <Control>\n      <TextArea rows={8} placeholder=\"8 rows\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Primary\">\n    <Control>\n      <TextArea color=\"primary\" placeholder=\"Primary (color='primary')\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Small\">\n    <Control>\n      <TextArea size=\"small\" placeholder=\"Small\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Hover\">\n    <Control>\n      <TextArea isHovered placeholder=\"Hovered state\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Loading\">\n    <Control isLoading>\n      <TextArea placeholder=\"Loading state\" message=\"Loading…\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Fixed Size\">\n    <Control>\n      <TextArea hasFixedSize placeholder=\"Fixed size textarea\" rows={3} />\n    </Control>\n  </Field>\n</>"
     },
     {
       "title": "Grouped Controls",
@@ -404,7 +404,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Shows a loading spinner inside the control. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded). The spinner sits at the right edge, where a right icon also sits, and the two overlap; leave the right icon out while loading.",
+          "description": "Shows a loading spinner inside the control. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded). The spinner sits at the right edge, where a right icon also sits, and the two overlap; leave the right icon out while loading. The spinner is only drawn, so a screen reader hears nothing of it. Say that the field is loading in text that describes the input, select or textarea inside, such as its `message`, or text tied to that control with `aria-describedby`, which a screen reader reads when the control takes focus. A load that starts while the user is in the field, such as a search as they type, isn't reliably heard without a live region, such as a `role=\"status\"` element.",
           "required": false,
           "inherited": true,
           "deprecated": false

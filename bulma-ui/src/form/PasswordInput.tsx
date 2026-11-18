@@ -64,6 +64,13 @@ export interface PasswordInputProps extends PasswordInputBaseProps {
    * `Control` it renders none, so this draws nothing and warns in
    * development; set `isLoading` on that `Control`, which hides the toggle
    * too.
+   * The spinner is only drawn, so a screen reader hears nothing of it. Say
+   * that the field is loading in its `message` as well, such as
+   * `message="Loading…"`, which describes the input, so a screen reader
+   * reads it when the field takes focus.
+   * A load that starts while the user is in the field, such as a search as
+   * they type, isn't reliably heard without a live region, such as a
+   * `role="status"` element.
    */
   isLoading?: boolean;
   /** Expand the control. */

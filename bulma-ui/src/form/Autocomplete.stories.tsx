@@ -46,7 +46,7 @@ const meta: Meta<typeof Autocomplete> = {
     labels: {
       control: 'object',
       description:
-        'Accessible strings in your language: clear names the clear button',
+        'Accessible names in your language: clear names the clear button, suggestions the list when no label with an id does',
     },
     openOnFocus: {
       control: 'boolean',

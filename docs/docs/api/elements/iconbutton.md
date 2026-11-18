@@ -370,7 +370,8 @@ name and its focus, since it isn't `disabled`.
 - **Toggles** are [`ToggleButton`](./togglebutton.md), which reports `aria-pressed`. Give an
   icon-only one an `aria-label` the same way.
 - **Forced colors:** a font icon, or an SVG drawn in `currentColor`, takes the system's text
-  color, as a button's text does.
+  color, as a button's text does, and on a disabled one the system's color for a disabled
+  control, at full strength.
 
 ---
 

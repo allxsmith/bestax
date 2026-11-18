@@ -110,7 +110,13 @@ export interface NumberinputProps
   labels?: NumberinputLabels;
   /** Whether the input is disabled. */
   disabled?: boolean | undefined;
-  /** Whether the input can be typed in. */
+  /**
+   * Whether the input can be typed in. With `false` the input is `readOnly`,
+   * so nothing can be typed or pasted, but the arrow keys and the buttons
+   * still change the value, and a screen reader announces the field as
+   * read-only all the same. Say that the buttons set it in its label, or in
+   * its `message` where it renders one.
+   */
   editable?: boolean;
   /**
    * Shows a loading spinner on the input's control.
@@ -119,6 +125,13 @@ export interface NumberinputProps
    * Use this rather than `isLoading` on a `Control` around the Numberinput:
    * that spinner sits at the `Control`'s right edge, on top of whichever
    * button is there, while this one stays inside the input.
+   * The spinner is only drawn, so a screen reader hears nothing of it. Say
+   * that the field is loading in its `message` as well, where it renders
+   * one, or in text you tie to the input with `aria-describedby`, which a
+   * screen reader reads when the input takes focus.
+   * A load that starts while the user is in the field, such as a search as
+   * they type, isn't reliably heard without a live region, such as a
+   * `role="status"` element.
    */
   isLoading?: boolean;
   /** Enables exponential step increments when holding buttons. */

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, userEvent, within } from 'storybook/test';
 import { EmptyState } from './EmptyState';
@@ -356,6 +356,7 @@ export const PartsLeftOut: Story = {
 
 export const InContainers: Story = {
   render: function InContainersExample() {
+    const repositoriesId = useId();
     return (
       <>
         <Columns>
@@ -389,9 +390,11 @@ export const InContainers: Story = {
             </Card>
           </Column>
           <Column>
-            <Panel>
-              <Panel.Heading>Repositories</Panel.Heading>
-              <Panel.Block>
+            <Panel as="section" aria-labelledby={repositoriesId}>
+              <Panel.Heading id={repositoriesId} role="heading" aria-level={2}>
+                Repositories
+              </Panel.Heading>
+              <Panel.Block as="div">
                 <EmptyState
                   flexGrow="1"
                   size="small"

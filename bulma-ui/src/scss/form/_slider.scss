@@ -692,6 +692,7 @@ $slider-vertical-height: 200px !default;
   // label sits on the page, so it takes the text color paired with it.
   .#{iv.$class-prefix}slider-tick {
     background: ButtonText;
+    color: ButtonText;
     opacity: 1;
   }
 
@@ -704,10 +705,42 @@ $slider-vertical-height: 200px !default;
   .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-disabled
     .#{iv.$class-prefix}slider-tick:not(.#{iv.$class-prefix}is-endpoint) {
     background: GrayText;
+    color: GrayText;
   }
 
   .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-disabled .#{iv.$class-prefix}slider-tick-label {
     color: GrayText;
+  }
+
+  // A tick's line crosses the track, drawn in CanvasText, which most
+  // contrast themes make the same color as ButtonText, so the line merged
+  // into the track there. A hairline of Canvas down the middle of the line,
+  // across the track's band, sets it apart from the track and from the fill
+  // alike. It's half the line's width, so close ticks still leave most of
+  // the track showing, and the band is the default track's height, centered
+  // on the tick as the ticks are centered on that track. Forced colors drops
+  // a gradient, so the tick opts out and paints its line from its color,
+  // GrayText while disabled, and its label goes back to the user's palette.
+  // A horizontal range slider's ticks hang below its track (#2101), so they
+  // keep the plain line; its `:not()` goes once they cross it.
+  .#{iv.$class-prefix}slider:not(.#{iv.$class-prefix}is-range)
+    .#{iv.$class-prefix}slider-tick:not(.#{iv.$class-prefix}is-endpoint),
+  .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-vertical
+    .#{iv.$class-prefix}slider-tick:not(.#{iv.$class-prefix}is-endpoint) {
+    forced-color-adjust: none;
+    background:
+      linear-gradient(Canvas, Canvas) center / 50% #{cv.getVar("slider-track-height")} no-repeat,
+      currentColor;
+
+    .#{iv.$class-prefix}slider-tick-label {
+      forced-color-adjust: auto;
+    }
+  }
+
+  // A vertical slider's tick lies across its track, so the hairline does too.
+  .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-vertical
+    .#{iv.$class-prefix}slider-tick:not(.#{iv.$class-prefix}is-endpoint) {
+    background-size: #{cv.getVar("slider-track-height")} 50%;
   }
 
   .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-range .#{iv.$class-prefix}slider-track {

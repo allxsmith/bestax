@@ -205,7 +205,12 @@ and wire `htmlFor`/`id`, to your `id` when you pass one
 (`<Input label="Email" id="email" horizontal />`); an explicit `labelProps={{ htmlFor }}` wins. `Combobox` renders its `Field` and label too, and wires
 them to its field. Given `data`, its `id`, `aria-label` and `aria-labelledby` go to the field;
 built from parts, put them on `Combobox.Input`, since on the `Combobox` they land on its wrapper
-`div`. The group inputs (`Checkboxes`, `Radios`, `Rate`, `DateRangeInput`) name their
+`div`. `DateInput`, `TimeInput` and `DateTimeInput` (and each `*Base`) put `aria-label`,
+`aria-labelledby` and `aria-describedby` on their wrapper `div`, not the field, except on the native
+input `mobileNative` renders: name the field with `label` (or a labeled `Field` around a `*Base`, or
+an `id` and your own `<label htmlFor>`) and describe it with the wrapper's `message`, since a
+`*Base` on its own can't describe its field. The group inputs (`Checkboxes`,
+`Radios`, `Rate`, `DateRangeInput`) name their
 `role="group"`/`"radiogroup"` wrapper through `aria-labelledby` instead. `Checkboxes` and `Radios`
 also take `as="fieldset"`, which renders their own `Field` as a native `<fieldset>` with the `label`
 as its `<legend>` (the label column when `horizontal`), named by the legend with no ids. Inside a
@@ -231,7 +236,8 @@ A `range` `Slider` points the `for` at its low thumb and starts both thumbs' nam
 leave it off when a label already names the Slider. Those thumbs and an `Autocomplete`'s, a
 `Combobox`'s or a `Taginput`'s list point `aria-labelledby` at the label's `id`, which a label
 wired by hand has only when you pass one, `labelProps={{ htmlFor, id }}`; without it they keep their
-fallback names ("Minimum value"/"Maximum value", "Suggestions"). A `<label htmlFor>` you put in
+fallback names ("Minimum value"/"Maximum value", "Suggestions", which an `Autocomplete`'s or a
+`Taginput`'s `labels.suggestions` gives in your language). A `<label htmlFor>` you put in
 `Field.Label` yourself (`references/patterns.md`) names its control through the `for` alone, so
 label a row holding either with the `Field`'s `label` prop. An `aria-label` or `aria-labelledby`
 you give a group wins over any label, and a `Checkbox`, `Radio` or `Switch` takes nothing from a
@@ -319,7 +325,7 @@ Rules of thumb:
   `TimeInput`, `DateTimeInput`, `Autocomplete`, `Taginput`, `TreeSelect`, `Cascader` and a
   `Combobox` with `data` put their other attributes on a wrapper, and `aria-invalid` and
   `aria-errormessage` on the input, as `DateRangeInput` does on both its inputs and
-  `ColorPicker.Input` on its field.
+  `ColorPicker.Input` on its field, which also takes the ones given to its `ColorPicker`.
 - A field that asks for the user's own details takes its `autoComplete` token (`name`,
   `given-name`, `family-name`, `email`, `tel`, `address-line1`, `address-level2`, `postal-code`,
   `country`, `new-password`, …; the full list is HTML's autofill field names), so the browser can
@@ -329,6 +335,11 @@ Rules of thumb:
   sets `current-password` itself. A form with two addresses puts `shipping` or `billing` in front
   of each token, as the Fieldset above does. A date of birth in a `DateInput` takes `bday`, which
   goes on its field.
+- A loading spinner (`isLoading`) is only drawn, so a screen reader hears nothing of it. While a
+  field loads, say so in its `message` too (`message="Loading countries…"`), or, on a field with
+  no `message` of its own, in text tied to it with `aria-describedby`: either is read when the
+  field takes focus. A load that starts while the user is in the field, such as a search as they
+  type, isn't reliably heard without a live region, such as a `role="status"` element.
 - Want a different validation library? Wire it up yourself — pass its `value`/`onChange`/error
   string into these props. bestax does not prescribe one.
 - For grouped controls, render the `<p class="help">` via the `message` prop of the convenience

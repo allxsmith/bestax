@@ -4,8 +4,10 @@
 // real SCSS and check what it actually does.
 import { render } from '@testing-library/react';
 import { compileScss, compileSheet } from '../../__tests__/compile-scss';
+import { cascade, compilePartial, rulesOf } from '../../__tests__/css-cascade';
 import { ConfigProvider } from '../../helpers/Config';
 import { TimeInput } from '../TimeInput';
+import type { TimeInputProps } from '../TimeInput';
 
 let styleEl: HTMLStyleElement;
 
@@ -373,4 +375,123 @@ describe('TimeInput AM/PM wheel width', () => {
       }
     }
   );
+});
+
+// Forced colors replaces the band's fill and the picked value's color, so the
+// partial draws them in the system's selection colors there (#2021). These
+// resolve what the band and the items get on a forced-colors page, from the
+// partial compiled with no prefix and under one.
+describe.each([
+  ['no prefix', ''],
+  ['a class prefix', 'bestax-'],
+])('TimeInput wheels in forced colors, with %s', (_label, prefix) => {
+  // jsdom matches no `:focus-visible`, so the sheet reads it as a class the
+  // test puts on the wheel it means.
+  let raw = '';
+  let css = '';
+  beforeAll(() => {
+    raw = compilePartial('form/timeinput', prefix);
+    css = raw.replace(/:focus-visible/g, '.jsdom-focus-visible');
+  }, 30_000);
+
+  const forced = (el: Element, property: string) =>
+    cascade(
+      el,
+      css,
+      [property],
+      (style, p) => style.getPropertyValue(p).trim() || undefined,
+      { forcedColors: true }
+    );
+
+  const wheelsOf = (props: Partial<TimeInputProps> = {}) => {
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <TimeInput
+          inline
+          defaultValue={new Date(2026, 0, 1, 10, 30)}
+          {...props}
+        />
+      </ConfigProvider>
+    );
+    return Array.from(
+      container.querySelectorAll<HTMLElement>('[role="spinbutton"]')
+    ).map(wheel => ({
+      wheel,
+      band: wheel.querySelector(`.${prefix}timeinput-wheel-band`)!,
+      picked: wheel.querySelector(
+        `.${prefix}timeinput-wheel-item.${prefix}is-selected`
+      )!,
+      other: wheel.querySelector(
+        `.${prefix}timeinput-wheel-item:not(.${prefix}is-selected)`
+      )!,
+    }));
+  };
+
+  it('draws the band in Highlight and leaves the values forced', () => {
+    const wheels = wheelsOf();
+    expect(wheels).toHaveLength(2);
+    for (const { band, picked, other } of wheels) {
+      expect(forced(band, 'forced-color-adjust')).toBe('none');
+      expect(forced(band, 'background-color')).toBe('highlight');
+      // The values take the system's text color, with the page's color the
+      // browser draws behind them, on the band and off it alike.
+      for (const value of [picked, other]) {
+        expect(forced(value, 'forced-color-adjust')).toBeUndefined();
+      }
+    }
+  });
+
+  it('draws the focus ring on the band in HighlightText', () => {
+    for (const { wheel, band } of wheelsOf()) {
+      wheel.classList.add('jsdom-focus-visible');
+      expect(forced(band, 'outline-color')).toBe('highlighttext');
+      wheel.classList.remove('jsdom-focus-visible');
+    }
+  });
+
+  it("fills a disabled wheel's band in GrayText, at full opacity", () => {
+    for (const { wheel, band, picked, other } of wheelsOf({
+      disabled: true,
+    })) {
+      expect(wheel).toHaveClass(`${prefix}is-disabled`);
+      expect(forced(wheel, 'opacity')).toBe('1');
+      expect(forced(band, 'background-color')).toBe('graytext');
+      // GrayText marks the values, so they keep full opacity.
+      for (const value of [picked, other]) {
+        expect(value).toBeDisabled();
+        expect(forced(value, 'color')).toBe('graytext');
+        expect(forced(value, 'opacity')).toBe('1');
+      }
+    }
+  });
+
+  it('keeps a picked value that the picker blocks at full opacity', () => {
+    const [hours] = wheelsOf({
+      unselectableTimes: d => d.getHours() === 10,
+    });
+    expect(hours.wheel).not.toHaveClass(`${prefix}is-disabled`);
+    expect(hours.picked).toBeDisabled();
+    expect(forced(hours.band, 'background-color')).toBe('highlight');
+    expect(forced(hours.picked, 'color')).toBe('graytext');
+    expect(forced(hours.picked, 'opacity')).toBe('1');
+  });
+
+  it('names the system colors only inside the forced-colors block', () => {
+    const { all } = rulesOf(raw);
+    const outside = all.filter(
+      ({ within }) => !within.includes('@media (forced-colors: active)')
+    );
+    expect(outside.length).toBeGreaterThan(0);
+    for (const { rule } of outside) {
+      expect(rule.style.cssText).not.toMatch(
+        /\b(highlight|highlighttext|graytext|canvas)\b/i
+      );
+      expect(rule.style.getPropertyValue('forced-color-adjust')).toBe('');
+    }
+    expect(
+      all.some(({ within }) =>
+        within.includes('@media (forced-colors: active)')
+      )
+    ).toBe(true);
+  });
 });

@@ -322,6 +322,8 @@ Use `defaultValue` for internal state management:
 <Slider defaultValue={50} />
 ```
 
+Without one, a range Slider starts at `min` and the highest value it holds: `max`, or the last step below it when `max` falls between two steps.
+
 ---
 
 ## Form Submission
@@ -372,12 +374,13 @@ function SliderRangeFormDemo() {
 - `ariaLabel` wins over the label. In range mode each entry is that thumb's whole name, with no label in front, and an empty entry counts as unset.
 - An `aria-label` or `aria-labelledby` you pass straight to a range Slider names the whole Slider, so it takes the label's place at the start of both thumbs' names: `<Slider range aria-label="Budget" />` announces "Budget Minimum value" and "Budget Maximum value". An `ariaLabel` entry still wins for its own thumb. To keep a label out of the thumbs' names altogether, pass `aria-labelledby={undefined}`, and they stay "Minimum value" and "Maximum value".
 - A `Field` label you wire by hand with `labelProps={{ htmlFor }}`, as in a horizontal form, gets no generated id, so give it one of your own there as well, as in `labelProps={{ htmlFor: 'price', id: 'price-label' }}`, and it starts both thumbs' names the same way. Without that `id` it reaches a range Slider only through its `for`, which the thumbs' default `aria-label` outranks, so they stay "Minimum value" and "Maximum value".
-- In forced colors (Windows' contrast themes) the track and its fill would disappear, since they're painted as a gradient. bestax's styles paint the fill in the system's highlight color and the rest of the track in its text color there, so the track shows how far it's filled. The mark labels draw in its text color too, and the tick lines in its button text color. A disabled slider draws its track, thumbs, ticks and labels in its color for disabled text instead. All of them draw at full strength there.
+- In forced colors (Windows' contrast themes) the track and its fill would disappear, since they're painted as a gradient. bestax's styles paint the fill in the system's highlight color and the rest of the track in its text color there, so the track shows how far it's filled. The mark labels draw in its text color too, and the tick lines in its button text color, with a hairline in the page's color down the middle where a line crosses the track, so it shows on the track and on the fill. A disabled slider draws its track, thumbs, ticks and labels in its color for disabled text instead. All of them draw at full strength there.
 - Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes
 - The thumb's `aria-valuetext` is what `getAriaValueText` returns, or else the value bubble's text when `formatOutput` or `scale` is set, whether or not the bubble shows, so ``formatOutput={v => `$${v}`}`` announces "$41" rather than "41".
 - The value bubble is an `<output>`, which a browser treats as a live region. It's set not to announce: a thumb announces its value as it's moved.
 - Fully keyboard accessible with arrow keys
 - Home and End move a thumb to the slider's ends. When `max` falls between two steps, End stops at the last step below it, the highest value the slider holds, and that's the value it reports. On a range Slider a thumb stops at the other thumb, or `minDistance` short of it.
+- A range Slider with no `defaultValue` starts its high thumb at that highest value too, so its `aria-valuenow`, its value bubble and its fill say where the thumb sits, which is also what a form submits.
 - Focus states clearly visible
 - On a right-to-left page the native range mirrors, and the fill, the tick marks and the value bubble follow it, so a value of 25 fills from the right. A vertical slider still fills from the bottom.
 - In forced colors (Windows' contrast themes) the value bubble takes the page's own background, and every side of its arrow would be painted, drawing it as a square. bestax's styles outline the bubble in the system's text color there, and keep the arrow a triangle in that color, pointing at the thumb whichever side the bubble sits on.
