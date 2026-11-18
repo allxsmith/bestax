@@ -1255,6 +1255,283 @@ describe('Navbar.Dropdown', () => {
     });
   });
 
+  // An open menu left behind sits over the page, where the next thing
+  // focused can be under it (#2073), so focus landing outside the dropdown
+  // closes it.
+  describe('focus landing outside an open dropdown', () => {
+    const renderOpen = (
+      props: Partial<ComponentProps<typeof Navbar.Dropdown>> = {},
+      prefix = ''
+    ) => {
+      const onActiveChange = vi.fn();
+      const utils = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Navbar.Dropdown
+            onActiveChange={onActiveChange}
+            data-testid="dropdown"
+            {...props}
+          >
+            <Navbar.Link>More</Navbar.Link>
+            <Navbar.DropdownMenu>
+              <Navbar.Item href="#about">About</Navbar.Item>
+              <Navbar.Item href="#jobs">Jobs</Navbar.Item>
+            </Navbar.DropdownMenu>
+          </Navbar.Dropdown>
+          <button type="button">Elsewhere</button>
+          <button type="button">Further</button>
+        </ConfigProvider>
+      );
+      const trigger = screen.getByRole('button', { name: 'More' });
+      if (props.active === undefined) {
+        fireEvent.keyDown(trigger, { key: 'Enter' });
+      }
+      return {
+        ...utils,
+        onActiveChange,
+        root: screen.getByTestId('dropdown'),
+        trigger,
+        about: screen.getByRole('link', { name: 'About' }),
+        jobs: screen.getByRole('link', { name: 'Jobs' }),
+        elsewhere: screen.getByRole('button', { name: 'Elsewhere' }),
+        further: screen.getByRole('button', { name: 'Further' }),
+      };
+    };
+
+    it.each([
+      ['no prefix', ''],
+      ['a class prefix', 'bestax-'],
+    ])('closes when Tab moves focus past it, with %s', (_label, prefix) => {
+      const { onActiveChange, root, trigger, jobs, elsewhere } = renderOpen(
+        {},
+        prefix
+      );
+      expect(root).toHaveClass(`${prefix}is-active`);
+      act(() => jobs.focus());
+      act(() => elsewhere.focus());
+      expect(root).not.toHaveClass(`${prefix}is-active`);
+      expect(trigger).toHaveAttribute('aria-expanded', 'false');
+      expect(onActiveChange.mock.calls).toEqual([[true], [false]]);
+      expect(elsewhere).toHaveFocus();
+    });
+
+    it('stays open while focus moves inside it', () => {
+      const { onActiveChange, root, trigger, about, jobs } = renderOpen();
+      act(() => trigger.focus());
+      act(() => about.focus());
+      act(() => jobs.focus());
+      act(() => trigger.focus());
+      expect(root).toHaveClass('is-active');
+      expect(onActiveChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('stays open when focus goes nowhere, and closes on the next focus outside', () => {
+      const { root, about, elsewhere } = renderOpen();
+      act(() => about.focus());
+      // A window losing focus, or a press on something in the menu that
+      // can't take focus, which leaves it on the page.
+      fireEvent.blur(about);
+      act(() => about.blur());
+      expect(root).toHaveClass('is-active');
+      act(() => elsewhere.focus());
+      expect(root).not.toHaveClass('is-active');
+    });
+
+    it('stays open for a press outside that doesn’t move focus', () => {
+      const { root, about } = renderOpen();
+      act(() => about.focus());
+      fireEvent.pointerDown(document.body);
+      fireEvent.mouseDown(document.body);
+      expect(root).toHaveClass('is-active');
+    });
+
+    it('stays open when focus moves into content opened from the menu into a portal', () => {
+      const onActiveChange = vi.fn();
+      render(
+        <Navbar.Dropdown active onActiveChange={onActiveChange}>
+          <Navbar.Link>More</Navbar.Link>
+          <Navbar.DropdownMenu>
+            <Navbar.Item href="#about">About</Navbar.Item>
+            {createPortal(
+              <button type="button">In a popup</button>,
+              document.body
+            )}
+          </Navbar.DropdownMenu>
+        </Navbar.Dropdown>
+      );
+      act(() => screen.getByRole('link', { name: 'About' }).focus());
+      act(() => screen.getByRole('button', { name: 'In a popup' }).focus());
+      expect(onActiveChange).not.toHaveBeenCalled();
+    });
+
+    it('tells a controlled dropdown once, which keeps its prop, until focus comes back in', () => {
+      const { onActiveChange, root, about, elsewhere, further } = renderOpen({
+        active: true,
+      });
+      act(() => about.focus());
+      act(() => elsewhere.focus());
+      act(() => further.focus());
+      expect(onActiveChange.mock.calls).toEqual([[false]]);
+      expect(root).toHaveClass('is-active');
+      act(() => about.focus());
+      act(() => elsewhere.focus());
+      expect(onActiveChange.mock.calls).toEqual([[false], [false]]);
+    });
+
+    it('tells a controlled dropdown again once it opens again, focus outside all along', () => {
+      const onActiveChange = vi.fn();
+      const ui = (active: boolean) => (
+        <>
+          <Navbar.Dropdown active={active} onActiveChange={onActiveChange}>
+            <Navbar.Link>More</Navbar.Link>
+            <Navbar.DropdownMenu>
+              <Navbar.Item href="#about">About</Navbar.Item>
+            </Navbar.DropdownMenu>
+          </Navbar.Dropdown>
+          <button type="button">Elsewhere</button>
+          <button type="button">Further</button>
+        </>
+      );
+      const { rerender } = render(ui(true));
+      const elsewhere = screen.getByRole('button', { name: 'Elsewhere' });
+      const further = screen.getByRole('button', { name: 'Further' });
+      act(() => elsewhere.focus());
+      rerender(ui(false));
+      rerender(ui(true));
+      act(() => further.focus());
+      expect(onActiveChange.mock.calls).toEqual([[false], [false]]);
+    });
+
+    it('closes once when focus lands outside twice before it renders', () => {
+      const { onActiveChange, about, elsewhere, further } = renderOpen();
+      act(() => about.focus());
+      act(() => {
+        elsewhere.focus();
+        further.focus();
+      });
+      expect(onActiveChange.mock.calls).toEqual([[true], [false]]);
+    });
+
+    it('stays open when focus moves into a modal dialog an item opens', () => {
+      const { onActiveChange, root, about } = renderOpen();
+      const modal = document.createElement('div');
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-modal', 'true');
+      const inModal = document.createElement('button');
+      modal.appendChild(inModal);
+      document.body.appendChild(modal);
+      act(() => about.focus());
+      act(() => inModal.focus());
+      expect(root).toHaveClass('is-active');
+      expect(onActiveChange.mock.calls).toEqual([[true]]);
+      // It gives focus back to the item, which is still there to take it.
+      act(() => about.focus());
+      expect(about).toHaveFocus();
+      modal.remove();
+    });
+
+    it('still closes inside a modal dialog when focus moves on in it', () => {
+      const onActiveChange = vi.fn();
+      render(
+        <div role="dialog" aria-modal="true" aria-label="Drawer">
+          <Navbar.Dropdown
+            active
+            onActiveChange={onActiveChange}
+            data-testid="dropdown"
+          >
+            <Navbar.Link>More</Navbar.Link>
+            <Navbar.DropdownMenu>
+              <Navbar.Item href="#about">About</Navbar.Item>
+            </Navbar.DropdownMenu>
+          </Navbar.Dropdown>
+          <button type="button">Next in the drawer</button>
+        </div>
+      );
+      act(() => screen.getByRole('link', { name: 'About' }).focus());
+      act(() =>
+        screen.getByRole('button', { name: 'Next in the drawer' }).focus()
+      );
+      expect(onActiveChange).toHaveBeenCalledWith(false);
+    });
+
+    it('stays open for a focus the document hears once it’s back inside', () => {
+      const { root, about, elsewhere } = renderOpen();
+      act(() => about.focus());
+      // A focus trap that sends it straight back: the document hears the
+      // focus outside with focus already back on the item.
+      fireEvent.focusIn(elsewhere);
+      expect(root).toHaveClass('is-active');
+    });
+
+    it('stays open when the window gives focus back to what had it outside', () => {
+      const onActiveChange = vi.fn();
+      render(
+        <>
+          <Navbar.Dropdown
+            onActiveChange={onActiveChange}
+            data-testid="dropdown"
+          >
+            <Navbar.Link>More</Navbar.Link>
+            <Navbar.DropdownMenu>
+              <Navbar.Item href="#about">About</Navbar.Item>
+            </Navbar.DropdownMenu>
+          </Navbar.Dropdown>
+          <input aria-label="Search" />
+          <button type="button">Further</button>
+        </>
+      );
+      const search = screen.getByRole('textbox', { name: 'Search' });
+      act(() => search.focus());
+      // Opened while focus stays in the field, as a search can.
+      fireEvent.keyDown(screen.getByRole('button', { name: 'More' }), {
+        key: 'Enter',
+      });
+      const root = screen.getByTestId('dropdown');
+      expect(root).toHaveClass('is-active');
+      fireEvent.blur(window);
+      fireEvent.focusIn(search);
+      expect(root).toHaveClass('is-active');
+      act(() => screen.getByRole('button', { name: 'Further' }).focus());
+      expect(root).not.toHaveClass('is-active');
+      expect(onActiveChange.mock.calls).toEqual([[true], [false]]);
+    });
+
+    it('does nothing for a closed dropdown', () => {
+      const onActiveChange = vi.fn();
+      render(
+        <>
+          <Navbar.Dropdown onActiveChange={onActiveChange}>
+            <Navbar.Link>More</Navbar.Link>
+            <Navbar.DropdownMenu>
+              <Navbar.Item href="#about">About</Navbar.Item>
+            </Navbar.DropdownMenu>
+          </Navbar.Dropdown>
+          <button type="button">Elsewhere</button>
+        </>
+      );
+      act(() => screen.getByRole('button', { name: 'More' }).focus());
+      act(() => screen.getByRole('button', { name: 'Elsewhere' }).focus());
+      expect(onActiveChange).not.toHaveBeenCalled();
+    });
+
+    it('stops listening once it’s gone', () => {
+      const { onActiveChange, about, unmount } = renderOpen();
+      act(() => about.focus());
+      unmount();
+      const outside = document.createElement('button');
+      document.body.appendChild(outside);
+      act(() => outside.focus());
+      expect(onActiveChange.mock.calls).toEqual([[true]]);
+      outside.remove();
+    });
+
+    it('still calls the onFocusCapture it is given', () => {
+      const onFocusCapture = vi.fn();
+      const { about } = renderOpen({ onFocusCapture });
+      act(() => about.focus());
+      expect(onFocusCapture).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('Escape inside the open menu', () => {
     const renderOpen = (
       props: Partial<ComponentProps<typeof Navbar.Dropdown>> = {},
