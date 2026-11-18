@@ -11,6 +11,10 @@
 //
 // The same partial brings Bulma's focus outline back on `:focus-visible`
 // (#1417). Those rules are read from the compiled sheet, not a browser.
+//
+// Bulma dims a disabled control at half opacity, which in forced colors only
+// halves the color the browser draws it in, so the partial draws it at full
+// strength in GrayText there (#2163), resolved the same way.
 import * as sass from 'sass';
 import fs from 'fs';
 import path from 'path';
@@ -141,6 +145,7 @@ const SETTERS: Record<string, string[]> = {
   'border-color': ['border-color', 'border'],
   color: ['color'],
   'forced-color-adjust': ['forced-color-adjust'],
+  opacity: ['opacity'],
 };
 
 /**
@@ -188,10 +193,18 @@ function resolve(css: string, el: Element, property: string) {
   return won?.value;
 }
 
+/** The colors that mark a page link. */
+const LOOK = [
+  'background-color',
+  'border-color',
+  'color',
+  'forced-color-adjust',
+];
+
 /** How a page link looks on a forced-colors page, from `css`. */
 const look = (css: string, el: Element) =>
   Object.fromEntries(
-    Object.keys(SETTERS).map(property => [property, resolve(css, el, property)])
+    LOOK.map(property => [property, resolve(css, el, property)])
   );
 
 const HIGHLIGHTED = {
@@ -200,6 +213,22 @@ const HIGHLIGHTED = {
   color: 'HighlightText',
   'forced-color-adjust': 'none',
 };
+
+/** Bulma's CSS on either side of the partial, with no prefix and under one. */
+const ORDERS: [string, string, () => string][] = [
+  ['the partial after Bulma', '', () => bulmaCss() + compile()],
+  ['the partial before Bulma', '', () => compile() + bulmaCss()],
+  [
+    'a prefixed build, the partial after Bulma',
+    'bulma-',
+    () => bulmaCss('versions/bulma-prefixed.css') + compile('bulma-'),
+  ],
+  [
+    'a prefixed build, the partial before Bulma',
+    'bulma-',
+    () => compile('bulma-') + bulmaCss('versions/bulma-prefixed.css'),
+  ],
+];
 
 /** The current page's link and page 1's, with `prefix` on every class. */
 function linksOf(container: HTMLElement, prefix: string) {
@@ -218,20 +247,7 @@ function linksOf(container: HTMLElement, prefix: string) {
 describe('the current page on a forced-colors page', () => {
   // Bulma's CSS can land on either side of the extras: `bestax-no-dark-mode`
   // emits them first, and an app can link `extras.css` before its own Bulma.
-  describe.each([
-    ['the partial after Bulma', '', () => bulmaCss() + compile()],
-    ['the partial before Bulma', '', () => compile() + bulmaCss()],
-    [
-      'a prefixed build, the partial after Bulma',
-      'bulma-',
-      () => bulmaCss('versions/bulma-prefixed.css') + compile('bulma-'),
-    ],
-    [
-      'a prefixed build, the partial before Bulma',
-      'bulma-',
-      () => compile('bulma-') + bulmaCss('versions/bulma-prefixed.css'),
-    ],
-  ])('with %s', (_order, prefix, css) => {
+  describe.each(ORDERS)('with %s', (_order, prefix, css) => {
     it('is drawn in Highlight, and the other pages are left to the browser', () => {
       const { container } = render(
         <ConfigProvider classPrefix={prefix}>
@@ -273,6 +289,109 @@ describe('the current page on a forced-colors page', () => {
   });
 });
 
+describe('a disabled control on a forced-colors page', () => {
+  describe.each(ORDERS)('with %s', (_order, prefix, css) => {
+    it('draws Previous at the first page, and a disabled page link, at full strength in GrayText', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Pagination total={5} onPageChange={() => {}} />
+          <Pagination>
+            <Pagination.List>
+              <Pagination.Link disabled>9</Pagination.Link>
+            </Pagination.List>
+          </Pagination>
+        </ConfigProvider>
+      );
+      const sheet = css();
+      const previous = container.querySelector(
+        `.${prefix}pagination-previous`
+      ) as Element;
+      const link = container.querySelector(
+        `.${prefix}pagination-link.${prefix}is-disabled`
+      ) as Element;
+      expect(previous).toHaveClass(`${prefix}is-disabled`);
+      for (const el of [previous, link]) {
+        expect(resolve(sheet, el, 'opacity')).toBe('1');
+        expect(resolve(sheet, el, 'color')).toBe('GrayText');
+        expect(resolve(sheet, el, 'border-color')).toBe('GrayText');
+      }
+      const next = container.querySelector(
+        `.${prefix}pagination-next`
+      ) as Element;
+      expect(next).not.toHaveClass(`${prefix}is-disabled`);
+      expect(resolve(sheet, next, 'opacity')).toBeUndefined();
+      expect(resolve(sheet, next, 'color')).not.toBe('GrayText');
+    });
+
+    it('draws a control disabled by its attribute, or by a disabled fieldset, the same way', () => {
+      const { container } = render(
+        <div>
+          <nav className={`${prefix}pagination`}>
+            <button
+              type="button"
+              className={`${prefix}pagination-next`}
+              disabled
+            >
+              Next
+            </button>
+          </nav>
+          <fieldset disabled>
+            <nav className={`${prefix}pagination`}>
+              <button type="button" className={`${prefix}pagination-link`}>
+                4
+              </button>
+            </nav>
+          </fieldset>
+        </div>
+      );
+      const sheet = css();
+      for (const el of Array.from(container.querySelectorAll('button'))) {
+        expect(el).toBeDisabled();
+        expect(resolve(sheet, el, 'opacity')).toBe('1');
+        expect(resolve(sheet, el, 'color')).toBe('GrayText');
+        expect(resolve(sheet, el, 'border-color')).toBe('GrayText');
+      }
+    });
+
+    it('fills a disabled current page with GrayText, its number in the page color', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Pagination>
+            <Pagination.List>
+              <Pagination.Link active disabled>
+                2
+              </Pagination.Link>
+            </Pagination.List>
+          </Pagination>
+        </ConfigProvider>
+      );
+      const current = container.querySelector(
+        `.${prefix}pagination-link`
+      ) as Element;
+      expect(current).toHaveClass(
+        `${prefix}is-current`,
+        `${prefix}is-disabled`
+      );
+      const sheet = css();
+      expect(look(sheet, current)).toEqual({
+        'background-color': 'GrayText',
+        'border-color': 'GrayText',
+        color: 'Canvas',
+        'forced-color-adjust': 'none',
+      });
+      expect(resolve(sheet, current, 'opacity')).toBe('1');
+    });
+  });
+
+  it('is half strength with Bulma alone, which is the bug', () => {
+    const { container } = render(
+      <Pagination total={5} onPageChange={() => {}} />
+    );
+    const previous = container.querySelector('.pagination-previous') as Element;
+    expect(resolve(bulmaCss(), previous, 'opacity')).toBe('0.5');
+  });
+});
+
 /** One prefixed class, the way the partial writes it. */
 const cls = (prefix: string, name: string) => `.${prefix}${name}`;
 
@@ -285,11 +404,26 @@ describe('the Pagination partial', () => {
     (_label, prefix) => {
       const c = (name: string) => cls(prefix, name);
       const rules = rulesOf(compile(prefix));
+      const twice = (part: string) => `${c(part)}${c(part)}`;
       expect(rules.map(rule => [rule.selector, rule.context])).toEqual([
         [
           `${c('pagination-link')}.${prefix}is-current, ${c('pagination-link')}.${prefix}is-selected`,
           [FORCED],
         ],
+        ...['pagination-previous', 'pagination-next', 'pagination-link'].map(
+          part => [
+            `${twice(part)}[disabled], ${twice(part)}:disabled, ${twice(part)}.${prefix}is-disabled`,
+            [FORCED],
+          ]
+        ),
+        ...['is-current', 'is-selected'].map(current => [
+          [
+            `${twice('pagination-link')}.${prefix}${current}[disabled]`,
+            `${twice('pagination-link')}.${prefix}${current}:disabled`,
+            `${twice('pagination-link')}.${prefix}${current}.${prefix}is-disabled`,
+          ].join(', '),
+          [FORCED],
+        ]),
         [
           [
             `${c('pagination')} ${c('pagination-previous')}:focus-visible`,

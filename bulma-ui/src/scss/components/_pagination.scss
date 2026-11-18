@@ -12,6 +12,19 @@
 // `DataTable`'s pager, which is a `Pagination`. Two classes outrank Bulma's
 // colors for a link, wherever the two stylesheets load.
 //
+// Bulma dims a disabled control, a previous, next or page link with the
+// `disabled` attribute or `is-disabled`, at half opacity. A button one a
+// disabled `<fieldset>` disables is matched too. `Pagination` writes
+// `is-disabled` and `aria-disabled` on Previous at the first page and Next at
+// the last, and drops their clicks. In forced colors the browser draws a link
+// in the page's text or link color, which the opacity only halves, so a
+// disabled control looked like a faded working one. There it draws at full
+// strength in GrayText, the system's color for a disabled control. A current
+// page that is disabled takes a GrayText fill and the page's color for its
+// number, so it still reads as current and as disabled. The control's class
+// is named twice to outrank Bulma's disabled rule, and the current one's
+// rule names four classes to outrank both.
+//
 // Bulma's control mixin also sets `outline: none` on `:focus-visible`, which
 // outranks Bulma's own link ring, so a keyboard user sees only the hover
 // shade. The rules below bring that outline back. The `.pagination` ancestor
@@ -29,6 +42,26 @@
     background-color: Highlight;
     border-color: Highlight;
     color: HighlightText;
+  }
+
+  @each $part in ('pagination-previous', 'pagination-next', 'pagination-link') {
+    .#{iv.$class-prefix}#{$part}.#{iv.$class-prefix}#{$part}[disabled],
+    .#{iv.$class-prefix}#{$part}.#{iv.$class-prefix}#{$part}:disabled,
+    .#{iv.$class-prefix}#{$part}.#{iv.$class-prefix}#{$part}.#{iv.$class-prefix}is-disabled {
+      border-color: GrayText;
+      color: GrayText;
+      opacity: 1;
+    }
+  }
+
+  @each $current in ('is-current', 'is-selected') {
+    .#{iv.$class-prefix}pagination-link.#{iv.$class-prefix}pagination-link.#{iv.$class-prefix}#{$current}[disabled],
+    .#{iv.$class-prefix}pagination-link.#{iv.$class-prefix}pagination-link.#{iv.$class-prefix}#{$current}:disabled,
+    .#{iv.$class-prefix}pagination-link.#{iv.$class-prefix}pagination-link.#{iv.$class-prefix}#{$current}.#{iv.$class-prefix}is-disabled {
+      background-color: GrayText;
+      border-color: GrayText;
+      color: Canvas;
+    }
   }
 }
 
