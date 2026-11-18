@@ -2495,6 +2495,370 @@ describe('ToastContainer hotkey', () => {
   });
 });
 
+// Closing a toast that holds focus passes focus on, rather than dropping it
+// to the page (#1939).
+describe('Focus when a toast closes', () => {
+  afterEach(() => {
+    vi.clearAllTimers();
+    act(() => {
+      toast.closeAll();
+    });
+  });
+
+  const focus = (el: HTMLElement) => {
+    act(() => {
+      el.focus();
+    });
+  };
+  const click = (el: HTMLElement) => {
+    act(() => {
+      fireEvent.click(el);
+    });
+  };
+  const button = (name: string) => screen.getByRole('button', { name });
+
+  it('hands focus back to where it came from when the toast it was in closes', () => {
+    render(
+      <>
+        <button>Save</button>
+        <ToastContainer />
+      </>
+    );
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo', indefinite: true });
+    });
+    focus(button('Save'));
+    focus(button('Undo'));
+    click(button('Undo'));
+    expect(screen.queryByText('Deleted')).not.toBeInTheDocument();
+    expect(document.activeElement).toBe(button('Save'));
+  });
+
+  it("moves focus to the next toast's first button in its stack", () => {
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({ message: 'One', closable: true, indefinite: true });
+      toast.show({
+        message: 'Two',
+        cancelText: 'Keep',
+        actionText: 'Undo',
+        indefinite: true,
+      });
+    });
+    focus(button('Close'));
+    click(button('Close'));
+    expect(screen.queryByText('One')).not.toBeInTheDocument();
+    expect(document.activeElement).toBe(button('Keep'));
+  });
+
+  it('moves focus to the one before when the last in the stack closes', () => {
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({ message: 'One', actionText: 'View', indefinite: true });
+      toast.show({ message: 'Two', actionText: 'Undo', indefinite: true });
+    });
+    focus(button('Undo'));
+    click(button('Undo'));
+    expect(document.activeElement).toBe(button('View'));
+  });
+
+  it('passes over a toast with no button, and one in another stack', () => {
+    render(
+      <>
+        <button>Save</button>
+        <ToastContainer />
+      </>
+    );
+    act(() => {
+      toast.show({ message: 'One', actionText: 'Undo', indefinite: true });
+      toast.show({ message: 'Two', indefinite: true });
+      toast.show({
+        message: 'Three',
+        actionText: 'View',
+        position: 'bottom-left',
+        indefinite: true,
+      });
+    });
+    focus(button('Save'));
+    focus(button('Undo'));
+    click(button('Undo'));
+    expect(document.activeElement).toBe(button('Save'));
+  });
+
+  it('moves focus when the app closes the toast that holds it', () => {
+    render(
+      <>
+        <button>Save</button>
+        <ToastContainer />
+      </>
+    );
+    let id = '';
+    act(() => {
+      id = toast.show({
+        message: 'Deleted',
+        actionText: 'Undo',
+        indefinite: true,
+      });
+    });
+    focus(button('Save'));
+    focus(button('Undo'));
+    act(() => {
+      toast.close(id);
+    });
+    expect(document.activeElement).toBe(button('Save'));
+  });
+
+  it('moves focus when Escape closes the toast that holds it', () => {
+    render(
+      <>
+        <button>Save</button>
+        <ToastContainer />
+      </>
+    );
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo', indefinite: true });
+    });
+    focus(button('Save'));
+    focus(button('Undo'));
+    act(() => {
+      fireEvent.keyDown(window, { key: 'Escape' });
+    });
+    expect(screen.queryByText('Deleted')).not.toBeInTheDocument();
+    expect(document.activeElement).toBe(button('Save'));
+  });
+
+  it('hands focus back to a control focused before the container mounted', () => {
+    const { rerender } = render(<button>Save</button>);
+    focus(button('Save'));
+    rerender(
+      <>
+        <button>Save</button>
+        <ToastContainer />
+      </>
+    );
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo', indefinite: true });
+    });
+    act(() => {
+      document.body.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'F8',
+          code: 'F8',
+          bubbles: true,
+          cancelable: true,
+        })
+      );
+    });
+    expect(document.activeElement).toBe(button('Undo'));
+    click(button('Undo'));
+    expect(document.activeElement).toBe(button('Save'));
+  });
+
+  it('hands focus back after the hotkey brought it in', () => {
+    render(
+      <>
+        <button>Save</button>
+        <ToastContainer />
+      </>
+    );
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo', indefinite: true });
+    });
+    focus(button('Save'));
+    act(() => {
+      document.body.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'F8',
+          code: 'F8',
+          bubbles: true,
+          cancelable: true,
+        })
+      );
+    });
+    expect(document.activeElement).toBe(button('Undo'));
+    click(button('Undo'));
+    expect(document.activeElement).toBe(button('Save'));
+  });
+
+  it('leaves focus that is somewhere else where it is', () => {
+    render(
+      <>
+        <button>Save</button>
+        <button>Cancel</button>
+        <ToastContainer />
+      </>
+    );
+    let id = '';
+    act(() => {
+      id = toast.show({ message: 'One', actionText: 'Undo', indefinite: true });
+      toast.show({ message: 'Two', actionText: 'View', indefinite: true });
+    });
+    focus(button('Save'));
+    focus(button('Undo'));
+    focus(button('Cancel'));
+    act(() => {
+      toast.close(id);
+    });
+    expect(document.activeElement).toBe(button('Cancel'));
+  });
+
+  it('drops focus to the page when where it came from has left the page', () => {
+    const App = ({ saving }: { saving: boolean }) => (
+      <>
+        {saving && <button>Save</button>}
+        <ToastContainer />
+      </>
+    );
+    const { rerender } = render(<App saving />);
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo', indefinite: true });
+    });
+    focus(button('Save'));
+    focus(button('Undo'));
+    rerender(<App saving={false} />);
+    click(button('Undo'));
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  // A legacy root, which React 18 still offers, renders a toast hiding
+  // itself on its own when the update comes from outside React's events, as
+  // Escape's does, so the store has to drop the toast first.
+  it.runIf(React.version.startsWith('18.'))(
+    'moves focus when Escape closes the toast under a legacy root',
+    () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        render(
+          <>
+            <button>Save</button>
+            <ToastContainer />
+          </>,
+          { legacyRoot: true }
+        );
+        act(() => {
+          toast.show({
+            message: 'Deleted',
+            actionText: 'Undo',
+            indefinite: true,
+          });
+        });
+        focus(button('Save'));
+        focus(button('Undo'));
+        // Outside act, which would batch the updates.
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+        expect(screen.queryByText('Deleted')).not.toBeInTheDocument();
+        expect(document.activeElement).toBe(button('Save'));
+      } finally {
+        errorSpy.mockRestore();
+      }
+    }
+  );
+
+  // A toast calls `onClose` before it hides, so the container can tell a
+  // toast closing from one moving. One that throws still closes the toast.
+  it('calls onClose once, while the toast is still on the page, and then hides it', () => {
+    const seen: boolean[] = [];
+    render(
+      <Toast
+        message="Saved"
+        duration={2000}
+        closable
+        onClose={() => seen.push(screen.queryByText('Saved') !== null)}
+      />
+    );
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    });
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      vi.advanceTimersByTime(5000);
+    });
+    expect(seen).toEqual([true]);
+    expect(screen.queryByText('Saved')).not.toBeInTheDocument();
+  });
+
+  it('hides a toast whose onClose throws', () => {
+    const swallow = (event: ErrorEvent) => event.preventDefault();
+    window.addEventListener('error', swallow);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      render(
+        <Toast
+          message="Saved"
+          indefinite
+          onClose={() => {
+            throw new Error('onClose failed');
+          }}
+        />
+      );
+      act(() => {
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      });
+      expect(screen.queryByText('Saved')).not.toBeInTheDocument();
+    } finally {
+      errorSpy.mockRestore();
+      window.removeEventListener('error', swallow);
+    }
+  });
+
+  it('has nowhere to go back to once focus went to the page itself', () => {
+    render(
+      <>
+        <button>Save</button>
+        <ToastContainer />
+      </>
+    );
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo', indefinite: true });
+    });
+    focus(button('Save'));
+    // A click on the page's background sends focus to the page itself.
+    act(() => {
+      button('Save').blur();
+    });
+    focus(button('Undo'));
+    click(button('Undo'));
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it('keeps the toast focus moves to open while focus stays in it', () => {
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({ message: 'One', actionText: 'Undo', indefinite: true });
+      toast.show({ message: 'Two', actionText: 'View', duration: 2000 });
+    });
+    focus(button('Undo'));
+    click(button('Undo'));
+    expect(document.activeElement).toBe(button('View'));
+    for (let waited = 0; waited < 10000; waited += focusCheckInterval) {
+      act(() => {
+        vi.advanceTimersByTime(focusCheckInterval);
+      });
+    }
+    expect(screen.getByText('Two')).toBeInTheDocument();
+    expect(document.activeElement).toBe(button('View'));
+  });
+
+  it('leaves focus alone when a toast changes stacks without closing', () => {
+    const { rerender } = render(<ToastContainer position="top-right" />);
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo', indefinite: true });
+      toast.show({
+        message: 'Saved',
+        actionText: 'View',
+        position: 'top-right',
+        indefinite: true,
+      });
+    });
+    focus(button('View'));
+    // Saved, shown at the container's old position, remounts. It hasn't
+    // closed, so focus drops as it would have, rather than going to Undo.
+    rerender(<ToastContainer position="bottom-left" />);
+    expect(screen.getByText('Saved')).toBeInTheDocument();
+    expect(document.activeElement).toBe(document.body);
+  });
+});
+
 // A toast shown through `toast.show()` calls the `onClose` it was given
 // (#1913).
 describe("A programmatic toast's onClose", () => {

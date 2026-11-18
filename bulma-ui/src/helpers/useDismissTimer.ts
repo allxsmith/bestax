@@ -92,17 +92,34 @@ export function useDismissTimer(
   // doesn't report. React's handler still covers a portal, whose focus
   // doesn't reach the element in the page. A layout effect, which runs in the
   // commit that mounts the element, so focus already inside it by then, as
-  // `autoFocus` puts it, counts too.
+  // `autoFocus` puts it, counts too. It reads `root` again after every
+  // render and moves the listener when the element is a new one, as when a
+  // toast's element moves into its portal after hydrating.
+  const listenerRef = useRef<{ el: Element; remove: () => void } | null>(null);
   useClientLayoutEffect(() => {
-    const el = rootRef.current?.();
-    if (!el) return undefined;
+    const el = rootRef.current?.() ?? null;
+    if (listenerRef.current?.el === el) return;
+    listenerRef.current?.remove();
+    listenerRef.current = null;
+    if (!el) return;
     const active = getActiveElementInTree(el);
     if (el.contains(active)) noteFocus(el, active!);
     const handleFocusIn = (event: Event) =>
       noteFocus(el, event.target as Element);
+    // eslint-disable-next-line @eslint-react/web-api-no-leaked-event-listener -- removed by the run that finds a new element, and on unmount below
     el.addEventListener('focusin', handleFocusIn);
-    return () => el.removeEventListener('focusin', handleFocusIn);
-  }, [rootRef, noteFocus]);
+    listenerRef.current = {
+      el,
+      remove: () => el.removeEventListener('focusin', handleFocusIn),
+    };
+  });
+  useClientLayoutEffect(
+    () => () => {
+      listenerRef.current?.remove();
+      listenerRef.current = null;
+    },
+    []
+  );
 
   const onFocus = useCallback(
     (event: React.FocusEvent<HTMLElement>) =>
