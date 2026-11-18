@@ -1,3 +1,10 @@
+## [1.18.78](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.77...bestax-mcp@1.18.78) (2026-11-18)
+
+
+### Bug Fixes
+
+* **bulma-ui:** draw more disabled parts at full strength in forced colors ([29a75da](https://github.com/allxsmith/bestax/commit/29a75da1fc88012b3930aa83ee342c021d2ee727)), closes [#1996](https://github.com/allxsmith/bestax/issues/1996) [#2049](https://github.com/allxsmith/bestax/issues/2049)
+
 ## [1.18.77](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.76...bestax-mcp@1.18.77) (2026-11-18)
 
 
