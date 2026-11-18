@@ -92,7 +92,8 @@ const fromIsoDateTime = (s: string): Date | null => {
  * for Field/Control composition. Combines the prop set of `DateInputBaseProps`
  * and `TimeInputBaseProps`. `aria-invalid` and `aria-errormessage`, which
  * report the input's state, go on the `<input>`, and inline, where there is
- * none, on the `<div>`.
+ * none, on the `<div>`. `autoComplete` goes on the `<input>` too, the text
+ * field's `off` unless you give one, and inline nowhere.
  *
  * @helperProps Helper props go on the `.datetimeinput-container` `<div>`, with
  * `className` and the other attributes, except that the background helpers
@@ -377,6 +378,7 @@ export const DateTimeInputBase = forwardRef<
     className,
     name,
     form,
+    autoComplete,
     required,
     id: idProp,
     onFocus,
@@ -748,6 +750,7 @@ export const DateTimeInputBase = forwardRef<
         {...localeScope.rootAttrs}
         {...cleanRest}
         ref={combinedRef}
+        autoComplete={autoComplete}
         aria-describedby={joinIds(cleanRest['aria-describedby'], messageId)}
         {...controlState}
         type="datetime-local"
@@ -951,7 +954,7 @@ export const DateTimeInputBase = forwardRef<
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={popoverId}
-        autoComplete="off"
+        autoComplete={autoComplete || 'off'}
         aria-describedby={messageId}
         {...controlState}
         className={classNames(inputClass, textClasses, backgroundClasses)}

@@ -333,7 +333,8 @@ Rules of thumb:
   `address-line1`, since `street-address` is for a whole address in a `TextArea`. On a sign-in
   form the identifier is `username`, even when it's an email, beside a `PasswordInput`, which
   sets `current-password` itself. A form with two addresses puts `shipping` or `billing` in front
-  of each token, as the Fieldset above does.
+  of each token, as the Fieldset above does. A date of birth in a `DateInput` takes `bday`, which
+  goes on its field.
 - A loading spinner (`isLoading`) is only drawn, so a screen reader hears nothing of it. While a
   field loads, say so in its `message` too (`message="Loading countries…"`), or, on a field with
   no `message` of its own, in text tied to it with `aria-describedby`: either is read when the
