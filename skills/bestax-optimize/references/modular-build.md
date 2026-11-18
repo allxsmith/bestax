@@ -152,9 +152,10 @@ Notes:
   ```
 
 - The `pagination` partial **extends** stock Bulma pagination (the links' keyboard focus ring,
-  which Bulma's own styles turn off, and the current page marked in forced colors, where Bulma's
-  colors for it are replaced), so an app using `Pagination`, or a `DataTable` with pages, whose
-  pager is one, needs both, in either order:
+  which Bulma's own styles turn off, the current page marked in forced colors, where Bulma's
+  colors for it are replaced, and a disabled control drawn there at full strength in the system's
+  disabled color, where Bulma's half opacity would fade it), so an app using `Pagination`, or a
+  `DataTable` with pages, whose pager is one, needs both, in either order:
 
   ```scss
   @use 'bulma/sass/components/pagination';
@@ -213,8 +214,9 @@ Notes:
   ```
 
 - The `select` partial **extends** stock Bulma select (an outline on a focused `Select` in forced
-  colors, where Bulma's focus ring is a shadow those themes drop), so an app using
-  `Select` needs both, in either order:
+  colors, where Bulma's focus ring is a shadow those themes drop, and a disabled one's arrow in the
+  system's disabled color there, at full strength), so an app using `Select` needs both, in either
+  order:
 
   ```scss
   @use 'bulma/sass/form/select';

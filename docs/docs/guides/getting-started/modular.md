@@ -157,7 +157,7 @@ bestax's prebuilt stylesheets build Bulma's table with `$table-cell-text-align: 
 
 A build with a responsive `Table` also wants bestax's `elements/table` partial, for its container's focus ring, and so does one with selected rows, in a `Table` or a `DataTable`, which the partial marks in forced colors.
 
-A build with a `Select` also wants bestax's `form/select` partial, which outlines a focused select in forced colors.
+A build with a `Select` also wants bestax's `form/select` partial, which outlines a focused select in forced colors and draws a disabled one's arrow in the disabled color there.
 
 Pull in only the helper categories you use:
 
@@ -198,7 +198,7 @@ Some partials adjust a stock Bulma component rather than add one of bestax's.
 
 - `components/modal` keeps a modal card's edge in forced colors (Windows' contrast themes), where Bulma's card has none and the backdrop's dark fill is replaced, so a build that uses `bulma/sass/components/modal` for a `Modal` with a card wants it too.
 
-- `components/pagination` draws the page links' keyboard focus ring, which Bulma's own styles turn off, and keeps the current page marked in forced colors (Windows' contrast themes), so a build that uses `bulma/sass/components/pagination`, for a `Pagination` or a `DataTable`'s pager, wants it too.
+- `components/pagination` draws the page links' keyboard focus ring, which Bulma's own styles turn off, keeps the current page marked in forced colors (Windows' contrast themes), and draws a disabled control there at full strength in the system's disabled color, where Bulma's half opacity would fade it, so a build that uses `bulma/sass/components/pagination`, for a `Pagination` or a `DataTable`'s pager, wants it too.
 
 - `components/tabs` shows only a `Tabs.Content`'s selected panel and lays out vertical tabs, draws a `Tabs.Tab`'s keyboard focus ring and a disabled tab's look, moves Bulma's focus ring inside most `Tabs.Item` links, where the tab row clips it, brings a focused toggle tab in front of its neighbors, and keeps the active tab marked in forced colors, so a build that uses `bulma/sass/components/tabs` for a `Tabs` needs it too.
 
@@ -230,7 +230,7 @@ Some partials adjust a stock Bulma component rather than add one of bestax's.
 
 - `form/file` lets a file dropped on a `File`'s button or name reach its input, where Bulma's module draws the button and name over it, draws the button's keyboard focus ring, where Bulma's transparent input shows none, and rounds the bottom corners of a boxed `hasName` File with no name to show, which Bulma's `is-boxed` squares, so a build that uses `bulma/sass/form/file`, for a `File` or a `Dropzone`, wants it too.
 
-- `form/select` outlines a focused `Select` in forced colors (Windows' contrast themes), where Bulma's focus ring is a shadow those themes drop and only the border's color would change, so a build that uses `bulma/sass/form/select` wants it too.
+- `form/select` outlines a focused `Select` in forced colors (Windows' contrast themes), where Bulma's focus ring is a shadow those themes drop and only the border's color would change, and draws a disabled one's arrow there in the system's disabled color at full strength, so a build that uses `bulma/sass/form/select` wants it too.
 
 - `helpers/color` gives a color's text (`textColor`, `has-text-*`) the color's on-scheme lightness on the dark scheme wherever that's the lighter one, so a dark color such as the bestax blue primary reads there, and a build that uses `bulma/sass/helpers/color` wants it too.
 
