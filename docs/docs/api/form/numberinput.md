@@ -337,7 +337,7 @@ Use `defaultValue` for internal state management:
 - While you edit, the field can be empty, hold a lone `-` on the way to a negative number, or hold a number outside `min` and `max` on the way to one inside them, such as the `2` of `25` when `min` is 10. `onChange` waits for a number in range. Enter or leaving the field clamps a number outside them and reports it, or puts the last value back when the field holds no number. From a number outside them, a step toward them lands on the nearer one and a step away does nothing, and with no number a step starts from the last value
 - The +/- buttons stay out of the Tab order, and a press on one leaves focus where it was, in the input when it had it, so the arrow keys keep working after a click and a button that disables at `min` or `max` doesn't take focus with it. A press on a button that's already disabled reaches nothing, as a press on any text does, so focus leaves the input then
 - Buttons are disabled at min/max boundaries, and while the field holds a number typed outside them, the one that would step further out is disabled
-- In forced colors (Windows' contrast themes), a disabled Numberinput isn't faded as a whole, and a stepper button disabled at a limit draws at full strength in the system's color for a disabled control.
+- In forced colors (Windows' contrast themes), a disabled Numberinput isn't faded as a whole, and in the stepper variant those disabled buttons draw at full strength in the system's color for a disabled control.
 - The `message` describes the number input through `aria-describedby`, after any ids you pass there, so a screen reader reads it when the input takes focus.
 
 ---
