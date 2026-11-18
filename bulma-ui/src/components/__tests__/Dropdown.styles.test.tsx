@@ -42,6 +42,9 @@ const rulesFor = (partial: string, prefix: string) => {
 const SETS: Record<string, string[]> = {
   'background-color': ['background-color', 'background'],
   'forced-color-adjust': ['forced-color-adjust'],
+  // jsdom keeps an `outline` as written rather than splitting it.
+  outline: ['outline', 'outline-color', 'outline-style', 'outline-width'],
+  'outline-offset': ['outline-offset'],
 };
 
 /** What `el` gets for `property` with Bulma's sheet before `css` and after it. */
@@ -261,5 +264,64 @@ describe.each([
       'Share',
     ]);
     expect(matched(current)).toEqual(['Marketing', 'Name', 'Date', 'Share']);
+  });
+});
+
+// Bulma draws the menu's box with a shadow and no border, and forced colors
+// drops shadows (#1952), so `_dropdown.scss` outlines the box there.
+describe.each([
+  ['unprefixed', ''],
+  ['under a class prefix', 'bulma-'],
+])('the menu’s edge in forced colors, %s', (label, prefix) => {
+  const wrap = (node: React.ReactNode) =>
+    prefix ? (
+      <ConfigProvider classPrefix={prefix}>{node}</ConfigProvider>
+    ) : (
+      node
+    );
+
+  it(`outlines a Dropdown's and a ContextMenu's box in CanvasText, whichever sheet loads last, ${label}`, () => {
+    const { forced } = rulesFor('components/dropdown', prefix);
+    render(
+      wrap(
+        <>
+          <Dropdown label="Menu" active closeOnClick={false}>
+            <Dropdown.Item>One</Dropdown.Item>
+            {/* A combobox's list in the menu, which keeps its own rules. */}
+            <div className={`${prefix}dropdown-menu`}>
+              <div className={`${prefix}dropdown-content`} role="listbox" />
+            </div>
+          </Dropdown>
+          <ContextMenu
+            aria-label="Actions"
+            trigger={<div data-testid="row">Row</div>}
+          >
+            <ContextMenu.Item>Rename</ContextMenu.Item>
+          </ContextMenu>
+        </>
+      )
+    );
+    fireEvent.contextMenu(screen.getByTestId('row'));
+    const boxes = Array.from(
+      document.querySelectorAll(`.${prefix}dropdown-content`)
+    );
+    expect(boxes).toHaveLength(3);
+    const outline = (box: Element) => [
+      ...bothOrders(box, forced, 'outline', prefix),
+      ...bothOrders(box, forced, 'outline-offset', prefix),
+    ];
+    const edge = [
+      '1px solid CanvasText',
+      '1px solid CanvasText',
+      '-1px',
+      '-1px',
+    ];
+    expect(boxes.map(outline)).toEqual([
+      // The Dropdown's, the combobox's inside it, and the ContextMenu's,
+      // which is portaled to the end of <body>.
+      edge,
+      [undefined, undefined, undefined, undefined],
+      edge,
+    ]);
   });
 });

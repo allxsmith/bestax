@@ -1,7 +1,7 @@
 // Dropdown Component Styles
 // Stock Bulma's dropdown, kept legible in forced colors (Windows' contrast
-// themes): its dividers and its active item. `ContextMenu` draws its menu
-// with the same markup, so this reaches it too.
+// themes): its dividers, its active item and the edge of its box.
+// `ContextMenu` draws its menu with the same markup, so this reaches it too.
 
 @use 'bulma/sass/utilities/initial-variables' as iv;
 
@@ -39,5 +39,18 @@
     &.#{iv.$class-prefix}is-selected {
       border-inline-start-color: Highlight;
     }
+  }
+
+  // Bulma draws the menu's box with a shadow and no border, and forced
+  // colors drops shadows, so an open menu was a Canvas box on a Canvas page
+  // with nothing to show where it ends. It gets a one pixel edge in
+  // CanvasText, as Tooltip's box does. An outline takes no room, so nothing
+  // moves, and it's drawn just inside the box, so a ContextMenu placed
+  // against the edge of the window keeps all four sides. The same
+  // `role="menu"` dropdowns as above.
+  .#{iv.$class-prefix}dropdown-menu[role='menu']
+    > .#{iv.$class-prefix}dropdown-content {
+    outline: 1px solid CanvasText;
+    outline-offset: -1px;
   }
 }
