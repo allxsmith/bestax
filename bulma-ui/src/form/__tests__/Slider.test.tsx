@@ -535,6 +535,24 @@ describe('Slider', () => {
         }
       );
 
+      // 0 inside the range but off the step grid: the browser rounds it to
+      // the nearest step, the higher of two as near, and a form submits that.
+      it.each([
+        [-4, 5, 3, '-1'],
+        [-5, 5, 2, '1'],
+        [-6, 6, 3, '0'],
+      ])(
+        'starts at the step nearest 0 (min %s, max %s, step %s)',
+        (min, max, step, start) => {
+          render(
+            <Slider aria-label="Offset" min={min} max={max} step={step} />
+          );
+          const input = screen.getByRole('slider') as HTMLInputElement;
+          expect(input).toHaveAttribute('aria-valuenow', start);
+          expect(input.value).toBe(start);
+        }
+      );
+
       it('starts at 0 when 0 is in range, as before', () => {
         render(<Slider aria-label="Balance" min={-50} max={50} />);
         expect(screen.getByRole('slider')).toHaveAttribute(
