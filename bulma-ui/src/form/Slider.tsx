@@ -140,8 +140,10 @@ export interface SliderSingleProps extends SliderBaseProps {
   /** Controlled value. */
   value?: number | undefined;
   /**
-   * Default value for uncontrolled usage.
-   * @defaultValue 0
+   * Default value for uncontrolled usage. Without it a single Slider starts
+   * at the value it holds nearest 0: 0 itself when 0 is one of its steps,
+   * `min` when 0 is below it, or the highest value it holds when 0 is above
+   * that. A range Slider starts at `min` and that highest value.
    */
   defaultValue?: number | undefined;
   /** Callback when value changes. */
@@ -277,6 +279,23 @@ function highestStep(min: number, max: number, step: number): number {
 function addKept(a: number, b: number): number {
   const sum = a + b;
   return Number.isInteger(sum) ? sum : Number(sum.toPrecision(15));
+}
+
+/**
+ * Where a single Slider with no `defaultValue` starts: the value it holds
+ * nearest 0, which is where the browser puts the thumb (#2108). That's `min`
+ * when 0 is below it, the highest step when 0 is above that, and otherwise
+ * the step nearest 0, the higher of two as near, as the browser rounds; 0
+ * itself when 0 is a step. Bounds that aren't finite numbers leave it at 0.
+ */
+function startInRange(min: number, max: number, step: number): number {
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return 0;
+  const top = highestStep(min, max, step);
+  if (0 < min) return min;
+  if (0 > top) return top;
+  const below = stepFrom(min, 0, step, false);
+  const above = stepFrom(min, 0, step, true);
+  return above <= -below ? above : below;
 }
 
 /**
@@ -508,7 +527,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         : [min, min]
     );
     const [internalSingle, setInternalSingle] = useState<number>(() =>
-      !range ? ((defaultValue as number) ?? 0) : 0
+      !range ? ((defaultValue as number) ?? startInRange(min, max, step)) : 0
     );
     const [showTooltip, setShowTooltip] = useState(false);
     const [showTooltipHigh, setShowTooltipHigh] = useState(false);
