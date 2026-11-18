@@ -2627,6 +2627,33 @@ describe('Focus when a toast closes', () => {
     expect(document.activeElement).toBe(button('Save'));
   });
 
+  it('hands focus back to a control focused before the container mounted', () => {
+    const { rerender } = render(<button>Save</button>);
+    focus(button('Save'));
+    rerender(
+      <>
+        <button>Save</button>
+        <ToastContainer />
+      </>
+    );
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo', indefinite: true });
+    });
+    act(() => {
+      document.body.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'F8',
+          code: 'F8',
+          bubbles: true,
+          cancelable: true,
+        })
+      );
+    });
+    expect(document.activeElement).toBe(button('Undo'));
+    click(button('Undo'));
+    expect(document.activeElement).toBe(button('Save'));
+  });
+
   it('hands focus back after the hotkey brought it in', () => {
     render(
       <>

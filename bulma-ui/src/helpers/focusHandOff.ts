@@ -1,6 +1,6 @@
 // INTERNAL: deliberately not exported from src/index.ts.
 import { useEffect, useRef } from 'react';
-import { getActiveElementInTree } from './shadowDom';
+import { getActiveElementInTree, getDeepestActiveElement } from './shadowDom';
 import { moveFocusOut } from './moveFocusOut';
 import { useLatestRef } from './useLatestRef';
 
@@ -10,6 +10,8 @@ import { useLatestRef } from './useLatestRef';
  * follows focus anywhere on the page, so it's where focus came from when it
  * went into one of them, and it's cleared when focus goes to the page
  * itself, so a click on the page's background leaves nothing to go back to.
+ * Focus already outside them when it starts counts too, as on a control
+ * focused before the container mounted.
  *
  * @function useFocusOrigin
  * @param isInside - Says whether an element is in one of them. The latest
@@ -22,6 +24,15 @@ export function useFocusOrigin(isInside: (target: Node) => boolean): {
   const originRef = useRef<HTMLElement | null>(null);
   const isInsideRef = useLatestRef(isInside);
   useEffect(() => {
+    const active = getDeepestActiveElement();
+    if (
+      active &&
+      active !== document.body &&
+      active !== document.documentElement &&
+      !isInsideRef.current(active)
+    ) {
+      originRef.current = active as HTMLElement;
+    }
     const handleFocusIn = (event: FocusEvent) => {
       const target = event.composedPath()[0] as HTMLElement;
       if (!isInsideRef.current(target)) originRef.current = target;
@@ -74,7 +85,8 @@ export interface PassFocusOnOptions {
  * Focus goes to what `pick` finds in the next one in the stack that stays, or
  * else the one before, nearest first, and otherwise to `origin`, where it was
  * before it went into the stack, while that's still on the page. When what
- * `pick` found can't take focus, it goes to `origin` instead. One arriving in
+ * `pick` found can't take focus, it goes to `origin` instead, and to an
+ * `origin` that can't take focus on its own any more, without a tab stop. One arriving in
  * the same render isn't on the page yet to take it.
  *
  * Call it in the commit that removes the element, while it's still on the
@@ -112,6 +124,9 @@ export function passFocusOn({
     nearest(closing.nextElementSibling, el => el.nextElementSibling) ??
     nearest(closing.previousElementSibling, el => el.previousElementSibling);
   if (next) moveFocusOut([closing], next, null);
-  // Only while focus is still inside, so when `next` didn't take it.
-  moveFocusOut([closing], origin, null);
+  // Only while focus is still inside, so when `next` didn't take it. The
+  // origin is its own fallback: one that took focus only for a while, as a
+  // toast the hotkey focused does, can't take it again until it's given
+  // `tabindex="-1"` back, and focus goes there without a tab stop.
+  moveFocusOut([closing], origin, origin);
 }
