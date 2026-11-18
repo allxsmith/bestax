@@ -27,11 +27,11 @@
     },
     {
       "title": "States",
-      "code": "<>\n  <Select label=\"Normal\">\n    <option value=\"\">Please select</option>\n    <option value=\"option1\">Option 1</option>\n  </Select>\n  <Select label=\"Hover\" isHovered>\n    <option value=\"\">Please select</option>\n    <option value=\"option1\">Option 1</option>\n  </Select>\n  <Select label=\"Focus\" isFocused>\n    <option value=\"\">Please select</option>\n    <option value=\"option1\">Option 1</option>\n  </Select>\n  <Select label=\"Loading\" isLoading>\n    <option value=\"\">Please select</option>\n    <option value=\"option1\">Option 1</option>\n  </Select>\n</>"
+      "code": "<>\n  <Select label=\"Normal\">\n    <option value=\"\">Please select</option>\n    <option value=\"option1\">Option 1</option>\n  </Select>\n  <Select label=\"Hover\" isHovered>\n    <option value=\"\">Please select</option>\n    <option value=\"option1\">Option 1</option>\n  </Select>\n  <Select label=\"Focus\" isFocused>\n    <option value=\"\">Please select</option>\n    <option value=\"option1\">Option 1</option>\n  </Select>\n  <Select label=\"Loading\" isLoading message=\"Loading options…\">\n    <option value=\"\">Please select</option>\n    <option value=\"option1\">Option 1</option>\n  </Select>\n</>"
     },
     {
       "title": "Loading States by Size",
-      "code": "<>\n  <Select label=\"Loading Small\" size=\"small\" isLoading>\n    <option value=\"\">Please select</option>\n  </Select>\n  <Select label=\"Loading Normal\" isLoading>\n    <option value=\"\">Please select</option>\n  </Select>\n  <Select label=\"Loading Medium\" size=\"medium\" isLoading>\n    <option value=\"\">Please select</option>\n  </Select>\n  <Select label=\"Loading Large\" size=\"large\" isLoading>\n    <option value=\"\">Please select</option>\n  </Select>\n</>"
+      "code": "<>\n  <Select\n    label=\"Loading Small\"\n    size=\"small\"\n    isLoading\n    message=\"Loading options…\"\n  >\n    <option value=\"\">Please select</option>\n  </Select>\n  <Select label=\"Loading Normal\" isLoading message=\"Loading options…\">\n    <option value=\"\">Please select</option>\n  </Select>\n  <Select\n    label=\"Loading Medium\"\n    size=\"medium\"\n    isLoading\n    message=\"Loading options…\"\n  >\n    <option value=\"\">Please select</option>\n  </Select>\n  <Select\n    label=\"Loading Large\"\n    size=\"large\"\n    isLoading\n    message=\"Loading options…\"\n  >\n    <option value=\"\">Please select</option>\n  </Select>\n</>"
     },
     {
       "title": "Disabled",
@@ -70,7 +70,7 @@
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Country\"\n      labelProps={{ htmlFor: 'country-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"globe\">\n            <Select autoComplete=\"country\" id=\"country-field-control\">\n              <option value=\"\">Please select</option>\n              <option value=\"us\">United States</option>\n              <option value=\"gb\">United Kingdom</option>\n              <option value=\"ca\">Canada</option>\n            </Select>\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
-  "accessibility": "- Always provide a label. Select's `label` prop is automatically associated with the `<select>` (`htmlFor` plus a generated `id`, or your own `id` if you pass one).\n- When composing with `Field` instead, the `Field`'s own `label` associates with the select automatically when the select sits directly in that labeled `Field` and has no `id` of its own. A nested unlabeled `Field` (as in horizontal multi-field layouts) starts its own scope. With an `id` of your own, or across a nested `Field`, the label names the select only when you pass that `id` as `labelProps={{ htmlFor }}`.\n- Use the `multiple` and `multipleSize` props for multi-select dropdowns.\n- In forced colors (Windows contrast themes), which drop the shadow Bulma shows focus with, a focused select draws an outline in Bulma's focus style and width, painted in a system color, since a select has no text caret to show focus. `isFocused` draws it too.\n- **Help and errors:** the `message` describes the `<select>` through `aria-describedby`, after any ids you pass there, so a screen reader reads it when the select takes focus. A red `color` says nothing to a screen reader, so on an error also set `aria-invalid`, and put the error in the `message`.",
+  "accessibility": "- Always provide a label. Select's `label` prop is automatically associated with the `<select>` (`htmlFor` plus a generated `id`, or your own `id` if you pass one).\n- When composing with `Field` instead, the `Field`'s own `label` associates with the select automatically when the select sits directly in that labeled `Field` and has no `id` of its own. A nested unlabeled `Field` (as in horizontal multi-field layouts) starts its own scope. With an `id` of your own, or across a nested `Field`, the label names the select only when you pass that `id` as `labelProps={{ htmlFor }}`.\n- Use the `multiple` and `multipleSize` props for multi-select dropdowns.\n- In forced colors (Windows contrast themes), which drop the shadow Bulma shows focus with, a focused select draws an outline in Bulma's focus style and width, painted in a system color, since a select has no text caret to show focus. `isFocused` draws it too. A disabled select's arrow is drawn there in the system's color for a disabled control at full strength, as the select beside it is.\n- **Help and errors:** the `message` describes the `<select>` through `aria-describedby`, after any ids you pass there, so a screen reader reads it when the select takes focus. A red `color` says nothing to a screen reader, so on an error also set `aria-invalid`, and put the error in the `message`.",
   "related": ["Control", "Field"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-select--default",
   "summary": "The `Select` component provides a Bulma-styled dropdown for selecting one or more options.",
@@ -159,7 +159,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Replaces the chevron with a loading spinner. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
+          "description": "Replaces the chevron with a loading spinner. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded). The spinner is only drawn, so a screen reader hears nothing of it. Say that the field is loading in its `message` as well, such as `message=\"Loading…\"`, which describes the select, so a screen reader reads it when the field takes focus. A load that starts while the user is in the field, such as a search as they type, isn't reliably heard without a live region, such as a `role=\"status\"` element.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -387,7 +387,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Replaces the chevron with a loading spinner. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
+          "description": "Replaces the chevron with a loading spinner. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded). The spinner is only drawn, so a screen reader hears nothing of it. Say that the select is loading in text you tie to it with `aria-describedby`, which a screen reader reads when it takes focus. A load that starts while the user is in the field isn't reliably heard without a live region, such as a `role=\"status\"` element.",
           "required": false,
           "inherited": false,
           "deprecated": false

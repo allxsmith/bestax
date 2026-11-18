@@ -917,7 +917,8 @@ commands move through the cells, since no cell takes focus and the reader stays 
   button's focus ring is an outline. A selected row's fill is a color forced colors takes away, so
   there a double line in the system's highlight color marks the row, as it marks a selected `Table`
   row, and its checked checkbox carries the selection too. The pager's current page is drawn in the
-  system's highlight colors, as [Pagination](./pagination.md)'s is.
+  system's highlight colors, and its Previous or Next at an end in the system's color for a
+  disabled control, at full strength, as [Pagination](./pagination.md)'s are.
 - **No motion:** nothing animates but the skeleton, which stops under reduced motion.
 
 ---

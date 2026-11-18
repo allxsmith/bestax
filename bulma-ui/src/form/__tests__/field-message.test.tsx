@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import { Field } from '../Field';
+import { Control } from '../Control';
 import { Input } from '../Input';
 import { TextArea } from '../TextArea';
 import { PasswordInput } from '../PasswordInput';
@@ -377,5 +378,57 @@ describe('message wiring beyond the table', () => {
     expect(ids[ids.length - 1]).toBe(help.id);
     expect(ids.length).toBeGreaterThan(1);
     expect(within(container).getByText('Pick any.')).toBe(help);
+  });
+
+  // #2018: the spinner is only drawn, so the isLoading notes and the docs'
+  // loading examples say it in text that describes the field. These hold
+  // that a loading wrapper's message is that text.
+  it.each([
+    ['Input', () => <Input label="Field" isLoading message="Loading…" />],
+    ['TextArea', () => <TextArea label="Field" isLoading message="Loading…" />],
+    [
+      'PasswordInput',
+      () => <PasswordInput label="Field" isLoading message="Loading…" />,
+    ],
+    [
+      'Numberinput',
+      () => <Numberinput label="Field" isLoading message="Loading…" />,
+    ],
+    [
+      'Select',
+      () => (
+        <Select label="Field" isLoading message="Loading…">
+          <option>One</option>
+        </Select>
+      ),
+    ],
+  ])('describes a loading %s with its message', (_name, ui) => {
+    const { container } = render(ui());
+    expect(container.querySelector('.is-loading')).not.toBeNull();
+    expect(
+      screen.getByLabelText('Field', {
+        selector: 'input, textarea, select',
+      })
+    ).toHaveAccessibleDescription('Loading…');
+  });
+
+  it("describes the Input in a loading Control with the Input's message", () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const { container } = render(
+        <Field label="Field">
+          <Control isLoading>
+            <Input message="Loading…" />
+          </Control>
+        </Field>
+      );
+      expect(container.querySelector('.control.is-loading')).not.toBeNull();
+      expect(
+        screen.getByRole('textbox', { name: 'Field' })
+      ).toHaveAccessibleDescription('Loading…');
+      expect(warn).not.toHaveBeenCalled();
+    } finally {
+      warn.mockRestore();
+    }
   });
 });

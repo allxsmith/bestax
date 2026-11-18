@@ -2711,3 +2711,107 @@ describe('Carousel right-to-left styles', () => {
     expect(flip(icon.querySelector('svg')!)).not.toBe('scaleX(-1)');
   });
 });
+
+describe('Carousel labels', () => {
+  const french = {
+    previous: 'Diapositive précédente',
+    next: 'Diapositive suivante',
+    indicator: (slide: number) => `Aller à la diapositive ${slide}`,
+    item: (current: number, total: number) => `${current} sur ${total}`,
+  };
+  const namesOf = (elements: HTMLElement[]) =>
+    elements.map(el => el.getAttribute('aria-label'));
+
+  it('names the arrows, indicators and items in English by default', () => {
+    render(<Carousel>{itemsOf(3)}</Carousel>);
+    expect(namesOf(screen.getAllByRole('button', { name: /slide/ }))).toEqual([
+      'Previous slide',
+      'Next slide',
+    ]);
+    expect(namesOf(screen.getAllByRole('tab'))).toEqual([
+      'Go to slide 1',
+      'Go to slide 2',
+      'Go to slide 3',
+    ]);
+    expect(namesOf(realItems(3))).toEqual(['1 of 3', '2 of 3', '3 of 3']);
+  });
+
+  it('names them with the words it is given', () => {
+    render(<Carousel labels={french}>{itemsOf(3)}</Carousel>);
+    expect(
+      namesOf(screen.getAllByRole('button', { name: /diapositive/i }))
+    ).toEqual(['Diapositive précédente', 'Diapositive suivante']);
+    expect(namesOf(screen.getAllByRole('tab'))).toEqual([
+      'Aller à la diapositive 1',
+      'Aller à la diapositive 2',
+      'Aller à la diapositive 3',
+    ]);
+    expect(namesOf(realItems(3))).toEqual(['1 sur 3', '2 sur 3', '3 sur 3']);
+  });
+
+  it('gives an indicator the place of the first item it brings into view', () => {
+    render(
+      <Carousel labels={french} itemsToShow={2} itemsToScroll={2}>
+        {itemsOf(5)}
+      </Carousel>
+    );
+    expect(namesOf(screen.getAllByRole('tab'))).toEqual([
+      'Aller à la diapositive 1',
+      'Aller à la diapositive 3',
+      'Aller à la diapositive 5',
+    ]);
+  });
+
+  it('leaves an item its own name', () => {
+    render(
+      <Carousel labels={french}>
+        <CarouselItem aria-label="Piscine">Un</CarouselItem>
+        <CarouselItem>Deux</CarouselItem>
+      </Carousel>
+    );
+    expect(namesOf(realItems(2))).toEqual(['Piscine', '2 sur 2']);
+  });
+
+  it('keeps the English for a word left empty or out', () => {
+    render(
+      <Carousel labels={{ previous: '', indicator: french.indicator }}>
+        {itemsOf(2)}
+      </Carousel>
+    );
+    expect(screen.getByLabelText('Previous slide')).toBeInTheDocument();
+    expect(screen.getByLabelText('Next slide')).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Aller à la diapositive 2')
+    ).toBeInTheDocument();
+    expect(realItems(2)[0]).toHaveAttribute('aria-label', '1 of 2');
+  });
+
+  it('keeps the English when a function returns an empty word', () => {
+    render(
+      <Carousel labels={{ indicator: () => '', item: () => '' }}>
+        {itemsOf(2)}
+      </Carousel>
+    );
+    expect(namesOf(screen.getAllByRole('tab'))).toEqual([
+      'Go to slide 1',
+      'Go to slide 2',
+    ]);
+    expect(namesOf(realItems(2))).toEqual(['1 of 2', '2 of 2']);
+  });
+
+  it('takes its role descriptions from aria-roledescription', () => {
+    render(
+      <Carousel aria-roledescription="carrousel" labels={french}>
+        <CarouselItem aria-roledescription="diapositive">Un</CarouselItem>
+        <CarouselItem aria-roledescription="diapositive">Deux</CarouselItem>
+      </Carousel>
+    );
+    expect(screen.getByRole('region')).toHaveAttribute(
+      'aria-roledescription',
+      'carrousel'
+    );
+    for (const item of realItems(2)) {
+      expect(item).toHaveAttribute('aria-roledescription', 'diapositive');
+    }
+  });
+});

@@ -500,6 +500,48 @@ The icon props follow the same naming as the [Icon component](../elements/icon.m
 
 ---
 
+### In Another Language
+
+The arrows, the indicators and the items are named in English unless `labels` gives the words to use. `indicator` gets the place of the first item an indicator brings into view, and `item` gets an item's place and the number of items, each counting from 1. The role descriptions, "carousel" on the region and "slide" on each item, take `aria-roledescription` on the `Carousel` and on each `CarouselItem`.
+
+```tsx live
+<Carousel
+  lang="fr"
+  aria-roledescription="carrousel"
+  ariaLabel="Couleurs"
+  labels={{
+    previous: 'Diapositive précédente',
+    next: 'Diapositive suivante',
+    indicator: slide => `Aller à la diapositive ${slide}`,
+    item: (current, total) => `${current} sur ${total}`,
+  }}
+>
+  <CarouselItem aria-roledescription="diapositive">
+    <Hero color="primary" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Diapositive 1</Title>
+      </Hero.Body>
+    </Hero>
+  </CarouselItem>
+  <CarouselItem aria-roledescription="diapositive">
+    <Hero color="info" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Diapositive 2</Title>
+      </Hero.Body>
+    </Hero>
+  </CarouselItem>
+  <CarouselItem aria-roledescription="diapositive">
+    <Hero color="success" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Diapositive 3</Title>
+      </Hero.Body>
+    </Hero>
+  </CarouselItem>
+</Carousel>
+```
+
+---
+
 ### Controlled Carousel
 
 Externally controlled carousel with custom navigation.
@@ -608,6 +650,7 @@ Carousel that stops at the first and last slides.
 - When the system asks for reduced motion, each step changes the view at once, with no slide, and a step past either end with `repeat` goes straight to the other end. The arrows and indicators change without a transition too. A drag still follows the pointer, since that's the user's own movement
 - When something else takes the item holding focus out of view (a swipe, a change of width that changes the count, a new controlled `value`, or the item's removal), focus moves to the first item in view rather than dropping to the page
 - Navigation arrows have `aria-label` for screen readers
+- The arrows', the indicators' and the items' names are English unless `labels` gives the words in the page's language, and the role descriptions take `aria-roledescription` on the `Carousel` and on each `CarouselItem`
 - With `arrowBackground={false}`, an arrow with keyboard focus shows Bulma's focus outline, as a ghost `Button` does, in the overlay look too. With `arrowHover`, an arrow shows while keyboard focus is on it
 - Indicators use `role="tablist"` and `role="tab"` semantics, one for each position a step can land on
 - The indicators take Bulma's look: a resting dot, line or bar is filled in the border color and the current one in the primary color, and a circle is a ring in the border color, filled when current. A resting one falls short of the 3:1 against the page that WCAG asks of a graphic. For that, set `--bulma-carousel-indicator-border-color` to a color such as `var(--bulma-text-weak)` on a class you pass through `className`, with the carousel's class in the selector (`.carousel.my-carousel`, `.bestax-carousel.my-carousel` under the prefixed flavor) so it wins whatever order the stylesheets load in. It draws a ring at each resting indicator's edge, circles included, and leaves the current one, and the dots, lines and bars in the overlay look, as they are. Forced colors (Windows' contrast themes) replaces the fills, so there each indicator shows its ring in the buttons' text color and the current one is filled in it.
@@ -672,6 +715,7 @@ Use the `pauseOnHover` prop (enabled by default) to let users interact with caro
 | `arrowBackground`       | `boolean`                                                                  | `true`             | Show semi-transparent background on arrow buttons. Set to `false` for icon-only arrows, which show Bulma's focus outline while they have keyboard focus, as a ghost `Button` does.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `arrowColor`            | `'light'` \| `'dark'`                                                      | —                  | Color theme for navigation arrows. Not applied while the overlay look is on (see `overlayControls`, which `indicatorInside` turns on), whose arrows take `--bulma-carousel-overlay-arrow-color`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | `ariaLabel`             | `string`                                                                   | `'Image carousel'` | The carousel region's name. Name it for what it shows, such as "Featured products", and leave out the word "carousel", which the region's role description already says. Under a visible heading, `aria-labelledby` with the heading's id names it instead, ahead of the `aria-label` the default still sets. The default is a placeholder that says "carousel" twice with the role description, and is the same on every carousel left with it. Default: 'Image carousel'.                                                                                                                                                                                                                           |
+| `labels`                | `CarouselLabels`                                                           | —                  | The words it writes for its arrows, indicators and items, for another language.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `onChange`              | `(value: number) => void`                                                  | —                  | Called with the index of the first item in view when an arrow, an arrow key, an indicator, a swipe or autoplay moves the carousel.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `children`              | `React.ReactNode`                                                          | —                  | CarouselItem children.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `className`             | `string`                                                                   | —                  | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |

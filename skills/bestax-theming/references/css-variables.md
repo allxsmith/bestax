@@ -232,6 +232,8 @@ lone class loses to and `style` does not. Each component's API page lists its va
 **CSS & Sass Variables** and says where Bulma declares them; the extras below follow the same
 rule. In forced colors a colored button's `--bulma-button-border-width` is `1px`, so it keeps an
 edge when the theme replaces its fill, and an outlined button or a `text` one keeps its own.
+In forced colors bestax's CSS sets `--bulma-button-disabled-opacity` to `1` on each button, so what
+Bulma dims with it draws at full strength there.
 
 ## Shadow — override the upstream token, not the derived one
 
@@ -1126,7 +1128,8 @@ button is `disabled` or `aria-disabled`, whatever `--bulma-sidebar-close-color` 
 A mark's label sits inside its tick, so outside forced colors `--bulma-slider-tick-opacity` dims
 the label along with the tick's line, whatever `--bulma-slider-tick-label-color` you set. In forced
 colors neither `--bulma-slider-tick-opacity` nor `--bulma-slider-disabled-opacity` applies, and the
-system's colors replace the tick and label colors.
+system's colors replace the tick and label colors. Where a tick's line crosses the track there, it
+has a hairline in the page's color as long as `--bulma-slider-track-height`.
 
 `--bulma-slider-disabled-opacity`, `--bulma-slider-fill-color`,
 `--bulma-slider-output-background`, `--bulma-slider-output-color`,
@@ -1245,6 +1248,12 @@ variable on such a tag through `style`. Bulma's own `--bulma-tag-*` variables se
 
 `--bulma-timeinput-wheel-item-height` is registered but has no effect: the component sets each
 wheel item's height inline.
+
+In forced colors (Windows' contrast themes) the band is the system's highlight color, with the
+focus ring in the color made to read on it, whatever `--bulma-timeinput-wheel-selected-bg` and
+`--bulma-timeinput-wheel-selected-color` say, and the values take the system's text color. On a
+disabled picker the band and the values take its color for a disabled control, and so does a
+value the picker blocks. The wheels in `DateTimeInput` are these.
 
 ### Timeline
 

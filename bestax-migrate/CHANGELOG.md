@@ -1,3 +1,34 @@
+## [2.38.7](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.38.6...bestax-migrate@2.38.7) (2026-11-17)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** ask for a name on a converted Modal ([4950945](https://github.com/allxsmith/bestax/commit/495094585e6f7dc0f1d47e0d07f8abf6f675d3df))
+* **bulma-ui:** change Carousel's view at once under reduced motion ([8bd00b8](https://github.com/allxsmith/bestax/commit/8bd00b80f57717e16aa78558ceae02c6dcb8151a)), closes [#1928](https://github.com/allxsmith/bestax/issues/1928)
+* **bulma-ui:** count only the room a Reveal's container has to scroll toward its cut-off part ([b28f9dc](https://github.com/allxsmith/bestax/commit/b28f9dce2783005aa0342e214f0b4a89a6810bba))
+* **bulma-ui:** describe each Taginput remove button by its tag when ariaCloseLabel names them all ([b0fceb0](https://github.com/allxsmith/bestax/commit/b0fceb04279613356dd15c89675495142cf0ffb7)), closes [#2007](https://github.com/allxsmith/bestax/issues/2007)
+* **bulma-ui:** draw disabled toggles at full strength in GrayText in forced colors ([e35b1a5](https://github.com/allxsmith/bestax/commit/e35b1a5953b240fb6d4299b38937f38b991801f0)), closes [#1996](https://github.com/allxsmith/bestax/issues/1996)
+* **bulma-ui:** give a reached Timeline icon marker a heavier ring in forced colors ([2f1676e](https://github.com/allxsmith/bestax/commit/2f1676e188ef6838fae371f9bdb05ed0241c2c78)), closes [#1991](https://github.com/allxsmith/bestax/issues/1991)
+* **bulma-ui:** keep each date part a picker's format leaves out of a pasted value ([d43160d](https://github.com/allxsmith/bestax/commit/d43160df7f4c51741eee1c41ead19828a9c54b40))
+* **bulma-ui:** let a Numberinput be emptied while it's edited ([674ea94](https://github.com/allxsmith/bestax/commit/674ea94c922fd58942a6ecc4fe1076da3673ff35)), closes [#1995](https://github.com/allxsmith/bestax/issues/1995) [#2110](https://github.com/allxsmith/bestax/issues/2110) [#1976](https://github.com/allxsmith/bestax/issues/1976)
+* **bulma-ui:** let Escape put away a hoverable Navbar.Dropdown's menu ([d2c8e1e](https://github.com/allxsmith/bestax/commit/d2c8e1e663aa9cc1c32fe07486424420dffce3c6)), closes [#1981](https://github.com/allxsmith/bestax/issues/1981)
+* **bulma-ui:** mark the active Dropdown and ContextMenu item in forced colors ([b5174cb](https://github.com/allxsmith/bestax/commit/b5174cb1771cc9794007a41cd34f0eae41928a35))
+* **bulma-ui:** move focus on when a programmatic notification closes with it inside ([bf9c665](https://github.com/allxsmith/bestax/commit/bf9c665034ec267a1ecaa41fcce9da060af38ce1)), closes [#1842](https://github.com/allxsmith/bestax/issues/1842)
+* **bulma-ui:** name an inline DateInput, TimeInput or DateTimeInput by its label ([f9acf15](https://github.com/allxsmith/bestax/commit/f9acf1538745e17dcaa683d082c8ba4edb217522)), closes [#2023](https://github.com/allxsmith/bestax/issues/2023)
+* **bulma-ui:** outline a keyboard-focused Select in forced colors ([0a8767e](https://github.com/allxsmith/bestax/commit/0a8767ebb90666e375ab6b675aefe6cc78311942)), closes [#2017](https://github.com/allxsmith/bestax/issues/2017)
+* **bulma-ui:** put a Tooltip's auto position on a side with room for the tooltip as it is ([59b98b4](https://github.com/allxsmith/bestax/commit/59b98b42f4c6484515749c3291bacb9d2177429c)), closes [#1953](https://github.com/allxsmith/bestax/issues/1953)
+* **bulma-ui:** put aria-invalid on DateRangeInput's inputs and ColorPicker.Input's input ([7dfe2fd](https://github.com/allxsmith/bestax/commit/7dfe2fdd323f5df8e67c38ef01c5bd6b1e028dc3)), closes [#2063](https://github.com/allxsmith/bestax/issues/2063)
+* **bulma-ui:** reveal a Reveal that can't reach its threshold in a container or sideways ([c855b53](https://github.com/allxsmith/bestax/commit/c855b53db49ccc770da0278e5f6781631e1b5c63)), closes [#1907](https://github.com/allxsmith/bestax/issues/1907) [#1940](https://github.com/allxsmith/bestax/issues/1940)
+* **bulma-ui:** say Tabs.Item's active only adds the class ([7f197d1](https://github.com/allxsmith/bestax/commit/7f197d112f1b5982d14920affe50f58fada7cee9)), closes [#1918](https://github.com/allxsmith/bestax/issues/1918)
+* **bulma-ui:** stop End at the last step a Slider holds when max is off its grid ([59165b0](https://github.com/allxsmith/bestax/commit/59165b03b594ea440d619be4dc3aa3fea087e0f0)), closes [#2001](https://github.com/allxsmith/bestax/issues/2001)
+* **bulma-ui:** take a date or time pasted or autofilled into a picker's field ([df27dca](https://github.com/allxsmith/bestax/commit/df27dca4b3785460bdd58fa91aa2abdcac2c8632)), closes [#2140](https://github.com/allxsmith/bestax/issues/2140)
+
+
+### Features
+
+* **bulma-ui:** match a ToastContainer hotkey by its code when its key types another ([487f118](https://github.com/allxsmith/bestax/commit/487f118a32ff8781daf7711e6af333ffd747f5c8))
+* **bulma-ui:** reach the newest toast from the keyboard with ToastContainer's hotkey ([cf271ba](https://github.com/allxsmith/bestax/commit/cf271ba0ffea083f7296cd88a94f44531c509ec3)), closes [#1915](https://github.com/allxsmith/bestax/issues/1915)
+
 ## [2.38.6](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.38.5...bestax-migrate@2.38.6) (2026-11-17)
 
 

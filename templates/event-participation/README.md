@@ -56,6 +56,8 @@ treats the folder as a project of its own.
 - Hovering the footer link turns it the page's text color. The original turns it black, which
   vanishes on the dark scheme.
 - The footer's heart is hidden from screen readers, as a decorative icon.
+- The program's "Program" title is a heading, and names the panel it heads, so a screen reader
+  can move to it by heading or by landmark. The original's is a plain paragraph.
 
 ## Images
 

@@ -279,7 +279,12 @@ export const FilesScheduling: Story = {
           <Field label="Profile photo">
             <File hasName buttonLabel="Choose a file…" />
           </Field>
-          <DateInput label="Date of birth" value={date} onChange={setDate} />
+          <DateInput
+            label="Date of birth"
+            autoComplete="bday"
+            value={date}
+            onChange={setDate}
+          />
           <TimeInput
             label="Preferred contact time"
             value={time}

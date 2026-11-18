@@ -92,7 +92,8 @@ const fromIsoDateTime = (s: string): Date | null => {
  * for Field/Control composition. Combines the prop set of `DateInputBaseProps`
  * and `TimeInputBaseProps`. `aria-invalid` and `aria-errormessage`, which
  * report the input's state, go on the `<input>`, and inline, where there is
- * none, on the `<div>`.
+ * none, on the `<div>`. `autoComplete` goes on the `<input>` too, the text
+ * field's `off` unless you give one, and inline nowhere.
  *
  * @helperProps Helper props go on the `.datetimeinput-container` `<div>`, with
  * `className` and the other attributes, except that the background helpers
@@ -100,6 +101,15 @@ const fromIsoDateTime = (s: string): Date | null => {
  * sets its own background and font, and the popover inside the `<div>`
  * takes the text ones. Inline they all go on the `<div>`, and on the native
  * mobile input, on the `<input>`.
+ *
+ * Among the other attributes, `aria-label`, `aria-labelledby` and
+ * `aria-describedby` go on the `<div>` too, so they don't name or describe
+ * the `<input>`, except the native one `mobileNative` renders. Name it with
+ * `DateTimeInput`'s `label`; with a labeled `Field` that isn't `grouped` or
+ * `hasAddons`, if you give it no `id`; or with an `id` and a
+ * `<label htmlFor>` of your own. Describe it with `DateTimeInput`'s
+ * `message`: `DateTimeInputBase` on its own has no way to describe it.
+ * Inline there is no `<input>` to name.
  */
 export interface DateTimeInputBaseProps
   extends
@@ -236,8 +246,9 @@ export interface DateTimeInputBaseProps
    * `--bulma-dateinput-*` and `--bulma-timeinput-wheel-*` variables, which
    * follow `primary` by default. The footer's time pill and Done button do not
    * follow `color`. Forced colors (Windows' contrast themes) replaces the
-   * calendar's fill, so there the selected date is drawn in the system's
-   * highlight colors instead, whatever the color, which needs bestax's CSS.
+   * calendar's fill and the wheels' band, so there the selected date is drawn
+   * in the system's highlight colors and the band in its highlight color
+   * instead, whatever the color, which needs bestax's CSS.
    */
   color?:
     'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
@@ -367,6 +378,7 @@ export const DateTimeInputBase = forwardRef<
     className,
     name,
     form,
+    autoComplete,
     required,
     id: idProp,
     onFocus,
@@ -738,6 +750,7 @@ export const DateTimeInputBase = forwardRef<
         {...localeScope.rootAttrs}
         {...cleanRest}
         ref={combinedRef}
+        autoComplete={autoComplete}
         aria-describedby={joinIds(cleanRest['aria-describedby'], messageId)}
         {...controlState}
         type="datetime-local"
@@ -941,7 +954,7 @@ export const DateTimeInputBase = forwardRef<
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={popoverId}
-        autoComplete="off"
+        autoComplete={autoComplete || 'off'}
         aria-describedby={messageId}
         {...controlState}
         className={classNames(inputClass, textClasses, backgroundClasses)}

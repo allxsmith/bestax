@@ -10,10 +10,11 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import type { PolymorphicComponent } from '../helpers/polymorphic';
 import { buttonType } from '../helpers/buttonType';
-import { getActiveElementInTree } from '../helpers/shadowDom';
+import { getActiveElementInTree, parentInPage } from '../helpers/shadowDom';
 import { useHoverDismiss } from '../helpers/useHoverDismiss';
 import { chain } from '../helpers/useHoverOpen';
 import { isAtBulmaBreakpoint } from '../helpers/useBulmaViewport';
+import { useOutsideFocus } from '../helpers/useOutsidePress';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -808,6 +809,26 @@ export const NavbarLink = forwardRef(function NavbarLink(
 
 NavbarLink.displayName = 'NavbarLink';
 
+/**
+ * Whether a focus event lands in a dialog marked `aria-modal` that `root`
+ * isn't in, read through shadow roots: the event's composed path for the
+ * dialog, and the page's parents for whether it holds `root`. Nodes are read
+ * by their methods, not `instanceof`, so a tree in an iframe is read too.
+ */
+function inModalOutside(e: Event, root: Element) {
+  const modal = e
+    .composedPath()
+    .find(
+      (node): node is Element =>
+        (node as Element).getAttribute?.('aria-modal') === 'true'
+    );
+  if (!modal) return false;
+  for (let el: Element | undefined = root; el; el = parentInPage(el)) {
+    if (el === modal) return false;
+  }
+  return true;
+}
+
 /** Whether an element on an event's path is a dialog, by role or by tag. */
 const isDialog = (node: EventTarget) => {
   const el = node as Element;
@@ -864,7 +885,12 @@ export interface NavbarDropdownProps extends React.HTMLAttributes<HTMLDivElement
    * `Navbar.Link`, or anywhere else in the open dropdown, closes it and puts
    * focus on the link, unless a control there marks the key used, the key
    * comes from a dialog or from content opened from the menu into a portal,
-   * or focus can't go back to the link.
+   * or focus can't go back to the link. Focus landing outside the dropdown,
+   * as Tab past its last item does, closes it too, and one you control is
+   * told through `onActiveChange` and keeps its prop. Focus moving into
+   * content opened from the menu into a portal or into a dialog marked
+   * `aria-modal` it isn't in, focus going nowhere, as a window losing focus
+   * does, and a press outside that doesn't move focus leave it open.
    */
   active?: boolean;
   /** Callback when dropdown active state changes. */
@@ -895,6 +921,7 @@ export const NavbarDropdown = forwardRef<HTMLDivElement, NavbarDropdownProps>(
       onPointerEnter,
       onFocus,
       onBlur,
+      onFocusCapture,
       children,
       ...props
     },
@@ -977,6 +1004,32 @@ export const NavbarDropdown = forwardRef<HTMLDivElement, NavbarDropdownProps>(
       close();
     };
 
+    // Focus landing outside an open dropdown, as Tab past its last item or
+    // Shift+Tab past its link does, closes it, so its menu isn't left over
+    // the page where the next thing focused can sit under it (WCAG 2.4.11).
+    // Content opened from the menu into a portal is inside, and focus going
+    // nowhere, as a window losing focus does, changes nothing. Neither does
+    // focus moving into a dialog marked aria-modal that the dropdown isn't in,
+    // such as a Modal an item opens, which gives focus back to the item when
+    // it closes, so the item has to still be showing. A controlled dropdown is told once and keeps its prop.
+    // Either is told again once it opens again or focus comes back in.
+    const toldRef = useRef(false);
+    useEffect(() => {
+      if (active) toldRef.current = false;
+    }, [active]);
+    const markInsideFocus = useOutsideFocus(rootRef, active, e => {
+      if (inModalOutside(e, rootRef.current as Element)) return;
+      if (toldRef.current) return;
+      toldRef.current = true;
+      if (typeof activeProp !== 'boolean') setActive(false);
+      onActiveChange?.(false);
+    });
+    const handleFocusCapture = (e: React.FocusEvent<HTMLDivElement>) => {
+      onFocusCapture?.(e);
+      markInsideFocus(e);
+      toldRef.current = false;
+    };
+
     return (
       <NavbarDropdownContext.Provider
         value={{ active, toggle, close: closeOnEscape }}
@@ -998,6 +1051,7 @@ export const NavbarDropdown = forwardRef<HTMLDivElement, NavbarDropdownProps>(
           onPointerEnter={chain(onPointerEnter, hover.onPointerEnter)}
           onFocus={chain(onFocus, hover.onFocus)}
           onBlur={chain(onBlur, hover.onBlur)}
+          onFocusCapture={handleFocusCapture}
         >
           {children}
         </div>
