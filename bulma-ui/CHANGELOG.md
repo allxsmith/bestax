@@ -1,3 +1,17 @@
+## [5.78.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.78.0...@allxsmith/bestax-bulma@5.78.1) (2026-11-18)
+
+
+### Bug Fixes
+
+* **bulma-ui:** draw Pagination's disabled controls and a disabled select's arrow in GrayText ([e64c575](https://github.com/allxsmith/bestax/commit/e64c5756ec4bf76cc94c8c25efec8edd72ecb2c8)), closes [#2163](https://github.com/allxsmith/bestax/issues/2163)
+* **bulma-ui:** give an open Dropdown or ContextMenu menu an edge in forced colors ([0b8f3d0](https://github.com/allxsmith/bestax/commit/0b8f3d0e9a0d195791ae174f257e595858c50442))
+* **bulma-ui:** keep Panel.InputBlock's and Panel.CheckboxBlock's panel-block class ([411ae24](https://github.com/allxsmith/bestax/commit/411ae2421b0b830cd994c95f5834ea84087d07f5)), closes [#2132](https://github.com/allxsmith/bestax/issues/2132)
+* **bulma-ui:** let a Numberinput take a number typed through one out of range ([4c08d4b](https://github.com/allxsmith/bestax/commit/4c08d4baf2d95c3cf37f3b006ae8644647838883)), closes [#2110](https://github.com/allxsmith/bestax/issues/2110)
+* **bulma-ui:** pass focus on when a programmatic toast that holds it closes ([15d27e1](https://github.com/allxsmith/bestax/commit/15d27e141ca5860892f49a9160a3be81d6986d5d)), closes [#1939](https://github.com/allxsmith/bestax/issues/1939)
+* **bulma-ui:** send a date or time picker's autoComplete to its field ([a5add8b](https://github.com/allxsmith/bestax/commit/a5add8b3f245a07e1846d77c9f23c41deccd0c60)), closes [#2064](https://github.com/allxsmith/bestax/issues/2064)
+* **bulma-ui:** start the focus origin from focus already outside, and restore it without a tab stop ([bf31f68](https://github.com/allxsmith/bestax/commit/bf31f6848ab731d0cfae788e5f5150b552e2e246))
+* **bulma-ui:** stop a range Slider's thumb on a step when minDistance holds it back ([#2173](https://github.com/allxsmith/bestax/issues/2173)) ([84ea55e](https://github.com/allxsmith/bestax/commit/84ea55ec841a89f1606eb3ffd853a6259a7d1b00))
+
 # [5.78.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.77.0...@allxsmith/bestax-bulma@5.78.0) (2026-11-18)
 
 
