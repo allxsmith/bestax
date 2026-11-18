@@ -360,8 +360,9 @@ Notes:
   any build that shows a `Box`. Its rule wins over Bulma's either way, so the order of the `@use`
   lines does not matter.
 - `Card` is stock Bulma (`bulma/sass/components/card`), which draws a card's edge as a shadow
-  the same way, so it vanishes in forced colors too. The `card` extras partial draws it back as
-  an outline in the system's text color, so include it (`as bestax-card`) next to Bulma's module
+  the same way, so it vanishes in forced colors too, and the line under its header with it. The
+  `card` extras partial draws the edge back as an outline and the header's line as a line, in the
+  system's text color, so include it (`as bestax-card`) next to Bulma's module
   in any build that shows a `Card`. Its rule wins over Bulma's either way, so the order of the
   `@use` lines does not matter.
 - `Divider` renders an `<hr>`, which Bulma draws in its base (`bulma/sass/base`) as a background
@@ -497,7 +498,7 @@ Scaffolded with an icon library, the starter also needs `bulma/sass/elements/ico
 @use 'bulma/sass/helpers/flexbox'; // flexGrow
 @use 'bulma/sass/helpers/typography'; // textAlign
 
-@use '@allxsmith/bestax-bulma/scss/components/card' as bestax-card; // the edge in forced colors
+@use '@allxsmith/bestax-bulma/scss/components/card' as bestax-card; // the edge and header line in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/box' as bestax-box; // the edge in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/button' as bestax-button; // focus outline and edge in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/delete' as bestax-delete; // the close button in forced colors

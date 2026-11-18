@@ -204,7 +204,7 @@ Some partials adjust a stock Bulma component rather than add one of bestax's.
 
 - `components/menu` keeps a menu's active item marked in forced colors, draws `Menu.Section`'s heading and chevron, and starts each item's text at the right on a right-to-left page, so a build that uses `bulma/sass/components/menu`, for a `Menu` or a `TableOfContents`, wants it too.
 
-- `components/card` draws a card's edge as an outline in the system's text color in forced colors, where Bulma draws it as a shadow, which those themes drop, so a build that shows a `Card` wants it too. CheckboxCard and RadioCard draw an edge of their own and don't need it.
+- `components/card` draws a card's edge as an outline, and the line under its header as a line, in the system's text color in forced colors, where Bulma draws both as shadows, which those themes drop, so a build that shows a `Card` wants it too. CheckboxCard and RadioCard draw an edge of their own and don't need it.
 
 - `components/dropdown` keeps a divider drawn in forced colors, where Bulma's fill takes the menu's own color, and keeps an active item marked there the way `components/menu` does, so a build that uses `bulma/sass/components/dropdown`, for a `Dropdown` or a `ContextMenu`, wants it too.
 
