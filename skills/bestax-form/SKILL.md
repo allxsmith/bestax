@@ -236,7 +236,8 @@ A `range` `Slider` points the `for` at its low thumb and starts both thumbs' nam
 leave it off when a label already names the Slider. Those thumbs and an `Autocomplete`'s, a
 `Combobox`'s or a `Taginput`'s list point `aria-labelledby` at the label's `id`, which a label
 wired by hand has only when you pass one, `labelProps={{ htmlFor, id }}`; without it they keep their
-fallback names ("Minimum value"/"Maximum value", "Suggestions"). A `<label htmlFor>` you put in
+fallback names ("Minimum value"/"Maximum value", "Suggestions", which an `Autocomplete`'s or a
+`Taginput`'s `labels.suggestions` gives in your language). A `<label htmlFor>` you put in
 `Field.Label` yourself (`references/patterns.md`) names its control through the `for` alone, so
 label a row holding either with the `Field`'s `label` prop. An `aria-label` or `aria-labelledby`
 you give a group wins over any label, and a `Checkbox`, `Radio` or `Switch` takes nothing from a

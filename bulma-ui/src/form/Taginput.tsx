@@ -40,6 +40,21 @@ export interface TaginputItem {
 /** A tag can be either a TaginputItem object or a plain string. */
 export type TaginputTag = TaginputItem | string;
 
+/** The accessible names Taginput gives its parts, in your app's language. */
+export interface TaginputLabels {
+  /**
+   * Names the input when no label names it. An empty string counts as none.
+   * @defaultValue 'Add tag'
+   */
+  input?: string;
+  /**
+   * Names the suggestion list when no label with an id names the input. An
+   * empty string counts as none.
+   * @defaultValue 'Suggestions'
+   */
+  suggestions?: string;
+}
+
 type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
 
 // An IME that's composing owns every key: Enter confirms what it composed,
@@ -73,7 +88,7 @@ export interface TaginputProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange' | 'defaultValue'>,
     Omit<BulmaClassesProps, 'color'>,
     FormFieldProps {
-  /** Field label. Automatically associated with the text input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here; it then replaces the `aria-label="Add tag"` fallback too. With `data`, the label naming the input also names the open suggestion list, through `aria-labelledby`, when it has an id: this label always does, and an outer `Field`'s does unless you wired it by hand without an `id` in its `labelProps`. Otherwise the list is named "Suggestions". */
+  /** Field label. Automatically associated with the text input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here; it then replaces the `aria-label="Add tag"` fallback (or `labels.input`) too. With `data`, the label naming the input also names the open suggestion list, through `aria-labelledby`, when it has an id: this label always does, and an outer `Field`'s does unless you wired it by hand without an `id` in its `labelProps`. Otherwise the list is named "Suggestions", or `labels.suggestions`. */
   label?: React.ReactNode;
   /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then). With `data`, while the label names the input, the suggestion list's `aria-labelledby` points at it, through an `id` here when you give one and a generated one otherwise. */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
@@ -165,6 +180,8 @@ export interface TaginputProps
    * renders.
    */
   ariaCloseLabel?: string;
+  /** The accessible names it gives its parts, in your app's language. A `LocaleProvider` doesn't change them. */
+  labels?: TaginputLabels;
   /** Icon name for the input field. */
   icon?: string;
   /** Icon library to use. */
@@ -268,6 +285,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       keepOpen = true,
       loading = false,
       ariaCloseLabel,
+      labels,
       icon,
       iconLibrary: iconLibraryProp,
       iconVariant,
@@ -885,7 +903,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
               // targets this input, its own or a surrounding Field's
               // (aria-label would win otherwise). A label pointing elsewhere
               // keeps the fallback so the input is never nameless.
-              aria-label={labelled ? undefined : 'Add tag'}
+              aria-label={labelled ? undefined : labels?.input || 'Add tag'}
               // The counter, while it shows, describes the input, so at the
               // limit it says why the field takes no more, and then the
               // message does.
@@ -908,7 +926,9 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
               className={dropdownContentClasses}
               role="listbox"
               aria-labelledby={listLabelId}
-              aria-label={listLabelId ? undefined : 'Suggestions'}
+              aria-label={
+                listLabelId ? undefined : labels?.suggestions || 'Suggestions'
+              }
               // It scrolls, and a browser can make a scroller a Tab stop of
               // its own, which would take Tab from the input to the list.
               tabIndex={-1}

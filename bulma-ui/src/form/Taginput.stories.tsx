@@ -23,6 +23,11 @@ const meta: Meta<typeof Taginput> = {
     value: {
       description: 'Current tags (controlled)',
     },
+    labels: {
+      control: 'object',
+      description:
+        'Accessible names in your language: input names the input when no label does, and suggestions the list when no label with an id does',
+    },
     data: {
       description: 'Autocomplete suggestions',
     },
@@ -185,6 +190,22 @@ export const WithAutocomplete: Story = {
           </p>
         )}
       </div>
+    );
+  },
+};
+
+/**
+ * With no visible label, `labels` names the input and the suggestion list in
+ * the page's language.
+ */
+export const NamesInAnotherLanguage: Story = {
+  render: function NamesInAnotherLanguageExample() {
+    return (
+      <Taginput
+        data={['Pomme', 'Poire', 'Prune']}
+        placeholder="Ajouter un fruit"
+        labels={{ input: 'Fruits', suggestions: 'Propositions' }}
+      />
     );
   },
 };
