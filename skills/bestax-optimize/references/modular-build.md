@@ -347,10 +347,12 @@ Notes:
   extras partial gives those focused buttons an outline, apart from a loading one, which the
   `loader` partial outlines, a pressed `ToggleButton`, a checked `SegmentedControl` segment and any other button with Bulma's `is-selected` the
   system's highlight colors in forced colors, where the fill that marks them is replaced, a colored
-  button a 1px border in forced colors, and an outlined button the lightness Bulma picks for its
-  color's text on the page where that's lighter, so a dark color reads on the dark scheme, so
-  include it (`as bestax-button`) in any build that loads Bulma's button module. Its rules win over
-  Bulma's either way, so the order of the `@use` lines does not matter.
+  button a 1px border in forced colors, a disabled button full strength in forced colors, where
+  Bulma's disabled opacity would fade the system's color for it, and an outlined button the
+  lightness Bulma picks for its color's text on the page where that's lighter, so a dark color
+  reads on the dark scheme, so include it (`as bestax-button`) in any build that loads Bulma's
+  button module. Its rules win over Bulma's either way, so the order of the `@use` lines does not
+  matter.
 - `Box` is stock Bulma (`bulma/sass/elements/box`), which draws a box's edge as a shadow with no
   border. Forced colors (Windows' contrast themes) drops every shadow and paints the box in the
   page's own color, so its edge vanishes there. The `box` extras partial draws it back as an

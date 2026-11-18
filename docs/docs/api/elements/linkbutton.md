@@ -184,6 +184,8 @@ function example() {
 - **States:** The `isDisabled` and `disabled` props ensure correct `aria-disabled` and `disabled` attributes.
 - **Loading:** while `isLoading` is set, the button carries `aria-busy="true"` and `aria-disabled="true"`, so a screen reader can tell it won't respond, and a click, <kbd>Enter</kbd> or <kbd>Space</kbd> does nothing: `onClick` doesn't run, a submit button doesn't submit its form, and a click on a link doesn't follow its `href`. It keeps focus, since `aria-disabled` doesn't take it away the way `disabled` would.
 - **Keyboard:** Fully keyboard accessible with Enter and Space activation.
+- **Forced colors:** a disabled LinkButton is drawn in the system's color for a disabled control, at
+  full strength, as a disabled [`Button`](./button.md) is.
 - **Replaces anti-patterns:** Use this instead of `<div onClick>` or `<span onClick>` for interactive elements that should not navigate.
 
 :::note
