@@ -1,6 +1,6 @@
 // Select styles
 // Bulma already styles the select; this gives a focused one an outline in
-// forced colors
+// forced colors, and a disabled one's arrow the disabled color there
 
 @use "bulma/sass/utilities/initial-variables" as iv;
 @use "bulma/sass/utilities/css-variables" as cv;
@@ -26,5 +26,31 @@
     outline-offset: cv.getVar("focus-offset");
     outline-style: cv.getVar("focus-style");
     outline-width: cv.getVar("focus-width");
+  }
+
+  // Forced colors draws a disabled select in GrayText, the system's color for
+  // a disabled control. Bulma dims a disabled select's arrow,
+  // `.select.is-disabled::after`, at half opacity, and `Select` disables its
+  // `<select>` alone, which leaves the arrow in the page's text color beside
+  // it. Either way the arrow takes GrayText at full strength here. Bulma
+  // names that arrow's color with `!important`, so this does too, with more
+  // classes. A loading select's `::after` is the loader's spinner, which
+  // `_loader.scss` colors, so it only loses Bulma's fade. The `:has()` rule
+  // is a rule of its own, so a browser without `:has()` still applies the
+  // others.
+  .#{iv.$class-prefix}select.#{iv.$class-prefix}select.#{iv.$class-prefix}is-disabled::after {
+    opacity: 1;
+  }
+
+  .#{iv.$class-prefix}select.#{iv.$class-prefix}select.#{iv.$class-prefix}is-disabled:not(
+      .#{iv.$class-prefix}is-loading
+    )::after {
+    border-color: GrayText !important;
+  }
+
+  .#{iv.$class-prefix}select.#{iv.$class-prefix}select:not(
+      .#{iv.$class-prefix}is-loading
+    ):has(> select:disabled)::after {
+    border-color: GrayText !important;
   }
 }
