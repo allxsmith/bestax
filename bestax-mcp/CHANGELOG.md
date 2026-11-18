@@ -1,3 +1,11 @@
+## [1.18.79](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.78...bestax-mcp@1.18.79) (2026-11-18)
+
+
+### Bug Fixes
+
+* **bulma-ui:** start a single Slider inside its range when 0 is outside it ([962ea69](https://github.com/allxsmith/bestax/commit/962ea69efb37efa75f532e981d3d0cfe920ca612)), closes [#2108](https://github.com/allxsmith/bestax/issues/2108)
+* **bulma-ui:** start a single Slider on the step nearest 0 when 0 is off its grid ([1610f90](https://github.com/allxsmith/bestax/commit/1610f904d7f7522cb4c7bb8129cae8a4923ea56e))
+
 ## [1.18.78](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.77...bestax-mcp@1.18.78) (2026-11-18)
 
 
