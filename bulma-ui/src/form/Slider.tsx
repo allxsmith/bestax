@@ -176,7 +176,10 @@ export interface SliderRangeProps extends SliderBaseProps {
   /** Callback when value changes. */
   onChange?: ((value: [number, number]) => void) | undefined;
   /**
-   * Minimum distance between thumbs in range mode.
+   * Minimum distance between thumbs in range mode. A thumb moved toward the
+   * other stops on the nearest step at least this far from it, so when this
+   * isn't a whole number of steps, the thumbs end up a little further apart.
+   * Where there isn't that much room, a thumb stops at the slider's end.
    * @defaultValue 0
    */
   minDistance?: number;
@@ -218,30 +221,36 @@ function toDecimal(value: number): [bigint, number] {
 }
 
 /**
- * The highest value a range input with these bounds holds, as browsers write
- * it: the last step from `min` at or below `max`, where a browser puts the
- * thumb when `max` falls between two steps, or `min` when `max` isn't above
- * it. A step that
- * isn't a positive number counts as 1, as the browser counts it. Bounds that
- * aren't finite numbers leave `max` as it is.
+ * The step from `min` nearest `value` on one side, as a browser counts steps:
+ * the last at or below it, or with `up`, the first at or above it; `min` when
+ * `value` isn't above `min`. A step that isn't a positive number counts as 1,
+ * as the browser counts it, and a bound that isn't a finite number leaves
+ * `value` as it is.
  */
-function highestStep(min: number, max: number, step: number): number {
-  if (!Number.isFinite(min) || !Number.isFinite(max)) return max;
-  if (!(max > min)) return min;
+function stepFrom(
+  min: number,
+  value: number,
+  step: number,
+  up: boolean
+): number {
+  if (!Number.isFinite(min) || !Number.isFinite(value)) return value;
+  if (!(value > min)) return min;
   const size = step > 0 && Number.isFinite(step) ? step : 1;
   // Counted in whole numbers of the finest decimal place the three use, as
   // the browser counts in decimals from the attributes, so 0.3 holds three
   // steps of 0.1, and a max worked out in JavaScript, such as 0.01 * 31 * 3,
   // which is 0.9299999999999999, holds 92 steps of 0.01, not 93.
   const [low, lowPlace] = toDecimal(min);
-  const [high, highPlace] = toDecimal(max);
+  const [high, highPlace] = toDecimal(value);
   const [unit, unitPlace] = toDecimal(size);
   const place = Math.min(lowPlace, highPlace, unitPlace);
   const at = (digits: bigint, from: number) =>
     digits * BigInt(10) ** BigInt(from - place);
   const start = at(low, lowPlace);
   const stride = at(unit, unitPlace);
-  const steps = (at(high, highPlace) - start) / stride;
+  const span = at(high, highPlace) - start;
+  let steps = span / stride;
+  if (up && steps * stride < span) steps += BigInt(1);
   const top = Number(`${start + steps * stride}e${place}`);
   // Browsers keep a fraction to fifteen significant digits, so a step of 1/3
   // ends at 10, not 9.999999999999998, and 0.9 is written 0.9. A whole
@@ -249,6 +258,25 @@ function highestStep(min: number, max: number, step: number): number {
   // fifteen can round a hair above it, as Chromium and WebKit hold it: with
   // a max and step of 0.7 + 0.1, 0.7999999999999999, they hold 0.8.
   return Number.isInteger(top) ? top : Number(top.toPrecision(15));
+}
+
+/**
+ * The highest value a range input with these bounds holds, as browsers write
+ * it: the last step from `min` at or below `max`, where a browser puts the
+ * thumb when `max` falls between two steps, or `min` when `max` isn't above
+ * it.
+ */
+function highestStep(min: number, max: number, step: number): number {
+  return stepFrom(min, max, step, false);
+}
+
+/**
+ * `a + b`, with a fraction kept to the fifteen significant digits browsers
+ * keep, so a float's error, as in 0.2 + 0.1, doesn't move it across a step.
+ */
+function addKept(a: number, b: number): number {
+  const sum = a + b;
+  return Number.isInteger(sum) ? sum : Number(sum.toPrecision(15));
 }
 
 /**
@@ -550,32 +578,43 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       [isControlled, onChange]
     );
 
-    // The low thumb stops `minDistance` short of the high one, and never
-    // below `min`, where a `minDistance` wider than the room above `min`
-    // would otherwise push it.
+    // A thumb stops on the nearest step at least `minDistance` from the
+    // other, since the browser holds it on a step, and an off-grid stop would
+    // report a value it isn't at (#2141). The low thumb never goes below
+    // `min`, and the high one never past the highest step, or past the low
+    // thumb's value when that is higher.
     const handleRangeLowChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
         const raw = parseFloat(e.target.value);
         const clamped = Math.max(
           min,
-          Math.min(raw, currentRange[1] - minDistance)
+          Math.min(
+            raw,
+            highestStep(min, addKept(currentRange[1], -minDistance), step)
+          )
         );
         const newRange: [number, number] = [clamped, currentRange[1]];
         if (!isControlled) setInternalRange(newRange);
         (onChange as ((v: [number, number]) => void) | undefined)?.(newRange);
       },
-      [isControlled, onChange, currentRange, minDistance, min]
+      [isControlled, onChange, currentRange, minDistance, min, step]
     );
 
     const handleRangeHighChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
         const raw = parseFloat(e.target.value);
-        const clamped = Math.max(raw, currentRange[0] + minDistance);
+        const clamped = Math.max(
+          raw,
+          Math.min(
+            stepFrom(min, addKept(currentRange[0], minDistance), step, true),
+            Math.max(highestStep(min, max, step), currentRange[0])
+          )
+        );
         const newRange: [number, number] = [currentRange[0], clamped];
         if (!isControlled) setInternalRange(newRange);
         (onChange as ((v: [number, number]) => void) | undefined)?.(newRange);
       },
-      [isControlled, onChange, currentRange, minDistance]
+      [isControlled, onChange, currentRange, minDistance, min, max, step]
     );
 
     // Home and End on a single Slider's thumb. A range's thumbs leave them to
