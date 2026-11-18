@@ -762,4 +762,16 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
       box-shadow: none !important;
     }
   }
+
+  // A disabled arrow is drawn in GrayText, so its usual opacity would only
+  // fade that. It draws at full strength here. With `arrowHover` it's left as
+  // it is (#2145).
+  .#{iv.$class-prefix}carousel:not(.#{iv.$class-prefix}has-arrow-hover)
+    .#{iv.$class-prefix}carousel-arrow.#{iv.$class-prefix}button {
+    &:disabled,
+    &.#{iv.$class-prefix}is-disabled {
+      color: GrayText;
+      opacity: 1;
+    }
+  }
 }

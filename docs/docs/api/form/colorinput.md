@@ -213,7 +213,9 @@ those yourself.
 - **The swatch in the field** is for the pointer only: it's hidden from assistive tech and takes
   no tab stop, since the launcher does the same from the keyboard.
 - **The value is always text** in the field, and text it can't read is marked `aria-invalid`.
-- **Forced colors:** the swatch keeps its color with an edge in the system's text color.
+- **Forced colors:** the swatch keeps its color with an edge in the system's text color. A
+  disabled launcher draws in the system's color for a disabled control, at full strength rather
+  than faded. A disabled swatch stays faded, since its color is the value it shows.
 - **Strings** come from `labels`, with English defaults.
 - A panel that would run past the left or right edge of the screen, as on a phone with the
   field mid-row, keeps its corner and moves sideways just far enough to fit, or, wider than

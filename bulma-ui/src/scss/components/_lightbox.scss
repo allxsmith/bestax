@@ -384,9 +384,12 @@ $lightbox-animation-duration: cv.getVar('duration') !default;
     .#{iv.$class-prefix}lightbox-arrow {
     border-color: ButtonText;
 
+    // GrayText marks a disabled one, at full strength, since its usual
+    // opacity would only fade that.
     &[aria-disabled='true'] {
       border-color: GrayText;
       color: GrayText;
+      opacity: 1;
     }
   }
 }

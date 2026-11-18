@@ -526,6 +526,28 @@ $calendar-radius: cv.getVar('radius') !default;
     .#{iv.$class-prefix}dateinput-cell-content {
     color: inherit;
   }
+
+  // A disabled day, month or year, and a disabled month or arrow button in the
+  // header, draws at full strength in GrayText rather than faded, since its
+  // usual opacity would only fade that. A picked one keeps the fill above.
+  .#{iv.$class-prefix}dateinput-cell,
+  .#{iv.$class-prefix}dateinput-month-cell,
+  .#{iv.$class-prefix}dateinput-year-cell {
+    &.#{iv.$class-prefix}is-disabled,
+    &:disabled {
+      color: GrayText;
+      opacity: 1;
+    }
+  }
+
+  .#{iv.$class-prefix}dateinput-month-trigger,
+  .#{iv.$class-prefix}dateinput-nav-prev,
+  .#{iv.$class-prefix}dateinput-nav-next {
+    &:disabled {
+      color: GrayText;
+      opacity: 1;
+    }
+  }
 }
 
 // Colour variants. `color` lands on the calendar root as `is-<colour>`, and

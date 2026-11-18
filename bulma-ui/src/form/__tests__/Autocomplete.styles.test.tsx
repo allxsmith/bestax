@@ -7,7 +7,11 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { Autocomplete } from '../Autocomplete';
 import { ConfigProvider } from '../../helpers/Config';
-import { compilePartial, declaredFor } from '../../__tests__/css-cascade';
+import {
+  cascade,
+  compilePartial,
+  declaredFor,
+} from '../../__tests__/css-cascade';
 
 const OUTLINE = ['outline', 'outline-offset'];
 const FORCED = '@media (forced-colors: active)';
@@ -45,6 +49,46 @@ describe.each([
       [FORCED]: ['outline: 2px solid Highlight', 'outline-offset: -2px'],
     });
     expect(declaredFor(other, css, OUTLINE)).toEqual({ atRest: [] });
+  });
+
+  it('draws a disabled option at full strength in GrayText, hovered or not', () => {
+    render(
+      <ConfigProvider classPrefix={prefix}>
+        <Autocomplete
+          label="Fruit"
+          data={[{ value: 'Apple' }, { value: 'Apricot', disabled: true }]}
+        />
+      </ConfigProvider>
+    );
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'A' } });
+    const [enabled, disabled] = screen.getAllByRole('option');
+    expect(disabled).toHaveAttribute('aria-disabled', 'true');
+    // The opacity that fades it at rest would only fade GrayText (#2049).
+    const STATE = ['color', 'opacity'];
+    expect(declaredFor(disabled, css, STATE)).toEqual({
+      atRest: [
+        'color: var(--bulma-autocomplete-item-color)',
+        'color: var(--bulma-autocomplete-item-disabled-color)',
+        'opacity: var(--bulma-autocomplete-item-disabled-opacity)',
+      ],
+      [FORCED]: ['opacity: 1', 'color: graytext'],
+    });
+    // Under the pointer too, where the rule that recolors a hovered one ranks
+    // a pseudo-class higher. jsdom puts nothing under the pointer, so `:hover`
+    // reads as an attribute, which ranks the same, on the option.
+    disabled.setAttribute('data-hovered', '');
+    const hovered = css.split(':hover').join('[data-hovered]');
+    const color = (sheet: string) =>
+      cascade(
+        disabled,
+        sheet,
+        ['color'],
+        (style, property) => style.getPropertyValue(property) || undefined,
+        { forcedColors: true }
+      );
+    expect(color(css)).toBe('graytext');
+    expect(color(hovered)).toBe('graytext');
+    expect(declaredFor(enabled, css, STATE)[FORCED]).toBeUndefined();
   });
 
   it.each([

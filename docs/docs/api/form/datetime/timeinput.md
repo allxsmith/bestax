@@ -1000,6 +1000,7 @@ function TimeInputFormDemo() {
 - In forced colors (Windows' contrast themes), the band behind the picked values is replaced, so bestax's styles draw it in the system's highlight color there, and the focus ring inside it in the color made to read on it. The values keep the system's text color, so each reads on the band and off it as the wheel turns. When the picker is disabled, the band and the values take the system's color for a disabled control, at full opacity, as a value the picker blocks does.
 - Honors `prefers-reduced-motion`.
 - On a right-to-left page the launcher sits at the end of the line and the clock icon at the start. The wheels keep `dir="ltr"`, so hours stay to the left of minutes.
+- In forced colors (Windows' contrast themes), a disabled launcher draws in the system's color for a disabled control, at full strength rather than faded.
 - A panel at a corner that would run past the left or right edge of the screen keeps its
   corner and moves sideways just far enough to fit, or, wider than the screen, to the edge its
   text starts from. On a narrow screen the panel in place is a sheet across the screen

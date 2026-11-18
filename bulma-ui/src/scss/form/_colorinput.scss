@@ -107,3 +107,15 @@ $colorinput-disabled-opacity: 0.5 !default;
 .#{iv.$class-prefix}colorinput-eyedropper {
   align-self: flex-end;
 }
+
+// In forced colors a disabled launcher draws at full strength in GrayText, the
+// system's color for a disabled control, since its usual opacity would only
+// fade that. The swatch is its color, kept out of forced colors, so it keeps
+// its opacity.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}colorinput
+    > .#{iv.$class-prefix}colorinput-trigger:disabled {
+    color: GrayText;
+    opacity: 1;
+  }
+}
