@@ -324,7 +324,9 @@ You can combine the traditional prop-based API with compound components:
 - **Forced colors:** in Windows' contrast themes, which drop shadows and paint the card in the
   page's own color, the card's edge is drawn as an outline in the system's text color, so a row of
   cards still shows which image, text and actions belong together. While the card has keyboard
-  focus, the browser's focus ring shows in its place. CheckboxCard and RadioCard keep the edge they
+  focus, the browser's focus ring shows in its place. The line under a card's header, from
+  `header`, `headerIcon` or `Card.Header`, is a shadow too, and is drawn as a one pixel line in
+  the same color inside the header, so nothing moves. CheckboxCard and RadioCard keep the edge they
   draw themselves.
 
 ---

@@ -259,7 +259,7 @@ A vertical panel block for lists, filters, or grouped actions. [View full docume
 ```tsx live
 <Panel aria-labelledby="panel-guide-figures">
   <Panel.Heading id="panel-guide-figures">Revolutionary Figures</Panel.Heading>
-  <Panel.InputBlock placeholder="Search" />
+  <Panel.InputBlock placeholder="Search figures" />
   <Panel.Tabs>
     <a href="#all" className="is-active" aria-current="true">
       All

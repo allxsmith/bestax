@@ -799,6 +799,63 @@ describe('Slider', () => {
       expect(container.querySelector('.slider')).toHaveClass('is-range');
     });
 
+    // Without a defaultValue the high thumb started at max, and with max off
+    // the step grid the browser put it a step below while aria-valuenow, the
+    // bubble and the fill said max (#2102).
+    it('starts the high thumb at the highest step when max is off the grid', () => {
+      const { container } = render(
+        <Slider range min={0} max={10} step={3} tooltip="always" />
+      );
+      const [low, high] = screen.getAllByRole('slider') as HTMLInputElement[];
+      expect(low).toHaveAttribute('aria-valuenow', '0');
+      expect(high).toHaveAttribute('aria-valuenow', '9');
+      expect(high.value).toBe('9');
+      expect(
+        Array.from(container.querySelectorAll('output'), o => o.textContent)
+      ).toEqual(['0', '9']);
+      expect(
+        (
+          container.querySelector('.slider-track') as HTMLElement
+        ).style.getPropertyValue('--slider-progress-high')
+      ).toBe('90%');
+    });
+
+    it('starts the high thumb at max when max is on the grid', () => {
+      render(<Slider range min={0} max={10} step={2} />);
+      expect(screen.getAllByRole('slider')[1]).toHaveAttribute(
+        'aria-valuenow',
+        '10'
+      );
+    });
+
+    it('keeps a defaultValue as given, even off the grid', () => {
+      render(<Slider range min={0} max={10} step={3} defaultValue={[0, 10]} />);
+      expect(
+        screen.getAllByRole('slider').map(t => t.getAttribute('aria-valuenow'))
+      ).toEqual(['0', '10']);
+    });
+
+    // With a minDistance wider than the room above min, the clamp that keeps
+    // the thumbs apart pushed the low one below min, as from the highest-step
+    // start: 9 - 10 put it at -1.
+    it('keeps the low thumb at or above min when minDistance is wider than the room', () => {
+      const handleChange = vi.fn();
+      render(
+        <Slider
+          range
+          min={0}
+          max={10}
+          step={3}
+          minDistance={10}
+          onChange={handleChange}
+        />
+      );
+      fireEvent.change(screen.getAllByRole('slider')[0], {
+        target: { value: '3' },
+      });
+      expect(handleChange).toHaveBeenLastCalledWith([0, 9]);
+    });
+
     it('sets low and high values', () => {
       render(<Slider range value={[25, 75]} />);
       const inputs = screen.getAllByRole('slider') as HTMLInputElement[];

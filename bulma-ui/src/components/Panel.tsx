@@ -197,7 +197,10 @@ export interface PanelInputBlockProps extends React.HTMLAttributes<HTMLDivElemen
   value?: string | undefined;
   /** Input change handler. */
   onChange?: React.ChangeEventHandler<HTMLInputElement> | undefined;
-  /** Input placeholder. */
+  /**
+   * The field's placeholder, which browsers fall back to for its name, so
+   * say what it searches ("Search repositories").
+   */
   placeholder?: string | undefined;
   /** Icon class for left icon (default 'fas fa-search'). */
   iconClassName?: string;
@@ -387,7 +390,15 @@ export const PanelIcon: React.FC<PanelIconProps> = ({
 );
 
 /**
- * Search input with icon (renders as `<div class="panel-block">`)
+ * Search input with icon (renders as `<div class="panel-block">` around the `<input>`).
+ *
+ * Its field takes its name from its `placeholder`, which browsers fall back
+ * to, and has none without one, so pass one that says what it searches.
+ * Attributes you pass for the field, `aria-label`, `aria-labelledby` and `id`
+ * among them, go on the `div`, not on the `<input>`, and name nothing there.
+ * For a field that needs a name of its own, an `id` or other input
+ * attributes, build the block from `<Panel.Block as="div">` with a `Control`
+ * and an `Input` inside.
  *
  * @function
  * @param {PanelInputBlockProps} props - Props for the PanelInputBlock component.

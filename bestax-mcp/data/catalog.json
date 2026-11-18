@@ -1123,7 +1123,7 @@
       "import": "import { Panel } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 37,
-      "exampleCount": 4
+      "exampleCount": 5
     },
     {
       "name": "Paragraph",
@@ -1496,8 +1496,8 @@
       "slug": "form/taginput",
       "import": "import { Taginput } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 48,
-      "exampleCount": 13
+      "propCount": 49,
+      "exampleCount": 14
     },
     {
       "name": "Tags",
@@ -3965,7 +3965,7 @@
     "PanelInputBlock": {
       "component": "Panel",
       "path": "Panel.InputBlock",
-      "purpose": "Search input with icon (renders as `<div class=\"panel-block\">`)"
+      "purpose": "Search input with icon (renders as `<div class=\"panel-block\">` around the `<input>`)."
     },
     "PanelTabs": {
       "component": "Panel",

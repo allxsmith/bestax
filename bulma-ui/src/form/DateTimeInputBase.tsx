@@ -245,8 +245,9 @@ export interface DateTimeInputBaseProps
    * `--bulma-dateinput-*` and `--bulma-timeinput-wheel-*` variables, which
    * follow `primary` by default. The footer's time pill and Done button do not
    * follow `color`. Forced colors (Windows' contrast themes) replaces the
-   * calendar's fill, so there the selected date is drawn in the system's
-   * highlight colors instead, whatever the color, which needs bestax's CSS.
+   * calendar's fill and the wheels' band, so there the selected date is drawn
+   * in the system's highlight colors and the band in its highlight color
+   * instead, whatever the color, which needs bestax's CSS.
    */
   color?:
     'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;

@@ -349,8 +349,9 @@ function example() {
   button marked only by a darker shade of its color "would not pass Use of color".
 - **Forced colors:** Windows' contrast themes replace the fill, so bestax's styles draw a pressed
   toggle in the system's highlight colors there, whatever its `color`, and a disabled pressed one
-  in the system's color for a disabled control, filled. While it loads it takes the look of any
-  loading button there, pressed or not, and the highlight comes back when it's done.
+  in the system's color for a disabled control, filled. A disabled one that isn't pressed is
+  drawn in that color at full strength, as any disabled `Button` is. While it loads it takes the
+  look of any loading button there, pressed or not, and the highlight comes back when it's done.
 - **A set has a name:** give the `Buttons` around a set of toggles `role="group"` and an
   `aria-label`.
 - **One choice from several** is a radio group, not a set of toggles, so it's
