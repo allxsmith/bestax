@@ -152,9 +152,10 @@ Notes:
   ```
 
 - The `pagination` partial **extends** stock Bulma pagination (the links' keyboard focus ring,
-  which Bulma's own styles turn off, and the current page marked in forced colors, where Bulma's
-  colors for it are replaced), so an app using `Pagination`, or a `DataTable` with pages, whose
-  pager is one, needs both, in either order:
+  which Bulma's own styles turn off, the current page marked in forced colors, where Bulma's
+  colors for it are replaced, and a disabled control drawn there at full strength in the system's
+  disabled color, where Bulma's half opacity would fade it), so an app using `Pagination`, or a
+  `DataTable` with pages, whose pager is one, needs both, in either order:
 
   ```scss
   @use 'bulma/sass/components/pagination';
@@ -162,10 +163,10 @@ Notes:
   ```
 
 - The `dropdown` partial **extends** stock Bulma dropdown (it draws a divider in CanvasText in
-  forced colors, where Bulma's fill takes the menu's own Canvas color, and marks an active item
-  there with a bar in Highlight, as Menu's partial does), so an app using
-  `Dropdown`, or a `ContextMenu`, whose menu is Bulma's dropdown markup, needs both, in either
-  order:
+  forced colors, where Bulma's fill takes the menu's own Canvas color, marks an active item there
+  with a bar in Highlight, as Menu's partial does, and outlines the open menu there in place of
+  Bulma's shadow), so an app using `Dropdown`, or a `ContextMenu`, whose menu is Bulma's dropdown
+  markup, needs both, in either order:
 
   ```scss
   @use 'bulma/sass/components/dropdown';
@@ -213,8 +214,9 @@ Notes:
   ```
 
 - The `select` partial **extends** stock Bulma select (an outline on a focused `Select` in forced
-  colors, where Bulma's focus ring is a shadow those themes drop), so an app using
-  `Select` needs both, in either order:
+  colors, where Bulma's focus ring is a shadow those themes drop, and a disabled one's arrow in the
+  system's disabled color there, at full strength), so an app using `Select` needs both, in either
+  order:
 
   ```scss
   @use 'bulma/sass/form/select';
@@ -360,8 +362,9 @@ Notes:
   any build that shows a `Box`. Its rule wins over Bulma's either way, so the order of the `@use`
   lines does not matter.
 - `Card` is stock Bulma (`bulma/sass/components/card`), which draws a card's edge as a shadow
-  the same way, so it vanishes in forced colors too. The `card` extras partial draws it back as
-  an outline in the system's text color, so include it (`as bestax-card`) next to Bulma's module
+  the same way, so it vanishes in forced colors too, and the line under its header with it. The
+  `card` extras partial draws the edge back as an outline and the header's line as a line, in the
+  system's text color, so include it (`as bestax-card`) next to Bulma's module
   in any build that shows a `Card`. Its rule wins over Bulma's either way, so the order of the
   `@use` lines does not matter.
 - `Divider` renders an `<hr>`, which Bulma draws in its base (`bulma/sass/base`) as a background
@@ -497,7 +500,7 @@ Scaffolded with an icon library, the starter also needs `bulma/sass/elements/ico
 @use 'bulma/sass/helpers/flexbox'; // flexGrow
 @use 'bulma/sass/helpers/typography'; // textAlign
 
-@use '@allxsmith/bestax-bulma/scss/components/card' as bestax-card; // the edge in forced colors
+@use '@allxsmith/bestax-bulma/scss/components/card' as bestax-card; // the edge and header line in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/box' as bestax-box; // the edge in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/button' as bestax-button; // focus outline and edge in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/delete' as bestax-delete; // the close button in forced colors

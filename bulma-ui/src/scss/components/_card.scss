@@ -14,6 +14,11 @@
 // While a card has keyboard focus the outline steps aside, so the browser's
 // own focus ring shows. Bulma sets no outline on a card, so the order the
 // stylesheets load in doesn't matter.
+//
+// The line under a card's header, a shadow too, is drawn back as a bar
+// (below). Bulma positions no header and draws nothing after one, so that's
+// order-free as well, and the header is positioned at no weight, so a
+// position an app gives it wins.
 
 @use 'bulma/sass/utilities/initial-variables' as iv;
 
@@ -22,5 +27,25 @@
       .#{iv.$class-prefix}radio-card
     ):not(:focus-visible) {
     outline: 1px solid CanvasText;
+  }
+
+  // Bulma's line under a card's header is a shadow too, which forced colors
+  // drops, while the footer's is a border, which stays. A one pixel bar in
+  // CanvasText along the header's bottom, inside its own box, draws it there
+  // without moving anything. A system color keeps its value in forced colors.
+  // A header with nothing after it has the card's own edge below it instead.
+  :where(.#{iv.$class-prefix}card-header:not(:last-child)) {
+    position: relative;
+  }
+
+  .#{iv.$class-prefix}card-header:not(:last-child) {
+    &::after {
+      background-color: CanvasText;
+      bottom: 0;
+      content: '';
+      height: 1px;
+      inset-inline: 0;
+      position: absolute;
+    }
   }
 }

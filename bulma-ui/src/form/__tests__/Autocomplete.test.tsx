@@ -2474,3 +2474,64 @@ describe("Autocomplete's labels (#2008)", () => {
     expect(container.querySelector('[labels]')).toBeNull();
   });
 });
+
+describe("Autocomplete's labels.suggestions (#2097)", () => {
+  it('names the list when no label with an id names the field', async () => {
+    const user = userEvent.setup();
+    render(
+      <Autocomplete
+        data={['Paris', 'Lyon']}
+        labels={{ suggestions: 'Propositions' }}
+      />
+    );
+    await user.type(screen.getByRole('combobox'), 'P');
+
+    expect(screen.getByRole('listbox')).toHaveAccessibleName('Propositions');
+  });
+
+  it('counts an empty name as none', async () => {
+    const user = userEvent.setup();
+    render(
+      <Autocomplete data={['Paris', 'Lyon']} labels={{ suggestions: '' }} />
+    );
+    await user.type(screen.getByRole('combobox'), 'P');
+
+    expect(screen.getByRole('listbox')).toHaveAccessibleName('Suggestions');
+  });
+
+  it('names the list under a label wired by hand with no id', async () => {
+    const user = userEvent.setup();
+    render(
+      <Field label="Ville" labelProps={{ htmlFor: 'ville' }}>
+        <Autocomplete
+          id="ville"
+          data={['Paris', 'Lyon']}
+          labels={{ suggestions: 'Propositions' }}
+        />
+      </Field>
+    );
+    const input = screen.getByRole('combobox');
+    expect(input).toHaveAccessibleName('Ville');
+
+    await user.type(input, 'P');
+    expect(screen.getByRole('listbox')).toHaveAccessibleName('Propositions');
+  });
+
+  it('keeps "Suggestions" without it, and the label wins with one', async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<Autocomplete data={['Paris', 'Lyon']} />);
+    await user.type(screen.getByRole('combobox'), 'P');
+    expect(screen.getByRole('listbox')).toHaveAccessibleName('Suggestions');
+    unmount();
+
+    render(
+      <Autocomplete
+        label="Ville"
+        data={['Paris', 'Lyon']}
+        labels={{ suggestions: 'Propositions' }}
+      />
+    );
+    await user.type(screen.getByRole('combobox'), 'P');
+    expect(screen.getByRole('listbox')).toHaveAccessibleName('Ville');
+  });
+});

@@ -34,6 +34,11 @@ export interface SelectBaseProps
    * Replaces the chevron with a loading spinner.
    * Under `prefers-reduced-motion: reduce` the spinner stops and stays
    * drawn (with bestax's CSS loaded).
+   * The spinner is only drawn, so a screen reader hears nothing of it. Say
+   * that the select is loading in text you tie to it with
+   * `aria-describedby`, which a screen reader reads when it takes focus.
+   * A load that starts while the user is in the field isn't reliably heard
+   * without a live region, such as a `role="status"` element.
    */
   isLoading?: boolean;
   /** Applies Bulma's is-active modifier. */

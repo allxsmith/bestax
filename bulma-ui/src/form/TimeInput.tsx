@@ -27,6 +27,7 @@ import { usePickerDirAttrs } from './_pickerInternals/useLocaleDefaults';
  * `label`, `horizontal` and class name on that `Field`.
  * @extraProp {string} [name] - Form field name.
  * @extraProp {string} [form] - Form id the input belongs to.
+ * @extraProp {string} [autoComplete=off] - An autofill token for the field. On the text field it's `off` unless you give one, since the browser's own suggestions would cover the wheels. The native input on touch devices takes yours too, and the browser's default without one, and an `inline` picker, with no field, takes none. A time that autofill writes commits when it reads in the token `format` (the default one when `format` is `Intl` options) or through your `parse`. One it can't read, or that `min`, `max` or a blocked time rules out, isn't committed, as with typing: the field shows it as written, and submits it under a `name`, until focus next leaves the field.
  * @extraProp {boolean} [required=false] - Marks the input as required.
  * @extraProp {string} [className] - Additional CSS classes for the input.
  * @extraProp {React.Ref<HTMLInputElement>} [ref] - Forwarded to the underlying `<input>`.

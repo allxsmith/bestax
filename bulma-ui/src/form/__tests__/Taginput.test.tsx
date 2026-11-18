@@ -2501,3 +2501,76 @@ describe('Taginput focus after a removal the owner shapes (#2005)', () => {
     expect(screen.getByLabelText('Reason')).toHaveFocus();
   });
 });
+
+describe("Taginput's labels (#2097)", () => {
+  it('names the input and the list when no label names them', async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <Taginput
+        data={['Pomme', 'Poire']}
+        labels={{ input: 'Ajouter une étiquette', suggestions: 'Propositions' }}
+      />
+    );
+    const input = screen.getByRole('combobox');
+    expect(input).toHaveAccessibleName('Ajouter une étiquette');
+    expect(container.querySelector('[labels]')).toBeNull();
+
+    await user.type(input, 'P');
+    expect(screen.getByRole('listbox')).toHaveAccessibleName('Propositions');
+  });
+
+  it('counts an empty name as none', async () => {
+    const user = userEvent.setup();
+    render(
+      <Taginput
+        data={['Pomme', 'Poire']}
+        labels={{ input: '', suggestions: '' }}
+      />
+    );
+    const input = screen.getByRole('combobox');
+    expect(input).toHaveAccessibleName('Add tag');
+
+    await user.type(input, 'P');
+    expect(screen.getByRole('listbox')).toHaveAccessibleName('Suggestions');
+  });
+
+  it('keeps the English names without them, and a label wins with them', async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<Taginput data={['Pomme', 'Poire']} />);
+    const input = screen.getByRole('combobox');
+    expect(input).toHaveAccessibleName('Add tag');
+    await user.type(input, 'P');
+    expect(screen.getByRole('listbox')).toHaveAccessibleName('Suggestions');
+    unmount();
+
+    render(
+      <Taginput
+        label="Étiquettes"
+        data={['Pomme', 'Poire']}
+        labels={{ input: 'Ajouter', suggestions: 'Propositions' }}
+      />
+    );
+    const labelled = screen.getByRole('combobox');
+    expect(labelled).toHaveAccessibleName('Étiquettes');
+    await user.type(labelled, 'P');
+    expect(screen.getByRole('listbox')).toHaveAccessibleName('Étiquettes');
+  });
+
+  it('names the list, not the input, under a label wired by hand with no id', async () => {
+    const user = userEvent.setup();
+    render(
+      <Field label="Étiquettes" labelProps={{ htmlFor: 'fruits' }}>
+        <Taginput
+          id="fruits"
+          data={['Pomme', 'Poire']}
+          labels={{ input: 'Ajouter', suggestions: 'Propositions' }}
+        />
+      </Field>
+    );
+    const input = screen.getByRole('combobox');
+    expect(input).toHaveAccessibleName('Étiquettes');
+
+    await user.type(input, 'P');
+    expect(screen.getByRole('listbox')).toHaveAccessibleName('Propositions');
+  });
+});

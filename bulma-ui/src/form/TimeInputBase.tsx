@@ -79,6 +79,8 @@ const fromIsoTime = (s: string): Date | null => {
  * Field/Control composition; `TimeInputBase` is the input + popover only.
  * `aria-invalid` and `aria-errormessage`, which report the input's state,
  * go on the `<input>`, and inline, where there is none, on the `<div>`.
+ * `autoComplete` goes on the `<input>` too, the text field's `off` unless
+ * you give one, and inline nowhere.
  *
  * @helperProps Helper props go on the `.timeinput-container` `<div>`, with
  * `className` and the other attributes, except that the background helpers
@@ -209,6 +211,10 @@ export interface TimeInputBaseProps
    * inside the band in the color's `-invert`, like the selected value, so it
    * shows on the fill. Unset, the wheels use
    * `--bulma-timeinput-wheel-selected-bg`, which defaults to `primary`.
+   * Forced colors (Windows' contrast themes) replaces the band, so there it's
+   * drawn in the system's highlight color instead, with the ring in the color
+   * made to read on it, or in its color for a disabled control while the
+   * picker is disabled, whatever the color, which needs bestax's CSS.
    */
   color?:
     'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
@@ -294,6 +300,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       className,
       name,
       form,
+      autoComplete,
       required,
       id: idProp,
       onFocus,
@@ -565,6 +572,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
           {...localeScope.rootAttrs}
           {...cleanRest}
           ref={combinedRef}
+          autoComplete={autoComplete}
           aria-describedby={joinIds(cleanRest['aria-describedby'], messageId)}
           {...controlState}
           type="time"
@@ -750,7 +758,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
           aria-haspopup="dialog"
           aria-expanded={open}
           aria-controls={popoverId}
-          autoComplete="off"
+          autoComplete={autoComplete || 'off'}
           aria-describedby={messageId}
           {...controlState}
           className={classNames(inputClass, textClasses, backgroundClasses)}

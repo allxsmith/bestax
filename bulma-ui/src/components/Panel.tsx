@@ -197,10 +197,15 @@ export interface PanelInputBlockProps extends React.HTMLAttributes<HTMLDivElemen
   value?: string | undefined;
   /** Input change handler. */
   onChange?: React.ChangeEventHandler<HTMLInputElement> | undefined;
-  /** Input placeholder. */
+  /**
+   * The field's placeholder, which browsers fall back to for its name, so
+   * say what it searches ("Search repositories").
+   */
   placeholder?: string | undefined;
   /** Icon class for left icon (default 'fas fa-search'). */
   iconClassName?: string;
+  /** Additional CSS classes, added to the block's own `panel-block` class. */
+  className?: string | undefined;
 }
 
 /**
@@ -216,6 +221,8 @@ export interface PanelCheckboxBlockProps extends Omit<
   onChange?: React.ChangeEventHandler<HTMLInputElement> | undefined;
   /** Label/content. */
   children?: React.ReactNode;
+  /** Additional CSS classes, added to the block's own `panel-block` class. */
+  className?: string | undefined;
 }
 
 /**
@@ -224,6 +231,11 @@ export interface PanelCheckboxBlockProps extends Omit<
 export interface PanelButtonBlockProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Button content. */
   children?: React.ReactNode;
+  /**
+   * Additional CSS classes, added to the button's own. Like the block's other
+   * props, it goes on the `<button>`, not on the `panel-block` around it.
+   */
+  className?: string | undefined;
 }
 
 /**
@@ -387,7 +399,15 @@ export const PanelIcon: React.FC<PanelIconProps> = ({
 );
 
 /**
- * Search input with icon (renders as `<div class="panel-block">`)
+ * Search input with icon (renders as `<div class="panel-block">` around the `<input>`).
+ *
+ * Its field takes its name from its `placeholder`, which browsers fall back
+ * to, and has none without one, so pass one that says what it searches.
+ * Attributes you pass for the field, `aria-label`, `aria-labelledby` and `id`
+ * among them, go on the `div`, not on the `<input>`, and name nothing there.
+ * For a field that needs a name of its own, an `id` or other input
+ * attributes, build the block from `<Panel.Block as="div">` with a `Control`
+ * and an `Input` inside.
  *
  * @function
  * @param {PanelInputBlockProps} props - Props for the PanelInputBlock component.
@@ -398,12 +418,17 @@ export const PanelInputBlock: React.FC<PanelInputBlockProps> = ({
   onChange,
   placeholder,
   iconClassName = 'fas fa-search',
+  className,
   ...props
 }) => {
   const inputClass = usePrefixedClassNames('input');
+  const blockClass = classNames(
+    usePrefixedClassNames('panel-block'),
+    className
+  );
 
   return (
-    <div className={usePrefixedClassNames('panel-block')} {...props}>
+    <div className={blockClass} {...props}>
       <p className={usePrefixedClassNames('control', 'has-icons-left')}>
         <input
           className={inputClass}
@@ -431,9 +456,13 @@ export const PanelCheckboxBlock: React.FC<PanelCheckboxBlockProps> = ({
   checked,
   onChange,
   children,
+  className,
   ...props
 }) => (
-  <label className={usePrefixedClassNames('panel-block')} {...props}>
+  <label
+    className={classNames(usePrefixedClassNames('panel-block'), className)}
+    {...props}
+  >
     <input type="checkbox" checked={checked} onChange={onChange} />
     {children}
   </label>

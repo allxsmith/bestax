@@ -2,6 +2,8 @@ import { useId } from 'react';
 import { Meta, StoryObj } from '@storybook/react-vite';
 import Panel from './Panel';
 import { Table } from '../elements/Table';
+import { Control } from '../form/Control';
+import { Input } from '../form/Input';
 
 const meta: Meta<typeof Panel> = {
   title: 'Components/Panel',
@@ -22,7 +24,7 @@ export const RevolutionaryWar: Story = {
     return (
       <Panel aria-labelledby={headingId}>
         <Panel.Heading id={headingId}>Revolutionary Figures</Panel.Heading>
-        <Panel.InputBlock placeholder="Search" />
+        <Panel.InputBlock placeholder="Search figures" />
         <Panel.Tabs>
           <a href="#all" className="is-active" aria-current="true">
             All
@@ -73,7 +75,7 @@ export const Primary: Story = {
     return (
       <Panel color="primary" aria-labelledby={headingId}>
         <Panel.Heading id={headingId}>Primary Panel</Panel.Heading>
-        <Panel.InputBlock placeholder="Search" />
+        <Panel.InputBlock placeholder="Search figures" />
         <Panel.Block href="#george-washington" active>
           <Panel.Icon name="user" variant="solid" />
           George Washington
@@ -106,7 +108,7 @@ export const Link: Story = {
     return (
       <Panel color="link" aria-labelledby={headingId}>
         <Panel.Heading id={headingId}>Link Panel</Panel.Heading>
-        <Panel.InputBlock placeholder="Search" />
+        <Panel.InputBlock placeholder="Search figures" />
         <Panel.Block href="#alexander-hamilton" active>
           <Panel.Icon name="user" variant="solid" />
           Alexander Hamilton
@@ -139,7 +141,7 @@ export const Info: Story = {
     return (
       <Panel color="info" aria-labelledby={headingId}>
         <Panel.Heading id={headingId}>Info Panel</Panel.Heading>
-        <Panel.InputBlock placeholder="Search" />
+        <Panel.InputBlock placeholder="Search figures" />
         <Panel.Block href="#benedict-arnold" active>
           <Panel.Icon name="user" variant="solid" />
           Benedict Arnold
@@ -172,7 +174,7 @@ export const Success: Story = {
     return (
       <Panel color="success" aria-labelledby={headingId}>
         <Panel.Heading id={headingId}>Success Panel</Panel.Heading>
-        <Panel.InputBlock placeholder="Search" />
+        <Panel.InputBlock placeholder="Search figures" />
         <Panel.Block href="#marquis-de-lafayette" active>
           <Panel.Icon name="user" variant="solid" />
           Marquis de Lafayette
@@ -205,7 +207,7 @@ export const Warning: Story = {
     return (
       <Panel color="warning" aria-labelledby={headingId}>
         <Panel.Heading id={headingId}>Warning Panel</Panel.Heading>
-        <Panel.InputBlock placeholder="Search" />
+        <Panel.InputBlock placeholder="Search figures" />
         <Panel.Block href="#thomas-paine" active>
           <Panel.Icon name="user" variant="solid" />
           Thomas Paine
@@ -238,7 +240,7 @@ export const Danger: Story = {
     return (
       <Panel color="danger" aria-labelledby={headingId}>
         <Panel.Heading id={headingId}>Danger Panel</Panel.Heading>
-        <Panel.InputBlock placeholder="Search" />
+        <Panel.InputBlock placeholder="Search figures" />
         <Panel.Block href="#king-george-iii" active>
           <Panel.Icon name="user" variant="solid" />
           King George III
@@ -271,7 +273,7 @@ export const Black: Story = {
     return (
       <Panel color="black" aria-labelledby={headingId}>
         <Panel.Heading id={headingId}>Black Panel</Panel.Heading>
-        <Panel.InputBlock placeholder="Search" />
+        <Panel.InputBlock placeholder="Search figures" />
         <Panel.Block href="#john-adams" active>
           <Panel.Icon name="user" variant="solid" />
           John Adams
@@ -304,7 +306,7 @@ export const Dark: Story = {
     return (
       <Panel color="dark" aria-labelledby={headingId}>
         <Panel.Heading id={headingId}>Dark Panel</Panel.Heading>
-        <Panel.InputBlock placeholder="Search" />
+        <Panel.InputBlock placeholder="Search figures" />
         <Panel.Block href="#samuel-adams" active>
           <Panel.Icon name="user" variant="solid" />
           Samuel Adams
@@ -337,7 +339,7 @@ export const Light: Story = {
     return (
       <Panel color="light" aria-labelledby={headingId}>
         <Panel.Heading id={headingId}>Light Panel</Panel.Heading>
-        <Panel.InputBlock placeholder="Search" />
+        <Panel.InputBlock placeholder="Search figures" />
         <Panel.Block href="#abigail-adams" active>
           <Panel.Icon name="user" variant="solid" />
           Abigail Adams
@@ -370,7 +372,7 @@ export const White: Story = {
     return (
       <Panel color="white" aria-labelledby={headingId}>
         <Panel.Heading id={headingId}>White Panel</Panel.Heading>
-        <Panel.InputBlock placeholder="Search" />
+        <Panel.InputBlock placeholder="Search figures" />
         <Panel.Block href="#paul-revere" active>
           <Panel.Icon name="user" variant="solid" />
           Paul Revere
@@ -495,6 +497,38 @@ export const NotNavigation: Story = {
       description: {
         story:
           'A panel that is not navigation renders through `as`: here a `section` named by its heading, so it is a region landmark. `Panel.Block as="div"` holds content that is not a link, such as a table; a block with no `as` is still an `<a>`.',
+      },
+    },
+  },
+};
+
+export const SearchFieldWithItsOwnName: Story = {
+  render: function SearchFieldWithItsOwnNameStory() {
+    const headingId = useId();
+    return (
+      <Panel aria-labelledby={headingId}>
+        <Panel.Heading id={headingId}>Repositories</Panel.Heading>
+        <Panel.Block as="div">
+          <Control iconLeftName="search">
+            <Input aria-label="Search repositories" placeholder="Search" />
+          </Control>
+        </Panel.Block>
+        <Panel.Block href="#bulma">
+          <Panel.Icon name="book" variant="solid" />
+          bulma
+        </Panel.Block>
+        <Panel.Block href="#marksheet">
+          <Panel.Icon name="book" variant="solid" />
+          marksheet
+        </Panel.Block>
+      </Panel>
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`Panel.InputBlock`’s field takes its name from its placeholder, and an `aria-label` passed to it goes on the block. For a field with a name of its own, build the block from `Panel.Block as="div"` with a `Control` and an `Input` inside, and give the `Input` the `aria-label`.',
       },
     },
   },

@@ -236,7 +236,8 @@ A `range` `Slider` points the `for` at its low thumb and starts both thumbs' nam
 leave it off when a label already names the Slider. Those thumbs and an `Autocomplete`'s, a
 `Combobox`'s or a `Taginput`'s list point `aria-labelledby` at the label's `id`, which a label
 wired by hand has only when you pass one, `labelProps={{ htmlFor, id }}`; without it they keep their
-fallback names ("Minimum value"/"Maximum value", "Suggestions"). A `<label htmlFor>` you put in
+fallback names ("Minimum value"/"Maximum value", "Suggestions", which an `Autocomplete`'s or a
+`Taginput`'s `labels.suggestions` gives in your language). A `<label htmlFor>` you put in
 `Field.Label` yourself (`references/patterns.md`) names its control through the `for` alone, so
 label a row holding either with the `Field`'s `label` prop. An `aria-label` or `aria-labelledby`
 you give a group wins over any label, and a `Checkbox`, `Radio` or `Switch` takes nothing from a
@@ -332,7 +333,13 @@ Rules of thumb:
   `address-line1`, since `street-address` is for a whole address in a `TextArea`. On a sign-in
   form the identifier is `username`, even when it's an email, beside a `PasswordInput`, which
   sets `current-password` itself. A form with two addresses puts `shipping` or `billing` in front
-  of each token, as the Fieldset above does.
+  of each token, as the Fieldset above does. A date of birth in a `DateInput` takes `bday`, which
+  goes on its field.
+- A loading spinner (`isLoading`) is only drawn, so a screen reader hears nothing of it. While a
+  field loads, say so in its `message` too (`message="Loading countries…"`), or, on a field with
+  no `message` of its own, in text tied to it with `aria-describedby`: either is read when the
+  field takes focus. A load that starts while the user is in the field, such as a search as they
+  type, isn't reliably heard without a live region, such as a `role="status"` element.
 - Want a different validation library? Wire it up yourself — pass its `value`/`onChange`/error
   string into these props. bestax does not prescribe one.
 - For grouped controls, render the `<p class="help">` via the `message` prop of the convenience

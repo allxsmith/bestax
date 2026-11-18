@@ -1,3 +1,22 @@
+## [1.18.76](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.75...bestax-mcp@1.18.76) (2026-11-18)
+
+
+### Bug Fixes
+
+* **bulma-ui:** close an open Navbar.Dropdown when focus lands outside it ([8ff6c98](https://github.com/allxsmith/bestax/commit/8ff6c98d5045c8d4fdfb4c3e22b1c46d0fafe28f)), closes [#2073](https://github.com/allxsmith/bestax/issues/2073)
+* **bulma-ui:** draw a disabled button at full strength in forced colors ([1c9177e](https://github.com/allxsmith/bestax/commit/1c9177efcd0dd147499a749630f825dd90f34576)), closes [#2144](https://github.com/allxsmith/bestax/issues/2144)
+* **bulma-ui:** draw a link with isDisabled in GrayText in forced colors ([25bd80b](https://github.com/allxsmith/bestax/commit/25bd80b756e13964a2bb6af0dbff6b1182ce7813)), closes [#2144](https://github.com/allxsmith/bestax/issues/2144)
+* **bulma-ui:** draw the time wheels' band in Highlight in forced colors ([239b783](https://github.com/allxsmith/bestax/commit/239b783c10b3f1f76aac1b89e6181c385d0efb43)), closes [#2021](https://github.com/allxsmith/bestax/issues/2021)
+* **bulma-ui:** keep the line under a Card's header in forced colors ([22043f4](https://github.com/allxsmith/bestax/commit/22043f49e1a4bfd12eb733fc2035df474ddb661a)), closes [#1987](https://github.com/allxsmith/bestax/issues/1987)
+* **bulma-ui:** read Navbar.Dropdown's aria-modal check across realms ([193d742](https://github.com/allxsmith/bestax/commit/193d742c2b8b165d944e9ecc91de2e4ef07d1bd6))
+* **bulma-ui:** set Bulma's disabled opacity in forced colors, and outrank its disabled edges ([aa57a94](https://github.com/allxsmith/bestax/commit/aa57a945ae76e225f231db1d04da8e9af3a20c3c)), closes [#2144](https://github.com/allxsmith/bestax/issues/2144)
+* **bulma-ui:** start a range Slider's high thumb at the highest step it holds ([7faf287](https://github.com/allxsmith/bestax/commit/7faf287ca631d207c85151081191b2720c90b8b6)), closes [#2102](https://github.com/allxsmith/bestax/issues/2102)
+
+
+### Features
+
+* **bulma-ui:** name Taginput's input and the suggestion lists through labels ([990a33d](https://github.com/allxsmith/bestax/commit/990a33d333c00b5a64179377ddca23b6a28df472)), closes [#2097](https://github.com/allxsmith/bestax/issues/2097)
+
 ## [1.18.75](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.74...bestax-mcp@1.18.75) (2026-11-18)
 
 
