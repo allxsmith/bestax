@@ -424,7 +424,7 @@ Inside a `Control` with no `Field` around it, `Select` renders no `Field` of its
 - Always provide a label. Select's `label` prop is automatically associated with the `<select>` (`htmlFor` plus a generated `id`, or your own `id` if you pass one).
 - When composing with `Field` instead, the `Field`'s own `label` associates with the select automatically when the select sits directly in that labeled `Field` and has no `id` of its own. A nested unlabeled `Field` (as in horizontal multi-field layouts) starts its own scope. With an `id` of your own, or across a nested `Field`, the label names the select only when you pass that `id` as `labelProps={{ htmlFor }}`.
 - Use the `multiple` and `multipleSize` props for multi-select dropdowns.
-- In forced colors (Windows contrast themes), which drop the shadow Bulma shows focus with, a focused select draws an outline in Bulma's focus style and width, painted in a system color, since a select has no text caret to show focus. `isFocused` draws it too.
+- In forced colors (Windows contrast themes), which drop the shadow Bulma shows focus with, a focused select draws an outline in Bulma's focus style and width, painted in a system color, since a select has no text caret to show focus. `isFocused` draws it too. A disabled select's arrow is drawn there in the system's color for a disabled control at full strength, as the select beside it is.
 - **Help and errors:** the `message` describes the `<select>` through `aria-describedby`, after any ids you pass there, so a screen reader reads it when the select takes focus. A red `color` says nothing to a screen reader, so on an error also set `aria-invalid`, and put the error in the `message`.
 
 ---
