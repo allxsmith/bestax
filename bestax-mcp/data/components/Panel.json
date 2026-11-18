@@ -367,7 +367,7 @@
           "name": "className",
           "type": "string",
           "default": null,
-          "description": "Additional CSS classes.",
+          "description": "Additional CSS classes, added to the block's own `panel-block` class.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -413,7 +413,7 @@
           "name": "className",
           "type": "string",
           "default": null,
-          "description": "Additional CSS classes.",
+          "description": "Additional CSS classes, added to the block's own `panel-block` class.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -441,7 +441,7 @@
           "name": "className",
           "type": "string",
           "default": null,
-          "description": "Additional CSS classes.",
+          "description": "Additional CSS classes, added to the button's own. Like the block's other props, it goes on the `<button>`, not on the `panel-block` around it.",
           "required": false,
           "inherited": false,
           "deprecated": false

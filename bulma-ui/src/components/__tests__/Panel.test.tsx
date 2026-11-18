@@ -570,6 +570,48 @@ describe('naming Panel.InputBlock’s field', () => {
   });
 });
 
+// A className adds to the block's own class, as on the other Panel parts,
+// rather than taking its place (#2132).
+describe.each([
+  ['no prefix', undefined],
+  ['a class prefix', 'bestax-'],
+])(
+  'a className on the input and checkbox blocks, with %s',
+  (_label, prefix) => {
+    const block = `${prefix ?? ''}panel-block`;
+
+    it('keeps Panel.InputBlock’s panel-block class', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Panel>
+            <Panel.InputBlock className="mb-2" placeholder="Search" />
+          </Panel>
+        </ConfigProvider>
+      );
+      const div = screen.getByRole('textbox').closest('div');
+      expect(div).toHaveClass(block, 'mb-2');
+      expect(container.querySelectorAll(`.${block}`)).toHaveLength(1);
+    });
+
+    it('keeps Panel.CheckboxBlock’s panel-block class', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Panel>
+            <Panel.CheckboxBlock className="mb-2">
+              remember me
+            </Panel.CheckboxBlock>
+          </Panel>
+        </ConfigProvider>
+      );
+      expect(screen.getByText('remember me').closest('label')).toHaveClass(
+        block,
+        'mb-2'
+      );
+      expect(container.querySelectorAll(`.${block}`)).toHaveLength(1);
+    });
+  }
+);
+
 describe('Panel.CheckboxBlock', () => {
   it('renders checkbox and label', () => {
     render(
