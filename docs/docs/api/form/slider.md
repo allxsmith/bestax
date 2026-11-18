@@ -322,6 +322,8 @@ Use `defaultValue` for internal state management:
 <Slider defaultValue={50} />
 ```
 
+Without one, a range Slider starts at `min` and the highest value it holds: `max`, or the last step below it when `max` falls between two steps.
+
 ---
 
 ## Form Submission
@@ -378,6 +380,7 @@ function SliderRangeFormDemo() {
 - The value bubble is an `<output>`, which a browser treats as a live region. It's set not to announce: a thumb announces its value as it's moved.
 - Fully keyboard accessible with arrow keys
 - Home and End move a thumb to the slider's ends. When `max` falls between two steps, End stops at the last step below it, the highest value the slider holds, and that's the value it reports. On a range Slider a thumb stops at the other thumb, or `minDistance` short of it.
+- A range Slider with no `defaultValue` starts its high thumb at that highest value too, so its `aria-valuenow`, its value bubble and its fill say where the thumb sits, which is also what a form submits.
 - Focus states clearly visible
 - On a right-to-left page the native range mirrors, and the fill, the tick marks and the value bubble follow it, so a value of 25 fills from the right. A vertical slider still fills from the bottom.
 - In forced colors (Windows' contrast themes) the value bubble takes the page's own background, and every side of its arrow would be painted, drawing it as a square. bestax's styles outline the bubble in the system's text color there, and keep the arrow a triangle in that color, pointing at the thumb whichever side the bubble sits on.

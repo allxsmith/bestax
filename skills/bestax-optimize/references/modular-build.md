@@ -347,10 +347,12 @@ Notes:
   extras partial gives those focused buttons an outline, apart from a loading one, which the
   `loader` partial outlines, a pressed `ToggleButton`, a checked `SegmentedControl` segment and any other button with Bulma's `is-selected` the
   system's highlight colors in forced colors, where the fill that marks them is replaced, a colored
-  button a 1px border in forced colors, and an outlined button the lightness Bulma picks for its
-  color's text on the page where that's lighter, so a dark color reads on the dark scheme, so
-  include it (`as bestax-button`) in any build that loads Bulma's button module. Its rules win over
-  Bulma's either way, so the order of the `@use` lines does not matter.
+  button a 1px border in forced colors, a disabled button full strength in forced colors, where
+  Bulma's disabled opacity would fade the system's color for it, and an outlined button the
+  lightness Bulma picks for its color's text on the page where that's lighter, so a dark color
+  reads on the dark scheme, so include it (`as bestax-button`) in any build that loads Bulma's
+  button module. Its rules win over Bulma's either way, so the order of the `@use` lines does not
+  matter.
 - `Box` is stock Bulma (`bulma/sass/elements/box`), which draws a box's edge as a shadow with no
   border. Forced colors (Windows' contrast themes) drops every shadow and paints the box in the
   page's own color, so its edge vanishes there. The `box` extras partial draws it back as an
@@ -358,8 +360,9 @@ Notes:
   any build that shows a `Box`. Its rule wins over Bulma's either way, so the order of the `@use`
   lines does not matter.
 - `Card` is stock Bulma (`bulma/sass/components/card`), which draws a card's edge as a shadow
-  the same way, so it vanishes in forced colors too. The `card` extras partial draws it back as
-  an outline in the system's text color, so include it (`as bestax-card`) next to Bulma's module
+  the same way, so it vanishes in forced colors too, and the line under its header with it. The
+  `card` extras partial draws the edge back as an outline and the header's line as a line, in the
+  system's text color, so include it (`as bestax-card`) next to Bulma's module
   in any build that shows a `Card`. Its rule wins over Bulma's either way, so the order of the
   `@use` lines does not matter.
 - `Divider` renders an `<hr>`, which Bulma draws in its base (`bulma/sass/base`) as a background
@@ -495,7 +498,7 @@ Scaffolded with an icon library, the starter also needs `bulma/sass/elements/ico
 @use 'bulma/sass/helpers/flexbox'; // flexGrow
 @use 'bulma/sass/helpers/typography'; // textAlign
 
-@use '@allxsmith/bestax-bulma/scss/components/card' as bestax-card; // the edge in forced colors
+@use '@allxsmith/bestax-bulma/scss/components/card' as bestax-card; // the edge and header line in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/box' as bestax-box; // the edge in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/button' as bestax-button; // focus outline and edge in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/delete' as bestax-delete; // the close button in forced colors

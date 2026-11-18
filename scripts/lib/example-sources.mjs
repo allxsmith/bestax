@@ -1,11 +1,9 @@
 /**
  * The code a reader copies: the jsx and tsx fences in the docs and the
- * skills, the `.tsx` examples in the skills, and bulma-ui's stories. The tests
- * that hold an example to the markup a component needs from its caller
- * (`docs-menu-item-links.test.mjs`, `docs-breadcrumb-current.test.mjs`,
- * `docs-layout-links.test.mjs`, `docs-tabs-item-links.test.mjs`,
- * `docs-badge-click.test.mjs`) read it through here, so they agree on what a
- * fence is, and the link tests on what an `href` is.
+ * skills, the `.tsx` examples in the skills, and bulma-ui's stories. The
+ * `scripts/docs-*.test.mjs` tests that hold an example to the markup a
+ * component needs from its caller read it through here, so they agree on what
+ * a fence is, and the link tests on what an `href` is.
  */
 import { readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';

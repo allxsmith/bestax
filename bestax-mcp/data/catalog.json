@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.76.0"
+    "version": "5.77.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -1496,8 +1496,8 @@
       "slug": "form/taginput",
       "import": "import { Taginput } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 48,
-      "exampleCount": 13
+      "propCount": 49,
+      "exampleCount": 14
     },
     {
       "name": "Tags",
