@@ -14,14 +14,14 @@ pnpm run dev
 - `pnpm run dev` - Start development server
 - `pnpm run build` - Build for production
 - `pnpm run preview` - Preview production build
-- `pnpm run lint` - Run ESLint
+- `pnpm run lint` - Run Oxlint
 
 ## Features
 
 - ⚡️ Vite for lightning-fast HMR
 - 🎨 Bulma CSS framework
 - 📦 bestax-bulma component library
-- 🔧 ESLint pre-configured
+- 🔧 Oxlint pre-configured
 
 ## Learn More
 

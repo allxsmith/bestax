@@ -18,6 +18,9 @@ import {
   loadModules,
   normalizeHtml,
   renderExports,
+  withImplicitListRoles,
+  withLoadingButtonsBusy,
+  withV1Classes,
 } from './support/render-module.js';
 
 const fixturesRoot = path.join(
@@ -92,6 +95,36 @@ describe.each(KITCHEN_SINKS)(
   }
 );
 
+// bestax's Fieldset starts its own Field scope, which rbx's bare fieldset
+// never did, so an input placed straight in one inside a Field would render a
+// `.field` and a `.control` of its own. There the codemod keeps the plain
+// <fieldset> rbx rendered, and the input renders what it does beside it.
+describe("rbx's Fieldset inside a Field or a Control", () => {
+  const migrate = (jsx: string): string =>
+    runTransform(
+      SOURCES.rbx.transform,
+      'a.tsx',
+      `import { Control, Field, Fieldset, Input } from 'rbx';\nexport const A = () => ${jsx};\n`
+    ).output!;
+  const render = (source: string): string =>
+    normalizeHtml(renderExports(loadModules({ a: source }).a).A);
+
+  it.each([
+    [
+      '<Field><Fieldset disabled><Input /></Fieldset></Field>',
+      '<Field><Input /></Field>',
+    ],
+    [
+      '<Control><Fieldset disabled><Input /></Fieldset></Control>',
+      '<Control><Input /></Control>',
+    ],
+  ])('adds the fieldset and nothing else to %s', (nested, bare) => {
+    const html = render(migrate(nested));
+    expect(html).toContain('<fieldset disabled="">');
+    expect(html.replace(/<\/?fieldset[^>]*>/g, '')).toBe(render(migrate(bare)));
+  });
+});
+
 describe('renderExports', () => {
   it('renders memo and forwardRef components as well as functions', () => {
     const modules = loadModules({
@@ -132,6 +165,194 @@ describe('normalizeHtml', () => {
       '<button class="button" type="button">Go!</button>',
     ]) {
       expect(normalizeHtml(other)).not.toBe(normalizeHtml(base));
+    }
+  });
+
+  it('keeps role="list", even on a list', () => {
+    expect(normalizeHtml('<ul role="list"><li>x</li></ul>')).not.toBe(
+      normalizeHtml('<ul><li>x</li></ul>')
+    );
+  });
+});
+
+describe('withImplicitListRoles', () => {
+  // Menu.List writes role="list" for Safari (#1108). It's a list's own role.
+  const same = (raw: string, converted: string) =>
+    withImplicitListRoles(raw, normalizeHtml(converted)) ===
+    normalizeHtml(converted);
+
+  it('lets a role="list" the conversion writes stand for a raw list with none', () => {
+    for (const tag of ['ul', 'ol']) {
+      expect(
+        same(
+          `<${tag} class="menu-list"><li>x</li></${tag}>`,
+          `<${tag} role="list" class="menu-list"><li>x</li></${tag}>`
+        )
+      ).toBe(true);
+    }
+    // Nested lists too, each paired with the list in the same place.
+    expect(
+      same(
+        '<ul class="menu-list"><li><a>x</a><ul><li>y</li></ul></li></ul>',
+        '<ul role="list" class="menu-list"><li><a>x</a><ul role="list"><li>y</li></ul></li></ul>'
+      )
+    ).toBe(true);
+    expect(
+      same(
+        '<ul><li>x</li></ul><ul><li>y</li></ul>',
+        '<ul><li>x</li></ul><ul role="list"><li>y</li></ul>'
+      )
+    ).toBe(true);
+  });
+
+  it('still tells a conversion that drops or changes a role', () => {
+    for (const [raw, converted] of [
+      // Drops the raw list's own role="list".
+      ['<ul role="list"><li>x</li></ul>', '<ul><li>x</li></ul>'],
+      ['<ol role="list"><li>x</li></ol>', '<ol><li>x</li></ol>'],
+      // Writes role="list" over the raw list's own role.
+      ['<ul role="menu"><li>x</li></ul>', '<ul role="list"><li>x</li></ul>'],
+      ['<ul role="none"><li>x</li></ul>', '<ul role="list"><li>x</li></ul>'],
+      // Writes a role that isn't `list`, or `list` on a tag that isn't a list.
+      ['<ul><li>x</li></ul>', '<ul role="menu"><li>x</li></ul>'],
+      ['<ul><li>x</li></ul>', '<ul role="List"><li>x</li></ul>'],
+      ['<div>x</div>', '<div role="list">x</div>'],
+      ['<ul><li>x</li></ul>', '<ul><li role="list">x</li></ul>'],
+    ]) {
+      expect({ raw, converted, same: same(raw, converted) }).toEqual({
+        raw,
+        converted,
+        same: false,
+      });
+    }
+  });
+});
+
+describe('withLoadingButtonsBusy', () => {
+  // `Button isLoading` writes the busy state and holds still (#1870).
+  const same = (raw: string, converted: string) =>
+    withLoadingButtonsBusy(raw, normalizeHtml(converted)) ===
+    normalizeHtml(converted);
+  const busy = 'aria-busy="true" aria-disabled="true"';
+
+  it('lets the busy state a loading Button writes stand for a raw loading .button with none', () => {
+    for (const tag of ['button', 'a', 'span']) {
+      expect(
+        same(
+          `<${tag} class="button is-loading">x</${tag}>`,
+          `<${tag} ${busy} class="button is-loading">x</${tag}>`
+        )
+      ).toBe(true);
+    }
+    // One that already sets both converts to the same markup, left as it is.
+    expect(
+      same(
+        `<button ${busy} class="button is-loading">x</button>`,
+        `<button ${busy} class="button is-loading">x</button>`
+      )
+    ).toBe(true);
+    // Several, each paired with the element in the same place.
+    expect(
+      same(
+        '<div class="buttons"><button class="button">a</button><button class="button is-primary is-loading">b</button></div>',
+        `<div class="buttons"><button class="button">a</button><button ${busy} class="button is-primary is-loading">b</button></div>`
+      )
+    ).toBe(true);
+  });
+
+  it('still tells a conversion that writes it anywhere else, or only half of it', () => {
+    for (const [raw, converted] of [
+      // On a button that isn't loading.
+      [
+        '<button class="button">x</button>',
+        `<button ${busy} class="button">x</button>`,
+      ],
+      // On a loading control that isn't a button.
+      [
+        '<div class="control is-loading">x</div>',
+        `<div ${busy} class="control is-loading">x</div>`,
+      ],
+      // One of the two alone.
+      [
+        '<button class="button is-loading">x</button>',
+        '<button aria-busy="true" class="button is-loading">x</button>',
+      ],
+      [
+        '<button class="button is-loading">x</button>',
+        '<button aria-disabled="true" class="button is-loading">x</button>',
+      ],
+      // Over a value the raw button set, or beside one it set alone.
+      [
+        '<button aria-disabled="false" class="button is-loading">x</button>',
+        `<button ${busy} class="button is-loading">x</button>`,
+      ],
+      [
+        '<button aria-busy="true" class="button is-loading">x</button>',
+        `<button ${busy} class="button is-loading">x</button>`,
+      ],
+      [
+        '<button aria-disabled="true" class="button is-loading">x</button>',
+        `<button ${busy} class="button is-loading">x</button>`,
+      ],
+      // On another element than the loading button.
+      [
+        '<div><button class="button is-loading">x</button></div>',
+        `<div ${busy}><button class="button is-loading">x</button></div>`,
+      ],
+      // Dropping the loading class.
+      [
+        '<button class="button is-loading">x</button>',
+        `<button ${busy} class="button">x</button>`,
+      ],
+    ]) {
+      expect({ raw, converted, same: same(raw, converted) }).toEqual({
+        raw,
+        converted,
+        same: false,
+      });
+    }
+  });
+});
+
+describe('withV1Classes', () => {
+  // `is-marginless` styles nothing under v1, and converts as `m="0"`.
+  const same = (raw: string, converted: string) =>
+    withV1Classes(raw, normalizeHtml(converted)) === normalizeHtml(converted);
+
+  it('lets the v1 class a conversion writes stand for the 0.9 one it replaced', () => {
+    expect(
+      same('<p class="is-marginless intro">x</p>', '<p class="intro m-0">x</p>')
+    ).toBe(true);
+    expect(
+      same(
+        '<div class="box is-paddingless"><p class="is-marginless">x</p></div>',
+        '<div class="box p-0"><p class="m-0">x</p></div>'
+      )
+    ).toBe(true);
+  });
+
+  it('still tells a conversion that drops, keeps or misplaces the class', () => {
+    for (const [raw, converted] of [
+      // Drops it.
+      ['<p class="is-marginless">x</p>', '<p>x</p>'],
+      // Writes some other class.
+      ['<p class="is-marginless">x</p>', '<p class="m-1">x</p>'],
+      ['<p class="is-marginless">x</p>', '<p class="p-0">x</p>'],
+      // Writes the v1 class beside the old one, which then renders twice over.
+      ['<p class="is-marginless">x</p>', '<p class="is-marginless m-0">x</p>'],
+      // Writes it on another element.
+      [
+        '<div><p class="is-marginless">x</p></div>',
+        '<div class="m-0"><p>x</p></div>',
+      ],
+      // A class v1 still has is never restated.
+      ['<p class="marginless">x</p>', '<p class="m-0">x</p>'],
+    ]) {
+      expect({ raw, converted, same: same(raw, converted) }).toEqual({
+        raw,
+        converted,
+        same: false,
+      });
     }
   });
 });

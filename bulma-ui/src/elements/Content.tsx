@@ -14,7 +14,7 @@ interface ContentProps
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Text color helper (e.g., `'danger'` for `has-text-danger`). */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
@@ -23,11 +23,12 @@ interface ContentProps
    * `textColor`, which takes precedence when both are set; use `bgColor` for
    * a colored surface.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color helper (e.g., `'info'` for `has-background-info`). */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Size modifier for the content. */
-  size?: 'small' | 'normal' | 'medium' | 'large';
+  size?: 'small' | 'normal' | 'medium' | 'large' | undefined;
   /** Content to be rendered inside the block. */
   children?: React.ReactNode;
 }

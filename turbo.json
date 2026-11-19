@@ -26,16 +26,48 @@
       "inputs": [
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/skills/**",
-        "$TURBO_ROOT$/bestax-migrate/src/sources/bulma-classes/**"
+        "$TURBO_ROOT$/bestax-migrate/src/sources/bulma-classes/**",
+        "$TURBO_ROOT$/bulma-ui/src/**"
       ]
     },
     "bestax-mcp#test:coverage": {
       "inputs": [
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/skills/**",
-        "$TURBO_ROOT$/bestax-migrate/src/sources/bulma-classes/**"
+        "$TURBO_ROOT$/bestax-migrate/src/sources/bulma-classes/**",
+        "$TURBO_ROOT$/bulma-ui/src/**"
       ],
       "outputs": ["coverage/**"]
+    },
+    "@allxsmith/bestax-docs#build": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/create-bestax/templates/vite-ts/**"
+      ],
+      "outputs": ["dist/**", "build/**"]
+    },
+    "@allxsmith/bestax-docs#test": {
+      "dependsOn": ["@allxsmith/bestax-bulma#build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/create-bestax/templates/vite-ts/**",
+        "$TURBO_ROOT$/templates/**",
+        "$TURBO_ROOT$/scripts/lib/**"
+      ]
+    },
+    "@allxsmith/bestax-docs#test:coverage": {
+      "dependsOn": ["@allxsmith/bestax-bulma#build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/create-bestax/templates/vite-ts/**",
+        "$TURBO_ROOT$/templates/**",
+        "$TURBO_ROOT$/scripts/lib/**"
+      ],
+      "outputs": []
+    },
+    "telemetry-worker#test:coverage": {
+      "outputs": []
     },
     "create-bestax#build": {
       "dependsOn": ["^build"],
@@ -95,7 +127,14 @@
     "format:check": {
       "outputs": []
     },
-    "lint": {},
+    "lint": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/eslint.config.js",
+        "$TURBO_ROOT$/tsconfig.json",
+        "$TURBO_ROOT$/.prettierrc"
+      ]
+    },
     "storybook": {
       "cache": true
     },

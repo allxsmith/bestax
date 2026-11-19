@@ -11,7 +11,7 @@
     },
     {
       "title": "Add-ons (Grouped)",
-      "code": "<Tags hasAddons>\n  <Tag color=\"primary\">Package</Tag>\n  <Tag color=\"success\">Ready</Tag>\n  <Tag isDelete onDelete={() => alert('Deleted!')} />\n</Tags>"
+      "code": "<Tags hasAddons>\n  <Tag color=\"primary\">Package</Tag>\n  <Tag color=\"success\">Ready</Tag>\n  <Tag\n    isDelete\n    aria-label=\"Remove Package Ready\"\n    onDelete={() => alert('Removed Package Ready')}\n  />\n</Tags>"
     },
     {
       "title": "Wrapping (Default)",
@@ -27,18 +27,18 @@
     },
     {
       "title": "Mixed Tags",
-      "code": "function example() {\n  const [show, setShow] = useState(true);\n\n  return (\n    <Tags>\n      <Tag color=\"primary\" size=\"medium\">\n        Primary Medium\n      </Tag>\n      <Tag color=\"success\" isRounded>\n        Success Rounded\n      </Tag>\n      {/* Dismissible tag */}\n      {show && <Tag color=\"danger\" isDelete onDelete={() => setShow(false)} />}\n      <Tag color=\"info\">Info</Tag>\n    </Tags>\n  );\n}"
+      "code": "function example() {\n  const [show, setShow] = useState(true);\n\n  return (\n    <Tags>\n      <Tag color=\"primary\" size=\"medium\">\n        Primary Medium\n      </Tag>\n      <Tag color=\"success\" isRounded>\n        Success Rounded\n      </Tag>\n      {/* Dismissible tag */}\n      {show && (\n        <Tag color=\"danger\">\n          Danger\n          <Delete\n            size=\"small\"\n            ariaLabel=\"Remove Danger\"\n            onClick={() => setShow(false)}\n          />\n        </Tag>\n      )}\n      <Tag color=\"info\">Info</Tag>\n    </Tags>\n  );\n}"
     },
     {
       "title": "Add-ons with Delete Tag",
-      "code": "<Tags hasAddons>\n  <Tag color=\"danger\">Allxsmith</Tag>\n  <Tag isDelete onDelete={() => alert('Deleted!')} />\n</Tags>"
+      "code": "<Tags hasAddons>\n  <Tag color=\"danger\">Allxsmith</Tag>\n  <Tag\n    isDelete\n    aria-label=\"Remove Allxsmith\"\n    onDelete={() => alert('Removed Allxsmith')}\n  />\n</Tags>"
     },
     {
       "title": "Compound (dot-notation) usage",
       "code": "<Tags>\n  <Tags.Tag color=\"primary\">React</Tags.Tag>\n  <Tags.Tag color=\"info\">TypeScript</Tags.Tag>\n</Tags>"
     }
   ],
-  "accessibility": "- **Grouping:** The container is a `<div class=\"tags\">`, which is semantically neutral.\n- **Delete buttons:** If using delete tags, ensure each has an accessible label.\n- **Wrapping:** Tags wrap onto multiple lines by default for better readability on small screens.\n\n:::tip\nUse `hasAddons` for tightly grouped tags (no space between them).\n:::",
+  "accessibility": "- **Grouping:** The container is a `<div class=\"tags\">`, which is semantically neutral.\n- **Delete buttons:** A delete tag is named \"Delete tag\", and a `Delete` inside a tag \"Close\", unless you name them, and neither name says which tag it removes. Name each one after its tag, as these examples do: `aria-label=\"Remove Allxsmith\"` on a delete tag, `ariaLabel=\"Remove Danger\"` on a `Delete`.\n- **Wrapping:** Tags wrap onto multiple lines by default for better readability on small screens.\n\n:::tip\nUse `hasAddons` for tightly grouped tags (no space between them).\n:::",
   "related": ["Delete", "Tag", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-tag--default",
   "summary": "The `Tags` component groups multiple `Tag` components together in a Bulma-styled container that wraps onto multiple lines by default.",
@@ -108,6 +108,15 @@
       "component": "Tag",
       "props": [
         {
+          "name": "as",
+          "type": "'span' | 'a' | 'button'",
+          "default": "'span'",
+          "description": "Element to render (default `span`). A tag that does something, a filter someone clicks or a topic it links to, takes `button` or `a`, so a keyboard reaches it and a screen reader announces it as a button or a link. Bulma styles both, and bestax's stylesheets give a button tag the font and text a span takes from the text around it. A button renders `type=\"button\"` unless you pass `submit` or `reset`. A link's attributes, such as `href`, need `as=\"a\"`, and a button's, such as `disabled`, `as=\"button\"`. With `isDelete`, the tag renders its delete button whatever this says.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
           "name": "className",
           "type": "string",
           "default": null,
@@ -120,7 +129,7 @@
           "name": "color",
           "type": "TagColor",
           "default": null,
-          "description": "Bulma color modifier for the tag.",
+          "description": "Bulma color modifier for the tag. `light` takes the light color's own text from bestax's stylesheets. With Bulma's CSS alone, a light tag's text inherits the color around it, which on a dark page is hard to read.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -138,7 +147,7 @@
           "name": "isLight",
           "type": "boolean",
           "default": "false",
-          "description": "Use the light color variant.",
+          "description": "Use the light color variant. The light color has none, so `color=\"light\"` with `isLight` looks the same as without it. `white`, `black` and `dark` with `isLight` keep Bulma's light background, and bestax's stylesheets give their text the lightness a light tag's text has. With Bulma's CSS alone, their text inherits the color around it, which on a dark page is hard to read.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -156,7 +165,7 @@
           "name": "isDelete",
           "type": "boolean",
           "default": "false",
-          "description": "Renders a delete-style tag (delete button). The button renders `type=\"button\"`, so it does not submit a form around it, and is named \"Delete tag\" unless you pass an `aria-label`. An empty one, or a spread carrying `'aria-label': undefined`, keeps that name rather than leaving the button unnamed.",
+          "description": "Renders a delete-style tag (delete button). The button renders `type=\"button\"`, so it does not submit a form around it, and is named \"Delete tag\" unless you pass an `aria-label`. An empty one, or a spread carrying `'aria-label': undefined`, keeps that name rather than leaving the button unnamed. \"Delete tag\" doesn't say which tag the button removes, so pass a name that does, such as `aria-label=\"Remove React\"`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -165,7 +174,7 @@
           "name": "isHoverable",
           "type": "boolean",
           "default": "false",
-          "description": "Adds hover effect to the tag.",
+          "description": "Adds Bulma's hover shade and pointer cursor. It's only a look: a span tag stays out of the keyboard's reach, so a tag that does something takes `as=\"button\"` or `as=\"a\"` instead.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -190,7 +199,7 @@
         }
       ],
       "extraProps": [],
-      "catchAll": "All standard <span> attributes and Bulma helper props",
+      "catchAll": "All standard <a> / <button> / <span> attributes and Bulma helper props",
       "types": [
         {
           "name": "TagColor",

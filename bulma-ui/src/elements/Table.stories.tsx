@@ -1,4 +1,7 @@
+import { useState } from 'react';
 import { Meta, StoryObj } from '@storybook/react-vite';
+import { Checkbox } from '../form/Checkbox';
+import { Span } from './Span';
 import { Table } from './Table';
 import { Thead } from './Thead';
 import { Tbody } from './Tbody';
@@ -71,7 +74,14 @@ const hockeyTeams = [
 
 export const HockeyTeamRecords: Story = {
   render: () => (
-    <Table isBordered isStriped isHoverable isFullwidth isResponsive>
+    <Table
+      isBordered
+      isStriped
+      isHoverable
+      isFullwidth
+      isResponsive
+      aria-label="Team records"
+    >
       <Thead>
         <Tr>
           <Th isAligned="left">Team</Th>
@@ -84,11 +94,11 @@ export const HockeyTeamRecords: Story = {
       <Tbody>
         {hockeyTeams.map((team, index) => (
           <Tr key={team.name} color={index === 2 ? 'primary' : undefined}>
-            <Td>{team.name}</Td>
-            <Td>{team.wins}</Td>
-            <Td>{team.losses}</Td>
-            <Td>{team.otl}</Td>
-            <Td>{team.points}</Td>
+            <Td isAligned="left">{team.name}</Td>
+            <Td isAligned="right">{team.wins}</Td>
+            <Td isAligned="right">{team.losses}</Td>
+            <Td isAligned="right">{team.otl}</Td>
+            <Td isAligned="right">{team.points}</Td>
           </Tr>
         ))}
       </Tbody>
@@ -295,9 +305,15 @@ export const Fullwidth: Story = {
   },
 };
 
+/**
+ * A table wider than the view scrolls sideways. While it overflows, its
+ * container is a tab stop named after the table, so it can be scrolled by
+ * keyboard.
+ */
 export const Responsive: Story = {
   args: {
     isResponsive: true,
+    'aria-label': 'Twenty columns',
     children: (
       <>
         <Thead>
@@ -332,6 +348,7 @@ export const AllModifiers: Story = {
     isHoverable: true,
     isFullwidth: true,
     isResponsive: true,
+    'aria-label': 'Every modifier',
     children: (
       <>
         <Thead>
@@ -352,6 +369,56 @@ export const AllModifiers: Story = {
         </Tbody>
       </>
     ),
+  },
+};
+
+/**
+ * A narrow column of checkboxes (`isNarrow` on its cells), with the picked
+ * rows selected. A checked box takes the selected row's text color, so it
+ * shows on the row's fill.
+ */
+export const CheckboxColumn: Story = {
+  render: function CheckboxColumnExample() {
+    const teams = hockeyTeams.slice(0, 4).map(team => team.name);
+    const [picked, setPicked] = useState([teams[0], teams[2]]);
+    const toggle = (team: string) =>
+      setPicked(current =>
+        current.includes(team)
+          ? current.filter(name => name !== team)
+          : [...current, team]
+      );
+    return (
+      <Table isFullwidth isHoverable>
+        <Thead>
+          <Tr>
+            <Th isNarrow>
+              <Span visibility="sr-only">Picked</Span>
+            </Th>
+            <Th>Team</Th>
+            <Th isAligned="right">Points</Th>
+          </Tr>
+        </Thead>
+        <Tbody>
+          {hockeyTeams.slice(0, 4).map(team => (
+            <Tr key={team.name} isSelected={picked.includes(team.name)}>
+              <Td isNarrow isVcentered>
+                <Checkbox
+                  aria-label={`Pick ${team.name}`}
+                  checked={picked.includes(team.name)}
+                  onChange={() => toggle(team.name)}
+                />
+              </Td>
+              <Th scope="row" isVcentered>
+                {team.name}
+              </Th>
+              <Td isVcentered isAligned="right">
+                {team.points}
+              </Td>
+            </Tr>
+          ))}
+        </Tbody>
+      </Table>
+    );
   },
 };
 

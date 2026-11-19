@@ -18,6 +18,10 @@
       "code": "<DateRangeInput label=\"Stay\" inline name=\"stay\" />"
     },
     {
+      "title": "Several Months",
+      "code": "<DateRangeInput label=\"Stay\" monthsToShow={2} />"
+    },
+    {
       "title": "Min and Max",
       "code": "function NextMonth() {\n  const today = new Date();\n  const inAMonth = new Date();\n  inAMonth.setMonth(inAMonth.getMonth() + 1);\n  return (\n    <DateRangeInput label=\"Within the next month\" min={today} max={inAMonth} />\n  );\n}"
     },
@@ -46,7 +50,7 @@
       "code": "<Field label=\"Leave\">\n  <Control iconLeftName=\"calendar-alt\">\n    <DateRangeInput />\n  </Control>\n</Field>"
     }
   ],
-  "accessibility": "- The root is a `role=\"group\"` named by `label` through `aria-labelledby`, since the label names two inputs rather than one. Inside a labeled `Field`, that `Field`'s label names the group the same way, whether the `Field` holds `DateRangeInput` or a `DateRangeInputBase` you composed in a `Control` yourself, `inline` or not. An `aria-label` or `aria-labelledby` you give the group wins over either label.\n- Each input is a `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded` and `aria-controls`, and its own name: \"Start date\" or \"End date\", from the `labels` keys `rangeStart` and `rangeEnd`. The separator between them is hidden from assistive technology.\n- The popover is a `role=\"dialog\"` named \"Choose date range\" (`labels.chooseDateRange`). Opening it puts focus on the calendar's focused day, and closing it returns focus to the input you were last in, or to the start input.\n- The day grid is `aria-multiselectable`, and its days sit in a `role=\"row\"` per week. Every day of the range is `aria-selected`, both ends included. While the end is still being picked, only the start is: the preview is not a selection.\n- The start and end days are described as \"Start date\" and \"End date\", so moving onto either says which it is. While the end is still being picked, the day the range would end on is described as \"Choose as end date\" (`labels.rangePreviewEnd`).\n- A polite live region in the calendar states the range in words, such as \"Start date: June 10, 2024, End date: June 13, 2024\", and announces each pick. The grid points at it too, so moving into the grid reads the current range.\n- Everything else is the calendar `DateInput` uses: a roving `tabindex`, `aria-disabled` on disabled days and `aria-current=\"date\"` on today.",
+  "accessibility": "- The root is a `role=\"group\"` named by `label` through `aria-labelledby`, since the label names two inputs rather than one. Inside a labeled `Field`, that `Field`'s label names the group the same way, whether the `Field` holds `DateRangeInput` or a `DateRangeInputBase` you composed in a `Control` yourself, `inline` or not. An `aria-label` or `aria-labelledby` you give the group wins over either label.\n- Each input is a `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded` and `aria-controls`, and its own name: \"Start date\" or \"End date\", from the `labels` keys `rangeStart` and `rangeEnd`. The separator between them is hidden from assistive technology.\n- `aria-invalid` and `aria-errormessage` go on both inputs, marking the range as a whole, while the other attributes you pass go on the group, so a screen reader hears an input is invalid when it takes focus. An `inline` picker has no input, and they stay on its group.\n- The popover is a `role=\"dialog\"` named \"Choose date range\" (`labels.chooseDateRange`). Opening it puts focus on the calendar's focused day, and closing it returns focus to the input you were last in, or to the start input.\n- With `monthsToShow`, each month is a grid of its own, named by its month and year, and the calendar keeps one tab stop across them.\n- The day grid is `aria-multiselectable`, and its days sit in a `role=\"row\"` per week. Every day of the range is `aria-selected`, both ends included. While the end is still being picked, only the start is: the preview is not a selection.\n- In forced colors (Windows' contrast themes), the fill and the band that mark the range are replaced, so bestax's styles draw every day of a picked range, both ends included, and the year the header's year list is on, in the system's highlight colors there, or in the system's color for a disabled control when it's disabled. While the end is still being picked, only the start is filled, and the day the range would end on keeps its dashed edge.\n- In forced colors, a disabled day, month or year, a disabled month or arrow button in the header, and a disabled launcher draw in the system's color for a disabled control, at full strength rather than faded.\n- A `disabled` inline calendar puts `aria-disabled=\"true\"` on its grid and disables every button in it. A `readOnly` one puts `aria-readonly=\"true\"` there instead, keeps its tab stop and keys, and picks nothing.\n- The start and end days are described as \"Start date\" and \"End date\", so moving onto either says which it is. While the end is still being picked, the day the range would end on is described as \"Choose as end date\" (`labels.rangePreviewEnd`).\n- A polite live region in the calendar states the range in words, such as \"Start date: June 10, 2024, End date: June 13, 2024\", and announces each pick. The grid points at it too, so moving into the grid reads the current range.\n- Everything else is the calendar `DateInput` uses: a roving `tabindex`, weekday column headers named in full (or by your `dayNames`), `aria-disabled` on disabled days, `aria-current=\"date\"` on today, and focus back on the grid as the year list closes.\n- On a right-to-left page the launcher sits at the end of the line and the calendar icon at the start, and the previous-month chevron points right.\n- A panel that would run past the left or right edge of the screen, as on a phone with the\n  field mid-row, keeps its corner and moves sideways just far enough to fit, or, wider than\n  the screen, to the edge its text starts from.\n- The `message` describes the group through `aria-describedby`, after any ids you pass there, as the label names it.",
   "related": ["DateInput", "DateTimeInput", "Field"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-daterangeinput",
   "summary": "The `DateRangeInput` component is a form input for a start and end date, picked from one popover calendar or typed into two segmented inputs.",
@@ -198,7 +202,7 @@
           "name": "message",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Help/validation text below the field.",
+          "description": "Help or validation text under the field. It describes the group through `aria-describedby`, after any ids you pass there.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -297,7 +301,7 @@
           "name": "disabled",
           "type": "boolean",
           "default": "false",
-          "description": "Disable both inputs and the launcher.",
+          "description": "Disable both inputs and the launcher, or an `inline` calendar's days and header buttons. The hidden inputs still submit the range, in every mode, where a disabled input submits nothing.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -306,7 +310,7 @@
           "name": "readOnly",
           "type": "boolean",
           "default": "false",
-          "description": "Make both inputs read-only and keep the popover closed.",
+          "description": "Make both inputs read-only and keep the popover closed. An `inline` calendar still moves through the dates by key and by its header, but a click, Enter or Space picks nothing.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -342,7 +346,7 @@
           "name": "locale",
           "type": "string",
           "default": null,
-          "description": "BCP-47 locale tag for day/month names and Intl formatting.",
+          "description": "BCP-47 locale tag for day/month names, the digits the calendar numbers its days and years in, and Intl formatting. Unset, it is the `locale` of a `LocaleProvider` around the picker, and with neither, `Intl` uses the runtime's own locale and the calendar numbers its days and years in plain digits. On a server render that locale is the server's, so an `inline` calendar rendered there names its days in the server's language and the browser's own render names them in the browser's: give it a locale, here or through a `LocaleProvider`, where the two can differ.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -351,7 +355,7 @@
           "name": "inline",
           "type": "boolean",
           "default": "false",
-          "description": "Render the calendar inline, with no inputs and no popover. The hidden form inputs still carry the range.",
+          "description": "Render the calendar inline, with no inputs and no popover. The hidden form inputs still carry the range. On a server-rendered page it marks today once the page hydrates, by the browser's clock rather than the server's. With no `value` or `defaultValue` it opens on the month the clock reads, and around the end of a month the server's clock and the browser's can read different months, so give it a date both render the same.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -405,7 +409,7 @@
           "name": "position",
           "type": "'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | 'auto'",
           "default": "'bottom-left'",
-          "description": "Popover anchor position relative to the field.",
+          "description": "Where the popover opens against the field. Left out, it opens below and lines up with the field's start edge, which is its right edge when the picker reads right to left. A corner you pass stays physical, so `bottom-left` lines up the left edges either way. A panel that would run past the viewport's left or right edge keeps its corner and moves sideways, just far enough to fit or, wider than the viewport, to the edge its text starts from.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -414,7 +418,7 @@
           "name": "appendToBody",
           "type": "boolean",
           "default": "false",
-          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, `document.body` by default.",
+          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, else the overlay it's in that takes its popups, such as a `Modal`, else `document.body`.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -423,7 +427,7 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Bulma color modifier for the field, also carried by the calendar, where it colors the range's ends and the band between them.",
+          "description": "Bulma color modifier for the field, also carried by the calendar, where it colors the range's ends and the band between them. Forced colors (Windows' contrast themes) replaces both, so there every day of a picked range is drawn in the system's highlight colors instead, whatever the color, which needs bestax's CSS.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -477,7 +481,7 @@
           "name": "firstDayOfWeek",
           "type": "0 | 1 | 2 | 3 | 4 | 5 | 6",
           "default": "0",
-          "description": "Day the week starts on (0 = Sunday).",
+          "description": "Day the week starts on (0 = Sunday). Unset inside a `LocaleProvider`, it is the first day of the week in the picker's locale, its own `locale` or else the provider's, such as Monday for `\"de\"`. Elsewhere, with no locale from either, or with seven `dayNames` of your own, it is Sunday: set it with `dayNames` to start the week on another day.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -486,7 +490,7 @@
           "name": "dayNames",
           "type": "string[]",
           "default": null,
-          "description": "Override the 7 day-name labels (in calendar order, post-rotation).",
+          "description": "Override the 7 day-name labels (in calendar order, post-rotation). They are shown exactly as given, from the first column, so they have to start on the day the week does. With them, an unset `firstDayOfWeek` stays Sunday even inside a `LocaleProvider`, so names written Sunday first keep matching their columns; to start on the locale's day, set `firstDayOfWeek` too and list the names from that day. They also name the columns for assistive technology. Without them each column is named by its full weekday in the picker's locale, which a server-rendered calendar adds once the page hydrates.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -495,7 +499,7 @@
           "name": "monthNames",
           "type": "string[]",
           "default": null,
-          "description": "Override the 12 month-name labels.",
+          "description": "Override the 12 month-name labels. With them the day grid's heading reads the name, a space and the year, whatever order the locale writes a month and its year in.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -505,6 +509,15 @@
           "type": "boolean",
           "default": "true",
           "description": "Show dimmed dates from adjacent months in the grid.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "monthsToShow",
+          "type": "number",
+          "default": "1",
+          "description": "How many months the calendar shows side by side, in the popover and `inline`, so a range that crosses a month's end shows both its ends. They wrap to a column where the width runs out, one previous and next pair moves them all by this many, and the arrow keys cross from one month into the next. They start with the range's start as the first month, or an end with no start as the last, and a start typed into the field that isn't on show brings in months with it as the first, an end with it as the last. `min` and `max` win: the months stay inside them where they leave room for all of them. The popover takes the months' width rather than the field's, up to the window's width less 2rem, so from a field far from the window's left edge it can reach past the right one: set `position=\"auto\"`, which lines the popover up with the field's right edge when it doesn't fit to the right.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -583,7 +596,7 @@
         },
         {
           "name": "id",
-          "type": "string",
+          "type": "React.HTMLAttributes<HTMLElement>['id']",
           "default": null,
           "description": "Id of the start input. The end input takes `${id}-end`.",
           "required": false,
@@ -612,10 +625,425 @@
         }
       ],
       "catchAll": "All standard <div> attributes and Bulma helper props",
+      "helperPropsNote": "Helper props go on the root `.daterangeinput` `<div>`, with `className` and the other attributes, except that the background helpers go on the `.input` `<div>` that draws the field around the two `<input>`s, since Bulma's `.input` sets its own background. The text helpers go on the root and on both `<input>`s too, which take no alignment or case from around them. Inline they all go on the root.",
       "types": []
+    },
+    {
+      "path": "DateRangeInputBase",
+      "summary": "Raw DateRangeInput: the two inputs and the popover calendar without Field/Control wrapping. Use `DateRangeInput` for the convenience wrapper. Composed in a labeled `Field`, its `role=\"group\"` root points `aria-labelledby` at that `Field`'s label, `inline` too, as the wrapper's does, and each input keeps its own name. An `aria-label` or `aria-labelledby` you give it wins over the label, and an `aria-labelledby` key counts even when undefined, since it is spread over the group's own.",
+      "component": null,
+      "props": [
+        {
+          "name": "value",
+          "type": "DateRangeValue",
+          "default": null,
+          "description": "Controlled range, start first. Either end may be `null`, and `[null, null]` is empty.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "DateRangeValue",
+          "default": null,
+          "description": "Initial range for uncontrolled usage.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(range: DateRangeValue) => void",
+          "default": null,
+          "description": "Fired when the range changes, with the start first. Typing commits one end at a time, so a range half typed arrives as `[start, null]`. The calendar commits only a finished range: its first pick marks the start inside the calendar and its second commits both ends in one call. The range stays ordered, so the end is never before the start.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onOpen",
+          "type": "() => void",
+          "default": null,
+          "description": "Fired when the popover opens.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "default": null,
+          "description": "Fired when the popover closes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "min",
+          "type": "Date",
+          "default": null,
+          "description": "Earliest selectable date, for either end. A `min` before year 1 is raised to 1 January of year 1, where the range starts without one too.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "max",
+          "type": "Date",
+          "default": null,
+          "description": "Latest selectable date, for either end.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disable both inputs and the launcher, or an `inline` calendar's days and header buttons. The hidden inputs still submit the range, in every mode, where a disabled input submits nothing.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "default": "false",
+          "description": "Make both inputs read-only and keep the popover closed. An `inline` calendar still moves through the dates by key and by its header, but a click, Enter or Space picks nothing.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": null,
+          "description": "Placeholder text, shown in both inputs while they are empty.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "format",
+          "type": "Intl.DateTimeFormatOptions | string",
+          "default": "'YYYY-MM-DD'",
+          "description": "Token format string or `Intl.DateTimeFormat` options, used by both inputs.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "parse",
+          "type": "(s: string) => Date | null",
+          "default": null,
+          "description": "Custom parser (use when `format` is `Intl.DateTimeFormatOptions`). Enter and leaving an input call it only if the user changed its text.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "default": null,
+          "description": "BCP-47 locale tag for day/month names, the digits the calendar numbers its days and years in, and Intl formatting. Unset, it is the `locale` of a `LocaleProvider` around the picker, and with neither, `Intl` uses the runtime's own locale and the calendar numbers its days and years in plain digits. On a server render that locale is the server's, so an `inline` calendar rendered there names its days in the server's language and the browser's own render names them in the browser's: give it a locale, here or through a `LocaleProvider`, where the two can differ.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "inline",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the calendar inline, with no inputs and no popover. The hidden form inputs still carry the range. On a server-rendered page it marks today once the page hydrates, by the browser's clock rather than the server's. With no `value` or `defaultValue` it opens on the month the clock reads, and around the end of a month the server's clock and the browser's can read different months, so give it a date both render the same.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "mobileNative",
+          "type": "boolean | 'auto'",
+          "default": "'auto'",
+          "description": "Use two native `<input type=\"date\">`s on coarse-pointer, small-viewport devices (`'auto'`), always (`true`) or never (`false`). The end input's `min` follows the start, and a change goes through the same rules as typing.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "editable",
+          "type": "boolean",
+          "default": "true",
+          "description": "Allow segmented keyboard typing in both inputs. `false` makes the field picker-only.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "popover",
+          "type": "boolean",
+          "default": "true",
+          "description": "Whether the calendar popover exists. `false` makes the field input-only.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "openOnFocus",
+          "type": "boolean",
+          "default": "true",
+          "description": "Open the popover when focus arrives in the field. Moving focus between the two inputs, or back from the launcher, leaves it closed, and so does the focus a closing popover hands back. A click on either input opens it. With it off, the launcher or Alt+ArrowDown opens it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnSelect",
+          "type": "boolean",
+          "default": "true",
+          "description": "Close the popover once the range is picked. The first pick, which only marks the start, never closes it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | 'auto'",
+          "default": "'bottom-left'",
+          "description": "Where the popover opens against the field. Left out, it opens below and lines up with the field's start edge, which is its right edge when the picker reads right to left. A corner you pass stays physical, so `bottom-left` lines up the left edges either way. A panel that would run past the viewport's left or right edge keeps its corner and moves sideways, just far enough to fit or, wider than the viewport, to the edge its text starts from.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "appendToBody",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, else the overlay it's in that takes its popups, such as a `Modal`, else `document.body`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier for the field, also carried by the calendar, where it colors the range's ends and the band between them. Forced colors (Windows' contrast themes) replaces both, so there every day of a picked range is drawn in the system's highlight colors instead, whatever the color, which needs bestax's CSS.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size variant.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the field with rounded corners.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "shouldDisableDate",
+          "type": "(d: Date) => boolean",
+          "default": null,
+          "description": "Predicate to disable specific dates (e.g. weekends). A disabled day can be neither end, typing rejects it, and a range can't include one unless `allowDisabledInRange` is set.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "unselectableDates",
+          "type": "Date[]",
+          "default": null,
+          "description": "Convenience array of disabled dates; merged with `shouldDisableDate`. Matched by calendar day.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "allowDisabledInRange",
+          "type": "boolean",
+          "default": "false",
+          "description": "Let a range include days that `shouldDisableDate` or `unselectableDates` disable, such as a stay over a night with no check-ins. Its ends still can't be such days. Off, a pick in the calendar past a disabled day starts a new range there, typing refuses an end past one, and a start typed with one before the end clears the end. Finding one walks the days between, so off, a span too long to walk is refused as well.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "firstDayOfWeek",
+          "type": "0 | 1 | 2 | 3 | 4 | 5 | 6",
+          "default": "0",
+          "description": "Day the week starts on (0 = Sunday). Unset inside a `LocaleProvider`, it is the first day of the week in the picker's locale, its own `locale` or else the provider's, such as Monday for `\"de\"`. Elsewhere, with no locale from either, or with seven `dayNames` of your own, it is Sunday: set it with `dayNames` to start the week on another day.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "dayNames",
+          "type": "string[]",
+          "default": null,
+          "description": "Override the 7 day-name labels (in calendar order, post-rotation). They are shown exactly as given, from the first column, so they have to start on the day the week does. With them, an unset `firstDayOfWeek` stays Sunday even inside a `LocaleProvider`, so names written Sunday first keep matching their columns; to start on the locale's day, set `firstDayOfWeek` too and list the names from that day. They also name the columns for assistive technology. Without them each column is named by its full weekday in the picker's locale, which a server-rendered calendar adds once the page hydrates.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "monthNames",
+          "type": "string[]",
+          "default": null,
+          "description": "Override the 12 month-name labels. With them the day grid's heading reads the name, a space and the year, whatever order the locale writes a month and its year in.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "nearbyMonthDays",
+          "type": "boolean",
+          "default": "true",
+          "description": "Show dimmed dates from adjacent months in the grid.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "monthsToShow",
+          "type": "number",
+          "default": "1",
+          "description": "How many months the calendar shows side by side, in the popover and `inline`, so a range that crosses a month's end shows both its ends. They wrap to a column where the width runs out, one previous and next pair moves them all by this many, and the arrow keys cross from one month into the next. They start with the range's start as the first month, or an end with no start as the last, and a start typed into the field that isn't on show brings in months with it as the first, an end with it as the last. `min` and `max` win: the months stay inside them where they leave room for all of them. The popover takes the months' width rather than the field's, up to the window's width less 2rem, so from a field far from the window's left edge it can reach past the right one: set `position=\"auto\"`, which lines the popover up with the field's right edge when it doesn't fit to the right.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconLeftName",
+          "type": "string",
+          "default": null,
+          "description": "Decorative left icon glyph for the wrapping `Control` (shown by default). Set `''` to hide.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "triggerIcon",
+          "type": "boolean",
+          "default": "true",
+          "description": "Show a clickable launcher button on the right that toggles the popover. Hidden by default while a `Control` it sits in shows its `isLoading` spinner, which shares that right edge.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "triggerIconName",
+          "type": "string",
+          "default": "'chevron-down'",
+          "description": "Glyph for the right launcher button.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "PickerLabels",
+          "default": null,
+          "description": "Optional translatable string overrides. `rangeStart` and `rangeEnd` name the two inputs and the range's ends in the calendar, `rangePreviewEnd` describes the day a pending range would end on, `rangeSeparator` sits between the inputs, and `chooseDateRange` names the launcher and the popover.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "default": null,
+          "description": "Form field name. Two hidden inputs submit the range as `YYYY-MM-DD`, named `name[start]` and `name[end]`, in every mode. The visible inputs carry no name.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "startName",
+          "type": "string",
+          "default": null,
+          "description": "Name of the hidden input carrying the start, in place of `name[start]`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "endName",
+          "type": "string",
+          "default": null,
+          "description": "Name of the hidden input carrying the end, in place of `name[end]`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "form",
+          "type": "string",
+          "default": null,
+          "description": "Form id the hidden inputs belong to.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "default": "false",
+          "description": "Mark both visible inputs required, so a form won't submit with either end empty. An `inline` calendar has no visible input, so it is not checked there.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "id",
+          "type": "React.HTMLAttributes<HTMLElement>['id']",
+          "default": null,
+          "description": "Id of the start input. The end input takes `${id}-end`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Forwarded to the underlying element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "helperPropsNote": "Helper props go on the root `.daterangeinput` `<div>`, with `className` and the other attributes, except that the background helpers go on the `.input` `<div>` that draws the field around the two `<input>`s, since Bulma's `.input` sets its own background. The text helpers go on the root and on both `<input>`s too, which take no alignment or case from around them. Inline they all go on the root.",
+      "types": [],
+      "standalone": "base"
     }
   ],
   "cssVars": [
+    {
+      "css": "--bulma-calendar-months-gap",
+      "sass": "$calendar-months-gap",
+      "default": "var(--bulma-block-spacing)",
+      "scope": "root"
+    },
     {
       "css": "--bulma-dateinput-min-width",
       "sass": "$dateinput-min-width",
@@ -719,6 +1147,24 @@
       "scope": "element"
     },
     {
+      "css": "--bulma-dateinput-cell-content-color",
+      "sass": "$dateinput-cell-content-color",
+      "default": "color-mix(in srgb, var(--bulma-text-weak), var(--bulma-text))",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-content-size",
+      "sass": "$dateinput-cell-content-size",
+      "default": "var(--bulma-size-7)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-content-loading-opacity",
+      "sass": "$dateinput-cell-content-loading-opacity",
+      "default": "0.4",
+      "scope": "element"
+    },
+    {
       "css": "--bulma-daterangeinput-gap",
       "sass": "$daterangeinput-gap",
       "default": "0.5em",
@@ -776,6 +1222,12 @@
       "css": "--bulma-picker-popover-animation-duration",
       "sass": "$picker-popover-animation-duration",
       "default": "0.15s",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-months-max-width",
+      "sass": "$picker-popover-months-max-width",
+      "default": "calc(100vw - 2rem)",
       "scope": "element"
     },
     {

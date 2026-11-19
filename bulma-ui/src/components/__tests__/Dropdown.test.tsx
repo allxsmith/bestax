@@ -1,4 +1,6 @@
+import type { MockInstance } from 'vitest';
 import { createRef, useState } from 'react';
+import type React from 'react';
 import {
   render,
   screen,
@@ -13,10 +15,11 @@ import {
   DropdownItem,
   DropdownDivider,
   isBrowser,
+  type DropdownProps,
 } from '../Dropdown';
-import * as DropdownModule from '../Dropdown';
 import { ConfigProvider } from '../../helpers/Config';
 import { TYPEAHEAD_TIMEOUT } from '../../helpers/useMenuKeys';
+import { Modal } from '../Modal';
 
 describe('Dropdown', () => {
   test('renders label', () => {
@@ -94,7 +97,7 @@ describe('Dropdown', () => {
   });
 
   test('calls onActiveChange when opened and closed', () => {
-    const onActiveChange = jest.fn();
+    const onActiveChange = vi.fn();
     render(
       <Dropdown label="Menu" onActiveChange={onActiveChange}>
         <DropdownItem>Item</DropdownItem>
@@ -219,20 +222,6 @@ describe('Dropdown', () => {
     expect(isBrowser(window, document)).toBe(true);
   });
 
-  test('does not attach event listeners in SSR (isBrowser false)', () => {
-    const isBrowserSpy = jest
-      .spyOn(DropdownModule, 'isBrowser')
-      .mockReturnValue(false);
-    render(
-      <DropdownModule.Dropdown label="SSR">
-        <DropdownModule.DropdownItem>SSR Item</DropdownModule.DropdownItem>
-      </DropdownModule.Dropdown>
-    );
-    fireEvent.click(screen.getByRole('button', { name: /SSR/i }));
-    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
-    isBrowserSpy.mockRestore();
-  });
-
   test('applies menuClassName, id, and aria-controls', () => {
     render(
       <Dropdown
@@ -246,10 +235,15 @@ describe('Dropdown', () => {
     // menuClassName
     expect(screen.getByTestId('dropdown-menu')).toHaveClass('my-menu');
     // id and aria-controls
-    expect(
-      screen.getByRole('button', { name: /with menu class/i })
-    ).toHaveAttribute('aria-controls', 'dropdown-id-menu');
+    const trigger = screen.getByRole('button', { name: /with menu class/i });
+    expect(trigger).toHaveAttribute('aria-controls', 'dropdown-id-menu');
+    expect(trigger.id).toBe('dropdown-id-trigger');
     expect(screen.getByTestId('dropdown-menu').id).toBe('dropdown-id-menu');
+    expect(screen.getByTestId('dropdown-menu')).toHaveAttribute(
+      'aria-labelledby',
+      'dropdown-id-trigger'
+    );
+    expect(screen.getByTestId('dropdown-root').id).toBe('dropdown-id');
   });
 
   test('applies up, right, hoverable, disabled class', () => {
@@ -315,15 +309,49 @@ describe('Dropdown', () => {
     expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
   });
 
-  test('renders without id and does not set aria-controls or menu id', () => {
+  test('without an id, the trigger still controls the menu and names it', () => {
     render(
-      <Dropdown label="NoID">
+      <Dropdown label="NoID" active>
         <DropdownItem>Item</DropdownItem>
       </Dropdown>
     );
-    const button = screen.getByRole('button', { name: /noid/i });
-    expect(button).not.toHaveAttribute('aria-controls');
-    expect(screen.getByTestId('dropdown-menu').id).toBe('');
+    const button = screen.getByRole('button', { name: 'NoID' });
+    const menu = screen.getByRole('menu', { name: 'NoID' });
+    expect(menu.id).not.toBe('');
+    expect(button).toHaveAttribute('aria-controls', menu.id);
+    expect(button.id).not.toBe('');
+    expect(menu).toHaveAttribute('aria-labelledby', button.id);
+    // The root keeps no id of its own.
+    expect(screen.getByTestId('dropdown-root')).not.toHaveAttribute('id');
+  });
+
+  test('the menu is named by the trigger label', () => {
+    render(
+      <Dropdown label="Actions" id="actions" active>
+        <DropdownItem as="button">Edit</DropdownItem>
+      </Dropdown>
+    );
+    expect(screen.getByRole('menu', { name: 'Actions' })).toBe(
+      screen.getByTestId('dropdown-menu')
+    );
+  });
+
+  test('Dropdowns without an id get ids of their own', () => {
+    render(
+      <>
+        <Dropdown label="First">
+          <DropdownItem>Item</DropdownItem>
+        </Dropdown>
+        <Dropdown label="Second">
+          <DropdownItem>Item</DropdownItem>
+        </Dropdown>
+      </>
+    );
+    const [first, second] = screen.getAllByTestId('dropdown-menu');
+    expect(first.id).not.toBe(second.id);
+    expect(screen.getByRole('button', { name: 'First' }).id).not.toBe(
+      screen.getByRole('button', { name: 'Second' }).id
+    );
   });
 
   test('applies classPrefix when provided via ConfigProvider', () => {
@@ -451,7 +479,7 @@ describe('Dropdown', () => {
   });
 
   test('cleans up event listeners when component unmounts', () => {
-    const removeEventListenerSpy = jest.spyOn(document, 'removeEventListener');
+    const removeEventListenerSpy = vi.spyOn(document, 'removeEventListener');
     const { unmount } = render(
       <Dropdown label="Cleanup Test">
         <DropdownItem>Item</DropdownItem>
@@ -546,7 +574,7 @@ describe('Dropdown', () => {
   });
 
   test('covers useEffect dependency array changes', () => {
-    const onActiveChange = jest.fn();
+    const onActiveChange = vi.fn();
     const { rerender } = render(
       <Dropdown label="Deps Test" onActiveChange={onActiveChange}>
         <DropdownItem>Item</DropdownItem>
@@ -558,7 +586,7 @@ describe('Dropdown', () => {
     expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
 
     // Change the onActiveChange callback to trigger useEffect
-    const newCallback = jest.fn();
+    const newCallback = vi.fn();
     rerender(
       <Dropdown label="Deps Test" onActiveChange={newCallback}>
         <DropdownItem>Item</DropdownItem>
@@ -591,7 +619,7 @@ describe('Dropdown', () => {
   });
 
   test('covers cleanup function when effect dependencies change', () => {
-    const removeEventListenerSpy = jest.spyOn(document, 'removeEventListener');
+    const removeEventListenerSpy = vi.spyOn(document, 'removeEventListener');
     const { rerender } = render(
       <Dropdown label="Cleanup Deps">
         <DropdownItem>Item</DropdownItem>
@@ -614,7 +642,7 @@ describe('Dropdown', () => {
   });
 
   test('calls onActiveChange when clicking menu item with closeOnClick=true', () => {
-    const onActiveChange = jest.fn();
+    const onActiveChange = vi.fn();
     render(
       <Dropdown
         label="Menu Click"
@@ -649,31 +677,8 @@ describe('Dropdown', () => {
     // This tests the early return in useEffect when !active
   });
 
-  test('handles isBrowser false scenario in useEffect', () => {
-    const isBrowserSpy = jest
-      .spyOn(DropdownModule, 'isBrowser')
-      .mockReturnValue(false);
-
-    render(
-      <Dropdown label="SSR Dropdown">
-        <DropdownItem>Item</DropdownItem>
-      </Dropdown>
-    );
-
-    // Open dropdown
-    fireEvent.click(screen.getByRole('button', { name: /ssr dropdown/i }));
-    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
-
-    // In SSR mode, clicking outside should not close the dropdown
-    // because no event listeners are attached
-    fireEvent.mouseDown(document.body);
-    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
-
-    isBrowserSpy.mockRestore();
-  });
-
   test('covers outside click with onActiveChange callback', async () => {
-    const onActiveChange = jest.fn();
+    const onActiveChange = vi.fn();
     render(
       <>
         <Dropdown label="Outside Click" onActiveChange={onActiveChange}>
@@ -698,7 +703,7 @@ describe('Dropdown', () => {
   });
 
   test('attaches event listener when dropdown becomes active', () => {
-    const addEventListenerSpy = jest.spyOn(document, 'addEventListener');
+    const addEventListenerSpy = vi.spyOn(document, 'addEventListener');
 
     render(
       <Dropdown label="Listener Attach">
@@ -731,7 +736,7 @@ describe('Dropdown', () => {
 
   test('outside click still closes the dropdown when a ref is forwarded', () => {
     const ref = createRef<HTMLDivElement>();
-    const onActiveChange = jest.fn();
+    const onActiveChange = vi.fn();
     render(
       <>
         <Dropdown
@@ -758,7 +763,7 @@ describe('Dropdown', () => {
   // matrix), so neither of these branches on React.version.
   test('runs a forwarded callback ref cleanup on unmount instead of calling it with null', () => {
     const calls: (HTMLDivElement | null)[] = [];
-    const cleanup = jest.fn();
+    const cleanup = vi.fn();
     const callbackRef = (node: HTMLDivElement | null) => {
       calls.push(node);
       if (!node) return undefined;
@@ -800,7 +805,7 @@ describe('Dropdown', () => {
   });
 
   test('outside click still closes when the forwarded callback ref is swapped', () => {
-    const onActiveChange = jest.fn();
+    const onActiveChange = vi.fn();
     const seen: (HTMLDivElement | null)[] = [];
     // Both identities return a cleanup, so React 19 detaches via that cleanup
     // rather than a `null` call when the ref is swapped.
@@ -869,6 +874,64 @@ describe('Dropdown', () => {
   });
 });
 
+// The outside-click listener reads the latest `onActiveChange` when a click
+// arrives, so a parent that renders while the menu is open, handing over an
+// inline one each time, doesn't take the listener off and put it back. React
+// can render between two listeners for one event, and the browser runs
+// neither a listener taken off mid-event nor one added mid-event (#1186).
+describe('Dropdown while onActiveChange changes', () => {
+  const Page = ({
+    onActiveChange,
+  }: {
+    onActiveChange: (active: boolean) => void;
+  }) => (
+    <>
+      <Dropdown label="Menu" onActiveChange={active => onActiveChange(active)}>
+        <DropdownItem>Item</DropdownItem>
+      </Dropdown>
+      <button data-testid="outside">Outside</button>
+    </>
+  );
+
+  const openMenu = () => {
+    fireEvent.click(screen.getByRole('button', { name: /menu/i }));
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+  };
+
+  const mousedownCalls = (spy: MockInstance) =>
+    spy.mock.calls.filter(([type]) => type === 'mousedown');
+
+  test('keeps its outside-click listener when the parent renders again', () => {
+    const onActiveChange = vi.fn();
+    const { rerender } = render(<Page onActiveChange={onActiveChange} />);
+    openMenu();
+    const addSpy = vi.spyOn(document, 'addEventListener');
+    const removeSpy = vi.spyOn(document, 'removeEventListener');
+    try {
+      rerender(<Page onActiveChange={onActiveChange} />);
+      expect(mousedownCalls(addSpy)).toHaveLength(0);
+      expect(mousedownCalls(removeSpy)).toHaveLength(0);
+    } finally {
+      addSpy.mockRestore();
+      removeSpy.mockRestore();
+    }
+  });
+
+  test('calls the onActiveChange of the latest render on a click outside', () => {
+    const first = vi.fn();
+    const latest = vi.fn();
+    const { rerender } = render(<Page onActiveChange={first} />);
+    openMenu();
+    rerender(<Page onActiveChange={latest} />);
+
+    fireEvent.mouseDown(screen.getByTestId('outside'));
+
+    expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+    expect(latest).toHaveBeenCalledWith(false);
+    expect(first).not.toHaveBeenCalledWith(false);
+  });
+});
+
 describe('Dropdown keyboard navigation', () => {
   test('a role of undefined falls back to menuitem and stays reachable', () => {
     const role = undefined as string | undefined;
@@ -909,6 +972,23 @@ describe('Dropdown keyboard navigation', () => {
       </Dropdown>
     );
     expect(screen.getByText('First')).toHaveAttribute('tabindex', '-1');
+  });
+
+  test('Down from an item that turned disabled while focused goes to the item after it', () => {
+    const Menu = ({ busy }: { busy?: boolean }) => (
+      <Dropdown label="Menu" active>
+        <DropdownItem as="button">First</DropdownItem>
+        <DropdownItem as="button" aria-disabled={busy || undefined}>
+          Second
+        </DropdownItem>
+        <DropdownItem as="button">Third</DropdownItem>
+      </Dropdown>
+    );
+    const { rerender } = render(<Menu />);
+    screen.getByText('Second').focus();
+    rerender(<Menu busy />);
+    fireEvent.keyDown(screen.getByText('Second'), { key: 'ArrowDown' });
+    expect(screen.getByText('Third')).toHaveFocus();
   });
 
   test('arrow keys reach items given menuitemcheckbox or menuitemradio', () => {
@@ -968,7 +1048,7 @@ describe('Dropdown keyboard navigation', () => {
   });
 
   test('Enter on trigger opens the menu and focuses the first item, then closes on Enter again', () => {
-    const onActiveChange = jest.fn();
+    const onActiveChange = vi.fn();
     render(
       <Dropdown label="Menu" onActiveChange={onActiveChange}>
         <DropdownItem>First</DropdownItem>
@@ -996,6 +1076,78 @@ describe('Dropdown keyboard navigation', () => {
     expect(screen.getByText('First')).toHaveFocus();
   });
 
+  test('a click the browser dispatched with no pointer behind it opens the menu on the first item, as Enter does', () => {
+    render(
+      <Dropdown label="Menu">
+        <DropdownItem disabled>First</DropdownItem>
+        <DropdownItem>Second</DropdownItem>
+      </Dropdown>
+    );
+    const button = screen.getByRole('button', { name: /menu/i });
+    // jsdom marks every event it dispatches untrusted, so the trigger's own
+    // click handler, which React keeps on the node, gets the event a
+    // screen reader's activation can bring: trusted, with detail 0.
+    const propsKey = Object.keys(button).find(key =>
+      key.startsWith('__reactProps$')
+    ) as string;
+    // Read on each call, since the handler changes with every render.
+    const click = (isTrusted: boolean) =>
+      act(() =>
+        (
+          button as unknown as Record<
+            string,
+            { onClick: (e: React.MouseEvent<HTMLButtonElement>) => void }
+          >
+        )[propsKey].onClick({
+          detail: 0,
+          nativeEvent: { isTrusted },
+        } as unknown as React.MouseEvent<HTMLButtonElement>)
+      );
+    click(true);
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+    expect(screen.getByText('Second')).toHaveFocus();
+    act(() => button.focus());
+    click(true);
+    expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+    click(false);
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+    expect(button).toHaveFocus();
+  });
+
+  test("a script's click opens the menu with focus left where it was", () => {
+    render(
+      <Dropdown label="Menu">
+        <DropdownItem>First</DropdownItem>
+        <DropdownItem>Second</DropdownItem>
+      </Dropdown>
+    );
+    const button = screen.getByRole('button', { name: /menu/i });
+    act(() => button.focus());
+    // A script's click() has no pointer behind it either (detail 0), but
+    // the browser didn't dispatch it, so it moves no focus.
+    fireEvent.click(button, { detail: 0 });
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+    expect(button).toHaveFocus();
+    act(() => button.click());
+    expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+    act(() => button.click());
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+    expect(button).toHaveFocus();
+  });
+
+  test("a pointer's click opens the menu with focus left where it was", () => {
+    render(
+      <Dropdown label="Menu">
+        <DropdownItem>First</DropdownItem>
+      </Dropdown>
+    );
+    const button = screen.getByRole('button', { name: /menu/i });
+    act(() => button.focus());
+    fireEvent.click(button, { detail: 1 });
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+    expect(button).toHaveFocus();
+  });
+
   test('ArrowDown while open moves focus to the first item', () => {
     render(
       <Dropdown label="Menu" active>
@@ -1021,7 +1173,7 @@ describe('Dropdown keyboard navigation', () => {
   });
 
   test('Escape on trigger closes the menu', () => {
-    const onActiveChange = jest.fn();
+    const onActiveChange = vi.fn();
     render(
       <Dropdown label="Menu" active onActiveChange={onActiveChange}>
         <DropdownItem>First</DropdownItem>
@@ -1033,7 +1185,7 @@ describe('Dropdown keyboard navigation', () => {
   });
 
   test('Escape on a closed trigger is a no-op', () => {
-    const onActiveChange = jest.fn();
+    const onActiveChange = vi.fn();
     render(
       <Dropdown label="Menu" onActiveChange={onActiveChange}>
         <DropdownItem>First</DropdownItem>
@@ -1175,7 +1327,7 @@ describe('Dropdown keyboard navigation', () => {
   });
 
   test('Escape within the menu closes it and restores focus to the trigger', () => {
-    const onActiveChange = jest.fn();
+    const onActiveChange = vi.fn();
     render(
       <Dropdown label="Menu" active onActiveChange={onActiveChange}>
         <DropdownItem>First</DropdownItem>
@@ -1190,8 +1342,24 @@ describe('Dropdown keyboard navigation', () => {
     expect(screen.getByRole('button', { name: /menu/i })).toHaveFocus();
   });
 
+  test('Escape a field in the menu used leaves the menu open', () => {
+    const onActiveChange = vi.fn();
+    render(
+      <Dropdown label="Menu" active onActiveChange={onActiveChange}>
+        <input
+          aria-label="Filter"
+          onKeyDown={e => {
+            if (e.key === 'Escape') e.preventDefault();
+          }}
+        />
+      </Dropdown>
+    );
+    fireEvent.keyDown(screen.getByLabelText('Filter'), { key: 'Escape' });
+    expect(onActiveChange).not.toHaveBeenCalled();
+  });
+
   test('Tab within the menu closes it', () => {
-    const onActiveChange = jest.fn();
+    const onActiveChange = vi.fn();
     render(
       <Dropdown label="Menu" active onActiveChange={onActiveChange}>
         <DropdownItem>First</DropdownItem>
@@ -1201,22 +1369,18 @@ describe('Dropdown keyboard navigation', () => {
     expect(onActiveChange).toHaveBeenCalledWith(false);
   });
 
-  test('Tab from a focused item closes the menu without blocking native focus movement', () => {
-    const onActiveChange = jest.fn();
+  test('Tab at the end of the page closes the menu and leaves the key to the browser', () => {
+    const onActiveChange = vi.fn();
     render(
       <Dropdown label="Menu" active onActiveChange={onActiveChange}>
         <DropdownItem>First</DropdownItem>
       </Dropdown>
     );
     screen.getByText('First').focus();
-    const tab = createEvent.keyDown(screen.getByTestId('dropdown-menu'), {
-      key: 'Tab',
-    });
-    fireEvent(screen.getByTestId('dropdown-menu'), tab);
-    // The menu closes...
+    const tab = createEvent.keyDown(screen.getByText('First'), { key: 'Tab' });
+    fireEvent(screen.getByText('First'), tab);
     expect(onActiveChange).toHaveBeenCalledWith(false);
-    // ...but Tab is not preventDefault()'d, so the browser moves focus to the
-    // next control naturally (jsdom does not simulate that focus move itself).
+    // Nothing follows the Dropdown, so there's nowhere to move focus to.
     expect(tab.defaultPrevented).toBe(false);
   });
 
@@ -1245,7 +1409,7 @@ describe('Dropdown keyboard navigation', () => {
   });
 
   test('Escape closes the menu even when it has no focusable items', () => {
-    const onActiveChange = jest.fn();
+    const onActiveChange = vi.fn();
     render(
       <Dropdown label="Menu" active onActiveChange={onActiveChange}>
         {null}
@@ -1257,7 +1421,7 @@ describe('Dropdown keyboard navigation', () => {
   });
 
   test('Tab closes the menu when every item is disabled', () => {
-    const onActiveChange = jest.fn();
+    const onActiveChange = vi.fn();
     render(
       <Dropdown label="Menu" active onActiveChange={onActiveChange}>
         <DropdownItem as="button" disabled>
@@ -1299,7 +1463,7 @@ describe('Dropdown keyboard navigation', () => {
   });
 
   test('controlled dropdown supports keyboard open and reports via onActiveChange', () => {
-    const onActiveChange = jest.fn();
+    const onActiveChange = vi.fn();
     function Controlled() {
       const [open, setOpen] = useState(false);
       return (
@@ -1324,6 +1488,132 @@ describe('Dropdown keyboard navigation', () => {
   });
 });
 
+describe('Dropdown Tab from an open menu', () => {
+  // Closing hides the items as the key arrives, and Firefox then drops focus
+  // to the page from one of them, so Dropdown moves focus itself.
+  const renderPage = (props: Partial<DropdownProps>) =>
+    render(
+      <>
+        <button>Before</button>
+        <Dropdown label="Menu" {...props}>
+          <DropdownItem as="button">Rename</DropdownItem>
+          <DropdownItem as="button">Move</DropdownItem>
+          <DropdownItem as="button">Delete</DropdownItem>
+        </Dropdown>
+        <button>After</button>
+      </>
+    );
+  const press = (target: Element, shiftKey = false) => {
+    const event = createEvent.keyDown(target, { key: 'Tab', shiftKey });
+    fireEvent(target, event);
+    return event;
+  };
+
+  test.each(['Rename', 'Move', 'Delete'])(
+    'Tab from %s closes the menu and focuses what follows the Dropdown',
+    name => {
+      const onActiveChange = vi.fn();
+      renderPage({ active: true, onActiveChange });
+      screen.getByText(name).focus();
+      const tab = press(screen.getByText(name));
+      expect(tab.defaultPrevented).toBe(true);
+      expect(screen.getByRole('button', { name: 'After' })).toHaveFocus();
+      expect(onActiveChange).toHaveBeenCalledWith(false);
+      expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+    }
+  );
+
+  test.each(['Rename', 'Move', 'Delete'])(
+    'Shift+Tab from %s closes the menu and focuses the trigger',
+    name => {
+      const onActiveChange = vi.fn();
+      renderPage({ active: true, onActiveChange });
+      screen.getByText(name).focus();
+      const tab = press(screen.getByText(name), true);
+      expect(tab.defaultPrevented).toBe(true);
+      expect(screen.getByRole('button', { name: 'Menu' })).toHaveFocus();
+      expect(onActiveChange).toHaveBeenCalledWith(false);
+    }
+  );
+
+  test('works the same on a menu opened from the keyboard', async () => {
+    const user = userEvent.setup();
+    renderPage({});
+    screen.getByRole('button', { name: 'Menu' }).focus();
+    await user.keyboard('{ArrowDown}{ArrowDown}');
+    expect(screen.getByText('Move')).toHaveFocus();
+    const tab = press(screen.getByText('Move'));
+    expect(tab.defaultPrevented).toBe(true);
+    expect(screen.getByRole('button', { name: 'After' })).toHaveFocus();
+    expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+  });
+
+  test('a hoverable menu the pointer shows, not open, leaves Tab to the browser', () => {
+    renderPage({ hoverable: true });
+    screen.getByText('Move').focus();
+    const tab = press(screen.getByText('Move'));
+    expect(tab.defaultPrevented).toBe(false);
+    expect(screen.getByText('Move')).toHaveFocus();
+  });
+
+  test('a Tab something in the menu already used keeps the focus it gave', () => {
+    render(
+      <>
+        <Dropdown label="Menu" active>
+          <DropdownItem
+            as="button"
+            onKeyDown={e => {
+              if (e.key === 'Tab') e.preventDefault();
+            }}
+          >
+            Rename
+          </DropdownItem>
+        </Dropdown>
+        <button>After</button>
+      </>
+    );
+    screen.getByText('Rename').focus();
+    press(screen.getByText('Rename'));
+    expect(screen.getByText('Rename')).toHaveFocus();
+    expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+  });
+
+  describe('inside a Modal', () => {
+    const renderInModal = (after: boolean) =>
+      render(
+        <>
+          <Modal active onClose={() => {}}>
+            <Modal.Content>
+              <button>Modal first</button>
+              <Dropdown label="Menu" active>
+                <DropdownItem as="button">Rename</DropdownItem>
+                <DropdownItem as="button">Move</DropdownItem>
+              </Dropdown>
+              {after && <button>Modal after</button>}
+            </Modal.Content>
+          </Modal>
+          <button>Page after</button>
+        </>
+      );
+
+    test('Tab focuses what follows the Dropdown in the modal', () => {
+      renderInModal(true);
+      screen.getByText('Rename').focus();
+      const tab = press(screen.getByText('Rename'));
+      expect(tab.defaultPrevented).toBe(true);
+      expect(screen.getByRole('button', { name: 'Modal after' })).toHaveFocus();
+    });
+
+    test('Tab from the Dropdown at its end wraps to its first stop', () => {
+      renderInModal(false);
+      screen.getByText('Rename').focus();
+      const tab = press(screen.getByText('Rename'));
+      expect(tab.defaultPrevented).toBe(true);
+      expect(screen.getByRole('button', { name: 'Modal first' })).toHaveFocus();
+    });
+  });
+});
+
 describe('Dropdown item activation', () => {
   // `user-event` plays the browser's own activation as well as the keydown:
   // Enter clicks a <button> or a link with an href, and Space clicks a
@@ -1338,8 +1628,8 @@ describe('Dropdown item activation', () => {
     '%s activates an anchor item without an href',
     async (_name, key) => {
       const user = userEvent.setup();
-      const onClick = jest.fn();
-      const onActiveChange = jest.fn();
+      const onClick = vi.fn();
+      const onActiveChange = vi.fn();
       render(
         <Dropdown label="Menu" active onActiveChange={onActiveChange}>
           <Dropdown.Item onClick={onClick}>Archive</Dropdown.Item>
@@ -1358,7 +1648,7 @@ describe('Dropdown item activation', () => {
 
   test.each(keys)('%s activates a div item', async (_name, key) => {
     const user = userEvent.setup();
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     render(
       <Dropdown label="Menu" active>
         <Dropdown.Item as="div" onClick={onClick}>
@@ -1375,7 +1665,7 @@ describe('Dropdown item activation', () => {
     '%s activates a button item once, leaving it to the browser',
     async (_name, key) => {
       const user = userEvent.setup();
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       render(
         <Dropdown label="Menu" active>
           <Dropdown.Item as="button" onClick={onClick}>
@@ -1394,7 +1684,7 @@ describe('Dropdown item activation', () => {
     async (_name, key) => {
       const user = userEvent.setup();
       // Prevented so jsdom does not try to navigate.
-      const onClick = jest.fn((e: { preventDefault: () => void }) =>
+      const onClick = vi.fn((e: { preventDefault: () => void }) =>
         e.preventDefault()
       );
       render(
@@ -1453,8 +1743,8 @@ describe('Dropdown item activation', () => {
 
   test('Enter activates without closing when closeOnClick is false', async () => {
     const user = userEvent.setup();
-    const onClick = jest.fn();
-    const onActiveChange = jest.fn();
+    const onClick = vi.fn();
+    const onActiveChange = vi.fn();
     render(
       <Dropdown
         label="Menu"
@@ -1501,7 +1791,7 @@ describe('Dropdown item activation', () => {
   ])(
     'a held %s activates once and keeps preventing the default',
     (_name, key) => {
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       render(
         <Dropdown label="Menu" active closeOnClick={false}>
           <Dropdown.Item
@@ -1529,7 +1819,7 @@ describe('Dropdown item activation', () => {
 
   test('leaves a key alone when a caller handler already prevented it', async () => {
     const user = userEvent.setup();
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     render(
       <Dropdown label="Menu" active>
         <Dropdown.Item
@@ -1548,7 +1838,7 @@ describe('Dropdown item activation', () => {
   });
 
   test('does not activate a disabled item or anything that is not an item', () => {
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     render(
       <Dropdown label="Menu" active>
         <Dropdown.Item as="div" aria-disabled="true" onClick={onClick}>
@@ -1581,7 +1871,7 @@ describe('Dropdown focus after an item runs', () => {
     ['Space', ' '],
   ])('%s on an item hands focus back to the trigger', async (_name, key) => {
     const user = userEvent.setup();
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     render(
       <Dropdown label="Menu">
         <Dropdown.Item onClick={onClick}>Archive</Dropdown.Item>
@@ -1704,8 +1994,8 @@ describe('Dropdown focus after an item runs', () => {
 describe('Dropdown with a field in its menu', () => {
   // The menu takes any content, so a caller can put a field in it. The menu's
   // keys act only while focus is on the menu or one of its items.
-  const onClick = jest.fn();
-  const onActiveChange = jest.fn();
+  const onClick = vi.fn();
+  const onActiveChange = vi.fn();
   beforeEach(() => {
     onClick.mockClear();
     onActiveChange.mockClear();
@@ -1747,13 +2037,15 @@ describe('Dropdown with a field in its menu', () => {
     expect(screen.getByRole('button', { name: 'Menu' })).toHaveFocus();
   });
 
-  test('Tab in the field still closes the menu and lets focus move on', () => {
+  test('Tab in the field still closes the menu and moves focus past the Dropdown', () => {
     renderWithField();
+    render(<button>After</button>);
     field().focus();
     const tab = createEvent.keyDown(field(), { key: 'Tab' });
     fireEvent(field(), tab);
     expect(onActiveChange).toHaveBeenCalledWith(false);
-    expect(tab.defaultPrevented).toBe(false);
+    expect(tab.defaultPrevented).toBe(true);
+    expect(screen.getByRole('button', { name: 'After' })).toHaveFocus();
   });
 
   test('the arrows move between the items past the field', () => {
@@ -1776,7 +2068,7 @@ describe('Dropdown held Enter', () => {
   ])('a held Enter runs a %s item once', async (_name, itemProps) => {
     const user = userEvent.setup();
     // Prevented so jsdom does not try to navigate.
-    const onClick = jest.fn((e: { preventDefault: () => void }) =>
+    const onClick = vi.fn((e: { preventDefault: () => void }) =>
       e.preventDefault()
     );
     render(
@@ -1798,10 +2090,10 @@ describe('Dropdown typeahead', () => {
   // No time passes unless a test advances it, so what is typed adds up to
   // one search until the test says otherwise.
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   const press = (key: string) =>
@@ -1847,7 +2139,7 @@ describe('Dropdown typeahead', () => {
     item('Archive').focus();
     press('d');
     act(() => {
-      jest.advanceTimersByTime(TYPEAHEAD_TIMEOUT);
+      vi.advanceTimersByTime(TYPEAHEAD_TIMEOUT);
     });
     press('a');
     expect(item('Archive')).toHaveFocus();
@@ -2094,5 +2386,212 @@ describe('href routing', () => {
       </Dropdown>
     );
     expect(screen.getByTestId('dropdown-item')).not.toHaveAttribute('href');
+  });
+});
+
+describe('the current item', () => {
+  it('marks an active item aria-current, so it is more than a color', () => {
+    render(
+      <Dropdown label="Go to" active>
+        <Dropdown.Item href="#inbox" active>
+          Inbox
+        </Dropdown.Item>
+        <Dropdown.Item href="#archive">Archive</Dropdown.Item>
+      </Dropdown>
+    );
+    expect(screen.getByRole('menuitem', { current: true })).toHaveTextContent(
+      'Inbox'
+    );
+    expect(screen.getByRole('menuitem', { name: 'Inbox' })).toHaveAttribute(
+      'aria-current',
+      'true'
+    );
+    expect(
+      screen.getByRole('menuitem', { name: 'Archive' })
+    ).not.toHaveAttribute('aria-current');
+  });
+
+  it('marks it under every element `as` takes', () => {
+    render(
+      <Dropdown label="Menu" active>
+        <Dropdown.Item as="button" active>
+          Button
+        </Dropdown.Item>
+        <Dropdown.Item as="div" active>
+          Div
+        </Dropdown.Item>
+      </Dropdown>
+    );
+    expect(screen.getByRole('menuitem', { name: 'Button' })).toHaveAttribute(
+      'aria-current',
+      'true'
+    );
+    expect(screen.getByRole('menuitem', { name: 'Div' })).toHaveAttribute(
+      'aria-current',
+      'true'
+    );
+  });
+
+  it('lets a caller’s own aria-current win, false included', () => {
+    render(
+      <Dropdown label="Pages" active>
+        <Dropdown.Item href="/a" active aria-current="page">
+          Page
+        </Dropdown.Item>
+        {/* An item that says its state with aria-checked, as the TSDoc has it. */}
+        <Dropdown.Item
+          as="button"
+          role="menuitemradio"
+          aria-checked
+          active
+          aria-current={false}
+        >
+          Off
+        </Dropdown.Item>
+      </Dropdown>
+    );
+    expect(screen.getByRole('menuitem', { name: 'Page' })).toHaveAttribute(
+      'aria-current',
+      'page'
+    );
+    const off = screen.getByRole('menuitemradio', { name: 'Off' });
+    expect(off).toHaveClass('is-active');
+    expect(off).toHaveAttribute('aria-current', 'false');
+  });
+
+  it('lets a caller’s aria-current decide even when it’s undefined', () => {
+    const spread: { 'aria-current'?: 'true' } = { 'aria-current': undefined };
+    render(
+      <Dropdown label="Menu" active>
+        <Dropdown.Item as="button" active {...spread}>
+          Item
+        </Dropdown.Item>
+      </Dropdown>
+    );
+    expect(screen.getByRole('menuitem', { name: 'Item' })).not.toHaveAttribute(
+      'aria-current'
+    );
+  });
+});
+
+// Bulma shows a hoverable menu with `.dropdown.is-hoverable:hover`, so the
+// class is what jsdom can see: Escape puts the menu away without moving the
+// pointer (WCAG 1.4.13) by leaving it off until the pointer leaves.
+describe('Escape on a menu the pointer shows', () => {
+  const Page = (props: Partial<DropdownProps>) => (
+    <>
+      <Dropdown label="Hover me" hoverable {...props}>
+        <DropdownItem as="button">One</DropdownItem>
+        <DropdownItem as="button">Two</DropdownItem>
+      </Dropdown>
+      <button type="button">Elsewhere</button>
+    </>
+  );
+  const root = () => screen.getByTestId('dropdown-root');
+  // jsdom never matches `:hover`, which the Dropdown reads when the key
+  // arrives, so the pointer resting on it is its root matching it.
+  const point = (over: boolean) => {
+    const el = root();
+    const own = Element.prototype.matches;
+    Object.defineProperty(el, 'matches', {
+      configurable: true,
+      value: (selector: string) =>
+        selector === ':hover' ? over : own.call(el, selector),
+    });
+    if (!over) fireEvent.pointerLeave(el);
+  };
+  const escape = (target: Element, init: Partial<KeyboardEventInit> = {}) =>
+    fireEvent.keyDown(target, { key: 'Escape', ...init });
+
+  it('puts it away from the page until the pointer leaves, and lets the key go on', () => {
+    render(<Page />);
+    point(true);
+    expect(escape(document.body)).toBe(true);
+    expect(root()).not.toHaveClass('is-hoverable');
+    point(false);
+    expect(root()).toHaveClass('is-hoverable');
+  });
+
+  it('puts it away with focus in a field elsewhere, even one that used the key', () => {
+    render(<Page />);
+    const elsewhere = screen.getByRole('button', { name: 'Elsewhere' });
+    elsewhere.addEventListener('keydown', e => e.preventDefault());
+    point(true);
+    escape(elsewhere);
+    expect(root()).not.toHaveClass('is-hoverable');
+  });
+
+  it('puts it away with focus on the trigger, and uses the key', () => {
+    render(<Page />);
+    point(true);
+    const trigger = screen.getByRole('button', { name: 'Hover me' });
+    // Used, so a Modal around the Dropdown waits for the next Escape.
+    expect(escape(trigger)).toBe(false);
+    expect(root()).not.toHaveClass('is-hoverable');
+    // Put away already, the next Escape on the trigger goes on.
+    expect(escape(trigger)).toBe(true);
+  });
+
+  it('keeps it away once Escape closes a menu opened from the keyboard', () => {
+    render(<Page />);
+    point(true);
+    const trigger = screen.getByRole('button', { name: 'Hover me' });
+    fireEvent.keyDown(trigger, { key: 'Enter' });
+    expect(root()).toHaveClass('is-active');
+    escape(screen.getByRole('menuitem', { name: 'One' }));
+    expect(root()).not.toHaveClass('is-active');
+    expect(root()).not.toHaveClass('is-hoverable');
+    expect(trigger).toHaveFocus();
+  });
+
+  it('leaves it shown for an Escape a field in the menu used itself', () => {
+    render(
+      <Dropdown label="Hover me" hoverable closeOnClick={false}>
+        <input
+          aria-label="Filter"
+          onKeyDown={e => {
+            if (e.key === 'Escape') e.preventDefault();
+          }}
+        />
+        <DropdownItem as="button">One</DropdownItem>
+      </Dropdown>
+    );
+    point(true);
+    escape(screen.getByRole('textbox', { name: 'Filter' }));
+    expect(root()).toHaveClass('is-hoverable');
+  });
+
+  it('does nothing while the pointer is elsewhere, or for an IME’s Escape', () => {
+    render(<Page />);
+    point(false);
+    escape(document.body);
+    escape(screen.getByRole('button', { name: 'Hover me' }));
+    expect(root()).toHaveClass('is-hoverable');
+    point(true);
+    escape(document.body, { isComposing: true });
+    // Safari's, which says so through keyCode 229 alone.
+    escape(document.body, { keyCode: 229 });
+    expect(root()).toHaveClass('is-hoverable');
+  });
+
+  it('puts it away under a class prefix', () => {
+    render(
+      <ConfigProvider classPrefix="bestax-">
+        <Page />
+      </ConfigProvider>
+    );
+    expect(root()).toHaveClass('bestax-is-hoverable');
+    point(true);
+    escape(document.body);
+    expect(root()).not.toHaveClass('bestax-is-hoverable');
+    expect(root()).toHaveClass('bestax-dropdown');
+  });
+
+  it('runs a caller’s own onPointerLeave too', () => {
+    const onPointerLeave = vi.fn();
+    render(<Page onPointerLeave={onPointerLeave} />);
+    point(true);
+    point(false);
+    expect(onPointerLeave).toHaveBeenCalledTimes(1);
   });
 });

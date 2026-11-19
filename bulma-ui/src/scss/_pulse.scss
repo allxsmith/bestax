@@ -1,0 +1,23 @@
+// Bestax Extras - the pulse
+// The keyframes Badge's pulse halo and Tour's beacons share, in a module of
+// their own, so a build with both emits them once, and the animation they're
+// run with. It loads no Bulma module.
+
+// Badge's name, which it has had since it shipped, kept for anything that
+// names it.
+@keyframes extras-badge-pulse {
+  0% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.75);
+  }
+}
+
+// Runs the pulse on a halo, once every `$duration`, for as long as it shows.
+// Each partial stops it under reduced motion itself.
+@mixin extras-pulse($duration) {
+  animation: extras-badge-pulse $duration cubic-bezier(0, 0, 0.2, 1) infinite;
+}

@@ -38,26 +38,57 @@ export interface ButtonOwnProps extends Omit<
     | 'dark'
     | 'black'
     | 'text'
-    | 'ghost';
+    | 'ghost'
+    | undefined;
   /** Size of the button. */
-  size?: 'small' | 'normal' | 'medium' | 'large';
-  /** Applies a lighter color variant. */
+  size?: 'small' | 'normal' | 'medium' | 'large' | undefined;
+  /**
+   * Applies the light variant of a colored button, such as `primary`'s.
+   * Bulma gives the grayscale colors none, so with no `color`, or with
+   * `white` or `black`, `isLight` gives the light button, as `color="light"`
+   * does, and `light` or `dark` with `isLight` looks the same as without it.
+   */
   isLight?: boolean;
   /** Makes the button rounded. */
   isRounded?: boolean;
   /**
-   * Displays a loading spinner.
-   * Under `prefers-reduced-motion: reduce` the spinner stops and stays
-   * drawn (with bestax's CSS loaded).
+   * Displays a loading spinner, with everything inside the button hidden
+   * behind it, in forced colors (Windows' contrast themes) too, and holds the
+   * button still: a click, Enter or Space does nothing, so `onClick` doesn't
+   * run, a submit button doesn't submit its form and a click on a link
+   * doesn't follow its `href`, until it's cleared. A custom `as` component
+   * gets that dropped click as its `onClick`, so it holds still as far as it
+   * acts through it. Set it while an action is in progress, so
+   * nobody sends it twice. The button carries `aria-busy` and `aria-disabled`
+   * meanwhile, so a screen reader can tell it won't respond, and stays
+   * focusable, so focus isn't lost, with Bulma's focus outline showing it
+   * from the keyboard. Under `prefers-reduced-motion: reduce` the spinner
+   * stops and stays drawn. Bulma alone stops only the pointer, hides only the
+   * label and takes away the shadow that shows a focused button, so the rest
+   * of the look needs bestax's CSS loaded.
    */
   isLoading?: boolean;
-  /** Makes the button non-interactive. */
+  /**
+   * Draws Bulma's static look and stops the pointer. It doesn't change the
+   * element: a `<button>` with it is still a tab stop that a screen reader
+   * announces as a button and Enter and Space press, and in a form it's a
+   * submit button. A label that does nothing, such as "@gmail.com" beside an
+   * input in a `Field` with addons, is a `Button` rendered `as="span"`, which
+   * Tab skips and a screen reader reads as text.
+   */
   isStatic?: boolean;
   /** Makes the button full-width. */
   isFullwidth?: boolean;
   /** Makes the button full-width. @deprecated Use `isFullwidth` instead — `isFullwidth` wins if both are set. */
   isFullWidth?: boolean;
-  /** Applies outlined styling (requires color). */
+  /**
+   * Applies outlined styling (requires color). On the dark scheme, bestax's
+   * stylesheets draw the label and border at the lightness Bulma picks for
+   * the color's text on the page wherever that's lighter, so a dark color
+   * reads there. On a surface that stays light on both schemes, give the
+   * surface Bulma's `theme-light` class (with the class prefix in a prefixed
+   * build), which keeps what's inside it on the light scheme's values.
+   */
   isOutlined?: boolean;
   /** Applies inverted styling (requires color). */
   isInverted?: boolean;
@@ -70,7 +101,7 @@ export interface ButtonOwnProps extends Omit<
   /** Applies disabled styling. */
   isDisabled?: boolean;
   /** Custom class name. */
-  className?: string;
+  className?: string | undefined;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color helper. */
@@ -90,7 +121,7 @@ export type ButtonProps<T extends React.ElementType = 'button'> =
   ButtonOwnProps &
     Omit<React.ComponentPropsWithoutRef<T>, keyof ButtonOwnProps | 'as'> & {
       /** Render as a `<button>`, `<a>`, or a custom component (e.g. a router `Link`). Defaults to `'button'`; anything else renders through the anchor path, which adds `href`/`target`/`rel` and withholds the submit-override attributes (`formAction` and friends) from an `<a>`. */
-      as?: T;
+      as?: T | undefined;
     };
 
 /**
@@ -164,7 +195,9 @@ export const Button = forwardRef(function Button(
       validButtonColors.includes(color as (typeof validButtonColors)[number]),
     [`is-${size}`]: size,
     'is-outlined': isOutlined,
-    'is-light': isLight,
+    // The light color's own class is this key too, and this one comes later,
+    // so it has to set the class for `light` as well or it erases it.
+    'is-light': isLight || color === 'light',
     'is-loading': isLoading,
     'is-static': isStatic,
     'is-disabled': isDisabled,
@@ -178,6 +211,28 @@ export const Button = forwardRef(function Button(
 
   // Combine prefixed Bulma classes with unprefixed user className and prefixed helper classes
   const buttonClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
+
+  // Drops a click: a disabled link's, and a loading button's on any element.
+  // Guarded, because this handler is installed into whatever `as` renders
+  // and a custom component's `onClick` need not be a DOM event handler at
+  // all. One declaring `onClick: (v: string) => void` calls this with a
+  // string, and an unguarded `e.preventDefault()` throws `is not a
+  // function`. Blocking the real event is the point; a foreign payload is
+  // simply not ours to act on.
+  const dropClick = (e: React.MouseEvent<HTMLElement>) => {
+    if (typeof e?.preventDefault === 'function') e.preventDefault();
+  };
+
+  // Bulma's spinner stops only a pointer, so without this a key pressed a
+  // loading button the mouse couldn't, and sent its action, or its form,
+  // twice. `disabled` would stop both, but it takes focus away mid-action,
+  // so a loading button says it's busy and won't respond, and drops the
+  // click, as ToggleButton does. After the caller's attributes, so they
+  // can't undo it while it loads; a caller's own `aria-busy` or
+  // `aria-disabled` stays when it isn't loading.
+  const loading = isLoading
+    ? ({ 'aria-busy': true, 'aria-disabled': true } as const)
+    : undefined;
 
   if (Component !== 'button') {
     // Strip the form-control attributes a link-like element cannot carry, so a
@@ -264,21 +319,13 @@ export const Button = forwardRef(function Button(
         aria-disabled={isDisabled}
         tabIndex={isDisabled ? -1 : undefined}
         onClick={
-          isDisabled
-            ? // Guarded, because this handler is installed into whatever `as`
-              // renders and a custom component's `onClick` need not be a DOM
-              // event handler at all. One declaring `onClick: (v: string) =>
-              // void` calls this with a string, and an unguarded
-              // `e.preventDefault()` throws `is not a function`. Blocking the
-              // real event is the point; a foreign payload is simply not ours
-              // to act on.
-              (e: React.MouseEvent<HTMLAnchorElement>) => {
-                if (typeof e?.preventDefault === 'function') e.preventDefault();
-              }
+          isDisabled || isLoading
+            ? dropClick
             : (onClick as
                 React.MouseEventHandler<HTMLAnchorElement> | undefined)
         }
         {...(forwardedRest as React.AnchorHTMLAttributes<HTMLAnchorElement>)}
+        {...loading}
       >
         {children}
       </Component>
@@ -291,9 +338,12 @@ export const Button = forwardRef(function Button(
       className={buttonClasses}
       disabled={isDisabled}
       onClick={
-        onClick as React.MouseEventHandler<HTMLButtonElement> | undefined
+        isLoading
+          ? dropClick
+          : (onClick as React.MouseEventHandler<HTMLButtonElement> | undefined)
       }
       {...rest}
+      {...loading}
     >
       {children}
     </button>

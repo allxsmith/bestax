@@ -9,6 +9,7 @@ import {
 import { Button } from './Button';
 import { Columns } from '../columns/Columns';
 import { Column } from '../columns/Column';
+import { Buttons } from './Buttons';
 
 // Separate component for dismissible notification to comply with react-hooks/rules-of-hooks
 const DismissibleNotification: React.FC<NotificationProps> = props => {
@@ -48,6 +49,11 @@ const meta: Meta<typeof Notification> = {
     hasDelete: {
       control: 'boolean',
       description: 'Shows a close (delete) button in the notification.',
+    },
+    ariaCloseLabel: {
+      control: 'text',
+      description:
+        'Names the close button, in place of "Close notification", for an app in another language.',
     },
     m: {
       control: 'select',
@@ -215,7 +221,7 @@ export const ProgrammaticAPI: Story = {
     return (
       <div style={{ padding: '2rem' }}>
         <NotificationContainer position="top-right" />
-        <div className="buttons">
+        <Buttons>
           <Button
             color="success"
             onClick={() => notification.success('Changes saved!')}
@@ -266,7 +272,7 @@ export const ProgrammaticAPI: Story = {
           <Button color="danger" onClick={() => notification.closeAll()}>
             Close All
           </Button>
-        </div>
+        </Buttons>
       </div>
     );
   },
@@ -281,7 +287,7 @@ export const QueuedNotifications: Story = {
       <div style={{ padding: '2rem' }}>
         <NotificationContainer position="top-right" />
         <p className="mb-4">Queued notifications display one at a time.</p>
-        <div className="buttons">
+        <Buttons>
           <Button
             color="primary"
             onClick={() => {
@@ -317,7 +323,7 @@ export const QueuedNotifications: Story = {
           >
             Non-Queued
           </Button>
-        </div>
+        </Buttons>
       </div>
     );
   },
@@ -340,7 +346,7 @@ export const Positions: Story = {
     return (
       <div style={{ padding: '2rem' }}>
         <NotificationContainer position={pos} />
-        <div className="buttons">
+        <Buttons>
           {(
             [
               'top-left',
@@ -363,7 +369,7 @@ export const Positions: Story = {
               {p}
             </Button>
           ))}
-        </div>
+        </Buttons>
       </div>
     );
   },

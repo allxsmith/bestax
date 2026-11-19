@@ -1,3 +1,4 @@
+import { numberFormatFor } from '../../helpers/localeFormat';
 import { FIRST_YEAR, makeDate } from './dateUtils';
 import type { DateGranularity } from './pickerTypes';
 
@@ -342,6 +343,74 @@ function parseTokens(input: string, fmt: string): ParsedParts | null {
   return out;
 }
 
+/** A day or a year has no grouping: 2026, not 2,026. */
+const DATE_NUMBER: Intl.NumberFormatOptions = { useGrouping: false };
+
+/**
+ * Writes a number of a date or a time, a day of the month, a year or an
+ * hour, in the digits `locale` writes numbers in, which are the ones it
+ * writes a date in, such as ١٣ in Egyptian Arabic, with no grouping and none
+ * of the words some locales put around a date's numbers, as Japanese writes
+ * 13日. It pads to `minimumDigits` with the locale's zero, as a time's ٠٩.
+ * A `-u-nu-` extension in the tag picks the digits. With no locale it writes
+ * plain digits, as the pickers always have, rather than the runtime's, which
+ * a server and a browser can disagree on.
+ */
+export function getDateNumberFormat(
+  locale: string | undefined,
+  minimumDigits = 1
+): (n: number) => string {
+  const plain = (n: number) => String(n).padStart(minimumDigits, '0');
+  if (!locale) return plain;
+  try {
+    const format = numberFormatFor(
+      locale,
+      minimumDigits > 1
+        ? { ...DATE_NUMBER, minimumIntegerDigits: minimumDigits }
+        : DATE_NUMBER
+    );
+    return n => format.format(n);
+  } catch {
+    // A tag Intl refuses. The numbers stay plain rather than throw, as they
+    // did before they followed the locale: a time wheel, and a calendar given
+    // every name of its own, ask Intl for nothing else.
+    return plain;
+  }
+}
+
+/** What a 12-hour time is marked with when no locale says otherwise. */
+const PLAIN_DAY_PERIODS: [string, string] = ['AM', 'PM'];
+
+/**
+ * The words `locale` marks a 12-hour time with in the morning and in the
+ * afternoon, as `Intl` writes them: ص and م in Egyptian Arabic, 午前 and 午後
+ * in Japanese. With no locale they're AM and PM, as the time wheels always
+ * wrote them, rather than the runtime's words, which a server and a browser
+ * can disagree on. So are they for a tag `Intl` refuses, and in place of a
+ * word the locale's 12-hour time doesn't write.
+ */
+export function getDayPeriodNames(
+  locale: string | undefined
+): [string, string] {
+  if (!locale) return PLAIN_DAY_PERIODS;
+  try {
+    const format = new Intl.DateTimeFormat(locale, {
+      hour: 'numeric',
+      hour12: true,
+    });
+    const period = (hour: number, plain: string) =>
+      format
+        .formatToParts(new Date(2021, 0, 1, hour))
+        .find(part => part.type === 'dayPeriod')?.value ?? plain;
+    // Mid-morning and mid-afternoon, so a locale that names smaller parts
+    // of the day still gives its morning and afternoon words.
+    return [period(10, 'AM'), period(15, 'PM')];
+  } catch {
+    // A tag Intl refuses: the wheel keeps AM and PM rather than throw.
+    return PLAIN_DAY_PERIODS;
+  }
+}
+
 /**
  * Locale-aware day name labels in calendar order (Sunday → Saturday).
  * Caller rotates by `firstDayOfWeek`.
@@ -362,11 +431,18 @@ export function getDayNames(
   return out;
 }
 
+/**
+ * Locale-aware month names, January to December, from the Gregorian calendar
+ * the pickers' grid uses, whatever calendar the locale uses by default.
+ */
 export function getMonthNames(
   locale: string | undefined,
   length: 'short' | 'long' = 'long'
 ): string[] {
-  const fmt = new Intl.DateTimeFormat(locale, { month: length });
+  const fmt = new Intl.DateTimeFormat(locale, {
+    calendar: 'gregory',
+    month: length,
+  });
   const out: string[] = [];
   for (let i = 0; i < 12; i++) {
     out.push(fmt.format(new Date(2021, i, 1)));

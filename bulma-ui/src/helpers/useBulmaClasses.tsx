@@ -20,7 +20,11 @@ import {
   useVisibilityClasses,
   BulmaVisibilityProps,
 } from './useVisibilityClasses';
-import { useFlexboxClasses, BulmaFlexboxProps } from './useFlexboxClasses';
+import {
+  useFlexboxClasses,
+  BulmaFlexboxProps,
+  type UseFlexboxClassesOptions,
+} from './useFlexboxClasses';
 import { useOtherClasses, BulmaOtherProps } from './useOtherClasses';
 
 /**
@@ -60,8 +64,14 @@ export type BulmaClassesPropsWithScheme = Omit<
  * `background-color: var(--bulma-scheme-*)` style (`undefined` for all other
  * inputs). Merge it with a user `style` prop via `mergeBulmaStyles`.
  *
+ * The flex container props (`flexDirection`, `flexWrap`, `justifyContent`,
+ * `alignContent`, `alignItems`) emit a class only on a flex container: when a
+ * `display` prop is `flex` or `inline-flex`, or when `options.flexContainer`
+ * says the element's own stylesheet makes it one.
+ *
  * @function useBulmaClasses
  * @param props - Combination of BulmaClassesPropsWithScheme and additional props.
+ * @param options - Passed to `useFlexboxClasses`: whether the element is a flex container without a display prop.
  * @returns An object containing the Bulma helper classes, optional helper
  * styles, and unhandled props.
  * @example
@@ -75,7 +85,8 @@ export type BulmaClassesPropsWithScheme = Omit<
  * // rest: { className: 'custom-class' }
  */
 export const useBulmaClasses = <T extends object>(
-  props: BulmaClassesPropsWithScheme & T
+  props: BulmaClassesPropsWithScheme & T,
+  options?: UseFlexboxClassesOptions
 ): {
   bulmaHelperClasses: string;
   bulmaHelperStyles?: CSSProperties;
@@ -240,26 +251,29 @@ export const useBulmaClasses = <T extends object>(
     viewport,
   });
 
-  const flexboxClasses = useFlexboxClasses({
-    flexDirection,
-    flexWrap,
-    justifyContent,
-    alignContent,
-    alignItems,
-    alignSelf,
-    flexGrow,
-    flexShrink,
-    display,
-    displayMobile,
-    displayTablet,
-    displayTabletOnly,
-    displayTouch,
-    displayDesktop,
-    displayDesktopOnly,
-    displayWidescreen,
-    displayWidescreenOnly,
-    displayFullhd,
-  });
+  const flexboxClasses = useFlexboxClasses(
+    {
+      flexDirection,
+      flexWrap,
+      justifyContent,
+      alignContent,
+      alignItems,
+      alignSelf,
+      flexGrow,
+      flexShrink,
+      display,
+      displayMobile,
+      displayTablet,
+      displayTabletOnly,
+      displayTouch,
+      displayDesktop,
+      displayDesktopOnly,
+      displayWidescreen,
+      displayWidescreenOnly,
+      displayFullhd,
+    },
+    options
+  );
 
   const otherClasses = useOtherClasses({
     float,

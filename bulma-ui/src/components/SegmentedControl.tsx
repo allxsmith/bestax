@@ -129,7 +129,7 @@ export interface SegmentedControlProps
    * tab stop `defaultValue` describes for that. Pick this or `defaultValue`
    * for the group's lifetime.
    */
-  value?: string | null;
+  value?: string | null | undefined;
   /**
    * The segment checked to begin with, when the group holds its own state.
    * Leave it out and nothing is checked until someone picks one, and Tab
@@ -138,7 +138,7 @@ export interface SegmentedControlProps
    * checked has no tab stop until then, while a checked segment is the stop
    * from the server markup on.
    */
-  defaultValue?: string;
+  defaultValue?: string | undefined;
   /**
    * Called with the newly checked segment's `value`, whether or not `value`
    * is set. The arrow keys, Home and End check the segment they move to, so
@@ -146,16 +146,19 @@ export interface SegmentedControlProps
    * group. Pressing the checked segment again doesn't call it, since a
    * segmented control can't be cleared: one stays checked once one is.
    */
-  onChange?: (value: string) => void;
+  onChange?: ((value: string) => void) | undefined;
   /**
    * The checked segment's fill. The others are plain buttons, so the fill is
    * the difference people see. Takes the same colors as `ToggleButton`, for
    * the same reason: `white`, `light`, `dark` and `black` fill about as light
-   * or dark as a plain button already is in one theme or the other.
+   * or dark as a plain button already is in one theme or the other. Forced
+   * colors (Windows' contrast themes) replaces the fill, so there the checked
+   * segment is drawn in the system's highlight colors instead, whatever the
+   * `color`, which needs bestax's CSS.
    */
-  color?: SegmentedControlColor;
+  color?: SegmentedControlColor | undefined;
   /** Size of every segment, through Bulma's `are-<size>` on the row. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /**
    * Joins the segments into one row with no gap between them, Bulma's
    * `has-addons`. Set it to `false` for separate buttons.
@@ -166,7 +169,7 @@ export interface SegmentedControlProps
   /** Aligns the row to the right. */
   isRight?: boolean;
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** The `SegmentedControl.Segment`s, each with a `value` of its own. */
   children?: React.ReactNode;
 }
@@ -350,7 +353,7 @@ export interface SegmentedControlSegmentProps
       | 'aria-pressed'
     > {
   /**
-   * **Required.** What `onChange` reports when this segment is checked, and
+   * What `onChange` reports when this segment is checked, and
    * what the group's `value` and `defaultValue` name it by. Unique within the
    * group.
    */
@@ -363,7 +366,9 @@ export interface SegmentedControlSegmentProps
   /**
    * Disables the segment, the same as `disabled`: it can't be clicked, the
    * arrow keys, Home and End skip it, and it never holds the row's tab stop.
-   * A checked one keeps its fill under Bulma's disabled look.
+   * A checked one keeps its fill under Bulma's disabled look, and in forced
+   * colors (Windows' contrast themes) it's filled in the system's color for a
+   * disabled control, which needs bestax's CSS.
    */
   isDisabled?: boolean;
   /**
@@ -387,132 +392,133 @@ export interface SegmentedControlSegmentProps
  * @param {React.Ref<HTMLButtonElement>} ref - Forwarded ref to the `<button>`.
  * @returns {JSX.Element} The rendered segment.
  */
-const Segment = forwardRef<HTMLButtonElement, SegmentedControlSegmentProps>(
-  function Segment(
-    {
-      value,
-      isDisabled,
-      disabled,
-      className,
-      onClick,
-      onKeyDown,
-      onFocus,
-      onBlur,
-      ...props
+export const SegmentedControlSegment = forwardRef<
+  HTMLButtonElement,
+  SegmentedControlSegmentProps
+>(function SegmentedControlSegment(
+  {
+    value,
+    isDisabled,
+    disabled,
+    className,
+    onClick,
+    onKeyDown,
+    onFocus,
+    onBlur,
+    ...props
+  },
+  ref
+) {
+  const ctx = useContext(SegmentedControlContext);
+  const checked = ctx !== null && ctx.checked === value;
+  const off = Boolean(isDisabled || disabled);
+
+  // Prefixed like Button's own classes, which a hand-written
+  // `className="is-selected"` could not be under ConfigProvider classPrefix.
+  // Bulma lifts `is-selected` above its neighbours in `.buttons.has-addons`.
+  const selectedClass = usePrefixedClassNames({ 'is-selected': checked });
+
+  const nodeRef = useRef<HTMLButtonElement | null>(null);
+  const setRefs = useCallback(
+    (node: HTMLButtonElement | null) => {
+      nodeRef.current = node;
+      if (typeof ref === 'function') ref(node);
+      else if (ref) ref.current = node;
     },
-    ref
-  ) {
-    const ctx = useContext(SegmentedControlContext);
-    const checked = ctx !== null && ctx.checked === value;
-    const off = Boolean(isDisabled || disabled);
+    [ref]
+  );
 
-    // Prefixed like Button's own classes, which a hand-written
-    // `className="is-selected"` could not be under ConfigProvider classPrefix.
-    // Bulma lifts `is-selected` above its neighbours in `.buttons.has-addons`.
-    const selectedClass = usePrefixedClassNames({ 'is-selected': checked });
+  const register = ctx?.register;
+  useEffect(() => {
+    if (!register) {
+      warnOnce(
+        'SegmentedControl.Segment:outside',
+        '[bestax-bulma] <SegmentedControl.Segment> is outside a ' +
+          '<SegmentedControl>, so nothing can check it. Put it inside one.'
+      );
+      return undefined;
+    }
+    return register({
+      value,
+      disabled: off,
+      node: nodeRef.current as HTMLButtonElement,
+    });
+  }, [register, value, off]);
 
-    const nodeRef = useRef<HTMLButtonElement | null>(null);
-    const setRefs = useCallback(
-      (node: HTMLButtonElement | null) => {
-        nodeRef.current = node;
-        if (typeof ref === 'function') ref(node);
-        else if (ref) ref.current = node;
-      },
-      [ref]
-    );
+  // The caller's onClick runs first, so a `preventDefault()` there keeps
+  // the segment from being checked. A disabled button gets no click.
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    onClick?.(event);
+    if (event.defaultPrevented) return;
+    ctx?.select(value);
+  };
 
-    const register = ctx?.register;
-    useEffect(() => {
-      if (!register) {
-        warnOnce(
-          'SegmentedControl.Segment:outside',
-          '[bestax-bulma] <SegmentedControl.Segment> is outside a ' +
-            '<SegmentedControl>, so nothing can check it. Put it inside one.'
-        );
-        return undefined;
-      }
-      return register({
-        value,
-        disabled: off,
-        node: nodeRef.current as HTMLButtonElement,
-      });
-    }, [register, value, off]);
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    onKeyDown?.(event);
+    if (
+      !ctx ||
+      event.defaultPrevented ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey
+    ) {
+      return;
+    }
+    const target = segmentFor(event.currentTarget, event.key);
+    if (!target) return;
+    event.preventDefault();
+    // The row has taken this key, so nothing above it acts on it too: a
+    // Carousel moves its slide on the arrows from a document listener that
+    // doesn't read `defaultPrevented`. Keys the row leaves alone still bubble.
+    event.stopPropagation();
+    target.focus();
+    // The check follows focus, APG's rule for a radio group outside a
+    // toolbar. It goes through a click on the segment, as a native radio's
+    // does, so its onClick sees it. Inside a toolbar the arrows would move
+    // focus alone; that is the line a toolbar would change.
+    target.click();
+  };
 
-    // The caller's onClick runs first, so a `preventDefault()` there keeps
-    // the segment from being checked. A disabled button gets no click.
-    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-      onClick?.(event);
-      if (event.defaultPrevented) return;
-      ctx?.select(value);
-    };
+  const handleFocus = (event: React.FocusEvent<HTMLButtonElement>) => {
+    onFocus?.(event);
+    ctx?.setFocused(value);
+  };
 
-    const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
-      onKeyDown?.(event);
-      if (
-        !ctx ||
-        event.defaultPrevented ||
-        event.altKey ||
-        event.ctrlKey ||
-        event.metaKey
-      ) {
-        return;
-      }
-      const target = segmentFor(event.currentTarget, event.key);
-      if (!target) return;
-      event.preventDefault();
-      // The row has taken this key, so nothing above it acts on it too: a
-      // Carousel moves its slide on the arrows from a document listener that
-      // doesn't read `defaultPrevented`. Keys the row leaves alone still bubble.
-      event.stopPropagation();
-      target.focus();
-      // The check follows focus, APG's rule for a radio group outside a
-      // toolbar. It goes through a click on the segment, as a native radio's
-      // does, so its onClick sees it. Inside a toolbar the arrows would move
-      // focus alone; that is the line a toolbar would change.
-      target.click();
-    };
+  // The segment focus moves to, if any, records itself straight after.
+  const handleBlur = (event: React.FocusEvent<HTMLButtonElement>) => {
+    onBlur?.(event);
+    ctx?.setFocused(undefined);
+  };
 
-    const handleFocus = (event: React.FocusEvent<HTMLButtonElement>) => {
-      onFocus?.(event);
-      ctx?.setFocused(value);
-    };
+  // The props are spread first, so what a radio depends on wins over
+  // anything a JavaScript caller or a spread object passes along: it stays
+  // a button, never submits, reports whether it's checked, and the group
+  // decides whether Tab reaches it.
+  return (
+    <Button
+      {...props}
+      ref={setRefs}
+      as="button"
+      type="button"
+      role="radio"
+      aria-checked={checked}
+      tabIndex={ctx ? (ctx.tabStop === value ? 0 : -1) : undefined}
+      isDisabled={off}
+      color={checked ? ctx.color : undefined}
+      className={classNames(selectedClass, className)}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+    />
+  );
+});
 
-    // The segment focus moves to, if any, records itself straight after.
-    const handleBlur = (event: React.FocusEvent<HTMLButtonElement>) => {
-      onBlur?.(event);
-      ctx?.setFocused(undefined);
-    };
-
-    // The props are spread first, so what a radio depends on wins over
-    // anything a JavaScript caller or a spread object passes along: it stays
-    // a button, never submits, reports whether it's checked, and the group
-    // decides whether Tab reaches it.
-    return (
-      <Button
-        {...props}
-        ref={setRefs}
-        as="button"
-        type="button"
-        role="radio"
-        aria-checked={checked}
-        tabIndex={ctx ? (ctx.tabStop === value ? 0 : -1) : undefined}
-        isDisabled={off}
-        color={checked ? ctx.color : undefined}
-        className={classNames(selectedClass, className)}
-        onClick={handleClick}
-        onKeyDown={handleKeyDown}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-      />
-    );
-  }
-);
-
-Segment.displayName = 'SegmentedControl.Segment';
+SegmentedControlSegment.displayName = 'SegmentedControl.Segment';
 
 export const SegmentedControl = withSubComponents(
   SegmentedControlRoot,
-  { Segment },
+  { Segment: SegmentedControlSegment },
   'SegmentedControl'
 );
 

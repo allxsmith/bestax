@@ -4,12 +4,57 @@ import userEvent from '@testing-library/user-event';
 import { Rate, RateIconProps } from '../Rate';
 import { Field } from '../Field';
 import { Control } from '../Control';
+import { ConfigProvider } from '../../helpers/Config';
+import { LocaleProvider } from '../../helpers/LocaleProvider';
 
 /**
  * Helper: stub `getBoundingClientRect` on every `.rate-item` span so
  * precision-mode click/move handlers can compute a deterministic
  * `relativeX = (clientX - rect.left) / rect.width`.
  */
+/**
+ * Helper: stub each star's rect where the browser draws it. The stars run
+ * left to right by index, or right to left in a right-to-left direction, which
+ * `direction` stands for here, as the page's or a wrapper's `dir` sets it.
+ * Rate's `rtl` prop renders the stars in reverse and its style reverses them
+ * back, so it doesn't change where a star is drawn. The index is the end of
+ * the star's id.
+ */
+function stubRectsInDrawnOrder(
+  container: HTMLElement,
+  direction: 'ltr' | 'rtl',
+  width = 20
+) {
+  const items = container.querySelectorAll<HTMLSpanElement>('.rate-item');
+  items.forEach(item => {
+    const index = Number(item.id.split('-').pop());
+    const slot = direction === 'rtl' ? items.length - 1 - index : index;
+    item.getBoundingClientRect = () =>
+      ({
+        left: slot * width,
+        top: 0,
+        right: slot * width + width,
+        bottom: 24,
+        width,
+        height: 24,
+        x: slot * width,
+        y: 0,
+        toJSON: () => ({}),
+      }) as DOMRect;
+  });
+}
+
+/** Lays every element out in `direction`, as getComputedStyle reads it. */
+function layOutIn(direction: 'ltr' | 'rtl') {
+  const real = window.getComputedStyle;
+  return vi
+    .spyOn(window, 'getComputedStyle')
+    .mockImplementation(
+      (el, pseudo) =>
+        ({ ...real(el, pseudo), direction }) as CSSStyleDeclaration
+    );
+}
+
 function stubRectsOnRateItems(container: HTMLElement, width = 20) {
   const items = container.querySelectorAll<HTMLSpanElement>('.rate-item');
   items.forEach((item, idx) => {
@@ -65,7 +110,7 @@ describe('Rate', () => {
 
   describe('Value Changes', () => {
     it('calls onChange when star is clicked', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={0} onChange={handleChange} />);
 
       const stars = screen.getAllByRole('radio');
@@ -75,7 +120,7 @@ describe('Rate', () => {
     });
 
     it('allows deselecting by clicking same value', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={3} onChange={handleChange} />);
 
       const stars = screen.getAllByRole('radio');
@@ -203,7 +248,7 @@ describe('Rate', () => {
     });
 
     it('does not call onChange when disabled', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate disabled onChange={handleChange} />);
 
       const stars = screen.getAllByRole('radio');
@@ -226,6 +271,28 @@ describe('Rate', () => {
       const container = screen.getByRole('radiogroup');
       expect(container).toHaveAttribute('tabindex', '-1');
     });
+
+    it('tells assistive tech the group and every star are disabled', () => {
+      render(<Rate disabled defaultValue={3} />);
+      const group = screen.getByRole('radiogroup', { name: 'Rating' });
+      expect(group).toHaveAttribute('aria-disabled', 'true');
+      const stars = screen.getAllByRole('radio');
+      expect(stars).toHaveLength(5);
+      for (const star of stars) {
+        expect(star).toHaveAttribute('aria-disabled', 'true');
+      }
+      expect(screen.getByRole('radio', { name: '3 stars' })).toBeChecked();
+    });
+
+    it('sets no aria-disabled on a Rate that works', () => {
+      render(<Rate defaultValue={3} />);
+      expect(screen.getByRole('radiogroup')).not.toHaveAttribute(
+        'aria-disabled'
+      );
+      for (const star of screen.getAllByRole('radio')) {
+        expect(star).not.toHaveAttribute('aria-disabled');
+      }
+    });
   });
 
   describe('Spaced Variant', () => {
@@ -244,7 +311,7 @@ describe('Rate', () => {
 
   describe('Keyboard Navigation', () => {
     it('increases value on ArrowRight', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={3} onChange={handleChange} />);
 
       const container = screen.getByRole('radiogroup');
@@ -254,7 +321,7 @@ describe('Rate', () => {
     });
 
     it('increases value on ArrowUp', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={3} onChange={handleChange} />);
 
       const container = screen.getByRole('radiogroup');
@@ -264,7 +331,7 @@ describe('Rate', () => {
     });
 
     it('decreases value on ArrowLeft', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={3} onChange={handleChange} />);
 
       const container = screen.getByRole('radiogroup');
@@ -274,7 +341,7 @@ describe('Rate', () => {
     });
 
     it('decreases value on ArrowDown', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={3} onChange={handleChange} />);
 
       const container = screen.getByRole('radiogroup');
@@ -284,7 +351,7 @@ describe('Rate', () => {
     });
 
     it('sets value to 0 on Home', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={3} onChange={handleChange} />);
 
       const container = screen.getByRole('radiogroup');
@@ -294,7 +361,7 @@ describe('Rate', () => {
     });
 
     it('sets value to max on End', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={3} max={5} onChange={handleChange} />);
 
       const container = screen.getByRole('radiogroup');
@@ -304,7 +371,7 @@ describe('Rate', () => {
     });
 
     it('respects max boundary on ArrowRight', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={5} max={5} onChange={handleChange} />);
 
       const container = screen.getByRole('radiogroup');
@@ -314,7 +381,7 @@ describe('Rate', () => {
     });
 
     it('respects min boundary on ArrowLeft', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={0} onChange={handleChange} />);
 
       const container = screen.getByRole('radiogroup');
@@ -324,7 +391,7 @@ describe('Rate', () => {
     });
 
     it('does not respond to keyboard when disabled', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={3} onChange={handleChange} disabled />);
 
       const container = screen.getByRole('radiogroup');
@@ -334,7 +401,7 @@ describe('Rate', () => {
     });
 
     it('non-arrow/Home/End keys are no-op (covers else-if false branch)', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={3} onChange={handleChange} />);
       const container = screen.getByRole('radiogroup');
       fireEvent.keyDown(container, { key: 'PageDown' });
@@ -480,7 +547,7 @@ describe('Rate', () => {
     });
 
     it('passes correct props to custom icon', () => {
-      const customIcon = jest.fn(() => <span>icon</span>);
+      const customIcon = vi.fn(() => <span>icon</span>);
       render(<Rate defaultValue={2} customIcon={customIcon} />);
 
       // Check that customIcon was called with correct props
@@ -496,9 +563,7 @@ describe('Rate', () => {
     });
 
     it('customIcon takes priority over iconName', () => {
-      const customIcon = jest.fn(() => (
-        <span data-testid="custom">custom</span>
-      ));
+      const customIcon = vi.fn(() => <span data-testid="custom">custom</span>);
       render(
         <Rate
           defaultValue={2}
@@ -587,7 +652,7 @@ describe('Rate', () => {
 
   describe('Precision', () => {
     it('keyboard arrows step by precision', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={3} onChange={handleChange} precision={0.5} />);
 
       const container = screen.getByRole('radiogroup');
@@ -659,8 +724,44 @@ describe('Rate', () => {
       expect(clipPaths.length).toBeGreaterThan(0);
     });
 
+    it('marks the filled part of a partly filled star, so the stylesheet draws it as a filled star', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bestax-">
+          <Rate defaultValue={3.5} precision={0.5} />
+        </ConfigProvider>
+      );
+      const fill = container.querySelector('path.bestax-rate-star-fill');
+      // The one in the 4th star, clipped to its half, over its empty outline.
+      expect(container.querySelectorAll('.bestax-rate-star-fill')).toHaveLength(
+        1
+      );
+      expect(fill).toHaveAttribute('clip-path');
+    });
+
+    it('clips each Rate’s partly filled star with a clip of its own', () => {
+      const { container } = render(
+        <>
+          <Rate defaultValue={3.2} precision={0.1} aria-label="First" />
+          <Rate defaultValue={3.8} precision={0.1} aria-label="Second" />
+        </>
+      );
+      const clips = Array.from(container.querySelectorAll('clipPath'));
+      expect(new Set(clips.map(clip => clip.id)).size).toBe(clips.length);
+      // Only characters a `url(#…)` reference keeps as they are, whatever
+      // form React's useId takes.
+      for (const clip of clips) expect(clip.id).toMatch(/^[\w-]+$/);
+      // Each clipped path points at a clip inside its own star.
+      for (const path of Array.from(
+        container.querySelectorAll('path[clip-path]')
+      )) {
+        const svg = path.closest('svg')!;
+        const id = path.getAttribute('clip-path')!.slice(5, -1);
+        expect(svg.querySelector(`clipPath[id="${id}"]`)).not.toBeNull();
+      }
+    });
+
     it('Home key works with precision', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Rate value={3.5} onChange={handleChange} precision={0.5} />);
 
       const container = screen.getByRole('radiogroup');
@@ -670,7 +771,7 @@ describe('Rate', () => {
     });
 
     it('End key works with precision', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Rate value={3.5} onChange={handleChange} precision={0.5} max={5} />
       );
@@ -761,7 +862,7 @@ describe('Rate', () => {
 
   describe('Precision Click & Hover (fractional)', () => {
     it('clicks at left half of an icon and snaps to half value (precision=0.5)', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       const { container } = render(
         <Rate value={0} precision={0.5} onChange={handleChange} />
       );
@@ -776,7 +877,7 @@ describe('Rate', () => {
     });
 
     it('clicks at right portion of an icon and snaps to whole value (precision=0.5)', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       const { container } = render(
         <Rate value={0} precision={0.5} onChange={handleChange} />
       );
@@ -790,25 +891,41 @@ describe('Rate', () => {
       expect(handleChange).toHaveBeenCalledWith(1);
     });
 
-    it('precision click in RTL inverts relativeX', () => {
-      const handleChange = jest.fn();
-      const { container } = render(
-        <Rate value={0} precision={0.5} rtl onChange={handleChange} />
-      );
-      stubRectsOnRateItems(container);
-
-      const stars = screen.getAllByRole('radio');
-      // In RTL, stars are rendered in reverse iconIndex order. The first
-      // visual star corresponds to iconIndex = max - 1 = 4. Stub left = 0,
-      // width = 20. clientX = 5 -> relativeX = 0.25 -> after rtl invert
-      // becomes 0.75 -> rawValue = 4.75 -> snapped to 5.
-      fireEvent.click(stars[0], { clientX: 5 });
-
-      expect(handleChange).toHaveBeenCalledWith(5);
-    });
+    // A star's fraction is read from the side it fills from: its left edge
+    // left to right, and its right edge right to left, as the page's or a
+    // wrapper's `dir` lays the stars out. The `rtl` prop doesn't change where
+    // a star is drawn, so it doesn't change which side that is (#1825).
+    it.each([
+      // The 4th star, drawn 60 to 80, clicked 4 in from its left: 3.2 -> 3.
+      ['left to right', 'ltr', false, 64, 3],
+      ['left to right, with the rtl prop', 'ltr', true, 64, 3],
+      // The 4th star, drawn 20 to 40 as the stars run from the right, clicked
+      // 4 in from its right: 3.2 -> 3.
+      ['right to left', 'rtl', false, 36, 3],
+      ['right to left, with the rtl prop', 'rtl', true, 36, 3],
+    ] as const)(
+      'reads a click’s fraction from the side the star fills from, %s',
+      (_label, direction, rtl, clientX, expected) => {
+        const spy = layOutIn(direction);
+        try {
+          const handleChange = vi.fn();
+          const { container } = render(
+            <Rate value={0} precision={0.5} rtl={rtl} onChange={handleChange} />
+          );
+          stubRectsInDrawnOrder(container, direction);
+          const fourth = container.querySelector<HTMLElement>(
+            '[aria-label="4 stars"]'
+          )!;
+          fireEvent.click(fourth, { clientX });
+          expect(handleChange).toHaveBeenCalledWith(expected);
+        } finally {
+          spy.mockRestore();
+        }
+      }
+    );
 
     it('precision click clamps to minimum precision step', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       const { container } = render(
         <Rate value={0} precision={0.5} onChange={handleChange} />
       );
@@ -823,7 +940,7 @@ describe('Rate', () => {
     });
 
     it('precision click does nothing when disabled', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       const { container } = render(
         <Rate value={0} precision={0.5} disabled onChange={handleChange} />
       );
@@ -857,20 +974,47 @@ describe('Rate', () => {
       expect(widths).toContain('12');
     });
 
-    it('precision hover applies rtl inversion', () => {
-      const { container } = render(<Rate value={0} precision={0.5} rtl />);
-      stubRectsOnRateItems(container);
+    it.each([
+      // The 4th star, drawn 60 to 80, 4 in from its left: 3.2 -> 3.
+      ['left to right, with the rtl prop', 'ltr', true, 64],
+      // The 4th star, drawn 20 to 40, 4 in from its right: 3.2 -> 3.
+      ['right to left', 'rtl', false, 36],
+    ] as const)(
+      'reads a hover’s fraction from the side the star fills from, %s',
+      (_label, direction, rtl, clientX) => {
+        const spy = layOutIn(direction);
+        try {
+          const { container } = render(
+            <Rate value={0} precision={0.5} rtl={rtl} />
+          );
+          stubRectsInDrawnOrder(container, direction);
+          const fourth = container.querySelector<HTMLElement>(
+            '[aria-label="4 stars"]'
+          )!;
+          fireEvent.mouseEnter(fourth);
+          fireEvent.mouseMove(fourth, { clientX });
+          // Three whole stars under the pointer's value, and no fourth.
+          expect(
+            container.querySelectorAll('.rate-item.is-hovered')
+          ).toHaveLength(3);
+        } finally {
+          spy.mockRestore();
+        }
+      }
+    );
 
-      const stars = screen.getAllByRole('radio');
-      // Visual index 0 -> iconIndex 4. clientX = 15 -> relativeX = 0.75 ->
-      // rtl invert -> 0.25 -> rawValue = 4.25 -> snapped to 4.5
-      fireEvent.mouseEnter(stars[0]);
-      fireEvent.mouseMove(stars[0], { clientX: 15 });
-
-      const clipPaths = container.querySelectorAll('clipPath rect');
-      const widths = Array.from(clipPaths).map(r => r.getAttribute('width'));
-      // iconIndex 4 with fillPercent 50 -> width 12
-      expect(widths).toContain('12');
+    // A right-to-left page mirrors this star so it fills from its right. That
+    // is a `:dir(rtl)` rule, which jsdom doesn't match, so Rate.styles.test.ts
+    // holds the rule and this test the class it selects.
+    it('marks the built-in half star, the one a right-to-left page mirrors', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bestax-">
+          <Rate defaultValue={3.5} precision={0.5} />
+        </ConfigProvider>
+      );
+      expect(
+        container.querySelectorAll('svg.bestax-rate-star-partial')
+      ).toHaveLength(1);
     });
 
     it('precision hover is a no-op when disabled', () => {
@@ -932,7 +1076,7 @@ describe('Rate', () => {
 
   describe('Custom Icon partial fill', () => {
     it('passes fillPercent to customIcon when value is fractional', () => {
-      const customIcon = jest.fn((_props: RateIconProps) => (
+      const customIcon = vi.fn((_props: RateIconProps) => (
         <span data-testid="ci">x</span>
       ));
       render(
@@ -957,7 +1101,7 @@ describe('Rate', () => {
     });
 
     it('marks customIcon as hovered when hoverValue passes its index (partial path)', () => {
-      const customIcon = jest.fn((_props: RateIconProps) => (
+      const customIcon = vi.fn((_props: RateIconProps) => (
         <span data-testid="ci">x</span>
       ));
       const { container } = render(
@@ -1067,5 +1211,121 @@ describe('Rate group label association (#494)', () => {
     expect(container.querySelectorAll('label').length).toBe(1);
     const group = screen.getByRole('radiogroup', { name: 'Outer' });
     expect(group).not.toHaveAttribute('aria-label');
+  });
+});
+
+describe('Rate labels (#1993)', () => {
+  // The names were written into Rate in English, so an app in another
+  // language had no way to translate them.
+  const french = {
+    group: 'Note',
+    star: (value: number) => `${value} étoile${value >= 2 ? 's' : ''}`,
+  };
+
+  const starNames = () =>
+    screen.getAllByRole('radio').map(star => star.getAttribute('aria-label'));
+
+  it('names the group and its stars from labels', () => {
+    render(<Rate defaultValue={3} labels={french} />);
+    expect(
+      screen.getByRole('radiogroup', { name: 'Note' })
+    ).toBeInTheDocument();
+    expect(starNames()).toEqual([
+      '1 étoile',
+      '2 étoiles',
+      '3 étoiles',
+      '4 étoiles',
+      '5 étoiles',
+    ]);
+    expect(screen.getByRole('radio', { name: '3 étoiles' })).toHaveAttribute(
+      'aria-checked',
+      'true'
+    );
+  });
+
+  it('hands star the fractional value on the star it checks', () => {
+    const star = vi.fn((value: number) => `${value} étoiles`);
+    render(<Rate defaultValue={3.5} precision={0.5} labels={{ star }} />);
+    expect(screen.getByRole('radio', { name: '3.5 étoiles' })).toHaveAttribute(
+      'aria-checked',
+      'true'
+    );
+    expect(star).toHaveBeenCalledWith(3.5);
+    expect(star).not.toHaveBeenCalledWith(4);
+  });
+
+  it('keeps the English name of any it has no label for', () => {
+    render(<Rate defaultValue={2} labels={{ group: 'Note' }} />);
+    expect(
+      screen.getByRole('radiogroup', { name: 'Note' })
+    ).toBeInTheDocument();
+    expect(starNames()).toEqual([
+      '1 star',
+      '2 stars',
+      '3 stars',
+      '4 stars',
+      '5 stars',
+    ]);
+  });
+
+  it('keeps the "Rating" fallback for an empty group label', () => {
+    render(<Rate labels={{ group: '' }} />);
+    expect(screen.getByRole('radiogroup')).toHaveAttribute(
+      'aria-label',
+      'Rating'
+    );
+  });
+
+  it('keeps the English name of a star whose label is empty', () => {
+    // A translation table missing the key returns '', which would leave the
+    // star with no name.
+    render(
+      <Rate
+        defaultValue={2}
+        labels={{ star: value => (value === 2 ? '' : `${value} étoiles`) }}
+      />
+    );
+    expect(starNames()).toEqual([
+      '1 étoiles',
+      '2 stars',
+      '3 étoiles',
+      '4 étoiles',
+      '5 étoiles',
+    ]);
+  });
+
+  it('lets a label or an aria-label win over labels.group', () => {
+    render(
+      <>
+        <Rate label="Your rating" labels={french} />
+        <Rate aria-label="Quality" labels={french} />
+      </>
+    );
+    expect(
+      screen.getByRole('radiogroup', { name: 'Your rating' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('radiogroup', { name: 'Quality' })
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('radiogroup', { name: 'Note' })).toBeNull();
+  });
+
+  it('leaves the default names alone under a LocaleProvider', () => {
+    // A German locale writes 3.5 as "3,5". Writing the default names that
+    // way would rename the stars of every Rate already inside a provider, so
+    // they stay as they were, and `star` is where a caller writes the number
+    // in a locale.
+    render(
+      <LocaleProvider locale="de">
+        <Rate defaultValue={3.5} precision={0.5} />
+      </LocaleProvider>
+    );
+    expect(
+      screen.getByRole('radiogroup', { name: 'Rating' })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: '3.5 stars' })).toHaveAttribute(
+      'aria-checked',
+      'true'
+    );
   });
 });

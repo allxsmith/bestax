@@ -53,7 +53,7 @@ describe('InputBase', () => {
   });
 
   it('calls onChange handler', () => {
-    const handleChange = jest.fn();
+    const handleChange = vi.fn();
     render(<InputBase onChange={handleChange} />);
     const input = screen.getByRole('textbox');
     fireEvent.change(input, { target: { value: 'test' } });

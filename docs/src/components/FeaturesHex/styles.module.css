@@ -1,0 +1,525 @@
+.section {
+  /* Spelled out: Infima leaves --ifm-background-color transparent in light
+     mode, and the badges need a solid backing to hide the trace behind them. */
+  --page: #fff;
+  --heading: #14171c;
+  --text: #525a66;
+  --line: #1e6b99;
+  --icon: #1e6b99;
+  --hex-fill: rgba(30, 107, 153, 0.08);
+  --halo: rgba(30, 107, 153, 0.22);
+  --chip: rgba(30, 107, 153, 0.07);
+  --chip-border: rgba(30, 107, 153, 0.2);
+  --chip-text: #1e6b99;
+  --dash: rgba(30, 107, 153, 0.3);
+  --mono: var(--ifm-font-family-monospace);
+
+  padding: 5.5rem 0 6rem;
+  transition:
+    opacity 0.35s,
+    transform 0.45s cubic-bezier(0.5, 0, 0.75, 0);
+}
+
+[data-theme='dark'] .section {
+  --page: #1b1b1d;
+  --heading: #f2f4f7;
+  --text: #a9aeb8;
+  --line: #3590c3;
+  --icon: #9ecae1;
+  --hex-fill: rgba(53, 144, 195, 0.14);
+  --halo: rgba(53, 144, 195, 0.38);
+  --chip: rgba(107, 174, 214, 0.1);
+  --chip-border: rgba(107, 174, 214, 0.24);
+  --chip-text: #9ecae1;
+  --dash: rgba(107, 174, 214, 0.35);
+}
+
+/* Everything waits, at its first frame, until the section scrolls into view. */
+.section:not(.inView) *,
+.section:not(.inView) *::before,
+.section:not(.inView) *::after {
+  animation-play-state: paused !important;
+}
+
+.container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.title {
+  margin: 0 0 3rem;
+  text-align: center;
+  font-size: clamp(30px, 2.9vw, 42px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--heading);
+  animation: rise 0.7s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+.columns {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 48px;
+}
+
+.column {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* --- The trace that links the badges -------------------------------------- */
+
+.trace {
+  position: absolute;
+  top: 63px;
+  left: 16.67%;
+  right: 16.67%;
+  height: 2px;
+  pointer-events: none;
+}
+
+.traceLine {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--dash) 0 7px,
+    transparent 7px 14px
+  );
+  clip-path: inset(0 0 0 0);
+  animation:
+    traceIn 1s cubic-bezier(0.6, 0, 0.2, 1) 1.3s both,
+    march 1.2s linear infinite;
+}
+
+@keyframes traceIn {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+
+@keyframes march {
+  to {
+    background-position: 14px 0;
+  }
+}
+
+.traceDot {
+  position: absolute;
+  top: -3px;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  border-radius: 50%;
+  background: var(--line);
+  box-shadow: 0 0 12px 2px var(--halo);
+  opacity: 0;
+  animation: dotRun 3.4s cubic-bezier(0.6, 0, 0.4, 1) 2.3s infinite;
+}
+
+@keyframes dotRun {
+  0% {
+    left: 0;
+    opacity: 0;
+  }
+  8%,
+  92% {
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+/* --- Badges: the hex traces itself, fills, then draws its icon -------------- */
+
+.badge {
+  position: relative;
+  display: block;
+  width: 112px;
+  height: 128px;
+  margin: 0 0 26px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transition: transform 0.45s cubic-bezier(0.3, 1.6, 0.5, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.badge:focus {
+  outline: none;
+}
+
+.badge:focus-visible {
+  outline: 2px solid var(--line);
+  outline-offset: 6px;
+  border-radius: 14px;
+}
+
+.halo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 170px;
+  height: 170px;
+  margin: -85px 0 0 -85px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--halo) 0%, rgba(0, 0, 0, 0) 65%);
+  opacity: 0.45;
+  transform: scale(0.9);
+  transition:
+    opacity 0.4s,
+    transform 0.6s cubic-bezier(0.3, 1.5, 0.5, 1);
+  pointer-events: none;
+}
+
+.hex {
+  position: relative;
+  display: block;
+  width: 112px;
+  height: 128px;
+  overflow: visible;
+}
+
+/* A hexagon turned 60° lands on itself, so a hover reads as a snap, not a spin. */
+.hexShape {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.75s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+@media (hover: hover) {
+  .column:hover .badge {
+    transform: translateY(-5px);
+  }
+
+  .column:hover .halo {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+
+  .column:hover .hexShape {
+    transform: rotate(60deg);
+  }
+
+  .column:hover .icon {
+    animation: iconPop 0.55s cubic-bezier(0.3, 1.7, 0.5, 1);
+  }
+}
+
+@keyframes iconPop {
+  35% {
+    transform: scale(0.86);
+  }
+}
+
+.hexBase {
+  fill: var(--page);
+}
+
+.hexFill {
+  fill: var(--hex-fill);
+  animation: fadeIn 0.5s ease both;
+  animation-delay: calc(var(--i) * 180ms + 650ms);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+
+.hexLine {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-dasharray: 380;
+  animation: drawHex 0.9s cubic-bezier(0.6, 0, 0.2, 1) both;
+  animation-delay: calc(var(--i) * 180ms + 150ms);
+}
+
+@keyframes drawHex {
+  from {
+    stroke-dashoffset: 380;
+  }
+}
+
+.icon {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.iconPath {
+  fill: none;
+  stroke: var(--icon);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 70;
+  animation: drawIcon 0.65s cubic-bezier(0.5, 0, 0.2, 1) both;
+  animation-delay: calc(var(--i) * 180ms + 820ms);
+}
+
+@keyframes drawIcon {
+  from {
+    stroke-dashoffset: 70;
+  }
+}
+
+.pill {
+  position: absolute;
+  right: -10px;
+  top: 10px;
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: var(--line);
+  color: #fff;
+  font:
+    800 12px/1 Poppins,
+    var(--ifm-font-family-base);
+  letter-spacing: 0.02em;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  animation: pillPop 0.55s cubic-bezier(0.3, 1.7, 0.5, 1) 1.25s both;
+}
+
+@keyframes pillPop {
+  from {
+    opacity: 0;
+    transform: scale(0.3) rotate(-20deg);
+  }
+}
+
+.columnTitle {
+  margin: 0 0 12px;
+  font-size: clamp(19px, 1.55vw, 23px);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--heading);
+  animation: rise 0.6s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  animation-delay: calc(var(--i) * 180ms + 700ms);
+}
+
+.columnText {
+  max-width: 34ch;
+  margin: 0;
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: var(--text);
+  animation: rise 0.6s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  animation-delay: calc(var(--i) * 180ms + 800ms);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--chip-border);
+  border-radius: 999px;
+  background: var(--chip);
+  color: var(--chip-text);
+  font: 500 12px/1 var(--mono);
+  animation: chipPop 0.5s cubic-bezier(0.3, 1.7, 0.5, 1) both;
+  animation-delay: calc(var(--i) * 180ms + 1000ms);
+}
+
+.chip + .chip {
+  animation-delay: calc(var(--i) * 180ms + 1080ms);
+}
+
+@keyframes chipPop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+/* --- Picking a badge: it spins, and the section steps aside for the bento --- */
+
+/* Compounded so the delay outranks `.section`'s transition on specificity. */
+.section.leaving {
+  opacity: 0;
+  transform: scale(0.98);
+  transition-delay: 0.15s;
+}
+
+.picked .hexShape {
+  animation: spin 0.6s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- Phones: badges down the left, linked by a vertical trace --------------- */
+
+@media (max-width: 720px) {
+  .section {
+    padding: 3.5rem 0 4rem;
+  }
+
+  .container {
+    padding: 0 18px;
+  }
+
+  .title {
+    margin-bottom: 2rem;
+  }
+
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 36px;
+  }
+
+  .column {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr);
+    column-gap: 18px;
+    align-items: start;
+    text-align: left;
+  }
+
+  .badge {
+    grid-row: 1 / span 3;
+    width: 76px;
+    height: 87px;
+    margin: 0;
+  }
+
+  .hex {
+    width: 76px;
+    height: 87px;
+  }
+
+  .halo {
+    width: 120px;
+    height: 120px;
+    margin: -60px 0 0 -60px;
+  }
+
+  .pill {
+    right: -8px;
+    top: 2px;
+    height: 20px;
+    padding: 0 7px;
+    font-size: 10.5px;
+  }
+
+  .columnTitle {
+    margin: 6px 0 8px;
+  }
+
+  .columnText {
+    max-width: none;
+    font-size: 15px;
+  }
+
+  .chips {
+    justify-content: flex-start;
+    margin-top: 12px;
+  }
+
+  .trace {
+    top: 44px;
+    bottom: 44px;
+    left: 37px;
+    right: auto;
+    width: 2px;
+    height: auto;
+  }
+
+  .traceLine {
+    background: repeating-linear-gradient(
+      180deg,
+      var(--dash) 0 7px,
+      transparent 7px 14px
+    );
+    animation:
+      traceDown 1s cubic-bezier(0.6, 0, 0.2, 1) 1.3s both,
+      marchDown 1.2s linear infinite;
+  }
+
+  .traceDot {
+    top: 0;
+    left: -3px;
+    margin: -4px 0 0;
+    animation-name: dotDown;
+  }
+}
+
+@keyframes traceDown {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+}
+
+@keyframes marchDown {
+  to {
+    background-position: 0 14px;
+  }
+}
+
+@keyframes dotDown {
+  0% {
+    top: 0;
+    opacity: 0;
+  }
+  8%,
+  92% {
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section *,
+  .section *::before,
+  .section *::after {
+    animation: none !important;
+  }
+
+  .section,
+  .hexShape,
+  .badge,
+  .halo {
+    transition: none;
+  }
+
+  .traceDot {
+    display: none;
+  }
+}

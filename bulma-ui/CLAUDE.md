@@ -20,7 +20,7 @@ npm package so consumers can build the styles themselves.
 A new or changed component is **five artifacts, not one**. Touch all of: <!-- bestax:count-ok: the list immediately below is the definition -->
 
 1. `src/<folder>/Foo.tsx` — the component
-2. `src/<folder>/__tests__/Foo.test.tsx` — tests (coverage threshold: **99%**, `jest.config.js`)
+2. `src/<folder>/__tests__/Foo.test.tsx` — tests (coverage threshold: **99%**, `vitest.config.ts`)
 3. `src/<folder>/Foo.stories.tsx` — Storybook story
 4. `docs/docs/api/<folder>/foo.md` — the API docs page
 5. `src/index.ts` — the export
@@ -96,6 +96,41 @@ These keep it working, and each of them failed once:
   and the test typechecks a real node16 CommonJS consumer rather than
   asserting the map's shape.
 
+## Naming and reuse
+
+A new component or prop takes the names its siblings already use, and builds on the shared hooks
+rather than writing its own. Consistent names are what let a reader, or an agent reading the types,
+guess one component's API from another's, and a copied hook drifts from the original the first time
+either one is fixed.
+
+- **State props take the shape the newest components use.** Open state is `open`, `defaultOpen`
+  and `onOpenChange(open)` (Popover, Collapse, Command, Combobox, HoverCard). A selected index or
+  value is `value`, `defaultValue` and `onChange(value)` (Tabs, Combobox), not `index` or
+  `activeIndex`; Carousel and Steps name their position `value` too. Any other controlled state
+  is `x`, `defaultX` and `onXChange` (TreeView's `selected` and `expanded`). Modal's `active` and
+  Dialog's and Sidebar's `isOpen` came first; don't copy them, and renaming them waits for a
+  major.
+- **A boolean that sets a Bulma modifier class is named after the class:** `isRounded` for
+  `is-rounded`, `hasAddons` for `has-addons`. A behaviour switch takes the native attribute's name or
+  the one a sibling already uses (`disabled`, `closeOnEscape`, Sidebar's `overlay`).
+- **A container that lays out several standalone components takes their name in the plural:**
+  Buttons, Tags, Avatars, Collapses, Checkboxes, Radios. A `.Group` part is for one unit made of
+  pieces (Kbd.Group, a key combination) or a section inside a component (Command.Group,
+  Combobox.Group).
+- **A layout container takes the name of the layout it draws:** Stack, Group, Center and Flex lay
+  out any children, so they aren't named for what they hold. The top-level `Group` is the row of
+  that family, neither a plural nor a `.Group` part, and the rule above doesn't rename it.
+- `color` takes Bulma's color names and `size` the `'small' | 'medium' | 'large'` union. Text a
+  caller may want to translate goes in the same kind of prop the nearest sibling uses (the pickers'
+  `labels`), and anything locale-aware reads `LocaleProvider`.
+- Class names, Sass variables and CSS variables follow `src/scss/CLAUDE.md`.
+- **Reuse before writing.** Read `src/helpers/`, `src/form/FormContext.tsx` and the nearest
+  component first. Anchored positioning, focus trapping, overlay stacking, scroll locking, menu and
+  list keys, typeahead, combobox and tree state, Field wiring, announcements and locale formatting
+  each already have a shared hook or helper. When one almost fits, extend it where it lives, with
+  its tests, rather than copying it into the component, and put a new piece that two components
+  would share in `src/helpers/`. A new component's PR says what it reuses and what it adds.
+
 ## Conventions
 
 - Every component routes its Bulma helper props through `useBulmaClasses` and forwards
@@ -103,14 +138,30 @@ These keep it working, and each of them failed once:
 - **TSDoc is the docs source, not a comment.** Every `<Foo>Props` member needs an inline
   `/** … */` — `scripts/gen-api-docs.mjs` renders those into the API page's Props table, so a
   missing one is a build error, and the component's own summary sentence becomes the page's
-  Overview. Two tags: `@defaultValue` when the default is computed rather than destructured
-  (the AST can't see it), and `@extraProp {Type} [name=default] - desc` to document a notable
-  prop inherited from the DOM base type. Do **not** add `@property` blocks above an interface —
-  that older style is unverifiable and drifted from the real types; it has been migrated away.
+  Overview. The tags: `@defaultValue` when the default is computed rather than destructured
+  (the AST can't see it), `@extraProp {Type} [name=default] - desc` to document a notable
+  prop inherited from the DOM base type, `@helperProps <sentence>` on the props type of a
+  component that puts its helper props on another element than its other attributes
+  (`Checkbox`: the outer `<label>`, and the `<input>`), which the catch-all row prints and
+  `scripts/helper-props-placement.test.mjs` holds to what renders, and `@flexContainer
+<sentence>` on the props type, or a base, of a component whose root its own stylesheet makes
+  a flex container (`Stack`), so the flex container helper props apply with no `display` prop.
+  `props-extract` reads it, and the ESLint plugin's `no-inert-flex-props` takes its flex
+  containers from it through the generated metadata. Do **not** add `@property`
+  blocks above an interface — that older style is unverifiable and drifted from the real
+  types; it has been migrated away.
   A sub-component's own summary sentence becomes its line in the page's `**Subcomponents:**`
   list, so write it for a reader ("Top bar for navigation or branding"), not for the compiler.
   Type aliases get the same treatment: a union too long to inline in a cell is rendered as its
   name plus a `**Types:**` footnote built from the alias's own TSDoc.
+  An optional prop under a name React's `AllHTMLAttributes` declares keeps `undefined` as
+  React's does, whether it redeclares React's to give it TSDoc, replaces one its base omits, or
+  stands in for the element's in a polymorphic component: `className?: string | undefined`, or
+  the inherited type itself, `'aria-label'?: React.AriaAttributes['aria-label']`. Plain
+  `string` takes no `undefined` under `exactOptionalPropertyTypes`, so narrowing one is a
+  breaking change. `src/__tests__/inherited-prop-types.test.ts` checks every exported `*Props`
+  type for one that leaves it out, and the props tables don't show an optional prop's
+  `undefined`. `@extraProp` documents one without redeclaring it.
 - Multi-part components attach sub-components as statics via `withSubComponents`
   (`src/helpers/withSubComponents.ts`) — it must mutate the base (identity-preserving),
   never wrap it. A compound family ships these artifacts beyond the base anatomy rule:
@@ -119,21 +170,40 @@ These keep it working, and each of them failed once:
   a `CompoundUsage` story, and a `### Compound (dot-notation) usage` live example at the
   end of the API page's `## Usage` section. Prefer exporting subs by name from the same
   module so identity tests are possible.
+  Compare parts through `isElementOf` (`src/helpers/elementType.ts`), never `child.type ===`.
+  A part written in a React Server Component reaches the client as a client reference, whose
+  element type is lazy rather than the part's own function, so a raw comparison is false there
+  and the parent lays the part out wrong (#1500). `isElementOf` reads through the lazy type,
+  and `src/__tests__/part-type-checks.test.ts` fails on a raw comparison. A new compound that
+  can let its parts find it through context instead, the way `SegmentedControl.Segment`
+  does, needs no check at all. Anything the docs say works from a Server Component needs a
+  real Next.js build behind it, since jsdom has no server boundary.
 - Components must work with a custom class prefix (`ConfigProvider`) — tests assert
   `bestax-`-prefixed class output; never hardcode a `"button"`-style class string outside the
   classname helpers (`usePrefixedClassNames`).
 - Scope: components should map to the Bulma spec. Extras beyond Bulma (a new Carousel-like
-  widget) need an issue discussion first, and pair with SCSS in `src/scss/`.
-- Tests: jest + ts-jest + Testing Library, in each folder's `__tests__/`. Run one file with
-  `pnpm --filter @allxsmith/bestax-bulma exec jest src/elements/__tests__/Button.test.tsx`.
+  widget) need an issue discussion first, and pair with an SCSS partial in `src/scss/` when they
+  need styles of their own.
+- Tests: Vitest + Testing Library on jsdom, in each folder's `__tests__/`. Run one file with
+  `pnpm --filter @allxsmith/bestax-bulma exec vitest run src/elements/__tests__/Button.test.tsx`.
+  `vi.spyOn` on a module's export does not reach that module's own calls to it, so stub
+  what the code reads instead (a global, a prop). Not `document` or `window`, though: the
+  suites run in jsdom's own context (`vmForks`), where those cannot be redefined, and React
+  18's development build reads `document` as it handles an event. The fake timers catch
+  jsdom's own timers too: moving focus queues a zero-delay one for `selectionchange`, so run
+  it (`vi.advanceTimersByTime(0)`) before counting with `vi.getTimerCount()`.
   The 99% bar is reachable with the techniques in `src/components/__tests__/Reveal.test.tsx`
-  (IntersectionObserver/matchMedia mocks, SSR via `renderToStaticMarkup`).
+  (IntersectionObserver/matchMedia mocks, SSR via `renderToStaticMarkup`). A suite that
+  compiles a whole published stylesheet compiles it with `src/__tests__/compile-scss.ts`,
+  which says why.
 - Stories: types from `@storybook/react-vite`; `tags: ['autodocs']`; every argType gets a
   `description` (meta-test enforced). No inline `style={{}}` in stories/docs examples — helper
-  props; legacy inline styles exist, don't copy them.
-- Must build and pass tests on **React 18 and 19** (CI matrix) — avoid single-major APIs.
-- Bundle size is marketing-visible (the READMEs link the live bundlephobia badge) — check `pnpm bundle:stats`
-  (writes `dist/stats.html`) when adding anything with real runtime weight.
+  props; legacy inline styles exist, don't copy them. A story's picture comes from `images/`,
+  credited in `images/LICENSE.md`. `check:conformance --only=image-hosts` fails on
+  a story file with a URL on a placeholder or stock-photo host.
+- Must pass tests on **React 18 and 19** (CI matrix) — avoid single-major APIs.
+- Bundle size is part of the pitch (the READMEs sell the library as tree-shakeable), so check
+  `pnpm bundle:stats` (writes `dist/stats.html`) when adding anything with real runtime weight.
 - A peer range names what somebody checked: one caret arm per major, or per minor for a 0.x
   package like `material-symbols`, whose minors drop glyph names. A new release gets checked
   against what the library uses from it and then its own arm, in a `fix(bulma-ui)` commit,
@@ -168,6 +238,11 @@ so neither is load-bearing on its own. Removing both is the mistake, and it
 costs more here than anywhere else. And its `prepack`/`postpack`
 pair (`scripts/pack-pointer-files.mjs`, #344) swaps the contributor
 `CLAUDE.md` for the consumer copy of `AGENTS.md` inside the tarball and puts it
-back — pnpm runs both hooks, so the round trip holds, but if a pack is
-interrupted a `CLAUDE.md.bak` is left behind and the next `prepack` refuses
-until you restore it.
+back. `pnpm pack --dry-run` runs `prepack` but not `postpack`, and neither does
+a pack that fails partway, so either leaves the consumer copy in place with a
+`CLAUDE.md.bak` beside it. The next pack finds the swap already done and goes
+on, while `CLAUDE.md` still matches `AGENTS.md` byte for byte, and its
+`postpack` puts the contributor file back. Once either file changes, `prepack`
+refuses and leaves both for you to sort out. To see what the tarball holds,
+`pnpm pack --pack-destination "$(mktemp -d)"` lists its files, runs both hooks
+and writes the tarball outside the repo.

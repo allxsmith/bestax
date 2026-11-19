@@ -1,0 +1,169 @@
+import sdk from '@stackblitz/sdk';
+import * as BestaxBulma from '@allxsmith/bestax-bulma';
+import docsPackage from '@site/package.json';
+import indexHtml from '!!raw-loader!@site/../create-bestax/templates/vite-ts/index.html';
+import packageJson from '!!raw-loader!@site/../create-bestax/templates/vite-ts/package.json';
+import bestaxSvg from '!!raw-loader!@site/../create-bestax/templates/vite-ts/public/bestax.svg';
+import indexCss from '!!raw-loader!@site/../create-bestax/templates/vite-ts/src/index.css';
+import mainTsx from '!!raw-loader!@site/../create-bestax/templates/vite-ts/src/main.tsx';
+import tsconfigApp from '!!raw-loader!@site/../create-bestax/templates/vite-ts/tsconfig.app.json';
+import tsconfig from '!!raw-loader!@site/../create-bestax/templates/vite-ts/tsconfig.json';
+import tsconfigNode from '!!raw-loader!@site/../create-bestax/templates/vite-ts/tsconfig.node.json';
+import viteConfig from '!!raw-loader!@site/../create-bestax/templates/vite-ts/vite.config.ts';
+import { docsOnlyNames, reactScopeNames } from '../scope';
+import { toExampleModule } from './example.mjs';
+import { importedStylesheets } from './moduleLines.mjs';
+import {
+  codesandboxFiles,
+  iconLibrariesIn,
+  librarySheetsIn,
+  sandboxVersions,
+  stackblitzProject,
+} from './projects.mjs';
+
+/**
+ * Opens a live example in StackBlitz or CodeSandbox.
+ *
+ * Loaded on demand by the sandbox buttons, so a page pays for the SDK, the
+ * template and the converter only once a reader is likely to click. Nothing
+ * is published ahead of time: each click builds the project from the code in
+ * the editor, edits included, and hands it to the service in a new tab.
+ */
+
+/** The create-bestax `vite-ts` template, read at build time. */
+const TEMPLATE = {
+  'index.html': indexHtml,
+  'package.json': packageJson,
+  'public/bestax.svg': bestaxSvg,
+  'src/index.css': indexCss,
+  'src/main.tsx': mainTsx,
+  'tsconfig.app.json': tsconfigApp,
+  'tsconfig.json': tsconfig,
+  'tsconfig.node.json': tsconfigNode,
+  'vite.config.ts': viteConfig,
+};
+
+/**
+ * Read from the library, not the live scope: the scope swaps in a shadow-DOM
+ * `Theme` that exists only because the preview renders inside a shadow root,
+ * and a sandbox should import the real one.
+ */
+const LIBRARY_EXPORTS = Object.keys(BestaxBulma);
+
+/**
+ * @param {object} options
+ * @param {string} options.code The editor's current code.
+ * @param {string} options.sourceUrl The docs page on the site the build
+ *   names, linked from the project and resolving the example's site images,
+ *   so an origin that serves them without a CORP header breaks them in an
+ *   isolated preview.
+ * @param {string} options.bestaxVersion The library release the docs build read.
+ */
+function prepare({ code, sourceUrl, bestaxVersion }) {
+  const example = toExampleModule(code, {
+    libraryExports: LIBRARY_EXPORTS,
+    reactNames: reactScopeNames,
+    docsOnlyNames,
+    sourceUrl,
+  });
+  if (!example) return null;
+  const pageTitle = document.title.split(' | ')[0].trim() || 'bestax';
+  return {
+    app: example.source,
+    icons: iconLibrariesIn(code),
+    sheets: librarySheetsIn(importedStylesheets(code)),
+    template: TEMPLATE,
+    versions: sandboxVersions(bestaxVersion, docsPackage.dependencies),
+    title: `${pageTitle} example`,
+    sourceUrl,
+  };
+}
+
+export function openInStackBlitz(options) {
+  const input = prepare(options);
+  if (!input) return;
+  sdk.openProject(stackblitzProject(input), {
+    newWindow: true,
+    openFile: 'src/App.tsx',
+  });
+}
+
+const CODESANDBOX_DEFINE =
+  'https://codesandbox.io/api/v1/sandboxes/define?json=1';
+/** How long the tab waits on CodeSandbox before it says so. */
+const DEFINE_TIMEOUT_MS = 20000;
+
+/**
+ * Writes a line into the tab the click opened, so the reader sees progress.
+ * A reader can close the tab while it waits, and a closed window has no
+ * document, so there is nothing left to write to.
+ */
+function say(tab, text, role = 'status') {
+  if (tab.closed || !tab.document?.body) return;
+  tab.document.documentElement.lang = 'en';
+  tab.document.title = 'CodeSandbox';
+  // The line is inserted with its text. A screen reader announces an alert on
+  // insertion, so a failure is not lost when it lands moments after the
+  // progress line, and a polite region is not relied on to catch the swap.
+  const { body } = tab.document;
+  body.querySelector('[role="status"], [role="alert"]')?.remove();
+  const line = tab.document.createElement('p');
+  line.setAttribute('role', role);
+  line.textContent = text;
+  body.appendChild(line);
+}
+
+/** Creates the sandbox from its files and resolves to the id CodeSandbox gives it. */
+async function defineSandbox(files) {
+  const response = await fetch(CODESANDBOX_DEFINE, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ files }),
+    // Bounded, so a reply that never comes cannot leave the tab waiting forever.
+    signal: AbortSignal.timeout?.(DEFINE_TIMEOUT_MS),
+  });
+  if (!response.ok) {
+    throw new Error(`CodeSandbox answered ${response.status}`);
+  }
+  const { sandbox_id: id } = await response.json();
+  if (!id) {
+    throw new Error('CodeSandbox returned no sandbox id');
+  }
+  return id;
+}
+
+/**
+ * The tab opens inside the click, before the request: a window opened after
+ * the await would be refused as a popup. It is pointed at the sandbox once
+ * CodeSandbox has created it.
+ */
+export function openInCodeSandbox({ tab, ...options }) {
+  const input = prepare(options);
+  if (!input) {
+    tab?.close();
+    return;
+  }
+  // No tab means the browser refused the popup. Creating the sandbox anyway
+  // would leave a public sandbox that the reader never sees.
+  if (!tab) {
+    console.error(
+      'The browser blocked the CodeSandbox tab; allow popups for this site.'
+    );
+    return;
+  }
+  tab.opener = null;
+  say(tab, 'Creating your CodeSandbox…');
+  defineSandbox(codesandboxFiles(input)).then(
+    id => {
+      tab.location.href = `https://codesandbox.io/s/${id}?file=/src/App.tsx`;
+    },
+    error => {
+      console.error('Could not open the example in CodeSandbox:', error);
+      say(
+        tab,
+        'CodeSandbox did not open this example. Close this tab and try again.',
+        'alert'
+      );
+    }
+  );
+}

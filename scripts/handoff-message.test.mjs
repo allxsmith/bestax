@@ -21,13 +21,10 @@
  * Markdown — which greys out the merge ask and silences the @-mention inside
  * it. Nothing in CI lints workflow YAML, which is why the assembly lives here
  * at all (.github/CLAUDE.md rule 9).
- *
- * `.mjs` and `node --test` rather than jest: these are root-level scripts with
- * no package of their own, matching auto-close-duplicates.test.mjs.
  */
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
-import { test } from 'node:test';
+import { test } from 'vitest';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import assert from 'node:assert/strict';

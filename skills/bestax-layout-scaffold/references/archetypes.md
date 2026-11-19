@@ -19,54 +19,41 @@ app".
 **Skeleton:**
 
 ```tsx
-const [open, setOpen] = useState(false); // controls the burger + mobile menu
-
-<>
-  {/* fixed="top" requires <html class="has-navbar-fixed-top"> — set it in index.html */}
-  <Navbar fixed="top" color="dark">
-    <Navbar.Brand>
-      <Navbar.Item href="#">Brand</Navbar.Item>
-      <Navbar.Burger
-        active={open}
-        onClick={() => setOpen(o => !o)}
-        aria-label="menu"
-      />
-    </Navbar.Brand>
-    <Navbar.Menu active={open}>
-      <Navbar.End>
-        <Navbar.Item href="#">Account</Navbar.Item>
-      </Navbar.End>
-    </Navbar.Menu>
-  </Navbar>
-
-  <Container fluid>
-    <Columns>
-      <Column size={3} sizeWidescreen={2}>
-        <Menu>
-          <Menu.Label>General</Menu.Label>
-          <Menu.List>
-            <Menu.Item active href="#">
-              Dashboard
-            </Menu.Item>
-            <Menu.Item href="#">Customers</Menu.Item>
-          </Menu.List>
-        </Menu>
-      </Column>
-      <Column>
-        <Section>{/* main content */}</Section>
-      </Column>
-    </Columns>
-  </Container>
-</>;
+<AppFrame>
+  <AppFrame.Header>
+    <Navbar color="dark" aria-label="Site">
+      <Navbar.Brand>
+        <Navbar.Item href="#">Brand</Navbar.Item>
+        <AppFrame.Burger />
+      </Navbar.Brand>
+    </Navbar>
+  </AppFrame.Header>
+  <AppFrame.Nav>
+    <Menu>
+      <Menu.Label>General</Menu.Label>
+      <Menu.List>
+        <Menu.Item active href="#">
+          Dashboard
+        </Menu.Item>
+        <Menu.Item href="#">Customers</Menu.Item>
+      </Menu.List>
+    </Menu>
+  </AppFrame.Nav>
+  <AppFrame.Main>
+    <Section>{/* main content */}</Section>
+  </AppFrame.Main>
+</AppFrame>
 ```
 
-**Required:** add `has-navbar-fixed-top` to `<html>` — statically in `index.html`; an effect
-(`examples/app-shell.tsx`) only for a conditionally-mounted navbar — so content is not hidden
-behind the fixed navbar.
+**Required:** `AppFrame` goes at the top of the app, not inside a `<main>`: it renders the page's
+`<main>` itself, and its header and footer are the page's landmarks only at the top. The `Navbar`
+in its header is not `fixed`, and `<html>` gets no `has-navbar-fixed-top`: the header sticks on its
+own. `AppFrame.Burger` in `Navbar.Brand` replaces `Navbar.Burger`, with no state to wire.
 
-**Responsive:** the navbar collapses to a burger on mobile (`Navbar.Burger` + `Navbar.Menu active`).
-The sidebar and content columns sit side by side on tablet and up, and stack (menu above content)
-on mobile.
+**Responsive:** from desktop up the menu is a column beside the page that stays in view as the
+page scrolls, and the burger collapses it. Below desktop the same menu is a drawer the burger
+opens. Bulma hides `Navbar.Menu` below desktop, so links it would hold go in the menu column as
+well, or leave `Navbar.Menu` out.
 
 ---
 
@@ -164,8 +151,8 @@ style, so bands cost zero custom CSS. The same values work on `Hero` (and its
 **Hero CTAs:** on a colored hero use **filled** buttons only — `color="light"` for the primary
 CTA and `color="primary" isInverted` (solid white, primary text) for a secondary. A thin
 `isOutlined` button on a fixed-color surface is low-contrast and degrades further under OS dark
-mode. Single-mode page designs should also pin the scheme at the root
-(`<Theme isRoot colorMode="light">`) — see the `bestax-theming` skill's contrast rules.
+mode. Single-mode page designs should also pin the scheme on the `<html>` in `index.html`
+(`<html lang="en" data-theme="light">`); see the `bestax-theming` skill's contrast rules.
 
 ---
 
@@ -216,6 +203,7 @@ search results, "a grid of cards".
           <Card
             flexGrow="1"
             image={item.image}
+            imageAlt={item.name}
             header={item.name}
             footer={item.price} // Card wraps footer items in .card-footer-item itself
           >
@@ -239,11 +227,73 @@ build the whole grid with `Grid`/`Cell` (`<Grid isFixed fixedColsMobile={1} fixe
 fixedColsDesktop={3} gap={4}>`) — CSS Grid keeps cells equal-height for free; see the
 `Grid / Cell` section in `layout-components.md`.
 
+**Images:** `item.image` is the URL of a picture the app serves itself, such as a file under
+`public/`, with `imageAlt` naming the item. Don't point it at a placeholder or stock-photo service
+such as picsum.photos: what it serves can change or disappear, and nothing records whose photo it
+is. When the user has no pictures yet, use paths to the files they'll add and tell them which.
+
+**Nothing to show:** when the collection is empty, or a search or a filter matches nothing,
+render an `EmptyState` in the grid's place rather than composing one from `Box`, `Icon` and
+`Title`. Its `title` is always a heading: set `titleAs` to the level under the section's own
+heading. It doesn't announce itself, so a search keeps a status region beside its field the
+whole time, saying the count, and "Clear search" puts focus back in the field, since the button
+goes away with the empty state:
+
+```tsx
+const searchRef = useRef<HTMLInputElement>(null);
+const shown = items.filter(item =>
+  item.name.toLowerCase().includes(query.trim().toLowerCase())
+);
+
+<>
+  <Field label="Search products">
+    <Control>
+      <Input
+        ref={searchRef}
+        type="search"
+        value={query}
+        onChange={e => setQuery(e.target.value)}
+      />
+    </Control>
+  </Field>
+  {/* Always in the page, so a change to its text is announced. */}
+  <Paragraph role="status" aria-atomic="true" visibility="sr-only">
+    {shown.length === 0
+      ? 'No products match the search'
+      : `${shown.length} products`}
+  </Paragraph>
+  {shown.length === 0 ? (
+    <EmptyState
+      icon="magnifying-glass"
+      title={`No products match “${query}”`}
+      titleAs="h2"
+      description="Check the spelling, or clear the search."
+    >
+      <Button
+        onClick={() => {
+          setQuery('');
+          searchRef.current?.focus();
+        }}
+      >
+        Clear search
+      </Button>
+    </EmptyState>
+  ) : (
+    <Columns isMultiline>{/* the cards, as above */}</Columns>
+  )}
+</>;
+```
+
+With nothing in the collection at all, the same component says so and offers the first step:
+`<EmptyState icon="box-open" title="No products yet" titleAs="h2" description="…">` with one
+`<Button color="primary">` as its child, or two or more in `EmptyState.Actions`. While the items
+load, show a `Skeleton` or a `Loader` instead, so the empty state doesn't flash first.
+
 ---
 
 ## Combining archetypes
 
-Archetypes nest. An "admin dashboard with a product list" is **App shell** whose main `Column`
-holds a **Card grid**. A "settings page inside the app" is **App shell** whose main column holds a
-**Centered** panel. Pick the outer archetype from the dominant intent, then place another inside
+Archetypes nest. An "admin dashboard with a product list" is **App shell** whose `AppFrame.Main`
+holds a **Card grid**. A "settings page inside the app" is **App shell** whose `AppFrame.Main` holds
+a **Centered** panel. Pick the outer archetype from the dominant intent, then place another inside
 its content area.

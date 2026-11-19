@@ -13,11 +13,15 @@ import {
 } from '../helpers/classNames';
 import { useConfig } from '../helpers/Config';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useInsideField } from './FormContext';
+import { useFieldsetDisabled, useInsideField } from './FormContext';
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
+import { splitControlState, useFieldMessage } from './useFieldMessage';
 import { useControlLoading } from './controlLoading';
+import { StatusRegion, spokenText } from '../helpers/statusRegion';
+import { useLatestRef } from '../helpers/useLatestRef';
+import { useLocaleMatcher } from '../helpers/localeFormat';
 
 /**
  * An item in the Autocomplete dropdown list.
@@ -32,8 +36,47 @@ export interface AutocompleteItem {
   [key: string]: unknown;
 }
 
+// What the status region announces: the `empty` content, as the one item
+// it's handed while that content is on screen because of the user's typing.
+const typedNoMatches = [{ id: 'empty' }];
+const nothingToAnnounce: Array<{ id: string }> = [];
+
+// A press on an option would take focus from the field, since an option
+// can't hold it, and nothing would put it back. Cancelling the press keeps
+// it there, as the ARIA Authoring Practices' combobox does, and the click
+// still picks the option.
+const keepFocus = (e: React.MouseEvent) => e.preventDefault();
+
+// An IME that's composing owns every key: Enter confirms what it composed,
+// and the arrows move through its candidates. Safari can say so with
+// `keyCode` 229 rather than `isComposing`.
+const isComposing = (e: React.KeyboardEvent): boolean =>
+  e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229;
+
+// Whether an option can be picked. The arrows still reach a disabled one, so
+// a screen reader user finds it.
+const isEnabled = (item: AutocompleteItem | string): boolean =>
+  typeof item === 'string' || !item.disabled;
+
+/** The accessible names Autocomplete gives its parts, in your app's language. */
+export interface AutocompleteLabels {
+  /**
+   * Names the clear button. An empty string counts as none.
+   * @defaultValue 'Clear'
+   */
+  clear?: string;
+  /**
+   * Names the suggestion list when no label with an id names the field. An
+   * empty string counts as none.
+   * @defaultValue 'Suggestions'
+   */
+  suggestions?: string;
+}
+
 /**
- * Props for the Autocomplete component.
+ * Props for the Autocomplete component. The other attributes go on the
+ * wrapper `<div>`, except `aria-invalid` and `aria-errormessage`, which
+ * report the input's state and go on the input.
  * @extraProp {string} [className] - Additional CSS classes.
  * @extraProp {React.Ref<HTMLInputElement>} [ref] - Ref forwarded to the input element.
  */
@@ -42,34 +85,52 @@ export interface AutocompleteProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onSelect' | 'onInput'>,
     Omit<BulmaClassesProps, 'color'>,
     FormFieldProps {
-  /** Field label, associated with the text input via `htmlFor`: through your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose label names the input instead when it points at it. The `Field` points its label there itself when the Autocomplete has no `id` and no inner `Field` sits between them (and the `Field` is not `grouped` or `hasAddons`); a label you wire by hand with `labelProps.htmlFor` points at the input with that `id`. The label naming the input also names the open suggestion list, through `aria-labelledby`, when it has an id: this label always does, and an outer `Field`'s does unless you wired it by hand without an `id` in its `labelProps`. Otherwise the list is named "Suggestions". */
+  /** Field label, associated with the text input via `htmlFor`: through your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose label names the input instead when it points at it. The `Field` points its label there itself when the Autocomplete has no `id` and no inner `Field` sits between them (and the `Field` is not `grouped` or `hasAddons`); a label you wire by hand with `labelProps.htmlFor` points at the input with that `id`. The label naming the input also names the open suggestion list, through `aria-labelledby`, when it has an id: this label always does, and an outer `Field`'s does unless you wired it by hand without an `id` in its `labelProps`. Otherwise the list is named "Suggestions", or `labels.suggestions`. */
   label?: React.ReactNode;
   /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (the input then gets no generated id). While the label names the input, the suggestion list's `aria-labelledby` points at it, through an `id` here when you give one and a generated one otherwise. */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
     [key: string]: unknown;
   };
   /** Applied to the inner text input (the labellable control), not the wrapper div. */
-  id?: string;
-  /** The options data to display (required). */
+  id?: React.HTMLAttributes<HTMLElement>['id'];
+  /**
+   * The options data to display. The list shows the options that
+   * contain what's typed, ignoring case, and inside a `LocaleProvider` with a
+   * `locale`, ignoring accents too where that language does, so "cafe" finds
+   * "Café".
+   */
   data: AutocompleteItem[] | string[];
   /** The current input value (controlled). */
-  value?: string;
-  /** The selected item (controlled). */
-  selected?: AutocompleteItem | string | null;
+  value?: string | undefined;
+  /**
+   * Does nothing: Autocomplete doesn't read it.
+   *
+   * @deprecated Nothing reads it, and `onSelect` is what reports a pick. It
+   * will be removed in the next major version.
+   */
+  selected?: AutocompleteItem | string | null | undefined;
   /** Placeholder text for the input. */
-  placeholder?: string;
+  placeholder?: string | undefined;
   /** Object property to use as the display field. */
   field?: string;
   /**
    * Whether to show a clear button while the input holds a value.
    * It hides while the input is disabled, and gives way to a loading
    * spinner at the same right edge: the one `loading` draws, or that of a
-   * `Control` with `isLoading` around the Autocomplete.
+   * `Control` with `isLoading` around the Autocomplete. It's named "Clear",
+   * or `labels.clear`.
    */
   clearable?: boolean;
+  /** The accessible names it gives its parts, in your app's language. A `LocaleProvider` doesn't change them. */
+  labels?: AutocompleteLabels;
   /** Open dropdown when input is focused. */
   openOnFocus?: boolean;
-  /** Keep first option highlighted. */
+  /**
+   * Keep the first option highlighted whenever the list opens, Up Arrow and
+   * Alt+Down Arrow included, and whenever the text in the field changes.
+   * While the list is open on a highlighted option that isn't disabled, Enter
+   * picks it rather than submitting a form around the field.
+   */
   keepFirst?: boolean;
   /** Keep dropdown open after selection. */
   keepOpen?: boolean;
@@ -77,7 +138,13 @@ export interface AutocompleteProps
   selectOnClickOutside?: boolean;
   /** Maximum dropdown height in pixels. */
   maxHeight?: number;
-  /** Render as dropdown style. */
+  /**
+   * Does nothing: Autocomplete doesn't read it, and always shows its
+   * suggestions in a dropdown.
+   *
+   * @deprecated It will be removed in the next major version, with nothing
+   * in its place.
+   */
   dropdown?: boolean;
   /**
    * Show a loading spinner in the input.
@@ -86,36 +153,52 @@ export interface AutocompleteProps
    */
   loading?: boolean;
   /** Whether the input is disabled. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Enables infinite scroll detection in the dropdown. */
   checkInfiniteScroll?: boolean;
   /** Distance in pixels from the bottom to trigger `onInfiniteScroll`. */
   infiniteScrollDistance?: number;
   /** Input color variant. */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Size variant. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Form field name. Forwarded to the inner `<input>`. */
-  name?: string;
+  name?: string | undefined;
   /** Optional id of the form the input belongs to. */
-  form?: string;
+  form?: string | undefined;
   /** Marks the field as required for native HTML form validation. */
-  required?: boolean;
+  required?: boolean | undefined;
   /** Callback when input value changes. */
-  onInput?: (value: string) => void;
+  onInput?: ((value: string) => void) | undefined;
   /** Callback when item is selected. */
-  onSelect?: (item: AutocompleteItem | string | null) => void;
+  onSelect?: ((item: AutocompleteItem | string | null) => void) | undefined;
   /** Callback when dropdown active state changes. */
   onActiveChange?: (active: boolean) => void;
   /** Callback when scrolled to bottom (infinite scroll). */
   onInfiniteScroll?: () => void;
   /** Custom render for items. */
   itemTemplate?: (item: AutocompleteItem | string) => React.ReactNode;
-  /** Custom header in dropdown. */
+  /** Custom header at the top of the dropdown. It sits above the list of options rather than in it, so assistive technology doesn't count it as one. */
   header?: React.ReactNode;
-  /** Custom footer in dropdown. */
+  /** Custom footer at the bottom of the dropdown. It sits below the list of options rather than in it, so assistive technology doesn't count it as one. */
   footer?: React.ReactNode;
-  /** Content to show when no results. */
+  /**
+   * A message the dropdown shows in place of the options when nothing
+   * matches. Keep it to text: `Tab` closes the list, so a keyboard user
+   * can't reach a link or button in it. It sits beside the list of options
+   * rather than in it, so the input's `aria-expanded` stays false while it
+   * shows. When the user's typing leaves nothing that matches, a polite
+   * status region announces its text: once each time the matches run out.
+   * The text is read when they first run out, and isn't read again as it
+   * changes while they stay out, so a message that names the query is heard
+   * for that first query only. Keep it static.
+   * Opening the list without typing, or emptying the field, announces
+   * nothing. While `loading`, or a `Control` with `isLoading` around the
+   * Autocomplete, is on, it waits, and it's announced once loading ends
+   * with nothing matching. Without `empty`, the dropdown closes when nothing
+   * matches and nothing is announced.
+   */
   empty?: React.ReactNode;
 }
 
@@ -151,13 +234,14 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       placeholder,
       field = 'label',
       clearable = false,
+      labels,
       openOnFocus = false,
       keepFirst = false,
       keepOpen = false,
       selectOnClickOutside = false,
       maxHeight = 200,
       loading = false,
-      disabled = false,
+      disabled: disabledProp,
       checkInfiniteScroll = false,
       infiniteScrollDistance = 50,
       color,
@@ -174,6 +258,11 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       form,
       required,
       id,
+      // Deprecated no-ops, taken here so they stay off the wrapper.
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars -- deprecated no-op
+      selected,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars -- deprecated no-op
+      dropdown,
       // Field props
       label,
       labelSize,
@@ -187,6 +276,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
     },
     ref
   ) => {
+    const disabled = useFieldsetDisabled(disabledProp);
     const insideField = useInsideField();
     // The suggestion list points `aria-labelledby` at the label that names
     // the input, so it needs that label's id.
@@ -201,7 +291,12 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       rendersLabel: !insideField,
       needsLabelId: true,
     });
-    const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+    // The input takes `aria-invalid` and `aria-errormessage`, which report
+    // its state, and the wrapper the rest (#2002).
+    const { control: controlState, rest: wrapperProps } =
+      splitControlState(props);
+    const { bulmaHelperClasses, rest } = useBulmaClasses(wrapperProps);
+    const matchText = useLocaleMatcher();
     const { classPrefix } = useConfig();
     const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -209,6 +304,12 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
 
     const [internalValue, setInternalValue] = useState('');
     const [isActive, setIsActive] = useState(false);
+    // Whether the user has typed since the list opened, since only typing
+    // gets the `empty` content announced. Closing the list resets it (during
+    // render, React's pattern for adjusting state when other state changes),
+    // so opening the list again without typing stays quiet.
+    const [typed, setTyped] = useState(false);
+    if (typed && !isActive) setTyped(false);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
     const listboxId = `${useId()}-listbox`;
 
@@ -227,8 +328,15 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
     // Filter data based on input
     const filteredData = data.filter(item => {
       const displayValue = getDisplayValue(item);
+      if (matchText) return matchText(displayValue, inputValue);
       return displayValue.toLowerCase().includes(inputValue.toLowerCase());
     });
+
+    // The dropdown shows the options or, when nothing matches, the `empty`
+    // content. The listbox holds only options, so it's on screen only while
+    // there are some.
+    const menuOpen = isActive && (filteredData.length > 0 || !!empty);
+    const listOpen = isActive && filteredData.length > 0;
 
     // Handle input change
     const handleInputChange = useCallback(
@@ -238,6 +346,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
           setInternalValue(newValue);
         }
         onInput?.(newValue);
+        setTyped(true);
         if (!isActive && newValue) {
           setIsActive(true);
         }
@@ -282,6 +391,22 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       }
     }, [openOnFocus, disabled]);
 
+    // Read when a click lands outside, so the listener stays put while the
+    // list is open. What it selects changes as the user types and arrows
+    // through suggestions, the filtered list is new on every render, and an
+    // inline `onInput` or `onSelect` changes on every render of the parent.
+    // Typing leaves the highlight where it was, so a list that narrowed can
+    // leave it past the last suggestion, with nothing there to select.
+    const selectHighlightedRef = useLatestRef(() => {
+      if (
+        selectOnClickOutside &&
+        highlightedIndex >= 0 &&
+        highlightedIndex < filteredData.length
+      ) {
+        handleSelect(filteredData[highlightedIndex]);
+      }
+    });
+
     // Handle blur (click outside)
     useEffect(() => {
       if (!isActive) return undefined;
@@ -294,9 +419,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
         const isInside = path.includes(containerRef.current);
 
         if (!isInside) {
-          if (selectOnClickOutside && highlightedIndex >= 0) {
-            handleSelect(filteredData[highlightedIndex]);
-          }
+          selectHighlightedRef.current();
           setIsActive(false);
         }
       };
@@ -304,18 +427,17 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       document.addEventListener('mousedown', handleClickOutside);
       return () =>
         document.removeEventListener('mousedown', handleClickOutside);
-    }, [
-      isActive,
-      selectOnClickOutside,
-      highlightedIndex,
-      filteredData,
-      handleSelect,
-    ]);
+    }, [isActive, selectHighlightedRef]);
+
+    // Read when the dropdown opens or closes, so an inline `onActiveChange`,
+    // new on every render of the parent, isn't told again about a state that
+    // didn't change.
+    const onActiveChangeRef = useLatestRef(onActiveChange);
 
     // Notify active state change
     useEffect(() => {
-      onActiveChange?.(isActive);
-    }, [isActive, onActiveChange]);
+      onActiveChangeRef.current?.(isActive);
+    }, [isActive, onActiveChangeRef]);
 
     // Keep first highlighted
     useEffect(() => {
@@ -327,13 +449,19 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
     // Handle keyboard navigation
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent) => {
-        if (disabled) return;
+        if (disabled || isComposing(e)) return;
 
         switch (e.key) {
           case 'ArrowDown':
             e.preventDefault();
             if (!isActive) {
+              // A closed list opens on its first enabled option, as the ARIA
+              // Authoring Practices' combobox does. Alt+Down Arrow opens it
+              // without a highlight.
               setIsActive(true);
+              setHighlightedIndex(
+                e.altKey ? -1 : filteredData.map(isEnabled).indexOf(true)
+              );
             } else {
               setHighlightedIndex(prev =>
                 prev < filteredData.length - 1 ? prev + 1 : prev
@@ -342,28 +470,60 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
             break;
           case 'ArrowUp':
             e.preventDefault();
-            setHighlightedIndex(prev => (prev > 0 ? prev - 1 : prev));
+            if (!isActive) {
+              // And Up Arrow opens it on its last enabled option.
+              setIsActive(true);
+              setHighlightedIndex(
+                filteredData.map(isEnabled).lastIndexOf(true)
+              );
+            } else {
+              setHighlightedIndex(prev => (prev > 0 ? prev - 1 : prev));
+            }
             break;
           case 'Enter':
-            e.preventDefault();
-            if (highlightedIndex >= 0 && filteredData[highlightedIndex]) {
+            // With the list open on a highlighted option it can pick, Enter
+            // is that option's. Otherwise it closes the list and goes on, so
+            // a form around the field submits, as it would from any text
+            // field.
+            if (
+              isActive &&
+              highlightedIndex >= 0 &&
+              filteredData[highlightedIndex] &&
+              isEnabled(filteredData[highlightedIndex])
+            ) {
+              e.preventDefault();
               handleSelect(filteredData[highlightedIndex]);
+            } else {
+              setIsActive(false);
             }
             break;
           case 'Escape':
-            e.preventDefault();
+            // Only closing the dropdown claims the key. With it closed, the
+            // key goes on to a Modal around the field.
+            if (menuOpen) e.preventDefault();
             setIsActive(false);
             setHighlightedIndex(-1);
             break;
           case 'Tab':
-            if (highlightedIndex >= 0 && filteredData[highlightedIndex]) {
+            if (
+              isActive &&
+              highlightedIndex >= 0 &&
+              filteredData[highlightedIndex]
+            ) {
               handleSelect(filteredData[highlightedIndex]);
             }
             setIsActive(false);
             break;
         }
       },
-      [disabled, isActive, highlightedIndex, filteredData, handleSelect]
+      [
+        disabled,
+        isActive,
+        menuOpen,
+        highlightedIndex,
+        filteredData,
+        handleSelect,
+      ]
     );
 
     // Handle dropdown scroll for infinite scroll
@@ -425,7 +585,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
     );
 
     const dropdownMenuClasses = usePrefixedClassNames('dropdown-menu', {
-      'is-active': isActive && (filteredData.length > 0 || !!empty),
+      'is-active': menuOpen,
     });
 
     const dropdownContentClass = usePrefixedClassNames('dropdown-content');
@@ -450,10 +610,9 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       className
     );
 
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+    // The other attributes go on the wrapper, so the input takes only the
+    // message's id.
+    const { messageEl, messageId } = useFieldMessage(message, messageColor);
 
     // The clear button gives way to a spinner at its spot: the `loading` one,
     // or that of a loading Control this sits in.
@@ -465,14 +624,42 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
     // The listbox takes its name from the label that names the combobox, the
     // one this renders or a surrounding Field's, so the two say the same
     // thing. When no label names the combobox, or the one that does has no
-    // id to point at, the list keeps a fallback name.
-    const listOpen = isActive && (filteredData.length > 0 || !!empty);
+    // id to point at, the list keeps a fallback name. While the dropdown
+    // shows only the `empty` content there's no listbox, so the combobox is
+    // collapsed and points at nothing.
     const activeOptionId =
       listOpen &&
       highlightedIndex >= 0 &&
       highlightedIndex < filteredData.length
         ? `${listboxId}-${highlightedIndex}`
         : undefined;
+
+    // A polite status region, in the page from the start so it's there
+    // before anything is written into it, announces the `empty` content
+    // when the user's typing leaves nothing that matches what's in the
+    // field. It follows what's on screen, so results that come in after the
+    // typing count too. It's said once each time that happens, not again on
+    // each keystroke while nothing matches. An empty field isn't a search,
+    // so it stays quiet then, even with no data. While `loading`, or a
+    // loading Control around it, says results are on their way, it waits,
+    // and it's said once loading ends with nothing matching.
+    const emptyItems =
+      typed &&
+      menuOpen &&
+      !listOpen &&
+      !!inputValue &&
+      !loading &&
+      !controlLoading
+        ? typedNoMatches
+        : nothingToAnnounce;
+    // The region reads the text on screen, whatever `empty` renders.
+    const emptyRef = useRef<HTMLDivElement>(null);
+    const describeEmpty = useCallback(() => {
+      const node = emptyRef.current;
+      /* istanbul ignore if: it's only announced while it's on screen */
+      if (!node) return null;
+      return spokenText(node);
+    }, []);
 
     const autocompleteElement = (
       <div ref={containerRef} className={combinedClasses} {...rest}>
@@ -497,14 +684,16 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
             aria-activedescendant={activeOptionId}
             aria-haspopup="listbox"
             aria-autocomplete="list"
+            aria-describedby={messageId}
             autoComplete="off"
+            {...controlState}
           />
           {showClear && (
             <button
               type="button"
               className={iconRightClickableClass}
               onClick={handleClear}
-              aria-label="Clear"
+              aria-label={labels?.clear || 'Clear'}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -528,62 +717,79 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
           )}
         </div>
 
-        {listOpen && (
+        {menuOpen && (
           <div className={dropdownMenuClasses}>
             <div
               ref={dropdownRef}
               className={dropdownContentClass}
               style={{ maxHeight: `${maxHeight}px`, overflowY: 'auto' }}
-              id={listboxId}
-              role="listbox"
-              aria-labelledby={listLabelId}
-              aria-label={listLabelId ? undefined : 'Suggestions'}
               onScroll={handleDropdownScroll}
             >
               {header && <div className={dropdownHeaderClass}>{header}</div>}
 
-              {filteredData.length > 0 ? (
-                filteredData.map((item, index) => {
-                  const isDisabled = typeof item !== 'string' && item.disabled;
-                  const isHighlighted = index === highlightedIndex;
+              {listOpen ? (
+                <div
+                  id={listboxId}
+                  role="listbox"
+                  aria-labelledby={listLabelId}
+                  aria-label={
+                    listLabelId
+                      ? undefined
+                      : labels?.suggestions || 'Suggestions'
+                  }
+                  onMouseDown={keepFocus}
+                >
+                  {filteredData.map((item, index) => {
+                    const isDisabled =
+                      typeof item !== 'string' && item.disabled;
+                    const isHighlighted = index === highlightedIndex;
 
-                  const itemClasses = prefixedClassNames(
-                    classPrefix,
-                    'dropdown-item',
-                    {
-                      'is-active': isHighlighted,
-                      'is-disabled': isDisabled,
-                    }
-                  );
-
-                  return (
-                    <a
-                      key={index}
-                      id={`${listboxId}-${index}`}
-                      data-index={index}
-                      className={itemClasses}
-                      onClick={() => !isDisabled && handleSelect(item)}
-                      onMouseEnter={() =>
-                        !isDisabled && setHighlightedIndex(index)
+                    const itemClasses = prefixedClassNames(
+                      classPrefix,
+                      'dropdown-item',
+                      {
+                        'is-active': isHighlighted,
+                        'is-disabled': isDisabled,
                       }
-                      role="option"
-                      aria-selected={isHighlighted}
-                      aria-disabled={isDisabled}
-                    >
-                      {itemTemplate
-                        ? itemTemplate(item)
-                        : getDisplayValue(item)}
-                    </a>
-                  );
-                })
+                    );
+
+                    return (
+                      <a
+                        key={index}
+                        id={`${listboxId}-${index}`}
+                        data-index={index}
+                        className={itemClasses}
+                        onClick={() => !isDisabled && handleSelect(item)}
+                        onMouseEnter={() =>
+                          !isDisabled && setHighlightedIndex(index)
+                        }
+                        role="option"
+                        aria-selected={isHighlighted && !isDisabled}
+                        aria-disabled={isDisabled}
+                      >
+                        {itemTemplate
+                          ? itemTemplate(item)
+                          : getDisplayValue(item)}
+                      </a>
+                    );
+                  })}
+                </div>
               ) : (
-                <div className={emptyItemClasses}>{empty}</div>
+                <div
+                  ref={emptyRef}
+                  className={emptyItemClasses}
+                  onMouseDown={keepFocus}
+                >
+                  {empty}
+                </div>
               )}
 
               {footer && <div className={dropdownFooterClass}>{footer}</div>}
             </div>
           </div>
         )}
+
+        <StatusRegion items={emptyItems} describe={describeEmpty} />
       </div>
     );
 

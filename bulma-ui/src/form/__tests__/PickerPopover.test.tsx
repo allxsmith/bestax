@@ -1,7 +1,27 @@
-import React, { useRef, useState } from 'react';
-import { render, fireEvent, act } from '@testing-library/react';
+import type { Mock, MockInstance } from 'vitest';
+import React, { useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
+import {
+  render,
+  fireEvent,
+  act,
+  createEvent,
+  screen,
+} from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
+import { hydrateRoot } from 'react-dom/client';
 import { PickerPopover } from '../_pickerInternals/PickerPopover';
 import { Calendar, CALENDAR_FOCUSED_CELL } from '../_pickerInternals/Calendar';
+import { TimeInput } from '../TimeInput';
+import { DateTimeInput } from '../DateTimeInput';
+import { DateInput } from '../DateInput';
+import { DateRangeInput } from '../DateRangeInput';
+import { LocaleProvider } from '../../helpers/LocaleProvider';
+import { ColorInput } from '../ColorInput';
+import { TreeSelect } from '../TreeSelect';
+import { Cascader } from '../Cascader';
+import { Modal } from '../../components/Modal';
+import { clientWidthFollowsWindow } from '../../__tests__/viewport';
 
 const Harness: React.FC<{
   appendToBody?: boolean;
@@ -58,6 +78,81 @@ describe('PickerPopover', () => {
       fireEvent.keyDown(document, { key: 'Escape' });
     });
     expect(queryByTestId('inside')).toBeNull();
+  });
+
+  it('marks the Escape it closes on as used, and lets it go on', () => {
+    // A Modal or Sidebar around it reads `defaultPrevented` and stays open.
+    // The key still reaches listeners further out.
+    const { getByTestId } = render(<Harness />);
+    const further = vi.fn();
+    window.addEventListener('keydown', further);
+    try {
+      const escape = createEvent.keyDown(getByTestId('inside'), {
+        key: 'Escape',
+      });
+      act(() => {
+        fireEvent(getByTestId('inside'), escape);
+      });
+      expect(escape.defaultPrevented).toBe(true);
+      expect(further).toHaveBeenCalledTimes(1);
+    } finally {
+      window.removeEventListener('keydown', further);
+    }
+  });
+
+  it('claims an Escape pressed in its panel before a React handler around it sees the key', () => {
+    // Such as a Dropdown menu's, which then leaves the Escape to the picker.
+    let seenUsed: boolean | undefined;
+    const { getByTestId } = render(
+      <div
+        onKeyDown={e => {
+          seenUsed = e.defaultPrevented;
+        }}
+      >
+        <Harness />
+      </div>
+    );
+    act(() => {
+      fireEvent.keyDown(getByTestId('inside'), { key: 'Escape' });
+    });
+    expect(seenUsed).toBe(true);
+  });
+
+  it('leaves an Escape pressed in its panel unclaimed under closeOnEscape=false', () => {
+    const { getByTestId } = render(<Harness closeOnEscape={false} />);
+    expect(fireEvent.keyDown(getByTestId('inside'), { key: 'Escape' })).toBe(
+      true
+    );
+  });
+
+  it('closes on an Escape pressed elsewhere, and leaves that key unclaimed', () => {
+    // Focus outside the picker, such as in a Modal opened over it, owns the
+    // key, so the Modal still closes on it.
+    const { getByTestId, queryByTestId } = render(
+      <>
+        <Harness />
+        <button data-testid="elsewhere">elsewhere</button>
+      </>
+    );
+    const escape = createEvent.keyDown(getByTestId('elsewhere'), {
+      key: 'Escape',
+    });
+    act(() => {
+      fireEvent(getByTestId('elsewhere'), escape);
+    });
+    expect(queryByTestId('inside')).toBeNull();
+    expect(escape.defaultPrevented).toBe(false);
+  });
+
+  it('claims an Escape pressed on the field it opens from', () => {
+    const { getByTestId } = render(<Harness />);
+    const escape = createEvent.keyDown(getByTestId('anchor'), {
+      key: 'Escape',
+    });
+    act(() => {
+      fireEvent(getByTestId('anchor'), escape);
+    });
+    expect(escape.defaultPrevented).toBe(true);
   });
 
   it('does not close on Escape when closeOnEscape=false', () => {
@@ -121,6 +216,30 @@ describe('PickerPopover', () => {
     // panel is the parent dialog, which when portaled is a direct child of body.
     expect(inside.closest('[role="dialog"]')!.parentElement).toBe(
       document.body
+    );
+  });
+
+  it('renders into the Modal it is in when appendToBody', () => {
+    function InModal() {
+      const anchorRef = useRef<HTMLButtonElement>(null);
+      return (
+        <Modal active aria-label="Booking">
+          <button ref={anchorRef}>anchor</button>
+          <PickerPopover
+            isOpen
+            onClose={() => {}}
+            anchorRef={anchorRef}
+            appendToBody
+            ariaLabel="test"
+          >
+            <button>inside</button>
+          </PickerPopover>
+        </Modal>
+      );
+    }
+    render(<InModal />);
+    expect(screen.getByRole('dialog', { name: 'test' }).parentElement).toBe(
+      screen.getByTestId('modal')
     );
   });
 
@@ -261,12 +380,189 @@ describe('PickerPopover', () => {
 });
 
 // -------------------------------------------------------------------------
+// The document listeners while `onClose` changes (#1113). TimeInput and
+// DateTimeInput hand the popover an inline `onClose`, which changes on every
+// render of the field. The listeners used to come off and go back on with
+// each one, and React can render between two listeners for one event: the
+// browser runs neither a listener taken off mid-event nor one added
+// mid-event, so that Escape or press never reached the popover.
+// -------------------------------------------------------------------------
+
+describe('PickerPopover while its onClose changes', () => {
+  /** The popover's own listeners among a spy's calls on `document`. */
+  const popoverListeners = (spy: MockInstance) =>
+    spy.mock.calls.filter(
+      ([type]) => type === 'keydown' || type === 'pointerdown'
+    );
+
+  /** A field that hands the popover an inline `onClose`, as TimeInput does. */
+  const InlineField: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+    const anchorRef = useRef<HTMLButtonElement>(null);
+    return (
+      <>
+        <button ref={anchorRef} data-testid="anchor">
+          anchor
+        </button>
+        <button data-testid="outside">outside</button>
+        <PickerPopover
+          isOpen
+          onClose={() => onClose()}
+          anchorRef={anchorRef}
+          ariaLabel="inline"
+        >
+          <button data-testid="inside">inside</button>
+        </PickerPopover>
+      </>
+    );
+  };
+
+  /**
+   * Renders `page` while a listener added ahead of the popover's renders it
+   * again during each `type` event. A browser lets React render an update
+   * made in one listener before the next one runs. jsdom runs them back to
+   * back, so that listener renders with `flushSync`, which does the same
+   * thing synchronously.
+   */
+  const renderWithListenerAhead = (
+    type: 'keydown' | 'pointerdown',
+    page: () => React.ReactElement
+  ) => {
+    const renderPage: { current?: () => void } = {};
+    const Page = () => {
+      const [, setRenders] = useState(0);
+      useEffect(() => {
+        // eslint-disable-next-line @eslint-react/dom-no-flush-sync -- stands in for the browser rendering between listeners
+        renderPage.current = () => flushSync(() => setRenders(n => n + 1));
+      }, []);
+      return page();
+    };
+    // Added before the popover opens, so it runs before the popover's own.
+    const ahead = () => renderPage.current?.();
+    document.addEventListener(type, ahead);
+    const result = render(<Page />);
+    return {
+      ...result,
+      stop: () => document.removeEventListener(type, ahead),
+    };
+  };
+
+  it('keeps its document listeners when the field renders again', () => {
+    const onClose = vi.fn();
+    const { rerender } = render(<InlineField onClose={onClose} />);
+    const addSpy = vi.spyOn(document, 'addEventListener');
+    const removeSpy = vi.spyOn(document, 'removeEventListener');
+    try {
+      rerender(<InlineField onClose={onClose} />);
+      expect(popoverListeners(addSpy)).toHaveLength(0);
+      expect(popoverListeners(removeSpy)).toHaveLength(0);
+    } finally {
+      addSpy.mockRestore();
+      removeSpy.mockRestore();
+    }
+  });
+
+  it.each([
+    ['Escape', () => fireEvent.keyDown(document, { key: 'Escape' })],
+    [
+      'Alt+ArrowUp',
+      () => fireEvent.keyDown(document, { key: 'ArrowUp', altKey: true }),
+    ],
+    [
+      'a press outside',
+      () => fireEvent.pointerDown(screen.getByTestId('outside')),
+    ],
+  ])('calls the onClose of its latest render on %s', (_, press) => {
+    const first = vi.fn();
+    const latest = vi.fn();
+    const { rerender } = render(<InlineField onClose={first} />);
+    rerender(<InlineField onClose={latest} />);
+    act(() => {
+      press();
+    });
+    expect(latest).toHaveBeenCalledTimes(1);
+    expect(first).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [
+      'Escape',
+      'keydown',
+      () =>
+        fireEvent.keyDown(document.activeElement as Element, {
+          key: 'Escape',
+        }),
+    ],
+    [
+      'a press outside',
+      'pointerdown',
+      () => fireEvent.pointerDown(screen.getByTestId('outside')),
+    ],
+  ] as const)(
+    'hears %s when a listener ahead of its own renders the field',
+    (_, type, press) => {
+      const onClose = vi.fn();
+      const { stop } = renderWithListenerAhead(type, () => (
+        <InlineField onClose={onClose} />
+      ));
+      try {
+        act(() => {
+          press();
+        });
+        expect(onClose).toHaveBeenCalledTimes(1);
+      } finally {
+        stop();
+      }
+    }
+  );
+
+  const clickField = () => fireEvent.click(screen.getByRole('combobox'));
+
+  // DateInput and DateRangeInput memoize the `onClose` they hand it, but on
+  // the caller's own `onOpen` and `onClose`, so an inline one of those
+  // changes it on every render of the page.
+  it.each([
+    ['TimeInput', () => <TimeInput label="Start" />, clickField],
+    ['DateTimeInput', () => <DateTimeInput label="Start" />, clickField],
+    [
+      'DateInput with an inline onClose',
+      () => <DateInput label="Start" onClose={() => {}} />,
+      clickField,
+    ],
+    [
+      'DateRangeInput with an inline onClose',
+      () => <DateRangeInput label="Stay" onClose={() => {}} />,
+      () =>
+        fireEvent.focus(screen.getByRole('combobox', { name: 'Start date' })),
+    ],
+  ])(
+    'closes a %s on an Escape that a listener ahead of its own renders the page during',
+    (_, field, open) => {
+      const { stop } = renderWithListenerAhead('keydown', field);
+      try {
+        open();
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+        act(() => {
+          fireEvent.keyDown(document.activeElement as Element, {
+            key: 'Escape',
+          });
+        });
+        expect(screen.queryByRole('dialog')).toBeNull();
+      } finally {
+        stop();
+      }
+    }
+  );
+});
+
+// -------------------------------------------------------------------------
 // Position resolution. jsdom reports zero-size rects, so the anchor's and
 // panel's getBoundingClientRect are mocked, the viewport dimensions are
 // pinned, and a window resize re-runs the measurement with the mocks live.
 // -------------------------------------------------------------------------
 
 describe('PickerPopover position resolution', () => {
+  clientWidthFollowsWindow();
+
   const originalInnerWidth = window.innerWidth;
   const originalInnerHeight = window.innerHeight;
 
@@ -283,9 +579,17 @@ describe('PickerPopover position resolution', () => {
     });
   };
 
+  // A scroll or resize places the panel again in the next frame.
+  beforeEach(() => {
+    vi.useFakeTimers({
+      toFake: ['requestAnimationFrame', 'cancelAnimationFrame'],
+    });
+  });
+
   afterEach(() => {
     setViewport(originalInnerWidth, originalInnerHeight);
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   const makeRect = (r: {
@@ -304,8 +608,14 @@ describe('PickerPopover position resolution', () => {
     }) as DOMRect;
 
   const PositionedHarness: React.FC<{
+    /** `default` leaves the prop out. */
     position?:
-      'auto' | 'bottom-left' | 'bottom-right' | 'top-left' | 'top-right';
+      | 'auto'
+      | 'bottom-left'
+      | 'bottom-right'
+      | 'top-left'
+      | 'top-right'
+      | 'default';
     appendToBody?: boolean;
   }> = ({ position = 'auto', appendToBody = true }) => {
     const anchorRef = useRef<HTMLButtonElement>(null);
@@ -318,7 +628,7 @@ describe('PickerPopover position resolution', () => {
           isOpen
           onClose={() => {}}
           anchorRef={anchorRef}
-          position={position}
+          position={position === 'default' ? undefined : position}
           appendToBody={appendToBody}
           ariaLabel="positioned"
         >
@@ -330,7 +640,8 @@ describe('PickerPopover position resolution', () => {
 
   /**
    * Renders the harness, mocks the anchor + panel rects, then fires a window
-   * resize so updatePosition re-runs against the mocked measurements.
+   * resize and runs the frame it asks for, so the panel is measured again
+   * against the mocked rects.
    */
   const renderWithRects = (
     ui: React.ReactElement,
@@ -340,8 +651,8 @@ describe('PickerPopover position resolution', () => {
     const result = render(ui);
     const anchor = result.getByTestId('anchor');
     const dialog = result.getByRole('dialog');
-    jest.spyOn(anchor, 'getBoundingClientRect').mockReturnValue(anchorRect);
-    jest.spyOn(dialog, 'getBoundingClientRect').mockReturnValue(
+    vi.spyOn(anchor, 'getBoundingClientRect').mockReturnValue(anchorRect);
+    vi.spyOn(dialog, 'getBoundingClientRect').mockReturnValue(
       makeRect({
         top: 0,
         left: 0,
@@ -351,6 +662,7 @@ describe('PickerPopover position resolution', () => {
     );
     act(() => {
       fireEvent(window, new Event('resize'));
+      vi.advanceTimersToNextFrame();
     });
     return result;
   };
@@ -398,6 +710,214 @@ describe('PickerPopover position resolution', () => {
     expect(dialog.style.left).toBe('760px');
   });
 
+  it('shifts a panel in place back inside a narrow window, leaving its fade to the stylesheet', () => {
+    setViewport(375, 800);
+    const result = render(
+      <PositionedHarness position="bottom-left" appendToBody={false} />
+    );
+    const anchor = result.getByTestId('anchor');
+    const dialog = result.getByRole('dialog');
+    vi.spyOn(anchor, 'getBoundingClientRect').mockReturnValue(
+      makeRect({ top: 100, bottom: 130, left: 215, right: 375 })
+    );
+    vi.spyOn(dialog, 'getBoundingClientRect').mockImplementation(() => {
+      const left =
+        215 +
+        (parseFloat(dialog.style.getPropertyValue('--bulma-anchored-shift')) ||
+          0);
+      return makeRect({ top: 130, bottom: 430, left, right: left + 200 });
+    });
+    act(() => {
+      fireEvent(window, new Event('resize'));
+      vi.advanceTimersToNextFrame();
+    });
+    expect(dialog.className).toMatch(/is-bottom-left/);
+    expect(dialog.style.getPropertyValue('--bulma-anchored-shift')).toBe(
+      '-40px'
+    );
+    expect(dialog.style.marginLeft).toBe('');
+    expect(dialog.style.transform).toBe('');
+    expect(dialog.style.translate).toBe('');
+    expect(dialog.style.position).toBe('');
+  });
+
+  it('lines an explicit bottom-left up with the physical left', () => {
+    setViewport(1000, 1000);
+    const { getByRole } = renderWithRects(
+      <PositionedHarness position="bottom-left" />,
+      makeRect({ top: 50, bottom: 70, left: 700, right: 760 }),
+      { width: 200, height: 300 }
+    );
+    const dialog = getByRole('dialog');
+    expect(dialog.className).toMatch(/is-bottom-left/);
+    expect(dialog.style.left).toBe('700px');
+    expect(dialog.style.top).toBe('70px');
+  });
+
+  /** Runs a test on a right-to-left page. jsdom maps no `dir` to `direction`. */
+  const rightToLeft = (test: () => void) => {
+    const style = document.createElement('style');
+    style.textContent = '[dir="rtl"] { direction: rtl; }';
+    document.head.appendChild(style);
+    document.documentElement.setAttribute('dir', 'rtl');
+    try {
+      test();
+    } finally {
+      document.documentElement.removeAttribute('dir');
+      style.remove();
+    }
+  };
+
+  it('lines the default up with the right edge on a right-to-left page', () => {
+    rightToLeft(() => {
+      setViewport(1000, 1000);
+      const { getByRole } = renderWithRects(
+        <PositionedHarness position="default" />,
+        makeRect({ top: 50, bottom: 70, left: 900, right: 960 }),
+        { width: 200, height: 300 }
+      );
+      const dialog = getByRole('dialog');
+      expect(dialog).toHaveClass('is-bottom-left', 'is-start-aligned');
+      // 960 - 200. Lined up on the left it would start at 900 and run the
+      // 200px panel off the 1000px viewport.
+      expect(dialog.style.left).toBe('760px');
+      expect(dialog.style.top).toBe('70px');
+    });
+  });
+
+  it('marks only the default as start aligned, for the stylesheet to place', () => {
+    const { getByRole, unmount } = render(
+      <PositionedHarness position="default" appendToBody={false} />
+    );
+    expect(getByRole('dialog')).toHaveClass(
+      'is-bottom-left',
+      'is-start-aligned'
+    );
+    unmount();
+    render(<PositionedHarness position="bottom-left" appendToBody={false} />);
+    expect(screen.getByRole('dialog')).not.toHaveClass('is-start-aligned');
+  });
+
+  it('keeps an explicit bottom-left physical on a right-to-left page', () => {
+    rightToLeft(() => {
+      setViewport(1000, 1000);
+      const { getByRole } = renderWithRects(
+        <PositionedHarness position="bottom-left" />,
+        makeRect({ top: 50, bottom: 70, left: 400, right: 460 }),
+        { width: 200, height: 300 }
+      );
+      const dialog = getByRole('dialog');
+      expect(dialog.className).toMatch(/is-bottom-left/);
+      expect(dialog.style.left).toBe('400px');
+    });
+  });
+
+  it('keeps an explicit bottom-right physical on a right-to-left page', () => {
+    rightToLeft(() => {
+      setViewport(1000, 1000);
+      const { getByRole } = renderWithRects(
+        <PositionedHarness position="bottom-right" />,
+        makeRect({ top: 50, bottom: 70, left: 400, right: 460 }),
+        { width: 200, height: 300 }
+      );
+      expect(getByRole('dialog').className).toMatch(/is-bottom-right/);
+      expect(getByRole('dialog').style.left).toBe('260px');
+    });
+  });
+
+  it('measures auto against the physical sides on a right-to-left page', () => {
+    rightToLeft(() => {
+      setViewport(1000, 1000);
+      const { getByRole } = renderWithRects(
+        <PositionedHarness position="auto" />,
+        makeRect({ top: 50, bottom: 70, left: 100, right: 160 }),
+        { width: 200, height: 300 }
+      );
+      // 100 + 200 fits, so auto keeps the left edges, as left to right.
+      expect(getByRole('dialog').className).toMatch(/is-bottom-left/);
+      expect(getByRole('dialog').style.left).toBe('100px');
+    });
+  });
+
+  it('lines the default up with the left edge left to right', () => {
+    setViewport(1000, 1000);
+    const { getByRole } = renderWithRects(
+      <PositionedHarness position="default" />,
+      makeRect({ top: 50, bottom: 70, left: 400, right: 460 }),
+      { width: 200, height: 300 }
+    );
+    expect(getByRole('dialog').className).toMatch(/is-bottom-left/);
+    expect(getByRole('dialog').style.left).toBe('400px');
+  });
+
+  // Each field leaves its `position` unset unless the caller sets one, so
+  // the popover can line up with the field's start edge.
+  it.each([
+    ['DateInput', (p: object) => <DateInput label="Date" {...p} />],
+    ['TimeInput', (p: object) => <TimeInput label="Time" {...p} />],
+    ['DateTimeInput', (p: object) => <DateTimeInput label="When" {...p} />],
+    ['DateRangeInput', (p: object) => <DateRangeInput label="Stay" {...p} />],
+    ['ColorInput', (p: object) => <ColorInput label="Color" {...p} />],
+    [
+      'TreeSelect',
+      (p: object) => (
+        <TreeSelect
+          label="Place"
+          data={[{ value: 'here', label: 'Here' }]}
+          {...p}
+        />
+      ),
+    ],
+    [
+      'Cascader',
+      (p: object) => (
+        <Cascader
+          label="Place"
+          data={[{ value: 'here', label: 'Here' }]}
+          {...p}
+        />
+      ),
+    ],
+  ])(
+    'leaves the corner of %s to the start edge by default, and to the caller once named',
+    (_, field) => {
+      const open = () =>
+        fireEvent.keyDown(screen.getAllByRole('combobox')[0], {
+          key: 'ArrowDown',
+          altKey: true,
+        });
+      rightToLeft(() => {
+        const { unmount } = render(field({ mobileNative: false }));
+        open();
+        expect(screen.getByRole('dialog')).toHaveClass('is-start-aligned');
+        unmount();
+        render(field({ mobileNative: false, position: 'bottom-left' }));
+        open();
+        expect(screen.getByRole('dialog')).toHaveClass('is-bottom-left');
+        expect(screen.getByRole('dialog')).not.toHaveClass('is-start-aligned');
+      });
+    }
+  );
+
+  it('reads the direction a LocaleProvider sets for the default', () => {
+    const style = document.createElement('style');
+    style.textContent = '[dir="rtl"] { direction: rtl; }';
+    document.head.appendChild(style);
+    try {
+      setViewport(1000, 1000);
+      const { getByRole } = renderWithRects(
+        <LocaleProvider locale="ar" dir="rtl">
+          <PositionedHarness position="default" />
+        </LocaleProvider>,
+        makeRect({ top: 50, bottom: 70, left: 900, right: 960 }),
+        { width: 200, height: 300 }
+      );
+      expect(getByRole('dialog').style.left).toBe('760px');
+    } finally {
+      style.remove();
+    }
+  });
+
   it('appendToBody computes fixed coordinates for an explicit bottom-left', () => {
     setViewport(1000, 1000);
     const { getByRole } = renderWithRects(
@@ -417,16 +937,18 @@ describe('PickerPopover position resolution', () => {
     const dialog = result.getByRole('dialog');
     // The margin `--bulma-picker-popover-offset: 20px` would give it.
     dialog.style.marginTop = '20px';
-    jest
-      .spyOn(result.getByTestId('anchor'), 'getBoundingClientRect')
-      .mockReturnValue(
-        makeRect({ top: 670, bottom: 690, left: 50, right: 110 })
-      );
-    jest
-      .spyOn(dialog, 'getBoundingClientRect')
-      .mockReturnValue(makeRect({ top: 0, left: 0, right: 200, bottom: 300 }));
+    vi.spyOn(
+      result.getByTestId('anchor'),
+      'getBoundingClientRect'
+    ).mockReturnValue(
+      makeRect({ top: 670, bottom: 690, left: 50, right: 110 })
+    );
+    vi.spyOn(dialog, 'getBoundingClientRect').mockReturnValue(
+      makeRect({ top: 0, left: 0, right: 200, bottom: 300 })
+    );
     act(() => {
       fireEvent(window, new Event('resize'));
+      vi.advanceTimersToNextFrame();
     });
     // 690 + 300 fits the 1000px viewport, but not with the 20px gap as well.
     expect(dialog.className).toMatch(/is-top-left/);
@@ -438,16 +960,18 @@ describe('PickerPopover position resolution', () => {
     const dialog = result.getByRole('dialog');
     // The margin `--bulma-picker-popover-offset: 20px` would give it.
     dialog.style.marginTop = '20px';
-    jest
-      .spyOn(result.getByTestId('anchor'), 'getBoundingClientRect')
-      .mockReturnValue(
-        makeRect({ top: 660, bottom: 680, left: 50, right: 110 })
-      );
-    jest
-      .spyOn(dialog, 'getBoundingClientRect')
-      .mockReturnValue(makeRect({ top: 0, left: 0, right: 200, bottom: 300 }));
+    vi.spyOn(
+      result.getByTestId('anchor'),
+      'getBoundingClientRect'
+    ).mockReturnValue(
+      makeRect({ top: 660, bottom: 680, left: 50, right: 110 })
+    );
+    vi.spyOn(dialog, 'getBoundingClientRect').mockReturnValue(
+      makeRect({ top: 0, left: 0, right: 200, bottom: 300 })
+    );
     act(() => {
       fireEvent(window, new Event('resize'));
+      vi.advanceTimersToNextFrame();
     });
     // 680 + 300 + 20 fills the 1000px viewport exactly.
     expect(dialog.className).toMatch(/is-bottom-left/);
@@ -477,14 +1001,49 @@ describe('PickerPopover position resolution', () => {
     const dialog = getByRole('dialog');
     expect(dialog.className).toMatch(/is-bottom-left/);
     // The anchor moves (e.g. the page scrolled); a scroll event re-measures.
-    (getByTestId('anchor').getBoundingClientRect as jest.Mock).mockReturnValue(
+    (getByTestId('anchor').getBoundingClientRect as Mock).mockReturnValue(
       makeRect({ top: 880, bottom: 900, left: 900, right: 960 })
     );
     act(() => {
       fireEvent.scroll(window);
+      vi.advanceTimersToNextFrame();
     });
     expect(dialog.className).toMatch(/is-top-right/);
     expect(dialog.style.top).toBe('580px');
     expect(dialog.style.left).toBe('760px');
+  });
+});
+
+describe('PickerPopover hydration', () => {
+  it('hydrates a portaled panel that is open on the first render in place, then moves it', async () => {
+    const app = <Harness appendToBody />;
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(app);
+    document.body.appendChild(container);
+
+    // The server renders it in place, so the hydrating render has markup to
+    // match.
+    expect(container.querySelector('[role="dialog"]')).not.toBeNull();
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const onRecoverableError = vi.fn();
+    let unmountRoot = () => {};
+    try {
+      await act(async () => {
+        const root = hydrateRoot(container, app, { onRecoverableError });
+        unmountRoot = () => root.unmount();
+      });
+
+      expect(onRecoverableError).not.toHaveBeenCalled();
+      expect(errorSpy).not.toHaveBeenCalled();
+      // Then it moved into document.body.
+      expect(container.querySelector('[role="dialog"]')).toBeNull();
+      const panel = document.body.querySelector('[role="dialog"]');
+      expect(panel?.parentElement).toBe(document.body);
+    } finally {
+      await act(async () => unmountRoot());
+      errorSpy.mockRestore();
+      container.remove();
+    }
   });
 });

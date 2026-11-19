@@ -6,7 +6,18 @@
  * Every conversion this table allows must render exactly the HTML the raw
  * element rendered. That is a claim about bestax, and the render tests hold
  * it: each root, modifier and helper here is rendered through the built
- * library and compared with the raw markup it replaces.
+ * library and compared with the raw markup it replaces. The exceptions are
+ * on purpose. Font Awesome's own `<i aria-hidden="true">` alone in a `.icon`
+ * that carries nothing assistive tech reads converts to `Icon`, which writes
+ * the attribute on the `.icon` instead, since the glyph is hidden either way;
+ * a `.icon` around a bare glyph in a link or button its own label names
+ * converts too, and `Icon` writes the attribute it doesn't carry, since that
+ * label is what assistive tech reads for the control; and Font Awesome 6's
+ * long name for a style (`fa-brands`) is written as the skill's `variant`,
+ * which `Icon` renders as the short one (`fab`), the same style (see
+ * `readsGlyph`). And a Bulma 0.9 helper v1 removed, which styles nothing
+ * under v1, converts as the v1 helper that does its job (see
+ * `REPLACED_IN_V1`).
  *
  * Data only: `scripts/gen-mcp-index.mjs` imports it directly for the MCP
  * server's `lookup_bulma_classes`, so nothing Node cannot strip (no enums, no
@@ -41,9 +52,46 @@ export interface Modifier {
   /**
    * The prop renders this attribute too, unless the element sets its own
    * (`Pagination.Link`'s `active` and `aria-current`), so the class converts
-   * only beside one written out, and stays a class otherwise.
+   * only beside one written out, and stays a class otherwise. On a child the
+   * target renders itself (`Menu.Item`'s `<a>`), there is no class to keep,
+   * so the element stays markup instead.
    */
   readonly needsAttr?: { readonly name: string; readonly value: string };
+  /**
+   * Attributes the prop writes over any value the element sets (`Button`'s
+   * `isLoading` writes `aria-busy="true"` and `aria-disabled="true"` while it
+   * loads), so the class converts only where the element sets none of them,
+   * and stays a class otherwise, which renders the element as written. Read
+   * on an element's own modifiers; an absorbed child's don't take it.
+   */
+  readonly overridesAttrs?: readonly string[];
+  /**
+   * Off the tags in `tagIn`, where the class stays a class, the prop that
+   * sizes the element the same without picking its tag (`textSize`, whose
+   * `is-size-4` Bulma sizes as it does `Title`'s `is-4`). The MCP lookup reads
+   * it, and the truth e2e holds it to Bulma's stylesheet; the codemod writes
+   * it nowhere, since its class differs, and names it in a TODO instead.
+   */
+  readonly offTag?: PropWrite;
+  /**
+   * Another of the root's modifiers whose prop this one writes another value
+   * of, and that value renders that modifier's class too (`Field`'s
+   * `hasAddons="centered"` renders `has-addons` beside `has-addons-centered`).
+   * The class converts only beside that one, the two as the one value, and
+   * stays a class on its own. Beside it, `tagIn` and `needsAttr` hold as they
+   * do for any modifier.
+   */
+  readonly beside?: string;
+  /**
+   * The tag the target renders with this class's prop and no `as`, in place
+   * of the root's `tag` (`Image` puts a ratio on a <figure>), so the element
+   * converts with `as` only on another tag. The planner's tag check, which
+   * comes before every refusal, reads it, and the render truth test holds it
+   * to one of the tags it renders the root on. Only one such class converts
+   * on an element; a second stays a class, the way a second class for a prop
+   * already written does.
+   */
+  readonly rendersTag?: string;
 }
 
 /**
@@ -116,6 +164,30 @@ export interface Absorbs {
   readonly renames?: Readonly<
     Record<string, { readonly to: string; readonly beside: string }>
   >;
+  /**
+   * The bestax component that takes a `<label>` beside the child as its own
+   * `label` (`Select`, which renders a `Field` and a `Control` around the
+   * target, and so takes one only outside a `Field` or `Control`), for the
+   * TODO on an element holding one: the target renders no label, so the
+   * element stays markup.
+   */
+  readonly label?: string;
+}
+
+/** How a target that renders a glyph from props reads one (`Icon`). */
+export interface ReadsGlyph {
+  /**
+   * The attributes the element may carry and still take Font Awesome's
+   * `aria-hidden` up off its `<i>`, or take the one the target writes on an
+   * icon in a link or button its own label names: ones the target renders
+   * as given that assistive tech doesn't read, a name ending in `*` standing
+   * for every attribute it starts. Read by name, whatever the value, since
+   * an expression may render as anything. Anything else (a name, a
+   * description, a `title`, a `role`, a `tabIndex`, a handler) keeps the
+   * element as it is: the attribute would hide what it exposes, and `Icon`
+   * writes no `aria-hidden` beside a `role` or `tabIndex` at all.
+   */
+  readonly hiddenMovesBeside: readonly string[];
 }
 
 export interface RootEntry {
@@ -141,12 +213,18 @@ export interface RootEntry {
   /**
    * What the target renders in place of `defaults` once the element names
    * itself through one of `by`, set to anything but an empty string (`Icon`
-   * makes a named icon an image and hides any other). A name given as an
-   * expression may render as none, so the element then sets both.
+   * makes a named icon an image and hides any other, and a pagination link
+   * with an `href` is a link, and a button without one). A name given as an
+   * expression may render as none, so the element then sets both. `what`
+   * says what one of `by` gives the element, in the TODO for that case:
+   * `a name` unless it says otherwise. With `emptyCounts`, an empty value
+   * gives it too: `href=""` is still a link.
    */
   readonly namedDefaults?: {
     readonly by: readonly string[];
     readonly defaults: Readonly<Record<string, string>>;
+    readonly what?: string;
+    readonly emptyCounts?: boolean;
   };
   /**
    * Attributes that stop the target rendering `defaults` when the element sets
@@ -168,6 +246,12 @@ export interface RootEntry {
         readonly on: readonly string[];
         readonly fallback: string;
         readonly keeps: readonly string[];
+        /**
+         * `fallback` is the tag's own implicit role (`Menu.List`'s
+         * `role="list"` on its <ul>), so an element that sets none is the
+         * same list and converts as well; only another value refuses.
+         */
+        readonly implicit?: boolean;
       }
     >
   >;
@@ -231,6 +315,14 @@ export interface RootEntry {
    * modifiers add their props beside these.
    */
   readonly folds?: readonly PropWrite[];
+  /**
+   * For a `fold` root: the attributes of the target inside that name what the
+   * fold renders (a responsive `Table` names its container after the table's
+   * `aria-label` or `aria-labelledby` while it overflows). A fold onto one
+   * with none of them, and no spread, gets a `name:` TODO asking for one,
+   * whose words describe that container, the only fold that sets this.
+   */
+  readonly namedFrom?: readonly string[];
   /** The target renders the element's only child itself. */
   readonly absorbs?: Absorbs;
   /**
@@ -267,6 +359,20 @@ export interface RootEntry {
    */
   readonly buildsIcons?: boolean;
   /**
+   * The target renders a glyph from props in place of its children (`Icon`,
+   * from `library` and `name`): when the element's only child is one bare,
+   * empty `<i>` whose classes `glyph.ts` reads, its classes become those
+   * props, the `<i>` goes and the element closes itself. Around anything
+   * else, the target renders its children as given. An `<i>` that carries
+   * the `aria-hidden` the target writes, as Font Awesome's own markup does,
+   * reads too when the element carries nothing assistive tech reads: the
+   * attribute moves up onto it, a difference in markup a conversion makes
+   * on purpose. So does a bare `<i>` in an element that carries no
+   * `aria-hidden` and nothing else assistive tech reads, in a link or button
+   * its own label names: the target writes the attribute there.
+   */
+  readonly readsGlyph?: ReadsGlyph;
+  /**
    * The target renders the whole `.file` tree from props (`File`): its
    * `<input>`, button text, icons and file name. The element converts only
    * when its tree is exactly that one, and only inside a `Field`, since
@@ -282,15 +388,6 @@ export interface RootEntry {
    * gutter). The reason is for the MCP lookup.
    */
   readonly helpersLeftOut?: Readonly<Record<string, string>>;
-  /**
-   * Tags the target doesn't render, on which the element is valid Bulma that
-   * bestax renders some other way, so it stays markup with no `tag` TODO
-   * there. Any other tag still gets one. The reason is for the MCP lookup.
-   */
-  readonly otherTagsStay?: {
-    readonly tags: readonly string[];
-    readonly why: string;
-  };
   /**
    * Attributes the target types as numbers, among the ones it is given (the
    * child's, when it `absorbs` the child and puts them there), beside
@@ -319,6 +416,53 @@ export interface RootEntry {
    * no prop for them.
    */
   readonly omits?: Readonly<Record<string, string>>;
+  /**
+   * How to keep this class on an element another root converts, where
+   * wrapping or nesting its component is not always the answer: `.container`
+   * there is often only centering the element, which `mx="auto"` does. For
+   * that element's TODO and the MCP lookup, which otherwise say to wrap or
+   * nest it.
+   */
+  readonly onAnother?: string;
+  /**
+   * Bulma styles this root's modifiers, and the classes it omits, only on
+   * the element that carries the root itself (`.image.is-64x64`), so on an
+   * element without it they do nothing, and the planner flags them.
+   */
+  readonly modifiersNeedRoot?: boolean;
+}
+
+/**
+ * Whether a root's target renders this tag: the one it renders by itself (or
+ * `renders`, the one the element's classes pick: a heading's size, an
+ * `Image` ratio's <figure>), or one its `as` takes. A root that doesn't loses
+ * to one that does on the same element.
+ */
+export function reachesTag(
+  entry: RootEntry,
+  tag: string,
+  renders: string = entry.tag!
+): boolean {
+  if (tag === renders || entry.as === 'any') return true;
+  return entry.as?.includes(tag) ?? false;
+}
+
+/**
+ * How well a root fits an element's tag, for picking one of two: 2 when its
+ * target renders the tag with no `as` (`Hero`'s <section>, or `renders`, the
+ * tag the element's classes pick: an `Image` ratio's <figure>), 1 when it
+ * reaches it only through `as` (`Container`'s <section>), 0 when it can't
+ * render it. The higher wins, so `<section className="hero container">` is a
+ * `Hero`, and `<div className="media-left image is-1by1">` no `Image`, which
+ * that ratio puts on a <figure>.
+ */
+export function tagFit(
+  entry: RootEntry,
+  tag: string,
+  renders: string = entry.tag!
+): number {
+  if (tag === renders) return 2;
+  return reachesTag(entry, tag, renders) ? 1 : 0;
 }
 
 // ---- Value vocabularies (held to @allxsmith/bestax-bulma/constants) --------
@@ -343,6 +487,34 @@ export const COLORS = [
   'white-ter',
   'light',
   'dark',
+] as const;
+export const COLOR_SHADES = [
+  '00',
+  '05',
+  '10',
+  '15',
+  '20',
+  '25',
+  '30',
+  '35',
+  '40',
+  '45',
+  '50',
+  '55',
+  '60',
+  '65',
+  '70',
+  '75',
+  '80',
+  '85',
+  '90',
+  '95',
+  'invert',
+  'light',
+  'dark',
+  'soft',
+  'bold',
+  'on-scheme',
 ] as const;
 export const SIZES = ['0', '1', '2', '3', '4', '5', '6', 'auto'] as const;
 export const TEXT_SIZES = ['1', '2', '3', '4', '5', '6', '7'] as const;
@@ -613,6 +785,37 @@ function flags(map: Record<string, string>): Record<string, Modifier> {
   );
 }
 
+/**
+ * `Title`'s and `SubTitle`'s `is-1` to `is-6`: `size`, exact only on the
+ * heading it names (or a <p>), since the size picks the heading. On any
+ * other tag the class stays, and `textSize` sizes it the same.
+ */
+function headingSizes(): Record<string, Modifier> {
+  return Object.fromEntries(
+    ['1', '2', '3', '4', '5', '6'].map(n => [
+      `is-${n}`,
+      {
+        writes: [{ prop: 'size', value: n }],
+        tagIn: [`h${n}`, 'p'],
+        offTag: { prop: 'textSize', value: n },
+      },
+    ])
+  );
+}
+
+/** The same modifiers, each converting only beside `other`. */
+function beside(
+  other: string,
+  modifiers: Record<string, Modifier>
+): Record<string, Modifier> {
+  return Object.fromEntries(
+    Object.entries(modifiers).map(([token, modifier]) => [
+      token,
+      { ...modifier, beside: other },
+    ])
+  );
+}
+
 const BASE = {
   status: 'mapped',
   textColor: 'textColor',
@@ -624,6 +827,46 @@ const COLUMNS_AXIS_GAPS =
   'bestax `Columns` leaves the column and row gap helpers out: the gutter is padding inside each column, which CSS `gap` would add to';
 
 // ---- Roots ------------------------------------------------------------------
+
+/**
+ * The `dropsAttr` rows for a target whose `as` reaches an `<a>` and a
+ * `<button>`: the anchor attributes but `type`, and `rel`, kept on the tags
+ * in `anchorOn`, and the button attributes kept on those in `buttonOn`.
+ */
+function dropsFor(
+  anchorOn: readonly string[],
+  buttonOn: readonly string[]
+): [string, { except: readonly string[] }][] {
+  return [
+    ...[
+      'href',
+      'target',
+      'download',
+      'hrefLang',
+      'ping',
+      'referrerPolicy',
+      'media',
+      'rel',
+    ].map((name): [string, { except: readonly string[] }] => [
+      name,
+      { except: anchorOn },
+    ]),
+    ...[
+      'disabled',
+      'form',
+      'formAction',
+      'formEncType',
+      'formMethod',
+      'formNoValidate',
+      'formTarget',
+      'name',
+      'value',
+    ].map((name): [string, { except: readonly string[] }] => [
+      name,
+      { except: buttonOn },
+    ]),
+  ];
+}
 
 export const ROOTS: Readonly<Record<string, RootEntry>> = {
   block: {
@@ -662,11 +905,18 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
         'color'
       ),
       ...tokens('is-', ['small', 'normal', 'medium', 'large'], 'size'),
-      // `color="light"` renders no class on a Button; `isLight` renders it.
+      // `is-light` is both the light color's class and the light variant's, so
+      // it becomes `isLight`, which renders it with any color or none.
       ...flags({
         'is-light': 'isLight',
         'is-rounded': 'isRounded',
-        'is-loading': 'isLoading',
+      }),
+      // `isLoading` writes the busy state over the element's own.
+      'is-loading': {
+        writes: [{ prop: 'isLoading' }],
+        overridesAttrs: ['aria-busy', 'aria-disabled'],
+      },
+      ...flags({
         'is-static': 'isStatic',
         'is-fullwidth': 'isFullwidth',
         'is-outlined': 'isOutlined',
@@ -849,29 +1099,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     // The anchor attributes but `type`, and `rel`, reach only an <a>, and the
     // button attributes only a <button> (`STRIP_FROM_NON_ANCHOR` and
     // `STRIP_FROM_NON_BUTTON` in bulma-ui's Card.tsx).
-    dropsAttr: Object.fromEntries([
-      ...[
-        'href',
-        'target',
-        'download',
-        'hrefLang',
-        'ping',
-        'referrerPolicy',
-        'media',
-        'rel',
-      ].map(name => [name, { except: ['a'] }]),
-      ...[
-        'disabled',
-        'form',
-        'formAction',
-        'formEncType',
-        'formMethod',
-        'formNoValidate',
-        'formTarget',
-        'name',
-        'value',
-      ].map(name => [name, { except: ['button'] }]),
-    ]),
+    dropsAttr: Object.fromEntries([...dropsFor(['a'], ['button'])]),
     ownProps: ['as', 'color', 'bgColor', 'textColor'],
   },
   columns: {
@@ -1025,6 +1253,16 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Container',
     tag: 'div',
+    as: [
+      'div',
+      'main',
+      'section',
+      'article',
+      'aside',
+      'header',
+      'footer',
+      'nav',
+    ],
     modifiers: {
       ...flags({
         'is-fluid': 'fluid',
@@ -1044,6 +1282,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       ),
     },
     ownProps: [
+      'as',
       'textColor',
       'color',
       'bgColor',
@@ -1053,6 +1292,10 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       'breakpoint',
       'isMax',
     ],
+    // On another root's element it is often there only to center it (a sized
+    // `.image`), which `mx="auto"` does and nothing else `.container` sets.
+    onAnother:
+      'where it is only there to center this element, `mx="auto"` centers it, and otherwise wrap the element in a `Container`; either way drop the class, then check the layout',
   },
   content: {
     ...BASE,
@@ -1096,8 +1339,6 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Field',
     tag: 'div',
-    // `has-addons-centered`, `is-grouped-right` and the like stay classes:
-    // the prop values that render them render `has-addons` too.
     modifiers: {
       ...flags({
         'is-horizontal': 'horizontal',
@@ -1107,6 +1348,17 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       // `grouped` renders `is-grouped` for `true` and its three layouts, and
       // for nothing else truthy.
       'is-grouped': { writes: [{ prop: 'grouped' }], onlyTrue: true },
+      // The prop values that render `has-addons-centered`, `is-grouped-right`
+      // and the like render `has-addons` or `is-grouped` too, so each converts
+      // only beside that class, and stays a class on its own.
+      ...beside(
+        'has-addons',
+        tokens('has-addons-', ['centered', 'right'], 'hasAddons')
+      ),
+      ...beside(
+        'is-grouped',
+        tokens('is-grouped-', ['centered', 'right', 'multiline'], 'grouped')
+      ),
     },
     wrapsChildren: {
       in: 'field-body',
@@ -1214,6 +1466,8 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       ])
     ),
     adoptsIdFrom: ['Field'],
+    // The <input>'s own attributes, which React's types take as numbers.
+    numberAttrs: ['maxLength', 'minLength'],
     ownProps: [
       'color',
       'size',
@@ -1250,6 +1504,8 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       ])
     ),
     adoptsIdFrom: ['Field'],
+    // The <textarea>'s own attributes, which React's types take as numbers.
+    numberAttrs: ['rows', 'cols', 'maxLength', 'minLength'],
     ownProps: [
       'color',
       'size',
@@ -1296,6 +1552,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       }),
       pairs: { multiple: 'is-multiple' },
       renames: { size: { to: 'multipleSize', beside: 'multiple' } },
+      label: 'Select',
     },
     numberAttrs: ['multipleSize'],
     adoptsIdFrom: ['Field'],
@@ -1325,6 +1582,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Hero',
     tag: 'section',
+    as: ['section', 'div', 'main', 'header', 'footer', 'article', 'aside'],
     // Hero's `color` is the component color, and `textColor` reaches the DOM
     // as an attribute rather than a class.
     textColor: null,
@@ -1336,13 +1594,14 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
         'size'
       ),
     },
-    ownProps: ['color', 'size', 'bgColor', 'fullheightWithNavbar'],
+    ownProps: ['as', 'color', 'size', 'bgColor', 'fullheightWithNavbar'],
   },
   'hero-head': {
     ...BASE,
     target: 'Hero.Head',
     tag: 'div',
-    ownProps: ['color', 'bgColor', 'textColor'],
+    as: ['div', 'header', 'nav'],
+    ownProps: ['as', 'color', 'bgColor', 'textColor'],
   },
   'hero-body': {
     ...BASE,
@@ -1354,14 +1613,16 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Hero.Foot',
     tag: 'div',
-    ownProps: ['color', 'bgColor', 'textColor'],
+    as: ['div', 'footer', 'nav'],
+    ownProps: ['as', 'color', 'bgColor', 'textColor'],
   },
   level: {
     ...BASE,
     target: 'Level',
     tag: 'nav',
+    as: ['nav', 'div', 'header', 'footer'],
     modifiers: flags({ 'is-mobile': 'isMobile' }),
-    ownProps: ['isMobile', 'color', 'bgColor', 'textColor'],
+    ownProps: ['as', 'isMobile', 'color', 'bgColor', 'textColor'],
   },
   'level-left': {
     ...BASE,
@@ -1432,10 +1693,24 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     modifiers: {
       ...tokens('is-', COMPONENT_COLORS, 'color'),
       ...tokens('is-fixed-', ['top', 'bottom'], 'fixed'),
-      ...flags({ 'is-transparent': 'transparent' }),
+      ...flags({
+        'is-transparent': 'transparent',
+        'is-spaced': 'isSpaced',
+        'has-shadow': 'hasShadow',
+      }),
     },
     defaults: { role: 'navigation', 'aria-label': 'main navigation' },
-    ownProps: ['textColor', 'color', 'bgColor', 'transparent', 'fixed'],
+    ownProps: [
+      'textColor',
+      'color',
+      'bgColor',
+      'transparent',
+      'isSpaced',
+      'hasShadow',
+      'fixed',
+    ],
+    // It reaches the <nav> as written, so Bulma's own label converts with it.
+    passThrough: ['aria-label'],
   },
   // No background prop on these parts.
   'navbar-brand': {
@@ -1469,12 +1744,20 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   },
   // A `.has-dropdown` item stays a `Navbar.Item` with the class: a
   // `Navbar.Dropdown` would hand its `.navbar-link` dropdown semantics.
+  // `active` writes `aria-current="page"` unless the element has its own,
+  // the way `Menu.Item` and `Pagination.Link` do, so `is-active` converts
+  // only beside one and stays a class otherwise.
   'navbar-item': {
     ...BASE,
     target: 'Navbar.Item',
     tag: 'a',
     as: 'any',
-    modifiers: flags({ 'is-active': 'active' }),
+    modifiers: {
+      'is-active': {
+        writes: [{ prop: 'active' }],
+        needsAttr: { name: 'aria-current', value: 'page' },
+      },
+    },
     writesAttr: {
       type: {
         on: ['button'],
@@ -1518,7 +1801,14 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       ),
       ...flags({ 'is-light': 'isLight' }),
     },
-    ownProps: ['color', 'textColor', 'isLight', 'hasDelete', 'onDelete'],
+    ownProps: [
+      'color',
+      'textColor',
+      'isLight',
+      'hasDelete',
+      'onDelete',
+      'ariaCloseLabel',
+    ],
   },
   progress: {
     ...BASE,
@@ -1548,12 +1838,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     as: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'],
     sizeDrivesTag: true,
     modifiers: {
-      ...Object.fromEntries(
-        ['1', '2', '3', '4', '5', '6'].map(n => [
-          `is-${n}`,
-          { writes: [{ prop: 'size', value: n }], tagIn: [`h${n}`, 'p'] },
-        ])
-      ),
+      ...headingSizes(),
       ...flags({ 'has-skeleton': 'hasSkeleton' }),
     },
     ownProps: ['size', 'as', 'hasSkeleton', 'textColor', 'bgColor'],
@@ -1587,6 +1872,21 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Tag',
     tag: 'span',
+    as: ['span', 'a', 'button'],
+    writesAttr: {
+      type: {
+        on: ['button'],
+        fallback: 'button',
+        keeps: ['button', 'submit', 'reset'],
+      },
+    },
+    // A link tag withholds the button attributes and a button tag the anchor
+    // attributes but `type`, and `rel` (`BUTTON_ONLY_ATTRS` in bulma-ui's
+    // anchorAttrs helper, and `STRIP_FROM_BUTTON` in its Tag.tsx). A span tag
+    // passes on what it's given.
+    dropsAttr: Object.fromEntries([
+      ...dropsFor(['a', 'span'], ['button', 'span']),
+    ]),
     textColor: null,
     bgColor: 'backgroundColor',
     modifiers: {
@@ -1607,6 +1907,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
         'bestax `Tag` renders it through `isDelete`, which also turns the tag into a <button>',
     },
     ownProps: [
+      'as',
       'color',
       'size',
       'isLight',
@@ -1637,12 +1938,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     as: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'],
     sizeDrivesTag: true,
     modifiers: {
-      ...Object.fromEntries(
-        ['1', '2', '3', '4', '5', '6'].map(n => [
-          `is-${n}`,
-          { writes: [{ prop: 'size', value: n }], tagIn: [`h${n}`, 'p'] },
-        ])
-      ),
+      ...headingSizes(),
       ...flags({ 'is-spaced': 'isSpaced', 'has-skeleton': 'hasSkeleton' }),
     },
     ownProps: ['size', 'isSpaced', 'as', 'hasSkeleton', 'textColor', 'bgColor'],
@@ -1694,9 +1990,13 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   },
 
   // ---- Families bestax has but that do not map element by element yet ------
+  // `Checkbox` renders a `<label class="styled-checkbox checkbox">` around
+  // its `<input>`, hidden, and a box of its own drawn beside it. It puts its
+  // `className` on the `<label>` and the rest of what it's given on the
+  // `<input>`, and its `indeterminate` sets the input's mixed state.
   checkbox: todo(
     'Checkbox',
-    "bestax `Checkbox` renders its own styled markup, not Bulma's"
+    "bestax `Checkbox` renders its own styled markup, not Bulma's. Write it by hand in place of the element that carries `.checkbox`, Bulma's `<label>` or a bare `<input>`, with the `<input>`'s attributes on it: `id`, `name`, `aria-label` and the rest reach its `<input>`, and a `<label>`'s text is its children. Drive it with `checked` and `onChange`, and add `indeterminate` for a select-all box. Its `className` goes on its `<label>`, which declares the `--bulma-checkbox-*` variables, so set the page's colors with those in a rule for your class beside `.styled-checkbox`. Where the page put `.checkbox` on a bare `<input>`, drop its own rules for that box, since bestax draws its own and `.checkbox` is on its `<label>` now"
   ),
   checkboxes: todo(
     'Checkboxes',
@@ -1779,14 +2079,28 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   'dropdown-content': part(),
   'dropdown-item': part(),
   'dropdown-divider': part(),
-  // With children, `Icon` renders `.icon` around them as given. It hides an
-  // icon with no name, no `role` and no `tabIndex`, and makes one named by
-  // `aria-label` or `aria-labelledby` an image.
+  // `Icon` renders a bare `<i>` from `library` and `name`, and with children,
+  // `.icon` around them as given. It hides an icon with no name, no `role`
+  // and no `tabIndex`, writing `aria-hidden` on the `.icon` and never on the
+  // `<i>`, and makes one named by `aria-label` or `aria-labelledby` an image.
   icon: {
     ...BASE,
     target: 'Icon',
     tag: 'span',
+    readsGlyph: { hiddenMovesBeside: ['id', 'style', 'key', 'data-*'] },
     modifiers: tokens('is-', ['small', 'medium', 'large'], 'size'),
+    // Bulma places an icon with these inside a `.control` that has icons on
+    // that side, and `Control` renders that icon itself from a prop, which
+    // writes the class with the rest of the icon. On `Icon` the class stays.
+    omits: Object.fromEntries(
+      (['left', 'right'] as const).map(side => {
+        const prop = side === 'left' ? 'iconLeft' : 'iconRight';
+        return [
+          `is-${side}`,
+          `Bulma places it inside a \`.control\` with \`has-icons-${side}\`, and bestax \`Control\` renders that icon itself from \`${prop}\` (\`${prop}={{ library: "fa", name: "envelope", size: "small" }}\`), after its children, so a hidden \`.icon\` there can go as that prop; on \`Icon\` the class stays in \`className\`, which renders the same`,
+        ];
+      })
+    ),
     defaults: { 'aria-hidden': 'true' },
     namedDefaults: {
       by: ['aria-label', 'aria-labelledby'],
@@ -1822,48 +2136,52 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ownProps: ['textColor', 'bgColor', 'color', 'iconProps', 'items'],
   },
   // `Image` renders `.image` and the `<img>` inside it together, from `src`
-  // and `alt`. A ratio stays a class: as `size`, it adds `has-ratio` too.
+  // and `alt`. A ratio as `size` puts it on a <figure> unless `as` says
+  // otherwise.
   image: {
     ...BASE,
     target: 'Image',
     tag: 'div',
     as: ['div', 'figure', 'p'],
-    modifiers: tokens(
-      'is-',
-      [
-        '16x16',
-        '24x24',
-        '32x32',
-        '48x48',
-        '64x64',
-        '96x96',
-        '128x128',
-        'square',
-      ],
-      'size'
-    ),
-    omits: Object.fromEntries(
-      [
-        '1by1',
-        '5by4',
-        '4by3',
-        '3by2',
-        '5by3',
-        '16by9',
-        '2by1',
-        '3by1',
-        '4by5',
-        '3by4',
-        '2by3',
-        '3by5',
-        '9by16',
-        '1by2',
-        '1by3',
-      ].map(ratio => [
-        `is-${ratio}`,
-        '`size` renders `has-ratio` beside it as well',
-      ])
-    ),
+    modifiers: {
+      ...tokens(
+        'is-',
+        [
+          '16x16',
+          '24x24',
+          '32x32',
+          '48x48',
+          '64x64',
+          '96x96',
+          '128x128',
+          'square',
+        ],
+        'size'
+      ),
+      ...Object.fromEntries(
+        [
+          '1by1',
+          '5by4',
+          '4by3',
+          '3by2',
+          '5by3',
+          '16by9',
+          '2by1',
+          '3by1',
+          '4by5',
+          '3by4',
+          '2by3',
+          '3by5',
+          '9by16',
+          '1by2',
+          '1by3',
+        ].map(ratio => [
+          `is-${ratio}`,
+          { ...set('size', ratio), rendersTag: 'figure' },
+        ])
+      ),
+    },
+    modifiersNeedRoot: true,
     absorbs: {
       tag: 'img',
       attributesOn: 'element',
@@ -1910,6 +2228,12 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     tag: 'ul',
     textColor: 'color',
     bgColor: 'backgroundColor',
+    // Written after its props, for Safari, which drops a list's role once its
+    // markers are hidden. A list with no role is the same list; one with
+    // another role would lose it.
+    writesAttr: {
+      role: { on: ['ul'], fallback: 'list', keeps: ['list'], implicit: true },
+    },
     requiresChildren: true,
     topLevelOnly: true,
     ownProps: [],
@@ -1920,13 +2244,13 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   ),
   message: todo(
     'Message',
-    'bestax `Message` always wraps its children in `.message-body`'
+    'bestax `Message` writes `data-testid="message"` when it\'s given none, and wraps children other than its own parts in `.message-body`'
   ),
   'message-header': part(),
   'message-body': part(),
   modal: todo(
     'Modal',
-    "bestax `Modal` writes a `data-testid` of its own over the one it's given, and adds dialog attributes and focus handling, so rebuild the root with it by hand; its parts convert on their own"
+    'bestax `Modal` writes `data-testid="modal"` when it\'s given none, and adds dialog attributes and focus handling, so rebuild the root with it by hand, keeping or adding a name for the dialog it becomes: an `aria-label`, or an `aria-labelledby` pointing at the `id` of its title; its parts convert on their own'
   ),
   // Modal's parts are plain elements with their class, and take no helper
   // props. `.modal-close` stays a part of the root's family: `Modal.Close`
@@ -2052,7 +2376,8 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ownProps: ['textColor', 'color', 'bgColor'],
   },
   // The previous and next links write `tabIndex` before the props they're
-  // given, and take no helper props.
+  // given, and take no helper props. Without an `href` each is a button, and
+  // writes `role="button"` too.
   'pagination-previous': {
     status: 'mapped',
     target: 'Pagination.Previous',
@@ -2060,7 +2385,13 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     textColor: null,
     bgColor: null,
     noHelpers: true,
-    defaults: { tabIndex: '0' },
+    defaults: { tabIndex: '0', role: 'button' },
+    namedDefaults: {
+      by: ['href'],
+      defaults: { tabIndex: '0' },
+      what: 'an `href`',
+      emptyCounts: true,
+    },
     omits: {
       'is-disabled':
         '`disabled` also writes `aria-disabled` and `tabIndex="-1"`',
@@ -2074,7 +2405,13 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     textColor: null,
     bgColor: null,
     noHelpers: true,
-    defaults: { tabIndex: '0' },
+    defaults: { tabIndex: '0', role: 'button' },
+    namedDefaults: {
+      by: ['href'],
+      defaults: { tabIndex: '0' },
+      what: 'an `href`',
+      emptyCounts: true,
+    },
     omits: {
       'is-disabled':
         '`disabled` also writes `aria-disabled` and `tabIndex="-1"`',
@@ -2084,6 +2421,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   // A page link and the ellipsis each render the bare `<li>` around them, so
   // each converts in its `<li>`'s place. A link writes `tabIndex` before the
   // props it's given, and `active` writes `aria-current="page"` the same way.
+  // Without an `href` it's a button, and writes `role="button"` too.
   'pagination-link': {
     ...BASE,
     target: 'Pagination.Link',
@@ -2095,7 +2433,13 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
         needsAttr: { name: 'aria-current', value: 'page' },
       },
     },
-    defaults: { tabIndex: '0' },
+    defaults: { tabIndex: '0', role: 'button' },
+    namedDefaults: {
+      by: ['href'],
+      defaults: { tabIndex: '0' },
+      what: 'an `href`',
+      emptyCounts: true,
+    },
     omits: {
       'is-disabled':
         '`disabled` also writes `aria-disabled` and `tabIndex="-1"`',
@@ -2122,6 +2466,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Panel',
     tag: 'nav',
+    as: ['nav', 'article', 'section', 'aside', 'div'],
     textColor: null,
     bgColor: null,
     omits: Object.fromEntries(
@@ -2130,7 +2475,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
         '`color` renders `has-text-<color>` on the panel as well',
       ])
     ),
-    ownProps: ['color'],
+    ownProps: ['as', 'color'],
   },
   'panel-heading': {
     status: 'mapped',
@@ -2154,15 +2499,37 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     status: 'mapped',
     target: 'Panel.Block',
     tag: 'a',
+    as: ['a', 'div', 'label'],
     textColor: null,
     bgColor: null,
     noHelpers: true,
-    modifiers: flags({ 'is-active': 'active' }),
-    otherTagsStay: {
-      tags: ['label', 'div'],
-      why: 'a `<label>` or `<div>` block is `Panel.CheckboxBlock`, `Panel.InputBlock` or `Panel.ButtonBlock`, which render their own contents',
+    // `active` writes `aria-current="page"` unless the block has its own, the
+    // way `Navbar.Item` does, so `is-active` converts only beside one and
+    // stays a class otherwise.
+    modifiers: {
+      'is-active': {
+        writes: [{ prop: 'active' }],
+        needsAttr: { name: 'aria-current', value: 'page' },
+      },
     },
-    ownProps: ['active'],
+    // The anchor attributes, and `rel`, reach only an <a>, and the label's
+    // only a <label> (`STRIP_FROM_NON_ANCHOR` and `STRIP_FROM_NON_LABEL` in
+    // bulma-ui's Panel.tsx).
+    dropsAttr: Object.fromEntries([
+      ...[
+        'href',
+        'target',
+        'download',
+        'hrefLang',
+        'ping',
+        'referrerPolicy',
+        'media',
+        'type',
+        'rel',
+      ].map(name => [name, { except: ['a'] }]),
+      ...['htmlFor', 'form'].map(name => [name, { except: ['label'] }]),
+    ]),
+    ownProps: ['as', 'active'],
   },
   'panel-icon': todo(
     'Panel.Icon',
@@ -2232,6 +2599,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     target: 'Table',
     tag: 'div',
     folds: [{ prop: 'isResponsive' }],
+    namedFrom: ['aria-label', 'aria-labelledby'],
   },
   'fixed-grid': {
     status: 'fold',
@@ -2278,8 +2646,6 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   'theme-dark': plain('a theme scope; bestax sets themes through `Theme`'),
   'theme-light': plain('a theme scope; bestax sets themes through `Theme`'),
   fa: plain("Font Awesome's own class, styled by Bulma inside `.icon`"),
-  marginless: plain('a Bulma helper with no bestax prop'),
-  paddingless: plain('a Bulma helper with no bestax prop'),
 };
 
 function todo(target: string, why: string): RootEntry {
@@ -2302,6 +2668,9 @@ function plain(why: string): RootEntry {
 export const PLACED: Readonly<Record<string, RootEntry>> = {
   // `Menu.Item` renders the `<li>` and the `<a>` inside it together. Its
   // helper props go on the `<a>`, so the `<li>`'s classes all stay classes.
+  // `active` writes `aria-current="page"` on the `<a>` unless it has its own,
+  // as `Pagination.Link`'s does. `icon` is its own prop too, so an element
+  // with an `icon` attribute is refused rather than read as one.
   'menu-list': {
     ...BASE,
     target: 'Menu.Item',
@@ -2314,18 +2683,30 @@ export const PLACED: Readonly<Record<string, RootEntry>> = {
       tag: 'a',
       attributesOn: 'split',
       elementProps: ['id', 'title', 'role', 'tabIndex', 'style', 'data-testid'],
-      modifiers: flags({ 'is-active': 'active' }),
+      modifiers: {
+        'is-active': {
+          writes: [{ prop: 'active' }],
+          needsAttr: { name: 'aria-current', value: 'page' },
+        },
+      },
       after: { tag: 'ul', target: 'Menu.List' },
     },
-    ownProps: ['as', 'active'],
+    ownProps: ['as', 'active', 'icon'],
     passThrough: ['id', 'title', 'role', 'tabIndex', 'style', 'data-testid'],
   },
 };
 
 /**
- * Which root wins when an element carries two (`column box`): layout before
- * surface, so the element keeps the role that decides where it sits. The
- * other root stays in `className`, which renders the same either way.
+ * Which root wins when an element carries two (`column box`) that fit its tag
+ * alike: layout before surface, so the element keeps the role that decides
+ * where it sits. A better fit beats a higher place here (`tagFit`): `Image`
+ * takes a `<figure className="image container">`, which `Container` can't
+ * render, and `Hero` a `<section className="hero container">`, whose tag is
+ * its own and only reached through `as` by `Container`. The fit is to the
+ * tag the element's classes make a root render, so `Image` with a ratio fits
+ * a <figure> as its own and a <div> only through `as`. The other root stays
+ * in `className`, which renders the same either way, and the element gets a
+ * TODO naming its component.
  */
 export const PRECEDENCE: readonly string[] = [
   'columns',
@@ -2443,9 +2824,154 @@ export const WRAPPER_OWN_PROPS: Readonly<Record<string, readonly string[]>> = {
   Figure: ['textColor', 'bgColor'],
 };
 
-/** Bulma 0.9 classes v1 dropped, with what replaced them. */
+/**
+ * Plain tags a bestax component renders as they are, with no class of its
+ * own, that this source leaves as markup all the same: it converts a table's
+ * `.table` and not the rows and cells inside it. Never read by the codemod.
+ * The MCP lookup names the component for one of these, which would otherwise
+ * say bestax has no component for the tag (#1236), and the index carries the
+ * props each takes beside the helper props, read off its record.
+ */
+export const BY_HAND: Readonly<Record<string, string>> = {
+  thead: 'Table.Thead',
+  tbody: 'Table.Tbody',
+  tfoot: 'Table.Tfoot',
+  tr: 'Table.Tr',
+  th: 'Table.Th',
+  td: 'Table.Td',
+};
+
+/**
+ * The bulma-social brand colors, the classes it adds to Bulma's `.button`,
+ * across its majors: read off the stylesheet each publishes (`css/all.css`
+ * in 2 and 3, `bin/bulma-social.css` in 1). Nothing here installs it, so a
+ * brand a later release adds is missing until it is added here. The HTML
+ * input reads them too, to name the per-brand stylesheets a page needs.
+ */
+export const BULMA_SOCIAL = [
+  'apple',
+  'bitbucket',
+  'discord',
+  'dropbox',
+  'facebook',
+  'flickr',
+  'foursquare',
+  'github',
+  'gitlab',
+  'instagram',
+  'linkedin',
+  'microsoft',
+  'odnoklassniki',
+  'openid',
+  'pinterest',
+  'reddit',
+  'slack',
+  'soundcloud',
+  'tumblr',
+  'twitch',
+  'twitter',
+  'vimeo',
+  'vk',
+  'x',
+  'yahoo',
+  'youtube',
+];
+
+/**
+ * Classes no Bulma 1 rule matches that a page takes from another stylesheet
+ * it loads, grouped by that stylesheet, each with what to do about them. The
+ * codemod leaves a class it doesn't convert where it is, so it never reads
+ * these; the MCP lookup does, for a class Bulma 1's stylesheet lacks, which
+ * it would otherwise call a class nothing styles (#1236). A `glyph` group's
+ * classes name an icon font's glyph, which bestax `Icon` writes from props.
+ */
+export const ELSEWHERE: ReadonlyArray<{
+  readonly why: string;
+  readonly match: RegExp;
+  readonly glyph?: boolean;
+}> = [
+  {
+    why: "a Font Awesome class: Font Awesome's own stylesheet styles it, not Bulma's, so keep loading Font Awesome (the bestax-migrate skill's `html-asset:font-awesome` says how). bestax `Icon` writes these classes from its props, on the <i> it renders inside a `.icon`",
+    match: /^(?:fa|fa[srbldt]|fa-[a-z0-9]+(?:-[a-z0-9]+)*|svg-inline--fa)$/,
+    glyph: true,
+  },
+  {
+    why: 'a Material Design Icons class: its own stylesheet styles it, not Bulma\'s, so keep loading it. bestax `Icon` writes these classes from its props, with `library="mdi"`, on the <i> it renders inside a `.icon`',
+    match: /^mdi(?:-[a-z0-9]+)*$/,
+    glyph: true,
+  },
+  {
+    why: "a bulma-social class, a Bulma extension's brand color for Bulma's `.button`, which bestax's `Button` renders: keep loading bulma-social and keep the class on `Button` in `className`, since bestax has no component for it (the bestax-migrate skill's `html-asset:bulma-extension` has the recipe)",
+    match: new RegExp(`^is-(?:${BULMA_SOCIAL.join('|')}|animated)$`),
+  },
+  {
+    why: "a bulma-social helper, a Bulma extension's text or background color in a brand's color, with `-dark` and `-light` for its shades: keep loading bulma-social and keep the class in `className` on the element that has it, since bestax has no prop for it (the bestax-migrate skill's `html-asset:bulma-extension` has the recipe, and the brand's own stylesheet holds it)",
+    match: new RegExp(
+      `^has-(?:text|background)-(?:${BULMA_SOCIAL.join('|')})(?:-dark|-light)?$`
+    ),
+  },
+  {
+    why: "a bulma-carousel class, a Bulma extension bestax's `Carousel` does the job of (the bestax-migrate skill's `html-asset:bulma-extension` says how). Once the page stops loading bulma-carousel nothing styles it: `is-covered`'s `object-fit: cover` on a slide's image goes in the app's own CSS",
+    match:
+      /^(?:has-carousel|hero-carousel|is-background|is-covered|slider-(?:container|item|navigation-next|navigation-previous|page|pagination)|video-container)$/,
+  },
+];
+
+/**
+ * Every class Bulma 0.9.4's compiled stylesheet has and v1's does not, read
+ * off the two with the class walk `e2e/bulma-classes-vocabulary.test.ts`
+ * uses. Under v1 these style nothing: the tiles, `.columns.is-variable`,
+ * `.heading`, `.number`, `is-marginless` and `is-paddingless` (v1 spells the
+ * last two `marginless` and `paddingless`). That test holds each one absent
+ * from the v1 stylesheet bestax depends on; the 0.9 half was read from its
+ * published package, which nothing here installs.
+ */
+export const REMOVED_IN_V1: readonly string[] = [
+  'heading',
+  'is-ancestor',
+  'is-child',
+  'is-marginless',
+  'is-paddingless',
+  'is-parent',
+  'is-variable',
+  'is-vertical',
+  'number',
+  'tile',
+];
+
+/**
+ * Bulma 0.9 classes v1 dropped, with what replaced them. The tiles'
+ * modifiers have no entry: Bulma 0.9 styled them only beside `tile`, whose
+ * entry flags the element. `heading` and `number` are common names outside
+ * Bulma too (a code highlighter's `token number`), so their messages leave
+ * room for a rule the project has, and the `heading` one otherwise says what
+ * the library sources' `flagDroppedHeading` says.
+ */
 export const LEGACY_09: Readonly<Record<string, string>> = {
   tile: 'Bulma v1 removed tiles; rebuild the layout with `Grid` and `Cell` (see the Bulma 0.9 to 1 guide)',
+  heading:
+    'Bulma v1 dropped the `.heading` styles, so unless the project\'s own CSS gives `heading` a rule, it styles nothing now; restyle it with bestax helpers (e.g. `<Paragraph textSize="7" textTransform="uppercase" textWeight="semibold" mb="1">`) or a `.heading` rule of your own',
+  number:
+    "Bulma v1 dropped `.number`, Bulma 0.9's rounded badge, so unless the project's own CSS gives `number` a rule (a code highlighter's does for `token number`), it styles nothing now; if the element needs that badge, give it a rule of your own",
+  'is-variable':
+    "Bulma v1 removed `is-variable`, so it styles nothing now; drop it, since v1's `is-0` to `is-8` set the gap of a `.columns` without it (bestax `Columns` writes them from its `gap` prop)",
+  'is-marginless':
+    'Bulma v1 removed `is-marginless`, so it styles nothing now; write v1\'s `m-0` in its place, or `m="0"` on a bestax component. The codemod does that itself wherever the element converts',
+  'is-paddingless':
+    'Bulma v1 removed `is-paddingless`, so it styles nothing now; write v1\'s `p-0` in its place, or `p="0"` on a bestax component. The codemod does that itself wherever the element converts',
+};
+
+/**
+ * Bulma 0.9 helpers v1 removed whose job a v1 helper does, with that helper.
+ * Each is a helper token for the v1 helper's prop, so wherever its element
+ * converts it becomes that prop, which renders the v1 class in its place:
+ * the conversion here that changes a class, since the class it replaces
+ * styles nothing under v1. Where its element stays markup, or the prop is
+ * not written, it gets its `LEGACY_09` TODO instead.
+ */
+export const REPLACED_IN_V1: Readonly<Record<string, string>> = {
+  'is-marginless': 'm-0',
+  'is-paddingless': 'p-0',
 };
 
 // ---- Helper classes -----------------------------------------------------------
@@ -2475,6 +3001,11 @@ export type HelperGroup =
 export interface HelperToken {
   readonly group: HelperGroup;
   readonly write: PropWrite;
+  /**
+   * A second prop the class needs beside `write`, which it converts only
+   * with (a color shade's `colorShade` beside its color).
+   */
+  readonly also?: PropWrite;
 }
 
 function helperTokens(
@@ -2519,6 +3050,48 @@ function helperFlag(
 /** The color helpers also take the two CSS keywords. */
 const HELPER_COLORS = [...COLORS, 'inherit', 'current'];
 
+/**
+ * The colors Bulma writes shade helpers for: its own palette, but `text`,
+ * which bestax's color props don't take.
+ */
+const SHADED_COLORS = [
+  'primary',
+  'link',
+  'info',
+  'success',
+  'warning',
+  'danger',
+  'black',
+  'white',
+  'light',
+  'dark',
+] as const;
+
+/**
+ * `has-text-{color}-{shade}` → the color prop and `colorShade`, which render
+ * it together; `has-background-…` the same with `backgroundColorShade`. The
+ * color prop is a placeholder the planner swaps for the target's own, as for
+ * the plain color helpers. A class with no single shade to write (`-100`,
+ * `-30-invert`) is not one of these, and stays a class.
+ */
+function shadeTokens(
+  group: 'text-color' | 'background',
+  prefix: string,
+  prop: string,
+  shadeProp: string
+): Array<[string, HelperToken]> {
+  return SHADED_COLORS.flatMap(color =>
+    COLOR_SHADES.map((shade): [string, HelperToken] => [
+      `${prefix}${color}-${shade}`,
+      {
+        group,
+        write: { prop, value: color },
+        also: { prop: shadeProp, value: shade },
+      },
+    ])
+  );
+}
+
 const SPACING_PROPS = [
   'm',
   'mt',
@@ -2540,9 +3113,19 @@ export const HELPER_TOKENS: ReadonlyMap<string, HelperToken> = new Map([
   // Colors: the prop is a placeholder the planner swaps for the target's own.
   ...helperTokens('text-color', 'has-text-', HELPER_COLORS, 'textColor'),
   ...helperTokens('background', 'has-background-', HELPER_COLORS, 'bgColor'),
+  ...shadeTokens('text-color', 'has-text-', 'textColor', 'colorShade'),
+  ...shadeTokens(
+    'background',
+    'has-background-',
+    'bgColor',
+    'backgroundColorShade'
+  ),
   ...SPACING_PROPS.flatMap(prop =>
     helperTokens('spacing', `${prop}-`, SIZES, prop)
   ),
+  // Bulma 0.9's, as the v1 helper that replaced each (`REPLACED_IN_V1`).
+  ['is-marginless', { group: 'spacing', write: { prop: 'm', value: '0' } }],
+  ['is-paddingless', { group: 'spacing', write: { prop: 'p', value: '0' } }],
   ...helperTokens('typography', 'is-size-', TEXT_SIZES, 'textSize'),
   ...helperPerViewport(
     'typography',
@@ -2680,7 +3263,7 @@ export const PASSTHROUGH: ReadonlyArray<{
   readonly match: RegExp;
 }> = [
   {
-    why: 'a color shade, a scheme color or a palette; shades stay as classes',
+    why: 'a color shade with no single shade for `colorShade` or `backgroundColorShade` to write (`-100`, or one with `-invert` on the end), a shade of the `text` color, a scheme color or a palette',
     match:
       /^(?:has-(?:text|background)-[a-z]+(?:-[a-z]+)?-(?:\d{2,3}|invert|light|dark|soft|bold|on-scheme)(?:-invert)?|has-(?:text|background)-text|has-background|is-palette-[a-z]+|is-(?:bold|soft))$/,
   },
@@ -2705,6 +3288,10 @@ export const PASSTHROUGH: ReadonlyArray<{
     why: 'a Bulma helper with no bestax prop',
     match:
       /^(?:is-display-.+|is-visibility-.+|is-float-.+|is-clear-.+|has-text-weight-extrabold|is-align-content-(?:baseline|start|end)|is-align-items-self-(?:start|end)|is-offset-0(?:-[a-z]+)?)$/,
+  },
+  {
+    why: 'Bulma\'s other name for `m-0` or `p-0`, with the same rule; bestax writes that rule as `m="0"` or `p="0"`, which renders `m-0` or `p-0`, so the class stays as it is',
+    match: /^(?:marginless|paddingless)$/,
   },
   {
     why: 'a `.breadcrumb` separator, which converts only on its own `.breadcrumb`',
@@ -2773,9 +3360,48 @@ export function modifierFor(
   return entry.modifiers ? own(entry.modifiers, token) : undefined;
 }
 
+/** Whether a root takes a class as a modifier, or omits it on purpose. */
+export function modifiesRoot(entry: RootEntry, token: string): boolean {
+  return (
+    modifierFor(entry, token) !== undefined ||
+    (entry.omits !== undefined && own(entry.omits, token) !== undefined)
+  );
+}
+
+/**
+ * Each class a root with `modifiersNeedRoot` takes or omits, to that root:
+ * the first in table order where two share one, as a scan would find. Built
+ * on first use, since the planner asks for every class of every element.
+ */
+let neededRoots: Map<string, string> | undefined;
+
+function collectNeededRoots(): Map<string, string> {
+  const needed = new Map<string, string>();
+  for (const [root, entry] of Object.entries(ROOTS)) {
+    if (!entry.modifiersNeedRoot) continue;
+    for (const table of [entry.modifiers, entry.omits]) {
+      for (const [token, value] of Object.entries(table ?? {})) {
+        if (value !== undefined && !needed.has(token)) needed.set(token, root);
+      }
+    }
+  }
+  return needed;
+}
+
+/** The root a class modifies when Bulma styles it only on that root. */
+export function rootItNeeds(token: string): string | undefined {
+  neededRoots ??= collectNeededRoots();
+  return neededRoots.get(token);
+}
+
 /** What replaced a Bulma 0.9 class v1 removed. */
 export function legacyHint(token: string): string | undefined {
   return own(LEGACY_09, token);
+}
+
+/** The v1 helper a removed Bulma 0.9 helper converts as. */
+export function replacedBy(token: string): string | undefined {
+  return own(REPLACED_IN_V1, token);
 }
 
 /** The bestax wrapper for a plain tag. */

@@ -1,0 +1,23 @@
+{
+  "name": "next-bestax-app",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "oxlint"
+  },
+  "dependencies": {
+    "@allxsmith/bestax-bulma": "workspace:^",
+    "next": "^16.4.3",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "oxlint": "^1.89.0"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  }
+}

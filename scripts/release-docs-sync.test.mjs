@@ -12,7 +12,7 @@
  * one of those lists decides whether a publish succeeds after the tag is
  * already pushed.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';

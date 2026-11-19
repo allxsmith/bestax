@@ -38,7 +38,7 @@ import { Navbar } from '@allxsmith/bestax-bulma';
 
 ### Complete Navbar with Burger and Menu
 
-This example demonstrates a fully responsive navigation bar using `Navbar` and its subcomponents. The `Navbar.Burger` toggles the mobile menu, while `Navbar.Brand` displays branding or a logo. Use the `active` prop on `Navbar.Burger` and `Navbar.Menu` to control the open state. Compose navigation links and dropdowns within `Navbar.Start` and `Navbar.End` for flexible layouts. Customize with `color`, `bgColor`, `fixed`, and `transparent` props as needed.
+This example demonstrates a fully responsive navigation bar using `Navbar` and its subcomponents. The `Navbar.Burger` toggles the mobile menu, while `Navbar.Brand` displays branding or a logo. Use the `active` prop on `Navbar.Burger` and `Navbar.Menu` to control the open state. Compose navigation links and dropdowns within `Navbar.Start` and `Navbar.End` for flexible layouts. Customize with the `color`, `bgColor`, `fixed`, `transparent`, `isSpaced` and `hasShadow` props as needed.
 
 ```tsx live
 function example() {
@@ -154,7 +154,7 @@ A more complex example with navigation links and a dropdown menu. The dropdown i
 ```tsx live
 <Navbar>
   <Navbar.Brand>
-    <Navbar.Item>
+    <Navbar.Item href="#">
       <img src="/img/logo.svg" alt="Logo" width="28" height="28" />
     </Navbar.Item>
   </Navbar.Brand>
@@ -181,22 +181,25 @@ A more complex example with navigation links and a dropdown menu. The dropdown i
 
 ### Custom Link Component
 
-Use the `as` prop on `Navbar.Item` to render a custom link component, such as a router link. Its props follow `as`, so props like `to` are forwarded to the link component and are checked against that component's own types, no cast needed. See the [Routing guide](../../guides/features/routing.md) for the full patterns.
+Use the `as` prop on `Navbar.Item` to render a custom link component, such as a router link. Its props follow `as`, so props like `to` are forwarded to the link component and are checked against that component's own types, no cast needed. See the [Routing guide](../../guides/features/routing.md) for the full patterns. The stand-in below renders `to` as the `href`, as a router's link does, so each item is a real link, and passes the item's class on.
 
 ```tsx live
 // import { Link } from 'react-router-dom';
 function example() {
-  const Link = (props: { to: string; children?: React.ReactNode }) => (
-    <a>{props.children}</a>
+  const Link = ({
+    to,
+    ...rest
+  }: { to: string } & React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
+    <a {...rest} href={to} />
   );
   return (
     <Navbar>
       <Navbar.Menu active>
         <Navbar.Start>
-          <Navbar.Item as={Link} to="/">
+          <Navbar.Item as={Link} to="#home">
             Home
           </Navbar.Item>
-          <Navbar.Item as={Link} to="/pricing">
+          <Navbar.Item as={Link} to="#pricing">
             Pricing
           </Navbar.Item>
         </Navbar.Start>
@@ -214,6 +217,57 @@ Example of a navbar with a transparent background. This is often used for navbar
 
 ```tsx live
 <Navbar transparent>{/* ...brand and menu... */}</Navbar>
+```
+
+---
+
+### Spaced Navbar
+
+The `isSpaced` prop renders Bulma's `is-spaced`: padding around the navbar, rounded items, and boxed dropdowns. Bulma applies it from the desktop breakpoint up, so on a narrower screen the navbar looks the same with or without it. A spaced navbar with `fixed="top"` needs `has-spaced-navbar-fixed-top` on `<html>` beside `has-navbar-fixed-top`, since from desktop up it's taller than the plain class pads the page for (`has-spaced-navbar-fixed-bottom` with `fixed="bottom"`).
+
+```tsx live
+<Navbar isSpaced>
+  <Navbar.Brand>
+    <Navbar.Item href="#">
+      <img src="/img/logo.svg" alt="Logo" width="28" height="28" />
+    </Navbar.Item>
+  </Navbar.Brand>
+  <Navbar.Menu active>
+    <Navbar.Start>
+      <Navbar.Item href="#">Home</Navbar.Item>
+      <Navbar.Item href="#">Docs</Navbar.Item>
+      <Navbar.Dropdown hoverable>
+        <Navbar.Link>More</Navbar.Link>
+        <Navbar.DropdownMenu>
+          <Navbar.Item href="#">About</Navbar.Item>
+          <Navbar.Item href="#">Contact</Navbar.Item>
+        </Navbar.DropdownMenu>
+      </Navbar.Dropdown>
+    </Navbar.Start>
+  </Navbar.Menu>
+</Navbar>
+```
+
+---
+
+### Navbar with a Shadow
+
+The `hasShadow` prop renders Bulma's `has-shadow`, a thin shadow below the navbar that sets it off from the page. With `fixed="bottom"` the shadow sits above it instead. It's off unless you set it, because Bulma's navbar has no shadow of its own, while `Box` and `Card` take a `hasShadow` that's on by default.
+
+```tsx live
+<Navbar hasShadow>
+  <Navbar.Brand>
+    <Navbar.Item href="#">
+      <img src="/img/logo.svg" alt="Logo" width="28" height="28" />
+    </Navbar.Item>
+  </Navbar.Brand>
+  <Navbar.Menu active>
+    <Navbar.Start>
+      <Navbar.Item href="#">Home</Navbar.Item>
+      <Navbar.Item href="#">Docs</Navbar.Item>
+    </Navbar.Start>
+  </Navbar.Menu>
+</Navbar>
 ```
 
 ---
@@ -313,7 +367,9 @@ Shows a dropdown menu with an active item. The active state is typically used to
       <Navbar.Dropdown active>
         <Navbar.Link>Active Dropdown</Navbar.Link>
         <Navbar.DropdownMenu>
-          <Navbar.Item href="#">A1</Navbar.Item>
+          <Navbar.Item href="#" active>
+            A1
+          </Navbar.Item>
           <Navbar.Item href="#">A2</Navbar.Item>
         </Navbar.DropdownMenu>
       </Navbar.Dropdown>
@@ -447,11 +503,35 @@ function example() {
 ## Accessibility
 
 - The root `Navbar` renders as `<nav role="navigation" aria-label="main navigation">`.
+  The default accessible name is `main navigation`. A screen reader announces it with
+  the role, and since the name holds the role word, "navigation" is heard twice.
+  Pass a name without the role word (`aria-label="Site"`), and a different name
+  on each Navbar when a page has more than one. A passed `aria-label` replaces
+  the default.
+- `Navbar.Item active` sets `aria-current="page"` on the element `as` renders, the link by
+  default, so the current item isn't only a color. An `aria-current` you pass wins: a navbar of
+  sections on one page can say `"location"`, and `aria-current={false}` turns it off.
+- Bulma fills an active link item with its selected color, the link color in a navbar with no
+  `color`, and bestax's styles give its text the color Bulma picks to read on that fill,
+  `--bulma-navbar-item-selected-color-l`. Bulma's own stylesheet leaves the text in the navbar's
+  normal text color, dark gray on blue on the light scheme, so the rule ships in `bestax.css` and
+  `extras.css`. A `--bulma-navbar-item-color` you set on the item itself still wins, and an item
+  with a `bgColor` keeps the navbar's text color. A rule of your own that takes the fill off
+  restates `color` too.
 - Use semantic links (`<a>`) and buttons, and provide clear `aria-label` and `aria-expanded` for the burger toggle.
 - `Navbar.Link` inside a `Navbar.Dropdown` automatically gets `aria-haspopup="true"` and
   `aria-expanded` synced to the dropdown's open state — no manual wiring required.
   <kbd>Enter</kbd>/<kbd>Space</kbd> toggle the dropdown open/closed, and <kbd>Escape</kbd>
-  closes it and keeps focus on the link. When the trigger isn't interactive on its own — no
+  closes it and keeps focus on the link. <kbd>Escape</kbd> anywhere else in the open dropdown, its
+  menu included, puts focus back on the link and closes it too, unless a control there marks the
+  key used, the key comes from a dialog or from content opened from the menu into a portal, or
+  focus can't go back to the link. Focus landing outside an open dropdown, as <kbd>Tab</kbd> past
+  its last item or <kbd>Shift</kbd>+<kbd>Tab</kbd> back past its link does, closes it too, so its
+  menu isn't left over the page. A controlled one is told through `onActiveChange` and keeps its
+  `active`. Focus moving into content opened from the menu into a portal or into a dialog marked
+  `aria-modal`, such as a `Modal` an item opens, which gives focus back to the item when it closes, focus going
+  nowhere, as the window losing focus does, and a press outside that doesn't move focus leave it
+  open. When the trigger isn't interactive on its own — no
   `href`, not `as="button"`, and not a custom component — it also gets `role="button"` and
   `tabIndex={0}` so it's reachable and operable by keyboard, and a mouse/touch click on it
   toggles the dropdown too (a caller-supplied `onClick` still runs, and can
@@ -461,12 +541,50 @@ function example() {
   something non-interactive instead, pass `role="button"` and it takes the fallback above —
   `tabIndex` and click included. The keyboard path is wired either way.
 - `hoverable` dropdowns keep working with a mouse (hover-to-open); the keyboard path above
-  opens and closes them independently of hover.
+  opens and closes them independently of hover. Bulma shows a `hoverable` dropdown's menu while
+  the pointer is on it and while focus is in it, the link included, on a desktop-wide window.
+  <kbd>Escape</kbd> puts a menu shown that way away, and it stays away until the pointer has left
+  the dropdown and focus has too, or until the pointer comes back or focus moves onto something in
+  it. From the page, the key goes on to what has focus; from inside
+  the dropdown, focus moves to the link, with the same exceptions as for an open one, such as focus
+  that can't go back to the link, where the menu stays. Below the desktop breakpoint, where the menu always
+  shows under the burger, Escape doesn't put it away, though it still closes an open one.
+- **Forced colors:** Bulma draws the burger's bars as a background color, which forced colors
+  (Windows' contrast themes) replaces, so the burger would vanish there while it still works and
+  takes focus. bestax's styles keep its bars visible in the system's button text color. That rule
+  ships in `bestax.css` and `extras.css`, not in Bulma's own stylesheet, and an
+  [`AppFrame`](../layout/appframe.md)'s burger gets it too. Bulma marks an active or selected
+  link item, `Navbar.Link` and dropdown row with a fill and a text color alone, which forced
+  colors replaces, so bestax's styles draw a bar in the system's highlight color inside it there:
+  along its bottom in a row, and down its start edge where the items stack, in a dropdown and in
+  the menu the burger opens. The item and everything in it stay in the contrast theme's colors,
+  and an active tab gets the bar above Bulma's thicker underline. This ships in the same
+  stylesheets.
+- **`Navbar.Divider` in forced colors:** Bulma draws it as a background color too, which forced
+  colors paints in the dropdown's own color, so the line would vanish. bestax's styles draw it in
+  the system's text color there, from the same stylesheets.
+- **An open dropdown's edge in forced colors:** from the desktop breakpoint up, Bulma draws
+  `Navbar.DropdownMenu` as a box over the page, edged with a shadow and, for some, a line on the
+  side it opens from. Forced colors drops the shadow and paints the box in the page's own color, so
+  bestax's styles draw a one pixel line in the system's text color around it there, outside the
+  box, so nothing moves. Under the burger its rows sit in the menu, with no box to edge. This
+  ships in the same stylesheets.
+- **In a colored [`Hero`](../layout/hero.md):** Bulma's hero sets the colors its navbar's items
+  take on hover and when active, but Bulma's navbar doesn't read them, so a focused or hovered
+  item took the scheme's fill under the hero's text, and the active item and the burger took the
+  link color. For a `Navbar` with no `color` of its own, bestax's styles draw a focused, hovered or
+  active item in the hero's text color with the hero's background color as its text, the burger
+  and a tab in the hero's text color, and the dropdown arrow in its link's text color. The menu the
+  burger opens, and the dropdown's rows in it, take the hero's background and text, except an
+  active row, which keeps Bulma's selected fill and the text that reads on it, and on a phone a bold hero's menu takes the hero's
+  own gradient. Where `Navbar.DropdownMenu` is a box of its own, on a desktop, its links keep
+  Bulma's colors. That rule ships in `bestax.css` and `extras.css`, not in Bulma's own stylesheet.
 
 :::note
-There's no arrow-key roving between navbar items and no outside-click handling for
-`Navbar.Dropdown` — Bulma navbar dropdowns are hover/click surfaces, so this is intentionally
-kept simple.
+There's no arrow-key roving between navbar items, and a press outside an open `Navbar.Dropdown`
+closes it only when it moves focus there. A press on a field moves focus in every browser, and
+one on a button or a link does in some, such as Chrome, and not in others, such as Safari. Bulma navbar dropdowns are hover/click surfaces, so this is
+intentionally kept simple.
 :::
 
 ---
@@ -475,7 +593,7 @@ kept simple.
 
 - [`Button`](../elements/button.md): For actions in Navbar.
 - [`Icon`](../elements/icon.md): For icons inside Navbar items.
-- [Helper Props](../helpers/usebulmaclasses.md): All Bulma utility helpers can be used.
+- [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing and other utilities.
 
 ---
 
@@ -485,7 +603,7 @@ kept simple.
 - [Storybook: Navbar Stories](https://bestax.io/storybook/?path=/story/components-navbar--default)
 
 :::tip Pro Tip
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navbar />` and its subcomponents for powerful utility-based styling.
+You can use [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navbar />` and its subcomponents, except `Navbar.Dropdown`, `Navbar.DropdownMenu` and `Navbar.Divider`, for powerful utility-based styling.
 :::
 
 ---
@@ -494,17 +612,20 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navba
 
 <!-- bestax:generated props -->
 
-| Prop          | Type                                                                                                                               | Default | Description                                            |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------ |
-| `className`   | `string`                                                                                                                           | —       | Additional CSS classes for the navbar.                 |
-| `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —       | Text color for the navbar.                             |
-| `color`       | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'` | —       | Bulma color modifier for the navbar.                   |
-| `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —       | Background color for the navbar.                       |
-| `transparent` | `boolean`                                                                                                                          | `false` | Renders the navbar with a transparent background.      |
-| `fixed`       | `'top'` \| `'bottom'`                                                                                                              | —       | Fixes the navbar to the top or bottom of the viewport. |
-| `children`    | `React.ReactNode`                                                                                                                  | —       | Navbar content (compose with subcomponents).           |
-| `ref`         | `React.Ref<HTMLElement>`                                                                                                           | —       | Ref forwarded to the root `<nav>` element.             |
-| `...`         | All standard HTML attributes and Bulma helper props                                                                                | —       | See [Helper Props](../helpers/usebulmaclasses.md)      |
+| Prop          | Type                                                                                                                               | Default             | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className`   | `string`                                                                                                                           | —                   | Additional CSS classes for the navbar.                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —                   | Text color for the navbar.                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `color`       | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'` | —                   | Bulma color modifier for the navbar.                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —                   | Background color for the navbar.                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `transparent` | `boolean`                                                                                                                          | `false`             | Renders the navbar with a transparent background.                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `isSpaced`    | `boolean`                                                                                                                          | `false`             | Renders Bulma's `is-spaced`: padding around the navbar, rounded items and boxed dropdowns. Bulma applies it from the desktop breakpoint up, so below that the navbar looks the same either way. With `fixed="top"`, put `has-spaced-navbar-fixed-top` on `<html>` beside `has-navbar-fixed-top` (the `-bottom` pair for `fixed="bottom"`). From desktop up the spaced navbar is taller than `has-navbar-fixed-top` pads the page for, and there the spaced class pads it for the taller navbar. |
+| `hasShadow`   | `boolean`                                                                                                                          | `false`             | Renders Bulma's `has-shadow`: a shadow below the navbar, or above it with `fixed="bottom"`. Off unless set, since Bulma's navbar has no shadow of its own. `Box` and `Card` take a `hasShadow` that defaults to `true` instead, because Bulma gives those a shadow already.                                                                                                                                                                                                                     |
+| `fixed`       | `'top'` \| `'bottom'`                                                                                                              | —                   | Fixes the navbar to the top or bottom of the viewport.                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `children`    | `React.ReactNode`                                                                                                                  | —                   | Navbar content (compose with subcomponents).                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `aria-label`  | `React.AriaAttributes['aria-label']`                                                                                               | `'main navigation'` | Accessible name. Defaults to `main navigation`. A screen reader announces it with the landmark's role, and since the name holds the role word, "navigation" is heard twice. Pass a name without it (`aria-label="Site"`), and a different name on each Navbar when a page has more than one. A passed `aria-label` replaces the default, and `aria-label={undefined}` removes it, leaving the landmark unnamed.                                                                                 |
+| `ref`         | `React.Ref<HTMLElement>`                                                                                                           | —                   | Ref forwarded to the root `<nav>` element.                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `...`         | All standard HTML attributes and Bulma helper props                                                                                | —                   | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 
 **Subcomponents:**
 
@@ -531,16 +652,16 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navba
 
 ### Navbar.Item
 
-| Prop        | Type                                                                                                | Default | Description                                                                                                                                                                                                                                                                                                                                                     |
-| ----------- | --------------------------------------------------------------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `as`        | `React.ElementType`                                                                                 | `'a'`   | Render as another intrinsic element (`'span'`, `'div'`, `'button'`) or a custom component (e.g. a router link). Defaults to `'a'`. `'button'` renders `type="button"`, so an item inside a form does not submit it. Pass `type="submit"` or `type="reset"` and yours is used; any other value, or a spread carrying `type: undefined`, renders `type="button"`. |
-| `className` | `string`                                                                                            | —       | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                         |
-| `active`    | `boolean`                                                                                           | `false` | Whether the item is active.                                                                                                                                                                                                                                                                                                                                     |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                             | —       | Text color for the item.                                                                                                                                                                                                                                                                                                                                        |
-| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                             | —       | Background color for the item.                                                                                                                                                                                                                                                                                                                                  |
-| `children`  | `React.ReactNode`                                                                                   | —       | Navbar item content.                                                                                                                                                                                                                                                                                                                                            |
-| `ref`       | `PolymorphicRef<React.ElementType>`                                                                 | —       | Ref forwarded to the element `as` renders, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.                                                                                                                                                                                                                   |
-| `...`       | Remaining props of the element or component selected by `as` (default `<a>`) and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                               |
+| Prop        | Type                                                                                                | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ----------- | --------------------------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `as`        | `React.ElementType`                                                                                 | `'a'`   | Render as another intrinsic element (`'span'`, `'div'`, `'button'`) or a custom component (e.g. a router link). Defaults to `'a'`. `'button'` renders `type="button"`, so an item inside a form does not submit it. Pass `type="submit"` or `type="reset"` and yours is used; any other value, or a spread carrying `type: undefined`, renders `type="button"`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `className` | `string`                                                                                            | —       | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `active`    | `boolean`                                                                                           | `false` | Marks the item as the current one. It adds Bulma's `is-active` class, and `aria-current="page"` on the element `as` renders, so assistive tech can tell which item is current too. An `aria-current` you pass wins, even `undefined`: use it to say something else (`"location"` for a section of one page, say), or `aria-current={false}` to turn it off. An `active` item that isn't navigation takes `aria-current={false}`: an `as="button"` control, say, or a `has-dropdown` container like the `<Navbar.Item as="div" className="has-dropdown" active>` older bestax-migrate versions wrote. That one can be a `Navbar.Dropdown` instead. Bulma fills an active link item with its selected color, the link color in a navbar with no `color`. bestax's stylesheets give the text that color's invert, where Bulma's own leaves it in the navbar's text color, dark gray on blue on the light scheme. With a `bgColor` the text keeps the navbar's color, and a fill of your own from CSS wants a `textColor` too. |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                             | —       | Text color for the item.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                             | —       | Background color for the item.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `children`  | `React.ReactNode`                                                                                   | —       | Navbar item content.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `ref`       | `PolymorphicRef<React.ElementType>`                                                                 | —       | Ref forwarded to the element `as` renders, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `...`       | Remaining props of the element or component selected by `as` (default `<a>`) and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
 ### Navbar.Link
 
@@ -557,19 +678,19 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navba
 
 ### Navbar.Burger
 
-| Prop            | Type                                                                            | Default    | Description                                                                                                                                                                                                                            |
-| --------------- | ------------------------------------------------------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `className`     | `string`                                                                        | —          | Additional CSS classes.                                                                                                                                                                                                                |
-| `textColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —          | Text color for the burger.                                                                                                                                                                                                             |
-| `color`         | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —          | Renders `has-text-<color>`, exactly like `textColor`. Bulma has no `.navbar-burger.is-<color>` rule, so this is not a filled variant. `textColor` takes precedence when both are set, and is the one that reaches the full color list. |
-| `active`        | `boolean`                                                                       | `false`    | Whether the burger is active.                                                                                                                                                                                                          |
-| `children`      | `React.ReactNode`                                                               | —          | Custom content inside the burger, rendered after its four bar spans. Bulma styles every `<span>` in the burger as a bar, so an extra span here draws an extra bar.                                                                     |
-| `aria-label`    | `string`                                                                        | `'menu'`   | Accessible name. Pass your own to replace it. An empty one, or a spread carrying `'aria-label': undefined`, keeps the default rather than leaving the button unnamed.                                                                  |
-| `aria-expanded` | `boolean`                                                                       | `active`   | Expanded state for assistive technology. It follows `active` unless you pass `true` or `false`; a spread carrying `'aria-expanded': undefined` still follows `active`.                                                                 |
-| `onClick`       | `React.MouseEventHandler<HTMLButtonElement>`                                    | —          | Click handler.                                                                                                                                                                                                                         |
-| `ref`           | `React.Ref<HTMLButtonElement>`                                                  | —          | Ref forwarded to the burger button element.                                                                                                                                                                                            |
-| `type`          | `'button'` \| `'submit'` \| `'reset'`                                           | `'button'` | Button type. Defaults to `'button'`, so a burger inside a form does not submit it. Pass `'submit'` or `'reset'` and yours is used; any other value, or a spread carrying `type: undefined`, renders `'button'`.                        |
-| `...`           | All standard `<button>` attributes and Bulma helper props                       | —          | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                      |
+| Prop            | Type                                                                            | Default    | Description                                                                                                                                                                                                                                |
+| --------------- | ------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `className`     | `string`                                                                        | —          | Additional CSS classes.                                                                                                                                                                                                                    |
+| `textColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —          | Text color for the burger.                                                                                                                                                                                                                 |
+| `color`         | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —          | Renders `has-text-<color>`, exactly like `textColor`. Bulma has no `.navbar-burger.is-<color>` rule, so this is not a filled variant. `textColor` takes precedence when both are set, and is the one that reaches the full color list.     |
+| `active`        | `boolean`                                                                       | `false`    | Whether the burger is active.                                                                                                                                                                                                              |
+| `children`      | `React.ReactNode`                                                               | —          | Custom content inside the burger, rendered after its four bar spans. Bulma styles every `<span>` in the burger as a bar, so an extra span here draws an extra bar.                                                                         |
+| `aria-label`    | `React.AriaAttributes['aria-label']`                                            | `'menu'`   | Accessible name. Pass your own to replace it. An empty one, or a spread carrying `'aria-label': undefined`, keeps the default rather than leaving the button unnamed.                                                                      |
+| `aria-expanded` | `boolean` \| `null`                                                             | `active`   | Expanded state for assistive technology. It follows `active` unless you pass `true` or `false`, and `null` leaves it off, for a burger whose state isn't known yet; a spread carrying `'aria-expanded': undefined` still follows `active`. |
+| `onClick`       | `React.MouseEventHandler<HTMLButtonElement>`                                    | —          | Click handler.                                                                                                                                                                                                                             |
+| `ref`           | `React.Ref<HTMLButtonElement>`                                                  | —          | Ref forwarded to the burger button element.                                                                                                                                                                                                |
+| `type`          | `'button'` \| `'submit'` \| `'reset'`                                           | `'button'` | Button type. Defaults to `'button'`, so a burger inside a form does not submit it. Pass `'submit'` or `'reset'` and yours is used; any other value, or a spread carrying `type: undefined`, renders `'button'`.                            |
+| `...`           | All standard `<button>` attributes and Bulma helper props                       | —          | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                          |
 
 ### Navbar.Menu
 
@@ -604,17 +725,17 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navba
 
 ### Navbar.Dropdown
 
-| Prop             | Type                            | Default | Description                                      |
-| ---------------- | ------------------------------- | ------- | ------------------------------------------------ |
-| `className`      | `string`                        | —       | Additional CSS classes.                          |
-| `right`          | `boolean`                       | `false` | Dropdown aligned right.                          |
-| `up`             | `boolean`                       | `false` | Dropdown opens upwards.                          |
-| `hoverable`      | `boolean`                       | `false` | Dropdown opens on hover.                         |
-| `active`         | `boolean`                       | `false` | Dropdown is open.                                |
-| `onActiveChange` | `(active: boolean) => void`     | —       | Callback when dropdown active state changes.     |
-| `children`       | `React.ReactNode`               | —       | Dropdown content.                                |
-| `ref`            | `React.Ref<HTMLDivElement>`     | —       | Ref forwarded to the dropdown container element. |
-| `...`            | All standard `<div>` attributes | —       |                                                  |
+| Prop             | Type                            | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ---------------- | ------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className`      | `string`                        | —       | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `right`          | `boolean`                       | `false` | Dropdown aligned right.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `up`             | `boolean`                       | `false` | Dropdown opens upwards.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `hoverable`      | `boolean`                       | `false` | Dropdown opens on hover, and while focus is in it, as Bulma's navbar shows it on a desktop-wide window. Escape puts away a menu the pointer or focus is showing there, and it stays away until the pointer has left the dropdown and focus has too, or until the pointer comes back or focus moves onto something in it. Escape from inside the dropdown puts focus on its `Navbar.Link` first, and leaves the menu as it is in the cases `active` lists, such as when focus can't go back to the link.                                                                                                                                                                                                             |
+| `active`         | `boolean`                       | `false` | Dropdown is open, whether you control it or not. Escape on its `Navbar.Link`, or anywhere else in the open dropdown, closes it and puts focus on the link, unless a control there marks the key used, the key comes from a dialog or from content opened from the menu into a portal, or focus can't go back to the link. Focus landing outside the dropdown, as Tab past its last item does, closes it too, and one you control is told through `onActiveChange` and keeps its prop. Focus moving into content opened from the menu into a portal or into a dialog marked `aria-modal` it isn't in, focus going nowhere, as a window losing focus does, and a press outside that doesn't move focus leave it open. |
+| `onActiveChange` | `(active: boolean) => void`     | —       | Callback when dropdown active state changes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `children`       | `React.ReactNode`               | —       | Dropdown content.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `ref`            | `React.Ref<HTMLDivElement>`     | —       | Ref forwarded to the dropdown container element.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `...`            | All standard `<div>` attributes | —       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 
 ### Navbar.DropdownMenu
 

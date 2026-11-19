@@ -25,9 +25,9 @@ const packageRoot = path.join(
 );
 const fixtureDir = path.join(packageRoot, 'fixtures', 'kitchen-sink');
 
-// One scratch directory PER PROCESS, not one shared path. `pnpm all` runs
-// `test` and `test:coverage` inside a single turbo invocation, so two jest
-// processes execute this file at the same time; against a fixed
+// One scratch directory PER PROCESS, not one shared path. Two Vitest processes
+// can run this file at the same time (`pnpm test` beside `pnpm test:coverage`,
+// or a watch run beside `pnpm all`), and against a fixed
 // `.e2e-tmp/kitchen-sink` they interleave each other's rmSync/cpSync and the
 // suite fails claiming the codemod did nothing ("Expected substring: not
 // 'react-bulma-components'") on files that migrate correctly in isolation.
@@ -223,18 +223,39 @@ describe('kitchen-sink e2e', () => {
     expect(rules).toContain('component:Tile');
     expect(rules).toContain('responsive');
     expect(rules).toContain('prop:colorVariant');
+    // A Dropdown's color colored its trigger, which bestax's Dropdown can't.
+    expect(
+      todos.some(
+        t =>
+          t.rule === 'prop:color' &&
+          t.message.includes("bestax's Dropdown has no prop for that")
+      )
+    ).toBe(true);
+    expect(rules).toContain('prop:backgroundColor');
+    expect(rules).toContain('prop:textColor');
     expect(rules).toContain('prop:value');
     expect(rules).toContain('prop:showFirstLast');
     expect(rules).toContain('prop:remove');
     expect(rules).toContain('prop:subtitle');
     expect(rules).toContain('prop:heading');
+    expect(rules).toContain('component:Heading');
+    // The `heading` label's element and weight, which it cannot read.
+    expect(rules).toContain('prop:renderAs');
+    expect(rules).toContain('prop:weight');
+    // A Heading size it cannot read, which bestax would turn into a level.
+    expect(
+      todos.some(t => t.rule === 'prop:size' && t.message.includes('textSize'))
+    ).toBe(true);
     expect(rules).toContain('prop:as');
     expect(rules).toContain('prop:href');
+    // A Modal that nothing names, which bestax's dialog needs (#1941).
+    expect(rules).toContain('name:Modal');
     expect(todos.length).toBeGreaterThanOrEqual(10);
     const migrated = fs.readFileSync(
       path.join(tmpDir, 'src', 'leftovers.tsx'),
       'utf8'
     );
+    expect(migrated).toContain('<Dropdown color="info" label="Colored">');
     expect(migrated).toContain('TODO(bestax-migrate)');
     // Unmappable components keep a trimmed, TODO-annotated RBC import.
     expect(migrated).toMatch(
@@ -270,9 +291,12 @@ describe('kitchen-sink e2e', () => {
     // let `component:List` pass off the text of `component:List.Item`, and
     // the prop fallback matched any backticked occurrence of the word
     // anywhere in prose — so the guard could pass while the rule it was
-    // meant to pin went undocumented.
+    // meant to pin went undocumented. A `name:` rule is a token too: the
+    // backtick fallback below reads no colon.
     const tokens = new Set(
-      [...refs.matchAll(/(?:component|prop):[A-Za-z][\w.*]*/g)].map(m => m[0])
+      [...refs.matchAll(/(?:component|prop|name):[A-Za-z][\w.*]*/g)].map(
+        m => m[0]
+      )
     );
     // A prop rule may instead be written bare in a row that names the
     // component beside it (`| \`expanded\` on \`Field\` |`).

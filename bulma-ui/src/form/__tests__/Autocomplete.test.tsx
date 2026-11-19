@@ -1,9 +1,18 @@
+import type { MockInstance } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Autocomplete, AutocompleteItem } from '../Autocomplete';
+import {
+  Autocomplete,
+  AutocompleteItem,
+  AutocompleteProps,
+} from '../Autocomplete';
 import { Field } from '../Field';
 import { Control } from '../Control';
+import {
+  announceDelay,
+  announcementLifetime,
+} from '../../helpers/statusRegion';
 
 const fruits = ['Apple', 'Banana', 'Cherry', 'Date', 'Elderberry'];
 
@@ -105,7 +114,7 @@ describe('Autocomplete', () => {
 
   describe('Selection', () => {
     it('calls onSelect when item is clicked', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(<Autocomplete data={fruits} onSelect={onSelect} />);
       const input = screen.getByRole('combobox');
 
@@ -159,7 +168,7 @@ describe('Autocomplete', () => {
     });
 
     it('returns object on selection', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(
         <Autocomplete data={countries} field="label" onSelect={onSelect} />
       );
@@ -208,7 +217,7 @@ describe('Autocomplete', () => {
     });
 
     it('selects highlighted item on Enter', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(<Autocomplete data={fruits} onSelect={onSelect} />);
       const input = screen.getByRole('combobox');
 
@@ -232,7 +241,7 @@ describe('Autocomplete', () => {
     });
 
     it('selects on Tab when item is highlighted', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(<Autocomplete data={fruits} onSelect={onSelect} />);
       const input = screen.getByRole('combobox');
 
@@ -294,8 +303,8 @@ describe('Autocomplete', () => {
     });
 
     it('clears input when clear button is clicked', () => {
-      const onInput = jest.fn();
-      const onSelect = jest.fn();
+      const onInput = vi.fn();
+      const onSelect = vi.fn();
       render(
         <Autocomplete
           data={fruits}
@@ -315,7 +324,7 @@ describe('Autocomplete', () => {
 
     it('reaches the clear button by keyboard and clears with Enter or Space', async () => {
       const user = userEvent.setup();
-      const onInput = jest.fn();
+      const onInput = vi.fn();
       render(<Autocomplete data={fruits} clearable onInput={onInput} />);
       const input = screen.getByRole('combobox');
 
@@ -475,6 +484,67 @@ describe('Autocomplete', () => {
 
       expect(screen.getByText('Footer')).toBeInTheDocument();
     });
+
+    // The dropdown's parts, in order, by what each one is.
+    const dropdownParts = (container: HTMLElement) =>
+      Array.from(
+        container.querySelector('.dropdown-content')?.children ?? [],
+        part =>
+          part.getAttribute('role') ??
+          (part.className.includes('dropdown-item') ? 'empty' : part.className)
+      );
+
+    it('keeps the listbox to options, with the header above it and the footer below', () => {
+      const { container } = render(
+        <Autocomplete
+          data={fruits}
+          header={<span>Header</span>}
+          footer={<span>Footer</span>}
+        />
+      );
+      fireEvent.change(screen.getByRole('combobox'), {
+        target: { value: 'e' },
+      });
+
+      const listbox = screen.getByRole('listbox');
+      const owned = Array.from(listbox.children);
+      expect(owned.length).toBeGreaterThan(0);
+      owned.forEach(child => expect(child).toHaveAttribute('role', 'option'));
+
+      expect(dropdownParts(container)).toEqual([
+        'dropdown-header',
+        'listbox',
+        'dropdown-footer',
+      ]);
+      for (const text of ['Header', 'Footer']) {
+        expect(listbox).not.toContainElement(screen.getByText(text));
+        expect(screen.getByText(text)).toBeVisible();
+      }
+    });
+
+    it('shows the empty content between the header and footer, with no listbox', () => {
+      const { container } = render(
+        <Autocomplete
+          data={fruits}
+          header={<span>Header</span>}
+          footer={<span>Footer</span>}
+          empty="No results"
+        />
+      );
+      fireEvent.change(screen.getByRole('combobox'), {
+        target: { value: 'xyz' },
+      });
+
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+      expect(dropdownParts(container)).toEqual([
+        'dropdown-header',
+        'empty',
+        'dropdown-footer',
+      ]);
+      for (const text of ['Header', 'No results', 'Footer']) {
+        expect(screen.getByText(text)).toBeVisible();
+      }
+    });
   });
 
   describe('Disabled Items', () => {
@@ -483,7 +553,7 @@ describe('Autocomplete', () => {
         { value: 'a', label: 'Apple', disabled: true },
         { value: 'b', label: 'Banana' },
       ];
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(
         <Autocomplete
           data={dataWithDisabled}
@@ -531,7 +601,7 @@ describe('Autocomplete', () => {
     });
 
     it('selects highlighted on click outside when selectOnClickOutside is true', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(
         <div>
           <Autocomplete
@@ -552,6 +622,146 @@ describe('Autocomplete', () => {
     });
   });
 
+  // The outside-click listener reads what to select, and the latest
+  // `onSelect`, when a click arrives, so it stays put while the list is
+  // open: arrowing through suggestions, or a parent that renders with an
+  // inline `onSelect`, doesn't take it off and put it back. React can render
+  // between two listeners for one event, and the browser runs neither a
+  // listener taken off mid-event nor one added mid-event (#1186).
+  describe('Click Outside while the list changes', () => {
+    const Page = ({
+      onSelect,
+    }: {
+      onSelect: (item: AutocompleteItem | string | null) => void;
+    }) => (
+      <div>
+        <Autocomplete
+          data={fruits}
+          selectOnClickOutside
+          onSelect={item => onSelect(item)}
+        />
+        <button>Outside</button>
+      </div>
+    );
+
+    const mousedownCalls = (spy: MockInstance) =>
+      spy.mock.calls.filter(([type]) => type === 'mousedown');
+
+    it('keeps its listener while the user arrows through suggestions and the parent renders', () => {
+      const onSelect = vi.fn();
+      const { rerender } = render(<Page onSelect={onSelect} />);
+      const input = screen.getByRole('combobox');
+      fireEvent.change(input, { target: { value: 'a' } });
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+      const addSpy = vi.spyOn(document, 'addEventListener');
+      const removeSpy = vi.spyOn(document, 'removeEventListener');
+      try {
+        fireEvent.keyDown(input, { key: 'ArrowDown' });
+        fireEvent.keyDown(input, { key: 'ArrowDown' });
+        rerender(<Page onSelect={onSelect} />);
+        expect(mousedownCalls(addSpy)).toHaveLength(0);
+        expect(mousedownCalls(removeSpy)).toHaveLength(0);
+      } finally {
+        addSpy.mockRestore();
+        removeSpy.mockRestore();
+      }
+    });
+
+    it('selects the suggestion highlighted last, through the onSelect of the latest render', () => {
+      const first = vi.fn();
+      const latest = vi.fn();
+      const { rerender } = render(<Page onSelect={first} />);
+      const input = screen.getByRole('combobox');
+      // Apple, Banana and Date.
+      fireEvent.change(input, { target: { value: 'a' } });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      rerender(<Page onSelect={latest} />);
+
+      fireEvent.mouseDown(screen.getByRole('button', { name: 'Outside' }));
+
+      expect(latest).toHaveBeenCalledWith('Banana');
+      expect(first).not.toHaveBeenCalled();
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    });
+
+    // Typing leaves the highlight where it was, so a list that narrows or
+    // empties can leave it past the last suggestion. There's nothing there to
+    // select, and the click still closes the dropdown.
+    it.each([
+      ['narrows to before the highlight', 3, 'ap'],
+      ['empties', 1, 'azz'],
+    ])(
+      'selects nothing on a click outside once the list %s, and closes',
+      (_, arrows, typed) => {
+        const onSelect = vi.fn();
+        const onError = vi.fn((e: ErrorEvent) => e.preventDefault());
+        window.addEventListener('error', onError);
+        try {
+          render(
+            <div>
+              <Autocomplete
+                data={fruits}
+                selectOnClickOutside
+                onSelect={onSelect}
+                empty="Nothing matches"
+              />
+              <button>Outside</button>
+            </div>
+          );
+          const input = screen.getByRole('combobox');
+          // Apple, Banana and Date.
+          fireEvent.change(input, { target: { value: 'a' } });
+          for (let i = 0; i < arrows; i += 1) {
+            fireEvent.keyDown(input, { key: 'ArrowDown' });
+          }
+          fireEvent.change(input, { target: { value: typed } });
+
+          fireEvent.mouseDown(screen.getByRole('button', { name: 'Outside' }));
+
+          expect(onError).not.toHaveBeenCalled();
+          expect(onSelect).not.toHaveBeenCalled();
+          expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+          expect(screen.queryByText('Nothing matches')).not.toBeInTheDocument();
+        } finally {
+          window.removeEventListener('error', onError);
+        }
+      }
+    );
+
+    // A disabled suggestion can't be picked, so a click outside with one
+    // highlighted only closes the dropdown, as Enter on it does.
+    it('selects nothing on a click outside with a disabled suggestion highlighted', () => {
+      const onSelect = vi.fn();
+      render(
+        <div>
+          <Autocomplete
+            data={[
+              { value: 'banana', label: 'Banana' },
+              { value: 'blueberry', label: 'Blueberry', disabled: true },
+            ]}
+            field="label"
+            selectOnClickOutside
+            onSelect={onSelect}
+          />
+          <button>Outside</button>
+        </div>
+      );
+      const input = screen.getByRole('combobox');
+      fireEvent.change(input, { target: { value: 'b' } });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      expect(screen.getByRole('option', { name: 'Blueberry' })).toHaveClass(
+        'is-active'
+      );
+
+      fireEvent.mouseDown(screen.getByRole('button', { name: 'Outside' }));
+
+      expect(onSelect).not.toHaveBeenCalled();
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    });
+  });
+
   describe('Controlled Value', () => {
     it('uses controlled value', () => {
       render(<Autocomplete data={fruits} value="Test" />);
@@ -559,7 +769,7 @@ describe('Autocomplete', () => {
     });
 
     it('calls onInput when value changes', () => {
-      const onInput = jest.fn();
+      const onInput = vi.fn();
       render(<Autocomplete data={fruits} value="" onInput={onInput} />);
       const input = screen.getByRole('combobox');
 
@@ -650,6 +860,25 @@ describe('Autocomplete', () => {
       );
       fireEvent.keyDown(input, { key: 'Escape' });
       expect(input).not.toHaveAttribute('aria-controls');
+    });
+
+    it('leaves the combobox collapsed and pointing at nothing while only the empty content shows', () => {
+      const { container } = render(
+        <Autocomplete data={fruits} empty="No results" />
+      );
+      const input = screen.getByRole('combobox');
+      fireEvent.change(input, { target: { value: 'a' } });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      expect(input).toHaveAttribute('aria-expanded', 'true');
+      expect(input).toHaveAttribute('aria-activedescendant');
+
+      fireEvent.change(input, { target: { value: 'xyz' } });
+
+      expect(screen.getByText('No results')).toBeInTheDocument();
+      expect(input).toHaveAttribute('aria-expanded', 'false');
+      expect(input).not.toHaveAttribute('aria-controls');
+      expect(input).not.toHaveAttribute('aria-activedescendant');
+      expect(danglingIdRefs(container)).toEqual([]);
     });
 
     it('points aria-activedescendant at the highlighted option', () => {
@@ -1072,7 +1301,7 @@ describe('Autocomplete', () => {
 
   describe('Callbacks', () => {
     it('calls onActiveChange when dropdown opens', () => {
-      const onActiveChange = jest.fn();
+      const onActiveChange = vi.fn();
       render(<Autocomplete data={fruits} onActiveChange={onActiveChange} />);
       const input = screen.getByRole('combobox');
 
@@ -1082,7 +1311,7 @@ describe('Autocomplete', () => {
     });
 
     it('calls onActiveChange when dropdown closes', () => {
-      const onActiveChange = jest.fn();
+      const onActiveChange = vi.fn();
       render(<Autocomplete data={fruits} onActiveChange={onActiveChange} />);
       const input = screen.getByRole('combobox');
 
@@ -1090,6 +1319,41 @@ describe('Autocomplete', () => {
       fireEvent.keyDown(input, { key: 'Escape' });
 
       expect(onActiveChange).toHaveBeenLastCalledWith(false);
+    });
+
+    // It reports the dropdown opening or closing, not the parent rendering
+    // with a new inline callback.
+    it('reports each change once, to the onActiveChange of the latest render', () => {
+      const Page = ({
+        onActiveChange,
+      }: {
+        onActiveChange: (active: boolean) => void;
+      }) => (
+        <Autocomplete
+          data={fruits}
+          onActiveChange={active => onActiveChange(active)}
+        />
+      );
+      const first = vi.fn();
+      const latest = vi.fn();
+      const { rerender } = render(<Page onActiveChange={first} />);
+      // Where it starts, as it mounts.
+      expect(first).toHaveBeenCalledTimes(1);
+      expect(first).toHaveBeenCalledWith(false);
+
+      rerender(<Page onActiveChange={latest} />);
+      rerender(<Page onActiveChange={latest} />);
+      expect(latest).not.toHaveBeenCalled();
+
+      const input = screen.getByRole('combobox');
+      fireEvent.change(input, { target: { value: 'a' } });
+      expect(latest).toHaveBeenCalledTimes(1);
+      expect(latest).toHaveBeenLastCalledWith(true);
+
+      fireEvent.keyDown(input, { key: 'Escape' });
+      expect(latest).toHaveBeenCalledTimes(2);
+      expect(latest).toHaveBeenLastCalledWith(false);
+      expect(first).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -1101,7 +1365,7 @@ describe('Autocomplete', () => {
     });
 
     it('supports callback refs', () => {
-      const refCallback = jest.fn();
+      const refCallback = vi.fn();
       render(<Autocomplete data={fruits} ref={refCallback} />);
       expect(refCallback).toHaveBeenCalledWith(expect.any(HTMLInputElement));
     });
@@ -1122,8 +1386,13 @@ describe('Autocomplete', () => {
   });
 
   describe('Infinite Scroll', () => {
+    // What scrolls is the dropdown, which holds the header and footer as well
+    // as the listbox.
+    const scrollingDropdown = () =>
+      screen.getByRole('listbox').closest('.dropdown-content') as HTMLElement;
+
     it('calls onInfiniteScroll when scrolled near bottom', () => {
-      const onInfiniteScroll = jest.fn();
+      const onInfiniteScroll = vi.fn();
       render(
         <Autocomplete
           data={fruits}
@@ -1135,30 +1404,30 @@ describe('Autocomplete', () => {
       const input = screen.getByRole('combobox');
       fireEvent.change(input, { target: { value: 'a' } });
 
-      const listbox = screen.getByRole('listbox');
+      const dropdown = scrollingDropdown();
 
       // Force the dropdown div's scroll metrics so the threshold triggers.
-      Object.defineProperty(listbox, 'scrollHeight', {
+      Object.defineProperty(dropdown, 'scrollHeight', {
         configurable: true,
         value: 500,
       });
-      Object.defineProperty(listbox, 'clientHeight', {
+      Object.defineProperty(dropdown, 'clientHeight', {
         configurable: true,
         value: 200,
       });
-      Object.defineProperty(listbox, 'scrollTop', {
+      Object.defineProperty(dropdown, 'scrollTop', {
         configurable: true,
         writable: true,
         value: 260, // 500 - 260 - 200 = 40 <= 50 -> triggers
       });
 
-      fireEvent.scroll(listbox);
+      fireEvent.scroll(dropdown);
 
       expect(onInfiniteScroll).toHaveBeenCalled();
     });
 
     it('does not call onInfiniteScroll when far from bottom', () => {
-      const onInfiniteScroll = jest.fn();
+      const onInfiniteScroll = vi.fn();
       render(
         <Autocomplete
           data={fruits}
@@ -1170,36 +1439,35 @@ describe('Autocomplete', () => {
       const input = screen.getByRole('combobox');
       fireEvent.change(input, { target: { value: 'a' } });
 
-      const listbox = screen.getByRole('listbox');
-      Object.defineProperty(listbox, 'scrollHeight', {
+      const dropdown = scrollingDropdown();
+      Object.defineProperty(dropdown, 'scrollHeight', {
         configurable: true,
         value: 500,
       });
-      Object.defineProperty(listbox, 'clientHeight', {
+      Object.defineProperty(dropdown, 'clientHeight', {
         configurable: true,
         value: 200,
       });
-      Object.defineProperty(listbox, 'scrollTop', {
+      Object.defineProperty(dropdown, 'scrollTop', {
         configurable: true,
         writable: true,
         value: 0, // 500 - 0 - 200 = 300 > 50 -> no trigger
       });
 
-      fireEvent.scroll(listbox);
+      fireEvent.scroll(dropdown);
 
       expect(onInfiniteScroll).not.toHaveBeenCalled();
     });
 
     it('does nothing when checkInfiniteScroll is disabled', () => {
-      const onInfiniteScroll = jest.fn();
+      const onInfiniteScroll = vi.fn();
       render(
         <Autocomplete data={fruits} onInfiniteScroll={onInfiniteScroll} />
       );
       const input = screen.getByRole('combobox');
       fireEvent.change(input, { target: { value: 'a' } });
 
-      const listbox = screen.getByRole('listbox');
-      fireEvent.scroll(listbox);
+      fireEvent.scroll(scrollingDropdown());
 
       expect(onInfiniteScroll).not.toHaveBeenCalled();
     });
@@ -1207,7 +1475,7 @@ describe('Autocomplete', () => {
 
   describe('ScrollIntoView', () => {
     it('calls scrollIntoView when highlight changes', () => {
-      const scrollIntoViewMock = jest.fn();
+      const scrollIntoViewMock = vi.fn();
       // Stub scrollIntoView on the prototype so JSDOM picks it up for all anchors.
       const original = (
         HTMLElement.prototype as unknown as { scrollIntoView: () => void }
@@ -1320,7 +1588,7 @@ describe('Autocomplete', () => {
     });
 
     it('does not open dropdown when input change has empty newValue', () => {
-      const onInput = jest.fn();
+      const onInput = vi.fn();
       // Controlled with current value 'x', dispatch a change to '' -> branch !isActive && !newValue is false-side
       render(<Autocomplete data={fruits} value="x" onInput={onInput} />);
       const input = screen.getByRole('combobox');
@@ -1332,8 +1600,8 @@ describe('Autocomplete', () => {
     });
 
     it('does not update internal value on selection when controlled', () => {
-      const onSelect = jest.fn();
-      const onInput = jest.fn();
+      const onSelect = vi.fn();
+      const onInput = vi.fn();
       render(
         <Autocomplete
           data={fruits}
@@ -1354,8 +1622,8 @@ describe('Autocomplete', () => {
     });
 
     it('does not update internal value on clear when controlled', () => {
-      const onInput = jest.fn();
-      const onSelect = jest.fn();
+      const onInput = vi.fn();
+      const onSelect = vi.fn();
       render(
         <Autocomplete
           data={fruits}
@@ -1375,7 +1643,7 @@ describe('Autocomplete', () => {
     });
 
     it('closes on click outside without selecting when no item is highlighted (selectOnClickOutside)', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(
         <div>
           <Autocomplete
@@ -1421,7 +1689,7 @@ describe('Autocomplete', () => {
     });
 
     it('does nothing on Enter when no item is highlighted', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(<Autocomplete data={fruits} onSelect={onSelect} />);
       const input = screen.getByRole('combobox');
 
@@ -1432,7 +1700,7 @@ describe('Autocomplete', () => {
     });
 
     it('closes on Tab without selecting when no item is highlighted', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       render(<Autocomplete data={fruits} onSelect={onSelect} />);
       const input = screen.getByRole('combobox');
 
@@ -1448,40 +1716,42 @@ describe('Autocomplete', () => {
       const input = screen.getByRole('combobox');
       fireEvent.change(input, { target: { value: 'a' } });
 
-      const listbox = screen.getByRole('listbox');
-      Object.defineProperty(listbox, 'scrollHeight', {
+      const dropdown = screen
+        .getByRole('listbox')
+        .closest('.dropdown-content') as HTMLElement;
+      Object.defineProperty(dropdown, 'scrollHeight', {
         configurable: true,
         value: 500,
       });
-      Object.defineProperty(listbox, 'clientHeight', {
+      Object.defineProperty(dropdown, 'clientHeight', {
         configurable: true,
         value: 200,
       });
-      Object.defineProperty(listbox, 'scrollTop', {
+      Object.defineProperty(dropdown, 'scrollTop', {
         configurable: true,
         writable: true,
         value: 260,
       });
 
-      expect(() => fireEvent.scroll(listbox)).not.toThrow();
+      expect(() => fireEvent.scroll(dropdown)).not.toThrow();
     });
 
-    it('returns early in handleSelect when item is disabled (via Enter w/ keepFirst)', () => {
-      const onSelect = jest.fn();
+    it('returns early in handleSelect when item is disabled (via Tab w/ keepFirst)', () => {
+      const onSelect = vi.fn();
       const data = [
         { value: 'a', label: 'Apple', disabled: true },
         { value: 'b', label: 'Banana' },
       ];
       // keepFirst highlights index 0 even though it's disabled.
-      // Pressing Enter calls handleSelect with the disabled item.
+      // Pressing Tab calls handleSelect with the disabled item.
       render(
         <Autocomplete data={data} field="label" keepFirst onSelect={onSelect} />
       );
       const input = screen.getByRole('combobox');
 
       fireEvent.change(input, { target: { value: 'a' } });
-      // First item (disabled) is highlighted via keepFirst. Press Enter.
-      fireEvent.keyDown(input, { key: 'Enter' });
+      // First item (disabled) is highlighted via keepFirst. Press Tab.
+      fireEvent.keyDown(input, { key: 'Tab' });
 
       // handleSelect returned early -> onSelect not called
       expect(onSelect).not.toHaveBeenCalled();
@@ -1587,5 +1857,681 @@ describe('Autocomplete label association (#493)', () => {
     );
     expect(container.querySelectorAll('label').length).toBe(1);
     expect(screen.getByRole('combobox', { name: 'Outer' })).toBeInTheDocument();
+  });
+});
+
+describe('Autocomplete keeps its deprecated selected and dropdown props off the page (#1080)', () => {
+  // One render, since React warns about each attribute name only once per
+  // test file: a test earlier in this file that passed `dropdown` would use
+  // up the warning, and the console check here would pass on its own.
+  it('puts neither on the wrapper, and logs no warning for dropdown', () => {
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+    try {
+      const { container } = render(
+        <Autocomplete data={fruits} selected="Banana" dropdown />
+      );
+
+      const wrapper = container.querySelector('.autocomplete') as HTMLElement;
+      expect(wrapper).not.toHaveAttribute('selected');
+      expect(wrapper).not.toHaveAttribute('dropdown');
+      expect(consoleError).not.toHaveBeenCalled();
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+
+  it('does nothing with selected: the field stays empty', () => {
+    render(<Autocomplete data={fruits} selected="Banana" />);
+
+    expect(screen.getByRole('combobox')).toHaveValue('');
+  });
+});
+
+describe('Autocomplete announces when nothing matches (#1066)', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const advance = (ms: number) =>
+    act(() => {
+      vi.advanceTimersByTime(ms);
+    });
+
+  // What the status region says, one entry per announcement.
+  const said = () =>
+    Array.from(screen.getByRole('status').children, el => el.textContent);
+
+  const type = (value: string) =>
+    fireEvent.change(screen.getByRole('combobox'), { target: { value } });
+
+  it('has its polite status region in the page, empty, before anything is typed', () => {
+    render(<Autocomplete data={fruits} empty="No results" />);
+    const status = screen.getByRole('status');
+    expect(status).toHaveAttribute('aria-live', 'polite');
+    expect(status).toBeEmptyDOMElement();
+
+    type('xyz');
+    advance(announceDelay);
+
+    // The announcement goes into the region that was already there.
+    expect(screen.getByRole('status')).toBe(status);
+    expect(said()).toEqual(['No results']);
+  });
+
+  it('announces the empty content once typing runs the matches out', () => {
+    render(<Autocomplete data={fruits} empty="No results" />);
+
+    type('ch');
+    advance(announceDelay);
+    expect(said()).toEqual([]);
+
+    type('chx');
+    expect(said()).toEqual([]);
+    advance(announceDelay);
+    expect(said()).toEqual(['No results']);
+  });
+
+  it("doesn't announce it again on each keystroke while nothing matches", () => {
+    render(<Autocomplete data={fruits} empty="No results" />);
+    type('x');
+    advance(announceDelay);
+    expect(said()).toEqual(['No results']);
+
+    type('xy');
+    advance(announceDelay);
+    type('xyz');
+    advance(announceDelay);
+    expect(said()).toEqual(['No results']);
+
+    advance(announcementLifetime);
+    type('xyzw');
+    advance(announceDelay);
+    expect(said()).toEqual([]);
+  });
+
+  it('announces a second search that comes up empty', () => {
+    render(<Autocomplete data={fruits} empty="No results" />);
+    type('xyz');
+    advance(announceDelay + announcementLifetime);
+
+    // After matches come back.
+    type('a');
+    advance(announceDelay);
+    expect(said()).toEqual([]);
+    type('aq');
+    advance(announceDelay);
+    expect(said()).toEqual(['No results']);
+    advance(announcementLifetime);
+
+    // After the field is cleared.
+    type('');
+    type('qq');
+    advance(announceDelay);
+    expect(said()).toEqual(['No results']);
+    advance(announcementLifetime);
+
+    // After the list closes, with nothing matching all along.
+    fireEvent.keyDown(screen.getByRole('combobox'), { key: 'Escape' });
+    type('qqq');
+    advance(announceDelay);
+    expect(said()).toEqual(['No results']);
+  });
+
+  it('announces a second empty search made while the first is still being read', () => {
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+    try {
+      render(<Autocomplete data={fruits} empty="No results" />);
+      type('xyz');
+      advance(announceDelay);
+
+      type('a');
+      type('aq');
+      advance(announceDelay);
+
+      // Each is a node of its own, so the second is read as it's added.
+      expect(said()).toEqual(['No results', 'No results']);
+      expect(consoleError).not.toHaveBeenCalled();
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+
+  it('announces it once when matches come and go again before it was due', () => {
+    render(<Autocomplete data={fruits} empty="No results" />);
+    type('xyz');
+    type('a');
+    type('aq');
+    advance(announceDelay);
+
+    expect(said()).toEqual(['No results']);
+  });
+
+  it('stays quiet when the list opens on focus without typing', () => {
+    render(
+      <Autocomplete data={fruits} value="xyz" openOnFocus empty="No results" />
+    );
+
+    fireEvent.focus(screen.getByRole('combobox'));
+    advance(announceDelay);
+
+    expect(screen.getByText('No results')).toBeVisible();
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+  });
+
+  it('stays quiet when the list opens again without typing', () => {
+    render(<Autocomplete data={fruits} empty="No results" />);
+    const input = screen.getByRole('combobox');
+    type('xyz');
+    advance(announceDelay + announcementLifetime);
+
+    fireEvent.keyDown(input, { key: 'Escape' });
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    advance(announceDelay);
+
+    expect(screen.getByText('No results')).toBeVisible();
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+  });
+
+  it('says nothing without `empty`, as before', () => {
+    render(<Autocomplete data={fruits} />);
+    type('xyz');
+    advance(announceDelay);
+
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+  });
+
+  it('says nothing for an empty field, even with no data to match', () => {
+    render(<Autocomplete data={[]} empty="No results" />);
+    type('a');
+    advance(announceDelay + announcementLifetime);
+
+    type('');
+    advance(announceDelay);
+    expect(screen.getByText('No results')).toBeVisible();
+    expect(said()).toEqual([]);
+
+    type('b');
+    advance(announceDelay);
+    expect(said()).toEqual(['No results']);
+  });
+
+  it('announces results that come in empty after the typing, and not ones that come in time', () => {
+    const { rerender } = render(
+      <Autocomplete data={fruits} empty="No results" />
+    );
+    type('ap');
+    rerender(<Autocomplete data={[]} empty="No results" />);
+    advance(announceDelay);
+    expect(said()).toEqual(['No results']);
+    advance(announcementLifetime);
+
+    type('ch');
+    rerender(<Autocomplete data={['Cherry']} empty="No results" />);
+    advance(announceDelay);
+    expect(said()).toEqual([]);
+  });
+
+  describe('while results load', () => {
+    const loadingUi = (loading: boolean, data: string[] = []) => (
+      <Autocomplete data={data} loading={loading} empty="No results" />
+    );
+
+    it('says nothing while `loading` is on, even with the empty content showing', () => {
+      render(loadingUi(true));
+      type('xyz');
+      advance(announceDelay);
+
+      expect(screen.getByText('No results')).toBeVisible();
+      expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    });
+
+    it('announces it once loading ends with nothing matching', () => {
+      const { rerender } = render(loadingUi(true));
+      type('xyz');
+      advance(announceDelay);
+
+      rerender(loadingUi(false));
+      expect(said()).toEqual([]);
+      advance(announceDelay);
+      expect(said()).toEqual(['No results']);
+    });
+
+    it('says nothing when results arrive while loading', () => {
+      const { rerender } = render(loadingUi(true));
+      type('ch');
+      advance(announceDelay);
+
+      rerender(loadingUi(true, ['Cherry']));
+      advance(announceDelay);
+      rerender(loadingUi(false, ['Cherry']));
+      advance(announceDelay);
+
+      expect(screen.getByRole('option', { name: 'Cherry' })).toBeVisible();
+      expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    });
+
+    it('waits on a loading Control around it the same way', () => {
+      const inControl = (isLoading: boolean) => (
+        <Field>
+          <Control isLoading={isLoading}>
+            <Autocomplete data={[]} empty="No results" />
+          </Control>
+        </Field>
+      );
+      const { rerender } = render(inControl(true));
+      type('xyz');
+      advance(announceDelay);
+      expect(said()).toEqual([]);
+
+      rerender(inControl(false));
+      advance(announceDelay);
+      expect(said()).toEqual(['No results']);
+    });
+
+    it('announces each search that settles with nothing matching', () => {
+      const { rerender } = render(loadingUi(true));
+      type('xyz');
+      rerender(loadingUi(false));
+      advance(announceDelay + announcementLifetime);
+
+      // The next keystroke starts another search, which comes back empty
+      // too, and that's said once it settles.
+      rerender(loadingUi(true));
+      type('xyzw');
+      advance(announceDelay);
+      expect(said()).toEqual([]);
+
+      rerender(loadingUi(false));
+      advance(announceDelay);
+      expect(said()).toEqual(['No results']);
+    });
+  });
+
+  it('reads out the text the empty content renders', () => {
+    render(
+      <Autocomplete
+        data={fruits}
+        empty={
+          <p>
+            <span aria-hidden="true">!</span> No <strong>fruits</strong> found
+          </p>
+        }
+      />
+    );
+    type('xyz');
+    advance(announceDelay);
+
+    expect(said()).toEqual(['No fruits found']);
+  });
+
+  it('is read once: the copy on screen is no live region, and the region lets its own go', () => {
+    render(<Autocomplete data={fruits} empty="No results" />);
+    type('xyz');
+    advance(announceDelay);
+
+    const status = screen.getByRole('status');
+    const [shown, ...others] = screen
+      .getAllByText('No results')
+      .filter(el => !status.contains(el));
+    expect(others).toEqual([]);
+    expect(said()).toEqual(['No results']);
+    expect(
+      shown.closest('[aria-live], [role="status"], [role="alert"]')
+    ).toBeNull();
+    expect(shown).not.toHaveAttribute('aria-hidden');
+
+    advance(announcementLifetime);
+
+    expect(status).toBeEmptyDOMElement();
+    expect(screen.getAllByText('No results')).toEqual([shown]);
+  });
+});
+
+describe('Autocomplete keeps focus in the field on a click (#1078)', () => {
+  it('cancels the press on an option, so the option takes no focus', () => {
+    render(<Autocomplete data={fruits} />);
+    const input = screen.getByRole('combobox');
+    fireEvent.change(input, { target: { value: 'a' } });
+
+    // fireEvent returns false when a handler called preventDefault().
+    const option = screen.getByRole('option', { name: 'Banana' });
+    expect(fireEvent.mouseDown(option)).toBe(false);
+  });
+
+  it('leaves focus in the field after a click picks an option', async () => {
+    const user = userEvent.setup();
+    render(<Autocomplete data={fruits} />);
+    const input = screen.getByRole('combobox');
+
+    await user.type(input, 'a');
+    await user.click(screen.getByRole('option', { name: 'Banana' }));
+
+    expect(input).toHaveValue('Banana');
+    expect(input).toHaveFocus();
+  });
+
+  it('cancels a press on the empty message too', () => {
+    render(<Autocomplete data={fruits} empty="No results found" />);
+    const input = screen.getByRole('combobox');
+    fireEvent.change(input, { target: { value: 'xyz' } });
+
+    expect(fireEvent.mouseDown(screen.getByText('No results found'))).toBe(
+      false
+    );
+  });
+});
+
+describe('Enter submits the form around an Autocomplete unless it picks (#1079)', () => {
+  // user-event submits the form on an Enter that nothing prevented, the way
+  // a browser does from a text field.
+  const renderInForm = (props: Partial<AutocompleteProps> = {}) => {
+    const onSubmit = vi.fn((e: React.FormEvent) => e.preventDefault());
+    const onSelect = vi.fn();
+    render(
+      <form onSubmit={onSubmit}>
+        <Autocomplete
+          name="fruit"
+          data={fruits}
+          onSelect={onSelect}
+          {...props}
+        />
+        <button type="submit">Send</button>
+      </form>
+    );
+    return { input: screen.getByRole('combobox'), onSubmit, onSelect };
+  };
+
+  it('submits with the list closed', async () => {
+    const user = userEvent.setup();
+    const { input, onSubmit } = renderInForm();
+
+    // Nothing matches, so no list shows.
+    await user.type(input, 'xyz');
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    await user.keyboard('{Enter}');
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes the list and submits with nothing highlighted', async () => {
+    const user = userEvent.setup();
+    const { input, onSubmit, onSelect } = renderInForm();
+
+    await user.type(input, 'ap');
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    await user.keyboard('{Enter}');
+
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(input).toHaveValue('ap');
+  });
+
+  it('picks the highlighted option without submitting', async () => {
+    const user = userEvent.setup();
+    const { input, onSubmit, onSelect } = renderInForm();
+
+    await user.type(input, 'ap');
+    await user.keyboard('{ArrowDown}{Enter}');
+
+    expect(onSelect).toHaveBeenCalledWith('Apple');
+    expect(input).toHaveValue('Apple');
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('submits rather than picks once the list has closed on a highlight', async () => {
+    const user = userEvent.setup();
+    const { input, onSubmit, onSelect } = renderInForm({ keepFirst: true });
+
+    // keepFirst highlights "Apple", and a click away closes the list on it.
+    await user.type(input, 'ap');
+    await user.click(document.body);
+    await user.click(input);
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    await user.keyboard('{Enter}');
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(input).toHaveValue('ap');
+  });
+
+  it('submits when the highlighted option is disabled', async () => {
+    const user = userEvent.setup();
+    // keepFirst pins the highlight to the first match, which can't be picked.
+    const { input, onSubmit, onSelect } = renderInForm({
+      keepFirst: true,
+      data: [
+        { value: 'apple', label: 'Apple', disabled: true },
+        { value: 'avocado', label: 'Avocado' },
+      ],
+    });
+
+    await user.type(input, 'a');
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    await user.keyboard('{Enter}');
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+  });
+
+  it('leaves a Tab alone once the list has closed on a highlight', async () => {
+    const user = userEvent.setup();
+    const { input, onSelect } = renderInForm({ keepFirst: true });
+
+    await user.type(input, 'ap');
+    await user.click(document.body);
+    await user.click(input);
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    await user.tab();
+
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(input).toHaveValue('ap');
+  });
+});
+
+describe('Autocomplete opens on a highlight and leaves keys to an IME (#1081)', () => {
+  // Disabled at both ends, so the first and last enabled options are
+  // second and third.
+  const withDisabled: AutocompleteItem[] = [
+    { value: 'apple', label: 'Apple', disabled: true },
+    { value: 'banana', label: 'Banana' },
+    { value: 'cherry', label: 'Cherry' },
+    { value: 'date', label: 'Date', disabled: true },
+  ];
+  const highlighted = (input: HTMLElement) =>
+    input.getAttribute('aria-activedescendant');
+  const optionId = (name: string) => screen.getByRole('option', { name }).id;
+
+  it('opens a closed list on its first enabled option with Down Arrow', () => {
+    render(<Autocomplete data={withDisabled} />);
+    const input = screen.getByRole('combobox');
+
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+    expect(highlighted(input)).toBe(optionId('Banana'));
+  });
+
+  it('opens a closed list on its last enabled option with Up Arrow', () => {
+    render(<Autocomplete data={withDisabled} />);
+    const input = screen.getByRole('combobox');
+
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+
+    expect(highlighted(input)).toBe(optionId('Cherry'));
+  });
+
+  it('opens a closed list with nothing highlighted with Alt+Down Arrow', () => {
+    render(<Autocomplete data={withDisabled} />);
+    const input = screen.getByRole('combobox');
+
+    fireEvent.keyDown(input, { key: 'ArrowDown', altKey: true });
+
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    expect(highlighted(input)).toBeNull();
+  });
+
+  it('opens on the first option whichever key opens it, with keepFirst', () => {
+    render(<Autocomplete data={fruits} keepFirst />);
+    const input = screen.getByRole('combobox');
+
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+
+    expect(highlighted(input)).toBe(optionId('Apple'));
+  });
+
+  it('reaches a disabled option with the arrows but never marks it aria-selected', () => {
+    render(<Autocomplete data={withDisabled} />);
+    const input = screen.getByRole('combobox');
+
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+
+    const apple = screen.getByRole('option', { name: 'Apple' });
+    expect(highlighted(input)).toBe(apple.id);
+    expect(apple).toHaveClass('is-active');
+    expect(apple).toHaveAttribute('aria-disabled', 'true');
+    expect(apple).toHaveAttribute('aria-selected', 'false');
+  });
+
+  // Chrome and Firefox set isComposing. Safari can send the Enter that ends
+  // a composition with isComposing false, and keyCode 229 says it instead.
+  describe.each([
+    ['isComposing', { isComposing: true }],
+    ['keyCode 229', { keyCode: 229 }],
+  ])('while an IME is composing (%s)', (_, composing) => {
+    it('leaves Enter to it rather than picking the highlighted option', () => {
+      const onSelect = vi.fn();
+      render(<Autocomplete data={fruits} keepFirst onSelect={onSelect} />);
+      const input = screen.getByRole('combobox');
+      fireEvent.change(input, { target: { value: 'a' } });
+      expect(highlighted(input)).toBe(optionId('Apple'));
+
+      // fireEvent returns true when nothing called preventDefault().
+      expect(fireEvent.keyDown(input, { key: 'Enter', ...composing })).toBe(
+        true
+      );
+
+      expect(onSelect).not.toHaveBeenCalled();
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+    });
+
+    it('leaves the arrows to it', () => {
+      render(<Autocomplete data={fruits} />);
+      const input = screen.getByRole('combobox');
+
+      expect(fireEvent.keyDown(input, { key: 'ArrowDown', ...composing })).toBe(
+        true
+      );
+
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    });
+  });
+});
+
+describe("Autocomplete's labels (#2008)", () => {
+  it('names the clear button with labels.clear', async () => {
+    const user = userEvent.setup();
+    const onSelect = vi.fn();
+    render(
+      <Autocomplete
+        label="Fruit"
+        data={['Pomme']}
+        clearable
+        value="Pomme"
+        onSelect={onSelect}
+        labels={{ clear: 'Effacer' }}
+      />
+    );
+
+    const clear = screen.getByRole('button', { name: 'Effacer' });
+    expect(screen.queryByRole('button', { name: 'Clear' })).toBeNull();
+
+    await user.click(clear);
+    expect(onSelect).toHaveBeenCalledWith(null);
+  });
+
+  it('keeps "Clear" without one, and puts no labels attribute on the wrapper', () => {
+    const { container } = render(
+      <Autocomplete
+        label="Fruit"
+        data={['Apple']}
+        clearable
+        value="Apple"
+        labels={{}}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: 'Clear' })).toBeInTheDocument();
+    expect(container.querySelector('[labels]')).toBeNull();
+  });
+});
+
+describe("Autocomplete's labels.suggestions (#2097)", () => {
+  it('names the list when no label with an id names the field', async () => {
+    const user = userEvent.setup();
+    render(
+      <Autocomplete
+        data={['Paris', 'Lyon']}
+        labels={{ suggestions: 'Propositions' }}
+      />
+    );
+    await user.type(screen.getByRole('combobox'), 'P');
+
+    expect(screen.getByRole('listbox')).toHaveAccessibleName('Propositions');
+  });
+
+  it('counts an empty name as none', async () => {
+    const user = userEvent.setup();
+    render(
+      <Autocomplete data={['Paris', 'Lyon']} labels={{ suggestions: '' }} />
+    );
+    await user.type(screen.getByRole('combobox'), 'P');
+
+    expect(screen.getByRole('listbox')).toHaveAccessibleName('Suggestions');
+  });
+
+  it('names the list under a label wired by hand with no id', async () => {
+    const user = userEvent.setup();
+    render(
+      <Field label="Ville" labelProps={{ htmlFor: 'ville' }}>
+        <Autocomplete
+          id="ville"
+          data={['Paris', 'Lyon']}
+          labels={{ suggestions: 'Propositions' }}
+        />
+      </Field>
+    );
+    const input = screen.getByRole('combobox');
+    expect(input).toHaveAccessibleName('Ville');
+
+    await user.type(input, 'P');
+    expect(screen.getByRole('listbox')).toHaveAccessibleName('Propositions');
+  });
+
+  it('keeps "Suggestions" without it, and the label wins with one', async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<Autocomplete data={['Paris', 'Lyon']} />);
+    await user.type(screen.getByRole('combobox'), 'P');
+    expect(screen.getByRole('listbox')).toHaveAccessibleName('Suggestions');
+    unmount();
+
+    render(
+      <Autocomplete
+        label="Ville"
+        data={['Paris', 'Lyon']}
+        labels={{ suggestions: 'Propositions' }}
+      />
+    );
+    await user.type(screen.getByRole('combobox'), 'P');
+    expect(screen.getByRole('listbox')).toHaveAccessibleName('Ville');
   });
 });

@@ -1,5 +1,6 @@
 import { addons } from 'storybook/manager-api';
 import { create } from 'storybook/theming';
+import { ACCENT } from './accent';
 
 const lightTheme = create({
   base: 'light',
@@ -7,8 +8,8 @@ const lightTheme = create({
   brandUrl: 'https://bestax.io',
   brandImage: '/img/logo.svg',
   brandTarget: '_self',
-  // Control logo size
-  layoutMargin: 10,
+  colorPrimary: ACCENT.light,
+  colorSecondary: ACCENT.light,
 });
 
 const darkTheme = create({
@@ -17,8 +18,8 @@ const darkTheme = create({
   brandUrl: 'https://bestax.io',
   brandImage: '/img/logo.svg',
   brandTarget: '_self',
-  // Control logo size
-  layoutMargin: 10,
+  colorPrimary: ACCENT.dark,
+  colorSecondary: ACCENT.dark,
 });
 
 // Detect system preference and set initial theme

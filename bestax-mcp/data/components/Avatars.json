@@ -109,7 +109,7 @@
           "name": "surplusLabel",
           "type": "(count: number) => string",
           "default": null,
-          "description": "Builds the surplus avatar's accessible name from the hidden count, for localization. Default: `` `${count} more` ``.",
+          "description": "Builds the surplus avatar's accessible name from the hidden count, for localization. Default: `` `${count} more` ``. Inside a `LocaleProvider` with a `locale`, the visible `+count` and the count in the default name are written the way that locale writes numbers.",
           "required": false,
           "inherited": false,
           "deprecated": false

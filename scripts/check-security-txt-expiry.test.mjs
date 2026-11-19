@@ -12,11 +12,8 @@
  * notify, would it open a second issue) rather than the implementation. The
  * clock is injected everywhere — a test that depends on the real date would
  * start failing on a specific day in 2027, which is a nasty way to learn this.
- *
- * `.mjs` and `node --test` rather than jest: these are root-level scripts with
- * no package of their own, matching auto-close-duplicates.test.mjs.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
   MARKER,

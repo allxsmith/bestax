@@ -3,12 +3,15 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { Toast, ToastContainer, toast } from '../Toast';
+import { Modal } from '../Modal';
+import { ConfigProvider } from '../../helpers/Config';
+import { focusCheckInterval } from '../../helpers/useDismissTimer';
 
-jest.useFakeTimers();
+vi.useFakeTimers();
 
 describe('Toast', () => {
   afterEach(() => {
-    jest.clearAllTimers();
+    vi.clearAllTimers();
     toast.closeAll();
   });
 
@@ -226,18 +229,171 @@ describe('Toast', () => {
       ).toBeInTheDocument();
     });
 
+    it('names the close button with ariaCloseLabel, for an app in another language', () => {
+      render(
+        <Toast
+          message="Enregistré"
+          duration={0}
+          closable
+          ariaCloseLabel="Fermer"
+        />
+      );
+      expect(
+        screen.getByRole('button', { name: 'Fermer' })
+      ).toBeInTheDocument();
+    });
+
+    it("names a programmatic toast's close button", () => {
+      render(<ToastContainer />);
+      act(() => {
+        toast.show({
+          message: 'Enregistré',
+          closable: true,
+          ariaCloseLabel: 'Fermer',
+          duration: 0,
+        });
+      });
+      expect(
+        screen.getByRole('button', { name: 'Fermer' })
+      ).toBeInTheDocument();
+    });
+
+    it('keeps the close button named with an empty ariaCloseLabel', () => {
+      render(<Toast message="Saved" duration={0} closable ariaCloseLabel="" />);
+      expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
+    });
+
+    it('keeps ariaCloseLabel off the toast element', () => {
+      render(
+        <Toast message="Saved" duration={0} closable ariaCloseLabel="Fermer" />
+      );
+      expect(screen.getByRole('alert')).not.toHaveAttribute('ariaCloseLabel');
+    });
+
     it('close button triggers onClose', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" duration={0} closable onClose={onClose} />);
       fireEvent.click(screen.getByRole('button', { name: /close/i }));
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
     it('close button click does not double-fire close', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" duration={0} closable onClose={onClose} />);
       fireEvent.click(screen.getByRole('button', { name: /close/i }));
       expect(onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  // A Toast the caller keeps mounted stays hidden once it closes, and
+  // nothing closes it a second time (#1902).
+  describe('Closing once', () => {
+    // Steps through the timers, letting React render between them.
+    const waitInSteps = (ms: number) => {
+      for (let waited = 0; waited < ms; waited += focusCheckInterval) {
+        act(() => {
+          vi.advanceTimersByTime(focusCheckInterval);
+        });
+      }
+    };
+
+    const closes: [string, () => void][] = [
+      [
+        'its close button',
+        () => fireEvent.click(screen.getByLabelText('Close')),
+      ],
+      ['its cancel button', () => fireEvent.click(screen.getByText('Keep'))],
+      ['its action button', () => fireEvent.click(screen.getByText('Undo'))],
+      ['a click on it', () => fireEvent.click(screen.getByRole('alert'))],
+      ['Escape', () => fireEvent.keyDown(document, { key: 'Escape' })],
+      ['a click outside it', () => fireEvent.click(document.body)],
+    ];
+
+    it.each(closes)(
+      'calls onClose once when closed by %s and its timer runs out after',
+      (_how, close) => {
+        const onClose = vi.fn();
+        render(
+          <Toast
+            message="Deleted"
+            actionText="Undo"
+            cancelText="Keep"
+            closable
+            duration={2000}
+            onClose={onClose}
+          />
+        );
+        act(() => {
+          // The listener for a click outside goes on a frame after mount.
+          vi.advanceTimersByTime(16);
+        });
+        act(() => {
+          close();
+        });
+        waitInSteps(5000);
+        expect(onClose).toHaveBeenCalledTimes(1);
+      }
+    );
+
+    it('calls onClose once after an action pressed with focus on it', () => {
+      const onClose = vi.fn();
+      render(
+        <Toast
+          message="Deleted"
+          actionText="Undo"
+          duration={2000}
+          onClose={onClose}
+        />
+      );
+      const undo = screen.getByRole('button', { name: 'Undo' });
+      act(() => {
+        undo.focus();
+      });
+      fireEvent.click(undo);
+      waitInSteps(5000);
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('stops its timer once it has closed', () => {
+      render(<Toast message="Saved" closable duration={2000} />);
+      act(() => {
+        fireEvent.click(screen.getByLabelText('Close'));
+      });
+      act(() => {
+        vi.advanceTimersByTime(0);
+      });
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it('calls onClose once for a click and Escape before the render that hides it', () => {
+      const onClose = vi.fn();
+      render(<Toast message="Saved" duration={2000} onClose={onClose} />);
+      act(() => {
+        fireEvent.click(screen.getByRole('alert'));
+        fireEvent.keyDown(document, { key: 'Escape' });
+      });
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it("doesn't run its action once it has closed, before the render that hides it", () => {
+      const onAction = vi.fn();
+      const onClose = vi.fn();
+      render(
+        <Toast
+          message="Deleted"
+          actionText="Undo"
+          cancelText="Keep"
+          duration={2000}
+          onAction={onAction}
+          onClose={onClose}
+        />
+      );
+      act(() => {
+        fireEvent.click(screen.getByText('Keep'));
+        fireEvent.click(screen.getByText('Undo'));
+      });
+      expect(onClose).toHaveBeenCalledTimes(1);
+      expect(onAction).not.toHaveBeenCalled();
     });
   });
 
@@ -253,7 +409,7 @@ describe('Toast', () => {
     });
 
     it('calls onAction when action button is clicked', () => {
-      const onAction = jest.fn();
+      const onAction = vi.fn();
       render(
         <Toast
           message="Test"
@@ -267,7 +423,7 @@ describe('Toast', () => {
     });
 
     it('closes toast after action click', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast
           message="Test"
@@ -282,7 +438,7 @@ describe('Toast', () => {
     });
 
     it('handles action click without throwing when onAction is omitted', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast
           message="Test"
@@ -298,8 +454,8 @@ describe('Toast', () => {
     });
 
     it('action button click does not double-fire close', () => {
-      const onClose = jest.fn();
-      const onAction = jest.fn();
+      const onClose = vi.fn();
+      const onAction = vi.fn();
       render(
         <Toast
           message="Test"
@@ -324,7 +480,7 @@ describe('Toast', () => {
     });
 
     it('closes toast when cancel button is clicked', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast
           message="Test"
@@ -338,7 +494,7 @@ describe('Toast', () => {
     });
 
     it('cancel button click does not double-fire close', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast
           message="Test"
@@ -406,24 +562,24 @@ describe('Toast', () => {
 
   describe('Auto Close', () => {
     it('closes automatically after duration (default 2000)', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" onClose={onClose} />);
 
       expect(screen.getByRole('alert')).toBeInTheDocument();
 
       act(() => {
-        jest.advanceTimersByTime(2000);
+        vi.advanceTimersByTime(2000);
       });
 
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
     it('does not auto-close when duration is 0', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" duration={0} onClose={onClose} />);
 
       act(() => {
-        jest.advanceTimersByTime(10000);
+        vi.advanceTimersByTime(10000);
       });
 
       expect(onClose).not.toHaveBeenCalled();
@@ -431,13 +587,13 @@ describe('Toast', () => {
     });
 
     it('stays open when indefinite is true', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast message="Test" indefinite duration={2000} onClose={onClose} />
       );
 
       act(() => {
-        jest.advanceTimersByTime(10000);
+        vi.advanceTimersByTime(10000);
       });
 
       expect(onClose).not.toHaveBeenCalled();
@@ -447,7 +603,7 @@ describe('Toast', () => {
 
   describe('Pause on Hover', () => {
     it('pauses timer on mouse enter', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast message="Test" duration={3000} pauseOnHover onClose={onClose} />
       );
@@ -456,14 +612,14 @@ describe('Toast', () => {
       fireEvent.mouseEnter(toastEl);
 
       act(() => {
-        jest.advanceTimersByTime(5000);
+        vi.advanceTimersByTime(5000);
       });
 
       expect(onClose).not.toHaveBeenCalled();
     });
 
     it('resumes timer on mouse leave', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast message="Test" duration={3000} pauseOnHover onClose={onClose} />
       );
@@ -472,27 +628,27 @@ describe('Toast', () => {
       fireEvent.mouseEnter(toastEl);
 
       act(() => {
-        jest.advanceTimersByTime(2000);
+        vi.advanceTimersByTime(2000);
       });
 
       fireEvent.mouseLeave(toastEl);
 
       act(() => {
-        jest.advanceTimersByTime(3000);
+        vi.advanceTimersByTime(3000);
       });
 
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
     it('does not pause when pauseOnHover is false (default)', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" duration={3000} onClose={onClose} />);
 
       const toastEl = screen.getByRole('alert');
       fireEvent.mouseEnter(toastEl);
 
       act(() => {
-        jest.advanceTimersByTime(3000);
+        vi.advanceTimersByTime(3000);
       });
 
       expect(onClose).toHaveBeenCalledTimes(1);
@@ -505,9 +661,236 @@ describe('Toast', () => {
     });
   });
 
+  // A caller's own handler runs beside the toast's rather than replacing it
+  // (#1904).
+  describe('with handlers of its own', () => {
+    it("still pauses on hover with the caller's onMouseEnter", () => {
+      const onClose = vi.fn();
+      const onMouseEnter = vi.fn();
+      render(
+        <Toast
+          message="Test"
+          duration={3000}
+          pauseOnHover
+          onMouseEnter={onMouseEnter}
+          onClose={onClose}
+        />
+      );
+      fireEvent.mouseEnter(screen.getByRole('alert'));
+      act(() => {
+        vi.advanceTimersByTime(5000);
+      });
+      expect(onMouseEnter).toHaveBeenCalledTimes(1);
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it("still resumes when the pointer leaves with the caller's onMouseLeave", () => {
+      const onClose = vi.fn();
+      const onMouseLeave = vi.fn();
+      render(
+        <Toast
+          message="Test"
+          duration={2000}
+          pauseOnHover
+          onMouseLeave={onMouseLeave}
+          onClose={onClose}
+        />
+      );
+      const el = screen.getByRole('alert');
+      fireEvent.mouseEnter(el);
+      fireEvent.mouseLeave(el);
+      act(() => {
+        vi.advanceTimersByTime(5000);
+      });
+      expect(onMouseLeave).toHaveBeenCalledTimes(1);
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it("closes on a click with the caller's onClick when it says dismissible", () => {
+      const calls: string[] = [];
+      render(
+        <Toast
+          message="Test"
+          duration={0}
+          dismissible
+          onClick={() => calls.push('onClick')}
+          onClose={() => calls.push('onClose')}
+        />
+      );
+      fireEvent.click(screen.getByRole('alert'));
+      // Both run once, the caller's first.
+      expect(calls).toEqual(['onClick', 'onClose']);
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+
+    // A caller's onClick used to replace the close on a click, and a toast
+    // that leaves `dismissible` out keeps that, for code that relies on it.
+    it("stays open on a click with the caller's onClick and dismissible left out", () => {
+      const onClose = vi.fn();
+      const onClick = vi.fn();
+      render(
+        <Toast
+          message="Test"
+          duration={0}
+          onClick={onClick}
+          onClose={onClose}
+        />
+      );
+      fireEvent.click(screen.getByRole('alert'));
+      expect(onClick).toHaveBeenCalledTimes(1);
+      expect(onClose).not.toHaveBeenCalled();
+      // A click outside still closes it.
+      act(() => {
+        vi.advanceTimersByTime(16);
+      });
+      act(() => {
+        fireEvent.click(document.body);
+      });
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it("runs the caller's onClick alone on a toast that isn't dismissible", () => {
+      const onClose = vi.fn();
+      const onClick = vi.fn();
+      render(
+        <Toast
+          message="Test"
+          duration={0}
+          dismissible={false}
+          onClick={onClick}
+          onClose={onClose}
+        />
+      );
+      fireEvent.click(screen.getByRole('alert'));
+      expect(onClick).toHaveBeenCalledTimes(1);
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('passes the handlers on to a toast shown through toast.show', () => {
+      const onMouseEnter = vi.fn();
+      const onClick = vi.fn();
+      render(<ToastContainer />);
+      act(() => {
+        toast.show({
+          message: 'Saved',
+          duration: 3000,
+          pauseOnHover: true,
+          dismissible: true,
+          onMouseEnter,
+          onClick,
+        });
+      });
+      const el = screen.getByRole('alert');
+      fireEvent.mouseEnter(el);
+      act(() => {
+        vi.advanceTimersByTime(5000);
+      });
+      expect(onMouseEnter).toHaveBeenCalledTimes(1);
+      expect(screen.getByText('Saved')).toBeInTheDocument();
+      act(() => {
+        fireEvent.click(el);
+      });
+      expect(onClick).toHaveBeenCalledTimes(1);
+      expect(screen.queryByText('Saved')).not.toBeInTheDocument();
+    });
+  });
+
+  // Someone using a toast's action, cancel or close button keeps it while
+  // focus is there, as a pointer over it does with pauseOnHover.
+  describe('while focus is inside', () => {
+    // Advances the clock a check at a time, letting React render between
+    // steps, so a timer that changes state mid-wait runs as it would live.
+    const waitInSteps = (ms: number) => {
+      for (let waited = 0; waited < ms; waited += focusCheckInterval) {
+        act(() => {
+          vi.advanceTimersByTime(focusCheckInterval);
+        });
+      }
+    };
+
+    it('waits, whatever pauseOnHover says', () => {
+      const onClose = vi.fn();
+      render(
+        <Toast
+          message="Deleted"
+          actionText="Undo"
+          duration={2000}
+          pauseOnHover={false}
+          onClose={onClose}
+        />
+      );
+      act(() => {
+        screen.getByRole('button', { name: 'Undo' }).focus();
+      });
+      waitInSteps(10000);
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('gets its whole duration again once focus leaves', () => {
+      const onClose = vi.fn();
+      render(
+        <>
+          <button>Save</button>
+          <Toast message="Saved" closable duration={2000} onClose={onClose} />
+        </>
+      );
+      act(() => {
+        screen.getByRole('button', { name: 'Close' }).focus();
+      });
+      waitInSteps(10000);
+      act(() => {
+        screen.getByRole('button', { name: 'Save' }).focus();
+      });
+      // The next check finds focus gone and starts the countdown over.
+      act(() => {
+        vi.advanceTimersByTime(focusCheckInterval);
+      });
+      act(() => {
+        vi.advanceTimersByTime(1999);
+      });
+      expect(onClose).not.toHaveBeenCalled();
+      act(() => {
+        vi.advanceTimersByTime(1);
+      });
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it("still calls the caller's own onFocus", () => {
+      const onFocus = vi.fn();
+      const onClose = vi.fn();
+      render(
+        <Toast
+          message="Deleted"
+          actionText="Undo"
+          duration={2000}
+          onFocus={onFocus}
+          onClose={onClose}
+        />
+      );
+      act(() => {
+        screen.getByRole('button', { name: 'Undo' }).focus();
+      });
+      expect(onFocus).toHaveBeenCalledTimes(1);
+      waitInSteps(10000);
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('holds a toast shown through toast.show', () => {
+      render(<ToastContainer />);
+      act(() => {
+        toast.show({ message: 'Deleted', actionText: 'Undo' });
+      });
+      act(() => {
+        screen.getByRole('button', { name: 'Undo' }).focus();
+      });
+      waitInSteps(10000);
+      expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument();
+    });
+  });
+
   describe('Click to Dismiss', () => {
     it('closes when clicked (dismissible=true by default)', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" duration={0} onClose={onClose} />);
 
       fireEvent.click(screen.getByRole('alert'));
@@ -516,7 +899,7 @@ describe('Toast', () => {
     });
 
     it('does not close when clicked if dismissible is false', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast
           message="Test"
@@ -532,12 +915,12 @@ describe('Toast', () => {
     });
 
     it('closes when clicking outside the toast (dismissible=true)', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" duration={0} onClose={onClose} />);
 
       // Flush the deferred requestAnimationFrame that attaches the listener
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
 
       fireEvent.click(document.body);
@@ -546,7 +929,7 @@ describe('Toast', () => {
     });
 
     it('does not close when clicking outside if dismissible is false', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast
           message="Test"
@@ -557,7 +940,7 @@ describe('Toast', () => {
       );
 
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
 
       fireEvent.click(document.body);
@@ -568,7 +951,7 @@ describe('Toast', () => {
 
   describe('Escape Key', () => {
     it('closes on Escape when cancelable (default)', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Test" duration={0} onClose={onClose} />);
 
       fireEvent.keyDown(document, { key: 'Escape' });
@@ -576,8 +959,50 @@ describe('Toast', () => {
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
+    it('stays up on an Escape that something on the page already used', () => {
+      const onClose = vi.fn();
+      render(
+        <>
+          <Toast message="Test" duration={0} onClose={onClose} />
+          <input
+            aria-label="Search"
+            onKeyDown={e => {
+              if (e.key === 'Escape') e.preventDefault();
+            }}
+          />
+        </>
+      );
+      fireEvent.keyDown(screen.getByLabelText('Search'), { key: 'Escape' });
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('hears Escape after a document listener added once it showed', () => {
+      // A popup opened while the toast is up adds its listener after this
+      // one, and still gets the key first.
+      const onClose = vi.fn();
+      render(<Toast message="Test" duration={0} onClose={onClose} />);
+      const claim = (e: KeyboardEvent) => e.preventDefault();
+      document.addEventListener('keydown', claim);
+      try {
+        fireEvent.keyDown(document.body, { key: 'Escape' });
+        expect(onClose).not.toHaveBeenCalled();
+      } finally {
+        document.removeEventListener('keydown', claim);
+      }
+    });
+
+    it('stops listening for Escape once it has closed', () => {
+      const onClose = vi.fn();
+      render(<Toast message="Test" duration={0} onClose={onClose} />);
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
     it('does not close on Escape when cancelable is false', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast
           message="Test"
@@ -593,7 +1018,7 @@ describe('Toast', () => {
     });
 
     it('non-Escape key with cancelable does not close (covers if-false branch)', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Toast message="Test" duration={0} cancelable onClose={onClose} />
       );
@@ -609,11 +1034,11 @@ describe('Toast', () => {
     });
 
     it('does not close when click is inside the toast (covers contains-true branch)', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Toast message="Hello" duration={0} onClose={onClose} />);
 
       act(() => {
-        jest.runAllTimers();
+        vi.runAllTimers();
       });
 
       fireEvent.click(screen.getByRole('alert'));
@@ -724,7 +1149,7 @@ describe('Toast', () => {
     });
 
     it('invokes a function ref', () => {
-      const fnRef = jest.fn();
+      const fnRef = vi.fn();
       render(<Toast message="Fn ref test" duration={0} ref={fnRef} />);
 
       expect(fnRef).toHaveBeenCalled();
@@ -736,7 +1161,7 @@ describe('Toast', () => {
 
 describe('Toast Programmatic API', () => {
   afterEach(() => {
-    jest.clearAllTimers();
+    vi.clearAllTimers();
     toast.closeAll();
   });
 
@@ -830,7 +1255,7 @@ describe('Toast Programmatic API', () => {
 
   describe('toast.subscribe', () => {
     it('notifies subscribers of changes', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       const unsubscribe = toast.subscribe(listener);
 
       act(() => {
@@ -842,7 +1267,7 @@ describe('Toast Programmatic API', () => {
     });
 
     it('returns unsubscribe function', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       const unsubscribe = toast.subscribe(listener);
 
       unsubscribe();
@@ -859,6 +1284,47 @@ describe('Toast Programmatic API', () => {
 describe('ToastContainer', () => {
   afterEach(() => {
     toast.closeAll();
+  });
+
+  // The container hands each toast an inline `onClose`, and it renders
+  // whenever another toast shows, so a toast mustn't start over because its
+  // `onClose` changed (#1113).
+  it("keeps a toast's own clock when another one shows", () => {
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({ message: 'First', duration: 2000 });
+    });
+    act(() => {
+      vi.advanceTimersByTime(1500);
+    });
+    act(() => {
+      toast.show({ message: 'Second', duration: 10000 });
+    });
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    expect(screen.queryByText('First')).toBeNull();
+    expect(screen.getByText('Second')).toBeInTheDocument();
+  });
+
+  it('dismisses a toast on a click outside right after another one shows', () => {
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({ message: 'First', duration: 0 });
+    });
+    // Its outside-click listener goes on a frame after it shows.
+    act(() => {
+      vi.advanceTimersByTime(20);
+    });
+    act(() => {
+      toast.show({ message: 'Second', duration: 0 });
+    });
+
+    fireEvent.click(document.body);
+    expect(screen.queryByText('First')).toBeNull();
+    // The second one's listener isn't on yet, so that click didn't count.
+    expect(screen.getByText('Second')).toBeInTheDocument();
   });
 
   it('renders toasts from programmatic API', () => {
@@ -901,7 +1367,7 @@ describe('ToastContainer', () => {
 
 describe('ToastContainer mounted after toasts are raised', () => {
   afterEach(() => {
-    jest.clearAllTimers();
+    vi.clearAllTimers();
     // The container is still mounted here, so closing re-renders it.
     act(() => {
       toast.closeAll();
@@ -954,17 +1420,17 @@ describe('ToastContainer mounted after toasts are raised', () => {
     toast.show({ message: 'Timed', duration: 2000 });
     // Time spent waiting for a container does not count against the toast.
     act(() => {
-      jest.advanceTimersByTime(5000);
+      vi.advanceTimersByTime(5000);
     });
 
     render(<ToastContainer />);
     act(() => {
-      jest.advanceTimersByTime(1999);
+      vi.advanceTimersByTime(1999);
     });
     expect(screen.getByText('Timed')).toBeInTheDocument();
 
     act(() => {
-      jest.advanceTimersByTime(1);
+      vi.advanceTimersByTime(1);
     });
     expect(screen.queryByText('Timed')).not.toBeInTheDocument();
 
@@ -1015,7 +1481,7 @@ describe('ToastContainer mounted after toasts are raised', () => {
     // the hydrating render has to produce none either.
     expect(container.innerHTML).toBe('<main></main>');
 
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     let unmountRoot = () => {};
     try {
       await act(async () => {
@@ -1038,7 +1504,7 @@ describe('ToastContainer mounted after toasts are raised', () => {
     const id = toast.show({ message: 'Gone', duration: 0 });
     toast.close(id);
 
-    const onRender = jest.fn();
+    const onRender = vi.fn();
     const app = (
       <main>
         <React.Profiler id="toasts" onRender={onRender}>
@@ -1069,16 +1535,15 @@ describe('ToastContainer mounted after toasts are raised', () => {
 
 describe('ToastContainer with toasts shown at their own position', () => {
   afterEach(() => {
-    jest.clearAllTimers();
+    vi.clearAllTimers();
     act(() => {
       toast.closeAll();
     });
   });
 
-  // Where each toast is on screen: every toast portals itself into a wrapper
-  // of its own, and that wrapper's position class is what places it. Sorted by
-  // message, since toasts that mount together land in the body in stack order
-  // rather than the order they were shown in.
+  // Where each toast is on screen: the stack it sits in, whose position class
+  // is what places it. Sorted by message, since toasts land in the body in
+  // stack order rather than the order they were shown in.
   const placements = () =>
     Array.from(document.body.querySelectorAll('.toast'))
       .map(el => [
@@ -1087,16 +1552,10 @@ describe('ToastContainer with toasts shown at their own position', () => {
       ])
       .sort(([a], [b]) => a.localeCompare(b));
 
-  // The stacks ToastContainer renders into the body. The toasts in them
-  // portal out to their own wrappers, so these are the wrappers left without
-  // a toast inside.
+  // The stacks ToastContainer renders into the body, one per position in use.
   const stacks = () =>
     Array.from(document.body.children)
-      .filter(
-        el =>
-          el.classList.contains('toast-container') &&
-          !el.querySelector('.toast')
-      )
+      .filter(el => el.classList.contains('toast-container'))
       .map(el => el.className);
 
   it('puts a toast shown with a position at that position', () => {
@@ -1149,23 +1608,12 @@ describe('ToastContainer with toasts shown at their own position', () => {
   });
 
   it('keeps the toasts of a stack together, in the order they were shown', () => {
-    // An inline toast skips its own wrapper and renders inside its stack.
     render(<ToastContainer position="top-right" />);
     act(() => {
-      toast.show({ message: 'A', inline: true, duration: 0 });
-      toast.show({
-        message: 'B',
-        position: 'top-left',
-        inline: true,
-        duration: 0,
-      });
-      toast.show({ message: 'C', inline: true, duration: 0 });
-      toast.show({
-        message: 'D',
-        position: 'top-left',
-        inline: true,
-        duration: 0,
-      });
+      toast.show({ message: 'A', duration: 0 });
+      toast.show({ message: 'B', position: 'top-left', duration: 0 });
+      toast.show({ message: 'C', duration: 0 });
+      toast.show({ message: 'D', position: 'top-left', duration: 0 });
     });
 
     const stackContents = Array.from(
@@ -1183,8 +1631,7 @@ describe('ToastContainer with toasts shown at their own position', () => {
   });
 
   it("gives a toast at the container's own position the container's stack", () => {
-    // What a container rendered before toasts could be placed on their own:
-    // a stack at its position, and each toast in a wrapper at the same one.
+    // Shown with that position or without one, both go in the one stack.
     const { container } = render(<ToastContainer position="bottom-left" />);
     act(() => {
       toast.show({ message: 'One', duration: 0 });
@@ -1196,9 +1643,7 @@ describe('ToastContainer with toasts shown at their own position', () => {
         .filter(el => el !== container)
         .map(el => el.outerHTML)
     ).toEqual([
-      '<div class="toast-container is-bottom-left"><div class="toast" role="alert" aria-live="polite"><span class="toast-message">One</span></div></div>',
-      '<div class="toast-container is-bottom-left"><div class="toast" role="alert" aria-live="polite"><span class="toast-message">Two</span></div></div>',
-      '<div class="toast-container is-bottom-left"></div>',
+      '<div class="toast-container is-bottom-left" role="region" aria-label="Notifications (F8)"><div class="toast" role="alert" aria-live="polite"><span class="toast-message">One</span></div><div class="toast" role="alert" aria-live="polite"><span class="toast-message">Two</span></div></div>',
     ]);
   });
 
@@ -1226,7 +1671,7 @@ describe('ToastContainer with toasts shown at their own position', () => {
     });
 
     act(() => {
-      jest.advanceTimersByTime(999);
+      vi.advanceTimersByTime(999);
     });
     expect(placements()).toEqual([
       ['Stay', 'toast-container is-top-right'],
@@ -1234,7 +1679,7 @@ describe('ToastContainer with toasts shown at their own position', () => {
     ]);
 
     act(() => {
-      jest.advanceTimersByTime(1);
+      vi.advanceTimersByTime(1);
     });
     expect(placements()).toEqual([['Stay', 'toast-container is-top-right']]);
     expect(stacks()).toEqual(['toast-container is-top-right']);
@@ -1330,7 +1775,7 @@ describe('ToastContainer with toasts shown at their own position', () => {
     document.body.appendChild(container);
     expect(container.innerHTML).toBe('<main></main>');
 
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     let unmountRoot = () => {};
     try {
       await act(async () => {
@@ -1351,9 +1796,206 @@ describe('ToastContainer with toasts shown at their own position', () => {
   });
 });
 
+describe('ToastContainer stacks', () => {
+  afterEach(() => {
+    vi.clearAllTimers();
+    act(() => {
+      toast.closeAll();
+    });
+  });
+
+  // Each stack in the body, as its class and the messages of the toasts
+  // that are its own children.
+  const stackContents = () =>
+    Array.from(document.body.children)
+      .filter(el => /(^|\s|-)toast-container(\s|$)/.test(el.className))
+      .map(stack => [
+        stack.className,
+        Array.from(stack.children).map(
+          el => el.querySelector('[class$="toast-message"]')?.textContent
+        ),
+      ]);
+
+  it('puts the toasts shown at one position in one stack, one after another', () => {
+    render(<ToastContainer position="top-right" />);
+    act(() => {
+      toast.show({ message: 'First toast', indefinite: true });
+      toast.show({ message: 'Second toast', indefinite: true });
+      toast.show({
+        message: 'Third toast',
+        indefinite: true,
+        position: 'bottom-left',
+      });
+    });
+
+    expect(stackContents()).toEqual([
+      ['toast-container is-top-right', ['First toast', 'Second toast']],
+      ['toast-container is-bottom-left', ['Third toast']],
+    ]);
+    expect(document.querySelectorAll('.toast-container')).toHaveLength(2);
+  });
+
+  it('builds its stacks with the class prefix', () => {
+    render(
+      <ConfigProvider classPrefix="bestax-">
+        <ToastContainer position="bottom-center" />
+      </ConfigProvider>
+    );
+    act(() => {
+      toast.show({ message: 'One', duration: 0 });
+      toast.show({ message: 'Two', duration: 0 });
+    });
+
+    expect(stackContents()).toEqual([
+      ['bestax-toast-container bestax-is-bottom-center', ['One', 'Two']],
+    ]);
+    expect(document.querySelector('.toast-container')).toBeNull();
+    expect(screen.getByText('One').closest('[role="alert"]')).toHaveClass(
+      'bestax-toast'
+    );
+  });
+
+  it('portals a toast with a container of its own there, outside the stacks', () => {
+    const target = document.createElement('div');
+    document.body.appendChild(target);
+    try {
+      render(<ToastContainer position="top-right" />);
+      act(() => {
+        toast.show({ message: 'Own', container: target, duration: 0 });
+      });
+      // In a box of its own in the target, as before, and no empty stack.
+      expect(target.innerHTML).toBe(
+        '<div class="toast-container is-top-right"><div class="toast" role="alert" aria-live="polite"><span class="toast-message">Own</span></div></div>'
+      );
+      expect(stackContents()).toEqual([]);
+
+      act(() => {
+        toast.show({ message: 'Stacked', duration: 0 });
+        toast.show({
+          message: 'Own placed',
+          container: target,
+          position: 'bottom-center',
+          duration: 0,
+        });
+      });
+      expect(stackContents()).toEqual([
+        ['toast-container is-top-right', ['Stacked']],
+      ]);
+      expect(target.contains(screen.getByText('Own'))).toBe(true);
+      expect(
+        screen.getByText('Own placed').closest('.toast-container')
+      ).toHaveClass('is-bottom-center');
+      expect(
+        target.contains(screen.getByText('Own placed').closest('.toast'))
+      ).toBe(true);
+    } finally {
+      act(() => {
+        toast.closeAll();
+      });
+      document.body.removeChild(target);
+    }
+  });
+
+  it('keeps an inline toast with a container in its stack, as inline wins', () => {
+    const target = document.createElement('div');
+    document.body.appendChild(target);
+    try {
+      render(<ToastContainer position="top-left" />);
+      act(() => {
+        toast.show({
+          message: 'Inline',
+          container: target,
+          inline: true,
+          duration: 0,
+        });
+        toast.show({ message: 'Plain', duration: 0 });
+      });
+      expect(target).toBeEmptyDOMElement();
+      expect(stackContents()).toEqual([
+        ['toast-container is-top-left', ['Inline', 'Plain']],
+      ]);
+    } finally {
+      act(() => {
+        toast.closeAll();
+      });
+      document.body.removeChild(target);
+    }
+  });
+
+  it('stacks a toast with an empty container, which means none', () => {
+    render(<ToastContainer position="top-right" />);
+    act(() => {
+      toast.show({ message: 'Empty', container: '', duration: 0 });
+      toast.show({ message: 'Plain', duration: 0 });
+    });
+
+    expect(stackContents()).toEqual([
+      ['toast-container is-top-right', ['Empty', 'Plain']],
+    ]);
+  });
+
+  it('stacks a queued toast with the others at its position', () => {
+    render(<ToastContainer position="top-right" />);
+    act(() => {
+      toast.show({ message: 'Queued', queue: true, duration: 0 });
+      toast.show({ message: 'Stacked', duration: 0 });
+    });
+
+    // The queued one on screen comes after the stacked ones.
+    expect(stackContents()).toEqual([
+      ['toast-container is-top-right', ['Stacked', 'Queued']],
+    ]);
+  });
+
+  it('dismisses and times out one toast of a stack, leaving the rest in it', () => {
+    render(<ToastContainer position="top-right" />);
+    act(() => {
+      toast.show({ message: 'Click me', duration: 0 });
+      // A click outside a dismissible toast closes it too, so these two
+      // aren't, to stay up through the click on the first.
+      toast.show({ message: 'Timed', duration: 1000, dismissible: false });
+      toast.show({ message: 'Stay', duration: 0, dismissible: false });
+    });
+    // The outside-click listeners go on a frame after the toasts show.
+    act(() => {
+      vi.advanceTimersByTime(20);
+    });
+
+    act(() => {
+      fireEvent.click(screen.getByText('Click me'));
+    });
+    expect(stackContents()).toEqual([
+      ['toast-container is-top-right', ['Timed', 'Stay']],
+    ]);
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(stackContents()).toEqual([
+      ['toast-container is-top-right', ['Stay']],
+    ]);
+  });
+
+  it('keeps a toast mounted as others join and leave its stack', () => {
+    render(<ToastContainer position="top-right" />);
+    act(() => {
+      toast.show({ message: 'Kept', duration: 0 });
+    });
+    const kept = screen.getByText('Kept').closest('.toast');
+    let other = '';
+    act(() => {
+      other = toast.show({ message: 'Other', duration: 0 });
+    });
+    act(() => {
+      toast.close(other);
+    });
+    expect(screen.getByText('Kept').closest('.toast')).toBe(kept);
+  });
+});
+
 describe('Toast Queue', () => {
   afterEach(() => {
-    jest.clearAllTimers();
+    vi.clearAllTimers();
     toast.closeAll();
   });
 
@@ -1447,7 +2089,7 @@ describe('Toast Queue', () => {
     // setRef must stay referentially stable: an unstable ref identity makes
     // React detach and re-attach on every render, which would fire the
     // consumer's cleanup each time.
-    const cleanup = jest.fn();
+    const cleanup = vi.fn();
     const callbackRef = (node: HTMLDivElement | null) => {
       if (!node) return undefined;
       return () => {
@@ -1471,7 +2113,7 @@ describe('Toast Queue', () => {
   // ref, so neither this nor its siblings branch on React.version.
   it('runs a forwarded callback ref cleanup on unmount instead of calling it with null', () => {
     const calls: (HTMLDivElement | null)[] = [];
-    const cleanup = jest.fn();
+    const cleanup = vi.fn();
     const callbackRef = (node: HTMLDivElement | null) => {
       calls.push(node);
       if (!node) return undefined;
@@ -1491,5 +2133,872 @@ describe('Toast Queue', () => {
 
     expect(cleanup).toHaveBeenCalledTimes(1);
     expect(calls).toHaveLength(1);
+  });
+});
+
+describe('Toast hydration', () => {
+  it('hydrates a toast in place, then moves it into its portal', async () => {
+    const app = (
+      <main>
+        <Toast message="Saved" duration={0} />
+      </main>
+    );
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(app);
+    document.body.appendChild(container);
+
+    // The server renders it in place, so the hydrating render has markup to
+    // match.
+    expect(container.querySelector('.toast-container')).not.toBeNull();
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const onRecoverableError = vi.fn();
+    let unmountRoot = () => {};
+    try {
+      await act(async () => {
+        const root = hydrateRoot(container, app, { onRecoverableError });
+        unmountRoot = () => root.unmount();
+      });
+
+      expect(onRecoverableError).not.toHaveBeenCalled();
+      expect(errorSpy).not.toHaveBeenCalled();
+      // Then it moved into document.body.
+      expect(container.querySelector('.toast-container')).toBeNull();
+      const shown = document.body.querySelector('.toast-container');
+      expect(shown?.parentElement).toBe(document.body);
+      expect(screen.getByRole('alert')).toHaveTextContent('Saved');
+    } finally {
+      await act(async () => unmountRoot());
+      errorSpy.mockRestore();
+      container.remove();
+    }
+  });
+});
+
+// A keyboard or screen reader user reaches a toast's action with a hotkey,
+// before the toast closes on its own (#1915).
+describe('ToastContainer hotkey', () => {
+  afterEach(() => {
+    vi.clearAllTimers();
+    act(() => {
+      toast.closeAll();
+    });
+  });
+
+  const press = (init: KeyboardEventInit) => {
+    const event = new KeyboardEvent('keydown', {
+      bubbles: true,
+      cancelable: true,
+      ...init,
+    });
+    act(() => {
+      document.body.dispatchEvent(event);
+    });
+    return event;
+  };
+
+  it("moves focus to the newest toast's first button on F8", () => {
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({ message: 'Saved', actionText: 'View' });
+      toast.show({
+        message: 'Deleted',
+        cancelText: 'Keep',
+        actionText: 'Undo',
+      });
+    });
+    const event = press({ key: 'F8', code: 'F8' });
+    expect(event.defaultPrevented).toBe(true);
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: 'Keep' })
+    );
+  });
+
+  it('keeps the toast open while focus is in it', () => {
+    const onUndo = vi.fn();
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({
+        message: 'Deleted',
+        actionText: 'Undo',
+        onAction: onUndo,
+        duration: 2000,
+      });
+    });
+    press({ key: 'F8', code: 'F8' });
+    for (let waited = 0; waited < 10000; waited += focusCheckInterval) {
+      act(() => {
+        vi.advanceTimersByTime(focusCheckInterval);
+      });
+    }
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus();
+  });
+
+  it('focuses a toast with no button itself, until focus leaves it', () => {
+    render(
+      <>
+        <button>Save</button>
+        <ToastContainer />
+      </>
+    );
+    act(() => {
+      toast.show({ message: 'Saved', indefinite: true });
+    });
+    press({ key: 'F8', code: 'F8' });
+    const alert = screen.getByRole('alert');
+    expect(alert).toHaveFocus();
+    expect(alert).toHaveAttribute('tabindex', '-1');
+    // Pressed again, it keeps the tabindex it gave and the one way it goes.
+    press({ key: 'F8', code: 'F8' });
+    expect(alert).toHaveFocus();
+    act(() => {
+      screen.getByRole('button', { name: 'Save' }).focus();
+    });
+    expect(alert).not.toHaveAttribute('tabindex');
+  });
+
+  it('leaves the key alone with no toast showing', () => {
+    render(<ToastContainer />);
+    const event = press({ key: 'F8', code: 'F8' });
+    expect(event.defaultPrevented).toBe(false);
+  });
+
+  it('takes a hotkey of its own, with a modifier', () => {
+    render(<ToastContainer hotkey={['altKey', 'KeyT']} />);
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    expect(
+      screen.getByRole('region', { name: 'Notifications (Alt+T)' })
+    ).toBeInTheDocument();
+    press({ key: 'F8', code: 'F8' });
+    expect(document.activeElement).toBe(document.body);
+    press({ key: 't', code: 'KeyT' });
+    expect(document.activeElement).toBe(document.body);
+    press({ key: 't', code: 'KeyT', altKey: true });
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus();
+  });
+
+  it('turns the hotkey off with an empty list', () => {
+    render(<ToastContainer hotkey={[]} />);
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    expect(
+      screen.getByRole('region', { name: 'Notifications' })
+    ).toBeInTheDocument();
+    const event = press({ key: 'F8', code: 'F8' });
+    expect(event.defaultPrevented).toBe(false);
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it('names each stack a region with its hotkey', () => {
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({ message: 'One' });
+      toast.show({ message: 'Two', position: 'bottom-left' });
+    });
+    expect(
+      screen.getAllByRole('region', { name: 'Notifications (F8)' })
+    ).toHaveLength(2);
+  });
+
+  it('leaves the key alone with another modifier held', () => {
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    const event = press({ key: 'F8', code: 'F8', ctrlKey: true });
+    expect(event.defaultPrevented).toBe(false);
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it('takes F8 while someone types in a field, and leaves a typed letter alone', () => {
+    render(
+      <>
+        <input aria-label="Name" />
+        <ToastContainer hotkey={['KeyN']} />
+      </>
+    );
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    const field = screen.getByRole('textbox', { name: 'Name' });
+    act(() => {
+      field.focus();
+    });
+    act(() => {
+      field.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'n', code: 'KeyN', bubbles: true })
+      );
+    });
+    expect(field).toHaveFocus();
+  });
+
+  it('moves focus from a field with F8', () => {
+    render(
+      <>
+        <input aria-label="Name" />
+        <ToastContainer />
+      </>
+    );
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    const field = screen.getByRole('textbox', { name: 'Name' });
+    act(() => {
+      field.focus();
+    });
+    act(() => {
+      field.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'F8', code: 'F8', bubbles: true })
+      );
+    });
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus();
+  });
+
+  it('leaves the key alone while a modal overlay is open', () => {
+    render(
+      <>
+        <Modal active onClose={() => {}}>
+          <button>Inside</button>
+        </Modal>
+        <ToastContainer />
+      </>
+    );
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    const event = press({ key: 'F8', code: 'F8' });
+    expect(event.defaultPrevented).toBe(false);
+    expect(screen.getByRole('button', { name: 'Undo' })).not.toHaveFocus();
+  });
+
+  it('goes to the toast shown last, past a queued one', () => {
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({ message: 'Waited', actionText: 'Open', queue: true });
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    press({ key: 'F8', code: 'F8' });
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus();
+  });
+
+  it("keeps a toast's own id, and still finds it", () => {
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({ id: 'save-toast', message: 'Saved', actionText: 'View' });
+    });
+    expect(screen.getByRole('alert')).toHaveAttribute('id', 'save-toast');
+    press({ key: 'F8', code: 'F8' });
+    expect(screen.getByRole('button', { name: 'View' })).toHaveFocus();
+  });
+
+  it("leaves the key alone when focus can't go to the toast", () => {
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    screen.getByRole('button', { name: 'Undo' }).setAttribute('disabled', '');
+    const event = press({ key: 'F8', code: 'F8' });
+    expect(event.defaultPrevented).toBe(false);
+  });
+
+  it('turns the hotkey off when its entries name no single key', () => {
+    render(<ToastContainer hotkey={['altKey']} />);
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    const event = press({ key: 'Alt', code: 'AltLeft', altKey: true });
+    expect(event.defaultPrevented).toBe(false);
+    // And names the region with no key, since none works.
+    expect(
+      screen.getByRole('region', { name: 'Notifications' })
+    ).toBeInTheDocument();
+  });
+
+  it('takes a key by its code when the key it types is another, such as Period', () => {
+    render(<ToastContainer hotkey={['ctrlKey', 'Period']} />);
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    expect(
+      screen.getByRole('region', { name: 'Notifications (Ctrl+Period)' })
+    ).toBeInTheDocument();
+    press({ key: '.', code: 'Period' });
+    expect(document.activeElement).toBe(document.body);
+    press({ key: '.', code: 'Period', ctrlKey: true, shiftKey: true });
+    expect(document.activeElement).toBe(document.body);
+    press({ key: '.', code: 'Period', ctrlKey: true });
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus();
+  });
+
+  it('takes a numpad key by its code, and leaves it alone while someone types', () => {
+    render(
+      <>
+        <input aria-label="Amount" />
+        <ToastContainer hotkey={['Numpad1']} />
+      </>
+    );
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    const field = screen.getByRole('textbox', { name: 'Amount' });
+    act(() => {
+      field.focus();
+    });
+    act(() => {
+      field.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: '1',
+          code: 'Numpad1',
+          bubbles: true,
+        })
+      );
+    });
+    expect(field).toHaveFocus();
+    act(() => {
+      document.body.focus();
+    });
+    press({ key: '1', code: 'Numpad1' });
+    expect(screen.getByRole('button', { name: 'Undo' })).toHaveFocus();
+  });
+
+  it("takes a letter by its key only, not another layout's letter in its place", () => {
+    render(<ToastContainer hotkey={['altKey', 'KeyT']} />);
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo' });
+    });
+    // On a layout where the KeyT position types another Latin letter.
+    press({ key: 'z', code: 'KeyT', altKey: true });
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it('names its region in the language it is given', () => {
+    render(<ToastContainer ariaLabel="Avis" />);
+    act(() => {
+      toast.show({ message: 'Enregistré' });
+    });
+    expect(
+      screen.getByRole('region', { name: 'Avis (F8)' })
+    ).toBeInTheDocument();
+  });
+
+  it('names a digit key without its prefix', () => {
+    render(<ToastContainer hotkey={['ctrlKey', 'shiftKey', 'Digit1']} />);
+    act(() => {
+      toast.show({ message: 'One' });
+    });
+    expect(
+      screen.getByRole('region', { name: 'Notifications (Ctrl+Shift+1)' })
+    ).toBeInTheDocument();
+  });
+});
+
+// Closing a toast that holds focus passes focus on, rather than dropping it
+// to the page (#1939).
+describe('Focus when a toast closes', () => {
+  afterEach(() => {
+    vi.clearAllTimers();
+    act(() => {
+      toast.closeAll();
+    });
+  });
+
+  const focus = (el: HTMLElement) => {
+    act(() => {
+      el.focus();
+    });
+  };
+  const click = (el: HTMLElement) => {
+    act(() => {
+      fireEvent.click(el);
+    });
+  };
+  const button = (name: string) => screen.getByRole('button', { name });
+
+  it('hands focus back to where it came from when the toast it was in closes', () => {
+    render(
+      <>
+        <button>Save</button>
+        <ToastContainer />
+      </>
+    );
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo', indefinite: true });
+    });
+    focus(button('Save'));
+    focus(button('Undo'));
+    click(button('Undo'));
+    expect(screen.queryByText('Deleted')).not.toBeInTheDocument();
+    expect(document.activeElement).toBe(button('Save'));
+  });
+
+  it("moves focus to the next toast's first button in its stack", () => {
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({ message: 'One', closable: true, indefinite: true });
+      toast.show({
+        message: 'Two',
+        cancelText: 'Keep',
+        actionText: 'Undo',
+        indefinite: true,
+      });
+    });
+    focus(button('Close'));
+    click(button('Close'));
+    expect(screen.queryByText('One')).not.toBeInTheDocument();
+    expect(document.activeElement).toBe(button('Keep'));
+  });
+
+  it('moves focus to the one before when the last in the stack closes', () => {
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({ message: 'One', actionText: 'View', indefinite: true });
+      toast.show({ message: 'Two', actionText: 'Undo', indefinite: true });
+    });
+    focus(button('Undo'));
+    click(button('Undo'));
+    expect(document.activeElement).toBe(button('View'));
+  });
+
+  it('passes over a toast with no button, and one in another stack', () => {
+    render(
+      <>
+        <button>Save</button>
+        <ToastContainer />
+      </>
+    );
+    act(() => {
+      toast.show({ message: 'One', actionText: 'Undo', indefinite: true });
+      toast.show({ message: 'Two', indefinite: true });
+      toast.show({
+        message: 'Three',
+        actionText: 'View',
+        position: 'bottom-left',
+        indefinite: true,
+      });
+    });
+    focus(button('Save'));
+    focus(button('Undo'));
+    click(button('Undo'));
+    expect(document.activeElement).toBe(button('Save'));
+  });
+
+  it('moves focus when the app closes the toast that holds it', () => {
+    render(
+      <>
+        <button>Save</button>
+        <ToastContainer />
+      </>
+    );
+    let id = '';
+    act(() => {
+      id = toast.show({
+        message: 'Deleted',
+        actionText: 'Undo',
+        indefinite: true,
+      });
+    });
+    focus(button('Save'));
+    focus(button('Undo'));
+    act(() => {
+      toast.close(id);
+    });
+    expect(document.activeElement).toBe(button('Save'));
+  });
+
+  it('moves focus when Escape closes the toast that holds it', () => {
+    render(
+      <>
+        <button>Save</button>
+        <ToastContainer />
+      </>
+    );
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo', indefinite: true });
+    });
+    focus(button('Save'));
+    focus(button('Undo'));
+    act(() => {
+      fireEvent.keyDown(window, { key: 'Escape' });
+    });
+    expect(screen.queryByText('Deleted')).not.toBeInTheDocument();
+    expect(document.activeElement).toBe(button('Save'));
+  });
+
+  it('hands focus back to a control focused before the container mounted', () => {
+    const { rerender } = render(<button>Save</button>);
+    focus(button('Save'));
+    rerender(
+      <>
+        <button>Save</button>
+        <ToastContainer />
+      </>
+    );
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo', indefinite: true });
+    });
+    act(() => {
+      document.body.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'F8',
+          code: 'F8',
+          bubbles: true,
+          cancelable: true,
+        })
+      );
+    });
+    expect(document.activeElement).toBe(button('Undo'));
+    click(button('Undo'));
+    expect(document.activeElement).toBe(button('Save'));
+  });
+
+  it('hands focus back after the hotkey brought it in', () => {
+    render(
+      <>
+        <button>Save</button>
+        <ToastContainer />
+      </>
+    );
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo', indefinite: true });
+    });
+    focus(button('Save'));
+    act(() => {
+      document.body.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'F8',
+          code: 'F8',
+          bubbles: true,
+          cancelable: true,
+        })
+      );
+    });
+    expect(document.activeElement).toBe(button('Undo'));
+    click(button('Undo'));
+    expect(document.activeElement).toBe(button('Save'));
+  });
+
+  it('leaves focus that is somewhere else where it is', () => {
+    render(
+      <>
+        <button>Save</button>
+        <button>Cancel</button>
+        <ToastContainer />
+      </>
+    );
+    let id = '';
+    act(() => {
+      id = toast.show({ message: 'One', actionText: 'Undo', indefinite: true });
+      toast.show({ message: 'Two', actionText: 'View', indefinite: true });
+    });
+    focus(button('Save'));
+    focus(button('Undo'));
+    focus(button('Cancel'));
+    act(() => {
+      toast.close(id);
+    });
+    expect(document.activeElement).toBe(button('Cancel'));
+  });
+
+  it('drops focus to the page when where it came from has left the page', () => {
+    const App = ({ saving }: { saving: boolean }) => (
+      <>
+        {saving && <button>Save</button>}
+        <ToastContainer />
+      </>
+    );
+    const { rerender } = render(<App saving />);
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo', indefinite: true });
+    });
+    focus(button('Save'));
+    focus(button('Undo'));
+    rerender(<App saving={false} />);
+    click(button('Undo'));
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  // A legacy root, which React 18 still offers, renders a toast hiding
+  // itself on its own when the update comes from outside React's events, as
+  // Escape's does, so the store has to drop the toast first.
+  it.runIf(React.version.startsWith('18.'))(
+    'moves focus when Escape closes the toast under a legacy root',
+    () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        render(
+          <>
+            <button>Save</button>
+            <ToastContainer />
+          </>,
+          { legacyRoot: true }
+        );
+        act(() => {
+          toast.show({
+            message: 'Deleted',
+            actionText: 'Undo',
+            indefinite: true,
+          });
+        });
+        focus(button('Save'));
+        focus(button('Undo'));
+        // Outside act, which would batch the updates.
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+        expect(screen.queryByText('Deleted')).not.toBeInTheDocument();
+        expect(document.activeElement).toBe(button('Save'));
+      } finally {
+        errorSpy.mockRestore();
+      }
+    }
+  );
+
+  // A toast calls `onClose` before it hides, so the container can tell a
+  // toast closing from one moving. One that throws still closes the toast.
+  it('calls onClose once, while the toast is still on the page, and then hides it', () => {
+    const seen: boolean[] = [];
+    render(
+      <Toast
+        message="Saved"
+        duration={2000}
+        closable
+        onClose={() => seen.push(screen.queryByText('Saved') !== null)}
+      />
+    );
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    });
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      vi.advanceTimersByTime(5000);
+    });
+    expect(seen).toEqual([true]);
+    expect(screen.queryByText('Saved')).not.toBeInTheDocument();
+  });
+
+  it('hides a toast whose onClose throws', () => {
+    const swallow = (event: ErrorEvent) => event.preventDefault();
+    window.addEventListener('error', swallow);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      render(
+        <Toast
+          message="Saved"
+          indefinite
+          onClose={() => {
+            throw new Error('onClose failed');
+          }}
+        />
+      );
+      act(() => {
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      });
+      expect(screen.queryByText('Saved')).not.toBeInTheDocument();
+    } finally {
+      errorSpy.mockRestore();
+      window.removeEventListener('error', swallow);
+    }
+  });
+
+  it('has nowhere to go back to once focus went to the page itself', () => {
+    render(
+      <>
+        <button>Save</button>
+        <ToastContainer />
+      </>
+    );
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo', indefinite: true });
+    });
+    focus(button('Save'));
+    // A click on the page's background sends focus to the page itself.
+    act(() => {
+      button('Save').blur();
+    });
+    focus(button('Undo'));
+    click(button('Undo'));
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it('keeps the toast focus moves to open while focus stays in it', () => {
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({ message: 'One', actionText: 'Undo', indefinite: true });
+      toast.show({ message: 'Two', actionText: 'View', duration: 2000 });
+    });
+    focus(button('Undo'));
+    click(button('Undo'));
+    expect(document.activeElement).toBe(button('View'));
+    for (let waited = 0; waited < 10000; waited += focusCheckInterval) {
+      act(() => {
+        vi.advanceTimersByTime(focusCheckInterval);
+      });
+    }
+    expect(screen.getByText('Two')).toBeInTheDocument();
+    expect(document.activeElement).toBe(button('View'));
+  });
+
+  it('leaves focus alone when a toast changes stacks without closing', () => {
+    const { rerender } = render(<ToastContainer position="top-right" />);
+    act(() => {
+      toast.show({ message: 'Deleted', actionText: 'Undo', indefinite: true });
+      toast.show({
+        message: 'Saved',
+        actionText: 'View',
+        position: 'top-right',
+        indefinite: true,
+      });
+    });
+    focus(button('View'));
+    // Saved, shown at the container's old position, remounts. It hasn't
+    // closed, so focus drops as it would have, rather than going to Undo.
+    rerender(<ToastContainer position="bottom-left" />);
+    expect(screen.getByText('Saved')).toBeInTheDocument();
+    expect(document.activeElement).toBe(document.body);
+  });
+});
+
+// A toast shown through `toast.show()` calls the `onClose` it was given
+// (#1913).
+describe("A programmatic toast's onClose", () => {
+  afterEach(() => {
+    vi.clearAllTimers();
+    act(() => {
+      toast.closeAll();
+    });
+  });
+
+  it('is called once when the toast closes on its timer', () => {
+    const onClose = vi.fn();
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({ message: 'Deleted', duration: 1000, onClose });
+    });
+    act(() => {
+      vi.advanceTimersByTime(3000);
+    });
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('Deleted')).not.toBeInTheDocument();
+  });
+
+  it('is called once when the toast closes from its close button', () => {
+    const onClose = vi.fn();
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({
+        message: 'Deleted',
+        closable: true,
+        indefinite: true,
+        onClose,
+      });
+    });
+    act(() => {
+      fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    });
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('Deleted')).not.toBeInTheDocument();
+  });
+
+  it('is called before the toast leaves the store', () => {
+    const calls: string[] = [];
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({
+        message: 'Deleted',
+        actionText: 'Undo',
+        indefinite: true,
+        onClose: () => calls.push('onClose'),
+      });
+    });
+    const unsubscribe = toast.subscribe(() => calls.push('store'));
+    try {
+      act(() => {
+        fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
+      });
+    } finally {
+      unsubscribe();
+    }
+    expect(calls).toEqual(['onClose', 'store']);
+  });
+
+  it('is not called when the app closes the toast', () => {
+    const onClose = vi.fn();
+    render(<ToastContainer />);
+    let id = '';
+    act(() => {
+      id = toast.show({ message: 'Deleted', indefinite: true, onClose });
+    });
+    act(() => {
+      toast.close(id);
+    });
+    act(() => {
+      toast.show({ message: 'Saved', indefinite: true, onClose });
+    });
+    act(() => {
+      toast.closeAll();
+    });
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('leaves the store even when it throws from a close button', () => {
+    const swallow = (event: ErrorEvent) => event.preventDefault();
+    window.addEventListener('error', swallow);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      render(<ToastContainer />);
+      act(() => {
+        toast.show({
+          message: 'First',
+          closable: true,
+          indefinite: true,
+          queue: true,
+          onClose: () => {
+            throw new Error('onClose failed');
+          },
+        });
+        toast.show({ message: 'Second', indefinite: true, queue: true });
+      });
+      try {
+        act(() => {
+          fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+        });
+      } catch {
+        // Whether the error reaches the test depends on the React version.
+      }
+      expect(screen.queryByText('First')).not.toBeInTheDocument();
+      expect(screen.getByText('Second')).toBeInTheDocument();
+    } finally {
+      errorSpy.mockRestore();
+      window.removeEventListener('error', swallow);
+    }
+  });
+
+  it('leaves the store even when it throws, so the queue moves on', () => {
+    const swallow = (event: ErrorEvent) => event.preventDefault();
+    window.addEventListener('error', swallow);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      render(<ToastContainer />);
+      act(() => {
+        toast.show({
+          message: 'First',
+          indefinite: true,
+          queue: true,
+          onClose: () => {
+            throw new Error('onClose failed');
+          },
+        });
+        toast.show({ message: 'Second', indefinite: true, queue: true });
+      });
+      act(() => {
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      });
+      expect(screen.queryByText('First')).not.toBeInTheDocument();
+      expect(screen.getByText('Second')).toBeInTheDocument();
+    } finally {
+      errorSpy.mockRestore();
+      window.removeEventListener('error', swallow);
+    }
   });
 });

@@ -38,20 +38,31 @@
       "code": "<Tooltip label=\"Orders over $50 ship free\" openOnTap>\n  <Button>Shipping</Button>\n</Tooltip>"
     },
     {
+      "title": "Disabled",
+      "code": "function example() {\n  const [disabled, setDisabled] = useState(true);\n  return (\n    <>\n      <Block>\n        <Checkbox\n          checked={disabled}\n          onChange={e => setDisabled(e.target.checked)}\n        >\n          Disable the tooltip\n        </Checkbox>\n      </Block>\n      <Tooltip label=\"Saves a copy\" disabled={disabled}>\n        <Button>Save</Button>\n      </Tooltip>\n    </>\n  );\n}"
+    },
+    {
       "title": "On Icons",
-      "code": "function example() {\n  return (\n    <Buttons p=\"6\">\n      <Tooltip label=\"Moves it to the trash\" color=\"danger\" position=\"bottom\">\n        <Button aria-label=\"Delete\">\n          <Icon name=\"fas fa-trash\" />\n        </Button>\n      </Tooltip>\n      <Tooltip label=\"Opens it for editing\" color=\"info\" position=\"bottom\">\n        <Button aria-label=\"Edit\">\n          <Icon name=\"fas fa-edit\" />\n        </Button>\n      </Tooltip>\n      <Tooltip label=\"Saves a copy as a PDF\" color=\"success\" position=\"bottom\">\n        <Button aria-label=\"Download\">\n          <Icon name=\"fas fa-download\" />\n        </Button>\n      </Tooltip>\n    </Buttons>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Buttons p=\"6\">\n      <Tooltip label=\"Moves it to the trash\" color=\"danger\" position=\"bottom\">\n        <IconButton icon=\"trash\" aria-label=\"Delete\" />\n      </Tooltip>\n      <Tooltip label=\"Opens it for editing\" color=\"info\" position=\"bottom\">\n        <IconButton icon=\"pen\" aria-label=\"Edit\" />\n      </Tooltip>\n      <Tooltip label=\"Saves a copy as a PDF\" color=\"success\" position=\"bottom\">\n        <IconButton icon=\"download\" aria-label=\"Download\" />\n      </Tooltip>\n    </Buttons>\n  );\n}"
     },
     {
       "title": "Form Field Help",
-      "code": "function example() {\n  const id = React.useId();\n  return (\n    <Field>\n      <Block display=\"flex\" alignItems=\"center\" mb=\"2\">\n        <label className=\"label mb-0\" htmlFor={id}>\n          Password\n        </label>\n        <Tooltip\n          label=\"Must be at least 8 characters with one number and one special character\"\n          multiline\n          color=\"info\"\n        >\n          <Button size=\"small\" color=\"ghost\" aria-label=\"Password rules\">\n            <Icon name=\"fas fa-question-circle\" />\n          </Button>\n        </Tooltip>\n      </Block>\n      <Control>\n        <Input id={id} type=\"password\" placeholder=\"Enter password\" />\n      </Control>\n    </Field>\n  );\n}"
+      "code": "function example() {\n  const id = React.useId();\n  return (\n    <Field>\n      <Block display=\"flex\" alignItems=\"center\" mb=\"2\">\n        <label className=\"label mb-0\" htmlFor={id}>\n          Password\n        </label>\n        <Tooltip\n          label=\"Must be at least 8 characters with one number and one special character\"\n          multiline\n          color=\"info\"\n        >\n          <Button size=\"small\" color=\"ghost\" aria-label=\"Password rules\">\n            <Icon name=\"fas fa-question-circle\" />\n          </Button>\n        </Tooltip>\n      </Block>\n      <Control>\n        <Input\n          autoComplete=\"new-password\"\n          id={id}\n          type=\"password\"\n          placeholder=\"Enter password\"\n        />\n      </Control>\n    </Field>\n  );\n}"
     },
     {
       "title": "Abbreviations",
       "code": "function example() {\n  return (\n    <Paragraph style={{ lineHeight: 1.8 }}>\n      Hover over{' '}\n      <Tooltip label=\"Cascading Style Sheets\" color=\"info\" dashed>\n        <abbr tabIndex={0}>CSS</abbr>\n      </Tooltip>{' '}\n      or{' '}\n      <Tooltip label=\"HyperText Markup Language\" color=\"info\" dashed>\n        <abbr tabIndex={0}>HTML</abbr>\n      </Tooltip>{' '}\n      to see their full names.\n    </Paragraph>\n  );\n}"
     }
   ],
-  "accessibility": "`Tooltip` is built to\n[WCAG's Content on Hover or Focus](https://www.w3.org/WAI/WCAG22/Understanding/content-on-hover-or-focus.html)\ncriterion:\n\n- **Dismissible:** <kbd>Escape</kbd> hides a shown tooltip wherever focus is, without you moving the\n  pointer or focus, and it stays hidden until the pointer or focus leaves the trigger and comes\n  back, or, with `openOnTap`, until the next tap on the trigger. The key goes on as well, to\n  whatever has focus, so a control in the trigger, such as a `Dropdown`, still gets its own Escape.\n  Inside a `Popover` or `Modal`, one Escape hides the tooltip and closes that too, since a tooltip\n  only adds to what's there.\n- **Hoverable:** the pointer can move from the trigger onto a shown tooltip, straight across the gap\n  between them, and it stays. A hidden tooltip, or one only `active` shows, lets the pointer through\n  to whatever is under it.\n- **Persistent:** no timer hides a tooltip that's hovered or focused.\n\nAnd around it:\n\n- Keyboard focus on the trigger shows the tooltip, as hover does. Focus that a click or a tap brings\n  doesn't, and neither does a touch pointer, so tapping the trigger just does what the trigger does.\n  `openOnTap` shows it with a tap, for a trigger with no tap action of its own.\n- An `active` tooltip is always shown, whatever the pointer, focus and Escape do.\n- Tooltip content has `role=\"tooltip\"`. While it's hidden, the stylesheet gives it\n  `visibility: hidden`, which keeps it out of the accessibility tree.\n- The tooltip describes its trigger. The trigger's `aria-describedby` points at it, after any ids it\n  already had, so a screen reader reads the tooltip when the trigger takes focus. A hidden tooltip\n  still counts as a description, so that's before any `delay` runs out. `content` is read as plain\n  text.\n- That takes a single element as `children`, which passes `aria-describedby` on to its DOM node, as\n  native elements and bestax components do, and takes focus itself: a button, a link, or a `Span`\n  with `tabIndex={0}`. Something focusable inside it doesn't get the link, and text, a fragment or\n  several elements get none. A development build warns when the first element Tab reaches in the\n  trigger doesn't carry the link, or there isn't one.\n- A tooltip describes and doesn't name, so give an icon-only trigger a name of its own, such as an\n  `aria-label`, as [On Icons](https://bestax.io/docs/api/components/tooltip#on-icons) does.\n- The `dashed` style provides a visual cue that more information is available.",
-  "related": ["Button", "HoverCard", "Icon", "Popover"],
+  "accessibility": "`Tooltip` is built to\n[WCAG's Content on Hover or Focus](https://www.w3.org/WAI/WCAG22/Understanding/content-on-hover-or-focus.html)\ncriterion:\n\n- **Dismissible:** <kbd>Escape</kbd> hides a shown tooltip wherever focus is, without you moving the\n  pointer or focus, and it stays hidden until the pointer or focus leaves the trigger and comes\n  back, or, with `openOnTap`, until the next tap on the trigger. The key goes on as well, to\n  whatever has focus, so a control in the trigger, such as a `Dropdown`, still gets its own Escape.\n  Inside a `Popover` or `Modal`, one Escape hides the tooltip and closes that too, since a tooltip\n  only adds to what's there.\n- **Hoverable:** the pointer can move from the trigger onto a shown tooltip, straight across the gap\n  between them, and it stays. A hidden tooltip, or one only `active` shows, lets the pointer through\n  to whatever is under it.\n- **Persistent:** no timer hides a tooltip that's hovered or focused.\n\nAnd around it:\n\n- Keyboard focus on the trigger shows the tooltip, as hover does. Focus that a click or a tap brings\n  doesn't, and neither does a touch pointer, so tapping the trigger just does what the trigger does.\n  `openOnTap` shows it with a tap, for a trigger with no tap action of its own.\n- An `active` tooltip is always shown, whatever the pointer, focus and Escape do.\n- Tooltip content has `role=\"tooltip\"`. While it's hidden, the stylesheet gives it\n  `visibility: hidden`, which keeps it out of the accessibility tree.\n- The tooltip describes its trigger. The trigger's `aria-describedby` points at it, after any ids it\n  already had, so a screen reader reads the tooltip when the trigger takes focus. A hidden tooltip\n  still counts as a description, so that's before any `delay` runs out. `content` is read as plain\n  text.\n- That takes a single element as `children`, which passes `aria-describedby` on to its DOM node, as\n  native elements and bestax components do, and takes focus itself: a button, a link, or a `Span`\n  with `tabIndex={0}`. Something focusable inside it doesn't get the link, and text, a fragment or\n  several elements get none. A development build warns when the first element Tab reaches in the\n  trigger doesn't carry the link, or there isn't one.\n- A tooltip describes and doesn't name, so give an icon-only trigger a name of its own, such as an\n  `IconButton`'s `aria-label`, as [On Icons](https://bestax.io/docs/api/components/tooltip#on-icons) does.\n- With `describesTrigger` off, the tooltip shows a name the trigger already has, as the labels of\n  an [AppFrame](https://bestax.io/docs/api/layout/appframe) icon rail and a [FloatButton](https://bestax.io/docs/api/components/floatbutton) do. The trigger's `aria-describedby` is left as it\n  is and the tooltip is `aria-hidden`, so a screen reader reads the name once. It still shows on\n  hover and keyboard focus, and Escape still hides it.\n- While it's `disabled`, the tooltip stays closed and the trigger's `aria-describedby` doesn't point\n  at it, so a screen reader doesn't read a tooltip that never shows.\n- A label too wide for the box at its maximum width wraps inside it, between words or inside a word longer than the box, so all of it shows on the tooltip's background, with wider letter and word spacing too (WCAG's Text Spacing).\n- With `position=\"auto\"`, the tooltip goes on the first side with room for all of it, measured with\n  its arrow, so a long or `multiline` one on a trigger near the top of the window, as in a navbar or\n  at a high zoom, opens below, where it fits, rather than above, where its first lines would run off\n  the screen. Where no side has room for all of it, it goes on the side it overflows least.\n- The `dashed` style provides a visual cue that more information is available.\n- **Forced colors:** forced colors (Windows' contrast themes) gives the tooltip the page's own\n  background and paints every side of the arrow, so the box would read as loose text and the arrow\n  as a square. bestax's styles outline the box in the system's text color there, and keep the\n  arrow a triangle in that color, pointing at the trigger.",
+  "related": [
+    "Button",
+    "FloatButton",
+    "HoverCard",
+    "Icon",
+    "IconButton",
+    "Popover"
+  ],
   "storybook": null,
   "summary": "The `Tooltip` component displays helpful information when users hover over or focus on an element. Hovering the trigger or giving it keyboard focus shows it. Touch doesn't, unless `openOnTap` is on, and neither does focus a click or a tap brings, so tapping the trigger just does what the trigger does. The pointer can move onto a shown tooltip. Escape hides it wherever focus is, without moving the pointer or focus, and it stays hidden until one of them leaves the trigger and comes back, or, with `openOnTap`, until the next tap on the trigger. The key always goes on too, to whatever has focus or a `Modal` or `Popover` around it, since a tooltip only adds to what's there. The tooltip is its trigger's description, so a screen reader reads it as the trigger takes focus, whether it's showing yet or not.",
   "import": "import { Tooltip } from '@allxsmith/bestax-bulma';",
@@ -85,7 +96,7 @@
           "name": "position",
           "type": "'top' | 'bottom' | 'left' | 'right' | 'auto'",
           "default": "'top'",
-          "description": "Position of the tooltip. Default: 'top'.",
+          "description": "Position of the tooltip. Default: 'top'. `'auto'` puts it on the first side with room for it as it is, its own size and its arrow's gap, and at least 40px, as a one-line tooltip has always had: top, then bottom, then the wider of right and left. Where none has room, it goes on the side that falls shortest of it. It's placed as it shows, and again when what it says, `multiline`, `size` or `tooltipClassName` changes.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -121,7 +132,7 @@
           "name": "multiline",
           "type": "boolean",
           "default": "false",
-          "description": "Allow tooltip to wrap to multiple lines.",
+          "description": "Give the tooltip a fixed width, `--bulma-tooltip-multiline-width` up to `--bulma-tooltip-max-width`, whatever its label's length, with its text centered. Without it, the tooltip is as wide as its text, and wraps a label once the box reaches `--bulma-tooltip-max-width`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -181,6 +192,24 @@
           "deprecated": false
         },
         {
+          "name": "describesTrigger",
+          "type": "boolean",
+          "default": "true",
+          "description": "Whether the tooltip is its trigger's description. Turn it off for a tooltip that only shows the name the trigger already has, such as an icon button's `aria-label`, so a screen reader doesn't read the name twice. Off, the trigger's `aria-describedby` is left as it is, the tooltip is hidden from assistive technology with `aria-hidden`, and there's no warning about a trigger that can't carry the link. It still shows on hover and keyboard focus.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Keeps the tooltip closed, and leaves its trigger as it is: hover, keyboard focus and a tap don't open it, and one that's open closes. For a tooltip that applies only some of the time, without unmounting the trigger, which would drop its focus. While it's disabled the trigger's `aria-describedby` doesn't point at it, so a screen reader doesn't read a tooltip that's kept closed. Turned off again, it opens on the next hover or focus. `active` still shows it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
           "name": "tooltipClassName",
           "type": "string",
           "default": null,
@@ -195,7 +224,7 @@
           "name": "children",
           "type": "React.ReactNode",
           "default": null,
-          "description": "The element that triggers the tooltip. Its `aria-describedby` points at the tooltip, after any ids it already had, so a screen reader reads the tooltip as its description when it takes focus, even while the tooltip is hidden. That takes a single element which passes `aria-describedby` on to its DOM node, as native elements and bestax components do, and takes focus itself, such as a button, a link or a `Span` with `tabIndex={0}`: something focusable inside it doesn't get the link, and text, a fragment or several elements get none. A development build warns when the first element Tab reaches in the trigger doesn't carry the link, or there isn't one.",
+          "description": "The element that triggers the tooltip. Its `aria-describedby` points at the tooltip, after any ids it already had, so a screen reader reads the tooltip as its description when it takes focus, even while the tooltip is hidden. That takes a single element which passes `aria-describedby` on to its DOM node, as native elements and bestax components do, and takes focus itself, such as a button, a link or a `Span` with `tabIndex={0}`: something focusable inside it doesn't get the link, and text, a fragment or several elements get none. A development build warns when the first element Tab reaches in the trigger doesn't carry the link, or there isn't one. With `describesTrigger` off, there's no link and no warning.",
           "required": false,
           "inherited": false,
           "deprecated": false

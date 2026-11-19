@@ -29,6 +29,13 @@ on the root element with `mergeBulmaStyles(bulmaHelperStyles, style)`
 `undefined` when both are absent so unaffected components keep an attribute-free DOM.
 (`useColorStyles` is the underlying per-concern hook.)
 
+The flex container props (`flexDirection`, `flexWrap`, `justifyContent`, `alignContent`,
+`alignItems`) emit a class only on a flex container: when a `display` prop is `flex` or
+`inline-flex`, or when the second argument says the element's own stylesheet makes it one,
+`useBulmaClasses(props, { flexContainer: true })`. That adds no `is-flex` class, so pass it only
+when your CSS sets `display: flex`. `Stack`, `Group`, `Center` and `Flex` pass it, and
+`useFlexboxClasses` takes the same second argument.
+
 `BulmaClassesProps` is the union of all helper prop groups, composed from per-concern hooks
 that can also be used on their own:
 
@@ -117,8 +124,8 @@ hard-coding values.
 A panel anchored to the button that opens it is `Popover`, which already portals
 (`appendToBody`), traps focus and dismisses itself, a preview that opens on hover is
 `HoverCard`, which portals the same way, and a menu that opens at a right-click or a long press
-is `ContextMenu`, which always portals and places itself at the point. `Portal` is for the
-overlays they don't cover.
+is `ContextMenu`, which always portals and places itself at the point. A command palette is
+`Command.Dialog`, which is a `Modal`. `Portal` is for the overlays they don't cover.
 
 `<Portal container?>` (`helpers/portal.tsx`) renders its children into `container` (an element or
 a selector), or without one into the `portalContainer` a `ConfigProvider` sets, and
@@ -134,7 +141,11 @@ focus when it opens, and a `ContextMenu` moves it to its first item and closes o
 focus back. To trap portaled content,
 put the trap's ref on the element inside the `Portal`, as below with
 `useFocusTrap(panelRef, { active: open, restoreFocus: buttonRef })`. A focus trap doesn't cover
-what a `Portal` inside it renders, so render nested overlays inside the trapped element.
+what a `Portal` inside it renders, so render nested overlays inside the trapped element. The
+library's own popups, such as `Popover` with `appendToBody`, portal into the `Modal`, `Dialog`
+or `Command.Dialog` they're opened in, but a `Portal` of yours doesn't: inside one, give it a
+`container` inside the dialog, since its `aria-modal` hides the rest of the page from screen
+readers.
 
 ```tsx
 {
@@ -158,17 +169,48 @@ moves there is `position: fixed`, so the element must not sit under an ancestor 
 that includes `paint` or `layout`: that ancestor becomes the containing block, and overlays and
 anchored panels land against it instead of the viewport.
 
+## Language and direction: `LocaleProvider`
+
+`<LocaleProvider locale? dir?>` (`helpers/LocaleProvider.tsx`) renders a `<div>` carrying `lang` and
+`dir` around the part of the app it covers. A `locale` alone sets the direction of its script
+(`"ar-EG"` gives `dir="rtl"`), `dir` sets it whatever the locale, and a nested provider keeps what
+it leaves unset. What the library portals inside it, `Portal`'s children included, keeps the same
+`dir` and `lang`, and the date pickers take its locale and start the week on its first day. With a
+`locale`, the numbers the library writes (page numbers, badge counts, a slider's output) follow
+it, and `Combobox`, `Autocomplete`, `Taginput` and `Command` filter ignoring accents where the language
+does. With no provider nothing changes, and `<html dir="rtl">` still works on its own.
+
+`useLocale()` returns `{ locale, dir }` from the nearest provider, both `undefined` outside one.
+Pass the `locale` to your own `Intl` calls so they match the pickers, and put both on content you
+portal without `Portal`. It isn't the page's direction: a component that moves with Left and Right,
+or lays something out by side, reads `getComputedStyle(element).direction` when the key or the
+pointer arrives, and uses logical properties (`margin-inline-start`, `inset-inline-end`) in its
+CSS, so `<html dir>` works with or without a provider.
+
+For numbers, use `useNumberFormat()` rather than an `Intl.NumberFormat` of your own. It returns a
+function that writes in the `locale` you pass it, else the provider's, else the runtime's. The
+function is the same from render to render for one locale, and it shares one formatter for each
+locale and set of options. In JSX, `<NumberFormatter value format locale>` writes the same text in
+a `<data value>` element. Inside the library, `library-contributor.md` says which hook a component
+takes.
+
+```tsx
+const format = useNumberFormat();
+const total = format(amount, { style: 'currency', currency: 'EUR' });
+```
+
 ## Holding focus: `useFocusTrap`
 
 `useFocusTrap(ref, { active, initialFocusRef, restoreFocus })` (`helpers/useFocusTrap.ts`) moves
 focus into `ref` when `active` turns on, wraps Tab at the first and last tab stops (the ones the
 browser visits, so hidden, disabled, inert and `tabIndex={-1}` elements are skipped and a radio
 group counts once) and restores focus when it turns off. It handles Tab only: wire Escape to
-close. Pass the trigger's ref as `restoreFocus` for a panel opened from a button. It looks for
-the container again each time the component calling it renders, so `active` can follow `open`
-alone even when the panel mounts a render later, as portaled content can. The example below
-shows the hook's wiring; for a real filter panel opened from a button, use `Popover`, which does
-all of this.
+close, and call `preventDefault()` on the Escape it closes on, so a `Modal` or `Sidebar` around
+the panel stays open for the next one. Pass the trigger's ref as `restoreFocus` for a panel
+opened from a button. It looks for the container again each time the component calling it
+renders, so `active` can follow `open` alone even when the panel mounts a render later, as
+portaled content can. The example below shows the hook's wiring; for a real filter panel opened
+from a button, use `Popover`, which does all of this.
 
 ```tsx
 function FilterPanel({ children }: { children: React.ReactNode }) {
@@ -193,11 +235,57 @@ function FilterPanel({ children }: { children: React.ReactNode }) {
           role="dialog"
           aria-label="Filters"
           tabIndex={-1}
-          onKeyDown={e => e.key === 'Escape' && setOpen(false)}
+          onKeyDown={e => {
+            if (e.key !== 'Escape') return;
+            e.preventDefault();
+            setOpen(false);
+          }}
         >
           {children}
         </div>
       )}
+    </>
+  );
+}
+```
+
+## Copying text: `useClipboard`
+
+`useClipboard({ duration, onCopiedChange, onCopyError })` (`helpers/useClipboard.ts`) returns
+`{ copy, copied, error }`. `copy(text)` writes through the Clipboard API, falls back to the copy
+command where that's missing (any plain `http://` page but `localhost`) or refused, and resolves
+`true` or `false`; it never rejects. `copied` is `true` for `duration` ms (2000) after a copy that
+worked, or until a later copy fails when `duration` is `0`, and `error` holds why the last one
+failed; when copies overlap, only the latest one counts.
+Call `copy` from the click with text you already have, with no `await` before it, since browsers
+only allow a write shortly after the click. The hook announces nothing: say the result in a
+`role="status"` region that's in the page, empty, before the click, inside the open modal dialog if
+there is one, with a new element per message so a repeat is announced. For a button, use
+`CopyButton`, which does all of that already.
+
+```tsx
+function CommitId({ sha }: { sha: string }) {
+  const short = sha.slice(0, 7);
+  const [said, setSaid] = useState({ id: 0, text: '' });
+  const { copy } = useClipboard({
+    onCopiedChange: done =>
+      setSaid(s => ({
+        id: s.id + 1,
+        text: done ? `Copied commit ${short}` : '',
+      })),
+  });
+  return (
+    <>
+      <LinkButton
+        type="button"
+        aria-label={`Copy commit ${short}`}
+        onClick={() => copy(sha)}
+      >
+        <Code>{short}</Code>
+      </LinkButton>
+      <Span role="status" visibility="sr-only">
+        <span key={said.id}>{said.text}</span>
+      </Span>
     </>
   );
 }

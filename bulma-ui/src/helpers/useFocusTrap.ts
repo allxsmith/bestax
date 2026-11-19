@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import { useIsHydrated } from './useIsHydrated';
-import { getDeepestActiveElement } from './shadowDom';
+import { flatParent, getDeepestActiveElement } from './shadowDom';
 
 /**
  * Whether `el` is editable while its parent is not, which makes it an editing
@@ -38,7 +38,7 @@ const isDetailsSummary = (el: Element): boolean =>
  * can read `-1` for an editable region or an `<embed>` that Tab still visits,
  * and `0` for a `<video>` without controls that it doesn't. So a valid
  * `tabindex` attribute decides, and otherwise the element's kind does.
- * Internal like `firstTabStop`: `src/index.ts` names what it takes from here.
+ * Internal like `focusTabStop`: `src/index.ts` names what it takes from here.
  */
 export function isTabbableKind(el: Element): boolean {
   const tabindex = el.getAttribute('tabindex');
@@ -67,19 +67,6 @@ export function isTabbableKind(el: Element): boolean {
       return isEditingHost(el);
   }
 }
-
-/**
- * The node's parent in the flattened tree, the one the browser renders and
- * tabs through: the slot it is assigned to, else its parent, else the host of
- * the shadow root it tops, and nothing above the document. A closed shadow
- * root hides its slots (`assignedSlot` reads `null` under one), so a child of
- * its host goes straight to the host, whether a slot takes it or not.
- */
-const flatParent = (node: Node): Node | null =>
-  (node as Element).assignedSlot ??
-  node.parentElement ??
-  (node.parentNode as ShadowRoot | null)?.host ??
-  null;
 
 /**
  * The element's children in the flattened tree, in the order they render: a
@@ -177,7 +164,7 @@ function isAreaShown(area: Element, container: Element): boolean {
  * anything not rendered are skipped. `visibility` is inherited, so the
  * element's own computed value covers its ancestors.
  */
-function isRenderedAndEnabled(el: Element, container: Element): boolean {
+export function isRenderedAndEnabled(el: Element, container: Element): boolean {
   if (el.matches(':disabled')) return false;
   if (el.localName === 'area') return isAreaShown(el, container);
   return isShownUpTo(el, container) && isVisible(el);
@@ -270,6 +257,14 @@ interface TabStops {
   last: HTMLElement;
   /** The stop that stands for `node`: its group's stop for a radio button. */
   stopFor(node: Element): Element;
+  /** The stops from one end inward, the last first when `fromLast`. */
+  from(fromLast: boolean): Generator<HTMLElement>;
+  /**
+   * The stops Tab reaches after `node`, outside it, in order. Tab visits the
+   * stops with a positive `tabindex` before all the others, wherever they sit,
+   * so none of them comes after `node`.
+   */
+  after(node: Node): Generator<HTMLElement>;
 }
 
 /**
@@ -311,31 +306,38 @@ function findTabStops(container: HTMLElement): TabStops | null {
   };
   const isStop = (el: HTMLElement): boolean =>
     usable(el) && (!isGroupedRadio(el) || groupStop(el) === el);
-
-  const first = candidates.find(isStop);
-  if (!first) return null;
-  let last = first;
-  for (let i = candidates.length - 1; candidates[i] !== first; i--) {
-    if (isStop(candidates[i])) {
-      last = candidates[i];
-      break;
+  // Checked only as they're reached, and the checks are kept, so finding
+  // both ends costs what it did when only the ends were looked for.
+  function* from(fromLast: boolean): Generator<HTMLElement> {
+    for (let i = 0; i < candidates.length; i++) {
+      const el = candidates[fromLast ? candidates.length - 1 - i : i];
+      if (isStop(el)) yield el;
     }
   }
+
+  // Only the candidates past `node` get the style checks.
+  function* after(node: Node): Generator<HTMLElement> {
+    for (const el of candidates) {
+      if (
+        el.tabIndex <= 0 &&
+        !inside(node, el) &&
+        follows(container, node, el) &&
+        isStop(el)
+      ) {
+        yield el;
+      }
+    }
+  }
+
+  const first = from(false).next().value;
+  if (!first) return null;
   return {
     first,
-    last,
+    last: from(true).next().value as HTMLElement,
     stopFor: node => (isGroupedRadio(node) && groupStop(node)) || node,
+    from,
+    after,
   };
-}
-
-/**
- * The first tab stop inside `container`, found the way the trap finds it, or
- * `null` when there is none. For a component that moves focus into a panel
- * without trapping it there. `src/index.ts` names its exports from this
- * module, so this one stays internal.
- */
-export function firstTabStop(container: HTMLElement): HTMLElement | null {
-  return findTabStops(container)?.first ?? null;
 }
 
 /**
@@ -348,6 +350,216 @@ export function firstTabStop(container: HTMLElement): HTMLElement | null {
  */
 const focusedElement = (doc: Document): Element =>
   getDeepestActiveElement(doc) ?? doc.body;
+
+/**
+ * Moves focus to the first tab stop inside `container`, or the last when
+ * `fromLast`, and to the container when there is none. Every move a trap
+ * makes goes through here: into the container as it opens, to the other end
+ * on a wrap, and back in after a Tab the browser carried out.
+ *
+ * A stop that doesn't take focus is passed over for the next one in. An
+ * `<object>` or `<embed>` with nothing to show is one: it counts as a stop by
+ * its kind, but browsers refuse to focus it, and which ones they refuse
+ * depends on the browser and on what has loaded, so only trying tells.
+ * `src/index.ts` names its exports from this module, so this one stays
+ * internal.
+ */
+export function focusTabStop(container: HTMLElement, fromLast = false): void {
+  for (const stop of findTabStops(container)?.from(fromLast) ?? []) {
+    if (tookFocus(stop)) return;
+  }
+  container.focus();
+}
+
+/**
+ * Focuses `stop` and says whether it took focus: focus moved, wherever it
+ * went (a stop can hand focus on), or was on it already.
+ */
+function tookFocus(stop: HTMLElement): boolean {
+  const doc = stop.ownerDocument;
+  const before = focusedElement(doc);
+  stop.focus();
+  const now = focusedElement(doc);
+  return now !== before || inside(stop, now);
+}
+
+/**
+ * The traps holding Tab right now, each as the container it reads and whether
+ * it holds the key. `focusTabStopAfter` wraps at a trap's edge itself rather
+ * than leave the Tab to the trap, because the trap may still see the popup
+ * showing: one on its container hears the key before a React handler inside
+ * it, and in Firefox one on `window`, as Modal's is, found the popup still
+ * showing too. The trap then lets the key through from an item that isn't
+ * its last stop, and Firefox drops focus to the page as the item hides.
+ * Nothing in the DOM marks a trap's container, so `trapTab` adds each trap
+ * here as it starts and removes it when it stops.
+ */
+const traps = new Set<{
+  container: () => HTMLElement | null;
+  holds: () => boolean;
+}>();
+
+/**
+ * The element Tab stays inside around `node`: the nearest container of a
+ * trap that holds Tab, or of a modal dialog (`aria-modal="true"`), and
+ * `null` when there's neither.
+ */
+function tabBoundary(node: Element): HTMLElement | null {
+  const held = new Set<Element>();
+  for (const trap of traps) {
+    const box = trap.container();
+    if (box && trap.holds()) held.add(box);
+  }
+  for (
+    let el = flatParent(node) as Element | null;
+    el;
+    el = flatParent(el) as Element | null
+  ) {
+    if (held.has(el) || el.getAttribute('aria-modal') === 'true') {
+      return el as HTMLElement;
+    }
+  }
+  return null;
+}
+
+/**
+ * Moves focus where Tab goes from `element` when nothing inside it can take
+ * focus: to the first tab stop after it and outside it. Inside a trap that
+ * holds Tab, or a modal dialog, it looks no further than that container, and
+ * with nothing after `element` there, focus wraps to the container's first
+ * stop, as the trap's own Tab does. Returns whether it moved focus, which it
+ * doesn't at the end of the page, where the browser takes the key. It's for
+ * a popup that hides as a Tab inside it arrives, before the browser moves
+ * focus. Internal like `focusTabStop`.
+ */
+export function focusTabStopAfter(element: HTMLElement): boolean {
+  const boundary = tabBoundary(element);
+  const top = boundary ?? element.ownerDocument.documentElement;
+  for (const stop of findTabStops(top)?.after(element) ?? []) {
+    if (tookFocus(stop)) return true;
+  }
+  if (!boundary) return false;
+  focusTabStop(boundary);
+  return true;
+}
+
+/**
+ * Whether a Tab now would take focus out of `container`: focus is inside
+ * it, read through open shadow roots, and no tab stop there follows it. It's
+ * the question a trap asks before it wraps, through the same helpers, so a
+ * component that sends focus somewhere else at the end of its own stops
+ * agrees with a trap on where that end is. Internal like `focusTabStop`.
+ */
+export function tabLeaves(container: HTMLElement): boolean {
+  const focused = focusedElement(container.ownerDocument);
+  if (!inside(container, focused)) return false;
+  const stops = findTabStops(container);
+  return (
+    stops === null || !follows(container, stops.stopFor(focused), stops.last)
+  );
+}
+
+/**
+ * Handles a Tab for a trap on `container`. When the browser has no tab stop
+ * left in that direction inside the container, focus goes to the stop at the
+ * other end and the key is marked used, and with no stops at all the
+ * container takes focus. Focus outside the container goes in at that end
+ * too. Returns whether it moved focus; otherwise the browser does.
+ */
+function wrapTab(e: KeyboardEvent, container: HTMLElement): boolean {
+  const stops = findTabStops(container);
+  if (!stops) {
+    e.preventDefault();
+    container.focus();
+    return true;
+  }
+  const focused = focusedElement(container.ownerDocument);
+  const current = stops.stopFor(focused);
+  // Wrap whenever the browser has no stop left in that direction inside the
+  // container. Comparing positions rather than testing `=== first` also
+  // covers focus resting on the container or on an element outside the tab
+  // order, which the browser would otherwise walk straight out of.
+  if (
+    !inside(container, focused) ||
+    (e.shiftKey
+      ? !follows(container, stops.first, current)
+      : !follows(container, current, stops.last))
+  ) {
+    e.preventDefault();
+    focusTabStop(container, e.shiftKey);
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Holds Tab inside the element `container` returns until the returned
+ * function is called. Tab and Shift+Tab heard on `keyTarget` wrap at the
+ * ends, unless something already marked the key used, and if a Tab the trap
+ * let through still takes focus out, it sends focus back to the other end.
+ *
+ * `container` is read each time a key or a focus change arrives, so an
+ * overlay whose nodes are remounted while it's open, as moving to another
+ * portal target does, stays trapped without attaching again. `holds` is asked
+ * on every Tab, and the trap leaves the key alone while it says no. Internal
+ * like `focusTabStop`. It's for an overlay that holds Tab from a listener of
+ * its own on `window` and asks the overlay stack first, so it stands aside
+ * while another overlay is open over it, which a trap listening on the
+ * container can't do.
+ */
+export function trapTab(
+  container: () => HTMLElement | null,
+  keyTarget: HTMLElement | Window,
+  holds: () => boolean = () => true
+): () => void {
+  // The document focus moves in: the window's own, or the element's.
+  const doc =
+    'document' in keyTarget ? keyTarget.document : keyTarget.ownerDocument;
+  // A window and an element type their listeners differently, so the trap
+  // listens through the base type both share.
+  const keys: EventTarget = keyTarget;
+  // The end focus goes back to if a Tab the trap let the browser handle
+  // takes it out (the last for Shift+Tab), held until that Tab has finished
+  // moving focus, and `null` otherwise.
+  let wrapFromLast: boolean | null = null;
+  let wrapTimer: ReturnType<typeof setTimeout> | undefined;
+
+  // `keyTarget` is any target, so the listener takes the base event type.
+  const handleKeyDown = (event: Event) => {
+    const e = event as KeyboardEvent;
+    const box = container();
+    // A trap nested inside this one has already wrapped focus.
+    if (e.key !== 'Tab' || e.defaultPrevented || !box || !holds()) return;
+    if (wrapTab(e, box)) return;
+    wrapFromLast = e.shiftKey;
+    clearTimeout(wrapTimer);
+    wrapTimer = setTimeout(() => {
+      wrapFromLast = null;
+    });
+  };
+
+  // The browser moves focus as soon as the keydown is over, so focus that
+  // lands outside while `wrapFromLast` is set got there by that Tab.
+  const handleFocusIn = (e: FocusEvent) => {
+    const box = container();
+    if (wrapFromLast === null || !box) return;
+    if (inside(box, e.composedPath()[0] as Node)) return;
+    const fromLast = wrapFromLast;
+    wrapFromLast = null;
+    focusTabStop(box, fromLast);
+  };
+
+  const trap = { container, holds };
+  traps.add(trap);
+  keys.addEventListener('keydown', handleKeyDown);
+  doc.addEventListener('focusin', handleFocusIn, true);
+  return () => {
+    traps.delete(trap);
+    keys.removeEventListener('keydown', handleKeyDown);
+    doc.removeEventListener('focusin', handleFocusIn, true);
+    clearTimeout(wrapTimer);
+  };
+}
 
 /**
  * Options for `useFocusTrap`.
@@ -364,8 +576,8 @@ export interface UseFocusTrapOptions {
    * to be one that can take focus, so a heading needs `tabIndex={-1}`. When
    * focusing it doesn't put focus inside the container (the ref is empty, or
    * its element is outside, disabled, hidden or can't take focus), focus goes
-   * to the first tab stop inside the container, and to the container itself
-   * when there is none.
+   * to the first tab stop inside the container that takes focus, and to the
+   * container itself when none does.
    */
   initialFocusRef?: RefObject<HTMLElement | null>;
   /**
@@ -464,59 +676,12 @@ export function useFocusTrap(
     const inTrap = initial && inside(container, initial) ? initial : null;
     inTrap?.focus();
     if (!inTrap || !inside(container, focusedElement(doc))) {
-      (findTabStops(container)?.first ?? container).focus();
+      focusTabStop(container);
     }
 
-    // Where focus goes if a Tab the trap let the browser handle takes it out,
-    // held until that Tab has finished moving focus.
-    let wrapTo: HTMLElement | null = null;
-    let wrapTimer: ReturnType<typeof setTimeout> | undefined;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // A trap nested inside this one has already wrapped focus.
-      if (e.key !== 'Tab' || e.defaultPrevented) return;
-      const stops = findTabStops(container);
-      if (!stops) {
-        e.preventDefault();
-        container.focus();
-        return;
-      }
-      const current = stops.stopFor(focusedElement(doc));
-      // Wrap whenever the browser has no stop left in that direction inside
-      // the container. Comparing positions rather than testing `=== first`
-      // also covers focus resting on the container or on an element outside
-      // the tab order, which the browser would otherwise walk straight out of.
-      if (
-        e.shiftKey
-          ? !follows(container, stops.first, current)
-          : !follows(container, current, stops.last)
-      ) {
-        e.preventDefault();
-        (e.shiftKey ? stops.last : stops.first).focus();
-        return;
-      }
-      wrapTo = e.shiftKey ? stops.last : stops.first;
-      clearTimeout(wrapTimer);
-      wrapTimer = setTimeout(() => {
-        wrapTo = null;
-      });
-    };
-
-    // The browser moves focus as soon as the keydown is over, so focus that
-    // lands outside while `wrapTo` is set got there by that Tab.
-    const handleFocusIn = (e: FocusEvent) => {
-      if (!wrapTo || inside(container, e.composedPath()[0] as Node)) return;
-      const target = wrapTo;
-      wrapTo = null;
-      target.focus();
-    };
-
-    container.addEventListener('keydown', handleKeyDown);
-    doc.addEventListener('focusin', handleFocusIn, true);
+    const releaseTab = trapTab(() => container, container);
     return () => {
-      container.removeEventListener('keydown', handleKeyDown);
-      doc.removeEventListener('focusin', handleFocusIn, true);
-      clearTimeout(wrapTimer);
+      releaseTab();
       let target = restoreFocus ? opener : null;
       // `null` is an object too, and a caller without types can pass it.
       if (restoreFocus && typeof restoreFocus === 'object') {

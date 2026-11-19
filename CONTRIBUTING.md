@@ -27,10 +27,10 @@ This project is a modern, flexible React component library built on top of Bulma
 Before contributing, your PR **must** satisfy the following:
 
 - **All tests pass** (`pnpm test` & `pnpm test:coverage`)
-  - Coverage thresholds are enforced per package by jest: **bulma-ui 99%** on all metrics
-    ([`bulma-ui/jest.config.js`](./bulma-ui/jest.config.js)); **every other jest
-    package** 95% (78% branches), each in its own config. `docs` runs
-    `node --test` and has no coverage threshold
+  - Coverage thresholds are enforced per package by Vitest: **bulma-ui 99%** on all metrics
+    ([`bulma-ui/vitest.config.ts`](./bulma-ui/vitest.config.ts)); **every other published
+    package** 95% (78% branches), each in its own config. `docs` has no
+    coverage threshold
   - The root `scripts/` suite holds each file to its own floor in
     [`scripts/coverage-floors.json`](./scripts/coverage-floors.json), checked by
     `pnpm test`. A floor is where the file stood, less a small allowance on
@@ -182,8 +182,7 @@ pnpm install --frozen-lockfile     # exact CI-parity install (fails if the lockf
 
 ```bash
 pnpm run all
-# = turbo: build, typecheck, test, test:coverage, bundle:stats, lint,
-#   format:check  &&  build-storybook (bulma-ui)
+# the pre-PR gate; the `all` script in the root package.json lists each step
 ```
 
 ### 3. Individual checks
@@ -191,9 +190,9 @@ pnpm run all
 ```bash
 pnpm run build          # turbo build all packages
 pnpm run typecheck
-pnpm run test           # jest in every package + the docs and scripts/ node:test suites
+pnpm run test           # every package's suite, then the scripts/ suite
 pnpm run test:scripts   # the scripts/ suite alone, held to its per-file coverage floors
-pnpm run test:coverage  # coverage (bulma-ui 99%; every other jest package 95%, 78% branches)
+pnpm run test:coverage  # coverage (bulma-ui 99%; every other published package 95%, 78% branches)
 pnpm run lint
 pnpm run format:check   # prettier check (use `pnpm run format` to auto-fix)
 pnpm run bundle:stats   # writes bulma-ui/dist/stats.html
@@ -299,7 +298,7 @@ no `npm publish`, no tag, no GitHub release.
    pnpm install
    ```
 4. **Make your changes** in the appropriate workspace (`bulma-ui` for components, `docs` for documentation).
-5. **Update/add unit tests** (coverage must stay above each package's jest threshold — 99% for bulma-ui, 95% with 78% branches for every other jest package).
+5. **Update/add unit tests** (coverage must stay above each package's threshold — 99% for bulma-ui, 95% with 78% branches for every other published package).
 6. **Add or update Storybook stories** for UI-related changes.
 7. **Update documentation** in `/docs` as needed.
 8. **Run all checks**:
@@ -422,7 +421,7 @@ The `bestax` coding-agent plugin installs from its own public repository, [allxs
 
 To preview the tree, run `node scripts/gen-skills-repo.mjs <new directory>` in a clone with full history. It fails, naming each file, if the tree breaks a rule of Anthropic's plugin directory. The workflow adds `--require-checkout`, which turns a git listing that fails into an error instead of skipping the untracked-file gate, and `--require-published`, which asks the npm registry for the exact `bestax-mcp` version the plugin pins and refuses one npm does not serve. That happens when a release's npm publish fails after its release commit has already reached `main`. The next run after a successful publish carries the tree over.
 
-The plugin's version, in the root `plugin.json` that catalogs such as awesome-copilot pin and in `.claude-plugin/plugin.json` that Claude Code reads, is the MAJOR.MINOR in `plugin/manifest.json`, then a patch: the number of commits on `main` that touched the plugin's content, plus `OUTPUT_FORMAT` in the generator. The content is the files inside the skill directories under `skills/`, `plugin/`, the three bestax-mcp inputs, `LICENSE` and `NOTICE` (`CONTENT_PATHS` in the generator). `skills/README.md` and `skills/CLAUDE.md` do not ship, so a commit to them alone does not count. The patch rises with each commit to that content, so nobody bumps it by hand. A commit that changes only the generator's code does not move the count, so a generator change that alters the published output raises `OUTPUT_FORMAT` by one in the same pull request. Claude Code updates users only when the version changes, so a change that skips that bump does not reach them. The generator's tests catch a missed bump on the paths their fixed inputs reach: they build the tree from those inputs and compare its hash with one pinned next to the `OUTPUT_FORMAT` it was recorded at, and a failure says what to set both to. A change that leaves the output alone, such as one to comments, needs neither. A change that adds a rendering path adds a fixed input that reaches it. Bump the minor in `plugin/manifest.json` in any change that drops or renames a content path, because the count can then fall. The generator refuses a shallow clone, whose count would be too low.
+The plugin's version, in the root `plugin.json` that catalogs pin and in `.claude-plugin/plugin.json` that Claude Code reads, is the MAJOR.MINOR in `plugin/manifest.json`, then a patch: the number of commits on `main` that touched the plugin's content, plus `OUTPUT_FORMAT` in the generator. The content is the files inside the skill directories under `skills/`, `plugin/`, the three bestax-mcp inputs, `LICENSE` and `NOTICE` (`CONTENT_PATHS` in the generator). `skills/README.md` and `skills/CLAUDE.md` do not ship, so a commit to them alone does not count. The patch rises with each commit to that content, so nobody bumps it by hand. A commit that changes only the generator's code does not move the count, so a generator change that alters the published output raises `OUTPUT_FORMAT` by one in the same pull request. Claude Code updates users only when the version changes, so a change that skips that bump does not reach them. The generator's tests catch a missed bump on the paths their fixed inputs reach: they build the tree from those inputs and compare its hash with one pinned next to the `OUTPUT_FORMAT` it was recorded at, and a failure says what to set both to. A change that leaves the output alone, such as one to comments, needs neither. A change that adds a rendering path adds a fixed input that reaches it. Bump the minor in `plugin/manifest.json` in any change that drops or renames a content path, because the count can then fall. The generator refuses a shallow clone, whose count would be too low.
 
 `plugin/icon.png` is published as `.claude-plugin/icon.png`, the icon Anthropic's directory shows for the plugin, and the Claude manifest names it in `icon`. The generator refuses an icon that is not a complete PNG, square, 512 to 2048 px a side and under 2 MB. It is rendered from `docs/static/img/logo.svg` with ImageMagick 7, by the command in the generator's header, so run that again after a logo change. The directory takes the icon only the first time the plugin is saved or submitted, so a new icon does not change a listing that already exists.
 
@@ -517,12 +516,109 @@ One-time setup, in this order. Step 1 comes **before** the workflow is merged: a
 
 To rotate the key, repeat steps 3 to 5, then remove the old deploy key with `gh repo deploy-key list --repo allxsmith/bestax-skills` and `gh repo deploy-key delete <id> --repo allxsmith/bestax-skills`. If GitHub ever rotates its SSH host keys, the push step fails until the `known_hosts` list in the workflow is updated from GitHub's published fingerprints.
 
+### The bestax-templates repository
+
+The Bulma templates under `templates/` open in StackBlitz from their own public repository, [allxsmith/bestax-templates](https://github.com/allxsmith/bestax-templates), because StackBlitz's GitHub import clones the whole repository it names, and cloning this one took minutes for each new commit. The docs Templates page links each card there, and `TEMPLATES_REPO` and `stackblitzUrl` in `docs/src/data/templates.js` are the one place that names it. A card's **Code** link stays on this repository, where the source lives. Every file in bestax-templates is generated by `scripts/gen-templates-repo.mjs`: each template folder as git tracks it, a README that credits awesome-bulma-templates and each template's upstream author and repository from the docs data, and this repository's `LICENSE` and `NOTICE`. `templates/CLAUDE.md` and `templates/eslint.config.js` serve this repository and stay out. `.github/workflows/templates-publish.yml` pushes the result on a merge that touches those inputs and on a manual dispatch, and it commits only when the tree changed. Never edit bestax-templates by hand. Change the source here and the workflow carries it over.
+
+To preview the tree, run `node scripts/gen-templates-repo.mjs <new directory>` in a clone. It needs a git checkout, since the tree is what git tracks: a local `node_modules`, `dist` or lockfile in a template's folder never reaches it. It fails, naming each problem, on a template folder with no docs entry or an entry with no folder, an entry that breaks the docs data's schema, a tracked symbolic link, and a path Windows or macOS cannot hold.
+
+The trust posture is the one bestax-skills has, above. The workflow pushes with an SSH deploy key that can write to bestax-templates and nothing else, held as a secret of the `templates-publish` environment, which admits `main` only and has no required reviewer. Only the `publish` job uses the key, and it checks out nothing and runs no repository code. The `generate` job, which has no secret, runs the generator on `main` and hands the tree on as a tar archive, and `publish` checks that the archive holds only regular files and directories inside the tree before it pushes. The workflow's header lists everything that job runs. Nothing installs a release of bestax-templates, so it carries no version.
+
+One-time setup, in this order. Step 1 comes **before** the workflow is merged, for the reason the bestax-skills setup gives, and the same holds for the rest: if steps 2 to 6 also come first, the merge itself publishes, and otherwise the merge's run fails at its push step and step 7 publishes.
+
+1. Create the `templates-publish` environment with deployment limited to `main`, then confirm the policy before any secret exists:
+
+   ```bash
+   gh api -X PUT repos/allxsmith/bestax/environments/templates-publish \
+     -F 'deployment_branch_policy[protected_branches]=false' \
+     -F 'deployment_branch_policy[custom_branch_policies]=true'
+   gh api -X POST repos/allxsmith/bestax/environments/templates-publish/deployment-branch-policies \
+     -f name=main -f type=branch
+   gh api repos/allxsmith/bestax/environments/templates-publish/deployment-branch-policies
+   ```
+
+   The last command must list exactly one policy, `main` of type `branch`, and the secret in step 5 waits until it does, as for bestax-skills.
+
+2. Create the public repository, empty, with issues and the wiki off so reports come here:
+
+   ```bash
+   gh repo create allxsmith/bestax-templates --public \
+     --description "Bulma templates rebuilt with bestax, generated from allxsmith/bestax" \
+     --homepage https://bestax.io/templates
+   gh repo edit allxsmith/bestax-templates --enable-issues=false --enable-wiki=false
+   ```
+
+3. Generate an ed25519 key pair with no passphrase in a scratch directory outside any clone:
+
+   ```bash
+   ssh-keygen -t ed25519 -N '' -C templates-publish -f bestax-templates-deploy
+   ```
+
+4. Add the public key to bestax-templates as a deploy key with write access:
+
+   ```bash
+   gh repo deploy-key add bestax-templates-deploy.pub --repo allxsmith/bestax-templates \
+     --title templates-publish --allow-write
+   ```
+
+5. Store the private key as a secret of the environment, not a repository secret, then delete both files:
+
+   ```bash
+   gh secret set BESTAX_TEMPLATES_DEPLOY_KEY --repo allxsmith/bestax --env templates-publish < bestax-templates-deploy
+   rm bestax-templates-deploy bestax-templates-deploy.pub
+   ```
+
+6. Protect `main` in bestax-templates with the two rulesets bestax-skills has: the first refuses force pushes and deletion from everyone, the deploy key included, and the second takes changes only through a pull request and lets the deploy key alone skip that rule:
+
+   ```bash
+   gh api -X POST repos/allxsmith/bestax-templates/rulesets --input - <<'EOF'
+   {
+     "name": "main history",
+     "target": "branch",
+     "enforcement": "active",
+     "conditions": { "ref_name": { "include": ["refs/heads/main"], "exclude": [] } },
+     "bypass_actors": [],
+     "rules": [{ "type": "deletion" }, { "type": "non_fast_forward" }]
+   }
+   EOF
+   gh api -X POST repos/allxsmith/bestax-templates/rulesets --input - <<'EOF'
+   {
+     "name": "main changes",
+     "target": "branch",
+     "enforcement": "active",
+     "conditions": { "ref_name": { "include": ["refs/heads/main"], "exclude": [] } },
+     "bypass_actors": [{ "actor_type": "DeployKey", "actor_id": null, "bypass_mode": "always" }],
+     "rules": [
+       {
+         "type": "pull_request",
+         "parameters": {
+           "required_approving_review_count": 1,
+           "dismiss_stale_reviews_on_push": false,
+           "require_code_owner_review": false,
+           "require_last_push_approval": false,
+           "required_review_thread_resolution": false
+         }
+       }
+     ]
+   }
+   EOF
+   ```
+
+7. Run the workflow once, then check that the run is green and that bestax-templates has a commit naming the allxsmith/bestax commit it came from:
+
+   ```bash
+   gh workflow run templates-publish.yml --repo allxsmith/bestax --ref main
+   gh run list --workflow templates-publish.yml --repo allxsmith/bestax --limit 1
+   ```
+
+To rotate the key, repeat steps 3 to 5, then remove the old deploy key with `gh repo deploy-key list --repo allxsmith/bestax-templates` and `gh repo deploy-key delete <id> --repo allxsmith/bestax-templates`. A rotation of GitHub's SSH host keys breaks this push step the way it breaks bestax-skills'.
+
 ---
 
 ## Code Quality Standards
 
 - **Unit tests** required for all new features and bug fixes.
-- **Coverage must not drop below the per-package jest thresholds** (bulma-ui 99%; every other jest package 95%, 78% branches). `docs` has no jest suite and no threshold.
+- **Coverage must not drop below the per-package thresholds** (bulma-ui 99%; every other published package 95%, 78% branches). `docs` has no threshold.
 - **Linting, formatting, and type checks** must all pass.
 - **Storybook stories** required for any visible or interactive UI change.
 - **Documentation** must be updated to reflect your changes (see [Documentation](#documentation)).

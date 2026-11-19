@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { Tag, TagProps } from '../Tag';
 import { ConfigProvider } from '../../helpers/Config';
 
@@ -53,6 +54,24 @@ describe('Tag Component', () => {
     expect(tag).toHaveClass('tag is-primary is-light');
   });
 
+  // The light color's class is the same key as isLight's (#1464).
+  test('applies is-light for color="light"', () => {
+    render(<Tag {...defaultProps} color="light" />);
+    expect(screen.getByText('Test Tag')).toHaveClass('tag is-light');
+  });
+
+  test('applies is-light once for color="light" with isLight', () => {
+    render(<Tag {...defaultProps} color="light" isLight />);
+    expect(screen.getByText('Test Tag').className).toBe('tag is-light');
+  });
+
+  test('applies is-light for color="light" on the delete-button render path', () => {
+    render(<Tag {...defaultProps} isDelete color="light" />);
+    expect(screen.getByRole('button', { name: 'Delete tag' })).toHaveClass(
+      'tag is-delete is-light'
+    );
+  });
+
   test('does not apply is-light by default', () => {
     render(<Tag {...defaultProps} color="primary" />);
     const tag = screen.getByText('Test Tag');
@@ -94,7 +113,7 @@ describe('Tag Component', () => {
   });
 
   test('calls onDelete when delete button is clicked', () => {
-    const onDelete = jest.fn();
+    const onDelete = vi.fn();
     render(<Tag {...defaultProps} isDelete onDelete={onDelete} />);
     const button = screen.getByRole('button', { name: 'Delete tag' });
     fireEvent.click(button);
@@ -238,6 +257,111 @@ describe('Tag Component', () => {
       expect(tag).toHaveClass('is-info');
       expect(tag).toHaveClass('is-medium');
       expect(tag).toHaveClass('p-3');
+    });
+  });
+
+  // A tag that does something renders the link or button Bulma styles, so a
+  // keyboard reaches it and a screen reader announces it as one (#1841).
+  describe('as', () => {
+    test('renders a link a keyboard reaches', async () => {
+      const user = userEvent.setup();
+      render(
+        <Tag as="a" href="#topic" target="_blank" color="info">
+          Topic
+        </Tag>
+      );
+      const link = screen.getByRole('link', { name: 'Topic' });
+      expect(link).toHaveClass('tag', 'is-info');
+      expect(link).toHaveAttribute('href', '#topic');
+      expect(link).toHaveAttribute('target', '_blank');
+      await user.tab();
+      expect(link).toHaveFocus();
+    });
+
+    test('renders a button a keyboard reaches and presses', async () => {
+      const user = userEvent.setup();
+      const onClick = vi.fn();
+      render(
+        <Tag as="button" onClick={onClick} isHoverable>
+          Filter
+        </Tag>
+      );
+      const button = screen.getByRole('button', { name: 'Filter' });
+      expect(button).toHaveClass('tag', 'is-hoverable');
+      expect(button).toHaveAttribute('type', 'button');
+      await user.tab();
+      expect(button).toHaveFocus();
+      await user.keyboard('{Enter}');
+      await user.keyboard(' ');
+      expect(onClick).toHaveBeenCalledTimes(2);
+    });
+
+    test("keeps a button's submit or reset type", () => {
+      const submit = { type: 'submit' };
+      render(
+        <Tag as="button" {...submit}>
+          Apply
+        </Tag>
+      );
+      expect(screen.getByRole('button', { name: 'Apply' })).toHaveAttribute(
+        'type',
+        'submit'
+      );
+    });
+
+    test('gives a link and a button only the attributes each takes', () => {
+      const attrs = {
+        href: '#x',
+        rel: 'noopener',
+        download: 'file',
+        disabled: true,
+        name: 'n',
+        value: 'v',
+      };
+      render(
+        <>
+          <Tag {...attrs}>Span</Tag>
+          <Tag as="a" {...attrs}>
+            Link
+          </Tag>
+          <Tag as="button" {...attrs}>
+            Button
+          </Tag>
+        </>
+      );
+      // A span tag passes on what it's given, as it always has.
+      expect(screen.getByText('Span')).toHaveAttribute('href', '#x');
+      const link = screen.getByText('Link');
+      expect(link).toHaveAttribute('href', '#x');
+      expect(link).toHaveAttribute('rel', 'noopener');
+      expect(link).not.toHaveAttribute('disabled');
+      expect(link).not.toHaveAttribute('name');
+      const button = screen.getByText('Button');
+      expect(button).toBeDisabled();
+      expect(button).toHaveAttribute('name', 'n');
+      expect(button).not.toHaveAttribute('href');
+      expect(button).not.toHaveAttribute('rel');
+    });
+
+    test('renders the delete button with isDelete, whatever as says', () => {
+      render(<Tag as="a" href="#x" isDelete />);
+      expect(
+        screen.getByRole('button', { name: 'Delete tag' })
+      ).not.toHaveAttribute('href');
+      expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    });
+
+    test('carries the class prefix on a link or a button', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Tag as="a" href="#x">
+            Link
+          </Tag>
+          <Tag as="button">Button</Tag>
+        </ConfigProvider>
+      );
+      expect(screen.getByRole('link')).toHaveClass('bulma-tag');
+      expect(screen.getByRole('button')).toHaveClass('bulma-tag');
     });
   });
 });

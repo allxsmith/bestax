@@ -1,7 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { Menu } from './Menu';
+import { Block } from '../elements/Block';
+import { Icon } from '../elements/Icon';
 import { Button } from '../elements/Button';
+import { Buttons } from '../elements/Buttons';
+import { Column } from '../columns/Column';
+import { Columns } from '../columns/Columns';
 
 const meta: Meta<typeof Menu> = {
   title: 'Components/Menu',
@@ -18,31 +23,202 @@ export const Basic: Story = {
     <Menu style={{ maxWidth: 300 }}>
       <Menu.Label>General</Menu.Label>
       <Menu.List>
-        <Menu.Item>Dashboard</Menu.Item>
-        <Menu.Item>Customers</Menu.Item>
+        <Menu.Item href="#dashboard">Dashboard</Menu.Item>
+        <Menu.Item href="#customers">Customers</Menu.Item>
       </Menu.List>
       <Menu.Label>Administration</Menu.Label>
       <Menu.List>
-        <Menu.Item>Team Settings</Menu.Item>
-        <Menu.Item active>
+        <Menu.Item href="#team-settings">Team Settings</Menu.Item>
+        <Menu.Item active href="#manage-your-team">
           Manage Your Team
           <Menu.List>
-            <Menu.Item>Members</Menu.Item>
-            <Menu.Item>Plugins</Menu.Item>
-            <Menu.Item>Add a member</Menu.Item>
+            <Menu.Item href="#members">Members</Menu.Item>
+            <Menu.Item href="#plugins">Plugins</Menu.Item>
+            <Menu.Item href="#add-a-member">Add a member</Menu.Item>
           </Menu.List>
         </Menu.Item>
-        <Menu.Item>Invitations</Menu.Item>
-        <Menu.Item>Cloud Storage Environment Settings</Menu.Item>
-        <Menu.Item>Authentication</Menu.Item>
+        <Menu.Item href="#invitations">Invitations</Menu.Item>
+        <Menu.Item href="#cloud-storage">
+          Cloud Storage Environment Settings
+        </Menu.Item>
+        <Menu.Item href="#authentication">Authentication</Menu.Item>
       </Menu.List>
       <Menu.Label>Transactions</Menu.Label>
       <Menu.List>
-        <Menu.Item>Payments</Menu.Item>
-        <Menu.Item>Transfers</Menu.Item>
-        <Menu.Item>Balance</Menu.Item>
+        <Menu.Item href="#payments">Payments</Menu.Item>
+        <Menu.Item href="#transfers">Transfers</Menu.Item>
+        <Menu.Item href="#balance">Balance</Menu.Item>
       </Menu.List>
     </Menu>
+  ),
+};
+
+/** A docs sidebar's link groups, for `Menu.Section`. */
+const DOCS = [
+  {
+    label: 'Getting started',
+    links: ['Installation', 'Quick start', 'Theming'],
+  },
+  {
+    label: 'Components',
+    links: ['Button', 'Card', 'Menu', 'Modal'],
+  },
+  {
+    label: 'Form',
+    links: ['Input', 'Select', 'Checkbox'],
+  },
+  {
+    label: 'Helpers',
+    links: ['Spacing', 'Color', 'Typography'],
+  },
+];
+
+const slug = (text: string) => `#${text.toLowerCase().replace(/\s+/g, '-')}`;
+
+/** Keeps a story's menu to about a sidebar's width. */
+function Narrow({ children }: { children: React.ReactNode }) {
+  return (
+    <Columns>
+      <Column size="one-third">{children}</Column>
+    </Columns>
+  );
+}
+
+/**
+ * An `icon` on an item or a section sits before its label and is hidden from
+ * assistive technology, so the label stays the name.
+ */
+export const Icons: Story = {
+  render: () => (
+    <Narrow>
+      <Menu>
+        <Menu.List>
+          <Menu.Item href="#dashboard" icon={<Icon name="house" />} active>
+            Dashboard
+          </Menu.Item>
+          <Menu.Item href="#orders" icon={<Icon name="box" />}>
+            Orders
+          </Menu.Item>
+          <Menu.Item href="#customers" icon={<Icon name="users" />}>
+            Customers
+          </Menu.Item>
+        </Menu.List>
+        <Menu.Section label="Reports" icon={<Icon name="chart-line" />}>
+          <Menu.List>
+            <Menu.Item href="#sales">Sales</Menu.Item>
+            <Menu.Item href="#returns">Returns</Menu.Item>
+          </Menu.List>
+        </Menu.Section>
+      </Menu>
+    </Narrow>
+  ),
+};
+
+/**
+ * A docs sidebar whose groups of links open and close. Each heading is a
+ * button, and the links under an open one are ordinary links, each its own
+ * tab stop. The group holding the current page starts open.
+ */
+export const Sections: Story = {
+  render: () => (
+    <Narrow>
+      <nav aria-label="Documentation">
+        <Menu>
+          {DOCS.map(group => (
+            <Menu.Section
+              key={group.label}
+              label={group.label}
+              defaultOpen={group.label === 'Components'}
+            >
+              <Menu.List>
+                {group.links.map(link => (
+                  <Menu.Item
+                    key={link}
+                    href={slug(link)}
+                    active={link === 'Card'}
+                  >
+                    {link}
+                  </Menu.Item>
+                ))}
+              </Menu.List>
+            </Menu.Section>
+          ))}
+        </Menu>
+      </nav>
+    </Narrow>
+  ),
+};
+
+const ControlledSectionsDemo = () => {
+  const [open, setOpen] = useState<string[]>(['Components']);
+  const setGroup = (label: string, isOpen: boolean) =>
+    setOpen(current =>
+      isOpen ? [...current, label] : current.filter(l => l !== label)
+    );
+
+  return (
+    <Narrow>
+      <Buttons mb="3">
+        <Button size="small" onClick={() => setOpen(DOCS.map(g => g.label))}>
+          Open all
+        </Button>
+        <Button size="small" onClick={() => setOpen([])}>
+          Close all
+        </Button>
+      </Buttons>
+      <nav aria-label="Documentation">
+        <Menu>
+          {DOCS.map(group => (
+            <Menu.Section
+              key={group.label}
+              label={group.label}
+              open={open.includes(group.label)}
+              onOpenChange={isOpen => setGroup(group.label, isOpen)}
+            >
+              <Menu.List>
+                {group.links.map(link => (
+                  <Menu.Item key={link} href={slug(link)}>
+                    {link}
+                  </Menu.Item>
+                ))}
+              </Menu.List>
+            </Menu.Section>
+          ))}
+        </Menu>
+      </nav>
+    </Narrow>
+  );
+};
+
+/** Sections whose open state the app holds, through `open` and `onOpenChange`. */
+export const ControlledSections: Story = {
+  render: () => <ControlledSectionsDemo />,
+};
+
+/** The chevron sits at the end of the heading and points that way while closed. */
+export const SectionsRightToLeft: Story = {
+  render: () => (
+    <Block dir="rtl">
+      <Narrow>
+        <Menu>
+          {DOCS.slice(0, 3).map((group, i) => (
+            <Menu.Section
+              key={group.label}
+              label={group.label}
+              defaultOpen={i === 0}
+            >
+              <Menu.List>
+                {group.links.map(link => (
+                  <Menu.Item key={link} href={slug(link)}>
+                    {link}
+                  </Menu.Item>
+                ))}
+              </Menu.List>
+            </Menu.Section>
+          ))}
+        </Menu>
+      </Narrow>
+    </Block>
   ),
 };
 
@@ -51,14 +227,22 @@ export const CompoundUsage: Story = {
     <Menu>
       <Menu.Label>General</Menu.Label>
       <Menu.List>
-        <Menu.Item active>Dashboard</Menu.Item>
-        <Menu.Item>Customers</Menu.Item>
+        <Menu.Item active href="#dashboard">
+          Dashboard
+        </Menu.Item>
+        <Menu.Item href="#customers">Customers</Menu.Item>
       </Menu.List>
       <Menu.Label>Administration</Menu.Label>
       <Menu.List>
-        <Menu.Item>Team Settings</Menu.Item>
-        <Menu.Item>Invitations</Menu.Item>
+        <Menu.Item href="#team-settings">Team Settings</Menu.Item>
+        <Menu.Item href="#invitations">Invitations</Menu.Item>
       </Menu.List>
+      <Menu.Section label="Transactions">
+        <Menu.List>
+          <Menu.Item href="#payments">Payments</Menu.Item>
+          <Menu.Item href="#transfers">Transfers</Menu.Item>
+        </Menu.List>
+      </Menu.Section>
     </Menu>
   ),
 };

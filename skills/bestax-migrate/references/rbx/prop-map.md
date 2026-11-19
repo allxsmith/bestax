@@ -7,26 +7,26 @@ differ, not the vocabulary. What follows is only what actually changes.
 
 rbx mixes these into every component via `HelpersProps`.
 
-| rbx                               | bestax-bulma                 | note                                                       |
-| --------------------------------- | ---------------------------- | ---------------------------------------------------------- |
-| `backgroundColor`                 | `bgColor`                    | rename only                                                |
-| `textColor`                       | `textColor`                  | unchanged                                                  |
-| `textAlign`                       | `textAlign`                  | unchanged — both use `centered`/`justified`/`left`/`right` |
-| `textWeight`                      | `textWeight`                 | unchanged                                                  |
-| `textTransform`                   | `textTransform`              | unchanged                                                  |
-| `textSize={4}`                    | `textSize="4"`               | number → string                                            |
-| `italic`                          | `textTransform="italic"`     |                                                            |
-| `pull="left"`                     | `float="left"`               |                                                            |
-| `clearfix`, `overlay`, `relative` | same                         | unchanged booleans                                         |
-| `clipped`                         | `overflow="clipped"`         |                                                            |
-| `hidden`                          | `visibility="hidden"`        |                                                            |
-| `invisible`                       | `visibility="invisible"`     |                                                            |
-| `srOnly`                          | `visibility="sr-only"`       |                                                            |
-| `marginless`                      | `m="0"`                      | Bulma v1 removed `is-marginless`                           |
-| `paddingless`                     | `p="0"`                      | Bulma v1 removed `is-paddingless`                          |
-| `radiusless`                      | `radius="radiusless"`        |                                                            |
-| `shadowless`                      | `shadow="shadowless"`        |                                                            |
-| `unselectable`                    | `interaction="unselectable"` |                                                            |
+| rbx                               | bestax-bulma                 | note                                                                                                                                                                                                                                                                                                 |
+| --------------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `backgroundColor`                 | `bgColor`                    | kept as `backgroundColor` on a component that takes only that (`Tag`, `Menu`, `Dropdown`, `Input`, `Select`, `TextArea`, `File`), and flagged on one that takes neither (`Notification`, `Table`, `Tabs`, `Checkbox`, `Radio` and others)                                                            |
+| `textColor`                       | `textColor`                  | `color` on `Table` (and its `Thead`, `Tbody` and `Tfoot`), `Menu` and its parts, and `Dropdown` and its `Item`, whose `color` sets the text; flagged on the other components with no `textColor` (`Tag`, `Tabs`, `Hero`, `Progress`, `Breadcrumb`, `Input`, `Select`, `TextArea`, `File` and others) |
+| `textAlign`                       | `textAlign`                  | unchanged — both use `centered`/`justified`/`left`/`right`                                                                                                                                                                                                                                           |
+| `textWeight`                      | `textWeight`                 | unchanged                                                                                                                                                                                                                                                                                            |
+| `textTransform`                   | `textTransform`              | unchanged                                                                                                                                                                                                                                                                                            |
+| `textSize={4}`                    | `textSize="4"`               | number → string                                                                                                                                                                                                                                                                                      |
+| `italic`                          | `textTransform="italic"`     |                                                                                                                                                                                                                                                                                                      |
+| `pull="left"`                     | `float="left"`               |                                                                                                                                                                                                                                                                                                      |
+| `clearfix`, `overlay`, `relative` | same                         | unchanged booleans                                                                                                                                                                                                                                                                                   |
+| `clipped`                         | `overflow="clipped"`         |                                                                                                                                                                                                                                                                                                      |
+| `hidden`                          | `visibility="hidden"`        |                                                                                                                                                                                                                                                                                                      |
+| `invisible`                       | `visibility="invisible"`     |                                                                                                                                                                                                                                                                                                      |
+| `srOnly`                          | `visibility="sr-only"`       |                                                                                                                                                                                                                                                                                                      |
+| `marginless`                      | `m="0"`                      | Bulma v1 removed `is-marginless`                                                                                                                                                                                                                                                                     |
+| `paddingless`                     | `p="0"`                      | Bulma v1 removed `is-paddingless`                                                                                                                                                                                                                                                                    |
+| `radiusless`                      | `radius="radiusless"`        |                                                                                                                                                                                                                                                                                                      |
+| `shadowless`                      | `shadow="shadowless"`        |                                                                                                                                                                                                                                                                                                      |
+| `unselectable`                    | `interaction="unselectable"` |                                                                                                                                                                                                                                                                                                      |
 
 Every name in rbx's `colors` and `shades` unions exists in bestax verbatim.
 
@@ -86,21 +86,32 @@ rbx has three shapes; all three flatten to bestax's per-viewport props.
 rbx's `forwardRefAs` puts `as` on **every** component. bestax declares it on a smaller set, and
 several of those narrow it to specific tags (`Footer` is `'footer' | 'div'`, `Control` is
 `'div' | 'p'`). The codemod passes `as` through only where bestax really accepts it, and TODOs it
-everywhere else:
+everywhere else. A component it writes as plain markup takes its element from a literal `as`, and
+keeps rbx's default with a `prop:as` TODO where it can't read the value.
 
-| bestax component             | `as` accepts               |
-| ---------------------------- | -------------------------- |
-| `Button`                     | any element type           |
-| `Title`, `SubTitle`          | `h1`–`h6`, `p`             |
-| `Image`                      | `'figure' \| 'div' \| 'p'` |
-| `Footer`                     | `'footer' \| 'div'`        |
-| `Media`                      | `'article' \| 'div'`       |
-| `Media.Left`                 | `'figure' \| 'div'`        |
-| `Level.Item`                 | `'div' \| 'p' \| 'a'`      |
-| `Control`                    | `'div' \| 'p'`             |
-| `Menu.Item`                  | any element type           |
-| `Dropdown.Item`              | `'a' \| 'div' \| 'button'` |
-| `Navbar.Item`, `Navbar.Link` | any element type           |
+The components that accept it:
+
+| bestax component             | `as` accepts                                                                            |
+| ---------------------------- | --------------------------------------------------------------------------------------- |
+| `Button`                     | any element type                                                                        |
+| `Title`, `SubTitle`          | `h1`–`h6`, `p`                                                                          |
+| `Image`                      | `'figure' \| 'div' \| 'p'`                                                              |
+| `Footer`                     | `'footer' \| 'div'`                                                                     |
+| `Media`                      | `'article' \| 'div'`                                                                    |
+| `Media.Left`                 | `'figure' \| 'div'`                                                                     |
+| `Level`                      | `'nav' \| 'div' \| 'header' \| 'footer'`                                                |
+| `Level.Item`                 | `'div' \| 'p' \| 'a'`                                                                   |
+| `Control`                    | `'div' \| 'p'`                                                                          |
+| `Menu.Item`                  | any element type                                                                        |
+| `Dropdown.Item`              | `'a' \| 'div' \| 'button'`                                                              |
+| `Navbar.Item`, `Navbar.Link` | any element type                                                                        |
+| `Container`                  | `'div' \| 'main' \| 'section' \| 'article' \| 'aside' \| 'header' \| 'footer' \| 'nav'` |
+| `Hero`                       | `'section' \| 'div' \| 'main' \| 'header' \| 'footer' \| 'article' \| 'aside'`          |
+| `Hero.Head`                  | `'div' \| 'header' \| 'nav'`                                                            |
+| `Hero.Foot`                  | `'div' \| 'footer' \| 'nav'`                                                            |
+| `Panel`                      | `'nav' \| 'article' \| 'section' \| 'aside' \| 'div'`                                   |
+| `Panel.Block`                | `'a' \| 'div' \| 'label'`                                                               |
+| `Tag`                        | `'span' \| 'a' \| 'button'`                                                             |
 
 Three traps worth naming, because rbx supplies `as` universally and the obvious guesses are
 wrong:
@@ -117,6 +128,29 @@ wrong:
   component does render. Writing it through produced output the project could not compile.
   Note that this one does change the rendered element: rbx's `forwardRefAs` rendered the tag you
   gave it, so that really was a `<span>`, and the TODO exists to tell you the element moved.
+
+## Title sizes
+
+rbx's `Title` rendered an `<h1>` at every size, subtitle or not, or the element `as` named.
+bestax's `Title` and `SubTitle` render the heading their `size` names unless `as="p"`, so the
+codemod keeps the element rbx rendered:
+
+| rbx                                | bestax-bulma                   | renders |
+| ---------------------------------- | ------------------------------ | ------- |
+| `<Title size={4}>`                 | `<Title textSize="4">`         | `<h1>`  |
+| `<Title size={1}>`                 | `<Title size={1}>`             | `<h1>`  |
+| `<Title subtitle size={6}>`        | `<SubTitle textSize="6">`      | `<h1>`  |
+| `<Title as="h2" size={5}>`         | `<Title as="h2" textSize="5">` | `<h2>`  |
+| `<Title as="p" subtitle size={5}>` | `<SubTitle as="p" size={5}>`   | `<p>`   |
+
+`size` stays only where it renders the same element: a `<p>`, or the heading the size names.
+Everywhere else the size moves to the `textSize` helper, and so does a 7, which bestax's `size`
+does not take. The helper sets the same font size through Bulma's `is-size-4` class rather than the
+title's own `is-4`, so a rule of your own that targets `.title.is-4` needs the new class too.
+`is-size-4` is also `!important`, so a font size your own CSS gives the title, such as
+`.hero .title`, now loses to it where it used to beat `is-4`. Beside a spread, which may carry
+`as`, a size moves even where it names the default `<h1>`. A literal outside 1 to 7 keeps `size`
+and gets a `prop:size` TODO.
 
 ## `href` follows `as`
 
@@ -156,14 +190,14 @@ becomes.
 Beside a `ref` the element already has, a rename leaves `innerRef` in place with a `prop:innerRef`
 TODO rather than write a second `ref`; keep whichever one you meant.
 
-An existing `ref` is passed through untouched — which is safe only where the bestax target
-forwards one. rbx forwards a ref on every component; bestax does so on the form controls, plus
-`Avatar`, `Button`, `Carousel`, `CarouselItem`, `Dialog`, `Dropdown`, `Link`, `LinkButton`,
-`Loader`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`, `Navbar.Item`,
-`Navbar.Link`, `SegmentedControl`, `SegmentedControl.Segment`, `Sidebar`, `Toast` and
-`ToggleButton`. "The form controls" there means the inputs themselves: the `Field`,
-`Field.Label`, `Field.Body`, `Checkboxes` and `Radios` wrappers around them forward nothing, and
-`Field` is a target this codemod emits.
+An existing `ref` is passed through untouched — which is safe only where the bestax target forwards
+one. rbx forwards a ref on every component; bestax does so on the form controls, plus `Affix`, `AppFrame`, `AppFrame.Aside`, `AppFrame.Burger`, `AppFrame.Footer`, `AppFrame.Header`, `AppFrame.Main`, `AppFrame.Nav`, `Avatar`,
+`Button`, `Carousel`, `CarouselItem`, `Center`, `ColorSwatch`, `Command`, `Command.Dialog`, `Command.Input`, `CopyButton`, `DataTable`, `DescriptionList`, `DescriptionList.Item`, `DescriptionList.Label`, `DescriptionList.Value`, `Dialog`, `Dropdown`, `EmptyState`, `Flex`, `FloatButton`, `FloatButton.BackToTop`, `FloatButton.SpeedDial`, `FloatButtons`, `Group`, `IconButton`, `Kbd`, `Kbd.Group`, `Lightbox`, `Lightbox.Trigger`,
+`Link`, `LinkButton`, `Loader`, `LocaleProvider`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`,
+`Navbar.Item`, `Navbar.Link`, `NumberFormatter`, `RingProgress`, `ScrollArea`, `SegmentedControl`, `SegmentedControl.Segment`, `Sidebar`, `Splitter`, `Splitter.Pane`, `Stack`, `Stat`, `Stat.Change`, `Stat.Description`, `Stat.Label`, `Stat.Value`, `Stats`, `TableOfContents`, `Timeline`,
+`Timeline.Item`, `Toast`, `ToggleButton`, `Tour`, `Tour.Back`, `Tour.Next`, `Tour.Skip`, `Tour.Step`, `TreeView` and `TreeView.Item`. "The form controls" there
+means the inputs themselves: the `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios`
+wrappers around them forward nothing, and `Field` is a target this codemod emits.
 
 Carry a `ref` onto anything else — `Card`, `Box`, `Section`, `Message`, `Tabs` and most of the
 catalogue — and it is unsupported, but the two React majors fail differently. React 18 drops

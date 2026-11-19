@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { Slider } from '../Slider';
 import { Field } from '../Field';
 import { Control } from '../Control';
@@ -81,7 +80,7 @@ describe('Slider', () => {
 
   describe('onChange', () => {
     it('calls onChange when value changes', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Slider onChange={handleChange} />);
       const input = screen.getByRole('slider') as HTMLInputElement;
 
@@ -344,6 +343,76 @@ describe('Slider', () => {
       expect(input).toHaveAttribute('aria-valuetext', '9');
     });
 
+    // The thumb said "41" while the output showed "$41" (#1992).
+    it('sets aria-valuetext to what formatOutput shows when no getAriaValueText', () => {
+      render(<Slider value={41} formatOutput={v => `$${v}`} />);
+      expect(screen.getByRole('slider')).toHaveAttribute(
+        'aria-valuetext',
+        '$41'
+      );
+    });
+
+    it('formats the scaled value for aria-valuetext, as the output does', () => {
+      render(
+        <Slider value={3} scale={v => v * v} formatOutput={v => `${v} m²`} />
+      );
+      expect(screen.getByRole('slider')).toHaveAttribute(
+        'aria-valuetext',
+        '9 m²'
+      );
+    });
+
+    it('lets getAriaValueText win over formatOutput', () => {
+      render(
+        <Slider
+          value={41}
+          formatOutput={v => `$${v}`}
+          getAriaValueText={v => `${v} dollars`}
+        />
+      );
+      expect(screen.getByRole('slider')).toHaveAttribute(
+        'aria-valuetext',
+        '41 dollars'
+      );
+    });
+
+    it('formats both range thumbs’ aria-valuetext', () => {
+      render(<Slider range value={[20, 80]} formatOutput={v => `$${v}`} />);
+      expect(
+        screen.getAllByRole('slider').map(t => t.getAttribute('aria-valuetext'))
+      ).toEqual(['$20', '$80']);
+    });
+
+    it('sets no aria-valuetext without formatOutput, scale or getAriaValueText', () => {
+      render(<Slider value={41} />);
+      expect(screen.getByRole('slider')).not.toHaveAttribute('aria-valuetext');
+    });
+
+    it('sets no aria-valuetext where formatOutput writes nothing', () => {
+      // An empty value text would hide the value, so the number reads.
+      render(
+        <Slider value={0} formatOutput={v => (v === 0 ? '' : String(v))} />
+      );
+      expect(screen.getByRole('slider')).not.toHaveAttribute('aria-valuetext');
+    });
+
+    // An output is a polite live region, so it announced each value again
+    // after the thumb did (#1992). It keeps its role.
+    it('keeps every output from announcing what the thumb announces', () => {
+      const { container } = render(
+        <>
+          <Slider value={41} tooltip="always" />
+          <Slider range value={[20, 80]} tooltip="always" />
+        </>
+      );
+      const outputs = container.querySelectorAll('output');
+      expect(outputs).toHaveLength(3);
+      for (const output of outputs) {
+        expect(output).toHaveAttribute('aria-live', 'off');
+      }
+      expect(screen.getAllByRole('status')).toHaveLength(3);
+    });
+
     it('passes aria-label to input', () => {
       render(<Slider ariaLabel="Volume" />);
       const input = screen.getByRole('slider');
@@ -371,7 +440,7 @@ describe('Slider', () => {
 
   describe('keyboard navigation', () => {
     it('Home key sets value to min', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Slider min={10} max={90} onChange={handleChange} />);
       const input = screen.getByRole('slider');
 
@@ -380,7 +449,7 @@ describe('Slider', () => {
     });
 
     it('End key sets value to max', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Slider min={10} max={90} onChange={handleChange} />);
       const input = screen.getByRole('slider');
 
@@ -405,7 +474,7 @@ describe('Slider', () => {
     });
 
     it('Home key on controlled slider only fires onChange (covers !isControlled false branch)', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Slider value={50} min={0} max={100} onChange={handleChange} />);
       const input = screen.getByRole('slider');
       fireEvent.keyDown(input, { key: 'Home' });
@@ -413,7 +482,7 @@ describe('Slider', () => {
     });
 
     it('End key on controlled slider only fires onChange (covers !isControlled false branch)', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Slider value={50} min={0} max={100} onChange={handleChange} />);
       const input = screen.getByRole('slider');
       fireEvent.keyDown(input, { key: 'End' });
@@ -421,11 +490,206 @@ describe('Slider', () => {
     });
 
     it('non-Home/End keys are ignored (covers else-if false branch)', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Slider min={0} max={100} onChange={handleChange} />);
       const input = screen.getByRole('slider');
       fireEvent.keyDown(input, { key: 'PageUp' });
       expect(handleChange).not.toHaveBeenCalled();
+    });
+
+    // Without a defaultValue a single Slider started at 0 whatever its range,
+    // so with min above 0 the browser put the thumb, and a form's value, at
+    // min while aria-valuenow, the bubble and the fill said 0 (#2108).
+    describe('start without a defaultValue', () => {
+      it('starts at min when min is above 0', () => {
+        const { container } = render(
+          <Slider aria-label="Volume" min={10} max={90} tooltip="always" />
+        );
+        const input = screen.getByRole('slider') as HTMLInputElement;
+        expect(input).toHaveAttribute('aria-valuenow', '10');
+        expect(container.querySelector('output')).toHaveTextContent('10');
+        expect(input.style.getPropertyValue('--slider-progress')).toBe('0%');
+      });
+
+      it.each([
+        // max below 0.
+        [-10, -2, 4, '-2', '100%'],
+        // 0 is max, but off the grid, so above the highest step.
+        [-10, 0, 3, '-1', '90%'],
+      ])(
+        'starts at the highest step when 0 is above it (min %s, max %s, step %s)',
+        (min, max, step, start, fill) => {
+          const { container } = render(
+            <Slider
+              aria-label="Depth"
+              min={min}
+              max={max}
+              step={step}
+              tooltip="always"
+            />
+          );
+          const input = screen.getByRole('slider') as HTMLInputElement;
+          expect(input).toHaveAttribute('aria-valuenow', start);
+          expect(container.querySelector('output')).toHaveTextContent(start);
+          expect(input.style.getPropertyValue('--slider-progress')).toBe(fill);
+        }
+      );
+
+      // 0 inside the range but off the step grid: the browser rounds it to
+      // the nearest step, the higher of two as near, and a form submits that.
+      it.each([
+        [-4, 5, 3, '-1'],
+        [-5, 5, 2, '1'],
+        [-6, 6, 3, '0'],
+      ])(
+        'starts at the step nearest 0 (min %s, max %s, step %s)',
+        (min, max, step, start) => {
+          render(
+            <Slider aria-label="Offset" min={min} max={max} step={step} />
+          );
+          const input = screen.getByRole('slider') as HTMLInputElement;
+          expect(input).toHaveAttribute('aria-valuenow', start);
+          expect(input.value).toBe(start);
+        }
+      );
+
+      it('starts at 0 when 0 is in range, as before', () => {
+        render(<Slider aria-label="Balance" min={-50} max={50} />);
+        expect(screen.getByRole('slider')).toHaveAttribute(
+          'aria-valuenow',
+          '0'
+        );
+      });
+
+      it.each([NaN, -Infinity])('starts at 0 when min is %s', min => {
+        // React warns about the attribute, which this test means to pass.
+        const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+        try {
+          render(<Slider aria-label="Volume" min={min} max={-5} />);
+          expect(screen.getByRole('slider')).toHaveAttribute(
+            'aria-valuenow',
+            '0'
+          );
+        } finally {
+          error.mockRestore();
+        }
+      });
+
+      it('keeps a defaultValue as given', () => {
+        render(
+          <Slider aria-label="Volume" min={10} max={90} defaultValue={5} />
+        );
+        expect(screen.getByRole('slider')).toHaveAttribute(
+          'aria-valuenow',
+          '5'
+        );
+      });
+    });
+
+    // The browser holds a range input's value on the steps counted from min,
+    // so with max between two steps End reported max while the thumb sat on
+    // the last step below it (#2001).
+    describe('End with max off the step grid', () => {
+      it('moves to the last step below max and reports it', () => {
+        const handleChange = vi.fn();
+        render(
+          <Slider
+            min={0}
+            max={10}
+            step={3}
+            defaultValue={3}
+            onChange={handleChange}
+          />
+        );
+        const input = screen.getByRole('slider') as HTMLInputElement;
+        fireEvent.keyDown(input, { key: 'End' });
+        expect(handleChange).toHaveBeenCalledWith(9);
+        expect(input).toHaveAttribute('aria-valuenow', '9');
+        expect(input.value).toBe('9');
+      });
+
+      it('reports the last step on a controlled slider', () => {
+        const handleChange = vi.fn();
+        render(
+          <Slider min={0} max={10} step={3} value={3} onChange={handleChange} />
+        );
+        fireEvent.keyDown(screen.getByRole('slider'), { key: 'End' });
+        expect(handleChange).toHaveBeenCalledWith(9);
+      });
+
+      it.each([
+        // A decimal step, written without a float's error.
+        [0, 0.95, 0.1, 0.9],
+        // Steps counted from a min that isn't a whole number.
+        [0.5, 10, 1, 9.5],
+        // A step JavaScript writes with an exponent.
+        [0, 0.000001, 0.0000003, 9e-7],
+        // A max just short of a step, which stays below max, as one worked
+        // out in JavaScript often is.
+        [0, 2.9999999995, 1, 2],
+        [0, 2.999999999999, 1, 2],
+        [0, 0.01 * 31 * 3, 0.01, 0.92],
+        [-1.13, -0.7843899999999999, 0.000005, -0.78439],
+        // A min worked out in JavaScript, whose steps fall where it puts them.
+        [0.1 + 0.2, 1, 0.1, 0.9],
+        // A repeating step or min, written to the fifteen significant digits
+        // a browser keeps, and a whole number kept whole.
+        [0, 10, 1 / 3, 10],
+        [0, 1, 0.1 + 0.2, 0.9],
+        [1 / 3, 10, 1, 9.33333333333333],
+        [0, 1700000000000013.5, 1, 1700000000000013],
+        // Fifteen digits next to a max written with more, which Chromium and
+        // WebKit hold a hair above it too.
+        [0, 0.7 + 0.1, 0.7 + 0.1, 0.8],
+        // On the grid, max itself, even where a float's division lands a
+        // hair under a whole number of steps, and at a large scale.
+        [0, 1, 0.1, 1],
+        [0, 0.3, 0.1, 0.3],
+        [0, 0.29, 0.01, 0.29],
+        [0, 1677721.9, 0.1, 1677721.9],
+        [1763000000000, 1763000001000, 1, 1763000001000],
+        [1763000000000, 1763000005999, 1000, 1763000005000],
+        [10, 90, 1, 90],
+      ])('min %s, max %s, step %s ends at %s', (min, max, step, end) => {
+        const handleChange = vi.fn();
+        render(
+          <Slider min={min} max={max} step={step} onChange={handleChange} />
+        );
+        fireEvent.keyDown(screen.getByRole('slider'), { key: 'End' });
+        expect(handleChange).toHaveBeenCalledWith(end);
+      });
+
+      it('leaves End at max when a bound is not a number', () => {
+        // React warns about the NaN attribute, which this test means to pass.
+        const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+        try {
+          const handleChange = vi.fn();
+          render(<Slider min={NaN} max={10} onChange={handleChange} />);
+          fireEvent.keyDown(screen.getByRole('slider'), { key: 'End' });
+          expect(handleChange).toHaveBeenCalledWith(10);
+        } finally {
+          error.mockRestore();
+        }
+      });
+
+      it('ends at min when max is below it', () => {
+        const handleChange = vi.fn();
+        render(<Slider min={10} max={5} step={1} onChange={handleChange} />);
+        fireEvent.keyDown(screen.getByRole('slider'), { key: 'End' });
+        expect(handleChange).toHaveBeenCalledWith(10);
+      });
+
+      it.each([0, -1])(
+        'counts a step of %s as 1, as the browser does',
+        step => {
+          const handleChange = vi.fn();
+          render(
+            <Slider min={0.5} max={10} step={step} onChange={handleChange} />
+          );
+          fireEvent.keyDown(screen.getByRole('slider'), { key: 'End' });
+          expect(handleChange).toHaveBeenCalledWith(9.5);
+        }
+      );
     });
   });
 
@@ -459,9 +723,11 @@ describe('Slider', () => {
       const ticks = container.querySelectorAll('.slider-tick');
       // 3 ticks: 25%, 50%, 75% (no 0% or 100%)
       expect(ticks.length).toBe(3);
-      expect(ticks[0]).toHaveStyle({ left: '25%' });
-      expect(ticks[1]).toHaveStyle({ left: '50%' });
-      expect(ticks[2]).toHaveStyle({ left: '75%' });
+      // From the inline start: left to right that is the physical left.
+      expect((ticks[0] as HTMLElement).style.insetInlineStart).toBe('25%');
+      expect((ticks[1] as HTMLElement).style.insetInlineStart).toBe('50%');
+      expect((ticks[2] as HTMLElement).style.insetInlineStart).toBe('75%');
+      expect((ticks[0] as HTMLElement).style.left).toBe('');
     });
   });
 
@@ -502,6 +768,24 @@ describe('Slider', () => {
       expect(container.querySelector('.slider')).not.toHaveClass(
         'has-tick-labels'
       );
+    });
+
+    it('places the 0 and 100 marks from the inline start', () => {
+      // Left to right that is the left edge. Slider.styles.test.tsx checks
+      // the right-to-left side, which needs the stylesheet.
+      const marks = [
+        { value: 0, label: '0' },
+        { value: 100, label: '100' },
+      ];
+      const { container } = render(<Slider marks={marks} />);
+      const ticks = [...container.querySelectorAll('.slider-tick')].map(
+        tick => (tick as HTMLElement).style
+      );
+      expect(ticks.map(style => style.insetInlineStart)).toEqual([
+        '0%',
+        '100%',
+      ]);
+      expect(ticks.map(style => style.left)).toEqual(['', '']);
     });
 
     it('marks take precedence over ticks', () => {
@@ -604,6 +888,222 @@ describe('Slider', () => {
       expect(container.querySelector('.slider')).toHaveClass('is-range');
     });
 
+    // Without a defaultValue the high thumb started at max, and with max off
+    // the step grid the browser put it a step below while aria-valuenow, the
+    // bubble and the fill said max (#2102).
+    it('starts the high thumb at the highest step when max is off the grid', () => {
+      const { container } = render(
+        <Slider range min={0} max={10} step={3} tooltip="always" />
+      );
+      const [low, high] = screen.getAllByRole('slider') as HTMLInputElement[];
+      expect(low).toHaveAttribute('aria-valuenow', '0');
+      expect(high).toHaveAttribute('aria-valuenow', '9');
+      expect(high.value).toBe('9');
+      expect(
+        Array.from(container.querySelectorAll('output'), o => o.textContent)
+      ).toEqual(['0', '9']);
+      expect(
+        (
+          container.querySelector('.slider-track') as HTMLElement
+        ).style.getPropertyValue('--slider-progress-high')
+      ).toBe('90%');
+    });
+
+    it('starts the high thumb at max when max is on the grid', () => {
+      render(<Slider range min={0} max={10} step={2} />);
+      expect(screen.getAllByRole('slider')[1]).toHaveAttribute(
+        'aria-valuenow',
+        '10'
+      );
+    });
+
+    it('keeps a defaultValue as given, even off the grid', () => {
+      render(<Slider range min={0} max={10} step={3} defaultValue={[0, 10]} />);
+      expect(
+        screen.getAllByRole('slider').map(t => t.getAttribute('aria-valuenow'))
+      ).toEqual(['0', '10']);
+    });
+
+    // With a minDistance wider than the room above min, the clamp that keeps
+    // the thumbs apart pushed the low one below min, as from the highest-step
+    // start: 9 - 10 put it at -1.
+    it('keeps the low thumb at or above min when minDistance is wider than the room', () => {
+      const handleChange = vi.fn();
+      render(
+        <Slider
+          range
+          min={0}
+          max={10}
+          step={3}
+          minDistance={10}
+          onChange={handleChange}
+        />
+      );
+      fireEvent.change(screen.getAllByRole('slider')[0], {
+        target: { value: '3' },
+      });
+      expect(handleChange).toHaveBeenLastCalledWith([0, 9]);
+    });
+
+    // A minDistance that isn't a whole number of steps stopped a thumb
+    // between two: the browser held it on a step, and a form submitted that,
+    // while aria-valuenow, the bubble and onChange said the value in between
+    // (#2141).
+    describe('minDistance off the step grid', () => {
+      const renderRange = (
+        minDistance: number,
+        defaultValue: [number, number]
+      ) => {
+        const handleChange = vi.fn();
+        render(
+          <Slider
+            range
+            min={0}
+            max={9}
+            step={3}
+            minDistance={minDistance}
+            defaultValue={defaultValue}
+            onChange={handleChange}
+          />
+        );
+        const [low, high] = screen.getAllByRole('slider');
+        return { handleChange, low, high };
+      };
+
+      it('stops the high thumb on the nearest step at least minDistance above the low one', () => {
+        const { handleChange, high } = renderRange(4, [0, 9]);
+        fireEvent.change(high, { target: { value: '3' } });
+        expect(handleChange).toHaveBeenLastCalledWith([0, 6]);
+        expect(high).toHaveAttribute('aria-valuenow', '6');
+      });
+
+      it('stops the low thumb on the nearest step at least minDistance below the high one', () => {
+        const { handleChange, low } = renderRange(4, [0, 9]);
+        fireEvent.change(low, { target: { value: '9' } });
+        expect(handleChange).toHaveBeenLastCalledWith([3, 9]);
+        expect(low).toHaveAttribute('aria-valuenow', '3');
+      });
+
+      it('stops a whole number of steps apart, as before', () => {
+        const { handleChange, high } = renderRange(3, [0, 9]);
+        fireEvent.change(high, { target: { value: '0' } });
+        expect(handleChange).toHaveBeenLastCalledWith([0, 3]);
+      });
+
+      // A decimal minDistance from a decimal value lands a hair off a step,
+      // as 0.2 + 0.1 does, which mustn't move the thumb a whole step.
+      it.each([
+        ['high', [0.2, 1], '0', [0.2, 0.3]],
+        ['low', [0, 0.3], '0.3', [0.2, 0.3]],
+      ] as const)(
+        'stops the %s thumb one step of 0.1 from the other',
+        (_thumb, defaultValue, moveTo, expected) => {
+          const handleChange = vi.fn();
+          render(
+            <Slider
+              range
+              min={0}
+              max={1}
+              step={0.1}
+              minDistance={0.1}
+              defaultValue={[...defaultValue]}
+              onChange={handleChange}
+            />
+          );
+          const [low, high] = screen.getAllByRole('slider');
+          fireEvent.change(_thumb === 'high' ? high : low, {
+            target: { value: moveTo },
+          });
+          expect(handleChange).toHaveBeenLastCalledWith([...expected]);
+        }
+      );
+
+      it('stops the high thumb on a step of 1/3 at least minDistance away', () => {
+        const handleChange = vi.fn();
+        render(
+          <Slider
+            range
+            min={0}
+            max={10}
+            step={1 / 3}
+            minDistance={1 / 3}
+            defaultValue={[0.333333333333333, 10]}
+            onChange={handleChange}
+          />
+        );
+        fireEvent.change(screen.getAllByRole('slider')[1], {
+          target: { value: '0' },
+        });
+        expect(handleChange).toHaveBeenLastCalledWith([
+          0.333333333333333, 0.666666666666667,
+        ]);
+      });
+
+      it('keeps the high thumb at the low one when that is past the highest step', () => {
+        // A caller's off-grid defaultValue can put the low thumb above the
+        // highest step; capping the high thumb there would put it below.
+        const handleChange = vi.fn();
+        render(
+          <Slider
+            range
+            min={0}
+            max={10}
+            step={3}
+            defaultValue={[10, 10]}
+            onChange={handleChange}
+          />
+        );
+        fireEvent.change(screen.getAllByRole('slider')[1], {
+          target: { value: '6' },
+        });
+        expect(handleChange).toHaveBeenLastCalledWith([10, 10]);
+      });
+
+      it('lets a negative minDistance cross the thumbs, as before', () => {
+        const handleChange = vi.fn();
+        render(
+          <Slider
+            range
+            min={0}
+            max={10}
+            minDistance={-2}
+            defaultValue={[2, 5]}
+            onChange={handleChange}
+          />
+        );
+        const [low, high] = screen.getAllByRole('slider');
+        fireEvent.change(low, { target: { value: '7' } });
+        expect(handleChange).toHaveBeenLastCalledWith([7, 5]);
+        fireEvent.change(high, { target: { value: '1' } });
+        expect(handleChange).toHaveBeenLastCalledWith([7, 5]);
+      });
+
+      it('counts a step of 0 as 1 when it stops the high thumb', () => {
+        const handleChange = vi.fn();
+        render(
+          <Slider
+            range
+            min={0}
+            max={9}
+            step={0}
+            minDistance={0.5}
+            defaultValue={[2, 9]}
+            onChange={handleChange}
+          />
+        );
+        fireEvent.change(screen.getAllByRole('slider')[1], {
+          target: { value: '2' },
+        });
+        expect(handleChange).toHaveBeenLastCalledWith([2, 3]);
+      });
+
+      it('stops the high thumb at the highest step when there isn’t room for minDistance', () => {
+        const { handleChange, high } = renderRange(8, [3, 9]);
+        fireEvent.change(high, { target: { value: '3' } });
+        expect(handleChange).toHaveBeenLastCalledWith([3, 9]);
+      });
+    });
+
     it('sets low and high values', () => {
       render(<Slider range value={[25, 75]} />);
       const inputs = screen.getAllByRole('slider') as HTMLInputElement[];
@@ -612,7 +1112,7 @@ describe('Slider', () => {
     });
 
     it('calls onChange with tuple', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Slider range value={[20, 80]} onChange={handleChange} />);
       const inputs = screen.getAllByRole('slider');
 
@@ -621,7 +1121,7 @@ describe('Slider', () => {
     });
 
     it('calls onChange for high thumb', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Slider range value={[20, 80]} onChange={handleChange} />);
       const inputs = screen.getAllByRole('slider');
 
@@ -630,7 +1130,7 @@ describe('Slider', () => {
     });
 
     it('enforces minDistance', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Slider
           range
@@ -647,7 +1147,7 @@ describe('Slider', () => {
     });
 
     it('enforces minDistance on high thumb', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Slider
           range
@@ -747,11 +1247,11 @@ describe('Slider', () => {
       // Sampled subset: i=1..99 => 99 interior ticks (no endpoints).
       expect(ticks.length).toBe(99);
       // First sampled tick is at min + 1 * (10000/100) = 100 => 1%.
-      expect(ticks[0]).toHaveStyle({ left: '1%' });
+      expect((ticks[0] as HTMLElement).style.insetInlineStart).toBe('1%');
       // 50th sampled tick is at min + 50 * (10000/100) = 5000 => 50%.
-      expect(ticks[49]).toHaveStyle({ left: '50%' });
+      expect((ticks[49] as HTMLElement).style.insetInlineStart).toBe('50%');
       // Last sampled tick is at min + 99 * (10000/100) = 9900 => 99%.
-      expect(ticks[98]).toHaveStyle({ left: '99%' });
+      expect((ticks[98] as HTMLElement).style.insetInlineStart).toBe('99%');
     });
   });
 
@@ -855,17 +1355,17 @@ describe('Slider', () => {
       expect(highOutput).not.toHaveClass('is-visible');
     });
 
-    it('keyDown on high thumb does not throw and does not change values', () => {
-      // High thumb has no onKeyDown wired, but it should accept the event silently.
-      const handleChange = jest.fn();
+    it('leaves Home and End on either thumb to the browser', () => {
+      // The low thumb's handler cancelled both keys and set nothing, so they
+      // did nothing there (#1966). The browser moves a range thumb to its
+      // end, which jsdom doesn't, so this checks the keys reach it.
+      const handleChange = vi.fn();
       render(<Slider range value={[20, 80]} onChange={handleChange} />);
-      const inputs = screen.getAllByRole('slider') as HTMLInputElement[];
-
-      // Pressing Home on a range slider's low thumb is a no-op
-      // (range branch in handleKeyDown is intentionally empty),
-      // exercising the `if (!range)` false branch on lines 328 and 334.
-      fireEvent.keyDown(inputs[0], { key: 'Home' });
-      fireEvent.keyDown(inputs[0], { key: 'End' });
+      for (const thumb of screen.getAllByRole('slider')) {
+        for (const key of ['Home', 'End']) {
+          expect(fireEvent.keyDown(thumb, { key })).toBe(true);
+        }
+      }
       expect(handleChange).not.toHaveBeenCalled();
     });
   });
@@ -1029,6 +1529,56 @@ describe('Slider', () => {
       });
     });
 
+    it('measures the nudge from the right edge on a right-to-left page', () => {
+      // jsdom maps no `dir` to `direction`, which the nudge reads.
+      const rtl = document.createElement('style');
+      rtl.textContent = '[dir="rtl"] { direction: rtl; }';
+      document.head.appendChild(rtl);
+      try {
+        withMockedLayout({ left: 0, right: 100, width: 100 }, 80, () => {
+          const { container } = render(
+            <div dir="rtl">
+              <Slider value={0} min={0} max={100} showOutput />
+            </div>
+          );
+          // The minimum sits at the right edge, so an 80px bubble centred on
+          // it runs 40px past that edge and moves left by as much.
+          const output = container.querySelector(
+            '.slider-output'
+          ) as HTMLElement;
+          expect(output.style.transform).toBe(
+            'translateX(calc(var(--slider-output-shift, -50%) + -40px))'
+          );
+          expect(
+            output.style.getPropertyValue('--slider-output-arrow-offset')
+          ).toBe('calc(50% - -40px)');
+        });
+      } finally {
+        rtl.remove();
+      }
+    });
+
+    it('measures the same thumb from the left edge left to right', () => {
+      withMockedLayout({ left: 0, right: 100, width: 100 }, 80, () => {
+        const { container } = render(
+          <Slider value={0} min={0} max={100} showOutput />
+        );
+        const output = container.querySelector('.slider-output') as HTMLElement;
+        expect(output.style.transform).toBe(
+          'translateX(calc(var(--slider-output-shift, -50%) + 40px))'
+        );
+      });
+    });
+
+    it('places the bubble from the inline start, as the thumb is', () => {
+      const { container } = render(
+        <Slider defaultValue={25} tooltip="always" />
+      );
+      const output = container.querySelector('.slider-output') as HTMLElement;
+      expect(output.style.insetInlineStart).toMatch(/^calc\(/);
+      expect(output.style.left).toBe('');
+    });
+
     it('nudges high tooltip in range mode when clipped at right edge', () => {
       withMockedLayout({ left: 0, right: 100, width: 100 }, 80, () => {
         const { container } = render(
@@ -1044,7 +1594,7 @@ describe('Slider', () => {
 
   describe('function ref forwarding', () => {
     it('invokes function ref with the input node', () => {
-      const refFn = jest.fn();
+      const refFn = vi.fn();
       render(<Slider ref={refFn} />);
       expect(refFn).toHaveBeenCalled();
       const node = refFn.mock.calls[0][0];
@@ -1053,7 +1603,7 @@ describe('Slider', () => {
     });
 
     it('invokes function ref for range mode (first input)', () => {
-      const refFn = jest.fn();
+      const refFn = vi.fn();
       render(<Slider range defaultValue={[10, 90]} ref={refFn} />);
       expect(refFn).toHaveBeenCalled();
     });

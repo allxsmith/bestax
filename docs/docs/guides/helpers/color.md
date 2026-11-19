@@ -41,6 +41,8 @@ Use the `textColor` prop to apply text colors. Most components re-expose Bulma's
 | `textColor="warning"` | `has-text-warning` | Warning yellow      |
 | `textColor="danger"`  | `has-text-danger`  | Danger red          |
 
+Bulma works out a lightness for each color's text on the page, one for each scheme (`colorShade="on-scheme"` renders it). On a dark page, bestax's stylesheets give a standard color's text that lightness wherever it's lighter than the color's own, and its hover and pressed colors on a link or button too, so a dark color, such as bestax's blue primary, stays readable there. On a light page the color keeps its own lightness. The lighter text is for the page, so on a surface that stays light on both schemes, such as `bgColor="white"`, `"light"` or a color's light shade, use `colorShade="dark"` for the color's text, which reads there on both schemes. The theme colors below, `light` and `dark`, and `white` and `black`, stay the same on both schemes, for text on a surface of another color.
+
 ### Monochrome Colors
 
 | Property                   | Bulma Class             | Color Value   |
@@ -155,7 +157,7 @@ Bulma ships no `has-background-scheme-*` classes, so these values emit **no clas
 | `bgColor="scheme-invert-ter"` | `background-color: var(--bulma-scheme-invert-ter)` | Two steps off the inverted surface |
 
 :::warning Invert backgrounds don't invert your text
-The `scheme-invert*` values set only the background — text keeps the page's default color, which is low-contrast on an inverted surface. Pair them with a matching foreground: a named class with `color: var(--bulma-scheme-main)` for designs that serve both modes, or an explicit `textColor` when the design is single-mode — pinned globally with `<Theme isRoot colorMode="…">`, or per surface with Bulma's `data-theme` attribute (`<Box data-theme="light" bgColor="scheme-invert" textColor="white">`). A prefixed build reads `data-<prefix>theme` instead, so with the prefixed flavors the surface takes `data-bestax-theme="light"`. The `scheme-main*` values need no pairing — they stay close to the page background.
+The `scheme-invert*` values set only the background — text keeps the page's default color, which is low-contrast on an inverted surface. Pair them with a matching foreground: a named class with `color: var(--bulma-scheme-main)` for designs that serve both modes, or an explicit `textColor` when the design is single-mode — pinned globally on the `<html>` in your `index.html` (`<html lang="en" data-theme="light">`), or per surface with Bulma's `data-theme` attribute (`<Box data-theme="light" bgColor="scheme-invert" textColor="white">`). A prefixed build reads `data-<prefix>theme` instead, so with the prefixed flavors the surface takes `data-bestax-theme="light"`. The `scheme-main*` values need no pairing — they stay close to the page background.
 :::
 
 This is the zero-CSS way to build alternating page bands that stay correct in dark mode — tint every other `Section` with `scheme-main-bis`, stepping to `scheme-main-ter` when a later band needs to go one deeper:

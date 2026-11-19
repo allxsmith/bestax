@@ -23,11 +23,11 @@
     },
     {
       "title": "States",
-      "code": "<>\n  <TextArea label=\"Normal\" placeholder=\"Normal textarea\" />\n  <TextArea label=\"Hover\" isHovered placeholder=\"Hovered textarea\" />\n  <TextArea label=\"Focus\" isFocused placeholder=\"Focused textarea\" />\n  <TextArea label=\"Loading\" isLoading placeholder=\"Loading textarea\" />\n</>"
+      "code": "<>\n  <TextArea label=\"Normal\" placeholder=\"Normal textarea\" />\n  <TextArea label=\"Hover\" isHovered placeholder=\"Hovered textarea\" />\n  <TextArea label=\"Focus\" isFocused placeholder=\"Focused textarea\" />\n  <TextArea\n    label=\"Loading\"\n    isLoading\n    message=\"Loading…\"\n    placeholder=\"Loading textarea\"\n  />\n</>"
     },
     {
       "title": "Loading States by Size",
-      "code": "<>\n  <TextArea\n    label=\"Loading Small\"\n    size=\"small\"\n    controlSize=\"small\"\n    isLoading\n    placeholder=\"Small loading textarea\"\n  />\n  <TextArea\n    label=\"Loading Normal\"\n    isLoading\n    placeholder=\"Normal loading textarea\"\n  />\n  <TextArea\n    label=\"Loading Medium\"\n    size=\"medium\"\n    controlSize=\"medium\"\n    isLoading\n    placeholder=\"Medium loading textarea\"\n  />\n  <TextArea\n    label=\"Loading Large\"\n    size=\"large\"\n    controlSize=\"large\"\n    isLoading\n    placeholder=\"Large loading textarea\"\n  />\n</>"
+      "code": "<>\n  <TextArea\n    label=\"Loading Small\"\n    size=\"small\"\n    controlSize=\"small\"\n    isLoading\n    message=\"Loading…\"\n    placeholder=\"Small loading textarea\"\n  />\n  <TextArea\n    label=\"Loading Normal\"\n    isLoading\n    message=\"Loading…\"\n    placeholder=\"Normal loading textarea\"\n  />\n  <TextArea\n    label=\"Loading Medium\"\n    size=\"medium\"\n    controlSize=\"medium\"\n    isLoading\n    message=\"Loading…\"\n    placeholder=\"Medium loading textarea\"\n  />\n  <TextArea\n    label=\"Loading Large\"\n    size=\"large\"\n    controlSize=\"large\"\n    isLoading\n    message=\"Loading…\"\n    placeholder=\"Large loading textarea\"\n  />\n</>"
     },
     {
       "title": "Disabled & Read Only",
@@ -42,19 +42,19 @@
       "code": "<TextArea\n  horizontal\n  label=\"Question\"\n  placeholder=\"Explain how we can help you\"\n  rows={4}\n/>"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › Default (with label)",
       "code": "<TextArea label=\"Message\" placeholder=\"Enter your message\" />"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › With Field Wrapper",
       "code": "function example() {\n  return (\n    <Field horizontal label=\"Message\" labelProps={{ htmlFor: 'message-field' }}>\n      <Field.Body>\n        <Field>\n          <TextArea id=\"message-field\" placeholder=\"Enter your message\" />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
-      "title": "Context-Aware Rendering",
-      "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Message\"\n      labelProps={{ htmlFor: 'message-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"comment\">\n            <TextArea\n              id=\"message-field-control\"\n              placeholder=\"Enter your message\"\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+      "title": "Context-Aware Rendering › With Field and Control Wrappers",
+      "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Message\"\n      labelProps={{ htmlFor: 'message-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control>\n            <TextArea\n              id=\"message-field-control\"\n              placeholder=\"Enter your message\"\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
-  "accessibility": "- Always provide a label. TextArea's `label` prop is automatically associated with the `<textarea>` (`htmlFor` plus a generated `id`, or your own `id` if you pass one).\n- When composing with `Field` instead, the `Field`'s own `label` associates with the textarea automatically when the textarea sits directly in that labeled `Field` and has no `id` of its own. A nested unlabeled `Field` (as in horizontal multi-field layouts) starts its own scope. With an `id` of your own, or across a nested `Field`, the label names the textarea only when you pass that `id` as `labelProps={{ htmlFor }}`.\n- Use the `rows` prop to set an appropriate height for your content.",
+  "accessibility": "- Always provide a label. TextArea's `label` prop is automatically associated with the `<textarea>` (`htmlFor` plus a generated `id`, or your own `id` if you pass one).\n- When composing with `Field` instead, the `Field`'s own `label` associates with the textarea automatically when the textarea sits directly in that labeled `Field` and has no `id` of its own. A nested unlabeled `Field` (as in horizontal multi-field layouts) starts its own scope. With an `id` of your own, or across a nested `Field`, the label names the textarea only when you pass that `id` as `labelProps={{ htmlFor }}`.\n- Use the `rows` prop to set an appropriate height for your content.\n- **Help and errors:** the `message` describes the textarea through `aria-describedby`, after any ids you pass there, so a screen reader reads it when the textarea takes focus. A red `color` says nothing to a screen reader, so on an error also set `aria-invalid`, and put the error in the `message`.",
   "related": ["Control", "Field"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-textarea--default",
   "summary": "The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, hover/focus/loading states, fixed size, and all Bulma helper props.",
@@ -107,7 +107,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Shows a loading spinner on the `Control` it renders. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
+          "description": "Shows a loading spinner on the `Control` it renders. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded). The spinner is only drawn, so a screen reader hears nothing of it. Say that the field is loading in its `message` as well, such as `message=\"Loading…\"`, which describes the textarea, so a screen reader reads it when the field takes focus. A load that starts while the user is in the field, such as a search as they type, isn't reliably heard without a live region, such as a `role=\"status\"` element.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -125,7 +125,7 @@
           "name": "message",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Help/validation message below the textarea.",
+          "description": "Help or validation text under the textarea. It describes the textarea through `aria-describedby`, after any ids you pass there.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -278,6 +278,143 @@
       "extraProps": [],
       "catchAll": "All standard <textarea> attributes and Bulma helper props",
       "types": []
+    },
+    {
+      "path": "TextAreaBase",
+      "summary": "Bulma TextArea component with full Bulma helper class support.",
+      "component": null,
+      "props": [
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
+          "default": null,
+          "description": "Bulma color modifier for the textarea.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size modifier for the textarea.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Adds the `is-rounded` class to the `<textarea>`. Bulma styles it on `.input` only, so the textarea's corners don't change.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isStatic",
+          "type": "boolean",
+          "default": "false",
+          "description": "Adds the `is-static` class to the `<textarea>`. Bulma styles it on `.input` only, so the textarea keeps its border, background and padding.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isHovered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies hovered state.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isFocused",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies focused state.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isLoading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Accepted and ignored: `TextAreaBase` renders no loading state. The spinner belongs to the wrapping `Control`, so set `isLoading` on that `Control`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isActive",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies Bulma's is-active modifier.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasFixedSize",
+          "type": "boolean",
+          "default": "false",
+          "description": "Fixed textarea size (no resize).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disables the textarea.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "default": "false",
+          "description": "Read-only textarea.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "rows",
+          "type": "number",
+          "default": null,
+          "description": "Number of visible text lines.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLTextAreaElement>",
+          "default": null,
+          "description": "Forwarded to the underlying element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <textarea> attributes and Bulma helper props",
+      "types": [],
+      "standalone": "base"
     }
   ],
   "cssVars": [

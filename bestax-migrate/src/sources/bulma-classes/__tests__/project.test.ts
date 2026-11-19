@@ -6,7 +6,12 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { analyzeProject, runtimeOf } from '../project.js';
+import {
+  analyzeProject,
+  inNextApp,
+  runtimeOf,
+  writesTypeScript,
+} from '../project.js';
 
 const dirs: string[] = [];
 afterAll(() => {
@@ -107,5 +112,81 @@ describe('analyzeProject', () => {
     expect(analyzeProject([dir]).jsxRuntimes).toEqual([
       { dir, runtime: 'preact' },
     ]);
+  });
+
+  it('starts the run from each folder it names and each named file, but for one inside another', () => {
+    const dir = pkg({
+      'site/index.html': '',
+      'site/docs/index.html': '',
+      'other/page.html': '',
+    });
+    const at = (...parts: string[]) => path.join(dir, ...parts);
+    expect(
+      analyzeProject([
+        at('site', 'docs', 'index.html'),
+        at('site'),
+        at('other', 'page.html'),
+        at('site', 'index.html'),
+      ]).runRoots
+    ).toEqual([at('other'), at('site')]);
+    expect(analyzeProject([at('site', 'docs')]).runRoots).toEqual([
+      at('site', 'docs'),
+    ]);
+  });
+});
+
+describe('writesTypeScript', () => {
+  const manifest = (body: object) => JSON.stringify({ name: 'p', ...body });
+
+  it('says yes for a package with a tsconfig, or that depends on typescript', () => {
+    const configured = pkg({
+      'package.json': manifest({}),
+      'tsconfig.json': '{}',
+    });
+    const depending = pkg({
+      'package.json': manifest({ devDependencies: { typescript: '^5.0.0' } }),
+    });
+    for (const dir of [configured, depending]) {
+      const { packageLanguages } = analyzeProject([dir]);
+      expect(
+        writesTypeScript(path.join(dir, 'pages', 'a.html'), packageLanguages)
+      ).toBe(true);
+    }
+  });
+
+  it('follows the innermost package, and says no when nothing says TypeScript', () => {
+    const dir = pkg({
+      'package.json': manifest({ devDependencies: { typescript: '^5.0.0' } }),
+      'site/package.json': manifest({}),
+    });
+    const { packageLanguages } = analyzeProject([dir]);
+    expect(writesTypeScript(path.join(dir, 'a.html'), packageLanguages)).toBe(
+      true
+    );
+    expect(
+      writesTypeScript(path.join(dir, 'site', 'a.html'), packageLanguages)
+    ).toBe(false);
+    expect(writesTypeScript(path.join(dir, 'a.html'), undefined)).toBe(false);
+    expect(writesTypeScript(path.join(os.tmpdir(), 'x.html'), [])).toBe(false);
+  });
+});
+
+describe('inNextApp', () => {
+  it('says yes inside the innermost package that depends on next', () => {
+    const dir = pkg({
+      'package.json': JSON.stringify({
+        name: 'web',
+        dependencies: { next: '^15.0.0', react: '^19.0.0' },
+      }),
+      'legacy/package.json': JSON.stringify({ name: 'legacy' }),
+    });
+    const { packageLanguages } = analyzeProject([dir]);
+    expect(inNextApp(path.join(dir, 'pages', 'a.html'), packageLanguages)).toBe(
+      true
+    );
+    expect(
+      inNextApp(path.join(dir, 'legacy', 'a.html'), packageLanguages)
+    ).toBe(false);
+    expect(inNextApp(path.join(dir, 'a.html'), undefined)).toBe(false);
   });
 });

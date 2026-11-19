@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<body onload="start()">
+  <div class="box">
+    <button class="button is-danger" type="button" onclick="if (confirm('Sure?')) remove()">Remove</button>
+    <a class="button" href="javascript:history.back()">Back</a>
+    <form onsubmit="return validate(this)">
+      <input class="input" id="q" name="q" onkeyup="search(this.value)">
+    </form>
+    <img src="/x.png" alt="" onerror="this.remove()">
+  </div>
+</body>
+</html>

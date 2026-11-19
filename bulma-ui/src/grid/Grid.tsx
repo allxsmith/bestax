@@ -115,11 +115,12 @@ export interface GridProps
   /** For fixed grids: explicit column count for fullhd. */
   fixedColsFullhd?: BulmaFixedGridCols;
   /** Additional CSS classes for the grid. */
-  className?: string;
+  className?: string | undefined;
   /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Bulma color modifier for the grid. */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Children to render inside the grid (usually `Cell` components). */

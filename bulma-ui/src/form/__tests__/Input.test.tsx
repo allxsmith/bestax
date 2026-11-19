@@ -1,6 +1,5 @@
 import { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { Input } from '../Input';
 import { Field } from '../Field';
 import { Control } from '../Control';
@@ -91,7 +90,7 @@ describe('Input', () => {
     });
 
     it('calls onChange', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Input onChange={handleChange} data-testid="input" />);
       fireEvent.change(screen.getByTestId('input'), {
         target: { value: 'test' },

@@ -21,7 +21,7 @@ export interface SectionProps
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   /** Bulma color modifier for text. */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /**
    * Bulma background color helper. `scheme-*` values render as a
    * dark-mode-safe inline `background-color: var(--bulma-scheme-*)` instead
@@ -36,9 +36,9 @@ export interface SectionProps
   /** Bulma text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Section size for extra vertical spacing. */
-  size?: SectionSize;
+  size?: SectionSize | undefined;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Section content. */
   children?: React.ReactNode;
 }

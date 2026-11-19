@@ -3,28 +3,26 @@
 // compile the real partial, plain and under a class prefix, and assert
 // computed style instead (pattern: Popover.styles.test.tsx). jsdom leaves
 // `var()` unresolved and does no layout, so values are compared as written.
-import * as sass from 'sass';
 import { readdirSync } from 'fs';
 import path from 'path';
 import type { ReactElement } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { PickerPopover } from '../_pickerInternals/PickerPopover';
+import { SCSS, compileScss, compileSheet } from '../../__tests__/compile-scss';
 import { DateInput } from '../DateInput';
 import { TimeInput } from '../TimeInput';
 import { DateTimeInput } from '../DateTimeInput';
+import { TreeSelect } from '../TreeSelect';
+import { DateRangeInput } from '../DateRangeInput';
 import { ConfigProvider } from '../../helpers/Config';
 import type { PickerPosition } from '../_pickerInternals/pickerTypes';
-
-const SCSS = path.resolve(__dirname, '../../scss');
-const NODE_MODULES = path.resolve(__dirname, '../../../../node_modules');
-const OPTIONS = {
-  loadPaths: [SCSS, NODE_MODULES],
-  quietDeps: true,
-  logger: sass.Logger.silent,
-};
 
 /** The partial, compiled under each class prefix, by prefix. */
 const sheets: Record<string, HTMLStyleElement> = {};
 
+// A hook keeps Vitest's 10s default rather than `testTimeout`, and
+// sass-embedded's start can take longer than that on a loaded machine.
 beforeAll(() => {
   for (const [prefix, source] of Object.entries({
     '': `@use 'form/picker-popover';`,
@@ -32,11 +30,11 @@ beforeAll(() => {
      @use 'form/picker-popover';`,
   })) {
     const el = document.createElement('style');
-    el.textContent = sass.compileString(source, OPTIONS).css;
+    el.textContent = compileScss(source);
     document.head.appendChild(el);
     sheets[prefix] = el;
   }
-});
+}, 30_000);
 
 afterAll(() => {
   for (const el of Object.values(sheets)) el.remove();
@@ -75,6 +73,107 @@ function openPanel(
   return panel;
 }
 
+describe.each(prefixes)(
+  'a panel that matches its anchor\'s width, with class prefix "%s"',
+  prefix => {
+    const openTreeSelect = (appendToBody: boolean) => {
+      render(
+        <ConfigProvider classPrefix={prefix}>
+          <TreeSelect
+            aria-label="Place"
+            data={[{ value: 'a' }]}
+            appendToBody={appendToBody}
+          />
+        </ConfigProvider>
+      );
+      fireEvent.click(screen.getByRole('combobox'));
+      return screen.getByRole('dialog');
+    };
+
+    it('is at least as wide as the anchor in place', () => {
+      const panel = openTreeSelect(false);
+      expect(panel).toHaveClass(`${prefix}has-anchor-width`);
+      expect(getComputedStyle(panel).minWidth).toBe('100%');
+    });
+
+    it("takes the anchor's width inline once portaled, never the viewport's", () => {
+      const panel = openTreeSelect(true);
+      expect(panel).toHaveClass(
+        `${prefix}has-anchor-width`,
+        `${prefix}is-portal`
+      );
+      expect(getComputedStyle(panel).minWidth).not.toBe('100%');
+    });
+
+    it('takes the width of several months, up to the window, and leaves one month alone', () => {
+      const { unmount } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <DateRangeInput monthsToShow={2} />
+        </ConfigProvider>
+      );
+      fireEvent.click(screen.getByRole('combobox', { name: 'Start date' }));
+      const wide = getComputedStyle(screen.getByRole('dialog'));
+      expect(wide.width).toBe('max-content');
+      expect(wide.maxWidth).toBe(
+        'var(--bulma-picker-popover-months-max-width)'
+      );
+      unmount();
+      render(
+        <ConfigProvider classPrefix={prefix}>
+          <DateRangeInput />
+        </ConfigProvider>
+      );
+      fireEvent.click(screen.getByRole('combobox', { name: 'Start date' }));
+      expect(getComputedStyle(screen.getByRole('dialog')).width).not.toBe(
+        'max-content'
+      );
+    });
+
+    it("leaves a picker's panel that doesn't match alone", () => {
+      render(
+        <ConfigProvider classPrefix={prefix}>
+          <DateInput aria-label="Date" />
+        </ConfigProvider>
+      );
+      fireEvent.click(screen.getByRole('combobox'));
+      const panel = screen.getByRole('dialog');
+      expect(panel).not.toHaveClass(`${prefix}has-anchor-width`);
+      expect(getComputedStyle(panel).minWidth).not.toBe('100%');
+    });
+  }
+);
+
+describe.each(prefixes)(
+  'a panel open on first paint, with class prefix "%s"',
+  prefix => {
+    it('sits at the right edge right to left before any effect runs', () => {
+      // Server markup, so no effect has read the direction: the stylesheet
+      // alone has to place it.
+      const page = document.createElement('div');
+      page.setAttribute('dir', 'rtl');
+      page.innerHTML = renderToStaticMarkup(
+        <ConfigProvider classPrefix={prefix}>
+          <PickerPopover
+            isOpen
+            onClose={() => {}}
+            anchorRef={{ current: null }}
+          >
+            Panel
+          </PickerPopover>
+        </ConfigProvider>
+      );
+      document.body.appendChild(page);
+      try {
+        const style = getComputedStyle(page.querySelector('[role="dialog"]')!);
+        expect(style.right).toBe('calc(-1 * var(--bulma-anchored-shift))');
+        expect(style.left).not.toBe('var(--bulma-anchored-shift)');
+      } finally {
+        page.remove();
+      }
+    });
+  }
+);
+
 const gap = 'var(--bulma-picker-popover-offset)';
 // The edge an in-place panel faces the input with, the gap past it.
 const offset = `calc(100% + ${gap})`;
@@ -101,17 +200,42 @@ describe.each(pickers)('%s panel placement', (_name, picker) => {
     );
 
     it.each<[Corner, Record<string, string>]>([
-      ['bottom-left', { top: '100%', left: '0px', 'margin-top': gap }],
-      ['bottom-right', { top: '100%', right: '0px', 'margin-top': gap }],
-      ['top-left', { bottom: '100%', left: '0px', 'margin-bottom': gap }],
-      ['top-right', { bottom: '100%', right: '0px', 'margin-bottom': gap }],
+      [
+        'bottom-left',
+        { top: '100%', left: 'var(--bulma-anchored-shift)', 'margin-top': gap },
+      ],
+      [
+        'bottom-right',
+        {
+          top: '100%',
+          right: 'calc(-1 * var(--bulma-anchored-shift))',
+          'margin-top': gap,
+        },
+      ],
+      [
+        'top-left',
+        {
+          bottom: '100%',
+          left: 'var(--bulma-anchored-shift)',
+          'margin-bottom': gap,
+        },
+      ],
+      [
+        'top-right',
+        {
+          bottom: '100%',
+          right: 'calc(-1 * var(--bulma-anchored-shift))',
+          'margin-bottom': gap,
+        },
+      ],
     ])('keeps an in-place %s panel on its corner', (position, expected) => {
       const panel = openPanel(picker, prefix, {
         position,
         appendToBody: false,
       });
       expect(panel).not.toHaveClass(`${prefix}is-portal`);
-      expect(panel.getAttribute('style') ?? '').toBe('');
+      // No coordinates, only the shift its corner rules add, 0 here.
+      expect(panel.getAttribute('style')).toBe('--bulma-anchored-shift: 0px;');
       const style = getComputedStyle(panel);
       expect(style.position).toBe('absolute');
       for (const [property, value] of Object.entries(expected)) {
@@ -138,6 +262,17 @@ const box = (top: number, left: number, height: number, width: number) =>
   }) as DOMRect;
 
 describe.each(pickers)('%s auto placement in place', (_name, picker) => {
+  // A resize places the panel again in the next frame.
+  beforeEach(() => {
+    vi.useFakeTimers({
+      toFake: ['requestAnimationFrame', 'cancelAnimationFrame'],
+    });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   describe.each(prefixes)('with class prefix "%s"', prefix => {
     it.each<[string, number, Corner]>([
       ['4px', 4, 'bottom-left'],
@@ -161,16 +296,18 @@ describe.each(pickers)('%s auto placement in place', (_name, picker) => {
           fireEvent.click(screen.getByRole('combobox'));
           const panel = screen.getByRole('dialog');
           const height = 300;
-          jest
-            .spyOn(panel.parentElement!, 'getBoundingClientRect')
-            .mockReturnValue(
-              box(window.innerHeight - room - height - 40, 20, 40, 200)
-            );
-          jest
-            .spyOn(panel, 'getBoundingClientRect')
-            .mockReturnValue(box(0, 0, height, 280));
+          vi.spyOn(
+            panel.parentElement!,
+            'getBoundingClientRect'
+          ).mockReturnValue(
+            box(window.innerHeight - room - height - 40, 20, 40, 200)
+          );
+          vi.spyOn(panel, 'getBoundingClientRect').mockReturnValue(
+            box(0, 0, height, 280)
+          );
           act(() => {
             fireEvent(window, new Event('resize'));
+            vi.advanceTimersToNextFrame();
           });
           // Below, the panel needs the room the offset puts between it and
           // the input, as well as its own height.
@@ -292,17 +429,19 @@ function mediaHolds(mediaText: string, width: number): boolean {
 }
 
 // What says where a box sits, and the value each has when nothing sets it.
-// The gap to the anchor can be a margin, so margins count too.
+// The gap to the anchor can be a margin, so margins count too. jsdom
+// serializes a zero length as `0px`, as browsers do, so a zero reads that way
+// whether a rule sets it or not.
 const INITIAL: Record<string, string> = {
   position: 'static',
   top: 'auto',
   right: 'auto',
   bottom: 'auto',
   left: 'auto',
-  'margin-top': '0',
-  'margin-right': '0',
-  'margin-bottom': '0',
-  'margin-left': '0',
+  'margin-top': '0px',
+  'margin-right': '0px',
+  'margin-bottom': '0px',
+  'margin-left': '0px',
 };
 const PLACEMENT = Object.keys(INITIAL);
 // Shorthands and logical properties move the box without naming these.
@@ -443,7 +582,7 @@ describe.each(published)('panel placement in %s', file => {
   let sheet: CSSStyleSheet;
 
   beforeAll(() => {
-    sheet = parseSheet(sass.compile(path.join(SCSS, file), OPTIONS).css);
+    sheet = parseSheet(compileSheet(file));
   }, 30_000);
 
   describe.each([PHONE, DESKTOP])('at %ipx wide', width => {
@@ -477,9 +616,9 @@ describe.each(published)('panel placement in %s', file => {
             'margin-top': position.startsWith('top')
               ? `calc(-1 * ${gap})`
               : gap,
-            'margin-right': '0',
-            'margin-bottom': '0',
-            'margin-left': '0',
+            'margin-right': '0px',
+            'margin-bottom': '0px',
+            'margin-left': '0px',
           });
         }
       );
@@ -495,16 +634,39 @@ describe.each(published)('panel placement in %s', file => {
       it.each<[Corner, Record<string, string>]>([
         [
           'bottom-left',
-          { top: offset, right: 'auto', bottom: 'auto', left: '0' },
+          {
+            top: offset,
+            right: 'auto',
+            bottom: 'auto',
+            left: 'var(--bulma-anchored-shift)',
+          },
         ],
         [
           'bottom-right',
-          { top: offset, right: '0', bottom: 'auto', left: 'auto' },
+          {
+            top: offset,
+            right: 'calc(-1 * var(--bulma-anchored-shift))',
+            bottom: 'auto',
+            left: 'auto',
+          },
         ],
-        ['top-left', { top: 'auto', right: 'auto', bottom: offset, left: '0' }],
+        [
+          'top-left',
+          {
+            top: 'auto',
+            right: 'auto',
+            bottom: offset,
+            left: 'var(--bulma-anchored-shift)',
+          },
+        ],
         [
           'top-right',
-          { top: 'auto', right: '0', bottom: offset, left: 'auto' },
+          {
+            top: 'auto',
+            right: 'calc(-1 * var(--bulma-anchored-shift))',
+            bottom: offset,
+            left: 'auto',
+          },
         ],
       ])(
         'keeps an in-place %s panel the offset off its corner',
@@ -524,6 +686,98 @@ describe.each(published)('panel placement in %s', file => {
     });
   });
 
+  describe('on a right-to-left page', () => {
+    beforeEach(() => document.documentElement.setAttribute('dir', 'rtl'));
+    afterEach(() => document.documentElement.removeAttribute('dir'));
+
+    /** Opens the picker with no `position`, and returns its panel. */
+    const openDefault = (
+      picker: (props: PickerProps) => ReactElement,
+      appendToBody: boolean
+    ) => {
+      render(
+        <ConfigProvider classPrefix={prefix}>
+          {picker({ appendToBody } as PickerProps)}
+        </ConfigProvider>
+      );
+      fireEvent.click(screen.getByRole('combobox'));
+      const panel = screen.getByRole('dialog');
+      expect(panel).toHaveClass(
+        `${prefix}is-bottom-left`,
+        `${prefix}is-start-aligned`
+      );
+      return panel;
+    };
+
+    describe.each([PHONE, DESKTOP])('at %ipx wide', width => {
+      const inPlace =
+        width === PHONE
+          ? pickers.filter(([name]) => name !== 'TimeInput')
+          : pickers;
+
+      it.each(inPlace)(
+        'lines a default in-place %s panel up with the right edge',
+        (_name, picker) => {
+          const panel = openDefault(picker, false);
+          expect(
+            edges(placement(panel, placementRules(sheet.cssRules, width)))
+          ).toEqual({
+            position: 'absolute',
+            top: offset,
+            right: 'calc(-1 * var(--bulma-anchored-shift))',
+            bottom: 'auto',
+            left: 'auto',
+          });
+        }
+      );
+
+      it.each(inPlace)(
+        'keeps an in-place %s panel at a named bottom-left on the left',
+        (_name, picker) => {
+          const panel = openPanel(picker, prefix, {
+            position: 'bottom-left',
+            appendToBody: false,
+          });
+          expect(panel).not.toHaveClass(`${prefix}is-start-aligned`);
+          expect(
+            edges(placement(panel, placementRules(sheet.cssRules, width)))
+          ).toEqual({
+            position: 'absolute',
+            top: offset,
+            right: 'auto',
+            bottom: 'auto',
+            left: 'var(--bulma-anchored-shift)',
+          });
+        }
+      );
+
+      it.each(pickers)(
+        'places a default portaled %s panel by its inline coordinates alone',
+        (_name, picker) => {
+          const panel = openDefault(picker, true);
+          const placed = placement(
+            panel,
+            placementRules(sheet.cssRules, width)
+          );
+          expect([placed.left, placed.right]).toEqual([
+            panel.style.left,
+            'auto',
+          ]);
+        }
+      );
+    });
+
+    it('keeps a default in-place TimeInput panel a sheet on a phone', () => {
+      const panel = openDefault(props => <TimeInput {...props} />, false);
+      const placed = placement(panel, placementRules(sheet.cssRules, PHONE));
+      expect([placed.position, placed.left, placed.right]).toEqual([
+        'fixed',
+        '1rem',
+        '1rem',
+      ]);
+    });
+  });
+
   it.each(corners)(
     'keeps an in-place TimeInput panel at %s a sheet on a phone',
     position => {
@@ -540,10 +794,10 @@ describe.each(published)('panel placement in %s', file => {
         right: '1rem',
         bottom: '1rem',
         left: '1rem',
-        'margin-top': '0',
-        'margin-right': '0',
-        'margin-bottom': '0',
-        'margin-left': '0',
+        'margin-top': '0px',
+        'margin-right': '0px',
+        'margin-bottom': '0px',
+        'margin-left': '0px',
       });
     }
   );

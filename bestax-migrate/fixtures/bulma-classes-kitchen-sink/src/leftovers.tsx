@@ -2,7 +2,10 @@ import { useRef } from 'react';
 
 const props = { id: 'spread' };
 
-/** Everything the codemod leaves as markup on purpose, each with its TODO. */
+/**
+ * Everything the codemod leaves as markup on purpose, or converts with a
+ * class it keeps on purpose, each with its TODO.
+ */
 export function Leftovers() {
   const ref = useRef<HTMLDivElement>(null);
   const open = props.id.length > 3;
@@ -43,8 +46,26 @@ export function Leftovers() {
         <span aria-hidden="true" />
         <span aria-hidden="true" />
       </a>
+      <ul className="menu-list">
+        <li>
+          <a className="is-active" href="/here">
+            An active item that doesn't say it's the current page
+          </a>
+        </li>
+      </ul>
       <div className="dropdown">A family converted later</div>
       <div className="tile is-ancestor">A Bulma 0.9 tile</div>
+      <div className="is-paddingless">A Bulma 0.9 class on a plain div</div>
+      <p className="heading">A Bulma 0.9 label</p>
+      <span className="number">42</span>
+      <div className="columns is-variable is-2">
+        <div className="column">A gap Bulma 0.9 needed a switch for</div>
+      </div>
+      <figure className="is-square">An image size away from its image</figure>
+      <h2 className="title is-4">A size that would change the heading</h2>
+      <button className="button is-black is-primary" type="button">
+        Two colors
+      </button>
     </div>
   );
 }

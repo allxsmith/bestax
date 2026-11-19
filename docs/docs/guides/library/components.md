@@ -20,17 +20,17 @@ A Bulma-styled breadcrumb navigation for showing the user's location in the app.
 <Breadcrumb>
   <li>
     <a href="#">
-      <Icon name="fas fa-home" ariaLabel="home icon" /> Home
+      <Icon name="fas fa-home" /> Home
     </a>
   </li>
   <li>
     <a href="#">
-      <Icon name="fas fa-folder" ariaLabel="category icon" /> Category
+      <Icon name="fas fa-folder" /> Category
     </a>
   </li>
   <li className="is-active">
-    <a href="#">
-      <Icon name="fas fa-file" ariaLabel="item icon" /> Item
+    <a href="#" aria-current="page">
+      <Icon name="fas fa-file" /> Item
     </a>
   </li>
 </Breadcrumb>
@@ -67,21 +67,23 @@ A responsive navigation bar with support for branding, menus, dropdowns, and mor
 
 ### Tabs
 
-A flexible tab navigation system for switching between views or filtering content. [View full documentation.](../../api/components/tabs.md)
+A flexible tab system for navigation, or for switching between views in place. This example is navigation: a link in each `Tabs.Item`, with the current one marked `aria-current="page"`. Tabs that switch views in place are built from `Tabs.Tab` and `Tabs.Content`. [View full documentation.](../../api/components/tabs.md)
 
 ```tsx live
 <Tabs align="centered">
-  <Tabs.List>
+  <ul>
     <Tabs.Item active>
-      <a>Home</a>
+      <a href="#home" aria-current="page">
+        Home
+      </a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>Profile</a>
+      <a href="#profile">Profile</a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>Settings</a>
+      <a href="#settings">Settings</a>
     </Tabs.Item>
-  </Tabs.List>
+  </ul>
 </Tabs>
 ```
 
@@ -141,6 +143,63 @@ function StepsExample() {
 
 ---
 
+### Timeline
+
+A list of events in the order they happened, each with a marker on a line down the side: an order's history, a ticket's activity or a changelog, or with `active`, something moving along on its own, with each state read out as words. [View full documentation.](../../api/components/timeline.md)
+
+```tsx live
+<Timeline titleAs="h3" active={2} pending="Out for delivery">
+  <Timeline.Item title="Order placed" time="12 October" dateTime="2026-10-12" />
+  <Timeline.Item title="Packed" time="13 October" dateTime="2026-10-13" />
+  <Timeline.Item title="Shipped" time="14 October" dateTime="2026-10-14">
+    Left the warehouse in Leeds.
+  </Timeline.Item>
+</Timeline>
+```
+
+---
+
+### ScrollArea
+
+A box whose content scrolls inside it, on the browser's own scrollbars made thin and colored from Bulma's tokens, which a keyboard user can tab to and scroll while it overflows. [View full documentation.](../../api/components/scrollarea.md)
+
+```tsx live
+<ScrollArea height={140} aria-label="Release notes" hasFade className="box p-0">
+  <Content p="4">
+    <p>Search now matches tags as well as titles.</p>
+    <p>Exports include the time zone.</p>
+    <p>A CSV export keeps the column order you set in the table.</p>
+    <p>A new dashboard, with the numbers you check most at the top.</p>
+  </Content>
+</ScrollArea>
+```
+
+---
+
+### TableOfContents
+
+A long page's sections as links in Bulma's menu look, marking the one being read; this one lists every component under Navigation on this page. [View full documentation.](../../api/components/tableofcontents.md)
+
+```tsx live
+<TableOfContents
+  offset={68}
+  labels={{ title: 'Navigation components' }}
+  items={[
+    { id: 'breadcrumb', label: 'Breadcrumb' },
+    { id: 'navbar', label: 'Navbar' },
+    { id: 'tabs', label: 'Tabs' },
+    { id: 'segmentedcontrol', label: 'SegmentedControl' },
+    { id: 'steps', label: 'Steps' },
+    { id: 'timeline', label: 'Timeline' },
+    { id: 'scrollarea', label: 'ScrollArea' },
+    { id: 'tableofcontents', label: 'TableOfContents' },
+    { id: 'pagination', label: 'Pagination' },
+  ]}
+/>
+```
+
+---
+
 ### Pagination
 
 A flexible, composable pagination navigation for lists or multi-page content. [View full documentation.](../../api/components/pagination.md)
@@ -148,13 +207,19 @@ A flexible, composable pagination navigation for lists or multi-page content. [V
 ```tsx live
 <Pagination>
   <Pagination.List>
-    <Pagination.Link>&laquo;</Pagination.Link>
-    <Pagination.Link active>1</Pagination.Link>
-    <Pagination.Link>2</Pagination.Link>
-    <Pagination.Link>3</Pagination.Link>
+    <Pagination.Link href="#previous" aria-label="Previous page">
+      &laquo;
+    </Pagination.Link>
+    <Pagination.Link active href="#page-1">
+      1
+    </Pagination.Link>
+    <Pagination.Link href="#page-2">2</Pagination.Link>
+    <Pagination.Link href="#page-3">3</Pagination.Link>
     <Pagination.Ellipsis />
-    <Pagination.Link>10</Pagination.Link>
-    <Pagination.Link>&raquo;</Pagination.Link>
+    <Pagination.Link href="#page-10">10</Pagination.Link>
+    <Pagination.Link href="#next" aria-label="Next page">
+      &raquo;
+    </Pagination.Link>
   </Pagination.List>
 </Pagination>
 ```
@@ -170,8 +235,8 @@ A Bulma-styled card with optional header, image, content, and footer. [View full
 ```tsx live
 <Card
   header="Card Header"
-  image="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80"
-  imageAlt="Beautiful forest"
+  image="/img/carousel/carousel-banner-1-4by3.jpg"
+  imageAlt="Vibrant galaxy with purple and gold tones"
   footer={[
     <span key="save" className="card-footer-item">
       Save
@@ -192,29 +257,31 @@ A Bulma-styled card with optional header, image, content, and footer. [View full
 A vertical panel block for lists, filters, or grouped actions. [View full documentation.](../../api/components/panel.md)
 
 ```tsx live
-<Panel>
-  <Panel.Heading>Revolutionary Figures</Panel.Heading>
-  <Panel.InputBlock placeholder="Search" />
+<Panel aria-labelledby="panel-guide-figures">
+  <Panel.Heading id="panel-guide-figures">Revolutionary Figures</Panel.Heading>
+  <Panel.InputBlock placeholder="Search figures" />
   <Panel.Tabs>
-    <a className="is-active">All</a>
-    <a>Patriots</a>
-    <a>Loyalists</a>
-    <a>Battles</a>
-    <a>Documents</a>
+    <a href="#all" className="is-active" aria-current="true">
+      All
+    </a>
+    <a href="#patriots">Patriots</a>
+    <a href="#loyalists">Loyalists</a>
+    <a href="#battles">Battles</a>
+    <a href="#documents">Documents</a>
   </Panel.Tabs>
-  <Panel.Block active>
+  <Panel.Block href="#george-washington" active>
     <Panel.Icon>
       <i className="fas fa-user" aria-hidden="true"></i>
     </Panel.Icon>
     George Washington
   </Panel.Block>
-  <Panel.Block>
+  <Panel.Block href="#alexander-hamilton">
     <Panel.Icon>
       <i className="fas fa-user" aria-hidden="true"></i>
     </Panel.Icon>
     Alexander Hamilton
   </Panel.Block>
-  <Panel.Block>
+  <Panel.Block href="#benedict-arnold">
     <Panel.Icon>
       <i className="fas fa-user" aria-hidden="true"></i>
     </Panel.Icon>
@@ -227,10 +294,10 @@ A vertical panel block for lists, filters, or grouped actions. [View full docume
 
 ### Carousel
 
-Image/content slider with navigation arrows and indicators. Supports auto-play, drag navigation, and customizable styles. [View full documentation.](../../api/components/carousel.md)
+Image/content slider with navigation arrows and indicators. Supports auto-play, drag navigation, several items in view at once, and customizable styles. [View full documentation.](../../api/components/carousel.md)
 
 ```tsx live
-<Carousel indicatorStyle="lines" arrowHover>
+<Carousel ariaLabel="Night sky photos" indicatorStyle="lines" arrowHover>
   <CarouselItem>
     <div style={{ position: 'relative' }}>
       <img
@@ -319,11 +386,18 @@ Image/content slider with navigation arrows and indicators. Supports auto-play, 
 Expandable/collapsible content panels with smooth animation. Works in controlled or uncontrolled mode. [View full documentation.](../../api/components/collapse.md)
 
 ```tsx live
-<Collapse trigger={<Button>Click to expand</Button>}>
-  <Box mt="3">
+<Collapse
+  bordered
+  trigger={
+    <Block p="3">
+      <Strong>Click to expand</Strong>
+    </Block>
+  }
+>
+  <Block p="3">
     <p>This content is revealed when the collapse is opened.</p>
-    <p>Click the button again to hide it.</p>
-  </Box>
+    <p>Click the header again to hide it.</p>
+  </Block>
 </Collapse>
 ```
 
@@ -360,6 +434,51 @@ Groups `Collapse` items into an accordion that keeps one item open at a time, or
     </Paragraph>
   </Collapse>
 </Collapses>
+```
+
+---
+
+### TreeView
+
+A tree of items you browse and pick from, the way a file explorer works: one tab stop, the arrow keys to move, Right and Left to open and close, and one item picked or any number checked. It's for data with folders in it, not site navigation, which is `Menu`'s job. [View full documentation.](../../api/components/treeview.md)
+
+```tsx live
+<TreeView
+  aria-label="Files"
+  selectionMode="single"
+  defaultSelected="src/index.ts"
+  defaultExpanded={['src']}
+>
+  <TreeView.Item value="src" label="src" icon="folder">
+    <TreeView.Item value="src/index.ts" label="index.ts" icon="file" />
+    <TreeView.Item value="src/App.tsx" label="App.tsx" icon="file" />
+  </TreeView.Item>
+  <TreeView.Item value="package.json" label="package.json" icon="file" />
+</TreeView>
+```
+
+---
+
+### DataTable
+
+A table of records people can sort, search, page through and pick rows from, rendered with the `Table` parts, `Checkbox` and `Pagination`. Give it `columns` and `data`, and `useDataTable` runs the same table for markup of your own. [View full documentation.](../../api/components/datatable.md)
+
+```tsx live
+<DataTable
+  caption="Users"
+  columns={[
+    { id: 'name', header: 'Name', sortable: true, isRowHeader: true },
+    { id: 'role', header: 'Role', sortable: true },
+  ]}
+  data={[
+    { id: 'u1', name: 'Ada Lovelace', role: 'Admin' },
+    { id: 'u2', name: 'Alan Turing', role: 'Editor' },
+    { id: 'u3', name: 'Grace Hopper', role: 'Viewer' },
+  ]}
+  selectionMode="multiple"
+  hasSearch
+  isFullwidth
+/>
 ```
 
 ---
@@ -406,6 +525,45 @@ An overlapping (or `spaced`) group of `Avatar`s that clamps to `max` and renders
   <Avatar name="Dorothy Vaughan" />
   <Avatar name="Mary Jackson" />
 </Avatars>
+```
+
+---
+
+### Lightbox
+
+Images shown one at a time in a modal viewer, opened from a `Lightbox.Trigger` button around each thumbnail, with previous and next, a counter, captions and zoom, and focus back on the thumbnail when it closes. [View full documentation.](../../api/components/lightbox.md)
+
+```tsx live
+function example() {
+  const photos = [
+    {
+      src: '/img/carousel/carousel-banner-1.jpg',
+      alt: 'Vibrant galaxy with purple and gold tones',
+    },
+    {
+      src: '/img/carousel/carousel-banner-2.jpg',
+      alt: 'Milky Way over silhouetted mountains',
+    },
+    {
+      src: '/img/carousel/carousel-banner-3.jpg',
+      alt: 'Starry night sky over mountain silhouettes',
+    },
+  ];
+
+  return (
+    <Lightbox items={photos}>
+      <Columns isMobile>
+        {photos.map((photo, i) => (
+          <Column key={photo.src} size="one-third">
+            <Lightbox.Trigger index={i}>
+              <Image as="div" src={photo.src} alt={photo.alt} size="4by3" />
+            </Lightbox.Trigger>
+          </Column>
+        ))}
+      </Columns>
+    </Lightbox>
+  );
+}
 ```
 
 ---
@@ -540,19 +698,24 @@ function SidebarExample() {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         style={{ position: 'absolute' }}
+        aria-labelledby="sidebar-title-navigation"
       >
         <Sidebar.Header>
-          <Sidebar.Title>Navigation</Sidebar.Title>
+          <Sidebar.Title id="sidebar-title-navigation">
+            Navigation
+          </Sidebar.Title>
           <Sidebar.Close onClick={() => setIsOpen(false)} />
         </Sidebar.Header>
         <Sidebar.Body>
           <Menu>
             <Menu.Label>Pages</Menu.Label>
             <Menu.List>
-              <Menu.Item active>Home</Menu.Item>
-              <Menu.Item>Products</Menu.Item>
-              <Menu.Item>Services</Menu.Item>
-              <Menu.Item>Contact</Menu.Item>
+              <Menu.Item active href="#home">
+                Home
+              </Menu.Item>
+              <Menu.Item href="#products">Products</Menu.Item>
+              <Menu.Item href="#services">Services</Menu.Item>
+              <Menu.Item href="#contact">Contact</Menu.Item>
             </Menu.List>
           </Menu>
         </Sidebar.Body>
@@ -573,8 +736,8 @@ function SidebarExample() {
 
 Full-page or container loading overlay with spinner. Supports cancel functionality and custom messages. [View full documentation.](../../api/components/loading.md)
 
-:::tip Live Preview Only
-The wrapper `<div>` with positioning styles is only needed to display this component within the docs preview. **Do not copy it** — in your app, `Loading` renders as a full-page overlay automatically.
+:::tip
+The wrapper `<div>` is the positioned container the overlay covers. In your app, render `Loading` directly inside the element it should cover and give that element `position: relative`, or pass `isFullPage` to cover the whole page.
 :::
 
 ```tsx live
@@ -603,23 +766,133 @@ function LoadingExample() {
 
 ---
 
+### Affix
+
+Content fixed to a corner of the screen while the page scrolls under it, such as a floating button, a chat launcher or a feedback tab, kept clear of a phone's home indicator. It sits over the page's content and under its navbar, static or fixed, its menus, popovers, the Sidebar, the modals, Tooltip and Toast. It's fixed to the browser window, so show it and look at the bottom-left corner. [View full documentation.](../../api/components/affix.md)
+
+```tsx live
+function example() {
+  const [shown, setShown] = useState(false);
+  return (
+    <>
+      <Button onClick={() => setShown(!shown)}>
+        {shown ? 'Hide the feedback tab' : 'Show the feedback tab'}
+      </Button>
+      {shown && (
+        <Affix position="bottom-left">
+          <Button color="primary">Feedback</Button>
+        </Affix>
+      )}
+    </>
+  );
+}
+```
+
+---
+
+### FloatButton
+
+A round icon button that floats in a corner of the screen, with its name as a tooltip, for the screen's main action. `FloatButton.SpeedDial` opens a few related actions, and `FloatButton.BackToTop` takes a long page back to the top and moves focus there. It's fixed to the browser window, so show it and look at the bottom-left corner. [View full documentation.](../../api/components/floatbutton.md)
+
+```tsx live
+function example() {
+  const [shown, setShown] = useState(false);
+  return (
+    <>
+      <Button onClick={() => setShown(!shown)}>
+        {shown ? 'Hide the speed dial' : 'Show the speed dial'}
+      </Button>
+      {shown && (
+        <FloatButton.SpeedDial
+          aria-label="Create"
+          icon="plus"
+          color="primary"
+          position="bottom-left"
+        >
+          <FloatButton aria-label="Note" icon="note-sticky" />
+          <FloatButton aria-label="Task" icon="check" />
+        </FloatButton.SpeedDial>
+      )}
+    </>
+  );
+}
+```
+
+---
+
+### FloatButtons
+
+Several float buttons stacked in one corner, top to bottom in the order you write them, so none covers another. [View full documentation.](../../api/components/floatbuttons.md)
+
+```tsx live
+function example() {
+  const [shown, setShown] = useState(false);
+  return (
+    <>
+      <Button onClick={() => setShown(!shown)}>
+        {shown ? 'Hide the stack' : 'Show the stack'}
+      </Button>
+      {shown && (
+        <FloatButtons position="bottom-left">
+          <FloatButton aria-label="Help" icon="question" />
+          <FloatButton aria-label="New message" icon="pen" color="primary" />
+        </FloatButtons>
+      )}
+    </>
+  );
+}
+```
+
+---
+
+### Tour
+
+A walk through an interface, one element at a time: each `Tour.Step` is a dialog pointing at its `target`, over a dimmed page with a spotlight on the target, or without the overlay as a non-modal dialog that leaves the page usable. Done on the last step calls `onFinish`, apart from Skip and Escape. [View full documentation.](../../api/components/tour.md)
+
+```tsx live
+function TourExample() {
+  const [open, setOpen] = React.useState(false);
+  const filtersRef = React.useRef<HTMLButtonElement>(null);
+  return (
+    <>
+      <Buttons>
+        <Button ref={filtersRef}>Filters</Button>
+        <Button color="primary" onClick={() => setOpen(true)}>
+          Take the tour
+        </Button>
+      </Buttons>
+      <Tour open={open} onOpenChange={setOpen}>
+        <Tour.Step title="Welcome">A quick look around the list.</Tour.Step>
+        <Tour.Step target={filtersRef} title="Filters">
+          The Filters button narrows the list by status and owner.
+        </Tour.Step>
+      </Tour>
+    </>
+  );
+}
+```
+
+---
+
 ## Menus
 
 ### Menu
 
-A vertical navigation menu for sidebars, dashboards, or grouped navigation. [View full documentation.](../../api/components/menu.md)
+A vertical navigation menu for sidebars, dashboards, or grouped navigation, with `Menu.Section` for groups of links that open and close. [View full documentation.](../../api/components/menu.md)
 
 ```tsx live
 <Menu style={{ maxWidth: 300 }}>
   <Menu.Label>General</Menu.Label>
   <Menu.List>
-    <Menu.Item>Dashboard</Menu.Item>
-    <Menu.Item>Customers</Menu.Item>
+    <Menu.Item href="#dashboard">Dashboard</Menu.Item>
+    <Menu.Item href="#customers">Customers</Menu.Item>
   </Menu.List>
   <Menu.Label>Administration</Menu.Label>
   <Menu.List>
-    <Menu.Item>Team Settings</Menu.Item>
-    <Menu.Item active>Manage Your Team</Menu.Item>
+    <Menu.Item href="#team-settings">Team Settings</Menu.Item>
+    <Menu.Item active href="#manage-your-team">
+      Manage Your Team
+    </Menu.Item>
   </Menu.List>
 </Menu>
 ```
@@ -667,24 +940,72 @@ A menu of actions that opens where you right-click an element, such as a table r
 
 ---
 
+### Command
+
+A search field over a list of things to do, which narrows as you type and runs the top match on Enter. It's inline, and `Command.Dialog` is a command palette in a modal, with a `shortcut` such as `"mod+k"` that opens it. [View full documentation.](../../api/components/command.md)
+
+```tsx live
+<Command
+  label="Settings"
+  placeholder="Search settings"
+  actions={[
+    { id: 'profile', label: 'Edit profile', group: 'Account' },
+    { id: 'password', label: 'Change password', group: 'Account' },
+    {
+      id: 'theme',
+      label: 'Dark mode',
+      group: 'Appearance',
+      keywords: ['theme'],
+    },
+  ]}
+/>
+```
+
+---
+
 ## Feedback
 
 ### Badge
 
-A small status/count indicator overlaid on a corner of its `children` (or standalone). Renders `"{max}+"` past a threshold, hides at `0` unless `showZero`, and supports a plain `dot` mode. [View full documentation.](../../api/components/badge.md)
+A small status/count indicator overlaid on a corner of its `children` (or standalone). Renders `"{max}+"` past a threshold, hides at `0` unless `showZero`, and supports a plain `dot` mode. A dot isn't read out and a count reads only what it shows, so the anchor's name says what each means. [View full documentation.](../../api/components/badge.md)
 
 ```tsx live
 <Block display="flex">
   <Badge content={4} color="danger" mr="6">
-    <Avatar name="Ada Lovelace" />
+    <Avatar name="Ada Lovelace" alt="Ada Lovelace, 4 new messages" />
   </Badge>
   <Badge content={128} max={99} color="info" mr="6">
-    <Avatar name="Grace Hopper" shape="square" />
+    <Avatar
+      name="Grace Hopper"
+      alt="Grace Hopper, 128 new messages"
+      shape="square"
+    />
   </Badge>
   <Badge dot color="success" overlap="circle">
-    <Avatar name="Katherine Johnson" />
+    <Avatar name="Katherine Johnson" alt="Katherine Johnson, online" />
   </Badge>
 </Block>
+```
+
+---
+
+### EmptyState
+
+What a list, a table or a search shows when there's nothing in it: a picture in a soft circle, a real heading, a line of text and a way forward, written with props or with its parts. [View full documentation.](../../api/components/emptystate.md)
+
+```tsx live
+<Box>
+  <EmptyState
+    icon="folder-open"
+    title="No projects yet"
+    description="Projects you create or join show up here."
+  >
+    <EmptyState.Actions>
+      <Button color="primary">New project</Button>
+      <Button>Import</Button>
+    </EmptyState.Actions>
+  </EmptyState>
+</Box>
 ```
 
 ---
@@ -756,7 +1077,7 @@ Hover tooltips for displaying helpful information. Supports multiple positions a
 ---
 
 :::tip
-All components support Bulma helper props for color, spacing, and accessibility. See the full documentation for each component for more advanced usage and customization.
+See the full documentation for each component for more advanced usage and customization.
 :::
 
 :::info

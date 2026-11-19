@@ -47,7 +47,8 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   mobile. Add responsive `size*` props only to tune the breakpoints.
 - Interactive extras don't share a state API — never transfer one by analogy:
   `Collapse trigger={node} open/defaultOpen onOpenChange` (`onOpenChange(open)` reports every
-  trigger; `onOpen/onClose` fire only when the Collapse holds its own state), an accordion is
+  trigger; `onOpen/onClose` fire only when the Collapse holds its own state; the header is
+  already a button, so `trigger` holds text, never a `Button` or link), an accordion is
   `Collapses value/defaultValue/onChange` around plain `Collapse` children indexed from 0 by
   position (`number | null`, or `number[]` with `multiple`; hide an item with
   `visibility="hidden"`, never `{cond && …}`, or the open state shifts to its neighbour) rather
@@ -84,9 +85,165 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   items are `ContextMenu.Item`/`ContextMenu.Divider`, which are `Dropdown`'s; no `open` prop,
   `onOpenChange` reports it; always put the same items in a visible `Dropdown` on the row too,
   since a context menu is only a shortcut),
-  `Steps value={i}/onStepClick items={[{label, icon?}]}` (child form is `Steps.Step`, not
-  `Steps.Item`). `Reveal cascade` staggers only its **direct children** — to stagger a grid,
-  put `<Reveal delay={i * 80}>` inside each `Cell`, not around the container.
+  `Steps value={i}/onStepClick items={[{label, icon?}]}` for a journey the user moves through,
+  such as a wizard or a checkout (child form is `Steps.Step`, not `Steps.Item`; a record of
+  what happened is `Timeline`; in another language, set `completedLabel` and `upcomingLabel`,
+  the words read after each completed or upcoming step). `Reveal cascade` staggers only its **direct children** — to
+  stagger a grid, put `<Reveal delay={i * 80}>` inside each `Cell`, not around the container.
+- **An empty list, table or search with no results is `EmptyState`**, not a hand-built `Box`
+  of `Icon`, `Title` and `Buttons isCentered`:
+  `<EmptyState icon="folder-open" title="No projects yet" titleAs="h3" description="…">` with
+  its one `<Button>` as a child (two or more go in `EmptyState.Actions`). Its `title` is always a
+  heading, so set `titleAs` to the level under the list's own heading. It has no live region:
+  after a search or a filter, keep a `Paragraph` with `role="status"`, `aria-atomic="true"` and
+  `visibility="sr-only"` beside the search field the whole time, saying the count, and have
+  "Clear search" put focus back in the field. While data loads show a `Skeleton` or a `Loader`,
+  and a failed load is a `Message` or a `Notification`, never an EmptyState. The archetypes
+  reference has the full pattern under Card grid.
+- **A table people sort, search, page through or pick rows from is `DataTable`**, not a `Table`
+  with sort state, `aria-sort`, checkboxes and a `Pagination` wired by hand:
+  `<DataTable caption="Users" columns={[{ id: 'name', header: 'Name', sortable: true, isRowHeader: true }, …]} data={rows} selectionMode="multiple" pageSize={10} hasSearch />`.
+  A column is `{ id, header }`, reading `row[id]`, plus `accessor` (the raw value, which sorts),
+  `format` (its text, which the cell shows and the search matches) and `cell` (rich content).
+  It needs a `caption`, `aria-label` or `aria-labelledby`, and it shows its own `EmptyState` and
+  says the match count itself. `toolbar={table => …}` holds buttons that act on
+  `table.state.selected` or call `table.setFilter`; `useDataTable({ columns, data, … })` returns
+  the same table for `<DataTable table={table} />` or for markup of your own through its
+  `get…Props` getters; `manual` with `rowCount` hands sorting, filtering and paging to a server.
+  `table.toCSV()` writes what's shown as CSV, escaping formulas, for a download button; there's
+  no Excel export. A table with nothing to sort, search or pick stays `Table`.
+- **An order's history, a ticket's activity, a changelog or an activity feed is `Timeline`**,
+  not a hand-built list with a border down the side: `<Timeline titleAs="h3">` with a
+  `<Timeline.Item title="Shipped" time="14 October 2026" dateTime="2026-10-14">` per event, any
+  detail as its children, and the whole date in `time`. `titleAs` is the level under the
+  section's heading, or `"p"` in a busy feed. For something that moves along on its own, like a
+  parcel or a deployment, `active={i}` marks progress and `pending="Out for delivery"` ends it on
+  what's under way, oldest first. A journey the user moves through, like a wizard or a checkout,
+  stays `Steps`.
+- **Facts about one thing, each a label and its value (an order summary, a profile, a file's
+  details), are `DescriptionList`**, not `Columns` of label and value or a two-column `Table`:
+  `<DescriptionList aria-labelledby="order-heading">` under a `Title id="order-heading"`, with a
+  `<DescriptionList.Item label="Order" value="#1234" />` per fact. It stacks on a phone and puts
+  the labels beside their values from tablet up, so add no breakpoint code; `orientation`
+  pins it. Several values, or a label with an info tip, go in as `DescriptionList.Label` and
+  `DescriptionList.Value` children. Several records with the same fields stay a `Table`, and so
+  do facts a screen reader must announce with their labels, as a `Table` with `scope="row"`
+  headers.
+- **A number shown to the reader (a price, a total, a count, a percentage, a dashboard figure) is
+  `NumberFormatter`**, not `toLocaleString()` or an `Intl.NumberFormat` built by hand:
+  `<NumberFormatter value={8456.4} format={{ style: 'currency', currency: 'USD' }} />`, with any
+  `Intl.NumberFormat` options in `format` (`style: 'percent'` takes a fraction, `0.125` for
+  12.5%). It writes in its own `locale`, else the `LocaleProvider`'s, else the runtime's, so a
+  server-rendered app sets a `locale` on a `LocaleProvider` at the root. Its text is the number
+  alone, so words go around it: `Total: <NumberFormatter … />`. Text that can't hold an element,
+  an `aria-label` or a `placeholder`, gets the same from `const format = useNumberFormat();` and
+  `format(1500, { style: 'currency', currency: 'EUR' })`.
+- **A dashboard's row of key figures (revenue, new customers, churn) is `Stats` of `Stat`s**, not
+  `Level` items, `Columns` of `Title`s or a `Card` per figure. Put
+  `<Stats aria-labelledby="kpis" minCol={8} gap={4}>` under a `Title id="kpis"`, with a `Stat` per
+  figure: `label`, a number `value` with `format` (`Intl.NumberFormat` options, as
+  `NumberFormatter` takes), `change` and `description`, as in
+  `<Stat label="Revenue" value={8456.4} change={0.12} description="since last month" />`.
+  `change` is a fraction written with its sign ("+12%"), green up and red down, and
+  `changeColor="danger"` marks a rise that's bad news, such as churn. The row wraps on its own, so
+  add no breakpoint code, and it holds only `Stat`s (a `LocaleProvider` goes around it, and on a
+  page rendered on the server it's what keeps the server and the browser writing the numbers
+  alike, unless each `Stat` gets a `locale`). `loading`
+  shows a `Skeleton` in place of a figure that isn't there yet. One figure on its own is a lone
+  `Stat`. For a card look, a `Box` goes around a lone `Stat` or the whole `Stats` row, never around
+  one `Stat` inside a row, which would break the row's list.
+- **A file browser, a checkbox tree (permissions, filters) or an outline you browse is
+  `TreeView`**, with `<TreeView.Item value="…" label="…" icon="folder">` items nested inside each
+  other: `<TreeView aria-label="Files" selectionMode="single">` with `selected`/`onSelectedChange`
+  picks one, and `selectionMode="checkbox"` with `checked`/`onCheckedChange` draws boxes with
+  mixed parents, where a parent's value checks its whole branch. For categories, where checking a
+  parent means only the parent, `selectionMode="checkbox-independent"` draws a box per item that
+  checks that item alone, with no mixed parents. Map the data with a recursive
+  function, and render an item's children whether it's open or not. A folder that loads when it
+  opens takes `hasChildren`, `isLoading` while its children are on their way, and
+  `loadError="Couldn't load src"` with `onRetry` when the load fails, setting `isLoading` again
+  while the retry runs: the tree draws the Loading… and Retry rows and announces them, so don't
+  hand-write a placeholder item. Its items aren't
+  links, so the app's sidebar and any list of pages stay on `Menu` with `Menu.Item href`.
+- **A sidebar whose groups of links open and close is `Menu.Section`**, one per group, directly
+  in `Menu` (never inside a `Menu.Item` or `Menu.List`):
+  `<Menu.Section label="Components" defaultOpen>` around that group's `Menu.List`, with
+  `defaultOpen` on the group holding the current page (or `open`/`onOpenChange` to hold the state).
+  Its heading is a real button with `aria-expanded`, and its links stay links, each a tab stop.
+  Not `TreeView`, and not a `Collapse` inside a hand-written `<li>`.
+- **A long page's "On this page" list of its sections is `TableOfContents`**, not a `Menu` with
+  a scroll listener of your own: give each section's heading an `id` and pass the sections in page
+  order, `<TableOfContents isSticky items={[{ id: 'install', label: 'Install' }, { id: 'usage', label: 'Usage', children: […] }]} />`,
+  in a side `Column`. Its links are plain `#id` links that the browser follows itself, and it marks the
+  section being read with `aria-current="location"`. Offset a sticky header with
+  `scroll-padding-top` on `html` in the page's CSS (which the highlight reads too), not with
+  `scroll-margin-top` on the headings, and put any smooth scrolling in that CSS under
+  `prefers-reduced-motion: no-preference`. To mark the section in view in the app's own nav
+  `Menu`, `useScrollSpy({ ids })` returns its id.
+- **An app's frame, a header across the top with a navigation column down the side, is
+  `AppFrame`**, not a `fixed` `Navbar` over `Columns`: `<AppFrame>` with `AppFrame.Header` (a
+  `Navbar` with `<AppFrame.Burger />` in its `Navbar.Brand`), `AppFrame.Nav` (the `Menu`) and
+  `AppFrame.Main` (the page), plus `AppFrame.Aside` and `AppFrame.Footer` when there are any. The
+  header and the column stick on their own, so no `fixed` and no `has-navbar-fixed-top`; below
+  desktop the column is a drawer the burger opens, and from desktop up the burger collapses it.
+  For a column that collapses to its icons, `<AppFrame.Nav rail>` with an `icon` on each
+  top-level `Menu.Item` and `Menu.Section`; the frame puts each label in a tooltip.
+  It renders the page's `<main>`, so it goes at the top of the app, never inside a `<main>`.
+- **Panes the user resizes are `Splitter`** (a file tree beside an editor, a list beside its
+  detail, a query above its results), not hand-written drag code or fixed `Columns`:
+  `<Splitter height={480}>` with a `<Splitter.Pane label="Files" defaultSize={25} minSize="12rem">`
+  per pane. The handles go in on their own, each named by its pane's `label`, so give every pane
+  one. Sizes are percentages, limits also take `px` or `rem`, `orientation="vertical"` stacks
+  them (and needs a `height`), and `collapsible` with `collapsed`/`onCollapsedChange` lets a
+  button hide a pane. Put scrolling content in a `ScrollArea` inside the pane.
+- **Content taller or wider than its space is `ScrollArea`** (release notes in a Card, a sidebar
+  longer than the screen, a feed that grows then scrolls, a wide table on a phone), not a `Box`
+  with `overflowY="auto"` and a height in a style: `<ScrollArea height={240} aria-label="…">`,
+  or `maxHeight="20rem"` to grow with its content first. It needs `aria-label` or
+  `aria-labelledby`, since while it overflows it's a region a keyboard user tabs to. The
+  helper props and `className` go on its frame and the `ref` on the element that scrolls.
+  `hasFade` fades the edges that have more, `orientation="horizontal"` suits a wide table, and
+  `onEdgeReach={edge => …}` loads more at an edge.
+- **A floating action button is `FloatButton`**, not a round `Button` in an `Affix`:
+  `<FloatButton aria-label="New message" icon="pen" color="primary" />`. It's an `IconButton`, so
+  its types require `aria-label` (or `aria-labelledby`), and the label shows as its tooltip;
+  `showLabel` prints it beside the icon for touch screens. Several in one corner go in
+  `FloatButtons`, top to bottom in the order written, with a `Badge overlap="circle"` around one for
+  a count. A few related actions behind one button are `FloatButton.SpeedDial` with `FloatButton`s
+  as its children (`direction` sets the way they open), and back to top on a long page is
+  `FloatButton.BackToTop`, which scrolls up and moves focus to `<main>`.
+- **Something else that stays in a corner of the screen (a chat or help launcher, a feedback tab,
+  a consent notice) is `Affix`**, not `pos="fixed"` with offsets in a style:
+  `<Affix position="bottom-left"><Button color="primary">Feedback</Button></Affix>`.
+  `position` is one of the four corners, `'bottom-right'` by default, and stays physical in
+  right-to-left text. The spacing helpers nudge one further in (`mb="6"` lifts it over a bottom
+  bar), and `portal` moves it out of an ancestor with a `transform`. Two in one corner overlap,
+  so put what shares a corner in one Affix. Tab reaches it where it is in the markup, whatever
+  corner it shows in, so write it after the main content. For an element pinned once the page
+  scrolls past it, use `pos="sticky"` with a `top` instead.
+- **A command palette (⌘K or Ctrl+K) is `Command.Dialog`**, not a `Modal` with an `Input` and a
+  hand-written `keydown` listener: `<Command.Dialog shortcut="mod+k" placeholder="…" actions={[…]} />`,
+  each action `{ id, label, onSelect }` with `group`, `keywords`, `description`, `icon` and `hint`
+  (a `Kbd.Group`) as it needs them. Typing filters the actions by label, keywords and description,
+  Enter runs the top match, and running one closes the dialog. `shortcut` is off unless given, and
+  it does nothing while the user types in a field. A button that opens it too uses `open` and
+  `onOpenChange`, with `aria-keyshortcuts` on the button. The same list inline, in a page or a
+  Popover, is `Command`. For server results, build it from parts: `Command.Input`, then
+  `Command.List` of `Command.Item`s, or `Command.Empty`, filtered from `onQueryChange`.
+- **A first-visit walkthrough, a "what's new" pass or a "Take the tour" button is `Tour`**, not
+  a `Modal` per step or a `Popover` moved by hand:
+  `<Tour open={open} onOpenChange={setOpen} onFinish={…}>` with a
+  `<Tour.Step target={ref} title="Filters">` per step, its body as children.
+  A target is a ref, an element or a selector, and a step without one sits in the middle. By
+  default a step is modal over a dimmed page, so its body says what the target is; give
+  `overlay={false}` (on the tour or one step) when the user should try the control. The app
+  opens it and stores what `onFinish` and `onOpenChange` say: it doesn't remember who's seen it.
+  A "what's new" step takes `cover={<img src="…" alt="" />}`, and a footer of its own is
+  `footer` (on the tour, or one step) built from `Tour.Skip`, `Tour.Back`, `Tour.Next` and
+  `Tour.Progress`, with `useTour()` for anything else in it: not a hand-written row of buttons
+  that changes the step. Tips pinned to the controls they explain, opened in any order, are
+  `<Tour mode="beacon">`: a beacon on each step's target opens its step, not a Popover per
+  control or a pulsing dot of your own. Drop a read tip the next time the tips show.
 - Link lists (footer nav, sidebars): a bare `UnorderedList` of `ListItem`s is already
   marker-less and flush — Bulma's reset unstyles `ul` — so no prop or CSS is needed;
   bullets appear only inside `Content`.
@@ -103,7 +260,11 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `<span className="is-size-7 has-text-grey">`. Table cells: `Th`/`Td` take `textAlign="right"`,
   `textWeight`, `textSize` directly (their `color` prop colors the cell; for muted cell text
   wrap content in `Span textColor="grey"`). Set the app-wide icon library once with
-  `<ConfigProvider iconLibrary="…">` at the root rather than `library` on every `<Icon>`.
+  `<ConfigProvider iconLibrary="…">` at the root rather than `library` on every `<Icon>`. An app
+  in another language, or a right-to-left one, also gets `lang` and `dir` on `<html>` and a
+  `<LocaleProvider locale="…">` at the root, so overlays and date pickers follow it. Words a
+  component reads to assistive tech stay English until its label props set them (`Steps`'
+  `completedLabel` and `upcomingLabel`, for one).
 - **Alternating section bands are a prop, not CSS: `bgColor="scheme-main-bis"` on every
   other `Section` (next band `scheme-main-ter`).** The scheme values render as a
   dark-mode-safe inline `background-color: var(--bulma-scheme-*)` — zero custom CSS — and
@@ -142,9 +303,10 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   (`Hero color="primary"`, a dark banner), use **filled** buttons — `color="light"` or
   `color="primary" isInverted` — never a thin `isOutlined` secondary: a light outline + light
   label on a dark surface is low-contrast and gets worse under OS dark mode. And when the page's
-  design is single-mode (a fixed light or dark look), pin it at the root —
-  `<Theme isRoot colorMode="light">` — so a visitor's OS dark mode can't flip Bulma's text
-  colors out from under the fixed palette (details: the `bestax-theming` skill's contrast rules).
+  design is single-mode (a fixed light or dark look), pin it on the `<html>` in `index.html`,
+  `<html lang="en" data-theme="light">`, so a visitor's OS dark mode can't flip Bulma's text
+  colors out from under the fixed palette, from the first paint on (details: the
+  `bestax-theming` skill's contrast rules).
 
 ## Three components core Bulma will talk you out of
 
@@ -181,7 +343,7 @@ background comes from the semantic `color` prop, not `bgColor`.
 | `textAlign: 'center'`                    | `textAlign="centered"` (also `left`, `right`, `justified`)                                                                                                     |
 | `color: '#…'`                            | `textColor` with the nearest Bulma color: `primary`, `link`, `info`, `success`, `warning`, `danger`, `white`, `black`, `grey` (+ `grey-light`, `grey-dark`, …) |
 | `backgroundColor: '#…'`                  | `bgColor` (same palette)                                                                                                                                       |
-| `fontSize: …`                            | `textSize="1"`…`"7"` (`1` largest) — for headings use `Title`/`SubTitle` `size`                                                                                |
+| `fontSize: …`                            | `textSize="1"`…`"7"` (`1` largest). On `Title`/`SubTitle`, `as` sets the level and `size` picks it too, so an `<h3>` at size 4 is `as="h3" textSize="4"`       |
 | `fontWeight: …`                          | `textWeight`: `light`, `normal`, `medium`, `semibold`, `bold`                                                                                                  |
 | `textTransform`, italics                 | `textTransform`: `uppercase`, `lowercase`, `capitalized`, `italic`                                                                                             |
 | `display: 'flex'` + flex properties      | same-named props: `display="flex"`, `flexDirection`, `justifyContent`, `alignItems`, `flexWrap`                                                                |
@@ -189,9 +351,11 @@ background comes from the semantic `color` prop, not `bgColor`.
 | `display: 'none'`                        | `visibility="hidden"`, or responsive `display*` props (`displayMobile`, `displayTablet`, …)                                                                    |
 | `gap: '1rem'` (flex or grid)             | `gap="2"`, or one axis: `columnGap`, `rowGap`; gap scale: `1`=0.5rem, `2`=1rem, `4`=2rem, half steps (`"1.5"`)                                                 |
 
-No helper matches (e.g. `maxWidth`, a one-off gradient)? Add a named class to the project
-stylesheet (`src/App.css` in a scaffolded app) and pass it via `className` — still never
-inline `style`.
+No helper matches (e.g. `maxWidth`, a one-off gradient)? Add a named class to the project's
+global stylesheet and pass it via `className` — still never inline `style`. In a create-bestax
+app that is `src/index.css`, which its entry file imports after bestax's stylesheet, so the
+class wins over a Bulma rule of the same weight. The starter page's `src/App.css` loads after
+bestax's too, but only while the starter's `App` imports it.
 
 ## References
 
@@ -202,7 +366,8 @@ inline `style`.
 
 ## Examples
 
-- `examples/app-shell.tsx` — fixed `Navbar` + sidebar `Menu` + content (dashboard).
+- `examples/app-shell.tsx`: an `AppFrame` with a `Navbar` header, a `Menu` column and the page
+  (dashboard).
 - `examples/landing.tsx` — fixed `Navbar` (controlled burger) + `Hero` + `Section`s + `Footer`.
 - `examples/centered.tsx` — centered single column (auth/settings).
 - `examples/card-grid.tsx` — multiline `Columns` of `Card`s (catalog).
@@ -216,11 +381,15 @@ inline `style`.
 - [ ] Use `Grid`/`Cell` for uniform grids (equal heights per row, free); `Columns`/`Column`
       for proportional or per-breakpoint side-by-side layout — with the flex recipe when its
       cards must match height.
-- [ ] Wire `active` state to **both** `Navbar.Burger` and `Navbar.Menu` (they are controlled).
-- [ ] For a fixed navbar, add `has-navbar-fixed-top` to `<html>`.
+- [ ] An app shell is `AppFrame`, with `AppFrame.Burger` in `Navbar.Brand`: no `fixed`, no
+      `has-navbar-fixed-top`, and never inside a `<main>`.
+- [ ] Elsewhere, wire `active` state to **both** `Navbar.Burger` and `Navbar.Menu` (they are
+      controlled), and for a fixed navbar add `has-navbar-fixed-top` to `<html>`.
 - [ ] Do not use `Tile` — it is not shipped.
 - [ ] Action feedback goes through `Toast`, a confirmation through `Dialog`, a text-styled
       action through `LinkButton` — not `Notification`, `Modal` or a bare `<a>`.
+- [ ] An empty list or a search with no results renders `EmptyState`, and a search or a filter
+      keeps a `role="status"` region beside its field that says the count.
 - [ ] Style with helper props, not inline `style` — translate via the mapping table; values
       with no helper get a named class in the stylesheet, never `style={{}}`. No raw Bulma
       `className`s either (`Span`/`Paragraph` wrap bare text; `Th`/`Td` take `textAlign`/`textWeight`).

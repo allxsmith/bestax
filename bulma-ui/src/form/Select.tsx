@@ -1,5 +1,4 @@
 import React, { forwardRef } from 'react';
-import { usePrefixedClassNames } from '../helpers/classNames';
 import { Field, FieldProps } from './Field';
 import { Control, ControlBaseProps } from './Control';
 import { SelectBase, SelectBaseProps } from './SelectBase';
@@ -10,6 +9,7 @@ import {
   rendersOwnControl,
 } from './FormContext';
 import { useAutoLabelId } from './useAutoLabelId';
+import { useFieldMessage } from './useFieldMessage';
 
 /**
  * Props for the Select component.
@@ -51,13 +51,23 @@ export interface SelectProps extends SelectBaseProps {
    * Replaces the chevron with a loading spinner.
    * Under `prefers-reduced-motion: reduce` the spinner stops and stays
    * drawn (with bestax's CSS loaded).
+   * The spinner is only drawn, so a screen reader hears nothing of it. Say
+   * that the field is loading in its `message` as well, such as
+   * `message="Loading…"`, which describes the select, so a screen reader
+   * reads it when the field takes focus.
+   * A load that starts while the user is in the field, such as a search as
+   * they type, isn't reliably heard without a live region, such as a
+   * `role="status"` element.
    */
   isLoading?: boolean;
   /** Expand the control. */
   isExpanded?: boolean;
   /** Control size. */
   controlSize?: ControlBaseProps['size'];
-  /** Help/validation message below the select. */
+  /**
+   * Help or validation text under the select. It describes the `<select>`
+   * through `aria-describedby`, after any ids you pass there.
+   */
   message?: React.ReactNode;
   /** Bulma color for the message. */
   messageColor?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
@@ -136,11 +146,20 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       labelProps,
       rendersLabel: ownField,
     });
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
+    const { messageEl, describedBy } = useFieldMessage(
+      message,
+      messageColor,
+      selectProps['aria-describedby']
+    );
 
-    let content = <SelectBase ref={ref} {...selectProps} id={controlId} />;
+    let content = (
+      <SelectBase
+        ref={ref}
+        {...selectProps}
+        id={controlId}
+        aria-describedby={describedBy}
+      />
+    );
 
     if (ownControl) {
       content = (
@@ -157,8 +176,6 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         </Control>
       );
     }
-
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
 
     if (ownField) {
       return (

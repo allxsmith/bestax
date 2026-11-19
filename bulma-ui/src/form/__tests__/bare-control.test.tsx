@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { Field } from '../Field';
@@ -14,21 +15,37 @@ import { Checkbox } from '../Checkbox';
 import { Radios } from '../Radios';
 import { Radio } from '../Radio';
 import { Slider } from '../Slider';
+import { PinInput } from '../PinInput';
 import { Rate } from '../Rate';
+import { ColorPicker } from '../ColorPicker';
+import { ColorInput } from '../ColorInput';
+import { PasswordInput } from '../PasswordInput';
 import { File as FileInput } from '../File';
+import { Dropzone } from '../Dropzone';
 import { Taginput } from '../Taginput';
+import { Combobox } from '../Combobox';
+import { TreeSelect } from '../TreeSelect';
+import { Cascader } from '../Cascader';
 import { resetDevWarnings } from '../../helpers/devWarnings';
 import type { FormFieldProps } from '../fieldProps';
 import type { ControlLevelProps } from '../FormContext';
 
 // Every Field the wrappers render, recorded so the tests below can read which
 // props each wrapper hands its Field. The recording renders the real Field.
+//
+// React's development build also calls a component with no props, outside
+// any render, to find where it is defined for a component stack: React 18
+// for every warning logged under it, React 19 when a render throws. That
+// call is not a render, so neither recording keeps it. On React 18 the
+// Control-level tests below hit it, since a wrapper there hands the DOM the
+// Control-level props it does not take, and React warns about those.
 const mockFieldProps: object[] = [];
-jest.mock('../Field', () => {
-  const actual = jest.requireActual<typeof import('../Field')>('../Field');
-  const { createElement } = jest.requireActual<typeof import('react')>('react');
-  const Recording = (props: React.ComponentProps<typeof actual.Field>) => {
-    mockFieldProps.push(props);
+vi.mock('../Field', async importOriginal => {
+  const actual = await importOriginal<typeof import('../Field')>();
+  const { createElement } =
+    await vi.importActual<typeof import('react')>('react');
+  const Recording = (props?: React.ComponentProps<typeof actual.Field>) => {
+    if (props) mockFieldProps.push(props);
     return createElement(actual.Field, props);
   };
   const Field = Object.assign(Recording, actual.Field);
@@ -38,11 +55,12 @@ jest.mock('../Field', () => {
 // Every Control rendered, recorded the same way, so the tests below can read
 // which props each wrapper hands its own Control.
 const mockControlProps: object[] = [];
-jest.mock('../Control', () => {
-  const actual = jest.requireActual<typeof import('../Control')>('../Control');
-  const { createElement } = jest.requireActual<typeof import('react')>('react');
-  const Control = (props: React.ComponentProps<typeof actual.Control>) => {
-    mockControlProps.push(props);
+vi.mock('../Control', async importOriginal => {
+  const actual = await importOriginal<typeof import('../Control')>();
+  const { createElement } =
+    await vi.importActual<typeof import('react')>('react');
+  const Control = (props?: React.ComponentProps<typeof actual.Control>) => {
+    if (props) mockControlProps.push(props);
     return createElement(actual.Control, props);
   };
   return { __esModule: true, ...actual, Control, default: Control };
@@ -119,7 +137,31 @@ const wrappers: Wrapper[] = [
     root: '.radios',
   },
   { name: 'Slider', render: p => <Slider {...p} />, root: '.slider' },
+  { name: 'PinInput', render: p => <PinInput {...p} />, root: '.pin-input' },
   { name: 'Rate', render: p => <Rate {...p} />, root: '.rate' },
+  {
+    name: 'ColorInput',
+    render: p => <ColorInput {...p} />,
+    root: '.colorinput',
+  },
+  {
+    name: 'PasswordInput',
+    // The toggle takes the right icon's place, so the right-icon props are
+    // left out: it draws none, and warns about them on its own.
+    render: ({
+      iconRight: _iconRight,
+      iconRightName: _iconRightName,
+      iconRightSize: _iconRightSize,
+      hasIconsRight: _hasIconsRight,
+      ...p
+    }) => <PasswordInput {...p} />,
+    root: '.password-input-container',
+  },
+  {
+    name: 'ColorPicker',
+    render: p => <ColorPicker {...p} />,
+    root: '.color-picker',
+  },
   {
     name: 'File',
     // Its own `iconLeft` is narrower than the Control's, and the tests that
@@ -129,18 +171,51 @@ const wrappers: Wrapper[] = [
     ownControl: false,
   },
   {
+    name: 'Dropzone',
+    render: p => <Dropzone {...p} />,
+    root: '.dropzone',
+    ownControl: false,
+  },
+  {
     name: 'Taginput',
     render: p => <Taginput {...p} />,
     root: '.taginput',
     ownControl: false,
   },
+  {
+    name: 'Combobox',
+    // The Control is the field's, inside the Combobox, and its props go on
+    // Combobox.Input, so the tests that pass Control-level props skip it.
+    render: p => (
+      <Combobox {...(p as FormFieldProps)}>
+        <Combobox.Input />
+      </Combobox>
+    ),
+    root: '.combobox',
+    ownControl: false,
+  },
+  {
+    name: 'TreeSelect',
+    // Its own Control is the field's, inside the root, and it takes no
+    // Control-level props, so the tests that pass them skip it.
+    render: p => <TreeSelect {...(p as FormFieldProps)} data={[]} />,
+    root: '.tree-select',
+    ownControl: false,
+  },
+  {
+    name: 'Cascader',
+    // The same field as TreeSelect's, with the same Control.
+    render: p => <Cascader {...(p as FormFieldProps)} data={[]} />,
+    root: '.cascader',
+    ownControl: false,
+  },
 ];
 
-let warnSpy: jest.SpyInstance;
+let warnSpy: MockInstance;
 
 beforeEach(() => {
   resetDevWarnings();
-  warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 });
 
 afterEach(() => {
@@ -526,13 +601,13 @@ const ownsControl = wrappers.filter(({ ownControl = true }) => ownControl);
 describe.each(ownsControl)(
   '$name Control-level props',
   ({ name, render: el }) => {
-    let errorSpy: jest.SpyInstance;
+    let errorSpy: MockInstance;
 
     beforeEach(() => {
       // Every wrapper is given every Control-level prop here, and one that
       // does not take a prop passes it on to the DOM, where React logs it as
       // an unknown attribute. That noise is expected.
-      errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     });
 
     afterEach(() => {

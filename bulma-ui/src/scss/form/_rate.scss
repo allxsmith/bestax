@@ -120,6 +120,27 @@ $rate-pop-scale: 1.2 !default;
   }
 }
 
+// The filled part of a star the value only partly fills, drawn as a filled
+// star is: in the active color, or the hover color while the pointer would
+// fill it, rather than the item's own color, the empty star's.
+.#{iv.$class-prefix}rate-star-fill {
+  fill: cv.getVar("rate-color-active");
+  transition: fill cv.getVar("rate-transition-duration") ease;
+}
+
+.#{iv.$class-prefix}rate-item:hover .#{iv.$class-prefix}rate-star-fill,
+.#{iv.$class-prefix}rate-item.#{iv.$class-prefix}is-hovered .#{iv.$class-prefix}rate-star-fill {
+  fill: cv.getVar("rate-color-hover");
+}
+
+// The built-in star a value only partly fills clips its filled part from
+// x=0. Right to left it's drawn mirrored, so it fills from its right, beside
+// the filled stars, where the pointer reads its fraction from. The star is
+// symmetric, so the mirror changes nothing else.
+.#{iv.$class-prefix}rate-star-partial:dir(rtl) {
+  transform: scaleX(-1);
+}
+
 // Partial fill (precision < 1)
 .#{iv.$class-prefix}rate-icon-partial {
   position: relative;
@@ -132,10 +153,12 @@ $rate-pop-scale: 1.2 !default;
   color: cv.getVar("rate-color-inactive");
 }
 
+// The filled layer sits at the star's inline start, so right to left it
+// fills the star from its right.
 .#{iv.$class-prefix}rate-icon-fg {
   position: absolute;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
   overflow: hidden;
   width: var(--rate-fill-percent, 100%);
   color: cv.getVar("rate-color-active");
@@ -292,8 +315,49 @@ $rate-pop-scale: 1.2 !default;
       }
     }
 
+    // A partly filled star's filled part, as a filled star's: important,
+    // over the hover fill, whose rules rank higher.
+    .#{iv.$class-prefix}rate-star-fill {
+      fill: Highlight !important;
+    }
+
+    // An icon a value only partly fills is two copies of it, whose colors
+    // forced colors repaints alike, so it would draw as an empty star. The
+    // front copy, its filled part, takes a filled star's color, and the back
+    // one keeps the star's own, as the built-in star's outline does.
+    .#{iv.$class-prefix}rate-icon-fg {
+      color: Highlight;
+    }
+
     &:focus-visible {
       outline-color: Highlight;
+    }
+
+    // A disabled Rate draws at full strength, its usual opacity being only a
+    // dimmer copy of what GrayText says here. Its empty stars, the empty
+    // part of a partly filled one, and its score and text take GrayText. Its
+    // filled parts take the text color rather than the highlight, so it
+    // doesn't draw as an enabled one, and an icon's filled stars, which differ
+    // from its empty ones only by color, still show the value.
+    &.#{iv.$class-prefix}is-disabled {
+      opacity: 1;
+
+      .#{iv.$class-prefix}rate-item,
+      .#{iv.$class-prefix}rate-icon-bg,
+      .#{iv.$class-prefix}rate-score,
+      .#{iv.$class-prefix}rate-text,
+      .#{iv.$class-prefix}rate-custom-text {
+        color: GrayText;
+      }
+
+      .#{iv.$class-prefix}rate-item.#{iv.$class-prefix}is-active,
+      .#{iv.$class-prefix}rate-icon-fg {
+        color: CanvasText;
+      }
+
+      .#{iv.$class-prefix}rate-star-fill {
+        fill: CanvasText !important;
+      }
     }
   }
 }
@@ -305,5 +369,9 @@ $rate-pop-scale: 1.2 !default;
   .#{iv.$class-prefix}rate-item {
     transition: none;
     animation: none !important;
+  }
+
+  .#{iv.$class-prefix}rate-star-fill {
+    transition: none;
   }
 }

@@ -61,6 +61,12 @@ export interface HelperGroup {
   headings: string[];
   /** Prop names whose rows are sliced out of the Supported Props table. */
   props: string[];
+  /**
+   * Props another group owns that this one shows too, since they do this
+   * group's job as well: a flex container's `gap`, which `spacing` owns
+   * (#1236). Owned once, so a prop name still resolves to one group.
+   */
+  shows?: string[];
   /** Words a builder is likely to use for this group instead of its name. */
   aliases: string[];
 }
@@ -122,7 +128,8 @@ export const HELPER_GROUPS: Record<string, HelperGroup> = {
     aliases: ['text', 'font', 'weight', 'align', 'size', 'uppercase', 'italic'],
   },
   flex: {
-    headings: ['### With Flexbox Helpers'],
+    headings: ['### With Flexbox Helpers', '### Gap'],
+    shows: ['gap', 'columnGap', 'rowGap', 'gapless'],
     props: [
       'flexDirection',
       'flexWrap',
@@ -262,7 +269,7 @@ export function renderHelperGroup(doc: string, name: string): string {
   const bodies = sections(doc)
     .filter(c => group.headings.includes(headingOf(c)))
     .map(c => reflowTables(c).trim());
-  const table = propTable(doc, group.props);
+  const table = propTable(doc, [...group.props, ...(group.shows ?? [])]);
   return [
     `# Helper props — ${name}`,
     table && `## Props\n\n${table}`,

@@ -107,13 +107,18 @@ const meta: Meta<typeof Numberinput> = {
       options: ['plusminus', 'stepper'],
       description: 'Control variant',
     },
+    labels: {
+      control: 'object',
+      description: "The buttons' names, in your app's language",
+    },
     disabled: {
       control: 'boolean',
       description: 'Whether the input is disabled',
     },
     editable: {
       control: 'boolean',
-      description: 'Whether the input can be typed in',
+      description:
+        'Whether the input can be typed in. Off, the buttons and arrow keys still step it, and a screen reader announces it as read-only',
     },
     bare: {
       control: 'boolean',
@@ -331,10 +336,24 @@ export const Disabled: Story = {
 };
 
 /**
+ * The buttons named in another language with `labels`.
+ */
+export const OtherLanguage: Story = {
+  args: {
+    label: 'Quantité',
+    defaultValue: 2,
+    min: 1,
+    labels: { increase: 'Augmenter', decrease: 'Diminuer' },
+  },
+};
+
+/**
  * Non-editable (buttons only, no typing).
  */
 export const NonEditable: Story = {
   args: {
+    label: 'Seats',
+    message: 'Set it with the buttons.',
     defaultValue: 5,
     editable: false,
     color: 'info',

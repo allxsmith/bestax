@@ -81,7 +81,7 @@ describe('ToggleButton', () => {
 
     it('flips once per click and reports each new state', async () => {
       const user = userEvent.setup();
-      const onPressedChange = jest.fn();
+      const onPressedChange = vi.fn();
       render(
         <ToggleButton onPressedChange={onPressedChange}>Mute</ToggleButton>
       );
@@ -99,7 +99,7 @@ describe('ToggleButton', () => {
       ['Space', ' '],
     ])('flips once on %s, reports it, and keeps focus', async (_key, keys) => {
       const user = userEvent.setup();
-      const onPressedChange = jest.fn();
+      const onPressedChange = vi.fn();
       render(
         <ToggleButton onPressedChange={onPressedChange}>Mute</ToggleButton>
       );
@@ -133,7 +133,7 @@ describe('ToggleButton', () => {
   describe('when you hold the state', () => {
     it('asks for the other state and changes nothing until pressed does', async () => {
       const user = userEvent.setup();
-      const onPressedChange = jest.fn();
+      const onPressedChange = vi.fn();
       const { rerender } = render(
         <ToggleButton pressed={false} onPressedChange={onPressedChange}>
           Mute
@@ -209,7 +209,7 @@ describe('ToggleButton', () => {
 
     it('stops the toggle when it calls preventDefault()', async () => {
       const user = userEvent.setup();
-      const onPressedChange = jest.fn();
+      const onPressedChange = vi.fn();
       render(
         <ToggleButton
           onClick={event => event.preventDefault()}
@@ -226,7 +226,7 @@ describe('ToggleButton', () => {
 
     it('stops a controlled toggle from asking for a change', async () => {
       const user = userEvent.setup();
-      const onPressedChange = jest.fn();
+      const onPressedChange = vi.fn();
       render(
         <ToggleButton
           pressed
@@ -249,7 +249,7 @@ describe('ToggleButton', () => {
       'with %s, clicks and keys neither flip it nor report',
       async (_prop, disabling) => {
         const user = userEvent.setup();
-        const onPressedChange = jest.fn();
+        const onPressedChange = vi.fn();
         render(
           <ToggleButton {...disabling} onPressedChange={onPressedChange}>
             Mute
@@ -281,8 +281,8 @@ describe('ToggleButton', () => {
   describe('loading', () => {
     it('holds still for a click, Enter and Space, and says it is busy and unavailable', async () => {
       const user = userEvent.setup();
-      const onClick = jest.fn();
-      const onPressedChange = jest.fn();
+      const onClick = vi.fn();
+      const onPressedChange = vi.fn();
       render(
         <ToggleButton
           isLoading
@@ -457,7 +457,7 @@ describe('ToggleButton', () => {
   describe('inside a form', () => {
     it('never submits it', async () => {
       const user = userEvent.setup();
-      const onSubmit = jest.fn((event: React.FormEvent) =>
+      const onSubmit = vi.fn((event: React.FormEvent) =>
         event.preventDefault()
       );
       render(
@@ -589,9 +589,7 @@ describe('ToggleButton', () => {
       const container = document.createElement('div');
       container.innerHTML = renderToString(ui);
       document.body.appendChild(container);
-      const errorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       let root: ReturnType<typeof hydrateRoot> | undefined;
       try {
         await act(async () => {

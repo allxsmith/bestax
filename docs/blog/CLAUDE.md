@@ -170,6 +170,13 @@ stays a manual act — the build only generates the files.
   (or headed to Medium) follows the "Cover images" section below in full: SVG + PNG assets,
   `image:`/`cover_image:` frontmatter, and the visible markdown banner at the top of the
   body. A coverless post renders bare on both platforms.
+- **A syndicated post also ships 2–4 section images.** dev.to and Medium show the post
+  as one long text column, so a syndicated post needs pictures along the way: the banner plus
+  2–4 section images, each placed directly under the section it illustrates. Each
+  section image follows the "Section images" rule under "Cover images" (1200×630 SVG master, the
+  PNG embedded in the body, a long literal alt text). A figure that already illustrates a section
+  (a comparison grid, a flow) counts as one of them. Posts published before this rule keep the
+  images they shipped with.
 - Each flagged post gets a copy in `build/.devto-publish/` with production URLs: markdown
   images and root-relative `/docs/` + `/blog/` links (reference-style definitions included)
   are rewritten to `https://bestax.io/...`. Fenced code blocks are never touched.
@@ -207,8 +214,8 @@ Any post can ship a cover, not just State of React editions; _The Floor Is React
 - **Frontmatter:** `image:` and `cover_image:` both point at the **PNG** (rooted `/img/...`
   path); `og:image` and dev.to need a raster.
 - **Body:** the visible banner at the very top renders the **SVG**, crisp at any width.
-- **Section images** (optional, for flagship posts): each in-body image follows the same
-  contract and rasterizer (1200×630 is fine here, since dev.to crops only the cover), stems
+- **Section images** (two to four for a syndicated post, see Syndication above; optional for
+  others): each in-body image follows the same contract and rasterizer (1200×630 is fine here, since dev.to crops only the cover), stems
   `docs/static/img/<slug>-<topic>.{svg,png}`. Only the top banner embeds the SVG; every other
   in-body image embeds the **PNG** (dev.to and Medium handle rasters reliably).
 - **Alt text** is a long, literal description of the pixel-art scene (see the v5 banner),
@@ -223,8 +230,8 @@ edition is turnkey.
 ## What the series is
 
 **"The State of React"** is a dated, honest snapshot comparing bestax against the other
-mainstream React component libraries (Mantine, MUI, Chakra UI, shadcn/ui, React-Bootstrap, and
-react-bulma-components). Each edition is a point-in-time capture; we publish a fresh one on a
+mainstream React component libraries (Ant Design, Mantine, MUI, Chakra UI, shadcn/ui,
+React-Bootstrap, and react-bulma-components). Each edition is a point-in-time capture; we publish a fresh one on a
 roughly **monthly** cadence rather than editing an old post.
 
 The full matrix lives on a docs page, where readers filter it by library and feature group.
@@ -266,6 +273,9 @@ These files back every edition:
   markdown / dev.to), and `hide_table_of_contents: true` (the wide table needs the room — this
   removes the right-hand TOC; the left blog sidebar is collapsed automatically via a scoped
   `:has(.sor-comparison)` rule in `src/css/custom.css`, so no per-post action is needed).
+- **Say it is not the survey.** Devographics runs an annual State of React survey under the same
+  name, so the paragraph that explains the series ends by saying this one isn't affiliated with
+  it, as every edition since July 2026 does.
 - Keep the admonitions: top `:::info` (snapshot date + latest-edition link), `:::tip`
   (headline insight), `:::note` (shadcn is a copy-paste registry, not a dependency), `:::caution`
   (corrections → GitHub issues).
@@ -278,7 +288,8 @@ These files back every edition:
    - **Record a correction** when a cell's mark was wrong in the last edition, rather than
      changed by the library since. That can happen any time between editions, so do it in the
      PR that fixes the cell: add the cell to `corrections` under a fix with the last edition's
-     `reviewed` date (the live `lastReviewed` until the bump below), the PR number (fill it in
+     `reviewed` date (the newest snapshot's `reviewed`; that matches the live `lastReviewed`
+     until a review moves the sheet ahead of the last edition), the PR number (fill it in
      once the PR is open), and the mark the fix gives the cell (`full`, `partial` or `none`).
      The edition's changes table then shows that cell as a correction, not a change. If a
      release moves the cell again before the edition, leave the entry be: the mark no longer
@@ -290,6 +301,15 @@ These files back every edition:
    - Fix or extend the per-library link resolvers/override maps as needed. **bestax** cells are
      internal `/docs/api/...` links (validated by the build); competitor links are best-effort deep
      links with a per-library fallback — improve a fallback → deep link when you confirm a stable URL.
+   - **Adding a library** (Ant Design joined in November 2026): give it a `libs` entry with the
+     next free `idx` (display order is the array order, not `idx`), a link resolver, and a cell
+     in every row, and update the tuple comment above `categories`. Fill every row from that
+     library's own docs, as a new column has no edition to be corrected against. The changes
+     table shows the new column unhighlighted, since the previous snapshot has nothing to compare
+     it with, so the post introduces the column in its own section and links the compare page
+     filtered to it (`?libs=bestax,<id>`). Name it wherever the series lists its libraries:
+     the paragraph above, the compare page's companion-package rule, and the
+     react-bulma-components migration guide's tip.
    - **Bump `lastReviewed`** to the review date (`YYYY-MM-DD`).
 2. **Snapshot it** with `pnpm --filter @allxsmith/bestax-docs snapshot:comparison {YYYY-MM}`.
    It refuses to overwrite an existing snapshot; pass `--force` while the edition is still a

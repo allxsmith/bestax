@@ -4,7 +4,7 @@
  * build a small docs/docs/api tree, because the real one has no untitled page
  * and no unknown category, so the branches that matter would never run.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
@@ -32,7 +32,7 @@ const repo = rel => fileURLToPath(new URL(`../${rel}`, import.meta.url));
 /** A docs/docs/api tree in a temp dir, from { 'cat/file.md': source }. */
 function fixture(t, files) {
   const dir = mkdtempSync(join(tmpdir(), 'bestax-api-catalog-'));
-  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  t.onTestFinished(() => rmSync(dir, { recursive: true, force: true }));
   for (const [rel, src] of Object.entries(files)) {
     mkdirSync(join(dir, rel, '..'), { recursive: true });
     writeFileSync(join(dir, rel), src);

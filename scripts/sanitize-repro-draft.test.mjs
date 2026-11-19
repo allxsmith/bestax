@@ -11,12 +11,9 @@
  *
  * The pipeline replaced GNU sed + `head -c`; byte-level parity cases (latin1
  * round-trip, truncation) pin the behaviors a rewrite could plausibly bend.
- *
- * `.mjs` and `node --test` rather than jest: these are root-level scripts
- * with no package of their own, matching auto-close-duplicates.test.mjs.
  */
 import { spawnSync } from 'node:child_process';
-import { test } from 'node:test';
+import { test } from 'vitest';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import { MARKER, DUPLICATE_RE } from './auto-close-duplicates.mjs';

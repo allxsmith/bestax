@@ -51,17 +51,16 @@ const cell = (container: HTMLElement, day: number) =>
 const style = (el: Element) => getComputedStyle(el);
 
 /**
- * What the cascade gives `el` for `property` while the pointer is on it.
- * jsdom never matches `:hover`, so each selector is tried with `:hover`
- * standing for a class the cell carries meanwhile, and the matching rule with
- * the most class-level parts wins, the later one on a tie. That is the whole
- * of specificity for the cell's rules, which are classes and pseudo-classes.
+ * What the cascade gives `el` for `property`, read from the rules: the
+ * matching rule with the most class-level parts wins, the later one on a tie.
+ * That is the whole of specificity for the cell's rules, which are classes and
+ * pseudo-classes. jsdom never matches `:hover`, so each selector is tried with
+ * `:hover` standing for a class the cell carries while the pointer is on it.
  */
 const HOVERED = 'jsdom-hovered';
-function hovered(el: Element, property: string): string {
+function cascaded(el: Element, property: string): string {
   const rules = Array.from((sheets[0].sheet as CSSStyleSheet).cssRules);
   let best = { weight: -1, value: '' };
-  el.classList.add(HOVERED);
   for (const rule of rules) {
     if (!(rule instanceof CSSStyleRule)) continue;
     const value = rule.style.getPropertyValue(property);
@@ -75,8 +74,15 @@ function hovered(el: Element, property: string): string {
       if (weight >= best.weight) best = { weight, value };
     }
   }
-  el.classList.remove(HOVERED);
   return best.value;
+}
+
+/** What the cascade gives `el` for `property` while the pointer is on it. */
+function hovered(el: Element, property: string): string {
+  el.classList.add(HOVERED);
+  const value = cascaded(el, property);
+  el.classList.remove(HOVERED);
+  return value;
 }
 
 describe('range cells', () => {
@@ -144,7 +150,11 @@ describe('range cells', () => {
       'var(--bulma-dateinput-cell-range-preview-bg)'
     );
     expect(end.borderStyle).toBe('dashed');
-    expect(end.borderColor).toBe('var(--bulma-dateinput-cell-selected-bg)');
+    // jsdom computes a shorthand given a `var()` as if nothing set it, so the
+    // colour is read from the rules.
+    expect(cascaded(cell(container, 13), 'border-color')).toBe(
+      'var(--bulma-dateinput-cell-selected-bg)'
+    );
   });
 
   it('tint the band from the selection fill, so color re-tints it', () => {
@@ -155,12 +165,13 @@ describe('range cells', () => {
     expect(root.getPropertyValue('--bulma-dateinput-cell-selected-bg')).toBe(
       'var(--bulma-danger)'
     );
+    // jsdom drops the spaces after the commas in a custom property's value.
     for (const name of [
       '--bulma-dateinput-cell-range-bg',
       '--bulma-dateinput-cell-range-preview-bg',
     ]) {
       expect(root.getPropertyValue(name)).toMatch(
-        /^color-mix\(in srgb, var\(--bulma-dateinput-cell-selected-bg\) \d+%, transparent\)$/
+        /^color-mix\(in srgb,var\(--bulma-dateinput-cell-selected-bg\) \d+%,transparent\)$/
       );
     }
   });
@@ -196,6 +207,72 @@ describe('the field', () => {
   });
 });
 
+describe('several months', () => {
+  const renderMonths = () =>
+    render(
+      <DateRangeInput inline monthsToShow={2} defaultValue={[june(10), null]} />
+    ).container;
+
+  it('share one frame inline, as wide as their row', () => {
+    const months = renderMonths().querySelector('.calendar-months')!;
+    expect(style(months).display).toBe('inline-flex');
+    expect(style(months).maxWidth).toBe('100%');
+    expect(style(months).backgroundColor).toBe('var(--bulma-scheme-main)');
+    expect(style(months).padding).toBe('12px');
+    // Each month inside the frame draws none of its own.
+    expect(style(months.querySelector('.dateinput')!).padding).not.toBe('12px');
+  });
+
+  it('space the months by the gap a Calendar takes, inline and in the popover', () => {
+    const gapOf = (el: Element) =>
+      style(el).getPropertyValue('--bulma-calendar-months-gap');
+    const inline = renderMonths().querySelector('.dateinput-container')!;
+    expect(gapOf(inline)).toBe('var(--bulma-block-spacing)');
+    render(<DateRangeInput monthsToShow={2} appendToBody />);
+    fireEvent.click(screen.getByRole('combobox', { name: 'Start date' }));
+    expect(gapOf(screen.getByRole('dialog'))).toBe(
+      'var(--bulma-block-spacing)'
+    );
+  });
+
+  it('declare the inline gap in a rule of its own, which a browser without :has() keeps', () => {
+    const rules = Array.from(
+      (sheets[0].sheet as CSSStyleSheet).cssRules
+    ).filter(
+      (rule): rule is CSSStyleRule =>
+        rule instanceof CSSStyleRule &&
+        rule.style.getPropertyValue('--bulma-calendar-months-gap') !== '' &&
+        /\.daterangeinput\b/.test(rule.selectorText)
+    );
+    expect(rules).toHaveLength(1);
+    expect(rules[0].selectorText).not.toContain(':has(');
+  });
+
+  it("center each month's name over its grid, between the buttons", () => {
+    const headers = renderMonths().querySelectorAll('.dateinput-header');
+    expect(headers).toHaveLength(2);
+    for (const header of headers) {
+      expect(style(header).display).toBe('grid');
+    }
+    expect(
+      style(headers[1].querySelector('.dateinput-month-label')!).justifySelf
+    ).toBe('center');
+    expect(
+      style(headers[1].querySelector('.dateinput-nav-next')!).gridColumn
+    ).toBe('3');
+  });
+
+  it("leave one month's header and frame as they were", () => {
+    const { container } = render(
+      <DateRangeInput inline defaultValue={[june(10), null]} />
+    );
+    expect(style(container.querySelector('.dateinput-header')!).display).toBe(
+      'flex'
+    );
+    expect(style(container.querySelector('.dateinput')!).padding).toBe('12px');
+  });
+});
+
 describe('under a class prefix', () => {
   it('matches the prefixed classes the component emits', () => {
     inject(
@@ -210,8 +287,18 @@ describe('under a class prefix', () => {
       <ConfigProvider classPrefix="bestax-">
         <DateRangeInput inline defaultValue={[june(10), june(13)]} />
         <DateRangeInput disabled />
+        <DateRangeInput
+          inline
+          monthsToShow={2}
+          defaultValue={[june(10), null]}
+        />
       </ConfigProvider>
     );
+    const months = container.querySelector('.bestax-calendar-months')!;
+    expect(style(months).display).toBe('inline-flex');
+    expect(
+      style(months.querySelector('.bestax-dateinput-header')!).display
+    ).toBe('grid');
     expect(style(cell(container, 11)).backgroundColor).toBe(
       'var(--bulma-dateinput-cell-range-bg)'
     );

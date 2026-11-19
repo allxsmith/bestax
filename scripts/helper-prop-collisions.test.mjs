@@ -29,7 +29,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 
 import { themeVars } from './lib/theme-vars.mjs';
 

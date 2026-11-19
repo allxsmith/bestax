@@ -14,7 +14,7 @@ pnpm run dev
 - `pnpm run dev` - Start development server
 - `pnpm run build` - Build for production
 - `pnpm run preview` - Preview production build
-- `pnpm run lint` - Run ESLint
+- `pnpm run lint` - Run Oxlint
 
 ## Features
 
@@ -22,7 +22,7 @@ pnpm run dev
 - 🎨 Bulma CSS framework
 - 📦 bestax-bulma component library
 - 📘 TypeScript for type safety
-- 🔧 ESLint pre-configured
+- 🔧 Oxlint pre-configured
 
 ## Learn More
 

@@ -27,9 +27,14 @@ import { Theme } from '@allxsmith/bestax-bulma';
 ```tsx
 function BasicThemeCustomization() {
   return (
-    <Theme primaryH="270" primaryS="100%" primaryL="50%">
+    <Theme
+      primaryH="262"
+      primaryS="52%"
+      primaryL="56%"
+      bulmaVars={{ '--bulma-primary-invert-l': '100%' }}
+    >
       <Box p="4">
-        <Button color="primary">Purple Primary Button</Button>
+        <Button color="primary">Violet Primary Button</Button>
       </Box>
     </Theme>
   );
@@ -41,15 +46,26 @@ function BasicThemeCustomization() {
 ```tsx
 function GlobalTheme() {
   return (
-    <Theme isRoot={true} primaryH="270" primaryS="100%" primaryL="50%">
+    <Theme
+      isRoot={true}
+      primaryH="262"
+      primaryS="52%"
+      primaryL="56%"
+      bulmaVars={{ '--bulma-primary-invert-l': '100%' }}
+    >
       <div>
-        <Button color="primary">Global Purple Theme</Button>
+        <Button color="primary">Global Violet Theme</Button>
         <Button color="info">Info Button</Button>
       </div>
     </Theme>
   );
 }
 ```
+
+A root theme writes its variables before the browser paints what it rendered, so an app rendered
+in the browser shows them from its first frame of content. A server render doesn't include them,
+so a page rendered on the server paints with the stylesheet's values until it hydrates. Put the
+values that page needs from its first paint in your CSS, on `:root`.
 
 ### Dark Mode
 
@@ -61,35 +77,140 @@ A prefixed stylesheet reads Bulma's prefixed attribute instead (`data-bestax-the
 `classPrefix`, `colorMode` writes that attribute as well as `data-theme`, so it works with the
 prefixed builds.
 
-:::warning Single-mode designs should pin `colorMode`
+:::warning Single-mode designs should pin the scheme
 
 Omitting `colorMode` preserves whatever `data-theme` is already set — and when nothing has set
 one (the usual case), the scheme follows the visitor's OS: Bulma's text colors flip on a
 dark-mode machine even if your design is light-only, breaking contrast against any fixed custom
-backgrounds. If you support only one mode, pin it (`<Theme isRoot colorMode="light">`); if you
-support both, don't hardcode surface/text colors — see
-[Dark Mode & Contrast](../../guides/features/css-variables.md#dark-mode--contrast).
+backgrounds. If you support only one mode, pin it on the `<html>` in your `index.html`
+(`<html lang="en" data-theme="light">`); if you support both, don't hardcode surface/text
+colors — see [Dark Mode & Contrast](../../guides/features/css-variables.md#dark-mode--contrast).
 
 :::
 
+`colorMode` writes the attribute before the browser paints what `Theme` rendered, but the page can
+paint before the app's script runs at all, with whatever `<html>` already has, which is why a
+fixed scheme belongs in `index.html`. A toggle that remembers the visitor's choice has two parts.
+First, an inline script in the `<head>` of `index.html` writes the saved choice, or else the OS
+preference, before the first paint. Make it a plain `<script>`, not `type="module"`, so it runs
+before the body renders. With a prefixed stylesheet, have it set `data-bestax-theme` as well.
+
+```html
+<script>
+  // Bulma's scheme on <html> before the first paint: the saved choice,
+  // or else the OS preference. The app saves under the same key.
+  (() => {
+    let saved = null;
+    try {
+      saved = localStorage.getItem('theme');
+    } catch {
+      // Storage is blocked, so fall back to the OS preference.
+    }
+    const dark =
+      saved === 'light' || saved === 'dark'
+        ? saved === 'dark'
+        : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.setAttribute(
+      'data-theme',
+      dark ? 'dark' : 'light'
+    );
+  })();
+</script>
+```
+
+Second, the app starts `colorMode` from the attribute the script wrote, and saves each choice
+under the key the script reads. The `bestax-theming` skill's
+[dark-mode example](https://github.com/allxsmith/bestax/blob/main/skills/bestax-theming/examples/dark-mode.tsx)
+is the same recipe, and also covers a page that has no script.
+
 ```tsx
+// Pairs with an inline <head> script in index.html that writes data-theme
+// before the first paint: the choice saved under STORAGE_KEY, or else the
+// OS preference. The Theme API page's Dark Mode section has the script.
 import { useState } from 'react';
+import { Theme, ToggleButton } from '@allxsmith/bestax-bulma';
+
+type ColorMode = 'light' | 'dark';
+
+// The key the index.html script reads the saved choice from.
+const STORAGE_KEY = 'theme';
+
+// The scheme the index.html script wrote on <html>.
+function initialColorMode(): ColorMode {
+  if (typeof document === 'undefined') return 'light';
+  return document.documentElement.getAttribute('data-theme') === 'dark'
+    ? 'dark'
+    : 'light';
+}
 
 function App() {
-  const [mode, setMode] = useState<'light' | 'dark' | 'system'>('system');
+  const [mode, setMode] = useState<ColorMode>(initialColorMode);
+
+  const setDark = (dark: boolean) => {
+    const next: ColorMode = dark ? 'dark' : 'light';
+    setMode(next);
+    try {
+      localStorage.setItem(STORAGE_KEY, next);
+    } catch {
+      // Storage is blocked, so the choice lasts until the page reloads.
+    }
+  };
+
   return (
     <Theme isRoot colorMode={mode}>
-      <Button color="primary" onClick={() => setMode('dark')}>
-        Dark
-      </Button>
-      <Button color="primary" onClick={() => setMode('light')}>
-        Light
-      </Button>
-      <Button onClick={() => setMode('system')}>System</Button>
+      <ToggleButton pressed={mode === 'dark'} onPressedChange={setDark}>
+        Dark mode
+      </ToggleButton>
     </Theme>
   );
 }
 ```
+
+### Label and Text Lightnesses
+
+A color's trio recolors the color, but two of its lightnesses stay where the stylesheet's Sass
+build put them for the color it was built with: its label on a solid surface,
+`--bulma-<color>-invert-l`, and its text on the page, `--bulma-<color>-on-scheme-l`. bestax builds
+its primary from a dark blue, so a light primary set through the trio alone keeps white labels
+it can't carry. A color that reads lighter or darker than the built one sets both through
+`bulmaVars`.
+
+The text has to read on a light page and on a dark one, so Bulma gives each scheme its own
+on-scheme lightness. On a root theme, an on-scheme key takes `{ light, dark }`, and each value
+applies wherever Bulma's own value for that scheme would. A scheme you leave out keeps the
+stylesheet's value, and a string sets one value for both. On the dark scheme, bestax's
+stylesheets give `textColor="<color>"` the on-scheme lightness wherever it's lighter than the
+trio's, so a darker color set through the trio alone takes the build's lightness there.
+
+```tsx
+function StockTurquoise() {
+  // Stock Bulma's turquoise, with the values from bulma/css/bulma.css.
+  return (
+    <Theme
+      isRoot
+      primaryH="171deg"
+      primaryS="100%"
+      primaryL="41%"
+      bulmaVars={{
+        '--bulma-primary-invert-l': 'var(--bulma-primary-05-l)',
+        '--bulma-primary-on-scheme-l': { light: '21%', dark: '41%' },
+      }}
+    >
+      <Button color="primary">Dark label</Button>
+      <Block textColor="primary" colorShade="on-scheme">
+        Turquoise text that reads in both schemes
+      </Block>
+    </Theme>
+  );
+}
+```
+
+A local theme writes its variables as an inline style, which can't hold a value per scheme, so it
+skips `{ light, dark }` and warns in development. Give it a string, or set the per-scheme values
+in your CSS. `bestax-no-dark-mode.css` has no dark scheme, so with it give a string. The
+`bestax-theming` skill's
+[CSS variables reference](https://github.com/allxsmith/bestax/blob/main/skills/bestax-theming/references/css-variables.md)
+says what reads each lightness and how to pick the values.
 
 ### Local Theme (Component Level)
 
@@ -99,8 +220,13 @@ function LocalTheme() {
     <div>
       <Button color="primary">Standard Primary</Button>
 
-      <Theme primaryH="120" primaryS="100%" primaryL="40%">
-        <Button color="primary">Green Primary</Button>
+      <Theme
+        primaryH="158"
+        primaryS="64%"
+        primaryL="30%"
+        bulmaVars={{ '--bulma-primary-invert-l': '100%' }}
+      >
+        <Button color="primary">Emerald Primary</Button>
       </Theme>
 
       <Button color="primary">Standard Primary Again</Button>
@@ -113,14 +239,27 @@ function LocalTheme() {
 
 ```tsx
 function SunsetTheme() {
+  // Amber, coral, rose and violet on warm neutrals. A new color keeps the
+  // label lightness the stylesheet was built with, so each sets its own.
   const sunsetTheme = {
-    '--bulma-scheme-h': '18',
-    '--bulma-scheme-s': '90%',
-    '--bulma-light-l': '85%',
-    '--bulma-dark-l': '20%',
-    '--bulma-primary-h': '25',
-    '--bulma-primary-s': '85%',
-    '--bulma-primary-l': '55%',
+    '--bulma-scheme-h': '24',
+    '--bulma-scheme-s': '22%',
+    '--bulma-primary-h': '12',
+    '--bulma-primary-s': '76%',
+    '--bulma-primary-l': '44%',
+    '--bulma-primary-invert-l': '100%',
+    '--bulma-link-h': '340',
+    '--bulma-link-s': '62%',
+    '--bulma-link-l': '48%',
+    '--bulma-link-invert-l': '100%',
+    '--bulma-info-h': '262',
+    '--bulma-info-s': '52%',
+    '--bulma-info-l': '56%',
+    '--bulma-info-invert-l': '100%',
+    '--bulma-warning-h': '38',
+    '--bulma-warning-s': '95%',
+    '--bulma-warning-l': '54%',
+    '--bulma-warning-invert-l': '10%',
   };
 
   return (
@@ -206,41 +345,42 @@ function SpacingTheme() {
 
 ```tsx
 function ForestTheme() {
+  // Pine, lake, fern, ochre and berry on cool green neutrals
   const forestScheme = {
-    schemeH: '150', // forest green hue
-    schemeS: '50%',
-    lightL: '80%',
-    lightInvertL: '20%',
-    darkL: '18%',
-    darkInvertL: '85%',
-    softL: '55%',
-    boldL: '35%',
-    primaryH: '160',
-    primaryS: '60%',
-    primaryL: '45%',
-    linkH: '155',
+    schemeH: '140',
+    schemeS: '16%',
+    primaryH: '152',
+    primaryS: '50%',
+    primaryL: '32%',
+    linkH: '195',
     linkS: '65%',
-    linkL: '40%',
-    successH: '120',
-    successS: '70%',
-    successL: '45%',
-    warningH: '45',
+    linkL: '34%',
+    successH: '95',
+    successS: '40%',
+    successL: '33%',
+    warningH: '36',
     warningS: '85%',
-    warningL: '55%',
-    dangerH: '355',
-    dangerS: '75%',
-    dangerL: '50%',
-    hoverBackgroundLDelta: '4%',
-    activeBackgroundLDelta: '8%',
+    warningL: '52%',
+    dangerH: '352',
+    dangerS: '60%',
+    dangerL: '48%',
+  };
+  // The label lightnesses have no named prop, so they go through bulmaVars
+  const forestLabels = {
+    '--bulma-primary-invert-l': '100%',
+    '--bulma-link-invert-l': '100%',
+    '--bulma-success-invert-l': '100%',
+    '--bulma-warning-invert-l': '10%',
+    '--bulma-danger-invert-l': '100%',
   };
 
   return (
-    <Theme {...forestScheme} isRoot>
+    <Theme {...forestScheme} bulmaVars={forestLabels} isRoot>
       <Box p="4">
         <Title>Forest Theme</Title>
         <Button color="primary">Forest Primary</Button>
+        <Button color="link">Link</Button>
         <Button color="success">Success</Button>
-        <Button color="info">Info</Button>
         <Button color="warning">Warning</Button>
         <Button color="danger">Danger</Button>
       </Box>
@@ -255,16 +395,18 @@ function ForestTheme() {
 function StyledTheme() {
   return (
     <Theme
-      className="custom-theme-wrapper"
-      primaryH="45"
-      primaryS="100%"
-      primaryL="50%"
+      className="has-background-primary-soft has-text-primary-bold"
+      primaryH="40"
+      primaryS="92%"
+      primaryL="52%"
+      bulmaVars={{ '--bulma-primary-invert-l': '10%' }}
       p="5"
       m="3"
+      radius="large"
       textAlign="centered"
     >
-      <Title>Styled Theme Container</Title>
-      <Button color="primary">Styled Button</Button>
+      <Title>Amber Panel</Title>
+      <Button color="primary">Amber Primary</Button>
     </Theme>
   );
 }
@@ -275,17 +417,24 @@ function StyledTheme() {
 ```tsx
 function NestedThemes() {
   return (
-    <Theme primaryH="210" primaryS="60%" primaryL="45%" p="4">
-      <Title>Outer Theme (Blue)</Title>
-      <Button color="primary">Blue Primary</Button>
+    <Theme
+      primaryH="218"
+      primaryS="52%"
+      primaryL="48%"
+      bulmaVars={{ '--bulma-primary-invert-l': '100%' }}
+      p="4"
+    >
+      <Title>Outer Theme (Ink Blue)</Title>
+      <Button color="primary">Ink Blue Primary</Button>
 
-      <Theme primaryH="120" primaryS="70%" primaryL="40%" p="3" mt="4">
+      {/* Sets only the trio: the white label comes from the outer Theme */}
+      <Theme primaryH="160" primaryS="45%" primaryL="32%" p="3" mt="4">
         <Title size="4">Inner Theme (Green)</Title>
         <Button color="primary">Green Primary</Button>
       </Theme>
 
       <Button color="primary" mt="3">
-        Blue Primary Again
+        Ink Blue Primary Again
       </Button>
     </Theme>
   );
@@ -298,7 +447,13 @@ function NestedThemes() {
 function PrefixedTheme() {
   return (
     <ConfigProvider classPrefix="bestax-">
-      <Theme primaryH="300" primaryS="80%" primaryL="50%" isRoot>
+      <Theme
+        primaryH="236"
+        primaryS="55%"
+        primaryL="58%"
+        bulmaVars={{ '--bulma-primary-invert-l': '100%' }}
+        isRoot
+      >
         <Button color="primary">Prefixed & Themed Button</Button>
       </Theme>
     </ConfigProvider>
@@ -326,6 +481,7 @@ function PrefixedTheme() {
 - Named props exist for the scheme and color variables only (like `primaryH`); every other variable, typography and radius included, goes through `bulmaVars`
 - `bulmaVars` keys are the full variable names (`'--bulma-family-primary'`), not camelCase
 - `bulmaVars` also accepts the scheme surface variables — `--bulma-scheme-main`, `--bulma-scheme-main-bis`, `--bulma-scheme-main-ter`, `--bulma-scheme-invert`, `--bulma-scheme-invert-bis`, `--bulma-scheme-invert-ter` — so overriding `--bulma-scheme-main-bis`/`-ter` re-tints every scheme-background band (e.g., `<Section bgColor="scheme-main-bis">`) at once
+- `bulmaVars` also accepts each color's label and text lightnesses, `--bulma-<color>-invert-l` and `--bulma-<color>-on-scheme-l`, which a new trio does not move. On a root theme the on-scheme ones take a value per scheme (see [Label and Text Lightnesses](#label-and-text-lightnesses))
 - `bulmaVars` also accepts `--bulma-shadow` (plus `--bulma-shadow-h`/`-s`/`-l`) — the upstream token that `.box`, `.card`, `.dropdown`, and `.panel` derive their own shadow variables from. Those selectors re-declare their derived variable (e.g. `--bulma-box-shadow`) on themselves, so setting it from an ancestor `Theme` is only inherited and never wins; overriding `--bulma-shadow` itself is the one override that cascades. There is no individual `shadow` prop for this — `shadow` already names the unrelated `shadowless` helper class — so reach it through `bulmaVars`
 
 ### Performance Considerations
@@ -370,6 +526,7 @@ typed API, so move it to `bulmaVars`:
   primaryS="73%"
   primaryL="44%"
   bulmaVars={{
+    '--bulma-primary-invert-l': '100%',
     '--bulma-radius': '2px',
     '--bulma-radius-small': '1px',
     '--bulma-family-primary': '"IBM Plex Sans", system-ui, sans-serif',
@@ -409,7 +566,12 @@ You can set the scheme and color variables in two ways:
 1. **Named Props** (recommended where one exists):
 
    ```tsx
-   <Theme primaryH="270" primaryS="100%" primaryL="50%">
+   <Theme
+     primaryH="262"
+     primaryS="52%"
+     primaryL="56%"
+     bulmaVars={{ '--bulma-primary-invert-l': '100%' }} // the label has no named prop
+   >
      <App />
    </Theme>
    ```
@@ -419,9 +581,10 @@ You can set the scheme and color variables in two ways:
    ```tsx
    <Theme
      bulmaVars={{
-       '--bulma-primary-h': '270',
-       '--bulma-primary-s': '100%',
-       '--bulma-primary-l': '50%',
+       '--bulma-primary-h': '262',
+       '--bulma-primary-s': '52%',
+       '--bulma-primary-l': '56%',
+       '--bulma-primary-invert-l': '100%',
        '--bulma-block-spacing': '2rem',
      }}
    >
@@ -432,9 +595,10 @@ You can set the scheme and color variables in two ways:
 3. **Combined** (props take precedence over bulmaVars):
    ```tsx
    <Theme
-     primaryH="270" // This takes precedence
+     primaryH="262" // This takes precedence
      bulmaVars={{
        '--bulma-primary-h': '180', // This is overridden
+       '--bulma-primary-invert-l': '100%',
        '--bulma-block-spacing': '2rem',
      }}
    >
@@ -452,8 +616,9 @@ to typecheck, so a typo in it is silently dropped; annotate it with
 
 ```tsx
 <Theme
-  primaryH="270"
+  primaryH="262"
   bulmaVars={{
+    '--bulma-primary-invert-l': '100%',
     '--bulma-block-spacing': '2rem', // start typing '--bulma-' to list the rest
   }}
 >
@@ -473,15 +638,15 @@ to typecheck, so a typo in it is silently dropped; annotate it with
 
 ## Props
 
-| Prop        | Type                                                          | Description                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| ----------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `children`  | `ReactNode`                                                   | The child components to apply the theme to.                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `className` | `string`                                                      | Additional CSS classes for the theme wrapper. A root theme has no wrapper, so under `isRoot` it does nothing and warns in development.                                                                                                                                                                                                                                                                                                          |
-| `isRoot`    | `boolean`                                                     | When `true`, applies CSS variables globally at `:root` level. When `false` (default), applies variables only to the wrapper div. Several root themes compose; an inner or later-mounted one wins a variable they share. A root theme renders no wrapper, so `className` and the helper props, such as `m` or `shadow`, do nothing on it and warn in development.                                                                                |
-| `colorMode` | `'light' \| 'dark' \| 'system'`                               | Sets Bulma's light/dark scheme by writing the `data-theme` attribute on `<html>`, plus `data-<prefix>theme` inside a `ConfigProvider` with a `classPrefix`. If the prefix cannot form an attribute name, `'light'` and `'dark'` write only `data-theme` and warn in development. Always global (even on a scoped `Theme`). `'system'` removes them so Bulma follows the OS `prefers-color-scheme`. Omit to leave the current setting untouched. |
-| `bulmaVars` | `ThemeProps['bulmaVars']`                                     | Object mapping Bulma CSS variable names to string values (e.g., `{'--bulma-primary-h': '210'}`). Keys are limited to the `BulmaVars` type; anything else is not applied. A variable Bulma declares on the component itself changes nothing from here and warns in development; see [Which Variables a Theme Can Change](#which-variables-a-theme-can-change).                                                                                   |
-| `columnGap` | [`BulmaGapStep`](./valid-values.md)                           | The column gap helper: a gap step adds `is-column-gap-<step>` to the wrapper div and sets no variable, so under `isRoot` it does nothing and warns in development. Set `--bulma-column-gap` through `bulmaVars`. Any other string still sets `--bulma-column-gap`, a deprecated route that warns in development.                                                                                                                                |
-| `radius`    | `'radiusless' \| 'small' \| 'normal' \| 'large' \| 'rounded'` | The border radius helper. `radiusless` adds `is-radiusless` to the wrapper div and sets `--bulma-radius` to `0`, at `:root` under `isRoot`. The sizes add their `has-radius-*` class to the wrapper and set no variable, so under `isRoot` they do nothing and warn in development. Any other string still sets `--bulma-radius`, a deprecated route that warns in development.                                                                 |
+| Prop        | Type                                                          | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ----------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `children`  | `ReactNode`                                                   | **Required.** The child components to apply the theme to.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `className` | `string`                                                      | Additional CSS classes for the theme wrapper. A root theme has no wrapper, so under `isRoot` it does nothing and warns in development.                                                                                                                                                                                                                                                                                                                                                                                    |
+| `isRoot`    | `boolean`                                                     | When `true`, applies CSS variables globally at `:root` level. When `false` (default), applies variables only to the wrapper div. Several root themes compose; an inner or later-mounted one wins a variable they share. The variables are written before the browser paints the theme's content, and a server render doesn't include them. A root theme renders no wrapper, so `className` and the helper props, such as `m` or `shadow`, do nothing on it and warn in development.                                       |
+| `colorMode` | `'light' \| 'dark' \| 'system'`                               | Sets Bulma's light/dark scheme by writing the `data-theme` attribute on `<html>`, plus `data-<prefix>theme` inside a `ConfigProvider` with a `classPrefix`. If the prefix cannot form an attribute name, `'light'` and `'dark'` write only `data-theme` and warn in development. Always global (even on a scoped `Theme`). `'system'` removes them so Bulma follows the OS `prefers-color-scheme`. Omit to leave the current setting untouched.                                                                           |
+| `bulmaVars` | `ThemeProps['bulmaVars']`                                     | Object mapping Bulma CSS variable names to string values (e.g., `{'--bulma-primary-h': '210'}`). Keys are limited to the `BulmaVars` type; anything else is not applied. Each color's `--bulma-<color>-on-scheme-l` also takes `{ light, dark }` on a root theme, as [Label and Text Lightnesses](#label-and-text-lightnesses) says. A variable Bulma declares on the component itself changes nothing from here and warns in development; see [Which Variables a Theme Can Change](#which-variables-a-theme-can-change). |
+| `columnGap` | [`BulmaGapStep`](./valid-values.md)                           | The column gap helper: a gap step adds `is-column-gap-<step>` to the wrapper div and sets no variable, so under `isRoot` it does nothing and warns in development. Set `--bulma-column-gap` through `bulmaVars`. Any other string still sets `--bulma-column-gap`, a deprecated route that warns in development.                                                                                                                                                                                                          |
+| `radius`    | `'radiusless' \| 'small' \| 'normal' \| 'large' \| 'rounded'` | The border radius helper. `radiusless` adds `is-radiusless` to the wrapper div and sets `--bulma-radius` to `0`, at `:root` under `isRoot`. The sizes add their `has-radius-*` class to the wrapper and set no variable, so under `isRoot` they do nothing and warn in development. Any other string still sets `--bulma-radius`, a deprecated route that warns in development.                                                                                                                                           |
 
 ### CSS Variable Props
 

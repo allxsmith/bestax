@@ -99,6 +99,8 @@ export interface FileResult {
   file: string;
   changed: boolean;
   todos: TodoEntry[];
+  /** Why the file could not be parsed or transformed, when it couldn't. */
+  error?: string;
 }
 
 /** Collects TODO entries for the file currently being transformed. */
@@ -159,6 +161,22 @@ export type StylesTransform = (
   options: TransformOptions
 ) => string | null;
 
+/** What converting one HTML page came to. */
+export interface HtmlResult {
+  /** Where its module goes: beside the page, which stays as it was. */
+  outputPath: string;
+  /** The module, or null when nothing is written. */
+  output: string | null;
+}
+
+/** An HTML page → a new module beside it. */
+export type HtmlTransform = (
+  filePath: string,
+  source: string,
+  collector: TodoCollector | undefined,
+  options: TransformOptions
+) => HtmlResult;
+
 /** package.json updater; returns the changed manifest or null. */
 export type DependenciesUpdate = (
   filePath: string,
@@ -200,5 +218,18 @@ export interface MigrationSource {
   unsupportedExtensions?: readonly string[];
   transform: Transform;
   transformStyles?: StylesTransform;
+  /**
+   * The HTML page extensions the source converts (`html`, `htm`), without
+   * the dot. A page named on the command line always converts; a folder
+   * walk takes one only when `--extensions` lists its extension.
+   */
+  htmlExtensions?: readonly string[];
+  /** Converts a page, for a source with `htmlExtensions`. */
+  transformHtml?: HtmlTransform;
+  /**
+   * For a page a folder walk found but `--extensions` left out: a report
+   * entry when it carries what the source would convert, else null.
+   */
+  excludedHtml?: (filePath: string, source: string) => TodoEntry | null;
   updateDependencies?: DependenciesUpdate;
 }

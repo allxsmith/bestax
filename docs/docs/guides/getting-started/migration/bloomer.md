@@ -38,7 +38,7 @@ pnpm dlx bestax-migrate bloomer src/
 ```
 
 (`npx bestax-migrate …` works the same.) Useful flags: `--print` echoes transformed files to
-stdout; `--extensions` controls which files are considered (default
+stdout, and still writes them unless `--dry` is set; `--extensions` controls which files are considered (default
 `js,jsx,ts,tsx,scss,sass`); `--css bestax|bulma|keep` picks the stylesheet target
 (default `bestax`); `--no-deps` skips the package.json update.
 
@@ -58,8 +58,9 @@ in place:
   `isOutlined`, `isBordered`, …) and pass through; `isActive` becomes `active` where bestax
   names it that way, and `isFullWidth` becomes `isFullwidth` where bestax declares it. The value props
   are renamed per component:
-  `isColor` → `color`, `isSize` → `size` (numbers stay numbers on `Title`/`Subtitle`), `isAlign`
-  → `alignment` / `align` / `right`, `hasTextAlign` → `textAlign`, `hasTextColor` →
+  `isColor` → `color`, `isSize` → `size` (on `Title`/`Subtitle`, `textSize` wherever `size`
+  would change the heading level bloomer rendered), `isAlign` → `alignment` / `align` /
+  `right`, `hasTextAlign` → `textAlign`, `hasTextColor` →
   `textColor`, `isPulled` → `float`, `isMarginless` → `m="0"`, `tag` → `as` where bestax
   declares one, `Button isLink` → `color="link"`, `Field isGrouped` → `grouped`,
   `Control hasIcons` → `hasIconsLeft`/`hasIconsRight`. `Input`, `Select` and `TextArea` become
@@ -67,18 +68,20 @@ in place:
   `Field` and `Control` and bloomer's never did.
 - **Helpers** — `isDisplay` and `isHidden`, in all three of their shapes, flatten onto bestax's
   per-viewport props: `isDisplay="flex-tablet"` → `displayTablet="flex"`,
-  `isDisplay={{ flex: ['default', 'tablet'] }}` → `display="flex" displayTablet="flex"`,
+  `isDisplay={{ flex: ['default', 'tablet'] }}` → `className="is-flex" displayTablet="flex"` (bestax
+  leaves `display` out beside a per-viewport display prop, so the plain value stays its class),
   `isHidden="touch"` → `visibilityTouch="hidden"`. Every Bulma viewport has a bestax prop,
   `touch` and the `-only` ones included. `Column isSize="1/2"` → `size="half"`, and its
   per-breakpoint object → `sizeMobile`/`sizeTablet`/…
 - **Structure** — wrappers bestax renders itself fold away: `Page` onto its `PageLink`, the
   literal `<li>` bloomer's docs put around a `MenuLink`, the literal `<ul>` inside a `Breadcrumb`,
   `TabLink` into a plain `<a>` inside `Tabs.Item`. `Help`, `Label`, `Heading`, `BreadcrumbItem`,
-  `PanelTab` and `HeroVideo` become the plain Bulma markup bloomer rendered, and so does a
-  `PanelBlock` without `href` (bestax's is always an `<a>`). Icon-font classes the codemod can
-  read (Font Awesome 5/6, MDI) become `<Icon name="…" library="…" />`, modifiers included as
-  `features`. Where bloomer rendered a `<div>` and bestax defaults to an `<a>` (`NavbarItem`,
-  `DropdownItem`), the codemod adds `as="div"`.
+  `PanelTab`, `TabList` and `HeroVideo` become the plain Bulma markup bloomer rendered (`Heading` with a TODO,
+  since Bulma v1 has no rule for `.heading`), and so does a `PanelBlock` without `href` on a `tag`
+  other than `a`, `div` or `label`. Icon-font classes the
+  codemod can read (Font Awesome 5/6, MDI) become `<Icon name="…" library="…" />`, modifiers
+  included as `features`. Where bloomer rendered a `<div>` and bestax defaults to an `<a>`
+  (`NavbarItem`, `DropdownItem`, `PanelBlock`), the codemod adds `as="div"`.
 - **Stylesheets** — your `bulma/css/bulma.css` import becomes the bestax bundle, and a Sass
   `@import "~bulma/bulma"` with its `$variable` overrides becomes `@use "bulma/sass" with (…)`.
 - **package.json** — `bloomer` is removed, `@allxsmith/bestax-bulma` added, your pre-1 `bulma`
@@ -105,6 +108,10 @@ bloomer's own documentation:
 | `prop:render`        | bloomer's render prop handed the computed props to your own renderer; bestax has no render-prop escape hatch                | Render the markup directly, or use `as` for a custom link component                                                       |
 | `prop:as`            | several bestax components narrow `as` to the tags Bulma allows there, and your `tag` names another one                      | Wrap the component in the element you wanted, or restructure                                                              |
 | `prop:href`          | bestax gives an element the attributes of the tag `as` names, so `href` lives on an `<a>` or a custom `as`, not another tag | Drop the `tag` where the link was the point; on the components bloomer switched to an `<a>` the codemod does that for you |
+
+A converted `Modal` with no `aria-label` or `aria-labelledby`, and no spread that could hold one,
+also gets `name:Modal`: bestax's `Modal` is a dialog while it's open, so give it an `aria-label`,
+or point `aria-labelledby` at its title.
 
 `Tile`, the `Nav` family, the three `Dropdown` wrappers and `withHelpersModifiers` have no
 bestax counterpart, so their imports are kept (trimmed and TODO-annotated) — your app still runs

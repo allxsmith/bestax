@@ -1,0 +1,87 @@
+// Tag Styles
+// Bulma already styles the tag; this gives the light variant of its grayscale
+// colors readable text, keeps a tag in a table cell from making its row
+// taller, and gives a button tag the text a span tag has
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+@use '../color-classes' as *;
+
+// Bulma nests a light variant, `&.is-light`, in each color of its tag. It
+// sets the light color's background and reads the text's lightness from
+// `--bulma-<color>-light-invert-l`, which Bulma doesn't define for white,
+// black, light or dark, so a tag of one of those with `is-light` gets text
+// that inherits the color around it. On the dark scheme that's light text on
+// the light background. For the light color the variant is
+// `.tag.is-light.is-light`, and a class repeated in a selector matches an
+// element that has it once, so every light tag gets it.
+//
+// This puts back the text's lightness `.tag.is-light` sets, the one that
+// reads on the light color's background, on a light tag and on a white,
+// black or dark one with `is-light`. Their background stays Bulma's. The
+// `:not()` skips a tag that carries any other color, so Bulma's light variant
+// of that color (`is-primary is-light`) keeps its look, and adds a class's
+// weight, so the rule outranks Bulma's whichever stylesheet loads first. Once
+// Bulma defines those variables, this can go.
+.#{iv.$class-prefix}tag.#{iv.$class-prefix}is-light.#{iv.$class-prefix}is-light:not(
+    #{extras-color-classes('light', 'white', 'black', 'dark')}
+  ) {
+  @include cv.register-vars(
+    (
+      'tag-color-l': #{cv.getVar('light-invert-l')},
+    )
+  );
+}
+
+// A tag in a table cell. Bulma's tag is an `inline-flex` box on the text's
+// baseline, as tall as a line of body text, so the room the line keeps under
+// its baseline makes the cell's line, and its row, a little taller than a row
+// of plain text. At the bottom of the line it fits a line of body text, and
+// in larger text its label still lands near the text's baseline. A tag made
+// larger, with a size or a text size, is taller than the line and grows it
+// either way, so it keeps the baseline. The rule is all `:where()`, so it
+// weighs nothing: Bulma's `.title .tag` and `.subtitle .tag`, which center a
+// tag in a heading, and any rule an app writes for a tag still win.
+:where(.#{iv.$class-prefix}table td, .#{iv.$class-prefix}table th)
+  :where(
+    .#{iv.$class-prefix}tag:not(
+        .#{iv.$class-prefix}is-medium,
+        .#{iv.$class-prefix}is-large,
+        [class*='#{iv.$class-prefix}is-size-']
+      )
+  ) {
+  vertical-align: bottom;
+}
+
+// A tag rendered as a button, through `as` or `isDelete`. The browser's own
+// stylesheet gives a button its own font, normal in weight, style, width and
+// the rest, with no letter or word spacing, transform, indent or shadow, and
+// centered, where a span takes all of those from the text around it. Bulma's
+// button reset gives back the family and size, and leaves the rest, so a
+// button tag in a bold heading or an uppercase label would read differently
+// from a span tag beside it. These take them from the text around it again,
+// so the tag looks the same whatever element it is. A link tag takes them
+// already. Its colors and size don't change, and neither does the focus ring
+// Bulma gives a button. The selector weighs one class, as `.tag` does, so an
+// app's own class on a tag meets it the way it meets Bulma's `.tag`.
+.#{iv.$class-prefix}tag:where(button) {
+  font-feature-settings: inherit;
+  font-kerning: inherit;
+  font-language-override: inherit;
+  font-optical-sizing: inherit;
+  font-palette: inherit;
+  font-size-adjust: inherit;
+  font-stretch: inherit;
+  font-style: inherit;
+  font-synthesis: inherit;
+  font-variant: inherit;
+  font-variation-settings: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  text-align: inherit;
+  text-indent: inherit;
+  text-rendering: inherit;
+  text-shadow: inherit;
+  text-transform: inherit;
+  word-spacing: inherit;
+}

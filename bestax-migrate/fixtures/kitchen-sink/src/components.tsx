@@ -71,10 +71,14 @@ export function Widgets() {
         <Message.Header>Error</Message.Header>
         <Message.Body>Something failed.</Message.Body>
       </Message>
-      <Modal show={open} onClose={() => setOpen(false)}>
+      <Modal
+        show={open}
+        onClose={() => setOpen(false)}
+        aria-labelledby="terms-title"
+      >
         <Modal.Card>
           <Modal.Card.Header>
-            <Modal.Card.Title>Terms</Modal.Card.Title>
+            <Modal.Card.Title id="terms-title">Terms</Modal.Card.Title>
           </Modal.Card.Header>
           <Modal.Card.Body>Fine print.</Modal.Card.Body>
           <Modal.Card.Footer>The end.</Modal.Card.Footer>

@@ -49,7 +49,9 @@ A basic `SubTitle` renders a secondary heading. Use this for subheadings or supp
 Set the `hasSkeleton` prop to apply a skeleton effect to part of the subtitle, useful for partial loading states.
 
 ```tsx live
-<SubTitle hasSkeleton>SubTitle with Skeleton Effect</SubTitle>
+<SubTitle hasSkeleton aria-hidden="true">
+  SubTitle with Skeleton Effect
+</SubTitle>
 ```
 
 `hasSkeleton` will only turn a small part of the content into a skeleton, typically for partial loading effects.
@@ -59,7 +61,9 @@ Set the `hasSkeleton` prop to apply a skeleton effect to part of the subtitle, u
 Set the `skeleton` prop to apply a skeleton effect to the entire subtitle, indicating that the whole heading is loading.
 
 ```tsx live
-<SubTitle skeleton>SubTitle Skeleton Effect</SubTitle>
+<SubTitle skeleton aria-hidden="true">
+  SubTitle Skeleton Effect
+</SubTitle>
 ```
 
 `skeleton` applies the `is-skeleton` class to the entire subtitle, making the whole heading appear as a skeleton placeholder.
@@ -128,9 +132,13 @@ Combine `Title` and `SubTitle` components for a structured heading and subheadin
 
 - **Semantic HTML:** Use appropriate heading levels for document structure.
 - **Screen readers:** Subtitles should be used in conjunction with titles for clarity.
+- **Skeletons:** `skeleton` and `hasSkeleton` follow [Skeleton's accessibility notes](./skeleton.md#accessibility),
+  forced colors included.
 
 :::tip
-`SubTitle` is visually styled as a heading, but its semantic level depends on the `as` prop.
+`SubTitle` is visually styled as a heading. Its level comes from `size` when it has one and from
+`as` when it doesn't, and with neither it's an `<h1>`. `as="p"` makes it a paragraph whatever its
+size, and the `textSize` helper sizes it without changing the level.
 :::
 
 ---
@@ -154,17 +162,17 @@ Combine `Title` and `SubTitle` components for a structured heading and subheadin
 
 <!-- bestax:generated props -->
 
-| Prop          | Type                                                                                         | Default | Description                                                        |
-| ------------- | -------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------ |
-| `className`   | `string`                                                                                     | —       | Additional CSS classes to apply.                                   |
-| `size`        | `'1'` \| `'2'` \| `'3'` \| `'4'` \| `'5'` \| `'6'` \| `1` \| `2` \| `3` \| `4` \| `5` \| `6` | —       | Size of the subtitle (Bulma sizes `1`-`6`, as a string or number). |
-| `as`          | `'h1'` \| `'h2'` \| `'h3'` \| `'h4'` \| `'h5'` \| `'h6'` \| `'p'`                            | `'h1'`  | HTML element to render as (h1-h6 or p).                            |
-| `hasSkeleton` | `boolean`                                                                                    | `false` | Applies the `has-skeleton` class to part of the content.           |
-| `children`    | `React.ReactNode`                                                                            | —       | Subtitle content.                                                  |
-| `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                      | —       | Text color helper.                                                 |
-| `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                      | —       | Background color helper.                                           |
-| `skeleton`    | `boolean`                                                                                    | —       | Applies the `is-skeleton` class to the entire component.           |
-| `...`         | All standard `<h1>`–`<h6>` / `<p>` attributes and Bulma helper props                         | —       | See [Helper Props](../helpers/usebulmaclasses.md)                  |
+| Prop          | Type                                                                                         | Default | Description                                                                                                                                                                                                                                                                                                                       |
+| ------------- | -------------------------------------------------------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className`   | `string`                                                                                     | —       | Additional CSS classes to apply.                                                                                                                                                                                                                                                                                                  |
+| `size`        | `'1'` \| `'2'` \| `'3'` \| `'4'` \| `'5'` \| `'6'` \| `1` \| `2` \| `3` \| `4` \| `5` \| `6` | —       | Size of the subtitle (Bulma sizes `1`-`6`, as a string or number). It also picks the heading level: unless `as` is `p`, `size="5"` renders an `<h5>`, whatever `as` says. For a heading whose level and size differ, set the level with `as` and the size with the `textSize` helper.                                             |
+| `as`          | `'h1'` \| `'h2'` \| `'h3'` \| `'h4'` \| `'h5'` \| `'h6'` \| `'p'`                            | `'h1'`  | HTML element to render as (`h1`-`h6` or `p`). With neither `as` nor `size` set it's an `<h1>`, so a subtitle that isn't a heading of its own takes `as="p"`. A `size` overrides `as` unless it's `p`, so `as="h3" size="5"` renders an `<h5>`. To keep the level `as` sets, size the subtitle with the `textSize` helper instead. |
+| `hasSkeleton` | `boolean`                                                                                    | `false` | Applies the `has-skeleton` class to part of the content. A screen reader still reads its text, so give it `aria-hidden="true"` while it's a skeleton.                                                                                                                                                                             |
+| `children`    | `React.ReactNode`                                                                            | —       | Subtitle content.                                                                                                                                                                                                                                                                                                                 |
+| `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                      | —       | Text color helper.                                                                                                                                                                                                                                                                                                                |
+| `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                      | —       | Background color helper.                                                                                                                                                                                                                                                                                                          |
+| `skeleton`    | `boolean`                                                                                    | —       | Applies the `is-skeleton` class to the entire component. A screen reader still reads its text, so give it `aria-hidden="true"` while it's a skeleton.                                                                                                                                                                             |
+| `...`         | All standard `<h1>`–`<h6>` / `<p>` attributes and Bulma helper props                         | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                 |
 
 <!-- /bestax:generated props -->
 

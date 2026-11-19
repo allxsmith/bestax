@@ -25,16 +25,8 @@ import {
   LINK_ATTR_TABLE,
   declaresAs,
 } from '../src/sources/_shared/polymorphic.js';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { typecheckTsx } from './support/typecheck-tsx.js';
-import { sourceNames } from '../src/sources/registry.js';
-
-const packageRoot = path.join(
-  path.dirname(fileURLToPath(import.meta.url)),
-  '..'
-);
+import { annotate, typecheckTsx } from './support/typecheck-tsx.js';
+import { targetsOf } from './support/source-targets.js';
 
 const TARGETS = Object.keys(AS_UNIONS).sort();
 
@@ -57,7 +49,7 @@ const importRoots = [...new Set(TARGETS.map(t => t.split('.')[0]))].sort();
  * is the stronger check of the two -- `Exact` reads one declaration, this one
  * puts every tag through the component's own call signature.
  */
-const AS_BY_USE = new Set(['Dropdown.Item']);
+const AS_BY_USE = new Set(['Dropdown.Item', 'Panel.Block']);
 
 function buildSource(): string {
   const rows: string[] = [];
@@ -102,23 +94,6 @@ function buildSource(): string {
   ].join('\n');
 }
 
-/**
- * tsc reports a row by line number, and a bare "Type 'false' does not satisfy
- * the constraint 'true'" says nothing about which component drifted. Quote
- * the generated line beside each diagnostic so the failure names the target.
- */
-function annotate(diagnostics: string, source: string): string {
-  const lines = source.split('\n');
-  return diagnostics
-    .split('\n')
-    .map(line => {
-      const at = /check\.tsx\((\d+),/.exec(line);
-      const row = at && lines[Number(at[1]) - 1];
-      return row ? `${line}\n    ↳ ${row.trim()}` : line;
-    })
-    .join('\n');
-}
-
 describe('AS_UNIONS matches the `as` each bestax component declares', () => {
   it('asserts every row against the library, in both directions', () => {
     const source = buildSource();
@@ -133,14 +108,22 @@ describe('AS_UNIONS matches the `as` each bestax component declares', () => {
     // A row removed by accident would make the assertion above pass while
     // the transform stopped guarding that component, so pin the set itself.
     expect(TARGETS).toEqual([
+      'Container',
       'Control',
       'Dropdown.Item',
       'Footer',
+      'Hero',
+      'Hero.Foot',
+      'Hero.Head',
       'Image',
+      'Level',
       'Level.Item',
       'Media',
       'Media.Left',
+      'Panel',
+      'Panel.Block',
       'SubTitle',
+      'Tag',
       'Title',
     ]);
   });
@@ -162,8 +145,8 @@ function buildHrefSource(): string {
   for (const [target, defaultEl] of Object.entries(HREF_TABLE)) {
     roots.add(target.split('.')[0]);
     const i = rows.length;
-    // Only where the component declares an `as` at all -- `Pagination.Link`
-    // and `Panel.Block` are anchors outright and take no such prop.
+    // Only where the component declares an `as` at all -- the `Pagination`
+    // controls are anchors outright and take no such prop.
     if (declaresAs(target)) {
       rows.push(
         `export const h${i} = <${target} as="a" href="#">{'x'}</${target}>; // ${target}: as="a"`
@@ -229,6 +212,7 @@ describe('the href and `as` tables match what the library accepts', () => {
       'Pagination.Next': 'a',
       'Pagination.Previous': 'a',
       'Panel.Block': 'a',
+      Tag: 'span',
     });
   });
 
@@ -461,36 +445,14 @@ describe('every row is exactly what React declares, over all of HTML', () => {
 const UNPROBEABLE = ['Dropdown', 'Dropdown.Divider', 'Tabs.Tab'];
 
 /**
- * Every bestax target the sources can produce.
- *
- * `target:` lines only, plus the handful a `special` names inline -- reading
- * every capitalised dotted string out of `specials.ts` also collects the
- * SOURCE libraries' own names (`Form.Help`, `Field.Label`), which bestax does
- * not export. `Pagination.Next` and `Pagination.Previous` are the ones that
- * matter here: no mapping names them, and the first version of `HREF_OK`
- * missed both for exactly that reason.
+ * Every component the library sources can turn an element into, but the
+ * unprobeable: the sources whose transforms read `HREF_TABLE`, which
+ * bulma-classes never does.
  */
-const SPECIAL_ONLY_TARGETS = ['Pagination.Next', 'Pagination.Previous'];
-
-/** Where each source spells its targets as `target: '…'` lines. */
-const TARGET_FILES: Record<string, string[]> = {
-  bloomer: ['mapping.ts', 'specials.ts'],
-  rbx: ['mapping.ts', 'specials.ts'],
-  'react-bulma-components': ['mapping.ts', 'specials.ts'],
-  'bulma-classes': ['class-map.ts'],
-};
-
 function reachableTargets(): string[] {
-  const dir = path.join(packageRoot, 'src', 'sources');
-  const found = new Set<string>(SPECIAL_ONLY_TARGETS);
-  for (const [source, files] of Object.entries(TARGET_FILES)) {
-    for (const file of files) {
-      const text = fs.readFileSync(path.join(dir, source, file), 'utf8');
-      for (const m of text.matchAll(/target: '([A-Z][\w.]*)'/g))
-        found.add(m[1]);
-    }
-  }
-  return [...found].filter(t => !UNPROBEABLE.includes(t)).sort();
+  return targetsOf('react-bulma-components', 'rbx', 'bloomer').filter(
+    t => !UNPROBEABLE.includes(t)
+  );
 }
 
 /** Whether the target renders an `<a>` when told to: `AS_ANY`, or a union with it. */
@@ -500,10 +462,6 @@ function acceptsAsAnchor(target: string): boolean {
 }
 
 describe('HREF_OK names every reachable target that takes an href', () => {
-  it('reads targets from every registered source', () => {
-    expect(Object.keys(TARGET_FILES).sort()).toEqual(sourceNames().sort());
-  });
-
   it('and no others', () => {
     // The one claim in this file nothing held. A deep review refuted a
     // missing row by hand once; a missing row deletes a working link and a

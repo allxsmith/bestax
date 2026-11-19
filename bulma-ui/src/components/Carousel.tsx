@@ -16,6 +16,14 @@ import {
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useClassPrefix } from '../helpers/Config';
 import { getActiveElementInTree } from '../helpers/shadowDom';
+import { useLatestRef } from '../helpers/useLatestRef';
+import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
+import { MOBILE, useBulmaViewport } from '../helpers/useBulmaViewport';
+import { inertProps } from '../helpers/inertProps';
+import { useSwipe } from '../helpers/useSwipe';
+import { usePrefersReducedMotion } from '../helpers/usePrefersReducedMotion';
+import { chain } from '../helpers/useHoverOpen';
+import { ChevronNextIcon, ChevronPrevIcon } from '../helpers/chevronIcons';
 import { Icon } from '../elements/Icon';
 import { Button } from '../elements/Button';
 
@@ -23,8 +31,18 @@ import { Button } from '../elements/Button';
  * Props for the CarouselItem component.
  */
 export interface CarouselItemProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** Whether this item is active (set automatically). */
+  /**
+   * Whether this item is in view. `Carousel` sets it on every item in view,
+   * so with several in view several are active.
+   */
   active?: boolean;
+  /**
+   * The slide's content. An image in it is held to the slide's width at its
+   * own height, unless something sizes the image itself: a ratio `Image`
+   * fills its frame, and an `Avatar`'s photo its circle, as they do outside a
+   * carousel.
+   */
+  children?: React.ReactNode;
 }
 
 /**
@@ -55,40 +73,71 @@ CarouselItem.displayName = 'CarouselItem';
 type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
 
 /**
- * Default SVG icon for the previous arrow button.
- *
- * @function
- * @returns {JSX.Element} The rendered SVG chevron-left icon.
+ * The `--bulma-carousel-items-to-show*` variable each count prop writes, in
+ * the order the component lists them: `useBulmaViewport`'s viewports, widest
+ * first, then mobile, and last `itemsToShow` itself.
  */
-const DefaultPrevIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-  >
-    <polyline points="15 18 9 12 15 6" />
-  </svg>
-);
+const COUNT_SUFFIXES = [
+  '-fullhd',
+  '-widescreen',
+  '-desktop',
+  '-tablet',
+  '-mobile',
+  '',
+];
 
 /**
- * Default SVG icon for the next arrow button.
+ * A count prop as the whole number the carousel works with: rounded down,
+ * and never below 1, so a zero or a stray `NaN` can't divide by nothing.
  *
  * @function
- * @returns {JSX.Element} The rendered SVG chevron-right icon.
+ * @param {number | undefined} count - The prop as given.
+ * @returns {number | undefined} The count, or `undefined` when unset.
  */
-const DefaultNextIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-  >
-    <polyline points="9 18 15 12 9 6" />
-  </svg>
-);
+const wholeCount = (count: number | undefined) =>
+  count === undefined ? undefined : Math.max(1, Math.floor(count) || 1);
+
+// Focuses the track's item at `slot`, given `tabindex="-1"` unless it has a
+// tabindex of its own. Nothing, when no item is there.
+const focusSlot = (track: HTMLElement, slot: number) => {
+  const item = track.children[slot] as HTMLElement | undefined;
+  if (!item) return;
+  if (!item.hasAttribute('tabindex')) item.tabIndex = -1;
+  item.focus({ preventScroll: true });
+};
+
+/**
+ * The words a Carousel writes for its arrows, indicators and items. Each is
+ * English unless you give your own, and a word that's empty, or a function
+ * that returns one, keeps the English. The role descriptions, "carousel" on
+ * the region and "slide" on each item, take `aria-roledescription` on the
+ * Carousel and on each CarouselItem.
+ */
+export interface CarouselLabels {
+  /**
+   * The previous arrow's name.
+   * @defaultValue 'Previous slide'
+   */
+  previous?: string;
+  /**
+   * The next arrow's name.
+   * @defaultValue 'Next slide'
+   */
+  next?: string;
+  /**
+   * An indicator's name. It gets the place of the first item the indicator
+   * brings into view, counting from 1.
+   * @defaultValue (slide) => 'Go to slide ' + slide
+   */
+  indicator?: (slide: number) => string;
+  /**
+   * The name of an item that has no `aria-label` or `aria-labelledby` of
+   * its own. It gets the item's place, counting from 1, and the number of
+   * items.
+   * @defaultValue (current, total) => current + ' of ' + total
+   */
+  item?: (current: number, total: number) => string;
+}
 
 /**
  * Props for the Carousel component.
@@ -100,41 +149,156 @@ export interface CarouselProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange' | 'color'>,
     BulmaClassesProps {
   /**
-   * Current active slide index (controlled).
+   * Index of the first item in view (controlled); with one item in view, the
+   * slide shown. A value between two of the positions a step lands on (see
+   * `itemsToScroll`) is shown as given, and the next step goes on from it.
+   * With `repeat`, a value past either end wraps around; without it, one
+   * that would leave empty space after the last item shows the last full
+   * view. Neither correction calls `onChange`. A value that takes the item
+   * holding focus out of view moves focus to the first item in view, as a
+   * swipe or a change of width does.
    * @defaultValue 0
    */
-  value?: number;
-  /** Enable auto-play. */
+  value?: number | undefined;
+  /**
+   * Enable auto-play: one step (`itemsToScroll` items) per `interval`.
+   * Without `repeat` it stops at the last position. It waits while the
+   * pointer is over the carousel (see `pauseOnHover`) and while focus is
+   * anywhere inside it, on an item, an arrow or an indicator, so nothing
+   * moves while someone reads or works it. A browser that leaves focus on
+   * an arrow or an indicator a click pressed keeps it waiting until focus
+   * moves on.
+   */
   autoplay?: boolean;
   /** Auto-play interval in milliseconds. Default: 5000. */
   interval?: number;
   /** Pause auto-play on hover. Default: true. */
   pauseOnHover?: boolean;
-  /** Loop back to first slide after last. Default: true. */
+  /**
+   * Loop back to the first position after the last. Default: true. With
+   * several items in view, the view runs on past the last item into the
+   * first ones, so it can show the end and the start side by side. Only
+   * loops when some item is out of view. Without it, the arrows are
+   * disabled at the ends, and focus on the one disabled moves to the current
+   * indicator, or to the other arrow when there are no indicators.
+   */
   repeat?: boolean;
-  /** Enable drag/swipe navigation. Default: true. */
+  /**
+   * Enable drag/swipe navigation. Default: true. A swipe moves one step,
+   * however far it travels. A swipe toward the start of the line goes on,
+   * so on a right-to-left page a swipe right brings the next slide in.
+   */
   hasDrag?: boolean;
+  /**
+   * How many items are in view at once, at every width no
+   * `itemsToShow<Viewport>` prop covers. Those props read the way a
+   * `Column`'s `size<Viewport>` props do: `itemsToShowMobile` applies below
+   * Bulma's tablet breakpoint, each of the others from its own breakpoint
+   * up, and where several apply the widest one wins. A whole number, rounded
+   * down and at least 1. The widths come from the stylesheet, so they are
+   * right on the first paint; the arrows, indicators and steps use the
+   * count for the window's width once the page has hydrated, and this one
+   * until then. With this many children or fewer, every item keeps its
+   * share of the width, nothing moves, and no arrows or indicators render.
+   * @defaultValue 1
+   */
+  itemsToShow?: number;
+  /**
+   * Items in view at any width below Bulma's tablet breakpoint (769px),
+   * fractional ones included. Falls back to `itemsToShow`.
+   */
+  itemsToShowMobile?: number;
+  /**
+   * Items in view from Bulma's tablet breakpoint (769px) up, until a wider
+   * viewport's prop takes over. Falls back to `itemsToShow`.
+   */
+  itemsToShowTablet?: number;
+  /**
+   * Items in view from Bulma's desktop breakpoint (1024px) up, until a wider
+   * viewport's prop takes over. Falls back to `itemsToShowTablet`, then
+   * `itemsToShow`.
+   */
+  itemsToShowDesktop?: number;
+  /**
+   * Items in view from Bulma's widescreen breakpoint (1216px) up, until
+   * `itemsToShowFullhd` takes over. Falls back to `itemsToShowDesktop`, and
+   * on down to `itemsToShow`.
+   */
+  itemsToShowWidescreen?: number;
+  /**
+   * Items in view from Bulma's fullhd breakpoint (1408px) up. Falls back to
+   * `itemsToShowWidescreen`, and on down to `itemsToShow`.
+   */
+  itemsToShowFullhd?: number;
+  /**
+   * How many items one step moves, for an arrow, an arrow key on an arrow, a
+   * swipe or an autoplay tick. A whole number, capped at the count in view so a step
+   * never skips an item. Without `repeat`, the last step stops at the last
+   * full view, so it can be shorter; with `repeat`, the step after the last
+   * position goes on to the first one. The indicators mark these positions,
+   * one per step rather than one per item. When the count in view changes
+   * with the window's width, the first item in view stays in view.
+   * @defaultValue 1
+   */
+  itemsToScroll?: number;
   /**
    * Show navigation arrows. Default: true. They render `type="button"`, so a
    * carousel inside a form is not submitted by moving between slides.
    */
   arrow?: boolean;
-  /** Only show arrows on hover. */
+  /**
+   * Only show arrows on hover. An arrow also shows while keyboard focus is
+   * on it.
+   */
   arrowHover?: boolean;
   /**
-   * Show slide indicators. Default: true. They render `type="button"`, so a
-   * carousel inside a form is not submitted by picking a slide.
+   * Show slide indicators. Default: true. There is one for each position a
+   * step can land on (see `itemsToScroll`). They render `type="button"`, so
+   * a carousel inside a form is not submitted by picking a slide. Left and
+   * Right on an indicator move focus to the indicator beside it and bring
+   * its slide into view, as a click on it does, mirrored on a right-to-left
+   * page.
    */
   indicator?: boolean;
-  /** Position indicators inside carousel. */
+  /**
+   * Puts the indicators over the slides instead of below them, at the edge
+   * `indicatorPosition` names. It also turns on the overlay look unless
+   * `overlayControls` says otherwise, so on its own it gives the look made
+   * for photos: light arrows, and light indicators on a dark gradient band.
+   */
   indicatorInside?: boolean;
-  /** Indicator position. Default: 'bottom'. */
+  /**
+   * The overlay look, made for photos. The arrows take the
+   * `--bulma-carousel-overlay-arrow-*` colors, and indicators over the
+   * slides take the `--bulma-carousel-overlay-indicator-*` colors on a dark
+   * gradient band. Indicators below the slides keep their plain colors,
+   * since they sit on the page. It follows `indicatorInside` unless you set
+   * it, so `overlayControls={false}` puts the indicators over the slides
+   * with the plain look, and `overlayControls` alone gives the arrows the
+   * overlay look with the indicators below. While it's on, `arrowColor`
+   * doesn't apply.
+   * @defaultValue indicatorInside
+   */
+  overlayControls?: boolean;
+  /**
+   * The edge of the slides `indicatorInside` puts the indicators on.
+   * Default: 'bottom'. Without `indicatorInside` they sit below the slides
+   * whatever this says, so leave it unset there.
+   */
   indicatorPosition?: 'bottom' | 'top';
   /** Indicator style. Default: 'dots'. */
   indicatorStyle?: 'circles' | 'dots' | 'lines' | 'bars';
-  /** Icon name for the previous arrow button. */
+  /**
+   * Icon name for the previous arrow button. On a right-to-left page that
+   * button sits on the right and the built-in chevron flips to point there,
+   * but an icon you name is drawn as given, so pick one that points the way
+   * the page reads.
+   */
   iconPrev?: string;
-  /** Icon name for the next arrow button. */
+  /**
+   * Icon name for the next arrow button. On a right-to-left page it sits on
+   * the left, and an icon you name is drawn as given, as with `iconPrev`.
+   */
   iconNext?: string;
   /** Icon library to use. */
   iconLibrary?: IconLibrary;
@@ -144,14 +308,38 @@ export interface CarouselProps
   iconSize?: 'small' | 'medium' | 'large';
   /** Additional icon modifiers. */
   iconFeatures?: string | string[];
-  /** Show semi-transparent background on arrow buttons. Set to `false` for icon-only arrows. */
+  /**
+   * Show semi-transparent background on arrow buttons. Set to `false` for
+   * icon-only arrows, which show Bulma's focus outline while they have
+   * keyboard focus, as a ghost `Button` does.
+   */
   arrowBackground?: boolean;
-  /** Color theme for navigation arrows. */
+  /**
+   * Color theme for navigation arrows. Not applied while the overlay look is
+   * on (see `overlayControls`, which `indicatorInside` turns on), whose
+   * arrows take `--bulma-carousel-overlay-arrow-color`.
+   */
   arrowColor?: 'light' | 'dark';
-  /** Accessible label for the carousel region. Default: 'Image carousel'. */
+  /**
+   * The carousel region's name. Name it for what it shows, such as
+   * "Featured products", and leave out the word "carousel", which the
+   * region's role description already says. Under a visible heading,
+   * `aria-labelledby` with the heading's id names it instead, ahead of the
+   * `aria-label` the default still sets. The default is a placeholder that
+   * says "carousel" twice with the role description, and is the same on
+   * every carousel left with it. Default: 'Image carousel'.
+   */
   ariaLabel?: string;
-  /** Callback when slide changes. */
-  onChange?: (value: number) => void;
+  /**
+   * The words it writes for its arrows, indicators and items, for another
+   * language.
+   */
+  labels?: CarouselLabels;
+  /**
+   * Called with the index of the first item in view when an arrow, an arrow
+   * key, an indicator, a swipe or autoplay moves the carousel.
+   */
+  onChange?: ((value: number) => void) | undefined;
   /** CarouselItem children. */
   children?: React.ReactNode;
 }
@@ -166,7 +354,7 @@ export interface CarouselProps
  *
  * @example
  * // Basic carousel
- * <Carousel>
+ * <Carousel ariaLabel="Highlights">
  *   <CarouselItem>Slide 1</CarouselItem>
  *   <CarouselItem>Slide 2</CarouselItem>
  *   <CarouselItem>Slide 3</CarouselItem>
@@ -174,13 +362,26 @@ export interface CarouselProps
  *
  * @example
  * // Auto-playing carousel
- * <Carousel autoplay interval={3000}>
+ * <Carousel ariaLabel="Photos" autoplay interval={3000}>
  *   <CarouselItem>
  *     <img src="image1.jpg" alt="Slide 1" />
  *   </CarouselItem>
  *   <CarouselItem>
  *     <img src="image2.jpg" alt="Slide 2" />
  *   </CarouselItem>
+ * </Carousel>
+ *
+ * @example
+ * // Three cards in view on desktop, two on tablet, one on mobile
+ * <Carousel
+ *   ariaLabel="Featured products"
+ *   itemsToShow={1}
+ *   itemsToShowTablet={2}
+ *   itemsToShowDesktop={3}
+ * >
+ *   {cards.map(card => (
+ *     <CarouselItem key={card.id}>{card.body}</CarouselItem>
+ *   ))}
  * </Carousel>
  */
 export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
@@ -192,10 +393,18 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       pauseOnHover = true,
       repeat = true,
       hasDrag = true,
+      itemsToShow,
+      itemsToShowMobile,
+      itemsToShowTablet,
+      itemsToShowDesktop,
+      itemsToShowWidescreen,
+      itemsToShowFullhd,
+      itemsToScroll,
       arrow = true,
       arrowHover = false,
       indicator = true,
       indicatorInside = false,
+      overlayControls = indicatorInside,
       indicatorPosition = 'bottom',
       indicatorStyle = 'dots',
       iconPrev,
@@ -207,9 +416,15 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       arrowBackground = true,
       arrowColor,
       ariaLabel = 'Image carousel',
+      labels,
       onChange,
       className,
+      style,
       children,
+      onFocus,
+      onBlur,
+      onMouseEnter,
+      onMouseLeave,
       ...props
     },
     ref
@@ -219,232 +434,326 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     // Cleanup returned by a consumer's callback ref on attach, held until detach.
     const consumerCleanupRef = useRef<(() => void) | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const slidesRef = useRef<HTMLDivElement>(null);
+    // The item (a child of the track) that holds focus, until focus leaves
+    // the items for somewhere else
+    const focusedItemRef = useRef<Element | undefined>(undefined);
+    // The arrows and the indicators, and the one of them that holds focus,
+    // until focus moves on to somewhere else
+    const prevRef = useRef<HTMLButtonElement>(null);
+    const nextRef = useRef<HTMLButtonElement>(null);
+    const indicatorsRef = useRef<HTMLDivElement>(null);
+    const focusedControlRef = useRef<HTMLElement | undefined>(undefined);
 
     const [internalValue, setInternalValue] = useState(0);
-    const [isPaused, setIsPaused] = useState(false);
-    const [isDragging, setIsDragging] = useState(false);
-    const [dragStart, setDragStart] = useState(0);
-    const [dragOffset, setDragOffset] = useState(0);
+    const [isHovered, setIsHovered] = useState(false);
+    const [isFocusInside, setIsFocusInside] = useState(false);
     const [isWrapping, setIsWrapping] = useState(false);
     const [displayIndex, setDisplayIndex] = useState(0);
     const [skipTransition, setSkipTransition] = useState(false);
+    // Under reduced motion each step changes the view at once, with no slide
+    const reducedMotion = usePrefersReducedMotion();
+    // The words it writes, English unless the caller gives their own
+    const words = {
+      previous: labels?.previous || 'Previous slide',
+      next: labels?.next || 'Next slide',
+      indicator: (slide: number) =>
+        labels?.indicator?.(slide) || `Go to slide ${slide}`,
+      item: (current: number, total: number) =>
+        labels?.item?.(current, total) || `${current} of ${total}`,
+    };
 
     // Get valid children
-    const items = Children.toArray(children).filter(isValidElement);
+    const items = Children.toArray(children).filter(
+      isValidElement
+    ) as React.ReactElement<CarouselItemProps>[];
     const itemCount = items.length;
 
-    // Use controlled or internal value
-    const activeIndex =
-      controlledValue !== undefined ? controlledValue : internalValue;
-
-    // Sync displayIndex when controlled value changes externally. Intentional
-    // external-prop sync that must not run mid-wrap animation; covered by tests
-    // and certified in-browser.
-    useEffect(() => {
-      if (controlledValue !== undefined && !isWrapping) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing to controlled prop
-        setDisplayIndex(controlledValue);
+    // The count in view. The viewport props come widest first, in the order
+    // of VIEWPORT_QUERIES, then mobile; each min-width viewport falls back to
+    // the narrower ones, and every viewport to `itemsToShow`, the cascade the
+    // stylesheet's `--bulma-carousel-items-to-show-*` defaults spell out.
+    const counts = [
+      itemsToShowFullhd,
+      itemsToShowWidescreen,
+      itemsToShowDesktop,
+      itemsToShowTablet,
+      itemsToShowMobile,
+    ].map(wholeCount);
+    const baseCount = wholeCount(itemsToShow);
+    const viewport = useBulmaViewport(counts.some(c => c !== undefined));
+    const inView =
+      (viewport === MOBILE
+        ? counts[MOBILE]
+        : viewport >= 0
+          ? counts.slice(viewport, MOBILE).find(c => c !== undefined)
+          : undefined) ??
+      baseCount ??
+      1;
+    // The props as the stylesheet reads them, so the widths are right from
+    // the first paint, on the server too.
+    const countStyle: Record<string, number> = {};
+    [...counts, baseCount].forEach((count, i) => {
+      if (count !== undefined) {
+        countStyle[`--bulma-carousel-items-to-show${COUNT_SUFFIXES[i]}`] =
+          count;
       }
-    }, [controlledValue, isWrapping]);
+    });
+
+    const scroll = Math.min(wholeCount(itemsToScroll) ?? 1, inView);
+    const looping = repeat && itemCount > inView;
+    const lastStart = Math.max(0, itemCount - inView);
+    // Where the view can start: every `scroll` items from the first, and
+    // without a loop the last full view as well, which is what keeps the
+    // end of the track from showing empty space.
+    const positions: number[] = [];
+    for (let p = 0; p < (looping ? itemCount : lastStart); p += scroll) {
+      positions.push(p);
+    }
+    if (!looping) positions.push(lastStart);
+    const lastPosition = positions[positions.length - 1];
+    const canMove = positions.length > 1;
+
+    const wrap = (index: number) =>
+      ((index % itemCount) + itemCount) % itemCount;
+    const fit = (index: number) =>
+      looping ? wrap(index) : Math.min(Math.max(index, 0), lastStart);
+
+    // Use controlled or internal value, as a start the view can show
+    const activeIndex = fit(controlledValue ?? internalValue);
+    // The indicator for the last position at or before the first item in view
+    const activePosition = positions.reduce(
+      (found, position, index) => (position <= activeIndex ? index : found),
+      0
+    );
+    const nextIndex = positions[activePosition + 1];
+    // From between two positions, the previous step is the one just behind
+    const prevIndex =
+      activeIndex > positions[activePosition]
+        ? positions[activePosition]
+        : positions[activePosition - 1];
+
+    // Sync displayIndex when the value changes externally, or when the count
+    // in view moves the start it fits to. Intentional external-prop sync that
+    // must not run mid-wrap animation; covered by tests and certified
+    // in-browser. Uncontrolled, the fitted start becomes the value too, so a
+    // later change of count keeps what was first in view in view.
+    useEffect(() => {
+      if (!isWrapping) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing to controlled prop
+        setDisplayIndex(activeIndex);
+        if (controlledValue === undefined) setInternalValue(activeIndex);
+      }
+    }, [activeIndex, isWrapping, controlledValue]);
 
     // Update active index
     const setActiveIndex = useCallback(
-      (index: number, syncDisplay = true) => {
-        let newIndex = index;
-
-        if (repeat) {
-          if (index < 0) {
-            newIndex = itemCount - 1;
-          } else if (index >= itemCount) {
-            newIndex = 0;
-          }
-        } else {
-          newIndex = Math.max(0, Math.min(index, itemCount - 1));
-        }
-
+      (index: number) => {
         if (controlledValue === undefined) {
-          setInternalValue(newIndex);
+          setInternalValue(index);
         }
-        if (syncDisplay) {
-          setDisplayIndex(newIndex);
-        }
-        onChange?.(newIndex);
+        setDisplayIndex(index);
+        setIsWrapping(false);
+        onChange?.(index);
       },
-      [controlledValue, itemCount, repeat, onChange]
+      [controlledValue, onChange]
     );
 
     // Navigation handlers
     const goToPrev = useCallback(() => {
-      if (activeIndex === 0 && repeat && itemCount > 1) {
-        // Animate to clone of last slide (position -1)
-        setDisplayIndex(-1);
+      if (prevIndex !== undefined) {
+        setActiveIndex(prevIndex);
+      } else if (looping && reducedMotion) {
+        // No transition to end, so straight to the last position
+        setActiveIndex(lastPosition);
+      } else if (looping) {
+        // Animate to the clones before the first item, which show the last
+        // position, and snap to the real one when the transition ends
+        setDisplayIndex(lastPosition - itemCount);
         setIsWrapping(true);
-      } else {
-        setActiveIndex(activeIndex - 1);
       }
-    }, [activeIndex, repeat, itemCount, setActiveIndex]);
+    }, [
+      prevIndex,
+      looping,
+      reducedMotion,
+      lastPosition,
+      itemCount,
+      setActiveIndex,
+    ]);
 
     const goToNext = useCallback(() => {
-      if (activeIndex === itemCount - 1 && repeat && itemCount > 1) {
-        // Animate to clone of first slide (position itemCount)
+      if (nextIndex !== undefined) {
+        setActiveIndex(nextIndex);
+      } else if (looping && reducedMotion) {
+        // No transition to end, so straight to the first position
+        setActiveIndex(0);
+      } else if (looping) {
+        // Animate to the clones after the last item, which show the first
+        // position, and snap to the real one when the transition ends
         setDisplayIndex(itemCount);
         setIsWrapping(true);
-      } else {
-        setActiveIndex(activeIndex + 1);
       }
-    }, [activeIndex, itemCount, repeat, setActiveIndex]);
+    }, [nextIndex, looping, reducedMotion, itemCount, setActiveIndex]);
 
-    const goToSlide = useCallback(
-      (index: number) => {
-        setIsWrapping(false);
-        setActiveIndex(index);
-      },
-      [setActiveIndex]
-    );
+    // Read when the timer fires or an arrow key arrives, so neither the
+    // timer nor the key listener starts over while `onChange` changes
+    // identity, as an inline one does on every render of the parent.
+    const goToPrevRef = useLatestRef(goToPrev);
+    const goToNextRef = useLatestRef(goToNext);
 
-    // Auto-play
+    // Left and Right on the indicator at `at` go to the one beside it:
+    // focus moves there and its slide comes into view, as a click on it
+    // does. Past either end they go round when the carousel loops, and
+    // stay put when it doesn't.
+    const stepIndicatorRef = useLatestRef((at: number, forward: boolean) => {
+      let to = at + (forward ? 1 : -1);
+      if (to < 0 || to >= positions.length) {
+        if (!looping) return;
+        to = (to + positions.length) % positions.length;
+      }
+      setActiveIndex(positions[to]);
+      (indicatorsRef.current!.children[to] as HTMLElement).focus();
+    });
+
+    // Auto-play. Each slide gets the whole interval, so a slide change,
+    // autoplay's own or the user's, starts the timer over. A render that
+    // leaves the slide where it is doesn't. It waits while focus is anywhere
+    // in the carousel, on an item or on an arrow or an indicator, so nothing
+    // moves while someone reads or works it. The timer reads where focus is
+    // when it fires, rather than trusting the last focus event alone: a
+    // browser moving focus off an element that went inert need not fire one,
+    // and the pause would never end. A focus change still starts the timer
+    // over, so a slide gets the whole interval once focus leaves.
+    const isPlaying =
+      autoplay &&
+      (looping || nextIndex !== undefined) &&
+      !(pauseOnHover && isHovered);
+    const isRotating = isPlaying && !isFocusInside;
+
     useEffect(() => {
-      if (!autoplay || isPaused || itemCount <= 1) return undefined;
+      if (!isPlaying) return undefined;
 
       const timer = setInterval(() => {
-        goToNext();
+        const root = carouselRef.current;
+        if (root?.contains(getActiveElementInTree(root))) return;
+        if (isFocusInside) setIsFocusInside(false);
+        goToNextRef.current();
       }, interval);
 
       return () => clearInterval(timer);
-    }, [autoplay, isPaused, interval, goToNext, itemCount]);
+    }, [isPlaying, isFocusInside, interval, activeIndex, goToNextRef]);
 
-    // Pause on hover
-    const handleMouseEnter = useCallback(() => {
-      if (pauseOnHover) {
-        setIsPaused(true);
+    // Pause on hover (with `pauseOnHover`, read as it is now) and on focus
+    // anywhere inside. A caller's own handlers for these events run too,
+    // rather than replacing these.
+    const handleMouseEnter = chain(onMouseEnter, () => setIsHovered(true));
+    const handleMouseLeave = chain(onMouseLeave, () => setIsHovered(false));
+    const handleFocus = chain(
+      onFocus,
+      (e: React.FocusEvent<HTMLDivElement>) => {
+        setIsFocusInside(true);
+        const target = e.target as HTMLElement;
+        focusedControlRef.current =
+          target === prevRef.current ||
+          target === nextRef.current ||
+          indicatorsRef.current?.contains(target)
+            ? target
+            : undefined;
       }
-    }, [pauseOnHover]);
-
-    const handleMouseLeave = useCallback(() => {
-      if (pauseOnHover) {
-        setIsPaused(false);
+    );
+    const handleBlur = chain(onBlur, (e: React.FocusEvent<HTMLDivElement>) => {
+      setIsFocusInside(e.currentTarget.contains(e.relatedTarget));
+      // Focus that went somewhere, or a click on the page around the
+      // carousel, lets go of the control. Another window taking focus leaves
+      // the control the page's active element, so it stays held, for the
+      // hand-off below.
+      if (
+        e.relatedTarget ||
+        getActiveElementInTree(e.currentTarget) !== e.target
+      ) {
+        focusedControlRef.current = undefined;
       }
-    }, [pauseOnHover]);
+    });
 
-    // Drag handlers
-    const handleDragStart = useCallback(
-      (clientX: number) => {
-        if (!hasDrag) return;
-        setIsDragging(true);
-        setDragStart(clientX);
-        setDragOffset(0);
-      },
-      [hasDrag]
-    );
+    // Right to left the track runs the other way, so the next slide is on
+    // the left. Read when a swipe or key arrives, as Lightbox does, so a
+    // LocaleProvider and the page's own `dir` both count.
+    const isRtl = () =>
+      getComputedStyle(carouselRef.current as HTMLDivElement).direction ===
+      'rtl';
 
-    const handleDragMove = useCallback(
-      (clientX: number) => {
-        if (!isDragging) return;
-        setDragOffset(clientX - dragStart);
-      },
-      [isDragging, dragStart]
-    );
+    // Drag and swipe, through the shared hook, past its 50px threshold: a
+    // drag toward the start of the line goes on, which is a drag left on a
+    // left-to-right page, and a drag the other way goes back.
+    const swipe = useSwipe<HTMLDivElement>({
+      enabled: hasDrag,
+      onSwipe: direction =>
+        direction === (isRtl() ? 'right' : 'left') ? goToNext() : goToPrev(),
+    });
+    const isDragging = swipe.isSwiping;
+    const dragOffset = swipe.offsetX;
 
-    const handleDragEnd = useCallback(() => {
-      if (!isDragging) return;
-      setIsDragging(false);
-
-      const threshold = 50;
-      if (dragOffset < -threshold) {
-        goToNext();
-      } else if (dragOffset > threshold) {
-        goToPrev();
-      }
-
-      setDragOffset(0);
-    }, [isDragging, dragOffset, goToNext, goToPrev]);
-
-    // Mouse events
-    const handleMouseDown = useCallback(
-      (e: React.MouseEvent) => {
-        e.preventDefault();
-        handleDragStart(e.clientX);
-      },
-      [handleDragStart]
-    );
-
-    const handleMouseMove = useCallback(
-      (e: React.MouseEvent) => {
-        handleDragMove(e.clientX);
-      },
-      [handleDragMove]
-    );
-
-    const handleMouseUp = useCallback(() => {
-      handleDragEnd();
-    }, [handleDragEnd]);
-
-    // Touch events
-    const handleTouchStart = useCallback(
-      (e: React.TouchEvent) => {
-        handleDragStart(e.touches[0].clientX);
-      },
-      [handleDragStart]
-    );
-
-    const handleTouchMove = useCallback(
-      (e: React.TouchEvent) => {
-        handleDragMove(e.touches[0].clientX);
-      },
-      [handleDragMove]
-    );
-
-    const handleTouchEnd = useCallback(() => {
-      handleDragEnd();
-    }, [handleDragEnd]);
-
-    // Keyboard navigation
+    // Keyboard navigation, from the carousel's own controls. Inside an item
+    // the keys are its content's (a field's caret, a slider), and a step
+    // from there could take the focused item out of view.
     useEffect(() => {
       const handleKeyDown = (e: KeyboardEvent) => {
         const node = carouselRef.current;
-        if (!node?.contains(getActiveElementInTree(node))) return;
-
-        switch (e.key) {
-          case 'ArrowLeft':
-            e.preventDefault();
-            goToPrev();
-            break;
-          case 'ArrowRight':
-            e.preventDefault();
-            goToNext();
-            break;
+        const active = getActiveElementInTree(node);
+        if (!node?.contains(active) || slidesRef.current?.contains(active)) {
+          return;
         }
+
+        // The arrow points where the slide comes from: right to left the
+        // next one is on the left.
+        // A modified arrow, such as Alt+Left for the browser's Back, is the
+        // browser's, and one the page has handled is the page's.
+        if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+        if (e.altKey || e.ctrlKey || e.metaKey || e.defaultPrevented) return;
+        e.preventDefault();
+        const rtl = getComputedStyle(node).direction === 'rtl';
+        const forward = (e.key === 'ArrowRight') !== rtl;
+        const at = Array.prototype.indexOf.call(
+          indicatorsRef.current?.children ?? [],
+          active
+        );
+        if (at >= 0) stepIndicatorRef.current(at, forward);
+        else (forward ? goToNextRef : goToPrevRef).current();
       };
 
       document.addEventListener('keydown', handleKeyDown);
       return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [goToPrev, goToNext]);
+    }, [goToPrevRef, goToNextRef, stepIndicatorRef]);
 
-    // Handle wrap-around transition end
-    const handleTransitionEnd = useCallback(() => {
-      if (isWrapping) {
-        // Skip transition for the instant snap
-        setSkipTransition(true);
-        setIsWrapping(false);
+    // Handle wrap-around transition end: the track's own, since an item's
+    // content can end a transition of its own that bubbles up to here
+    const handleTransitionEnd = useCallback(
+      (e: React.TransitionEvent<HTMLDivElement>) => {
+        if (isWrapping && e.target === e.currentTarget) {
+          // Skip transition for the instant snap from the clones to the
+          // real items they copy
+          setSkipTransition(true);
+          setActiveIndex(((displayIndex % itemCount) + itemCount) % itemCount);
 
-        if (displayIndex === itemCount) {
-          // Was at clone of first slide, snap to real first slide
-          setActiveIndex(0, false);
-          setDisplayIndex(0);
-        } else if (displayIndex === -1) {
-          // Was at clone of last slide, snap to real last slide
-          setActiveIndex(itemCount - 1, false);
-          setDisplayIndex(itemCount - 1);
-        }
-
-        // Re-enable transition after the snap
-        requestAnimationFrame(() => {
+          // Re-enable transition after the snap
           requestAnimationFrame(() => {
-            setSkipTransition(false);
+            requestAnimationFrame(() => {
+              setSkipTransition(false);
+            });
           });
-        });
+        }
+      },
+      [isWrapping, displayIndex, itemCount, setActiveIndex]
+    );
+
+    // A wrap under way when reduced motion turns on loses its transition, and
+    // with it the transitionend that would finish it, so finish it here,
+    // before it paints.
+    useClientLayoutEffect(() => {
+      if (reducedMotion && isWrapping) {
+        setActiveIndex(((displayIndex % itemCount) + itemCount) % itemCount);
       }
-    }, [isWrapping, displayIndex, itemCount, setActiveIndex]);
+    }, [reducedMotion, isWrapping, displayIndex, itemCount, setActiveIndex]);
 
     // Combined ref
     const combinedRef = useCallback(
@@ -481,12 +790,12 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
     );
 
     // Can navigate
-    const canGoPrev = repeat || activeIndex > 0;
-    const canGoNext = repeat || activeIndex < itemCount - 1;
+    const canGoPrev = looping || prevIndex !== undefined;
+    const canGoNext = looping || nextIndex !== undefined;
 
     // Generate classes
     const carouselClasses = usePrefixedClassNames('carousel', {
-      'is-overlay': indicatorInside,
+      'is-overlay': overlayControls,
       'has-arrow-hover': arrowHover,
       [`is-indicator-${indicatorStyle}`]: indicatorStyle !== 'dots',
       [`is-arrow-${arrowColor}`]: !!arrowColor,
@@ -515,92 +824,201 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       className
     );
 
-    // Render slides with active state (includes clones for infinite loop)
-    const renderSlides = () => {
-      const slides = items.map((item, index) => {
-        if (isValidElement<CarouselItemProps>(item)) {
-          return cloneElement(item, {
-            key: index,
-            active: index === activeIndex,
-          });
-        }
-        return item;
+    // Where the track is drawn from: mid-wrap the clones, otherwise a start
+    // the view can show, so a change in the count in view never paints
+    // empty space while the sync above catches up.
+    const shownIndex = isWrapping ? displayIndex : fit(displayIndex);
+    // Enough clones on each side to fill the widest view any viewport sets,
+    // since the stylesheet, not this count, sizes what's on screen
+    const cloneCount = looping
+      ? Math.min(
+          itemCount,
+          Math.max(baseCount ?? 1, ...counts.map(c => c ?? 1))
+        )
+      : 0;
+    // The track: a full view's worth of clones of the last items, the items,
+    // and clones of the first ones, for a seamless loop. Each entry is the
+    // item it shows and its key.
+    const slots: [number, React.Key][] = items.map((_, index) => [
+      index,
+      index,
+    ]);
+    for (let k = 0; k < cloneCount; k++) {
+      slots.splice(k, 0, [itemCount - cloneCount + k, `clone-before-${k}`]);
+      slots.push([k, `clone-after-${k}`]);
+    }
+
+    // Render slides with active state (includes clones for infinite loop).
+    // What's in view is a run of slots, so where a looping view runs past
+    // the last item, the clones on screen are the live copies and the items
+    // they copy, off screen, are the hidden ones: no item is exposed twice,
+    // and the copy exposed is the one in view.
+    const renderSlides = () =>
+      slots.map(([index, key], slot) => {
+        const item = items[index];
+        const own = item.props;
+        const isShown =
+          slot >= shownIndex + cloneCount &&
+          slot < shownIndex + cloneCount + inView;
+        return cloneElement(item, {
+          key,
+          active: isShown,
+          role: own.role ?? 'group',
+          'aria-roledescription': own['aria-roledescription'] ?? 'slide',
+          ...(own['aria-label'] || own['aria-labelledby']
+            ? {}
+            : { 'aria-label': words.item(index + 1, itemCount) }),
+          // Out of view: hidden from assistive tech, and inert, so nothing
+          // in it takes focus or a click
+          ...(isShown ? {} : { 'aria-hidden': true, ...inertProps(true) }),
+        });
       });
 
-      // Add clones for seamless infinite loop when repeat is enabled
-      if (repeat && itemCount > 1) {
-        const lastItem = items[itemCount - 1];
-        const firstItem = items[0];
-
-        const lastClone = isValidElement<CarouselItemProps>(lastItem)
-          ? cloneElement(lastItem as React.ReactElement<CarouselItemProps>, {
-              key: 'clone-last',
-              active: false,
-            })
-          : null;
-
-        const firstClone = isValidElement<CarouselItemProps>(firstItem)
-          ? cloneElement(firstItem as React.ReactElement<CarouselItemProps>, {
-              key: 'clone-first',
-              active: false,
-            })
-          : null;
-
-        return [lastClone, ...slides, firstClone];
+    // Hand focus on when the item holding it leaves the view. An item out
+    // of view is inert, and a browser drops focus from an inert element to
+    // the page, so a swipe, a change of count with the window's width, a new
+    // controlled value or the item's removal would leave a keyboard or
+    // screen reader user nowhere. Focus goes to the first item in view. A
+    // layout effect runs before the browser gets to drop the focus; the
+    // focused item's removal drops it at once, so focus on the page itself
+    // still counts as the item's.
+    useClientLayoutEffect(() => {
+      const held = focusedItemRef.current;
+      if (!held) return;
+      const track = slidesRef.current as HTMLDivElement;
+      const start = shownIndex + cloneCount;
+      const slot = Array.prototype.indexOf.call(track.children, held);
+      if (slot >= start && slot < start + inView) return;
+      const active = getActiveElementInTree(track);
+      if (active !== held.ownerDocument.body && !held.contains(active)) {
+        return;
       }
+      focusedItemRef.current = undefined;
+      focusSlot(track, start);
+    }, [shownIndex, cloneCount, inView, itemCount]);
 
-      return slides;
-    };
+    // The places the view can start, as a dependency of the effect below
+    const positionsKey = positions.join();
+
+    // Hand focus on when the arrow or indicator holding it is disabled or
+    // goes away: Next on the last position without `repeat`, an indicator
+    // for a position a change of count took away, or every control once all
+    // the items fit. A browser drops focus from either to the page. Focus
+    // goes to the current indicator, which says where the view is and keeps
+    // it there for an Enter still held down, else to an arrow that works,
+    // else to the first item in view. As above, a layout effect runs
+    // before the browser drops the focus, and focus on the page itself still
+    // counts as the control's.
+    useClientLayoutEffect(() => {
+      const held = focusedControlRef.current;
+      if (
+        !held ||
+        (held.isConnected && !(held as HTMLButtonElement).disabled)
+      ) {
+        return;
+      }
+      focusedControlRef.current = undefined;
+      const active = getActiveElementInTree(carouselRef.current);
+      if (active !== held && active !== held.ownerDocument.body) return;
+      const works = (el: HTMLButtonElement | null | undefined) =>
+        el && !el.disabled ? el : undefined;
+      const to =
+        works(
+          indicatorsRef.current?.querySelector<HTMLButtonElement>(
+            '[aria-selected="true"]'
+          )
+        ) ??
+        works(prevRef.current) ??
+        works(nextRef.current);
+      if (to) to.focus({ preventScroll: true });
+      else
+        focusSlot(slidesRef.current as HTMLDivElement, shownIndex + cloneCount);
+      // What disables an arrow or takes a control away, and where the view
+      // starts, for the item focus goes to when no control is left
+    }, [
+      canGoPrev,
+      canGoNext,
+      canMove,
+      arrow,
+      indicator,
+      positionsKey,
+      shownIndex,
+      cloneCount,
+    ]);
 
     return (
       <div
         ref={combinedRef}
         className={combinedClasses}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
         role="region"
         aria-roledescription="carousel"
         aria-label={ariaLabel}
+        style={{ ...countStyle, ...style }}
         {...rest}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
       >
         <div
           ref={containerRef}
           className={carouselContainerClass}
-          onMouseDown={hasDrag ? handleMouseDown : undefined}
-          onMouseMove={hasDrag && isDragging ? handleMouseMove : undefined}
-          onMouseUp={hasDrag ? handleMouseUp : undefined}
-          onMouseLeave={hasDrag ? handleMouseUp : undefined}
-          onTouchStart={hasDrag ? handleTouchStart : undefined}
-          onTouchMove={hasDrag ? handleTouchMove : undefined}
-          onTouchEnd={hasDrag ? handleTouchEnd : undefined}
+          onMouseDown={hasDrag ? swipe.handlers.onMouseDown : undefined}
+          onMouseMove={
+            hasDrag && isDragging ? swipe.handlers.onMouseMove : undefined
+          }
+          onMouseUp={hasDrag ? swipe.handlers.onMouseUp : undefined}
+          onMouseLeave={hasDrag ? swipe.handlers.onMouseLeave : undefined}
+          onTouchStart={hasDrag ? swipe.handlers.onTouchStart : undefined}
+          onTouchMove={hasDrag ? swipe.handlers.onTouchMove : undefined}
+          onTouchEnd={hasDrag ? swipe.handlers.onTouchEnd : undefined}
           style={{
             transform: isDragging ? `translateX(${dragOffset}px)` : undefined,
             cursor: hasDrag ? (isDragging ? 'grabbing' : 'grab') : undefined,
           }}
         >
           <div
+            ref={slidesRef}
             className={carouselSlidesClass}
             style={{
-              // When repeat is enabled, account for the prepended clone (+1 offset)
-              transform: `translateX(-${(repeat && itemCount > 1 ? displayIndex + 1 : displayIndex) * 100}%)`,
-              // Disable transition during drag or instant snap after wrap-around
+              // One item is the track's width plus a gap, over the count the
+              // stylesheet has in view; account for the prepended clones.
+              // The sign is -1 left to right. Right to left the flex row
+              // reverses, and the stylesheet sets the sign to +1 so the
+              // same shift keeps a slide in view.
+              transform: `translateX(calc(var(--carousel-shift-sign, -1) * ${shownIndex + cloneCount} * (100% + var(--bulma-carousel-item-gap, 0px)) / var(--bulma-carousel-items-in-view, 1)))`,
+              // Disable transition during drag, for the instant snap after
+              // wrap-around, and when the system asks for reduced motion
               transition:
-                isDragging || skipTransition
+                isDragging || skipTransition || reducedMotion
                   ? 'none'
                   : 'transform 0.3s ease-in-out',
+            }}
+            // Announce what comes into view, except while autoplay turns it
+            aria-live={isRotating ? 'off' : 'polite'}
+            onFocus={e => {
+              focusedItemRef.current = Array.from(
+                e.currentTarget.children
+              ).find(item => item.contains(e.target));
+            }}
+            onBlur={e => {
+              if (!e.currentTarget.contains(e.relatedTarget)) {
+                focusedItemRef.current = undefined;
+              }
             }}
             onTransitionEnd={handleTransitionEnd}
           >
             {renderSlides()}
           </div>
-          {arrow && itemCount > 1 && (
+          {arrow && canMove && (
             <>
               <Button
                 type="button"
+                ref={prevRef}
                 className={carouselArrowPrevClass}
                 onClick={goToPrev}
                 isDisabled={!canGoPrev}
-                aria-label="Previous slide"
+                aria-label={words.previous}
               >
                 {iconPrev ? (
                   <Icon
@@ -611,15 +1029,16 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
                     features={iconFeatures}
                   />
                 ) : (
-                  <DefaultPrevIcon />
+                  <ChevronPrevIcon />
                 )}
               </Button>
               <Button
                 type="button"
+                ref={nextRef}
                 className={carouselArrowNextClass}
                 onClick={goToNext}
                 isDisabled={!canGoNext}
-                aria-label="Next slide"
+                aria-label={words.next}
               >
                 {iconNext ? (
                   <Icon
@@ -630,26 +1049,30 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
                     features={iconFeatures}
                   />
                 ) : (
-                  <DefaultNextIcon />
+                  <ChevronNextIcon />
                 )}
               </Button>
             </>
           )}
         </div>
 
-        {indicator && itemCount > 1 && (
-          <div className={carouselIndicatorClass} role="tablist">
-            {items.map((_, index) => (
+        {indicator && canMove && (
+          <div
+            ref={indicatorsRef}
+            className={carouselIndicatorClass}
+            role="tablist"
+          >
+            {positions.map((position, index) => (
               <Button
-                key={index}
+                key={position}
                 type="button"
                 className={prefixedClassNames(classPrefix, 'indicator-item', {
-                  'is-active': index === activeIndex,
+                  'is-active': index === activePosition,
                 })}
-                onClick={() => goToSlide(index)}
+                onClick={() => setActiveIndex(position)}
                 role="tab"
-                aria-selected={index === activeIndex}
-                aria-label={`Go to slide ${index + 1}`}
+                aria-selected={index === activePosition}
+                aria-label={words.indicator(position + 1)}
               />
             ))}
           </div>

@@ -1,7 +1,7 @@
 name: Claude Repro
 
 # Author-only issue reproduction (design: docs AI-development guide). A triage+
-# maintainer labels an issue `claude-repro`; Claude DRAFTS a minimal Jest
+# maintainer labels an issue `claude-repro`; Claude DRAFTS a minimal Vitest
 # reproduction test and github-actions[bot] posts it for a human to run. Modeled
 # on oven-sh/bun's robobun repro, adapted to run safely on GitHub-hosted runners.
 #
@@ -85,6 +85,9 @@ jobs:
       allowed: ${{ steps.gate.outputs.allowed }}
       number: ${{ steps.gate.outputs.number }}
     steps:
+      # The role lookup retries, and an API error fails this step rather than
+      # reading as no access. "When the agent drops a job's first connections"
+      # under rule 10 in .github/CLAUDE.md says why (#1258).
       - name: Gate (live role + not security-flagged)
         id: gate
         env:
@@ -95,10 +98,42 @@ jobs:
         run: |
           set -euo pipefail
           echo "number=$NUMBER" >> "$GITHUB_OUTPUT"
+          # lookup_role is hand-copied into every live-role check. It runs before
+          # any checkout, and rule 1 keeps security steps inline, so no shared script
+          # can hold it. scripts/role-lookup.test.mjs holds the copies equal.
+          lookup_role() {
+            local delay err status
+            err=$(mktemp)
+            for delay in 5 10 20 30 30 0; do
+              if ROLE=$(timeout 10 gh api "repos/$REPO/collaborators/$1/permission" \
+                --jq '.role_name' 2>"$err"); then
+                return 0
+              fi
+              cat "$err" >&2
+              status=$(grep -oE '\(HTTP [0-9]{3}\)' "$err" | tail -n 1 || true)
+              case "$status" in
+                # No such user: the login was renamed or deleted, so it has no access.
+                "(HTTP 404)")
+                  ROLE=none
+                  return 0 ;;
+                # A rate limit passes, so it is retried like a dropped connection.
+                "(HTTP 403)" | "(HTTP 429)") ;;
+                # Any other 4xx is GitHub's final answer, but not a role.
+                "(HTTP 4"*)
+                  echo "::error::GitHub refused the role lookup for $1 $status. That is not a role, and a retry won't change it, so the run stops here."
+                  exit 1 ;;
+              esac
+              if [ "$delay" -eq 0 ]; then
+                echo "::error::Could not look up $1's role because every GitHub API call failed (errors above). That is a network, egress or GitHub failure, not a permissions answer, so the run stops here. Re-run or re-trigger it to retry."
+                exit 1
+              fi
+              echo "Role lookup for $1 failed. Retrying in ${delay}s."
+              sleep "$delay"
+            done
+          }
           # GitHub only lets triage+ apply labels; re-verify the labeler LIVE so a
           # template/automation-applied label can never start a Claude session.
-          ROLE=$(gh api "repos/$REPO/collaborators/$SENDER/permission" \
-            --jq '.role_name' || echo none)
+          lookup_role "$SENDER"
           case "$ROLE" in
             admin|maintain|write|triage) : ;;
             *)
@@ -168,7 +203,7 @@ jobs:
       # dependency, and the session below sets
       # CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC so nothing attempts it.
       - name: Harden runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: block
           disable-sudo-and-containers: true
@@ -275,13 +310,19 @@ jobs:
         # into their class. Do not move this back under `with:`.
         env:
           CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
-        uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
+        uses: anthropics/claude-code-action@d535f5172dec02b204866b393d6b20b9b2aaf98d # v1.0.266
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           # Read-only job token; explicit so the action skips its OIDC→app
           # exchange. No PAT anywhere in this workflow.
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          show_full_output: true
+          # show_full_output is NOT enabled, for the reason ai-triage.yml gives
+          # at its own Run Claude step: this session reads an issue anyone can
+          # write, and full output writes every tool result to the PUBLIC job
+          # log, where no later check can take it back. "Collect draft" guards
+          # the draft, not the log. "Fail on silent session error" still fails
+          # the job on the #317/#338 shapes, and the execution file stays on
+          # the runner. scripts/workflow-full-output.test.mjs holds this.
           # Telemetry is turned off rather than allow-listed: the CLI's Datadog
           # intake host stays off the egress allowlist above AND the CLI is told
           # not to emit it, so the CLI does not try to reach it (#487). This also
@@ -316,10 +357,10 @@ jobs:
                `bulma-ui/src/` (Read/Glob/Grep) to understand the reported problem
                and the REAL component API. Follow existing test conventions — look
                at a sibling `*.test.tsx` under `bulma-ui/src/`.
-            2. Write ONE minimal, self-contained Jest + React Testing Library test
+            2. Write ONE minimal, self-contained Vitest + React Testing Library test
                to `.repro/draft.test.tsx` that FAILS if the bug is real and PASSES
                once fixed. Import only from `@allxsmith/bestax-bulma` (plus
-               jest/@testing-library/react/react). Keep it short and focused on the
+               vitest/@testing-library/react/react). Keep it short and focused on the
                single reported behavior.
             3. If the issue lacks enough concrete detail to write a meaningful
                test, do NOT invent one — write nothing.

@@ -194,16 +194,26 @@ function SkeletonExamples() {
         {loading ? 'Loading...' : 'Content Loaded!'}
       </Title>
 
-      <Button skeleton={loading} color="primary">
+      <Button
+        skeleton={loading}
+        tabIndex={loading ? -1 : undefined}
+        aria-hidden={loading || undefined}
+        color="primary"
+      >
         Click me
       </Button>
 
-      <Icon name="star" skeleton={loading} ariaLabel="Rating" />
+      <Icon
+        name="star"
+        skeleton={loading}
+        ariaLabel="Rating"
+        aria-hidden={loading || undefined}
+      />
 
       <Image
         skeleton={loading}
-        src="https://via.placeholder.com/300"
-        alt="Example"
+        src="/img/carousel/carousel-banner-1-1by1.jpg"
+        alt="Vibrant galaxy with purple and gold tones"
         size="128x128"
       />
 

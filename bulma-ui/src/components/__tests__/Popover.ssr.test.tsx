@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  *
  * SSR coverage for Popover, where `document` is genuinely undefined: a
  * regression that measured, focused or portaled during a server render fails

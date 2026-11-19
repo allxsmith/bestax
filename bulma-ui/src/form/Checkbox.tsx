@@ -1,11 +1,16 @@
-import React, { forwardRef, useCallback } from 'react';
+import React, { forwardRef, useCallback, useRef } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useCheckboxesGroup } from './FormContext';
+import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
+import {
+  useCheckboxesGroup,
+  useFieldsetDisabled,
+  useRegisterChecked,
+} from './FormContext';
 
 /**
  * The values the Checkbox `color` prop accepts, as a readonly tuple.
@@ -50,6 +55,9 @@ export const checkboxSizes = ['small', 'normal', 'medium', 'large'] as const;
 
 /**
  * Props for the Checkbox component.
+ *
+ * @helperProps Helper props go on the outer `<label>`, with `className`. The
+ * other attributes go on the `<input>`.
  */
 export interface CheckboxProps
   extends
@@ -59,15 +67,36 @@ export interface CheckboxProps
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'> {
   /** Color of the checkbox. */
-  color?: (typeof checkboxColors)[number];
+  color?: (typeof checkboxColors)[number] | undefined;
   /** Size of the checkbox. */
-  size?: (typeof checkboxSizes)[number];
+  size?: (typeof checkboxSizes)[number] | undefined;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Whether the checkbox is disabled. */
-  disabled?: boolean;
-  /** Additional CSS classes to apply. */
-  className?: string;
+  disabled?: boolean | undefined;
+  /**
+   * Shows the mixed state, as in a "Select all" box when some of what it
+   * covers is checked. It's a look and an announcement only: `checked` is
+   * still the value, and a click still toggles `checked`. Set to `true` or
+   * `false`, it's controlled: a browser clears the mixed state on a click,
+   * so the component sets it again from this prop after every click and
+   * every render. Unset isn't `false`. The component leaves the input's own
+   * `indeterminate` property alone, so a ref can set it, and going from set
+   * to unset clears it once and hands it back. It has no HTML attribute, so
+   * server-rendered markup can't carry it, and a mixed box renders unmixed
+   * until hydration.
+   */
+  indeterminate?: boolean;
+  /**
+   * Additional CSS classes, on the outer `<label>`. That's the element that
+   * declares the `--bulma-checkbox-*` variables, so a class is how to set
+   * one: `style` and the other input attributes go to the `<input>`. Name
+   * `.styled-checkbox` beside your class in the selector, so it beats the
+   * label's own declaration whatever order the stylesheets load in. A
+   * `color` prop declares the fills again on `.styled-checkbox.is-<color>`,
+   * which ties that selector, so leave `color` unset when a class sets them.
+   */
+  className?: string | undefined;
   /** The label/content for the checkbox. */
   children?: React.ReactNode;
 }
@@ -98,19 +127,51 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
       className,
       children,
       textColor,
-      disabled,
+      disabled: disabledProp,
       name,
       value,
       checked,
       defaultChecked,
+      indeterminate,
       onChange,
       ...props
     },
     ref
   ) => {
+    const disabled = useFieldsetDisabled(disabledProp);
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color: textColor,
       ...props,
+    });
+
+    // The input's own ref, merged with the forwarded one. A callback ref's
+    // return value is handed back, so React 19 still runs a cleanup it
+    // returns, as it did when the ref went straight to the input.
+    const inputRef = useRef<HTMLInputElement | null>(null);
+    const setRefs = useCallback(
+      (node: HTMLInputElement | null) => {
+        inputRef.current = node;
+        if (typeof ref === 'function') return ref(node);
+        if (ref) ref.current = node;
+      },
+      [ref]
+    );
+
+    // `indeterminate` is a DOM property with no attribute, so it's set on the
+    // input rather than rendered. A click clears it, so this runs after every
+    // render, not only when the prop changes. Unset, it's left alone, so a
+    // ref that sets the property itself still works. `ownsIndeterminateRef`
+    // remembers that this component set it, so a prop that goes back to unset
+    // clears the dash once instead of leaving it on.
+    const ownsIndeterminateRef = useRef(false);
+    useClientLayoutEffect(() => {
+      if (indeterminate !== undefined) {
+        ownsIndeterminateRef.current = true;
+        inputRef.current!.indeterminate = indeterminate;
+      } else if (ownsIndeterminateRef.current) {
+        ownsIndeterminateRef.current = false;
+        inputRef.current!.indeterminate = false;
+      }
     });
 
     // Inherit name + selection state from a surrounding <Checkboxes> group.
@@ -118,35 +179,47 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
     const group = useCheckboxesGroup();
     const effectiveName = name ?? group?.name;
 
-    // Group-managed checked state — only when the group is in
-    // controlled/uncontrolled mode (group.value is defined) AND this Checkbox
-    // has a value to compare against. Local `checked` always wins.
-    const groupManaged = group?.value !== undefined && value !== undefined;
-    const groupHas = groupManaged && group!.value!.includes(String(value));
+    // Group-managed checked state — only when the group manages the selection
+    // (it was given `value`, `defaultValue` or `onChange`) AND this Checkbox
+    // has a value to compare against. Local `checked` always wins. A group
+    // given only `onChange` holds no value until its first change, and until
+    // then the box shows its own `defaultChecked`, controlled all the same,
+    // so that change doesn't flip it from uncontrolled to controlled.
+    const valueKey = value === undefined ? undefined : String(value);
+    const groupManaged =
+      group?.onChange !== undefined && valueKey !== undefined;
+    const groupHas =
+      groupManaged &&
+      (group!.value ? group!.value.includes(valueKey!) : !!defaultChecked);
     const effectiveChecked =
       checked !== undefined ? checked : groupManaged ? groupHas : undefined;
     // When the group manages checked, suppress local defaultChecked to avoid
     // the controlled/uncontrolled React warning.
     const effectiveDefaultChecked = groupManaged ? undefined : defaultChecked;
+    // What the box starts as, so the group's first change starts from it.
+    useRegisterChecked(group, valueKey, !!(checked ?? defaultChecked));
 
     const handleChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
+        // The click that got here cleared the mixed state. Put it back now,
+        // since a click that changes no state renders nothing to do it.
+        if (indeterminate !== undefined) e.target.indeterminate = indeterminate;
         // Local onChange always fires.
         onChange?.(e);
         // Dispatch to the group additionally — toggle this value's
-        // membership in the group's array.
-        if (group?.onChange && value !== undefined) {
-          const valStr = String(value);
-          const currentArr = group.value ?? [];
+        // membership in the group's array, or in what was checked when the
+        // group holds no value yet.
+        if (group?.onChange && valueKey !== undefined) {
+          const currentArr = group.value ?? group.startingValue!();
           const next = e.target.checked
-            ? currentArr.includes(valStr)
+            ? currentArr.includes(valueKey)
               ? currentArr
-              : [...currentArr, valStr]
-            : currentArr.filter(v => v !== valStr);
+              : [...currentArr, valueKey]
+            : currentArr.filter(v => v !== valueKey);
           group.onChange(next);
         }
       },
-      [onChange, group, value]
+      [onChange, group, valueKey, indeterminate]
     );
 
     const mainClass = usePrefixedClassNames('styled-checkbox', 'checkbox', {
@@ -160,7 +233,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
     return (
       <label className={checkboxClass}>
         <input
-          ref={ref}
+          ref={setRefs}
           type="checkbox"
           disabled={disabled}
           name={effectiveName}

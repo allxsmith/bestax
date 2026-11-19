@@ -2,6 +2,7 @@ import chalk from 'chalk';
 import figures from 'figures';
 import { MESSAGES } from './constants.js';
 import { detectPackageManager } from './package-manager.js';
+import { isCurrentDirectory } from './validators.js';
 
 export function displayHeader(): void {
   console.log();
@@ -11,23 +12,54 @@ export function displayHeader(): void {
   console.log();
 }
 
-export function displaySuccess(targetDir: string): void {
+// Characters no shell reads specially, so a path made only of them pastes as
+// it is. Windows adds its backslash separator.
+const SHELL_SAFE = /^[\w@%+=:,./-]+$/;
+const WINDOWS_SHELL_SAFE = /^[\w@%+=:,./\\-]+$/;
+
+/**
+ * value written so that pasting it into a shell gives back exactly value. The
+ * project name is held to safe characters, but a parent folder in a path can
+ * hold anything (#1154). POSIX shells get single quotes, which keep spaces, $
+ * and backticks literal, with each single quote inside written '\''. Windows
+ * gets double quotes, the quoting cmd and PowerShell share, since cmd has no
+ * single quotes.
+ */
+export function quoteShellArgument(
+  value: string,
+  platform: typeof process.platform = process.platform
+): string {
+  if (platform === 'win32') {
+    return WINDOWS_SHELL_SAFE.test(value) ? value : `"${value}"`;
+  }
+  return SHELL_SAFE.test(value) ? value : `'${value.replace(/'/g, "'\\''")}'`;
+}
+
+/**
+ * The closing message. It lists the next steps unless --immediate is about to
+ * run them, and leaves out the `cd` for a scaffold into the current directory.
+ */
+export function displaySuccess(targetDir: string, startingNow = false): void {
   console.log();
   console.log(chalk.green(MESSAGES.PROJECT_CREATED));
   console.log();
-  console.log(chalk.bold(MESSAGES.NEXT_STEPS));
-  console.log();
-  // Mirror the package manager that invoked the CLI — `<pm> install` and
-  // `<pm> run dev` are valid for all four supported PMs.
-  const pm = detectPackageManager();
-  console.log(chalk.cyan(`  cd ${targetDir}`));
-  console.log(chalk.cyan(`  ${pm} install`));
-  console.log(chalk.cyan(`  ${pm} run dev`));
-  console.log();
+  if (!startingNow) {
+    console.log(chalk.bold(MESSAGES.NEXT_STEPS));
+    console.log();
+    // Mirror the package manager that invoked the CLI — `<pm> install` and
+    // `<pm> run dev` are valid for all four supported PMs.
+    const pm = detectPackageManager();
+    if (!isCurrentDirectory(targetDir)) {
+      console.log(chalk.cyan(`  cd ${quoteShellArgument(targetDir)}`));
+    }
+    console.log(chalk.cyan(`  ${pm} install`));
+    console.log(chalk.cyan(`  ${pm} run dev`));
+    console.log();
+  }
   console.log(
     chalk.gray('  Your app includes a beautiful logo-centric homepage')
   );
-  console.log(chalk.gray('  showcasing Bestax, Vite, and React branding.'));
+  console.log(chalk.gray('  showcasing Bestax and React branding.'));
   console.log();
   console.log(chalk.dim(MESSAGES.HAPPY_CODING));
   console.log();

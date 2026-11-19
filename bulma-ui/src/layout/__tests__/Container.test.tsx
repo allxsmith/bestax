@@ -159,6 +159,67 @@ describe('Container', () => {
   });
 });
 
+describe('Container as', () => {
+  it('renders a <div> by default', () => {
+    const { container } = render(<Container>Content</Container>);
+    expect((container.firstChild as HTMLElement).tagName).toBe('DIV');
+  });
+
+  it.each([
+    'div',
+    'main',
+    'section',
+    'article',
+    'aside',
+    'header',
+    'footer',
+    'nav',
+  ] as const)('renders a <%s>', tag => {
+    const { container } = render(
+      <Container
+        as={tag}
+        fluid
+        breakpoint="desktop"
+        isMax
+        textColor="primary"
+        bgColor="scheme-main"
+        aria-label="Page"
+      >
+        Content
+      </Container>
+    );
+    const el = container.firstChild as HTMLElement;
+    expect(el.tagName).toBe(tag.toUpperCase());
+    expect(el).toHaveClass(
+      'container',
+      'is-fluid',
+      'is-max-desktop',
+      'has-text-primary'
+    );
+    expect(el).toHaveAttribute('aria-label', 'Page');
+    expect(el.style.backgroundColor).toBe('var(--bulma-scheme-main)');
+  });
+
+  it('keeps `as` off the DOM', () => {
+    // It used to fall through to the rest props and land on the <div> as an
+    // attribute.
+    const { container } = render(<Container as="main">Content</Container>);
+    expect(container.firstChild).not.toHaveAttribute('as');
+  });
+
+  it('keeps the prefixed classes on another tag', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="bestax-">
+        <Container as="footer" widescreen>
+          Content
+        </Container>
+      </ConfigProvider>
+    );
+    const el = container.querySelector('footer');
+    expect(el).toHaveClass('bestax-container', 'bestax-is-widescreen');
+  });
+});
+
 describe('Container color text alias', () => {
   it('renders has-text-primary when only color is set', () => {
     const { container } = render(<Container color="primary">C</Container>);

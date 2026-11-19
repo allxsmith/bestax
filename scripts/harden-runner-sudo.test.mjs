@@ -18,7 +18,7 @@
  * go on. It reads the workflows with the conformance check's YAML reader, as
  * the other workflow tests do, since the root declares no YAML dependency.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';

@@ -81,6 +81,9 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   has nowhere to go, so move it out first. A `###` heading that is not one of the component's
   sub-components (`### TaginputTag`) ends the region rather than being swallowed by it.
 - No inline `style={{}}` in examples — use `Block`/helper props.
+- An example's picture is one the site serves from `static/img`.
+  `check:conformance --only=image-hosts` fails on a docs page, or a file under `src/`, with a
+  URL on a placeholder or stock-photo host.
 - Code examples must compile against the current library API; when a component changes, its
   docs page changes in the same PR (CONTRIBUTING requires docs before approval).
 - **`jsx` and `tsx` fences are linted** with the ESLint plugin's `recommended` rules, in
@@ -104,7 +107,33 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   preview's styles. A `ConfigProvider` the example nests replaces that setting rather than
   adding to it, and its portaled content lands unstyled in `document.body` with every gate
   green. In an example that portals, don't nest one, or give it a `portalContainer`: an element
-  the example renders, or the preview's own, read with `useConfig()`.
+  the example renders, or the preview's own, read with `useConfig()`. Every preview loads
+  `bestax.css`, and an example's import lines are dropped. An example that imports the
+  prefixed build gets that stylesheet in its own preview as well, after `bestax.css`.
+  `FENCE_STYLESHEETS` in `src/components/ShadowPreview/shadowStyles.js` lists the builds that
+  load this way, and says which builds can.
+- **A live example opens in StackBlitz and CodeSandbox** from the two buttons beside its copy
+  button (`src/theme/CodeBlock/SandboxButtons`, builders in `src/theme/CodeBlock/sandbox/`).
+  The project is built in the reader's browser when they click, from the code in the editor:
+  the fence becomes an `App.tsx` with exactly the imports it uses, its `/img/...` paths in
+  strings and CSS `url()`s pointed at the site since a sandbox has no `static/img`, inside the
+  create-bestax `vite-ts` template (StackBlitz; CodeSandbox gets a Create React App layout), installing the library release this build read or a later compatible one.
+  An example that imports a prefixed build opens with the library stylesheets it imports in place
+  of the template's `bestax.css` (`librarySheetsIn` in `sandbox/projects.mjs`, which says how that
+  differs from the page's preview).
+  Nothing is published ahead of time and a fence needs no marker. A component that exists only
+  in this site goes in `DOCS_ONLY_NAMES` in `src/theme/CodeBlock/sandbox/scope-names.mjs` and
+  gets its value in the `pick` call in `src/theme/CodeBlock/scope.js`: an example using one
+  shows no sandbox buttons, since no sandbox can install it. Export it from
+  `src/components/SkillExamples`, where scope.js imports it: the corpus gate
+  (`scripts/docs-fence-types.test.mjs`) binds every name on that list from there in its
+  `asModule` header, and fails on one it cannot find. That test also runs the converter over
+  every live fence that is not marked `notypecheck`, and type-checks what it writes, so a fence
+  it cannot convert fails `pnpm test` instead of opening broken; a failure there is the
+  converter's to fix, not the fence's. The tests stop at the files a sandbox is built from, so
+  open one plain example and one example with icons in each service before merging a bump of
+  `@stackblitz/sdk` or react-live, and again once a bulma-ui release that changes its exports,
+  dependencies or CSS file names is on npm, which is where a sandbox installs it from.
 - **Install and run commands go in `<PackageManagerTabs>`**, wrapping the pnpm fence you would
   have written anyway, so npm/yarn/bun readers don't translate by hand:
 
@@ -149,6 +178,24 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   library comparison page is the one guide that shows dated data, and only through its
   component, which the index strips; its prose follows this rule (see "The State of React" in
   `blog/CLAUDE.md`).
+- **The Templates page** (`/templates`, `src/pages/templates/`, modeled on the Docusaurus
+  showcase) lists the Bulma templates ported into `templates/` at the repo root, whose porting
+  guide is `templates/CLAUDE.md`. Its data is `src/data/templates.js`, plain data with no
+  imports, and the file's header documents each field and the tags. Each card's screenshot is
+  `static/img/templates/<slug>.jpg`, written by
+  `pnpm --filter @allxsmith/bestax-docs screenshot:template <slug>`, which builds the template
+  from a copy of the files git tracks in its folder and captures the preview: our capture of
+  the port, never the
+  upstream's image, and a manual step that CI does not run. `scripts/templates.test.mjs` at the
+  repo root holds every entry to its folder and its screenshot and back, so a template, its
+  entry and its screenshot land in one PR. A card opens StackBlitz through a plain anchor
+  rather than the SDK the live examples use, so it works without JavaScript, and it never links
+  the upstream's live site. It opens the template from the allxsmith/bestax-templates mirror,
+  named once in the data file; CONTRIBUTING.md ("The bestax-templates repository") covers the
+  mirror. The filters
+  live in the URL through `useQueryString` and `useQueryStringList` from
+  `@docusaurus/theme-common`, and the page reuses ComponentComparison's stylesheet for its
+  chips, search box and panels rather than keeping a copy.
 - Scripts in `docs/scripts/` are covered by the root `pnpm lint` — run it before pushing even
   a docs-only PR (#471 broke CI on exactly this). Playwright `page.evaluate` callbacks
   execute in the browser, so declare the browser globals each callback actually uses

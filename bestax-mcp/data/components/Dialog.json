@@ -30,7 +30,7 @@
       "code": "function example() {\n  const [showDialog, setShowDialog] = useState(false);\n  return (\n    <Block>\n      <Button onClick={() => setShowDialog(true)}>Show Portaled Dialog</Button>\n      <Dialog\n        isOpen={showDialog}\n        title=\"Portaled Dialog\"\n        message=\"This dialog is portaled, so it escapes any ancestor with overflow: hidden.\"\n        onConfirm={() => setShowDialog(false)}\n        showCancel={false}\n        portal\n      />\n    </Block>\n  );\n}"
     }
   ],
-  "accessibility": "- Uses `role=\"alertdialog\"` for proper screen reader announcement\n- Has `aria-modal=\"true\"` to indicate modal behavior — note this does not make background content inert; no `inert` attribute is applied, so background content stays reachable by pointer\n- `title` is wired up as `aria-labelledby` and `message` as `aria-describedby`\n- Focus moves to the confirm (or cancel, with `focusCancel`) button when opened\n- Escape key closes the dialog (when `canCancel` is true) — handled by the underlying [`Modal`](https://bestax.io/docs/api/components/modal), which routes it to the topmost open modal only\n- Tab and Shift+Tab cycle within the dialog while it is open — also from the underlying [`Modal`](https://bestax.io/docs/api/components/modal)\n- Body scroll is prevented when dialog is open, through the ref-counted lock shared with `Modal`, `Sidebar` and `Loading`\n- Confirm/cancel buttons are keyboard accessible",
+  "accessibility": "- Uses `role=\"alertdialog\"` for proper screen reader announcement\n- Has `aria-modal=\"true\"` to indicate modal behavior — note this does not make background content inert; no `inert` attribute is applied, so background content stays reachable by pointer\n- **Give every dialog a name.** A dialog with no `title` has none unless you give it an `aria-label`, which `dialog.alert` and `dialog.confirm` take in their options too, or an `aria-labelledby` pointing at text of your own. A development build warns about an open dialog with none of them\n- `title`, when there is one, is wired up as `aria-labelledby` and `message` as `aria-describedby`, through ids the dialog makes for itself, so a second dialog open at the same time, or an element of your own with the same id, doesn't take its name or its description. An `aria-labelledby` or `aria-describedby` you pass replaces them\n- The built-in icon of a `success`, `danger`, `warning` or `info` dialog is `aria-hidden`, and the type's color isn't announced either, so say in the title or the message what kind of dialog it is when that matters, as for a destructive action. An `icon` you pass is rendered as you pass it\n- Focus moves to the confirm (or cancel, with `focusCancel`) button when opened\n- Escape key closes the dialog (when `canCancel` is true). The underlying [`Modal`](https://bestax.io/docs/api/components/modal#accessibility) handles it, so one Escape closes the topmost overlay only: a dialog opened over a Modal or a [Sidebar](https://bestax.io/docs/api/components/sidebar) closes first, and the one under it on the next Escape\n- Tab and Shift+Tab cycle within the dialog while it is the topmost modal overlay, also from the underlying [`Modal`](https://bestax.io/docs/api/components/modal)\n- A popup in the message, such as a `Popover` or `HoverCard` with `appendToBody`, is portaled into the `alertdialog`, the element with `aria-modal`, so a screen reader that honors it reaches the popup. A `portalContainer` a [`ConfigProvider`](https://bestax.io/docs/api/helpers/config#where-portaled-content-goes) sets still takes it\n- The page doesn't scroll while the dialog is open, through the [`Modal`](https://bestax.io/docs/api/components/modal#accessibility)'s ref-counted lock, shared with `Sidebar` and `Loading`\n- Confirm/cancel buttons are keyboard accessible\n- In forced colors (Windows' contrast themes), which drop the dialog's shadow and repaint its background and the backdrop's, the dialog keeps a one pixel edge in the system's text color",
   "related": ["Modal", "Toast"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-dialog",
   "summary": "The `Dialog` component provides ready-made confirm and alert dialogs, so a destructive action stays one `await dialog.confirm()` call away.",
@@ -47,8 +47,8 @@
           "name": "isOpen",
           "type": "boolean",
           "default": null,
-          "description": "Whether the dialog is open (required).",
-          "required": false,
+          "description": "Whether the dialog is open.",
+          "required": true,
           "inherited": false,
           "deprecated": false
         },
@@ -56,7 +56,7 @@
           "name": "title",
           "type": "string",
           "default": null,
-          "description": "Dialog title.",
+          "description": "Dialog title, which names the dialog through `aria-labelledby` unless you pass an `aria-labelledby` of your own. A dialog with no title has no name unless you give it an `aria-label`, or an `aria-labelledby` pointing at text of yours, and a development build warns about one with none.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -65,8 +65,8 @@
           "name": "message",
           "type": "string | React.ReactNode",
           "default": null,
-          "description": "Dialog message/content (required).",
-          "required": false,
+          "description": "Dialog message/content, which describes the dialog through `aria-describedby` unless you pass an `aria-describedby` of your own.",
+          "required": true,
           "inherited": false,
           "deprecated": false
         },
@@ -74,7 +74,7 @@
           "name": "type",
           "type": "'default' | 'success' | 'danger' | 'warning' | 'info'",
           "default": "'default'",
-          "description": "The type/color of the dialog. Default: 'default'.",
+          "description": "The type/color of the dialog. Default: 'default'. Its color and its built-in icon aren't announced, so say in the title or the message what kind of dialog it is when that matters, as for a destructive action.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -146,7 +146,7 @@
           "name": "icon",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Custom icon to display.",
+          "description": "Custom icon to display beside the title, so only when there is one, in place of the type's built-in icon, which is hidden from assistive technology. Yours is rendered as you pass it.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -179,10 +179,30 @@
           "required": false,
           "inherited": false,
           "deprecated": false
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "default": null,
+          "description": "The dialog's accessible name, for a dialog with no `title`. A development build warns about an open dialog with no title, `aria-label` or `aria-labelledby`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
         }
       ],
       "catchAll": "All standard <div> attributes and Bulma helper props",
       "types": []
+    },
+    {
+      "path": "DialogContainer",
+      "summary": "DialogContainer component to render programmatic dialogs. Place this once at the root of your app.",
+      "component": null,
+      "props": [],
+      "extraProps": [],
+      "catchAll": null,
+      "types": [],
+      "noProps": true,
+      "standalone": "companion"
     }
   ],
   "cssVars": [

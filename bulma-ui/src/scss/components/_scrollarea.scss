@@ -1,0 +1,248 @@
+// Bestax Extras - ScrollArea Styles
+// A box whose content scrolls inside it, on the browser's own scrollbars,
+// made thin and colored from Bulma's tokens. Bulma has overflow helpers and
+// no scrollbar styles anywhere.
+//
+// Two elements: the frame, which is the box on the page and takes the border,
+// the radius and the focus ring, and the viewport inside it, which scrolls.
+// The fade is a mask on the viewport, and a mask clips and fades everything
+// its element paints, so nothing that must stay solid can live there.
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+@use "../mixins" as *;
+
+// Whatever `scrollbar-width` takes: `thin`, `auto`, or `none`, which hides the
+// bars and with them any sign that the area scrolls.
+$scroll-area-scrollbar-width: thin !default;
+// Restyled bars owe WCAG 1.4.11 its 3:1, and `text-weak` clears it on
+// `scheme-main` in both of Bulma's schemes. `border` doesn't come close.
+$scroll-area-thumb-color: cv.getVar("text-weak") !default;
+$scroll-area-thumb-hover-color: cv.getVar("text") !default;
+$scroll-area-track-color: transparent !default;
+// How far in from an edge the fade reaches full strength.
+$scroll-area-fade-size: 2rem !default;
+
+.#{iv.$class-prefix}scroll-area {
+  @include cv.register-vars(
+    (
+      "scroll-area-scrollbar-width": #{$scroll-area-scrollbar-width},
+      "scroll-area-thumb-color": #{$scroll-area-thumb-color},
+      "scroll-area-thumb-hover-color": #{$scroll-area-thumb-hover-color},
+      "scroll-area-track-color": #{$scroll-area-track-color},
+      "scroll-area-fade-size": #{$scroll-area-fade-size},
+    )
+  );
+}
+
+// ---- The frame ---------------------------------------------------------------
+
+// One cell that asks for no room of its own, so the viewport fills a frame
+// with a fixed height and stops at one with a maximum. Its smallest size is
+// nothing and its natural size is its content's, so in a flex item or a grid
+// cell, a Bulma column included, it narrows and scrolls rather than
+// stretching its parent, and in a box that fits its content it keeps the
+// content's width. The minimums let it shrink as a flex item of its own.
+.#{iv.$class-prefix}scroll-area {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+
+  &:not(:last-child) {
+    margin-bottom: cv.getVar("block-spacing");
+  }
+}
+
+// ---- The viewport -------------------------------------------------------------
+
+.#{iv.$class-prefix}scroll-area-viewport {
+  overflow: auto;
+  border-radius: inherit;
+  scrollbar-width: cv.getVar("scroll-area-scrollbar-width");
+  scrollbar-color: cv.getVar("scroll-area-thumb-color")
+    cv.getVar("scroll-area-track-color");
+
+  // Without `:has`, the ring is the viewport's own, drawn inside it.
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include extras-focus-outline;
+    outline-offset: -2px;
+  }
+}
+
+.#{iv.$class-prefix}scroll-area:hover > .#{iv.$class-prefix}scroll-area-viewport {
+  scrollbar-color: cv.getVar("scroll-area-thumb-hover-color")
+    cv.getVar("scroll-area-track-color");
+}
+
+// The frame draws the ring, so a fade's mask never clips it.
+@supports selector(:has(*)) {
+  .#{iv.$class-prefix}scroll-area:has(> .#{iv.$class-prefix}scroll-area-viewport:focus-visible) {
+    @include extras-focus-outline;
+  }
+
+  .#{iv.$class-prefix}scroll-area-viewport:focus-visible {
+    outline: none;
+  }
+}
+
+// ---- Which way it scrolls, and when the bars show ------------------------------
+
+.#{iv.$class-prefix}scroll-area.#{iv.$class-prefix}is-vertical > .#{iv.$class-prefix}scroll-area-viewport {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.#{iv.$class-prefix}scroll-area.#{iv.$class-prefix}is-horizontal > .#{iv.$class-prefix}scroll-area-viewport {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.#{iv.$class-prefix}scroll-area.#{iv.$class-prefix}has-visible-scrollbars {
+  > .#{iv.$class-prefix}scroll-area-viewport {
+    overflow: scroll;
+  }
+
+  &.#{iv.$class-prefix}is-vertical > .#{iv.$class-prefix}scroll-area-viewport {
+    overflow-x: hidden;
+    overflow-y: scroll;
+  }
+
+  &.#{iv.$class-prefix}is-horizontal > .#{iv.$class-prefix}scroll-area-viewport {
+    overflow-x: scroll;
+    overflow-y: hidden;
+  }
+}
+
+// Colorless until the pointer is over the area or focus is in it. Forced
+// colors computes `scrollbar-color` to `auto`, so there they always show.
+.#{iv.$class-prefix}scroll-area.#{iv.$class-prefix}has-hover-scrollbars {
+  > .#{iv.$class-prefix}scroll-area-viewport {
+    scrollbar-color: transparent transparent;
+  }
+
+  &:hover > .#{iv.$class-prefix}scroll-area-viewport,
+  > .#{iv.$class-prefix}scroll-area-viewport:focus-within {
+    scrollbar-color: cv.getVar("scroll-area-thumb-hover-color")
+      cv.getVar("scroll-area-track-color");
+  }
+}
+
+.#{iv.$class-prefix}scroll-area.#{iv.$class-prefix}has-stable-gutter > .#{iv.$class-prefix}scroll-area-viewport {
+  scrollbar-gutter: stable;
+}
+
+// ---- The fade ------------------------------------------------------------------
+
+// A mask reads only alpha: opaque shows what's under it and transparent hides
+// it. This is that opacity rather than a color anyone sees, so it's no theme
+// variable.
+$-shown: #000;
+
+// A gradient on each axis, opaque except toward an edge with more past it,
+// intersected, then the strip each scrollbar takes made opaque again, so the
+// bar never fades. `$inline` is the way the line runs, so start comes first.
+@function -fade-mask($inline) {
+  $fade: cv.getVar("scroll-area-fade-size");
+  @return (
+    linear-gradient($-shown, $-shown),
+    linear-gradient($-shown, $-shown),
+    linear-gradient(
+      to bottom,
+      var(--scroll-area-fade-top),
+      $-shown $fade,
+      $-shown calc(100% - #{$fade}),
+      var(--scroll-area-fade-bottom)
+    ),
+    linear-gradient(
+      $inline,
+      var(--scroll-area-fade-start),
+      $-shown $fade,
+      $-shown calc(100% - #{$fade}),
+      var(--scroll-area-fade-end)
+    )
+  );
+}
+
+// The component measures the strips into `--scroll-area-bar-inline-size` and
+// `--scroll-area-bar-block-size`, and marks the edges with `data-overflow-*`.
+// A mask on the padding box alone fades a right-to-left page's bar, which
+// sits on the left, so the strips are placed by direction.
+.#{iv.$class-prefix}scroll-area.#{iv.$class-prefix}has-fade > .#{iv.$class-prefix}scroll-area-viewport {
+  --scroll-area-fade-top: #{$-shown};
+  --scroll-area-fade-bottom: #{$-shown};
+  --scroll-area-fade-start: #{$-shown};
+  --scroll-area-fade-end: #{$-shown};
+  --scroll-area-bar-inline: var(--scroll-area-bar-inline-size, 0px);
+  --scroll-area-bar-block: var(--scroll-area-bar-block-size, 0px);
+
+  mask-image: -fade-mask(to right);
+  mask-size:
+    var(--scroll-area-bar-inline) 100%,
+    100% var(--scroll-area-bar-block),
+    100% calc(100% - var(--scroll-area-bar-block)),
+    calc(100% - var(--scroll-area-bar-inline)) 100%;
+  mask-position:
+    right top,
+    left bottom,
+    left top,
+    left top;
+  mask-repeat: no-repeat;
+  mask-composite: add, add, intersect, add;
+
+  &[data-overflow-top] {
+    --scroll-area-fade-top: transparent;
+  }
+
+  &[data-overflow-bottom] {
+    --scroll-area-fade-bottom: transparent;
+  }
+
+  &[data-overflow-start] {
+    --scroll-area-fade-start: transparent;
+  }
+
+  &[data-overflow-end] {
+    --scroll-area-fade-end: transparent;
+  }
+
+  // Start is the right, and the vertical bar sits on the left.
+  &:dir(rtl) {
+    mask-image: -fade-mask(to left);
+    mask-position:
+      left top,
+      left bottom,
+      left top,
+      right top;
+  }
+}
+
+// ---- Media ---------------------------------------------------------------------
+
+// The bars take the system's colors on their own. The fade dims text at an
+// edge, which those who asked for contrast don't want.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}scroll-area.#{iv.$class-prefix}has-fade > .#{iv.$class-prefix}scroll-area-viewport {
+    mask-image: none;
+  }
+
+  // Two rules, since a browser without `:has` would drop a list holding it.
+  .#{iv.$class-prefix}scroll-area-viewport:focus-visible {
+    outline-color: CanvasText;
+  }
+
+  .#{iv.$class-prefix}scroll-area:has(> .#{iv.$class-prefix}scroll-area-viewport:focus-visible) {
+    outline-color: CanvasText;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .#{iv.$class-prefix}scroll-area.#{iv.$class-prefix}has-fade > .#{iv.$class-prefix}scroll-area-viewport {
+    mask-image: none;
+  }
+}

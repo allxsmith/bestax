@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import React from 'react';
 import { render, fireEvent, act, screen } from '@testing-library/react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -50,7 +51,7 @@ const type = (input: HTMLInputElement, keys: string) => {
 };
 
 /** The last range `onChange` reported. */
-const lastRange = (handler: jest.Mock): DateRangeValue =>
+const lastRange = (handler: Mock): DateRangeValue =>
   handler.mock.calls[handler.mock.calls.length - 1][0];
 
 describe('DateRangeInput', () => {
@@ -168,7 +169,7 @@ describe('DateRangeInput', () => {
     });
 
     it('calls a ref callback with the start input', () => {
-      const ref = jest.fn();
+      const ref = vi.fn();
       render(<DateRangeInputBase ref={ref} />);
       expect(ref).toHaveBeenCalledWith(startInput());
     });
@@ -356,7 +357,7 @@ describe('DateRangeInput', () => {
     });
 
     it('reports a pick under control and waits for the range back', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { rerender } = render(
         <DateRangeInput value={[june(1), june(2)]} onChange={onChange} />
       );
@@ -385,7 +386,7 @@ describe('DateRangeInput', () => {
 
   describe('picking in the popover', () => {
     it('commits the range once, with both ends, and closes', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput defaultValue={[june(1), june(2)]} onChange={onChange} />
       );
@@ -416,7 +417,7 @@ describe('DateRangeInput', () => {
     });
 
     it('sets the end of a range that has only a start', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput defaultValue={[june(10), null]} onChange={onChange} />
       );
@@ -440,7 +441,7 @@ describe('DateRangeInput', () => {
     });
 
     it('lets the range span a disabled day with allowDisabledInRange', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           defaultValue={[june(14), null]}
@@ -490,8 +491,8 @@ describe('DateRangeInput', () => {
 
   describe('opening and closing', () => {
     it('opens as focus arrives, and fires onOpen and onClose', () => {
-      const onOpen = jest.fn();
-      const onClose = jest.fn();
+      const onOpen = vi.fn();
+      const onClose = vi.fn();
       render(<DateRangeInput onOpen={onOpen} onClose={onClose} />);
       fireEvent.focus(startInput());
       expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -505,7 +506,7 @@ describe('DateRangeInput', () => {
     });
 
     it('opens nothing as focus moves from one input to the other', () => {
-      const onFocus = jest.fn();
+      const onFocus = vi.fn();
       render(<DateRangeInput onFocus={onFocus} />);
       fireEvent.focus(endInput(), { relatedTarget: startInput() });
       expect(screen.queryByRole('dialog')).toBeNull();
@@ -516,7 +517,7 @@ describe('DateRangeInput', () => {
     });
 
     it('opens as focus arrives from outside the field', () => {
-      const onFocusCapture = jest.fn();
+      const onFocusCapture = vi.fn();
       render(
         <>
           <button type="button">Before</button>
@@ -531,7 +532,7 @@ describe('DateRangeInput', () => {
     });
 
     it('stays closed on focus with openOnFocus off, and opens on Alt+ArrowDown', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -655,19 +656,19 @@ describe('DateRangeInput', () => {
     const layOut = () => {
       const box = (left: number, right: number) =>
         ({ left, right, top: 0, bottom: 30 }) as DOMRect;
-      jest
-        .spyOn(startInput(), 'getBoundingClientRect')
-        .mockReturnValue(box(10, 100));
-      jest
-        .spyOn(endInput(), 'getBoundingClientRect')
-        .mockReturnValue(box(120, 210));
+      vi.spyOn(startInput(), 'getBoundingClientRect').mockReturnValue(
+        box(10, 100)
+      );
+      vi.spyOn(endInput(), 'getBoundingClientRect').mockReturnValue(
+        box(120, 210)
+      );
     };
     const field = () =>
       document.querySelector<HTMLElement>('.daterangeinput-field')!;
     const separator = () =>
       document.querySelector<HTMLElement>('.daterangeinput-separator')!;
     afterEach(() => {
-      jest.restoreAllMocks();
+      vi.restoreAllMocks();
     });
 
     it('go to the nearer input, as a press on it would', () => {
@@ -734,7 +735,7 @@ describe('DateRangeInput', () => {
     };
 
     it('commits a typed start on its own', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(<DateRangeInput openOnFocus={false} onChange={onChange} />);
       typeInto(startInput(), '20240610');
       expect(lastRange(onChange)).toEqual([june(10), null]);
@@ -752,7 +753,7 @@ describe('DateRangeInput', () => {
     });
 
     it('takes an end on or after the start', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -765,7 +766,7 @@ describe('DateRangeInput', () => {
     });
 
     it('refuses an end before the start', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -785,7 +786,7 @@ describe('DateRangeInput', () => {
     });
 
     it('refuses an end that reaches over a disabled day', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -801,7 +802,7 @@ describe('DateRangeInput', () => {
     });
 
     it('takes an end over a disabled day with allowDisabledInRange', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -816,7 +817,7 @@ describe('DateRangeInput', () => {
     });
 
     it('refuses a disabled start', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -829,7 +830,7 @@ describe('DateRangeInput', () => {
     });
 
     it('clears the end when the start moves past it', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -848,7 +849,7 @@ describe('DateRangeInput', () => {
     });
 
     it('clears the end when the start moves over a disabled day', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -868,7 +869,7 @@ describe('DateRangeInput', () => {
     });
 
     it('keeps the end when the start still comes before it', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -889,7 +890,7 @@ describe('DateRangeInput', () => {
       // The first digit makes year 0002, too far from the end to walk for
       // the disabled day, so that start can't keep the end. The year isn't
       // finished, so the digit waits rather than clearing the end.
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -910,7 +911,7 @@ describe('DateRangeInput', () => {
     it('keeps the end while a start month is half typed past a disabled day', () => {
       // Typing 10 for October passes through January, which has a disabled
       // day between it and the end. October doesn't.
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const oct = (day: number) => new Date(2024, 9, day);
       render(
         <DateRangeInput
@@ -932,7 +933,7 @@ describe('DateRangeInput', () => {
     });
 
     it('still clears the end for a finished start that cannot keep it', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -947,7 +948,7 @@ describe('DateRangeInput', () => {
     });
 
     it('reads free-form text as focus moves to the other input', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -962,7 +963,7 @@ describe('DateRangeInput', () => {
     });
 
     it('reads typed ISO text under an Intl format with no parser', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -978,7 +979,7 @@ describe('DateRangeInput', () => {
     });
 
     it('parses free-form text with the default parser on Enter', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           openOnFocus={false}
@@ -1076,7 +1077,7 @@ describe('DateRangeInput', () => {
     });
 
     it('commits picks', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const { container } = render(
         <DateRangeInput
           inline
@@ -1096,6 +1097,301 @@ describe('DateRangeInput', () => {
     it('names its calendar after the id', () => {
       const { container } = render(<DateRangeInputBase inline id="stay" />);
       expect(container.querySelector('#stay-popover')).toHaveClass('dateinput');
+    });
+
+    it('picks nothing when disabled, and still submits', () => {
+      const onChange = vi.fn();
+      const { container } = render(
+        <form>
+          <DateRangeInput
+            inline
+            disabled
+            name="stay"
+            defaultValue={[june(10), june(13)]}
+            onChange={onChange}
+          />
+        </form>
+      );
+      expect(screen.getByRole('grid')).toHaveAttribute('aria-disabled', 'true');
+      fireEvent.click(cell(20));
+      fireEvent.click(cell(22));
+      expect(onChange).not.toHaveBeenCalled();
+      // What a form receives is unchanged: the hidden inputs still post.
+      const data = new FormData(container.querySelector('form')!);
+      expect(Array.from(data.entries())).toEqual([
+        ['stay[start]', '2024-06-10'],
+        ['stay[end]', '2024-06-13'],
+      ]);
+    });
+
+    it('picks nothing but still submits when readOnly', () => {
+      const onChange = vi.fn();
+      const { container } = render(
+        <form>
+          <DateRangeInput
+            inline
+            readOnly
+            name="stay"
+            defaultValue={[june(10), june(13)]}
+            onChange={onChange}
+          />
+        </form>
+      );
+      expect(screen.getByRole('grid')).toHaveAttribute('aria-readonly', 'true');
+      fireEvent.click(cell(20));
+      fireEvent.click(cell(22));
+      fireEvent.keyDown(screen.getByRole('grid'), { key: 'Enter' });
+      expect(onChange).not.toHaveBeenCalled();
+      const data = new FormData(container.querySelector('form')!);
+      expect(Array.from(data.entries())).toEqual([
+        ['stay[start]', '2024-06-10'],
+        ['stay[end]', '2024-06-13'],
+      ]);
+    });
+  });
+
+  describe('several months', () => {
+    const july = (day: number) => new Date(2024, 6, day);
+
+    /** Each month's grid, first to last. */
+    const grids = () =>
+      Array.from(document.querySelectorAll<HTMLElement>('[role="grid"]'));
+
+    /** The grids' names, read through `aria-labelledby`. */
+    const gridNames = () =>
+      grids().map(
+        g =>
+          document.getElementById(g.getAttribute('aria-labelledby')!)
+            ?.textContent
+      );
+
+    /** The cell for `day` of the `i`th month on show. */
+    const dayIn = (i: number, day: number) =>
+      Array.from(
+        grids()[i].querySelectorAll<HTMLButtonElement>('[role="gridcell"]')
+      ).find(
+        c =>
+          !c.className.includes('is-other-month') &&
+          c.textContent === String(day)
+      )!;
+
+    it('shows one month unless asked for more', () => {
+      const { container } = render(
+        <DateRangeInput inline defaultValue={[june(28), july(3)]} />
+      );
+      expect(grids()).toHaveLength(1);
+      expect(container.querySelector('.calendar-months')).toBeNull();
+    });
+
+    it('shows monthsToShow months from the range start, inline and in the popover', () => {
+      const { container, unmount } = render(
+        <DateRangeInput
+          inline
+          monthsToShow={2}
+          defaultValue={[june(28), july(3)]}
+        />
+      );
+      expect(gridNames()).toEqual(['June 2024', 'July 2024']);
+      expect(container.querySelector('.calendar-months')).toContainElement(
+        grids()[1]
+      );
+      unmount();
+      render(
+        <DateRangeInput monthsToShow={2} defaultValue={[june(28), july(3)]} />
+      );
+      fireEvent.click(startInput());
+      expect(screen.getByRole('dialog')).toContainElement(grids()[1]);
+      expect(gridNames()).toEqual(['June 2024', 'July 2024']);
+    });
+
+    it('reads monthsToShow down to a whole number, and less than two as one', () => {
+      const { rerender } = render(
+        <DateRangeInput
+          inline
+          monthsToShow={2.7}
+          defaultValue={[june(28), null]}
+        />
+      );
+      expect(grids()).toHaveLength(2);
+      for (const n of [0, -1, Number.NaN, Number.POSITIVE_INFINITY]) {
+        rerender(
+          <DateRangeInput
+            inline
+            monthsToShow={n}
+            defaultValue={[june(28), null]}
+          />
+        );
+        expect(grids()).toHaveLength(1);
+      }
+    });
+
+    it('picks a range from one month into the next', () => {
+      const onChange = vi.fn();
+      render(
+        <DateRangeInput
+          monthsToShow={2}
+          defaultValue={[june(1), june(2)]}
+          onChange={onChange}
+        />
+      );
+      fireEvent.click(startInput());
+      fireEvent.click(dayIn(0, 28));
+      fireEvent.click(dayIn(1, 3));
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith([june(28), july(3)]);
+      expect(endInput()).toHaveValue('2024-07-03');
+    });
+
+    it('moves every month by monthsToShow from one pair of buttons', () => {
+      render(
+        <DateRangeInput
+          inline
+          monthsToShow={2}
+          defaultValue={[june(10), null]}
+        />
+      );
+      expect(
+        screen.getAllByRole('button', { name: 'Previous month' })
+      ).toHaveLength(1);
+      expect(
+        screen.getAllByRole('button', { name: 'Next month' })
+      ).toHaveLength(1);
+      fireEvent.click(screen.getByRole('button', { name: 'Next month' }));
+      expect(gridNames()).toEqual(['August 2024', 'September 2024']);
+      fireEvent.click(screen.getByRole('button', { name: 'Previous month' }));
+      expect(gridNames()).toEqual(['June 2024', 'July 2024']);
+    });
+
+    it('crosses from one month into the next by key, with one tab stop', () => {
+      render(
+        <DateRangeInput
+          inline
+          monthsToShow={2}
+          defaultValue={[june(30), null]}
+        />
+      );
+      const from = dayIn(0, 30);
+      act(() => {
+        from.focus();
+      });
+      fireEvent.keyDown(from, { key: 'ArrowRight' });
+      expect(document.activeElement).toBe(dayIn(1, 1));
+      expect(
+        document.querySelectorAll('[role="gridcell"][tabindex="0"]')
+      ).toHaveLength(1);
+      expect(gridNames()).toEqual(['June 2024', 'July 2024']);
+    });
+
+    it('opens on months that show a day typed in', () => {
+      render(
+        <DateRangeInput
+          monthsToShow={2}
+          openOnFocus={false}
+          defaultValue={[june(28), july(3)]}
+        />
+      );
+      const launcher = screen.getByRole('button', {
+        name: 'Choose date range',
+      });
+      // A start comes in as the first month, so the range runs on from it,
+      // and an end as the last.
+      act(() => {
+        startInput().focus();
+      });
+      type(startInput(), '20240310');
+      expect(startInput()).toHaveValue('2024-03-10');
+      fireEvent.click(launcher);
+      expect(gridNames()).toEqual(['March 2024', 'April 2024']);
+      // The months stay put as focus moves onto the second of them.
+      fireEvent.click(dayIn(1, 20));
+      expect(gridNames()).toEqual(['March 2024', 'April 2024']);
+      fireEvent.click(launcher);
+      act(() => {
+        endInput().focus();
+      });
+      type(endInput(), '20241015');
+      expect(endInput()).toHaveValue('2024-10-15');
+      fireEvent.click(launcher);
+      expect(gridNames()).toEqual(['September 2024', 'October 2024']);
+    });
+
+    it('opens with an end that has no start as the last month', () => {
+      render(
+        <DateRangeInput
+          inline
+          monthsToShow={2}
+          defaultValue={[null, july(3)]}
+        />
+      );
+      expect(gridNames()).toEqual(['June 2024', 'July 2024']);
+    });
+
+    it('opens on months that max holds whole', () => {
+      render(
+        <DateRangeInput
+          inline
+          monthsToShow={2}
+          max={july(20)}
+          defaultValue={[july(10), null]}
+        />
+      );
+      expect(gridNames()).toEqual(['June 2024', 'July 2024']);
+      expect(screen.getByRole('button', { name: 'Next month' })).toBeDisabled();
+    });
+
+    it('keeps the months inside max as monthsToShow grows', () => {
+      const { rerender } = render(
+        <DateRangeInput
+          inline
+          monthsToShow={2}
+          max={july(20)}
+          defaultValue={[july(10), null]}
+        />
+      );
+      rerender(
+        <DateRangeInput
+          inline
+          monthsToShow={3}
+          max={july(20)}
+          defaultValue={[july(10), null]}
+        />
+      );
+      expect(gridNames()).toEqual(['May 2024', 'June 2024', 'July 2024']);
+    });
+
+    it('shows the months that hold focus when monthsToShow changes', () => {
+      const { rerender } = render(
+        <DateRangeInput inline defaultValue={[june(10), null]} />
+      );
+      fireEvent.click(screen.getByRole('button', { name: 'Next month' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Next month' }));
+      rerender(
+        <DateRangeInput
+          inline
+          monthsToShow={2}
+          defaultValue={[june(10), null]}
+        />
+      );
+      expect(gridNames()).toEqual(['August 2024', 'September 2024']);
+      // And keep them as focus moves onto the second.
+      fireEvent.click(dayIn(1, 10));
+      expect(gridNames()).toEqual(['August 2024', 'September 2024']);
+    });
+
+    it('prefixes the months under a ConfigProvider classPrefix', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bestax-">
+          <DateRangeInput
+            inline
+            monthsToShow={2}
+            defaultValue={[june(10), null]}
+          />
+        </ConfigProvider>
+      );
+      expect(
+        container.querySelector('.bestax-calendar-months')
+      ).toContainElement(grids()[1]);
+      expect(container.querySelector('.calendar-months')).toBeNull();
     });
   });
 
@@ -1151,7 +1447,7 @@ describe('DateRangeInput', () => {
     });
 
     it('commits changes by the typing rules', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           mobileNative
@@ -1176,7 +1472,7 @@ describe('DateRangeInput', () => {
     });
 
     it('clears an end', () => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       render(
         <DateRangeInput
           mobileNative

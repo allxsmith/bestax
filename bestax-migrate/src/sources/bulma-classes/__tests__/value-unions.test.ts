@@ -11,6 +11,7 @@ import {
   validAlignments,
   validAspectRatios,
   validAxisOverflows,
+  validColorShades,
   validColors,
   validDisplays,
   validFlexDirections,
@@ -34,6 +35,7 @@ import {
   ALIGNMENTS,
   ASPECT_RATIOS,
   AXIS_OVERFLOWS,
+  COLOR_SHADES,
   COLORS,
   DISPLAYS,
   FLEX_DIRECTIONS,
@@ -53,6 +55,7 @@ import {
 
 describe.each([
   ['COLORS', COLORS, validColors],
+  ['COLOR_SHADES', COLOR_SHADES, validColorShades],
   ['SIZES', SIZES, validSizes],
   ['TEXT_SIZES', TEXT_SIZES, validTextSizes],
   ['ALIGNMENTS', ALIGNMENTS, validAlignments],

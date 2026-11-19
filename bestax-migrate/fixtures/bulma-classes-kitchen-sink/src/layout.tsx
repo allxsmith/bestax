@@ -13,12 +13,16 @@ export function Layout() {
         </div>
         <div className="navbar-menu is-active">
           <div className="navbar-start">
-            <a className="navbar-item is-active" href="/docs">
+            <a
+              className="navbar-item is-active"
+              href="/docs"
+              aria-current="page"
+            >
               Docs
             </a>
             <div className="navbar-item has-dropdown is-hoverable">
               <div className="navbar-dropdown is-right">
-                <a className="navbar-item" href="/about">
+                <a className="navbar-item is-active" href="/about">
                   About
                 </a>
                 <hr className="navbar-divider my-1" />
@@ -74,7 +78,7 @@ export function Layout() {
           </div>
         </div>
         <div className="table-container">
-          <table className="table is-narrow">
+          <table className="table is-narrow" aria-label="Sizes">
             <tbody>
               <tr>
                 <td>Responsive</td>
@@ -102,6 +106,11 @@ export function Layout() {
             </a>
           </div>
         </nav>
+        <div className="level is-mobile">
+          <div className="level-item has-text-centered">
+            <p className="title">1,234</p>
+          </div>
+        </div>
         <div className="media">
           <figure className="media-left">
             <p className="image is-64x64">
@@ -119,7 +128,7 @@ export function Layout() {
           <p className="menu-label">Docs</p>
           <ul className="menu-list">
             <li>
-              <a className="is-active" href="/start">
+              <a className="is-active" href="/start" aria-current="page">
                 Start
               </a>
               <ul>
@@ -138,6 +147,19 @@ export function Layout() {
           <p className="subtitle">Hero subtitle</p>
         </div>
         <div className="hero-foot">Foot</div>
+      </section>
+      <article className="hero is-small">
+        <header className="hero-head">
+          <nav className="container">Landmark head</nav>
+        </header>
+        <footer className="hero-foot">
+          <div className="container">Landmark foot</div>
+        </footer>
+      </article>
+      <section className="panel" aria-label="Program">
+        <p className="panel-heading">Program</p>
+        <div className="panel-block">A block that is not a link</div>
+        <label className="panel-block">A label block</label>
       </section>
       <div className="footer has-text-centered">A footer on a div</div>
     </section>

@@ -7,7 +7,7 @@
  * publish fine. The round trip is the property, so it is asserted over the
  * awkward cases directly rather than left to agree by inspection.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 
 import { quote, tokenize } from './lib/shell-words.mjs';

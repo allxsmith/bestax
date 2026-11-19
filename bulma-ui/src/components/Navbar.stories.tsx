@@ -36,17 +36,27 @@ type NavbarColor =
 interface StatefulNavbarBurgerMenuProps {
   color?: NavbarColor;
   transparent?: boolean;
+  isSpaced?: boolean;
+  hasShadow?: boolean;
   fixed?: 'top' | 'bottom';
 }
 
 const StatefulNavbarBurgerMenu = ({
   color,
   transparent,
+  isSpaced,
+  hasShadow,
   fixed,
 }: StatefulNavbarBurgerMenuProps) => {
   const [active, setActive] = useState(false);
   return (
-    <Navbar color={color} transparent={transparent} fixed={fixed}>
+    <Navbar
+      color={color}
+      transparent={transparent}
+      isSpaced={isSpaced}
+      hasShadow={hasShadow}
+      fixed={fixed}
+    >
       <Navbar.Brand>
         <Navbar.Item href="#">
           <img src={logo} alt="Logo" width="28" height="28" />
@@ -92,8 +102,26 @@ export const BrandOnly: Story = {
   ),
 };
 
+// Bulma hides `.navbar-burger` from its desktop breakpoint up, so the burger
+// stories open at a phone's width, and the docs page draws each in a frame of
+// its own, which is narrower than that breakpoint.
+const atPhoneWidth = (
+  story: string
+): Pick<Story, 'globals' | 'parameters'> => ({
+  globals: { viewport: { value: 'mobile2', isRotated: false } },
+  parameters: {
+    docs: {
+      story: { inline: false, height: '52px' },
+      description: { story },
+    },
+  },
+});
+
 // Navbar burger only
 export const BurgerOnly: Story = {
+  ...atPhoneWidth(
+    'Bulma shows the burger only below its desktop breakpoint, where the menu collapses behind it. From that width up it’s hidden and the menu sits in the bar, so this story opens at a phone’s width.'
+  ),
   render: () => (
     <Navbar>
       <Navbar.Burger aria-label="menu" aria-expanded={false} />
@@ -103,11 +131,38 @@ export const BurgerOnly: Story = {
 
 // Navbar burger is-active
 export const BurgerActive: Story = {
+  ...atPhoneWidth(
+    '`active` turns the burger into a close icon while its menu is open. Like any burger it only shows below Bulma’s desktop breakpoint, so this story opens at a phone’s width.'
+  ),
   render: () => (
     <Navbar>
       <Navbar.Burger active aria-label="menu" aria-expanded />
     </Navbar>
   ),
+};
+
+// The current page. `active` is `is-active` and `aria-current="page"`.
+export const CurrentPage: Story = {
+  render: () => (
+    <Navbar>
+      <Navbar.Menu active>
+        <Navbar.Start>
+          <Navbar.Item href="#home">Home</Navbar.Item>
+          <Navbar.Item href="#about" active>
+            About
+          </Navbar.Item>
+        </Navbar.Start>
+      </Navbar.Menu>
+    </Navbar>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`active` marks the current page with `is-active` and `aria-current="page"`. An `aria-current` you pass wins, including `false`, when the item is active for another reason.',
+      },
+    },
+  },
 };
 
 // Navbar menu with start and end
@@ -131,7 +186,7 @@ export const ItemsNavLinksAndDropdown: Story = {
   render: () => (
     <Navbar>
       <Navbar.Brand>
-        <Navbar.Item>
+        <Navbar.Item href="#">
           <img src={logo} alt="Logo" width="28" height="28" />
         </Navbar.Item>
       </Navbar.Brand>
@@ -158,6 +213,17 @@ export const ItemsNavLinksAndDropdown: Story = {
 // Transparent navbar
 export const Transparent: Story = {
   render: () => <StatefulNavbarBurgerMenu transparent />,
+};
+
+// Spaced navbar: padding around it, rounded items and boxed dropdowns, from
+// the desktop breakpoint up
+export const Spaced: Story = {
+  render: () => <StatefulNavbarBurgerMenu isSpaced />,
+};
+
+// Navbar with a shadow below it
+export const WithShadow: Story = {
+  render: () => <StatefulNavbarBurgerMenu hasShadow />,
 };
 
 // Fixed navbar
@@ -251,7 +317,9 @@ export const ActiveDropdownItem: Story = {
           <Navbar.Dropdown active>
             <Navbar.Link>Active Dropdown</Navbar.Link>
             <Navbar.DropdownMenu>
-              <Navbar.Item href="#">A1</Navbar.Item>
+              <Navbar.Item href="#" active>
+                A1
+              </Navbar.Item>
               <Navbar.Item href="#">A2</Navbar.Item>
             </Navbar.DropdownMenu>
           </Navbar.Dropdown>

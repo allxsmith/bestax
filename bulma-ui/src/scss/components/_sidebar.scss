@@ -3,6 +3,7 @@
 
 @use "bulma/sass/utilities/initial-variables" as iv;
 @use "bulma/sass/utilities/css-variables" as cv;
+@use "bulma/sass/utilities/mixins" as mx;
 @use '../variables' as *;
 @use '../mixins' as *;
 
@@ -283,8 +284,10 @@ $sidebar-static-border-color: cv.getVar("border") !default;
   }
 }
 
-// Responsive breakpoints
-@include extras-tablet {
+// Responsive breakpoints, from Bulma's tablet breakpoint, so a build that
+// moves `$tablet` moves them too. Screens only, as before: Bulma's own tablet
+// mixin also reaches print.
+@include mx.from(iv.$tablet) {
   .#{iv.$class-prefix}sidebar {
     @include cv.register-vars(("sidebar-width": #{$sidebar-width-tablet}));
   }
@@ -306,17 +309,60 @@ $sidebar-static-border-color: cv.getVar("border") !default;
   }
 }
 
-// Static variant (inline sidebar, not overlay)
+// Forced colors (Windows' contrast themes) drop the panel's shadow and paint
+// background colors in the system's Canvas, the panel's own color. So the
+// panel gets an edge as an outline drawn inside it, which takes no room and
+// shows nothing while the panel is slid out of view. A static one keeps the
+// border below instead. The close button's cross is drawn in
+// `sidebar-close-color` as background colors on `::before` and `::after`,
+// which would vanish, so only those two opt out, with the variable set to the
+// system's text color, since the button has no fill and the panel's Canvas is
+// behind them, or its disabled color. The button itself keeps the user's
+// palette, its focus ring included.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}sidebar:not(.#{iv.$class-prefix}is-static) {
+    outline: 1px solid CanvasText;
+    outline-offset: -1px;
+  }
+
+  .#{iv.$class-prefix}sidebar-close {
+    &::before,
+    &::after {
+      forced-color-adjust: none;
+      @include cv.register-vars(
+        (
+          "sidebar-close-color": CanvasText,
+        )
+      );
+    }
+
+    &:disabled,
+    &[aria-disabled="true"] {
+      &::before,
+      &::after {
+        @include cv.register-vars(
+          (
+            "sidebar-close-color": GrayText,
+          )
+        );
+      }
+    }
+  }
+}
+
+// Static variant (inline sidebar, not overlay). The border sits between the
+// sidebar and the content: on its end, or its start with `is-right`, so it
+// faces the content on a right-to-left page too.
 .#{iv.$class-prefix}sidebar.#{iv.$class-prefix}is-static {
   position: relative;
   transform: none;
   box-shadow: none;
   z-index: auto;
-  border-right: 1px solid cv.getVar("sidebar-static-border-color");
+  border-inline-end: 1px solid cv.getVar("sidebar-static-border-color");
 
   &.#{iv.$class-prefix}is-right {
-    border-right: none;
-    border-left: 1px solid cv.getVar("sidebar-static-border-color");
+    border-inline-end: none;
+    border-inline-start: 1px solid cv.getVar("sidebar-static-border-color");
   }
 }
 
@@ -340,8 +386,9 @@ $sidebar-static-border-color: cv.getVar("border") !default;
       margin: 0;
     }
 
+    // Out of sight but still in the link, so the link keeps its name.
     span:not(.#{iv.$class-prefix}icon) {
-      display: none;
+      @include extras-sr-only;
     }
   }
 }

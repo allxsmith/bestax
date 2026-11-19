@@ -1,13 +1,13 @@
 import React, {
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
+import { useClientLayoutEffect } from '../../helpers/useClientLayoutEffect';
 import { DateFormatOption } from './formatters';
-import { isWithin } from './dateUtils';
+import { isWithin, makeDate } from './dateUtils';
 import {
   buildSegmentMap,
   incrementSegmentValue,
@@ -112,6 +112,7 @@ export interface UseSegmentedEntryResult {
     onClick: React.MouseEventHandler<HTMLInputElement>;
     onKeyDown: React.KeyboardEventHandler<HTMLInputElement>;
     onBlur: React.FocusEventHandler<HTMLInputElement>;
+    onPaste: React.ClipboardEventHandler<HTMLInputElement>;
   };
 }
 
@@ -124,6 +125,9 @@ export interface UseSegmentedEntryResult {
  * `setOpen` / `tryParse` / `commitValue` callbacks. When the format is an
  * `Intl` options object or contains variable-width tokens, the segment map is
  * null and the input transparently falls back to free-form text entry.
+ * A whole value the browser writes, from a paste or autofill, commits at
+ * once when `tryParse` reads it, in segment mode or into a field without
+ * focus.
  */
 export function useSegmentedEntry(
   params: UseSegmentedEntryParams
@@ -199,7 +203,7 @@ export function useSegmentedEntry(
   // any of its effects, so a focus in between is the one handed back.
   const closingRef = useRef(false);
   const wasOpenRef = useRef(isOpen);
-  useLayoutEffect(() => {
+  useClientLayoutEffect(() => {
     if (wasOpenRef.current && !isOpen) {
       closingRef.current = true;
       if (!value && isUntouched(text)) setText('');
@@ -241,12 +245,12 @@ export function useSegmentedEntry(
   );
 
   // After every segment-driven change, restore the system selection on the
-  // active segment's char range. useLayoutEffect runs synchronously before
+  // active segment's char range. A layout effect runs synchronously before
   // paint so the user never sees a stray caret position. We deliberately do
   // NOT gate on document.activeElement: when openOnFocus is true the focus
   // trap moves focus into the popover, but setSelectionRange on an unfocused
   // input is well-defined and the selection becomes visible on refocus.
-  useLayoutEffect(() => {
+  useClientLayoutEffect(() => {
     if (activeSegmentIdx === null || !segmentMap || !inputRef.current) return;
     const seg = segmentMap.segments[activeSegmentIdx];
     if (!seg) return;
@@ -275,17 +279,107 @@ export function useSegmentedEntry(
     [segmentMap, activeSegmentIdx]
   );
 
+  // Take a whole value the browser writes into the field, from a paste or
+  // autofill, when the picker's parse reads it and the picker allows it.
+  // With segments, it sets the parts the format shows and keeps the rest of
+  // the value, as typing into each segment would, so a time keeps its day
+  // where the parse would put it on today. The text goes before the commit,
+  // so a host that shows its own display for what it commits, as a month
+  // picker does for a day in a month it already holds, has the last word.
+  // Returns whether it was taken.
+  const takeWholeValue = useCallback(
+    (s: string): boolean => {
+      const parsed = tryParse(s);
+      if (!parsed) return false;
+      let next = parsed;
+      if (segmentMap && value) {
+        const shows = (kind: SegmentKind) =>
+          segmentMap.segments.some(seg => seg.kind === kind);
+        const from = (kind: SegmentKind) => (shows(kind) ? parsed : value);
+        const year = from('year').getFullYear();
+        const month = from('month').getMonth();
+        // A kept day clamps to the new month's length, as a typed month does.
+        const day = Math.min(
+          from('day').getDate(),
+          makeDate(year, month + 1, 0).getDate()
+        );
+        next = new Date(value);
+        next.setFullYear(year, month, day);
+        next.setHours(
+          from('hours').getHours(),
+          from('minutes').getMinutes(),
+          from('seconds').getSeconds(),
+          value.getMilliseconds()
+        );
+      }
+      if (!isAllowed(next)) return false;
+      typedDigitsRef.current = '';
+      seedRef.current = null;
+      setText(formatFn(next, format, locale));
+      commitValue(next);
+      return true;
+    },
+    [
+      tryParse,
+      segmentMap,
+      value,
+      isAllowed,
+      setText,
+      formatFn,
+      format,
+      locale,
+      commitValue,
+    ]
+  );
+
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       // In segment mode the text is managed programmatically (every edit
-      // re-formats from the canonical Date). Browser-issued input events
-      // would otherwise clobber it. The free-form path runs only when
-      // segment mode is inactive.
-      if (activeSegmentIdx !== null && segmentEditable) return;
+      // re-formats from the canonical Date), so browser input is dropped,
+      // which leaves the text as it was. The one exception is the browser
+      // writing the whole field, as autofill does, which comes with no
+      // `inputType` or with `insertReplacementText`, never as typing, a paste
+      // or a drop landing in one segment: that's taken when the picker reads
+      // it.
+      if (activeSegmentIdx !== null && segmentEditable) {
+        const { inputType } = e.nativeEvent as Partial<InputEvent>;
+        if (!inputType || inputType === 'insertReplacementText') {
+          takeWholeValue(e.target.value);
+        }
+        return;
+      }
       seedRef.current = null;
+      // A field without focus can't be typed into, so text arriving there is
+      // the browser filling it, and it commits now rather than on a blur that
+      // won't come. Text the picker can't read, or may not take, stays as it
+      // was written, as before.
+      const root = e.target.getRootNode() as Document | ShadowRoot;
+      const filled =
+        root.activeElement !== e.target && editable && !disabled && !readOnly;
+      if (filled && takeWholeValue(e.target.value)) return;
       setText(e.target.value);
     },
-    [activeSegmentIdx, segmentEditable, setText]
+    [
+      activeSegmentIdx,
+      segmentEditable,
+      takeWholeValue,
+      editable,
+      disabled,
+      readOnly,
+      setText,
+    ]
+  );
+
+  // A pasted value the picker reads replaces the whole field rather than
+  // landing in a segment. In segment mode a paste that isn't one is dropped,
+  // as before.
+  const handlePaste = useCallback(
+    (e: React.ClipboardEvent<HTMLInputElement>) => {
+      if (!segmentEditable) return;
+      const pasted = e.clipboardData?.getData('text/plain');
+      if (pasted && takeWholeValue(pasted)) e.preventDefault();
+    },
+    [segmentEditable, takeWholeValue]
   );
 
   const handleBlur = useCallback(
@@ -602,6 +696,7 @@ export function useSegmentedEntry(
       onClick: handleClick,
       onKeyDown: handleKeyDown,
       onBlur: handleBlur,
+      onPaste: handlePaste,
     },
   };
 }

@@ -7,16 +7,19 @@ import {
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { Icon } from '../elements/Icon';
 import { useClassPrefix, useIconLibrary } from '../helpers/Config';
+import { useScopedNumberFormat } from '../helpers/localeFormat';
 import {
   useInsideField,
   useInsideControl,
   rendersOwnField,
   rendersOwnControl,
+  useFieldsetDisabled,
 } from './FormContext';
 import { Field } from './Field';
 import { Control } from './Control';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelledBy } from './useAutoLabelId';
+import { useFieldMessage } from './useFieldMessage';
 
 /** Available size modifiers for the Rate component. */
 export type RateSize = 'small' | 'medium' | 'large';
@@ -36,9 +39,42 @@ export interface RateIconProps {
   isHovered: boolean;
   /** The current value */
   value: number;
-  /** Fill percentage for partial icons (0-100). Used with precision < 1. */
+  /**
+   * Fill percentage for partial icons (0-100). Used with precision < 1. On a
+   * right-to-left page the pointer reads a star's fraction from its right
+   * edge, so fill from the icon's inline start, for example with
+   * `inset-inline-start`, to fill the side the pointer is over.
+   */
   fillPercent: number;
 }
+
+/**
+ * The names a Rate gives assistive technology, for another language. Each one
+ * you leave out keeps its English default. A `LocaleProvider` doesn't change
+ * them.
+ */
+export interface RateLabels {
+  /**
+   * The group's name when no label names it and the Rate has no `aria-label`
+   * or `aria-labelledby`. An empty string keeps the default, since the group
+   * needs a name.
+   * @defaultValue 'Rating'
+   */
+  group?: string;
+  /**
+   * A star's name, from the value it stands for: its place, counting from 1,
+   * or on the checked star, the value to hundredths when that's fractional,
+   * as in 3.5. The value arrives as a number, so the plural and the way the
+   * number is written are yours: `useNumberFormat` writes it in a locale. An
+   * empty name keeps the default, since each star needs one.
+   * @defaultValue value => `${value} star${value === 1 ? '' : 's'}`
+   */
+  star?: (value: number) => string;
+}
+
+/** A star's English name, as Rate writes it unless `labels.star` is set. */
+const defaultStarLabel = (value: number) =>
+  `${value} star${value === 1 ? '' : 's'}`;
 
 /**
  * Props for the Rate component.
@@ -57,39 +93,55 @@ export interface RateProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange' | 'color'>,
     Omit<BulmaClassesProps, 'size'>,
     FormFieldProps {
-  /** Field label naming the rating group. Automatically associated via `aria-labelledby` on the `role="radiogroup"` container — uses your `labelProps.id` when provided, otherwise a generated one; it also replaces the default `aria-label="Rating"`. Dropped inside an outer `Field`, whose own label names the group instead through `aria-labelledby` when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`), and replaces the `aria-label="Rating"` fallback too. An `aria-label` or `aria-labelledby` you set on the group wins over either label, which still renders but no longer names it. An `aria-labelledby` key counts even when undefined, since it is spread over the group's own, and leaves the `"Rating"` fallback. */
+  /** Field label naming the rating group. Automatically associated via `aria-labelledby` on the `role="radiogroup"` container — uses your `labelProps.id` when provided, otherwise a generated one; it also replaces the fallback `aria-label` (`labels.group`, "Rating" by default). Dropped inside an outer `Field`, whose own label names the group instead through `aria-labelledby` when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`), and replaces that fallback too. An `aria-label` or `aria-labelledby` you set on the group wins over either label, which still renders but no longer names it. An `aria-labelledby` key counts even when undefined, since it is spread over the group's own, and leaves the fallback. */
   label?: React.ReactNode;
   /** Props for the label element. An explicit `id` here is used as the `aria-labelledby` target instead of a generated one; any `htmlFor` is ignored (a group label names the group, never a single control). */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
     [key: string]: unknown;
   };
   /** Form field name. When set, a hidden input is rendered. */
-  name?: string;
+  name?: string | undefined;
   /** Optional id of the form this hidden input belongs to (use when the input lives outside the form element). */
-  form?: string;
+  form?: string | undefined;
   /** Controlled value (0 to max). */
-  value?: number;
+  value?: number | undefined;
   /** Default value for uncontrolled usage. */
-  defaultValue?: number;
+  defaultValue?: number | undefined;
   /** Maximum rating value. */
-  max?: number;
+  max?: number | undefined;
   /** Size variant. */
-  size?: RateSize;
-  /** Whether the rating is disabled. */
-  disabled?: boolean;
-  /** Show the numeric score next to stars. */
+  size?: RateSize | undefined;
+  /**
+   * Whether the rating is disabled. A disabled Rate ignores clicks and keys,
+   * leaves the tab order, and sets `aria-disabled` on the group and on every
+   * star, so a screen reader announces them as unavailable.
+   */
+  disabled?: boolean | undefined;
+  /**
+   * Show the numeric score next to stars, written the way the `locale` of a
+   * `LocaleProvider` around it writes numbers.
+   */
   showScore?: boolean;
   /** Show custom text based on value. */
   showText?: boolean;
   /** Array of text labels for each rating value. */
   texts?: string[];
   /** Callback when rating changes. */
-  onChange?: (value: number) => void;
+  onChange?: ((value: number) => void) | undefined;
   /** Custom icon renderer. */
   customIcon?: (props: RateIconProps) => React.ReactNode;
   /** Add spacing between icons. */
   spaced?: boolean;
-  /** Right-to-left direction. */
+  /**
+   * Renders the stars in reverse order and adds `is-rtl`, whose style reverses
+   * them back. So on its own it changes nothing you see, only the order a
+   * screen reader meets the stars in, which it reverses. The stars follow the
+   * direction of the page, or of a wrapper's `dir`, with this prop or without:
+   * in a right-to-left one they run right to left, the built-in star or an
+   * `iconName` icon fills a half star from its right, and the pointer reads a
+   * star's fraction from its right edge. Set `dir="rtl"` on the page or a
+   * wrapper for that, and leave this prop off.
+   */
   rtl?: boolean;
   /** Custom icon name for the rating stars. */
   iconName?: string;
@@ -100,11 +152,17 @@ export interface RateProps
   /** Additional icon modifiers. */
   iconFeatures?: string | string[];
   /** Color of the active rating icons. */
-  color?: BulmaColor;
+  color?: BulmaColor | undefined;
   /** Rating precision (e.g., `0.5` for half stars). */
   precision?: number;
   /** Custom text displayed next to the rating. */
   customText?: string;
+  /**
+   * The names a screen reader hears, for another language: the group's
+   * fallback name and each star's. Unset, they're English, "Rating" and
+   * "3 stars". A `LocaleProvider` doesn't change them.
+   */
+  labels?: RateLabels;
 }
 
 /**
@@ -126,6 +184,13 @@ const StarIcon: React.FC<{ filled: boolean }> = ({ filled }) => (
     />
   </svg>
 );
+
+/**
+ * Whether `element` lays out right to left, from the page's or a wrapper's
+ * `dir`, as ColorPicker and Slider read it.
+ */
+const isRtl = (element: Element) =>
+  getComputedStyle(element).direction === 'rtl';
 
 /** Snap a value to the nearest precision step. */
 function snapToPrecision(val: number, precision: number): number {
@@ -173,7 +238,7 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
       defaultValue = 0,
       max = 5,
       size,
-      disabled = false,
+      disabled: disabledProp,
       showScore = false,
       showText = false,
       texts,
@@ -188,6 +253,7 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
       color,
       precision = 1,
       customText,
+      labels,
       name,
       form,
       className,
@@ -195,6 +261,7 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
     },
     ref
   ) => {
+    const disabled = useFieldsetDisabled(disabledProp);
     const insideField = useInsideField();
     const insideControl = useInsideControl();
     const ownField = rendersOwnField('Rate', {
@@ -212,6 +279,7 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
       callerProps: props,
     });
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+    const formatNumber = useScopedNumberFormat();
     const starBaseId = useId();
     const [internalValue, setInternalValue] = useState(defaultValue);
     const [hoverValue, setHoverValue] = useState<number | null>(null);
@@ -248,7 +316,8 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
         if (precision < 1) {
           const rect = e.currentTarget.getBoundingClientRect();
           let relativeX = (e.clientX - rect.left) / rect.width;
-          if (rtl) relativeX = 1 - relativeX;
+          // A star fills from its inline start: its right edge right to left.
+          if (isRtl(e.currentTarget)) relativeX = 1 - relativeX;
           const rawValue = iconIndex + relativeX;
           const snapped = snapToPrecision(rawValue, precision);
           const clamped = Math.max(precision, Math.min(snapped, max));
@@ -257,7 +326,7 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
           updateValue(iconIndex + 1);
         }
       },
-      [disabled, precision, rtl, max, updateValue]
+      [disabled, precision, max, updateValue]
     );
 
     // Handle mouse enter on icon
@@ -275,13 +344,13 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
         if (disabled || precision >= 1) return;
         const rect = e.currentTarget.getBoundingClientRect();
         let relativeX = (e.clientX - rect.left) / rect.width;
-        if (rtl) relativeX = 1 - relativeX;
+        if (isRtl(e.currentTarget)) relativeX = 1 - relativeX;
         const rawValue = iconIndex + relativeX;
         const snapped = snapToPrecision(rawValue, precision);
         const clamped = Math.max(precision, Math.min(snapped, max));
         setHoverValue(clamped);
       },
-      [disabled, precision, rtl, max]
+      [disabled, precision, max]
     );
 
     // Handle mouse leave
@@ -339,7 +408,16 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
 
     // Format score display
     const getScoreDisplay = () => {
-      if (precision < 1 && currentValue % 1 !== 0) {
+      const fractional = precision < 1 && currentValue % 1 !== 0;
+      if (formatNumber) {
+        return formatNumber(
+          currentValue,
+          fractional
+            ? { minimumFractionDigits: 1, maximumFractionDigits: 1 }
+            : undefined
+        );
+      }
+      if (fractional) {
         return currentValue.toFixed(1);
       }
       return currentValue;
@@ -437,10 +515,13 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
         );
       }
 
-      // Default SVG with clipPath for partial fill
-      const clipId = `rate-clip-${iconIndex}`;
+      // Default SVG with clipPath for partial fill. The id is this Rate's, so
+      // another Rate on the page can't take its clip, with only the characters
+      // a `url(#…)` reference keeps as they are, as Tour's mask id has.
+      const clipId = `${starBaseId.replace(/[^\w-]/g, '')}-clip-${iconIndex}`;
       return (
         <svg
+          className={prefixedClassNames(classPrefix, 'rate-star-partial')}
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           aria-hidden="true"
@@ -464,8 +545,9 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
             strokeLinejoin="round"
             d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
           />
-          {/* Foreground: filled portion */}
+          {/* Foreground: filled portion, drawn as a filled star is */}
           <path
+            className={prefixedClassNames(classPrefix, 'rate-star-fill')}
             clipPath={`url(#${clipId})`}
             fill="currentColor"
             d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
@@ -481,6 +563,9 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
     // number checks that number's star under its own name, and no two stars
     // share a name.
     const shownValue = Number(currentValue.toFixed(2));
+    // An empty name would leave the star with none, so it keeps the default.
+    const starLabel = (value: number) =>
+      labels?.star?.(value) || defaultStarLabel(value);
     const checkedIndex =
       shownValue > 0 ? Math.min(Math.ceil(shownValue), max) - 1 : -1;
 
@@ -513,11 +598,14 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
             id={`${starBaseId}-${iconIndex}`}
             role="radio"
             aria-checked={iconIndex === checkedIndex}
-            aria-label={
+            aria-label={starLabel(
               iconIndex === checkedIndex && shownValue % 1 !== 0
-                ? `${shownValue} stars`
-                : `${iconIndex + 1} star${iconIndex === 0 ? '' : 's'}`
-            }
+                ? shownValue
+                : iconIndex + 1
+            )}
+            // The group's aria-disabled covers its stars too, but a screen
+            // reader that doesn't carry it down still hears it here.
+            aria-disabled={disabled || undefined}
             tabIndex={-1}
           >
             {icon}
@@ -530,10 +618,11 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
 
     const text = getText();
 
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+    const { messageEl, describedBy } = useFieldMessage(
+      message,
+      messageColor,
+      props['aria-describedby']
+    );
 
     const rateItemsClass = usePrefixedClassNames('rate-items');
     const rateScoreClass = usePrefixedClassNames('rate-score');
@@ -546,16 +635,20 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
         className={combinedClasses}
         role="radiogroup"
         // Fallback name only: a wired label names the group via labelledby.
-        aria-label={ariaLabelledBy ? undefined : 'Rating'}
+        aria-label={ariaLabelledBy ? undefined : labels?.group || 'Rating'}
         aria-labelledby={ariaLabelledBy}
         // Focus stays on the group, so point it at the checked star for
         // assistive technology to announce as the value changes.
         aria-activedescendant={
           checkedIndex >= 0 ? `${starBaseId}-${checkedIndex}` : undefined
         }
+        // Dimmed and out of the tab order isn't enough: a screen reader
+        // reaching the stars by its own navigation needs to hear it too.
+        aria-disabled={disabled || undefined}
         tabIndex={disabled ? -1 : 0}
         onKeyDown={handleKeyDown}
         {...rest}
+        aria-describedby={describedBy}
       >
         <div className={rateItemsClass}>{renderIcons()}</div>
         {showScore && (

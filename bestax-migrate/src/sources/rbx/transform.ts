@@ -41,9 +41,13 @@ import {
   reprintDirectives,
   type TransformContext,
 } from '../_shared/jsx-utils.js';
+import { applyBackgroundColor } from '../_shared/background-props.js';
 import { applyPropAction, applyUniversalProps } from '../_shared/props.js';
+import { applyTextColor } from '../_shared/text-color-props.js';
 import { enforcePolymorphicProps } from '../_shared/polymorphic.js';
+import { askForModalName } from '../_shared/modal-name.js';
 import {
+  BESTAX,
   bestaxValueLocals,
   buildBestaxImport,
   carryPrunedComments,
@@ -317,6 +321,49 @@ export default function transform(
 
   ctx.resolve = resolveJsxPath;
 
+  // The locals of `import * as Bulma from '@allxsmith/bestax-bulma'`.
+  const bestaxNamespaces = new Set<string>();
+  root
+    .find(j.ImportDeclaration, { source: { value: BESTAX } })
+    .forEach(path => {
+      for (const spec of path.node.specifiers ?? []) {
+        if (spec.type === 'ImportNamespaceSpecifier' && spec.local) {
+          bestaxNamespaces.add(nameOf(spec.local));
+        }
+      }
+    });
+
+  /**
+   * What the element at `path` renders, by binding. An rbx name resolves as
+   * the JSX pass resolves it. Elements are migrated parents first, so an
+   * ancestor of the element being migrated may already carry its bestax
+   * name: a bestax local, the file's own import or one `ctx.reserve` chose.
+   * A name `ctx.reserve` chose is declared nowhere yet and the file's own
+   * import at the top, so any nearer binding of the name shadows it.
+   */
+  ctx.resolveElement = (path: any) => {
+    const name = path.node?.openingElement?.name;
+    const parts = jsxNameParts(name);
+    if (!parts) return null;
+    const [head, ...rest] = parts;
+    const rbxPath = resolveJsxPath(name, path);
+    if (
+      rbxPath &&
+      resolvesToBinding(path, head, anyAlias(head) ? undefined : programScope)
+    ) {
+      return { library: 'source', parts: rbxPath };
+    }
+    if (!resolvesToBinding(path, head, programScope)) return null;
+    if (bestaxNamespaces.has(head)) {
+      return rest.length > 0 ? { library: 'bestax', parts: rest } : null;
+    }
+    for (const [imported, local] of ctx.needed) {
+      if (local === head)
+        return { library: 'bestax', parts: [imported, ...rest] };
+    }
+    return null;
+  };
+
   // ---- 1c. Collect local bindings so new imports never collide -----------
   const bound = collectBoundNames(j, root, RBX);
   // Seed the reserved set with the local names of rbx imports that CANNOT be
@@ -577,6 +624,8 @@ export default function transform(
         applyPropAction(ctx, path, element, attr, action);
       }
     }
+    applyBackgroundColor(ctx, path, element, target, handled);
+    applyTextColor(ctx, path, element, target, handled);
     applyUniversalProps(ctx, path, element, handled, UNIVERSAL_PROPS);
 
     // After every prop pass: bestax's props follow `as`, so the element
@@ -585,6 +634,9 @@ export default function transform(
     // pair either way.
     // rbx spells its element prop `as`, so a spread here really can carry one.
     enforcePolymorphicProps(ctx, path, element, target, true);
+
+    // Read off the attributes the element ends up with.
+    askForModalName(ctx, path, element, target);
 
     // ---- 2a. badge/tooltip helper props → wrapping components ------------
     // Last, so the inner element is already fully migrated. Both families are

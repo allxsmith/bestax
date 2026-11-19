@@ -2,10 +2,17 @@
 
 CLI that scaffolds a Vite app wired for `@allxsmith/bestax-bulma`. Agents and CI are
 first-class consumers: **every prompt must have a flag equivalent**, and the non-interactive
-path (`-y` + flags, no TTY) must never hang or regress (#192).
+path (`-y` + flags, no TTY) must never hang or regress (#192). So a question added later takes
+its default without a TTY, as `--lint` and `--immediate` do: a run that answered every older
+question by flag still finishes. `--immediate` never runs under `-y` or without a TTY unless it's
+passed, so a scripted run never starts a dev server it can't stop.
 
 The one question `-y` does not answer is whether to delete a non-empty target directory: only
 `--overwrite` or a yes at the prompt does, and without either the run stops and changes nothing.
+Neither empties the working directory or a folder holding it (#310). The project directory can
+be a path (#1154), so that is judged where the path resolves, not by how it is spelled. `.`
+alone scaffolds into the working directory, as create-vite takes it, and so only while it's
+empty. A directory holding only `.git` counts as empty, as create-vite counts it.
 Every flag is validated before anything on disk changes, and the directory is emptied only after
 the last prompt, so a typo or a Ctrl+C never costs the user their files (#945).
 
@@ -19,20 +26,58 @@ the last prompt, so a typo or a Ctrl+C never costs the user their files (#945).
   installs skills, writes `CLAUDE.md`
 - `src/constants.ts` — user-facing strings **and scaffolded-file templates** (e.g. the
   `CLAUDE_MD` template written into generated apps)
+- `src/library-range.ts` — the `@allxsmith/bestax-bulma` range a scaffold gets (see
+  Dependencies)
 - `src/validators.ts`, `src/display.ts`, `src/file-system.ts` — support modules
-- `templates/vite`, `templates/vite-ts` — the app templates
+- `src/run-command.ts` — runs `--immediate`'s install and dev server
+- `templates/vite`, `templates/vite-ts` — the app templates. The `vite-compiler` and
+  `vite-compiler-ts` templates copy them and turn the React Compiler on (`setupReactCompiler`).
+  The Next.js templates (`templates/next`, `templates/next-ts`) are Next.js App Router
+  skeletons with no starter page of their own: `copyTemplate` copies `src/App`, `src/App.css`
+  and `src/index.css` in from `vite` or `vite-ts` (`Template.starter`) and applies
+  `NEXT_STARTER_EDITS` (`'use client'`, Next.js for Vite, no Vite logo). Each edit must match, so
+  a change to the Vite starter page that breaks one fails the scaffold, and `templates.test.ts`,
+  rather than shipping a half-adapted page. `entryFile` names where a template loads its
+  stylesheets and wraps the app: `src/main` for Vite, `src/app/layout` for Next.js, where the
+  flavor, icon and provider steps write, the provider around everything in `<body>`. A Next.js
+  app's title is its layout's `metadata.title`, Ionicons load through `next/script`, and its
+  `launch.json` (`NEXT_LAUNCH_JSON`) runs `next dev --port 3000`, which fails rather than moving
+  when the port is busy. `--lint eslint` writes create-next-app's `eslint-config-next` setup
+  (`NEXT_ESLINT_*`). The About page stays a Server Component, which needs bestax-bulma's
+  `'use client'` modules (#1355): a scaffold floored below the release that added them fails
+  `next build`.
+  The router templates (`react-router`, `react-router-ts` and `tanstack-router-ts`) copy them and
+  lay the files in `templates/overlays/<router>/<vite|vite-ts>` over them (`setupRouter`): a navbar
+  layout, the routes and a second page, with `App`, the starter page, as the home page. That step
+  runs after the flavor, icon and provider steps, which edit `App` and the entry file as they do
+  in the plain template, and then makes the entry file render the router where it rendered `App`.
+  The files it adds use no helper prop, so a no-helpers flavor needs nothing from it, and
+  `src/__tests__/templates.test.ts` holds them to that. `ROUTER_SETUPS` in `src/constants.ts`
+  holds what each router adds: its dependency, floored at a release past the cooldown, any Node
+  floor it needs, and its README and `CLAUDE.md` text. Move a router's floor with its major, and
+  check its Node floor when you do. The TanStack Router navbar links through `createLink`
+  (`NavbarLink`) rather than `as={Link}`, since `as` keeps the props but stops checking `to`
+  against the routes.
 
 ## Dependencies
 
 `@allxsmith/bestax-bulma` is a declared runtime dependency (#644). The scaffolder is built for
 the library and its manifest says so, the way bulma-ui declares `bulma` without importing it:
-nothing in `src/` imports the library, the templates pin the published package themselves
-(`^5.0.0` in `templates/*/package.json`), and the e2e installs from the registry with
+nothing in `src/` imports the library, and the e2e installs from the registry with
 `--ignore-workspace`. It is spelled `workspace:^`, which `pnpm publish` rewrites to the release
 current at pack time (bulma-ui releases first in the same job), and the sibling rule in
 `check:conformance` allows it only because `SIBLING_RUNTIME_DEPS` declares this exact pair.
 What a consumer sees: `npm create bestax` installs the library, `bulma`, and `react`/`react-dom`
 alongside the CLI.
+
+A scaffolded app depends on the library at that same range (#1240). `src/library-range.ts`
+reads it from this manifest at run time, so a published CLI floors the app at the release it
+was packed with, and a CLI run from a checkout resolves `workspace:^` from the library the
+workspace links, the way `pnpm publish` would. The templates spell it `workspace:^` too, a
+placeholder the scaffold always replaces: one that slipped through would fail the app's
+install rather than quietly ask for an old floor, and `src/__tests__/templates.test.ts` holds
+every template to it. When bulma-ui releases on its own, published CLIs keep their floor, and
+the next create-bestax release moves it. The docs sandboxes set the library's range themselves.
 
 `react` and `react-dom` are declared dependencies too, with the library's peer ranges, though
 nothing imports them either. npm installs a dependency's peers by itself, but Yarn 1 does not,
@@ -79,6 +124,30 @@ react (#1012), so restore them on its PR; when the peer range itself moves, chan
   silently dropped at ingest.
 - Templates pin the library's CSS import and icon setup — a change to bulma-ui's published
   exports or flavors (`bestax.css`, `versions/*.css`) may require a template update.
+- `templates/vite` and `templates/vite-ts` follow the `react` and `react-ts` starters that
+  `npm create vite@latest` writes, Oxlint and its `_oxlintrc.json` included, and `--lint eslint`
+  follows what create-vite's `--eslint` writes in their place (the `ESLINT_*` constants in
+  `src/constants.ts`), and the compiler templates what its `react-compiler` starters add (the
+  `REACT_COMPILER_*` constants). `.github/workflows/create-vite-drift.yml` runs
+  `scripts/check-create-vite-drift.mjs` each Monday and keeps an issue open while they differ
+  from the create-vite release npm calls `latest` (`node scripts/check-create-vite-drift.mjs
+--report` prints the same comparison). To catch up, scaffold both starters with and without
+  `--eslint`, compare their tsconfigs, devDependencies, `vite.config` and `src/main` with the
+  templates and the constants, and close the issue from the PR (#1049, #1304). The App, its
+  assets, the README and `_gitignore` differ on purpose, and the script doesn't compare them. TypeScript follows create-vite too: 7 under
+  Oxlint, and 6 under ESLint, since typescript-eslint can't load 7 yet (#394). A file the
+  catch-up adds or removes has to reach the docs sandboxes too, and
+  `docs/scripts/sandbox.test.mjs` fails until the files the StackBlitz project copies, with the
+  ones it names as left out, are exactly the template's. The CodeSandbox project is a Create
+  React App layout with files of its own, so a new template file that matters there is a
+  change to its builder, and no test holds it to the template.
+- `templates/vite-ts` is also what the docs site's StackBlitz and CodeSandbox buttons build
+  from (`docs/src/theme/CodeBlock/sandbox/`, read at docs build time). The builders edit
+  `src/main.tsx` by string pattern, so `docs/scripts/sandbox.test.mjs` runs them against the
+  real template and fails if the bestax stylesheet import or the `./App.tsx` import moves, or
+  a file they copy is renamed. Both install TypeScript 6 (`SANDBOX_TYPESCRIPT`) in place of the
+  template's 7: StackBlitz's WebContainers can't run 7's native `tsc`, and react-scripts loads
+  the compiler API 7 doesn't ship.
 - The scaffolder edits the starter `App` with string patterns, so `src/__tests__/templates.test.ts`
   runs every edit against the real templates. Under a `noHelpers` flavor each helper prop in
   the starter becomes a named class from `NO_HELPERS_STARTER_CLASSES` in `src/constants.ts`;
@@ -91,7 +160,7 @@ react (#1012), so restore them on its PR; when the peer range itself moves, chan
 
 ## Testing
 
-- Unit: `pnpm --filter create-bestax test` (jest, ESM via `--experimental-vm-modules`).
+- Unit: `pnpm --filter create-bestax test` (Vitest).
 - E2E: `pnpm --filter create-bestax test:e2e` (Playwright, `e2e/` — scaffolds real apps and
   boots them; see `e2e/README.md`).
 - Manual smoke: build, then scaffold **outside the repo**

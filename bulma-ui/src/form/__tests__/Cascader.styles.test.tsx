@@ -1,0 +1,258 @@
+// `_cascader.scss` draws the field's chevron and clear button through the
+// rules it shares with TreeSelect, and lays out the panel's columns, so these
+// compile it, with no prefix and under one, and read its rules as text, the
+// way TreeSelect's are read.
+import * as sass from 'sass';
+import path from 'path';
+
+const SCSS = path.resolve(__dirname, '../../scss');
+const NODE_MODULES = path.resolve(__dirname, '../../../../node_modules');
+
+const compileModule = (prefix: string, module: string) =>
+  sass.compileString(
+    `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+     @use '${module}';`,
+    {
+      loadPaths: [SCSS, NODE_MODULES],
+      quietDeps: true,
+      logger: sass.Logger.silent,
+    }
+  ).css;
+const compile = (prefix: string) => compileModule(prefix, 'form/cascader');
+
+/**
+ * Every rule in a sheet of sass's expanded output: its selector and body. The
+ * first of a selector wins, so a forced-colors rule doesn't stand in for the
+ * plain one it follows.
+ */
+function rulesOf(css: string): Map<string, string> {
+  const rules = new Map<string, string>();
+  const pattern = /([^{}]+)\{([^{}]*)\}/g;
+  for (const [, selector, body] of css
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .matchAll(pattern)) {
+    const key = selector.replace(/\s+/g, ' ').trim();
+    if (!rules.has(key)) rules.set(key, body.replace(/\s+/g, ' ').trim());
+  }
+  return rules;
+}
+
+const PLAIN = rulesOf(compile(''));
+const PREFIXED = rulesOf(compile('bestax-'));
+
+function body(rules: Map<string, string>, selector: string): string {
+  const found = rules.get(selector);
+  if (found === undefined) throw new Error(`no rule for ${selector}`);
+  return found;
+}
+
+describe('Cascader styles', () => {
+  it('lets a panel in place inherit the root, where a value set on the root or through className reaches it', () => {
+    // No rule gives a panel that isn't portaled a value of its own, which
+    // would beat what it inherits from the root it sits in.
+    for (const [selector, declarations] of PLAIN) {
+      // A rule that sets one of the variables, not one that reads them.
+      if (!/(^|;\s*)--bulma-cascader-[\w-]+:/.test(declarations)) continue;
+      for (const part of selector.split(', ')) {
+        if (part.startsWith('.cascader-panel')) {
+          expect(part).toMatch(
+            /^\.cascader-panel\.is-(portal|small|medium|large)$/
+          );
+        }
+      }
+    }
+  });
+
+  it('gives a portaled panel, outside the root, its own copy of the defaults', () => {
+    const root = body(PLAIN, '.cascader, .cascader-panel.is-portal');
+    expect(root).toContain('--bulma-cascader-search-gap: 0.5rem');
+  });
+
+  it('registers its variables on the root and on a portaled panel', () => {
+    const vars = body(PLAIN, '.cascader, .cascader-panel.is-portal');
+    for (const name of [
+      'chevron-width',
+      'chevron-color',
+      'chevron-hover-color',
+      'chevron-focus-color',
+      'chevron-z-index',
+      'clear-z-index',
+      'search-gap',
+      'max-width',
+      'column-width',
+      'column-max-height',
+      'column-border-width',
+      'column-border-color',
+      'column-inset',
+      'item-color',
+      'item-size',
+      'item-padding-y',
+      'item-padding-x',
+      'item-hover-background',
+      'item-gap',
+      'item-chevron-size',
+      'highlight-background',
+      'checked-background',
+      'checked-color',
+      'disabled-color',
+    ]) {
+      expect(vars).toContain(`--bulma-cascader-${name}:`);
+    }
+  });
+
+  it('places the chevron and the clear button at the inline end, as TreeSelect does', () => {
+    expect(body(PLAIN, '.cascader-chevron')).toContain('inset-inline-end: 0');
+    expect(body(PLAIN, '.cascader-clear')).toContain(
+      'inset-inline-end: var(--bulma-cascader-chevron-width)'
+    );
+    expect(body(PLAIN, '.cascader .input')).toContain(
+      'padding-inline-end: var(--bulma-cascader-chevron-width)'
+    );
+    expect(body(PLAIN, '.cascader.has-clear .input')).toContain(
+      'padding-inline-end: calc(2 * var(--bulma-cascader-chevron-width))'
+    );
+  });
+
+  it('sets the columns side by side, scrolling sideways, each scrolling down past a height', () => {
+    const columns = body(PLAIN, '.cascader-columns');
+    expect(columns).toContain('display: flex');
+    expect(columns).toContain('overflow-x: auto');
+    const column = body(PLAIN, '.cascader-column');
+    expect(column).toContain('width: var(--bulma-cascader-column-width)');
+    expect(column).toContain(
+      'max-height: var(--bulma-cascader-column-max-height)'
+    );
+    expect(column).toContain('overflow-y: auto');
+    expect(column).toContain('padding: var(--bulma-cascader-column-inset)');
+    expect(body(PLAIN, '.cascader-column + .cascader-column')).toContain(
+      'border-inline-start: var(--bulma-cascader-column-border-width) solid var(--bulma-cascader-column-border-color)'
+    );
+  });
+
+  it('keeps the panel no wider than the viewport, so on a narrow screen the columns scroll sideways in it', () => {
+    for (const [rules, prefix] of [
+      [PLAIN, ''],
+      [PREFIXED, 'bestax-'],
+    ] as const) {
+      expect(
+        body(
+          rules,
+          `.${prefix}cascader, .${prefix}cascader-panel.${prefix}is-portal`
+        )
+      ).toContain('--bulma-cascader-max-width: calc(100vw - 2rem)');
+      expect(body(rules, `.${prefix}cascader-panel`)).toContain(
+        'max-width: var(--bulma-cascader-max-width)'
+      );
+    }
+  });
+
+  it("starts the items from Combobox's values, its sizes included", () => {
+    const vars = body(PLAIN, '.cascader, .cascader-panel.is-portal');
+    const combobox = rulesOf(compileModule('', 'form/combobox'));
+    const own = body(combobox, '.combobox, .combobox-menu.is-portal');
+    for (const name of [
+      'item-color',
+      'item-size',
+      'item-padding-y',
+      'item-padding-x',
+      'item-hover-background',
+    ]) {
+      const value = (text: string, prefix: string) =>
+        text.match(new RegExp(`--bulma-${prefix}-${name}: ([^;]+);`))![1];
+      expect(value(vars, 'cascader')).toBe(value(own, 'combobox'));
+    }
+    for (const size of ['small', 'medium', 'large']) {
+      expect(body(PLAIN, `.cascader-panel.is-${size}`)).toBe(
+        body(
+          combobox,
+          `.combobox.is-${size}, .combobox-menu.is-${size}`
+        ).replace(/--bulma-combobox-/g, '--bulma-cascader-')
+      );
+    }
+  });
+
+  it('tints the open path, under the picked path, and keeps hover off both', () => {
+    expect(body(PLAIN, '.dropdown-item.cascader-item.is-active')).toContain(
+      'background-color: var(--bulma-cascader-highlight-background)'
+    );
+    expect(
+      Array.from(PLAIN.keys()).find(selector =>
+        selector.startsWith('.dropdown-item.cascader-item:hover')
+      )
+    ).toBe(
+      '.dropdown-item.cascader-item:hover:not(.is-active):not(.is-checked):not(.is-disabled)'
+    );
+    const keys = Array.from(PLAIN.keys());
+    expect(keys.indexOf('.dropdown-item.cascader-item.is-active')).toBeLessThan(
+      keys.indexOf('.dropdown-item.cascader-item.is-checked')
+    );
+  });
+
+  it('fills the items on the path, greys the disabled ones, and rings the focused one', () => {
+    expect(body(PLAIN, '.dropdown-item.cascader-item.is-checked')).toContain(
+      'background-color: var(--bulma-cascader-checked-background)'
+    );
+    expect(body(PLAIN, '.dropdown-item.cascader-item.is-disabled')).toContain(
+      'color: var(--bulma-cascader-disabled-color)'
+    );
+    expect(body(PLAIN, '.dropdown-item.cascader-item:focus-visible')).toContain(
+      'outline'
+    );
+  });
+
+  it("points a parent's chevron the other way right to left", () => {
+    expect(body(PLAIN, '.cascader-item-chevron')).toContain(
+      'transform: rotate(-135deg)'
+    );
+    expect(body(PLAIN, '.cascader-item-chevron:dir(rtl)')).toContain(
+      'transform: rotate(45deg)'
+    );
+  });
+
+  it('sizes the items from the panel', () => {
+    expect(body(PLAIN, '.cascader-panel.is-small')).toContain(
+      '--bulma-cascader-item-size: var(--bulma-size-small)'
+    );
+    expect(body(PLAIN, '.cascader-panel.is-large')).toContain(
+      '--bulma-cascader-item-padding-x: 1.5rem'
+    );
+  });
+
+  it('keeps the path and the disabled items apart in forced colors', () => {
+    expect(
+      body(PLAIN, '.dropdown-item.cascader-item.is-checked')
+    ).not.toContain('Highlight');
+    const css = compile('');
+    expect(css).toMatch(
+      /@media \(forced-colors: active\)[\s\S]*\.cascader-item\.is-active:not\(:focus-visible\)[\s\S]*outline: var\(--bulma-cascader-column-border-width\) solid CanvasText[\s\S]*\.cascader-item\.is-checked[\s\S]*Highlight[\s\S]*GrayText/
+    );
+  });
+
+  it('colors the chevron as focused while the field is focused, drawn focused, or open', () => {
+    const rule = Array.from(PLAIN.keys()).find(selector =>
+      selector.includes('.input:focus ~ .cascader-chevron')
+    )!;
+    expect(rule.split(', ')).toEqual([
+      '.cascader .input:focus ~ .cascader-chevron',
+      '.cascader .input.is-focused ~ .cascader-chevron',
+      '.cascader .input[aria-expanded=true] ~ .cascader-chevron',
+    ]);
+    expect(body(PLAIN, rule)).toContain(
+      'color: var(--bulma-cascader-chevron-focus-color)'
+    );
+  });
+
+  it('prefixes every class under a class prefix', () => {
+    const selectors = Array.from(PREFIXED.keys()).join(' ');
+    expect(selectors).toContain('.bestax-cascader');
+    expect(selectors).toContain('.bestax-cascader-column');
+    expect(selectors).toContain(
+      '.bestax-dropdown-item.bestax-cascader-item.bestax-is-active'
+    );
+    expect(selectors).toContain(
+      '.bestax-dropdown-item.bestax-cascader-item.bestax-is-checked'
+    );
+    expect(selectors).toContain('.bestax-cascader-panel.bestax-is-small');
+    expect(selectors.replace(/\.bestax-[\w-]+/g, '')).not.toMatch(/\.[a-z]/);
+  });
+});

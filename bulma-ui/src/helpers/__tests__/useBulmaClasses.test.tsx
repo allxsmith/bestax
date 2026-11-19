@@ -1,5 +1,4 @@
 import { renderHook } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import React from 'react';
 import { useBulmaClasses, BulmaClassesProps } from '../useBulmaClasses';
 import { ConfigProvider } from '../Config';
@@ -298,6 +297,30 @@ describe('useBulmaClasses', () => {
     expect(bulmaHelperClasses).toBe('is-block');
   });
 
+  it('passes flexContainer through, so the container classes need no display prop', () => {
+    const props = {
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: '2',
+      id: 'list',
+    } as const;
+    const withOption = renderHook(() =>
+      useBulmaClasses(props, { flexContainer: true })
+    ).result.current;
+    expect(withOption.bulmaHelperClasses).toBe(
+      'is-gap-2 is-flex-direction-column is-align-items-center'
+    );
+    expect(withOption.rest).toEqual({ id: 'list' });
+
+    // Without it, the same props render what they always have.
+    for (const options of [undefined, {}, { flexContainer: false }]) {
+      const without = renderHook(() => useBulmaClasses(props, options)).result
+        .current;
+      expect(without.bulmaHelperClasses).toBe('is-gap-2');
+      expect(without.rest).toEqual({ id: 'list' });
+    }
+  });
+
   // Other Helpers
   it('applies other helper classes', () => {
     const { bulmaHelperClasses } = renderUseBulmaClasses({
@@ -409,7 +432,7 @@ describe('useBulmaClasses', () => {
     expect(bulmaHelperClasses).toBe('has-text-primary-05');
   });
 
-  it('applies background color with backgroundColorShade', () => {
+  it('applies background color with a backgroundColorShade of 10', () => {
     const { bulmaHelperClasses } = renderUseBulmaClasses({
       backgroundColor: 'info',
       backgroundColorShade: '10',
@@ -431,23 +454,6 @@ describe('useBulmaClasses', () => {
       colorShade: '05',
     });
     expect(bulmaHelperClasses).toBe('');
-  });
-
-  it('applies text color with shade (duplicate)', () => {
-    const { bulmaHelperClasses } = renderUseBulmaClasses({
-      color: 'primary',
-      colorShade: '05',
-    });
-    expect(bulmaHelperClasses).toBe('has-text-primary-05');
-  });
-
-  it('applies text color with shade (no viewport support)', () => {
-    const { bulmaHelperClasses } = renderUseBulmaClasses({
-      color: 'primary',
-      colorShade: '05',
-      viewport: 'mobile',
-    });
-    expect(bulmaHelperClasses).toBe('has-text-primary-05');
   });
 
   it('applies text color with shade without viewport when viewport is invalid', () => {
@@ -457,30 +463,6 @@ describe('useBulmaClasses', () => {
       viewport: 'invalid',
     });
     expect(bulmaHelperClasses).toBe('has-text-primary-50');
-  });
-
-  it('applies background color with backgroundColorShade', () => {
-    const { bulmaHelperClasses } = renderUseBulmaClasses({
-      backgroundColor: 'info',
-      backgroundColorShade: '10',
-    });
-    expect(bulmaHelperClasses).toBe('has-background-info-10');
-  });
-
-  it('falls back to base color class when shade is invalid', () => {
-    const { bulmaHelperClasses } = renderUseBulmaClasses({
-      color: 'primary',
-      colorShade: 'invalid' as string, // Simulate invalid shade
-    });
-    expect(bulmaHelperClasses).toBe('has-text-primary');
-  });
-
-  it('does not apply color class for invalid color', () => {
-    const { bulmaHelperClasses } = renderUseBulmaClasses({
-      color: 'invalid' as string,
-      colorShade: '05',
-    });
-    expect(bulmaHelperClasses).toBe('');
   });
 
   // Background color with backgroundColorShade and viewport

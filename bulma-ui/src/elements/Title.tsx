@@ -21,7 +21,7 @@ export type TitleElement = (typeof validTitleElements)[number];
 
 /**
  * Props for the Title component.
- * @extraProp {boolean} [skeleton] - Applies the `is-skeleton` class to the entire component.
+ * @extraProp {boolean} [skeleton] - Applies the `is-skeleton` class to the entire component. A screen reader still reads its text, so give it `aria-hidden="true"` while it's a skeleton.
  */
 export interface TitleProps
   extends
@@ -31,14 +31,27 @@ export interface TitleProps
     >,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   /** Additional CSS classes to apply. */
-  className?: string;
-  /** Size of the title (Bulma sizes `1`-`6`, as a string or number). */
-  size?: TitleSize;
+  className?: string | undefined;
+  /**
+   * Size of the title (Bulma sizes `1`-`6`, as a string or number). It also
+   * picks the heading level: unless `as` is `p`, `size="4"` renders an
+   * `<h4>`, whatever `as` says. For a heading whose level and size differ,
+   * set the level with `as` and the size with the `textSize` helper.
+   */
+  size?: TitleSize | undefined;
   /** Adds margin below the title. */
   isSpaced?: boolean;
-  /** HTML element to render as (h1-h6 or p). */
-  as?: TitleElement;
-  /** Applies the `has-skeleton` class to part of the content. */
+  /**
+   * HTML element to render as (`h1`-`h6` or `p`). A `size` overrides it
+   * unless it's `p`, so `as="h2" size="4"` renders an `<h4>`. To keep the
+   * level `as` sets, size the title with the `textSize` helper instead.
+   */
+  as?: TitleElement | undefined;
+  /**
+   * Applies the `has-skeleton` class to part of the content. A screen
+   * reader still reads its text, so give it `aria-hidden="true"` while it's
+   * a skeleton.
+   */
   hasSkeleton?: boolean;
   /** Title content. */
   children?: React.ReactNode;

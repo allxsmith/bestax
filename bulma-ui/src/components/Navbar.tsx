@@ -1,8 +1,20 @@
-import React, { forwardRef, useContext, useEffect, useState } from 'react';
+import React, {
+  forwardRef,
+  useContext,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import type { PolymorphicComponent } from '../helpers/polymorphic';
 import { buttonType } from '../helpers/buttonType';
+import { getActiveElementInTree, parentInPage } from '../helpers/shadowDom';
+import { useHoverDismiss } from '../helpers/useHoverDismiss';
+import { chain } from '../helpers/useHoverOpen';
+import { isAtBulmaBreakpoint } from '../helpers/useBulmaViewport';
+import { useOutsideFocus } from '../helpers/useOutsidePress';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -18,7 +30,11 @@ interface NavbarDropdownContextValue {
   active: boolean;
   /** Flips the open state. */
   toggle: () => void;
-  /** Closes the dropdown (no-op if already closed). */
+  /**
+   * What the link's Escape does on an open dropdown: closes it, and puts the
+   * menu away if the pointer or focus would still show it. The root's own
+   * Escape handles a menu only the pointer or focus shows.
+   */
   close: () => void;
 }
 
@@ -34,7 +50,7 @@ export interface NavbarProps
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes for the navbar. */
-  className?: string;
+  className?: string | undefined;
   /** Text color for the navbar. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Bulma color modifier for the navbar. */
@@ -48,15 +64,43 @@ export interface NavbarProps
     | 'black'
     | 'dark'
     | 'light'
-    | 'white';
+    | 'white'
+    | undefined;
   /** Background color for the navbar. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Renders the navbar with a transparent background. */
   transparent?: boolean;
+  /**
+   * Renders Bulma's `is-spaced`: padding around the navbar, rounded items
+   * and boxed dropdowns. Bulma applies it from the desktop breakpoint up, so
+   * below that the navbar looks the same either way. With `fixed="top"`, put
+   * `has-spaced-navbar-fixed-top` on `<html>` beside `has-navbar-fixed-top`
+   * (the `-bottom` pair for `fixed="bottom"`). From desktop up the spaced
+   * navbar is taller than `has-navbar-fixed-top` pads the page for, and
+   * there the spaced class pads it for the taller navbar.
+   */
+  isSpaced?: boolean;
+  /**
+   * Renders Bulma's `has-shadow`: a shadow below the navbar, or above it with
+   * `fixed="bottom"`. Off unless set, since Bulma's navbar has no shadow of
+   * its own. `Box` and `Card` take a `hasShadow` that defaults to `true`
+   * instead, because Bulma gives those a shadow already.
+   */
+  hasShadow?: boolean;
   /** Fixes the navbar to the top or bottom of the viewport. */
   fixed?: 'top' | 'bottom';
   /** Navbar content (compose with subcomponents). */
   children?: React.ReactNode;
+  /**
+   * Accessible name. Defaults to `main navigation`. A screen reader announces
+   * it with the landmark's role, and since the name holds the role word,
+   * "navigation" is heard twice. Pass a name without it (`aria-label="Site"`),
+   * and a different name on each Navbar when a page has more than one. A
+   * passed `aria-label` replaces the default, and `aria-label={undefined}`
+   * removes it, leaving the landmark unnamed.
+   * @defaultValue 'main navigation'
+   */
+  'aria-label'?: React.AriaAttributes['aria-label'];
 }
 
 /**
@@ -76,6 +120,8 @@ const NavbarComponent = forwardRef<HTMLElement, NavbarProps>(
       bgColor,
       color,
       transparent,
+      isSpaced,
+      hasShadow,
       fixed,
       children,
       ...props
@@ -92,6 +138,8 @@ const NavbarComponent = forwardRef<HTMLElement, NavbarProps>(
     const bulmaClasses = usePrefixedClassNames('navbar', {
       [`is-${color}`]: color,
       'is-transparent': transparent,
+      'is-spaced': isSpaced,
+      'has-shadow': hasShadow,
       [`is-fixed-${fixed}`]: fixed,
     });
 
@@ -123,7 +171,7 @@ export interface NavbarBrandProps
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Text color for the brand. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
@@ -132,7 +180,8 @@ export interface NavbarBrandProps
    * `textColor` takes precedence when both are set, and is the one that
    * reaches the full color list.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Brand content. */
   children?: React.ReactNode;
 }
@@ -194,8 +243,23 @@ export interface NavbarItemOwnProps extends Omit<
    */
   backgroundColor?: never;
   /** Additional CSS classes. */
-  className?: string;
-  /** Whether the item is active. */
+  className?: string | undefined;
+  /**
+   * Marks the item as the current one. It adds Bulma's `is-active` class, and
+   * `aria-current="page"` on the element `as` renders, so assistive tech can
+   * tell which item is current too. An `aria-current` you pass wins, even
+   * `undefined`: use it to say something else (`"location"` for a section of
+   * one page, say), or `aria-current={false}` to turn it off. An `active` item
+   * that isn't navigation takes `aria-current={false}`: an `as="button"`
+   * control, say, or a `has-dropdown` container like the
+   * `<Navbar.Item as="div" className="has-dropdown" active>` older
+   * bestax-migrate versions wrote. That one can be a `Navbar.Dropdown` instead.
+   * Bulma fills an active link item with its selected color, the link color in
+   * a navbar with no `color`. bestax's stylesheets give the text that color's
+   * invert, where Bulma's own leaves it in the navbar's text color, dark gray
+   * on blue on the light scheme. With a `bgColor` the text keeps the navbar's
+   * color, and a fill of your own from CSS wants a `textColor` too.
+   */
   active?: boolean;
   /** Text color for the item. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -222,7 +286,7 @@ export type NavbarItemProps<T extends React.ElementType = 'a'> =
        * `type="submit"` or `type="reset"` and yours is used; any other value, or a spread
        * carrying `type: undefined`, renders `type="button"`.
        */
-      as?: T;
+      as?: T | undefined;
     };
 
 /**
@@ -271,6 +335,12 @@ export const NavbarItem = forwardRef(function NavbarItem(
         bulmaHelperClasses,
         className
       )}
+      // The active item is the current page, the way Menu.Item and Pagination
+      // mark theirs. Before the spread, so an `aria-current` the caller passes
+      // decides, `false` and `undefined` included. bestax-migrate converts
+      // `is-active` to `active` only beside an `aria-current` of the
+      // element's own, and relies on that to render the same markup.
+      aria-current={active ? 'page' : undefined}
       {...rest}
       // A `<button>` defaults to type="submit", and a navbar inside a form must
       // not submit it. After the spread, reading through it, so a spread
@@ -292,10 +362,10 @@ NavbarItem.displayName = 'NavbarItem';
  */
 export interface NavbarBurgerProps
   extends
-    React.ButtonHTMLAttributes<HTMLButtonElement>,
+    Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'aria-expanded'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Text color for the burger. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
@@ -304,7 +374,8 @@ export interface NavbarBurgerProps
    * `textColor` takes precedence when both are set, and is the one that
    * reaches the full color list.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Whether the burger is active. */
   active?: boolean;
   /**
@@ -319,16 +390,17 @@ export interface NavbarBurgerProps
    * the button unnamed.
    * @defaultValue 'menu'
    */
-  'aria-label'?: string;
+  'aria-label'?: React.AriaAttributes['aria-label'];
   /**
    * Expanded state for assistive technology. It follows `active` unless you
-   * pass `true` or `false`; a spread carrying `'aria-expanded': undefined`
+   * pass `true` or `false`, and `null` leaves it off, for a burger whose
+   * state isn't known yet; a spread carrying `'aria-expanded': undefined`
    * still follows `active`.
    * @defaultValue active
    */
-  'aria-expanded'?: boolean;
+  'aria-expanded'?: boolean | null | undefined;
   /** Click handler. */
-  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  onClick?: React.MouseEventHandler<HTMLButtonElement> | undefined;
 }
 
 /**
@@ -366,7 +438,11 @@ export const NavbarBurger = forwardRef<HTMLButtonElement, NavbarBurgerProps>(
         // too: the button is drawn as an icon, so `''` would leave it unnamed.
         // A caller's own value still wins; `buttonType` says more.
         aria-label={rest['aria-label'] || 'menu'}
-        aria-expanded={rest['aria-expanded'] ?? !!active}
+        aria-expanded={
+          rest['aria-expanded'] === null
+            ? undefined
+            : (rest['aria-expanded'] ?? !!active)
+        }
         type={buttonType(rest.type)}
       >
         {/* Bulma v1's burger mixin positions four spans: the first two meet
@@ -392,7 +468,7 @@ export interface NavbarMenuProps
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Text color for the menu. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
@@ -401,7 +477,8 @@ export interface NavbarMenuProps
    * `textColor` takes precedence when both are set, and is the one that
    * reaches the full color list.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Whether the menu is active. */
   active?: boolean;
   /** Menu content. */
@@ -452,7 +529,7 @@ export interface NavbarStartEndProps
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
@@ -461,7 +538,8 @@ export interface NavbarStartEndProps
    * `textColor` takes precedence when both are set, and is the one that
    * reaches the full color list.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Content. */
   children?: React.ReactNode;
 }
@@ -554,7 +632,7 @@ export interface NavbarLinkOwnProps extends Omit<
    */
   backgroundColor?: never;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Remove the dropdown arrow indicator. */
   arrowless?: boolean;
   /** Text color. */
@@ -595,7 +673,7 @@ export type NavbarLinkProps<T extends React.ElementType = 'a'> =
        * `type="submit"` or `type="reset"` and yours is used; any other value, or a spread
        * carrying `type: undefined`, renders `type="button"`.
        */
-      as?: T;
+      as?: T | undefined;
     };
 
 /**
@@ -641,6 +719,7 @@ export const NavbarLink = forwardRef(function NavbarLink(
 
   const dropdownContext = useContext(NavbarDropdownContext);
   const hasHref = rest.href !== undefined;
+
   // What a custom component renders cannot be read off its input props, and the
   // prop that ends in an anchor belongs to the router, not to us — `to`, `state`,
   // `params` and a dozen further spellings all get there. Sniffing for more names
@@ -731,19 +810,88 @@ export const NavbarLink = forwardRef(function NavbarLink(
 NavbarLink.displayName = 'NavbarLink';
 
 /**
+ * Whether a focus event lands in a dialog marked `aria-modal` that `root`
+ * isn't in, read through shadow roots: the event's composed path for the
+ * dialog, and the page's parents for whether it holds `root`. Nodes are read
+ * by their methods, not `instanceof`, so a tree in an iframe is read too.
+ */
+function inModalOutside(e: Event, root: Element) {
+  const modal = e
+    .composedPath()
+    .find(
+      (node): node is Element =>
+        (node as Element).getAttribute?.('aria-modal') === 'true'
+    );
+  if (!modal) return false;
+  for (let el: Element | undefined = root; el; el = parentInPage(el)) {
+    if (el === modal) return false;
+  }
+  return true;
+}
+
+/** Whether an element on an event's path is a dialog, by role or by tag. */
+const isDialog = (node: EventTarget) => {
+  const el = node as Element;
+  const role = el.getAttribute?.('role');
+  return (
+    role === 'dialog' || role === 'alertdialog' || el.localName === 'dialog'
+  );
+};
+
+/**
+ * A dropdown's own `Navbar.Link`: the first one in it that isn't inside a menu
+ * in it. Class names are matched as names, not as a selector, so a class
+ * prefix with any characters works.
+ */
+function ownLink(
+  root: HTMLElement,
+  linkClass: string,
+  menuClass: string
+): HTMLElement | undefined {
+  return Array.from(root.getElementsByClassName(linkClass)).find(link => {
+    // Each one is inside `root`, so its parents lead up to it.
+    let el = link.parentElement as Element;
+    while (el !== root) {
+      if (el.classList.contains(menuClass)) return false;
+      el = el.parentElement as Element;
+    }
+    return true;
+  }) as HTMLElement | undefined;
+}
+
+/**
  * Props for the NavbarDropdown component.
  * @extraProp {React.Ref<HTMLDivElement>} [ref] - Ref forwarded to the dropdown container element.
  */
 export interface NavbarDropdownProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Dropdown aligned right. */
   right?: boolean;
   /** Dropdown opens upwards. */
   up?: boolean;
-  /** Dropdown opens on hover. */
+  /**
+   * Dropdown opens on hover, and while focus is in it, as Bulma's navbar
+   * shows it on a desktop-wide window. Escape puts away a menu the pointer or
+   * focus is showing there, and it stays away until the pointer has left the
+   * dropdown and focus has too, or until the pointer comes back or focus moves
+   * onto something in it. Escape from inside the dropdown puts focus on its
+   * `Navbar.Link` first, and leaves the menu as it is in the cases `active`
+   * lists, such as when focus can't go back to the link.
+   */
   hoverable?: boolean;
-  /** Dropdown is open. */
+  /**
+   * Dropdown is open, whether you control it or not. Escape on its
+   * `Navbar.Link`, or anywhere else in the open dropdown, closes it and puts
+   * focus on the link, unless a control there marks the key used, the key
+   * comes from a dialog or from content opened from the menu into a portal,
+   * or focus can't go back to the link. Focus landing outside the dropdown,
+   * as Tab past its last item does, closes it too, and one you control is
+   * told through `onActiveChange` and keeps its prop. Focus moving into
+   * content opened from the menu into a portal or into a dialog marked
+   * `aria-modal` it isn't in, focus going nowhere, as a window losing focus
+   * does, and a press outside that doesn't move focus leave it open.
+   */
   active?: boolean;
   /** Callback when dropdown active state changes. */
   onActiveChange?: (active: boolean) => void;
@@ -768,12 +916,35 @@ export const NavbarDropdown = forwardRef<HTMLDivElement, NavbarDropdownProps>(
       hoverable,
       active: activeProp,
       onActiveChange,
+      onKeyDown,
+      onPointerLeave,
+      onPointerEnter,
+      onFocus,
+      onBlur,
+      onFocusCapture,
       children,
       ...props
     },
     ref
   ) {
     const [active, setActive] = useState<boolean>(!!activeProp);
+    const rootRef = useRef<HTMLDivElement>(null);
+    useImperativeHandle(ref, () => rootRef.current as HTMLDivElement, []);
+    // Bulma shows a `hoverable` dropdown's menu while the pointer is on it or
+    // focus is in it, on a desktop-wide window; narrower, the menu is always
+    // shown under the burger. Escape puts a menu shown that way away (WCAG
+    // 1.4.13, content on hover is dismissible).
+    const hover = useHoverDismiss(rootRef, {
+      enabled: !!hoverable,
+      withFocus: true,
+      applies: () =>
+        isAtBulmaBreakpoint(
+          'desktop',
+          (rootRef.current as HTMLElement).ownerDocument.defaultView
+        ),
+    });
+    const linkClass = usePrefixedClassNames('navbar-link');
+    const menuClass = usePrefixedClassNames('navbar-dropdown');
 
     useEffect(() => {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing to controlled prop
@@ -789,26 +960,98 @@ export const NavbarDropdown = forwardRef<HTMLDivElement, NavbarDropdownProps>(
     };
 
     const close = () => {
-      /* istanbul ignore next: close() is only invoked once already active */
       if (!active) return;
       setActive(false);
       onActiveChange?.(false);
     };
 
+    // Escape in an open dropdown, or one the pointer or focus shows, puts
+    // focus back on its Navbar.Link and closes it or puts it away, as Escape
+    // on the link itself does. The link's own handler uses the
+    // key first, and so may a control in the dropdown that marks it used. An
+    // IME's Escape only cancels its composition, and one from a dialog opened
+    // from the menu, portaled out of the dropdown or inside it, is the
+    // dialog's. When focus can't go back to the link, the menu stays open and
+    // the key passes on, so focus isn't left on a hidden item.
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+      onKeyDown?.(e);
+      if (e.key !== 'Escape' || e.defaultPrevented) return;
+      const hoverShown = hover.shown();
+      if (!active && !hoverShown) return;
+      if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+      const root = e.currentTarget;
+      const path = e.nativeEvent.composedPath();
+      const at = path.indexOf(root);
+      if (at < 0) return;
+      // A menu marked as a dialog itself is still the dropdown's menu.
+      const dialogAt = path.findIndex(
+        node =>
+          isDialog(node) && !(node as Element).classList.contains(menuClass)
+      );
+      if (dialogAt >= 0 && dialogAt < at) return;
+      const trigger = ownLink(root, linkClass, menuClass);
+      if (!trigger) return;
+      trigger.focus();
+      if (getActiveElementInTree(trigger) !== trigger) return;
+      e.preventDefault();
+      closeOnEscape();
+    };
+
+    // The link's own Escape, which closes an open dropdown before the key
+    // reaches the root, puts away a menu hover or focus shows too.
+    const closeOnEscape = () => {
+      if (hover.shown()) hover.dismiss();
+      close();
+    };
+
+    // Focus landing outside an open dropdown, as Tab past its last item or
+    // Shift+Tab past its link does, closes it, so its menu isn't left over
+    // the page where the next thing focused can sit under it (WCAG 2.4.11).
+    // Content opened from the menu into a portal is inside, and focus going
+    // nowhere, as a window losing focus does, changes nothing. Neither does
+    // focus moving into a dialog marked aria-modal that the dropdown isn't in,
+    // such as a Modal an item opens, which gives focus back to the item when
+    // it closes, so the item has to still be showing. A controlled dropdown is told once and keeps its prop.
+    // Either is told again once it opens again or focus comes back in.
+    const toldRef = useRef(false);
+    useEffect(() => {
+      if (active) toldRef.current = false;
+    }, [active]);
+    const markInsideFocus = useOutsideFocus(rootRef, active, e => {
+      if (inModalOutside(e, rootRef.current as Element)) return;
+      if (toldRef.current) return;
+      toldRef.current = true;
+      if (typeof activeProp !== 'boolean') setActive(false);
+      onActiveChange?.(false);
+    });
+    const handleFocusCapture = (e: React.FocusEvent<HTMLDivElement>) => {
+      onFocusCapture?.(e);
+      markInsideFocus(e);
+      toldRef.current = false;
+    };
+
     return (
-      <NavbarDropdownContext.Provider value={{ active, toggle, close }}>
+      <NavbarDropdownContext.Provider
+        value={{ active, toggle, close: closeOnEscape }}
+      >
         <div
-          ref={ref}
+          ref={rootRef}
           className={classNames(
             usePrefixedClassNames('navbar-item', 'has-dropdown', {
               'has-dropdown-up': up,
               'is-right': right,
-              'is-hoverable': hoverable,
+              'is-hoverable': hoverable && !hover.dismissed,
               'is-active': active,
             }),
             className
           )}
           {...props}
+          onKeyDown={handleKeyDown}
+          onPointerLeave={chain(onPointerLeave, hover.onPointerLeave)}
+          onPointerEnter={chain(onPointerEnter, hover.onPointerEnter)}
+          onFocus={chain(onFocus, hover.onFocus)}
+          onBlur={chain(onBlur, hover.onBlur)}
+          onFocusCapture={handleFocusCapture}
         >
           {children}
         </div>
@@ -824,7 +1067,7 @@ NavbarDropdown.displayName = 'NavbarDropdown';
  */
 export interface NavbarDropdownMenuProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Dropdown aligned right. */
   right?: boolean;
   /** Dropdown opens upwards. */

@@ -1,5 +1,6 @@
+import type { Mock } from 'vitest';
 import React from 'react';
-import { render, fireEvent, act } from '@testing-library/react';
+import { render, fireEvent, act, screen } from '@testing-library/react';
 import { DateTimeInput } from '../DateTimeInput';
 import { Field } from '../Field';
 import { Control } from '../Control';
@@ -82,7 +83,7 @@ describe('DateTimeInput', () => {
 
   it('clicking the overlay backdrop collapses the wheels without selecting a date', () => {
     const v = new Date(2024, 5, 7, 13, 45);
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, queryAllByRole, queryByRole, container } = render(
       <DateTimeInput defaultValue={v} onChange={handler} />
     );
@@ -115,7 +116,7 @@ describe('DateTimeInput', () => {
   });
 
   it('Escape leaves the year list first, then closes the popover', () => {
-    HTMLElement.prototype.scrollIntoView = jest.fn();
+    HTMLElement.prototype.scrollIntoView = vi.fn();
     const v = new Date(2024, 5, 7, 13, 45);
     const { getByRole, queryByRole } = render(
       <DateTimeInput defaultValue={v} />
@@ -136,7 +137,7 @@ describe('DateTimeInput', () => {
 
   it('selecting a date preserves the time-of-day', () => {
     const v = new Date(2024, 5, 7, 13, 45);
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, container } = render(
       <DateTimeInput defaultValue={v} onChange={handler} />
     );
@@ -155,7 +156,7 @@ describe('DateTimeInput', () => {
 
   it('ArrowUp on the hours wheel increments the hour, keeping the date', () => {
     const v = new Date(2024, 5, 7, 10, 0);
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getAllByRole } = render(
       <DateTimeInput defaultValue={v} onChange={handler} />
     );
@@ -170,7 +171,7 @@ describe('DateTimeInput', () => {
 
   it('ArrowUp on the minutes wheel increments the minute, keeping the hour', () => {
     const v = new Date(2024, 5, 7, 10, 0);
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getAllByRole } = render(
       <DateTimeInput defaultValue={v} onChange={handler} />
     );
@@ -185,7 +186,7 @@ describe('DateTimeInput', () => {
 
   it('Reset reverts edits to the value the popover opened with, and keeps it open', () => {
     const v = new Date(2024, 5, 7, 13, 45);
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getByText, getAllByRole } = render(
       <DateTimeInput defaultValue={v} onChange={handler} />
     );
@@ -202,7 +203,7 @@ describe('DateTimeInput', () => {
   });
 
   it('Reset reverts to empty when the popover opened with no value', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getByText, getAllByRole } = render(
       <DateTimeInput onChange={handler} />
     );
@@ -254,7 +255,7 @@ describe('DateTimeInput', () => {
   });
 
   it('native input renders the value and round-trips changes through onChange', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { container } = render(
       <DateTimeInput
         mobileNative={true}
@@ -294,7 +295,7 @@ describe('DateTimeInput', () => {
   });
 
   it('native input reads a year below 100 back as given', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { container } = render(
       <DateTimeInput mobileNative={true} enableSeconds onChange={handler} />
     );
@@ -315,7 +316,7 @@ describe('DateTimeInput', () => {
   });
 
   it('native input round-trips a year past 9999', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const late = new Date(2024, 0, 1, 9, 0);
     late.setFullYear(10000);
     const { container } = render(
@@ -341,7 +342,7 @@ describe('DateTimeInput', () => {
   });
 
   it('native input round-trips seconds when enableSeconds', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { container } = render(
       <DateTimeInput
         mobileNative={true}
@@ -396,7 +397,7 @@ describe('DateTimeInput', () => {
 
   it('shouldDisableDate prevents click selection', () => {
     const v = new Date(2024, 5, 7, 13, 45);
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, container } = render(
       <DateTimeInput
         defaultValue={v}
@@ -540,7 +541,7 @@ describe('DateTimeInput segmented input entry', () => {
   });
 
   it('ArrowUp on the hours segment increments hours while preserving the date', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateTimeInput defaultValue={dt()} onChange={handler} />
     );
@@ -560,7 +561,7 @@ describe('DateTimeInput segmented input entry', () => {
   });
 
   it('digit entry on the day segment updates the day, keeping the time', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateTimeInput defaultValue={dt()} onChange={handler} />
     );
@@ -579,7 +580,7 @@ describe('DateTimeInput segmented input entry', () => {
   });
 
   it('honors a/p on the meridiem segment in 12h mode', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateTimeInput defaultValue={dt()} hourFormat="12" onChange={handler} />
     );
@@ -615,7 +616,7 @@ describe('DateTimeInput segmented input entry', () => {
   });
 
   it('falls back to free-form text entry for Intl-options formats', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateTimeInput
         defaultValue={dt()}
@@ -633,7 +634,7 @@ describe('DateTimeInput segmented input entry', () => {
   });
 
   it('rejects an hour edit blocked by unselectableTimes', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateTimeInput
         defaultValue={new Date(2024, 5, 7, 11, 0)}
@@ -655,7 +656,7 @@ describe('DateTimeInput segmented input entry', () => {
   });
 
   it('rejects a day edit blocked by shouldDisableDate', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateTimeInput
         defaultValue={dt()}
@@ -678,7 +679,7 @@ describe('DateTimeInput segmented input entry', () => {
   it('unselectableDates blocks by calendar day regardless of the time of day', () => {
     // The unselectable entry is midnight on the 16th; the candidate carries
     // 10:00 — the day-based isSameDay composition must still reject it.
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateTimeInput
         defaultValue={new Date(2024, 5, 15, 10, 0)}
@@ -699,7 +700,7 @@ describe('DateTimeInput segmented input entry', () => {
   });
 
   it('still commits unblocked edits when blocking predicates are set', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateTimeInput
         defaultValue={new Date(2024, 5, 15, 10, 0)}
@@ -728,7 +729,7 @@ describe('DateTimeInput editable / popover modes', () => {
   const dt = () => new Date(2024, 5, 7, 13, 45);
 
   it('editable={false}: typing / arrows do not change the value', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateTimeInput defaultValue={dt()} editable={false} onChange={handler} />
     );
@@ -743,7 +744,7 @@ describe('DateTimeInput editable / popover modes', () => {
   });
 
   it('editable={false}: the popover still opens and date selection works', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, container } = render(
       <DateTimeInput defaultValue={dt()} editable={false} onChange={handler} />
     );
@@ -769,7 +770,7 @@ describe('DateTimeInput editable / popover modes', () => {
   });
 
   it('popover={false}: still supports segmented typing (input-only)', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, queryByRole } = render(
       <DateTimeInput defaultValue={dt()} popover={false} onChange={handler} />
     );
@@ -946,7 +947,7 @@ describe('DateTimeInputBase remaining branches', () => {
   });
 
   it('controlled: a wheel change reports through onChange without internal state', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getAllByRole } = render(
       <DateTimeInputBase value={dt()} onChange={handler} />
     );
@@ -973,8 +974,8 @@ describe('DateTimeInputBase remaining branches', () => {
   });
 
   it('fires onOpen once even when an open request repeats, and onClose on close', () => {
-    const onOpen = jest.fn();
-    const onClose = jest.fn();
+    const onOpen = vi.fn();
+    const onClose = vi.fn();
     const { getByRole } = render(
       <DateTimeInputBase onOpen={onOpen} onClose={onClose} />
     );
@@ -990,7 +991,7 @@ describe('DateTimeInputBase remaining branches', () => {
   });
 
   it('rejects a time-wheel change that falls outside min/max', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getAllByRole } = render(
       <DateTimeInput
         defaultValue={new Date(2024, 5, 7, 10, 0)}
@@ -1012,7 +1013,7 @@ describe('DateTimeInputBase remaining branches', () => {
   it('rejects a date selection whose merged date-time falls outside max', () => {
     // The cell for the 20th is selectable day-wise (midnight ≤ max), but the
     // carried-over time of day (13:45) pushes the merged value past max.
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, container } = render(
       <DateTimeInput
         defaultValue={dt()}
@@ -1032,7 +1033,7 @@ describe('DateTimeInputBase remaining branches', () => {
   });
 
   it('selecting a date with no value commits midnight', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, container } = render(
       <DateTimeInput onChange={handler} />
     );
@@ -1050,7 +1051,7 @@ describe('DateTimeInputBase remaining branches', () => {
   });
 
   it('enableSeconds: 12h formatting, seconds pill, four wheels, and seconds preserved on date select', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getByText, getAllByRole, container } = render(
       <DateTimeInput
         defaultValue={new Date(2024, 5, 7, 13, 45, 20)}
@@ -1080,7 +1081,7 @@ describe('DateTimeInputBase remaining branches', () => {
   });
 
   it('enableSeconds with no value: wheels start at 00:00:00 and spin sets seconds', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getAllByRole } = render(
       <DateTimeInput enableSeconds onChange={handler} />
     );
@@ -1095,7 +1096,7 @@ describe('DateTimeInputBase remaining branches', () => {
   });
 
   it('enableSeconds with no value: selecting a date commits zeroed seconds', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, container } = render(
       <DateTimeInput enableSeconds onChange={handler} />
     );
@@ -1122,7 +1123,7 @@ describe('DateTimeInputBase remaining branches', () => {
   });
 
   it('Enter on the seconds wheel commits and closes the popover too', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getAllByRole, queryByRole } = render(
       <DateTimeInput defaultValue={dt()} enableSeconds onChange={handler} />
     );
@@ -1140,7 +1141,7 @@ describe('DateTimeInputBase remaining branches', () => {
   });
 
   it('haptics opt-in still routes wheel changes through onChange', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getAllByRole } = render(
       <DateTimeInput defaultValue={dt()} haptics onChange={handler} />
     );
@@ -1152,7 +1153,7 @@ describe('DateTimeInputBase remaining branches', () => {
   });
 
   it('free-form text parses on blur with the default format', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateTimeInput openOnFocus={false} onChange={handler} />
     );
@@ -1168,8 +1169,8 @@ describe('DateTimeInputBase remaining branches', () => {
   });
 
   it('custom parse is invoked on blur', () => {
-    const parse = jest.fn(() => new Date(2030, 0, 15, 10, 30));
-    const handler = jest.fn();
+    const parse = vi.fn(() => new Date(2030, 0, 15, 10, 30));
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateTimeInput openOnFocus={false} parse={parse} onChange={handler} />
     );
@@ -1181,7 +1182,7 @@ describe('DateTimeInputBase remaining branches', () => {
   });
 
   it('Intl-options formats fall back to the default token format for blur parsing', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateTimeInput
         openOnFocus={false}
@@ -1199,7 +1200,7 @@ describe('DateTimeInputBase remaining branches', () => {
 
   it('free-form Enter with a blocked value does not commit, and blur reverts', () => {
     // 'H' is a variable-width token → no segment map → free-form path.
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateTimeInput
         openOnFocus={false}
@@ -1218,7 +1219,7 @@ describe('DateTimeInputBase remaining branches', () => {
   });
 
   it('whitespace-only text reverts on blur without committing', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateTimeInput
         defaultValue={dt()}
@@ -1234,10 +1235,10 @@ describe('DateTimeInputBase remaining branches', () => {
   });
 
   it('segmented entry on an empty field seeds from the current date-time', () => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date(2026, 5, 9, 10, 30));
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 5, 9, 10, 30));
     try {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByRole } = render(
         <DateTimeInput openOnFocus={false} onChange={handler} />
       );
@@ -1251,14 +1252,14 @@ describe('DateTimeInputBase remaining branches', () => {
       expect(arg.getFullYear()).toBe(2027);
       expect(input.value).toBe('2027-06-09 10:30');
     } finally {
-      jest.useRealTimers();
+      vi.useRealTimers();
     }
   });
 
   it('a malformed native value commits null (invalid-format guard)', () => {
     // jsdom sanitizes bad values to '' before React sees them, so force the
     // value getter to surface a malformed string to the change handler.
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { container } = render(
       <DateTimeInput mobileNative={true} onChange={handler} />
     );
@@ -1275,7 +1276,7 @@ describe('DateTimeInputBase remaining branches', () => {
   });
 
   it('supports a callback ref', () => {
-    const refFn = jest.fn();
+    const refFn = vi.fn();
     render(<DateTimeInput ref={refFn} />);
     expect(refFn).toHaveBeenCalledWith(expect.any(HTMLInputElement));
   });
@@ -1304,6 +1305,86 @@ describe('DateTimeInputBase remaining branches', () => {
   it('inline without a name emits no hidden input', () => {
     const { container } = render(<DateTimeInput inline defaultValue={dt()} />);
     expect(container.querySelector('input[type="hidden"]')).toBeNull();
+  });
+
+  describe('inline, disabled and readOnly', () => {
+    /** The cell for `day` of the month on show. */
+    const day = (n: number) =>
+      Array.from(
+        document.querySelectorAll<HTMLButtonElement>('[role="gridcell"]')
+      ).find(
+        c => !c.className.includes('is-other-month') && c.textContent === `${n}`
+      )!;
+
+    it('picks nothing and disables the footer when disabled, and still submits', () => {
+      const onChange = vi.fn();
+      const { container, getByRole, getByText, getByLabelText } = render(
+        <form>
+          <DateTimeInput
+            inline
+            disabled
+            name="when"
+            defaultValue={dt()}
+            onChange={onChange}
+          />
+        </form>
+      );
+      expect(getByRole('grid')).toHaveAttribute('aria-disabled', 'true');
+      fireEvent.click(day(20));
+      fireEvent.keyDown(getByRole('grid'), { key: 'Enter' });
+      expect(onChange).not.toHaveBeenCalled();
+      expect(getByRole('button', { name: /Time/ })).toBeDisabled();
+      expect(getByText('Reset')).toBeDisabled();
+      expect(getByLabelText('Done')).toBeDisabled();
+      // What a form receives is unchanged: the hidden input still posts.
+      const data = new FormData(container.querySelector('form')!);
+      expect(Array.from(data.entries())).toEqual([
+        ['when', '2024-06-07T13:45'],
+      ]);
+    });
+
+    it('picks nothing and keeps the time when readOnly, and still submits', () => {
+      const onChange = vi.fn();
+      const { container, getByRole, getByText } = render(
+        <form>
+          <DateTimeInput
+            inline
+            readOnly
+            name="when"
+            defaultValue={dt()}
+            onChange={onChange}
+          />
+        </form>
+      );
+      expect(getByRole('grid')).toHaveAttribute('aria-readonly', 'true');
+      fireEvent.click(day(20));
+      fireEvent.keyDown(getByRole('grid'), { key: 'Enter' });
+      expect(onChange).not.toHaveBeenCalled();
+      expect(getByRole('button', { name: /Time/ })).toBeDisabled();
+      expect(getByText('Reset')).toBeDisabled();
+      const data = new FormData(container.querySelector('form')!);
+      expect(Array.from(data.entries())).toEqual([
+        ['when', '2024-06-07T13:45'],
+      ]);
+    });
+
+    it('stops the open wheels when readOnly turns on', () => {
+      const onChange = vi.fn();
+      const { getByRole, getAllByRole, rerender } = render(
+        <DateTimeInput inline defaultValue={dt()} onChange={onChange} />
+      );
+      fireEvent.click(getByRole('button', { name: /Time/ }));
+      rerender(
+        <DateTimeInput
+          inline
+          readOnly
+          defaultValue={dt()}
+          onChange={onChange}
+        />
+      );
+      fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
+      expect(onChange).not.toHaveBeenCalled();
+    });
   });
 });
 
@@ -1373,11 +1454,15 @@ describe('DateTimeInput label association (#368)', () => {
     expect(getByRole('combobox')).not.toHaveAttribute('id');
   });
 
-  it('renders the label unwired in inline mode', () => {
+  it('names the inline group by its label, which points at no control', () => {
     const { container } = render(<DateTimeInput label="Appointment" inline />);
     const label = container.querySelector('label.label');
     expect(label).toHaveTextContent('Appointment');
     expect(label).not.toHaveAttribute('for');
+    expect(container.querySelector('[role="group"]')).toHaveAttribute(
+      'aria-labelledby',
+      label!.id
+    );
   });
 });
 
@@ -1385,7 +1470,7 @@ describe('DateTimeInput focus inside the popover', () => {
   const v = new Date(2024, 5, 7, 10, 0);
 
   it('keeps focus on a time wheel the keyboard edits', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getAllByRole } = render(
       <DateTimeInput defaultValue={v} onChange={handler} />
     );
@@ -1468,7 +1553,7 @@ describe('DateTimeInput focus and the time wheels', () => {
   });
 
   it('closes the popover on Alt+ArrowUp from a wheel, turning nothing', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getAllByRole, queryByRole } = render(
       <DateTimeInput defaultValue={v} onChange={handler} />
     );
@@ -1576,7 +1661,7 @@ describe('DateTimeInput focus and the time wheels', () => {
   });
 
   it('keeps focus on the wheel the keys turn', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getAllByRole } = render(
       <DateTimeInput defaultValue={v} onChange={handler} />
     );
@@ -1595,7 +1680,7 @@ describe('DateTimeInput focus and the time wheels', () => {
 
   it('collapses the wheels on Enter inline, where there is no popover to close', () => {
     for (const wheel of [0, 2]) {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByRole, getAllByRole, queryAllByRole, unmount } = render(
         <DateTimeInput
           defaultValue={v}
@@ -1665,7 +1750,7 @@ describe('DateTimeInput focus handed back on close', () => {
   });
 
   it('Escape closes it and leaves focus on the input', () => {
-    const onOpen = jest.fn();
+    const onOpen = vi.fn();
     const { getByRole, queryByRole } = render(
       <DateTimeInput defaultValue={v} onOpen={onOpen} />
     );
@@ -1680,7 +1765,7 @@ describe('DateTimeInput focus handed back on close', () => {
   });
 
   it('the Done button closes it the same way', () => {
-    const onOpen = jest.fn();
+    const onOpen = vi.fn();
     const { getByRole, getByLabelText, queryByRole } = render(
       <DateTimeInput defaultValue={v} onOpen={onOpen} />
     );
@@ -1695,7 +1780,7 @@ describe('DateTimeInput focus handed back on close', () => {
   });
 
   it('Enter on a time wheel closes it the same way', () => {
-    const onOpen = jest.fn();
+    const onOpen = vi.fn();
     const { getByRole, getAllByRole, queryByRole, container } = render(
       <DateTimeInput defaultValue={v} onOpen={onOpen} />
     );
@@ -1717,7 +1802,7 @@ describe('DateTimeInput focus handed back on close', () => {
   });
 
   it('a click outside closes it for good', () => {
-    const onOpen = jest.fn();
+    const onOpen = vi.fn();
     const { getByRole, queryByRole } = render(
       <>
         <DateTimeInput defaultValue={v} onOpen={onOpen} />
@@ -1771,7 +1856,7 @@ describe('DateTimeInput focus handed back on close', () => {
 
   describe('commits nothing the user did not type or pick', () => {
     const renderWith = (defaultValue: Date | null) => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const utils = render(
         <>
           <DateTimeInput defaultValue={defaultValue} onChange={onChange} />
@@ -1881,7 +1966,7 @@ describe('DateTimeInput left without typing', () => {
   // Leaving commits nothing nobody typed: re-parsing the display would drop
   // the seconds it leaves out, and an empty field's seed is not the user's.
   const renderWith = (props: React.ComponentProps<typeof DateTimeInput>) => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     const utils = render(
       <>
         <DateTimeInput {...props} onChange={onChange} />
@@ -1933,7 +2018,7 @@ describe('DateTimeInput left without typing', () => {
   });
 
   it('commits nothing on Enter over the text it showed', () => {
-    const parse = jest.fn(() => new Date(2024, 5, 15, 9, 30));
+    const parse = vi.fn(() => new Date(2024, 5, 15, 9, 30));
     const { input, onChange } = renderWith({
       // No segments, so Enter parses the text.
       format: {
@@ -2024,8 +2109,8 @@ describe('DateTimeInput onOpen and onClose', () => {
     });
 
   it('fire once per open and close under StrictMode', () => {
-    const onOpen = jest.fn();
-    const onClose = jest.fn();
+    const onOpen = vi.fn();
+    const onClose = vi.fn();
     const { getByRole, queryByRole } = render(
       <React.StrictMode>
         <DateTimeInput defaultValue={v} onOpen={onOpen} onClose={onClose} />
@@ -2073,7 +2158,7 @@ describe('DateTimeInput onOpen and onClose', () => {
   });
 
   it('fires onClose once when the input and the popover both take Escape', () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     const { getByRole, queryByRole } = render(
       <DateTimeInput defaultValue={v} onClose={onClose} openOnFocus={false} />
     );
@@ -2099,7 +2184,7 @@ describe('DateTimeInput before year 1', () => {
     d.setHours(h, m);
     return d;
   };
-  const lastYear = (handler: jest.Mock) =>
+  const lastYear = (handler: Mock) =>
     (
       handler.mock.calls[handler.mock.calls.length - 1][0] as Date
     ).getFullYear();
@@ -2109,7 +2194,7 @@ describe('DateTimeInput before year 1', () => {
     });
 
   it('picks a day in year 1 from the calendar and disables the days before', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { container, getByLabelText } = render(
       <DateTimeInput
         inline
@@ -2171,7 +2256,7 @@ describe('DateTimeInput before year 1', () => {
       [0, false],
       [-1, false],
     ] as const) {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByRole, getAllByRole, unmount } = render(
         <DateTimeInput value={at(year, 5, 15, 10, 0)} onChange={handler} />
       );
@@ -2186,7 +2271,7 @@ describe('DateTimeInput before year 1', () => {
 
   describe('segmented typing', () => {
     it('steps into year 1 and no further', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByRole } = render(
         <DateTimeInput
           defaultValue={at(2, 5, 15, 10, 0)}
@@ -2205,7 +2290,7 @@ describe('DateTimeInput before year 1', () => {
     });
 
     it('leaves a value in year 0 only towards year 1', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByRole } = render(
         <DateTimeInput
           value={at(0, 5, 15, 10, 0)}
@@ -2230,7 +2315,7 @@ describe('DateTimeInput before year 1', () => {
     };
 
     it('reads year 1 and rejects year 0 with the default parse', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByRole } = render(
         <DateTimeInputBase openOnFocus={false} onChange={handler} />
       );
@@ -2243,7 +2328,7 @@ describe('DateTimeInput before year 1', () => {
     });
 
     it('rejects a negative year from a custom parse', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByRole } = render(
         <DateTimeInputBase
           openOnFocus={false}
@@ -2275,7 +2360,7 @@ describe('DateTimeInput before year 1', () => {
     });
 
     it('reads year 1 back, while the input itself drops year 0 and below', () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { container } = render(
         <DateTimeInput mobileNative onChange={handler} />
       );
@@ -2301,13 +2386,13 @@ describe('DateTimeInput times seeded from the clock', () => {
   // none of what the field does not show: the seconds without enableSeconds,
   // and the milliseconds always.
   beforeEach(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date(2026, 9, 7, 14, 23, 10, 507));
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 9, 7, 14, 23, 10, 507));
   });
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
-  const last = (handler: jest.Mock) => handler.mock.lastCall![0] as Date;
+  const last = (handler: Mock) => handler.mock.lastCall![0] as Date;
   const openOnFocusedDay = (input: HTMLElement) => {
     act(() => {
       input.focus();
@@ -2317,7 +2402,7 @@ describe('DateTimeInput times seeded from the clock', () => {
 
   it('Enter on the focused day of an empty field picks it at midnight', () => {
     for (const enableSeconds of [false, true]) {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByRole, unmount } = render(
         <DateTimeInput enableSeconds={enableSeconds} onChange={handler} />
       );
@@ -2333,7 +2418,7 @@ describe('DateTimeInput times seeded from the clock', () => {
 
   it('a picked day keeps the whole time of a value, by key or by click', () => {
     const value = new Date(2026, 9, 7, 10, 30, 45, 250);
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <DateTimeInput value={value} onChange={handler} />
     );
@@ -2355,7 +2440,7 @@ describe('DateTimeInput times seeded from the clock', () => {
   });
 
   it('a value set after mounting empty gives the picked day its time, not the clock', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, rerender } = render(
       <DateTimeInput value={null} onChange={handler} />
     );
@@ -2370,7 +2455,7 @@ describe('DateTimeInput times seeded from the clock', () => {
   });
 
   it('turning a wheel on an empty field starts from a whole minute', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getAllByRole } = render(
       <DateTimeInput onChange={handler} />
     );
@@ -2385,7 +2470,7 @@ describe('DateTimeInput times seeded from the clock', () => {
   });
 
   it('turning the seconds wheel on an empty field starts from a whole second', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getAllByRole } = render(
       <DateTimeInput enableSeconds onChange={handler} />
     );
@@ -2404,7 +2489,7 @@ describe('DateTimeInput times seeded from the clock', () => {
       [false, new Date(2027, 9, 7, 14, 23, 0, 0)],
       [true, new Date(2027, 9, 7, 14, 23, 10, 0)],
     ] as const) {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByRole, unmount } = render(
         <DateTimeInput
           enableSeconds={enableSeconds}
@@ -2420,5 +2505,158 @@ describe('DateTimeInput times seeded from the clock', () => {
       expect(last(handler)).toEqual(seeded);
       unmount();
     }
+  });
+});
+
+describe('DateTimeInput inline Reset', () => {
+  const mounted = new Date(2024, 5, 7, 13, 45);
+  const last = (handler: Mock) => handler.mock.lastCall![0] as Date | null;
+  /** The cell for `day` of the month on show. */
+  const day = (n: number) =>
+    Array.from(
+      document.querySelectorAll<HTMLButtonElement>('[role="gridcell"]')
+    ).find(
+      c => !c.className.includes('is-other-month') && c.textContent === `${n}`
+    )!;
+  /** Turns the hour wheel up one, then collapses the wheels again. */
+  const turnHour = () => {
+    fireEvent.click(screen.getByRole('button', { name: /^Time/ }));
+    fireEvent.keyDown(screen.getAllByRole('spinbutton')[0], { key: 'ArrowUp' });
+    fireEvent.click(screen.getByRole('button', { name: /^Time/ }));
+  };
+  const reset = () => fireEvent.click(screen.getByText('Reset'));
+
+  /** A parent that keeps what the picker commits, or sets a value itself. */
+  function Parent({ onChange }: { onChange: (d: Date | null) => void }) {
+    const [value, setValue] = React.useState<Date | null>(mounted);
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() => setValue(new Date(2024, 5, 10, 9, 0))}
+        >
+          Move
+        </button>
+        <button type="button" onClick={() => setValue(null)}>
+          Clear
+        </button>
+        <button
+          type="button"
+          onClick={() => setValue(new Date(2024, 5, 20, 13, 45))}
+        >
+          Preset
+        </button>
+        <DateTimeInput
+          inline
+          value={value}
+          onChange={d => {
+            setValue(d);
+            onChange(d);
+          }}
+        />
+      </>
+    );
+  }
+
+  it('goes back to the value an uncontrolled picker mounted with', () => {
+    const handler = vi.fn();
+    render(<DateTimeInput inline defaultValue={mounted} onChange={handler} />);
+    turnHour();
+    fireEvent.click(day(20));
+    expect(last(handler)).toEqual(new Date(2024, 5, 20, 14, 45));
+    reset();
+    expect(last(handler)).toEqual(mounted);
+    expect(day(7)).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('goes back to empty when it mounted empty', () => {
+    const handler = vi.fn();
+    render(<DateTimeInput inline onChange={handler} />);
+    turnHour();
+    expect(last(handler)).not.toBeNull();
+    reset();
+    expect(last(handler)).toBeNull();
+  });
+
+  it("isn't moved by a controlled parent echoing the picker's own commits", () => {
+    const handler = vi.fn();
+    render(<Parent onChange={handler} />);
+    fireEvent.click(day(20));
+    turnHour();
+    expect(last(handler)).toEqual(new Date(2024, 5, 20, 14, 45));
+    reset();
+    expect(last(handler)).toEqual(mounted);
+  });
+
+  it('takes a value the controlled parent sets as the one to go back to', () => {
+    const handler = vi.fn();
+    render(<Parent onChange={handler} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Move' }));
+    fireEvent.click(day(20));
+    reset();
+    expect(last(handler)).toEqual(new Date(2024, 5, 10, 9, 0));
+    fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+    fireEvent.click(day(20));
+    reset();
+    expect(last(handler)).toBeNull();
+  });
+
+  it('takes a value the parent sets at the time of an earlier commit', () => {
+    const handler = vi.fn();
+    render(<Parent onChange={handler} />);
+    // The picker commits June 20 at 13:45, and the parent echoes it.
+    fireEvent.click(day(20));
+    fireEvent.click(screen.getByRole('button', { name: 'Move' }));
+    // The parent sets that same time itself, which is no echo.
+    fireEvent.click(screen.getByRole('button', { name: 'Preset' }));
+    fireEvent.click(day(25));
+    reset();
+    expect(last(handler)).toEqual(new Date(2024, 5, 20, 13, 45));
+  });
+
+  it('leaves the popover going back to the value it opened with', () => {
+    const handler = vi.fn();
+    const { rerender } = render(
+      <DateTimeInput value={mounted} onChange={handler} />
+    );
+    fireEvent.click(screen.getByRole('combobox'));
+    rerender(
+      <DateTimeInput value={new Date(2024, 5, 10, 9, 0)} onChange={handler} />
+    );
+    fireEvent.click(day(20));
+    reset();
+    expect(last(handler)).toEqual(mounted);
+  });
+
+  it('does nothing on ✓, which has no popover to close', () => {
+    const handler = vi.fn();
+    render(<DateTimeInput inline defaultValue={mounted} onChange={handler} />);
+    fireEvent.click(screen.getByLabelText('Done'));
+    expect(handler).not.toHaveBeenCalled();
+    expect(day(7)).toHaveAttribute('aria-selected', 'true');
+  });
+});
+
+describe('DateTimeInput time wheels in a locale', () => {
+  it('writes the hours, minutes and seconds in the locale’s digits', () => {
+    const v = new Date(2024, 5, 7, 9, 5, 7);
+    const { getByRole } = render(
+      <DateTimeInput defaultValue={v} locale="ar-EG" enableSeconds />
+    );
+    fireEvent.click(getByRole('combobox'));
+    fireEvent.click(getByRole('button', { name: /Time/ }));
+    expect(
+      getByRole('spinbutton', { name: 'hours' }).getAttribute('aria-valuetext')
+    ).toBe('٠٩');
+    expect(
+      getByRole('spinbutton', { name: 'minutes' }).getAttribute(
+        'aria-valuetext'
+      )
+    ).toBe('٠٥');
+    expect(
+      getByRole('spinbutton', { name: 'seconds' }).getAttribute(
+        'aria-valuetext'
+      )
+    ).toBe('٠٧');
   });
 });

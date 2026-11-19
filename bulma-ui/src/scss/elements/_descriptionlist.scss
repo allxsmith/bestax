@@ -1,0 +1,153 @@
+// Bestax Extras - DescriptionList Styles
+// Facts about one thing, each a label and its value: a `<dl>` with a `<div>`
+// per item, a `<dt>` per label and a `<dd>` per value. Bulma styles a `<dl>`
+// only inside `.content`, where it indents the values, so this lays one out.
+//
+// The list is a grid, and each item spans it on `subgrid`, so every label
+// sits in the first column and every value in the last. Stacked, the grid
+// has one column; beside, it has two, the labels' as wide as the longest
+// label. The columns are all an orientation changes. The grid follows the
+// writing direction, so a right-to-left page needs no rules of its own, and
+// the gaps are in em, so `textSize` on the list scales them with the text.
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+@use "bulma/sass/utilities/mixins" as mx;
+
+// Between items.
+$description-list-gap: 0.75em !default;
+// Between the labels' column and the values', side by side.
+$description-list-column-gap: 1.5em !default;
+// Between a label and its value stacked, and between several labels or
+// several values in one item.
+$description-list-row-gap: 0.25em !default;
+// The most the labels' column takes side by side. Longer labels wrap.
+$description-list-label-max-width: 40% !default;
+$description-list-label-color: cv.getVar("text-weak") !default;
+$description-list-label-weight: cv.getVar("weight-normal") !default;
+$description-list-value-color: cv.getVar("text") !default;
+$description-list-divider-color: cv.getVar("border-weak") !default;
+$description-list-divider-width: 1px !default;
+
+.#{iv.$class-prefix}description-list {
+  @include cv.register-vars(
+    (
+      "description-list-gap": #{$description-list-gap},
+      "description-list-column-gap": #{$description-list-column-gap},
+      "description-list-row-gap": #{$description-list-row-gap},
+      "description-list-label-max-width": #{$description-list-label-max-width},
+      "description-list-label-color": #{$description-list-label-color},
+      "description-list-label-weight": #{$description-list-label-weight},
+      "description-list-value-color": #{$description-list-value-color},
+      "description-list-divider-color": #{$description-list-divider-color},
+      "description-list-divider-width": #{$description-list-divider-width},
+    )
+  );
+}
+
+// ---- The two orientations, as the list's columns ----------------------------
+
+@mixin -vertical {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@mixin -horizontal {
+  grid-template-columns: fit-content(#{cv.getVar("description-list-label-max-width")}) minmax(0, 1fr);
+}
+
+// ---- Structure ----------------------------------------------------------------
+
+.#{iv.$class-prefix}description-list {
+  display: grid;
+  @include -vertical;
+  column-gap: cv.getVar("description-list-column-gap");
+  row-gap: cv.getVar("description-list-gap");
+  margin: 0;
+  padding: 0;
+  // On the root, so a `textColor` helper's class outranks it and the values
+  // inherit either.
+  color: cv.getVar("description-list-value-color");
+
+  &:not(:last-child) {
+    margin-bottom: cv.getVar("block-spacing");
+  }
+}
+
+.#{iv.$class-prefix}description-list-item {
+  display: grid;
+  grid-column: 1 / -1;
+  // A browser without `subgrid` keeps this one column, so its items stay
+  // stacked at every width rather than misplace a value.
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: subgrid;
+  // Each label from the top of the first column and each value from the top
+  // of the last, so several of either line up from the item's first line.
+  grid-auto-flow: row dense;
+  align-items: baseline;
+  row-gap: cv.getVar("description-list-row-gap");
+}
+
+// Through the root, so it outranks Bulma's `.content dd` indent.
+.#{iv.$class-prefix}description-list .#{iv.$class-prefix}description-list-label {
+  grid-column: 1 / 2;
+  margin: 0;
+  color: cv.getVar("description-list-label-color");
+  font-weight: cv.getVar("description-list-label-weight");
+}
+
+.#{iv.$class-prefix}description-list .#{iv.$class-prefix}description-list-value {
+  grid-column: -2 / -1;
+  margin: 0;
+  // An order number, an email or a URL wraps rather than widen the list.
+  overflow-wrap: anywhere;
+}
+
+.#{iv.$class-prefix}description-list.#{iv.$class-prefix}has-dividers
+  > .#{iv.$class-prefix}description-list-item
+  + .#{iv.$class-prefix}description-list-item {
+  border-block-start: cv.getVar("description-list-divider-width") solid cv.getVar("description-list-divider-color");
+  padding-block-start: cv.getVar("description-list-gap");
+}
+
+// ---- Orientation ----------------------------------------------------------------
+
+// With no orientation given: stacked on a phone, beside from tablet up.
+@include mx.tablet {
+  .#{iv.$class-prefix}description-list {
+    @include -horizontal;
+  }
+}
+
+@mixin -orientations($suffix) {
+  .#{iv.$class-prefix}description-list.#{iv.$class-prefix}is-vertical#{$suffix} {
+    @include -vertical;
+  }
+
+  .#{iv.$class-prefix}description-list.#{iv.$class-prefix}is-horizontal#{$suffix} {
+    @include -horizontal;
+  }
+}
+
+// `orientation` at every width, then each viewport's prop from its own
+// breakpoint, narrowest first, so where several apply the widest one wins.
+@include -orientations("");
+
+@include mx.mobile {
+  @include -orientations("-mobile");
+}
+
+@include mx.tablet {
+  @include -orientations("-tablet");
+}
+
+@include mx.desktop {
+  @include -orientations("-desktop");
+}
+
+@include mx.widescreen {
+  @include -orientations("-widescreen");
+}
+
+@include mx.fullhd {
+  @include -orientations("-fullhd");
+}

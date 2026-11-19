@@ -1,0 +1,175 @@
+// Bestax Extras - PinInput Styles
+// A row of boxes for a short code, drawn under the one input that holds it.
+// Each box is a Bulma `.input`, the way DateRangeInput's field is, so the
+// boxes take Bulma's input colors, sizes, rounded corners, focus ring, dark
+// mode and `--bulma-input-*` theme variables as they are, and this partial
+// only lays them out. The input lies over the row with its text, caret and
+// selection transparent, so a click or a tap lands on it and the boxes show
+// what it holds.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+// In em, so it follows the size of the boxes.
+$pin-input-gap: 0.5em !default;
+// A Bulma control's height, in the box's own size, so a box is square.
+$pin-input-box-width: cv.getVar('control-height') !default;
+$pin-input-caret-width: max(1px, 0.0625em) !default;
+$pin-input-caret-height: 1.25em !default;
+// The box's text color, so the caret follows a color, dark mode and a theme.
+$pin-input-caret-color: currentColor !default;
+$pin-input-caret-blink-duration: 1s !default;
+
+.#{iv.$class-prefix}pin-input {
+  @include cv.register-vars(
+    (
+      'pin-input-gap': #{$pin-input-gap},
+      'pin-input-box-width': #{$pin-input-box-width},
+      'pin-input-caret-width': #{$pin-input-caret-width},
+      'pin-input-caret-height': #{$pin-input-caret-height},
+      'pin-input-caret-color': #{$pin-input-caret-color},
+      'pin-input-caret-blink-duration': #{$pin-input-caret-blink-duration},
+    )
+  );
+}
+
+// The row is as wide as its boxes, so the input over it covers them and
+// nothing more, and no wider than its container: in a narrow one the boxes
+// give up some width rather than overflow.
+.#{iv.$class-prefix}pin-input {
+  display: inline-flex;
+  max-width: 100%;
+  position: relative;
+  vertical-align: top;
+}
+
+// Three classes, because Bulma's `.input` sets the width and its
+// `.input.is-rounded` the side padding, and these have to win whichever
+// stylesheet loads first. The character sits in the middle either way.
+.#{iv.$class-prefix}pin-input
+  > .#{iv.$class-prefix}input.#{iv.$class-prefix}pin-input-box {
+  flex: 0 1 auto;
+  font-variant-numeric: tabular-nums;
+  justify-content: center;
+  min-width: 0;
+  padding-left: 0;
+  padding-right: 0;
+  width: cv.getVar('pin-input-box-width');
+}
+
+.#{iv.$class-prefix}pin-input-box + .#{iv.$class-prefix}pin-input-box {
+  margin-inline-start: cv.getVar('pin-input-gap');
+}
+
+// A div takes no `disabled`, so a disabled box is marked by class and drawn
+// the way Bulma draws a disabled input.
+.#{iv.$class-prefix}pin-input-box.#{iv.$class-prefix}is-disabled {
+  background-color: cv.getVar('input-disabled-background-color');
+  border-color: cv.getVar('input-disabled-border-color');
+  box-shadow: none;
+  color: cv.getVar('input-disabled-color');
+}
+
+// The caret, in the empty box at the input's caret. The box lays out its
+// content in a centered row, so the caret sits in the middle.
+.#{iv.$class-prefix}pin-input-box.#{iv.$class-prefix}has-caret::after {
+  animation: #{iv.$class-prefix}pin-input-caret-blink
+    cv.getVar('pin-input-caret-blink-duration') step-end infinite;
+  background-color: cv.getVar('pin-input-caret-color');
+  content: '';
+  height: cv.getVar('pin-input-caret-height');
+  width: cv.getVar('pin-input-caret-width');
+}
+
+@keyframes #{iv.$class-prefix}pin-input-caret-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+// The input that holds the code, over the whole row. Its text is squeezed
+// to the row's start, so a click anywhere on the row puts the caret at the
+// end of the code, and the arrow keys move it from there. Its font is never
+// under 16px, since iOS zooms the page into a field with smaller text when
+// it takes focus.
+.#{iv.$class-prefix}pin-input-field {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  caret-color: transparent;
+  color: transparent;
+  cursor: text;
+  font-family: monospace;
+  font-size: max(1em, 16px);
+  height: 100%;
+  left: 0;
+  letter-spacing: -0.5em;
+  line-height: 1;
+  margin: 0;
+  outline: 0;
+  padding: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  z-index: 1;
+
+  &::selection {
+    background-color: transparent;
+    color: transparent;
+  }
+
+  &::placeholder {
+    color: transparent;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+// Autofill paints a fill and text of its own on the input. The boxes show
+// the code, so the input hides instead. One rule each, since a browser
+// drops a whole rule over a selector it doesn't know.
+.#{iv.$class-prefix}pin-input-field:-webkit-autofill {
+  opacity: 0;
+}
+
+.#{iv.$class-prefix}pin-input-field:autofill {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}pin-input-box.#{iv.$class-prefix}has-caret::after {
+    animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+  // Forced colors would paint the input's transparent text and caret in the
+  // text color, over the boxes, so it keeps its own.
+  .#{iv.$class-prefix}pin-input-field {
+    forced-color-adjust: none;
+  }
+
+  // Forced colors drops Bulma's focus ring, which is a shadow, so the box
+  // at the caret, and each selected one, gets an outline in the system's
+  // Highlight color. Three classes, to outrank Bulma's `.input.is-focused`
+  // border whichever stylesheet loads first.
+  .#{iv.$class-prefix}pin-input
+    > .#{iv.$class-prefix}pin-input-box.#{iv.$class-prefix}is-focused {
+    border-color: Highlight;
+    outline: 2px solid Highlight;
+  }
+
+  // The caret is a fill, which forced colors would make the background.
+  .#{iv.$class-prefix}pin-input-box.#{iv.$class-prefix}has-caret::after {
+    background-color: CanvasText;
+    forced-color-adjust: none;
+  }
+
+  .#{iv.$class-prefix}pin-input-box.#{iv.$class-prefix}is-disabled {
+    border-color: GrayText;
+    color: GrayText;
+  }
+}

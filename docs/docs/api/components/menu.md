@@ -14,7 +14,7 @@ The `Menu` component provides Bulma's vertical navigation menu: a simple, access
 
 <!-- /bestax:generated overview -->
 
-It supports labels, nested menu lists, active states, custom links, and all Bulma/utility helper props. Use it for dashboards, sidebars, admin panels, or any grouped navigation.
+It supports labels, nested menu lists, active states, custom links, sections that open and close, and all Bulma/utility helper props. Use it for dashboards, sidebars, admin panels, or any grouped navigation.
 
 :::info
 Menu supports unlimited nesting and lets you use any link or router component via the `as` prop on `Menu.Item`.
@@ -38,35 +38,37 @@ import { Menu } from '@allxsmith/bestax-bulma';
 
 ### Basic Menu with Nested Lists
 
-To create a sidebar or section menu with multiple levels, use the `Menu` component with nested `Menu.Label` and `Menu.List` subcomponents. You can nest `Menu.List` inside a `Menu.Item` to create hierarchical navigation. Use the `active` prop on a `Menu.Item` to highlight the current selection. This pattern is ideal for dashboards, admin panels, or any grouped navigation area, and you can apply Bulma helper props for layout and color customization.
+To create a sidebar or section menu with multiple levels, use the `Menu` component with nested `Menu.Label` and `Menu.List` subcomponents. You can nest `Menu.List` inside a `Menu.Item` to create hierarchical navigation. Use the `active` prop on a `Menu.Item` to highlight the current selection. This pattern is ideal for dashboards, admin panels, or any grouped navigation area, and you can apply Bulma helper props for layout and color customization. Give each item an `href`, a router link through `as`, or `as="button"`: `Menu.Item` renders an `<a>` by default, and an `<a>` with no `href` isn't a link, so Tab skips it and assistive tech doesn't present it as one.
 
 ```tsx live
 <Menu style={{ maxWidth: 300 }}>
   <Menu.Label>General</Menu.Label>
   <Menu.List>
-    <Menu.Item>Dashboard</Menu.Item>
-    <Menu.Item>Customers</Menu.Item>
+    <Menu.Item href="#dashboard">Dashboard</Menu.Item>
+    <Menu.Item href="#customers">Customers</Menu.Item>
   </Menu.List>
   <Menu.Label>Administration</Menu.Label>
   <Menu.List>
-    <Menu.Item>Team Settings</Menu.Item>
-    <Menu.Item active>
+    <Menu.Item href="#team-settings">Team Settings</Menu.Item>
+    <Menu.Item active href="#manage-your-team">
       Manage Your Team
       <Menu.List>
-        <Menu.Item>Members</Menu.Item>
-        <Menu.Item>Plugins</Menu.Item>
-        <Menu.Item>Add a member</Menu.Item>
+        <Menu.Item href="#members">Members</Menu.Item>
+        <Menu.Item href="#plugins">Plugins</Menu.Item>
+        <Menu.Item href="#add-a-member">Add a member</Menu.Item>
       </Menu.List>
     </Menu.Item>
-    <Menu.Item>Invitations</Menu.Item>
-    <Menu.Item>Cloud Storage Environment Settings</Menu.Item>
-    <Menu.Item>Authentication</Menu.Item>
+    <Menu.Item href="#invitations">Invitations</Menu.Item>
+    <Menu.Item href="#cloud-storage">
+      Cloud Storage Environment Settings
+    </Menu.Item>
+    <Menu.Item href="#authentication">Authentication</Menu.Item>
   </Menu.List>
   <Menu.Label>Transactions</Menu.Label>
   <Menu.List>
-    <Menu.Item>Payments</Menu.Item>
-    <Menu.Item>Transfers</Menu.Item>
-    <Menu.Item>Balance</Menu.Item>
+    <Menu.Item href="#payments">Payments</Menu.Item>
+    <Menu.Item href="#transfers">Transfers</Menu.Item>
+    <Menu.Item href="#balance">Balance</Menu.Item>
   </Menu.List>
 </Menu>
 ```
@@ -75,22 +77,26 @@ To create a sidebar or section menu with multiple levels, use the `Menu` compone
 
 ### Custom Link Component
 
-Use the `as` prop on `Menu.Item` to render a custom link component, such as a router link. Its props follow `as`, so props like `to` or `href` are checked against whatever you render and are forwarded to it.
+Use the `as` prop on `Menu.Item` to render a custom link component, such as a router link. Its props follow `as`, so props like `to` or `href` are checked against whatever you render and are forwarded to it. `icon` is Menu.Item's own (see [Icons](#icons)), so the component you render never receives an `icon` of its own: pass that one under another name. The stand-in below spreads what `Menu.Item` passes it onto the `<a>`, as a router's link does, so an `active` item keeps `is-active` and `aria-current="page"`, and sets the `href` from `to` after the spread. Its items point at fragments so the preview stays on the page, and `active` is set by hand. In an app they're your routes, and `active` comes from the router, as the [Routing guide](../../guides/features/routing.md) shows.
 
 ```tsx live
 // import { Link } from 'react-router-dom';
 function example() {
-  const Link = (props: { to: string; children?: React.ReactNode }) => (
-    <a>{props.children}</a>
-  );
+  const Link = ({
+    to,
+    ...rest
+  }: { to: string } & Omit<
+    React.AnchorHTMLAttributes<HTMLAnchorElement>,
+    'href'
+  >) => <a {...rest} href={to} />;
   return (
     <Menu>
       <Menu.Label>App</Menu.Label>
       <Menu.List>
-        <Menu.Item as={Link} to="/dashboard">
+        <Menu.Item as={Link} to="#dashboard" active>
           Dashboard
         </Menu.Item>
-        <Menu.Item as={Link} to="/settings">
+        <Menu.Item as={Link} to="#settings">
           Settings
         </Menu.Item>
       </Menu.List>
@@ -103,16 +109,47 @@ function example() {
 
 ### Active Menu Item
 
-Highlight a menu entry by setting the `active` prop on a `Menu.Item`. This visually indicates the user's current location within the navigation structure, making it easier to orient within the app or section.
+Highlight a menu entry by setting the `active` prop on a `Menu.Item`. This visually indicates the user's current location within the navigation structure, making it easier to orient within the app or section. It also sets `aria-current="page"` on the item's link, so assistive tech knows which one is current too.
 
 ```tsx live
 <Menu>
   <Menu.Label>Active Example</Menu.Label>
   <Menu.List>
-    <Menu.Item>Overview</Menu.Item>
-    <Menu.Item active>Current Page</Menu.Item>
-    <Menu.Item>Other</Menu.Item>
+    <Menu.Item href="#overview">Overview</Menu.Item>
+    <Menu.Item active href="#current-page">
+      Current Page
+    </Menu.Item>
+    <Menu.Item href="#other">Other</Menu.Item>
   </Menu.List>
+</Menu>
+```
+
+---
+
+### Icons
+
+Give a `Menu.Item` or a `Menu.Section` an `icon`, such as an `Icon`, and it sits before the label.
+It's hidden from assistive technology, since the label already names the link, and the rest of
+the label goes in a `menu-item-label` span. An item without an `icon` renders as it always has.
+In an [AppFrame](../layout/appframe.md#the-icon-rail) column collapsed to its icons, the labels
+are visually hidden and show in a tooltip instead.
+
+```tsx live
+<Menu>
+  <Menu.List>
+    <Menu.Item href="#dashboard" icon={<Icon name="house" />} active>
+      Dashboard
+    </Menu.Item>
+    <Menu.Item href="#orders" icon={<Icon name="box" />}>
+      Orders
+    </Menu.Item>
+  </Menu.List>
+  <Menu.Section label="Reports" icon={<Icon name="chart-line" />}>
+    <Menu.List>
+      <Menu.Item href="#sales">Sales</Menu.Item>
+      <Menu.Item href="#returns">Returns</Menu.Item>
+    </Menu.List>
+  </Menu.Section>
 </Menu>
 ```
 
@@ -126,19 +163,121 @@ Create multi-level navigation by nesting `Menu.List` components inside `Menu.Ite
 <Menu>
   <Menu.Label>Levels</Menu.Label>
   <Menu.List>
-    <Menu.Item>
+    <Menu.Item href="#level-1">
       Level 1
       <Menu.List>
-        <Menu.Item>
+        <Menu.Item href="#level-2">
           Level 2
           <Menu.List>
-            <Menu.Item>Level 3</Menu.Item>
+            <Menu.Item href="#level-3">Level 3</Menu.Item>
           </Menu.List>
         </Menu.Item>
       </Menu.List>
     </Menu.Item>
   </Menu.List>
 </Menu>
+```
+
+---
+
+### Sections that open and close
+
+A docs or app sidebar often has groups of links that open and close. Put each group's
+`Menu.List` in a `Menu.Section`, with the group's name in `label`. The heading is a button drawn
+like `Menu.Label`, with a chevron that points down while the section is open, and the links under
+it are the same `Menu.Item`s as anywhere else, with their `href`, `active` and `aria-current`.
+Give `defaultOpen` to the section that holds the current page, so the reader sees where they are.
+
+A section goes directly in `Menu`, beside any `Menu.Label`s and `Menu.List`s, and holds a
+`Menu.List`. Don't put one inside a `Menu.Item`, where it would render inside the item's link, or
+inside a `Menu.List`, where it wouldn't be a list item.
+
+```tsx live
+<nav aria-label="Documentation">
+  <Menu>
+    <Menu.Section label="Getting started">
+      <Menu.List>
+        <Menu.Item href="#installation">Installation</Menu.Item>
+        <Menu.Item href="#quick-start">Quick start</Menu.Item>
+      </Menu.List>
+    </Menu.Section>
+    <Menu.Section label="Components" defaultOpen>
+      <Menu.List>
+        <Menu.Item href="#button">Button</Menu.Item>
+        <Menu.Item href="#card" active>
+          Card
+        </Menu.Item>
+        <Menu.Item href="#modal">Modal</Menu.Item>
+      </Menu.List>
+    </Menu.Section>
+    <Menu.Section label="Form">
+      <Menu.List>
+        <Menu.Item href="#input">Input</Menu.Item>
+        <Menu.Item href="#select">Select</Menu.Item>
+      </Menu.List>
+    </Menu.Section>
+  </Menu>
+</nav>
+```
+
+This is navigation, not a tree: each link is a tab stop of its own, and there are no arrow keys to
+learn. For data you browse and pick from, like a file explorer, use [`TreeView`](./treeview.md)
+instead.
+
+Bulma's menu has no section that opens and closes, so `Menu.Section` is bestax's own. Its styles
+ship in `bestax.css` and `extras.css`, not in Bulma's stylesheet.
+
+---
+
+### Controlled sections
+
+A section holds its own open state unless you pass `open`. Then it's yours, and the button only
+reports the state it asks for through `onOpenChange`, the way [`Collapse`](./collapse.md) works.
+That lets the app open the section for the current route, or open and close them all at once.
+
+```tsx live
+function example() {
+  const groups = {
+    Components: ['Button', 'Card', 'Modal'],
+    Form: ['Input', 'Select'],
+  };
+  const [open, setOpen] = React.useState(['Components']);
+
+  return (
+    <>
+      <Buttons mb="3">
+        <Button size="small" onClick={() => setOpen(Object.keys(groups))}>
+          Open all
+        </Button>
+        <Button size="small" onClick={() => setOpen([])}>
+          Close all
+        </Button>
+      </Buttons>
+      <Menu>
+        {Object.entries(groups).map(([label, links]) => (
+          <Menu.Section
+            key={label}
+            label={label}
+            open={open.includes(label)}
+            onOpenChange={isOpen =>
+              setOpen(current =>
+                isOpen ? [...current, label] : current.filter(l => l !== label)
+              )
+            }
+          >
+            <Menu.List>
+              {links.map(link => (
+                <Menu.Item key={link} href={`#${link.toLowerCase()}`}>
+                  {link}
+                </Menu.Item>
+              ))}
+            </Menu.List>
+          </Menu.Section>
+        ))}
+      </Menu>
+    </>
+  );
+}
 ```
 
 ---
@@ -174,15 +313,23 @@ function example() {
 
 ### Compound (dot-notation) usage
 
-`MenuLabel`, `MenuList`, and `MenuItem` are also available as `Menu.Label`, `Menu.List`, and `Menu.Item`, so the whole menu can be composed from the single `Menu` import.
+`MenuLabel`, `MenuList`, `MenuItem`, and `MenuSection` are also available as `Menu.Label`, `Menu.List`, `Menu.Item`, and `Menu.Section`, so the whole menu can be composed from the single `Menu` import.
 
 ```tsx live
 <Menu>
   <Menu.Label>General</Menu.Label>
   <Menu.List>
-    <Menu.Item active>Dashboard</Menu.Item>
-    <Menu.Item>Customers</Menu.Item>
+    <Menu.Item active href="#dashboard">
+      Dashboard
+    </Menu.Item>
+    <Menu.Item href="#customers">Customers</Menu.Item>
   </Menu.List>
+  <Menu.Section label="Transactions">
+    <Menu.List>
+      <Menu.Item href="#payments">Payments</Menu.Item>
+      <Menu.Item href="#transfers">Transfers</Menu.Item>
+    </Menu.List>
+  </Menu.Section>
 </Menu>
 ```
 
@@ -190,12 +337,66 @@ function example() {
 
 ## Accessibility
 
-- The root `Menu` renders as `<aside class="menu">`.
+- The root `Menu` renders as `<aside class="menu">`. A menu that's navigation is better inside a
+  `<nav>` with an `aria-label`, which gives assistive tech a navigation landmark to jump to.
+- Every `Menu.List` has `role="list"`, nested ones included. That's the role a `<ul>` already has,
+  set again for Safari, whose WebKit stops exposing a `<ul>` as a list once its markers are hidden,
+  as Bulma's reset hides them, unless the role is written out.
+- `Menu.Label` renders Bulma's `<p class="menu-label">`, which assistive tech reads as a plain
+  paragraph: it isn't a heading, and nothing ties it to the list under it, so a screen reader user
+  who moves through the page by heading skips the groups. Give the label `role="heading"` and the
+  `aria-level` that fits the headings already on the page, so they can move between the groups by
+  heading. To name a list after its label as well, give the label an `id` that's unique on the
+  page and write `aria-labelledby` with that id on the `Menu.List`.
+- `Menu.Item active` sets `aria-current="page"` on the element `as` renders, the link by
+  default, so the current item isn't only a color. An `aria-current` you pass wins: a menu of
+  sections on one page can say `"location"`, and `aria-current={false}` turns it off.
 - Use semantic nesting (`Menu.List` inside `Menu.Item`) for submenus.
-- Ensure each item is focusable and accessible if interactive.
+- An item's or a section's `icon` is `aria-hidden`, so the label alone names the link or the
+  button. Keep the label even when only the icon shows: in an AppFrame rail it's visually hidden,
+  not removed, so it's still the name.
+- Give each item an `href`, a router link through `as`, or `as="button"`, so the keyboard can
+  reach it.
 - `Menu.Item as="button"` defaults to `type="button"`, so a menu item inside a form doesn't
   submit it. Pass `type="submit"` or `type="reset"` and yours is used instead; any other value
   renders `type="button"`.
+- In forced colors (Windows' contrast themes), the browser replaces Bulma's fill and text color
+  for the active item along with every other color, so bestax's stylesheet marks an
+  `is-active` or `is-selected` item with a bar in the system's highlight color along its start
+  edge there instead. The item's text, and an icon or a tag inside it, keep the colors your
+  contrast theme gives them. That rule ships in `bestax.css` and `extras.css`, not in Bulma's
+  own stylesheet.
+- On a right-to-left page, each item's text starts at the right, in line with a `Menu.Label` and
+  a section heading. Bulma's own stylesheet aligns items to the left, so this needs `bestax.css`
+  or `extras.css` too.
+
+For `Menu.Section`, a section that opens and closes:
+
+- It follows APG's
+  [Disclosure Navigation Menu example](https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/examples/disclosure-navigation/).
+  The heading is a `<button type="button">` with `aria-expanded`, and `aria-controls` naming the
+  wrapper around its list. Enter and Space open and close it, as they do any button, and it
+  doesn't submit a form it sits in.
+- The links under it are ordinary links. Each is its own tab stop, and there's no roving focus or
+  arrow-key handling, which is a tree's model rather than navigation's. They keep their `href`,
+  so a link still opens in a new tab, and `active` still sets `aria-current="page"`.
+- A closed section's list is `hidden` and `inert`, so it isn't drawn, Tab skips its links, and
+  assistive tech and find-in-page don't reach them. `inert` keeps the links out of reach even if a
+  stylesheet sets `display` on the list and shows it. The list stays in the page, so
+  `aria-controls` always names an element that exists, and a section that starts closed is
+  already closed in the server's HTML, before any script runs.
+- Open the section that holds the current page, with `defaultOpen` or `open`, so the link marked
+  `aria-current` can be seen and reached.
+- When the app closes a section while focus is on one of its links, as a sidebar that keeps only
+  the current route's section open does after a link is followed, focus moves to that section's
+  heading. Without that, the browser drops focus to the page, and the next Tab starts from the
+  top.
+- `label` is the button's content and its accessible name. Keep links and other buttons out of
+  it.
+- In forced colors the chevron stays visible, since it's drawn as a border, and the focus ring
+  takes the system's text color. In a right-to-left page the chevron sits at the left end of the
+  heading and points left while closed. It turns with a short transition, which stops when the
+  reader asks for reduced motion.
 
 :::note
 For router integrations, pass the correct `as` and `to`/`href` props to `Menu.Item`.
@@ -207,7 +408,12 @@ For router integrations, pass the correct `as` and `to`/`href` props to `Menu.It
 
 - [`Sidebar`](./sidebar.md): For slide-out navigation panels using Menu.
 - [`Panel`](./panel.md): For alternate sidebar/navigation layouts.
-- [Helper Props](../helpers/usebulmaclasses.md): All Bulma utility helpers are supported.
+- [`TreeView`](./treeview.md): Looks like a menu, but it's for data you browse and pick from, like
+  a file explorer, not for navigation. Its items aren't links. Keep site navigation on `Menu`, with
+  `Menu.Section` for groups that open and close.
+- [`Collapse`](./collapse.md): A panel of any content that opens and closes, whose open state
+  works the way `Menu.Section`'s does.
+- [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing and other utilities.
 
 ---
 
@@ -215,9 +421,10 @@ For router integrations, pass the correct `as` and `to`/`href` props to `Menu.It
 
 - [Bulma Menu Documentation](https://bulma.io/documentation/components/menu/)
 - [Storybook: Menu Stories](https://bestax.io/storybook/?path=/story/components-menu--basic)
+- [APG: Disclosure Navigation Menu example](https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/examples/disclosure-navigation/)
 
 :::tip Pro Tip
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu />` and its subcomponents for powerful utility-based styling.
+You can use [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu />` and its subcomponents for powerful utility-based styling.
 :::
 
 ---
@@ -228,50 +435,66 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu 
 
 <!-- bestax:generated props -->
 
-| Prop        | Type                                                | Default | Description                                       |
-| ----------- | --------------------------------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                                            | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`                                   | —       | Menu content (labels, lists, items, etc).         |
-| `...`       | All standard HTML attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                                                | Default | Description                                             |
+| ----------- | --------------------------------------------------- | ------- | ------------------------------------------------------- |
+| `className` | `string`                                            | —       | Additional CSS classes.                                 |
+| `children`  | `React.ReactNode`                                   | —       | **Required.** Menu content (labels, lists, items, etc). |
+| `...`       | All standard HTML attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)       |
 
 **Subcomponents:**
 
-- `Menu.Label`: Bulma Menu label component.
-- `Menu.List`: MenuList applies `menu-list` class only at the top level (not for nested lists).
-- `Menu.Item`: MenuItem supports `as` prop for custom link components, e.g., react-router-dom Link.
+- `Menu.Label`: The label over a group of the menu's items: a paragraph to assistive tech, until you give it `role="heading"` and an `aria-level`. It renders Bulma's `<p class="menu-label">`, which isn't a heading and doesn't name the `Menu.List` under it. Give it `role="heading"` and the `aria-level` that fits the headings already on the page, so screen reader users can move between the groups by heading. To name the list after it as well, give it an `id` that's unique on the page and write `aria-labelledby` with that id on the list.
+- `Menu.List`: MenuList applies `menu-list` class only at the top level (not for nested lists). Every level renders `role="list"`, which Safari needs: WebKit stops exposing a `<ul>` as a list once its markers are hidden, and Bulma's reset hides them.
+- `Menu.Item`: MenuItem supports `as` prop for custom link components, e.g., react-router-dom Link. Give each item an `href`, a router link through `as`, or `as="button"`, so the keyboard can reach it: an `<a>` with no `href` isn't a link, and Tab skips it.
+- `Menu.Section`: A section of the menu that opens and closes: its heading is a button drawn like `Menu.Label`, and its `Menu.List` of links shows while it's open. It's APG's disclosure navigation, for a sidebar of link groups: the links stay ordinary links, each its own tab stop, and a closed section's list is `hidden` and `inert`, so Tab and assistive tech skip it. It goes directly in `Menu`, holding a `Menu.List`. Closing it while focus is on one of its links moves focus to its heading.
 
 ### Menu.Label
 
 | Prop        | Type                                                 | Default | Description                                       |
 | ----------- | ---------------------------------------------------- | ------- | ------------------------------------------------- |
 | `className` | `string`                                             | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`                                    | —       | Label content.                                    |
+| `children`  | `React.ReactNode`                                    | —       | **Required.** Label content.                      |
 | `...`       | All standard `<p>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
 ### Menu.List
 
-| Prop        | Type                                                  | Default | Description                                       |
-| ----------- | ----------------------------------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                                              | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`                                     | —       | List items.                                       |
-| `...`       | All standard `<ul>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                                                  | Default | Description                                                                                    |
+| ----------- | ----------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------- |
+| `className` | `string`                                              | —       | Additional CSS classes.                                                                        |
+| `children`  | `React.ReactNode`                                     | —       | **Required.** List items.                                                                      |
+| `role`      | `React.AriaRole`                                      | —       | Ignored: every level renders `role="list"` in its place, so a menu or tree role can't go here. |
+| `...`       | All standard `<ul>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                              |
 
 ### Menu.Item
 
-| Prop          | Type                                                                                                | Default | Description                                                                                                                                                                         |
-| ------------- | --------------------------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `as`          | `React.ElementType`                                                                                 | `'a'`   | Custom link component (e.g. `Link` from router). `'button'` renders `type="button"` unless you pass `type="submit"` or `type="reset"`, so an item inside a form does not submit it. |
-| `className`   | `string`                                                                                            | —       | Additional CSS classes for the wrapping `<li>`.                                                                                                                                     |
-| `children`    | `React.ReactNode`                                                                                   | —       | Item content and optional nested MenuList.                                                                                                                                          |
-| `active`      | `boolean`                                                                                           | `false` | Highlight item as active.                                                                                                                                                           |
-| `style`       | `React.CSSProperties`                                                                               | —       | Inline styles for the wrapping `<li>`.                                                                                                                                              |
-| `id`          | `string`                                                                                            | —       | `id` for the wrapping `<li>`.                                                                                                                                                       |
-| `title`       | `string`                                                                                            | —       | `title` for the wrapping `<li>`.                                                                                                                                                    |
-| `role`        | `React.AriaRole`                                                                                    | —       | ARIA role for the wrapping `<li>`.                                                                                                                                                  |
-| `tabIndex`    | `number`                                                                                            | —       | Tab index for the wrapping `<li>`.                                                                                                                                                  |
-| `data-testid` | `string`                                                                                            | —       | Test id for the wrapping `<li>`.                                                                                                                                                    |
-| `ref`         | `PolymorphicRef<React.ElementType>`                                                                 | —       | Ref forwarded to the inner element `as` renders, not the wrapping `<li>`, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.        |
-| `...`         | Remaining props of the element or component selected by `as` (default `<a>`) and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                   |
+| Prop          | Type                                                                                                | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ------------- | --------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `as`          | `React.ElementType`                                                                                 | `'a'`   | Custom link component (e.g. `Link` from router). `'button'` renders `type="button"` unless you pass `type="submit"` or `type="reset"`, so an item inside a form does not submit it.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `className`   | `string`                                                                                            | —       | Additional CSS classes for the wrapping `<li>`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `children`    | `React.ReactNode`                                                                                   | —       | **Required.** Item content and optional nested MenuList.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `icon`        | `React.ReactNode`                                                                                   | —       | An icon before the label: an `Icon` name, or a node. It's hidden from assistive technology, since the label names the item. With it, the rest of the label is wrapped in a `menu-item-label` span; without it, the item renders as it always has. In an `AppFrame.Nav rail` column collapsed to its icons, the label is visually hidden, stays the link's name, and shows in a Tooltip on hover and keyboard focus. That Tooltip renders the label a second time, so keep an `id`, a `ref` or a component with state of its own out of a rail item's label. It's Menu.Item's own prop, so a component passed as `as` never receives an `icon` of its own: pass that one under another name. |
+| `active`      | `boolean`                                                                                           | `false` | Marks the item as the current one. It adds Bulma's `is-active` class, and `aria-current="page"` on the element `as` renders, so assistive tech can tell which item is current too. An `aria-current` you pass wins, even `undefined`: use it to say something else (`"location"` for a section of one page, say), or `aria-current={false}` to turn it off. A menu should mark one page, so when the section above the current page is `active` too, give it `aria-current="location"`, and give an `active` item that isn't navigation, such as an `as="button"` filter, `aria-current={false}`.                                                                                           |
+| `style`       | `React.CSSProperties`                                                                               | —       | Inline styles for the wrapping `<li>`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `id`          | `React.HTMLAttributes<HTMLElement>['id']`                                                           | —       | `id` for the wrapping `<li>`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `title`       | `string`                                                                                            | —       | `title` for the wrapping `<li>`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `role`        | `React.AriaRole`                                                                                    | —       | ARIA role for the wrapping `<li>`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `tabIndex`    | `number`                                                                                            | —       | Tab index for the wrapping `<li>`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `data-testid` | `string`                                                                                            | —       | Test id for the wrapping `<li>`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `ref`         | `PolymorphicRef<React.ElementType>`                                                                 | —       | Ref forwarded to the inner element `as` renders, not the wrapping `<li>`, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `...`         | Remaining props of the element or component selected by `as` (default `<a>`) and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+
+### Menu.Section
+
+| Prop           | Type                                                   | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| -------------- | ------------------------------------------------------ | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className`    | `string`                                               | —       | Additional CSS classes for the wrapping `<div>`.                                                                                                                                                                                                                                                                                                                                                                                 |
+| `label`        | `React.ReactNode`                                      | —       | **Required.** The section's heading, drawn like `Menu.Label` inside the button that opens and closes it. Keep links and buttons out of it, since it's inside one.                                                                                                                                                                                                                                                                |
+| `icon`         | `React.ReactNode`                                      | —       | An icon before the heading: an `Icon` name, or a node. It's hidden from assistive technology, since the heading names the button. In an `AppFrame.Nav rail` column collapsed to its icons, the heading is visually hidden, stays the button's name, and shows in a Tooltip on hover and keyboard focus. That Tooltip renders the heading a second time, so keep an `id`, a `ref` or a component with state of its own out of it. |
+| `children`     | `React.ReactNode`                                      | —       | **Required.** The `Menu.List` of links the section shows while it's open. The section itself goes directly in `Menu`, beside its labels and lists: inside a `Menu.Item` it would render inside the item's link, and inside a `Menu.List` it wouldn't be a list item.                                                                                                                                                             |
+| `open`         | `boolean`                                              | —       | Controlled open state. If provided, the section is controlled, and its button only reports through `onOpenChange`.                                                                                                                                                                                                                                                                                                               |
+| `defaultOpen`  | `boolean`                                              | `false` | Initial open state for uncontrolled usage. Open the section that holds the current page, so the reader sees where they are.                                                                                                                                                                                                                                                                                                      |
+| `onOpenChange` | `(open: boolean) => void`                              | —       | Called with the state the button asks for (`true` to open) each time it is clicked or activated with Enter or Space, in every mode. Pair it with `open` to let the button drive a controlled section.                                                                                                                                                                                                                            |
+| `...`          | All standard `<div>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                |
 
 <!-- /bestax:generated props -->
 
@@ -285,6 +508,11 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu 
 
 | CSS Variable                                  | Sass Variable                          | Default                                  |
 | --------------------------------------------- | -------------------------------------- | ---------------------------------------- |
+| `--bulma-menu-section-gap`                    | `$menu-section-gap`                    | `0.375em`                                |
+| `--bulma-menu-section-chevron-size`           | `$menu-section-chevron-size`           | `1em`                                    |
+| `--bulma-menu-section-chevron-color`          | `$menu-section-chevron-color`          | `currentColor`                           |
+| `--bulma-menu-section-chevron-duration`       | `$menu-section-chevron-duration`       | `var(--bulma-duration)`                  |
+| `--bulma-menu-icon-gap`                       | `$menu-icon-gap`                       | `0.5em`                                  |
 | `--bulma-menu-item-h`                         | `$menu-item-h`                         | `var(--bulma-scheme-h)`                  |
 | `--bulma-menu-item-s`                         | `$menu-item-s`                         | `var(--bulma-scheme-s)`                  |
 | `--bulma-menu-item-l`                         | `$menu-item-l`                         | `var(--bulma-scheme-main-l)`             |

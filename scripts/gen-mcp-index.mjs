@@ -19,7 +19,8 @@
  *   bestax-mcp/data/skills.json           skill manifest (bodies are synced at
  *                                         build time, see bestax-mcp/scripts)
  *   bestax-mcp/data/bulma-classes.json    the bestax-migrate bulma-classes
- *                                         table, for lookup_bulma_classes
+ *                                         table, for lookup_bulma_classes, with
+ *                                         Bulma v1's own class names
  *
  * Split three ways on purpose: a stdio server pays the parse cost on every
  * client launch, so startup reads only the catalog and pulls a component file
@@ -38,7 +39,7 @@
  * Regenerate with `pnpm gen:mcp` (or `pnpm gen`, which runs all three).
  */
 import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join, relative, dirname, extname, posix } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
@@ -48,6 +49,7 @@ import {
   sectionSpans,
   sectionBody,
   firstSentence,
+  fenceMask,
 } from './lib/api-page.mjs';
 import {
   assertSkillsVetted,
@@ -66,7 +68,13 @@ import {
   readApiPages,
 } from './lib/api-catalog.mjs';
 import { docsRoute } from './lib/docs-url.mjs';
-import { extractComponent, varRootCandidates } from './lib/props-extract.mjs';
+import {
+  barrelExports,
+  exportedModules,
+  extractComponent,
+  extractHelperProps,
+  varRootCandidates,
+} from './lib/props-extract.mjs';
 import { componentVars } from './lib/scss-vars.mjs';
 import {
   SCSS_SOURCES,
@@ -90,11 +98,30 @@ const CLASS_MAP = join(
   'bulma-classes',
   'class-map.ts'
 );
+/**
+ * The walk bestax-migrate's vocabulary test reads Bulma's stylesheet with,
+ * which the index's class names come from too, so the two cannot disagree
+ * about which classes Bulma 1 has.
+ */
+const STYLESHEET_READER = join(
+  REPO,
+  'bestax-migrate',
+  'e2e',
+  'support',
+  'bulma-stylesheet.ts'
+);
 
 const PACKAGE = '@allxsmith/bestax-bulma';
 /** A name a page can document as a component: an exported identifier, capitalised. */
 const COMPONENT_NAME = /^[A-Z][A-Za-z0-9]*$/;
 const DOCS_BASE = 'https://bestax.io/docs';
+/**
+ * The page that documents the helper props, whose record carries them as rows
+ * (`helperProps`). The server names the same page for `get_helper_props`
+ * (`HELPER_PROPS_PAGE` in bestax-mcp's `format.ts`), and its tests fail on a
+ * record without them, so a retitled page cannot drop them quietly.
+ */
+const HELPER_PROPS_PAGE = 'useBulmaClasses';
 
 /**
  * Bumped when the shape below changes incompatibly. The server refuses an index
@@ -127,7 +154,8 @@ function purposeOf(fm, sections, lines) {
 
 /**
  * The hand-written ```tsx live blocks under `## Usage`, each tagged with the
- * `###` subheading it sits under.
+ * `###` subheading it sits under, and the `####` inside that, when it sits
+ * under one (`Several Items in View › Spacing between items`).
  *
  * These are the library's only curated examples — 897 of them, every one
  * executed by react-live on the docs site, so they are known to compile against
@@ -137,6 +165,8 @@ function usageExamples(lines, section) {
   if (!section) return [];
   const out = [];
   let heading = null;
+  /** The `###` the current heading is under, which a `####` title starts with. */
+  let section3 = null;
   let fence = null;
   let buf = [];
   for (const raw of lines.slice(section.start + 1, section.end)) {
@@ -161,8 +191,15 @@ function usageExamples(lines, section) {
       }
       continue;
     }
-    const h = raw.match(/^###[ \t]+(.+?)[ \t]*$/);
-    if (h) heading = h[1];
+    // A `####` under the `###` names its examples too, after it: three of
+    // Carousel's sat under one title, "Several Items in View" (#1236).
+    const h = raw.match(/^(###|####)[ \t]+(.+?)[ \t]*$/);
+    if (h?.[1] === '###') {
+      section3 = h[2];
+      heading = section3;
+    } else if (h) {
+      heading = section3 ? `${section3} › ${h[2]}` : h[2];
+    }
   }
   return out;
 }
@@ -480,13 +517,236 @@ function withoutFrontmatter(src) {
   return src.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '').trimStart();
 }
 
+/**
+ * One extractor table as a record's part. `standalone` marks a part that is no
+ * sub-component but an export of its own documented with this component (see
+ * `standaloneTables`), and `noProps` one that takes no props at all, not even
+ * its element's attributes (`Dropdown.Divider`).
+ */
+function partOf(t, standalone = null) {
+  return {
+    path: t.path,
+    summary: collapse(t.summary),
+    // A sub-component re-exported standalone has its own page; naming
+    // it lets the server point there instead of restating the table.
+    component: t.component ?? null,
+    // A sub with an inline DOM props type rather than a named
+    // `*Props` interface (`Navbar.Divider`) has no table at all — it
+    // still belongs in the list, with an empty one.
+    props: (t.rows ?? []).map(propRow),
+    extraProps: (t.extraProps ?? []).map(propRow),
+    catchAll: t.catchAll?.text ?? null,
+    // Where the helper props go, from the props type's `@helperProps`, where
+    // that is not the element the catch-all's attributes go to (#1273).
+    ...(t.catchAll?.helperPropsNote
+      ? { helperPropsNote: t.catchAll.helperPropsNote }
+      : {}),
+    types: (t.types ?? []).map(a => ({
+      name: a.name,
+      expansion: a.expansion,
+      summary: collapse(a.summary),
+    })),
+    ...(t.noProps ? { noProps: true } : {}),
+    ...(standalone ? { standalone } : {}),
+  };
+}
+
+/**
+ * The exports documented with a component rather than on a page of their own,
+ * as extractor tables for its record: the bare control a convenience component
+ * renders (`InputBase`, for `Input`), and what its page imports beside it
+ * (`CarouselItem`, for `Carousel`, by its `## Import`). Both are names the
+ * server hands out, in a lookup's answer and an import line, and neither has a
+ * page for the index to read, so `get_props` could not answer for either
+ * (#1150, #1174).
+ *
+ * A base goes with the component its name continues (`InputBase`, `Input`),
+ * which must render it: the server says so. A name with a page of its own, or
+ * one this component's parts already carry (`Table`'s `Thead`), is no extra.
+ * `extract`, `exported` and `source` are test seams.
+ */
+export function standaloneTables(
+  name,
+  info,
+  titles,
+  {
+    extract = extractComponent,
+    exported = exportedModules(),
+    source = file => readFileSync(file, 'utf8'),
+  } = {}
+) {
+  const out = [];
+  const base = `${name}Base`;
+  if (exported.has(base)) {
+    if (!source(info.sourceFile).includes(`<${base}`)) {
+      throw new Error(
+        `[gen-mcp-index] ${name} does not render <${base}>, and the index ` +
+          `documents ${base} with ${name} as the control ${name} renders. Give ` +
+          `${base} an API page of its own, or rename whichever of the two ` +
+          `no longer belongs with the other.`
+      );
+    }
+    out.push({
+      table: extract(base, { markdown: false }).tables[0],
+      role: 'base',
+    });
+  }
+  // A sub that is a compound itself (`Card.Header`) has its table read off its
+  // base, so the constant composing it (`CardHeader`) is carried too.
+  const carried = new Set([
+    ...info.tables.flatMap(t => [t.path, t.impl, t.component].filter(Boolean)),
+    ...(info.compoundNames?.values() ?? []),
+  ]);
+  for (const companion of IMPORT_COMPANIONS[name] ?? []) {
+    if (!COMPONENT_NAME.test(companion) || companion === name) continue;
+    if (titles.has(companion) || carried.has(companion)) continue;
+    out.push({
+      table: extract(companion, { markdown: false }).tables[0],
+      role: 'companion',
+    });
+  }
+  return out;
+}
+
+/** The identifiers an import line gives, in its order. */
+export function importedNames(code) {
+  return (code.match(/\{([^}]*)\}/)?.[1] ?? '')
+    .split(',')
+    .map(id => id.trim())
+    .filter(id => /^[A-Za-z_$][\w$]*$/.test(id));
+}
+
+/**
+ * The section of a page that documents a name its import line gives beside the
+ * component, such as the hook `useDataTable` beside `DataTable`: the first `##`
+ * or `###` heading that names it (`### The useDataTable Hook`), else the title
+ * of the first usage example that calls it (`useAppFrame()`, under "A Toggle of
+ * Your Own"), else the first `##` section whose code calls it (`toast.show()`,
+ * under "Programmatic API"). Null when none does. A call rather than a mention,
+ * since `toast` and `notification` are words an example's text uses too.
+ */
+export function importSection(lines, examples, name) {
+  const id = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const named = new RegExp(`(?<![\\w$.])${id}(?![\\w$])`);
+  const mask = fenceMask(lines);
+  for (const [i, line] of lines.entries()) {
+    const heading = !mask[i] && line.match(/^#{2,3}[ \t]+(.+?)[ \t]*$/);
+    if (heading && named.test(heading[1])) return heading[1];
+  }
+  const called = new RegExp(`(?<![\\w$.])${id}(?:\\.\\w+)?\\(`);
+  const example = examples.find(e => called.test(e.code));
+  if (example) return example.title;
+  let section = null;
+  for (const [i, line] of lines.entries()) {
+    if (!mask[i]) section = line.match(/^##[ \t]+(.+?)[ \t]*$/)?.[1] ?? section;
+    else if (section && called.test(line)) return section;
+  }
+  return null;
+}
+
+/**
+ * What a page says first under a section it documents a name in, as a purpose:
+ * the first sentence of the first prose paragraph under the heading, before the
+ * next heading, clipped the way a purpose is. A section from an example title
+ * ("A › B") is the `B` heading after the `A` one, since a `####` title can
+ * repeat under another `###`. '' when the section opens with no prose, so a
+ * row keeps its plain "documented with" text (#1579).
+ */
+export function sectionPurpose(lines, section) {
+  const mask = fenceMask(lines);
+  const heading = (line, i) =>
+    !mask[i] && line.match(/^#{1,6}[ \t]+(.+?)[ \t]*$/)?.[1];
+  let at = -1;
+  for (const title of section.split(' › ')) {
+    at = lines.findIndex((line, i) => i > at && heading(line, i) === title);
+    if (at < 0) return '';
+  }
+  const body = [];
+  for (let i = at + 1; i < lines.length && !heading(lines[i], i); i++) {
+    body.push(mask[i] ? '' : lines[i]);
+  }
+  const first = body.findIndex(line => firstProseLine(line));
+  if (first < 0) return '';
+  const blank = body.findIndex((line, i) => i > first && !line.trim());
+  const paragraph = body.slice(first, blank < 0 ? undefined : blank).join(' ');
+  // A section that leads into its code ("pass it as the first argument:") ends
+  // as a sentence does.
+  return clipAtWord(firstSentence(paragraph)).replace(/:$/, '.');
+}
+
+/**
+ * Each export with no catalog entry of its own that a record documents, with
+ * the record and the part that is its table: the standalone parts above, which
+ * keep their `standalone` role, and a sub-component the barrel exports by name
+ * too. That is one declared in a module of its own (`Thead`, as `Table.Thead`),
+ * and one declared beside its parent (`NavbarItem`, as `Navbar.Item`), which no
+ * part names, so only the barrel says it is exported (#1174). A sub that
+ * another component borrows (ContextMenu's `DropdownItem`) goes to the one that
+ * declares it (`Dropdown.Item`), whose part is the same component. `subs` maps
+ * an implementation name to the part that declares it, and `exported` is every
+ * value name the barrel exports.
+ *
+ * Last, what an import line gives beside its component that is no part of any
+ * record: a hook (`useDataTable`), a function (`toast`) or a constant
+ * (`validColors`). `imported` maps each to the record whose import line gives
+ * it, the section of that page that documents it (`importSection`) and what
+ * that section says first (`sectionPurpose`). It has no table, so no `path`,
+ * and its `section` is left out when the page has none for it (#1465).
+ */
+export function documentedWith(
+  components,
+  titles,
+  subs,
+  exported,
+  imported = new Map()
+) {
+  const out = {};
+  const purposeOf = summary =>
+    summary ? clipAtWord(firstSentence(summary)) : '';
+  const claim = (name, component, path) => {
+    if (titles.has(name) || Object.hasOwn(out, name)) return;
+    const part = components.get(component).parts.find(p => p.path === path);
+    out[name] = {
+      component,
+      path,
+      purpose: purposeOf(part.summary),
+      ...(part.standalone ? { standalone: part.standalone } : {}),
+    };
+  };
+  for (const [name, record] of components) {
+    for (const part of record.parts) {
+      if (part.standalone) claim(part.path, name, part.path);
+    }
+  }
+  for (const [name, record] of components) {
+    for (const part of record.parts) {
+      if (!part.component || titles.has(part.component)) continue;
+      const home = subs.get(part.component) ?? {
+        component: name,
+        path: part.path,
+      };
+      claim(part.component, home.component, home.path);
+    }
+  }
+  for (const [impl, home] of subs) {
+    if (exported.has(impl)) claim(impl, home.component, home.path);
+  }
+  for (const [name, { component, section, purpose = '' }] of imported) {
+    if (titles.has(name) || Object.hasOwn(out, name)) continue;
+    out[name] = { component, purpose, ...(section ? { section } : {}) };
+  }
+  return Object.fromEntries(
+    Object.entries(out).sort((a, b) => byCodePoint(a[0], b[0]))
+  );
+}
+
 function propRow(r) {
   return {
     name: r.name,
     type: r.type,
     default: r.default ?? null,
     description: collapse(r.description),
-    required: false,
+    required: Boolean(r.required),
     inherited: Boolean(r.inherited),
     deprecated: Boolean(r.deprecated),
     ...(r.deprecationNote ? { deprecationNote: r.deprecationNote } : {}),
@@ -537,17 +797,15 @@ export async function readSkills(skillsDir = SKILLS_DIR) {
     // for anyone who pinned the old resource URI. Nothing in this repo pins
     // one, and agents discover ids through `get_skill` rather than hardcoding
     // them, so the rename is accepted rather than aliased.
-    const listing = async sub => {
+    const listing = sub => {
       const prefix = `${sub}/`;
       const files = [];
       for (const file of shipped) {
         if (!file.startsWith(prefix)) continue;
         const rel = file.slice(prefix.length);
-        const body = await readFile(join(skillsDir, name, file), 'utf8');
         files.push({
           id: rel.replace(extname(rel), '').replace(/\//g, '-'),
           file,
-          bytes: Buffer.byteLength(body),
         });
       }
       // `a-b/x.md` and `a/b-x.md` both flatten to `a-b-x`, and `id` is the
@@ -578,8 +836,8 @@ export async function readSkills(skillsDir = SKILLS_DIR) {
       // The prompt name an MCP client shows.
       promptName: skillSlug(name),
       dir: name,
-      references: await listing('references'),
-      examples: await listing('examples'),
+      references: listing('references'),
+      examples: listing('examples'),
     });
   }
   // In readSkillNames' order, which is code-point order.
@@ -632,17 +890,82 @@ function itemsOf(placed, token) {
   };
 }
 
-export async function bulmaClassTable() {
-  let map;
+/** A TypeScript module of bestax-migrate's, loaded with node's type stripping. */
+async function importStripped(file) {
   try {
-    map = await import(pathToFileURL(CLASS_MAP).href);
+    return await import(pathToFileURL(file).href);
   } catch (err) {
     throw new Error(
-      `could not import ${relative(REPO, CLASS_MAP)}: ${err.message}. ` +
+      `could not import ${relative(REPO, file)}: ${err.message}. ` +
         `It is loaded with node's type stripping, which needs Node 22.18 or later.`,
       { cause: err }
     );
   }
+}
+
+/**
+ * What the lookup names for a plain tag the codemod leaves as markup though a
+ * bestax component renders it (`BY_HAND`): that component, and the props its
+ * record lists beside the helper props, read off the record so a prop the
+ * library adds reaches the answer with no edit here (`isAligned` on `Th`).
+ */
+function byHandOf(map, records) {
+  return Object.fromEntries(
+    Object.entries(map.BY_HAND).map(([tag, target]) => {
+      const part = [...records.values()]
+        .flatMap(record => record.parts)
+        .find(p => p.path === target);
+      if (!part) {
+        throw new Error(
+          `BY_HAND names ${target} for a plain <${tag}>, and no record documents it`
+        );
+      }
+      const props = part.props
+        .map(p => p.name)
+        .filter(name => name !== 'className' && name !== 'children');
+      return [tag, { target, props }];
+    })
+  );
+}
+
+/**
+ * The classes bestax's own stylesheet adds to Bulma's, each with the
+ * component it is the root class of (`carousel`, `Carousel`): a record's
+ * root class that Bulma 1's stylesheet has no rule for. A lookup that calls
+ * one a class nothing styles sends a page that keeps it, under bestax's CSS,
+ * into rules it never asked for.
+ *
+ * Where several components render the same root class (Stack and Group both
+ * render `stack`), the one named after it owns it, and otherwise the first
+ * by name. The key keeps the place the first of them gives it.
+ */
+function ownClassesOf(records, vocabulary) {
+  const sorted = [...records.values()].sort((a, b) =>
+    byCodePoint(a.name, b.name)
+  );
+  const namesake = new Map();
+  for (const record of sorted) {
+    const root = record.rootClass;
+    if (root && record.name.toLowerCase() === root) namesake.set(root, record);
+  }
+  const own = {};
+  for (const record of sorted) {
+    const root = record.rootClass;
+    if (root && !vocabulary.has(root) && !Object.hasOwn(own, root)) {
+      own[root] = (namesake.get(root) ?? record).name;
+    }
+  }
+  return own;
+}
+
+export async function bulmaClassTable(records) {
+  const map = await importStripped(CLASS_MAP);
+  const { stylesheetClasses } = await importStripped(STYLESHEET_READER);
+  const vocabulary = [
+    ...stylesheetClasses(
+      await readFile(bulmaSassPath('css/bulma.css'), 'utf8')
+    ),
+  ].sort(byCodePoint);
   const roots = Object.fromEntries(
     Object.entries(map.ROOTS).map(([token, entry]) => [
       token,
@@ -663,16 +986,17 @@ export async function bulmaClassTable() {
         absorbs: entry.absorbs ?? null,
         writes: entry.writes ?? null,
         countsChildren: entry.countsChildren ?? null,
+        readsGlyph: entry.readsGlyph ?? null,
         buildsIcons: entry.buildsIcons ?? false,
         buildsFile: entry.buildsFile ?? false,
         noHelpers: entry.noHelpers ?? false,
         helpersLeftOut: entry.helpersLeftOut ?? {},
-        otherTagsStay: entry.otherTagsStay ?? null,
         topLevelOnly: entry.topLevelOnly ?? false,
         items: itemsOf(map.PLACED, token),
         parent: entry.parent ?? null,
         rendersText: entry.rendersText ?? null,
         classNameReplaces: entry.classNameReplaces ?? false,
+        onAnother: entry.onAnother ?? null,
       },
     ])
   );
@@ -683,10 +1007,26 @@ export async function bulmaClassTable() {
     wrappers: map.WRAPPERS,
     helpers: Object.fromEntries(map.HELPER_TOKENS),
     legacy: map.LEGACY_09,
+    replaced: map.REPLACED_IN_V1,
+    removed: [...map.REMOVED_IN_V1].sort(byCodePoint),
     passthrough: map.PASSTHROUGH.map(group => ({
       why: group.why,
       match: group.match.source,
     })),
+    // What tells a v1 class with no prop from one Bulma 1 has no rule for: a
+    // passthrough pattern reaches past the stylesheet (`is-\d+x\d+` takes a
+    // page's own `is-256x256` for an `.image` size), and a class nothing in
+    // the table names fell to one note for both (#1174).
+    vocabulary,
+    // And of those Bulma 1 has no rule for, the ones another stylesheet the
+    // page loads styles, bestax's own among them (#1236).
+    elsewhere: map.ELSEWHERE.map(group => ({
+      why: group.why,
+      match: group.match.source,
+      glyph: group.glyph ?? false,
+    })),
+    ownClasses: ownClassesOf(records, new Set(vocabulary)),
+    byHand: byHandOf(map, records),
   };
 }
 
@@ -709,6 +1049,15 @@ export async function build() {
   const components = new Map();
   const cssVarIndex = {};
   const categoryList = [];
+  const subs = new Map();
+  // What each page's import line gives beside its component, for
+  // `documentedWith`, with the section of the page that documents it.
+  const imported = new Map();
+  // Every name with a page of its own, which is a catalog entry.
+  const titles = new Set(
+    categories.flatMap(({ pages }) => pages.map(({ fm }) => fm.title))
+  );
+  const exported = exportedModules();
 
   for (const { dir, label, pages } of categories) {
     const members = [];
@@ -780,8 +1129,28 @@ export async function build() {
           doc,
           parts: [],
           cssVars: [],
+          // The page that documents the helper props carries them as rows, with
+          // what each does, so search_bestax can find one by that (#1273).
+          ...(name === HELPER_PROPS_PAGE
+            ? {
+                helperProps: extractHelperProps({ markdown: false }).map(
+                  propRow
+                ),
+              }
+            : {}),
         };
       } else {
+        // The sub-components this component declares itself, by their
+        // implementation's name and, for one that is a compound too, the
+        // name of the constant composing it, for `documentedWith`.
+        for (const t of info.tables.slice(1)) {
+          if (!t.component && t.impl) {
+            subs.set(t.impl, { component: name, path: t.path });
+          }
+        }
+        for (const [path, constant] of info.compoundNames ?? []) {
+          subs.set(constant, { component: name, path });
+        }
         const cssVars = await cssVarsFor(info);
         for (const v of cssVars) (cssVarIndex[v.css] ??= []).push(name);
         record = {
@@ -797,24 +1166,12 @@ export async function build() {
               )} } from '${PACKAGE}';`,
           sourceFile: relative(REPO, info.sourceFile).split('\\').join('/'),
           rootClass: info.rootClass ?? null,
-          parts: info.tables.map(t => ({
-            path: t.path,
-            summary: collapse(t.summary),
-            // A sub-component re-exported standalone has its own page; naming
-            // it lets the server point there instead of restating the table.
-            component: t.component ?? null,
-            // A sub with an inline DOM props type rather than a named
-            // `*Props` interface (`Navbar.Divider`) has no table at all — it
-            // still belongs in the list, with an empty one.
-            props: (t.rows ?? []).map(propRow),
-            extraProps: (t.extraProps ?? []).map(propRow),
-            catchAll: t.catchAll?.text ?? null,
-            types: (t.types ?? []).map(a => ({
-              name: a.name,
-              expansion: a.expansion,
-              summary: collapse(a.summary),
-            })),
-          })),
+          parts: [
+            ...info.tables.map(t => partOf(t)),
+            ...standaloneTables(name, info, titles, { exported }).map(
+              ({ table, role }) => partOf(table, role)
+            ),
+          ],
           cssVars,
           // The component whose element this one renders, so its variables
           // style this one too, for the colors and modifiers it accepts. Present
@@ -829,7 +1186,21 @@ export async function build() {
 
       record = withAbsoluteLinks(record, relPath);
       components.set(name, record);
+      for (const id of importedNames(record.import)) {
+        if (titles.has(id) || imported.has(id)) continue;
+        const section = importSection(lines, record.examples, id);
+        imported.set(id, {
+          component: name,
+          section,
+          purpose: section
+            ? absoluteLinks(sectionPurpose(lines, section), relPath)
+            : '',
+        });
+      }
       members.push(name);
+      // A family is its root and its sub-components. The exports documented
+      // beside it (`InputBase`) are not, and `Input` is no compound for them.
+      const family = record.parts.filter(p => !p.standalone);
       catalogEntries.push({
         name,
         kind: record.kind,
@@ -837,8 +1208,8 @@ export async function build() {
         purpose,
         slug,
         import: record.import,
-        compound: record.parts.length > 1,
-        propCount: record.parts.reduce((n, p) => n + p.props.length, 0),
+        compound: family.length > 1,
+        propCount: family.reduce((n, p) => n + p.props.length, 0),
         exampleCount: record.examples.length,
       });
     }
@@ -866,6 +1237,13 @@ export async function build() {
         .sort((a, b) => byCodePoint(a[0], b[0]))
         .map(([css, names]) => [css, orderDeclarers(css, names)])
     ),
+    documentedWith: documentedWith(
+      components,
+      titles,
+      subs,
+      barrelExports(),
+      imported
+    ),
   };
 
   return {
@@ -873,7 +1251,7 @@ export async function build() {
     components,
     missing: missingApiPages(await readFile(INDEX_TS, 'utf8'), categories),
     skills: { skills: await readSkills() },
-    bulmaClasses: await bulmaClassTable(),
+    bulmaClasses: await bulmaClassTable(components),
   };
 }
 

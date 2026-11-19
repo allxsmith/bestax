@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
@@ -15,6 +15,8 @@ import { Control } from './Control';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelledBy } from './useAutoLabelId';
 import { Checkbox } from './Checkbox';
+import { GroupFieldset } from './groupFieldset';
+import { useFieldMessage } from './useFieldMessage';
 
 /**
  * Props for the Checkboxes component.
@@ -35,17 +37,36 @@ export interface CheckboxesProps
     [key: string]: unknown;
   };
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Form field name shared by every Checkbox in the group (via context). */
-  name?: string;
+  name?: string | undefined;
   /** Currently-selected values (controlled mode). */
-  value?: string[];
+  value?: string[] | undefined;
   /** Initial selected values (uncontrolled mode). */
-  defaultValue?: string[];
-  /** Fires when the selection changes; receives the new array. */
-  onChange?: (values: string[]) => void;
+  defaultValue?: string[] | undefined;
+  /**
+   * Fires when the selection changes; receives the new array. Passed without
+   * `value` or `defaultValue`, it still has the group manage the selection,
+   * starting from the checkboxes' own `defaultChecked`: a box that starts
+   * checked stays checked when another is clicked, and the first array holds
+   * it.
+   */
+  onChange?: ((values: string[]) => void) | undefined;
   /** Checkbox elements to render in the group. */
   children?: React.ReactNode;
+  /**
+   * The element the group renders as. With `fieldset` it's a native
+   * `<fieldset>`. Where the group renders a `Field` of its own, that `Field`
+   * is the `<fieldset>` and the `label` is its `<legend>`, in the label
+   * column when `horizontal`, so the legend names the group with no ids to
+   * wire. Your other attributes then go on the `<fieldset>`, while
+   * `className` and the helper props stay on the box that lays out the
+   * checkboxes. Inside an outer `Field` there's no legend: the group element
+   * itself is the `<fieldset>`, named by that `Field`'s label as before.
+   * `div`, the default, renders the group as it always has.
+   * @defaultValue 'div'
+   */
+  as?: 'div' | 'fieldset' | undefined;
 }
 
 /**
@@ -87,6 +108,7 @@ const CheckboxesComponent: React.FC<CheckboxesProps> = ({
   onChange,
   children,
   className,
+  as,
   ...props
 }) => {
   const insideField = useInsideField();
@@ -99,10 +121,14 @@ const CheckboxesComponent: React.FC<CheckboxesProps> = ({
     horizontal,
     fieldClassName,
   });
+  // As a fieldset with a Field of its own, the group's label is its legend,
+  // which names it with no id, so nothing points `aria-labelledby` at it.
+  const asFieldset = as === 'fieldset';
+  const fieldsetField = asFieldset && ownField;
   const { ariaLabelledBy, fieldLabelProps } = useAutoLabelledBy({
     label,
     labelProps,
-    rendersLabel: ownField,
+    rendersLabel: ownField && !fieldsetField,
     callerProps: props,
   });
   const { bulmaHelperClasses, rest } = useBulmaClasses({
@@ -112,10 +138,11 @@ const CheckboxesComponent: React.FC<CheckboxesProps> = ({
   const mainClass = usePrefixedClassNames('checkboxes');
   const wrapperClass = classNames(mainClass, bulmaHelperClasses, className);
 
-  const helpClass = usePrefixedClassNames('help', {
-    [`is-${messageColor}`]: !!messageColor,
-  });
-  const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+  const { messageEl, describedBy } = useFieldMessage(
+    message,
+    messageColor,
+    (props as React.AriaAttributes)['aria-describedby']
+  );
 
   const groupActive =
     value !== undefined || defaultValue !== undefined || onChange !== undefined;
@@ -134,29 +161,84 @@ const CheckboxesComponent: React.FC<CheckboxesProps> = ({
     [isControlled, onChange]
   );
 
+  // A group given only `onChange` holds no value until its first change. The
+  // choices register the values they start checked with, so that change
+  // starts from what was checked rather than from an empty array. A ref, not
+  // state: nothing renders from it.
+  const startingRef = useRef(new Map<object, string>());
+  const registerChecked = useCallback((checkedValue: string) => {
+    const key = {};
+    startingRef.current.set(key, checkedValue);
+    return () => {
+      startingRef.current.delete(key);
+    };
+  }, []);
+  const startingValue = useCallback(
+    () => Array.from(new Set(startingRef.current.values())),
+    []
+  );
+
   const ctx = useMemo<CheckboxesGroupContextValue>(
     () => ({
       name,
-      ...(groupActive ? { value: currentValue, onChange: handleChange } : {}),
+      ...(groupActive
+        ? {
+            value: currentValue,
+            onChange: handleChange,
+            registerChecked,
+            startingValue,
+          }
+        : {}),
     }),
-    [name, groupActive, currentValue, handleChange]
+    [
+      name,
+      groupActive,
+      currentValue,
+      handleChange,
+      registerChecked,
+      startingValue,
+    ]
   );
 
-  const checkboxesElement = (
-    <div
+  const choices = (
+    <CheckboxesProvider value={ctx}>{children}</CheckboxesProvider>
+  );
+  // A fieldset is a group already, so it takes no role of its own.
+  const Group = asFieldset ? 'fieldset' : 'div';
+  const checkboxesElement = fieldsetField ? (
+    <div className={wrapperClass}>{choices}</div>
+  ) : (
+    <Group
       className={wrapperClass}
-      role="group"
+      role={asFieldset ? undefined : 'group'}
       aria-labelledby={ariaLabelledBy}
       {...rest}
+      aria-describedby={describedBy}
     >
-      <CheckboxesProvider value={ctx}>{children}</CheckboxesProvider>
-    </div>
+      {choices}
+    </Group>
   );
 
   let content = checkboxesElement;
 
   if (rendersOwnControl('Checkboxes', { insideControl })) {
     content = <Control>{content}</Control>;
+  }
+
+  if (fieldsetField) {
+    return (
+      <GroupFieldset
+        label={label}
+        labelSize={labelSize}
+        labelProps={labelProps}
+        horizontal={horizontal}
+        fieldClassName={fieldClassName}
+        attributes={{ ...rest, 'aria-describedby': describedBy }}
+        message={messageEl}
+      >
+        {content}
+      </GroupFieldset>
+    );
   }
 
   if (ownField) {

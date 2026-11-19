@@ -7,8 +7,8 @@
  * rendered by the other copy's renderer fails on its first hook. So React,
  * `react/jsx-runtime`, `react-dom/server` and the library's CommonJS build
  * are all required from bulma-ui's directory, with Node's own require rather
- * than jest's module registry, and every module rendered here gets exactly
- * those instances.
+ * than the test runner's module loader, and every module rendered here gets
+ * exactly those instances.
  *
  * A module is transpiled to CommonJS and evaluated with a fixed require map:
  * the four modules above, sibling files of the same module set, and
@@ -21,6 +21,7 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
+import { REPLACED_IN_V1 } from '../../src/sources/bulma-classes/class-map.js';
 
 const packageRoot = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -174,4 +175,119 @@ export function normalizeHtml(html: string): string {
         return `<${tag}${parsed.map(a => ` ${a}`).join('')}${selfClosing ? '/' : ''}>`;
       }
     );
+}
+
+/** Each `<ul>` or `<ol>` opening tag, in document order. */
+const LIST_TAG = /<(?:ul|ol)(?=[\s>/])[^>]*>/g;
+
+/**
+ * `raw`, normalised, with `role="list"` written on each `<ul>` or `<ol>` that
+ * has no role where the same list in `converted` has that one, so the two
+ * compare equal there and nowhere else.
+ *
+ * `role="list"` is a list's own implicit role, written out. `Menu.List`
+ * writes it because WebKit stops exposing a list as one once its markers are
+ * hidden (#1108), so a raw `<ul class="menu-list">` and the `Menu.List` it
+ * becomes are the same list. Only that role, only on those two tags, and only
+ * where the raw list has no role of its own: a conversion that drops a list's
+ * `role="list"`, or swaps another role for it, still differs. Lists pair up
+ * in document order, and a pair that doesn't line up differs anyway.
+ */
+export function withImplicitListRoles(raw: string, converted: string): string {
+  const written = [...converted.matchAll(LIST_TAG)].map(([tag]) =>
+    /\srole="list"/.test(tag)
+  );
+  let at = 0;
+  return normalizeHtml(
+    raw.replace(LIST_TAG, tag =>
+      written[at++] && !/\srole=/.test(tag)
+        ? tag.replace(/^<(ul|ol)/, '$& role="list"')
+        : tag
+    )
+  );
+}
+
+/** Each opening tag, in document order. */
+const OPEN_TAG = /<[a-zA-Z][\w-]*(?:\s+[^\s=>/]+(?:="[^"]*")?)*\s*\/?>/g;
+
+function classesOf(tag: string): string[] {
+  return (/\sclass="([^"]*)"/.exec(tag)?.[1] ?? '').split(/\s+/);
+}
+
+/** The two attributes a loading `Button` writes, as `normalizeHtml` writes them. */
+const LOADING_STATE = ['aria-busy="true"', 'aria-disabled="true"'];
+
+/**
+ * `raw`, normalised, with `aria-busy="true"` and `aria-disabled="true"`
+ * written on each element with Bulma's `button` and `is-loading` classes that
+ * sets neither, where the same element in `converted` has both, so the two
+ * compare equal there and nowhere else.
+ *
+ * bestax's `Button` writes them while `isLoading` is set (#1870): it tells a
+ * screen reader the button is busy and won't respond, and drops the click,
+ * where Bulma's spinner stops only a pointer. A raw loading `.button`
+ * converts to `Button isLoading` on purpose, so a migrated app gets that
+ * button. Only those two attributes, both of them, on a loading `.button`
+ * that sets neither: a conversion that writes them anywhere else, writes one
+ * alone, or adds one beside a raw element that set the other, still differs.
+ * A raw element that already set both to `true` is left as it is, and
+ * compares equal to a conversion that keeps them. Elements pair up in
+ * document order, and a pair that doesn't line up differs anyway.
+ */
+export function withLoadingButtonsBusy(raw: string, converted: string): string {
+  const busy = [...normalizeHtml(converted).matchAll(OPEN_TAG)].map(([tag]) =>
+    LOADING_STATE.every(attribute => tag.includes(` ${attribute}`))
+  );
+  let at = 0;
+  return normalizeHtml(
+    raw.replace(OPEN_TAG, tag => {
+      const classes = classesOf(tag);
+      return busy[at++] &&
+        classes.includes('button') &&
+        classes.includes('is-loading') &&
+        !/\saria-(busy|disabled)(=|[\s/>])/.test(tag)
+        ? tag.replace(/^<[a-zA-Z][\w-]*/, `$& ${LOADING_STATE.join(' ')}`)
+        : tag;
+    })
+  );
+}
+
+/**
+ * `raw`, normalised, with each Bulma 0.9 class v1 removed written as the v1
+ * class `REPLACED_IN_V1` names for it, on each element where `converted` has
+ * that class in its place, so the two compare equal there and nowhere else.
+ *
+ * Such a class styles nothing under v1, and the codemod converts it as the
+ * v1 helper that does its job (`is-marginless` as `m="0"`, which renders
+ * `m-0`), the conversion that changes a class on purpose. Only those
+ * classes, and only where the converted element has the v1 class and not the
+ * old one: a conversion that drops the class, or keeps it beside the prop,
+ * still differs. Elements pair up in document order, and a pair that doesn't
+ * line up differs anyway.
+ */
+export function withV1Classes(raw: string, converted: string): string {
+  const rendered = [...converted.matchAll(OPEN_TAG)].map(([tag]) =>
+    classesOf(tag)
+  );
+  let at = 0;
+  return normalizeHtml(
+    raw.replace(OPEN_TAG, tag => {
+      const theirs = rendered[at++] ?? [];
+      return tag.replace(
+        /(\sclass=")([^"]*)"/,
+        (_match, open: string, value: string) =>
+          `${open}${value
+            .split(/\s+/)
+            .map(token => {
+              const v1 = Object.hasOwn(REPLACED_IN_V1, token)
+                ? REPLACED_IN_V1[token]
+                : undefined;
+              return v1 && theirs.includes(v1) && !theirs.includes(token)
+                ? v1
+                : token;
+            })
+            .join(' ')}"`
+      );
+    })
+  );
 }

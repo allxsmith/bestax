@@ -6,6 +6,7 @@ import {
   validSizes,
   validTextSizes,
 } from '../helpers/useBulmaClasses';
+import { Button } from './Button';
 
 const meta: Meta<typeof IconText> = {
   title: 'Elements/IconText',
@@ -25,7 +26,7 @@ const meta: Meta<typeof IconText> = {
     textSize: { control: 'select', options: validTextSizes },
     iconProps: {
       control: 'object',
-      defaultValue: { name: 'fas fa-star', ariaLabel: 'Star icon' },
+      defaultValue: { name: 'fas fa-star' },
     },
     children: { control: 'text', defaultValue: 'Text' },
     items: { control: 'object' },
@@ -46,14 +47,14 @@ type Story = StoryObj<typeof IconText>;
 
 export const Default: Story = {
   args: {
-    iconProps: { name: 'fas fa-star', ariaLabel: 'Star icon' },
+    iconProps: { name: 'fas fa-star' },
     children: 'Star',
   },
 };
 
 export const WithTextColor: Story = {
   args: {
-    iconProps: { name: 'fas fa-star', ariaLabel: 'Star icon' },
+    iconProps: { name: 'fas fa-star' },
     textColor: 'primary',
     children: 'Star',
   },
@@ -61,7 +62,7 @@ export const WithTextColor: Story = {
 
 export const WithMargin: Story = {
   args: {
-    iconProps: { name: 'fas fa-star', ariaLabel: 'Star icon' },
+    iconProps: { name: 'fas fa-star' },
     m: '2',
     children: 'Star',
   },
@@ -72,7 +73,6 @@ export const WithLargeIcon: Story = {
     iconProps: {
       name: 'fas fa-star',
       size: 'large',
-      ariaLabel: 'Star icon',
       textColor: 'danger',
     },
     children: 'Large Star',
@@ -81,16 +81,15 @@ export const WithLargeIcon: Story = {
 
 export const InButton: Story = {
   render: ({ iconProps, children, ...args }) => (
-    <button className="button is-primary">
+    <Button color="primary">
       <IconText iconProps={iconProps} {...args}>
         {children}
       </IconText>
-    </button>
+    </Button>
   ),
   args: {
     iconProps: {
       name: 'fas fa-check',
-      ariaLabel: 'Check icon',
       textColor: 'white',
     },
     children: 'Click Me',
@@ -116,7 +115,6 @@ export const InNotification: Story = {
   args: {
     iconProps: {
       name: 'fas fa-info-circle',
-      ariaLabel: 'Info icon',
       textColor: 'dark',
     },
     children: 'Info Notification',
@@ -143,7 +141,6 @@ export const InTag: Story = {
   args: {
     iconProps: {
       name: 'fas fa-check',
-      ariaLabel: 'Check icon',
       textColor: 'white',
       size: 'small',
     },
@@ -164,34 +161,34 @@ export const MultipleIconsInIconText: Story = {
     <IconText
       items={[
         {
-          iconProps: { name: 'fas fa-train', ariaLabel: 'Train icon' },
+          iconProps: { name: 'fas fa-train', ariaLabel: 'Train' },
           text: 'Paris',
         },
         {
           iconProps: {
             name: 'fas fa-arrow-right',
-            ariaLabel: 'Arrow right icon',
+            ariaLabel: 'to',
           },
           text: 'Budapest',
         },
         {
           iconProps: {
             name: 'fas fa-arrow-right',
-            ariaLabel: 'Arrow right icon',
+            ariaLabel: 'to',
           },
           text: 'Bucharest',
         },
         {
           iconProps: {
             name: 'fas fa-arrow-right',
-            ariaLabel: 'Arrow right icon',
+            ariaLabel: 'to',
           },
           text: 'Istanbul',
         },
         {
           iconProps: {
             name: 'fas fa-flag-checkered',
-            ariaLabel: 'Finish icon',
+            ariaLabel: 'End of route',
           },
         },
       ]}
@@ -213,17 +210,12 @@ export const IconTextWithStars: Story = {
   render: () => (
     <IconText
       items={[
-        { iconProps: { name: 'fas fa-star', ariaLabel: 'Star icon' } },
-        { iconProps: { name: 'fas fa-star', ariaLabel: 'Star icon' } },
-        { iconProps: { name: 'fas fa-star', ariaLabel: 'Star icon' } },
+        { iconProps: { name: 'fas fa-star' } },
+        { iconProps: { name: 'fas fa-star' } },
+        { iconProps: { name: 'fas fa-star' } },
+        { iconProps: { name: 'fas fa-star-half-alt' } },
         {
-          iconProps: {
-            name: 'fas fa-star-half-alt',
-            ariaLabel: 'Half star icon',
-          },
-        },
-        {
-          iconProps: { name: 'far fa-star', ariaLabel: 'Empty star icon' },
+          iconProps: { name: 'far fa-star' },
           text: '3.5/5',
         },
       ]}
@@ -248,7 +240,6 @@ export const IconTextWithFlex: Story = {
       <IconText
         iconProps={{
           name: 'fas fa-info-circle',
-          ariaLabel: 'Info icon',
           textColor: 'info',
         }}
         display="flex"
@@ -261,7 +252,6 @@ export const IconTextWithFlex: Story = {
       <IconText
         iconProps={{
           name: 'fas fa-check-square',
-          ariaLabel: 'Success icon',
           textColor: 'success',
         }}
         display="flex"
@@ -272,7 +262,6 @@ export const IconTextWithFlex: Story = {
       <IconText
         iconProps={{
           name: 'fas fa-exclamation-triangle',
-          ariaLabel: 'Warning icon',
           textColor: 'warning',
         }}
         display="flex"
@@ -285,7 +274,6 @@ export const IconTextWithFlex: Story = {
       <IconText
         iconProps={{
           name: 'fas fa-ban',
-          ariaLabel: 'Danger icon',
           textColor: 'danger',
         }}
         display="flex"
@@ -311,7 +299,7 @@ export const IconTextWithFlex: Story = {
 export const CompoundUsage: Story = {
   render: () => (
     <IconText>
-      <IconText.Icon name="star" ariaLabel="star icon" />
+      <IconText.Icon name="star" />
       <span>Starred via dot notation</span>
     </IconText>
   ),
@@ -347,7 +335,7 @@ export const CustomNodeItems: Story = {
         ),
         text: 'Custom node',
       },
-      { iconProps: { name: 'star', ariaLabel: 'Star icon' }, text: 'Named' },
+      { iconProps: { name: 'star' }, text: 'Named' },
     ],
   },
   parameters: {

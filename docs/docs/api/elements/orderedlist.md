@@ -162,7 +162,7 @@ Create nested ordered lists with different numbering types.
 
 ### Compound (dot-notation) usage
 
-`ListItem` is also available as `OrderedList.Item`, so a list can be composed from the single `OrderedList` import.
+`ListItem` is `OrderedList.Item`, so a list can be composed from the single `OrderedList` import or from `ListItem` on its own. A Next.js Server Component imports `ListItem`, because `OrderedList.Item` is `undefined` there.
 
 ```tsx live
 <Content>
@@ -177,9 +177,9 @@ Create nested ordered lists with different numbering types.
 
 ## Accessibility
 
-- **List Structure:** Screen readers announce ordered lists with their numbering, helping users understand sequential content.
+- **List Structure:** Screen readers announce an ordered list and how many items it has, helping users understand sequential content.
 - **Semantic Markup:** Using proper `<ol>` and `<li>` elements ensures accessibility for all users.
-- **Numbering Type:** The `type` attribute is announced by most screen readers, providing context about the list format.
+- **Numbering Type:** `type` changes the marker in front of each item (`a.`, `ii.`). What a screen reader says for a marker varies, so don't let the numbering style alone carry meaning.
 
 :::info
 Use `OrderedList` when the order of items is significant, such as steps in a process or ranked items.

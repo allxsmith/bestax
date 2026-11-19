@@ -11,7 +11,7 @@
  * (a selector the walk cannot place) surface per-key instead of hiding behind
  * "the file is claimed".
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 
 import {

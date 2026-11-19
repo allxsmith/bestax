@@ -1,5 +1,6 @@
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { Message, MessageProps } from './Message';
+import { Delete } from '../elements/Delete';
 
 // Latin version of the Declaration of Independence's first paragraph:
 const declarationLatin = `Quando in cursu rerum humanarum fit ut populus aliquis dissolvere vincula politica quae eum cum alio coniunxerunt, et inter potestates terrae, statum separatam et aequalem, ad quem Iura Naturae et Dei Naturalis eum ius habere concedunt, rationabile decus postulat ut causas separationis declarent.`;
@@ -103,6 +104,30 @@ export const DangerBodyOnly: StoryObj<MessageProps> = {
   },
 };
 
+// ----- DISMISSIBLE -----
+export const Dismissible: StoryObj<MessageProps> = {
+  args: {
+    color: 'info',
+    title: 'Dismissible',
+    onClose: () => {},
+    children: declarationLatin,
+  },
+};
+
+// The close button is drawn as an icon, so its name is all a screen reader
+// says about it. Here it's in the language of the message, which `lang`
+// declares.
+export const DismissibleWithCloseLabel: StoryObj<MessageProps> = {
+  args: {
+    color: 'info',
+    lang: 'fr',
+    title: 'Avis',
+    onClose: () => {},
+    ariaCloseLabel: 'Fermer le message',
+    children: 'Vos modifications ont été enregistrées.',
+  },
+};
+
 // ----- STORIES PER SIZE -----
 export const DefaultSize: StoryObj<MessageProps> = {
   args: {
@@ -141,7 +166,7 @@ export const CompoundUsage: StoryObj = {
     <Message color="info">
       <Message.Header>
         <p>Compound Component Message</p>
-        <button className="delete" aria-label="delete" />
+        <Delete aria-label="delete" />
       </Message.Header>
       <Message.Body>
         <p>
@@ -185,7 +210,7 @@ export const CompoundHeaderOnly: StoryObj = {
     <Message color="warning">
       <Message.Header>
         <p>Header-only message</p>
-        <button className="delete" aria-label="delete" />
+        <Delete aria-label="delete" />
       </Message.Header>
     </Message>
   ),

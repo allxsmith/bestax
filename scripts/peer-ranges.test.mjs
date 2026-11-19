@@ -13,7 +13,7 @@
 import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { after, test } from 'node:test';
+import { afterAll, test } from 'vitest';
 import assert from 'node:assert/strict';
 
 import {
@@ -328,7 +328,7 @@ test("WHOLE_RANGE_DEPENDENTS names create-bestax's runtime dependencies", () => 
 });
 
 const roots = [];
-after(() =>
+afterAll(() =>
   Promise.all(roots.map(root => rm(root, { recursive: true, force: true })))
 );
 

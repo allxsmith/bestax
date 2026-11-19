@@ -305,9 +305,10 @@ export function applyIconProps(
 }
 
 /**
- * Turn a literal modifier prop into an `is-*` class fragment for an element
- * on its way to becoming plain HTML. Returns the class (or undefined) and
- * always removes the attribute.
+ * Turn a literal modifier prop into an `is-*` class fragment (or another
+ * `prefix`'s, such as `has-text-weight-`) for an element on its way to
+ * becoming plain HTML. Returns `base` with the class added, and always
+ * removes the attribute.
  */
 export function modifierClass(
   ctx: TransformContext,
@@ -315,20 +316,21 @@ export function modifierClass(
   element: any,
   prop: string,
   base: string,
-  where: string
+  where: string,
+  prefix = 'is-'
 ): string {
   const attr = findAttr(element, prop);
   if (!attr) return base;
   const literal = literalValueOf(attr);
   removeAttr(element, attr);
   if (literal.kind === 'string' || literal.kind === 'number') {
-    return `${base} is-${literal.value}`;
+    return `${base} ${prefix}${literal.value}`;
   }
   addTodo(
     ctx,
     path,
     `prop:${prop}`,
-    `dynamic ${where} \`${prop}\`; add the matching is-* class by hand`
+    `dynamic ${where} \`${prop}\`; add the matching ${prefix}* class by hand`
   );
   return base;
 }
@@ -363,6 +365,115 @@ export function restrictAsToTargets(
   ctx.dirty = true;
 }
 
+/** The sizes bestax's Title and SubTitle turn into a heading level. */
+const TITLE_SIZES = ['1', '2', '3', '4', '5', '6'];
+
+/** Bulma's seven sizes, all of which `textSize` takes. */
+const TEXT_SIZES = [...TITLE_SIZES, '7'];
+
+/** What a source's title handler tells `keepTitleLevel` about it. */
+export interface TitleSource {
+  /** The source component, for the TODO (`Heading`, `Subtitle`). */
+  where: string;
+  /** The bestax component it becomes: `Title` or `SubTitle`. */
+  target: string;
+  /** The source's size prop: `isSize` in bloomer, `size` elsewhere. */
+  size: string;
+  /** The source's element prop: `tag`, `renderAs` or `as`. */
+  tag: string;
+  /** The element the source rendered when no tag was given. */
+  level: string;
+}
+
+/**
+ * Carry a title's size across without changing its heading level.
+ *
+ * Every source library rendered a title at the element its tag prop named,
+ * or at its own default, whatever the size. bestax's `Title` and `SubTitle`
+ * render the heading their `size` names unless `as="p"`, so `<Title size={4}>`
+ * is an <h4>. A size therefore stays `size` only where that renders the
+ * element the source did: a <p>, or the <hN> the size names, at a size bestax
+ * takes. Anywhere else it moves to the `textSize` helper, which sets the same
+ * font size and leaves the level to `as`. Any other size gets a TODO.
+ *
+ * bestax defaults to an <h1>, so a source whose default is another level gets
+ * it written out as `as`, unless the size already renders it or a spread may
+ * name the element.
+ *
+ * Returns the props it consumed, for the handler's `handledProps`.
+ */
+export function keepTitleLevel(
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  element: any,
+  source: TitleSource
+): string[] {
+  const { j } = ctx;
+  const tagAttr = findAttr(element, source.tag) ?? findAttr(element, 'as');
+  const spread = (element.openingElement.attributes ?? []).some(
+    (a: any) => a.type === 'JSXSpreadAttribute'
+  );
+  // The element the source rendered, where the codemod can see it. A spread
+  // names the element only where the source spells its tag prop `as`, the
+  // name bestax reads: a `tag` or `renderAs` inside one never reaches `as`.
+  let rendered: string | undefined;
+  if (tagAttr) {
+    const literal = literalValueOf(tagAttr);
+    if (literal.kind === 'string') rendered = literal.value;
+  } else if (!spread || source.tag !== 'as') {
+    rendered = source.level;
+  }
+
+  const handled: string[] = [];
+  let sizeRendersLevel = false;
+  const sizeAttr = findAttr(element, source.size);
+  if (sizeAttr) {
+    const literal = literalValueOf(sizeAttr);
+    const size =
+      literal.kind === 'string' || literal.kind === 'number'
+        ? String(literal.value)
+        : undefined;
+    const movable = size !== undefined && TEXT_SIZES.includes(size);
+    const textSize = findAttr(element, 'textSize');
+    // A size the codemod cannot read is still safe beside a <p>; a literal
+    // has to be one bestax's `size` takes, or its class goes.
+    const takes =
+      size === undefined
+        ? literal.kind === 'expression'
+        : TITLE_SIZES.includes(size);
+    if (takes && (rendered === 'p' || rendered === `h${size}`)) {
+      // `size` renders this element too, so the prop map carries it as is.
+      sizeRendersLevel = true;
+    } else if (movable && !textSize) {
+      sizeAttr.name = j.jsxIdentifier('textSize');
+      sizeAttr.value = j.stringLiteral(size);
+      handled.push(source.size);
+      ctx.dirty = true;
+    } else {
+      const level = `bestax's \`${source.target}\` renders the heading its \`size\` names unless \`as="p"\``;
+      addTodo(
+        ctx,
+        path,
+        `prop:${source.size}`,
+        !takes
+          ? `bestax's \`${source.target}\` takes a \`size\` from 1 to 6 and renders no size class for this one; drop it, or set a \`textSize\` from '1' to '7' instead`
+          : textSize
+            ? `\`${source.where}\` sets a size and \`textSize\` both, and ${level}; to keep the level, drop \`size\` and let \`textSize\` set the font size`
+            : `\`${source.where}\` kept its element at every size, but ${level}; to keep the level, carry the size with \`textSize\`, which takes '1' to '7' as strings`
+      );
+      // Written as bestax's prop either way, so the prop map adds nothing.
+      sizeAttr.name = j.jsxIdentifier('size');
+      handled.push(source.size);
+    }
+  }
+
+  if (!tagAttr && rendered && source.level !== 'h1' && !sizeRendersLevel) {
+    addAttr(element, makeAttr(j, 'as', source.level));
+    ctx.dirty = true;
+  }
+  return handled;
+}
+
 /**
  * Strip the link attributes a plain element cannot carry.
  *
@@ -388,10 +499,8 @@ export function dropLinkAttrsForPlainTag(
   // to disagree about what it forwards.
   //
   // The message deliberately does not add "it navigated nowhere in the source
-  // either", the way the polymorphic path does. That holds only where `tag`
-  // came from the source -- bloomer's call sites all pass one -- while rbx and
-  // react-bulma-components hard-code the plain tag and ignore the source's
-  // element prop, so there the element really did change.
+  // either", the way the polymorphic path does: that holds only where `tag`
+  // is the element the source rendered, and not every caller's is.
   const href = tagRejectsHref(tag) ? findAttr(element, 'href') : undefined;
   if (href) {
     const was = attrSource(ctx.j, href);
@@ -421,6 +530,89 @@ export function dropLinkAttrsForPlainTag(
     ctx.dirty = true;
   }
 }
+
+/**
+ * The tag a plain-element rewrite writes: the literal tag the source's own
+ * element prop names (bloomer's `tag`, rbx's `as`, react-bulma-components'
+ * `renderAs`), or the one the source rendered by default. The prop is always
+ * removed; a value the codemod can't read keeps the default and gets a TODO.
+ */
+export function plainTag(
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  element: any,
+  prop: string,
+  fallback: string,
+  where: string
+): string {
+  const attr = findAttr(element, prop);
+  if (!attr) return fallback;
+  const literal = literalValueOf(attr);
+  removeAttr(element, attr);
+  ctx.dirty = true;
+  if (literal.kind === 'string') return literal.value;
+  addTodo(
+    ctx,
+    path,
+    `prop:${prop}`,
+    `dynamic ${where} \`${prop}\`; it became a plain <${fallback}> — render the tag yourself`
+  );
+  return fallback;
+}
+
+/**
+ * Flag a `Heading` label that became a plain element carrying `heading`.
+ *
+ * Each library source has a `Heading` that rendered Bulma 0.9's `.heading`
+ * label, and bestax has no component for it, so it stays plain markup with
+ * the class. Bulma v1 has no rule for `.heading`, so the class styles nothing
+ * there. One rule and one message keep the sources agreeing about that
+ * (#1370). The message suggests the helper props for a small, uppercase,
+ * semibold label, or a `.heading` rule of the app's own.
+ */
+export function flagDroppedHeading(
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  tag: string
+): void {
+  addTodo(
+    ctx,
+    path,
+    'component:Heading',
+    `Bulma v1 dropped the \`.heading\` styles, so the \`heading\` class on this plain <${tag}> styles nothing; restyle it with bestax helpers (e.g. \`<Paragraph textSize="7" textTransform="uppercase" textWeight="semibold" mb="1">\`) or a \`.heading\` rule of your own`
+  );
+}
+
+/**
+ * The bestax components that render one way inside a `Field` and another
+ * outside one: each reads `useInsideField`, and most render a `Field` of
+ * their own outside one. A `Fieldset` starts a Field scope of its own, so
+ * one of these placed straight in it renders the outside way. The
+ * `field-scoped` test holds this to the library's form components.
+ */
+export const FIELD_SCOPED: ReadonlySet<string> = new Set([
+  'Autocomplete',
+  'Checkboxes',
+  'ColorInput',
+  'ColorPicker',
+  'Combobox',
+  'DateInput',
+  'DateRangeInput',
+  'DateTimeInput',
+  'Dropzone',
+  'File',
+  'Input',
+  'Numberinput',
+  'PasswordInput',
+  'PinInput',
+  'Radios',
+  'Rate',
+  'Select',
+  'Slider',
+  'Taginput',
+  'TextArea',
+  'TimeInput',
+]);
 
 /** Attribute filter a source applies before an element becomes plain HTML. */
 export type AttrStrip = (

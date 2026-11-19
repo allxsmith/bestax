@@ -107,6 +107,26 @@ export const FluidContainer: Story = {
   ),
 };
 
+export const AsLandmark: Story = {
+  render: () => (
+    <Container as="main">
+      <Notification color="primary">
+        With <code>as=&quot;main&quot;</code> the container renders{' '}
+        <code>{'<main class="container">'}</code>, the page&apos;s main
+        landmark, instead of a <code>{'<div>'}</code>.
+      </Notification>
+    </Container>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Container takes an `as` prop for the landmark and sectioning elements Bulma pages put it on: `main`, `section`, `article`, `aside`, `header`, `footer` or `nav`.',
+      },
+    },
+  },
+};
+
 // Dark-mode-adaptive scheme background (inline var() style, no class)
 export const SchemeBackground: Story = {
   render: () => (

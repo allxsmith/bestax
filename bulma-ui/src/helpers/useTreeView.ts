@@ -1,0 +1,758 @@
+// INTERNAL: deliberately not exported from src/index.ts.
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
+import type React from 'react';
+import type { TreeViewSelectionMode } from '../components/TreeView';
+import { useClientLayoutEffect } from './useClientLayoutEffect';
+import { useControlled } from './useControlled';
+import { getActiveElementInTree } from './shadowDom';
+import {
+  spaceJoinMatch,
+  typeaheadMatch,
+  typeaheadText,
+  useTypeahead,
+} from './typeahead';
+
+/** What an item tells the tree about itself when it registers. */
+export interface TreeViewItemRecord {
+  /** The value of the item it's in, or `null` at the top. */
+  parent: string | null;
+  disabled: boolean;
+  /** It has children, or `hasChildren` says it will. */
+  isParent: boolean;
+}
+
+/** An item as a key or a click on it sees it. */
+export interface TreeViewItemInfo extends TreeViewItemRecord {
+  value: string;
+  open: boolean;
+  /**
+   * A failed load's row: what Enter, Space and a click on it do, in place of
+   * what the mode says.
+   */
+  retry?: () => void;
+}
+
+/** A box's state: checked, unchecked or mixed. */
+export type TreeViewCheckState = boolean | 'mixed';
+
+/**
+ * Where an item sits among the items beside it, for its `aria-posinset` and
+ * `aria-setsize`: its number, from 1, and how many there are.
+ */
+export interface TreeViewPosition {
+  posinset: number;
+  setsize: number;
+}
+
+/**
+ * What an item shows of the selection: `selected` in a `single` tree,
+ * `checked` in a `checkbox` or `checkbox-independent` tree, and neither with
+ * `none`.
+ */
+export interface TreeViewItemState {
+  selected?: boolean;
+  checked?: TreeViewCheckState;
+}
+
+type Action = 'open' | 'select' | 'check';
+
+/** What Enter, Space and a click on the row do in a mode. */
+interface ModeActions {
+  enter: Action[];
+  space: Action[];
+  click: Action[];
+}
+
+/** The keys and clicks of both checkbox modes, which differ only in what a check reaches. */
+const CHECKBOX_ACTIONS: ModeActions = {
+  enter: ['open'],
+  space: ['check'],
+  click: ['check'],
+};
+
+/**
+ * What Enter, Space and a click on the row do in each mode, from the tables
+ * in #1096, with `checkbox-independent` from #1430. `open` opens or closes a
+ * parent and does nothing on a leaf. A click on the chevron only ever opens
+ * or closes.
+ */
+const MODES: Record<TreeViewSelectionMode, ModeActions> = {
+  none: { enter: ['open'], space: ['open'], click: ['open'] },
+  single: { enter: ['select'], space: ['select'], click: ['select', 'open'] },
+  checkbox: CHECKBOX_ACTIONS,
+  'checkbox-independent': CHECKBOX_ACTIONS,
+};
+
+/** Left and Right, swapped for a right-to-left page. */
+const MIRRORED: Record<string, string> = {
+  ArrowLeft: 'ArrowRight',
+  ArrowRight: 'ArrowLeft',
+};
+
+/** The keys that move through the tree, which end a type-ahead search. */
+const MOVES = new Set([
+  'ArrowDown',
+  'ArrowUp',
+  'ArrowLeft',
+  'ArrowRight',
+  'Home',
+  'End',
+]);
+
+/** The text type-ahead finds an item by: its row's, not its group's. */
+const itemText = (item: Element) => typeaheadText(item.firstElementChild!);
+
+/** An IME is composing, so the key belongs to it (`keyCode` 229 is Safari's word for it). */
+const isComposing = (event: React.KeyboardEvent): boolean =>
+  event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229;
+
+/**
+ * The items a tree knows, and their elements while they're on the page. A
+ * loading item's row, or a failed load's, hands over its element under a key
+ * of its own and has no record, so the keys reach it and nothing else counts it.
+ */
+interface Registry {
+  records: Map<string, TreeViewItemRecord>;
+  // By value, for an item whose ref lets go, which hands over no element.
+  elements: Map<string, HTMLLIElement>;
+  // Weak, so an element that leaves the page needn't be forgotten by hand.
+  values: WeakMap<Element, string>;
+}
+
+/** The registry's items on the page, in document order. */
+const shownIn = (tree: Element, { values }: Registry): HTMLElement[] =>
+  Array.from(tree.querySelectorAll<HTMLElement>('[role="treeitem"]')).filter(
+    element => values.has(element)
+  );
+
+/** The item an item on the page sits in: its group's `<li>`, or none at the top. */
+function parentItemOf(element: Element): HTMLElement | null {
+  const group = element.parentElement!;
+  return group.getAttribute('role') === 'group' ? group.parentElement : null;
+}
+
+/** No positions: on the server, and until the tree has mounted. */
+const NO_POSITIONS = new Map<string, TreeViewPosition>();
+
+/**
+ * Each item's place among the items beside it, by its key, read off the
+ * items on the page: the ones in the same group, or at the top. A loading or
+ * failed load's row counts, as it does for a browser that works positions
+ * out for itself, so the declared ones say what a browser would.
+ */
+function positionsOf(
+  shown: HTMLElement[],
+  { values }: Registry
+): Map<string, TreeViewPosition> {
+  const sets = new Map<Element | null, HTMLElement[]>();
+  shown.forEach(element => {
+    const set = sets.get(element.parentElement);
+    if (set) set.push(element);
+    else sets.set(element.parentElement, [element]);
+  });
+  const positions = new Map<string, TreeViewPosition>();
+  sets.forEach(set =>
+    set.forEach((element, at) =>
+      positions.set(values.get(element)!, {
+        posinset: at + 1,
+        setsize: set.length,
+      })
+    )
+  );
+  return positions;
+}
+
+/** Whether two sets of positions say the same for every item. */
+function samePositions(
+  a: Map<string, TreeViewPosition>,
+  b: Map<string, TreeViewPosition>
+): boolean {
+  return (
+    a.size === b.size &&
+    Array.from(a).every(([key, { posinset, setsize }]) => {
+      const other = b.get(key);
+      return other?.posinset === posinset && other.setsize === setsize;
+    })
+  );
+}
+
+/** The values of the items an item on the page is in, from the top. */
+function pathOf(element: Element, { values }: Registry): string[] {
+  const path: string[] = [];
+  for (let at = parentItemOf(element); at; at = parentItemOf(at)) {
+    path.unshift(values.get(at)!);
+  }
+  return path;
+}
+
+/**
+ * The values of the items a tree hides while they stay in it, as TreeSelect's
+ * search hides the items that don't match. A hidden item renders as one under
+ * a closed parent does: nothing on the page, and in a `checkbox` tree it and
+ * its children still register, so a check still reaches them. Internal, for
+ * the components that put a TreeView inside them.
+ */
+export const TreeViewHiddenContext = createContext<ReadonlySet<string>>(
+  new Set()
+);
+
+/**
+ * For a component around a tree that handles Space on its rows itself, as
+ * TreeSelect's single pick does. The tree fills it with a test of whether a
+ * Space on a row joins a type-ahead search under way, which the tree then
+ * takes, so the component leaves that Space to it. Internal, as above.
+ */
+export const TreeViewSpaceJoinsContext = createContext<React.MutableRefObject<
+  ((item: HTMLElement) => boolean) | null
+> | null>(null);
+
+/**
+ * Every known item's check state, by the rules in #1096:
+ *
+ * - a disabled item is checked only when its own value is listed;
+ * - an enabled item with no enabled items anywhere under it is checked when
+ *   it, or any item above it, is listed;
+ * - any other enabled item follows the items of that second kind in its
+ *   branch: checked when they all are, unchecked when none is, mixed between.
+ *
+ * Also returns the items of the second kind, which are what a toggle sets.
+ */
+export function readChecks(
+  records: Map<string, TreeViewItemRecord>,
+  listed: Set<string>
+): { states: Map<string, TreeViewCheckState>; ends: string[] } {
+  const kids = new Map<string | null, string[]>();
+  records.forEach(({ parent }, value) => {
+    kids.set(parent, [...(kids.get(parent) ?? []), value]);
+  });
+  const states = new Map<string, TreeViewCheckState>();
+  const ends: string[] = [];
+  // How many enabled ends the branch holds, and how many are checked.
+  const visit = (value: string, above: boolean): [number, number] => {
+    const marked = above || listed.has(value);
+    let total = 0;
+    let on = 0;
+    for (const kid of kids.get(value) ?? []) {
+      const [t, o] = visit(kid, marked);
+      total += t;
+      on += o;
+    }
+    if (records.get(value)!.disabled) {
+      states.set(value, listed.has(value));
+      return [total, on];
+    }
+    if (total === 0) {
+      states.set(value, marked);
+      ends.push(value);
+      return [1, marked ? 1 : 0];
+    }
+    states.set(value, on === total ? true : on > 0 && 'mixed');
+    return [total, on];
+  };
+  for (const top of kids.get(null) ?? []) visit(top, false);
+  return { states, ends };
+}
+
+/**
+ * The list a toggle of `value` leaves: it and every enabled item under it
+ * take the opposite of its state (a mixed one checks), and the rest is read
+ * back by the rules. That's every item that shows checked, parents
+ * included, plus any listed value no item has.
+ */
+export function toggledList(
+  records: Map<string, TreeViewItemRecord>,
+  list: string[],
+  value: string
+): string[] {
+  const { states, ends } = readChecks(records, new Set(list));
+  const to = states.get(value) !== true;
+  // An end was reached from the top, so everything above it is known.
+  const under = (end: string) => {
+    for (let at: string | null = end; at !== null;) {
+      if (at === value) return true;
+      at = records.get(at)!.parent;
+    }
+    return false;
+  };
+  const seed = new Set(
+    ends.filter(end => (under(end) ? to : states.get(end) === true))
+  );
+  records.forEach(({ disabled }, item) => {
+    if (disabled && states.get(item) === true) seed.add(item);
+  });
+  const after = readChecks(records, seed).states;
+  return [
+    ...Array.from(after)
+      .filter(([, state]) => state === true)
+      .map(([item]) => item),
+    ...list.filter(item => !records.has(item)),
+  ];
+}
+
+/**
+ * The list with `value` added at the end, or, when it's `present`, with
+ * every copy of it taken out. Everything else stays as it was, in its order.
+ */
+function addedOrRemoved(
+  list: string[],
+  value: string,
+  present: boolean
+): string[] {
+  return present ? list.filter(v => v !== value) : [...list, value];
+}
+
+/** Options for `useTreeView`: the TreeView's own props. */
+export interface TreeViewOptions {
+  mode: TreeViewSelectionMode;
+  selected?: string | null;
+  defaultSelected: string | null;
+  onSelectedChange?: (value: string) => void;
+  checked?: string[];
+  defaultChecked: string[];
+  onCheckedChange?: (checked: string[]) => void;
+  expanded?: string[];
+  defaultExpanded: string[];
+  onExpandedChange?: (expanded: string[]) => void;
+}
+
+/** What `useTreeView` hands the root and its items. */
+export interface TreeViewEngine {
+  /** For the `<ul role="tree">`. */
+  treeRef: React.MutableRefObject<HTMLUListElement | null>;
+  /**
+   * Whether a closed item still renders its children, drawing nothing, so a
+   * check knows everything under it. Only a `checkbox` tree needs to: a check
+   * in a `checkbox-independent` tree reaches nothing under it.
+   */
+  rendersClosed: boolean;
+  /** Whether any number of items can be checked, in either checkbox mode. */
+  multiselectable: boolean;
+  /** The item that holds `tabIndex={0}`. */
+  tabStop: string | null;
+  isOpen: (value: string) => boolean;
+  /**
+   * What the item shows of the selection. `path` is the values of the items
+   * above it, which decide its box until the items have registered, as on
+   * the server.
+   */
+  stateOf: (
+    value: string,
+    path: string[],
+    disabled: boolean
+  ) => TreeViewItemState;
+  /**
+   * Where the item with this key sits among the items beside it, read off
+   * the page after each render and whenever items move. Nothing until the
+   * tree has mounted, as on the server.
+   */
+  positionOf: (key: string) => TreeViewPosition | undefined;
+  /** Records an item from its layout effect. Returns the function that forgets it. */
+  register: (value: string, record: TreeViewItemRecord) => () => void;
+  /** For each item's `<li>` ref: records it, and notices focus leaving with it. */
+  setElement: (value: string, element: HTMLLIElement | null) => void;
+  /** Focus arrived on the item's own `<li>`. */
+  onFocus: (value: string, element: HTMLLIElement) => void;
+  /** Focus left the item's own `<li>`. */
+  onBlur: () => void;
+  /** A key on the item's `<li>`, after its own `onKeyDown`. */
+  onKeyDown: (
+    event: React.KeyboardEvent<HTMLLIElement>,
+    item: TreeViewItemInfo
+  ) => void;
+  /**
+   * A click on the item's row, or with `onToggle` on its chevron. Focus and
+   * the tab stop move to the item.
+   */
+  onClick: (
+    element: HTMLLIElement,
+    item: TreeViewItemInfo,
+    onToggle: boolean
+  ) => void;
+}
+
+/**
+ * The open state, the selection, the keys, the tab stop, the positions and
+ * the registry of a TreeView (#1096). Focus moves for real, with a roving
+ * tabindex, rather than through `aria-activedescendant`. Each item's
+ * position among the items beside it is declared rather than left to the
+ * browser (#1171), read off the page once the tree has mounted.
+ *
+ * Every item registers its value, its parent and whether it's disabled from
+ * a layout effect. In a `checkbox` tree a closed item's children still
+ * render and register while drawing nothing, so the registry knows every item
+ * and a check reaches all of them. A `checkbox-independent` tree reads each
+ * box off the checked list alone, so a check adds or takes out its own value
+ * and nothing else. The keys read the items on the page, in document order,
+ * each time they need them.
+ *
+ * @function useTreeView
+ * @param options - The TreeView's props.
+ * @returns The state and handlers the root and its items wire up.
+ */
+export function useTreeView(options: TreeViewOptions): TreeViewEngine {
+  // An own key only, so a name every object inherits, like `toString`, is a
+  // mode the tree doesn't know too.
+  const mode = Object.prototype.hasOwnProperty.call(MODES, options.mode)
+    ? options.mode
+    : 'none';
+  const actions = MODES[mode];
+
+  const [expanded, setExpanded] = useControlled(
+    options.expanded,
+    options.defaultExpanded
+  );
+  const [selection, setSelection] = useControlled(
+    options.selected,
+    options.defaultSelected
+  );
+  const [checkedList, setChecked] = useControlled(
+    options.checked,
+    options.defaultChecked
+  );
+  // In a `checkbox` tree a check reaches the items under it, by the rules. In
+  // a `checkbox-independent` one each box is its own item's, read off the list.
+  const cascade = mode === 'checkbox';
+  const independent = mode === 'checkbox-independent';
+  // A box on every item, in either checkbox tree.
+  const boxed = cascade || independent;
+  // Each is read in its own mode only.
+  const selected = mode === 'single' ? selection : null;
+  const listed = new Set(boxed ? checkedList : []);
+
+  const treeRef = useRef<HTMLUListElement | null>(null);
+  const registryRef = useRef<Registry>({
+    records: new Map(),
+    elements: new Map(),
+    values: new WeakMap(),
+  });
+  // Items register from their own effects, so they ask for a render to be read.
+  const [, refresh] = useReducer((n: number) => n + 1, 0);
+  const typeahead = useTypeahead();
+
+  // The item with focus, and where the stop rests while focus is elsewhere:
+  // `undefined` until the tree has mounted. With the values above it, for
+  // when it goes away.
+  const [focused, setFocused] = useState<string | null>(null);
+  const [resting, setResting] = useState<string | null | undefined>();
+  const restingPathRef = useRef<string[]>([]);
+  // The values above an item that left the page with focus in it.
+  const lostRef = useRef<string[] | null>(null);
+  // Each item's place among the items beside it, by its key.
+  const [positions, setPositions] = useState(NO_POSITIONS);
+
+  const { records } = registryRef.current;
+  const checks = cascade
+    ? // eslint-disable-next-line react-hooks/refs -- read in render on purpose: items write the registry from their layout effects and then ask for this render with `refresh`
+      readChecks(records, listed).states
+    : undefined;
+  const tabStop = focused ?? (resting === undefined ? selected : resting);
+
+  // An item's box, decided here alone, so the box drawn, the tab stop and a
+  // toggle agree: off the list in a `checkbox-independent` tree, and by the
+  // rules in a `checkbox` one, where it's `undefined` until the item
+  // registers. `undefined` in a tree with no boxes.
+  const checkOf = (value: string): TreeViewCheckState | undefined =>
+    independent ? listed.has(value) : checks?.get(value);
+
+  const isOpen = (value: string) => expanded.includes(value);
+
+  const stateOf = (
+    value: string,
+    path: string[],
+    disabled: boolean
+  ): TreeViewItemState => {
+    if (mode === 'single') {
+      return disabled ? {} : { selected: value === selected };
+    }
+    if (boxed) {
+      // Until the items register in a `checkbox` tree, a value stands for
+      // its branch, and a parent can't know it's mixed.
+      return {
+        checked:
+          checkOf(value) ??
+          (listed.has(value) || (!disabled && path.some(v => listed.has(v)))),
+      };
+    }
+    return {};
+  };
+
+  const changeOpen = (next: string[]) => {
+    setExpanded(next);
+    options.onExpandedChange?.(next);
+  };
+
+  const run: Record<Action, (item: TreeViewItemInfo) => void> = {
+    open: ({ value, isParent, open }) => {
+      if (isParent) changeOpen(addedOrRemoved(expanded, value, open));
+    },
+    select: ({ value }) => {
+      if (value === selected) return;
+      setSelection(value);
+      options.onSelectedChange?.(value);
+    },
+    check: ({ value }) => {
+      // A `checkbox-independent` box is its own item's alone, so its value
+      // comes or goes and the rest of the list stays as it was.
+      const next = independent
+        ? addedOrRemoved(checkedList, value, checkOf(value) === true)
+        : toggledList(records, checkedList, value);
+      setChecked(next);
+      options.onCheckedChange?.(next);
+    },
+  };
+
+  /** Disabled items are never selected, checked, opened or closed. */
+  const act = (item: TreeViewItemInfo, list: Action[]) => {
+    if (!item.disabled) list.forEach(action => run[action](item));
+  };
+
+  /** Enter, Space and a click on the row: a failed load's row retries. */
+  const press = (item: TreeViewItemInfo, list: Action[]) => {
+    if (item.retry) item.retry();
+    else act(item, list);
+  };
+
+  // After every render, read each item's position off the page, and put the
+  // stop where it belongs. While focus is in the tree it's the focused item.
+  // Otherwise it's the selected item, or the first checked one on the page,
+  // and failing that it stays where it was. An item that goes away hands it
+  // to its nearest ancestor on the page, or to the first item, and focus goes
+  // with it if it had focus.
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- after every render on purpose: it reads the page, and sets state only when what it reads has changed
+  useClientLayoutEffect(() => {
+    const tree = treeRef.current!;
+    const registry = registryRef.current;
+    // Each item's element is read off the page with its value, rather than
+    // out of `elements`, which holds one element per value: two items
+    // sharing a value, which they shouldn't, can leave it without one the
+    // page still has.
+    const shown = shownIn(tree, registry);
+    const placed = positionsOf(shown, registry);
+    if (!samePositions(positions, placed)) setPositions(placed);
+    const onPage = shown.map(element => registry.values.get(element)!);
+    const elementOf = (value: string) => shown[onPage.indexOf(value)];
+    const isShown = (value: string | null | undefined): value is string =>
+      value != null && onPage.includes(value);
+    const heir = (path: string[]) =>
+      [...path].reverse().find(isShown) ?? onPage[0] ?? null;
+
+    const lost = lostRef.current;
+    lostRef.current = null;
+    if (lost && !tree.contains(getActiveElementInTree(tree))) {
+      const to = heir(lost);
+      if (to) elementOf(to).focus();
+      return;
+    }
+    if (focused !== null && !isShown(focused)) setFocused(null);
+
+    const preferred = onPage.find(
+      value => value === selected || checkOf(value) === true
+    );
+    const next =
+      preferred ?? (isShown(resting) ? resting : heir(restingPathRef.current));
+    if (next !== resting) {
+      setResting(next);
+      restingPathRef.current = next ? pathOf(elementOf(next), registry) : [];
+    }
+  });
+
+  // Items can also move without the tree rendering, such as children that a
+  // component of the app sorts with state of its own. That changes no record,
+  // so the page is watched for items coming, going and moving, and the
+  // positions are read again.
+  useEffect(() => {
+    const tree = treeRef.current!;
+    const observer = new MutationObserver(() => {
+      const registry = registryRef.current;
+      const placed = positionsOf(shownIn(tree, registry), registry);
+      setPositions(current =>
+        samePositions(current, placed) ? current : placed
+      );
+    });
+    observer.observe(tree, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
+
+  const register = useCallback((value: string, record: TreeViewItemRecord) => {
+    const { records: known } = registryRef.current;
+    known.set(value, record);
+    refresh();
+    return () => {
+      if (known.get(value) !== record) return;
+      known.delete(value);
+      refresh();
+    };
+  }, []);
+
+  const setElement = useCallback(
+    (value: string, element: HTMLLIElement | null) => {
+      const registry = registryRef.current;
+      if (element) {
+        registry.elements.set(value, element);
+        registry.values.set(element, value);
+        return;
+      }
+      const gone = registry.elements.get(value);
+      if (!gone) return;
+      // The ref lets go before the element leaves the page, so it can still
+      // say whether focus was in it, and where it sat.
+      if (!lostRef.current && gone.contains(getActiveElementInTree(gone))) {
+        lostRef.current = [...pathOf(gone, registry), value];
+      }
+      registry.elements.delete(value);
+    },
+    []
+  );
+
+  const onFocus = (value: string, element: HTMLLIElement) => {
+    setFocused(value);
+    setResting(value);
+    restingPathRef.current = pathOf(element, registryRef.current);
+  };
+
+  const onBlur = () => setFocused(null);
+
+  // Space joins a type-ahead search under way when an item starts with what
+  // has been typed and a space, so "new y" reaches "New York": the item it
+  // reaches, or none.
+  const spaceMatch = useCallback(
+    (element: HTMLElement, items?: HTMLElement[]) => {
+      const typed = typeahead.typed();
+      if (!typed) return undefined;
+      const shown = items ?? shownIn(treeRef.current!, registryRef.current);
+      return spaceJoinMatch(shown, typed, shown.indexOf(element), itemText);
+    },
+    [typeahead]
+  );
+  const spaceJoinsRef = useContext(TreeViewSpaceJoinsContext);
+  useClientLayoutEffect(() => {
+    if (!spaceJoinsRef) return undefined;
+    spaceJoinsRef.current = element => spaceMatch(element) !== undefined;
+    return () => {
+      spaceJoinsRef.current = null;
+    };
+  }, [spaceJoinsRef, spaceMatch]);
+
+  const onKeyDown = (
+    event: React.KeyboardEvent<HTMLLIElement>,
+    item: TreeViewItemInfo
+  ) => {
+    const element = event.currentTarget;
+    // A key on an item inside this one bubbles here too, and is its own.
+    if (
+      event.target !== element ||
+      event.defaultPrevented ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      isComposing(event)
+    ) {
+      return;
+    }
+    const registry = registryRef.current;
+    const items = shownIn(treeRef.current!, registry);
+    const at = items.indexOf(element);
+    const rtl = getComputedStyle(element).direction === 'rtl';
+    const key = (rtl && MIRRORED[event.key]) || event.key;
+    // An arrow, Home or End ends a type-ahead search, so a Space after it
+    // acts on the item it's on.
+    if (MOVES.has(key)) typeahead.reset();
+
+    switch (key) {
+      case 'ArrowDown':
+        items[at + 1]?.focus();
+        break;
+      case 'ArrowUp':
+        items[at - 1]?.focus();
+        break;
+      case 'Home':
+        items[0].focus();
+        break;
+      case 'End':
+        items[items.length - 1].focus();
+        break;
+      case 'ArrowRight': {
+        const next = items[at + 1];
+        if (!item.open) act(item, ['open']);
+        else if (next && parentItemOf(next) === element) next.focus();
+        break;
+      }
+      case 'ArrowLeft':
+        if (item.open && !item.disabled) act(item, ['open']);
+        else parentItemOf(element)?.focus();
+        break;
+      // A held key acts once.
+      case 'Enter':
+        if (!event.repeat) press(item, actions.enter);
+        break;
+      case ' ': {
+        const match = spaceMatch(element, items);
+        if (match) {
+          typeahead.type(' ');
+          match.focus();
+        } else if (!event.repeat) {
+          press(item, actions.space);
+        }
+        break;
+      }
+      case '*': {
+        // The siblings on the page: not the ones a component around the
+        // tree hides, which stay registered.
+        const closed: string[] = [];
+        registry.records.forEach((record, value) => {
+          if (
+            record.parent === item.parent &&
+            record.isParent &&
+            !record.disabled &&
+            !expanded.includes(value) &&
+            registry.elements.has(value)
+          ) {
+            closed.push(value);
+          }
+        });
+        if (closed.length) changeOpen([...expanded, ...closed]);
+        break;
+      }
+      default:
+        // Type-ahead takes a printable character. Anything else, Escape and
+        // Tab included, is left to whatever is around the tree.
+        if (event.key.length !== 1) return;
+        typeaheadMatch(items, typeahead.type(event.key), at, itemText)?.focus();
+    }
+    event.preventDefault();
+  };
+
+  const onClick = (
+    element: HTMLLIElement,
+    item: TreeViewItemInfo,
+    onToggle: boolean
+  ) => {
+    element.focus();
+    if (onToggle) act(item, ['open']);
+    else press(item, actions.click);
+  };
+
+  return {
+    treeRef,
+    rendersClosed: cascade,
+    multiselectable: boxed,
+    tabStop,
+    isOpen,
+    stateOf,
+    positionOf: key => positions.get(key),
+    register,
+    setElement,
+    onFocus,
+    onBlur,
+    onKeyDown,
+    onClick,
+  };
+}

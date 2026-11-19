@@ -7,8 +7,11 @@
     "docs": "docusaurus start",
     "start": "docusaurus start",
     "build": "docusaurus build && node scripts/check-generated-markers.mjs",
-    "test": "node --test \"scripts/*.test.mjs\"",
+    "test": "vitest run",
+    "test:coverage": "pnpm run test",
     "rasterize:cover": "node scripts/rasterize-cover.mjs",
+    "screenshot:template": "node scripts/screenshot-template.mjs",
+    "draw:template-art": "node scripts/template-art/draw.mjs",
     "snapshot:comparison": "node scripts/snapshot-comparison.mjs",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
@@ -23,19 +26,22 @@
     "@docusaurus/preset-classic": "^3.10.2",
     "@docusaurus/theme-common": "^3.10.2",
     "@docusaurus/theme-live-codeblock": "^3.10.2",
+    "@fontsource/poppins": "^5.3.0",
     "@fortawesome/fontawesome-free": "^7.3.1",
     "@mdi/font": "^7.4.47",
     "@mdx-js/react": "^3.0.0",
+    "@stackblitz/sdk": "^1.11.1",
     "bulma": "^1.0.4",
     "clsx": "^2.0.0",
     "ionicons": "^8.1.0",
     "material-icons": "^1.13.14",
-    "material-symbols": "^0.47.6",
+    "material-symbols": "^0.48.3",
     "prism-react-renderer": "^2.3.0",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "react-live": "^5.0.0",
-    "react-shadow": "^20.6.0"
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-live": "^5.0.1",
+    "react-shadow": "^20.6.0",
+    "sucrase": "^3.35.1"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.10.2",
@@ -43,8 +49,9 @@
     "copy-webpack-plugin": "^14.0.0",
     "docusaurus-plugin-llms": "^0.6.1",
     "gray-matter": "^4.0.3",
-    "playwright": "^1.63.0",
-    "raw-loader": "^4.0.2"
+    "playwright": "^1.65.0",
+    "raw-loader": "^4.0.2",
+    "vitest": "^5.1.0"
   },
   "browserslist": {
     "production": [

@@ -6,17 +6,25 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
  */
 export interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Additional CSS classes to apply */
-  className?: string;
+  className?: string | undefined;
   /** Skeleton variant: block (single block) or lines. */
   variant?: 'block' | 'lines';
   /** Number of lines (only for `lines` variant). */
   lines?: number;
-  /** Content inside the block (only for block variant). */
+  /**
+   * Content inside the block (only for block variant). Bulma hides it, but
+   * a screen reader still reads it, so give a block that holds placeholder
+   * text `aria-hidden="true"`.
+   */
   children?: React.ReactNode;
 }
 
 /**
  * The `Skeleton` component provides a Bulma-styled skeleton loader for React applications, useful for indicating that content is loading.
+ *
+ * In forced colors, with bestax's CSS loaded, its shapes are drawn in the
+ * theme's `GrayText` and the text Bulma hides in a block stays hidden, where
+ * Bulma's shapes would take the page's color and that text would show.
  *
  * @function
  * @param {SkeletonProps} props - Props for the Skeleton component.

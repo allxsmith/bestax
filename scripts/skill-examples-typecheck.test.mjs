@@ -9,16 +9,22 @@
  * never reads is a TS6133 error there (#951).
  *
  * So each example is type-checked with the options of the template project
- * that compiles `src/`, found by following the template's project references
- * rather than assuming which file holds them. Its imports resolve the way a
- * scaffold's would: `react` to React's published types, and each entry in the
- * library's `exports` map to the built declarations it names, which is why the
- * library has to be built first.
+ * that compiles `src/`, as `appCompilerOptions` in lib/template-tsconfig.mjs
+ * reads them from the template. Its imports resolve the way a scaffold's
+ * would: `react` to React's published types, each entry in the library's
+ * `exports` map to the built declarations it names, which is why the library
+ * has to be built first, and a stylesheet or asset import to the ambient
+ * modules of the typings the template names in `types` (`vite/client`).
+ *
+ * The ported templates under `templates/<slug>/src` (templates/CLAUDE.md) go
+ * through the same program. Each one is a vite-ts scaffold, and StackBlitz
+ * runs its build, so a template that does not compile here does not open
+ * there either. A template importing a package other than the library and
+ * React fails here to resolve it; none is expected to.
  */
 import assert from 'node:assert/strict';
 import {
   existsSync,
-  mkdirSync,
   mkdtempSync,
   readdirSync,
   readFileSync,
@@ -27,15 +33,34 @@ import {
 } from 'node:fs';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
-import { dirname, join, relative, sep } from 'node:path';
+import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import ts from 'typescript';
+import { appCompilerOptions } from './lib/template-tsconfig.mjs';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
-const TEMPLATE = join(REPO, 'create-bestax', 'templates', 'vite-ts');
 const BULMA_UI = join(REPO, 'bulma-ui');
 const LIBRARY_TYPES = join(BULMA_UI, 'dist', 'types', 'index.d.ts');
+
+/** Every `.ts` and `.tsx` file under `dir`, declarations only on request. */
+function typeScriptFiles(dir, { declarations = false } = {}) {
+  const out = [];
+  const visit = current => {
+    for (const entry of readdirSync(current, { withFileTypes: true })) {
+      const path = join(current, entry.name);
+      if (entry.isDirectory()) visit(path);
+      else if (
+        /\.tsx?$/.test(entry.name) &&
+        (declarations || !entry.name.endsWith('.d.ts'))
+      ) {
+        out.push(path);
+      }
+    }
+  };
+  visit(dir);
+  return out.sort();
+}
 
 /**
  * Every TypeScript file anywhere under `skills/`, over the same tree the lint
@@ -45,74 +70,22 @@ const LIBRARY_TYPES = join(BULMA_UI, 'dist', 'types', 'index.d.ts');
  * vite template runs no type-check, so no scaffold checks one.
  */
 function skillExamples() {
-  const out = [];
-  const visit = dir => {
-    for (const entry of readdirSync(dir, { withFileTypes: true })) {
-      const path = join(dir, entry.name);
-      if (entry.isDirectory()) visit(path);
-      else if (/\.tsx?$/.test(entry.name) && !entry.name.endsWith('.d.ts')) {
-        out.push(path);
-      }
-    }
-  };
-  visit(join(REPO, 'skills'));
-  return out.sort();
-}
-
-/** A tsconfig, parsed, failing loudly on anything unreadable. */
-function parseConfig(configPath) {
-  const parsed = ts.getParsedCommandLineOfConfigFile(
-    configPath,
-    {},
-    {
-      ...ts.sys,
-      onUnRecoverableConfigFileDiagnostic: diagnostic => {
-        throw new Error(
-          ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')
-        );
-      },
-    }
-  );
-  assert.ok(parsed, `could not parse ${configPath}`);
-  // Anything short of unreadable lands here and leaves the option it is
-  // about out of `parsed.options`, which would weaken the gate silently.
-  assert.equal(
-    ts.formatDiagnostics(parsed.errors, {
-      getCanonicalFileName: file => file,
-      getCurrentDirectory: () => REPO,
-      getNewLine: () => '\n',
-    }),
-    '',
-    `${configPath} did not parse cleanly, so these are not the template's options`
-  );
-  return parsed;
+  return typeScriptFiles(join(REPO, 'skills'));
 }
 
 /**
- * The compiler options of the template project whose files include `src/`,
- * the project an example copied into the app is built by. Followed through
- * project references, so it holds whether the template keeps them in its root
- * tsconfig.json or in a referenced one.
+ * Every TypeScript file in each template's `src/`, declarations included,
+ * since the template's own project compiles all of `src/`. None while the
+ * folder holds no template, which passes.
  */
-function appCompilerOptions(template = TEMPLATE) {
-  const src = join(template, 'src') + sep;
-  const queue = [join(template, 'tsconfig.json')];
-  // Each config once: a reference cycle would otherwise grow the queue forever.
-  const seen = new Set(queue);
-  while (queue.length > 0) {
-    const parsed = parseConfig(queue.shift());
-    if (parsed.fileNames.some(file => file.startsWith(src))) {
-      return parsed.options;
-    }
-    for (const ref of parsed.projectReferences ?? []) {
-      const path = ts.resolveProjectReferencePath(ref);
-      if (!seen.has(path)) {
-        seen.add(path);
-        queue.push(path);
-      }
-    }
-  }
-  assert.fail(`no project under ${relative(REPO, template)} compiles src/`);
+function templateSources() {
+  const root = join(REPO, 'templates');
+  if (!existsSync(root)) return [];
+  return readdirSync(root, { withFileTypes: true })
+    .filter(entry => entry.isDirectory())
+    .map(entry => join(root, entry.name, 'src'))
+    .filter(src => existsSync(src))
+    .flatMap(src => typeScriptFiles(src, { declarations: true }));
 }
 
 /**
@@ -128,6 +101,30 @@ function libraryEntries() {
       subpath === '.' ? pkg.name : `${pkg.name}/${subpath.slice(2)}`,
       join(BULMA_UI, target.import.types),
     ]);
+}
+
+/**
+ * The declaration file of each ambient package the template's `types` names,
+ * resolved from bulma-ui's install the way the scaffold's tsconfig resolves it
+ * from the app's. `vite/client` is what gives a stylesheet or image import
+ * a module to resolve to.
+ */
+function scaffoldTypes(options) {
+  return (options.types ?? []).map(name => {
+    const { resolvedTypeReferenceDirective: resolved } =
+      ts.resolveTypeReferenceDirective(
+        name,
+        join(BULMA_UI, 'package.json'),
+        options,
+        ts.sys
+      );
+    assert.ok(
+      resolved?.resolvedFileName,
+      `the template's tsconfig names ${name} in \`types\`, which does not ` +
+        'resolve from bulma-ui, where this check looks for it'
+    );
+    return resolved.resolvedFileName;
+  });
 }
 
 /** Where a scaffold's installed packages would resolve these imports. */
@@ -148,8 +145,10 @@ function scaffoldPaths() {
   };
 }
 
-describe('skill examples compile in a vite-ts scaffold', () => {
+describe('skill examples and templates compile in a vite-ts scaffold', () => {
   const examples = skillExamples();
+  const templates = templateSources();
+  const checked = [...examples, ...templates];
 
   it('finds the examples', () => {
     assert.ok(examples.length > 0, 'no .ts or .tsx file under skills/');
@@ -163,18 +162,21 @@ describe('skill examples compile in a vite-ts scaffold', () => {
     );
   });
 
+  const templateOptions = appCompilerOptions();
   const options = {
-    ...appCompilerOptions(),
+    ...templateOptions,
     // The template's own src/ is not part of this program, and an
     // incremental build-info file would be written somewhere real.
     incremental: false,
     tsBuildInfoFile: undefined,
-    // Ambient packages are the scaffold's, not this repo's.
+    // Ambient packages are the scaffold's, not this repo's: the ones its
+    // `types` names go in as root files instead.
     types: [],
     paths: scaffoldPaths(),
   };
+  const ambient = scaffoldTypes(templateOptions);
   const program = existsSync(LIBRARY_TYPES)
-    ? ts.createProgram(examples, options)
+    ? ts.createProgram([...checked, ...ambient], options)
     : null;
   const diagnostics = program ? ts.getPreEmitDiagnostics(program) : [];
   const host = {
@@ -216,9 +218,38 @@ describe('skill examples compile in a vite-ts scaffold', () => {
     }
   });
 
-  it('raises nothing outside the examples themselves', () => {
+  // A scaffold's main.tsx imports stylesheets for their side effects, the
+  // library's, an icon font's and its own, and TypeScript holds a side-effect
+  // import to resolving like any other. Each resolves to the ambient modules
+  // of the template's `types`, so a template's entry point compiles here only
+  // while those typings are in the program, as it does in the app.
+  it('resolves the stylesheet and asset imports a scaffold makes', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'skill-examples-'));
+    try {
+      const file = join(dir, 'main.tsx');
+      writeFileSync(
+        file,
+        [
+          "import '@allxsmith/bestax-bulma/bestax.css';",
+          "import '@fortawesome/fontawesome-free/css/all.min.css';",
+          "import './index.css';",
+          "import logo from './logo.svg';",
+          'void logo;',
+        ].join('\n')
+      );
+      const imports = ts.createProgram([file, ...ambient], options);
+      assert.equal(
+        ts.formatDiagnostics(ts.getPreEmitDiagnostics(imports), host),
+        ''
+      );
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('raises nothing outside the examples and templates themselves', () => {
     const elsewhere = diagnostics.filter(
-      d => !d.file || !examples.includes(d.file.fileName)
+      d => !d.file || !checked.includes(d.file.fileName)
     );
     assert.equal(
       ts.formatDiagnostics(elsewhere, host),
@@ -227,65 +258,10 @@ describe('skill examples compile in a vite-ts scaffold', () => {
     );
   });
 
-  for (const example of examples) {
-    it(relative(REPO, example), () => {
-      const own = diagnostics.filter(d => d.file?.fileName === example);
+  for (const file of checked) {
+    it(relative(REPO, file), () => {
+      const own = diagnostics.filter(d => d.file?.fileName === file);
       assert.equal(ts.formatDiagnostics(own, host), '');
     });
   }
-});
-
-// The gate is only as strict as the options it reads, so reading them has to
-// fail on a template it cannot follow, never quietly settle for less.
-describe('reading the template TypeScript config', () => {
-  /** Run `check` against a throwaway template holding `files`. */
-  function withTemplate(files, check) {
-    const dir = mkdtempSync(join(tmpdir(), 'skill-examples-template-'));
-    try {
-      for (const [name, body] of Object.entries(files)) {
-        mkdirSync(dirname(join(dir, name)), { recursive: true });
-        writeFileSync(
-          join(dir, name),
-          typeof body === 'string' ? body : JSON.stringify(body)
-        );
-      }
-      check(dir);
-    } finally {
-      rmSync(dir, { recursive: true, force: true });
-    }
-  }
-
-  // An option TypeScript does not recognise is left out of the parsed
-  // options, so a misspelled `noUnusedLocals` would let #951 back in.
-  it('fails on an option it does not recognise rather than dropping it', () => {
-    withTemplate(
-      {
-        'tsconfig.json': {
-          compilerOptions: { noUnusedLocal: true },
-          include: ['src'],
-        },
-        'src/main.ts': 'export {};\n',
-      },
-      dir =>
-        assert.throws(
-          () => appCompilerOptions(dir),
-          /did not parse cleanly[\s\S]*noUnusedLocal/
-        )
-    );
-  });
-
-  it('fails on a reference cycle rather than following it forever', () => {
-    withTemplate(
-      {
-        'tsconfig.json': { files: [], references: [{ path: './a.json' }] },
-        'a.json': { files: [], references: [{ path: './b.json' }] },
-        'b.json': { files: [], references: [{ path: './a.json' }] },
-      },
-      dir =>
-        assert.throws(
-          () => appCompilerOptions(dir),
-          /no project under .* compiles src\//
-        )
-    );
-  });
 });

@@ -106,14 +106,14 @@ function ScopedTheming() {
     <div>
       <Title>Standard Theme</Title>
 
-      <Theme primaryH="120" primaryS="100%" primaryL="40%">
+      <Theme primaryH="120" primaryS="100%" primaryL="25%">
         <Box p="4" mt="3">
           <Title size="4">Green Section</Title>
           <Button color="primary">Green Button</Button>
         </Box>
       </Theme>
 
-      <Theme primaryH="15" primaryS="85%" primaryL="55%">
+      <Theme primaryH="15" primaryS="85%" primaryL="40%">
         <Box p="4" mt="3">
           <Title size="4">Orange Section</Title>
           <Button color="primary">Orange Button</Button>
@@ -179,6 +179,37 @@ Bulma v1 provides its CSS variables organized by category. Here are the key cate
 | `--bulma-success-h` | Success color hue        | `153`         |
 | `--bulma-warning-h` | Warning color hue        | `42`          |
 | `--bulma-danger-h`  | Danger color hue         | `348`         |
+
+#### Label and Text Lightnesses
+
+The trio recolors the color itself. The label on a solid color (`--bulma-<color>-invert-l`) and
+the color's text on the page (`--bulma-<color>-on-scheme-l`, which for `link` is every link on
+the page) keep lightnesses Bulma's Sass build picked by contrast with the color it was built
+with. bestax's stylesheet builds its primary from a dark blue, so a light primary set through the
+trio alone keeps white labels it can't carry. A color that reads lighter or darker than the built
+one sets both too, through `Theme`'s `bulmaVars` or in your CSS. The on-scheme lightness has to
+read on a light page and on a dark one, so Bulma gives each scheme its own, and on an `isRoot`
+`Theme` its key takes one value per scheme:
+
+```tsx
+<Theme
+  isRoot
+  primaryH="171deg"
+  primaryS="100%"
+  primaryL="41%"
+  bulmaVars={{
+    '--bulma-primary-invert-l': 'var(--bulma-primary-05-l)',
+    '--bulma-primary-on-scheme-l': { light: '21%', dark: '41%' },
+  }}
+>
+  <App />
+</Theme>
+```
+
+The [Theme API page](../../api/helpers/theme.md#label-and-text-lightnesses) has the rest of how
+`Theme` writes them, and the bestax-theming skill's
+[CSS variables reference](https://github.com/allxsmith/bestax/blob/main/skills/bestax-theming/references/css-variables.md)
+says what reads each one, how to pick the values, and how to set them in CSS.
 
 ### Typography Variables
 
@@ -268,17 +299,29 @@ function DarkModeApp() {
 }
 ```
 
+`colorMode` writes the attribute before the browser paints what `Theme` rendered, but the page can
+paint before the app's script runs at all, with whatever `<html>` already has: the OS scheme,
+when nothing set one. A toggle that remembers the visitor's choice writes it before that frame, from an inline script in
+`index.html`'s `<head>`, and starts its state from the attribute the script wrote. The
+`bestax-theming` skill's
+[dark-mode example](https://github.com/allxsmith/bestax/blob/main/skills/bestax-theming/examples/dark-mode.tsx)
+has the script and the app's side.
+
 For full control you can instead override the scheme variables yourself via `bulmaVars` (e.g.
 `--bulma-scheme-h`, `--bulma-light-l`, `--bulma-dark-l`), but `colorMode` covers the common case.
 
 ### Color Palette Generator
+
+At the same lightness, some hues read much lighter than others: a yellow is far lighter than a
+blue. So this example holds the primary's lightness low enough for its white button labels to
+read at every hue (see [Label and Text Lightnesses](#label-and-text-lightnesses)).
 
 ```tsx
 function ColorPaletteApp() {
   const [hue, setHue] = useState(171);
 
   return (
-    <Theme primaryH={hue.toString()} isRoot>
+    <Theme primaryH={hue.toString()} primaryS="67%" primaryL="28%" isRoot>
       <Box p="4">
         <Title>Dynamic Color Palette</Title>
         <input
@@ -349,13 +392,10 @@ white text on cream, unreadable, and invisible to you unless your own OS is in d
 Apply exactly one of these rules:
 
 **Rule 1 — single-mode design: lock the scheme.** If the design is light-only (or dark-only),
-pin it at the app root so an OS preference can never invert text out from under your palette:
-
-```tsx
-<Theme isRoot colorMode="light">
-  <App />
-</Theme>
-```
+pin it on the `<html>` in your `index.html`, `<html lang="en" data-theme="light">`, so an OS
+preference can never invert text out from under your palette, the first paint included.
+`<Theme isRoot colorMode="light">` pins it as well, but only once the app's script runs, so the
+page can show the OS scheme before that.
 
 **Rule 2 — both modes: never expose a fixed token to the flip.** Derive your tokens from
 Bulma's scheme variables, or provide the dark-mode pair yourself:
@@ -391,6 +431,40 @@ both dark-mode paths are covered automatically.
 dark hero, a brand banner) must pin its content's colors too: filled buttons
 (`color="light"`, or `color="primary" isInverted`) and explicit text colors — not thin
 outlined buttons or scheme-derived defaults, which wash out when the surrounding scheme flips.
+
+## Fixed Elements While an Overlay Is Open
+
+An overlay that locks the page's scrolling, such as a [`Modal`](../../api/components/modal.md), a
+`Sidebar` with its overlay or a full-page `Loading`, takes the page's scrollbar away and pads
+`<html>` by the room it took, so the page doesn't shift. An element fixed to the window is placed
+against the window, which grows by that room, so the padding doesn't reach it, and an element fixed
+to the right edge would move by the scrollbar's width. A `fixed` Navbar, the toast and notification
+stacks and an `Affix` make up for it, and your own fixed elements can too.
+
+While the lock is on, it sets the room it padded on `<html>` as `--bulma-scroll-lock-offset-right`,
+or `--bulma-scroll-lock-offset-left` where the scrollbar was on the left. Add it to the element's
+offset on that side, with a `0px` fallback for when no lock is on:
+
+```css
+.chat-launcher {
+  position: fixed;
+  bottom: 1rem;
+  right: calc(1rem + var(--bulma-scroll-lock-offset-right, 0px));
+}
+
+.cookie-bar {
+  position: fixed;
+  bottom: 0;
+  left: var(--bulma-scroll-lock-offset-left, 0px);
+  right: var(--bulma-scroll-lock-offset-right, 0px);
+}
+```
+
+The sides are physical, left and right, whatever the text's direction: an element fixed to the
+window's right edge reads the `-right` one on a right-to-left page too. Neither is set while no lock
+is on, or where the scrollbar takes no room, as with overlay scrollbars, so the fallback applies and
+nothing moves. The lock writes them and removes them when the last overlay closes, so read them and
+leave setting them to it.
 
 ## Best Practices
 

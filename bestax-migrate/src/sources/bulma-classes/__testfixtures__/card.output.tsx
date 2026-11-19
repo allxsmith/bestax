@@ -1,5 +1,6 @@
 import { Card, Column, Columns } from "@allxsmith/bestax-bulma";
 export function Cards() {
+  // TODO(bestax-migrate): `.content` is bestax `Content`'s class too, and an element converts to one component: `Card.Content` here, since the codemod ranks `.card-content` first, putting layout and parts ahead of surfaces, so `.content` stays in its `className`, which renders the same; to use `Content`, give it an element of its own around or inside this one and drop the class, then check the layout, since two elements space differently from one
   // TODO(bestax-migrate): bestax `Card.FooterItem` renders `type="button"` when the element does not set it; add it here if that is what you want, then re-run
   return (
     <Columns>

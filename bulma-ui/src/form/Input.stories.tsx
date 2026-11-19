@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Input } from './Input';
 import { Field } from './Field';
+import { Fieldset } from './Fieldset';
 import { Control } from './Control';
 import { Select } from './Select';
 import { Button } from '../elements/Button';
@@ -194,7 +195,13 @@ export const DisabledAndReadOnly: Story = {
 export const Static: Story = {
   render: () => (
     <>
-      <Input horizontal label="Username" isStatic value="Static value" />
+      <Input
+        horizontal
+        label="Username"
+        isStatic
+        readOnly
+        value="Static value"
+      />
       <Input horizontal label="Password" placeholder="Editable value" />
     </>
   ),
@@ -322,7 +329,9 @@ export const AddonsStatic: Story = {
         <Input placeholder="Your email" />
       </Control>
       <Control>
-        <Button isStatic>@gmail.com</Button>
+        <Button as="span" isStatic>
+          @gmail.com
+        </Button>
       </Control>
     </Field>
   ),
@@ -525,7 +534,9 @@ export const HorizontalAddons: Story = {
       <Field.Body>
         <Field hasAddons>
           <Control>
-            <Button isStatic>+44</Button>
+            <Button as="span" isStatic>
+              +44
+            </Button>
           </Control>
           <Control isExpanded>
             <Input
@@ -575,15 +586,14 @@ export const HorizontalSubmitRow: Story = {
 };
 
 /**
- * A native `<fieldset disabled>` wrapping multiple Inputs disables every
- * field at once.
+ * A disabled `Fieldset` wrapping several Inputs disables every field at once.
  */
 export const DisabledFieldset: Story = {
   render: () => (
-    <fieldset disabled>
+    <Fieldset variant="unstyled" disabled>
       <Input label="Name" placeholder="Your name" />
       <Input label="Email" type="email" placeholder="Your email" />
-    </fieldset>
+    </Fieldset>
   ),
 };
 

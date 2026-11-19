@@ -24,7 +24,8 @@ export interface LinkButtonOwnProps extends Omit<
     | 'white'
     | 'light'
     | 'dark'
-    | 'black';
+    | 'black'
+    | undefined;
   /**
    * Not available on `LinkButton`, and declared so that a custom `as` target
    * cannot reintroduce it. `Button` consumes these three for styling variants
@@ -53,7 +54,7 @@ export type LinkButtonProps<T extends React.ElementType = 'button'> =
        * Render as a `<button>`, `<a>`, or a custom component (e.g. a router `Link`).
        * @defaultValue 'button'
        */
-      as?: T;
+      as?: T | undefined;
     };
 
 /**

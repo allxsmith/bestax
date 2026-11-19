@@ -431,8 +431,9 @@ describe('react-bulma-components transform fixtures', () => {
       });
       // Both props are truthy literals, so the element collapses to the plain
       // `.heading` paragraph — but RBC applies the subtitle class independently,
-      // so it must ride along rather than being silently dropped.
-      expect(todos).toHaveLength(0);
+      // so it must ride along rather than being silently dropped. The one TODO
+      // is the one every `.heading` label gets: Bulma v1 no longer styles it.
+      expect(todos.map(t => t.rule)).toEqual(['component:Heading']);
       expect(output).toContain('className="heading subtitle"');
     });
 
@@ -490,6 +491,22 @@ describe('react-bulma-components transform fixtures', () => {
       );
       expect(todos.some(t => t.rule === 'prop:subtitle')).toBe(false);
       expect(output).toContain('<SubTitle>x</SubTitle>');
+    });
+
+    // RBC rendered an <h1> at every size; bestax renders the heading `size`
+    // names, so a size the codemod cannot read is one TODO, naming textSize.
+    it('flags a dynamic Heading size once, keeping it as size', () => {
+      const source = [
+        "import { Heading } from 'react-bulma-components';",
+        'export const A = ({ n }: { n: 4 }) => <Heading size={n}>x</Heading>;',
+      ].join('\n');
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(transform, 'heading-size.tsx', source, {
+        add: entry => todos.push(entry),
+      });
+      expect(todos.map(t => t.rule)).toEqual(['prop:size']);
+      expect(todos[0].message).toContain('textSize');
+      expect(output).toContain('<Title size={n}>x</Title>');
     });
 
     it('flags a Menu.List title it cannot lift to a sibling', () => {
@@ -868,6 +885,113 @@ describe('react-bulma-components transform fixtures', () => {
       expect(rules).toEqual(
         expect.arrayContaining(['prop:domRef', 'prop:id', 'prop:spread'])
       );
+    });
+
+    // bestax's responsive Table names its container after the table while it
+    // overflows (#2016), so the container's name belongs on the Table.
+    describe('the name of a folded Table.Container', () => {
+      const fold = (container: string, table: string) => {
+        const todos: TodoEntry[] = [];
+        const { output } = runTransform(
+          transform,
+          'name.tsx',
+          'import { Table } from "react-bulma-components";\n' +
+            `export const A = (p: any) => <Table.Container${container}><Table${table} /></Table.Container>;`,
+          { add: entry => todos.push(entry) }
+        );
+        return { output: output ?? '', rules: todos.map(t => t.rule) };
+      };
+
+      it.each([
+        ['an aria-label', ' aria-label="Scores"'],
+        ['an aria-labelledby', ' aria-labelledby="scores"'],
+        ['an aria-label from an expression', ' aria-label={p.label}'],
+      ])('moves %s onto the Table', (_, name) => {
+        const { output, rules } = fold(name, '');
+        expect(output).toContain(`<Table${name} isResponsive />`);
+        expect(output).not.toContain('Table.Container');
+        expect(rules).toEqual([]);
+      });
+
+      it.each([
+        ['a name of its own', ' aria-label="Inner"'],
+        ['an empty one', ' aria-label=""'],
+      ])(
+        'keeps a Table with %s as it is, and reports the container’s name',
+        (_, table) => {
+          const { output, rules } = fold(' aria-label="Outer"', table);
+          expect(output).not.toContain('Outer"');
+          expect(rules).toEqual(['prop:aria-label']);
+          expect(output).toContain('the Table it folded onto names itself');
+        }
+      );
+
+      it('keeps a caption the Table may render as its name', () => {
+        const todos: TodoEntry[] = [];
+        const { output } = runTransform(
+          transform,
+          'caption.tsx',
+          'import { Table } from "react-bulma-components";\n' +
+            'export const A = (p: any) => <Table.Container aria-label="Scroll"><Table>{p.c && <caption>Q3</caption>}</Table></Table.Container>;',
+          { add: entry => todos.push(entry) }
+        );
+        expect(output).not.toContain('Scroll"');
+        expect(todos.map(t => t.rule)).toEqual([
+          'prop:aria-label',
+          'name:Table',
+        ]);
+      });
+
+      it('keeps a caption the Table has as its name, and asks for a name the container can take', () => {
+        const todos: TodoEntry[] = [];
+        const { output } = runTransform(
+          transform,
+          'caption.tsx',
+          'import { Table } from "react-bulma-components";\n' +
+            'export const A = () => <Table.Container aria-label="Scroll"><Table><caption>Q3</caption></Table></Table.Container>;',
+          { add: entry => todos.push(entry) }
+        );
+        expect(output).toContain(
+          '<Table isResponsive><caption>Q3</caption></Table>'
+        );
+        expect(todos.map(t => t.rule)).toEqual([
+          'prop:aria-label',
+          'name:Table',
+        ]);
+      });
+
+      it('puts the container’s name ahead of a spread on the Table, which still wins', () => {
+        const { output, rules } = fold(' aria-label="Outer"', ' {...p}');
+        expect(output).toContain(
+          '<Table aria-label="Outer" {...p} isResponsive />'
+        );
+        expect(rules).toEqual([]);
+      });
+
+      it('tells the container’s role and tab stop to go, which the Table writes itself', () => {
+        const { output, rules } = fold(
+          ' role="region" tabIndex={0} aria-label="Scores"',
+          ''
+        );
+        expect(output).toContain('<Table aria-label="Scores" isResponsive />');
+        expect(rules).toEqual(['prop:role', 'prop:tabIndex']);
+        expect(output).not.toMatch(
+          /`(role|tabIndex)` was dropped[^\n]*re-apply/
+        );
+        expect(output).toContain(
+          '`role` was dropped: `Table isResponsive` renders its container itself'
+        );
+      });
+
+      it('asks for a name when neither has one', () => {
+        const { output, rules } = fold('', '');
+        expect(rules).toEqual(['name:Table']);
+        expect(output).toContain('named by those alone, so give the Table one');
+      });
+
+      it('asks for no name when the Table spreads props, which could hold one', () => {
+        expect(fold('', ' {...p}').rules).toEqual([]);
+      });
     });
 
     it.each([

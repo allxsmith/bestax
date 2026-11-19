@@ -476,7 +476,7 @@ describe('dateUtils', () => {
     });
 
     it('rules out a period wholly before min or after max without a walk', () => {
-      const shouldDisableDate = jest.fn(() => false);
+      const shouldDisableDate = vi.fn(() => false);
       expect(
         isPeriodUnselectable(june, 'month', {
           min: new Date(2024, 6, 1),
@@ -493,7 +493,7 @@ describe('dateUtils', () => {
     });
 
     it('stops at the first selectable day', () => {
-      const shouldDisableDate = jest.fn(() => false);
+      const shouldDisableDate = vi.fn(() => false);
       isPeriodUnselectable(june, 'year', { shouldDisableDate });
       expect(shouldDisableDate).toHaveBeenCalledTimes(1);
     });
@@ -544,7 +544,7 @@ describe('dateUtils', () => {
     it('walks no further than its limit, and refuses a longer span', () => {
       // Every day between is checked, so a span beyond the limit is refused
       // rather than walked day by day.
-      const shouldDisableDate = jest.fn(() => false);
+      const shouldDisableDate = vi.fn(() => false);
       const start = june(1);
       const atLimit = addDays(start, RANGE_WALK_LIMIT);
       expect(canCloseRange(start, atLimit, { shouldDisableDate })).toBe(true);

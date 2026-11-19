@@ -3,6 +3,9 @@ import { useState } from 'react';
 import { Slider } from './Slider';
 import { Field } from './Field';
 import { Control } from './Control';
+import { LocaleProvider } from '../helpers/LocaleProvider';
+import { Button } from '../elements/Button';
+import { Buttons } from '../elements/Buttons';
 
 const meta: Meta<typeof Slider> = {
   title: 'Form/Slider',
@@ -334,23 +337,13 @@ export const Controlled: Story = {
     return (
       <div>
         <Slider value={value} onChange={setValue} color="primary" />
-        <div className="buttons mt-4">
-          <button className="button" onClick={() => setValue(0)}>
-            0
-          </button>
-          <button className="button" onClick={() => setValue(25)}>
-            25
-          </button>
-          <button className="button" onClick={() => setValue(50)}>
-            50
-          </button>
-          <button className="button" onClick={() => setValue(75)}>
-            75
-          </button>
-          <button className="button" onClick={() => setValue(100)}>
-            100
-          </button>
-        </div>
+        <Buttons mt="4">
+          <Button onClick={() => setValue(0)}>0</Button>
+          <Button onClick={() => setValue(25)}>25</Button>
+          <Button onClick={() => setValue(50)}>50</Button>
+          <Button onClick={() => setValue(75)}>75</Button>
+          <Button onClick={() => setValue(100)}>100</Button>
+        </Buttons>
         <p className="mt-2">
           Current value: <strong>{value}</strong>
         </p>
@@ -868,6 +861,18 @@ export const WithFieldControlWrapper: Story = {
 };
 
 /**
+ * On a right-to-left page the fill, the marks and the value bubble start
+ * from the right, as the native range does.
+ */
+export const RightToLeft: Story = {
+  render: () => (
+    <LocaleProvider locale="ar" dir="rtl">
+      <Slider label="مستوى" defaultValue={25} showOutput />
+    </LocaleProvider>
+  ),
+};
+
+/**
  * Form submission — Slider is HTML-form-compatible. In single-value mode pass
  * a `name` prop. In range mode use `nameLow` and `nameHigh` so each thumb
  * submits as its own form field.
@@ -891,9 +896,9 @@ export const RangeWithNames: Story = {
           showOutput
         />
         <div style={{ marginTop: '1.5rem' }}>
-          <button type="submit" className="button is-primary">
+          <Button type="submit" color="primary">
             Submit
-          </button>
+          </Button>
         </div>
         {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
       </form>

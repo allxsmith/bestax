@@ -4,7 +4,6 @@ import React, {
   useCallback,
   useRef,
   useMemo,
-  useLayoutEffect,
   useId,
 } from 'react';
 import {
@@ -14,16 +13,20 @@ import {
 } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useClassPrefix } from '../helpers/Config';
+import { useScopedNumberFormat } from '../helpers/localeFormat';
+import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import {
   useInsideField,
   useInsideControl,
   rendersOwnField,
   rendersOwnControl,
+  useFieldsetDisabled,
 } from './FormContext';
 import { Field } from './Field';
 import { Control } from './Control';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
+import { useFieldMessage } from './useFieldMessage';
 
 /** Valid sizes for the Slider component. */
 export type SliderSize = 'small' | 'medium' | 'large';
@@ -66,34 +69,62 @@ interface SliderBaseProps
     [key: string]: unknown;
   };
   /** Minimum value. */
-  min?: number;
+  min?: number | undefined;
   /** Maximum value. */
-  max?: number;
-  /** Step increment (default: 1). */
-  step?: number;
+  max?: number | undefined;
+  /**
+   * Step increment (default: 1). The thumb sits on the steps counted from
+   * `min`, so when `max` falls between two, the highest value the slider
+   * holds is the last step below it, and End takes the thumb there.
+   */
+  step?: number | undefined;
   /** Size variant. */
-  size?: SliderSize;
+  size?: SliderSize | undefined;
   /** Color variant. */
-  color?: SliderColor;
+  color?: SliderColor | undefined;
   /** Use rounded track ends. */
   isRounded?: boolean;
   /** Use circular thumb. */
   isCircle?: boolean;
-  /** Show current value tooltip. */
+  /**
+   * Show current value tooltip. The tooltip doesn't announce its changes:
+   * a thumb announces its value as it's moved.
+   */
   showOutput?: boolean;
-  /** Controls tooltip visibility on the thumb. */
+  /**
+   * Controls tooltip visibility on the thumb. The tooltip doesn't announce
+   * its changes: a thumb announces its value as it's moved.
+   */
   tooltip?: SliderTooltip;
   /** Shows tick marks along the track. */
   ticks?: boolean;
-  /** Custom labeled marks along the track. Each mark has `{ value: number; label?: ReactNode }`. */
+  /**
+   * Custom labeled marks along the track. Each mark has `{ value: number; label?: ReactNode }`.
+   * A mark's label sits inside its tick, so outside forced colors `--bulma-slider-tick-opacity`
+   * dims the label along with the tick's line, whatever `--bulma-slider-tick-label-color` is.
+   */
   marks?: SliderMark[];
   /** Orientation of the slider. */
   orientation?: SliderOrientation;
-  /** Function to scale the displayed value. */
+  /**
+   * Function to scale the displayed value. With it, and no `getAriaValueText`,
+   * the output's text is also the thumb's `aria-valuetext`, whether or not
+   * the output shows.
+   */
   scale?: (value: number) => number;
-  /** Function to generate the `aria-valuetext` attribute. */
+  /**
+   * Function to generate the `aria-valuetext` attribute. It wins over the
+   * text `formatOutput` and `scale` give the thumb, and it gets the value
+   * before `scale`.
+   */
   getAriaValueText?: (value: number) => string;
-  /** Format function for output display. */
+  /**
+   * Format function for output display. Without it, the output shows the
+   * value as it is, or inside a `LocaleProvider` with a `locale`, written
+   * the way that locale writes numbers, to at most three decimals. With it,
+   * and no `getAriaValueText`, its text is also the thumb's
+   * `aria-valuetext`, whether or not the output shows.
+   */
   formatOutput?: (value: number) => string;
 }
 
@@ -107,14 +138,16 @@ export interface SliderSingleProps extends SliderBaseProps {
    */
   range?: false;
   /** Controlled value. */
-  value?: number;
+  value?: number | undefined;
   /**
-   * Default value for uncontrolled usage.
-   * @defaultValue 0
+   * Default value for uncontrolled usage. Without it a single Slider starts
+   * at the value it holds nearest 0: 0 itself when 0 is one of its steps,
+   * `min` when 0 is below it, or the highest value it holds when 0 is above
+   * that. A range Slider starts at `min` and that highest value.
    */
-  defaultValue?: number;
+  defaultValue?: number | undefined;
   /** Callback when value changes. */
-  onChange?: (value: number) => void;
+  onChange?: ((value: number) => void) | undefined;
   /**
    * Minimum distance between thumbs in range mode.
    * @defaultValue 0
@@ -134,16 +167,21 @@ export interface SliderRangeProps extends SliderBaseProps {
    */
   range: true;
   /** Controlled value. */
-  value?: [number, number];
+  value?: [number, number] | undefined;
   /**
-   * Default value for uncontrolled usage.
-   * @defaultValue 0
+   * Default value for uncontrolled usage. Without it the low thumb starts at
+   * `min` and the high one at the highest value the slider holds, which is
+   * `max` unless `max` falls between two steps.
+   * @defaultValue [min, the highest step]
    */
-  defaultValue?: [number, number];
+  defaultValue?: [number, number] | undefined;
   /** Callback when value changes. */
-  onChange?: (value: [number, number]) => void;
+  onChange?: ((value: [number, number]) => void) | undefined;
   /**
-   * Minimum distance between thumbs in range mode.
+   * Minimum distance between thumbs in range mode. A thumb moved toward the
+   * other stops on the nearest step at least this far from it, so when this
+   * isn't a whole number of steps, the thumbs end up a little further apart.
+   * Where there isn't that much room, a thumb stops at the slider's end.
    * @defaultValue 0
    */
   minDistance?: number;
@@ -164,11 +202,101 @@ export interface SliderRangeProps extends SliderBaseProps {
  * nested in the `.control`, and warns in development. Wrap the `Control` in a
  * `Field` instead, and set the `label`, `horizontal` and class name on that
  * `Field`.
+ * @helperProps Helper props go on the `.slider` wrapper `<div>`, with
+ * `className`. The other attributes go on the `<input>`, the low thumb's in
+ * range mode.
  * @extraProp {boolean} [disabled=false] - Whether the slider is disabled.
  * @extraProp {string} [className] - Additional CSS classes.
  * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the input element.
  */
 export type SliderProps = SliderSingleProps | SliderRangeProps;
+
+/**
+ * A number as its digits and the place of the last one, read from the way
+ * JavaScript writes it, which is the attribute a browser reads: 0.25 is 25
+ * at -2, and 3e-7 is 3 at -7.
+ */
+function toDecimal(value: number): [bigint, number] {
+  const [digits, exponent = '0'] = String(value).split('e');
+  const [whole, fraction = ''] = digits.split('.');
+  return [BigInt(whole + fraction), Number(exponent) - fraction.length];
+}
+
+/**
+ * The step from `min` nearest `value` on one side, as a browser counts steps:
+ * the last at or below it, or with `up`, the first at or above it; `min` when
+ * `value` isn't above `min`. A step that isn't a positive number counts as 1,
+ * as the browser counts it, and a bound that isn't a finite number leaves
+ * `value` as it is.
+ */
+function stepFrom(
+  min: number,
+  value: number,
+  step: number,
+  up: boolean
+): number {
+  if (!Number.isFinite(min) || !Number.isFinite(value)) return value;
+  if (!(value > min)) return min;
+  const size = step > 0 && Number.isFinite(step) ? step : 1;
+  // Counted in whole numbers of the finest decimal place the three use, as
+  // the browser counts in decimals from the attributes, so 0.3 holds three
+  // steps of 0.1, and a max worked out in JavaScript, such as 0.01 * 31 * 3,
+  // which is 0.9299999999999999, holds 92 steps of 0.01, not 93.
+  const [low, lowPlace] = toDecimal(min);
+  const [high, highPlace] = toDecimal(value);
+  const [unit, unitPlace] = toDecimal(size);
+  const place = Math.min(lowPlace, highPlace, unitPlace);
+  const at = (digits: bigint, from: number) =>
+    digits * BigInt(10) ** BigInt(from - place);
+  const start = at(low, lowPlace);
+  const stride = at(unit, unitPlace);
+  const span = at(high, highPlace) - start;
+  let steps = span / stride;
+  if (up && steps * stride < span) steps += BigInt(1);
+  const top = Number(`${start + steps * stride}e${place}`);
+  // Browsers keep a fraction to fifteen significant digits, so a step of 1/3
+  // ends at 10, not 9.999999999999998, and 0.9 is written 0.9. A whole
+  // number they keep as it is. Next to a max written with more digits, the
+  // fifteen can round a hair above it, as Chromium and WebKit hold it: with
+  // a max and step of 0.7 + 0.1, 0.7999999999999999, they hold 0.8.
+  return Number.isInteger(top) ? top : Number(top.toPrecision(15));
+}
+
+/**
+ * The highest value a range input with these bounds holds, as browsers write
+ * it: the last step from `min` at or below `max`, where a browser puts the
+ * thumb when `max` falls between two steps, or `min` when `max` isn't above
+ * it.
+ */
+function highestStep(min: number, max: number, step: number): number {
+  return stepFrom(min, max, step, false);
+}
+
+/**
+ * `a + b`, with a fraction kept to the fifteen significant digits browsers
+ * keep, so a float's error, as in 0.2 + 0.1, doesn't move it across a step.
+ */
+function addKept(a: number, b: number): number {
+  const sum = a + b;
+  return Number.isInteger(sum) ? sum : Number(sum.toPrecision(15));
+}
+
+/**
+ * Where a single Slider with no `defaultValue` starts: the value it holds
+ * nearest 0, which is where the browser puts the thumb (#2108). That's `min`
+ * when 0 is below it, the highest step when 0 is above that, and otherwise
+ * the step nearest 0, the higher of two as near, as the browser rounds; 0
+ * itself when 0 is a step. Bounds that aren't finite numbers leave it at 0.
+ */
+function startInRange(min: number, max: number, step: number): number {
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return 0;
+  const top = highestStep(min, max, step);
+  if (0 < min) return min;
+  if (0 > top) return top;
+  const below = stepFrom(min, 0, step, false);
+  const above = stepFrom(min, 0, step, true);
+  return above <= -below ? above : below;
+}
 
 /**
  * Helper to compute tick positions.
@@ -270,7 +398,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       color,
       isRounded = false,
       isCircle = false,
-      disabled = false,
+      disabled: disabledProp,
       showOutput = false,
       tooltip,
       ticks,
@@ -310,6 +438,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
     void _nameLow;
     void _nameHigh;
 
+    const disabled = useFieldsetDisabled(disabledProp);
     const insideField = useInsideField();
     const insideControl = useInsideControl();
     const ownField = rendersOwnField('Slider', {
@@ -388,10 +517,17 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
 
     // --- Range mode state ---
     const [internalRange, setInternalRange] = useState<[number, number]>(() =>
-      range ? ((defaultValue as [number, number]) ?? [min, max]) : [min, min]
+      range
+        ? ((defaultValue as [number, number]) ?? [
+            min,
+            // Where the browser puts the high thumb, `max` unless `max` is
+            // off the step grid (#2102).
+            highestStep(min, max, step),
+          ])
+        : [min, min]
     );
     const [internalSingle, setInternalSingle] = useState<number>(() =>
-      !range ? ((defaultValue as number) ?? 0) : 0
+      !range ? ((defaultValue as number) ?? startInRange(min, max, step)) : 0
     );
     const [showTooltip, setShowTooltip] = useState(false);
     const [showTooltipHigh, setShowTooltipHigh] = useState(false);
@@ -437,13 +573,18 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       [scale]
     );
 
-    // Format helper
+    // Format helper: the caller's, else the locale's, else the number as is.
+    const formatNumber = useScopedNumberFormat();
+    const writeNumber = useCallback(
+      (v: number) => (formatNumber ? formatNumber(v) : v.toString()),
+      [formatNumber]
+    );
     const formatValue = useCallback(
       (v: number) => {
         const scaled = scaleValue(v);
-        return formatOutput ? formatOutput(scaled) : scaled.toString();
+        return formatOutput ? formatOutput(scaled) : writeNumber(scaled);
       },
-      [formatOutput, scaleValue]
+      [formatOutput, scaleValue, writeNumber]
     );
 
     // --- Handlers ---
@@ -456,46 +597,64 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       [isControlled, onChange]
     );
 
+    // A thumb stops on the nearest step at least `minDistance` from the
+    // other, since the browser holds it on a step, and an off-grid stop would
+    // report a value it isn't at (#2141). The low thumb never goes below
+    // `min`, and the high one never past the highest step, or past the low
+    // thumb's value when that is higher.
     const handleRangeLowChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
         const raw = parseFloat(e.target.value);
-        const clamped = Math.min(raw, currentRange[1] - minDistance);
+        const clamped = Math.max(
+          min,
+          Math.min(
+            raw,
+            highestStep(min, addKept(currentRange[1], -minDistance), step)
+          )
+        );
         const newRange: [number, number] = [clamped, currentRange[1]];
         if (!isControlled) setInternalRange(newRange);
         (onChange as ((v: [number, number]) => void) | undefined)?.(newRange);
       },
-      [isControlled, onChange, currentRange, minDistance]
+      [isControlled, onChange, currentRange, minDistance, min, step]
     );
 
     const handleRangeHighChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
         const raw = parseFloat(e.target.value);
-        const clamped = Math.max(raw, currentRange[0] + minDistance);
+        const clamped = Math.max(
+          raw,
+          Math.min(
+            stepFrom(min, addKept(currentRange[0], minDistance), step, true),
+            Math.max(highestStep(min, max, step), currentRange[0])
+          )
+        );
         const newRange: [number, number] = [currentRange[0], clamped];
         if (!isControlled) setInternalRange(newRange);
         (onChange as ((v: [number, number]) => void) | undefined)?.(newRange);
       },
-      [isControlled, onChange, currentRange, minDistance]
+      [isControlled, onChange, currentRange, minDistance, min, max, step]
     );
 
-    // Key handler for Home/End
+    // Home and End on a single Slider's thumb. A range's thumbs leave them to
+    // the browser, which moves a thumb to its end, and their change handlers
+    // keep it from passing the other thumb, as they do for the arrow keys.
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Home') {
           e.preventDefault();
-          if (!range) {
-            if (!isControlled) setInternalSingle(min);
-            (onChange as ((v: number) => void) | undefined)?.(min);
-          }
+          if (!isControlled) setInternalSingle(min);
+          (onChange as ((v: number) => void) | undefined)?.(min);
         } else if (e.key === 'End') {
           e.preventDefault();
-          if (!range) {
-            if (!isControlled) setInternalSingle(max);
-            (onChange as ((v: number) => void) | undefined)?.(max);
-          }
+          // The highest value the input holds, `max` itself unless `max` is
+          // off the step grid, as the browser's own End does (#2001).
+          const top = highestStep(min, max, step);
+          if (!isControlled) setInternalSingle(top);
+          (onChange as ((v: number) => void) | undefined)?.(top);
         }
       },
-      [range, isControlled, onChange, min, max]
+      [isControlled, onChange, min, max, step]
     );
 
     // Tick positions
@@ -518,6 +677,9 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       ? `(${thumbCssVar} * 1.2)`
       : thumbCssVar;
 
+    // Measured from where the track starts: its inline start when
+    // horizontal, which is the right edge right to left, where the native
+    // range puts its minimum, and its bottom when vertical.
     const getThumbLeft = (progressPct: number) => {
       const fraction = progressPct / 100;
       return `calc(${effectiveThumbExpr} / 2 + ${fraction} * (100% - ${effectiveThumbExpr}))`;
@@ -584,13 +746,16 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
     const showTipHigh =
       tooltipMode === 'always' || (tooltipMode === 'auto' && showTooltipHigh);
 
-    // Aria value text
+    // The thumb's value text: `getAriaValueText`'s, or else the output's
+    // text when `formatOutput` or `scale` is set.
     const getAriaProps = (value: number) => {
       const ariaProps: Record<string, string> = {};
       if (getAriaValueText) {
         ariaProps['aria-valuetext'] = getAriaValueText(value);
-      } else if (scale) {
-        ariaProps['aria-valuetext'] = scaleValue(value).toString();
+      } else if (formatOutput || scale) {
+        // An empty text would hide the value, so the thumb's own number reads.
+        const text = formatValue(value);
+        if (text) ariaProps['aria-valuetext'] = text;
       }
       return ariaProps;
     };
@@ -608,10 +773,15 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       ): number => {
         const wr = wrapper.getBoundingClientRect();
         const tooltipWidth = el.offsetWidth;
-        // Corrected center: accounts for thumb inset from track edges
+        // Corrected center: accounts for thumb inset from track edges. The
+        // native range mirrors right to left, so the thumb is that far from
+        // the right edge instead, and the nudge, a physical shift, follows.
         const fraction = progressPct / 100;
+        const along = thumbSizePx / 2 + fraction * (wr.width - thumbSizePx);
         const centerX =
-          wr.left + thumbSizePx / 2 + fraction * (wr.width - thumbSizePx);
+          getComputedStyle(wrapper).direction === 'rtl'
+            ? wr.right - along
+            : wr.left + along;
         const tooltipLeft = centerX - tooltipWidth / 2;
         const tooltipRight = centerX + tooltipWidth / 2;
         if (tooltipLeft < wr.left) {
@@ -625,7 +795,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       []
     );
 
-    useLayoutEffect(() => {
+    useClientLayoutEffect(() => {
       if (isVertical) return;
       const wrapper = wrapperRef.current;
       const el = outputRef.current;
@@ -639,7 +809,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       }
     });
 
-    useLayoutEffect(() => {
+    useClientLayoutEffect(() => {
       if (isVertical || !range) return;
       const wrapper = wrapperRef.current;
       const el = outputHighRef.current;
@@ -653,7 +823,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
     });
 
     // Detect vertical tooltip overflow: flip to left if no space on right
-    useLayoutEffect(() => {
+    useClientLayoutEffect(() => {
       if (!isVertical) return;
       const wrapper = wrapperRef.current;
       const el = outputRef.current;
@@ -686,9 +856,11 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         <div className={prefixedClassNames(classPrefix, 'slider-ticks')}>
           {tickPositions.map((tick, i) => {
             const pct = ((tick.value - min) / (max - min)) * 100;
+            // From the inline start, so a right-to-left page puts 0 on the
+            // right, where the native thumb sits. Left to right that is `left`.
             const posStyle = isVertical
               ? { bottom: `${pct}%` }
-              : { left: `${pct}%` };
+              : { insetInlineStart: `${pct}%` };
             const isEndpoint = tick.value === min || tick.value === max;
             return (
               <span
@@ -715,10 +887,13 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       );
     };
 
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+    // The caller's ids go where the other attributes do, on the only thumb
+    // or the low one, and the message describes both thumbs.
+    const { messageEl, messageId, describedBy } = useFieldMessage(
+      message,
+      messageColor,
+      rest['aria-describedby'] as string | undefined
+    );
 
     // --- Single slider ---
     const sliderElement = !range ? (
@@ -752,10 +927,14 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           {...rest}
           // After the spread: an undefined `id` key in rest would wipe it.
           id={controlId}
+          aria-describedby={describedBy}
         />
         {tooltipMode !== 'hidden' && (
           <output
             ref={outputRef}
+            // An output is a live region, and the thumb announces the value
+            // as it changes, so this one doesn't announce it again.
+            aria-live="off"
             className={prefixedClassNames(classPrefix, 'slider-output', {
               'is-visible': showTipLow,
               'is-flipped': flipped,
@@ -775,8 +954,8 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
                         right: 'auto',
                       }) as React.CSSProperties)
                 : ({
-                    left: getThumbLeft(progressSingle),
-                    transform: `translateX(calc(-50% + ${nudgeX}px))`,
+                    insetInlineStart: getThumbLeft(progressSingle),
+                    transform: `translateX(calc(var(--slider-output-shift, -50%) + ${nudgeX}px))`,
                     '--slider-output-arrow-offset': `calc(50% - ${nudgeX}px)`,
                   } as React.CSSProperties)
             }
@@ -814,7 +993,6 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           value={currentRange[0]}
           disabled={disabled}
           onChange={handleRangeLowChange}
-          onKeyDown={handleKeyDown}
           onMouseEnter={() => setShowTooltip(true)}
           onMouseLeave={() => setShowTooltip(false)}
           onFocus={() => setShowTooltip(true)}
@@ -832,6 +1010,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           {...getAriaProps(currentRange[0])}
           {...thumbRest}
           id={controlId}
+          aria-describedby={describedBy}
           {...(nameLow !== undefined ? { name: nameLow } : {})}
         />
         {/* High thumb */}
@@ -859,6 +1038,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           aria-orientation={isVertical ? 'vertical' : undefined}
           {...highThumb.aria}
           {...getAriaProps(currentRange[1])}
+          aria-describedby={messageId}
           name={nameHigh}
         />
         {/* Each wired thumb's own text, read after the label. A hidden element
@@ -875,6 +1055,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         {tooltipMode !== 'hidden' && (
           <output
             ref={outputRef}
+            aria-live="off"
             className={prefixedClassNames(
               classPrefix,
               'slider-output',
@@ -899,8 +1080,8 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
                         right: 'auto',
                       }) as React.CSSProperties)
                 : ({
-                    left: getThumbLeft(progressLow),
-                    transform: `translateX(calc(-50% + ${nudgeX}px))`,
+                    insetInlineStart: getThumbLeft(progressLow),
+                    transform: `translateX(calc(var(--slider-output-shift, -50%) + ${nudgeX}px))`,
                     '--slider-output-arrow-offset': `calc(50% - ${nudgeX}px)`,
                   } as React.CSSProperties)
             }
@@ -912,6 +1093,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         {tooltipMode !== 'hidden' && (
           <output
             ref={outputHighRef}
+            aria-live="off"
             className={prefixedClassNames(
               classPrefix,
               'slider-output',
@@ -936,8 +1118,8 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
                         right: 'auto',
                       }) as React.CSSProperties)
                 : ({
-                    left: getThumbLeft(progressHigh),
-                    transform: `translateX(calc(-50% + ${nudgeXHigh}px))`,
+                    insetInlineStart: getThumbLeft(progressHigh),
+                    transform: `translateX(calc(var(--slider-output-shift, -50%) + ${nudgeXHigh}px))`,
                     '--slider-output-arrow-offset': `calc(50% - ${nudgeXHigh}px)`,
                   } as React.CSSProperties)
             }

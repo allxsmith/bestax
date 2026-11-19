@@ -1,7 +1,7 @@
 import { supportsInputType } from '../_pickerInternals/nativeInputSupport';
 
 describe('supportsInputType', () => {
-  afterEach(() => jest.restoreAllMocks());
+  afterEach(() => vi.restoreAllMocks());
 
   it('reports a type the browser implements', () => {
     expect(supportsInputType('month')).toBe(true);
@@ -12,7 +12,7 @@ describe('supportsInputType', () => {
   });
 
   it('works each type out once', () => {
-    const createElement = jest.spyOn(document, 'createElement');
+    const createElement = vi.spyOn(document, 'createElement');
     expect(supportsInputType('week')).toBe(true);
     expect(supportsInputType('week')).toBe(true);
     expect(createElement).toHaveBeenCalledTimes(1);

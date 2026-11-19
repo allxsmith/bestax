@@ -1,5 +1,4 @@
 import React, { forwardRef } from 'react';
-import { usePrefixedClassNames } from '../helpers/classNames';
 import { Field, FieldProps } from './Field';
 import { Control, ControlBaseProps } from './Control';
 import { DateInputBase, DateInputBaseProps } from './DateInputBase';
@@ -9,7 +8,9 @@ import {
   rendersOwnField,
   rendersOwnControl,
 } from './FormContext';
-import { useAutoLabelId } from './useAutoLabelId';
+import { useAutoLabelId, useAutoLabelledBy } from './useAutoLabelId';
+import { FieldMessageIdProvider, useFieldMessage } from './useFieldMessage';
+import { usePickerDirAttrs } from './_pickerInternals/useLocaleDefaults';
 
 /**
  * Props for the DateInput convenience wrapper. Extends `DateInputBaseProps`
@@ -26,12 +27,13 @@ import { useAutoLabelId } from './useAutoLabelId';
  * `label`, `horizontal` and class name on that `Field`.
  * @extraProp {string} [name] - Form field name. The text field submits the text it displays. The native input on touch devices submits the ISO value (`YYYY-MM-DD`, or `YYYY-MM` at month granularity), and an `inline` calendar, which has no visible input, submits it from a hidden input (`YYYY-MM-DD`, `YYYY-MM` or `YYYY`).
  * @extraProp {string} [form] - Form id the input belongs to.
+ * @extraProp {string} [autoComplete=off] - An autofill token for the field, such as `bday` for a date of birth, so the browser and assistive technology know what it asks for. On the text field it's `off` unless you give one, since the browser's own suggestions would cover the calendar. The native input on touch devices takes yours too, and the browser's default without one, and an `inline` calendar, with no field, takes none. A date that autofill writes commits when it reads in the token `format` (the default one when `format` is `Intl` options) or through your `parse`. One it can't read, or that `min`, `max` or a blocked day rules out, isn't committed, as with typing: the field shows it as written, and submits it under a `name`, until focus next leaves the field.
  * @extraProp {boolean} [required=false] - Marks the input as required.
  * @extraProp {string} [className] - Additional CSS classes for the input.
  * @extraProp {React.Ref<HTMLInputElement>} [ref] - Forwarded to the underlying `<input>`.
  */
 export interface DateInputProps extends DateInputBaseProps {
-  /** Field label (component auto-wraps in a `Field` if not already inside). Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired in `inline` mode (no visible input to label). Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here. */
+  /** Field label (component auto-wraps in a `Field` if not already inside). Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. In `inline` mode, where there's no input, it names the picker instead, which is then a `role="group"`, through `aria-labelledby`, unless `labelProps.htmlFor` wires it by hand. An `aria-label` or `aria-labelledby` you set names the picker over it, and an `aria-labelledby` key counts even when undefined. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here. Inline, that `Field`'s label names the picker's group whatever the `id`. */
   label?: React.ReactNode;
   /** Size for the label. */
   labelSize?: FieldProps['labelSize'];
@@ -82,7 +84,11 @@ export interface DateInputProps extends DateInputBaseProps {
   isExpanded?: boolean;
   /** Size of the wrapping Control. */
   controlSize?: ControlBaseProps['size'];
-  /** Help/validation text below the input. */
+  /**
+   * Help or validation text under the input. It describes the input through
+   * `aria-describedby`; inline, with no input, it describes the picker's
+   * group when something names it.
+   */
   message?: React.ReactNode;
   /** Color modifier for the help message. */
   messageColor?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
@@ -100,7 +106,11 @@ export interface DateInputProps extends DateInputBaseProps {
  * @returns {JSX.Element}
  *
  * @example
- * <DateInput label="Date of birth" defaultValue={new Date(1990, 0, 1)} />
+ * <DateInput
+ *   label="Date of birth"
+ *   autoComplete="bday"
+ *   defaultValue={new Date(1990, 0, 1)}
+ * />
  *
  * @example
  * <DateInput
@@ -133,6 +143,8 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
       controlClassName,
       ...baseProps
     } = props;
+    // The picker's own direction, which the Control below takes too.
+    const pickerDirAttrs = usePickerDirAttrs(baseProps.locale, baseProps.dir);
     const insideField = useInsideField();
     const insideControl = useInsideControl();
     const ownField = rendersOwnField('DateInput', {
@@ -173,19 +185,36 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
       rendersLabel: ownField && !baseProps.inline,
       hasInput: !baseProps.inline,
     });
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
+    // Inline there's no input for the label's `for`, so the label names the
+    // picker, a group, through `aria-labelledby`, as DateRangeInput's does,
+    // unless you wired it yourself with `labelProps.htmlFor`.
+    const labelsGroup =
+      !!baseProps.inline && !(labelProps && 'htmlFor' in labelProps);
+    const group = useAutoLabelledBy({
+      label,
+      labelProps,
+      rendersLabel: ownField && labelsGroup,
+      callerProps: baseProps,
     });
+    const { messageEl, messageId } = useFieldMessage(message, messageColor);
 
     // The base hides its launcher while the Control it sits in is loading,
     // whether that is the one rendered below or an enclosing one.
     let content: React.ReactNode = (
-      <DateInputBase ref={ref} {...baseProps} id={controlId} />
+      <FieldMessageIdProvider value={messageId}>
+        <DateInputBase
+          ref={ref}
+          {...(labelsGroup && { 'aria-labelledby': group.ariaLabelledBy })}
+          {...baseProps}
+          id={controlId}
+        />
+      </FieldMessageIdProvider>
     );
 
     if (ownControl) {
       content = (
         <Control
+          {...pickerDirAttrs}
           iconLeft={iconLeft}
           iconRight={iconRight}
           iconLeftName={iconLeftName}
@@ -204,14 +233,12 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
       );
     }
 
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
-
     if (ownField) {
       return (
         <Field
           label={label}
           labelSize={labelSize}
-          labelProps={fieldLabelProps}
+          labelProps={labelsGroup ? group.fieldLabelProps : fieldLabelProps}
           horizontal={horizontal}
           className={fieldClassName}
         >

@@ -118,21 +118,11 @@ Display file or directory paths.
 </Paragraph>
 ```
 
-### Keyboard Shortcuts
-
-Display keyboard shortcuts.
-
-```tsx live
-<Paragraph>
-  Press <Code>Ctrl + C</Code> to copy and <Code>Ctrl + V</Code> to paste.
-</Paragraph>
-```
-
 ---
 
 ## Accessibility
 
-- **Code Semantics:** Screen readers may indicate code content differently, helping users understand it's technical content.
+- **Code Semantics:** browsers tell assistive tech that `<code>` is code, but don't count on a screen reader saying so.
 - **Monospace Font:** The `<code>` element typically renders in a monospace font, aiding readability of technical content.
 - **Context:** Provide context around code snippets so users understand what the code represents.
 
@@ -145,6 +135,8 @@ Use `Code` for short inline snippets. For multi-line code blocks that need to pr
 ## Related Components
 
 - [`Pre`](./pre.md): For multi-line preformatted code blocks.
+- [`Kbd`](./kbd.md): For keys and keyboard shortcuts the reader presses, such as Ctrl + C, which
+  are input rather than code.
 - [`Figure`](./figure.md): For code figures with captions.
 - [`Paragraph`](./paragraph.md): For text paragraphs containing code.
 - [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing, color, etc.

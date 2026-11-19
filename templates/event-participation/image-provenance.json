@@ -1,0 +1,16 @@
+{
+  "template": "event-participation",
+  "images": [
+    {
+      "path": "public/media/event_logo_gold.svg",
+      "sha256": "6eeab1d2ff61a6613ee4918cf0d4b2d0772582a81964bb11e2bacb30f57a82ac",
+      "origin": "original",
+      "made": "2026-10-26",
+      "madeBy": "Alex Smith, for this bestax port",
+      "method": "Drawn by code: docs/scripts/template-art/scenes/event-participation.mjs places every block and shape, and the voxel renderer in docs/scripts/template-art writes the SVG, with every texture generated from a palette and a seed. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A blocky gold medal with the number 50 in the pixel font standing proud of its face, inside a raised rim, with two small sparkles; the event's logo.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/media/event_logo_gold.webp, the original's logo image, whose source the original does not record."
+    }
+  ]
+}

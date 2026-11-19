@@ -1,20 +1,45 @@
 // INTERNAL: deliberately not exported from src/index.ts.
-import { useState } from 'react';
-import type { RefObject } from 'react';
+import { useRef, useState } from 'react';
+import type { CSSProperties, RefObject } from 'react';
 import type { PickerPosition } from '../form/_pickerInternals/pickerTypes';
 import { useClientLayoutEffect } from './useClientLayoutEffect';
+import { listenInShadowRoots } from './shadowDom';
 
 /** A corner of the anchor the panel opens from, once `auto` is resolved. */
 export type AnchoredCorner = Exclude<PickerPosition, 'auto'>;
 
 /**
- * Where the panel goes: the corner it opens from and, when it is fixed to
- * the viewport, its coordinates there.
+ * A side of the anchor the panel sits on, centered along it. Asked for,
+ * `left` and `right` are the start and the end of the line, so they swap
+ * under right-to-left text, the way Steps' `labelPosition` reads them.
+ */
+export type AnchoredSide = 'top' | 'bottom' | 'left' | 'right';
+
+/**
+ * Where the panel goes: the corner it opens from, the side it sits on, or
+ * the middle of the viewport and, when it is fixed to the viewport, its
+ * coordinates there.
  */
 export interface AnchoredPosition {
-  position: AnchoredCorner;
+  /**
+   * The corner, the side the panel ended up on, or `center`. A side is the
+   * one on the screen, after the swap under right-to-left text and any flip,
+   * so a stylesheet can put the gap on the side facing the anchor.
+   */
+  position: AnchoredCorner | AnchoredSide | 'center';
   top?: number;
   left?: number;
+  /**
+   * With `matchWidth`, the anchor's width, which a fixed panel takes as its
+   * `min-width`.
+   */
+  minWidth?: number;
+  /**
+   * For a panel in place at a corner, how far to move it sideways from where
+   * its stylesheet draws it, in pixels, so it stays inside the viewport. A
+   * fixed panel's `left` has it already. `anchoredStyle` writes either.
+   */
+  shift?: number;
 }
 
 /**
@@ -23,8 +48,27 @@ export interface AnchoredPosition {
 export interface UseAnchoredPositionOptions {
   /** Whether the panel is on the page. Nothing is measured while it is not. */
   active: boolean;
-  /** The corner asked for, or `auto` to pick one that keeps the panel in the viewport. */
-  position: PickerPosition;
+  /**
+   * The corner asked for, or `auto` to pick one that keeps the panel in the
+   * viewport. A named corner is physical, whatever the page's direction.
+   * Left out, the corner is `bottom-left` lined up with the anchor's inline
+   * start, which is its right edge right to left. A panel in place gets that
+   * from its stylesheet, as Popover's and the pickers' do; a fixed panel's
+   * coordinates read the anchor's direction. A panel at a corner keeps it,
+   * and one that would run past the viewport's left or right edge moves
+   * sideways along the anchor, just far enough to fit or, wider than the
+   * viewport, to the edge its text starts from: a fixed one in its
+   * coordinates, one in place by its `shift`.
+   *
+   * A side centers the panel along that side of the anchor, flips it to the
+   * opposite side when it doesn't fit there and does on the other, tries the
+   * two sides across when neither does (the end first), and keeps a fixed
+   * panel inside the viewport. Unlike a corner, a side's `left` and
+   * `right` are read against the anchor's writing direction. `center` puts
+   * a fixed panel in the middle of the viewport and needs no anchor, for a
+   * panel whose anchor is missing.
+   */
+  position?: PickerPosition | AnchoredSide | 'center';
   /**
    * Whether the panel is fixed to the viewport (it was portaled away from the
    * anchor), which needs coordinates. Otherwise the panel's CSS places it
@@ -45,8 +89,28 @@ export interface UseAnchoredPositionOptions {
    * Reads the gap the panel's own stylesheet puts between it and the anchor,
    * in pixels, each time the panel is measured. `auto` leaves room for it as
    * well; the coordinates don't include it, because the stylesheet applies it.
+   * For a side placement it's told the side the panel is on as it's
+   * measured, so it can read the one margin the stylesheet puts the gap in
+   * there.
    */
-  styledGap?: (panel: HTMLElement) => number;
+  styledGap?: (panel: HTMLElement, side?: AnchoredSide) => number;
+  /**
+   * Whether the panel is at least as wide as the anchor, as a list under its
+   * field is. A panel in place gets that from its stylesheet. A fixed one
+   * can't, so its placement carries the anchor's width as `minWidth` for the
+   * panel to set, and its coordinates and `auto` already allow for it.
+   * @defaultValue false
+   */
+  matchWidth?: boolean;
+  /**
+   * Measures again after each render of the component holding the hook,
+   * before the panel paints, for a panel whose content that component
+   * changes while it's open, as a filtered list's does. A change in size is
+   * followed without it too, but a frame later, so a panel above its anchor
+   * would show for a frame where its old height put it.
+   * @defaultValue false
+   */
+  followContent?: boolean;
 }
 
 /**
@@ -60,6 +124,114 @@ export function marginGap(panel: HTMLElement): number {
     Math.abs(parseFloat(marginTop)) || 0,
     Math.abs(parseFloat(marginBottom)) || 0
   );
+}
+
+/**
+ * `marginGap` for a panel placed on a side, whose stylesheet puts the gap in
+ * its top margin above or below the anchor and in its left margin beside
+ * it, negative above it or to its left. It reads that one margin for the
+ * side the panel is on, so a margin on the other axis, such as `mx`, leaves
+ * the gap alone. In pixels.
+ */
+export function sideMarginGap(panel: HTMLElement, side?: AnchoredSide): number {
+  const { marginTop, marginLeft } = getComputedStyle(panel);
+  const margin = side === 'left' || side === 'right' ? marginLeft : marginTop;
+  return Math.abs(parseFloat(margin)) || 0;
+}
+
+const oppositeSide: Record<AnchoredSide, AnchoredSide> = {
+  top: 'bottom',
+  bottom: 'top',
+  left: 'right',
+  right: 'left',
+};
+
+const isSide = (position: string | undefined): position is AnchoredSide =>
+  position !== undefined && position in oppositeSide;
+
+/** `value` moved into `[0, max]`, or `0` when `max` is below it. */
+const clampTo = (value: number, max: number): number =>
+  Math.max(0, Math.min(value, max));
+
+/**
+ * Places a panel on a side of the anchor. The side asked for is turned into
+ * the one on the screen, then flipped when the panel doesn't fit there and
+ * does on the other, or moved to a side across, the end first, when it fits
+ * on neither. With no room anywhere it stays on the side asked for. A fixed
+ * panel is centered along the side and moved into the viewport, with
+ * `styledGap` counted as the margin its stylesheet puts on the side facing
+ * the anchor, which the coordinates leave out. The viewport
+ * is the root element's client area, which a fixed box resolves against, so
+ * a classic scrollbar doesn't hide the panel's edge.
+ */
+function placeOnSide(
+  asked: AnchoredSide,
+  anchor: HTMLElement,
+  rect: DOMRect,
+  size: { width: number; height: number },
+  fixed: boolean,
+  offset: number,
+  styled: number
+): AnchoredPosition {
+  const rtl = getComputedStyle(anchor).direction === 'rtl';
+  const onScreen =
+    rtl && (asked === 'left' || asked === 'right')
+      ? oppositeSide[asked]
+      : asked;
+  const { clientWidth, clientHeight } = anchor.ownerDocument.documentElement;
+  const { width, height } = size;
+  const gap = offset + styled;
+  const room: Record<AnchoredSide, number> = {
+    top: rect.top - gap - height,
+    bottom: clientHeight - rect.bottom - gap - height,
+    left: rect.left - gap - width,
+    right: clientWidth - rect.right - gap - width,
+  };
+  const across: AnchoredSide[] =
+    onScreen === 'top' || onScreen === 'bottom'
+      ? rtl
+        ? ['left', 'right']
+        : ['right', 'left']
+      : ['bottom', 'top'];
+  const side =
+    [onScreen, oppositeSide[onScreen], ...across].find(
+      candidate => room[candidate] >= 0
+    ) ?? onScreen;
+  if (!fixed) return { position: side };
+
+  // Where the panel's box lands once the stylesheet's margin moves it,
+  // kept in the viewport, then given back as coordinates without that margin.
+  const vertical = side === 'top' || side === 'bottom';
+  const top = vertical
+    ? side === 'bottom'
+      ? rect.bottom + gap
+      : rect.top - gap - height
+    : rect.top + (rect.height - height) / 2;
+  const left = vertical
+    ? rect.left + (rect.width - width) / 2
+    : side === 'right'
+      ? rect.right + gap
+      : rect.left - gap - width;
+  const shift = side === 'bottom' || side === 'right' ? styled : -styled;
+  return {
+    position: side,
+    top: clampTo(top, clientHeight - height) - (vertical ? shift : 0),
+    left: clampTo(left, clientWidth - width) - (vertical ? 0 : shift),
+  };
+}
+
+/**
+ * A fixed panel in the middle of the viewport, the root element's client
+ * area, and kept inside it.
+ */
+function centerIn(panel: HTMLElement): AnchoredPosition {
+  const { width, height } = panel.getBoundingClientRect();
+  const { clientWidth, clientHeight } = panel.ownerDocument.documentElement;
+  return {
+    position: 'center',
+    top: Math.max(0, (clientHeight - height) / 2),
+    left: Math.max(0, (clientWidth - width) / 2),
+  };
 }
 
 /**
@@ -80,18 +252,60 @@ function resolveAuto(
 }
 
 const samePosition = (a: AnchoredPosition, b: AnchoredPosition): boolean =>
-  a.position === b.position && a.top === b.top && a.left === b.left;
+  a.position === b.position &&
+  a.top === b.top &&
+  a.left === b.left &&
+  a.minWidth === b.minWidth &&
+  a.shift === b.shift;
 
 /**
- * Places a floating panel against its anchor: resolves `auto` to a corner
- * and, for a panel fixed to the viewport, works out its coordinates. It
- * measures again on resize and on any scroll of the anchor's window (an
- * iframe's, when the anchor renders into one), so a fixed panel follows its
- * anchor. A measurement that changes nothing doesn't render again.
+ * The custom property a panel in place takes its shift in, which its
+ * stylesheet's corner rules add to the corner's edge. The component writes
+ * it; it isn't for a theme to set.
+ */
+export const ANCHORED_SHIFT = '--bulma-anchored-shift';
+
+/**
+ * The inline style that puts a panel where `useAnchoredPosition` placed it:
+ * a fixed panel's coordinates, or, for a panel in place, its shift in
+ * `--bulma-anchored-shift`, written as 0 while it fits so a panel inside a
+ * shifted one never takes that one's. A custom property moves nothing on its
+ * own, so a panel's margins, helper classes included, its `transform` and
+ * its `translate` all still apply, and anything fixed inside it stays fixed
+ * to the viewport.
+ */
+export function anchoredStyle(
+  placement: AnchoredPosition,
+  fixed: boolean
+): CSSProperties {
+  if (fixed) {
+    return {
+      position: 'fixed',
+      top: placement.top,
+      left: placement.left,
+      minWidth: placement.minWidth,
+    };
+  }
+  return { [ANCHORED_SHIFT]: `${placement.shift ?? 0}px` } as CSSProperties;
+}
+
+/**
+ * Places a floating panel against its anchor: resolves `auto` to a corner,
+ * or a side to the one that fits, and, for a panel fixed to the viewport,
+ * works out its coordinates. It
+ * measures again on resize, on any scroll of the anchor's window (an
+ * iframe's, when the anchor renders into one) or of a shadow root it's
+ * rendered in, and when the panel or the anchor changes size, so a fixed
+ * panel follows its anchor and its own content. Those measure once in the next frame, however many arrive before
+ * it. With `followContent` it also measures after each render. A
+ * measurement that changes nothing doesn't render again. A panel that's
+ * replaced while it's open, as a portal moving to another target replaces
+ * it, is watched from the next measurement on.
  *
- * Measuring happens in a layout effect, so the panel is placed before it
- * paints. It needs both elements on the page while `active` is on, and
- * keeps the last placement when either is missing.
+ * The first measurement happens in a layout effect, so the panel is placed
+ * before it paints. It needs both elements on the page while `active` is
+ * on, or the panel alone for `center`, and keeps the last placement when
+ * one it needs is missing.
  *
  * @function useAnchoredPosition
  * @param anchorRef - The element the panel opens from.
@@ -102,23 +316,97 @@ const samePosition = (a: AnchoredPosition, b: AnchoredPosition): boolean =>
 export function useAnchoredPosition(
   anchorRef: RefObject<HTMLElement | null>,
   panelRef: RefObject<HTMLElement | null>,
-  { active, position, fixed, offset = 4, styledGap }: UseAnchoredPositionOptions
+  {
+    active,
+    position,
+    fixed,
+    offset = 4,
+    styledGap,
+    matchWidth = false,
+    followContent = false,
+  }: UseAnchoredPositionOptions
 ): AnchoredPosition {
   const [resolved, setResolved] = useState<AnchoredPosition>({
-    position: position === 'auto' ? 'bottom-left' : position,
+    position:
+      position === undefined || position === 'auto' ? 'bottom-left' : position,
   });
+  // The measurement while the panel is active, for `followContent` to run
+  // again after a render.
+  const updateRef = useRef<(() => void) | null>(null);
+  // Where the panel is drawn now, which decides the margin `styledGap` reads
+  // for a side placement.
+  const shownRef = useRef(resolved.position);
 
   useClientLayoutEffect(() => {
     if (!active) return undefined;
     const view =
       (anchorRef.current ?? panelRef.current)?.ownerDocument.defaultView ??
       window;
+    // The panel's content can change size without the component holding the
+    // hook rendering, as an image loading or a child's own state does, and
+    // so can the anchor. Set up below, once `update` exists.
+    let resizes: ResizeObserver | null = null;
+    // The panel being watched. A portal that moves to another target
+    // remounts the panel, as a popup that opens with the dialog it's in
+    // does, so each measurement watches the one that's there now.
+    let watched: HTMLElement | null = null;
+    const watch = (panel: HTMLElement) => {
+      if (panel === watched) return;
+      if (watched) resizes?.unobserve(watched);
+      resizes?.observe(panel);
+      watched = panel;
+    };
+    // A scroll inside a shadow root doesn't reach the window, so the shadow
+    // roots the anchor is rendered in are listened on too, as each
+    // measurement finds them: another anchor, or a component around it that
+    // gets its shadow root later, changes them.
+    const shadowScrolls = listenInShadowRoots('scroll', () => schedule(), {
+      passive: true,
+      capture: true,
+    });
     const update = () => {
       const anchor = anchorRef.current;
       const panel = panelRef.current;
-      if (!anchor || !panel) return;
+      if (!panel) return;
+      if (position === 'center') {
+        watch(panel);
+        const next = centerIn(panel);
+        setResolved(prev => (samePosition(prev, next) ? prev : next));
+        return;
+      }
+      if (!anchor) return;
+      shadowScrolls.follow(anchor);
+      watch(panel);
       const rect = anchor.getBoundingClientRect();
-      const { width, height } = panel.getBoundingClientRect();
+      // A panel in place where its stylesheet draws it, without the shift it
+      // may have now, so the shift is never worked out from itself.
+      const shifted = fixed ? '' : panel.style.getPropertyValue(ANCHORED_SHIFT);
+      const unshift = shifted !== '' && shifted !== '0px';
+      if (unshift) panel.style.setProperty(ANCHORED_SHIFT, '0px');
+      const measured = panel.getBoundingClientRect();
+      if (unshift) panel.style.setProperty(ANCHORED_SHIFT, shifted);
+      // The width the panel has once it's at least as wide as the anchor.
+      const width = matchWidth
+        ? Math.max(measured.width, rect.width)
+        : measured.width;
+      const { height } = measured;
+      if (isSide(position)) {
+        const next = placeOnSide(
+          position,
+          anchor,
+          rect,
+          { width, height },
+          fixed,
+          offset,
+          styledGap?.(
+            panel,
+            isSide(shownRef.current) ? shownRef.current : undefined
+          ) ?? 0
+        );
+        setResolved(prev => (samePosition(prev, next) ? prev : next));
+        return;
+      }
+      const { clientWidth } = anchor.ownerDocument.documentElement;
       const corner =
         position === 'auto'
           ? resolveAuto(
@@ -128,26 +416,101 @@ export function useAnchoredPosition(
               height,
               offset + (styledGap?.(panel) ?? 0)
             )
-          : position;
+          : (position ?? 'bottom-left');
+      // The default lines up with the anchor's inline start, so right to
+      // left a fixed panel lines up the right edges. A named corner doesn't,
+      // and a panel in place takes the default's side from its stylesheet.
+      const startsRight =
+        position === undefined &&
+        fixed &&
+        getComputedStyle(anchor).direction === 'rtl';
+      // Where the panel's left edge is: a fixed one's at the corner's edge,
+      // and one in place where its stylesheet draws it, which is the corner's
+      // edge for the stock rules and wherever a theme or a narrow screen's
+      // own rule puts it otherwise.
+      const edge = !fixed
+        ? measured.left
+        : corner.endsWith('left') && !startsRight
+          ? rect.left
+          : rect.right - width;
+      // Kept while the panel fits, and otherwise moved along the anchor just
+      // far enough to stay inside the viewport, the root element's client
+      // area, as a fixed side placement is: a fixed panel's coordinate, and
+      // a shift from there for one in place, which is as wide as it's drawn.
+      // One wider than the viewport keeps the edge its text starts from in
+      // view.
+      const room = clientWidth - (fixed ? width : measured.width);
+      const left =
+        room >= 0
+          ? clampTo(edge, room)
+          : getComputedStyle(anchor).direction === 'rtl'
+            ? room
+            : 0;
       const next: AnchoredPosition = fixed
         ? {
             position: corner,
             top: corner.startsWith('bottom')
               ? rect.bottom + offset
               : rect.top - height - offset,
-            left: corner.endsWith('left') ? rect.left : rect.right - width,
+            left,
+            ...(matchWidth ? { minWidth: rect.width } : {}),
           }
-        : { position: corner };
+        : left === edge
+          ? { position: corner }
+          : { position: corner, shift: left - edge };
       setResolved(prev => (samePosition(prev, next) ? prev : next));
     };
-    update();
-    view.addEventListener('resize', update, { passive: true });
-    view.addEventListener('scroll', update, { passive: true, capture: true });
-    return () => {
-      view.removeEventListener('resize', update);
-      view.removeEventListener('scroll', update, { capture: true });
+
+    // A scroll, a resize or a change in size measures in the next frame,
+    // once however many of them ask.
+    let frame = 0;
+    const schedule = () => {
+      if (frame) return;
+      frame = view.requestAnimationFrame(() => {
+        frame = 0;
+        update();
+      });
     };
-  }, [active, anchorRef, panelRef, position, fixed, offset, styledGap]);
+    const Observer = view.ResizeObserver;
+    resizes = typeof Observer === 'undefined' ? null : new Observer(schedule);
+    if (anchorRef.current) resizes?.observe(anchorRef.current);
+
+    updateRef.current = update;
+    update();
+    view.addEventListener('resize', schedule, { passive: true });
+    view.addEventListener('scroll', schedule, { passive: true, capture: true });
+    return () => {
+      updateRef.current = null;
+      view.cancelAnimationFrame(frame);
+      resizes?.disconnect();
+      view.removeEventListener('resize', schedule);
+      view.removeEventListener('scroll', schedule, { capture: true });
+      shadowScrolls.stop();
+    };
+  }, [
+    active,
+    anchorRef,
+    panelRef,
+    position,
+    fixed,
+    offset,
+    styledGap,
+    matchWidth,
+  ]);
+
+  // After every render, on purpose: the panel's class now says where it's
+  // drawn, and with `followContent` its content is what changed. A side
+  // placement reads its gap from the margin of the side it's drawn on, and a
+  // panel in place is shifted from where its stylesheet draws it, so a panel
+  // that has just moved to another side, or to another corner in place, is
+  // measured again where it now is.
+  useClientLayoutEffect(() => {
+    const moved = shownRef.current !== resolved.position;
+    shownRef.current = resolved.position;
+    if (followContent || (moved && (isSide(resolved.position) || !fixed))) {
+      updateRef.current?.();
+    }
+  });
 
   return resolved;
 }

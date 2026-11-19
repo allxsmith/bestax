@@ -41,12 +41,15 @@ npm create bestax@latest
 
 You'll be asked to:
 
-1. Enter a project name (and, if that directory already holds files, confirm removing them;
-   nothing is removed until you have answered the last question)
-2. Select a framework (Vite or Vite + TypeScript)
-3. Choose a Bulma CSS flavor (the `--bulma` options below)
-4. Select an icon library (Font Awesome, Material Icons, etc.)
-5. Choose whether to install the bestax AI skills into `.claude/skills/`
+1. Enter a project name or path (and, if that directory already holds files, confirm removing
+   them; nothing is removed until you have answered the last question)
+2. Select a framework (Vite or Vite + TypeScript, each plain, with the React Compiler, or with
+   React Router; Vite + TypeScript with TanStack Router; or Next.js, with or without TypeScript)
+3. Choose a linter (Oxlint or ESLint)
+4. Choose a Bulma CSS flavor (the `--bulma` options below)
+5. Select an icon library (Font Awesome, Material Icons, etc.)
+6. Choose whether to install the bestax AI skills into `.claude/skills/`
+7. Choose whether to install the dependencies and start the dev server right away
 
 Every prompt has a flag equivalent, so the whole flow is scriptable and CI-friendly — see the options below.
 
@@ -62,13 +65,33 @@ with or without it.
 
 **Arguments:**
 
-- `[project-directory]` - Optional project directory name. It also becomes the `package.json`
-  name, lower-cased the way `npm init` does and without a leading `_`, since npm rejects both.
+- `[project-directory]` - Optional project directory: a name such as `my-app`, or a path,
+  absolute or relative, such as `../apps/my-app`, whose missing folders are created. Its last
+  part is the project name, held to the same rules as a bare name. It becomes the page title as
+  typed, and the `package.json` name lower-cased the way `npm init` does and without a leading
+  `_`, since npm rejects both. A bare `.` scaffolds into the current directory, named after it,
+  as long as it's empty. It's never emptied, even with `--overwrite`. A bare `..`, or a path
+  ending in `.` or `..`, is refused, so name the directory you want. A directory holding only
+  `.git` counts as empty, as create-vite counts it, so `git init` then `.` works.
 
 **Options:**
 
-- `-t, --template <template>` - Template to use: `vite` or `vite-ts`  
-  **Default:** `vite`
+- `-t, --template <template>` - Template to use:
+  - `vite` - Vite + JavaScript
+  - `vite-ts` - Vite + TypeScript
+  - `vite-compiler` - Vite + JavaScript, with the React Compiler
+  - `vite-compiler-ts` - Vite + TypeScript, with the React Compiler
+  - `react-router` - Vite + JavaScript, with React Router and two pages
+  - `react-router-ts` - Vite + TypeScript, with React Router and two pages
+  - `tanstack-router-ts` - Vite + TypeScript, with TanStack Router and two pages
+  - `next` - Next.js App Router, with two pages
+  - `next-ts` - Next.js App Router + TypeScript, with two pages  
+    **Default:** `vite`
+- `--lint <linter>` - Linter:
+  - `oxlint` - Oxlint, as `npm create vite` sets up. `vite-ts` gets TypeScript 7.
+  - `eslint` - ESLint with typescript-eslint, as `npm create vite -- --eslint` sets up.
+    typescript-eslint doesn't support TypeScript 7 yet, so `vite-ts` stays on TypeScript 6.  
+    **Default:** `oxlint`, which a run without a terminal also gets when it leaves `--lint` out
 - `-b, --bulma <flavor>` - Bulma CSS flavor:
   - `complete` - Full Bulma CSS with all components and helpers
   - `prefixed` - Prefixed version for compatibility
@@ -90,16 +113,26 @@ with or without it.
 - `-y, --yes` - Skip prompts and use defaults or provided options.  
   When used, the following defaults are selected unless overridden by flags:
   - Template: `vite`
+  - Linter: `oxlint`
   - Bulma flavor: `complete`
   - Icon library: `none`
   - AI skills: installed (pass `--no-skills` to opt out)
+  - Install and start: no (pass `--immediate` to opt in)
 
   `-y` never deletes files. If the target directory is not empty, the run stops, lists what is
   there, and changes nothing; add `--overwrite` to empty it first. Earlier versions emptied the
   directory under `-y` alone, so a script that relied on that now needs `--overwrite`.
 
+- `--no-interactive` - The same as `-y`, for anyone used to create-vite's spelling.
+
+- `--immediate` / `--no-immediate` - Install the dependencies with the package manager that ran
+  the CLI and start the dev server once the project is written (or don't), as create-vite's
+  `--immediate` does. When omitted you're asked. With `-y`, or without a terminal, the project is
+  only written, so a scripted run never starts a server it can't stop.
+
 - `--overwrite` - Remove existing files if the target directory is not empty, without asking.
-  Every other flag is checked first, so a typo stops the run before anything is deleted.
+  Every other flag is checked first, so a typo stops the run before anything is deleted. It
+  never empties the current directory or a folder that holds it, however the path is written.
 
 **Example:**
 
@@ -107,8 +140,29 @@ with or without it.
 # Create a TypeScript project with Font Awesome icons
 npm create bestax@latest my-app -- -t vite-ts -i fontawesome -b complete
 
+# The same, linted with ESLint (and on TypeScript 6)
+npm create bestax@latest my-app -- -t vite-ts -i fontawesome --lint eslint
+
 # Use all defaults (skip prompts)
 npm create bestax@latest my-app -- -y
+
+# Scaffold into a path; the package is named my-app
+npm create bestax@latest ../apps/my-app -- -y
+
+# Scaffold into the current, empty directory, then install and start it
+npm create bestax@latest . -- -y --immediate
+
+# Turn on the React Compiler
+npm create bestax@latest my-app -- -t vite-compiler-ts -y
+
+# Start with React Router, a navbar and two pages
+npm create bestax@latest my-app -- -t react-router-ts -y
+
+# The same with TanStack Router
+npm create bestax@latest my-app -- -t tanstack-router-ts -y
+
+# A Next.js App Router app
+npm create bestax@latest my-app -- -t next-ts -y
 
 # The same with bun
 bun create bestax@latest my-app -- -y
@@ -120,6 +174,36 @@ Available templates:
 
 - `vite` - Vite + JavaScript
 - `vite-ts` - Vite + TypeScript
+- `vite-compiler` - Vite + JavaScript, with the [React Compiler](https://react.dev/learn/react-compiler)
+- `vite-compiler-ts` - Vite + TypeScript, with the React Compiler
+- `react-router` - Vite + JavaScript, with [React Router](https://reactrouter.com)
+- `react-router-ts` - Vite + TypeScript, with React Router
+- `tanstack-router-ts` - Vite + TypeScript, with [TanStack Router](https://tanstack.com/router)
+- `next` - [Next.js](https://nextjs.org) App Router
+- `next-ts` - Next.js App Router + TypeScript
+
+The React Compiler templates are the plain ones with the compiler turned on through Babel in
+`vite.config`, the way `npm create vite` builds its `react-compiler` starters.
+
+The React Router templates are the plain ones with React Router 8 in data mode on top: a navbar
+every page shares (`src/Layout`), the routes (`src/router`), and a second page
+(`src/pages/About`), with the starter page as the home page. Each navbar item renders the router's
+`Link` through `as`, as the [routing guide](https://bestax.io/docs/guides/features/routing)
+describes. React Router 8 needs Node 22.22 or newer, so these scaffolds say so in `engines`.
+
+The TanStack Router template does the same with TanStack Router's code-based routes, all in
+`src/router.tsx`. Its navbar items are `NavbarLink`, `Navbar.Item` made into a TanStack link with
+`createLink`, so each `to` is checked against the routes. It's TypeScript only, since that check
+is the reason to choose TanStack Router.
+
+The Next.js templates are Next.js App Router apps, laid out the way `create-next-app --src-dir`
+lays them out, with the same starter page as the Vite templates, naming Next.js. The root layout
+(`src/app/layout`) loads the stylesheets and the navbar (`src/Navigation`, a client component that
+links with `next/link`), so the flavor, icon and provider steps write there. The About page is a
+Server Component: bestax-bulma marks its components `'use client'`, so they render from either.
+`--lint` works as it does for the Vite templates: Oxlint by default, with TypeScript 7, and
+`--lint eslint` for create-next-app's `eslint-config-next`, which keeps TypeScript 6. The
+`.claude/launch.json` they get runs `next dev` on port 3000.
 
 Each template includes:
 

@@ -1,12 +1,15 @@
 /**
  * What the bulma-classes transform needs to know about the project and cannot
  * see from one file: which files a Next.js App Router may render as server
- * components, and which packages render JSX through a runtime other than
- * React.
+ * components, which packages render JSX through a runtime other than React,
+ * and, for the module an HTML page becomes, which are written in TypeScript
+ * and which are Next.js apps, where that module imports no stylesheet, and
+ * which folders the run starts from, where an `index.html` is the site's
+ * home page.
  *
  * Read once per run, from every package.json the run touches: the nearest one
  * above each target, and every one below it, so a monorepo run from its root
- * still finds `apps/web`.
+ * still finds `apps/web`. The folders come from the targets themselves.
  */
 
 import fs from 'node:fs';
@@ -57,9 +60,36 @@ export interface ServerComponentRoot {
   except: string[];
 }
 
+/** A package, and what a module it gains should be written for. */
+export interface PackageLanguage {
+  dir: string;
+  /** It has a `tsconfig.json`, or depends on `typescript`. */
+  typescript: boolean;
+  /**
+   * It depends on `next`, whose Pages Router takes a global stylesheet only
+   * in `pages/_app`, so a page's module imports none there.
+   */
+  nextjs?: boolean;
+}
+
 export interface ProjectFacts {
   serverComponentRoots: ServerComponentRoot[];
   jsxRuntimes: JsxRuntime[];
+  packageLanguages: PackageLanguage[];
+  /**
+   * The folders the run starts from, absolute: each folder it names and each
+   * named file's folder, but for one inside another. Only an `index.html`
+   * in one of them can be the site's home page.
+   */
+  runRoots: string[];
+}
+
+/** Whether `dir` is a folder below `parent`. */
+function isInside(dir: string, parent: string): boolean {
+  const relative = path.relative(parent, dir);
+  return (
+    relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative)
+  );
 }
 
 function nearestManifest(target: string): string | null {
@@ -184,17 +214,28 @@ export function runtimeOf(
 
 export function analyzeProject(targets: string[]): ProjectFacts {
   const manifests = new Set<string>();
+  const starts = new Set<string>();
   for (const target of targets) {
     const nearest = nearestManifest(target);
     if (nearest) manifests.add(path.resolve(nearest));
     const below: string[] = [];
     if (fs.statSync(target, { throwIfNoEntry: false })?.isDirectory()) {
       manifestsBelow(path.resolve(target), below);
+      starts.add(path.resolve(target));
+    } else {
+      starts.add(path.dirname(path.resolve(target)));
     }
     for (const manifest of below) manifests.add(manifest);
   }
 
-  const facts: ProjectFacts = { serverComponentRoots: [], jsxRuntimes: [] };
+  const facts: ProjectFacts = {
+    serverComponentRoots: [],
+    jsxRuntimes: [],
+    packageLanguages: [],
+    runRoots: [...starts]
+      .filter(dir => ![...starts].some(other => isInside(dir, other)))
+      .sort(),
+  };
   for (const manifest of [...manifests].sort()) {
     let pkg: Record<string, Record<string, string> | undefined>;
     try {
@@ -224,6 +265,38 @@ export function analyzeProject(targets: string[]): ProjectFacts {
     }
     const runtime = runtimeOf(dir, deps);
     if (runtime) facts.jsxRuntimes.push({ dir, runtime });
+    facts.packageLanguages.push({
+      dir,
+      typescript:
+        Boolean(deps.typescript) ||
+        fs.existsSync(path.join(dir, 'tsconfig.json')),
+      nextjs: Boolean(deps.next),
+    });
   }
   return facts;
+}
+
+/** The innermost package around `file` of those the run read, if any. */
+function packageAround(
+  file: string,
+  languages: unknown
+): PackageLanguage | undefined {
+  if (!Array.isArray(languages)) return undefined;
+  const resolved = path.resolve(file);
+  return (languages as PackageLanguage[])
+    .filter(entry => resolved.startsWith(`${entry.dir}${path.sep}`))
+    .sort((a, b) => b.dir.length - a.dir.length)[0];
+}
+
+/**
+ * Whether a new module beside `file` should be TypeScript: what the
+ * innermost package around it says, and no when no package does.
+ */
+export function writesTypeScript(file: string, languages: unknown): boolean {
+  return packageAround(file, languages)?.typescript ?? false;
+}
+
+/** Whether the innermost package around `file` is a Next.js app. */
+export function inNextApp(file: string, languages: unknown): boolean {
+  return packageAround(file, languages)?.nextjs ?? false;
 }

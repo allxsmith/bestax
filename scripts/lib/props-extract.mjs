@@ -87,6 +87,8 @@ const DOM_ELEMENT_LABELS = {
   HTMLAnchorElement: '`<a>`',
   HTMLButtonElement: '`<button>`',
   HTMLDivElement: '`<div>`',
+  HTMLDListElement: '`<dl>`',
+  HTMLDataElement: '`<data>`',
   HTMLElement: 'HTML',
   HTMLHRElement: '`<hr>`',
   HTMLHeadingElement: '`<h1>`–`<h6>`',
@@ -187,6 +189,31 @@ function starExportedModule(ts, program, checker, name) {
   return m ? { cat: m[1], mod: m[2] } : null;
 }
 
+/**
+ * Every value name the barrel exports, `export *` ones included, as the checker
+ * reads them. `exportedModules` keys an `export *` by its module, so it knows
+ * `Navbar` and not the `NavbarItem` beside it in the same file.
+ */
+export function barrelExports() {
+  const { ts, program, checker } = createProgram();
+  const index = join(REPO, 'bulma-ui', 'src', 'index.ts').replace(/\\/g, '/');
+  const sf = program.getSourceFiles().find(f => f.fileName === index);
+  const barrel = sf && checker.getSymbolAtLocation(sf);
+  if (!barrel) throw new Error(`cannot read the exports of ${index}`);
+  return new Set(
+    checker
+      .getExportsOfModule(barrel)
+      .filter(symbol => {
+        const target =
+          symbol.flags & ts.SymbolFlags.Alias
+            ? checker.getAliasedSymbol(symbol)
+            : symbol;
+        return Boolean(target.flags & ts.SymbolFlags.Value);
+      })
+      .map(symbol => String(symbol.escapedName))
+  );
+}
+
 function sourceFileFor(program, cat, mod) {
   const want = join(REPO, 'bulma-ui', 'src', cat, `${mod}.tsx`).replace(
     /\\/g,
@@ -199,7 +226,7 @@ function sourceFileFor(program, cat, mod) {
 }
 
 /**
- * `x as T`, `x satisfies T` and `(x)` all unwrap to `x`.
+ * `x as T`, `x satisfies T`, `x!` and `(x)` all unwrap to `x`.
  *
  * The polymorphic components (#641) are declared
  * `const Button = forwardRef(…) as PolymorphicComponent<…>` — `forwardRef`
@@ -214,6 +241,7 @@ function unwrapExpression(ts, node) {
     node &&
     (ts.isAsExpression(node) ||
       ts.isSatisfiesExpression(node) ||
+      ts.isNonNullExpression(node) ||
       ts.isParenthesizedExpression(node))
   ) {
     node = node.expression;
@@ -396,6 +424,22 @@ function propsInterfaceName(ts, inits, name) {
   return null;
 }
 
+/**
+ * The type literal a component declares its props with inline, or null:
+ * `const ToastContainer: React.FC<{ position?: ToastPosition }>`. Its members
+ * are the props, and they read the way an interface's do. Taken as a name,
+ * the literal's text found no interface, so the table came back empty and the
+ * component read as taking no props of its own.
+ */
+function inlinePropsLiteral(ts, init) {
+  const type = init?.parent?.type;
+  const arg =
+    type && ts.isTypeReferenceNode(type) && type.typeArguments?.length === 1
+      ? type.typeArguments[0]
+      : null;
+  return arg && ts.isTypeLiteralNode(arg) ? arg : null;
+}
+
 /** The arrow/function whose first parameter destructures the props. */
 function componentFunction(ts, init) {
   if (!init) return null;
@@ -471,6 +515,11 @@ function jsdocText(ts, node) {
   return '';
 }
 
+/** Whether a node's TSDoc carries `@tagName`, with or without text. */
+function hasJsdocTag(ts, node, tagName) {
+  return ts.getJSDocTags(node).some(tag => tag.tagName.text === tagName);
+}
+
 function jsdocTag(ts, node, tagName) {
   for (const tag of ts.getJSDocTags(node)) {
     if (tag.tagName.text === tagName) {
@@ -482,24 +531,89 @@ function jsdocTag(ts, node, tagName) {
 }
 
 /**
- * Whether a component implementation actually names `children` — an AST walk,
- * not a text match. Scanning source text counted the word in a comment or in an
+ * Whether a component implementation reads its own `children`: an AST walk, not
+ * a text match. Scanning source text counted the word in a comment or in an
  * unrelated string, which is the one way this check can wrongly restore the
  * synthesized `children` row for a component that never renders it (Divider
  * spreads onto `<hr>`, where React throws on children).
+ *
+ * It counts `children` read off the props value: `props.children`, a
+ * `children` destructured from the props, in the parameter or in the body, and
+ * the same through a cast, a non-null assertion, a variable declared as the
+ * props or a rest binding of them. The checker resolves each name to its
+ * declaration, so `children` read off anything else doesn't count, such as an
+ * element's `ref.current.children`, a data node's, or a callback parameter that
+ * shadows `props`. Counting another object's gave a component that takes no
+ * children the row (#2125).
+ *
+ * A way of reading the props it doesn't follow, such as passing them to a
+ * helper, leaves the row out, which is the safe side: the catch-all row still
+ * covers `children`, where a row for a component that takes none is wrong.
  */
-function namesChildren(ts, node) {
-  if (!node) return false;
+export function readsOwnChildren(ts, checker, node) {
+  // `memo(forwardRef(...))` and `Object.assign(forwardRef(...), parts)`: the
+  // component is the innermost first argument, and a part beside it is a
+  // component of its own.
+  let fn = componentFunction(ts, node);
+  for (
+    let call = unwrapExpression(ts, node);
+    !fn && call && ts.isCallExpression(call);
+    call = unwrapExpression(ts, call.arguments[0])
+  ) {
+    fn = componentFunction(ts, call.arguments[0]);
+  }
+  // The props are the first parameter, after any `this` parameter.
+  const param = fn?.parameters.find(
+    p => !(ts.isIdentifier(p.name) && p.name.text === 'this')
+  );
+  if (!param) return false;
+  const isChildrenKey = key =>
+    (ts.isIdentifier(key) || ts.isStringLiteralLike(key)) &&
+    key.text === 'children';
+  // The props parameter, a variable declared as it, or a rest binding
+  // destructured from it.
+  const isProps = expr => {
+    expr = unwrapExpression(ts, expr);
+    if (!expr || !ts.isIdentifier(expr)) return false;
+    const decl = checker.getSymbolAtLocation(expr)?.valueDeclaration;
+    if (!decl) return false;
+    if (decl === param) return true;
+    if (ts.isVariableDeclaration(decl) && ts.isIdentifier(decl.name)) {
+      return isProps(decl.initializer);
+    }
+    return (
+      ts.isBindingElement(decl) &&
+      Boolean(decl.dotDotDotToken) &&
+      isPropsPattern(decl.parent)
+    );
+  };
+  // A destructuring pattern that takes the props apart: the parameter's own,
+  // or one whose value is the props.
+  const isPropsPattern = pattern =>
+    pattern === param.name ||
+    (ts.isVariableDeclaration(pattern.parent) &&
+      isProps(pattern.parent.initializer));
   let found = false;
   const walk = n => {
     if (found || !n) return;
-    if (ts.isIdentifier(n) && n.text === 'children') {
+    if (
+      (ts.isPropertyAccessExpression(n) &&
+        isChildrenKey(n.name) &&
+        isProps(n.expression)) ||
+      (ts.isElementAccessExpression(n) &&
+        isChildrenKey(n.argumentExpression) &&
+        isProps(n.expression)) ||
+      (ts.isBindingElement(n) &&
+        !n.dotDotDotToken &&
+        isChildrenKey(n.propertyName ?? n.name) &&
+        isPropsPattern(n.parent))
+    ) {
       found = true;
       return;
     }
     ts.forEachChild(n, walk);
   };
-  walk(node);
+  walk(fn);
   return found;
 }
 
@@ -516,7 +630,7 @@ function interfaceShape(ts, decl) {
   for (const m of decl.members) {
     if (!ts.isPropertySignature(m) || !m.type || !m.name) return null;
     parts.push(
-      `${m.name.getText()}${m.questionToken ? '?' : ''}: ${m.type.getText()}`
+      `${m.name.getText()}${m.questionToken ? '?' : ''}: ${shownType(ts, m)}`
     );
   }
   return `{ ${parts.join('; ')} }`;
@@ -811,9 +925,39 @@ function typeParamConstraint(ts, member, name) {
   return null;
 }
 
-function renderTypeText(ts, member, aliases, linkBase, used, opts = {}) {
+/**
+ * A member's type as its source spells it, less the `undefined` of an optional
+ * prop. Props type themselves `T | undefined` so a caller with
+ * `exactOptionalPropertyTypes` on can pass `undefined` (#1707), and being
+ * optional already says a prop may be left out, so the table shows `T`. Only
+ * `undefined`, and only on an optional prop: `null`, and a required prop's
+ * `undefined`, are values a caller passes on purpose.
+ */
+function shownTypeNodes(ts, member) {
+  const node = member.type;
+  if (!member.questionToken || !ts.isUnionTypeNode(node)) return [node];
+  const kept = node.types.filter(
+    t => t.kind !== ts.SyntaxKind.UndefinedKeyword
+  );
+  return kept.length && kept.length < node.types.length ? kept : [node];
+}
+
+/**
+ * {@link shownTypeNodes} as source text. A function type left on its own loses
+ * the parentheses `| undefined` needed.
+ */
+function shownType(ts, member) {
+  const nodes = shownTypeNodes(ts, member);
+  if (nodes.length === 1 && ts.isParenthesizedTypeNode(nodes[0])) {
+    return nodes[0].type.getText();
+  }
+  return nodes.map(t => t.getText()).join(' | ');
+}
+
+/** A member's type as a props table prints it, one rendered union member at a time. */
+export function renderTypeText(ts, member, aliases, linkBase, used, opts = {}) {
   const { markdown = true, refs = null } = opts;
-  let text = member.type ? member.type.getText() : 'unknown';
+  let text = member.type ? shownType(ts, member) : 'unknown';
   text = text.replace(/\s+/g, ' ').trim();
 
   // Inline alias references PER UNION MEMBER, not just when the whole type is
@@ -882,6 +1026,11 @@ function renderTypeText(ts, member, aliases, linkBase, used, opts = {}) {
   const seen = new Set();
   let members = parts.filter(p => !seen.has(p) && seen.add(p));
   if (members.length > 1) members = members.filter(p => p !== 'never');
+  // And the `undefined` that an expanded lookup or alias brings in, by this
+  // prop's optionality, as `shownTypeNodes` does for its own union.
+  if (member.questionToken && members.length > 1) {
+    members = members.filter(p => p !== 'undefined');
+  }
   if (
     members.length === 2 &&
     members.includes('false') &&
@@ -995,21 +1144,21 @@ function polymorphicBase(ts, node) {
  * component selected by `as`" tells a reader, and the MCP index an assistant
  * answers from, that a shape the compiler refuses is supported.
  *
- * Resolved syntactically, like the rest of this reader: an inline union of
- * string literals, or a type alias in the same file that is one
- * (`DropdownItemElement`).
+ * Resolved from source, like the rest of this reader: an inline union of
+ * string literals, or a type alias that is one, one hop away, in the same
+ * file (`DropdownItemElement`) or imported (`LayoutElement`, which Stack,
+ * Group, Center and Flex share).
  *
  * Returns 'tags', 'open' (an explicit `React.ElementType`) or 'unknown'. Both
  * recognized kinds are detected POSITIVELY, and a test holds every polymorphic
  * component to one of them — because 'unknown' has no safe answer. Falling back
  * to the open wording over-promises on a constrained component, which is the
  * defect this helper exists to fix; falling back to the closed wording
- * under-promises on the eight components that really do take any element. The
+ * under-promises on the components that really do take any element. The
  * fallback is 'open' to preserve the long-standing wording, so the test is what
- * actually protects the contract: move `DropdownItemElement` into
- * `helpers/polymorphic.ts` — a natural refactor, since its paired interface
- * lives there — and the same-file alias hop finds nothing, the kind goes
- * 'unknown', and the test says so rather than the docs quietly regressing.
+ * actually protects the contract: a constraint this reader can't follow makes
+ * the kind 'unknown', and the test says so rather than the docs quietly
+ * regressing.
  */
 function asConstraintKind(ts, arg) {
   if (!arg || !ts.isTypeReferenceNode(arg) || !ts.isIdentifier(arg.typeName)) {
@@ -1055,10 +1204,22 @@ function isTagUnion(ts, node, scope, hopped = false) {
   const name = node.typeName.text;
   let file = scope;
   while (file && !ts.isSourceFile(file)) file = file.parent;
-  const alias = file?.statements?.find(
-    st => ts.isTypeAliasDeclaration(st) && st.name.text === name
-  );
+  const alias =
+    file?.statements?.find(
+      st => ts.isTypeAliasDeclaration(st) && st.name.text === name
+    ) ?? importedAlias(ts, node);
   return isTagUnion(ts, alias?.type, scope, true);
+}
+
+/**
+ * The type alias an imported name refers to, through the program's checker.
+ * Stack, Group, Center and Flex share `LayoutElement` from
+ * `helpers/stackLayout.tsx`, so their constraint is an import, not an alias
+ * in their own file.
+ */
+function importedAlias(ts, node) {
+  const decl = resolveInterface(ts, createProgram().checker, node);
+  return decl && ts.isTypeAliasDeclaration(decl) ? decl : null;
 }
 
 /**
@@ -1317,6 +1478,20 @@ function defaultsForInterface(ts, decl) {
   return found;
 }
 
+/**
+ * Whether a member forbids its prop rather than typing it: a property typed
+ * exactly `undefined` or `never`, which is how one branch of a union props
+ * type says the prop is absent on that path (`name?: undefined`).
+ */
+function forbidsProp(ts, member) {
+  const kind = member.type?.kind;
+  return (
+    ts.isPropertySignature(member) &&
+    (kind === ts.SyntaxKind.UndefinedKeyword ||
+      kind === ts.SyntaxKind.NeverKeyword)
+  );
+}
+
 function memberRows(
   ts,
   decl,
@@ -1355,9 +1530,11 @@ function memberRows(
     // are contradictory. A prop whose description says it controls the
     // component keeps an empty Default.
     const controlled = /\bcontrolled\b/i.test(jsdocText(ts, member));
+    const shown = member.type ? shownTypeNodes(ts, member) : [];
     const impliedFalse =
       member.questionToken &&
-      member.type?.kind === ts.SyntaxKind.BooleanKeyword &&
+      shown.length === 1 &&
+      shown[0].kind === ts.SyntaxKind.BooleanKeyword &&
       !controlled
         ? 'false'
         : null;
@@ -1464,11 +1641,29 @@ const ROOT_CLASS_OVERRIDES = {
   DateInputBase: 'input', // the trigger is an `.input`
   TimeInputBase: 'input',
   DateTimeInputBase: 'input',
+  // Its helper props, className and style go on the container around its
+  // `.input`, which registers the toggle's variables too.
+  PasswordInputBase: 'password-input-container',
   // The row is Bulma's `.buttons`, the class Buttons renders too. Its segments
   // are Button's `.button`, which SCSS_SOURCES says why it doesn't claim.
   SegmentedControl: 'buttons',
+  // Its root is `.stats` and Bulma's `.grid` at once, from one class string.
+  Stats: 'stats',
   // Not ToggleButton, though it renders a `.button`: that class is Button's,
   // and SCSS_SOURCES in api-sources.mjs says why it stays without one.
+  //
+  // Stack, Group, Center and Flex all render `.stack` through the shared
+  // `StackLayout` (helpers/stackLayout.tsx), so none names it in its own
+  // module. Stack and Group claim it, for the gaps `_stack.scss` registers
+  // there, which are theirs. Center and Flex have no gap of their own, so
+  // they list no variables, the way Buttons doesn't.
+  Stack: 'stack',
+  Group: 'stack',
+  // Its root is drawn by the internal `form/_selectInternals/DialogSelect.tsx`,
+  // which it hands the class by name.
+  TreeSelect: 'tree-select',
+  // Drawn by DialogSelect too, as TreeSelect's is.
+  Cascader: 'cascader',
 };
 
 /**
@@ -1502,6 +1697,9 @@ const ROOT_CLASS_OVERRIDES = {
  * (#543).
  */
 export const EXTRA_VAR_ROOTS = {
+  // The sort button declares its own variables, so it looks the same in
+  // markup built from `useDataTable`'s props with no `.data-table` around it.
+  DataTable: ['data-table-sort'],
   DateInput: ['dateinput', 'picker-popover'],
   DateInputBase: ['dateinput', 'picker-popover'],
   // The range picker's own `daterangeinput` root is found by name. Its
@@ -1516,6 +1714,18 @@ export const EXTRA_VAR_ROOTS = {
   // `datetimeinput` panel class — the latter would resolve on its own via
   // name-matching if ROOT_CLASS_OVERRIDES did not already claim `input` for
   // props purposes first.
+  // ColorInput's panel is a ColorPicker, whose page lists its variables, in
+  // the shared popover.
+  ColorInput: ['picker-popover'],
+  ColorInputBase: ['picker-popover'],
+  // Bulma's input variables, which its `.input` declares inside the container.
+  PasswordInput: ['input'],
+  PasswordInputBase: ['input'],
+  // TreeSelect's panel is the shared popover, and its tree a TreeView, whose
+  // page lists that one's variables.
+  TreeSelect: ['picker-popover'],
+  // Cascader's panel is the shared popover too.
+  Cascader: ['picker-popover'],
   DateTimeInput: ['datetimeinput', 'dateinput', 'timeinput', 'picker-popover'],
   DateTimeInputBase: [
     'datetimeinput',
@@ -1568,6 +1778,35 @@ function pickRootClass(name, candidates) {
 }
 
 /**
+ * Where a part's helper props go, from `@helperProps` on its props type or the
+ * first base that has one, most-derived first, as `@extraProp` is read, so
+ * `Select` says what `SelectBase` does. It says so where that is not where the
+ * other attributes go: `Checkbox` puts its helper props on its outer `<label>`
+ * and the rest on its `<input>`, and the catch-all row alone, "All standard
+ * <input> attributes and Bulma helper props", reads as if both went to the
+ * `<input>` (#1273).
+ *
+ * A tag on a props type that takes no helper props stops the build. Split out,
+ * like `unnameablePropsError`, because no fixture can reach that from
+ * `extractComponent`, which reads the real source tree.
+ *
+ * @param {string} impl The component, for the message.
+ * @param {Array<string|null>} notes Each owner's tag text, most-derived first.
+ * @param {{helpers: boolean}|null} catchAll The part's catch-all row.
+ * @returns {string|null}
+ */
+export function helperPropsNoteOf(impl, notes, catchAll) {
+  const note = notes.find(Boolean) ?? null;
+  if (note && !catchAll?.helpers) {
+    throw new Error(
+      `${impl}: @helperProps says where its helper props go, but its props ` +
+        `type takes none. Remove the tag, or take BulmaClassesProps.`
+    );
+  }
+  return note;
+}
+
+/**
  * The loud-failure message for a component whose props type could not be named,
  * or null when there is nothing wrong.
  *
@@ -1595,12 +1834,13 @@ export function unnameablePropsError(impl, ifaceName, fn) {
  * @param {object} [opts]
  * @param {number} [opts.depth] Page depth below docs/docs/api, for relative links.
  * @param {boolean} [opts.markdown=true] Render cells for a markdown table —
- *   backticked types, page-relative links for the shared value unions, and a
- *   `**Deprecated.**` prefix folded into the description. Pass `false` for a
- *   structured consumer (the MCP index): plain type text, and `deprecated` /
- *   `deprecationNote` / `valuesRef` as their own row fields. Defaults to `true`
- *   so the docs generator's output is unaffected.
- * @returns {{name, tsdoc, rootClass, varPrefix, tables: [{path, rows, catchAll: {text, helpers}|null, extraProps}]}}
+ *   backticked types, page-relative links for the shared value unions, and
+ *   `**Required.**` and `**Deprecated.**` prefixes folded into the
+ *   description. Pass `false` for a structured consumer (the MCP index): plain
+ *   type text, and `deprecated` / `deprecationNote` / `valuesRef` as their own
+ *   row fields. A row carries `required` in both modes. Defaults to `true` so
+ *   the docs generator's output is unaffected.
+ * @returns {{name, tsdoc, rootClass, varPrefix, tables: [{path, rows, catchAll: {text, helpers, helperPropsNote?}|null, extraProps, flexContainer?}]}}
  */
 export function extractComponent(
   name,
@@ -1644,9 +1884,14 @@ export function extractComponent(
   // Resolve the root implementation and the compound sub-component tree.
   const rootInit = inits.get(name);
   const paths = [];
+  // A sub that is itself a compound (`Tabs.Content`) is the constant that
+  // composes it (`TabsContent`), while its table is read off that constant's
+  // base (`TabsContentComponent`), so the name it is exported by is kept here.
+  const compoundNames = new Map();
   const visit = (implName, dotPath) => {
     const init = inits.get(implName);
     if (isWithSubComponents(ts, init)) {
+      if (dotPath !== name) compoundNames.set(dotPath, implName);
       const base = init.arguments[0];
       const subs = init.arguments[1];
       if (ts.isIdentifier(base)) visit(base.text, dotPath);
@@ -1671,7 +1916,8 @@ export function extractComponent(
   const tables = [];
   for (const { path, impl } of paths) {
     const ifaceName = propsInterfaceName(ts, inits, impl);
-    const decl = ifaceName && interfaces.get(ifaceName);
+    const literal = inlinePropsLiteral(ts, inits.get(impl));
+    const decl = literal ?? (ifaceName && interfaces.get(ifaceName));
     // A component whose props type could not be named at all. Falling through
     // is silent where it hurts most: `gen-api-docs` skips a `listOnly` SUB
     // outright, so `Navbar.Item` would simply vanish from navbar.md, and the
@@ -1727,11 +1973,17 @@ export function extractComponent(
         // but dropping it outright left `Navbar.Divider` and
         // `Pagination.Ellipsis` off the Subcomponents list entirely, which is
         // why both pages still carried a hand-written duplicate of it.
+        //
+        // `noProps` tells those apart from a component that names no props
+        // type at all (`DropdownDivider: React.FC = () => …`, which got past
+        // the guard above, so it declares no parameter): that one takes
+        // nothing, not even its element's attributes.
         tables.push({
           path,
           impl,
           rows: [],
           listOnly: true,
+          ...(ifaceName ? {} : { noProps: true }),
           summary:
             jsdocText(ts, inits.get(impl)) ||
             jsdocText(ts, componentFunction(ts, inits.get(impl))),
@@ -1846,10 +2098,24 @@ export function extractComponent(
     }
 
     // Deduplicate by prop name, keeping the most-derived declaration.
+    //
+    // A union branch forbids a prop by typing it `undefined` or `never`, as
+    // `IconChildrenProps` says `name?: undefined`. Where another branch takes
+    // the prop, the forbidding members add nothing to its row: not a type, and
+    // not the description, default or deprecation, which come from the first
+    // branch that takes it, at that branch's place in the table, whichever
+    // order the union lists its branches in. A prop that every declaration
+    // forbids keeps its first row.
     const byName = new Map();
     for (const row of rows) {
       const prev = byName.get(row.name);
       if (!prev) {
+        byName.set(row.name, row);
+        continue;
+      }
+      if (forbidsProp(ts, row.node)) continue;
+      if (forbidsProp(ts, prev.node)) {
+        byName.delete(row.name);
         byName.set(row.name, row);
         continue;
       }
@@ -1860,29 +2126,48 @@ export function extractComponent(
         prev.type = `${prev.type} | ${row.type}`;
       }
     }
-    // The forbidding branch types the prop `never`, which merged into cells
-    // like ``never` | `number`` on slider.md — noise standing where the
-    // reader needs a type. Dropping it leaves exactly what may be passed, and
-    // the two boolean literals a discriminant contributes read as `boolean`.
+    // The boolean literals a discriminant contributes read as `boolean`, with
+    // or without a branch that takes a plain `boolean` beside them (Combobox's
+    // `multiple` is `false`, `true` and `boolean` across its three branches).
     // The literals below are the RENDERED members, so they carry backticks in
     // markdown mode and not in structured mode — compare against whichever
     // this run produced or the normalisation silently stops matching.
     const tick = s => (markdown ? `\`${s}\`` : s);
+    const booleans = [tick('false'), tick('true'), tick('boolean')];
     for (const row of byName.values()) {
       const seen = new Set();
       let ms = row.type.split(' | ').filter(m => !seen.has(m) && seen.add(m));
-      if (ms.length > 1) ms = ms.filter(m => m !== tick('never'));
-      if (
-        ms.length === 2 &&
-        ms.includes(tick('false')) &&
-        ms.includes(tick('true'))
-      ) {
+      if (ms.length > 1 && ms.every(m => booleans.includes(m))) {
         ms = [tick('boolean')];
       }
       row.type = ms.join(' | ');
     }
     rows.length = 0;
     rows.push(...byName.values());
+
+    // Whether a caller must pass each prop (#1754): required in every member
+    // of the props type, a union's included. The checker answers it, so a
+    // branch that leaves a prop out, or forbids it, makes the prop optional,
+    // which the rows above can't tell apart. A table marks a required row the
+    // way it marks a deprecated one, in front of its description.
+    const propsType =
+      ts.isInterfaceDeclaration(decl) || ts.isTypeAliasDeclaration(decl)
+        ? checker.getDeclaredTypeOfSymbol(
+            checker.getSymbolAtLocation(decl.name)
+          )
+        : checker.getTypeAtLocation(decl);
+    const branches = propsType.isUnion() ? propsType.types : [propsType];
+    for (const row of rows) {
+      row.required = branches.every(branch => {
+        const prop = branch.getProperty(row.name);
+        return Boolean(prop) && !(prop.flags & ts.SymbolFlags.Optional);
+      });
+      if (markdown && row.required) {
+        row.description = ['**Required.**', row.description]
+          .filter(Boolean)
+          .join(' ');
+      }
+    }
 
     // The React props every component inherits and that the hand-written tables
     // named again and again — className on 18 pages, ref on 13, children on 5.
@@ -1903,9 +2188,9 @@ export function extractComponent(
       // synthesized row told readers to do the one thing React throws on
       // ("hr is a void element tag and must neither have `children`…"); Icon
       // always supplies its own JSX children, so anything passed is silently
-      // dropped. Emit the row only where the implementation actually names
+      // dropped. Emit the row only where the implementation reads its own
       // `children` — the catch-all still covers the pass-through cases.
-      const rendersChildren = namesChildren(ts, implInit);
+      const rendersChildren = readsOwnChildren(ts, checker, implInit);
       for (const [name, type, description] of DOM_COMMON_PROPS) {
         if (byName.has(name)) continue;
         if (name === 'ref' && !isForwardRef) continue;
@@ -1917,6 +2202,7 @@ export function extractComponent(
           type: tick(shown),
           default: null,
           description,
+          required: false,
           synthetic: true,
         });
       }
@@ -1949,6 +2235,7 @@ export function extractComponent(
           type: m[1] ? splitUnion(m[1]).map(tick).join(' | ') : '',
           default: m[3] ? m[3].trim() : null,
           description: m[4].replace(/\s+/g, ' ').trim(),
+          required: false,
         });
       }
     }
@@ -1967,11 +2254,25 @@ export function extractComponent(
       if (rows[i].synthetic && claimed.has(rows[i].name)) rows.splice(i, 1);
     }
 
+    const catchAll = catchAllRow(external, markdown);
+    // `@flexContainer` on the props type or a base: the part's root is a flex
+    // container by its own stylesheet, so the flex container helper props
+    // apply with no `display` prop (Stack, Group, Center and Flex, through
+    // their shared `LayoutOwnProps`). The ESLint plugin's metadata reads it.
+    const flexContainer = [decl, ...expandedDecls].some(owner =>
+      hasJsdocTag(ts, owner, 'flexContainer')
+    );
+    const helperPropsNote = helperPropsNoteOf(
+      impl,
+      [decl, ...expandedDecls].map(owner => jsdocTag(ts, owner, 'helperProps')),
+      catchAll
+    );
+
     tables.push({
       path,
       impl,
       types,
-      interfaceName: ifaceName,
+      interfaceName: literal ? null : ifaceName,
       // The sub-component's own TSDoc summary, which becomes its line in the
       // `**Subcomponents:**` list. The hand-written pages described each sub
       // there ("Top bar for navigation or branding"), so dropping to a bare
@@ -1981,7 +2282,11 @@ export function extractComponent(
         jsdocText(ts, componentFunction(ts, implInit)),
       rows,
       extraProps,
-      catchAll: catchAllRow(external, markdown),
+      ...(flexContainer ? { flexContainer: true } : {}),
+      catchAll: catchAll && {
+        ...catchAll,
+        ...(helperPropsNote ? { helperPropsNote } : {}),
+      },
       helpersLink: `${linkBase}helpers/usebulmaclasses.md`,
     });
   }
@@ -2021,6 +2326,117 @@ export function extractComponent(
     varPrefix: VAR_PREFIX_OVERRIDES[name] ?? rootClass,
     rootClassCandidates: candidates,
     tables,
+    compoundNames,
     sourceFile: sf.fileName,
   };
+}
+
+/** The props type every component's helper props come from. */
+export const HELPER_PROPS_TYPE = 'BulmaClassesProps';
+
+/**
+ * The helper props every component takes, `BulmaClassesProps`, as rows with
+ * each one's TSDoc, read through the interfaces it extends. A component's
+ * table sums them up in its catch-all row, so nothing else lists them one by
+ * one with what each does, and `search_bestax` could not find `visibility`
+ * for "screen reader only" (#1273).
+ *
+ * @param {object} [opts]
+ * @param {boolean} [opts.markdown=true] As for `extractComponent`.
+ * @param {string} [opts.type] The interface to read, a test seam.
+ * @returns {Array<{name, type, default, description, inherited}>}
+ */
+export function extractHelperProps({
+  markdown = true,
+  type = HELPER_PROPS_TYPE,
+} = {}) {
+  const { ts, program, checker } = createProgram();
+  const where =
+    exportedModules().get(type) ??
+    starExportedModule(ts, program, checker, type);
+  const sf = where && sourceFileFor(program, where.cat, where.mod);
+  const decl = sf?.statements.find(
+    s => ts.isInterfaceDeclaration(s) && s.name.text === type
+  );
+  if (!decl) {
+    throw new Error(
+      `bulma-ui/src/index.ts exports no ${type} interface, which the helper ` +
+        `props are read from.`
+    );
+  }
+  const aliases = new Map(
+    [...allAliases(ts, program)]
+      .filter(([, a]) => a.expansion.length <= ALIAS_INLINE_MAX)
+      .map(([n, a]) => [n, a.expansion])
+  );
+  const rows = new Map();
+  // Breadth first from the interface itself, as a component's bases are, so
+  // a member it declares again wins over the one it extends.
+  const queue = [{ decl, filter: () => true }];
+  const seen = new Set([decl]);
+  while (queue.length) {
+    const { decl: base, filter } = queue.shift();
+    const merged = new Map([
+      ...aliases,
+      ...localStringUnionAliases(ts, base.getSourceFile()),
+    ]);
+    for (const row of memberRows(ts, base, merged, new Map(), '', false, null, {
+      markdown,
+    })) {
+      if (filter(row.name) && !rows.has(row.name)) rows.set(row.name, row);
+    }
+    for (const next of classifyHeritage(ts, checker, base, seen).expand) {
+      queue.push({
+        decl: next.decl,
+        filter: n => filter(n) && next.filter(n),
+      });
+    }
+  }
+  // The helper interfaces type most props `(typeof validX)[number]`, from a
+  // tuple in another module, which a component's table never shows since its
+  // catch-all row stands for them. Here the type is the row, so the values
+  // are read from the tuple itself, in its order.
+  const tupleValues = member => {
+    let query = member.type;
+    if (!query || !ts.isIndexedAccessTypeNode(query)) return null;
+    query = query.objectType;
+    while (ts.isParenthesizedTypeNode(query)) query = query.type;
+    if (!ts.isTypeQueryNode(query)) return null;
+    let symbol = checker.getSymbolAtLocation(query.exprName);
+    if (symbol && symbol.flags & ts.SymbolFlags.Alias) {
+      symbol = checker.getAliasedSymbol(symbol);
+    }
+    const tuple = symbol?.declarations?.[0];
+    return tuple
+      ? typeofArrayExpansion(
+          ts,
+          tuple.getSourceFile(),
+          query.exprName.getText()
+        )
+      : null;
+  };
+  // A breakpoint variant (`visibilityMobile`) is its base prop at one of the
+  // values `viewport` takes, and says nothing the base does not. The base
+  // answers a search for what it does, and get_helper_props lists them all.
+  const viewport = rows.get('viewport');
+  const suffixes = splitUnion((viewport && tupleValues(viewport.node)) ?? '')
+    .map(v =>
+      v
+        .replace(/^'|'$/g, '')
+        .replace(/(^|-)(\w)/g, (_, _dash, c) => c.toUpperCase())
+    )
+    .filter(Boolean);
+  const variant = name =>
+    suffixes.some(s => name.endsWith(s) && rows.has(name.slice(0, -s.length)));
+  return [...rows.values()]
+    .filter(row => !variant(row.name))
+    .map(({ node, ...row }) => {
+      const values = tupleValues(node);
+      if (!values || values.length > ALIAS_INLINE_MAX) return row;
+      const members = splitUnion(values);
+      return {
+        ...row,
+        type: (markdown ? members.map(v => `\`${v}\``) : members).join(' | '),
+      };
+    });
 }

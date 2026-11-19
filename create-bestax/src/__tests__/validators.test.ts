@@ -1,6 +1,9 @@
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect } from 'vitest';
+import os from 'node:os';
+import path from 'node:path';
 import {
   validateProjectName,
+  validateProjectDirectory,
   isValidProjectName,
   toValidPackageName,
 } from '../validators.js';
@@ -74,7 +77,7 @@ describe('validators', () => {
 
     it('should reject project names that start with a dot', () => {
       const dotMessage =
-        'Project name cannot start with a dot (names like "." or ".." would scaffold outside a new directory) — pass a directory name';
+        'Project name cannot start with a dot (".." would scaffold outside a new directory) — pass a directory name, or "." alone for the current directory';
       expect(validateProjectName('.')).toBe(dotMessage);
       expect(validateProjectName('..')).toBe(dotMessage);
       expect(validateProjectName('...')).toBe(dotMessage);
@@ -115,6 +118,80 @@ describe('validators', () => {
 
       const tooLongName = 'a'.repeat(215);
       expect(validateProjectName(tooLongName)).toBe('Project name too long');
+    });
+  });
+
+  describe('validateProjectDirectory (#1154)', () => {
+    const invalidChars =
+      'Project name can only contain letters, numbers, dots, dashes and underscores';
+    const dotMessage =
+      'Project name cannot start with a dot (".." would scaffold outside a new directory) — pass a directory name, or "." alone for the current directory';
+
+    it('accepts a bare name, as validateProjectName does', () => {
+      expect(validateProjectDirectory('login')).toBe(true);
+    });
+
+    it.each([
+      ['relative', 'apps/login'],
+      ['relative from the parent', '../login'],
+      ['relative from here', './login'],
+      ['absolute', path.join(os.tmpdir(), 'login')],
+      ['nested', 'scratch/a/b/login'],
+      ['with a trailing slash', 'scratch/login/'],
+      ['with trailing slashes', 'login//'],
+    ])('accepts a %s path whose last part is a valid name', (_label, dir) => {
+      expect(validateProjectDirectory(dir)).toBe(true);
+    });
+
+    it('judges only the last part, so a parent folder may hold a space', () => {
+      expect(validateProjectDirectory('/tmp/My Projects/login')).toBe(true);
+    });
+
+    it('rejects ".." as validateProjectName does', () => {
+      expect(validateProjectDirectory('..')).toBe(dotMessage);
+    });
+
+    it('takes "." alone as the current directory, named after it', () => {
+      expect(validateProjectDirectory('.', '/work/my-app')).toBe(true);
+      expect(validateProjectDirectory('./', '/work/my-app')).toBe(true);
+      expect(validateProjectDirectory('.', '/work/My App')).toBe(
+        `${invalidChars} (the project name is "My App", the current directory's name)`
+      );
+      expect(validateProjectDirectory('.', '/')).toBe(
+        'Project name is required (the project name is "", the current directory\'s name)'
+      );
+    });
+
+    it('takes only the platform separator after the dot', () => {
+      // On POSIX a backslash is part of a file name, so ".\\" names a folder,
+      // and the leading-dot rule refuses it as before.
+      const backslash = validateProjectDirectory('.\\', '/work/my-app');
+      if (path.sep === '/') {
+        expect(backslash).toBe(dotMessage);
+      } else {
+        expect(backslash).toBe(true);
+      }
+    });
+
+    it('rejects a path that ends in "." or "..", naming that part', () => {
+      expect(validateProjectDirectory('apps/.')).toBe(
+        `${dotMessage} (the project name is ".", the last part of the path)`
+      );
+      expect(validateProjectDirectory('../..')).toBe(
+        `${dotMessage} (the project name is "..", the last part of the path)`
+      );
+    });
+
+    it('rejects an invalid last part with the rule it broke and the part itself', () => {
+      expect(validateProjectDirectory('/tmp/My App')).toBe(
+        `${invalidChars} (the project name is "My App", the last part of the path)`
+      );
+      expect(validateProjectDirectory('apps/.hidden/')).toBe(
+        `${dotMessage} (the project name is ".hidden", the last part of the path)`
+      );
+      expect(validateProjectDirectory('/')).toBe(
+        'Project name is required (the project name is "", the last part of the path)'
+      );
     });
   });
 

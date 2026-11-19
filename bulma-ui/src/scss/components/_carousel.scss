@@ -1,6 +1,12 @@
 // Carousel component styles
 @use "bulma/sass/utilities/initial-variables" as iv;
 @use "bulma/sass/utilities/css-variables" as cv;
+@use "bulma/sass/utilities/mixins" as mx;
+
+// The space between two items in view, left out at the track's edges. A
+// length, so `0px` rather than `0`: the track's offset adds it to a
+// percentage inside `calc()`, where a bare `0` is not a length.
+$carousel-item-gap: 0px !default;
 
 // Carousel-specific SCSS sizing variables
 $carousel-arrow-size: 48px !default;
@@ -24,6 +30,10 @@ $carousel-indicator-bar-width: 24px !default;
 $carousel-indicator-bar-width-mobile: 16px !default;
 $carousel-indicator-bar-height: 6px !default;
 $carousel-indicator-bar-height-mobile: 4px !default;
+// The width of the ring at each indicator's edge, a dot's or a circle's, and
+// the thinner one of a line or a bar.
+$carousel-indicator-border-width: 2px !default;
+$carousel-indicator-line-border-width: 1px !default;
 
 $carousel-transition-duration: cv.getVar("duration") !default;
 $carousel-fade-duration: 0.5s !default;
@@ -44,7 +54,11 @@ $carousel-arrow-background-hover: hsla(
   0.95
 ) !default;
 
-// Overlay variant colors (for image carousels - always dark overlay regardless of theme)
+// Overlay variant colors, for controls over photos: light controls on a dark
+// tint in either scheme. `scheme-invert-l` stays dark in Bulma's dark theme
+// too, so the tint and the band keep it. The light side takes `white` rather
+// than `scheme-main`, which turns dark in dark mode and left dark arrows and
+// dots on the dark band. In the light theme the two are the same white.
 $carousel-overlay-arrow-background: hsla(
   #{cv.getVar("scheme-h")},
   #{cv.getVar("scheme-s")},
@@ -58,15 +72,15 @@ $carousel-overlay-arrow-background-hover: hsla(
   0.5
 ) !default;
 $carousel-overlay-indicator-background: hsla(
-  #{cv.getVar("scheme-h")},
-  #{cv.getVar("scheme-s")},
-  #{cv.getVar("scheme-main-l")},
+  #{cv.getVar("white-h")},
+  #{cv.getVar("white-s")},
+  #{cv.getVar("white-l")},
   0.5
 ) !default;
 $carousel-overlay-indicator-background-hover: hsla(
-  #{cv.getVar("scheme-h")},
-  #{cv.getVar("scheme-s")},
-  #{cv.getVar("scheme-main-l")},
+  #{cv.getVar("white-h")},
+  #{cv.getVar("white-s")},
+  #{cv.getVar("white-l")},
   0.8
 ) !default;
 
@@ -79,11 +93,19 @@ $carousel-gradient-overlay: hsla(
 ) !default;
 
 $carousel-arrow-color: cv.getVar("text") !default;
+// A resting indicator is filled in the border color, and the current one in
+// the primary color. A dot's, a line's or a bar's ring is transparent unless a
+// theme gives it a color, which draws the same as no ring, since the fill
+// shows through it; forced colors draws it in the buttons' text color. A
+// circle's ring is the border color. Under the pointer the ring keeps its
+// color unless a theme sets one for hover.
 $carousel-indicator-background: cv.getVar("border") !default;
 $carousel-indicator-background-hover: cv.getVar("border-hover") !default;
 $carousel-indicator-background-active: cv.getVar("primary") !default;
-$carousel-overlay-arrow-color: cv.getVar("scheme-main") !default;
-$carousel-overlay-indicator-background-active: cv.getVar("scheme-main") !default;
+$carousel-indicator-border-color: transparent !default;
+$carousel-indicator-border-color-hover: cv.getVar("carousel-indicator-border-color") !default;
+$carousel-overlay-arrow-color: cv.getVar("white") !default;
+$carousel-overlay-indicator-background-active: cv.getVar("white") !default;
 $carousel-arrow-radius: cv.getVar("radius") !default;
 $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
 
@@ -108,6 +130,10 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
       "carousel-indicator-background": #{$carousel-indicator-background},
       "carousel-indicator-background-hover": #{$carousel-indicator-background-hover},
       "carousel-indicator-background-active": #{$carousel-indicator-background-active},
+      "carousel-indicator-border-color": #{$carousel-indicator-border-color},
+      "carousel-indicator-border-color-hover": #{$carousel-indicator-border-color-hover},
+      "carousel-indicator-border-width": #{$carousel-indicator-border-width},
+      "carousel-indicator-line-border-width": #{$carousel-indicator-line-border-width},
       "carousel-indicator-circle-size": #{$carousel-indicator-circle-size},
       "carousel-indicator-line-width": #{$carousel-indicator-line-width},
       "carousel-indicator-line-width-mobile": #{$carousel-indicator-line-width-mobile},
@@ -126,8 +152,68 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
       "carousel-overlay-indicator-background-active": #{$carousel-overlay-indicator-background-active},
       "carousel-transition-duration": #{$carousel-transition-duration},
       "carousel-fade-duration": #{$carousel-fade-duration},
+      "carousel-item-gap": #{$carousel-item-gap},
+      // How many items are in view. `Carousel` writes each `itemsToShow*`
+      // prop it is given as the variable of the same name on its own
+      // element; the rest fall back the way the props do, each viewport to
+      // the next narrower one and all of them to `itemsToShow`. Declared
+      // here, on every carousel, so one nested in another's items starts
+      // from its own props rather than inheriting the outer one's.
+      "carousel-items-to-show": 1,
+      "carousel-items-to-show-mobile": #{cv.getVar("carousel-items-to-show")},
+      "carousel-items-to-show-tablet": #{cv.getVar("carousel-items-to-show")},
+      "carousel-items-to-show-desktop": #{cv.getVar("carousel-items-to-show-tablet")},
+      "carousel-items-to-show-widescreen": #{cv.getVar("carousel-items-to-show-desktop")},
+      "carousel-items-to-show-fullhd": #{cv.getVar("carousel-items-to-show-widescreen")},
+      // The count for the viewport the page is in, which the item widths and
+      // the track's offset both read. Bulma's breakpoint mixins below pick
+      // the tablet count and wider; every width they don't reach is mobile,
+      // as it is to the script. A `mobile` block of its own would leave out
+      // the fractional widths between Bulma's `mobile` query (up to 768px)
+      // and its `tablet` one (from 769px), where the two would disagree.
+      "carousel-items-in-view": #{cv.getVar("carousel-items-to-show-mobile")},
     )
   );
+}
+
+@include mx.tablet {
+  .#{iv.$class-prefix}carousel {
+    @include cv.register-vars(
+      (
+        "carousel-items-in-view": #{cv.getVar("carousel-items-to-show-tablet")},
+      )
+    );
+  }
+}
+
+@include mx.desktop {
+  .#{iv.$class-prefix}carousel {
+    @include cv.register-vars(
+      (
+        "carousel-items-in-view": #{cv.getVar("carousel-items-to-show-desktop")},
+      )
+    );
+  }
+}
+
+@include mx.widescreen {
+  .#{iv.$class-prefix}carousel {
+    @include cv.register-vars(
+      (
+        "carousel-items-in-view": #{cv.getVar("carousel-items-to-show-widescreen")},
+      )
+    );
+  }
+}
+
+@include mx.fullhd {
+  .#{iv.$class-prefix}carousel {
+    @include cv.register-vars(
+      (
+        "carousel-items-in-view": #{cv.getVar("carousel-items-to-show-fullhd")},
+      )
+    );
+  }
 }
 
 .#{iv.$class-prefix}carousel {
@@ -147,18 +233,40 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
   // Slides container
   .#{iv.$class-prefix}carousel-slides {
     display: flex;
+    gap: cv.getVar("carousel-item-gap");
     width: 100%;
     will-change: transform;
+    // The flex row reverses right to left, so the inline transform's
+    // negative shift would park every slide off the inline start. The
+    // transform multiplies by this: -1 left to right, +1 right to left. Set
+    // on every track, since a custom property inherits and a left-to-right
+    // carousel inside a right-to-left one would otherwise take its `1`.
+    --carousel-shift-sign: -1;
+
+    &:dir(rtl) {
+      --carousel-shift-sign: 1;
+    }
   }
 
-  // Individual slide
+  // Individual slide: an equal share of the track, less the gaps between
+  // the items in view
   .#{iv.$class-prefix}carousel-item {
-    flex: 0 0 100%;
-    width: 100%;
-    min-width: 100%;
+    $carousel-item-width: calc(
+      (100% - (#{cv.getVar("carousel-items-in-view")} - 1) * #{cv.getVar("carousel-item-gap")}) /
+        #{cv.getVar("carousel-items-in-view")}
+    );
 
-    // Allow images to fill the slide
-    img {
+    flex: 0 0 $carousel-item-width;
+    width: $carousel-item-width;
+    min-width: $carousel-item-width;
+
+    // Hold an image in a slide to the slide's width. `:where()` keeps the
+    // rule at a bare `img`'s specificity, so anything that sizes an image
+    // itself wins: a ratio `Image` (Bulma's `.image.is-16by9 img` and the
+    // rest fill the frame with `height: 100%`), an Avatar's photo, a class of
+    // the page's own. Ranked above them, its `height: auto` let a ratio
+    // image overflow its frame (#1166).
+    @at-root :where(.#{iv.$class-prefix}carousel .#{iv.$class-prefix}carousel-item) img {
       max-width: 100%;
       height: auto;
       display: block;
@@ -245,11 +353,19 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
     }
 
     &.#{iv.$class-prefix}is-prev {
-      left: cv.getVar("carousel-arrow-offset");
+      inset-inline-start: cv.getVar("carousel-arrow-offset");
     }
 
     &.#{iv.$class-prefix}is-next {
-      right: cv.getVar("carousel-arrow-offset");
+      inset-inline-end: cv.getVar("carousel-arrow-offset");
+    }
+
+    // Previous sits on the inline start, so its chevron points that way.
+    // Only the built-in chevron, the button's own svg: an `iconPrev` or
+    // `iconNext` is the caller's to point, and an svg inside its `.icon`, as
+    // Font Awesome's SVG mode renders, would flip twice under a broader rule.
+    > svg:dir(rtl) {
+      transform: scaleX(-1);
     }
 
     // Transparent variant (no background)
@@ -285,7 +401,21 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
 
       &:focus {
         box-shadow: none;
-        outline: none;
+      }
+
+      // With no border, no fill and no shadow, a focused transparent arrow
+      // shows Bulma's focus outline, in its focus color, style, width and
+      // offset, as a ghost Button does (`elements/_button.scss`). Forced
+      // colors keeps the outline, in the system's colors.
+      &:focus-visible {
+        outline-color: hsl(
+          #{cv.getVar("focus-h")},
+          #{cv.getVar("focus-s")},
+          #{cv.getVar("focus-l")}
+        );
+        outline-offset: cv.getVar("focus-offset");
+        outline-style: cv.getVar("focus-style");
+        outline-width: cv.getVar("focus-width");
       }
     }
   }
@@ -303,10 +433,15 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
     }
   }
 
-  // Arrow hover variant
+  // Arrow hover variant: the arrows show under the pointer, and an arrow
+  // shows while keyboard focus is on it, so the focus can be seen.
   &.#{iv.$class-prefix}has-arrow-hover {
     .#{iv.$class-prefix}carousel-arrow {
       opacity: 0;
+
+      &:focus-visible {
+        opacity: 1;
+      }
     }
 
     &:hover {
@@ -325,21 +460,35 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
     padding: 1rem;
     width: 100%;
 
+    // Over the slides, at the bottom edge
     &.#{iv.$class-prefix}is-inside {
       position: absolute;
       bottom: 0;
       left: 0;
       right: 0;
-      background: linear-gradient(transparent, #{$carousel-gradient-overlay});
       padding-bottom: 1.5rem;
     }
 
-    &.#{iv.$class-prefix}is-top {
+    // Over the slides, at the top edge. `is-top` moves only indicators over
+    // the slides: below them it has no edge to move to. `:where()` keeps the
+    // rule at the specificity of the bare `is-top` one it replaces.
+    &.#{iv.$class-prefix}is-top:where(.#{iv.$class-prefix}is-inside) {
       top: 0;
       bottom: auto;
-      background: linear-gradient(#{$carousel-gradient-overlay}, transparent);
       padding-top: 1.5rem;
     }
+  }
+
+  // The overlay look's dark band behind indicators over the slides, which
+  // the plain look leaves off. `:where()` keeps both rules at the
+  // specificity the band had before `overlayControls` could turn it off, so
+  // a page's own rule that takes the band off still wins as it did.
+  &:where(.#{iv.$class-prefix}is-overlay) .#{iv.$class-prefix}carousel-indicator.#{iv.$class-prefix}is-inside {
+    background: linear-gradient(transparent, #{$carousel-gradient-overlay});
+  }
+
+  &:where(.#{iv.$class-prefix}is-overlay) .#{iv.$class-prefix}carousel-indicator.#{iv.$class-prefix}is-top:where(.#{iv.$class-prefix}is-inside) {
+    background: linear-gradient(#{$carousel-gradient-overlay}, transparent);
   }
 
   // Indicator items
@@ -347,38 +496,53 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
     width: cv.getVar("carousel-indicator-size");
     height: cv.getVar("carousel-indicator-size");
     padding: 0;
-    border: none;
     border-radius: 50%;
-    background-color: cv.getVar("carousel-indicator-background");
     cursor: pointer;
     transition: background-color cv.getVar("carousel-transition-duration"),
                 transform cv.getVar("carousel-transition-duration");
+
+    // The ring and the fill, on a Bulma button too, which every indicator is.
+    &,
+    &.#{iv.$class-prefix}button {
+      border: cv.getVar("carousel-indicator-border-width") solid
+        cv.getVar("carousel-indicator-border-color");
+      background-color: cv.getVar("carousel-indicator-background");
+    }
 
     // Override Button component styles
     &.#{iv.$class-prefix}button {
       min-width: auto;
       min-height: auto;
-      border: none;
       padding: 0;
       background-image: none;
     }
 
     &:hover {
+      border-color: cv.getVar("carousel-indicator-border-color-hover");
       background-color: cv.getVar("carousel-indicator-background-hover");
       transform: scale(1.2);
     }
 
+    // The current one takes no ring, a theme's either, so it draws as one
+    // filled shape.
     &.#{iv.$class-prefix}is-active {
+      border-color: transparent;
       background-color: cv.getVar("carousel-indicator-background-active");
     }
   }
 
-  // Indicator styles
+  // Indicator styles. A circle is a ring, in the border color unless a theme
+  // gives the ring a color, and the current one is filled. `:where()` keeps
+  // the circle's color at the carousel's own weight, so a theme that names the
+  // carousel's class with its own (`.carousel.my-carousel`) outranks it.
+  &:where(.#{iv.$class-prefix}is-indicator-circles) {
+    @include cv.register-var("carousel-indicator-border-color", cv.getVar("border"));
+  }
+
   &.#{iv.$class-prefix}is-indicator-circles {
     .#{iv.$class-prefix}indicator-item {
       width: cv.getVar("carousel-indicator-circle-size");
       height: cv.getVar("carousel-indicator-circle-size");
-      border: 2px solid cv.getVar("border");
       background-color: transparent;
 
       &.#{iv.$class-prefix}is-active {
@@ -392,6 +556,7 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
     .#{iv.$class-prefix}indicator-item {
       width: cv.getVar("carousel-indicator-line-width");
       height: cv.getVar("carousel-indicator-line-height");
+      border-width: cv.getVar("carousel-indicator-line-border-width");
       border-radius: cv.getVar("carousel-indicator-line-radius");
     }
   }
@@ -400,12 +565,21 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
     .#{iv.$class-prefix}indicator-item {
       width: cv.getVar("carousel-indicator-bar-width");
       height: cv.getVar("carousel-indicator-bar-height");
+      border-width: cv.getVar("carousel-indicator-line-border-width");
       border-radius: cv.getVar("carousel-indicator-line-radius");
     }
   }
 
-  // Inside indicator light variant (overlay mode)
+  // The overlay look (`overlayControls`, which `indicatorInside` turns on)
   &.#{iv.$class-prefix}is-overlay {
+    // In the overlay look a dot, a line or a bar over the slides takes no ring,
+    // a theme's either; a circle keeps its own.
+    &:not(.#{iv.$class-prefix}is-indicator-circles)
+      .#{iv.$class-prefix}carousel-indicator.#{iv.$class-prefix}is-inside
+      .#{iv.$class-prefix}indicator-item {
+      border-color: transparent;
+    }
+
     .#{iv.$class-prefix}carousel-indicator.#{iv.$class-prefix}is-inside {
       .#{iv.$class-prefix}indicator-item {
         background-color: cv.getVar("carousel-overlay-indicator-background");
@@ -444,7 +618,8 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
         }
       }
 
-      // Transparent variant within overlay
+      // Transparent variant within overlay. It leaves the outline alone, so
+      // a focused one shows the plain variant's focus outline.
       &.#{iv.$class-prefix}is-transparent {
         background-color: transparent;
         box-shadow: none;
@@ -477,7 +652,6 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
 
         &:focus {
           box-shadow: none;
-          outline: none;
         }
       }
     }
@@ -505,28 +679,9 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
   }
 }
 
-// Carousel list variant (multiple visible items)
-.#{iv.$class-prefix}carousel-list {
-  .#{iv.$class-prefix}carousel-container {
-    overflow: visible;
-  }
-
-  .#{iv.$class-prefix}carousel-slides {
-    display: flex;
-    gap: 1rem;
-  }
-
-  .#{iv.$class-prefix}carousel-item {
-    flex: 0 0 auto;
-    width: auto;
-    position: relative;
-    opacity: 1;
-    visibility: visible;
-  }
-}
-
-// Responsive adjustments
-@media screen and (max-width: 768px) {
+// Responsive adjustments, below Bulma's tablet breakpoint, so a build that
+// moves `$tablet` moves them too
+@include mx.mobile {
   .#{iv.$class-prefix}carousel {
     .#{iv.$class-prefix}carousel-arrow {
       width: cv.getVar("carousel-arrow-size-mobile");
@@ -550,11 +705,11 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
       }
 
       &.#{iv.$class-prefix}is-prev {
-        left: cv.getVar("carousel-arrow-offset-mobile");
+        inset-inline-start: cv.getVar("carousel-arrow-offset-mobile");
       }
 
       &.#{iv.$class-prefix}is-next {
-        right: cv.getVar("carousel-arrow-offset-mobile");
+        inset-inline-end: cv.getVar("carousel-arrow-offset-mobile");
       }
     }
 
@@ -575,6 +730,48 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
     &.#{iv.$class-prefix}is-indicator-bars .#{iv.$class-prefix}indicator-item {
       width: cv.getVar("carousel-indicator-bar-width-mobile");
       height: cv.getVar("carousel-indicator-bar-height-mobile");
+    }
+  }
+}
+
+// Reduced motion: the arrows, the indicators and a fading slide change at
+// once, as the track does (Carousel reads the same preference).
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}carousel .#{iv.$class-prefix}carousel-arrow,
+  .#{iv.$class-prefix}carousel .#{iv.$class-prefix}indicator-item,
+  .#{iv.$class-prefix}carousel.#{iv.$class-prefix}is-fade .#{iv.$class-prefix}carousel-item {
+    transition: none;
+  }
+}
+
+// Forced colors (Windows' contrast themes) replaces the fills, which are what
+// tell the current indicator from the others, so it's filled in the buttons'
+// text color there, as its ring is, in the overlay look too. Kept
+// out of forced colors for that, it draws its focus ring itself, Bulma's
+// focus outline in the system's text color, as the others get theirs. Each is
+// important, to win over the button's own focus rules, which come later.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}carousel .#{iv.$class-prefix}indicator-item.#{iv.$class-prefix}is-active {
+    forced-color-adjust: none;
+    border-color: ButtonText !important;
+    background-color: ButtonText !important;
+
+    &:focus-visible {
+      outline: cv.getVar("focus-width") cv.getVar("focus-style") CanvasText !important;
+      outline-offset: cv.getVar("focus-offset") !important;
+      box-shadow: none !important;
+    }
+  }
+
+  // A disabled arrow is drawn in GrayText, so its usual opacity would only
+  // fade that. It draws at full strength here. With `arrowHover` it's left as
+  // it is (#2145).
+  .#{iv.$class-prefix}carousel:not(.#{iv.$class-prefix}has-arrow-hover)
+    .#{iv.$class-prefix}carousel-arrow.#{iv.$class-prefix}button {
+    &:disabled,
+    &.#{iv.$class-prefix}is-disabled {
+      color: GrayText;
+      opacity: 1;
     }
   }
 }

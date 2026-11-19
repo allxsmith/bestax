@@ -2,8 +2,8 @@
 /**
  * Write the ESLint plugin's component metadata from the library's own TSDoc.
  *
- * Two of the plugin's rules need to know things only the library knows, and
- * both go stale the moment a prop is renamed:
+ * Several of the plugin's rules need to know things only the library knows,
+ * and each goes stale the moment a prop is renamed:
  *
  *   no-deprecated-props   which props carry `@deprecated`, and what replaces
  *                         them. The replacement is not a separate field — it
@@ -15,6 +15,11 @@
  *                         button. Getting that backwards is the whole point of
  *                         the rule, so the set is read from the TSDoc sentence
  *                         the library states it in, never hand-listed.
+ *   no-inert-flex-props   which elements are flex containers by their own
+ *                         CSS, so the flex container props render on them with
+ *                         no `display` prop. Read from the `@flexContainer`
+ *                         tag on an element's props type or one of its bases,
+ *                         which the extractor reports as `flexContainer`.
  *   no-bulma-component-class
  *                         which Bulma classes name a bestax component. That is
  *                         not the library's knowledge but bestax-migrate's:
@@ -95,6 +100,37 @@ const TEXT_ALIAS_MARKER = /Text color alias/i;
  * addition needs no edit here, while a rewording of one of these fails loudly.
  */
 const TEXT_ALIAS_ANCHORS = ['Box', 'Card', 'Content'];
+
+/**
+ * Elements that must stay in the flex container set, which the extractor
+ * reads off the `@flexContainer` tag (`flexContainer` on a table). Without
+ * one, `no-inert-flex-props` would report every `alignItems` written on it,
+ * which renders. Names rather than a count, so a new flex container needs no
+ * edit here.
+ */
+const FLEX_CONTAINER_ANCHORS = ['Center', 'Flex', 'Group', 'Stack'];
+
+/**
+ * What would make the flex container set wrong to write: an anchor missing,
+ * which would have `no-inert-flex-props` report props that render.
+ *
+ * @param {Set<string>} flexContainers
+ */
+export function flexContainerViolations(flexContainers) {
+  const missing = FLEX_CONTAINER_ANCHORS.filter(n => !flexContainers.has(n));
+  return missing.length
+    ? [
+        `${missing.join(', ')} no longer ${
+          missing.length === 1 ? 'carries' : 'carry'
+        } \`@flexContainer\` on ${
+          missing.length === 1 ? 'its' : 'their'
+        } props, so no-inert-flex-props would report the flex props written ` +
+          `on ${missing.length === 1 ? 'it' : 'them'}, which render. If the ` +
+          'tag moved on purpose, update FLEX_CONTAINER_ANCHORS here in the ' +
+          'same change.',
+      ]
+    : [];
+}
 
 /**
  * `Use \`isFullwidth\` instead — …` → `isFullwidth`.
@@ -207,8 +243,16 @@ export function guardViolations({ deprecated, textAlias, knownProps }) {
  * The Bulma classes that name a bestax component, from bestax-migrate's
  * table, in the order its planner decides an element's component when the
  * element carries several: a family first (its markup is converted by hand,
- * whatever else is on it), then the converted roots by precedence. The rule
- * reports the first one an element carries, so the order is the decision.
+ * whatever else is on it), then the converted roots by precedence. Each
+ * converted root carries its component's own tag and every tag it renders
+ * (its own, and the ones `as` reaches), since the planner takes the root
+ * that fits the element's tag best, the tag it renders with no `as` before
+ * one `as` reaches, before precedence decides; the rule follows that, so the
+ * order and the tags are the decision. The tag it renders with no `as` can
+ * come from a class beside it (an `.image` ratio's <figure>), so a root whose
+ * classes pick it carries them (`retagsOf`). A root with advice of its own
+ * for an element another root converts (`.container`'s `mx="auto"`) carries
+ * it.
  *
  * Parts of a family are left out: the family's outermost class is the one
  * place the codemod flags it, and the rule follows suit. Classes with nothing
@@ -249,10 +293,57 @@ export async function bulmaComponentClasses(
       ]),
       ...mapped.map(([cls, entry]) => [
         cls,
-        { component: entry.target ?? null, converts: true },
+        {
+          component: entry.target ?? null,
+          converts: true,
+          ...(entry.tag ? { tag: entry.tag } : {}),
+          tags:
+            entry.as === 'any'
+              ? 'any'
+              : [...new Set([entry.tag, ...(entry.as ?? [])])].filter(Boolean),
+          ...retagsOf(entry),
+          ...(entry.onAnother ? { onAnother: entry.onAnother } : {}),
+        },
       ]),
     ],
   };
+}
+
+/**
+ * The classes beside a root that decide the tag its component renders with
+ * no `as`, as the planner reads them: every modifier for the prop a class
+ * with a `rendersTag` writes, and for `size` on a heading whose size picks
+ * its tag. Each carries the tag it renders, null for the root's own, and,
+ * when it converts only on some, the tags it converts on. They take one
+ * prop, so the first the element carries on a tag it converts on decides.
+ *
+ * @param {any} entry a root of the class map.
+ */
+function retagsOf(entry) {
+  const modifiers = Object.entries(entry.modifiers ?? {});
+  const props = new Set(
+    modifiers.flatMap(([, modifier]) =>
+      modifier.rendersTag ? modifier.writes.map(write => write.prop) : []
+    )
+  );
+  if (entry.sizeDrivesTag) props.add('size');
+  const retags = modifiers
+    .filter(([, modifier]) =>
+      modifier.writes.some(write => props.has(write.prop))
+    )
+    .map(([cls, modifier]) => {
+      const size = modifier.writes.find(write => write.prop === 'size');
+      const heading =
+        entry.sizeDrivesTag && size?.value ? `h${size.value}` : null;
+      return [
+        cls,
+        {
+          tag: modifier.rendersTag ?? heading,
+          ...(modifier.tagIn ? { on: [...modifier.tagIn] } : {}),
+        },
+      ];
+    });
+  return retags.length > 0 ? { retags: Object.fromEntries(retags) } : {};
 }
 
 /**
@@ -342,10 +433,13 @@ export function collect(deps = {}) {
   const knownProps = new Map();
   /** element paths whose `color` is a text alias */
   const textAlias = new Set();
+  /** element paths that are flex containers by their own CSS */
+  const flexContainers = new Set();
 
   for (const name of names) {
     const info = readComponent(name, { markdown: false });
     for (const table of info.tables ?? []) {
+      if (table.flexContainer) flexContainers.add(table.path);
       // Every element's own prop names, so a replacement or a rewrite target
       // can be checked against what the element actually declares.
       knownProps.set(table.path, new Set((table.rows ?? []).map(r => r.name)));
@@ -378,10 +472,20 @@ export function collect(deps = {}) {
   if (violations.length) throw new Error(violations.join('\n'));
   // Every element path the library documents, compound parts included, so
   // the class table can be held to real JSX names (`Hero.Body`, not just `Hero`).
-  return { deprecated, textAlias, elements: new Set(knownProps.keys()) };
+  return {
+    deprecated,
+    textAlias,
+    flexContainers,
+    elements: new Set(knownProps.keys()),
+  };
 }
 
-export function render({ deprecated, textAlias, classes = [] }) {
+export function render({
+  deprecated,
+  textAlias,
+  flexContainers = new Set(),
+  classes = [],
+}) {
   const entries = [...deprecated.entries()].sort(([a], [b]) =>
     a < b ? -1 : a > b ? 1 : 0
   );
@@ -439,6 +543,19 @@ ${[...textAlias]
   .join('\n')}
 ];
 
+/**
+ * Elements that are flex containers by their own CSS, so the flex container
+ * props (\`alignItems\`, \`justifyContent\` and the rest) render on them with
+ * no \`display\` prop, unless a \`display\` prop makes them something else.
+ * Read from the \`@flexContainer\` tag on each one's props type or its bases.
+ */
+export const FLEX_CONTAINER_ELEMENTS: readonly string[] = [
+${[...flexContainers]
+  .sort()
+  .map(n => `  ${JSON.stringify(n)},`)
+  .join('\n')}
+];
+
 /** A Bulma class that names a bestax component. */
 export interface BulmaComponentClass {
   /** The bestax component, dotted for a part (\`Hero.Body\`). */
@@ -448,20 +565,60 @@ export interface BulmaComponentClass {
    * family whose component renders its own parts, converted by hand.
    */
   readonly converts: boolean;
+  /** For a class that converts: the tag its component renders by itself. */
+  readonly tag?: string;
+  /**
+   * For a class that converts: the tags its component renders, its own and
+   * the ones \`as\` reaches, or \`'any'\`. Of the classes an element carries,
+   * the codemod decides by the one whose component fits its tag best: the
+   * tag it renders with no \`as\`, then one of these, then none.
+   */
+  readonly tags?: readonly string[] | 'any';
+  /**
+   * For a class that converts: the classes beside it that decide the tag its
+   * component renders with no \`as\` (\`Image\`'s ratios a <figure>, \`Title\`'s
+   * sizes their heading), each with that tag, null for its own, and the tags
+   * it converts on when not all. The first the element carries that converts
+   * on its tag decides.
+   */
+  readonly retags?: Readonly<Record<string, BulmaRetag>>;
+  /**
+   * How to keep the class on an element another component renders, where an
+   * element of its own is not the answer.
+   */
+  readonly onAnother?: string;
+}
+
+/** A class that decides the tag a component renders with no \`as\`. */
+export interface BulmaRetag {
+  /** The tag it renders, or null for the component's own. */
+  readonly tag: string | null;
+  /** The tags it converts on, when not all. */
+  readonly on?: readonly string[];
 }
 
 /**
  * Bulma classes that name a bestax component, from bestax-migrate's
  * bulma-classes table. In the order the codemod decides an element's
- * component when it carries several: a family first, then by precedence.
+ * component when it carries several: a family first, then by precedence,
+ * among the ones whose component fits the element's tag best.
  */
 export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
   new Map<string, BulmaComponentClass>([
 ${classes
-  .map(
-    ([cls, { component, converts }]) =>
-      `    [${JSON.stringify(cls)}, { component: ${JSON.stringify(component)}, converts: ${converts} }],`
-  )
+  .map(([cls, { component, converts, tag, tags, retags, onAnother }]) => {
+    const fields = [
+      `component: ${JSON.stringify(component)}`,
+      `converts: ${converts}`,
+      ...(tag === undefined ? [] : [`tag: ${JSON.stringify(tag)}`]),
+      ...(tags === undefined ? [] : [`tags: ${JSON.stringify(tags)}`]),
+      ...(retags === undefined ? [] : [`retags: ${JSON.stringify(retags)}`]),
+      ...(onAnother === undefined
+        ? []
+        : [`onAnother: ${JSON.stringify(onAnother)}`]),
+    ];
+    return `    [${JSON.stringify(cls)}, { ${fields.join(', ')} }],`;
+  })
   .join('\n')}
   ]);
 `;
@@ -477,7 +634,10 @@ export async function build(deps = {}) {
   const violations = classTableViolations(classes, exportedModules());
   if (violations.length) throw new Error(violations.join('\n'));
   const tables = collect();
-  const unknown = unknownComponents(classes, tables.elements);
+  const unknown = [
+    ...unknownComponents(classes, tables.elements),
+    ...flexContainerViolations(tables.flexContainers),
+  ];
   if (unknown.length) throw new Error(unknown.join('\n'));
   const out = render({ ...tables, classes: classes.entries });
   const prettier = require('prettier');

@@ -30,8 +30,11 @@ export const KINDS: ReadonlySet<string> = new Set([
   'dynamic-class',
   'family',
   'legacy',
+  'modifier',
+  'name',
   'only-child',
   'ref',
+  'second-component',
   'spread',
   'tag',
 ]);
@@ -50,6 +53,13 @@ const VOCABULARY: ReadonlySet<string> = new Set([
     ...(entry.defaultsUnless ?? []),
     ...Object.keys(entry.dropsAttr ?? {}),
     ...Object.keys(entry.writesAttr ?? {}),
+    // The attribute a class converts only beside (`aria-current`).
+    ...[
+      ...Object.values(entry.modifiers ?? {}),
+      ...Object.values(entry.absorbs?.modifiers ?? {}),
+    ].flatMap(modifier =>
+      modifier.needsAttr ? [modifier.needsAttr.name] : []
+    ),
   ]),
   ...Object.values(WRAPPERS),
   ...Object.values(WRAPPER_OWN_PROPS).flat(),

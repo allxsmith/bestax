@@ -38,7 +38,7 @@
   "related": ["Code", "Image", "Pre", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-figure--default",
   "summary": "The `Figure` component renders a styled `<figure>` element with Bulma helper class integration.",
-  "import": "import { Figure } from '@allxsmith/bestax-bulma';",
+  "import": "import { Figure, FigureCaption } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/elements/Figure.tsx",
   "rootClass": null,
   "parts": [

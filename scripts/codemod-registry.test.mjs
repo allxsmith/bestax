@@ -19,7 +19,7 @@
  * Nothing here reaches the network or spawns anything: fetch and the CLI are
  * stubbed or injected.
  */
-import { after, test } from 'node:test';
+import { afterAll, test, vi } from 'vitest';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -59,7 +59,7 @@ const WORKFLOW = path.join(
 const NO_BACKOFF = { backoffMs: [0, 0] };
 
 const tempDirs = [];
-after(() => {
+afterAll(() => {
   for (const dir of tempDirs) fs.rmSync(dir, { recursive: true, force: true });
 });
 
@@ -103,7 +103,7 @@ const problemsOf = (pkg, opts) => packageProblems(pkg, opts).problems;
 /** Stub globalThis.fetch for one test, recording each call. */
 function stubFetch(t, respond) {
   const calls = [];
-  t.mock.method(globalThis, 'fetch', async (url, init = {}) => {
+  vi.spyOn(globalThis, 'fetch').mockImplementation(async (url, init = {}) => {
     calls.push({ url: String(url), init });
     return respond(String(url), init);
   });

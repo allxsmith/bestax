@@ -29,6 +29,32 @@ become `<Cell>`, and `size={n}` becomes a column span.
 <Grid><Cell colSpan={4}>x</Cell></Grid>
 ```
 
+## `component:Heading` — Bulma v1 dropped `.heading`
+
+rbx's `Heading` is Bulma 0.9's small uppercase label, and bestax has no component for it. It becomes
+the plain element rbx rendered, a `<p>` or the tag a literal `as` names, with `className="heading"`,
+but Bulma v1 has no rule for that class, so the label renders as body text. Restyle it with helper props, as a small, uppercase, semibold
+`Paragraph`:
+
+```jsx
+<Heading>Followers</Heading>
+<Paragraph textSize="7" textTransform="uppercase" textWeight="semibold" mb="1">
+  Followers
+</Paragraph>
+```
+
+Or keep the class and give it a rule of your own. Bulma 0.9's was:
+
+```css
+.heading {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+```
+
 ## `component:File.*` — the file-input parts
 
 bestax's `<File>` renders the whole Bulma structure itself, so `File.Label`, `File.Input`,
@@ -54,6 +80,9 @@ See the `as` section of [prop-map.md](prop-map.md) for the components that do ac
 The same rule fires a second way: several bestax components accept `as` but narrow it to the
 tags Bulma's markup allows there, so a literal outside that union (`<Control as="span">`,
 `<Media as="section">`) is dropped and named. The TODO lists the tags that component renders.
+
+A dynamic `as` on a component that becomes plain markup is flagged too: the plain element is the
+one rbx rendered by default.
 
 ## `prop:href` — a link needs the anchor
 
@@ -156,10 +185,30 @@ Nothing flags this — the markup is valid either way — so audit your navbars 
 Bulma v1 does not ship it. Use `<UnorderedList>`/`<UnorderedList.Item>` for a plain list, or
 `<Menu>`/`<Menu.Item>` when the items are navigation.
 
-## `component:Fieldset`, `component:Numeric`, `component:Highlight`
+## `component:Fieldset` — an input placed straight in it
 
-No bestax equivalents, and none needed: render a plain `<fieldset>` (its `disabled` attribute
-works natively), use `Intl.NumberFormat` directly, and use `<Pre>` with your own highlighter.
+bestax's `Fieldset` starts its own Field scope, and rbx's bare `<fieldset>` never did. So an input
+placed straight in it, such as an `Input`, renders as it does outside any `Field`, with a `.field`
+of its own where it has one. Where the `Fieldset` sits inside a `Field` or a `Control` in the same
+component, the codemod keeps the plain `<fieldset>` rbx rendered. It can't see one in another
+component, so it converts the `Fieldset` and leaves this TODO where an input sits straight in it.
+
+If nothing renders the `Fieldset` inside a `Field` or a `Control`, delete the comment. If something
+does, render a plain `<fieldset>` instead, which leaves their scope alone:
+
+```jsx
+<Fieldset disabled variant="unstyled">
+  <Input />
+</Fieldset>
+<fieldset disabled>
+  <Input />
+</fieldset>
+```
+
+## `component:Numeric`, `component:Highlight`
+
+No bestax equivalents, and none needed: use `Intl.NumberFormat` directly, and use `<Pre>` with your
+own highlighter.
 
 ## `responsive` — `touch` and `{ only: true }`
 
@@ -181,21 +230,41 @@ prop.
 A dynamic `Image.Container` size gets the same rule, since the codemod can't turn it into
 bestax's `NxN` form. Set `size` on the migrated `<Image>` by hand.
 
+## `prop:size` on `Title`: a size the codemod cannot carry
+
+rbx's `Title` rendered an `<h1>` at every size, subtitle or not. bestax's `Title` and `SubTitle`
+render the heading their `size` names unless `as="p"`, so a literal size moves to `textSize` to
+keep the level (see "Title sizes" in the prop map). A dynamic one cannot move, because
+`textSize` takes a string, so it stays `size`. Pass it to `textSize` yourself:
+
+```jsx
+<Title size={compact ? 5 : 4}>Report</Title>
+<Title textSize={compact ? '5' : '4'}>Report</Title>
+```
+
+A literal outside 1 to 7 has no Bulma class, and bestax renders none for it either: drop it, or set
+a `textSize` from `'1'` to `'7'`.
+
+The same TODO marks a `Title` that sets `size` and `textSize` both: drop `size` and let
+`textSize` set the font size.
+
 ## Props with no counterpart
 
-| TODO                                         | What to do                                                                                                                                                                                                                                               |
-| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `prop:closeOnBlur` on `Modal`                | the migrated compound form renders `Modal.Background` as you wrote it; wire its `onClick` to your `onClose`                                                                                                                                              |
-| `prop:selected`, `prop:text` on `Button`     | `className="is-selected"`; for `is-text` use `color="ghost"` or a link                                                                                                                                                                                   |
-| `prop:gradient` on `Hero`                    | Bulma v1 removed `is-bold` gradients; use `bgColor` or a custom class                                                                                                                                                                                    |
-| `prop:color`, `prop:vertical` on `Divider`   | bestax's `Divider` takes only `bgColor` and renders an `<hr>`                                                                                                                                                                                            |
-| `component:Divider` (a labelled divider)     | rbx rendered `<Divider>OR</Divider>`'s children as a centred label via `data-content`; bestax's `Divider` is a bare `<hr>` and takes no children -- React rejects children on a void element at runtime. Put the label in surrounding markup, or drop it |
-| `prop:direction` on `PageLoader`             | no directional variant; drop it or add a class                                                                                                                                                                                                           |
-| `prop:managed`                               | bestax components are uncontrolled; drive the `Modal` with `active` and `onClose`                                                                                                                                                                        |
-| `prop:document` on `Modal`                   | bestax portals via `portal`, but it takes `true`, a selector or an element rather than a `Document` — see [Modal: what carries over](#modal-what-carries-over)                                                                                           |
-| `prop:document` on `Navbar`                  | bestax's `Navbar` has no `document` prop; drop it                                                                                                                                                                                                        |
-| `badgeOutlined`, `badgeRounded`, `badgeSize` | bestax's `Badge` has no outline, pill or size variant                                                                                                                                                                                                    |
-| `tooltipResponsive`                          | bestax's `Tooltip` has one `position` for all viewports                                                                                                                                                                                                  |
+| TODO                                         | What to do                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `prop:closeOnBlur` on `Modal`                | the migrated compound form renders `Modal.Background` as you wrote it; wire its `onClick` to your `onClose`                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `prop:selected`, `prop:text` on `Button`     | `className="is-selected"`; for `is-text` use `color="ghost"` or a link                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `prop:gradient` on `Hero`                    | Bulma v1 removed `is-bold` gradients; use `bgColor` or a custom class                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `prop:color`, `prop:vertical` on `Divider`   | bestax's `Divider` takes only `bgColor` and renders an `<hr>`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `component:Divider` (a labelled divider)     | rbx rendered `<Divider>OR</Divider>`'s children as a centred label via `data-content`; bestax's `Divider` is a bare `<hr>` and takes no children -- React rejects children on a void element at runtime. Put the label in surrounding markup, or drop it                                                                                                                                                                                                                                                                                             |
+| `prop:direction` on `PageLoader`             | no directional variant; drop it or add a class                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `prop:managed`                               | bestax components are uncontrolled; drive the `Modal` with `active` and `onClose`                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `prop:document` on `Modal`                   | bestax portals via `portal`, but it takes `true`, a selector or an element rather than a `Document` — see [Modal: what carries over](#modal-what-carries-over)                                                                                                                                                                                                                                                                                                                                                                                       |
+| `prop:document` on `Navbar`                  | bestax's `Navbar` has no `document` prop; drop it                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `prop:backgroundColor`                       | `Notification`, `Table` and its parts, `Tabs`, `Checkbox`, `Radio`, `Progress` and the other components that take neither `bgColor` nor `backgroundColor` keep it as written; move the color to a `has-background-*` class in `className`                                                                                                                                                                                                                                                                                                            |
+| `prop:textColor`                             | On `Tag`, `Tabs`, `Hero`, `Progress`, `Breadcrumb`, `Input`, `Select`, `TextArea`, `File` and the other components with no `textColor`, it stays as written: move the color to a `has-text-*` class in `className`. On `Table` (and its `Thead`, `Tbody` and `Tfoot`), `Menu` and its parts, and `Dropdown` and its `Item` it becomes `color` for one of bestax's color names, and stays flagged where the element sets `color` or has a spread, or the value is dynamic, a shade or `text`: use `color` with `colorShade` for a shade, or the class |
+| `badgeOutlined`, `badgeRounded`, `badgeSize` | bestax's `Badge` has no outline, pill or size variant                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `tooltipResponsive`                          | bestax's `Tooltip` has one `position` for all viewports                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
 ## Modal: what carries over
 
@@ -224,6 +293,29 @@ children — where it renders its own background and close button, both wired to
 `closeOnBlur` carries over for free. A `Modal.Content` or `Modal.Card` child selects the compound
 form instead, which renders only what you wrote; there, wire your own `Modal.Background`'s
 `onClick` to the same `onClose`.
+
+The open modal is a dialog, so give it a name, with `aria-label`, or `aria-labelledby` pointing at
+its title (`name:Modal`).
+
+## `name:Modal`: a modal with no name
+
+A converted `Modal` (or `Modal.Container`) with no `aria-label` or `aria-labelledby`, and no
+spread that could hold one. bestax's `Modal` is a dialog while it's open, and a
+dialog with no name is announced as just "dialog". Only the legacy form's `modalCardTitle` names
+it for you, and the codemod never writes that. Give the `Modal` an `aria-label`, or point
+`aria-labelledby` at the `id` of its title, such as its `Modal.Card.Title` when it has one:
+
+```tsx
+<Modal active={open} onClose={close} aria-labelledby="terms-title">
+  <Modal.Background onClick={close} />
+  <Modal.Card>
+    <Modal.Card.Head>
+      <Modal.Card.Title id="terms-title">Terms</Modal.Card.Title>
+    </Modal.Card.Head>
+    <Modal.Card.Body>…</Modal.Card.Body>
+  </Modal.Card>
+</Modal>
+```
 
 ## `value-reference` — a component used as a value
 

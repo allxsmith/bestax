@@ -32,7 +32,17 @@ Use `Modal` for forms or custom content — an empty overlay you build the conte
 <!-- bestax:generated import -->
 
 ```tsx
-import { Modal } from '@allxsmith/bestax-bulma';
+import {
+  Modal,
+  ModalBackground,
+  ModalContent,
+  ModalClose,
+  ModalCard,
+  ModalCardHead,
+  ModalCardTitle,
+  ModalCardBody,
+  ModalCardFoot,
+} from '@allxsmith/bestax-bulma';
 ```
 
 <!-- /bestax:generated import -->
@@ -43,7 +53,7 @@ import { Modal } from '@allxsmith/bestax-bulma';
 
 ### Modal Card (with title and footer)
 
-To display a modal dialog with a header and footer, use the `Modal` component with the `active` prop to control visibility, and provide `modalCardTitle` and `modalCardFoot` for the card layout. The `onClose` prop handles closing the modal, and you can use Bulma color helpers for further customization. This pattern is ideal for forms or any content that requires user attention in a focused overlay.
+To display a modal dialog with a header and footer, use the `Modal` component with the `active` prop to control visibility, and provide `modalCardTitle` and `modalCardFoot` for the card layout. The `onClose` prop handles closing the modal, and you can use Bulma color helpers for further customization. The close button it renders is named "close" for screen readers; `ariaCloseLabel` gives it a name of your own, such as one in your app's language. This pattern is ideal for forms or any content that requires user attention in a focused overlay.
 
 ```tsx live
 function example() {
@@ -103,7 +113,7 @@ function example() {
 
 ### Modal Card (footer only)
 
-Provide only the `modalCardFoot` prop to display a modal card with a footer and body, but no header. This is useful for footer-driven actions that do not require a title.
+Provide only the `modalCardFoot` prop to display a modal card with a footer and body, but no header. This is useful for footer-driven actions that do not require a title. With no title to name the dialog, give it an `aria-label`.
 
 ```tsx live
 function example() {
@@ -118,6 +128,7 @@ function example() {
         active={open}
         onClose={() => setOpen(false)}
         modalCardFoot={<Button color="success">Save</Button>}
+        aria-label="Save changes"
       >
         Modal body content...
       </Modal>
@@ -130,7 +141,7 @@ function example() {
 
 ### Modal Content (no card title or footer)
 
-Omit both `modalCardTitle` and `modalCardFoot` to render a modal with only custom content. This is ideal for custom layouts, or when you want full control over the modal's appearance.
+Omit both `modalCardTitle` and `modalCardFoot` to render a modal with only custom content. This is ideal for custom layouts, or when you want full control over the modal's appearance. Name the dialog by pointing `aria-labelledby` at a heading inside it, or with an `aria-label`.
 
 ```tsx live
 function example() {
@@ -141,9 +152,15 @@ function example() {
       <Button color="success" onClick={() => setOpen(true)}>
         Show Modal
       </Button>
-      <Modal active={open} onClose={() => setOpen(false)}>
+      <Modal
+        active={open}
+        onClose={() => setOpen(false)}
+        aria-labelledby="content-modal-title"
+      >
         <Box>
-          <Title size="4">Custom Content</Title>
+          <Title size="4" id="content-modal-title">
+            Custom Content
+          </Title>
           <Paragraph>Put any content here!</Paragraph>
         </Box>
       </Modal>
@@ -169,7 +186,12 @@ function example() {
       <Button color="success" onClick={() => setOpen(true)}>
         Show Modal
       </Button>
-      <Modal active={open} onClose={() => setOpen(false)} type="content">
+      <Modal
+        active={open}
+        onClose={() => setOpen(false)}
+        type="content"
+        aria-label="Content style example"
+      >
         <div>Custom content modal (forced type="content")</div>
       </Modal>
     </>
@@ -190,7 +212,12 @@ function example() {
       <Button color="success" onClick={() => setOpen(true)}>
         Show Modal
       </Button>
-      <Modal active={open} onClose={() => setOpen(false)} type="card">
+      <Modal
+        active={open}
+        onClose={() => setOpen(false)}
+        type="card"
+        aria-label="Card style example"
+      >
         Modal card body (forced type="card")
       </Modal>
     </>
@@ -227,7 +254,7 @@ function example() {
 }
 ```
 
-`portal` also accepts a `document.querySelector` selector string or an `HTMLElement` to target a specific container. With `portal` set to `true`, a [`ConfigProvider`](../helpers/config.md#where-portaled-content-goes) `portalContainer` takes the place of `document.body`.
+`portal` also accepts a `document.querySelector` selector string or an `HTMLElement` to target a specific container. With `portal` set to `true`, a [`ConfigProvider`](../helpers/config.md#where-portaled-content-goes) `portalContainer` takes the place of `document.body`. Portaled outside `<main>`, as this one is, a modal card's title bar is a banner landmark inside its dialog: [Accessibility](#accessibility) says how to avoid that.
 
 It's SSR-safe: a portal has no server-rendered counterpart, so the modal renders inline on the server _and_ during hydration, then moves into the portal once the client takes over. Hydration matches instead of trading an SSR crash for a hydration mismatch.
 
@@ -278,6 +305,10 @@ Callback refs behave the same on React 18 and 19: if your callback returns a cle
 
 The compound components API provides more flexibility and better readability for complex modals. Use `Modal.Background`, `Modal.Card`, and related sub-components for full control over the modal structure.
 
+The same parts are named exports: `ModalBackground`, `ModalContent`, `ModalClose`, `ModalCard`, `ModalCardHead`, `ModalCardTitle`, `ModalCardBody`, and `ModalCardFoot`. Each is the same component as the dotted name (`Modal.Card.Head` is `ModalCardHead`). A Next.js Server Component imports them by name, since a dotted name is `undefined` there. [Next.js Specific](../../guides/getting-started/react-setups.md#nextjs-specific) has more.
+
+Pass `onClose` to the `Modal` here too. Escape calls it, and so does `Modal.Close`, unless you give the button an `onClick` of your own: yours then replaces the close, so call `onClose` from it if the button should still close the modal. `Modal.Background` doesn't call `onClose` on its own, so a click on the background closes the modal only once you pass it `onClick={onClose}`.
+
 ```tsx live
 function example() {
   const [open, setOpen] = useState(false);
@@ -288,12 +319,18 @@ function example() {
       <Button color="success" onClick={() => setOpen(true)}>
         Show Modal
       </Button>
-      <Modal isActive={open}>
+      <Modal
+        isActive={open}
+        onClose={closeModal}
+        aria-labelledby="compound-modal-title"
+      >
         <Modal.Background onClick={closeModal} />
         <Modal.Card>
           <Modal.Card.Head>
-            <Modal.Card.Title>Compound Component Modal</Modal.Card.Title>
-            <Modal.Close onClick={closeModal} />
+            <Modal.Card.Title id="compound-modal-title">
+              Compound Component Modal
+            </Modal.Card.Title>
+            <Modal.Close />
           </Modal.Card.Head>
           <Modal.Card.Body>
             This modal uses the compound components API for better control and
@@ -328,15 +365,21 @@ function example() {
       <Button color="success" onClick={() => setOpen(true)}>
         Show Modal
       </Button>
-      <Modal isActive={open}>
+      <Modal
+        isActive={open}
+        onClose={closeModal}
+        aria-labelledby="custom-content-title"
+      >
         <Modal.Background onClick={closeModal} />
         <Modal.Content>
           <Box>
-            <Title size="4">Custom Content</Title>
+            <Title size="4" id="custom-content-title">
+              Custom Content
+            </Title>
             <Paragraph>Using compound components for full control!</Paragraph>
           </Box>
         </Modal.Content>
-        <Modal.Close variant="floating" onClick={closeModal} />
+        <Modal.Close variant="floating" />
       </Modal>
     </>
   );
@@ -348,13 +391,24 @@ function example() {
 ## Accessibility
 
 - The modal root gets `role="dialog"` and `aria-modal="true"` while active — pass an explicit `role` to override (e.g. `Dialog` passes `role="presentation"` on the `Modal` it wraps so its own `role="alertdialog"` is the only one announced).
-- **Give the dialog an accessible name.** With the legacy API, `modalCardTitle` is wired up as `aria-labelledby` for you. With the compound API, pass your own `aria-label` or `aria-labelledby` on `<Modal>` — a `role="dialog"` with no name is announced as just "dialog". An explicit `aria-labelledby` always wins over the generated one.
-- Escape closes the modal (calls `onClose`) by default; opt out with `closeOnEscape={false}`. Only the topmost open modal responds, so Escape closes one layer at a time rather than dismissing a whole stack.
-- Body scroll is locked while the modal is active; opt out with `lockScroll={false}`. The lock is ref-counted and shared with `Dialog`, `Sidebar` and `Loading`, so whichever overlay closes first doesn't unlock the page underneath one that is still open.
-- Focus moves to the first enabled focusable element (or the modal itself) on open, and is restored to the previously focused element on close — unless another modal is still open on top, in which case that one keeps focus.
-- Tab and Shift+Tab cycle within the topmost modal while it is open, so the keyboard order agrees with what `aria-modal="true"` tells assistive technology. Note that `aria-modal` does not by itself make background content inert, and no `inert` attribute is applied — background content remains reachable by pointer and by browser UI such as find-in-page.
-- The modal background closes the modal on click (`onClose` required).
-- Close buttons are provided for both modal-card and modal-content variants.
+- **Give the dialog an accessible name.** With the legacy API, `modalCardTitle` is wired up as `aria-labelledby` for you, and with `type="content"`, which shows no card head, a title that's a string names the dialog as its `aria-label`. Without one, and with the compound API, pass your own `aria-label` or `aria-labelledby` on `<Modal>` — a `role="dialog"` with no name is announced as just "dialog". An explicit `aria-labelledby` always wins over the generated one.
+- Escape closes the modal (calls `onClose`) by default; opt out with `closeOnEscape={false}`. One Escape closes the topmost overlay only, whichever open Modal, [Dialog](./dialog.md), [Sidebar](./sidebar.md) or full-page [Loading](./loading.md) opened last, and the next Escape closes the one under it. A modal on top with `closeOnEscape={false}` still keeps Escape from the layers under it. A [Toast](./toast.md) waits until no overlay is open.
+- The modal calls `preventDefault()` on the Escape it closes on, so a listener of your own that runs after it can tell the key was used.
+- A popup inside the modal takes its own Escape first. With an Autocomplete list, a Dropdown menu, a Popover or a date picker's calendar open, the first Escape closes that and the next one closes the modal.
+- A popup of your own inside a modal should call `preventDefault()` on the Escape it closes on. The modal leaves an Escape that was prevented alone, whether your popup hears it in a React `onKeyDown` or in a listener on `document`. Call it only when the popup is open and the key was pressed in it, so an Escape with nothing to close still closes the modal, and so does one pressed in a modal opened over your popup.
+- The page doesn't scroll under the modal while it's active; opt out with `lockScroll={false}`. The lock is ref-counted and shared with `Dialog`, `Sidebar` and `Loading`, so whichever overlay closes first doesn't unlock the page underneath one that is still open.
+- Focus moves to the first tab stop (or the modal itself) on open, and is restored to the previously focused element on close — unless another modal is still open on top, in which case that one keeps focus.
+- A popup opened inside the modal, such as a `Popover`, `HoverCard` or `ContextMenu` panel, or a `Combobox` menu or picker popover with `appendToBody`, is portaled into the modal's root rather than to the end of `<body>`, so a screen reader that honors `aria-modal` reaches it, and it's inside the Tab cycle below. A `portalContainer` a [`ConfigProvider`](../helpers/config.md#where-portaled-content-goes) sets still takes it. A [Lightbox](./lightbox.md) is a Modal, so the same goes for it.
+- Tab and Shift+Tab cycle within the modal while it is the topmost modal overlay, so the keyboard order agrees with what `aria-modal="true"` tells assistive technology. They wrap at the same tab stops [`useFocusTrap`](../helpers/usefocustrap.md) does, so disabled, hidden and `tabIndex={-1}` elements are skipped, and so is inert content, such as a closed [Sidebar](./sidebar.md) inside the modal, and the content of a closed `<details>`. A radio group counts once. A Tab from outside the modal brings focus back in, and so does a Tab the browser takes out anyway, as Safari does past links when its settings say to. With another Modal or Dialog, a [Sidebar](./sidebar.md) with an overlay or a full-page Loading opened over it, the modal leaves Tab alone until that one closes. A Sidebar without an overlay isn't modal: opened over the modal, it takes Escape first, but the modal keeps holding Tab and keeps focus, so the sidebar doesn't take focus when it opens, and a Tab from its controls comes back into the modal. A focus trap of your own inside it, such as a portaled panel's, keeps a Tab it calls `preventDefault()` on, and the modal leaves focus where your trap put it. Note that `aria-modal` does not by itself make background content inert, and no `inert` attribute is applied, so background content remains reachable by pointer and by browser UI such as find-in-page.
+- In the props form, the background closes the modal on click, and a close button is provided for both modal-card and modal-content variants (both call `onClose`, so pass it). The close button is named "close" unless `ariaCloseLabel` names it. It's drawn as an icon, so its name is all a screen reader says about it: in an app in another language, give it one in the page's language. An `aria-label` on `Modal` names the dialog, not the button, and a `Modal.Close` in the compound form takes an `aria-label` of its own.
+- In the compound form, `Modal.Close` calls the modal's `onClose` unless you give it an `onClick` of your own, and `Modal.Background` closes the modal only when you pass it `onClick={onClose}`.
+- A modal card's head and foot are a `<header>` and a `<footer>`. Outside `<main>`, `<article>`, `<aside>`, `<nav>` or `<section>`, a browser exposes those as the page's banner and content info landmarks. So when `portal` renders a modal card at the end of `<body>`, its head and foot are landmarks inside its dialog, and a screen reader user moving through the page by landmark is offered its title bar as the page's banner. Any of these avoids them:
+  - Render the modal inline inside the page's `<main>`, or point `portal` at an element inside it that doesn't clip the modal.
+  - In the compound form, pass `role="none"` to `Modal.Card.Head` and `Modal.Card.Foot`, which drops them wherever the modal is. A browser ignores that role on an element with an `aria-label` or other global ARIA attribute, or a `tabIndex`, so give them none of those. The compound form leaves the dialog's name to you: point an `aria-labelledby` on `<Modal>` at the `Modal.Card.Title`.
+
+  The props form's head and foot, from `modalCardTitle` and `modalCardFoot`, can't take a role.
+
+- In forced colors (Windows' contrast themes), which repaint the card's backgrounds and the backdrop's, a modal card keeps a one pixel edge in the system's text color, from bestax's `components/modal` partial, which `bestax.css` includes.
 
 :::note
 Always provide an `onClose` handler for accessibility and to allow users to dismiss the modal.
@@ -368,7 +422,7 @@ Always provide an `onClose` handler for accessibility and to allow users to dism
 - [`Popover`](./popover.md): A non-modal panel anchored to its trigger, for content that shouldn't block the page.
 - [`Button`](../elements/button.md): Use for actions in modal footers.
 - [`Field`](../form/field.md), [`Input`](../form/input.md): For forms inside modals.
-- [Helper Props](../helpers/usebulmaclasses.md): All Bulma utility helpers can be used.
+- [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing and other utilities.
 
 ---
 
@@ -378,7 +432,7 @@ Always provide an `onClose` handler for accessibility and to allow users to dism
 - [Storybook: Modal Stories](https://bestax.io/storybook/?path=/story/components-modal--modal-card)
 
 :::tip Pro Tip
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Modal />` for powerful utility-based styling.
+You can use [Bulma helper props](../helpers/usebulmaclasses.md) with `<Modal />` for powerful utility-based styling.
 :::
 
 ---
@@ -389,41 +443,43 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Modal
 
 <!-- bestax:generated props -->
 
-| Prop             | Type                                                                    | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| ---------------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `active`         | `boolean`                                                               | `false` | Whether the modal is open/visible.                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `isActive`       | `boolean`                                                               | `false` | Alias for `active`. Whether the modal is open/visible.                                                                                                                                                                                                                                                                                                                                                                                                       |
-| `onClose`        | `() => void`                                                            | —       | Callback invoked to request modal close (background or close button).                                                                                                                                                                                                                                                                                                                                                                                        |
-| `className`      | `string`                                                                | —       | Additional CSS classes for the modal.                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `textColor`      | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color for modal content.                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `bgColor`        | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color for modal content.                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| `modalCardTitle` | `React.ReactNode`                                                       | —       | Title/header for modal-card variant. (Legacy API only)                                                                                                                                                                                                                                                                                                                                                                                                       |
-| `modalCardFoot`  | `React.ReactNode`                                                       | —       | Footer for modal-card variant. (Legacy API only)                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `type`           | `'card'` \| `'content'`                                                 | `auto`  | Modal style: `'card'` for modal-card, `'content'` for modal-content. (Legacy API only)                                                                                                                                                                                                                                                                                                                                                                       |
-| `children`       | `React.ReactNode`                                                       | —       | Modal body/content or compound components.                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `closeOnEscape`  | `boolean`                                                               | `true`  | Close the modal when the Escape key is pressed (calls `onClose`). Only the topmost open modal responds, so Escape closes one layer at a time.                                                                                                                                                                                                                                                                                                                |
-| `lockScroll`     | `boolean`                                                               | `true`  | Lock body scroll while the modal is active. Ref-counted and shared with `Dialog`, `Sidebar` and `Loading`, so whichever overlay closes first does not unlock the page underneath one that is still open.                                                                                                                                                                                                                                                     |
-| `portal`         | `boolean` \| `string` \| `HTMLElement`                                  | `false` | Renders the modal into a portal target instead of inline, so it isn't clipped by an ancestor with `overflow: hidden`, `filter` or `transform`. `true` portals to the `portalContainer` a `ConfigProvider` sets, `document.body` by default; a string is used as a `document.querySelector` selector; an element is used directly. Renders inline on the server and while hydrating, moving into the portal once the client takes over, so hydration matches. |
-| `ref`            | `React.Ref<HTMLDivElement>`                                             | —       | Ref forwarded to the root `.modal` element.                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `...`            | All standard `<div>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Prop             | Type                                                                    | Default   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ---------------- | ----------------------------------------------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `active`         | `boolean`                                                               | `false`   | Whether the modal is open/visible.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `isActive`       | `boolean`                                                               | `false`   | Alias for `active`. Whether the modal is open/visible.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `onClose`        | `() => void`                                                            | —         | Called to ask for the modal to close. The props form calls it from the background and the close button it renders. In the compound form, `Modal.Close` calls it unless you give it an `onClick` of your own, and `Modal.Background` doesn't call it on its own: pass it `onClick={onClose}` for a click on the background to close the modal. Escape calls it in both forms unless `closeOnEscape` is `false`.                                                                                                                                                                                                                                                                                                          |
+| `className`      | `string`                                                                | —         | Additional CSS classes for the modal.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `ariaCloseLabel` | `string`                                                                | `'close'` | ARIA label for the close button the props form renders with `onClose`, the card header's or the floating one. It's drawn as an icon, so its name is all a screen reader says about it: give it one in the page's language. An empty one falls back to the default. An `aria-label` on `Modal` names the dialog, not the button, and a `Modal.Close` in the compound form takes an `aria-label` of its own.                                                                                                                                                                                                                                                                                                              |
+| `textColor`      | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —         | Text color for modal content.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `bgColor`        | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —         | Background color for modal content.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `modalCardTitle` | `React.ReactNode`                                                       | —         | Title/header for modal-card variant, which names the dialog through `aria-labelledby`. With `type="content"` it isn't shown, and a title that's a string still names the dialog, as its `aria-label`. Without one, give the modal an `aria-label`, or an `aria-labelledby` pointing at a heading inside it. It's drawn in the card's `<header>`, which is a banner landmark unless the modal sits inside `<main>` or a sectioning element, as it doesn't when `portal` renders it at the end of `<body>`. The props form can't give the header a role, so point `portal` at an element inside `<main>` that doesn't clip the modal, or use the compound form with `role="none"` on `Modal.Card.Head`. (Legacy API only) |
+| `modalCardFoot`  | `React.ReactNode`                                                       | —         | Footer for modal-card variant. Group two or more buttons in `Buttons` so Bulma spaces them. It's drawn in a `<footer>`, which is a content info landmark unless the modal sits inside `<main>` or a sectioning element, as it doesn't when `portal` renders it at the end of `<body>`. The props form can't give the footer a role, so point `portal` at an element inside `<main>` that doesn't clip the modal, or use the compound form with `role="none"` on `Modal.Card.Foot`. (Legacy API only)                                                                                                                                                                                                                    |
+| `type`           | `'card'` \| `'content'`                                                 | `auto`    | Modal style: `'card'` for modal-card, `'content'` for modal-content. (Legacy API only)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `children`       | `React.ReactNode`                                                       | —         | Modal body/content or compound components.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `closeOnEscape`  | `boolean`                                                               | `true`    | Close the modal when the Escape key is pressed (calls `onClose`). Only the topmost open overlay responds, whichever Modal, Dialog, Sidebar or full-page Loading opened last, so Escape closes one layer at a time. The modal marks the Escape it closes on as used with `preventDefault()`, and a Toast waits until no overlay is open. Turned off, a modal on top still keeps Escape from the layers under it. A popup inside it, such as a Dropdown's menu or a date picker's calendar, takes its own Escape first, and so does content that calls `preventDefault()` on it.                                                                                                                                          |
+| `lockScroll`     | `boolean`                                                               | `true`    | Lock page scroll while the modal is active, padding the page by the room its scrollbar took so the content stays put. A `fixed` Navbar, the toast and notification stacks and an Affix stay put too. The padding doesn't reach an element of your own fixed to the window's edge, which moves by the scrollbar's width unless it adds `var(--bulma-scroll-lock-offset-right, 0px)` to its `right` (the `-left` one to its `left`), which the lock sets on `<html>` while it's on. Ref-counted and shared with `Dialog`, `Sidebar` and `Loading`, so whichever overlay closes first does not unlock the page underneath one that is still open.                                                                          |
+| `portal`         | `boolean` \| `string` \| `HTMLElement`                                  | `false`   | Renders the modal into a portal target instead of inline, so it isn't clipped by an ancestor with `overflow: hidden`, `filter` or `transform`. `true` portals to the `portalContainer` a `ConfigProvider` sets, `document.body` by default; a string is used as a `document.querySelector` selector; an element is used directly. Renders inline on the server and while hydrating, moving into the portal once the client takes over, so hydration matches.                                                                                                                                                                                                                                                            |
+| `ref`            | `React.Ref<HTMLDivElement>`                                             | —         | Ref forwarded to the root `.modal` element.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `...`            | All standard `<div>` attributes and Bulma helper props                  | —         | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 
 **Subcomponents:**
 
-- `Modal.Background`: Modal.Background - Renders the modal background overlay.
+- `Modal.Background`: Modal.Background - Renders the modal background overlay. Pass it `onClick={onClose}` for a click on it to close the modal.
 - `Modal.Content`: Modal.Content - Renders modal content wrapper for custom content.
 - `Modal.Card`: Modal.Card - Renders modal card wrapper with compound components. Use with Modal.Card.Head, Modal.Card.Title, Modal.Card.Body, and Modal.Card.Foot.
-- `Modal.Card.Head`: Modal.Card.Head - Renders modal card header section.
+- `Modal.Card.Head`: Modal.Card.Head - Renders modal card header section, a `<header>`. Outside `<main>` or a sectioning element, as when `portal` renders the modal at the end of `<body>`, that's a banner landmark inside the dialog: pass `role="none"` to drop it, with no `aria-label` or other global ARIA attribute and no `tabIndex` beside it, since a browser ignores the role then.
 - `Modal.Card.Title`: Modal.Card.Title - Renders modal card title.
 - `Modal.Card.Body`: Modal.Card.Body - Renders modal card body section.
-- `Modal.Card.Foot`: Modal.Card.Foot - Renders modal card footer section.
-- `Modal.Close`: Modal.Close - Renders modal close button with two variant styles.
+- `Modal.Card.Foot`: Modal.Card.Foot - Renders modal card footer section. Group two or more buttons in `Buttons` so Bulma spaces them. It's a `<footer>`, which outside `<main>` or a sectioning element is a content info landmark inside the dialog: pass `role="none"` to drop it, with no `aria-label` or other global ARIA attribute and no `tabIndex` beside it, since a browser ignores the role then.
+- `Modal.Close`: Modal.Close - Renders modal close button with two variant styles. It calls the modal's `onClose` unless given an `onClick` of its own.
 
 ### Modal.Background
 
-| Prop        | Type                            | Default | Description             |
-| ----------- | ------------------------------- | ------- | ----------------------- |
-| `className` | `string`                        | —       | Additional CSS classes. |
-| `...`       | All standard `<div>` attributes | —       |                         |
+| Prop        | Type                                      | Default | Description                                                                                                                                                            |
+| ----------- | ----------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className` | `string`                                  | —       | Additional CSS classes.                                                                                                                                                |
+| `onClick`   | `React.MouseEventHandler<HTMLDivElement>` | —       | Called when the background is clicked. The background doesn't call the modal's `onClose` on its own, so pass `onClick={onClose}` for a click on it to close the modal. |
+| `...`       | All standard `<div>` attributes           | —       |                                                                                                                                                                        |
 
 ### Modal.Content
 
@@ -469,29 +525,30 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Modal
 
 ### Modal.Close
 
-| Prop         | Type                                  | Default    | Description                                                                                                                                                                                                           |
-| ------------ | ------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `className`  | `string`                              | —          | Additional CSS classes.                                                                                                                                                                                               |
-| `size`       | `'small'` \| `'medium'` \| `'large'`  | `'large'`  | Size of the close button (only applies to 'floating' variant).                                                                                                                                                        |
-| `variant`    | `'delete'` \| `'floating'`            | `'delete'` | Button variant. 'delete' (default) for modal card headers, 'floating' for overlay close button.                                                                                                                       |
-| `type`       | `'button'` \| `'submit'` \| `'reset'` | `'button'` | Button type. Defaults to `'button'`, so a close button inside a form does not submit it. Pass `'submit'` or `'reset'` and yours is used; any other value, or a spread carrying `type: undefined`, renders `'button'`. |
-| `aria-label` | `string`                              | `'close'`  | Accessible name. Pass your own to replace it. An empty one, or a spread carrying `'aria-label': undefined`, keeps the default rather than leaving the button unnamed.                                                 |
-| `...`        | All standard `<button>` attributes    | —          |                                                                                                                                                                                                                       |
+| Prop         | Type                                         | Default    | Description                                                                                                                                                                                                                       |
+| ------------ | -------------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className`  | `string`                                     | —          | Additional CSS classes.                                                                                                                                                                                                           |
+| `size`       | `'small'` \| `'medium'` \| `'large'`         | `'large'`  | Size of the close button (only applies to 'floating' variant).                                                                                                                                                                    |
+| `variant`    | `'delete'` \| `'floating'`                   | `'delete'` | Button variant. 'delete' (default) for modal card headers, 'floating' for overlay close button.                                                                                                                                   |
+| `type`       | `'button'` \| `'submit'` \| `'reset'`        | `'button'` | Button type. Defaults to `'button'`, so a close button inside a form does not submit it. Pass `'submit'` or `'reset'` and yours is used; any other value, or a spread carrying `type: undefined`, renders `'button'`.             |
+| `aria-label` | `string`                                     | `'close'`  | Accessible name. Pass your own to replace it. An empty one, or a spread carrying `'aria-label': undefined`, keeps the default rather than leaving the button unnamed.                                                             |
+| `onClick`    | `React.MouseEventHandler<HTMLButtonElement>` | —          | Called when the button is clicked. Without one, the button calls the `onClose` of the `Modal` around it. Yours replaces that rather than running before it, so call `onClose` from it if the button should still close the modal. |
+| `...`        | All standard `<button>` attributes           | —          |                                                                                                                                                                                                                                   |
 
 <!-- /bestax:generated props -->
 
 ### Compound component props
 
-| Component          | Description                                                                                                                                                  |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `Modal.Background` | Modal background overlay (supports onClick)                                                                                                                  |
-| `Modal.Content`    | Modal content wrapper                                                                                                                                        |
-| `Modal.Card`       | Modal card wrapper                                                                                                                                           |
-| `Modal.Card.Head`  | Modal card header                                                                                                                                            |
-| `Modal.Card.Title` | Modal card title                                                                                                                                             |
-| `Modal.Card.Body`  | Modal card body                                                                                                                                              |
-| `Modal.Card.Foot`  | Modal card footer                                                                                                                                            |
-| `Modal.Close`      | Modal close button. Props: `variant` ('delete' [default] for card headers, 'floating' for overlay), `size` ('small', 'medium', 'large') for floating variant |
+| Component          | Description                                                                                                                                                                                                                    |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Modal.Background` | Modal background overlay. Pass `onClick={onClose}` for a click on it to close the modal                                                                                                                                        |
+| `Modal.Content`    | Modal content wrapper                                                                                                                                                                                                          |
+| `Modal.Card`       | Modal card wrapper                                                                                                                                                                                                             |
+| `Modal.Card.Head`  | Modal card header                                                                                                                                                                                                              |
+| `Modal.Card.Title` | Modal card title                                                                                                                                                                                                               |
+| `Modal.Card.Body`  | Modal card body                                                                                                                                                                                                                |
+| `Modal.Card.Foot`  | Modal card footer                                                                                                                                                                                                              |
+| `Modal.Close`      | Modal close button. Calls the modal's `onClose` unless given an `onClick` of its own. Props: `variant` ('delete' [default] for card headers, 'floating' for overlay), `size` ('small', 'medium', 'large') for floating variant |
 
 ---
 

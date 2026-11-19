@@ -2,11 +2,10 @@
  * "The State of React" edition snapshots: writing them, reading them back by
  * column id, and diffing two of them.
  *
- * Lives in docs/scripts/ rather than beside the module because `docs` has no
- * jest config — `node --test "scripts/*.test.mjs"` is the only place a unit test
- * in this package actually runs in CI.
+ * Lives in docs/scripts/ rather than beside the module because that is the
+ * one place `docs/vitest.config.ts` looks for a unit test.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';

@@ -22,11 +22,23 @@
       "code": "<Checkboxes>\n  <Checkbox> Make the bed </Checkbox>\n  <Checkbox> Brush teeth </Checkbox>\n  <Checkbox> Do homework </Checkbox>\n  <Checkbox> Feed the pet </Checkbox>\n  <Checkbox> Take out the trash </Checkbox>\n  <Checkbox> Clean your room </Checkbox>\n  <Checkbox> Set the table </Checkbox>\n  <Checkbox> Help with dishes </Checkbox>\n  <Checkbox> Water the plants </Checkbox>\n  <Checkbox> Put away toys </Checkbox>\n</Checkboxes>"
     },
     {
+      "title": "Mixed state",
+      "code": "function example() {\n  const toppings = ['Cheese', 'Mushrooms', 'Olives'];\n  const [picked, setPicked] = useState(['Cheese']);\n  const allPicked = picked.length === toppings.length;\n\n  return (\n    <Block>\n      <Checkbox\n        checked={allPicked}\n        indeterminate={picked.length > 0 && !allPicked}\n        onChange={() => setPicked(allPicked ? [] : toppings)}\n      >\n        Select all\n      </Checkbox>\n      <Checkboxes value={picked} onChange={setPicked} ml=\"5\">\n        {toppings.map(topping => (\n          <Checkbox key={topping} value={topping}>\n            {topping}\n          </Checkbox>\n        ))}\n      </Checkboxes>\n    </Block>\n  );\n}"
+    },
+    {
       "title": "Valid Colors and Sizes",
       "code": "import { Checkbox, Checkboxes } from '@allxsmith/bestax-bulma';\nimport { checkboxColors, checkboxSizes } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  return (\n    <>\n      <Checkboxes>\n        {checkboxColors.map(color => (\n          <Checkbox key={color} color={color} defaultChecked>\n            {color}\n          </Checkbox>\n        ))}\n      </Checkboxes>\n      <Checkboxes>\n        {checkboxSizes.map(size => (\n          <Checkbox key={size} size={size} defaultChecked>\n            {size}\n          </Checkbox>\n        ))}\n      </Checkboxes>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Theming the Box",
+      "code": "<Checkbox className=\"ink-checkbox\" defaultChecked>\n  Remember me\n</Checkbox>"
+    },
+    {
+      "title": "Box Size",
+      "code": "<Checkbox className=\"compact-checkbox\">Remember me</Checkbox>"
     }
   ],
-  "accessibility": "- Each `Checkbox` is rendered as a `<label>` wrapping an `<input type=\"checkbox\">` and the label text, for optimal accessibility.\n- The clickable area includes both box and label by default.",
+  "accessibility": "- Each `Checkbox` is rendered as a `<label>` wrapping an `<input type=\"checkbox\">` and the label text, for optimal accessibility.\n- The clickable area includes both box and label by default.\n- Browsers expose a box with `indeterminate` set as mixed, so the component adds no ARIA for it.\n- The box is at least 24px square, the minimum size WCAG 2.2 sets for a target (2.5.8), whatever `--bulma-checkbox-size` says. [Box Size](https://bestax.io/docs/api/form/checkbox#box-size) shows how to make it smaller, and why to keep the label text inside the `Checkbox` when you do.\n- An unchecked box shows only its border, `--bulma-checkbox-border-color`. It defaults to `--bulma-text-weak`, which holds the 3:1 contrast WCAG asks of a control's boundary (non-text contrast) on Bulma's page and card surfaces in light and dark. Hold a replacement border, and a custom check color on its fill, to 3:1 as well.\n- In forced colors (Windows contrast themes), the box, the check mark and the mixed dash take system colors, so they stay visible whatever the variables hold. A disabled box and its label draw in the system's color for disabled text there, at full strength rather than dimmed, a checked one filled with it and a mixed one with its dash in it.",
   "related": ["Checkboxes", "Field", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-checkbox--default",
   "summary": "The `Checkbox` component provides a Bulma-styled checkbox input.",
@@ -77,10 +89,19 @@
           "deprecated": false
         },
         {
+          "name": "indeterminate",
+          "type": "boolean",
+          "default": null,
+          "description": "Shows the mixed state, as in a \"Select all\" box when some of what it covers is checked. It's a look and an announcement only: `checked` is still the value, and a click still toggles `checked`. Set to `true` or `false`, it's controlled: a browser clears the mixed state on a click, so the component sets it again from this prop after every click and every render. Unset isn't `false`. The component leaves the input's own `indeterminate` property alone, so a ref can set it, and going from set to unset clears it once and hands it back. It has no HTML attribute, so server-rendered markup can't carry it, and a mixed box renders unmixed until hydration.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
           "name": "className",
           "type": "string",
           "default": null,
-          "description": "Additional CSS classes to apply.",
+          "description": "Additional CSS classes, on the outer `<label>`. That's the element that declares the `--bulma-checkbox-*` variables, so a class is how to set one: `style` and the other input attributes go to the `<input>`. Name `.styled-checkbox` beside your class in the selector, so it beats the label's own declaration whatever order the stylesheets load in. A `color` prop declares the fills again on `.styled-checkbox.is-<color>`, which ties that selector, so leave `color` unset when a class sets them.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -106,6 +127,7 @@
       ],
       "extraProps": [],
       "catchAll": "All standard <input> attributes and Bulma helper props",
+      "helperPropsNote": "Helper props go on the outer `<label>`, with `className`. The other attributes go on the `<input>`.",
       "types": []
     }
   ],
@@ -131,7 +153,7 @@
     {
       "css": "--bulma-checkbox-border-color",
       "sass": "$checkbox-border-color",
-      "default": "var(--bulma-border)",
+      "default": "var(--bulma-text-weak)",
       "scope": "root"
     },
     {

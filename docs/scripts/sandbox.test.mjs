@@ -1,0 +1,879 @@
+/**
+ * The StackBlitz and CodeSandbox builders behind a live example's sandbox
+ * buttons (src/theme/CodeBlock/sandbox). The project builders read the real
+ * create-bestax template, so a template change that breaks them fails here.
+ * Whether every live example converts into a module that type-checks is
+ * checked over the whole docs tree by scripts/docs-fence-types.test.mjs at
+ * the repo root.
+ */
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { existsSync, readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
+import { describe, it } from 'vitest';
+import { fileURLToPath } from 'node:url';
+import {
+  blankNonCode,
+  toExampleModule,
+  withSiteImages,
+} from '../src/theme/CodeBlock/sandbox/example.mjs';
+import {
+  importedStylesheets,
+  stripModuleLines,
+} from '../src/theme/CodeBlock/sandbox/moduleLines.mjs';
+import {
+  ICON_LIBRARIES,
+  SANDBOX_TYPESCRIPT,
+  TEMPLATE_FILES,
+  codesandboxFiles,
+  iconLibrariesIn,
+  librarySheetsIn,
+  publishedSheet,
+  sandboxVersions,
+  stackblitzProject,
+} from '../src/theme/CodeBlock/sandbox/projects.mjs';
+
+const DOCS = dirname(dirname(fileURLToPath(import.meta.url)));
+const TEMPLATE_DIR = join(DOCS, '..', 'create-bestax', 'templates', 'vite-ts');
+const TEMPLATE = Object.fromEntries(
+  TEMPLATE_FILES.map(path => [
+    path,
+    readFileSync(join(TEMPLATE_DIR, path), 'utf8'),
+  ])
+);
+const docsPackage = createRequire(import.meta.url)('../package.json');
+const libraryPackage = JSON.parse(
+  readFileSync(join(DOCS, '..', 'bulma-ui', 'package.json'), 'utf8')
+);
+
+const OPTIONS = {
+  libraryExports: [
+    'Block',
+    'Box',
+    'Button',
+    'Buttons',
+    'Card',
+    'Columns',
+    'Column',
+    'Delete',
+    'Icon',
+    'Notification',
+    'Section',
+    'Taginput',
+    'Title',
+    'notification',
+    'toast',
+    'useConfig',
+  ],
+  reactNames: ['useState', 'useEffect'],
+  docsOnlyNames: ['ProfileCard'],
+};
+
+const lowest = range => range.replace(/^[\s=v^~>]+/, '');
+
+const convert = (code, extra = {}) =>
+  toExampleModule(code, { ...OPTIONS, ...extra });
+
+const importsOf = source =>
+  source.split('\n').filter(line => line.startsWith('import '));
+
+describe('stripModuleLines', () => {
+  it('drops import and export default lines, as the live editor does', () => {
+    const code = [
+      "import { Box } from '@allxsmith/bestax-bulma';",
+      '  import type { X } from "y";',
+      'function A() {}',
+      'export default A;',
+    ].join('\n');
+    assert.equal(stripModuleLines(code), 'function A() {}');
+  });
+});
+
+describe('importedStylesheets', () => {
+  it('lists the stylesheets an example imports for their effect, in order', () => {
+    const code = [
+      "import { ConfigProvider } from '@allxsmith/bestax-bulma';",
+      "import '@allxsmith/bestax-bulma/versions/bestax-prefixed.css';",
+      "  import './theme.css' ; // the app's own",
+      "import styles from './module.css';",
+      "import '@allxsmith/bestax-bulma/versions/bestax-prefixed.css';",
+      'const note = "import \'./not-a-line.css\';";',
+    ].join('\n');
+    assert.deepEqual(importedStylesheets(code), [
+      '@allxsmith/bestax-bulma/versions/bestax-prefixed.css',
+      './theme.css',
+    ]);
+  });
+
+  it('is empty for an example that imports no stylesheet', () => {
+    assert.deepEqual(importedStylesheets('<Box>Hi</Box>'), []);
+  });
+});
+
+describe('blankNonCode', () => {
+  it('blanks strings, comments and template text but keeps template code', () => {
+    const src = 'a(\'Box\') // Box\n/* Box */ `Box ${Card} Box` + "Box"';
+    const out = blankNonCode(src);
+    assert.equal(out.length, src.length);
+    assert.doesNotMatch(out, /Box/);
+    assert.match(out, /\bCard\b/);
+    assert.match(out, /^a\(/);
+  });
+
+  it('blanks a regex literal, quotes and all, but not a division', () => {
+    const out = blankNonCode(
+      "const ok = /^[^'@]+@Box/.test(v); const r = a / b / Card;"
+    );
+    assert.doesNotMatch(out, /Box/);
+    assert.match(out, /a \/ b \/ Card/);
+  });
+});
+
+describe('toExampleModule', () => {
+  it('wraps a bare element in a default-exported component', () => {
+    const { source } = convert('<Box>\n  <Button>Go</Button>\n</Box>;');
+    assert.equal(
+      source,
+      [
+        "import { Box, Button } from '@allxsmith/bestax-bulma';",
+        '',
+        'export default function Example() {',
+        '  return (',
+        '    <Box>',
+        '      <Button>Go</Button>',
+        '    </Box>',
+        '  );',
+        '}',
+        '',
+      ].join('\n')
+    );
+  });
+
+  it('exports a named function component by its name', () => {
+    const { source } = convert('function Demo() {\n  return <Box>Hi</Box>;\n}');
+    assert.match(source, /\n\nexport default Demo;\n$/);
+    assert.match(source, /^function Demo\(\) \{$/m);
+  });
+
+  it('assigns any other expression, such as an arrow component', () => {
+    const { source } = convert('() => <Box>Hi</Box>');
+    assert.match(source, /^const Example = \(\) => <Box>Hi<\/Box>;$/m);
+    assert.match(source, /\nexport default Example;\n$/);
+  });
+
+  it('imports what the example references and nothing it only says', () => {
+    const { libraryImports } = convert(
+      '<Section>\n  <Title>Delete the Box</Title>\n  <Button title="Notification">Card</Button>\n</Section>'
+    );
+    assert.deepEqual(libraryImports, ['Button', 'Section', 'Title']);
+  });
+
+  it('reads a member expression by its object only', () => {
+    const { libraryImports } = convert('<Card.Header>Hi</Card.Header>');
+    assert.deepEqual(libraryImports, ['Card']);
+  });
+
+  it('skips object keys but keeps a spread', () => {
+    const { libraryImports } = convert(
+      'function A() {\n  const props = { toast: 1, ...useConfig() };\n  return <Box {...props} />;\n}'
+    );
+    assert.deepEqual(libraryImports, ['Box', 'useConfig']);
+  });
+
+  it('leaves out library names the example binds itself', () => {
+    const { libraryImports } = convert(
+      [
+        'function A() {',
+        '  const [notification, setNotification] = useState(null);',
+        '  const items = [1, 2].map(Block => Block);',
+        '  const list = [3].map((Column, i) => Column + i);',
+        '  function Delete() { return null; }',
+        '  return <Box>{notification}{items}{list}<Delete /></Box>;',
+        '}',
+      ].join('\n')
+    );
+    assert.deepEqual(libraryImports, ['Box']);
+  });
+
+  it('imports a library function called as a value', () => {
+    const { libraryImports } = convert(
+      "<Button onClick={() => toast.success('Saved')}>Save</Button>"
+    );
+    assert.deepEqual(libraryImports, ['Button', 'toast']);
+  });
+
+  it('imports the hooks it uses, and React when it is named', () => {
+    const hooks = convert(
+      'function A() {\n  const [n] = useState(0);\n  return <Box>{n}</Box>;\n}'
+    );
+    assert.equal(
+      importsOf(hooks.source)[0],
+      "import { useState } from 'react';"
+    );
+
+    const both = convert(
+      'function A() {\n  const ref = React.useRef(null);\n  useEffect(() => {}, []);\n  return <Box ref={ref} />;\n}'
+    );
+    assert.equal(
+      importsOf(both.source)[0],
+      "import React, { useEffect } from 'react';"
+    );
+
+    const none = convert('<Box>React.js</Box>');
+    assert.equal(importsOf(none.source).length, 1);
+  });
+
+  it('imports React for a type annotation the scan compiles away', () => {
+    const { source } = convert(
+      'function A() {\n  const on = (e: React.ChangeEvent<HTMLInputElement>) => e;\n  return <Box onClick={on} />;\n}'
+    );
+    assert.equal(importsOf(source)[0], "import React from 'react';");
+  });
+
+  it('keeps an import type line and rewrites value imports', () => {
+    const { source } = convert(
+      [
+        "import { Box, Taginput } from 'some-other-library';",
+        "import type { TaginputTag } from '@allxsmith/bestax-bulma';",
+        '',
+        'function A() {',
+        "  const [tags, setTags] = useState<TaginputTag[]>(['React']);",
+        '  return <Taginput value={tags} onChange={setTags} />;',
+        '}',
+      ].join('\n')
+    );
+    assert.deepEqual(importsOf(source), [
+      "import { useState } from 'react';",
+      "import { Taginput } from '@allxsmith/bestax-bulma';",
+      "import type { TaginputTag } from '@allxsmith/bestax-bulma';",
+    ]);
+  });
+
+  it('breaks a long import over lines the way Prettier does', () => {
+    const { source } = convert(
+      '<Section><Columns><Column><Card><Title><Notification><Button><Buttons><Block><Box /></Block></Buttons></Button></Notification></Title></Card></Column></Columns></Section>'
+    );
+    assert.match(
+      source,
+      /^import \{\n {2}Block,\n(?: {2}\w+,\n)+\} from '@allxsmith\/bestax-bulma';$/m
+    );
+  });
+
+  it('does not indent an element holding a template literal', () => {
+    const { source } = convert('<Box>{`line one\nline two`}</Box>');
+    assert.match(source, /\n<Box>\{`line one\nline two`\}<\/Box>\n/);
+  });
+
+  it('heads the module with the docs page it came from', () => {
+    const { source } = convert('<Box />', {
+      sourceUrl: 'https://bestax.io/docs/api/elements/box',
+    });
+    assert.match(
+      source,
+      /^\/\/ Live example from https:\/\/bestax\.io\/docs\/api\/elements\/box\n\nimport /
+    );
+  });
+
+  it('keeps leading comments with the example', () => {
+    const { source } = convert('// Try editing this code!\n<Box />');
+    assert.match(source, / {4}\/\/ Try editing this code!\n {4}<Box \/>/);
+    const named = convert('// note\nfunction A() { return <Box />; }');
+    assert.match(named.source, /\n\nexport default A;\n$/);
+  });
+
+  it("points the site's images at the docs site, and leaves other paths", () => {
+    const code = [
+      'function Example() {',
+      "  const photos = [{ src: '/img/carousel/a.jpg' }];",
+      '  const n = 2;',
+      '  return (',
+      '    <Block>',
+      '      <img src="/img/logo.svg" alt="" />',
+      '      <img src={`/img/b-${n}.jpg`} alt="" />',
+      '      <img src="/images/c.png" alt="" />',
+      '      <img src="https://example.com/img/d.png" alt="" />',
+      "      <Box style={{ backgroundImage: 'url(/img/f.jpg)' }} />",
+      "      <Box style={{ backgroundImage: 'url( /img/h.jpg)' }} />",
+      '      <p>Put pictures in (/img/), one per {/img/.source.length} slashes</p>',
+      '      <Box style={{ backgroundImage: \'url("/img/g.jpg")\' }} />',
+      '      <img src={photos[0].src} alt="" />',
+      '    </Block>',
+      '  );',
+      '}',
+    ].join('\n');
+    const { source } = toExampleModule(code, {
+      ...OPTIONS,
+      sourceUrl: 'https://bestax.io/docs/api/elements/image',
+    });
+    assert.match(
+      source,
+      /\{ src: 'https:\/\/bestax\.io\/img\/carousel\/a\.jpg' \}/
+    );
+    assert.match(source, /src="https:\/\/bestax\.io\/img\/logo\.svg"/);
+    assert.match(source, /src=\{`https:\/\/bestax\.io\/img\/b-\$\{n\}\.jpg`\}/);
+    assert.match(source, /src="\/images\/c\.png"/);
+    assert.match(source, /src="https:\/\/example\.com\/img\/d\.png"/);
+    assert.match(source, /'url\(https:\/\/bestax\.io\/img\/f\.jpg\)'/);
+    assert.match(source, /'url\( https:\/\/bestax\.io\/img\/h\.jpg\)'/);
+    // Text and a regex literal that only mention the folder are left alone.
+    assert.match(source, /in \(\/img\/\), one per \{\/img\/\.source/);
+    assert.match(source, /'url\("https:\/\/bestax\.io\/img\/g\.jpg"\)'/);
+    // With no page to resolve against, the path is left as written.
+    assert.match(
+      toExampleModule(code, OPTIONS).source,
+      /src="\/img\/logo\.svg"/
+    );
+  });
+
+  it('resolves site images against the page URL it is given', () => {
+    assert.equal(
+      withSiteImages("'/img/a.svg'", 'https://preview.bestax.io/docs/x'),
+      "'https://preview.bestax.io/img/a.svg'"
+    );
+  });
+
+  it('returns null for an example that uses a docs-only component', () => {
+    assert.equal(convert('<ProfileCard name="Ada" />'), null);
+  });
+
+  it('still converts an edit that does not compile', () => {
+    const result = convert('<Box>\n  <Button>Go</Butto\n</Box>');
+    assert.deepEqual(result.libraryImports, ['Box', 'Button']);
+  });
+});
+
+describe('librarySheetsIn', () => {
+  const library = sheet => `@allxsmith/bestax-bulma/${sheet}`;
+
+  it("names the library's stylesheets an example imports, and no others", () => {
+    assert.deepEqual(
+      librarySheetsIn([library('versions/bestax-prefixed.css'), './App.css']),
+      ['versions/bestax-prefixed.css']
+    );
+    assert.deepEqual(librarySheetsIn([]), []);
+  });
+
+  it('names each build once, by the path a sandbox imports', () => {
+    assert.deepEqual(
+      librarySheetsIn([
+        library('dist/versions/bestax-prefixed.css'),
+        library('versions/bestax-prefixed.css'),
+      ]),
+      ['versions/bestax-prefixed.css']
+    );
+  });
+
+  it('keeps bestax.css for a build that shares its classes, and for a path the library lacks', () => {
+    for (const sheet of [
+      'extras.css',
+      'versions/bestax-no-dark-mode.css',
+      'versions/bestax-no-helpers.css',
+      'bestax.min.css',
+      'versions/bestax-prefix.css',
+    ]) {
+      assert.deepEqual(librarySheetsIn([library(sheet)]), [], sheet);
+    }
+  });
+
+  it('keeps the other library stylesheets an example imports beside a prefixed build', () => {
+    const imported = [
+      'bestax.min.css',
+      'versions/bestax-prefixed.css',
+      'versions/bestax-prefix.css',
+      'dist/extras.css',
+    ].map(library);
+    assert.deepEqual(librarySheetsIn(imported), [
+      'bestax.css',
+      'versions/bestax-prefixed.css',
+      'extras.css',
+    ]);
+  });
+
+  it('knows every stylesheet the library exports, under each path it exports it as', () => {
+    const paths = Object.keys(libraryPackage.exports)
+      .filter(key => key.endsWith('.css'))
+      .map(key => key.slice(2));
+    assert.ok(paths.some(path => path.endsWith('-prefixed.css')));
+    for (const path of paths) {
+      const sheet = publishedSheet(path).slice('dist/'.length);
+      const beside = [library(path), library('versions/bestax-prefixed.css')];
+      assert.ok(librarySheetsIn(beside).includes(sheet), path);
+      assert.deepEqual(
+        librarySheetsIn([library(path)]),
+        path.endsWith('-prefixed.css') ? [sheet] : [],
+        path
+      );
+    }
+  });
+});
+
+describe('publishedSheet', () => {
+  it("names the file the library's exports map gives every stylesheet path", () => {
+    const sheets = Object.entries(libraryPackage.exports).filter(([path]) =>
+      path.endsWith('.css')
+    );
+    assert.ok(sheets.length > 0);
+    for (const [path, target] of sheets) {
+      assert.equal(
+        `./${publishedSheet(path.slice(2))}`,
+        target.default ?? target,
+        path
+      );
+    }
+  });
+});
+
+describe('iconLibrariesIn', () => {
+  it('always includes Font Awesome and adds the libraries an example names', () => {
+    assert.deepEqual(iconLibrariesIn('<Box />'), ['fa']);
+    assert.deepEqual(
+      iconLibrariesIn(
+        '<><Icon library="mdi" name="home" /><Icon library="ion" name="heart" /></>'
+      ),
+      ['fa', 'mdi', 'ion']
+    );
+    assert.deepEqual(
+      iconLibrariesIn(
+        '<ConfigProvider iconLibrary="material-symbols"><Icon library="material-icons" /></ConfigProvider>'
+      ),
+      ['fa', 'material-icons', 'material-symbols']
+    );
+  });
+});
+
+const INPUT = {
+  app: 'export default function Example() {\n  return null;\n}\n',
+  icons: ['fa', 'mdi', 'ion'],
+  template: TEMPLATE,
+  versions: {
+    '@allxsmith/bestax-bulma': '^5.16.8',
+    '@fortawesome/fontawesome-free':
+      docsPackage.dependencies['@fortawesome/fontawesome-free'],
+    '@mdi/font': docsPackage.dependencies['@mdi/font'],
+    ionicons: '^8.1.0',
+  },
+  title: 'Button <example>',
+  sourceUrl: 'https://bestax.io/docs/api/elements/button',
+};
+
+describe('stackblitzProject', () => {
+  const project = stackblitzProject(INPUT);
+  const pkg = JSON.parse(project.files['package.json']);
+
+  it('is a Node project built from the create-bestax template', () => {
+    assert.equal(project.template, 'node');
+    assert.equal(project.title, INPUT.title);
+    assert.equal(project.description, INPUT.sourceUrl);
+    assert.deepEqual(
+      Object.keys(project.files).sort(),
+      [...TEMPLATE_FILES, 'src/App.tsx'].sort()
+    );
+    assert.equal(project.files['src/App.tsx'], INPUT.app);
+    assert.equal(project.files['vite.config.ts'], TEMPLATE['vite.config.ts']);
+  });
+
+  it('installs the documented library and the icon packages, without lint', () => {
+    assert.equal(pkg.dependencies['@allxsmith/bestax-bulma'], '^5.16.8');
+    assert.ok(pkg.dependencies['@fortawesome/fontawesome-free']);
+    assert.ok(pkg.dependencies['@mdi/font']);
+    assert.equal(pkg.dependencies.ionicons, undefined);
+    assert.ok(pkg.dependencies.react && pkg.devDependencies.vite);
+    assert.equal(pkg.scripts.lint, undefined);
+    assert.deepEqual(
+      Object.keys(pkg.devDependencies).filter(name =>
+        /eslint|^globals$|^oxlint$/.test(name)
+      ),
+      []
+    );
+  });
+
+  it('installs TypeScript 6, which WebContainers can run', () => {
+    assert.equal(pkg.devDependencies.typescript, SANDBOX_TYPESCRIPT);
+    assert.match(
+      JSON.parse(TEMPLATE['package.json']).devDependencies.typescript,
+      /^~7\./
+    );
+  });
+
+  it('imports the icon stylesheets after the bestax one', () => {
+    const lines = project.files['src/main.tsx']
+      .split('\n')
+      .map(line => line.trimEnd());
+    const at = lines.indexOf("import '@allxsmith/bestax-bulma/bestax.css';");
+    assert.ok(at >= 0);
+    assert.deepEqual(lines.slice(at + 1, at + 3), [
+      "import '@fortawesome/fontawesome-free/css/all.min.css';",
+      "import '@mdi/font/css/materialdesignicons.min.css';",
+    ]);
+  });
+
+  it("imports the example's library build in place of the template's", () => {
+    const prefixed = stackblitzProject({
+      ...INPUT,
+      sheets: ['versions/bestax-prefixed.css'],
+    });
+    const lines = prefixed.files['src/main.tsx']
+      .split('\n')
+      .map(line => line.trimEnd());
+    assert.ok(!lines.includes("import '@allxsmith/bestax-bulma/bestax.css';"));
+    const at = lines.indexOf(
+      "import '@allxsmith/bestax-bulma/versions/bestax-prefixed.css';"
+    );
+    assert.ok(at >= 0);
+    // The icon stylesheets still follow the library's.
+    assert.equal(
+      lines[at + 1],
+      "import '@fortawesome/fontawesome-free/css/all.min.css';"
+    );
+  });
+
+  it('loads Ionicons from its CDN build', () => {
+    assert.match(
+      project.files['index.html'],
+      /<script type="module" src="https:\/\/cdn\.jsdelivr\.net\/npm\/ionicons@8\.1\.0\/dist\/ionicons\/ionicons\.esm\.js"><\/script>\n {2}<\/head>/
+    );
+  });
+
+  it('names what it is missing instead of building a broken project', () => {
+    const partial = { ...TEMPLATE };
+    delete partial['vite.config.ts'];
+    assert.throws(
+      () => stackblitzProject({ ...INPUT, template: partial }),
+      /missing vite\.config\.ts/
+    );
+    assert.throws(
+      () =>
+        stackblitzProject({
+          ...INPUT,
+          template: {
+            ...TEMPLATE,
+            'src/main.tsx': "import App from './App.tsx';",
+          },
+        }),
+      /no longer imports the bestax stylesheet/
+    );
+    assert.throws(
+      () => stackblitzProject({ ...INPUT, versions: {} }),
+      /No version was given for @allxsmith\/bestax-bulma/
+    );
+  });
+  it('darkens the page and pads the example, in index.html and index.css', () => {
+    assert.match(
+      project.files['index.html'],
+      /<html lang="en" data-theme="dark" data-bestax-theme="dark">/
+    );
+    const css = project.files['src/index.css'];
+    assert.match(css, /background: #16171d/);
+    assert.match(css, /#root \{[^}]*padding: 1\.5rem/);
+  });
+});
+
+/**
+ * The template files a StackBlitz project leaves out, each with the reason.
+ * Every other file is in TEMPLATE_FILES, so a file the template gains when it
+ * catches up with create-vite reaches the sandbox, or fails here, instead of
+ * the sandbox falling a step behind the scaffold. The CodeSandbox project is
+ * a Create React App layout, not a copy of the template, so it has no list of
+ * its own to hold to one.
+ */
+const LEFT_OUT = {
+  _gitignore: 'a sandbox is not a repository',
+  'README.md': 'it describes the starter app, not the example',
+  '_oxlintrc.json': 'a sandbox runs no lint, and drops its packages too',
+  'public/react.svg': 'only the starter App shows it',
+  'public/vite.svg': 'only the starter App shows it',
+  'src/App.css': 'only the starter App imports it',
+  'src/App.tsx': 'the example is written in its place',
+};
+
+/**
+ * The files the template tracks, by path in it. Read from git rather than
+ * the disk, so a lockfile or dist/ that an install or build inside the
+ * template leaves behind is not taken for a file the template gained. A
+ * tracked file deleted but not yet staged is gone from the template already.
+ */
+function templateFiles() {
+  return execFileSync('git', ['ls-files', '-z'], {
+    cwd: TEMPLATE_DIR,
+    encoding: 'utf8',
+  })
+    .split('\0')
+    .filter(path => path && existsSync(join(TEMPLATE_DIR, path)));
+}
+
+/**
+ * What open.js copies: each key of its TEMPLATE, with the template file the
+ * raw-loader import bound to that key reads. open.js only runs under webpack,
+ * so it is read here as text.
+ */
+function openJsTemplate() {
+  const source = readFileSync(
+    join(DOCS, 'src', 'theme', 'CodeBlock', 'sandbox', 'open.js'),
+    'utf8'
+  );
+  const imports = new Map(
+    [
+      ...source.matchAll(
+        /^import (\w+) from '!!raw-loader!@site\/\.\.\/create-bestax\/templates\/vite-ts\/([^']+)';$/gm
+      ),
+    ].map(([, name, path]) => [name, path])
+  );
+  const body = source.match(/^const TEMPLATE = \{\n([\s\S]*?)\n\};$/m)?.[1];
+  assert.ok(body, 'open.js no longer declares `const TEMPLATE = { … };`');
+  return new Map(
+    [...body.matchAll(/^ {2}'([^']+)': (\w+),$/gm)].map(([, key, name]) => [
+      key,
+      imports.get(name),
+    ])
+  );
+}
+
+describe('the template files', () => {
+  it('each reach the StackBlitz project or are left out for a reason', () => {
+    const files = templateFiles();
+    assert.deepEqual(
+      files.filter(
+        path => !TEMPLATE_FILES.includes(path) && !Object.hasOwn(LEFT_OUT, path)
+      ),
+      [],
+      'Add each file to TEMPLATE_FILES (projects.mjs) and TEMPLATE (open.js), ' +
+        'or to LEFT_OUT here with the reason the sandbox does without it.'
+    );
+    assert.deepEqual(
+      Object.keys(LEFT_OUT).filter(path => !files.includes(path)),
+      [],
+      'LEFT_OUT names a file the template no longer has.'
+    );
+  });
+
+  // A file TEMPLATE_FILES names and open.js leaves out passes the docs build
+  // and the builders' tests, and the button then throws on the reader's click.
+  it("are each copied by open.js's TEMPLATE, from the file of that name", () => {
+    const copied = openJsTemplate();
+    assert.deepEqual(
+      [...copied.keys()].sort(),
+      [...TEMPLATE_FILES].sort(),
+      "open.js's TEMPLATE must hold a key for exactly the files in TEMPLATE_FILES."
+    );
+    assert.deepEqual(
+      TEMPLATE_FILES.filter(path => copied.get(path) !== path),
+      [],
+      "Each key in open.js's TEMPLATE must be bound to the raw-loader import of that file."
+    );
+  });
+});
+
+describe('codesandboxFiles', () => {
+  const files = codesandboxFiles(INPUT);
+  const pkg = files['package.json'].content;
+
+  it('lays the example out as a Create React App project', () => {
+    assert.deepEqual(Object.keys(files).sort(), [
+      'package.json',
+      'public/index.html',
+      'src/App.tsx',
+      'src/css.d.ts',
+      'src/index.css',
+      'src/index.tsx',
+      'tsconfig.json',
+    ]);
+    assert.equal(pkg.main, 'src/index.tsx');
+    assert.equal(pkg.scripts.start, 'react-scripts start');
+    assert.ok(pkg.devDependencies['react-scripts']);
+    assert.equal(pkg.devDependencies.typescript, SANDBOX_TYPESCRIPT);
+    assert.equal(
+      pkg.dependencies.react,
+      JSON.parse(TEMPLATE['package.json']).dependencies.react
+    );
+    assert.equal(pkg.dependencies['@allxsmith/bestax-bulma'], '^5.16.8');
+    assert.equal(files['src/App.tsx'].content, INPUT.app);
+  });
+
+  it('reads a CRLF checkout of the template the same way', () => {
+    // The template comes off disk, so a Windows checkout hands these reads
+    // CRLF lines that the LF fixture never exercises.
+    const crlf = Object.fromEntries(
+      Object.entries(TEMPLATE).map(([path, text]) => [
+        path,
+        text.replace(/\r?\n/g, '\r\n'),
+      ])
+    );
+    const crlfFiles = codesandboxFiles({ ...INPUT, template: crlf });
+    const entry = crlfFiles['src/index.tsx'].content;
+    assert.match(entry, /^import App from '\.\/App';\r?$/m);
+    assert.doesNotMatch(entry, /bestax-bulma\/bestax\.css/);
+    assert.equal(
+      crlfFiles['public/index.html'].content,
+      files['public/index.html'].content
+    );
+  });
+
+  it('enters through the template main file, importing App without extension', () => {
+    const entry = files['src/index.tsx'].content;
+    assert.match(entry, /^import App from '\.\/App';$/m);
+    // The library stylesheet loads from the CDN in index.html instead, since
+    // CodeSandbox inlines an imported stylesheet and keeps its byte-order mark.
+    assert.doesNotMatch(entry, /bestax-bulma\/bestax\.css/);
+    assert.match(
+      files['public/index.html'].content,
+      /<link rel="stylesheet" href="https:\/\/cdn\.jsdelivr\.net\/npm\/@allxsmith\/bestax-bulma@[\d.]+\/dist\/bestax\.css" \/>/
+    );
+    // The editor's TypeScript predates `bundler` and cannot resolve the
+    // library's types under it.
+    assert.equal(
+      JSON.parse(files['tsconfig.json'].content).compilerOptions
+        .moduleResolution,
+      'node'
+    );
+  });
+
+  it("links the stylesheet the library's exports give the template's import", () => {
+    // The link is `dist/` and the file name the template imports. That holds
+    // only while the exports map that import to the same name under dist/,
+    // which is not true of every stylesheet the library exports.
+    const sheet = TEMPLATE['src/main.tsx'].match(
+      /^import '@allxsmith\/bestax-bulma\/([^']+\.css)';$/m
+    )?.[1];
+    assert.ok(sheet, "the template's main.tsx imports no bestax stylesheet");
+    const exported = libraryPackage.exports[`./${sheet}`];
+    assert.ok(exported, `bulma-ui's package.json exports no ./${sheet}`);
+    const linked = files['public/index.html'].content.match(
+      /href="https:\/\/cdn\.jsdelivr\.net\/npm\/@allxsmith\/bestax-bulma@[^/]+\/([^"]+)"/
+    )?.[1];
+    assert.equal(
+      `./${linked}`,
+      exported.default ?? exported,
+      'CodeSandbox links a stylesheet path the library does not publish ' +
+        'for the import. Link the file the exports map names instead.'
+    );
+  });
+
+  it("links the example's library build in place of the template's", () => {
+    const html = codesandboxFiles({
+      ...INPUT,
+      sheets: ['versions/bestax-prefixed.css'],
+    })['public/index.html'].content;
+    const linked = [
+      ...html.matchAll(
+        /href="https:\/\/cdn\.jsdelivr\.net\/npm\/@allxsmith\/bestax-bulma@[^/]+\/([^"]+)"/g
+      ),
+    ].map(match => match[1]);
+    assert.deepEqual(linked, ['dist/versions/bestax-prefixed.css']);
+  });
+
+  it('writes a page with a root, the escaped title and the Ionicons script', () => {
+    const html = files['public/index.html'].content;
+    assert.match(html, /<div id="root"><\/div>/);
+    assert.match(html, /<title>Button &lt;example&gt;<\/title>/);
+    assert.match(html, /ionicons@8\.1\.0\/dist\/ionicons\/ionicons\.esm\.js/);
+  });
+
+  it('links the icon stylesheets from the CDN instead of installing them', () => {
+    // CodeSandbox inlines a package stylesheet without rewriting its font
+    // URLs, so an installed icon font never loads there.
+    const html = files['public/index.html'].content;
+    const mdi = lowest(INPUT.versions['@mdi/font']);
+    assert.ok(
+      html.includes(
+        `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@${mdi}/css/materialdesignicons.min.css" />`
+      )
+    );
+    assert.match(html, /fontawesome-free@[\d.]+\/css\/all\.min\.css/);
+    assert.doesNotMatch(files['src/index.tsx'].content, /fontawesome|@mdi/);
+    assert.equal(pkg.dependencies['@mdi/font'], undefined);
+    assert.equal(pkg.dependencies['@fortawesome/fontawesome-free'], undefined);
+  });
+
+  it('darkens the page and pads the example in the CodeSandbox page and CSS', () => {
+    assert.match(
+      files['public/index.html'].content,
+      /<html lang="en" data-theme="dark" data-bestax-theme="dark">/
+    );
+    const css = files['src/index.css'].content;
+    assert.match(css, /background: #16171d/);
+    assert.match(css, /#root \{[^}]*padding: 1\.5rem/);
+  });
+});
+
+/*
+ * A sandbox has no lockfile, so it installs what its package.json and CDN
+ * links name on the day a reader opens it. A dist-tag such as `latest`, or a
+ * URL, would change under the reader with nothing changing here. So both
+ * projects are built from the versions open.js passes, through the same
+ * `sandboxVersions` call on the same inputs, every icon library included, and
+ * held to plain semver.
+ */
+describe('what a sandbox installs', () => {
+  const site = {
+    ...INPUT,
+    icons: Object.keys(ICON_LIBRARIES),
+    // The docs build reads the release from bulma-ui's package.json.
+    versions: sandboxVersions(libraryPackage.version, docsPackage.dependencies),
+  };
+  const stackblitz = stackblitzProject(site);
+  const codesandbox = codesandboxFiles(site);
+
+  it('names each icon package docs/package.json must declare', () => {
+    assert.throws(
+      () => sandboxVersions(libraryPackage.version, {}),
+      /docs\/package\.json must declare @fortawesome\/fontawesome-free/
+    );
+  });
+
+  it('names a plain semver range for every package either project installs', () => {
+    const manifests = {
+      StackBlitz: JSON.parse(stackblitz.files['package.json']),
+      CodeSandbox: codesandbox['package.json'].content,
+    };
+    const loose = Object.entries(manifests).flatMap(([service, pkg]) =>
+      ['dependencies', 'devDependencies'].flatMap(section =>
+        Object.entries(pkg[section] ?? {})
+          .filter(([, range]) => !/^[~^]?\d+\.\d+\.\d+$/.test(range))
+          .map(([name, range]) => `${service} ${section}: ${name}@${range}`)
+      )
+    );
+    assert.deepEqual(
+      loose,
+      [],
+      'Give each of these a version range, never a tag or a URL.'
+    );
+  });
+
+  it('names an exact version in every CDN link either project writes', () => {
+    // Every absolute link counts, so one with no version, which jsDelivr
+    // serves as `latest`, or on another host fails instead of going unseen.
+    const links = [
+      stackblitz.files['index.html'],
+      codesandbox['public/index.html'].content,
+    ].flatMap(html =>
+      [...html.matchAll(/(?:href|src)="((?:https?:)?\/\/[^"]+)"/g)].map(
+        ([, url]) => url
+      )
+    );
+    assert.ok(links.length > 0, 'found no CDN links to check');
+    assert.deepEqual(
+      links.filter(
+        url =>
+          !/^https:\/\/cdn\.jsdelivr\.net\/npm\/(?:@[^/@]+\/)?[^/@]+@\d+\.\d+\.\d+\//.test(
+            url
+          )
+      ),
+      [],
+      'A CDN link is a jsDelivr URL with the lowest version its range ' +
+        'allows, so the range must start from a version.'
+    );
+  });
+});
+
+/*
+ * The live preview on the docs page and the sandboxes paint the same dark
+ * surface, but in two files. This keeps the page's copy from drifting.
+ */
+describe('docs live preview surface', () => {
+  it("matches the sandboxes' dark background and padding", () => {
+    const css = readFileSync(join(DOCS, 'src', 'css', 'custom.css'), 'utf8');
+    assert.match(css, /\.live-preview-slot \{[^}]*background: #16171d/);
+    assert.match(css, /\.live-preview-slot \{[^}]*padding: 1\.5rem/);
+  });
+});

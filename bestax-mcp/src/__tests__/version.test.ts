@@ -7,12 +7,14 @@
  * missed major bump means confidently documenting props that do not exist, and
  * a warning on every response is a warning a model learns to ignore.
  */
-import { describe, expect, it, afterEach } from '@jest/globals';
-import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
+import { describe, expect, it, afterEach } from 'vitest';
+import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+import { DATA_DIR } from '../data.js';
 import {
+  checkoutVersion,
   findInstalledVersion,
   missingInstallNote,
   projectDir,
@@ -21,6 +23,7 @@ import {
   versionNote,
   type VersionInfo,
 } from '../version.js';
+import { installLibrary } from './installed-library.js';
 
 const temps: string[] = [];
 
@@ -32,26 +35,14 @@ const temps: string[] = [];
 async function projectWithRawVersion(raw: unknown) {
   const root = await mkdtemp(join(tmpdir(), 'bestax-mcp-'));
   temps.push(root);
-  const pkgDir = join(root, 'node_modules', '@allxsmith', 'bestax-bulma');
-  await mkdir(pkgDir, { recursive: true });
-  await writeFile(
-    join(pkgDir, 'package.json'),
-    JSON.stringify({ name: '@allxsmith/bestax-bulma', version: raw })
-  );
+  await installLibrary(root, raw);
   return root;
 }
 
 async function projectWith(version: string | null, depth = 0) {
   const root = await mkdtemp(join(tmpdir(), 'bestax-mcp-'));
   temps.push(root);
-  if (version) {
-    const pkgDir = join(root, 'node_modules', '@allxsmith', 'bestax-bulma');
-    await mkdir(pkgDir, { recursive: true });
-    await writeFile(
-      join(pkgDir, 'package.json'),
-      JSON.stringify({ name: '@allxsmith/bestax-bulma', version })
-    );
-  }
+  if (version) await installLibrary(root, version);
   // A nested working directory, to prove the walk goes up.
   let cwd = root;
   for (let i = 0; i < depth; i++) {
@@ -125,6 +116,54 @@ describe('findInstalledVersion', () => {
   });
 });
 
+// A server run from a checkout of the bestax repository, at its root, found no
+// library there, where it is a workspace package, and said so on its answers (#1236).
+describe('checkoutVersion', () => {
+  /** A checkout: a manifest at its root, and a server inside with the library beside it. */
+  async function checkout(server: string[], version = '5.9.0') {
+    const root = await mkdtemp(join(tmpdir(), 'bestax-checkout-'));
+    temps.push(root);
+    await writeFile(join(root, 'package.json'), '{"name":"bestax"}');
+    const dir = join(root, ...server);
+    const pkgDir = join(dir, 'node_modules', '@allxsmith', 'bestax-bulma');
+    await mkdir(pkgDir, { recursive: true });
+    await writeFile(
+      join(pkgDir, 'package.json'),
+      JSON.stringify({ name: '@allxsmith/bestax-bulma', version })
+    );
+    return { root, dir };
+  }
+
+  it("reads the library beside a server run from the checkout's root", async () => {
+    const { root, dir } = await checkout(['bestax-mcp']);
+    expect(await checkoutVersion(root, dir)).toBe('5.9.0');
+  });
+
+  it('says nothing for an installed server, or one outside the working directory', async () => {
+    // npx's cache and a project's dependencies both put it under node_modules.
+    const installed = await checkout(['node_modules', 'bestax-mcp']);
+    expect(await checkoutVersion(installed.root, installed.dir)).toBeNull();
+    const { dir } = await checkout(['bestax-mcp']);
+    const elsewhere = await projectWith(null);
+    await writeFile(join(elsewhere, 'package.json'), '{}');
+    expect(await checkoutVersion(elsewhere, dir)).toBeNull();
+  });
+
+  it('says nothing for a directory that is no project, such as the root', async () => {
+    const { root, dir } = await checkout(['bestax-mcp']);
+    await rm(join(root, 'package.json'));
+    expect(await checkoutVersion(root, dir)).toBeNull();
+  });
+
+  it("finds this repository's own library from its root", async () => {
+    const repo = join(DATA_DIR, '..', '..');
+    const library = JSON.parse(
+      await readFile(join(repo, 'bulma-ui', 'package.json'), 'utf8')
+    ) as { version: string };
+    expect(await findInstalledVersion(repo)).toBe(library.version);
+  });
+});
+
 describe('resolveVersions', () => {
   it('reports no drift when the versions agree', async () => {
     const cwd = await projectWith('5.8.3');
@@ -163,7 +202,7 @@ describe('resolveVersions', () => {
   // Any non-empty value used to be truthy here, so writing the word for "no" turned the
   // check off. An explicit off switch should not be something you trip by disabling it.
   it.each(['0', 'false', 'no', 'off', ' Off '])(
-    'keeps the check on for %p',
+    'keeps the check on for %j',
     async flag => {
       process.env.BESTAX_MCP_NO_VERSION_CHECK = flag;
       const cwd = await projectWith('4.0.0');

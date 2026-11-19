@@ -1,9 +1,11 @@
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
+import { expect, within } from 'storybook/test';
 import Radio from './Radio';
 import Radios from './Radios';
 import { Field } from './Field';
 import { Control } from './Control';
+import { Button } from '../elements/Button';
 
 const meta: Meta<typeof Radios> = {
   title: 'Form/Radios',
@@ -141,6 +143,31 @@ export const WithFieldControlWrapper: Story = {
 };
 
 /**
+ * As a fieldset: `as="fieldset"` renders the group's own Field as a native
+ * `<fieldset role="radiogroup">` with the label as its `<legend>`, which names
+ * the group with no ids to wire. Horizontal, the legend is the label column.
+ */
+export const AsFieldset: Story = {
+  render: () => (
+    <>
+      <Radios as="fieldset" label="Color" name="color-fieldset">
+        <Radio value="red">Red</Radio>
+        <Radio value="blue">Blue</Radio>
+      </Radios>
+      <Radios as="fieldset" horizontal label="RSVP" name="rsvp-fieldset">
+        <Radio value="yes">Yes</Radio>
+        <Radio value="no">No</Radio>
+      </Radios>
+    </>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const group = canvas.getByRole('radiogroup', { name: 'RSVP' });
+    await expect(group.tagName).toBe('FIELDSET');
+  },
+};
+
+/**
  * Form submission — Radios is HTML-form-compatible. Pass a `name` prop on the
  * group and every child Radio inherits it via React context (works at any
  * nesting depth, including custom wrapper components). The selected value
@@ -165,9 +192,9 @@ export const WithName: Story = {
           <Radio value="blue">Blue</Radio>
         </Radios>
         <div style={{ marginTop: '1rem' }}>
-          <button type="submit" className="button is-primary">
+          <Button type="submit" color="primary">
             Submit
-          </button>
+          </Button>
         </div>
         {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
       </form>
@@ -210,9 +237,9 @@ export const WithNameThroughWrappers: Story = {
           <RadioCard value="enterprise" label="Enterprise — Contact us" />
         </Radios>
         <div style={{ marginTop: '1rem' }}>
-          <button type="submit" className="button is-primary">
+          <Button type="submit" color="primary">
             Submit
-          </button>
+          </Button>
         </div>
         {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
       </form>

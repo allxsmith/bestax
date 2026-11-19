@@ -26,8 +26,8 @@ const packageRoot = path.join(
 const fixtureDir = path.join(packageRoot, 'fixtures', 'bloomer-kitchen-sink');
 
 // One scratch directory PER PROCESS, not one shared path — see the comment in
-// kitchen-sink.test.ts for why (`pnpm all` runs two jest processes over this
-// file concurrently). BESTAX_E2E_KEEP=1 leaves it behind for inspection.
+// kitchen-sink.test.ts for why (two Vitest processes can run this file at
+// once). BESTAX_E2E_KEEP=1 leaves it behind for inspection.
 const tmpRoot = path.join(packageRoot, '.e2e-tmp');
 fs.mkdirSync(tmpRoot, { recursive: true });
 const tmpDir = fs.mkdtempSync(path.join(tmpRoot, 'bloomer-kitchen-sink-'));
@@ -136,7 +136,8 @@ describe('bloomer kitchen-sink e2e', () => {
     // `component:Modal` fires on EVERY conversion by design: bloomer's Modal
     // was an inert shell, and bestax's closes on Escape and locks scroll by
     // default. The markup migrates cleanly — this file still typechecks — but
-    // the behaviour differs, and nothing else would tell the user.
+    // the behaviour differs, and nothing else would tell the user. The
+    // fixture's Modals are named, so neither asks for a name (`name:Modal`).
     for (const [file, todos] of app.todosByFile) {
       if (file === 'leftovers.tsx') continue;
       const unexpected = todos.filter(t => t.rule !== 'component:Modal');
@@ -257,6 +258,7 @@ describe('bloomer kitchen-sink e2e', () => {
       'component:DropdownMenu',
       'component:DropdownContent',
       'component:Icon',
+      'name:Modal',
       'prop:tag',
       'prop:as',
       'prop:href',
@@ -279,6 +281,12 @@ describe('bloomer kitchen-sink e2e', () => {
         present: true,
       });
     }
+    // A Subtitle size it cannot read, which bestax would turn into a level.
+    expect(
+      todos.some(
+        t => t.rule === 'prop:isSize' && t.message.includes('textSize')
+      )
+    ).toBe(true);
     const migrated = fs.readFileSync(
       path.join(tmpDir, 'src', 'leftovers.tsx'),
       'utf8'
@@ -310,9 +318,12 @@ describe('bloomer kitchen-sink e2e', () => {
     for (const todo of app.depTodos) emitted.add(todo.rule);
     expect(emitted.size).toBeGreaterThan(0);
 
-    // Match documented rule TOKENS, not substrings (see the rbx e2e for why).
+    // Match documented rule TOKENS, not substrings (see the rbx e2e for why),
+    // `name:` rules among them.
     const tokens = new Set(
-      [...refs.matchAll(/(?:component|prop):[A-Za-z][\w.*]*/g)].map(m => m[0])
+      [...refs.matchAll(/(?:component|prop|name):[A-Za-z][\w.*]*/g)].map(
+        m => m[0]
+      )
     );
     const backticked = new Set(
       [...refs.matchAll(/`([A-Za-z][\w.-]*)`/g)].map(m => m[1])

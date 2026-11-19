@@ -81,7 +81,14 @@ $tooltip-large-arrow-size: 7px !default;
   font-size: cv.getVar("tooltip-font-size");
   font-weight: cv.getVar("tooltip-font-weight");
   line-height: cv.getVar("tooltip-line-height");
-  white-space: nowrap;
+  // One line at the text's own width while it fits, and wrapped inside the
+  // box once the box reaches `tooltip-max-width`, rather than running out of
+  // it, between words or, for a word longer than the box, inside it. An
+  // absolutely placed box would otherwise be only as wide as the trigger it's
+  // centered on.
+  width: max-content;
+  white-space: normal;
+  overflow-wrap: break-word;
   max-width: cv.getVar("tooltip-max-width");
   background-color: cv.getVar("tooltip-background");
   color: cv.getVar("tooltip-color");
@@ -122,9 +129,8 @@ $tooltip-large-arrow-size: 7px !default;
     border-radius: 0;
   }
 
-  // Multiline
+  // Multiline: a fixed width, up to `tooltip-max-width`, text centered
   .#{iv.$class-prefix}tooltip.#{iv.$class-prefix}is-multiline & {
-    white-space: normal;
     width: cv.getVar("tooltip-multiline-width");
     text-align: center;
   }
@@ -322,4 +328,23 @@ $tooltip-large-arrow-size: 7px !default;
       "tooltip-arrow-size": #{$tooltip-large-arrow-size},
     )
   );
+}
+
+// Forced colors turns the box's background into the page's and paints every
+// side of the arrow. An outline, not a border, so the tooltip doesn't grow.
+// Only the arrow opts out, so its transparent sides stay transparent and the
+// side that points takes the system's text color.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}tooltip-content {
+    outline: 1px solid CanvasText;
+  }
+
+  .#{iv.$class-prefix}tooltip-content::before {
+    forced-color-adjust: none;
+    @include cv.register-vars(
+      (
+        "tooltip-background": CanvasText,
+      )
+    );
+  }
 }

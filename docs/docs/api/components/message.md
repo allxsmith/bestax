@@ -27,7 +27,7 @@ Supports Bulma color modifiers, sizes, and both header/body sections. The close 
 <!-- bestax:generated import -->
 
 ```tsx
-import { Message } from '@allxsmith/bestax-bulma';
+import { Message, MessageHeader, MessageBody } from '@allxsmith/bestax-bulma';
 ```
 
 <!-- /bestax:generated import -->
@@ -80,7 +80,7 @@ You can omit the `title` prop to render a message with only a body section. This
 
 ### Dismissible Message
 
-Add the `onClose` prop to make the message dismissible. When the close button is clicked, your callback will be triggered, allowing you to hide or remove the message from the UI.
+Add the `onClose` prop to make the message dismissible. When the close button is clicked, your callback will be triggered, allowing you to hide or remove the message from the UI. The button is named "delete" for screen readers; `ariaCloseLabel` gives it a name of your own, such as one in your app's language.
 
 ```tsx live
 function example() {
@@ -123,7 +123,9 @@ Use the `size` prop (`'small'`, `'medium'`, `'large'`) to adjust the size of the
 
 ### Compound (dot-notation) usage
 
-The message header and body are available as the `Message.Header` and `Message.Body` statics, so a whole message can be composed from the single `Message` import. Each static's props are listed under [Compound component props](#compound-component-props).
+The message header and body are available as the `Message.Header` and `Message.Body` statics, so a whole message can be composed from the single `Message` import. Each static's props are listed under [Compound component props](#compound-component-props). The same parts are named exports, `MessageHeader` and `MessageBody`, and each is the same component as the dotted name. A Next.js Server Component imports the named export, because the dotted name is `undefined` there.
+
+Built from its parts, a message puts `Message.Header` and `Message.Body` straight inside its `<article>`, the way Bulma lays them out. Plain children, as in the examples above, get a `.message-body` around them.
 
 #### Complete Message with Compound Components
 
@@ -170,7 +172,7 @@ The message header and body are available as the `Message.Header` and `Message.B
 
 #### Mixed Approach
 
-You can combine the traditional prop-based API with compound components:
+You can combine the traditional prop-based API with compound components. The header that `title` (or `onClose`) makes comes first, and the parts follow it:
 
 ```tsx live
 <Message color="danger" title="Mixed Approach">
@@ -190,7 +192,7 @@ You can combine the traditional prop-based API with compound components:
 ## Accessibility
 
 - The message is rendered as `<article class="message">`.
-- If `onClose` is provided, a close button with `aria-label="delete"` is rendered.
+- If `onClose` is provided, a close button is rendered, named "delete" unless `ariaCloseLabel` names it. It's drawn as an icon, so its name is all a screen reader says about it: in an app in another language, give it one in the page's language. An `aria-label` on `Message` names the `<article>`, not the button.
 - For optimal accessibility, use clear and descriptive titles/content.
 
 :::note
@@ -202,7 +204,7 @@ Always provide a visible or accessible way to dismiss important, interruptive me
 ## Related Components
 
 - [`Notification`](../elements/notification.md): For simpler, single-box notifications.
-- [Helper Props](../helpers/usebulmaclasses.md): All Bulma utility helpers can be used.
+- [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing and other utilities.
 
 ---
 
@@ -212,7 +214,7 @@ Always provide a visible or accessible way to dismiss important, interruptive me
 - [Storybook: Message Stories](https://bestax.io/storybook/?path=/story/components-message--primary)
 
 :::tip Pro Tip
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Message />` for powerful utility-based styling.
+You can use [Bulma helper props](../helpers/usebulmaclasses.md) with `<Message />` for powerful utility-based styling.
 :::
 
 ---
@@ -221,17 +223,18 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Messa
 
 <!-- bestax:generated props -->
 
-| Prop        | Type                                                                            | Default | Description                                       |
-| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                                                                        | —       | Additional CSS classes.                           |
-| `title`     | `React.ReactNode`                                                               | —       | Title string/node (renders header section).       |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color for the message (Bulma helper).        |
-| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color modifier for the message.             |
-| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color for the message (Bulma helper).  |
-| `size`      | `'small'` \| `'medium'` \| `'large'`                                            | —       | Size of the message.                              |
-| `onClose`   | `() => void`                                                                    | —       | Callback for the close ("X") button.              |
-| `children`  | `React.ReactNode`                                                               | —       | Body content for the message.                     |
-| `...`       | All standard HTML attributes and Bulma helper props                             | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop             | Type                                                                            | Default    | Description                                                                                                                                                                                                                                                                          |
+| ---------------- | ------------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `className`      | `string`                                                                        | —          | Additional CSS classes.                                                                                                                                                                                                                                                              |
+| `title`          | `React.ReactNode`                                                               | —          | Title string/node (renders header section).                                                                                                                                                                                                                                          |
+| `textColor`      | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —          | Text color for the message (Bulma helper).                                                                                                                                                                                                                                           |
+| `color`          | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —          | Bulma color modifier for the message.                                                                                                                                                                                                                                                |
+| `bgColor`        | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —          | Background color for the message (Bulma helper).                                                                                                                                                                                                                                     |
+| `size`           | `'small'` \| `'medium'` \| `'large'`                                            | —          | Size of the message.                                                                                                                                                                                                                                                                 |
+| `onClose`        | `() => void`                                                                    | —          | Callback for the close ("X") button.                                                                                                                                                                                                                                                 |
+| `ariaCloseLabel` | `string`                                                                        | `'delete'` | ARIA label for the close button `onClose` renders. The button is drawn as an icon, so its name is all a screen reader says about it: give it one in the page's language. An empty one falls back to the default. An `aria-label` on `Message` names the `<article>`, not the button. |
+| `children`       | `React.ReactNode`                                                               | —          | Body content for the message, wrapped in a `.message-body`. Children that include a `Message.Header` or `Message.Body` aren't wrapped: they render as the article's own children, after the header `title` and `onClose` make.                                                       |
+| `...`            | All standard HTML attributes and Bulma helper props                             | —          | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                    |
 
 **Subcomponents:**
 

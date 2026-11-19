@@ -5,9 +5,12 @@ import {
   prefixedClassNames,
 } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
+import { isElementOf } from '../helpers/elementType';
 import {
   type AnchorOnlyAttributes,
+  type ButtonOnlyAttributes,
   ANCHOR_ONLY_ATTRS,
+  BUTTON_ONLY_ATTRS,
   omitAttrs,
 } from '../helpers/anchorAttrs';
 import { buttonType } from '../helpers/buttonType';
@@ -29,7 +32,7 @@ export interface CardProps
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Text color for the card. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
@@ -38,7 +41,8 @@ export interface CardProps
    * `textColor`, which takes precedence when both are set; use `bgColor` for
    * a colored surface.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /**
    * Background color for the card. `scheme-*` values render as a
    * dark-mode-safe inline `background-color: var(--bulma-scheme-*)` instead
@@ -52,17 +56,39 @@ export interface CardProps
     | 'current';
   /** Whether the card has a shadow (default: `true`). */
   hasShadow?: boolean;
-  /** Card header content, rendered inside `.card-header-title`. */
+  /**
+   * Card header content, rendered inside `.card-header-title`. The header is
+   * a `<header>`, which is a banner landmark outside `<main>`, the sectioning
+   * elements and their roles.
+   */
   header?: React.ReactNode;
   /** If true, centers the header title. */
   headerCentered?: boolean;
-  /** Card header icon, rendered as a sibling to the header title. */
+  /**
+   * Card header icon, rendered as a sibling to the header title. Even with no
+   * `header`, it renders the card's `<header>`, a landmark where `header`'s is.
+   */
   headerIcon?: React.ReactNode;
-  /** Card footer content; each item is wrapped in `.card-footer-item`. */
+  /**
+   * Card footer content; each item is wrapped in `.card-footer-item`. The
+   * footer is a `<footer>`, which is a content info landmark outside
+   * `<main>`, the sectioning elements and their roles.
+   */
   footer?: React.ReactNode | React.ReactNode[];
-  /** Card image node or image src string. */
+  /**
+   * Card image node or image src string. An image URL renders an `<img>`
+   * whose alternate text is `imageAlt`, or "Card image" without it.
+   */
   image?: React.ReactNode | string;
-  /** Alternate text for the card image. */
+  /**
+   * Alternate text for the `<img>` an image URL renders. Describe what the
+   * picture shows, or pass `""` for a decorative one so screen readers skip
+   * it. Without it, the image's alternate text is "Card image", which tells
+   * a screen reader nothing about the picture. A node passed as `image`
+   * takes its own `alt`, and `imageAlt` doesn't reach it.
+   *
+   * @defaultValue 'Card image'
+   */
   imageAlt?: string;
   /** Card content (body). */
   children?: React.ReactNode;
@@ -74,19 +100,17 @@ export interface CardProps
  * @returns {boolean} True if any child is a Card compound component.
  */
 const hasCompoundComponents = (children: React.ReactNode): boolean => {
-  return React.Children.toArray(children).some(child => {
-    if (!React.isValidElement(child)) return false;
-
-    // Direct comparison with our compound component functions
-    return (
-      child.type === CardHeader ||
-      child.type === CardContent ||
-      child.type === CardImage ||
-      child.type === CardFooter ||
-      child.type === CardFooterItem ||
-      child.type === CardHeaderIcon
-    );
-  });
+  return React.Children.toArray(children).some(child =>
+    isElementOf(
+      child,
+      CardHeader,
+      CardContent,
+      CardImage,
+      CardFooter,
+      CardFooterItem,
+      CardHeaderIcon
+    )
+  );
 };
 
 /**
@@ -216,19 +240,20 @@ const CardComponent: React.FC<CardProps> = ({
 
 /**
  * Props for the Card.Header compound component.
+ * @extraProp {React.AriaRole} [role] - Its `<header>` is a banner landmark outside `<main>`, the sectioning elements and their roles. `role="none"` drops the landmark.
  */
 export interface CardHeaderProps
   extends
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Bulma color modifier (text color helper). */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Text color helper; wins over `color` when both are set. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Header content. Wrap in Card.Header.Title for Bulma styling. */
   children?: React.ReactNode;
   /** Whether to center the header title text. */
@@ -243,13 +268,13 @@ export interface CardImageProps
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Bulma color modifier (text color helper). */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Text color helper; wins over `color` when both are set. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Image content (e.g. a `<figure>` with an `<img>`). */
   children?: React.ReactNode;
 }
@@ -262,32 +287,33 @@ export interface CardContentProps
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Bulma color modifier (text color helper). */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Text color helper; wins over `color` when both are set. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Card body content. */
   children?: React.ReactNode;
 }
 
 /**
  * Props for the Card.Footer compound component.
+ * @extraProp {React.AriaRole} [role] - Its `<footer>` is a content info landmark outside `<main>`, the sectioning elements and their roles. `role="none"` drops the landmark.
  */
 export interface CardFooterProps
   extends
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Bulma color modifier (text color helper). */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Text color helper; wins over `color` when both are set. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Footer content, typically Card.FooterItem elements. */
   children?: React.ReactNode;
 }
@@ -309,35 +335,10 @@ const STRIP_FROM_NON_ANCHOR: Readonly<
 })();
 
 /**
- * What `<button>` adds over the attributes every element has (`disabled`,
- * `form`, `name`, `value` and the `form*` submit overrides), subtracted from
- * React's types the way `AnchorOnlyAttributes` is, so it grows when React's
- * does. Minus `type`, which `AnchorOnlyAttributes` already declares as the
- * `<a>` MIME string: two heritage clauses declaring it differently do not
- * compile, and the `<button>` branch reads it back off the forwarded props.
+ * The set withheld from a non-button `Card.FooterItem` (`span`/`a`): the
+ * button-only attributes, all of them.
  */
-type ButtonOnlyAttributes = Omit<
-  React.ButtonHTMLAttributes<HTMLButtonElement>,
-  keyof React.HTMLAttributes<HTMLButtonElement> | 'type'
->;
-
-/**
- * The set withheld from a non-button `Card.FooterItem` (`span`/`a`), keyed so
- * it stops compiling until a button attribute React adds is named here.
- */
-const STRIP_FROM_NON_BUTTON: Readonly<
-  Record<keyof ButtonOnlyAttributes, true>
-> = {
-  disabled: true,
-  form: true,
-  formAction: true,
-  formEncType: true,
-  formMethod: true,
-  formNoValidate: true,
-  formTarget: true,
-  name: true,
-  value: true,
-};
+const STRIP_FROM_NON_BUTTON = BUTTON_ONLY_ATTRS;
 
 /**
  * Props for the Card.FooterItem compound component.
@@ -357,15 +358,15 @@ export interface CardFooterItemProps
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Element type to render (default: `span`). Bulma's own card markup uses `a`. */
-  as?: 'span' | 'a' | 'button';
+  as?: 'span' | 'a' | 'button' | undefined;
   /** Bulma color modifier (text color helper). */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Text color helper; wins over `color` when both are set. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Footer item content (link, button, text, etc.). */
   children?: React.ReactNode;
 }
@@ -380,15 +381,15 @@ export interface CardHeaderTitleProps
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Element type to render (default: `div`). Bulma's own card markup uses `p`; a heading suits a title that should read as one. */
-  as?: 'div' | 'p' | 'h2' | 'h3' | 'h4';
+  as?: 'div' | 'p' | 'h2' | 'h3' | 'h4' | undefined;
   /** Bulma color modifier (text color helper). */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Text color helper; wins over `color` when both are set. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Title text content. */
   children?: React.ReactNode;
   /** Whether to center the title text. */
@@ -405,13 +406,13 @@ export interface CardHeaderIconProps
     React.ButtonHTMLAttributes<HTMLButtonElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Bulma color modifier (text color helper). */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Text color helper; wins over `color` when both are set. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Icon content (e.g. an icon element). */
   children?: React.ReactNode;
 }
@@ -422,8 +423,12 @@ export interface CardHeaderIconProps
  * @function
  * @param {CardHeaderProps} props - Props for the CardHeader component.
  * @returns {JSX.Element} The rendered card header.
+ *
+ * @remarks
+ * It renders a `<header>`, which is a banner landmark outside `<main>`, the
+ * sectioning elements and their roles. `role="none"` drops the landmark.
  */
-const CardHeader: React.FC<CardHeaderProps> = ({
+const CardHeaderComponent: React.FC<CardHeaderProps> = ({
   className,
   children,
   centered,
@@ -440,11 +445,8 @@ const CardHeader: React.FC<CardHeaderProps> = ({
   });
 
   // Check if children contains a CardHeaderTitle component
-  const hasHeaderTitle = React.Children.toArray(children).some(
-    child =>
-      React.isValidElement(child) &&
-      typeof child.type === 'function' &&
-      child.type === CardHeaderTitle
+  const hasHeaderTitle = React.Children.toArray(children).some(child =>
+    isElementOf(child, CardHeaderTitle)
   );
 
   const headerClasses = usePrefixedClassNames('card-header');
@@ -479,7 +481,7 @@ const CardHeader: React.FC<CardHeaderProps> = ({
  * @param {CardHeaderTitleProps} props - Props for the CardHeaderTitle component.
  * @returns {JSX.Element} The rendered card header title.
  */
-const CardHeaderTitle: React.FC<CardHeaderTitleProps> = ({
+export const CardHeaderTitle: React.FC<CardHeaderTitleProps> = ({
   as = 'div',
   className,
   children,
@@ -518,7 +520,7 @@ const CardHeaderTitle: React.FC<CardHeaderTitleProps> = ({
  * @param {CardHeaderIconProps} props - Props for the CardHeaderIcon component.
  * @returns {JSX.Element} The rendered card header icon button.
  */
-const CardHeaderIcon: React.FC<CardHeaderIconProps> = ({
+export const CardHeaderIcon: React.FC<CardHeaderIconProps> = ({
   className,
   children,
   color,
@@ -559,7 +561,7 @@ const CardHeaderIcon: React.FC<CardHeaderIconProps> = ({
  * @param {CardImageProps} props - Props for the CardImage component.
  * @returns {JSX.Element} The rendered card image container.
  */
-const CardImage: React.FC<CardImageProps> = ({
+export const CardImage: React.FC<CardImageProps> = ({
   className,
   children,
   color,
@@ -593,7 +595,7 @@ const CardImage: React.FC<CardImageProps> = ({
  * @param {CardContentProps} props - Props for the CardContent component.
  * @returns {JSX.Element} The rendered card content container.
  */
-const CardContent: React.FC<CardContentProps> = ({
+export const CardContent: React.FC<CardContentProps> = ({
   className,
   children,
   color,
@@ -626,8 +628,12 @@ const CardContent: React.FC<CardContentProps> = ({
  * @function
  * @param {CardFooterProps} props - Props for the CardFooter component.
  * @returns {JSX.Element} The rendered card footer.
+ *
+ * @remarks
+ * It renders a `<footer>`, which is a content info landmark outside `<main>`,
+ * the sectioning elements and their roles. `role="none"` drops the landmark.
  */
-const CardFooter: React.FC<CardFooterProps> = ({
+export const CardFooter: React.FC<CardFooterProps> = ({
   className,
   children,
   color,
@@ -661,7 +667,7 @@ const CardFooter: React.FC<CardFooterProps> = ({
  * @param {CardFooterItemProps} props - Props for the CardFooterItem component.
  * @returns {JSX.Element} The rendered card footer item.
  */
-const CardFooterItem: React.FC<CardFooterItemProps> = ({
+export const CardFooterItem: React.FC<CardFooterItemProps> = ({
   as = 'span',
   className,
   children,
@@ -726,17 +732,21 @@ const CardFooterItem: React.FC<CardFooterItemProps> = ({
   );
 };
 
-// Attach nested Title and Icon components to CardHeader
-const CardHeaderCompound = withSubComponents(CardHeader, {
-  Title: CardHeaderTitle,
-  Icon: CardHeaderIcon,
-});
+// Export the compound, not the bare function, so `CardHeader.Title` typechecks.
+export const CardHeader = withSubComponents(
+  CardHeaderComponent,
+  {
+    Title: CardHeaderTitle,
+    Icon: CardHeaderIcon,
+  },
+  'CardHeader'
+);
 
 /** Card component with Header, Image, Content, Footer, and FooterItem sub-components. */
 export const Card = withSubComponents(
   CardComponent,
   {
-    Header: CardHeaderCompound,
+    Header: CardHeader,
     Image: CardImage,
     Content: CardContent,
     Footer: CardFooter,

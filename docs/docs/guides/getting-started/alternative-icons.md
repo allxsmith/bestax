@@ -265,14 +265,18 @@ function MaterialIconStyles() {
   return (
     <Columns isVCentered>
       <Column isNarrow>
-        <Icon library="material-icons" name="account_circle" color="danger" />
+        <Icon
+          library="material-icons"
+          name="account_circle"
+          textColor="danger"
+        />
       </Column>
       <Column isNarrow>
         <Icon
           library="material-icons"
           name="account_circle"
           variant="outlined"
-          color="danger"
+          textColor="danger"
         />
       </Column>
       <Column isNarrow>
@@ -280,7 +284,7 @@ function MaterialIconStyles() {
           library="material-icons"
           name="account_circle"
           variant="round"
-          color="danger"
+          textColor="danger"
         />
       </Column>
       <Column isNarrow>
@@ -288,7 +292,7 @@ function MaterialIconStyles() {
           library="material-icons"
           name="account_circle"
           variant="sharp"
-          color="danger"
+          textColor="danger"
         />
       </Column>
     </Columns>
@@ -528,6 +532,14 @@ If you haven't started your project yet, `pnpm create bestax@latest` will wire u
 ## Icon-Only Buttons
 
 Every button example above pairs its icon with visible text. When the icon _is_ the whole label — a toolbar or a card action with no room for words — the accessible name has to come from somewhere else, because there is no text for a screen reader to announce.
+
+[`IconButton`](/docs/api/elements/iconbutton) is built for this. It takes the icon's name, or an `Icon` from any of these libraries, and its types won't compile without an `aria-label` or an `aria-labelledby`:
+
+```tsx live
+<IconButton color="danger" icon="trash" aria-label="Delete item" />
+```
+
+The rest of this section shows the same naming on a plain `Button`, which is what `IconButton` does for you.
 
 Put the name on the `Button` with `aria-label`, and leave the `Icon` hidden from assistive technology, as it is whenever it has no `ariaLabel`:
 

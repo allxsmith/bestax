@@ -128,9 +128,13 @@ $taginput-transition-duration: cv.getVar("duration") !default;
       align-items: center;
       gap: cv.getVar("taginput-tag-gap");
 
+      // The remove button comes after the text, so its gap is on its inline
+      // start and it reaches into the tag's padding on its inline end, as
+      // Bulma's own tag does it. Physical margins put the gap on the far
+      // side on a right-to-left page, and the button on the text.
       .#{iv.$class-prefix}delete {
-        margin-left: 0.25rem;
-        margin-right: -0.25rem;
+        margin-inline-start: 0.25rem;
+        margin-inline-end: -0.25rem;
       }
     }
   }
@@ -332,6 +336,20 @@ $taginput-transition-duration: cv.getVar("duration") !default;
 
     .#{iv.$class-prefix}tag {
       border: 1px solid ButtonText;
+    }
+
+    // The suggestion list's shadow and the highlighted suggestion's fill go
+    // too, so the open list gets an edge, which Combobox's border gives its
+    // list, and the highlighted suggestion the outline Combobox's highlighted
+    // item gets, both drawn inside their boxes so nothing moves.
+    .#{iv.$class-prefix}dropdown-content {
+      outline: 1px solid CanvasText;
+      outline-offset: -1px;
+    }
+
+    .#{iv.$class-prefix}dropdown-item.#{iv.$class-prefix}is-active {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
     }
 
     &.#{iv.$class-prefix}is-disabled {

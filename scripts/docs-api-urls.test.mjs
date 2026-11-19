@@ -6,7 +6,7 @@
  * guard vacuous while CI stayed green. These tests drive the violation branch
  * directly, which is the only way the rule is known to still work.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 
 import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';

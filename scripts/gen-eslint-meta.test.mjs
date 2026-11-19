@@ -3,17 +3,18 @@
  *
  * `replacementFrom` turns the library's own deprecation note into the ESLint
  * autofix, so a note it reads wrongly becomes a wrong edit to someone's
- * source. It sits outside jest's `roots` and its output file is excluded from
- * coverage, which is exactly why it needs a sibling test here.
+ * source. It sits outside the ESLint plugin's own suite and its output file is
+ * excluded from coverage, which is exactly why it needs a sibling test here.
  */
 import assert from 'node:assert/strict';
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import {
   build,
   bulmaComponentClasses,
   classTableViolations,
   unknownComponents,
   collect,
+  flexContainerViolations,
   guardViolations,
   render,
   replacementFrom,
@@ -343,6 +344,73 @@ describe('collect', () => {
     );
     assert.ok(textAlias.has('Box'));
   });
+
+  it('reads the flex containers off the tables the extractor flags', () => {
+    // A part counts by its own path, so a compound part can be one too.
+    const { flexContainers } = collect({
+      exportedModules: () =>
+        new Map(['Box', 'Card', 'Content'].map(n => [n, {}])),
+      extractComponent: name => ({
+        tables: [
+          {
+            path: name,
+            ...(name === 'Content' ? { flexContainer: true } : {}),
+            rows: [
+              ...(name === 'Box'
+                ? [
+                    {
+                      name: 'isFullWidth',
+                      deprecated: true,
+                      deprecationNote: 'Use `isFullwidth` instead.',
+                    },
+                    { name: 'isFullwidth', description: 'Full width.' },
+                  ]
+                : []),
+              ...aliasRows(name),
+            ],
+          },
+          ...(name === 'Card'
+            ? [{ path: 'Card.Content', flexContainer: true, rows: [] }]
+            : []),
+        ],
+      }),
+    });
+    assert.deepEqual([...flexContainers].sort(), ['Card.Content', 'Content']);
+  });
+});
+
+describe('the flex container set', () => {
+  it('refuses a set that lost an anchor, naming it', () => {
+    assert.deepEqual(
+      flexContainerViolations(new Set(['Center', 'Flex', 'Group', 'Stack'])),
+      []
+    );
+    const one = flexContainerViolations(new Set(['Center', 'Flex', 'Group']));
+    assert.equal(one.length, 1);
+    assert.match(
+      one[0],
+      /^Stack no longer carries `@flexContainer` on its props/
+    );
+    assert.match(one[0], /on it, which render/);
+    const two = flexContainerViolations(new Set(['Center', 'Flex']));
+    assert.match(
+      two[0],
+      /^Group, Stack no longer carry `@flexContainer` on their/
+    );
+    assert.match(two[0], /on them, which render/);
+  });
+
+  it('renders the set sorted, and an empty one by default', () => {
+    const base = { deprecated: new Map(), textAlias: new Set(['Box']) };
+    assert.match(
+      render({ ...base, flexContainers: new Set(['Stack', 'Flex']) }),
+      /FLEX_CONTAINER_ELEMENTS: readonly string\[\] = \[\n {2}"Flex",\n {2}"Stack",\n\];/
+    );
+    assert.match(
+      render(base),
+      /FLEX_CONTAINER_ELEMENTS: readonly string\[\] = \[\n\n\];/
+    );
+  });
 });
 
 describe('the Bulma component class table', () => {
@@ -388,6 +456,117 @@ describe('the Bulma component class table', () => {
         ['box', true],
         ['table-container', true],
       ]
+    );
+  });
+
+  it('gives each converted root its own tag and its tags, and its advice when it has some', async () => {
+    const { entries } = await bulmaComponentClasses(
+      classMap({
+        image: {
+          status: 'mapped',
+          target: 'Image',
+          tag: 'div',
+          as: ['div', 'figure'],
+        },
+        button: {
+          status: 'mapped',
+          target: 'Button',
+          tag: 'button',
+          as: 'any',
+        },
+        container: {
+          status: 'mapped',
+          target: 'Container',
+          tag: 'div',
+          onAnother: 'center it',
+        },
+        dropdown: { status: 'todo', target: 'Dropdown', why: 'by hand' },
+      })
+    );
+    assert.deepEqual(Object.fromEntries(entries), {
+      dropdown: { component: 'Dropdown', converts: false },
+      image: {
+        component: 'Image',
+        converts: true,
+        tag: 'div',
+        tags: ['div', 'figure'],
+      },
+      button: {
+        component: 'Button',
+        converts: true,
+        tag: 'button',
+        tags: 'any',
+      },
+      container: {
+        component: 'Container',
+        converts: true,
+        tag: 'div',
+        tags: ['div'],
+        onAnother: 'center it',
+      },
+    });
+    const text = render({
+      deprecated: new Map(),
+      textAlias: new Set(),
+      classes: entries,
+    });
+    assert.match(
+      text,
+      /\["container", \{ component: "Container", converts: true, tag: "div", tags: \["div"\], onAnother: "center it" \}\],/
+    );
+    assert.match(
+      text,
+      /\["dropdown", \{ component: "Dropdown", converts: false \}\],/
+    );
+  });
+
+  it('gives a root the classes beside it that decide its tag, and no others', async () => {
+    const size = value => ({ writes: [{ prop: 'size', value }] });
+    const { entries } = await bulmaComponentClasses(
+      classMap({
+        image: {
+          status: 'mapped',
+          target: 'Image',
+          tag: 'div',
+          as: ['div', 'figure'],
+          modifiers: {
+            'is-64x64': size('64x64'),
+            'is-16by9': { ...size('16by9'), rendersTag: 'figure' },
+            'is-rounded': { writes: [{ prop: 'isRounded' }] },
+          },
+        },
+        title: {
+          status: 'mapped',
+          target: 'Title',
+          tag: 'h1',
+          as: ['h1', 'h3', 'p'],
+          sizeDrivesTag: true,
+          modifiers: {
+            'is-3': { ...size('3'), tagIn: ['h3', 'p'] },
+            'is-spaced': { writes: [{ prop: 'isSpaced' }] },
+          },
+        },
+        button: {
+          status: 'mapped',
+          target: 'Button',
+          tag: 'button',
+          modifiers: { 'is-large': size('large') },
+        },
+      })
+    );
+    const classes = Object.fromEntries(entries);
+    assert.deepEqual(classes.image.retags, {
+      'is-64x64': { tag: null },
+      'is-16by9': { tag: 'figure' },
+    });
+    assert.deepEqual(classes.title.retags, {
+      'is-3': { tag: 'h3', on: ['h3', 'p'] },
+    });
+    // A size that picks no tag is no retag.
+    assert.equal('retags' in classes.button, false);
+    assert.match(
+      render({ deprecated: new Map(), textAlias: new Set(), classes: entries }),
+      /retags: \{"is-64x64":\{"tag":null\},"is-16by9":\{"tag":"figure"\}\}/
     );
   });
 

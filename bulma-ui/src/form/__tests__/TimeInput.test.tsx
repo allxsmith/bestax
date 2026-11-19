@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
 import { TimeInput } from '../TimeInput';
@@ -5,6 +6,7 @@ import { Field } from '../Field';
 import { Control } from '../Control';
 import { TimeInputBase } from '../TimeInputBase';
 import { ConfigProvider } from '../../helpers/Config';
+import { LocaleProvider } from '../../helpers/LocaleProvider';
 import { __resetAudioTickForTest } from '../_pickerInternals/audioTick';
 import { makeDate } from '../_pickerInternals/dateUtils';
 
@@ -162,7 +164,7 @@ describe('TimeInput', () => {
   });
 
   it('ArrowUp on hours wheel increments the hour', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getAllByRole } = render(
       <TimeInput defaultValue={at(10, 0)} onChange={handler} />
     );
@@ -175,7 +177,7 @@ describe('TimeInput', () => {
   });
 
   it('ArrowDown on hours wheel decrements the hour', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getAllByRole } = render(
       <TimeInput defaultValue={at(10, 0)} onChange={handler} />
     );
@@ -209,7 +211,7 @@ describe('TimeInput', () => {
   });
 
   it('clicking a non-centred item shifts the wheel to that item', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getAllByRole } = render(
       <TimeInput defaultValue={at(10, 0)} onChange={handler} />
     );
@@ -272,7 +274,7 @@ describe('TimeInput', () => {
   });
 
   it('ArrowUp on AM/PM wheel toggles to PM in 12h mode', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getAllByRole } = render(
       <TimeInput defaultValue={at(9, 0)} hourFormat="12" onChange={handler} />
     );
@@ -286,7 +288,7 @@ describe('TimeInput', () => {
   });
 
   it('Alt+ArrowDown opens the popover from the focused field, and Alt+ArrowUp closes it', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, queryByRole } = render(
       <TimeInput
         openOnFocus={false}
@@ -310,7 +312,7 @@ describe('TimeInput', () => {
   });
 
   it('Alt+ArrowUp on the wheel opening put focus on closes the popover and turns nothing', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, queryByRole } = render(
       <TimeInput
         openOnFocus={false}
@@ -409,7 +411,7 @@ describe('TimeInput', () => {
   });
 
   it('native input renders the value and round-trips changes through onChange', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { container } = render(
       <TimeInput
         mobileNative={true}
@@ -431,7 +433,7 @@ describe('TimeInput', () => {
   });
 
   it('native input round-trips seconds when enableSeconds', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { container } = render(
       <TimeInput
         mobileNative={true}
@@ -452,7 +454,7 @@ describe('TimeInput', () => {
   });
 
   it('Now button sets the value to current time and closes', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByText, getByLabelText, queryByRole } = render(
       <TimeInput openOnFocus={false} onChange={handler} />
     );
@@ -464,10 +466,10 @@ describe('TimeInput', () => {
   });
 
   it('Now snaps to the nearest minute increment', () => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date(2026, 0, 1, 13, 42, 37));
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 0, 1, 13, 42, 37));
     try {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByText, getByLabelText } = render(
         <TimeInput
           incrementMinutes={15}
@@ -484,7 +486,7 @@ describe('TimeInput', () => {
       expect(result.getMinutes()).toBe(45);
       expect(result.getSeconds()).toBe(0);
     } finally {
-      jest.useRealTimers();
+      vi.useRealTimers();
     }
   });
 
@@ -495,7 +497,7 @@ describe('TimeInput', () => {
   });
 
   it('Cancel button reverts to value at open time', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getAllByRole, getByText } = render(
       <TimeInput defaultValue={at(10, 0)} onChange={handler} />
     );
@@ -609,7 +611,7 @@ describe('TimeInput', () => {
   });
 
   it('unselectableTimes skip-ahead lands on the next valid hour', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getAllByRole } = render(
       <TimeInput
         defaultValue={at(11, 0)}
@@ -624,8 +626,8 @@ describe('TimeInput', () => {
   });
 
   it('parse callback is invoked on blur', () => {
-    const parse = jest.fn(() => at(8, 15));
-    const handler = jest.fn();
+    const parse = vi.fn(() => at(8, 15));
+    const handler = vi.fn();
     const { getByRole } = render(
       <TimeInput openOnFocus={false} parse={parse} onChange={handler} />
     );
@@ -649,7 +651,7 @@ describe('TimeInput', () => {
   });
 
   it('PageUp advances the hour wheel by 5', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getAllByRole } = render(
       <TimeInput defaultValue={at(2, 0)} onChange={handler} />
     );
@@ -660,7 +662,7 @@ describe('TimeInput', () => {
   });
 
   it('Home jumps to the first hour value', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getAllByRole } = render(
       <TimeInput defaultValue={at(15, 0)} onChange={handler} />
     );
@@ -671,7 +673,7 @@ describe('TimeInput', () => {
   });
 
   it('End jumps to the last hour value', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getAllByRole } = render(
       <TimeInput defaultValue={at(2, 0)} onChange={handler} />
     );
@@ -695,7 +697,7 @@ describe('TimeInput', () => {
 describe('TimeInput band pulse', () => {
   let originalAnimate: typeof HTMLElement.prototype.animate | undefined;
   let originalMatchMedia: typeof window.matchMedia | undefined;
-  let animateSpy: jest.Mock;
+  let animateSpy: Mock;
 
   const setReducedMotion = (reduced: boolean) => {
     Object.defineProperty(window, 'matchMedia', {
@@ -718,8 +720,8 @@ describe('TimeInput band pulse', () => {
   beforeEach(() => {
     originalAnimate = HTMLElement.prototype.animate;
     originalMatchMedia = window.matchMedia;
-    animateSpy = jest.fn(() => ({ cancel: jest.fn() }) as unknown as Animation);
-    (HTMLElement.prototype as unknown as { animate: jest.Mock }).animate =
+    animateSpy = vi.fn(() => ({ cancel: vi.fn() }) as unknown as Animation);
+    (HTMLElement.prototype as unknown as { animate: Mock }).animate =
       animateSpy;
   });
 
@@ -787,12 +789,12 @@ describe('TimeInput band pulse', () => {
 describe('TimeInput haptics prop', () => {
   let originalVibrate: typeof navigator.vibrate | undefined;
   let originalAudioContext: typeof window.AudioContext | undefined;
-  let audioCtorSpy: jest.Mock;
+  let audioCtorSpy: Mock;
 
   const setVibrateAvailable = (available: boolean) => {
     if (available) {
       Object.defineProperty(navigator, 'vibrate', {
-        value: jest.fn(),
+        value: vi.fn(),
         configurable: true,
       });
     } else {
@@ -809,34 +811,33 @@ describe('TimeInput haptics prop', () => {
     // Mock AudioContext so playAudioTick's createOscillator call is detectable
     // without actually playing sound.
     const lastOsc = {
-      connect: jest.fn().mockReturnThis(),
-      start: jest.fn(),
-      stop: jest.fn(),
+      connect: vi.fn().mockReturnThis(),
+      start: vi.fn(),
+      stop: vi.fn(),
       type: 'triangle',
       frequency: {
-        setValueAtTime: jest.fn(),
-        exponentialRampToValueAtTime: jest.fn(),
+        setValueAtTime: vi.fn(),
+        exponentialRampToValueAtTime: vi.fn(),
       },
     };
     const mockCtx = {
       state: 'running' as AudioContextState,
       currentTime: 0,
-      resume: jest.fn().mockResolvedValue(undefined),
-      close: jest.fn().mockResolvedValue(undefined),
-      createOscillator: jest.fn(() => lastOsc),
-      createGain: jest.fn(() => ({
+      resume: vi.fn().mockResolvedValue(undefined),
+      close: vi.fn().mockResolvedValue(undefined),
+      createOscillator: vi.fn(() => lastOsc),
+      createGain: vi.fn(() => ({
         gain: {
-          setValueAtTime: jest.fn(),
-          linearRampToValueAtTime: jest.fn(),
-          exponentialRampToValueAtTime: jest.fn(),
+          setValueAtTime: vi.fn(),
+          linearRampToValueAtTime: vi.fn(),
+          exponentialRampToValueAtTime: vi.fn(),
         },
-        connect: jest.fn().mockReturnThis(),
+        connect: vi.fn().mockReturnThis(),
       })),
       destination: {},
     };
-    audioCtorSpy = jest.fn(() => mockCtx);
-    (window as unknown as { AudioContext: jest.Mock }).AudioContext =
-      audioCtorSpy;
+    audioCtorSpy = vi.fn(() => mockCtx);
+    (window as unknown as { AudioContext: Mock }).AudioContext = audioCtorSpy;
   });
 
   afterEach(() => {
@@ -918,7 +919,7 @@ describe('TimeInput segmented input entry', () => {
   });
 
   it('ArrowUp on the focused input increments the hours segment', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <TimeInput defaultValue={at(13, 45)} onChange={handler} />
     );
@@ -933,7 +934,7 @@ describe('TimeInput segmented input entry', () => {
   });
 
   it('ArrowDown on the focused input decrements the hours segment', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <TimeInput defaultValue={at(13, 45)} onChange={handler} />
     );
@@ -970,7 +971,7 @@ describe('TimeInput segmented input entry', () => {
   });
 
   it('digit entry overwrites the active segment and waits for a second digit when more are valid', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <TimeInput defaultValue={at(13, 45)} onChange={handler} />
     );
@@ -999,7 +1000,7 @@ describe('TimeInput segmented input entry', () => {
   });
 
   it('typing two digits fills hours and advances to minutes', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <TimeInput defaultValue={at(13, 45)} onChange={handler} />
     );
@@ -1016,7 +1017,7 @@ describe('TimeInput segmented input entry', () => {
   });
 
   it('p / a toggle AM/PM on the meridiem segment in 12h mode', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <TimeInput defaultValue={at(9, 0)} hourFormat="12" onChange={handler} />
     );
@@ -1064,7 +1065,7 @@ describe('TimeInput segmented input entry', () => {
   });
 
   it('falls back to free-form text entry when format uses Intl options', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <TimeInput
         defaultValue={at(13, 45)}
@@ -1085,7 +1086,7 @@ describe('TimeInput segmented input entry', () => {
   });
 
   it('rejects an ArrowUp that lands on an unselectable hour', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <TimeInput
         defaultValue={at(11, 45)}
@@ -1104,7 +1105,7 @@ describe('TimeInput segmented input entry', () => {
   });
 
   it('rejects digit entry that completes to a blocked hour', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <TimeInput
         defaultValue={at(11, 45)}
@@ -1126,7 +1127,7 @@ describe('TimeInput segmented input entry', () => {
   });
 
   it('still commits unblocked edits when an unselectableTimes predicate is set', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <TimeInput
         defaultValue={at(11, 45)}
@@ -1149,7 +1150,7 @@ describe('TimeInput segmented input entry', () => {
 
 describe('TimeInput editable / popover modes', () => {
   it('editable={false}: typing / arrows do not change the value', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <TimeInput
         defaultValue={at(13, 45)}
@@ -1189,7 +1190,7 @@ describe('TimeInput editable / popover modes', () => {
   });
 
   it('popover={false}: still supports segmented typing (input-only)', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, queryByRole } = render(
       <TimeInput defaultValue={at(13, 45)} popover={false} onChange={handler} />
     );
@@ -1357,7 +1358,7 @@ describe('TimeInput mobile footer', () => {
   });
 
   it('Reset reverts to the value at open and closes', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getByText, getAllByRole, queryByRole } = render(
       <TimeInput
         mobileNative={false}
@@ -1417,7 +1418,7 @@ describe('TimeInputBase remaining branches', () => {
   });
 
   it('controlled: a wheel change reports through onChange without internal state', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getAllByRole } = render(
       <TimeInputBase value={at(10, 0)} onChange={handler} />
     );
@@ -1469,8 +1470,8 @@ describe('TimeInputBase remaining branches', () => {
   });
 
   it('fires onOpen once even when an open request repeats, and onClose on close', () => {
-    const onOpen = jest.fn();
-    const onClose = jest.fn();
+    const onOpen = vi.fn();
+    const onClose = vi.fn();
     const { getByRole } = render(
       <TimeInputBase onOpen={onOpen} onClose={onClose} />
     );
@@ -1486,7 +1487,7 @@ describe('TimeInputBase remaining branches', () => {
   });
 
   it('wheels start at 00:00 when there is no value and spin from today', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getAllByRole } = render(
       <TimeInput onChange={handler} />
     );
@@ -1498,7 +1499,7 @@ describe('TimeInputBase remaining branches', () => {
   });
 
   it('seconds wheel defaults to 00 when there is no value', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getAllByRole } = render(
       <TimeInput enableSeconds onChange={handler} />
     );
@@ -1512,14 +1513,14 @@ describe('TimeInputBase remaining branches', () => {
   });
 
   it('a wheel on an empty field keeps none of the clock it starts from but the date', () => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date(2026, 9, 7, 14, 23, 10, 507));
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 9, 7, 14, 23, 10, 507));
     try {
       for (const [enableSeconds, wheel, expected] of [
         [false, 0, new Date(2026, 9, 7, 1, 0, 0, 0)],
         [true, 2, new Date(2026, 9, 7, 0, 0, 1, 0)],
       ] as const) {
-        const handler = jest.fn();
+        const handler = vi.fn();
         const { getByRole, getAllByRole, unmount } = render(
           <TimeInput enableSeconds={enableSeconds} onChange={handler} />
         );
@@ -1531,12 +1532,12 @@ describe('TimeInputBase remaining branches', () => {
         unmount();
       }
     } finally {
-      jest.useRealTimers();
+      vi.useRealTimers();
     }
   });
 
   it('rejects a wheel change that falls outside min/max', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole, getAllByRole } = render(
       <TimeInput
         defaultValue={at(10, 0)}
@@ -1553,7 +1554,7 @@ describe('TimeInputBase remaining branches', () => {
   });
 
   it('segmented entry on an empty field seeds from a noon base', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <TimeInput openOnFocus={false} onChange={handler} />
     );
@@ -1571,7 +1572,7 @@ describe('TimeInputBase remaining branches', () => {
   });
 
   it('free-form text parses on blur with the default format', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <TimeInput openOnFocus={false} onChange={handler} />
     );
@@ -1584,7 +1585,7 @@ describe('TimeInputBase remaining branches', () => {
   });
 
   it('free-form text parses on blur with an explicit format string', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <TimeInput openOnFocus={false} format="h:mm A" onChange={handler} />
     );
@@ -1597,7 +1598,7 @@ describe('TimeInputBase remaining branches', () => {
   });
 
   it('Intl-options formats fall back to the 24h default format for blur parsing', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <TimeInput
         openOnFocus={false}
@@ -1615,7 +1616,7 @@ describe('TimeInputBase remaining branches', () => {
 
   it('free-form blur with a blocked time reverts without committing', () => {
     // 'H:mm' has a variable-width token → no segment map → free-form path.
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <TimeInput
         openOnFocus={false}
@@ -1632,7 +1633,7 @@ describe('TimeInputBase remaining branches', () => {
   });
 
   it('whitespace-only text reverts on blur without committing', () => {
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { getByRole } = render(
       <TimeInput
         defaultValue={at(13, 45)}
@@ -1650,7 +1651,7 @@ describe('TimeInputBase remaining branches', () => {
   it('a malformed native value commits null (invalid-format guard)', () => {
     // jsdom sanitizes bad values to '' before React sees them, so force the
     // value getter to surface a malformed string to the change handler.
-    const handler = jest.fn();
+    const handler = vi.fn();
     const { container } = render(
       <TimeInput mobileNative={true} onChange={handler} />
     );
@@ -1667,7 +1668,7 @@ describe('TimeInputBase remaining branches', () => {
   });
 
   it('supports a callback ref', () => {
-    const refFn = jest.fn();
+    const refFn = vi.fn();
     render(<TimeInput ref={refFn} />);
     expect(refFn).toHaveBeenCalledWith(expect.any(HTMLInputElement));
   });
@@ -1717,11 +1718,15 @@ describe('TimeInput label association (#368)', () => {
     expect(getByRole('combobox')).not.toHaveAttribute('id');
   });
 
-  it('renders the label unwired in inline mode', () => {
+  it('names the inline group by its label, which points at no control', () => {
     const { container } = render(<TimeInput label="Departure" inline />);
     const label = container.querySelector('label.label');
     expect(label).toHaveTextContent('Departure');
     expect(label).not.toHaveAttribute('for');
+    expect(container.querySelector('[role="group"]')).toHaveAttribute(
+      'aria-labelledby',
+      label!.id
+    );
   });
 });
 
@@ -1788,7 +1793,7 @@ describe('TimeInput focus handed back on close', () => {
   };
 
   it('Escape closes it and leaves focus on the input', () => {
-    const onOpen = jest.fn();
+    const onOpen = vi.fn();
     const { getByRole, queryByRole } = render(
       <TimeInput defaultValue={at(9, 30)} onOpen={onOpen} />
     );
@@ -1840,7 +1845,7 @@ describe('TimeInput focus handed back on close', () => {
   it('hands focus to the input when the launcher opened it', () => {
     // Some browsers don't focus a button when it is clicked, so nothing in
     // the picker had focus when the popover opened.
-    const onOpen = jest.fn();
+    const onOpen = vi.fn();
     const { getByRole, queryByRole } = render(
       <TimeInput defaultValue={at(9, 30)} onOpen={onOpen} />
     );
@@ -1882,7 +1887,7 @@ describe('TimeInput focus handed back on close', () => {
 
   describe('commits nothing the user did not type or pick', () => {
     const renderWith = (defaultValue: Date | null) => {
-      const onChange = jest.fn();
+      const onChange = vi.fn();
       const utils = render(
         <>
           <TimeInput defaultValue={defaultValue} onChange={onChange} />
@@ -1972,7 +1977,7 @@ describe('TimeInput left without typing', () => {
   // the seconds and the day it leaves out, and an empty field's seed is not
   // the user's.
   const renderWith = (props: React.ComponentProps<typeof TimeInput>) => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     const utils = render(
       <>
         <TimeInput {...props} onChange={onChange} />
@@ -2024,7 +2029,7 @@ describe('TimeInput left without typing', () => {
   });
 
   it('commits nothing on Enter over the text it showed', () => {
-    const parse = jest.fn(() => new Date(2024, 5, 20, 9, 30));
+    const parse = vi.fn(() => new Date(2024, 5, 20, 9, 30));
     const { input, onChange } = renderWith({
       // No segments, so Enter parses the text.
       format: { hour: '2-digit', minute: '2-digit' },
@@ -2090,8 +2095,8 @@ describe('TimeInput onOpen and onClose', () => {
     });
 
   it('fire once per open and close under StrictMode', () => {
-    const onOpen = jest.fn();
-    const onClose = jest.fn();
+    const onOpen = vi.fn();
+    const onClose = vi.fn();
     const { getByRole, queryByRole } = render(
       <React.StrictMode>
         <TimeInput defaultValue={at(9, 30)} onOpen={onOpen} onClose={onClose} />
@@ -2139,7 +2144,7 @@ describe('TimeInput onOpen and onClose', () => {
   });
 
   it('fires onClose once when the input and the popover both take Escape', () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     const { getByRole, queryByRole } = render(
       <TimeInput
         defaultValue={at(9, 30)}
@@ -2177,7 +2182,7 @@ describe('TimeInput before year 1', () => {
 
   it('turns the wheels on a value in year 1 but not before', () => {
     for (const [year, allowed] of cases) {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByRole, getAllByRole, unmount } = render(
         <TimeInput value={inYear(year, 10)} onChange={handler} />
       );
@@ -2191,7 +2196,7 @@ describe('TimeInput before year 1', () => {
 
   it('types into a value in year 1 but not before', () => {
     for (const [year, allowed] of cases) {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByRole, unmount } = render(
         <TimeInput
           value={inYear(year, 10)}
@@ -2212,7 +2217,7 @@ describe('TimeInput before year 1', () => {
 
   it('reads a min in year 0 or a negative year as the start of year 1', () => {
     for (const min of [makeDate(0, 6, 1), makeDate(-5, 0, 1)]) {
-      const handler = jest.fn();
+      const handler = vi.fn();
       const { getByRole, getAllByRole, unmount } = render(
         <TimeInput value={inYear(0, 10)} min={min} onChange={handler} />
       );
@@ -2220,6 +2225,250 @@ describe('TimeInput before year 1', () => {
       fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
       expect(handler).not.toHaveBeenCalled();
       unmount();
+    }
+  });
+});
+
+describe('TimeInput wheels in a locale', () => {
+  /** Each wheel's current value as it reads, by the wheel's name. */
+  const wheelText = (getByRole: (role: string, o: object) => HTMLElement) =>
+    ['hours', 'minutes', 'seconds'].map(name =>
+      getByRole('spinbutton', { name }).getAttribute('aria-valuetext')
+    );
+
+  it.each([
+    ['en-US', ['09', '05', '07']],
+    // Arabic-Indic digits, and the extended ones Persian writes.
+    ['ar-EG', ['٠٩', '٠٥', '٠٧']],
+    ['fa-IR', ['۰۹', '۰۵', '۰۷']],
+    ['ja-JP', ['09', '05', '07']],
+    // A -u-nu- extension picks the digits.
+    ['ar-EG-u-nu-latn', ['09', '05', '07']],
+    ['en-US-u-nu-arab', ['٠٩', '٠٥', '٠٧']],
+  ])('writes the hours, minutes and seconds as %s does', (locale, text) => {
+    const { getByRole, container } = render(
+      <TimeInput
+        inline
+        aria-label="Time"
+        locale={locale}
+        enableSeconds
+        defaultValue={at(9, 5, 7)}
+      />
+    );
+    expect(wheelText(getByRole)).toEqual(text);
+    // The items read the same as the wheel's value.
+    const items = Array.from(
+      container.querySelectorAll('.timeinput-wheel-item')
+    ).map(item => item.textContent);
+    expect(items).toContain(text[0]);
+  });
+
+  it("takes a LocaleProvider's locale", () => {
+    const { getByRole } = render(
+      <LocaleProvider locale="ar-EG">
+        <TimeInput inline aria-label="Time" defaultValue={at(9, 5)} />
+      </LocaleProvider>
+    );
+    expect(
+      getByRole('spinbutton', { name: 'hours' }).getAttribute('aria-valuetext')
+    ).toBe('٠٩');
+  });
+
+  it('pads a 12-hour wheel and leaves the field in its own format', () => {
+    const { getByRole, container } = render(
+      <TimeInput
+        inline
+        aria-label="Time"
+        locale="ar-EG"
+        hourFormat="12"
+        name="start"
+        defaultValue={at(13, 5)}
+      />
+    );
+    expect(
+      getByRole('spinbutton', { name: 'hours' }).getAttribute('aria-valuetext')
+    ).toBe('٠١');
+    // The value it submits keeps Latin digits.
+    expect(
+      (container.querySelector('input[name="start"]') as HTMLInputElement).value
+    ).toBe('13:05');
+  });
+
+  /** The AM/PM wheel's value as it reads, and the words its items show. */
+  const ampm = (
+    getByRole: (role: string, o: object) => HTMLElement,
+    name = 'AM/PM'
+  ) => {
+    const wheel = getByRole('spinbutton', { name });
+    return {
+      value: wheel.getAttribute('aria-valuetext'),
+      items: Array.from(wheel.querySelectorAll('button')).map(
+        item => item.textContent
+      ),
+    };
+  };
+
+  it.each([
+    ['en-US', 'AM', 'PM'],
+    ['ar-EG', 'ص', 'م'],
+    ['ja-JP', '午前', '午後'],
+    ['zh-CN', '上午', '下午'],
+    ['fa-IR', 'ق.ظ.', 'ب.ظ.'],
+  ])('writes AM and PM as %s does', (locale, am, pm) => {
+    const { getByRole } = render(
+      <TimeInput
+        inline
+        aria-label="Time"
+        locale={locale}
+        hourFormat="12"
+        defaultValue={at(13, 5)}
+      />
+    );
+    const { value, items } = ampm(getByRole);
+    expect(value).toBe(pm);
+    expect(items).toEqual(expect.arrayContaining([am, pm]));
+  });
+
+  it('writes each AM/PM word once in the page’s text', () => {
+    // The copies that size the wheel draw their words from an attribute, so
+    // a query for the word finds the item alone.
+    const { getAllByText } = render(
+      <TimeInput
+        inline
+        aria-label="Time"
+        locale="ja-JP"
+        hourFormat="12"
+        defaultValue={at(13, 5)}
+      />
+    );
+    expect(getAllByText('午後')).toHaveLength(1);
+    expect(getAllByText('午前')).toHaveLength(1);
+  });
+
+  it('lets a word written right to left take its own direction', () => {
+    // The wheels sit in a left-to-right row, which would put the trailing
+    // period of Persian's ق.ظ. on the wrong side.
+    const { getByRole } = render(
+      <TimeInput
+        inline
+        aria-label="Time"
+        locale="fa-IR"
+        hourFormat="12"
+        defaultValue={at(9, 5)}
+      />
+    );
+    const items = getByRole('spinbutton', { name: 'AM/PM' }).querySelectorAll(
+      'button'
+    );
+    expect(items.length).toBeGreaterThan(0);
+    items.forEach(item => expect(item).toHaveAttribute('dir', 'auto'));
+  });
+
+  it("names the AM/PM wheel by labels.ampm in a locale's words", () => {
+    const { getByRole } = render(
+      <TimeInput
+        inline
+        aria-label="Time"
+        locale="ja-JP"
+        hourFormat="12"
+        labels={{ ampm: '午前/午後' }}
+        defaultValue={at(9, 5)}
+      />
+    );
+    expect(ampm(getByRole, '午前/午後').value).toBe('午前');
+  });
+
+  it("takes a LocaleProvider's locale for AM and PM", () => {
+    const { getByRole } = render(
+      <LocaleProvider locale="ar-EG">
+        <TimeInput
+          inline
+          aria-label="Time"
+          hourFormat="12"
+          defaultValue={at(13, 5)}
+        />
+      </LocaleProvider>
+    );
+    expect(ampm(getByRole).value).toBe('م');
+  });
+
+  it('keeps AM and PM with no locale, whatever the runtime writes', () => {
+    // A server and a browser can write a time differently, so with no
+    // locale to agree on the wheel keeps AM and PM. This stands in for a
+    // runtime whose own locale is Egyptian Arabic.
+    const DateTimeFormat = Intl.DateTimeFormat;
+    const dates = vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(function (
+      locales?: Intl.LocalesArgument,
+      options?: Intl.DateTimeFormatOptions
+    ) {
+      return new DateTimeFormat(locales ?? 'ar-EG', options);
+    } as typeof Intl.DateTimeFormat);
+    try {
+      const { getByRole } = render(
+        <TimeInput
+          inline
+          aria-label="Time"
+          hourFormat="12"
+          defaultValue={at(13, 5)}
+        />
+      );
+      expect(ampm(getByRole).value).toBe('PM');
+    } finally {
+      dates.mockRestore();
+    }
+  });
+
+  it('keeps AM and PM for a tag Intl refuses', () => {
+    const { getByRole } = render(
+      <TimeInput
+        inline
+        aria-label="Time"
+        locale="en_US"
+        hourFormat="12"
+        defaultValue={at(13, 5)}
+      />
+    );
+    expect(ampm(getByRole).value).toBe('PM');
+  });
+
+  it('pads plain digits for a tag Intl refuses', () => {
+    const { getByRole } = render(
+      <TimeInput
+        inline
+        aria-label="Time"
+        locale="en_US"
+        defaultValue={at(9, 5)}
+      />
+    );
+    expect(
+      getByRole('spinbutton', { name: 'hours' }).getAttribute('aria-valuetext')
+    ).toBe('09');
+  });
+
+  it('keeps plain digits with no locale, whatever the runtime writes', () => {
+    // A server and a browser can write numbers differently, so with no
+    // locale to agree on the wheels write plain digits. Any number Intl
+    // wrote here would come out as ٩. (`format` is a getter that hands back
+    // a bound function.)
+    const numbers = vi
+      .spyOn(
+        Intl.NumberFormat.prototype as { format: unknown },
+        'format',
+        'get'
+      )
+      .mockReturnValue(() => '٩');
+    try {
+      const { getByRole } = render(
+        <TimeInput inline aria-label="Time" defaultValue={at(9, 5)} />
+      );
+      expect(
+        getByRole('spinbutton', { name: 'hours' }).getAttribute(
+          'aria-valuetext'
+        )
+      ).toBe('09');
+      expect(numbers).not.toHaveBeenCalled();
+    } finally {
+      numbers.mockRestore();
     }
   });
 });

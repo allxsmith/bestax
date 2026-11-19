@@ -1,0 +1,108 @@
+// Fieldset Component Styles
+// A native <fieldset> and <legend>: bordered, filled, or unstyled
+// Follows Bulma v1 CSS variable convention (see _dialog.scss)
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+
+// Fieldset-specific SCSS variables. The surfaces and the border come from
+// Bulma's scheme tokens, so dark mode follows them.
+$fieldset-background: cv.getVar("scheme-main") !default;
+$fieldset-filled-background: cv.getVar("background") !default;
+$fieldset-border-color: cv.getVar("border") !default;
+$fieldset-border-width: 1px !default;
+$fieldset-radius: cv.getVar("radius-large") !default;
+$fieldset-padding: 1.25rem !default;
+// Below the legend, which already takes room above the content.
+$fieldset-padding-top: 0.75rem !default;
+$fieldset-spacing: cv.getVar("block-spacing") !default;
+// The legend takes Bulma's label look.
+$fieldset-legend-color: cv.getVar("label-color") !default;
+$fieldset-legend-size: cv.getVar("size-normal") !default;
+$fieldset-legend-weight: cv.getVar("label-weight") !default;
+// Room either side of the legend where it breaks the border.
+$fieldset-legend-padding: 0.5em !default;
+// Below an unstyled Fieldset's legend, as below a label.
+$fieldset-legend-spacing: cv.getVar("label-spacing") !default;
+
+// Register CSS custom properties
+.#{iv.$class-prefix}fieldset {
+  @include cv.register-vars(
+    (
+      "fieldset-background": #{$fieldset-background},
+      "fieldset-filled-background": #{$fieldset-filled-background},
+      "fieldset-border-color": #{$fieldset-border-color},
+      "fieldset-border-width": #{$fieldset-border-width},
+      "fieldset-radius": #{$fieldset-radius},
+      "fieldset-padding": #{$fieldset-padding},
+      "fieldset-padding-top": #{$fieldset-padding-top},
+      "fieldset-spacing": #{$fieldset-spacing},
+      "fieldset-legend-color": #{$fieldset-legend-color},
+      "fieldset-legend-size": #{$fieldset-legend-size},
+      "fieldset-legend-weight": #{$fieldset-legend-weight},
+      "fieldset-legend-padding": #{$fieldset-legend-padding},
+      "fieldset-legend-spacing": #{$fieldset-legend-spacing},
+    )
+  );
+}
+
+.#{iv.$class-prefix}fieldset {
+  background-color: cv.getVar("fieldset-background");
+  border: cv.getVar("fieldset-border-width") solid
+    cv.getVar("fieldset-border-color");
+  border-radius: cv.getVar("fieldset-radius");
+  // Bulma resets a fieldset's margin, border and padding but keeps the
+  // browser's `min-inline-size: min-content`, which lets a wide child push
+  // the fieldset out of its column.
+  min-inline-size: 0;
+  padding: cv.getVar("fieldset-padding");
+  padding-block-start: cv.getVar("fieldset-padding-top");
+
+  &:not(:last-child) {
+    margin-block-end: cv.getVar("fieldset-spacing");
+  }
+
+  &.#{iv.$class-prefix}is-filled {
+    background-color: cv.getVar("fieldset-filled-background");
+  }
+
+  &.#{iv.$class-prefix}is-unstyled {
+    background-color: transparent;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+  }
+}
+
+// Forced colors replaces the backgrounds, so the border is all that draws the
+// box. It takes the text color, since a browser may otherwise draw a
+// fieldset's border there in a faint system grey.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}fieldset {
+    border-color: CanvasText;
+  }
+}
+
+// The default and filled legends sit on the border, where the browser draws
+// a fieldset's legend, so the border breaks around them.
+.#{iv.$class-prefix}fieldset-legend {
+  color: cv.getVar("fieldset-legend-color");
+  font-size: cv.getVar("fieldset-legend-size");
+  font-weight: cv.getVar("fieldset-legend-weight");
+  padding-inline: cv.getVar("fieldset-legend-padding");
+
+  .#{iv.$class-prefix}fieldset.#{iv.$class-prefix}is-unstyled > & {
+    margin-block-end: cv.getVar("fieldset-legend-spacing");
+    padding-inline: 0;
+  }
+
+  // Bulma dims a `.checkbox` or `.radio` anywhere in a disabled fieldset,
+  // but the browser leaves the controls in its legend enabled, so one there
+  // keeps its usual look for as long as its input is enabled. Inside a
+  // disabled outer fieldset the input is disabled too, and the dimming stays.
+  .#{iv.$class-prefix}checkbox:has(input:enabled),
+  .#{iv.$class-prefix}radio:has(input:enabled) {
+    color: inherit;
+    cursor: pointer;
+  }
+}

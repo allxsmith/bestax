@@ -7,7 +7,7 @@
  * `prepublishOnly`, after semantic-release has already pushed the release
  * commit and tag.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 

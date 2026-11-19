@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useFieldsetDisabled } from './FormContext';
 
 /**
  * The values the Switch `color` and `passiveType` props accept, as a readonly
@@ -49,6 +50,8 @@ export const switchSizes = ['small', 'normal', 'medium', 'large'] as const;
 
 /**
  * Props for the Switch component.
+ * @helperProps Helper props go on the outer `<label>`, with `className`. The
+ * other attributes go on the `<input>`.
  * @extraProp {boolean} [checked] - Controlled checked state.
  * @extraProp {boolean} [defaultChecked=false] - Default checked state for uncontrolled usage.
  * @extraProp {boolean} [disabled=false] - Whether the switch is disabled.
@@ -64,9 +67,9 @@ export interface SwitchProps
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'> {
   /** Color variant for the switch. */
-  color?: (typeof switchColors)[number];
+  color?: (typeof switchColors)[number] | undefined;
   /** Size of the switch. */
-  size?: (typeof switchSizes)[number];
+  size?: (typeof switchSizes)[number] | undefined;
   /** Use rounded switch style. */
   isRounded?: boolean;
   /** Use thin switch style. */
@@ -81,6 +84,13 @@ export interface SwitchProps
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Label content for the switch. */
   children?: React.ReactNode;
+  /**
+   * The input's role. Unset, the input is a native checkbox, so a screen
+   * reader announces the switch as a checkbox. Pass `"switch"` to have it
+   * announced as a switch. The input's checked state still carries the value,
+   * so `checked`, `onChange` and the form value work the same either way.
+   */
+  role?: React.AriaRole | undefined;
 }
 
 /**
@@ -122,11 +132,12 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
       className,
       children,
       textColor,
-      disabled,
+      disabled: disabledProp,
       ...props
     },
     ref
   ) => {
+    const disabled = useFieldsetDisabled(disabledProp);
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color: textColor,
       ...props,

@@ -113,7 +113,7 @@ Use the `Delete` component inside a `Notification` to provide a dismiss action f
 
 ```tsx live
 <Notification color="primary">
-  <Delete bgColor="warning" ariaLabel="Close notification" />
+  <Delete ariaLabel="Close notification" />
   <Paragraph>This is a primary notification with a delete button.</Paragraph>
 </Notification>
 ```
@@ -136,6 +136,7 @@ The `Delete` component can be placed in a message header for dismissible message
 - **Keyboard:** The button is focusable and supports keyboard activation.
 - **Forms:** It renders `type="button"`, so a delete button inside a form doesn't submit it.
 - **Disabled:** Uses both `disabled` and Bulma’s `is-disabled` for proper styling and accessibility.
+- **Forced colors:** Bulma draws the circle and the cross as background colors, which forced colors (Windows' contrast themes) replaces, so the button would vanish there while it still works and takes focus. bestax's styles keep it drawn in the system's button colors, with its focus ring in the system's highlight color, and a disabled one, or one inside a disabled `<fieldset>`, in the system's color for disabled controls. Every close button bestax renders is a `Delete`, apart from the [Modal](../components/modal.md)'s floating close, a [Tag](./tag.md) with `isDelete`, and the [Sidebar](../components/sidebar.md)'s `Sidebar.Close`, and those keep their crosses in the system's colors too.
 
 :::tip
 For custom close actions, use the `onClick` prop.

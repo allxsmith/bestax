@@ -122,7 +122,8 @@ Dialog also shows optional patterns you can borrow when relevant:
 - An **imperative API** (`dialog.alert`, `dialog.confirm`, `dialog.close`) plus a
   `DialogContainer` for programmatic mounting, exported from the same module.
 - **Accessibility**: `role="alertdialog"`, Escape-to-cancel, and focus management on open.
-- **Body scroll lock** via a module-level ref count so chained/overlapping dialogs behave.
+- **Page scroll lock** through the `Modal` it renders, whose lock is ref-counted so
+  chained/overlapping dialogs behave.
 
 These are not required for every component — start from the simple template in
 `library-contributor.md` and add only what your component needs.

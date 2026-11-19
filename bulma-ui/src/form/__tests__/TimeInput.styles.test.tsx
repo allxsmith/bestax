@@ -2,25 +2,22 @@
 // whether anything reads it, which is how `color` sat dead on the wheels until
 // #701 and the mobile overrides wrote names no rule used. These compile the
 // real SCSS and check what it actually does.
-import * as sass from 'sass';
-import path from 'path';
 import { render } from '@testing-library/react';
+import { compileScss, compileSheet } from '../../__tests__/compile-scss';
+import { cascade, compilePartial, rulesOf } from '../../__tests__/css-cascade';
+import { ConfigProvider } from '../../helpers/Config';
 import { TimeInput } from '../TimeInput';
-
-const compile = (file: string) =>
-  sass.compile(path.resolve(__dirname, '../../scss', file), {
-    loadPaths: [path.resolve(__dirname, '../../../../node_modules')],
-    quietDeps: true,
-    logger: sass.Logger.silent,
-  }).css;
+import type { TimeInputProps } from '../TimeInput';
 
 let styleEl: HTMLStyleElement;
 
+// A hook keeps Vitest's 10s default rather than `testTimeout`, and
+// sass-embedded's start can take longer than that on a loaded machine.
 beforeAll(() => {
   styleEl = document.createElement('style');
-  styleEl.textContent = compile('form/_timeinput.scss');
+  styleEl.textContent = compileSheet('form/_timeinput.scss');
   document.head.appendChild(styleEl);
-});
+}, 30_000);
 
 afterAll(() => {
   styleEl.remove();
@@ -57,13 +54,14 @@ describe('TimeInput wheel colour styles', () => {
   );
 
   it('leaves an uncoloured wheel on the inherited default', () => {
+    // The `primary` default the root registers, which the wheel inherits.
     const { getAllByRole } = render(<TimeInput inline />);
     for (const wheel of getAllByRole('spinbutton')) {
       expect(
         getComputedStyle(wheel)
           .getPropertyValue('--bulma-timeinput-wheel-selected-bg')
           .trim()
-      ).toBe('');
+      ).toBe('var(--bulma-primary)');
     }
   });
 });
@@ -134,7 +132,7 @@ function mobileCustomProperties(sheet: CSSStyleSheet): string[] {
 /** The names no `var()` in the shipped stylesheet reads. */
 let shipped: string | undefined;
 function unread(names: string[]): string[] {
-  shipped ??= compile('bestax.scss');
+  shipped ??= compileSheet('bestax.scss');
   const css = shipped;
   return names.filter(
     name => !new RegExp(`var\\(\\s*${name}\\s*[,)]`).test(css)
@@ -213,5 +211,287 @@ describe('TimeInput mobile overrides', () => {
     const set = mobileCustomProperties(styleEl.sheet as CSSStyleSheet);
     expect(set.length).toBeGreaterThan(0);
     expect(unread(set)).toEqual([]);
+  });
+});
+
+describe('TimeInput read-only wheels', () => {
+  // A read-only wheel turns for nothing, so its items shouldn't offer a hover
+  // fill or a hand. Taking the pointer off them does both.
+  const pointer = (container: Element, prefix = '') =>
+    Array.from(
+      container.querySelectorAll(`.${prefix}timeinput-wheel-item`),
+      item => getComputedStyle(item).pointerEvents
+    );
+
+  it('takes the pointer off the items of a read-only wheel only', () => {
+    const { container } = render(
+      <>
+        <div>
+          <TimeInput inline readOnly />
+        </div>
+        <div>
+          <TimeInput inline />
+        </div>
+      </>
+    );
+    const [readOnly, editable] = Array.from(container.children);
+    expect(new Set(pointer(readOnly))).toEqual(new Set(['none']));
+    expect(pointer(editable)).not.toContain('none');
+  });
+
+  it('does it under a class prefix too', () => {
+    const prefixed = document.createElement('style');
+    prefixed.textContent = compileScss(
+      `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: 'bestax-');
+       @use 'form/timeinput';`
+    );
+    document.head.appendChild(prefixed);
+    try {
+      const { container } = render(
+        <ConfigProvider classPrefix="bestax-">
+          <TimeInput inline readOnly />
+        </ConfigProvider>
+      );
+      expect(new Set(pointer(container, 'bestax-'))).toEqual(new Set(['none']));
+    } finally {
+      prefixed.remove();
+    }
+  });
+});
+
+describe('TimeInput AM/PM wheel width', () => {
+  // A locale's words for AM and PM can run longer than two digits, as Nepali's
+  // पूर्वाह्न does, and the wheel cut them off at both ends. The width itself
+  // needs a browser's layout; these check the rules that give it.
+  const check = (container: Element, prefix = '') => {
+    const wheels = Array.from(
+      container.querySelectorAll(`.${prefix}timeinput-wheel`)
+    );
+    const ampm = wheels[wheels.length - 1];
+    expect(ampm).toHaveClass(`${prefix}is-fitted`);
+    // The size still sets the width, and the words set the least width.
+    expect(getComputedStyle(ampm).width).toBe('40px');
+    expect(getComputedStyle(ampm).minWidth).toBe('max-content');
+    const sizers = ampm.querySelectorAll(`.${prefix}timeinput-wheel-sizer`);
+    // The words are in attributes, which the stylesheet draws, so the page's
+    // text holds each once, as its item.
+    expect(Array.from(sizers, s => s.getAttribute('data-label'))).toEqual([
+      '午前',
+      '午後',
+    ]);
+    for (const sizer of Array.from(sizers)) {
+      expect(sizer).toBeEmptyDOMElement();
+      const style = getComputedStyle(sizer);
+      expect({
+        height: style.height,
+        visibility: style.visibility,
+        whiteSpace: style.whiteSpace,
+        paddingInline: style.getPropertyValue('padding-inline'),
+        letterSpacing: style.letterSpacing,
+        wordSpacing: style.wordSpacing,
+        textTransform: style.textTransform,
+        textIndent: style.textIndent,
+      }).toEqual({
+        height: '0px',
+        visibility: 'hidden',
+        whiteSpace: 'nowrap',
+        // The band's corner radius, capped at the gap between wheels, so a
+        // pill radius such as 9999px can't stretch the wheel.
+        paddingInline:
+          'min(var(--bulma-timeinput-wheel-radius), var(--bulma-timeinput-wheel-gap))',
+        letterSpacing: 'normal',
+        wordSpacing: 'normal',
+        textTransform: 'none',
+        textIndent: '0px',
+      });
+    }
+    // The number wheels keep their width and size nothing.
+    for (const wheel of wheels.slice(0, -1)) {
+      expect(wheel).not.toHaveClass(`${prefix}is-fitted`);
+      expect(getComputedStyle(wheel).minWidth).not.toBe('max-content');
+      expect(wheel.querySelector(`.${prefix}timeinput-wheel-sizer`)).toBeNull();
+    }
+  };
+
+  it('grows to the longest word, keeping its size as the least width', () => {
+    const { container } = render(
+      <TimeInput inline hourFormat="12" locale="ja-JP" size="small" />
+    );
+    check(container);
+  });
+
+  it('does it under a class prefix too', () => {
+    const prefixed = document.createElement('style');
+    prefixed.textContent = compileScss(
+      `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: 'bestax-');
+       @use 'form/timeinput';`
+    );
+    document.head.appendChild(prefixed);
+    try {
+      const { container } = render(
+        <ConfigProvider classPrefix="bestax-">
+          <TimeInput inline hourFormat="12" locale="ja-JP" size="small" />
+        </ConfigProvider>
+      );
+      check(container, 'bestax-');
+    } finally {
+      prefixed.remove();
+    }
+  });
+
+  it.each(['', 'bestax-'])(
+    'measures the words at the items’ size on a phone, prefix %j',
+    prefix => {
+      // jsdom doesn't apply media queries, so this reads the phone block.
+      const sheet = document.createElement('style');
+      sheet.textContent = compileScss(
+        `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+         @use 'form/timeinput';`
+      );
+      document.head.appendChild(sheet);
+      try {
+        const sizes = new Map<string, string>();
+        for (const rule of Array.from(
+          (sheet.sheet as CSSStyleSheet).cssRules
+        )) {
+          if (!(rule instanceof CSSMediaRule)) continue;
+          if (!/max-width/.test(rule.media.mediaText)) continue;
+          for (const inner of Array.from(rule.cssRules)) {
+            if (!(inner instanceof CSSStyleRule)) continue;
+            for (const selector of inner.selectorText.split(',')) {
+              if (inner.style.fontSize) {
+                sizes.set(selector.trim(), inner.style.fontSize);
+              }
+            }
+          }
+        }
+        // On the wheel, so its items and its copies, which inherit it,
+        // measure and draw at one size.
+        expect(sizes.get(`.${prefix}timeinput-wheel`)).toBe('1.1rem');
+        expect(sizes.get(`.${prefix}timeinput-wheel-item`)).toBeUndefined();
+        expect(sizes.get(`.${prefix}timeinput-wheel-sizer`)).toBeUndefined();
+      } finally {
+        sheet.remove();
+      }
+    }
+  );
+});
+
+// Forced colors replaces the band's fill and the picked value's color, so the
+// partial draws them in the system's selection colors there (#2021). These
+// resolve what the band and the items get on a forced-colors page, from the
+// partial compiled with no prefix and under one.
+describe.each([
+  ['no prefix', ''],
+  ['a class prefix', 'bestax-'],
+])('TimeInput wheels in forced colors, with %s', (_label, prefix) => {
+  // jsdom matches no `:focus-visible`, so the sheet reads it as a class the
+  // test puts on the wheel it means.
+  let raw = '';
+  let css = '';
+  beforeAll(() => {
+    raw = compilePartial('form/timeinput', prefix);
+    css = raw.replace(/:focus-visible/g, '.jsdom-focus-visible');
+  }, 30_000);
+
+  const forced = (el: Element, property: string) =>
+    cascade(
+      el,
+      css,
+      [property],
+      (style, p) => style.getPropertyValue(p).trim() || undefined,
+      { forcedColors: true }
+    );
+
+  const wheelsOf = (props: Partial<TimeInputProps> = {}) => {
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <TimeInput
+          inline
+          defaultValue={new Date(2026, 0, 1, 10, 30)}
+          {...props}
+        />
+      </ConfigProvider>
+    );
+    return Array.from(
+      container.querySelectorAll<HTMLElement>('[role="spinbutton"]')
+    ).map(wheel => ({
+      wheel,
+      band: wheel.querySelector(`.${prefix}timeinput-wheel-band`)!,
+      picked: wheel.querySelector(
+        `.${prefix}timeinput-wheel-item.${prefix}is-selected`
+      )!,
+      other: wheel.querySelector(
+        `.${prefix}timeinput-wheel-item:not(.${prefix}is-selected)`
+      )!,
+    }));
+  };
+
+  it('draws the band in Highlight and leaves the values forced', () => {
+    const wheels = wheelsOf();
+    expect(wheels).toHaveLength(2);
+    for (const { band, picked, other } of wheels) {
+      expect(forced(band, 'forced-color-adjust')).toBe('none');
+      expect(forced(band, 'background-color')).toBe('highlight');
+      // The values take the system's text color, with the page's color the
+      // browser draws behind them, on the band and off it alike.
+      for (const value of [picked, other]) {
+        expect(forced(value, 'forced-color-adjust')).toBeUndefined();
+      }
+    }
+  });
+
+  it('draws the focus ring on the band in HighlightText', () => {
+    for (const { wheel, band } of wheelsOf()) {
+      wheel.classList.add('jsdom-focus-visible');
+      expect(forced(band, 'outline-color')).toBe('highlighttext');
+      wheel.classList.remove('jsdom-focus-visible');
+    }
+  });
+
+  it("fills a disabled wheel's band in GrayText, at full opacity", () => {
+    for (const { wheel, band, picked, other } of wheelsOf({
+      disabled: true,
+    })) {
+      expect(wheel).toHaveClass(`${prefix}is-disabled`);
+      expect(forced(wheel, 'opacity')).toBe('1');
+      expect(forced(band, 'background-color')).toBe('graytext');
+      // GrayText marks the values, so they keep full opacity.
+      for (const value of [picked, other]) {
+        expect(value).toBeDisabled();
+        expect(forced(value, 'color')).toBe('graytext');
+        expect(forced(value, 'opacity')).toBe('1');
+      }
+    }
+  });
+
+  it('keeps a picked value that the picker blocks at full opacity', () => {
+    const [hours] = wheelsOf({
+      unselectableTimes: d => d.getHours() === 10,
+    });
+    expect(hours.wheel).not.toHaveClass(`${prefix}is-disabled`);
+    expect(hours.picked).toBeDisabled();
+    expect(forced(hours.band, 'background-color')).toBe('highlight');
+    expect(forced(hours.picked, 'color')).toBe('graytext');
+    expect(forced(hours.picked, 'opacity')).toBe('1');
+  });
+
+  it('names the system colors only inside the forced-colors block', () => {
+    const { all } = rulesOf(raw);
+    const outside = all.filter(
+      ({ within }) => !within.includes('@media (forced-colors: active)')
+    );
+    expect(outside.length).toBeGreaterThan(0);
+    for (const { rule } of outside) {
+      expect(rule.style.cssText).not.toMatch(
+        /\b(highlight|highlighttext|graytext|canvas)\b/i
+      );
+      expect(rule.style.getPropertyValue('forced-color-adjust')).toBe('');
+    }
+    expect(
+      all.some(({ within }) =>
+        within.includes('@media (forced-colors: active)')
+      )
+    ).toBe(true);
   });
 });

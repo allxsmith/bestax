@@ -2,6 +2,8 @@ import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { flattenChildren } from '../helpers/flattenChildren';
+import { useScopedNumberFormat } from '../helpers/localeFormat';
 import { Avatar, AvatarProps } from './Avatar';
 
 /** Valid overlap spacing values for the Avatars component. */
@@ -15,9 +17,9 @@ export interface AvatarsProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Show only the first `max` children, replacing the overflow with a "+N" surplus avatar. A single overflow avatar is shown directly rather than as a pointless "+1". */
-  max?: number;
+  max?: number | undefined;
   /** Uniform size applied to every child `Avatar` (and the surplus avatar). */
   size?: AvatarProps['size'];
   /** Uniform shape applied to every child `Avatar` (and the surplus avatar); a child's own `shape` wins when this is unset. */
@@ -26,36 +28,10 @@ export interface AvatarsProps
   spacing?: AvatarsSpacing | number;
   /** Lay the avatars out side by side (non-overlapping), using `spacing` as the gap. */
   spaced?: boolean;
-  /** Builds the surplus avatar's accessible name from the hidden count, for localization. Default: `` `${count} more` ``. */
+  /** Builds the surplus avatar's accessible name from the hidden count, for localization. Default: `` `${count} more` ``. Inside a `LocaleProvider` with a `locale`, the visible `+count` and the count in the default name are written the way that locale writes numbers. */
   surplusLabel?: (count: number) => string;
   /** `Avatar` elements to render inside the group. */
   children?: React.ReactNode;
-}
-
-/**
- * Flattens Fragment children (recursively) into a flat element array so they
- * participate in max clamping and size/shape injection. Children.toArray keys
- * restart at ".0" inside each fragment, so fragment children are re-keyed by
- * prefixing the fragment's own key — otherwise a fragment sibling of a direct
- * child would collide (both ".0") and trigger duplicate-key warnings.
- */
-function flattenChildren(
-  children: React.ReactNode,
-  keyPrefix = ''
-): React.ReactElement<AvatarProps>[] {
-  return React.Children.toArray(children).flatMap(child => {
-    if (!React.isValidElement(child)) return [];
-    if (child.type === React.Fragment) {
-      return flattenChildren(
-        (child.props as { children?: React.ReactNode }).children,
-        keyPrefix + child.key
-      );
-    }
-    const el = child as React.ReactElement<AvatarProps>;
-    return [
-      keyPrefix ? React.cloneElement(el, { key: keyPrefix + el.key }) : el,
-    ];
-  });
 }
 
 /**
@@ -83,6 +59,7 @@ const AvatarsComponent: React.FC<AvatarsProps> = ({
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses({ ...props });
+  const formatNumber = useScopedNumberFormat();
 
   // A preset spacing maps to a class; a numeric spacing sets the CSS var inline
   // (mirrors Sidebar's inline --bulma-* width var).
@@ -104,7 +81,12 @@ const AvatarsComponent: React.FC<AvatarsProps> = ({
     className
   );
 
-  const childArray = flattenChildren(children);
+  // Fragments are opened up, so the avatars inside one count toward `max` and
+  // take the group's size and shape one by one. Text between them is dropped.
+  const childArray = flattenChildren(children).filter(
+    (child): child is React.ReactElement<AvatarProps> =>
+      React.isValidElement(child)
+  );
 
   const maxCount =
     typeof max === 'number' && Number.isInteger(max) && max >= 0
@@ -134,12 +116,17 @@ const AvatarsComponent: React.FC<AvatarsProps> = ({
       )}
       {overflowCount > 0 && (
         <Avatar
-          initials={`+${overflowCount}`}
+          initials={
+            formatNumber
+              ? formatNumber(overflowCount, { signDisplay: 'always' })
+              : `+${overflowCount}`
+          }
           alt={
             // `||` (not a plain ternary): an empty string from surplusLabel
             // would make the bubble decorative (alt="") and hide the count
             // from assistive tech — fall back to the default label instead.
-            surplusLabel?.(overflowCount) || `${overflowCount} more`
+            surplusLabel?.(overflowCount) ||
+            `${formatNumber ? formatNumber(overflowCount) : overflowCount} more`
           }
           size={size}
           shape={shape}

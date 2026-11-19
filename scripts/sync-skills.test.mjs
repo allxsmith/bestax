@@ -4,7 +4,7 @@
  * promise is tested: the checks before anything is emptied, the `.DS_Store`
  * filter, and for bestax-mcp the lock and the freshness stamp.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
   existsSync,
@@ -36,7 +36,7 @@ import {
 /** A repo-shaped temp dir holding skills/ with two skills and some noise. */
 function fixture(t) {
   const root = mkdtempSync(join(tmpdir(), 'bestax-sync-skills-'));
-  t.after(() => rmSync(root, { recursive: true, force: true }));
+  t.onTestFinished(() => rmSync(root, { recursive: true, force: true }));
   const src = join(root, 'skills');
   const files = {
     'bestax-a/SKILL.md': '---\nname: bestax-a\n---\n',

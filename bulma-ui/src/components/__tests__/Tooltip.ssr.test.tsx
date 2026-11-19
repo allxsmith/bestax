@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  *
  * SSR coverage for Tooltip, where `document` is genuinely undefined: a
  * regression that measured or listened during a server render fails here

@@ -1,0 +1,60 @@
+{
+  "template": "rent",
+  "images": [
+    {
+      "path": "public/media/hero-house.svg",
+      "sha256": "e083109acd035752a7cecc47d93e672bda240b2762f3d1bbdb173dd8a8314f7d",
+      "origin": "original",
+      "made": "2026-10-26",
+      "madeBy": "Alex Smith, for this bestax port",
+      "method": "Drawn by code: docs/scripts/template-art/scenes/rent.mjs places every block and shape, and the voxel renderer in docs/scripts/template-art writes the SVG, with every texture generated from a palette and a seed. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A blocky street of three homes on a sidewalk: a white apartment block with a \"For rent\" sign, a narrow brick townhouse and a cream cottage with a green roof, with trees and a street lamp.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/media/property_image.png, the original's hero illustration, whose source the original does not record."
+    },
+    {
+      "path": "public/media/city-day.svg",
+      "sha256": "af6a066ea926f2644a8ec9a3f730bf26f81f9e7d910b67c48454b3e5870ea60b",
+      "origin": "original",
+      "made": "2026-10-26",
+      "madeBy": "Alex Smith, for this bestax port",
+      "method": "Drawn by code: docs/scripts/template-art/scenes/rent.mjs places every block and shape, and the voxel renderer in docs/scripts/template-art writes the SVG, with every texture generated from a palette and a seed. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A blocky riverside town by day: homes and low blocks along the far bank, an arched bridge with a cyclist crossing, a boat on the river and trees along the near bank.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/media/city_clipart.png, the original's skyline under the listings, whose source the original does not record."
+    },
+    {
+      "path": "public/media/city-night.svg",
+      "sha256": "49249249c1326b810d3e726c52bdad64c2cb0c8ca23dd7fe1ea1288fadb27e4b",
+      "origin": "original",
+      "made": "2026-10-26",
+      "madeBy": "Alex Smith, for this bestax port",
+      "method": "Drawn by code: docs/scripts/template-art/scenes/rent.mjs places every block and shape, and the voxel renderer in docs/scripts/template-art writes the SVG, with every texture generated from a palette and a seed. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A blocky street of five row houses in the evening under a blocky crescent moon and stars, some windows lit, a \"For rent\" banner on one house, two street trees and lamps.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/media/cartoon_city.png, the original's night skyline in the landlords section, whose source the original does not record."
+    },
+    {
+      "path": "public/media/listing-placeholder.svg",
+      "sha256": "b764a0d2642baf9de8d07754a400281a90b6c5580a6614963757239c19a2ae52",
+      "origin": "original",
+      "made": "2026-10-26",
+      "madeBy": "Alex Smith, for this bestax port",
+      "method": "Drawn by code: docs/scripts/template-art/scenes/rent.mjs places every block and shape, and the voxel renderer in docs/scripts/template-art writes the SVG, with every texture generated from a palette and a seed. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A calm grey placeholder of large blocks with a small grey blocky house and the label \"640 x 360\" in pixel letters, standing in for a listing's photo.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "The 640x360 placeholder the original hot-links from a placeholder service for every listing photo."
+    },
+    {
+      "path": "public/media/rental-house.svg",
+      "sha256": "fecfdaad0a43a785ae3b3dea1935a6e91d5d7e33d913be0317052c7dc89d9a93",
+      "origin": "original",
+      "made": "2026-10-26",
+      "madeBy": "Alex Smith, for this bestax port",
+      "method": "Drawn by code: docs/scripts/template-art/scenes/rent.mjs places every block and shape, and the voxel renderer in docs/scripts/template-art writes the SVG, with every texture generated from a palette and a seed. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A blocky bar chart rising to the right in shades of teal, with a navy magnifying glass held over a small house in front of it.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/media/house_for_rent.png, the original's marketplaces illustration, whose source the original does not record."
+    }
+  ]
+}

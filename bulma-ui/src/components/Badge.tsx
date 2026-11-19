@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useScopedNumberFormat } from '../helpers/localeFormat';
 
 const badgeColors = [
   'primary',
@@ -33,19 +34,23 @@ export interface BadgeProps
     Omit<React.HTMLAttributes<HTMLSpanElement>, 'color' | 'content'>,
     Omit<BulmaClassesProps, 'color'> {
   /** Additional CSS classes for the root — the wrapper when `children` are present, else the badge pill. */
-  className?: string;
+  className?: string | undefined;
   /** Additional CSS classes applied to the badge pill itself (unprefixed, like `Tooltip`'s `tooltipClassName`). */
   badgeClassName?: string;
-  /** Count, short text, or a custom node to display; omit with `dot` for a plain dot. `max`/`showZero` apply only to numeric content. */
+  /** Count, short text, or a custom node to display; omit with `dot` for a plain dot. `max`/`showZero` apply only to numeric content. A numeric count is written the way the `locale` of a `LocaleProvider` around it writes numbers. */
   content?: React.ReactNode;
   /** Numeric `content` above this renders as `"{max}+"`. A negative or non-integer value falls back to the default. */
-  max?: number;
-  /** Render a small dot with no content. */
+  max?: number | undefined;
+  /**
+   * Render a small dot with no content. In forced colors (Windows' contrast
+   * themes) a dot is filled in the system's text color, whatever its `color`
+   * or a background helper says, so it shows there.
+   */
   dot?: boolean;
   /** Show the badge when `content` is `0`. Default `false`. */
   showZero?: boolean;
   /** Status color. Default `'danger'`. */
-  color?: BadgeColor;
+  color?: BadgeColor | undefined;
   /** Corner to overlay the badge on, relative to `children`. Ignored for standalone badges (no `children`). */
   position?: BadgePosition;
   /** Nudges the offset for a round (`'circle'`) vs rectangular (`'square'`) child. Ignored for standalone badges (no `children`). */
@@ -65,13 +70,20 @@ export interface BadgeProps
  * @param {BadgeProps} props - Props for the Badge component.
  * @returns {JSX.Element | null} The rendered badge (and children, if provided).
  *
+ * @remarks
+ * A dot isn't read out and a count reads only what it shows, so the name of
+ * what a badge sits on says what the badge means, or, for a standalone
+ * badge, text beside it. A badge is a status, not a control: it isn't in the
+ * tab order and takes no keys, so a click handler on a standalone one reaches
+ * only a pointer. Put the click on a control beside it.
+ *
  * @example
  * <Badge dot color="success" overlap="circle">
- *   <Avatar src="/users/ada.jpg" name="Ada" />
+ *   <Avatar src="/users/ada.jpg" name="Ada" alt="Ada, online" />
  * </Badge>
  * @example
  * <Badge content={128} max={99} color="danger">
- *   <Icon name="bell" />
+ *   <Icon name="bell" ariaLabel="Notifications, 128 unread" />
  * </Badge>
  */
 export const Badge: React.FC<BadgeProps> = ({
@@ -110,15 +122,19 @@ export const Badge: React.FC<BadgeProps> = ({
   // A negative or non-integer max is nonsensical; fall back to the default
   // rather than render e.g. "-1+" (mirrors Avatars' max sanitization).
   const sanitizedMax = Number.isInteger(max) && max >= 0 ? max : 99;
+  const formatNumber = useScopedNumberFormat();
 
   const displayValue = useMemo<React.ReactNode>(() => {
     if (dot || !hasContent) return undefined;
     // max only applies to numeric content; any other node renders verbatim.
     if (typeof content === 'number') {
-      return content > sanitizedMax ? `${sanitizedMax}+` : String(content);
+      const write = formatNumber ?? String;
+      return content > sanitizedMax
+        ? `${write(sanitizedMax)}+`
+        : write(content);
     }
     return content;
-  }, [dot, hasContent, content, sanitizedMax]);
+  }, [dot, hasContent, content, sanitizedMax, formatNumber]);
 
   // Only primitive content produces a meaningful aria-label; a custom node
   // supplies its own accessible text, so we leave role="status" unlabeled.

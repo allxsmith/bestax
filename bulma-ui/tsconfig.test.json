@@ -5,15 +5,25 @@
   // into the published declaration emit. A second project checks them without
   // touching what ships.
   //
-  // ts-jest does not stand in for this: the root `tsconfig.json` sets
-  // `isolatedModules`, and ts-jest gates its language service on exactly that,
-  // so `pnpm test` transpiles types away rather than checking them. Until this
-  // project existed, an `@ts-expect-error` in a test file suppressed nothing
-  // because nothing looked (#663).
+  // The test runner does not stand in for this: Vitest strips types without
+  // checking them, so `pnpm test` passes a test that does not type-check.
+  // Until this project existed, an `@ts-expect-error` in a test file
+  // suppressed nothing because nothing looked (#663).
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "rootDir": "."
   },
-  "include": ["src/**/*", "types/**/*"],
-  "exclude": ["node_modules", "dist", "coverage"]
+  //
+  // It reads Storybook's config and both Vitest configs as well, which hold
+  // the smoke pass's checks. All but `.storybook/preview.ts`: its stylesheet
+  // imports have no types, and declaring `*.css` here would declare it to the
+  // tests and stories too, for the reason `types/assets.d.ts` gives.
+  "include": [
+    "src/**/*",
+    "types/**/*",
+    ".storybook/**/*.ts",
+    "vitest.config.ts",
+    "vitest.storybook.config.ts"
+  ],
+  "exclude": ["node_modules", "dist", "coverage", ".storybook/preview.ts"]
 }

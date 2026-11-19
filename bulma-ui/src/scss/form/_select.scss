@@ -1,0 +1,56 @@
+// Select styles
+// Bulma already styles the select; this gives a focused one an outline in
+// forced colors, and a disabled one's arrow the disabled color there
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+
+// Bulma shows a focused select with a border in the focus color and a ring
+// drawn as a box-shadow, and turns the outline off. Forced colors drops the
+// shadow, which leaves only the border's color to show focus, and a select
+// has no text caret to show it the way a text field does. So in forced
+// colors a select that matches `:focus-visible`, or has `is-focused`, draws
+// Bulma's focus outline, as a Button does there. Forced colors paints it in a
+// system color. The root class is doubled
+// so the rule outranks Bulma's `outline: none` whichever stylesheet loads
+// first.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}select.#{iv.$class-prefix}select select:focus-visible,
+  .#{iv.$class-prefix}select.#{iv.$class-prefix}select
+    select.#{iv.$class-prefix}is-focused {
+    outline-color: hsl(
+      cv.getVar("focus-h"),
+      cv.getVar("focus-s"),
+      cv.getVar("focus-l")
+    );
+    outline-offset: cv.getVar("focus-offset");
+    outline-style: cv.getVar("focus-style");
+    outline-width: cv.getVar("focus-width");
+  }
+
+  // Forced colors draws a disabled select in GrayText, the system's color for
+  // a disabled control. Bulma dims a disabled select's arrow,
+  // `.select.is-disabled::after`, at half opacity, and `Select` disables its
+  // `<select>` alone, which leaves the arrow in the page's text color beside
+  // it. Either way the arrow takes GrayText at full strength here. Bulma
+  // names that arrow's color with `!important`, so this does too, with more
+  // classes. A loading select's `::after` is the loader's spinner, which
+  // `_loader.scss` colors, so it only loses Bulma's fade. The `:has()` rule
+  // is a rule of its own, so a browser without `:has()` still applies the
+  // others.
+  .#{iv.$class-prefix}select.#{iv.$class-prefix}select.#{iv.$class-prefix}is-disabled::after {
+    opacity: 1;
+  }
+
+  .#{iv.$class-prefix}select.#{iv.$class-prefix}select.#{iv.$class-prefix}is-disabled:not(
+      .#{iv.$class-prefix}is-loading
+    )::after {
+    border-color: GrayText !important;
+  }
+
+  .#{iv.$class-prefix}select.#{iv.$class-prefix}select:not(
+      .#{iv.$class-prefix}is-loading
+    ):has(> select:disabled)::after {
+    border-color: GrayText !important;
+  }
+}

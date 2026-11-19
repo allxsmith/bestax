@@ -1,17 +1,20 @@
 import React, {
+  createContext,
   forwardRef,
   useCallback,
+  useContext,
   useEffect,
   useId,
   useRef,
+  useState,
 } from 'react';
-import { createPortal } from 'react-dom';
 import {
   classNames,
   usePrefixedClassNames,
   prefixedClassNames,
 } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
+import { isElementOf } from '../helpers/elementType';
 import { buttonType } from '../helpers/buttonType';
 import {
   useBulmaClasses,
@@ -24,36 +27,10 @@ import {
   getActiveElementInTree,
   getDeepestActiveElement,
 } from '../helpers/shadowDom';
-import { usePortalContainer } from '../helpers/portal';
-import { useIsHydrated } from '../helpers/useIsHydrated';
-
-/**
- * Every currently active modal, in the order they opened. Only the last entry
- * — the topmost modal — reacts to Escape and Tab, so one keypress can't
- * dismiss a whole stack (e.g. a `Dialog` opened on top of a `Modal`).
- */
-const activeModalStack: object[] = [];
-
-/**
- * Controls the modal can hand focus to. Disabled and hidden controls are
- * excluded because `focus()` on them is a no-op, which would leave focus
- * outside the modal.
- */
-const FOCUSABLE_SELECTOR =
-  'button:not(:disabled), [href], input:not(:disabled):not([type="hidden"]), select:not(:disabled), textarea:not(:disabled), [tabindex]';
-
-/**
- * The modal's tab stops, in document order. The selector alone is not the
- * tabbable set — `[href]` and `button` match regardless of `tabindex`, so an
- * `<a href tabIndex={-1}>` would otherwise be treated as a tab stop and let
- * Tab escape the modal when it sorts last. `el.tabIndex` is the browser's own
- * resolved value, so filtering on it drops every negative index (not just
- * `-1`) without a second selector to keep in sync.
- */
-const getTabbable = (node: HTMLElement): HTMLElement[] =>
-  Array.from(node.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
-    el => el.tabIndex >= 0
-  );
+import { Portal, PortalScope, usePortalProp } from '../helpers/portal';
+import { useLatestRef } from '../helpers/useLatestRef';
+import { useOverlayStack } from '../helpers/overlayStack';
+import { focusTabStop, trapTab } from '../helpers/useFocusTrap';
 
 /**
  * Props for the Modal component.
@@ -67,35 +44,84 @@ export interface ModalProps
   active?: boolean;
   /** Alias for `active`. Whether the modal is open/visible. */
   isActive?: boolean; // Alias for active
-  /** Callback invoked to request modal close (background or close button). */
+  /**
+   * Called to ask for the modal to close. The props form calls it from the
+   * background and the close button it renders. In the compound form,
+   * `Modal.Close` calls it unless you give it an `onClick` of your own, and
+   * `Modal.Background` doesn't call it on its own: pass it
+   * `onClick={onClose}` for a click on the background to close the modal.
+   * Escape calls it in both forms unless `closeOnEscape` is `false`.
+   */
   onClose?: () => void;
   /** Additional CSS classes for the modal. */
-  className?: string;
+  className?: string | undefined;
+  /**
+   * ARIA label for the close button the props form renders with `onClose`,
+   * the card header's or the floating one. It's drawn as an icon, so its name
+   * is all a screen reader says about it: give it one in the page's
+   * language. An empty one falls back to the default. An `aria-label` on
+   * `Modal` names the dialog, not the button, and a `Modal.Close` in the
+   * compound form takes an `aria-label` of its own.
+   * @defaultValue 'close'
+   */
+  ariaCloseLabel?: string | undefined;
   /** Text color for modal content. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color for modal content. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Title/header for modal-card variant. (Legacy API only) */
+  /**
+   * Title/header for modal-card variant, which names the dialog through
+   * `aria-labelledby`. With `type="content"` it isn't shown, and a title
+   * that's a string still names the dialog, as its `aria-label`. Without one, give
+   * the modal an `aria-label`, or an `aria-labelledby` pointing at a heading
+   * inside it. It's drawn in the card's `<header>`, which is a banner
+   * landmark unless the modal sits inside `<main>` or a sectioning element,
+   * as it doesn't when `portal` renders it at the end of `<body>`. The props
+   * form can't give the header a role, so point `portal` at an element
+   * inside `<main>` that doesn't clip the modal, or use the compound form
+   * with `role="none"` on `Modal.Card.Head`. (Legacy API only)
+   */
   modalCardTitle?: React.ReactNode;
-  /** Footer for modal-card variant. (Legacy API only) */
+  /**
+   * Footer for modal-card variant. Group two or more buttons in `Buttons` so
+   * Bulma spaces them. It's drawn in a `<footer>`, which is a content info
+   * landmark unless the modal sits inside `<main>` or a sectioning element,
+   * as it doesn't when `portal` renders it at the end of `<body>`. The props
+   * form can't give the footer a role, so point `portal` at an element
+   * inside `<main>` that doesn't clip the modal, or use the compound form
+   * with `role="none"` on `Modal.Card.Foot`. (Legacy API only)
+   */
   modalCardFoot?: React.ReactNode;
   /**
    * Modal style: `'card'` for modal-card, `'content'` for modal-content. (Legacy API only)
    * @defaultValue auto
    */
-  type?: 'card' | 'content';
+  type?: 'card' | 'content' | undefined;
   /** Modal body/content or compound components. */
   children?: React.ReactNode;
   /**
    * Close the modal when the Escape key is pressed (calls `onClose`). Only the
-   * topmost open modal responds, so Escape closes one layer at a time.
+   * topmost open overlay responds, whichever Modal, Dialog, Sidebar or
+   * full-page Loading opened last, so Escape closes one layer at a time. The
+   * modal marks the Escape it closes on as used with `preventDefault()`, and
+   * a Toast waits until no overlay is open. Turned off, a modal on top still
+   * keeps Escape from the layers under it. A popup inside it, such as a
+   * Dropdown's menu or a date picker's calendar, takes its own Escape first,
+   * and so does content that calls `preventDefault()` on it.
    * @defaultValue true
    */
   closeOnEscape?: boolean;
   /**
-   * Lock body scroll while the modal is active. Ref-counted and shared with
-   * `Dialog`, `Sidebar` and `Loading`, so whichever overlay closes first does
-   * not unlock the page underneath one that is still open.
+   * Lock page scroll while the modal is active, padding the page by the room
+   * its scrollbar took so the content stays put. A `fixed` Navbar, the toast
+   * and notification stacks and an Affix stay put too. The padding doesn't
+   * reach an element of your own fixed to the window's edge, which moves by
+   * the scrollbar's width unless it adds
+   * `var(--bulma-scroll-lock-offset-right, 0px)` to its `right` (the `-left`
+   * one to its `left`), which the lock sets on `<html>` while it's on.
+   * Ref-counted and shared with `Dialog`, `Sidebar` and `Loading`, so
+   * whichever overlay closes first does not unlock the page underneath one
+   * that is still open.
    * @defaultValue true
    */
   lockScroll?: boolean;
@@ -114,10 +140,11 @@ export interface ModalProps
 
 /**
  * Props for Modal.Background component.
+ * @extraProp {React.MouseEventHandler<HTMLDivElement>} [onClick] - Called when the background is clicked. The background doesn't call the modal's `onClose` on its own, so pass `onClick={onClose}` for a click on it to close the modal.
  */
 export interface ModalBackgroundProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**
@@ -125,7 +152,7 @@ export interface ModalBackgroundProps extends React.HTMLAttributes<HTMLDivElemen
  */
 export interface ModalContentProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**
@@ -133,7 +160,7 @@ export interface ModalContentProps extends React.HTMLAttributes<HTMLDivElement> 
  */
 export interface ModalCardProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**
@@ -141,7 +168,7 @@ export interface ModalCardProps extends React.HTMLAttributes<HTMLDivElement> {
  */
 export interface ModalCardHeadProps extends React.HTMLAttributes<HTMLElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**
@@ -149,7 +176,7 @@ export interface ModalCardHeadProps extends React.HTMLAttributes<HTMLElement> {
  */
 export interface ModalCardTitleProps extends React.HTMLAttributes<HTMLParagraphElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**
@@ -157,7 +184,7 @@ export interface ModalCardTitleProps extends React.HTMLAttributes<HTMLParagraphE
  */
 export interface ModalCardBodyProps extends React.HTMLAttributes<HTMLElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**
@@ -165,31 +192,37 @@ export interface ModalCardBodyProps extends React.HTMLAttributes<HTMLElement> {
  */
 export interface ModalCardFootProps extends React.HTMLAttributes<HTMLElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
 }
 
 /**
  * Props for Modal.Close component.
  * @extraProp {'button' | 'submit' | 'reset'} [type='button'] - Button type. Defaults to `'button'`, so a close button inside a form does not submit it. Pass `'submit'` or `'reset'` and yours is used; any other value, or a spread carrying `type: undefined`, renders `'button'`.
  * @extraProp {string} [aria-label='close'] - Accessible name. Pass your own to replace it. An empty one, or a spread carrying `'aria-label': undefined`, keeps the default rather than leaving the button unnamed.
+ * @extraProp {React.MouseEventHandler<HTMLButtonElement>} [onClick] - Called when the button is clicked. Without one, the button calls the `onClose` of the `Modal` around it. Yours replaces that rather than running before it, so call `onClose` from it if the button should still close the modal.
  */
 export interface ModalCloseProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Size of the close button (only applies to 'floating' variant). */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Button variant. 'delete' (default) for modal card headers, 'floating' for overlay close button. */
   variant?: 'delete' | 'floating';
 }
 
+// The enclosing modal's `onClose`, for a `Modal.Close` written as a part, so
+// it closes the modal the way the button the props form renders does.
+const ModalCloseContext = createContext<(() => void) | undefined>(undefined);
+
 /**
- * Modal.Background - Renders the modal background overlay.
+ * Modal.Background - Renders the modal background overlay. Pass it
+ * `onClick={onClose}` for a click on it to close the modal.
  *
  * @function
  * @param {ModalBackgroundProps} props - Component props.
  * @returns {JSX.Element} Modal background element.
  */
-const ModalBackground: React.FC<ModalBackgroundProps> = ({
+export const ModalBackground: React.FC<ModalBackgroundProps> = ({
   className,
   ...props
 }) => {
@@ -207,19 +240,27 @@ const ModalBackground: React.FC<ModalBackgroundProps> = ({
  * @param {ModalContentProps} props - Component props.
  * @returns {JSX.Element} Modal content element.
  */
-const ModalContent: React.FC<ModalContentProps> = ({ className, ...props }) => {
+export const ModalContent: React.FC<ModalContentProps> = ({
+  className,
+  ...props
+}) => {
   const classes = classNames(usePrefixedClassNames('modal-content'), className);
   return <div className={classes} {...props} />;
 };
 
 /**
- * Modal.Card.Head - Renders modal card header section.
+ * Modal.Card.Head - Renders modal card header section, a `<header>`. Outside
+ * `<main>` or a sectioning element, as when `portal` renders the modal at the
+ * end of `<body>`, that's a banner landmark inside the dialog: pass
+ * `role="none"` to drop it, with no `aria-label` or other global ARIA
+ * attribute and no `tabIndex` beside it, since a browser ignores the role
+ * then.
  *
  * @function
  * @param {ModalCardHeadProps} props - Component props.
  * @returns {JSX.Element} Modal card header element.
  */
-const ModalCardHead: React.FC<ModalCardHeadProps> = ({
+export const ModalCardHead: React.FC<ModalCardHeadProps> = ({
   className,
   ...props
 }) => {
@@ -237,7 +278,7 @@ const ModalCardHead: React.FC<ModalCardHeadProps> = ({
  * @param {ModalCardTitleProps} props - Component props.
  * @returns {JSX.Element} Modal card title element.
  */
-const ModalCardTitle: React.FC<ModalCardTitleProps> = ({
+export const ModalCardTitle: React.FC<ModalCardTitleProps> = ({
   className,
   ...props
 }) => {
@@ -255,7 +296,7 @@ const ModalCardTitle: React.FC<ModalCardTitleProps> = ({
  * @param {ModalCardBodyProps} props - Component props.
  * @returns {JSX.Element} Modal card body element.
  */
-const ModalCardBody: React.FC<ModalCardBodyProps> = ({
+export const ModalCardBody: React.FC<ModalCardBodyProps> = ({
   className,
   ...props
 }) => {
@@ -267,13 +308,18 @@ const ModalCardBody: React.FC<ModalCardBodyProps> = ({
 };
 
 /**
- * Modal.Card.Foot - Renders modal card footer section.
+ * Modal.Card.Foot - Renders modal card footer section. Group two or more
+ * buttons in `Buttons` so Bulma spaces them. It's a `<footer>`, which outside
+ * `<main>` or a sectioning element is a content info landmark inside the
+ * dialog: pass `role="none"` to drop it, with no `aria-label` or other global
+ * ARIA attribute and no `tabIndex` beside it, since a browser ignores the role
+ * then.
  *
  * @function
  * @param {ModalCardFootProps} props - Component props.
  * @returns {JSX.Element} Modal card footer element.
  */
-const ModalCardFoot: React.FC<ModalCardFootProps> = ({
+export const ModalCardFoot: React.FC<ModalCardFootProps> = ({
   className,
   ...props
 }) => {
@@ -300,7 +346,7 @@ const ModalCardComponent: React.FC<ModalCardProps> = ({
   return <div className={classes} {...props} />;
 };
 
-const ModalCard = withSubComponents(ModalCardComponent, {
+export const ModalCard = withSubComponents(ModalCardComponent, {
   Head: ModalCardHead,
   Title: ModalCardTitle,
   Body: ModalCardBody,
@@ -308,7 +354,8 @@ const ModalCard = withSubComponents(ModalCardComponent, {
 });
 
 /**
- * Modal.Close - Renders modal close button with two variant styles.
+ * Modal.Close - Renders modal close button with two variant styles. It calls
+ * the modal's `onClose` unless given an `onClick` of its own.
  *
  * @function
  * @param {ModalCloseProps} props - Component props.
@@ -321,12 +368,14 @@ const ModalCard = withSubComponents(ModalCardComponent, {
  *
  * The size prop only applies to the 'floating' variant.
  */
-const ModalClose: React.FC<ModalCloseProps> = ({
+export const ModalClose: React.FC<ModalCloseProps> = ({
   className,
   size = 'large',
   variant = 'delete',
+  onClick,
   ...props
 }) => {
+  const onClose = useContext(ModalCloseContext);
   const classes = classNames(
     usePrefixedClassNames(
       variant === 'delete' ? 'delete' : 'modal-close',
@@ -345,6 +394,11 @@ const ModalClose: React.FC<ModalCloseProps> = ({
       // own value still wins; `buttonType` says more.
       aria-label={props['aria-label'] || 'close'}
       type={buttonType(props.type)}
+      // A caller's own `onClick` replaces the close rather than running
+      // before it, unlike `Popover.Close`: this button used to close only
+      // through that handler, so a caller already closing there, as with
+      // `onClick={onClose}`, would otherwise close twice.
+      onClick={onClick ?? (onClose && (() => onClose()))}
     />
   );
 };
@@ -364,12 +418,12 @@ const ModalClose: React.FC<ModalCloseProps> = ({
  *
  * @example
  * // Compound Component API
- * <Modal isActive={isOpen}>
+ * <Modal isActive={isOpen} onClose={handleClose} aria-labelledby="modal-title">
  *   <Modal.Background onClick={handleClose} />
  *   <Modal.Card>
  *     <Modal.Card.Head>
- *       <Modal.Card.Title>Title</Modal.Card.Title>
- *       <Modal.Close onClick={handleClose} />
+ *       <Modal.Card.Title id="modal-title">Title</Modal.Card.Title>
+ *       <Modal.Close />
  *     </Modal.Card.Head>
  *     <Modal.Card.Body>Content</Modal.Card.Body>
  *   </Modal.Card>
@@ -392,13 +446,14 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
     closeOnEscape = true,
     lockScroll = true,
     portal = false,
+    ariaCloseLabel,
     role,
     'aria-modal': ariaModalProp,
     ...props
   },
   ref
 ) {
-  const { classPrefix, portalContainer } = useConfig();
+  const { classPrefix } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
@@ -413,13 +468,18 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   // Cleanup returned by a consumer's callback ref on attach, held until detach.
   const consumerCleanupRef = useRef<(() => void) | null>(null);
 
+  // The root, as state, for the popups inside to portal into: outside it,
+  // its `aria-modal` hides them from screen readers.
+  const [scopeNode, setScopeNode] = useState<HTMLDivElement | null>(null);
+
   // The forwarded ref and the internal one must both see the node: focus
-  // management, the scroll lock and the topmost-modal check all read
-  // `modalRootRef`, while consumers expect their own ref to resolve.
+  // management and the Tab trap read `modalRootRef`, while consumers expect
+  // their own ref to resolve.
   const combinedRef = useCallback(
     (node: HTMLDivElement | null) => {
       (modalRootRef as React.MutableRefObject<HTMLDivElement | null>).current =
         node;
+      setScopeNode(node);
       if (typeof ref === 'function') {
         // React 19 lets a callback ref return a cleanup function and detaches
         // by running it instead of calling the ref with `null`; React 18
@@ -447,84 +507,70 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
     [ref]
   );
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
-  const stackTokenRef = useRef<object>({});
   const generatedTitleId = useId();
   // A portal has no server-rendered counterpart, so the server render and the
-  // hydrating render have to stay inline and only move into the portal once
-  // we're past hydration.
-  const onClient = useIsHydrated();
-  const resolveContainer = usePortalContainer();
-  // Moving into the portal, or from one portal target to another, remounts
-  // the modal's subtree, so any effect holding a DOM node from before the move
-  // is holding a detached one. Effects that touch the modal's nodes key on
-  // this, on `portal` and on `defaultTarget`, so they re-run against the new
-  // tree.
-  const isPortaled = Boolean(portal) && onClient;
-  // The configured `portalContainer` only places a modal portaled with
-  // `portal` set to `true`. In place, or with a target of its own, a change
-  // to it moves nothing, so it mustn't re-run the effects either.
-  const defaultTarget =
-    isPortaled && portal === true ? portalContainer : undefined;
+  // hydrating render stay inline and only move into the portal once we're
+  // past hydration. Moving into the portal, or from one portal target to
+  // another, remounts the modal's subtree, so any effect holding a DOM node
+  // from before the move is holding a detached one. Effects that touch the
+  // modal's nodes key on `isPortaled`, on `portal` and on `defaultTarget`, so
+  // they re-run against the new tree. `defaultTarget` is the configured
+  // `portalContainer` only while it places the modal (portaled with `portal`
+  // set to `true`), so a change to it that moves nothing re-runs nothing.
+  const { isPortaled, container, defaultTarget } = usePortalProp(portal);
 
   useScrollLock(isModalActive && lockScroll);
 
-  // Record open order so keyboard handling only applies to the topmost modal.
-  useEffect(() => {
-    if (!isModalActive) return undefined;
+  // Read when Escape arrives, so the key listener stays put while `onClose`
+  // changes identity, as an inline one does on every render of the parent.
+  const onCloseRef = useLatestRef(onClose);
 
-    const token = stackTokenRef.current;
-    activeModalStack.push(token);
-    return () => {
-      const index = activeModalStack.indexOf(token);
-      if (index !== -1) activeModalStack.splice(index, 1);
-    };
-  }, [isModalActive]);
+  // Joins the stack of open overlays, so the keyboard handling below only
+  // applies while this modal is on top.
+  const isTopmost = useOverlayStack(isModalActive);
 
-  // Escape closes; Tab cycles inside the modal. Both only for the topmost one.
+  // Escape closes, only for the topmost overlay. The listener is on
+  // `window`, where a keydown arrives last, so everything inside the modal
+  // has had the key first: React's handlers, and `document` listeners added
+  // after this one, such as a date picker's.
   useEffect(() => {
     if (!isModalActive) return undefined;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      const node = modalRootRef.current;
-      if (
-        activeModalStack[activeModalStack.length - 1] !== stackTokenRef.current
-      ) {
-        return;
-      }
-
-      if (e.key === 'Escape') {
-        if (closeOnEscape) onClose?.();
-        return;
-      }
-      if (e.key !== 'Tab' || !node) return;
-
-      // Keep Tab within the modal — `aria-modal` hides the rest of the page
-      // from assistive technology, so the keyboard order has to agree.
-      const focusable = getTabbable(node);
-      const activeElement = getActiveElementInTree(node);
-      if (focusable.length === 0) {
+      if (e.key !== 'Escape' || !isTopmost()) return;
+      // Something inside already used this Escape, such as a popup that
+      // closed on it, so the modal waits for the next one. One the modal
+      // closes on is marked used, so nothing under it acts on it as well.
+      if (closeOnEscape && onCloseRef.current && !e.defaultPrevented) {
         e.preventDefault();
-        node.focus();
-        return;
-      }
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
-      const outside = !node.contains(activeElement);
-      if (e.shiftKey) {
-        if (outside || activeElement === first) {
-          e.preventDefault();
-          last.focus();
-        }
-      } else if (outside || activeElement === last) {
-        e.preventDefault();
-        first.focus();
+        onCloseRef.current();
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isModalActive, closeOnEscape, onClose]);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isModalActive, closeOnEscape, onCloseRef, isTopmost]);
+
+  // Keep Tab within the modal: `aria-modal` hides the rest of the page from
+  // assistive technology, so the keyboard order has to agree. Only while
+  // it's the topmost modal overlay, so an overlay that isn't modal, such as
+  // a Sidebar without an overlay, takes Escape from it but leaves it Tab.
+  // It's the trap `useFocusTrap` sets, so it wraps at the stops Tab really
+  // visits, skipping hidden, inert and closed content, and sends back a Tab
+  // the browser still takes out. On `window` for the same reason as Escape:
+  // a trap inside, such as a portaled popup's, has had the Tab first, and
+  // one it used is left where it put focus. It reads the modal's node as
+  // each key arrives, so a portal move that remounts the node, including one
+  // to a selector that only starts matching while the modal is open, keeps
+  // it trapped.
+  useEffect(() => {
+    if (!isModalActive) return undefined;
+    return trapTab(
+      () => modalRootRef.current,
+      window,
+      () => isTopmost('modal')
+    );
+  }, [isModalActive, isTopmost]);
 
   // Move focus into the modal on open, restore it on close
   useEffect(() => {
@@ -535,8 +581,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
     previouslyFocusedRef.current =
       getDeepestActiveElement() as HTMLElement | null;
     const node = modalRootRef.current;
-    const focusable = node ? getTabbable(node)[0] : undefined;
-    (focusable ?? node)?.focus();
+    if (node) focusTabStop(node);
 
     return () => {
       // Only hand focus back if this modal still owns it: closing a background
@@ -561,13 +606,8 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   }, [isModalActive, isPortaled, portal, defaultTarget]);
 
   // Check if children contain compound components
-  const hasCompoundComponents = React.Children.toArray(children).some(
-    child =>
-      React.isValidElement(child) &&
-      (child.type === ModalBackground ||
-        child.type === ModalContent ||
-        child.type === ModalCard ||
-        child.type === ModalClose)
+  const hasCompoundComponents = React.Children.toArray(children).some(child =>
+    isElementOf(child, ModalBackground, ModalContent, ModalCard, ModalClose)
   );
 
   // Generate Bulma classes with prefix
@@ -575,6 +615,9 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
     'is-active': isModalActive,
   });
   const deleteClass = usePrefixedClassNames('delete');
+  // The props form's close button. An empty label names nothing, and the
+  // button is drawn as an icon, so it falls back like a missing one.
+  const closeLabel = ariaCloseLabel || 'close';
 
   const modalClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
@@ -583,9 +626,13 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
     ariaModalProp ??
     (isModalActive && resolvedRole !== 'presentation' ? 'true' : undefined);
   // A dialog needs an accessible name: the legacy card title is wired up
-  // automatically, compound users pass their own aria-label/aria-labelledby
-  // (both arrive in `rest`, which is spread last and so wins).
+  // automatically, and a modal without one, legacy or compound, takes the
+  // caller's own aria-label/aria-labelledby (both arrive in `rest`, which is
+  // spread last and so wins).
   const titleId = modalCardTitle ? generatedTitleId : undefined;
+  // A test id the caller passes wins. It's written after `rest`, since a
+  // spread carrying `data-testid: undefined` would otherwise erase the default.
+  const testId = (rest as { 'data-testid'?: string })['data-testid'] ?? 'modal';
 
   let modalElement: React.ReactElement;
 
@@ -599,7 +646,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
         aria-modal={resolvedAriaModal}
         tabIndex={-1}
         {...rest}
-        data-testid="modal"
+        data-testid={testId}
       >
         {children}
       </div>
@@ -611,16 +658,24 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
     else if (type === 'content') isModalCard = false;
     else isModalCard = !!modalCardTitle || !!modalCardFoot;
 
+    // The title names the dialog from the card head. Drawn as content, the
+    // modal renders no head to point at, so a title of plain text names it
+    // through `aria-label` instead, and nothing points at the missing head.
+    const titleText =
+      typeof modalCardTitle === 'string' ? modalCardTitle.trim() : '';
+    const titleLabel = !isModalCard && titleText ? titleText : undefined;
+
     modalElement = (
       <div
         className={modalClasses}
         ref={combinedRef}
         role={resolvedRole}
         aria-modal={resolvedAriaModal}
-        aria-labelledby={titleId}
+        aria-labelledby={isModalCard ? titleId : undefined}
+        aria-label={titleLabel}
         tabIndex={-1}
         {...rest}
-        data-testid="modal"
+        data-testid={testId}
       >
         <div
           className={prefixedClassNames(classPrefix, 'modal-background')}
@@ -645,7 +700,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
                 {onClose && (
                   <button
                     className={deleteClass}
-                    aria-label="close"
+                    aria-label={closeLabel}
                     onClick={onClose}
                     type="button"
                     data-testid="modal-close"
@@ -683,7 +738,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
               'modal-close',
               'is-large'
             )}
-            aria-label="close"
+            aria-label={closeLabel}
             onClick={onClose}
             type="button"
             data-testid="modal-close-float"
@@ -693,14 +748,19 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
     );
   }
 
-  if (isPortaled) {
-    const target = resolveContainer(
-      typeof portal === 'boolean' ? undefined : portal
-    );
-    return createPortal(modalElement, target);
-  }
+  // In both forms, so a `Modal.Close` anywhere inside closes this modal, and
+  // a popup anywhere inside portals into it.
+  modalElement = (
+    <ModalCloseContext.Provider value={onClose}>
+      <PortalScope node={scopeNode}>{modalElement}</PortalScope>
+    </ModalCloseContext.Provider>
+  );
 
-  return modalElement;
+  return (
+    <Portal disabled={!isPortaled} container={container}>
+      {modalElement}
+    </Portal>
+  );
 });
 
 export const Modal = withSubComponents(

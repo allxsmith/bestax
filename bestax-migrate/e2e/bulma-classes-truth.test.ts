@@ -13,22 +13,51 @@
  * A planner refusal is always safe (the markup stays as written), so the
  * tests assert only that what DOES convert is identical, plus that every
  * table entry converts somewhere, so no row is dead.
+ *
+ * These conversions are compared another way, on purpose:
+ *   - Font Awesome's own `<i aria-hidden="true">` alone in a `.icon` that
+ *     carries nothing assistive tech reads becomes `Icon`, which writes the
+ *     attribute on the `.icon` instead. Where the planner says so
+ *     (`movesHidden`), both sides go through `support/hidden-glyph.ts`, which
+ *     moves it up in exactly that shape and leaves every other one as it is.
+ *   - A `.icon` around a bare glyph, in a link or <button> its own label
+ *     names, becomes `Icon`, which writes `aria-hidden` on it: the label is
+ *     what assistive tech reads for the control. Where the planner says so
+ *     (`addsHidden`), the raw side has the attribute restated in exactly that
+ *     shape (`withLabelledGlyphsHidden`), rendered inside the control.
+ *   - Font Awesome 6's long name for a style (`fa-brands`) is written as the
+ *     bestax-icons skill's `variant` (`brands`), which `Icon` renders as the
+ *     short name (`fab`), the same style. Where the planner says so
+ *     (`longStyle`), the raw side has the short name restated
+ *     (`support/font-awesome-styles.ts`).
+ *   - A Bulma 0.9 class v1 removed styles nothing under v1, and converts as
+ *     the v1 helper that does its job (`is-marginless` as `m="0"`, which
+ *     renders `m-0`), so the raw side has that class restated where the
+ *     conversion wrote it (`withV1Classes`).
+ *   - A loading `.button` becomes `Button isLoading`, which writes
+ *     `aria-busy="true"` and `aria-disabled="true"` and holds still while it
+ *     loads (#1870), so the raw side has the two restated on each loading
+ *     `.button` the conversion wrote them on (`withLoadingButtonsBusy`).
  */
 
-import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import {
   FORWARDS_REF,
   HELPER_TOKENS,
+  inTagSet,
   numberAttrsOf,
   PLACED,
+  PRECEDENCE,
+  reachesTag,
+  REPLACED_IN_V1,
   ROOTS,
   WRAPPERS,
   WRAPPER_OWN_PROPS,
   type RootEntry,
 } from '../src/sources/bulma-classes/class-map.js';
+import { glyphProps } from '../src/sources/bulma-classes/glyph.js';
 import {
   plan,
   type BuiltIcon,
@@ -36,11 +65,23 @@ import {
   type ElementFacts,
 } from '../src/sources/bulma-classes/plan.js';
 import {
+  bulmaStylesheet,
+  stylesheetRules,
+} from './support/bulma-stylesheet.js';
+import {
   fileChildren,
   fileProps,
   rawFrom,
   type FileTree,
 } from './support/file-tree.js';
+import {
+  SHORT_STYLES,
+  withShortStyles,
+} from './support/font-awesome-styles.js';
+import {
+  moveGlyphHidden,
+  withLabelledGlyphsHidden,
+} from './support/hidden-glyph.js';
 import {
   GLYPHS,
   iconChild,
@@ -53,6 +94,9 @@ import {
   createElement,
   normalizeHtml,
   renderElement,
+  withImplicitListRoles,
+  withLoadingButtonsBusy,
+  withV1Classes,
 } from './support/render-module.js';
 
 const repoRoot = path.join(
@@ -123,7 +167,10 @@ function rawChild(child: ChildFacts): unknown {
       ...Object.fromEntries(child.attributes),
     },
     child.soleChild
-      ? createElement('i', { className: child.soleChild.tokens!.join(' ') })
+      ? createElement('i', {
+          className: child.soleChild.tokens!.join(' '),
+          ...Object.fromEntries(child.soleChild.attributes),
+        })
       : child.text
   );
 }
@@ -147,18 +194,21 @@ function builtProps(
       };
 }
 
+type Conversion = NonNullable<ReturnType<typeof plan>['conversion']>;
+
 /**
- * Render the raw element and, when the planner converts it, the bestax one.
- * Returns null when the planner leaves the element alone. An element whose
- * only child the target renders itself is rendered around that child, and
- * the target is given the child's attributes as the codemod writes them.
+ * Render the raw element and, when the planner converts it, the bestax one,
+ * with the conversion it rendered. Returns null when the planner leaves the
+ * element alone. An element whose only child the target renders itself is
+ * rendered around that child, and the target is given the child's attributes
+ * as the codemod writes them.
  */
 function renderBoth(
   facts: ElementFacts,
   extra: Record<string, string | true> = {},
   child?: Child,
   when: Record<string, unknown> = {}
-): { raw: string; converted: string } | null {
+): { raw: string; converted: string; conversion: Conversion } | null {
   const result = plan(facts);
   if (!result.conversion) return null;
   // A joiner adds each conditional class when its condition (`when`) is
@@ -171,7 +221,9 @@ function renderBoth(
   );
   const children = VOID.has(facts.tag) ? undefined : 'x';
   const sole = facts.soleChild;
-  const soleChildren = sole && !VOID.has(sole.tag) ? 'x' : undefined;
+  // A glyph is read only off an empty <i>.
+  const soleChildren =
+    sole && !VOID.has(sole.tag) && !result.conversion.glyph ? 'x' : undefined;
   const soleAttributes = Object.fromEntries(sole?.attributes ?? []) as Record<
     string,
     string | true
@@ -260,13 +312,17 @@ function renderBoth(
       : {}),
     ...(icons && builtProps(icons, facts.childElements!)),
     ...(file && fileProps(file, facts.childElements!, numbers)),
+    // A glyph it renders from props, in place of the <i>.
+    ...(result.conversion.glyph &&
+      Object.fromEntries(glyphProps(result.conversion.glyph))),
   };
-  // A target that couldn't absorb the child renders it as given.
+  // A target that couldn't absorb the child renders it as given; one that
+  // renders the children itself is given none.
   const convertedChildren = icons
     ? icons.length === 1
       ? icons[0].text
       : undefined
-    : counted || file
+    : result.conversion.rendersChildren || file
       ? undefined
       : sole
         ? absorbs
@@ -282,7 +338,63 @@ function renderBoth(
         createElement(target, convertedProps, convertedChildren)
       )
     : renderElement(target, convertedProps, convertedChildren);
-  return { raw: normalizeHtml(raw), converted: normalizeHtml(converted) };
+  const html = normalizeHtml(converted);
+  // The differences a conversion makes on purpose, each compared as it is
+  // meant: a removed 0.9 class as the v1 class written in its place, the
+  // busy state a loading `Button` writes, and Font Awesome's `aria-hidden`
+  // only where the planner says it moved up, for the element or for an icon
+  // it builds.
+  const moves =
+    result.conversion.movesHidden ||
+    facts.childElements?.some(child => child.becomes?.movesHidden);
+  const compared = (markup: string) =>
+    moves ? moveGlyphHidden(markup) : markup;
+  // And Font Awesome 6's long name for a style, where the planner says the
+  // target renders the short one.
+  const restyles =
+    result.conversion.glyph?.longStyle !== undefined ||
+    facts.childElements?.some(
+      child => child.becomes?.glyph?.longStyle !== undefined
+    );
+  const restated = withLoadingButtonsBusy(
+    withImplicitListRoles(withV1Classes(raw, html), html),
+    html
+  );
+  return {
+    raw: compared(restyles ? withShortStyles(restated, html) : restated),
+    converted: compared(html),
+    conversion: result.conversion,
+  };
+}
+
+/** Pairs whose two sides render differently, labelled for the report. */
+type Mismatches = Array<{
+  label: Record<string, unknown>;
+  converted: string;
+  raw: string;
+}>;
+
+/** Notes `both` in `into` when its two sides differ. */
+function noteMismatch(
+  into: Mismatches,
+  label: Record<string, unknown>,
+  both: { raw: string; converted: string }
+): void {
+  if (both.converted !== both.raw) {
+    into.push({ label, converted: both.converted, raw: both.raw });
+  }
+}
+
+/**
+ * One assertion over every pair noted, where there used to be one per pair:
+ * an `expect` call costs far more than the comparison it makes, and the calls
+ * cost this suite more than the comparing did. A mismatch shows as the
+ * per-pair assertion showed it, `{ ...label, html }` against the raw side's.
+ */
+function expectNoMismatch(mismatches: Mismatches): void {
+  expect(mismatches.map(m => ({ ...m.label, html: m.converted }))).toEqual(
+    mismatches.map(m => ({ ...m.label, html: m.raw }))
+  );
 }
 
 /**
@@ -411,28 +523,59 @@ describe.each(mapped)('`.%s`', (root, entry) => {
     const candidates = [
       [root],
       ...Object.keys(entry.modifiers ?? {}).map(token => [root, token]),
+      // A class that converts only beside another, with it, either way round.
+      ...Object.entries(entry.modifiers ?? {}).flatMap(([token, modifier]) =>
+        modifier.beside
+          ? [
+              [root, modifier.beside, token],
+              [root, token, modifier.beside],
+            ]
+          : []
+      ),
       // A class left out on purpose stays in `className`, beside the rest.
       ...Object.keys(entry.omits ?? {}).map(token => [root, token]),
       ...[...HELPER_TOKENS.keys()].map(token => [root, token]),
     ];
     const onTag = defaultsFor(entry, tag);
     const omitted = new Set<string>();
+    const mismatches: Mismatches = [];
     for (const tokens of candidates) {
       const given = { ...onTag, ...neededFor(entry, tokens) };
       const facts = factsFor(tag, tokens, given, child);
       const both = renderBoth(facts, given, child);
       if (!both) continue;
       if (Object.hasOwn(entry.omits ?? {}, tokens[1])) omitted.add(tokens[1]);
-      expect({ tokens, tag, html: both.converted }).toEqual({
-        tokens,
-        tag,
-        html: both.raw,
-      });
+      noteMismatch(mismatches, { tokens, tag }, both);
       // Only a token that left `className` counts as converted.
-      const kept = plan(facts).conversion!.className?.split(' ') ?? [];
+      const kept = both.conversion.className?.split(' ') ?? [];
       for (const token of tokens)
         if (!kept.includes(token)) converts.add(token);
     }
+    // A class whose prop writes attributes over the element's own
+    // (`is-loading`'s busy state, #2040), beside each one set either way.
+    for (const [token, modifier] of Object.entries(entry.modifiers ?? {})) {
+      for (const name of modifier.overridesAttrs ?? []) {
+        for (const value of ['true', 'false']) {
+          const tokens = [root, token];
+          const given = {
+            ...onTag,
+            ...neededFor(entry, tokens),
+            [name]: value,
+          };
+          const facts = factsFor(tag, tokens, given, child);
+          const both = renderBoth(facts, given, child);
+          // It converts, with the class left as a class.
+          expect({
+            tokens,
+            tag,
+            [name]: value,
+            kept: both?.conversion.className?.split(' ').includes(token),
+          }).toEqual({ tokens, tag, [name]: value, kept: true });
+          noteMismatch(mismatches, { tokens, tag, [name]: value }, both!);
+        }
+      }
+    }
+    expectNoMismatch(mismatches);
     // No row is dead: the root itself converts on its own tag, and so does
     // it beside each class it omits, which stays in `className`.
     if (tag === entry.tag) {
@@ -648,7 +791,30 @@ describe.each(writing)(
               ...factsFor(tag, [root]),
               attributes: new Map(Object.entries(attributes)),
             }).todos.map(todo => todo.rule);
-          expect(rules(without)).toContain(`defaults:${entry.target}`);
+          if (rule.implicit) {
+            // The comparison below lets the target's written role stand for
+            // the raw list's none, so it can't tell whether the target writes
+            // it. Pin that first, on the render as it comes out: it's why a
+            // list with another role stays markup.
+            expect(renderElement(entry.target!, without, 'x')).toContain(
+              `${name}="${rule.fallback}"`
+            );
+            // The tag's own role: with none, it's the same element, and
+            // converts.
+            const both = renderBoth(factsFor(tag, [root], without), without);
+            expect({ tag, without: name, converts: both !== null }).toEqual({
+              tag,
+              without: name,
+              converts: true,
+            });
+            expect({ tag, without: name, html: both!.converted }).toEqual({
+              tag,
+              without: name,
+              html: both!.raw,
+            });
+          } else {
+            expect(rules(without)).toContain(`defaults:${entry.target}`);
+          }
           expect(rules({ ...without, [name]: 'text/html' })).toContain(
             `attr:${name}`
           );
@@ -1107,6 +1273,19 @@ describe.each(mapped.filter(([, entry]) => entry.buildsIcons))(
       }
     });
 
+    it('renders an icon whose <i> Font Awesome hid the same, with it moved up', () => {
+      const fa = (glyph: string[]) =>
+        iconChild(glyph, [], {}, { 'aria-hidden': 'true' });
+      for (const glyph of GLYPHS) {
+        same(`${glyph.join(' ')}, hidden on the <i>`, [fa(glyph), textChild()]);
+      }
+      same('beside one hidden on the .icon', [
+        fa(['fas', 'fa-home']),
+        textChild('a'),
+        iconChild(['far', 'fa-bell']),
+      ]);
+    });
+
     it("renders an icon's own classes and attributes the same", () => {
       for (const token of [
         'is-small',
@@ -1163,6 +1342,581 @@ describe.each(mapped.filter(([, entry]) => entry.buildsIcons))(
     });
   }
 );
+
+/**
+ * An element whose target renders a glyph from props, around each glyph it
+ * reads, with each class and attribute it may carry: the markup and the
+ * component given the glyph's props in place of the <i> render the same.
+ * Around an <i> it doesn't read, the <i> stays its child, and that renders
+ * the same too.
+ */
+describe.each(mapped.filter(([, entry]) => entry.readsGlyph))(
+  'the glyph `.%s` reads',
+  (root, entry) => {
+    const hidden: Attributes = { 'aria-hidden': 'true' };
+    const glyph = (tokens: string[], attributes: Attributes = {}) => ({
+      ...bare('i'),
+      tokens,
+      attributes: new Map(Object.entries(attributes)),
+    });
+    const render = (
+      label: string,
+      inner: ChildFacts,
+      tokens: string[] = [],
+      attributes: Attributes = hidden
+    ) => {
+      const facts: ElementFacts = {
+        ...factsFor(entry.tag!, [root, ...tokens], attributes),
+        soleChild: inner,
+      };
+      const found = renderBoth(facts, attributes);
+      expect({ label, converts: found !== null }).toEqual({
+        label,
+        converts: true,
+      });
+      expect({ label, html: found!.converted }).toEqual({
+        label,
+        html: found!.raw,
+      });
+      return plan(facts).conversion!;
+    };
+    const same = (
+      label: string,
+      tokens: string[],
+      classes: string[] = [],
+      attributes?: Attributes
+    ) => {
+      const conversion = render(label, glyph(tokens), classes, attributes);
+      expect({ label, glyph: conversion.glyph !== undefined }).toEqual({
+        label,
+        glyph: true,
+      });
+    };
+
+    it('renders each glyph the same', () => {
+      for (const tokens of GLYPHS) same(tokens.join(' '), tokens);
+    });
+
+    it("writes Font Awesome 6's long name for a style as the skill's variant, the same with the short one restated", () => {
+      // Each long name the normalization knows, so a long name the planner
+      // reads that it doesn't fails above.
+      for (const long of Object.keys(SHORT_STYLES)) {
+        const conversion = render(long, glyph([long, 'fa-bell']));
+        expect({ long, written: conversion.glyph?.longStyle }).toEqual({
+          long,
+          written: long,
+        });
+      }
+      // Beside `fa-sharp` it keeps the long name, rendered as written.
+      for (const tokens of [
+        ['fa-sharp', 'fa-solid', 'fa-house'],
+        ['fa-sharp', 'fa-brands', 'fa-github'],
+      ]) {
+        const conversion = render(tokens.join(' '), glyph(tokens));
+        expect({ tokens, written: conversion.glyph?.longStyle }).toEqual({
+          tokens,
+          written: undefined,
+        });
+      }
+    });
+
+    it('renders each class beside a glyph the same', () => {
+      for (const token of [
+        ...Object.keys(entry.modifiers ?? {}),
+        ...HELPER_TOKENS.keys(),
+        // `Control` puts its icons' sides on them, and an app its own class.
+        'is-left',
+        'is-right',
+        'my-icon',
+      ]) {
+        same(token, ['fas', 'fa-home'], [token]);
+      }
+    });
+
+    it('renders each attribute beside a glyph the same', () => {
+      for (const [label, attributes] of Object.entries({
+        'an id': { ...hidden, id: 'x' },
+        'a title': { ...hidden, title: 'hint' },
+        'a description': { ...hidden, 'aria-describedby': 'y' },
+        'a name': { 'aria-label': 'Home', role: 'img' },
+        'a name by reference': { 'aria-labelledby': 'x', role: 'img' },
+        'an empty name': { 'aria-label': '', ...hidden },
+        'no name but a role of its own': { role: 'note' },
+        'no name but a tabIndex of its own': { tabIndex: '0' },
+      })) {
+        same(label, ['fas', 'fa-home'], [], attributes);
+      }
+    });
+
+    it('keeps an <i> it reads no glyph from as its child, and renders the same', () => {
+      for (const [label, inner] of Object.entries({
+        'hidden itself': glyph(['fas', 'fa-home'], hidden),
+        'with an id': glyph(['fas', 'fa-home'], { id: 'x' }),
+        'naming two glyphs': glyph(['fas', 'fa-home', 'fa-bell']),
+        'in two styles': glyph(['fas', 'far', 'fa-home']),
+        'in two libraries': glyph(['fas', 'mdi', 'fa-home']),
+        'of another font': glyph(['material-icons']),
+        'with no class': bare('i'),
+      })) {
+        const conversion = render(label, inner);
+        expect({ label, glyph: conversion.glyph }).toEqual({
+          label,
+          glyph: undefined,
+        });
+      }
+    });
+
+    it("moves Font Awesome's aria-hidden up off a bare <i>, and renders the same with it moved", () => {
+      const moved = (
+        label: string,
+        tokens: string[],
+        classes: string[] = [],
+        attributes: Attributes = {}
+      ) => {
+        const conversion = render(
+          label,
+          glyph(tokens, hidden),
+          classes,
+          attributes
+        );
+        expect({
+          label,
+          glyph: conversion.glyph !== undefined,
+          moves: conversion.movesHidden,
+        }).toEqual({ label, glyph: true, moves: true });
+      };
+      for (const tokens of GLYPHS) moved(tokens.join(' '), tokens);
+      for (const token of [
+        ...Object.keys(entry.modifiers ?? {}),
+        'is-left',
+        'has-text-info',
+        'my-icon',
+      ]) {
+        moved(token, ['fas', 'fa-home'], [token]);
+      }
+      // Each attribute the table lets ride along renders the same, compared
+      // through the normalization's own list, so widening the table alone
+      // fails here. A `style` is the one this harness can't write, since
+      // React takes it as an object; the normalization's test moves past one.
+      const samples: Record<string, Attributes> = {
+        id: { id: 'x' },
+        key: { key: 'k' },
+        'data-*': { 'data-test': 'y' },
+      };
+      for (const allowed of entry.readsGlyph!.hiddenMovesBeside) {
+        if (allowed === 'style') continue;
+        expect({ allowed, sampled: Object.hasOwn(samples, allowed) }).toEqual({
+          allowed,
+          sampled: true,
+        });
+        moved(allowed, ['fas', 'fa-home'], [], samples[allowed]);
+      }
+    });
+
+    it('moves it up only off that one shape', () => {
+      const fa = ['fas', 'fa-home'];
+      // Each converts another way, compared with nothing moved.
+      for (const [label, [inner, attributes]] of Object.entries({
+        'the .icon hidden too': [glyph(fa, hidden), hidden],
+        'a name on the .icon': [
+          glyph(fa, hidden),
+          { 'aria-label': 'Home', role: 'img' },
+        ],
+        // A role or tabIndex written out: `Icon` hides nothing then, and
+        // the <i> keeps its own `aria-hidden` as its child.
+        'a role of its own': [glyph(fa, hidden), { role: 'note' }],
+        'an image role of its own': [glyph(fa, hidden), { role: 'img' }],
+        'a tabIndex of its own': [glyph(fa, hidden), { tabIndex: '0' }],
+      } satisfies Record<string, [ChildFacts, Attributes]>)) {
+        const conversion = render(label, inner, [], attributes);
+        expect({ label, moves: conversion.movesHidden }).toEqual({
+          label,
+          moves: undefined,
+        });
+      }
+      // Each stays markup.
+      for (const [label, [inner, attributes]] of Object.entries({
+        'the <i> carrying more': [glyph(fa, { ...hidden, id: 'x' }), {}],
+        'the <i> not hidden': [glyph(fa, { 'aria-hidden': 'false' }), {}],
+        'the <i> naming no glyph': [glyph(['material-icons'], hidden), {}],
+        'the <i> holding text': [{ ...glyph(fa, hidden), isEmpty: false }, {}],
+        'an empty name on the .icon': [glyph(fa, hidden), { 'aria-label': '' }],
+        // What the move would hide with it.
+        'a title on the .icon': [glyph(fa, hidden), { title: 'Home' }],
+        'a description on the .icon': [
+          glyph(fa, hidden),
+          { 'aria-describedby': 'y' },
+        ],
+        'a description written out': [
+          glyph(fa, hidden),
+          { 'aria-description': 'Home' },
+        ],
+        'a handler on the .icon': [glyph(fa, hidden), { onClick: null }],
+        'a language on the .icon': [glyph(fa, hidden), { lang: 'en' }],
+        // Written as expressions, which may render as anything: `tabIndex`
+        // is typed as a number, so `tabIndex={0}` is how TSX writes it.
+        'a tabIndex as an expression': [glyph(fa, hidden), { tabIndex: null }],
+        'a role as an expression': [glyph(fa, hidden), { role: null }],
+        'a description as an expression': [
+          glyph(fa, hidden),
+          { 'aria-describedby': null },
+        ],
+      } satisfies Record<
+        string,
+        [ChildFacts, Record<string, string | true | null>]
+      >)) {
+        const result = plan({
+          ...factsFor(entry.tag!, [root], {}),
+          attributes: new Map(Object.entries(attributes)),
+          soleChild: inner,
+        });
+        expect({
+          label,
+          conversion: result.conversion,
+          rules: result.todos.map(todo => todo.rule),
+        }).toEqual({ label, conversion: null, rules: ['defaults:Icon'] });
+      }
+    });
+  }
+);
+
+/**
+ * The one normalization the render tests make, which lets Font Awesome's
+ * own `aria-hidden` move up off the `<i>` onto its `.icon` and nothing else:
+ * every other shape compares as it is.
+ */
+describe('the normalization for a moved aria-hidden', () => {
+  const html = (markup: string) => normalizeHtml(markup);
+
+  it('moves it off a bare, empty <i> alone in an unnamed .icon', () => {
+    expect(
+      moveGlyphHidden(
+        html(
+          '<p><span class="icon is-small" id="x"><i class="fas fa-home" aria-hidden="true"></i></span> <span class="icon"><i aria-hidden="true"></i></span></p>'
+        )
+      )
+    ).toBe(
+      html(
+        '<p><span class="icon is-small" id="x" aria-hidden="true"><i class="fas fa-home"></i></span> <span class="icon" aria-hidden="true"><i></i></span></p>'
+      )
+    );
+  });
+
+  it('moves it beside nothing but what assistive tech does not read', () => {
+    expect(
+      moveGlyphHidden(
+        html(
+          '<span class="icon" style="color:red" data-test="y"><i class="x" aria-hidden="true"></i></span>'
+        )
+      )
+    ).toBe(
+      html(
+        '<span class="icon" style="color:red" data-test="y" aria-hidden="true"><i class="x"></i></span>'
+      )
+    );
+  });
+
+  it.each(
+    Object.entries({
+      'an <i> with text':
+        '<span class="icon"><i class="x" aria-hidden="true">home</i></span>',
+      'an <i> holding an element':
+        '<span class="icon"><i class="x" aria-hidden="true"><b></b></i></span>',
+      'a second child':
+        '<span class="icon"><i class="x" aria-hidden="true"></i><b></b></span>',
+      'a text beside it':
+        '<span class="icon"><i class="x" aria-hidden="true"></i> </span>',
+      'the attribute on a <b>':
+        '<span class="icon"><b class="x" aria-hidden="true"></b></span>',
+      'the attribute on an <svg>':
+        '<span class="icon"><svg aria-hidden="true"></svg></span>',
+      'an <i> carrying more':
+        '<span class="icon"><i class="x" id="y" aria-hidden="true"></i></span>',
+      'an <i> not hidden':
+        '<span class="icon"><i class="x" aria-hidden="false"></i></span>',
+      'an <i> deeper down':
+        '<span class="icon"><span><i class="x" aria-hidden="true"></i></span></span>',
+      'a parent that is no .icon':
+        '<span class="tag"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon that is no <span>':
+        '<div class="icon"><i class="x" aria-hidden="true"></i></div>',
+      'a .icon hidden itself':
+        '<span class="icon" aria-hidden="true"><i class="x" aria-hidden="true"></i></span>',
+      'a named .icon':
+        '<span class="icon" role="img" aria-label="Home"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon with an empty name':
+        '<span class="icon" aria-label=""><i class="x" aria-hidden="true"></i></span>',
+      'a .icon labelled elsewhere':
+        '<span class="icon" aria-labelledby="y"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon with a role':
+        '<span class="icon" role="note"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon that takes focus':
+        '<span class="icon" tabindex="0"><i class="x" aria-hidden="true"></i></span>',
+      // `tabIndex={0}` and `tabIndex="0"` both render this; so do a role
+      // given as a string and as an expression.
+      'a .icon that takes focus out of order':
+        '<span class="icon" tabindex="-1"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon with an image role':
+        '<span class="icon" role="img"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon with a title':
+        '<span class="icon" title="Home"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon described elsewhere':
+        '<span class="icon" aria-describedby="y"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon described in place':
+        '<span class="icon" aria-description="Home"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon with another attribute':
+        '<span class="icon" lang="en"><i class="x" aria-hidden="true"></i></span>',
+    })
+  )('leaves %s as it is', (_label, markup) => {
+    expect(moveGlyphHidden(html(markup))).toBe(html(markup));
+  });
+});
+
+/**
+ * An element whose target renders a glyph from props, around a bare glyph,
+ * in a link or <button> its own label names: the target writes the
+ * `aria-hidden` it doesn't carry, and the markup and the component, each
+ * inside the control, render the same with the attribute restated, with
+ * each glyph, each class and each attribute the move takes.
+ */
+describe.each(mapped.filter(([, entry]) => entry.readsGlyph))(
+  'a glyph `.%s` holds in a control its own label names',
+  (root, entry) => {
+    const controls: Array<
+      [
+        string,
+        Record<string, string>,
+        NonNullable<ElementFacts['clickableAround']>,
+      ]
+    > = [
+      [
+        'a',
+        { href: '/x', 'aria-label': 'Home' },
+        { tag: 'a', label: 'aria-label', link: true },
+      ],
+      [
+        'a',
+        { href: '', 'aria-labelledby': 'x' },
+        { tag: 'a', label: 'aria-labelledby', link: true },
+      ],
+      [
+        'button',
+        { type: 'button', 'aria-label': 'Home' },
+        { tag: 'button', label: 'aria-label' },
+      ],
+    ];
+    const within = (
+      tag: string,
+      attributes: Record<string, string>,
+      inner: string
+    ) =>
+      normalizeHtml(
+        renderElement(tag, attributes, '\u0000').replace('\u0000', inner)
+      );
+    const same = (
+      label: string,
+      tokens: string[],
+      classes: string[] = [],
+      attributes: Attributes = {}
+    ) => {
+      for (const [tag, given, around] of controls) {
+        const facts: ElementFacts = {
+          ...factsFor(entry.tag!, [root, ...classes], attributes),
+          soleChild: { ...bare('i'), tokens },
+          clickableAround: around,
+        };
+        expect({
+          label,
+          tag,
+          adds: plan(facts).conversion?.addsHidden,
+        }).toEqual({ label, tag, adds: true });
+        const found = renderBoth(facts, attributes)!;
+        const raw = within(tag, given, found.raw);
+        const converted = within(tag, given, found.converted);
+        expect({ label, tag, html: converted }).toEqual({
+          label,
+          tag,
+          html: withLabelledGlyphsHidden(raw, converted),
+        });
+        // The attribute is the one difference.
+        expect({ label, tag, differs: raw !== converted }).toEqual({
+          label,
+          tag,
+          differs: true,
+        });
+      }
+    };
+
+    it('renders each glyph the same', () => {
+      for (const tokens of GLYPHS) same(tokens.join(' '), tokens);
+    });
+
+    it('renders each class beside a glyph the same', () => {
+      for (const token of [
+        ...Object.keys(entry.modifiers ?? {}),
+        'is-left',
+        'has-text-info',
+        'my-icon',
+      ]) {
+        same(token, ['fas', 'fa-home'], [token]);
+      }
+    });
+
+    it('renders the same beside each attribute the move takes', () => {
+      // Through the normalization's own list, as the move up off an <i> is.
+      // A `style` is the one this harness can't write, since React takes it
+      // as an object; the normalization's test passes one.
+      const samples: Record<string, Attributes> = {
+        id: { id: 'x' },
+        key: { key: 'k' },
+        'data-*': { 'data-test': 'y' },
+      };
+      for (const allowed of entry.readsGlyph!.hiddenMovesBeside) {
+        if (allowed === 'style') continue;
+        expect({ allowed, sampled: Object.hasOwn(samples, allowed) }).toEqual({
+          allowed,
+          sampled: true,
+        });
+        same(allowed, ['fas', 'fa-home'], [], samples[allowed]);
+      }
+    });
+  }
+);
+
+/**
+ * The normalization for an icon a labelled control holds, which writes the
+ * `aria-hidden` `Icon` adds there and nothing else: every other shape
+ * compares as it is, even where the converted side has the attribute.
+ */
+describe('the normalization for an icon in a labelled control', () => {
+  const html = (markup: string) => normalizeHtml(markup);
+  /** What a conversion that hid the `.icon` would render. */
+  const hid = (markup: string) =>
+    html(
+      markup.replace(
+        /<span class="icon([^"]*)"/,
+        '<span class="icon$1" aria-hidden="true"'
+      )
+    );
+  const restated = (markup: string) =>
+    withLabelledGlyphsHidden(html(markup), hid(markup));
+
+  it.each(
+    Object.entries({
+      'a link its aria-label names':
+        '<a href="/x" aria-label="Home"><span class="icon"><i class="fas fa-home"></i></span></a>',
+      'a link its aria-labelledby names, with an empty href':
+        '<a href="" aria-labelledby="x"><span class="icon"><i class="fas fa-home"></i></span></a>',
+      'a button its aria-label names':
+        '<button aria-label="Home"><span class="icon is-small" id="i" style="color:red" data-test="y"><i class="x"></i></span></button>',
+      'an icon deeper in the control':
+        '<a href="/x" aria-label="Home"><span><span class="icon"><i class="x"></i></span></span><img src="/y.png"/></a>',
+    })
+  )('writes it on an icon in %s', (_label, markup) => {
+    expect(restated(markup)).toBe(hid(markup));
+  });
+
+  it.each(
+    Object.entries({
+      'a link nothing names':
+        '<a href="/x"><span class="icon"><i class="x"></i></span></a>',
+      'a link with an empty name':
+        '<a href="/x" aria-label=" "><span class="icon"><i class="x"></i></span></a>',
+      'an <a> with no href':
+        '<a aria-label="Home"><span class="icon"><i class="x"></i></span></a>',
+      'no control at all': '<p><span class="icon"><i class="x"></i></span></p>',
+      'an unnamed link inside a named button':
+        '<button aria-label="Home"><a href="/x"><span class="icon"><i class="x"></i></span></a></button>',
+      'a control closed before it':
+        '<button aria-label="Home"></button><span class="icon"><i class="x"></i></span>',
+      'a .icon with a title':
+        '<a href="/x" aria-label="Home"><span class="icon" title="Home"><i class="x"></i></span></a>',
+      'a .icon with a role':
+        '<a href="/x" aria-label="Home"><span class="icon" role="note"><i class="x"></i></span></a>',
+      'a .icon that takes focus':
+        '<a href="/x" aria-label="Home"><span class="icon" tabindex="0"><i class="x"></i></span></a>',
+      'a .icon not hidden on purpose':
+        '<a href="/x" aria-label="Home"><span class="icon" aria-hidden="false"><i class="x"></i></span></a>',
+      'a .icon with a language':
+        '<a href="/x" aria-label="Home"><span class="icon" lang="en"><i class="x"></i></span></a>',
+      'an <i> with an id':
+        '<a href="/x" aria-label="Home"><span class="icon"><i class="x" id="y"></i></span></a>',
+      'an <i> with text':
+        '<a href="/x" aria-label="Home"><span class="icon"><i class="x">home</i></span></a>',
+      'a second child':
+        '<a href="/x" aria-label="Home"><span class="icon"><i class="x"></i><b></b></span></a>',
+      'an <svg>':
+        '<a href="/x" aria-label="Home"><span class="icon"><svg></svg></span></a>',
+      'a span that is no .icon':
+        '<a href="/x" aria-label="Home"><span class="tag"><i class="x"></i></span></a>',
+    })
+  )('leaves %s as it is', (_label, markup) => {
+    expect(restated(markup)).toBe(html(markup));
+  });
+
+  it('writes it only where the converted side has it', () => {
+    const markup =
+      '<a href="/x" aria-label="Home"><span class="icon"><i class="x"></i></span></a>';
+    expect(withLabelledGlyphsHidden(html(markup), html(markup))).toBe(
+      html(markup)
+    );
+  });
+});
+
+/**
+ * The normalization for Font Awesome 6's long name for a style, which
+ * restates the short one where the converted `<i>` has it and nothing else.
+ */
+describe("the normalization for a style's long name", () => {
+  const html = (markup: string) => normalizeHtml(markup);
+  const same = (raw: string, converted: string) =>
+    withShortStyles(html(raw), html(converted));
+
+  it.each(Object.entries(SHORT_STYLES))(
+    'writes %s as %s where the converted <i> has it',
+    (long, short) => {
+      expect(
+        same(
+          `<span class="icon"><i class="${long} fa-bell fa-lg"></i></span>`,
+          `<span class="icon"><i class="${short} fa-bell fa-lg"></i></span>`
+        )
+      ).toBe(
+        html(`<span class="icon"><i class="${short} fa-bell fa-lg"></i></span>`)
+      );
+    }
+  );
+
+  it.each(
+    Object.entries({
+      'one beside fa-sharp': [
+        '<i class="fa-sharp fa-solid fa-house"></i>',
+        '<i class="fa-sharp fas fa-house"></i>',
+      ],
+      'a converted <i> that kept the long name': [
+        '<i class="fa-brands fa-github"></i>',
+        '<i class="fa-brands fab fa-github"></i>',
+      ],
+      'a converted <i> with another style': [
+        '<i class="fa-brands fa-github"></i>',
+        '<i class="fas fa-github"></i>',
+      ],
+      'two long names': [
+        '<i class="fa-solid fa-regular fa-bell"></i>',
+        '<i class="fas fa-regular fa-bell"></i>',
+      ],
+      'an element that is no <i>': [
+        '<span class="fa-brands fa-github"></span>',
+        '<span class="fab fa-github"></span>',
+      ],
+      'a short name already': [
+        '<i class="fab fa-github"></i>',
+        '<i class="fab fa-github"></i>',
+      ],
+    })
+  )('leaves %s as it is', (_label, [raw, converted]) => {
+    expect(same(raw, converted)).toBe(html(raw));
+  });
+});
 
 /**
  * An element whose target renders its whole tree from props, around each
@@ -1251,6 +2005,116 @@ describe('wrappers', () => {
     expect(plan(factsFor('p', ['my-app-class'])).conversion).toBeNull();
   });
 });
+
+/**
+ * A Bulma 0.9 helper v1 removed styles nothing under v1, so the one class a
+ * conversion changes on purpose is that one, into the v1 class that does its
+ * job. The sweeps above compare them with that class restated; this holds
+ * the restating to doing something, and to that class alone.
+ */
+describe.each(Object.entries(REPLACED_IN_V1))(
+  'the removed `%s`',
+  (token, v1) => {
+    it(`renders \`${v1}\` wherever its element converts`, () => {
+      for (const [tag, tokens] of [
+        ['p', [token]],
+        ['p', [token, 'my-app-class']],
+        ['div', ['box', token]],
+        ['section', ['section', token]],
+      ] as Array<[string, string[]]>) {
+        const both = renderBoth(factsFor(tag, tokens));
+        expect({ tokens, converts: both !== null }).toEqual({
+          tokens,
+          converts: true,
+        });
+        expect(both!.converted).toContain(v1);
+        expect(both!.converted).not.toContain(token);
+        expect({ tokens, html: both!.converted }).toEqual({
+          tokens,
+          html: both!.raw,
+        });
+      }
+    });
+
+    it('converts exactly as the v1 class does, on every root', () => {
+      expect(HELPER_TOKENS.get(token)).toEqual(HELPER_TOKENS.get(v1));
+      for (const [root, entry] of mapped) {
+        const as = (helper: string) =>
+          plan(
+            factsFor(entry.tag!, [root, helper], defaultsFor(entry, entry.tag!))
+          ).conversion;
+        const old = as(token);
+        const now = as(v1);
+        expect({
+          root,
+          props: old?.props ?? null,
+          stays: old?.className?.includes(token) ?? null,
+        }).toEqual({
+          root,
+          props: now?.props ?? null,
+          stays: now?.className?.includes(v1) ?? null,
+        });
+      }
+    });
+
+    // A live class is what the page renders today, so it keeps the prop
+    // whichever comes first; one for another prop (an axis, a side) leaves
+    // it free, and both render.
+    const prop = HELPER_TOKENS.get(v1)!.write.prop;
+    const spacing = [...HELPER_TOKENS].filter(
+      ([other, helper]) =>
+        helper.group === 'spacing' && !Object.hasOwn(REPLACED_IN_V1, other)
+    );
+
+    it('stays a class beside a live class for its prop, in either order', () => {
+      const live = spacing.filter(([, helper]) => helper.write.prop === prop);
+      expect(live.length).toBeGreaterThan(0);
+      for (const [other] of live) {
+        for (const tokens of [
+          ['box', token, other],
+          ['box', other, token],
+        ]) {
+          const result = plan(factsFor('div', tokens));
+          expect({
+            tokens,
+            kept: result.conversion?.className?.split(' ') ?? null,
+            todos: result.todos.map(todo => todo.rule),
+          }).toEqual({ tokens, kept: [token], todos: [`legacy:${token}`] });
+          const both = renderBoth(factsFor('div', tokens));
+          expect({ tokens, html: both!.converted }).toEqual({
+            tokens,
+            html: both!.raw,
+          });
+        }
+      }
+    });
+
+    it('converts beside a class for another spacing prop, in either order', () => {
+      const others = spacing.filter(
+        ([, helper]) =>
+          helper.write.prop !== prop && helper.write.prop[0] === prop
+      );
+      expect(others.length).toBeGreaterThan(0);
+      for (const [other] of others) {
+        for (const tokens of [
+          ['box', token, other],
+          ['box', other, token],
+        ]) {
+          const both = renderBoth(factsFor('div', tokens));
+          expect({ tokens, converts: both !== null }).toEqual({
+            tokens,
+            converts: true,
+          });
+          expect(both!.converted).not.toContain(token);
+          expect({ tokens, html: both!.converted }).toEqual({
+            tokens,
+            html: both!.raw,
+          });
+        }
+      }
+    });
+  }
+);
 
 /**
  * Helpers whose props render differently beside each other than alone: a
@@ -1406,7 +2270,8 @@ describe.each(Object.entries(PLACED))('an item of `.%s`', (list, entry) => {
           : [])
       )
     );
-    return { raw: normalizeHtml(raw), converted: normalizeHtml(converted) };
+    const html = normalizeHtml(converted);
+    return { raw: withImplicitListRoles(raw, html), converted: html };
   };
   const same = (item: Item, label: string) => {
     const found = both(item);
@@ -1422,8 +2287,23 @@ describe.each(Object.entries(PLACED))('an item of `.%s`', (list, entry) => {
 
   it('renders the same bare, with each class its link may carry, and nested', () => {
     same({}, 'bare');
-    for (const token of Object.keys(spec.modifiers ?? {})) {
-      same({ childTokens: [token] }, token);
+    for (const [token, modifier] of Object.entries(spec.modifiers ?? {})) {
+      // Beside the attribute it converts only beside, which the prop would
+      // otherwise write (`active`'s `aria-current="page"`).
+      const needs = modifier.needsAttr;
+      same(
+        {
+          childTokens: [token],
+          ...(needs && { childAttributes: { [needs.name]: needs.value } }),
+        },
+        token
+      );
+      if (needs) {
+        expect({
+          token,
+          converts: both({ childTokens: [token] }) !== null,
+        }).toEqual({ token, converts: false });
+      }
     }
     same({ nested: true }, 'with a nested list');
   });
@@ -1547,6 +2427,22 @@ describe("the table's claims about the library", () => {
     ...Object.values(WRAPPERS),
   ];
 
+  it('renders each root on every tag one of its classes picks', () => {
+    // `tagsFor` is every tag this file renders a root on, so a tag a class
+    // picks with no `as` (`Image`'s ratio on a <figure>) is held to the
+    // markup only as one of them, whatever the root's `as` reaches.
+    const missed = mapped.flatMap(([root, entry]) =>
+      Object.entries(entry.modifiers ?? {})
+        .filter(
+          ([, modifier]) =>
+            modifier.rendersTag !== undefined &&
+            !tagsFor(entry).includes(modifier.rendersTag)
+        )
+        .map(([token]) => `${root} ${token}`)
+    );
+    expect(missed).toEqual([]);
+  });
+
   it('names every spelling of each component whose context a root provides', () => {
     // A component reaches a file under its export and under each part name
     // it is attached as (`TabContentItem`, `TabsContent.Item`,
@@ -1590,6 +2486,50 @@ describe("the table's claims about the library", () => {
     }
   });
 
+  it('sizes an element the same with the prop a size class names off its tags, keeping the tag', () => {
+    // `offTag`: off `tagIn` the class stays, and the MCP lookup and the
+    // codemod's TODO say the prop sizes the element the same, with a class
+    // Bulma gives the same font size.
+    const rules = stylesheetRules(bulmaStylesheet());
+    const fontSize = (selector: string) =>
+      rules
+        .filter(rule => !rule.conditional && rule.selector === selector)
+        .map(rule => /font-size:\s*([^;!]+)/.exec(rule.body)?.[1].trim())
+        .find(size => size !== undefined) ?? `<no font size for ${selector}>`;
+    let checked = 0;
+    for (const [root, entry] of mapped) {
+      for (const [token, modifier] of Object.entries(entry.modifiers ?? {})) {
+        const off = modifier.offTag;
+        if (!off) continue;
+        checked++;
+        const helper = [...HELPER_TOKENS].find(
+          ([, { write }]) =>
+            write.prop === off.prop && write.value === off.value
+        )?.[0];
+        expect({ token, size: fontSize(`.${helper}`) }).toEqual({
+          token,
+          size: fontSize(`.${root}.${token}`),
+        });
+        const offTags = (entry.as as string[]).filter(
+          tag => !modifier.tagIn!.includes(tag)
+        );
+        expect(offTags.length).toBeGreaterThan(0);
+        for (const tag of offTags) {
+          expect(
+            normalizeHtml(
+              renderElement(
+                entry.target!,
+                { as: tag, [off.prop]: off.value },
+                'x'
+              )
+            )
+          ).toBe(normalizeHtml(`<${tag} class="${root} ${helper}">x</${tag}>`));
+        }
+      }
+    }
+    expect(checked).toBeGreaterThan(0);
+  });
+
   it('names exactly the targets that forward refs', () => {
     const forwarding = targets.filter(target => {
       const component = target
@@ -1628,42 +2568,220 @@ describe("the table's claims about the library", () => {
         ([target, props]): [string, string[]] => [target, [...props]]
       ),
     ]);
-    // A public component with no API page of its own (`InputBase`) is not in
-    // the index, so read its props the way the index would.
-    const unindexed = [...classified.keys()].filter(
-      target => !declared.has(target)
-    );
-    if (unindexed.length > 0) {
-      const extractor = pathToFileURL(
-        path.join(repoRoot, 'scripts', 'lib', 'props-extract.mjs')
-      ).href;
-      const script = `
-        const { extractComponent } = await import(${JSON.stringify(extractor)});
-        const out = {};
-        for (const name of ${JSON.stringify(unindexed)}) {
-          for (const table of extractComponent(name, { markdown: false }).tables) {
-            out[table.path] = table.rows.map(row => row.name);
-          }
-        }
-        console.log(JSON.stringify(out));`;
-      const extracted: Record<string, string[]> = JSON.parse(
-        execFileSync(process.execPath, ['--input-type=module', '-e', script], {
-          encoding: 'utf8',
-        })
-      );
-      for (const [target, props] of Object.entries(extracted)) {
-        declared.set(
-          target,
-          props.filter(name => !['className', 'children'].includes(name))
-        );
-      }
-    }
+    // A target with no API page of its own (`InputBase`) is a part of the
+    // component documenting it, so its table is in the index too.
     for (const [target, props] of classified) {
       expect({ target, props: [...props].sort() }).toEqual({
         target,
         props: [...(declared.get(target) ?? ['<not in the MCP index>'])].sort(),
       });
     }
+  });
+
+  it('drops an attribute exactly on the tags a dropsAttr row names', () => {
+    // A row mirrors by hand a set bulma-ui derives from React's types (the
+    // anchor's, the label's, the button's), and a missing one is a silent
+    // markup change rather than a refusal: the element converts, and the
+    // component discards the attribute. So every root with rows renders each
+    // attribute those sets hold, on every tag it reaches, and the attribute
+    // must reach the DOM exactly where no row drops it.
+    const VALUES: Record<string, string | true> = {
+      href: '/x',
+      target: '_blank',
+      download: true,
+      hrefLang: 'en',
+      ping: '/p',
+      referrerPolicy: 'no-referrer',
+      media: 'print',
+      type: 'text/html',
+      rel: 'noopener',
+      htmlFor: 'x',
+      form: 'f',
+      formAction: '/submit',
+      formEncType: 'text/plain',
+      formMethod: 'post',
+      formNoValidate: true,
+      formTarget: '_self',
+      name: 'n',
+      value: 'v',
+    };
+    // React writes `htmlFor` as `for` and keeps the rest as spelled
+    // (`hrefLang`), which HTML reads without regard to case.
+    const htmlName = (name: string): string =>
+      name === 'htmlFor' ? 'for' : name;
+    const withRows = mapped.filter(
+      ([root, entry]) => entry.dropsAttr && root !== 'button'
+    );
+    expect(withRows.map(([root]) => root).sort()).toEqual([
+      'card-footer-item',
+      'level-item',
+      'panel-block',
+      'tag',
+    ]);
+    for (const [root, entry] of withRows) {
+      for (const tag of tagsFor(entry)) {
+        for (const [name, value] of Object.entries(VALUES)) {
+          const as = tag === entry.tag ? {} : { as: tag };
+          const html = renderElement(entry.target!, { ...as, [name]: value });
+          const open = /^<[a-z]+[^>]*>/.exec(html)?.[0] ?? '';
+          const reaches = new RegExp(`\\s${htmlName(name)}[=\\s>/]`, 'i').test(
+            open
+          );
+          const row = entry.dropsAttr![name];
+          expect({ root, tag, name, reaches }).toEqual({
+            root,
+            tag,
+            name,
+            reaches: !(row && inTagSet(row, tag)),
+          });
+        }
+      }
+    }
+  });
+});
+
+/**
+ * The tag a root's target renders with these classes and no `as`, read from
+ * the table: of its modifiers that convert on this tag, in order, the first
+ * for each prop takes it, and the first of those with a `rendersTag` picks
+ * the tag; else a heading's size names it, except on a <p>, which `as="p"`
+ * keeps; else its own.
+ */
+function rendersWith(
+  entry: RootEntry,
+  tokens: readonly string[],
+  tag: string
+): string {
+  const taken = new Set<string>();
+  let picked: string | undefined;
+  let size: string | undefined;
+  for (const token of tokens) {
+    const modifier =
+      entry.modifiers && Object.hasOwn(entry.modifiers, token)
+        ? entry.modifiers[token]
+        : undefined;
+    if (!modifier || (modifier.tagIn && !modifier.tagIn.includes(tag))) {
+      continue;
+    }
+    if (modifier.writes.some(write => taken.has(write.prop))) continue;
+    if (modifier.rendersTag && picked) continue;
+    for (const write of modifier.writes) {
+      taken.add(write.prop);
+      if (write.prop === 'size') size = write.value;
+    }
+    picked ??= modifier.rendersTag;
+  }
+  if (picked) return picked;
+  return entry.sizeDrivesTag && tag !== 'p' && size !== undefined
+    ? `h${size}`
+    : entry.tag!;
+}
+
+/**
+ * How well a root fits an element's tag, worked out here rather than taken
+ * from the planner's helpers: 2 for the tag `rendersWith` gives it, 1 for
+ * one its `as` reaches, 0 for neither.
+ */
+function fitOf(
+  entry: RootEntry,
+  tokens: readonly string[],
+  tag: string
+): number {
+  if (rendersWith(entry, tokens, tag) === tag) return 2;
+  return entry.as === 'any' || entry.as?.includes(tag) ? 1 : 0;
+}
+
+describe('an element carrying a second root', () => {
+  // The roots an element most often carries beside another one, and two
+  // with a class that picks the tag their target renders with no `as`.
+  const seconds = [
+    ['box'],
+    ['block'],
+    ['content'],
+    ['notification'],
+    ['container'],
+    ['section'],
+    ['columns'],
+    ['column'],
+    ['image'],
+    ['image', 'is-16by9'],
+    ['title', 'is-3'],
+  ];
+
+  it('converts to the root that fits its tag best, and renders the same', () => {
+    const lostOnTag: string[] = [];
+    const wrongRoot: string[] = [];
+    let conversions = 0;
+    for (const [root, entry] of mapped) {
+      for (const second of seconds) {
+        if (second.includes(root)) continue;
+        const other = ROOTS[second[0]];
+        const child = childFor(entry);
+        // An element holds the child one of them renders itself, or the part
+        // one of them wraps its children unless it holds, never both, and a
+        // void one holds nothing.
+        if (other.absorbs && (entry.absorbs || child)) continue;
+        // Each one's own tag, and the ones the second reaches through `as`.
+        const tags = new Set([entry.tag!, ...tagsFor(other)]);
+        for (const tag of tags) {
+          if (VOID.has(tag)) continue;
+          const given = {
+            ...defaultsFor(other, tag),
+            ...defaultsFor(entry, tag),
+          };
+          // The order decides only between two roots the table doesn't rank.
+          for (const tokens of PRECEDENCE.includes(root)
+            ? [[root, ...second]]
+            : [
+                [root, ...second],
+                [...second, root],
+              ]) {
+            const facts = factsFor(tag, tokens, given, child);
+            const planned = plan(facts);
+            const refused = planned.todos.some(todo =>
+              todo.rule.startsWith('tag:')
+            );
+            if (refused && (reachesTag(entry, tag) || reachesTag(other, tag))) {
+              lostOnTag.push(`<${tag} className="${tokens.join(' ')}">`);
+            }
+            // The tag its classes make it render before one `as` reaches,
+            // before none, and the table's precedence between equals, then
+            // the order on the element.
+            const won = planned.conversion?.target;
+            const [rootFit, otherFit] = [entry, other].map(candidate =>
+              fitOf(candidate, tokens, tag)
+            );
+            const rank = (token: string) =>
+              PRECEDENCE.includes(token)
+                ? PRECEDENCE.indexOf(token)
+                : PRECEDENCE.length;
+            const rootFirst =
+              rootFit !== otherFit
+                ? rootFit > otherFit
+                : rank(root) !== rank(second[0])
+                  ? rank(root) < rank(second[0])
+                  : tokens[0] === root;
+            const expected = rootFirst ? entry.target : other.target;
+            if (won && entry.target !== other.target && won !== expected) {
+              wrongRoot.push(
+                `<${tag} className="${tokens.join(' ')}">: ${won}, not ${expected}`
+              );
+            }
+            const both = renderBoth(facts, given, child);
+            if (!both) continue;
+            conversions += 1;
+            expect({ tag, tokens, html: both.converted }).toEqual({
+              tag,
+              tokens,
+              html: both.raw,
+            });
+          }
+        }
+      }
+    }
+    expect(lostOnTag).toEqual([]);
+    expect(wrongRoot).toEqual([]);
+    expect(conversions).toBeGreaterThan(500);
   });
 });
 
@@ -1694,9 +2812,18 @@ describe('a seeded fuzz through the planner', () => {
     ['target', '_blank'],
     ['rel', 'noopener'],
     ['download', true],
+    ['htmlFor', 'remember'],
+    ['form', 'f'],
+    ['hrefLang', 'en'],
+    ['ping', '/p'],
+    ['referrerPolicy', 'no-referrer'],
+    ['media', 'print'],
     ['value', '40'],
     ['tabIndex', '0'],
     ['tabIndex', '-1'],
+    // A loading `Button` writes these over its own (#2040).
+    ['aria-busy', 'true'],
+    ['aria-disabled', 'false'],
     // Numeric, but not spelled the way a number renders: these must refuse.
     ['value', '040'],
     ['tabIndex', '00'],
@@ -1731,11 +2858,21 @@ describe('a seeded fuzz through the planner', () => {
       }
       const deduped = [...new Set(tokens)];
       const child = childFor(entry);
-      const both = renderBoth(
-        factsFor(tag, deduped, attributes, child),
-        attributes,
-        child
-      );
+      // Every other one that renders a glyph holds one it reads, by turns
+      // and with no draw, so the other cases stay as they were; one in four
+      // holds it as Font Awesome writes it, hidden on the <i> instead.
+      const glyph = entry.readsGlyph && i % 2 === 0;
+      const hiddenOnI = glyph && i % 4 === 0;
+      if (hiddenOnI) delete attributes['aria-hidden'];
+      const facts = factsFor(tag, deduped, attributes, child);
+      if (glyph) {
+        facts.soleChild = {
+          ...bare('i'),
+          tokens: GLYPHS[(i / 2) % GLYPHS.length],
+          ...(hiddenOnI && { attributes: new Map([['aria-hidden', 'true']]) }),
+        };
+      }
+      const both = renderBoth(facts, attributes, child);
       if (!both) continue;
       conversions += 1;
       expect({

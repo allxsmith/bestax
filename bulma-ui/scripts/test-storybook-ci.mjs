@@ -1,70 +1,35 @@
 #!/usr/bin/env node
-// Serve the built storybook (storybook-static/) on a local port and run the
-// test-runner smoke pass against it twice: default (light) and dark theme
-// (STORYBOOK_THEME=dark, see .storybook/test-runner.ts). Uses node's http
-// module rather than adding http-server/wait-on/concurrently dependencies.
-import { createServer } from 'node:http';
-import { readFile, stat } from 'node:fs/promises';
+// Run the Storybook smoke pass (vitest.storybook.config.ts) twice: default
+// (light) and dark theme (STORYBOOK_THEME=dark, see .storybook/vitest.setup.ts).
+//
+// `--theme=light` or `--theme=dark` runs that one pass, which is how CI gives
+// each theme a runner of its own. With neither, both run, light first.
 import { spawn } from 'node:child_process';
-import { extname, join, normalize, resolve } from 'node:path';
+import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(fileURLToPath(new URL('.', import.meta.url)), '..');
-const staticDir = join(root, 'storybook-static');
 
-try {
-  await stat(join(staticDir, 'index.html'));
-} catch {
+// Any other spelling (`--theme dark`, a bare `--theme`, two of them) fails
+// rather than falling back to both passes, which would undo the CI split.
+const themeArgs = process.argv
+  .slice(2)
+  .filter(arg => arg === '--theme' || arg.startsWith('--theme='));
+const themeArg = themeArgs[0]?.slice('--theme='.length);
+if (
+  themeArgs.length > 1 ||
+  (themeArgs.length === 1 && themeArg !== 'light' && themeArg !== 'dark')
+) {
   console.error(
-    'storybook-static/index.html not found — run `pnpm build-storybook` first.'
+    `Pass the theme once, as --theme=light or --theme=dark (got ${themeArgs.join(' ')}).`
   );
   process.exit(1);
 }
-
-const MIME = {
-  '.html': 'text/html',
-  '.js': 'text/javascript',
-  '.mjs': 'text/javascript',
-  '.css': 'text/css',
-  '.json': 'application/json',
-  '.svg': 'image/svg+xml',
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.gif': 'image/gif',
-  '.woff': 'font/woff',
-  '.woff2': 'font/woff2',
-  '.ttf': 'font/ttf',
-  '.eot': 'application/vnd.ms-fontobject',
-  '.map': 'application/json',
-  '.txt': 'text/plain',
-};
-
-const server = createServer(async (req, res) => {
-  const urlPath = decodeURIComponent(new URL(req.url, 'http://x').pathname);
-  // normalize() collapses any ../ so requests can't escape staticDir
-  let filePath = join(staticDir, normalize(urlPath).replace(/^([/\\])+/, ''));
-  try {
-    if ((await stat(filePath)).isDirectory()) {
-      filePath = join(filePath, 'index.html');
-    }
-    const body = await readFile(filePath);
-    res.writeHead(200, {
-      'content-type': MIME[extname(filePath)] ?? 'application/octet-stream',
-    });
-    res.end(body);
-  } catch {
-    res.writeHead(404).end('not found');
-  }
-});
-
-await new Promise(ok => server.listen(0, '127.0.0.1', ok));
-const url = `http://127.0.0.1:${server.address().port}`;
-console.log(`Serving ${staticDir} at ${url}`);
+const themes = themeArg ? [themeArg] : ['light', 'dark'];
 
 function runPass(theme) {
   return new Promise(done => {
-    const label = theme === 'dark' ? 'dark' : 'light';
-    console.log(`\n=== Storybook smoke pass (${label}) ===`);
+    console.log(`\n=== Storybook smoke pass (${theme}) ===`);
     // Build the env explicitly both ways so an ambient STORYBOOK_THEME can't
     // silently turn the light pass into a second dark pass.
     const env = { ...process.env };
@@ -72,20 +37,23 @@ function runPass(theme) {
     else delete env.STORYBOOK_THEME;
     const child = spawn(
       'pnpm',
-      ['exec', 'test-storybook', '--url', url, '--maxWorkers', '50%'],
+      ['exec', 'vitest', 'run', '--config', 'vitest.storybook.config.ts'],
       { cwd: root, stdio: 'inherit', env }
     );
     child.on('close', code => done(code ?? 1));
     // A failed spawn (e.g. ENOENT) emits 'error' without 'close' — resolve
     // instead of hanging the CI job forever.
     child.on('error', err => {
-      console.error(`Failed to start test-storybook (${label}):`, err);
+      console.error(`Failed to start the smoke pass (${theme}):`, err);
       done(1);
     });
   });
 }
 
-const lightCode = await runPass('light');
-const darkCode = await runPass('dark');
-server.close();
-process.exit(lightCode || darkCode);
+// Every pass runs even after one fails, so a run reports both themes.
+let failed = 0;
+for (const theme of themes) {
+  const code = await runPass(theme);
+  failed ||= code;
+}
+process.exit(failed);

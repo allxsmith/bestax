@@ -3,7 +3,7 @@
  * scripts/gen-skills-repo.mjs. gen-skills-repo.test.mjs runs that script
  * through a linked checkout, end to end.
  */
-import { after, test } from 'node:test';
+import { afterAll, test } from 'vitest';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -13,7 +13,7 @@ import { isMainModule } from './lib/main-module.mjs';
 
 const HERE = fileURLToPath(import.meta.url);
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'main-module-'));
-after(() => fs.rmSync(root, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(root, { recursive: true, force: true }));
 
 test('a module is main when argv names its file', () => {
   assert.equal(isMainModule(import.meta.url, HERE), true);

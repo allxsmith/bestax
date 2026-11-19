@@ -1,0 +1,812 @@
+/**
+ * Guards on gen-templates-repo.mjs, the generator behind the publish of
+ * templates/ to allxsmith/bestax-templates.
+ *
+ * The publish runs only on main, so these tests are what a PR gets. The
+ * first group runs the generator on the real tree, so a change that would
+ * break the published mirror fails the PR instead of the publish run. The
+ * rest hold each rule with small git repositories, since the tree is defined
+ * as what git tracks. The last group holds .github/workflows/
+ * templates-publish.yml to the generator, and runs its publish job's checks
+ * on good and tampered archives, the way gen-skills-repo.test.mjs holds
+ * skills-publish.yml, and its push step's staging on a generated tree.
+ */
+import { afterAll, test } from 'vitest';
+import assert from 'node:assert/strict';
+import { execFileSync, spawnSync } from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import {
+  COPIED,
+  DATA_FILE,
+  INPUT_FILES,
+  PUBLISH_PATHS,
+  buildTree,
+  creditedTemplates,
+  generate,
+  main,
+  renderReadme,
+  repoLabel,
+  treeProblems,
+} from './gen-templates-repo.mjs';
+import { scanTree } from './gen-skills-repo.mjs';
+import {
+  yamlGet,
+  yamlItems,
+  yamlMap,
+  yamlScalar,
+} from './check-conformance.mjs';
+import { tarball } from './lib/tar-fixture.mjs';
+import { loadTemplatesData, templatePaths } from './lib/templates.mjs';
+
+const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+const temps = [];
+function tempDir() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gen-templates-repo-'));
+  temps.push(dir);
+  return dir;
+}
+afterAll(() => {
+  for (const dir of temps) fs.rmSync(dir, { recursive: true, force: true });
+});
+
+function write(root, rel, content, mode) {
+  const file = path.join(root, rel);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, content);
+  if (mode) fs.chmodSync(file, mode);
+}
+
+const git = (dir, ...args) =>
+  execFileSync('git', ['-c', 'init.defaultBranch=main', '-C', dir, ...args], {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+
+const TAGS = {
+  form: { label: 'Form', description: 'A form', color: '#0c8599' },
+};
+
+const ENTRY = {
+  slug: 'login',
+  title: 'Login',
+  description: 'A sign-in page.',
+  author: { name: 'Aldi Duzha', url: 'https://github.com/aldi' },
+  source: 'https://github.com/aldi/bulma-login-template',
+  sourceSha: 'abcdef1'.padEnd(40, '0'),
+  demo: 'https://aldi.github.io/bulma-login-template/',
+  license: 'MIT',
+  copyright: 'Copyright (c) 2018 Aldi Duzha',
+  tags: ['form'],
+};
+
+/** A data module of the shape docs/src/data/templates.js has. */
+function dataModule(templates, { link = true } = {}) {
+  return [
+    `export const Tags = ${JSON.stringify(TAGS)};`,
+    "export const TEMPLATES_REPO = 'allxsmith/bestax-templates';",
+    link
+      ? 'export const stackblitzUrl = slug => `https://stackblitz.com/github/${TEMPLATES_REPO}/tree/main/${slug}?file=src/App.tsx`;'
+      : '',
+    `export const templates = ${JSON.stringify(templates)};`,
+    'export const sortedTemplates = templates;',
+    '',
+  ].join('\n');
+}
+
+/**
+ * A git repository laid out like this one: the data file, LICENSE and
+ * NOTICE, templates/'s own CLAUDE.md and eslint.config.js, and a tracked
+ * folder per entry unless `folders` is false. Everything is staged, which
+ * is all `git ls-files` reads.
+ */
+function fixtureRepo({ templates = [ENTRY], folders = true, data } = {}) {
+  const repo = tempDir();
+  git(repo, 'init', '--quiet');
+  write(repo, DATA_FILE, data ?? dataModule(templates));
+  write(repo, 'LICENSE', 'MIT License\n\nCopyright (c) Alex Smith\n');
+  write(repo, 'NOTICE', 'This project uses Bulma.\n');
+  write(repo, 'templates/CLAUDE.md', '# the porting guide\n');
+  write(repo, 'templates/eslint.config.js', 'export default [];\n');
+  if (folders) {
+    for (const { slug } of templates) {
+      write(repo, `templates/${slug}/package.json`, '{}\n');
+      write(repo, `templates/${slug}/src/App.tsx`, 'export {};\n');
+      write(repo, `templates/${slug}/.gitignore`, 'node_modules\n');
+      write(repo, `templates/${slug}/bin/run.sh`, '#!/bin/sh\n', 0o755);
+    }
+  }
+  git(repo, 'add', '--all');
+  return repo;
+}
+
+const failureOf = async promise => {
+  try {
+    await promise;
+  } catch (err) {
+    return err;
+  }
+  assert.fail('expected the generator to refuse');
+};
+
+// --- the real tree ---------------------------------------------------------
+
+test('the real repository generates a tree', async () => {
+  const out = path.join(tempDir(), 'tree');
+  const files = await generate(out);
+  for (const file of ['README.md', ...COPIED]) assert.ok(files.includes(file));
+  for (const file of COPIED) {
+    assert.ok(
+      fs
+        .readFileSync(path.join(out, file))
+        .equals(fs.readFileSync(path.join(REPO, file))),
+      `${file} is the monorepo's`
+    );
+  }
+  const { slugs } = templatePaths(
+    git(REPO, 'ls-files', '--', 'templates').split('\n').filter(Boolean)
+  );
+  for (const file of files) {
+    assert.ok(
+      ['README.md', ...COPIED].includes(file) ||
+        slugs.includes(file.split('/')[0]),
+      `${file} is a root file or a template's`
+    );
+  }
+  assert.ok(!files.includes('CLAUDE.md'));
+  assert.ok(!files.includes('eslint.config.js'));
+});
+
+test('the page and the README open a template at the same mirror URL', async () => {
+  const data = await loadTemplatesData(REPO);
+  assert.equal(
+    data.stackblitzUrl('login'),
+    `https://stackblitz.com/github/${data.TEMPLATES_REPO}/tree/main/login?file=src/App.tsx`
+  );
+  assert.match(data.TEMPLATES_REPO, /^allxsmith\/[a-z-]+$/);
+  assert.match(
+    renderReadme([ENTRY], data.stackblitzUrl),
+    new RegExp(
+      `\\(https://stackblitz\\.com/github/${data.TEMPLATES_REPO}/tree/main/login`
+    )
+  );
+});
+
+/** Whether `glob`, with `*` stopping at a slash, covers repo path `file`. */
+function covers(glob, file) {
+  const re = glob
+    .split('**')
+    .map(part =>
+      part
+        .split('*')
+        .map(s => s.replace(/[.+?^${}()|[\]\\]/g, '\\$&'))
+        .join('[^/]*')
+    )
+    .join('.*');
+  return new RegExp(`^${re}$`).test(file);
+}
+
+test('PUBLISH_PATHS covers the inputs and every module the generator imports', () => {
+  const needed = new Set(['templates/', ...INPUT_FILES]);
+  const queue = ['scripts/gen-templates-repo.mjs'];
+  const text = rel => fs.readFileSync(path.join(REPO, rel), 'utf8');
+  while (queue.length) {
+    const file = queue.pop();
+    if (needed.has(file)) continue;
+    needed.add(file);
+    for (const [, spec] of text(file).matchAll(
+      /^\s*(?:import|export)[^'"]*?from\s+'(\.[^']+)'/gm
+    )) {
+      queue.push(
+        path.posix.normalize(path.posix.join(path.posix.dirname(file), spec))
+      );
+    }
+  }
+  for (const file of needed) {
+    assert.ok(
+      PUBLISH_PATHS.some(p => covers(p, file)),
+      `PUBLISH_PATHS misses ${file}`
+    );
+  }
+  for (const p of PUBLISH_PATHS) {
+    if (p === '.github/workflows/templates-publish.yml') continue;
+    assert.ok(
+      [...needed].some(file => covers(p, file)),
+      `PUBLISH_PATHS names ${p}, which the generator does not need`
+    );
+  }
+  assert.ok(covers('templates/**', 'templates/login/src/App.tsx'));
+  assert.ok(!covers('scripts/*.mjs', 'scripts/lib/skills.mjs'));
+});
+
+// --- fixtures ----------------------------------------------------------------
+
+test('the tree holds each template as tracked, and the root files', async () => {
+  const repo = fixtureRepo();
+  // Untracked, so none of it ships: a local install, a build, a stray note.
+  write(repo, 'templates/login/node_modules/x/index.js', 'x\n');
+  write(repo, 'templates/login/dist/index.html', '<p>\n');
+  write(repo, 'templates/login/NOTES.md', 'scratch\n');
+  const out = path.join(tempDir(), 'tree');
+  const files = await generate(out, repo);
+  assert.deepEqual(files, [
+    'LICENSE',
+    'NOTICE',
+    'README.md',
+    'login/.gitignore',
+    'login/bin/run.sh',
+    'login/package.json',
+    'login/src/App.tsx',
+  ]);
+  const modes = Object.fromEntries(
+    (await scanTree(out)).map(e => [e.path, e.mode])
+  );
+  assert.equal(modes['login/bin/run.sh'], 0o755);
+  assert.equal(modes['login/package.json'], 0o644);
+  const readme = fs.readFileSync(path.join(out, 'README.md'), 'utf8');
+  assert.match(readme, /awesome-bulma-templates/);
+  assert.match(readme, /### Login/);
+  assert.match(
+    readme,
+    /\[Open in StackBlitz\]\(https:\/\/stackblitz\.com\/github\/allxsmith\/bestax-templates\/tree\/main\/login\?file=src\/App\.tsx\)/
+  );
+  assert.match(
+    readme,
+    /Ported from \[aldi\/bulma-login-template\]\(https:\/\/github\.com\/aldi\/bulma-login-template\) by \[Aldi Duzha\]\(https:\/\/github\.com\/aldi\), at commit `abcdef1`/
+  );
+  assert.match(readme, /Open issues and pull\s+requests in allxsmith\/bestax/);
+  assert.match(
+    readme,
+    /- License: MIT, the upstream's, in \[LICENSE\]\(login\/LICENSE\)/
+  );
+});
+
+test("the README names each template's own license and claims none for all", async () => {
+  const apache = {
+    ...ENTRY,
+    slug: 'hotel',
+    title: 'Hotel',
+    license: 'Apache-2.0',
+  };
+  const repo = fixtureRepo({ templates: [ENTRY, apache] });
+  const out = path.join(tempDir(), 'tree');
+  await generate(out, repo);
+  const readme = fs.readFileSync(path.join(out, 'README.md'), 'utf8');
+  assert.match(
+    readme,
+    /### Hotel[\s\S]*- License: Apache-2\.0, the upstream's/
+  );
+  assert.match(readme, /### Login[\s\S]*- License: MIT, the upstream's/);
+  const license = readme.slice(readme.indexOf('## License'));
+  assert.doesNotMatch(license, /\bMIT\b|Apache/, 'no blanket license claim');
+  assert.match(license, /under its upstream's license/);
+});
+
+test('an entry whose license is not on the allowlist is refused', async () => {
+  const repo = fixtureRepo({ templates: [{ ...ENTRY, license: 'GPL-3.0' }] });
+  const err = await failureOf(generate(path.join(tempDir(), 't'), repo));
+  assert.match(err.message, /`license` must be the upstream's SPDX identifier/);
+});
+
+test('a repository with no template still makes a valid tree', async () => {
+  const repo = fixtureRepo({ templates: [] });
+  const out = path.join(tempDir(), 'tree');
+  assert.deepEqual(await generate(out, repo), [
+    'LICENSE',
+    'NOTICE',
+    'README.md',
+  ]);
+  assert.match(
+    fs.readFileSync(path.join(out, 'README.md'), 'utf8'),
+    /## Templates\n\nNone yet\./
+  );
+});
+
+test('a folder and its entry come together, or the run refuses', async () => {
+  const noEntry = fixtureRepo({ templates: [] });
+  write(noEntry, 'templates/stray/index.html', '<p>\n');
+  git(noEntry, 'add', '--all');
+  const a = await failureOf(generate(path.join(tempDir(), 't'), noEntry));
+  assert.match(a.message, /"templates\/stray\/" has no entry/);
+  assert.match(a.message, /pnpm test:scripts/);
+
+  const noFolder = fixtureRepo({ folders: false });
+  const b = await failureOf(generate(path.join(tempDir(), 't'), noFolder));
+  assert.match(
+    b.message,
+    /"login" has no tracked files under "templates\/login\/"/
+  );
+});
+
+test('an entry is held to the docs schema', async () => {
+  const repo = fixtureRepo({ templates: [{ ...ENTRY, sourceSha: 'abc' }] });
+  const err = await failureOf(generate(path.join(tempDir(), 't'), repo));
+  assert.match(err.message, /sourceSha/);
+});
+
+test('the data must say where a template opens', async () => {
+  const repo = fixtureRepo({ data: dataModule([ENTRY], { link: false }) });
+  const err = await failureOf(generate(path.join(tempDir(), 't'), repo));
+  assert.match(err.message, /exports no stackblitzUrl/);
+  const broken = fixtureRepo({ data: 'export const = ;\n' });
+  const bad = await failureOf(generate(path.join(tempDir(), 't'), broken));
+  assert.match(bad.message, /could not be read/);
+});
+
+test('creditedTemplates names a data file with no list', () => {
+  assert.throws(
+    () => creditedTemplates({ stackblitzUrl: () => '' }, []),
+    /exports no sortedTemplates array/
+  );
+});
+
+test('a tracked link, a deleted file and an untracked input are refused', async () => {
+  const repo = fixtureRepo();
+  fs.symlinkSync('/etc/hosts', path.join(repo, 'templates/login/hosts'));
+  git(repo, 'add', '--all');
+  fs.rmSync(path.join(repo, 'templates/login/package.json'));
+  // A tracked file replaced by a directory on disk.
+  fs.rmSync(path.join(repo, 'templates/login/src/App.tsx'));
+  fs.mkdirSync(path.join(repo, 'templates/login/src/App.tsx'));
+  git(repo, 'rm', '--cached', '--quiet', 'NOTICE');
+  const err = await failureOf(generate(path.join(tempDir(), 't'), repo));
+  assert.match(err.message, /"login\/hosts": is a symbolic link/);
+  assert.match(err.message, /"login\/package\.json": is tracked but missing/);
+  assert.match(err.message, /"login\/src\/App\.tsx": is not a regular file/);
+  assert.match(err.message, /NOTICE: is not tracked by git/);
+});
+
+test('a data file that is not a regular file is refused', async () => {
+  const repo = fixtureRepo();
+  fs.rmSync(path.join(repo, DATA_FILE));
+  fs.mkdirSync(path.join(repo, DATA_FILE));
+  const err = await failureOf(generate(path.join(tempDir(), 't'), repo));
+  assert.match(err.message, /templates\.js: is not a regular file/);
+});
+
+test('a run outside a git checkout is refused', async () => {
+  const repo = tempDir();
+  write(repo, DATA_FILE, dataModule([]));
+  const err = await failureOf(generate(path.join(tempDir(), 't'), repo));
+  assert.match(err.message, /requires a git checkout/);
+});
+
+test('treeProblems refuses a .git part, a link, a bad name and a case clash', () => {
+  const root = ['README.md', ...COPIED].map(p => ({ path: p, symlink: false }));
+  assert.deepEqual(treeProblems(root), []);
+  const problems = treeProblems([
+    ...root,
+    { path: 'login/.GIT/config', symlink: false },
+    { path: 'login/link', symlink: true },
+    { path: 'login/con.txt', symlink: false },
+    { path: 'Login/x', symlink: false },
+  ]);
+  assert.ok(problems.some(p => /\.git part/.test(p)));
+  assert.ok(problems.some(p => /symbolic link/.test(p)));
+  assert.ok(problems.some(p => /Windows device name/.test(p)));
+  assert.ok(problems.some(p => /only by case/.test(p)));
+  assert.deepEqual(treeProblems([]), [
+    'README.md: missing.',
+    'LICENSE: missing.',
+    'NOTICE: missing.',
+  ]);
+});
+
+test('buildTree sorts the tree and writes the README 0644', () => {
+  const tree = buildTree({
+    readme: '# x\n',
+    copied: [{ path: 'LICENSE', content: Buffer.from('l'), mode: 0o644 }],
+    templateFiles: [{ path: 'a/b', content: Buffer.from('b'), mode: 0o755 }],
+  });
+  assert.deepEqual([...tree.keys()], ['LICENSE', 'README.md', 'a/b']);
+  assert.equal(tree.get('README.md').mode, 0o644);
+});
+
+test('repoLabel shortens a GitHub URL and keeps any other', () => {
+  assert.equal(repoLabel('https://github.com/aldi/x/'), 'aldi/x');
+  assert.equal(repoLabel('https://gitlab.com/a/b'), 'https://gitlab.com/a/b');
+});
+
+/** Captures what main writes. */
+function io() {
+  const out = { stdout: '', stderr: '' };
+  return {
+    out,
+    stdout: { write: s => (out.stdout += s) },
+    stderr: { write: s => (out.stderr += s) },
+  };
+}
+
+test('main takes one directory, and reports success and failure', async () => {
+  for (const argv of [[], ['a', 'b'], ['--force']]) {
+    const sink = io();
+    assert.equal(await main(argv, sink), 2, String(argv));
+    assert.match(sink.out.stderr, /^usage: /);
+  }
+  const ok = io();
+  const out = path.join(tempDir(), 'tree');
+  assert.equal(await main([out], ok, { repo: fixtureRepo() }), 0);
+  assert.match(ok.out.stdout, /Wrote the bestax-templates tree/);
+  assert.match(ok.out.stdout, /login\/src\/App\.tsx/);
+
+  // Not empty now, so a second run refuses rather than mix trees.
+  const again = io();
+  assert.equal(await main([out], again, { repo: fixtureRepo() }), 1);
+  assert.match(again.out.stderr, /failed its checks:\n {2}.*is not empty/);
+
+  const refused = io();
+  const repo = fixtureRepo({ folders: false });
+  assert.equal(await main([path.join(tempDir(), 't')], refused, { repo }), 1);
+  assert.match(refused.out.stderr, /has no tracked files/);
+});
+
+// --- the workflow ------------------------------------------------------------
+
+const WORKFLOW = '.github/workflows/templates-publish.yml';
+const workflowLines = () =>
+  fs.readFileSync(path.join(REPO, WORKFLOW), 'utf8').split('\n');
+
+/** Lines without YAML or shell comments, for matching what actually runs. */
+const uncommented = lines =>
+  lines.filter(line => !line.trim().startsWith('#')).join('\n');
+
+/** An entry's scalar, with a folded (`>-`) one joined the way YAML folds it. */
+const scalar = entry =>
+  entry && /^>-?$/.test(entry.value)
+    ? entry.lines
+        .map(line => line.trim())
+        .filter(line => line && !line.startsWith('#'))
+        .join(' ')
+    : yamlScalar(entry);
+
+/** The workflow's jobs by id, each with its keys and steps readable. */
+function workflowJobs() {
+  const reader = entryLines => ({
+    get: (...keys) => scalar(yamlGet(entryLines, ...keys)),
+    code: uncommented(entryLines),
+  });
+  return new Map(
+    [...yamlMap(yamlGet(workflowLines(), 'jobs')?.lines ?? [])].map(
+      ([id, job]) => [
+        id,
+        {
+          ...reader(job.lines),
+          steps: yamlItems(yamlGet(job.lines, 'steps')?.lines ?? []).map(
+            reader
+          ),
+        },
+      ]
+    )
+  );
+}
+
+test('the workflow runs on exactly PUBLISH_PATHS, on push to main and dispatch', () => {
+  const lines = workflowLines();
+  const filters = yamlItems(
+    yamlGet(lines, 'on', 'push', 'paths')?.lines ?? []
+  ).map(item =>
+    yamlScalar({
+      value: item
+        .filter(line => !line.trim().startsWith('#'))
+        .join('\n')
+        .trim(),
+      lines: [],
+      indent: 0,
+    })
+  );
+  assert.deepEqual([...filters].sort(), [...PUBLISH_PATHS].sort());
+  assert.deepEqual(
+    [...yamlMap(yamlGet(lines, 'on')?.lines ?? []).keys()].sort(),
+    ['push', 'workflow_dispatch']
+  );
+  assert.equal(yamlGet(lines, 'on', 'push', 'branches')?.value, '[main]');
+  assert.equal(yamlGet(lines, 'permissions')?.value, '{}');
+});
+
+test('only publish holds the deploy key, and it runs no repository code', () => {
+  const jobs = workflowJobs();
+  assert.deepEqual([...jobs.keys()], ['generate', 'publish']);
+  assert.deepEqual(
+    [...jobs]
+      .filter(([, job]) => job.get('environment') || /secrets\./.test(job.code))
+      .map(([id]) => id),
+    ['publish']
+  );
+  const publish = jobs.get('publish');
+  assert.equal(publish.get('environment'), 'templates-publish');
+  assert.deepEqual(
+    publish.steps.filter(s => /secrets\./.test(s.code)).map(s => s.get('name')),
+    ['Commit and push to allxsmith/bestax-templates'],
+    'the key reaches the push step alone'
+  );
+  assert.match(
+    publish.steps.at(-1).code,
+    /secrets\.BESTAX_TEMPLATES_DEPLOY_KEY/
+  );
+  assert.deepEqual(
+    publish.steps.map(s => s.get('uses')?.split('@')[0]).filter(Boolean),
+    ['step-security/harden-runner', 'actions/download-artifact']
+  );
+  for (const step of publish.steps) {
+    assert.doesNotMatch(
+      uncommented((step.get('run') ?? '').split('\n')),
+      /\b(node|npm|npx|pnpm)\s|scripts\//,
+      `${step.get('name')} runs repository code`
+    );
+  }
+  const generate = jobs.get('generate');
+  assert.match(
+    generate.code,
+    /node scripts\/gen-templates-repo\.mjs "\$RUNNER_TEMP\/bestax-templates-tree"/
+  );
+  assert.equal(
+    generate.steps
+      .find(s => s.get('uses')?.startsWith('actions/checkout@'))
+      .get('with', 'ref'),
+    'main'
+  );
+});
+
+test('a re-run of publish alone cannot find an earlier attempt’s tree', () => {
+  const jobs = workflowJobs();
+  const nameOf = (job, action) =>
+    jobs
+      .get(job)
+      .steps.find(s => s.get('uses')?.startsWith(`${action}@`))
+      .get('with', 'name');
+  const uploaded = nameOf('generate', 'actions/upload-artifact');
+  assert.equal(nameOf('publish', 'actions/download-artifact'), uploaded);
+  assert.match(uploaded, /\$\{\{ github\.run_attempt \}\}/);
+});
+
+test('a run joins the shared concurrency group on the condition generate runs on', () => {
+  const group = scalar(yamlGet(workflowLines(), 'concurrency', 'group'));
+  const shape =
+    /^\$\{\{ (.+) && 'templates-publish' \|\| format\('templates-publish-\{0\}', github\.run_id\) \}\}$/;
+  const [, joins] = group.match(shape) ?? [];
+  assert.ok(joins, `the concurrency group keeps its shape: ${group}`);
+  const jobs = workflowJobs();
+  assert.equal(joins, jobs.get('generate').get('if'));
+  assert.equal(jobs.get('publish').get('needs'), 'generate');
+  assert.equal(jobs.get('publish').get('if'), null);
+});
+
+test('every action is pinned where skills-publish.yml pins it', () => {
+  const pins = file =>
+    new Map(
+      [
+        ...fs
+          .readFileSync(path.join(REPO, file), 'utf8')
+          .matchAll(/uses: ([\w./-]+)@([0-9a-f]{40}) # (\S+)/g),
+      ].map(([, action, sha, version]) => [action, `${sha} ${version}`])
+    );
+  const ours = pins(WORKFLOW);
+  const theirs = pins('.github/workflows/skills-publish.yml');
+  assert.ok(ours.size > 0);
+  for (const [action, pin] of ours) {
+    assert.equal(pin, theirs.get(action), `${action} is on the repo-wide pin`);
+  }
+});
+
+/** The `run:` script of the publish step named `name`. */
+const publishScript = name =>
+  workflowJobs()
+    .get('publish')
+    .steps.find(s => s.get('name') === name)
+    .get('run');
+
+const runStep = (script, work, env = {}) =>
+  spawnSync('bash', ['-c', script], {
+    encoding: 'utf8',
+    env: { PATH: process.env.PATH, WORK: work, ...env },
+  });
+
+/** Runs publish's unpack step on `archive`, then its check step if it passed. */
+function runUnpack(archive, env) {
+  const work = tempDir();
+  fs.mkdirSync(path.join(work, 'bestax-templates-artifact'));
+  fs.writeFileSync(
+    path.join(work, 'bestax-templates-artifact', 'bestax-templates-tree.tar'),
+    archive
+  );
+  let run = runStep(publishScript('Unpack the tree'), work, env);
+  if (run.status === 0) {
+    run = runStep(publishScript('Check the unpacked tree'), work, env);
+  }
+  return { ...run, work, tree: path.join(work, 'bestax-templates-tree') };
+}
+
+/** A tar of `dir`, the way generate's "Pack the tree" step makes it. */
+const pack = dir => execFileSync('tar', ['-C', dir, '-cf', '-', '.']);
+
+/** A tree generated from a fixture with one template. */
+async function generatedTree() {
+  const out = path.join(tempDir(), 'tree');
+  await generate(out, fixtureRepo());
+  return out;
+}
+
+test("publish's checks take a generated tree with its modes and hidden files", async () => {
+  const out = await generatedTree();
+  // GNU tar would reject the bogus option if the step let TAR_OPTIONS through.
+  const run = runUnpack(pack(out), { TAR_OPTIONS: '--no-such-option' });
+  assert.equal(run.status, 0, run.stdout + run.stderr);
+  assert.deepEqual(await scanTree(run.tree), await scanTree(out));
+  assert.ok(fs.existsSync(path.join(run.tree, 'login/.gitignore')));
+  assert.equal(
+    fs.statSync(path.join(run.tree, 'login/bin/run.sh')).mode & 0o777,
+    0o755
+  );
+});
+
+test("publish's checks refuse a link, a .git or a missing root file", async () => {
+  for (const [why, tamper, said] of [
+    [
+      'a symbolic link',
+      dir => fs.symlinkSync('/etc', path.join(dir, 'login/etc')),
+      /regular files and directories only/,
+    ],
+    [
+      'a .git',
+      dir => write(dir, 'login/.Git/config', '[core]\n'),
+      /\.git part/,
+    ],
+    [
+      'a missing NOTICE',
+      dir => fs.rmSync(path.join(dir, 'NOTICE')),
+      /NOTICE is missing/,
+    ],
+  ]) {
+    const dir = await generatedTree();
+    tamper(dir);
+    const run = runUnpack(pack(dir));
+    assert.notEqual(run.status, 0, `${why} is refused`);
+    assert.match(run.stdout, /::error::The tree from generate is refused/);
+    assert.match(run.stdout, said, why);
+  }
+});
+
+test("publish's unpack step refuses a link, a .git or an escape before writing", () => {
+  // Built member by member, so an archive can hold names tar would not write
+  // from a real tree. Each case expects the refusal of the guard covering it.
+  const dir = name => ({ name, type: '5', mode: 0o755 });
+  const good = [
+    dir('./'),
+    { name: './README.md', body: '# bestax-templates\n' },
+    { name: './LICENSE', body: 'MIT License\n' },
+    { name: './NOTICE', body: 'This project uses Bulma.\n' },
+    dir('./login/'),
+    { name: './login/.gitignore', body: 'node_modules\n' },
+    dir('./login/bin/'),
+    { name: './login/bin/run.sh', body: '#!/bin/sh\n', mode: 0o755 },
+  ];
+  const sound = runUnpack(tarball(good));
+  assert.equal(sound.status, 0, sound.stdout + sound.stderr);
+  assert.equal(
+    fs.statSync(path.join(sound.tree, 'login/bin/run.sh')).mode & 0o777,
+    0o755
+  );
+
+  const type = /regular files and directories only/;
+  const part = /has an empty, \., \.\. or \.git part\./;
+  const named = /is not named \.\/<path>\./;
+  for (const [why, extra, said] of [
+    ['a symbolic link', { name: './login/l', type: '2', link: '/etc' }, type],
+    ['a hard link', { name: './login/h', type: '1', link: './LICENSE' }, type],
+    ['a .git', { name: './.git/config', body: '[core]\n' }, part],
+    ['a .GIT', { name: './login/.GIT/HEAD', body: 'x\n' }, part],
+    ['a ../ path', { name: './../escaped', body: 'x\n' }, part],
+    ['a nested ../', { name: './login/../../escaped', body: 'x\n' }, part],
+    ['a bare ../ path', { name: '../escaped', body: 'x\n' }, named],
+    ['an absolute path', { name: '/escaped', body: 'x\n' }, named],
+  ]) {
+    const run = runUnpack(tarball([...good, extra]));
+    assert.notEqual(run.status, 0, `${why} is refused`);
+    assert.match(run.stdout, /::error::The tree from generate is refused/);
+    assert.match(run.stdout, said, why);
+    assert.ok(!fs.existsSync(run.tree), `${why}: nothing is unpacked`);
+    assert.ok(!fs.existsSync(path.join(run.work, 'escaped')), why);
+  }
+});
+
+test("publish's check step refuses a link, a .git or a fifo already on disk", () => {
+  // The listing check keeps these out of an unpacked tree, so this runs the
+  // check step on its own, on trees made by hand.
+  const check = publishScript('Check the unpacked tree');
+  const unpacked = () => {
+    const work = tempDir();
+    const tree = path.join(work, 'bestax-templates-tree');
+    for (const file of ['README.md', 'LICENSE', 'NOTICE', 'login/App.tsx']) {
+      write(tree, file, 'x\n');
+    }
+    return { work, tree };
+  };
+  const sound = unpacked();
+  assert.equal(runStep(check, sound.work).status, 0, 'the fixture is sound');
+
+  for (const [why, tamper] of [
+    ['a symbolic link', at => fs.symlinkSync('/etc', path.join(at, 'login/l'))],
+    ['a .git', at => fs.mkdirSync(path.join(at, 'login/.git'))],
+    ['a .GIT file', at => write(at, '.GIT', 'x\n')],
+    ['a fifo', at => execFileSync('mkfifo', [path.join(at, 'login/pipe')])],
+  ]) {
+    const { work, tree } = unpacked();
+    tamper(tree);
+    const run = runStep(check, work);
+    assert.notEqual(run.status, 0, `${why} is refused`);
+    assert.match(
+      run.stdout,
+      /refused: the unpacked tree holds a \.git, or an entry that is neither/,
+      why
+    );
+  }
+});
+
+/**
+ * The lines of publish's push step that stage the tree: its git wrapper, the
+ * `publish` function and the add, as the step has them.
+ */
+function stagingScript() {
+  const lines = publishScript('Commit and push to allxsmith/bestax-templates')
+    .split('\n')
+    .map(line => line.trim());
+  return [/^gitc\(\) \{/, /^publish\(\) \{/, /^publish add\b/]
+    .map(re => {
+      const found = lines.filter(line => re.test(line));
+      assert.equal(found.length, 1, `the push step has one line like ${re}`);
+      return found[0];
+    })
+    .join('\n');
+}
+
+test("publish's push step stages every file in the tree, ignored or not", async () => {
+  // A template that tracks a file its own .gitignore matches. The tree
+  // carries both.
+  const repo = fixtureRepo();
+  const settings = 'templates/login/.vscode/settings.json';
+  write(repo, 'templates/login/.gitignore', 'node_modules\n.vscode/\n');
+  write(repo, settings, '{}\n');
+  git(repo, 'add', '--all');
+  git(repo, 'add', '--force', settings);
+  git(repo, 'check-ignore', '--quiet', '--no-index', settings);
+  const tree = path.join(tempDir(), 'tree');
+  const files = await generate(tree, repo);
+  assert.ok(files.includes('login/.vscode/settings.json'));
+
+  // A new repository, so the index starts empty as the clone's does, and
+  // git with no global or system config, as in the step. A rule in its
+  // info/exclude is one more that must not filter the tree.
+  const work = tempDir();
+  const env = {
+    PATH: process.env.PATH,
+    HOME: path.join(work, 'home'),
+    GIT_CONFIG_GLOBAL: '/dev/null',
+    GIT_CONFIG_NOSYSTEM: '1',
+    GIT_CEILING_DIRECTORIES: work,
+    repo: path.join(work, 'repo'),
+    tree,
+  };
+  fs.mkdirSync(env.HOME);
+  execFileSync('git', ['init', '--quiet', '--initial-branch=main', env.repo], {
+    env,
+  });
+  fs.mkdirSync(path.join(env.repo, '.git/info'), { recursive: true });
+  fs.appendFileSync(path.join(env.repo, '.git/info/exclude'), '*.sh\n');
+  const run = spawnSync(
+    'bash',
+    ['--noprofile', '--norc', '-euo', 'pipefail', '-c', stagingScript()],
+    { cwd: work, encoding: 'utf8', env }
+  );
+  assert.equal(run.status, 0, run.stdout + run.stderr);
+  const staged = execFileSync(
+    'git',
+    ['--git-dir', path.join(env.repo, '.git'), 'ls-files'],
+    { cwd: work, encoding: 'utf8', env }
+  )
+    .split('\n')
+    .filter(Boolean);
+  assert.deepEqual(staged.sort(), [...files].sort());
+});

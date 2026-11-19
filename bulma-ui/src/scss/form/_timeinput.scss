@@ -142,6 +142,13 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
     opacity: 0.55;
     cursor: not-allowed;
   }
+
+  // A read-only wheel turns for nothing, so its items take no pointer: no
+  // hover fill and no hand, and a press lands on the wheel, which takes
+  // focus as a read-only input does.
+  &[aria-readonly='true'] .#{iv.$class-prefix}timeinput-wheel-item {
+    pointer-events: none;
+  }
 }
 
 .#{iv.$class-prefix}timeinput-wheel-item {
@@ -257,6 +264,42 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
   }
 }
 
+// A wheel of words, the AM/PM wheel in a locale's words for them, keeps
+// the width every wheel has at its size and grows to fit its longest word,
+// which it would otherwise cut off at both ends. Its items are laid out
+// absolutely and size nothing, so a hidden copy of each word does: a minimum
+// width of max-content wins over the width a size or a phone gives the
+// wheel only where a word, clear of the band's rounded corners, is wider.
+.#{iv.$class-prefix}timeinput-wheel.#{iv.$class-prefix}is-fitted {
+  min-width: max-content;
+}
+
+// Each copy measures its word as the selected item draws it, with the
+// band's corner radius on either side so the word clears the rounded ends,
+// capped at the gap between wheels, since a theme can round the band into a
+// pill with a radius far larger than the band. The item is a button, which
+// sets its own spacing, case and indent, so the copy does too.
+.#{iv.$class-prefix}timeinput-wheel-sizer {
+  display: block;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  white-space: nowrap;
+  padding-inline: min(
+    #{cv.getVar('timeinput-wheel-radius')},
+    #{cv.getVar('timeinput-wheel-gap')}
+  );
+  font-weight: cv.getVar('weight-semibold');
+  letter-spacing: normal;
+  word-spacing: normal;
+  text-transform: none;
+  text-indent: 0;
+
+  &::before {
+    content: attr(data-label);
+  }
+}
+
 // Sizes scale the item height + wheel width.
 .#{iv.$class-prefix}timeinput-wheel.#{iv.$class-prefix}is-small {
   width: 2.5rem;
@@ -274,10 +317,48 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
   }
 }
 
+// Forced colors (Windows' contrast themes) replaces the band's fill, so there
+// the band is gone and the picked value looks like the values around it
+// (#2021). This draws the band in Highlight, the system's color for a
+// selection, with `forced-color-adjust: none` so it keeps it. The values stay
+// forced, in the system's text color on the page's color, which the browser
+// draws behind them, so each reads on the band and off it, as it slides
+// through while the wheel turns. The focus ring sits inside the band, so it
+// takes HighlightText. A disabled wheel's band, and a disabled value, take
+// GrayText, the system's color for a disabled control, and keep their full
+// opacity, since GrayText marks them, and the disabled opacity would blend the
+// band into the page and the value into the page's color.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}timeinput-wheel-band {
+    forced-color-adjust: none;
+    background-color: Highlight;
+  }
+
+  .#{iv.$class-prefix}timeinput-wheel:focus-visible
+    .#{iv.$class-prefix}timeinput-wheel-band {
+    outline-color: HighlightText;
+  }
+
+  .#{iv.$class-prefix}timeinput-wheel.#{iv.$class-prefix}is-disabled {
+    opacity: 1;
+
+    .#{iv.$class-prefix}timeinput-wheel-band {
+      background-color: GrayText;
+    }
+  }
+
+  .#{iv.$class-prefix}timeinput-wheel-item:disabled {
+    color: GrayText;
+    opacity: 1;
+  }
+}
+
 // Mobile (small viewport): bigger touch targets, larger numbers, more iOS-native
 // feel. Item *height* is set inline by JS, and made taller on small viewports by
 // the component; the rules below adjust everything that's CSS-only (font size,
 // wheel width, gap, separator, mask intensity).
+// Fixed at 768px rather than Bulma's `$tablet`: it must match
+// `smallViewportMaxPx` in `useNativeMobilePicker`, which sets the item height.
 @media (max-width: 768px) {
   // Registered through `cv.register-vars` like the defaults above, so the
   // overrides land on the names the rules read.
@@ -302,7 +383,9 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
     );
   }
 
-  .#{iv.$class-prefix}timeinput-wheel-item {
+  // The copies that size a wheel of words measure at the items' size.
+  // On the wheel, which its items and the copies that size it inherit.
+  .#{iv.$class-prefix}timeinput-wheel {
     font-size: 1.1rem;
   }
 

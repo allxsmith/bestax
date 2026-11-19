@@ -1,0 +1,82 @@
+{
+  "template": "tropico",
+  "images": [
+    {
+      "path": "public/images/card-item-1.svg",
+      "sha256": "3de71031783da08903da30c79635b0ece9635384c4bbaa9a1f507b02a4901bbf",
+      "origin": "original",
+      "made": "2026-10-26",
+      "madeBy": "Alex Smith, for this bestax port",
+      "method": "Drawn by code: docs/scripts/template-art/scenes/tropico.mjs places every block and shape, and the voxel renderer in docs/scripts/template-art writes the SVG, with every texture generated from a palette and a seed. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A blocky orange with a leaf on its stalk, drawn as a small icon.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/images/card-item-1.png, the original's icon on the services cards, whose source the original does not record."
+    },
+    {
+      "path": "public/images/orange.svg",
+      "sha256": "bdc2cea2617e0fcadef733b4e0c64a7d39ebf08723f1ec34476710783f239899",
+      "origin": "original",
+      "made": "2026-10-26",
+      "madeBy": "Alex Smith, for this bestax port",
+      "method": "Drawn by code: docs/scripts/template-art/scenes/tropico.mjs places every block and shape, and the voxel renderer in docs/scripts/template-art writes the SVG, with every texture generated from a palette and a seed. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "Two blocky whole oranges, one with leaves, beside a halved orange showing its segments on the cut face.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/images/orange.webp, the original's picture of oranges in the fresh fruits list, whose source the original does not record."
+    },
+    {
+      "path": "public/images/guava.svg",
+      "sha256": "ce3adc20cf08731915fb783b5b638d2dd878daee9b792f50319100189ebc2eea",
+      "origin": "original",
+      "made": "2026-10-26",
+      "madeBy": "Alex Smith, for this bestax port",
+      "method": "Drawn by code: docs/scripts/template-art/scenes/tropico.mjs places every block and shape, and the voxel renderer in docs/scripts/template-art writes the SVG, with every texture generated from a palette and a seed. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "Two blocky green guavas on a broad leaf beside a halved guava showing its pink flesh and a ring of seeds.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/images/gauva.webp (so spelled), the original's picture of guavas in the fresh fruits list, whose source the original does not record."
+    },
+    {
+      "path": "public/images/client.svg",
+      "sha256": "d6809c7823b5f1e295b9f35b1b3c8f5d704aa57cb6ef8bf78f1aa707ef3b2ac6",
+      "origin": "original",
+      "made": "2026-10-26",
+      "madeBy": "Alex Smith, for this bestax port",
+      "method": "Drawn by code: docs/scripts/template-art/scenes/tropico.mjs places every block and shape, and the voxel renderer in docs/scripts/template-art writes the SVG, with every texture generated from a palette and a seed. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A blocky made-up customer, not a real person: a smiling face under a straw sun hat, with dark curls and a green shirt, on a peach background.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/images/client.webp, the original's photo of a customer in the testimonials, whose source the original does not record."
+    },
+    {
+      "path": "public/images/tasty-banner.svg",
+      "sha256": "022b36a8822d5265f09df7a1da411e4f3b75353a9026e3450e8dc42c367b4b0e",
+      "origin": "original",
+      "made": "2026-10-26",
+      "madeBy": "Alex Smith, for this bestax port",
+      "method": "Drawn by code: docs/scripts/template-art/scenes/tropico.mjs places every block and shape, and the voxel renderer in docs/scripts/template-art writes the SVG, with every texture generated from a palette and a seed. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A floor of deep green blocks scattered with blocky orange, lemon, lime and kiwi slices, pineapple rings, strawberries, blueberries and mint leaves, with a darker, empty band across its upper middle where the page puts the banner title.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "https://technext.github.io/tropika/images/tasty-image.png, the photo the original hot-links behind its \"Very tasty fruits\" banner, from another template's site. Replaced so the template ships and loads only images made for it."
+    },
+    {
+      "path": "public/images/orange-dish.svg",
+      "sha256": "f8c78fdd2e99b3aae212d8ddb9f2a80dcc5feaf0e6a2e9bcc460bbf74baa80b4",
+      "origin": "original",
+      "made": "2026-10-26",
+      "madeBy": "Alex Smith, for this bestax port",
+      "method": "Drawn by code: docs/scripts/template-art/scenes/tropico.mjs places every block and shape, and the voxel renderer in docs/scripts/template-art writes the SVG, with every texture generated from a palette and a seed. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "The left half of a blocky pale blue and white plate of orange slices with mint leaves and two whole oranges, cut off by the right edge.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "https://technext.github.io/tropika//images/orange-dish.png, the picture the original hot-links at the contact section's right edge, from another template's site. Replaced so the template ships and loads only images made for it."
+    },
+    {
+      "path": "public/images/slide-img.svg",
+      "sha256": "921866046678fa2908b6980a9b41b43cc06669a1e0222eeff8f105788da6fdd8",
+      "origin": "original",
+      "made": "2026-10-26",
+      "madeBy": "Alex Smith, for this bestax port",
+      "method": "Drawn by code: docs/scripts/template-art/scenes/tropico.mjs places every block and shape, and the voxel renderer in docs/scripts/template-art writes the SVG, with every texture generated from a palette and a seed. No photograph, stock image or other third-party image was used as an input or as a tracing reference.",
+      "depicts": "A blocky wooden bowl of tropical fruit on a pale orange disc: a pineapple, bananas, oranges, a mango, a halved papaya and an orange slice, with leaves behind.",
+      "license": "MIT, under this template's LICENSE",
+      "replaces": "public/images/slide-img.webp, the original's picture beside the opening carousel's text, whose source the original does not record."
+    }
+  ]
+}

@@ -10,7 +10,11 @@ theming means overriding the right `--bulma-*` values.
 
 `Theme` is exported from the package and writes `--bulma-*` variables for you.
 
-- `isRoot` → injects the variables globally at `:root` (use once, at the app root).
+- `isRoot` → injects the variables globally at `:root` (use once, at the app root). It writes
+  them before the browser paints what it rendered, so an app rendered in the browser has them
+  from its first frame of content. A server render doesn't include them, so a server-rendered
+  page paints with the stylesheet's values until it hydrates: put what it needs from its first
+  paint in CSS (path 2).
 - without `isRoot` → wraps children in a `<div>` and scopes the variables to that subtree.
 - Named props set the color/scheme HSL channels and common values (see "Theme props" below).
 - `bulmaVars` sets any other variable, keyed by its real `--bulma-*` name. It only changes
@@ -63,13 +67,14 @@ If compiling Bulma's Sass yourself, set the SCSS variables before the CSS variab
 );
 ```
 
-(The library itself ships `$primary: #1e6b99` — HSL `202 / 67% / 36%` — this way.)
+(The library itself ships `$primary: #1e6b99` — HSL `202 / 67% / 36%` — this way, and
+`$table-cell-text-align: start`, so table header cells line up with the body cells under them on
+a right-to-left page, where Bulma's default is `left`.)
 
 ## Colors — override the H/S/L trio to recolor
 
-Bulma derives a color's entire palette (shades, light/dark/invert variants) from three channels.
-Override the trio; the rest follows automatically. For each color `<c>` ∈ `primary`, `link`,
-`info`, `success`, `warning`, `danger`:
+Each color is three channels. For each color `<c>` ∈ `primary`, `link`, `info`, `success`,
+`warning`, `danger`:
 
 | Variable        | Meaning                    | `Theme` prop             |
 | --------------- | -------------------------- | ------------------------ |
@@ -77,9 +82,110 @@ Override the trio; the rest follows automatically. For each color `<c>` ∈ `pri
 | `--bulma-<c>-s` | saturation (`%`)           | `<c>S`                   |
 | `--bulma-<c>-l` | lightness (`%`)            | `<c>L`                   |
 
-Read-only derived values (set automatically; reference if you need them): `--bulma-<c>` (the
-resolved color), `--bulma-<c>-invert`, `--bulma-<c>-light`, `--bulma-<c>-dark`, `--bulma-<c>-rgb`,
-and numeric shades `--bulma-<c>-00` … `--bulma-<c>-95`.
+What a runtime trio moves: `--bulma-<c>`, the color itself, follows all three channels. Its
+shades, its light and dark variants, and its invert and on-scheme colors follow the hue and
+saturation, each at a lightness Bulma's Sass build wrote into the stylesheet for the color it was
+given:
+
+- the numeric shades `--bulma-<c>-00` … `--bulma-<c>-100` sit on a ramp of lightnesses
+  (`--bulma-<c>-<n>-l`) laid out from the built color's own, and `--bulma-<c>-light` and
+  `--bulma-<c>-dark` point into it. A new `-l` moves none of them, so a shade is as light as it
+  was before; only a Sass build lays the ramp out from a new color.
+- `--bulma-<c>-invert` and `--bulma-<c>-on-scheme` take the lightnesses below, which the build
+  picked for contrast.
+
+`--bulma-<c>-rgb` is the built color written out as a value, so it follows none of the trio.
+
+### The lightnesses Bulma's build picks for contrast
+
+The build picks the label and text lightnesses for each color by their contrast with the color it
+was given. A trio set at runtime leaves them as they were, so when a new color reads lighter or
+darker than the built one, which a change of hue or saturation can do as well as a change of
+lightness, set them too:
+
+| Variable                  | What reads it                                                                                                                                                                      |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--bulma-<c>-invert-l`    | the label on a solid `<c>` surface: `Button`, `Tag` and `Notification` with `color="<c>"`, a colored `Hero` or `Navbar`, a colored `Steps`' completed mark, …                      |
+| `--bulma-<c>-on-scheme-l` | `<c>` text on the page: `textColor="<c>" colorShade="on-scheme"`, `textColor="<c>"` where it's lighter than the trio's, a colored `Message`'s body, a field's colored help text, … |
+
+For `link`, the on-scheme lightness is also every link on the page (`--bulma-link-text`), so a new
+link color that reads lighter than Bulma's own leaves the page's links pale.
+
+bestax's stylesheet builds its primary from a dark blue, so the primary's invert is white
+(`var(--bulma-primary-100-l)`). A light primary set through the trio alone keeps those white
+labels: on stock Bulma's turquoise they read at under 2:1. Its on-scheme lightness was picked for
+the blue too, and is too light for turquoise text on a white page. The other colors are built
+from Bulma's own defaults. For a page made for stock Bulma, the bestax-migrate skill's
+`references/css-migration.md` covers getting its turquoise back.
+
+Set them alongside the trio, through `Theme`'s `bulmaVars` or in your CSS:
+
+- **The invert** is one value for both schemes. Point it at a shade that reads on the new color: a
+  near-black `var(--bulma-<c>-05-l)` on a light color, a near-white `var(--bulma-<c>-100-l)` on a
+  dark one.
+- **The on-scheme lightness** has to read on the page's background, so Bulma gives each scheme
+  its own. One value applies in both schemes, so give each scheme its own: on an `isRoot`
+  `Theme`, the on-scheme keys of `bulmaVars` take `{ light, dark }`, and `Theme` writes each
+  where Bulma's own value for that scheme applies. A scheme you leave out keeps the
+  stylesheet's value. `bestax-no-dark-mode.css` has no dark scheme, so with it give one string.
+
+```tsx
+// Stock Bulma's turquoise, with the values from bulma/css/bulma.css.
+<Theme
+  isRoot
+  primaryH="171deg"
+  primaryS="100%"
+  primaryL="41%"
+  bulmaVars={{
+    '--bulma-primary-invert-l': 'var(--bulma-primary-05-l)',
+    '--bulma-primary-on-scheme-l': { light: '21%', dark: '41%' },
+  }}
+>
+  <App />
+</Theme>
+```
+
+A scoped `Theme` writes its variables as an inline style, which can't hold a value per scheme, so
+there the on-scheme lightness takes only a string, and `{ light, dark }` is skipped with a warning
+in development. Set it in your CSS instead when a scoped section needs one per scheme, or when
+the page is rendered on the server, which paints before `Theme` runs. In CSS, loaded after the
+library's styles, a value on `:root` wins in both schemes, so give dark mode its own value on
+both of its paths:
+
+```css
+/* Stock Bulma's turquoise, with the values from bulma/css/bulma.css. */
+:root {
+  --bulma-primary-h: 171deg;
+  --bulma-primary-s: 100%;
+  --bulma-primary-l: 41%;
+  --bulma-primary-invert-l: var(--bulma-primary-05-l);
+  --bulma-primary-on-scheme-l: 21%;
+}
+[data-theme='dark'] {
+  --bulma-primary-on-scheme-l: 41%;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bulma-primary-on-scheme-l: 41%;
+  }
+}
+```
+
+For a color of your own, pick each value by its contrast (4.5:1 or more for text), or build
+Bulma's Sass with the color (`@use 'bulma/sass' with ($primary: …)`), which computes both.
+
+`textColor="<c>"` alone renders `has-text-<c>`. On a dark page bestax's stylesheets give it the
+lighter of the trio's lightness and the on-scheme one, for each color they were built with but
+`white`, `black`, `light`, `dark` and `text`, and on a light page the trio's own, so text in a light color
+on a light page takes `colorShade="on-scheme"` as well. On the dark page a trio set without its
+on-scheme lightness comes out at the build's on-scheme lightness where that's the lighter one.
+Text on a surface that stays light on both schemes (`bgColor="white"`, `"light"` or a color's
+light shade) takes `colorShade="dark"`.
+
+The build pairs each numbered shade, and the light and dark variants, with a label shade the same
+way (`--bulma-<c>-<n>-invert-l`, `--bulma-<c>-light-invert-l`, `--bulma-<c>-dark-invert-l`),
+picked for the hue and saturation it was given. After a change of hue, check the contrast of text
+you put on a numbered shade.
 
 ## Scheme, text, background, border (light/dark surfaces)
 
@@ -124,7 +230,10 @@ class you pass through `className`, or with the component's `style` prop. A size
 modifier can declare the variable again on a more specific selector (`.delete.is-small`), which a
 lone class loses to and `style` does not. Each component's API page lists its variables under
 **CSS & Sass Variables** and says where Bulma declares them; the extras below follow the same
-rule.
+rule. In forced colors a colored button's `--bulma-button-border-width` is `1px`, so it keeps an
+edge when the theme replaces its fill, and an outlined button or a `text` one keeps its own.
+In forced colors bestax's CSS sets `--bulma-button-disabled-opacity` to `1` on each button, so what
+Bulma dims with it draws at full strength there.
 
 ## Shadow — override the upstream token, not the derived one
 
@@ -178,6 +287,9 @@ lone class or the `style` prop cannot outrank:
   its own declaration — target the declaring element in your CSS:
   `.tooltip-content { --bulma-tooltip-background: … }`.
 
+The `style` prop also misses on Checkbox and Radio, which put it on their hidden `<input>`; set
+their variables through `className` (see their entries below).
+
 ### Avatar / Avatars / Badge
 
 | Variable                                                          | Default                          |
@@ -195,9 +307,43 @@ lone class or the `style` prop cannot outrank:
 | `--bulma-badge-dot-size`                                          | `0.65em`                         |
 | `--bulma-badge-inset-circle` / `--bulma-badge-animation-duration` | `12%` / `1.4s`                   |
 
+In forced colors a badge's fill and `--bulma-badge-ring-color` don't show: a count or text badge
+takes a `CanvasText` edge, and a dot a `CanvasText` fill with its ring in `Canvas`, whatever its
+color or a background helper says.
+
 The remaining extras register the variables below — names only; each default lives in the
 component's SCSS partial under `bulma-ui/src/scss/` as a `$<name> !default` variable. The same
 own-selector override rule applies.
+
+### Affix
+
+The offsets start at Bulma's `$block-spacing` as a value, so a Sass build that sets it moves every
+Affix, and a Field, where Bulma narrows `--bulma-block-spacing`, doesn't. Each edge adds the
+device's safe-area inset on top in the stylesheet, which is 0 unless the page sets
+`viewport-fit=cover`; there's no variable for it. The variables are declared on `.affix`, so a theme
+sets them there with a selector that outweighs the library's, such as `:root .affix`. A spacing
+helper margin (`mb="6"`) moves one Affix further in without touching the variables. The z-index
+starts one step under the dropdown layer, so menus open over it.
+
+`--bulma-affix-offset-horizontal`, `--bulma-affix-offset-vertical`, `--bulma-affix-z-index`
+
+### AppFrame
+
+Declared on the root, `.app-frame`, except `--bulma-app-frame-header-height`, which is on `:root`
+beside `--bulma-navbar-height`, its default, so the document's `scroll-padding-top` can read it. A
+header taller than Bulma's navbar sets it there. `AppFrame.Nav width` writes
+`--bulma-app-frame-nav-width` on the nav, and `AppFrame.Aside width` writes
+`--bulma-app-frame-aside-width` on the aside.
+
+`--bulma-app-frame-aside-width`, `--bulma-app-frame-backdrop-background`,
+`--bulma-app-frame-border-color`, `--bulma-app-frame-border-width`,
+`--bulma-app-frame-drawer-shadow`, `--bulma-app-frame-handle-size`,
+`--bulma-app-frame-handle-size-coarse`, `--bulma-app-frame-header-background`,
+`--bulma-app-frame-header-height`, `--bulma-app-frame-line-active-color`,
+`--bulma-app-frame-line-active-size`, `--bulma-app-frame-nav-background`,
+`--bulma-app-frame-nav-padding`, `--bulma-app-frame-nav-rail-width`,
+`--bulma-app-frame-nav-width`, `--bulma-app-frame-skip-link-background`,
+`--bulma-app-frame-skip-link-color`, `--bulma-app-frame-transition-duration`
 
 ### Autocomplete
 
@@ -217,6 +363,24 @@ own-selector override rule applies.
 `--bulma-autocomplete-scrollbar-thumb-hover`, `--bulma-autocomplete-scrollbar-track`,
 `--bulma-autocomplete-scrollbar-width`
 
+In forced colors `--bulma-autocomplete-item-disabled-opacity` doesn't apply: a disabled item
+draws at full strength in the system's color for disabled text.
+
+`--bulma-autocomplete-border-hover-color` is registered but has no effect: the input's hover
+border is Bulma's own.
+
+### Button
+
+An outlined button in a color other than `white`, `black`, `light`, `dark` and `text` sets
+`--bulma-button-l`, Bulma's lightness for its label, border and loading ring, on a dark page to
+the lighter of the color's own lightness and its on-scheme one, so a dark color reads there, and on
+a light page to the color's own. That
+rule, `.button.is-<color>.is-outlined`, outranks Bulma's `.button.is-<color>`, so set the
+variable on the button through `style`. On the dark page a trio set without its on-scheme lightness
+comes out at the build's on-scheme lightness where that's the lighter one.
+On a surface that stays light on both schemes, Bulma's `theme-light` class on the surface (with
+the class prefix in a prefixed build) keeps what's inside it on the light scheme's values.
+
 ### Carousel
 
 `--bulma-carousel-arrow-background`, `--bulma-carousel-arrow-background-hover`,
@@ -228,16 +392,90 @@ own-selector override rule applies.
 `--bulma-carousel-indicator-background`, `--bulma-carousel-indicator-background-active`,
 `--bulma-carousel-indicator-background-hover`, `--bulma-carousel-indicator-bar-height`,
 `--bulma-carousel-indicator-bar-height-mobile`, `--bulma-carousel-indicator-bar-width`,
-`--bulma-carousel-indicator-bar-width-mobile`, `--bulma-carousel-indicator-circle-size`,
-`--bulma-carousel-indicator-gap`, `--bulma-carousel-indicator-gap-mobile`,
+`--bulma-carousel-indicator-bar-width-mobile`, `--bulma-carousel-indicator-border-color`,
+`--bulma-carousel-indicator-border-color-hover`, `--bulma-carousel-indicator-border-width`,
+`--bulma-carousel-indicator-circle-size`, `--bulma-carousel-indicator-gap`,
+`--bulma-carousel-indicator-gap-mobile`, `--bulma-carousel-indicator-line-border-width`,
 `--bulma-carousel-indicator-line-height`, `--bulma-carousel-indicator-line-height-mobile`,
 `--bulma-carousel-indicator-line-radius`, `--bulma-carousel-indicator-line-width`,
 `--bulma-carousel-indicator-line-width-mobile`, `--bulma-carousel-indicator-size`,
-`--bulma-carousel-indicator-size-mobile`, `--bulma-carousel-overlay-arrow-background`,
+`--bulma-carousel-indicator-size-mobile`, `--bulma-carousel-item-gap`,
+`--bulma-carousel-items-in-view`, `--bulma-carousel-items-to-show`,
+`--bulma-carousel-items-to-show-desktop`, `--bulma-carousel-items-to-show-fullhd`,
+`--bulma-carousel-items-to-show-mobile`, `--bulma-carousel-items-to-show-tablet`,
+`--bulma-carousel-items-to-show-widescreen`, `--bulma-carousel-overlay-arrow-background`,
 `--bulma-carousel-overlay-arrow-background-hover`, `--bulma-carousel-overlay-arrow-color`,
 `--bulma-carousel-overlay-indicator-background`,
 `--bulma-carousel-overlay-indicator-background-active`,
 `--bulma-carousel-overlay-indicator-background-hover`, `--bulma-carousel-transition-duration`
+
+In forced colors `--bulma-carousel-arrow-disabled-opacity` doesn't apply without `arrowHover`: a
+disabled arrow draws at full strength in the system's color for a disabled control.
+
+`--bulma-carousel-item-gap` (a length, default `0px`) is the space between items in view; set it
+on the carousel's own element through a class. The `--bulma-carousel-items-to-show*` variables
+come from the `itemsToShow*` props, and `--bulma-carousel-items-in-view` is the one of them the
+viewport picks. The props also decide how far a step moves, so set the count with the props
+rather than with these variables.
+
+The indicators are Bulma's: a resting dot, line or bar filled in `--bulma-carousel-indicator-background`
+(the border color), the current one in `--bulma-carousel-indicator-background-active` (the primary
+color), and a circle a ring in the border color. `--bulma-carousel-indicator-border-color` draws a
+ring at each resting indicator's edge, `--bulma-carousel-indicator-border-width` wide, or
+`--bulma-carousel-indicator-line-border-width` on a line or a bar. It's transparent on dots, lines
+and bars, so they show their fill alone, and the border color on circles. Set it on a class you pass
+through `className`, with the carousel's class in the selector (`.carousel.my-carousel`, mind the
+class prefix), and it colors every resting ring, circles included; `-hover` follows it unless set.
+The current indicator, and dots, lines and bars in the overlay look, take no ring. A resting fill
+falls short of 3:1 against the page, so for indicators that hold it, set the ring to a color such as
+`var(--bulma-text-weak)`.
+
+The `--bulma-carousel-overlay-*` variables color the arrows, and indicators over the slides, only
+while the overlay look is on: `overlayControls`, which follows `indicatorInside` unless set. The look
+also puts a dark gradient band behind indicators over the slides (a `background`, not a variable),
+and while it's on the arrows ignore `arrowColor`. For indicators over light slides, such as white
+cards, use `<Carousel indicatorInside overlayControls={false}>`: plain colors and no band.
+`overlayControls` alone gives the arrows the overlay look with the indicators below the slides. The
+overlay colors default to light ones (`--bulma-white`) in either color scheme, since they sit on a
+dark tint.
+
+### Calendar
+
+Declared on the root, `.calendar`: its frame, and the gap between the months on show. Each month
+is the `DateInput` calendar, `.dateinput`, so the `--bulma-dateinput-*` variables below theme its
+days, and a theme written for the date pickers themes the Calendar too. A `DateRangeInput` with
+`monthsToShow` takes `--bulma-calendar-months-gap` too, declared on its root and its popover.
+
+`--bulma-calendar-background-color`, `--bulma-calendar-border-color`,
+`--bulma-calendar-months-gap`, `--bulma-calendar-padding`, `--bulma-calendar-radius`
+
+### Cascader
+
+Declared on the root, `.cascader`, and on a portaled panel, `.cascader-panel`, which sits outside
+it. The chevron and the clear button on the field are drawn as TreeSelect's are, from the tokens
+Bulma's input icon variables start from. The rest lay out the columns and draw their items, which
+are Bulma's dropdown items: Bulma registers `--bulma-dropdown-*` on `.dropdown` alone, and a
+cascader isn't one, so retheme the items through these. Their color, size, padding and hover,
+and the sizes, start from Combobox's Sass values. The open path, which follows focus, is
+`is-active` and takes `highlight-background`, and the picked path is `is-checked` and takes the
+`checked-*` pair, as Combobox's highlight and checked items are named. A size on the field sets the `item-size`
+and `item-padding-*` values on the panel. The panel is at least as wide as the field and grows with its
+columns up to `max-width`, the viewport less a margin, so on a narrow screen they scroll sideways in
+it. The panel is the picker popover, above, so
+`--bulma-picker-popover-*` themes it here too.
+
+`--bulma-cascader-chevron-color`, `--bulma-cascader-chevron-focus-color`,
+`--bulma-cascader-chevron-hover-color`, `--bulma-cascader-chevron-width`,
+`--bulma-cascader-chevron-z-index`, `--bulma-cascader-clear-z-index`,
+`--bulma-cascader-checked-background`, `--bulma-cascader-checked-color`,
+`--bulma-cascader-column-border-color`, `--bulma-cascader-column-border-width`,
+`--bulma-cascader-column-inset`, `--bulma-cascader-column-max-height`,
+`--bulma-cascader-column-width`, `--bulma-cascader-disabled-color`,
+`--bulma-cascader-highlight-background`, `--bulma-cascader-item-chevron-size`,
+`--bulma-cascader-item-color`, `--bulma-cascader-item-gap`,
+`--bulma-cascader-item-hover-background`, `--bulma-cascader-item-padding-x`,
+`--bulma-cascader-item-padding-y`, `--bulma-cascader-item-size`, `--bulma-cascader-max-width`,
+`--bulma-cascader-search-gap`
 
 ### Checkbox
 
@@ -246,6 +484,52 @@ own-selector override rule applies.
 `--bulma-checkbox-focus-shadow-size`, `--bulma-checkbox-indeterminate-color`,
 `--bulma-checkbox-label-gap`, `--bulma-checkbox-radius`, `--bulma-checkbox-size`,
 `--bulma-checkbox-transition-duration`
+
+The check mark and the mixed dash are both `--bulma-checkbox-check-color`, on the
+`--bulma-checkbox-active-color` (checked) or `--bulma-checkbox-indeterminate-color` (mixed) fill,
+so a dark fill needs a light check color. Set these on a class you pass through `className`, not
+with `style`: Checkbox puts `style` and its other attributes on the hidden `<input>`, not on the
+`.styled-checkbox` label that declares them. Name both classes in the selector
+(`.styled-checkbox.my-box`, mind the class prefix) so it wins whatever order the stylesheets load
+in. A `color` prop declares both fills again on `.styled-checkbox.is-<color>`, which ties with
+that selector, so leave `color` unset when a class sets the fill. The unchecked border, `--bulma-checkbox-border-color`, defaults to `text-weak` so
+the box holds the 3:1 WCAG asks of a control's boundary; keep a replacement at 3:1 against what
+the form sits on.
+
+`--bulma-checkbox-size` (default `1.25em`) can't take the box below 24px: the stylesheet gives the
+`.check` box a `min-width` and `min-height` of 24px, WCAG 2.2's minimum target size, so with
+Bulma's default font sizes the box is 24px at the default and `small` sizes. For a smaller box, set the size and also
+`min-width: 0; min-height: 0` on `.styled-checkbox.my-box .check` (mind the class prefix), and keep
+the label text inside the `Checkbox`, since the whole label is the click target.
+
+`--bulma-checkbox-focus-shadow-size` is registered but has no effect: the keyboard focus ring is a
+`2px` outline in `--bulma-checkbox-active-color`, with no shadow for a size to apply to.
+
+### CheckboxCard
+
+`--bulma-checkbox-card-active-color`, `--bulma-checkbox-card-border-color`,
+`--bulma-checkbox-card-border-width`, `--bulma-checkbox-card-check-color`,
+`--bulma-checkbox-card-checked-border-width`, `--bulma-checkbox-card-description-color`,
+`--bulma-checkbox-card-disabled-opacity`, `--bulma-checkbox-card-focus-color`,
+`--bulma-checkbox-card-focus-offset`, `--bulma-checkbox-card-focus-width`,
+`--bulma-checkbox-card-gap`, `--bulma-checkbox-card-hover-border-color`,
+`--bulma-checkbox-card-indicator-border-color`, `--bulma-checkbox-card-indicator-border-width`,
+`--bulma-checkbox-card-indicator-radius`, `--bulma-checkbox-card-indicator-size`,
+`--bulma-checkbox-card-min-width`, `--bulma-checkbox-card-title-weight`,
+`--bulma-checkbox-card-transition-duration`
+
+Declared on the card, the `.checkbox-card` label, which is also Bulma's `.card`, so the
+`--bulma-card-*` variables style its surface and `--bulma-card-radius` rounds its edge too. Set
+either family on a class you pass through `className`, with both classes in the selector
+(`.checkbox-card.my-card`, mind the class prefix): `style` goes to the hidden `<input>`. A `color`
+prop declares `--bulma-checkbox-card-active-color` again on `.checkbox-card.is-<color>`, which ties
+that selector. A checked card's edge is `--bulma-checkbox-card-checked-border-width`, thicker than
+`--bulma-checkbox-card-border-width`, so the selection isn't color alone; keep it thicker. The focus
+outline is Bulma's focus color, not the active color. `--bulma-checkbox-card-min-width` is how
+narrow a card gets in a `Checkboxes` row before the row wraps. In forced colors the edge takes
+`CanvasText`, and `Highlight` when checked, whatever these say, and
+`--bulma-checkbox-card-disabled-opacity` doesn't apply: a disabled card draws at full strength in
+the system's color for disabled text.
 
 ### Collapse
 
@@ -257,6 +541,101 @@ own-selector override rule applies.
 items of a `Collapses` group, which reads it with a 0.5rem fallback and declares no value itself,
 so set it on the group or on any ancestor, `:root` included. (`Theme`'s `bulmaVars` does not
 list it, so set it in your CSS or through a `style` prop.)
+
+### ColorInput
+
+Declared on the field's container, `.colorinput`. The swatch at the field's start and
+the launcher at its end each take `--bulma-colorinput-side-width`, in em so they grow with the
+input's size, and they swap sides right to left. The panel is a `.color-picker` in a
+`.picker-popover`, so the ColorPicker and picker popover variables style it.
+
+`--bulma-colorinput-disabled-opacity`, `--bulma-colorinput-side-width`,
+`--bulma-colorinput-swatch-size`, `--bulma-colorinput-trigger-color`,
+`--bulma-colorinput-trigger-hover-color`
+
+In forced colors `--bulma-colorinput-disabled-opacity` doesn't apply to the launcher, which draws
+at full strength in the system's color for a disabled control. The swatch keeps it, since its
+color is the value it shows.
+
+### ColorPicker
+
+Declared on the root, `.color-picker`, and inherited by its parts, so a value set there, or on a
+class passed through `className`, reaches the square, the sliders, the swatches and the value row.
+The square's black, white and hue gradients and the hue track are the color model itself, so they
+take no variable. The thumbs are a white ring between two dark ones
+(`--bulma-color-picker-thumb-color` and `--bulma-color-picker-thumb-shadow`), which shows on any
+color. `--bulma-color-picker-slider-height` is what a press lands on, at least 24px for WCAG 2.5.8,
+and `--bulma-color-picker-track-height` the drawn track inside it. The swatches inside are
+`ColorSwatch`es sized by `--bulma-color-picker-swatch-size`. In forced colors the square and the
+tracks keep their colors with a `CanvasText` edge, and the chosen swatch's ring is `Highlight`,
+whatever these say.
+
+`--bulma-color-picker-area-height`, `--bulma-color-picker-area-radius`,
+`--bulma-color-picker-checker-background`, `--bulma-color-picker-checker-color`,
+`--bulma-color-picker-checker-size`, `--bulma-color-picker-disabled-opacity`,
+`--bulma-color-picker-edge-color`, `--bulma-color-picker-gap`, `--bulma-color-picker-preview-size`,
+`--bulma-color-picker-slider-height`, `--bulma-color-picker-swatch-gap`,
+`--bulma-color-picker-swatch-radius`, `--bulma-color-picker-swatch-ring-color`,
+`--bulma-color-picker-swatch-size`, `--bulma-color-picker-thumb-border-width`,
+`--bulma-color-picker-thumb-color`, `--bulma-color-picker-thumb-shadow`,
+`--bulma-color-picker-thumb-size`, `--bulma-color-picker-track-height`,
+`--bulma-color-picker-track-radius`, `--bulma-color-picker-width`
+
+### ColorSwatch
+
+Declared on the swatch, `.color-swatch`; the size classes set `--bulma-color-swatch-size`. The color
+itself is the component's `color` prop, painted over a checkerboard of
+`--bulma-color-swatch-checker-color` and `--bulma-color-swatch-checker-background`, from scheme
+colors so it follows dark mode. In forced colors it keeps its color and takes a `CanvasText` edge
+in place of `--bulma-color-swatch-edge-color`.
+
+`--bulma-color-swatch-checker-background`, `--bulma-color-swatch-checker-color`,
+`--bulma-color-swatch-checker-size`, `--bulma-color-swatch-edge-color`,
+`--bulma-color-swatch-radius`, `--bulma-color-swatch-size`
+
+### Combobox
+
+Declared on the root, `.combobox`, and again on a menu rendered with `appendToBody`,
+`.combobox-menu.is-portal`, outside the root. A menu in place inherits the root's, so a value set on
+`.combobox` reaches it; for a portaled one, set it on `.combobox-menu.is-portal` as well, where
+they're declared. A lone `.combobox-menu` loses to that on specificity, and
+`.combobox-menu.is-portal` ties, so your rule wins only when it loads after the library styles. Each
+size class (`.is-small`, `.is-medium`, `.is-large`, on the root and on the menu) sets the item size
+and padding, so retune a size on that class. The highlight is the link color and its invert, the
+pair Bulma gives an active dropdown item, and the colors come from Bulma's tokens, so the list
+follows dark mode with no override. The menu reads these rather than Bulma's `--bulma-dropdown-*`,
+which Bulma declares on `.dropdown` alone.
+
+`--bulma-combobox-check-color`, `--bulma-combobox-check-gap`, `--bulma-combobox-check-size`,
+`--bulma-combobox-disabled-color`, `--bulma-combobox-divider-color`, `--bulma-combobox-empty-color`,
+`--bulma-combobox-group-label-color`, `--bulma-combobox-group-label-size`,
+`--bulma-combobox-group-label-weight`, `--bulma-combobox-highlight-background`,
+`--bulma-combobox-highlight-color`, `--bulma-combobox-item-color`,
+`--bulma-combobox-item-hover-background`, `--bulma-combobox-item-padding-x`,
+`--bulma-combobox-item-padding-y`, `--bulma-combobox-item-size`, `--bulma-combobox-list-max-height`,
+`--bulma-combobox-menu-background`, `--bulma-combobox-menu-border-color`,
+`--bulma-combobox-menu-offset`, `--bulma-combobox-menu-padding-y`, `--bulma-combobox-menu-radius`,
+`--bulma-combobox-menu-shadow`, `--bulma-combobox-menu-z-index`, `--bulma-combobox-portal-z-index`
+
+### Command
+
+Declared on the root, `.command`, which `Command.Dialog` renders too, as the dialog's box, so a
+value set on `.command` reaches both. The highlight is the link color and its invert, the pair
+Bulma gives an active dropdown item, as Combobox's is, and the colors come from Bulma's tokens, so
+the list follows dark mode with no override. The search field is Bulma's `Input`, themed with
+`--bulma-input-*`. `--bulma-command-dialog-offset` is how far down the viewport the dialog sits.
+
+`--bulma-command-background`, `--bulma-command-border-color`, `--bulma-command-description-color`,
+`--bulma-command-description-size`, `--bulma-command-dialog-offset`,
+`--bulma-command-dialog-shadow`, `--bulma-command-dialog-width`, `--bulma-command-disabled-color`,
+`--bulma-command-divider-color`, `--bulma-command-empty-color`, `--bulma-command-empty-padding`,
+`--bulma-command-gap`, `--bulma-command-group-label-color`, `--bulma-command-group-label-size`,
+`--bulma-command-group-label-weight`, `--bulma-command-highlight-background`,
+`--bulma-command-highlight-color`, `--bulma-command-hint-color`, `--bulma-command-icon-color`,
+`--bulma-command-item-color`, `--bulma-command-item-gap`, `--bulma-command-item-hover-background`,
+`--bulma-command-item-padding-x`, `--bulma-command-item-padding-y`, `--bulma-command-item-radius`,
+`--bulma-command-item-size`, `--bulma-command-list-max-height`, `--bulma-command-padding`,
+`--bulma-command-radius`
 
 ### ContextMenu
 
@@ -270,9 +649,23 @@ The menu inside that box is Bulma's dropdown markup, and the box is a `.dropdown
 takes a value set on the box: `.dropdown.context-menu-content { --bulma-dropdown-content-radius: … }`
 changes context menus and leaves `Dropdown` alone.
 
+### DataTable
+
+`--bulma-data-table-gap` is declared on the root, `.data-table`, and spaces the toolbar's items
+and the toolbar from the table. The sort button declares its own on `.data-table-sort`, so markup
+built from `useDataTable`'s props looks the same with no `.data-table` around it: set those on
+`.data-table-sort` too. The table, its checkboxes and its pager are Bulma's, themed with
+`--bulma-table-*`, `--bulma-checkbox-*` and `--bulma-pagination-*`, and a selected row is
+`--bulma-table-row-active-background-color` and `--bulma-table-row-active-color`.
+
+`--bulma-data-table-gap`, `--bulma-data-table-sort-gap`, `--bulma-data-table-sort-indicator-size`,
+`--bulma-data-table-sort-unsorted-opacity`
+
 ### DateInput
 
-`--bulma-dateinput-cell-color`, `--bulma-dateinput-cell-disabled-color`,
+`--bulma-dateinput-cell-color`, `--bulma-dateinput-cell-content-color`,
+`--bulma-dateinput-cell-content-loading-opacity`, `--bulma-dateinput-cell-content-size`,
+`--bulma-dateinput-cell-disabled-color`,
 `--bulma-dateinput-cell-hover-bg`, `--bulma-dateinput-cell-other-month-color`,
 `--bulma-dateinput-cell-radius`, `--bulma-dateinput-cell-range-bg`,
 `--bulma-dateinput-cell-range-preview-bg`, `--bulma-dateinput-cell-selected-bg`,
@@ -289,6 +682,15 @@ them too. Inside a band, a nearby month's day reads `--bulma-dateinput-cell-colo
 `--bulma-dateinput-cell-other-month-color`, and today's tint leans a fifth of the way toward
 `--bulma-text-strong`, so both stay readable on the band's color.
 
+The three `cell-content` variables style what a `Calendar`'s `dayTemplate` draws under a day's
+number: its color, which a picked day's fill replaces with the picked day's own, its size, and the
+opacity it fades to while the Calendar is `loading`.
+
+In forced colors (Windows' contrast themes) a picked day, month or year, and every day of a picked
+range, are the system's highlight colors whatever `--bulma-dateinput-cell-selected-bg`,
+`--bulma-dateinput-cell-selected-color` and `--bulma-dateinput-cell-range-bg` say, and what
+`dayTemplate` draws in them takes the same color.
+
 ### DateRangeInput
 
 The field around the two inputs. Its calendar is the `DateInput` one, with the variables above.
@@ -302,6 +704,19 @@ The field around the two inputs. Its calendar is the `DateInput` one, with the v
 `--bulma-datetimeinput-time-card-radius`, `--bulma-datetimeinput-time-card-shadow`,
 `--bulma-datetimeinput-time-overlay-background`, `--bulma-datetimeinput-time-overlay-blur`
 
+### DescriptionList
+
+Declared on the root, `.description-list`. The values take the root's color, so a `textColor` on
+the list recolors them, and the labels keep `--bulma-description-list-label-color`. The gaps are in
+`em`, so `textSize` scales them. `--bulma-description-list-label-max-width` is the most the labels'
+column takes when the labels sit beside their values; it's a percentage of the list by default.
+
+`--bulma-description-list-column-gap`, `--bulma-description-list-divider-color`,
+`--bulma-description-list-divider-width`, `--bulma-description-list-gap`,
+`--bulma-description-list-label-color`, `--bulma-description-list-label-max-width`,
+`--bulma-description-list-label-weight`, `--bulma-description-list-row-gap`,
+`--bulma-description-list-value-color`
+
 ### Dialog
 
 `--bulma-dialog-animation-duration`, `--bulma-dialog-background`, `--bulma-dialog-body-color`,
@@ -310,6 +725,69 @@ The field around the two inputs. Its calendar is the `DateInput` one, with the v
 `--bulma-dialog-icon-margin`, `--bulma-dialog-icon-size`, `--bulma-dialog-max-width`,
 `--bulma-dialog-radius`, `--bulma-dialog-shadow`, `--bulma-dialog-title-color`,
 `--bulma-dialog-title-size`, `--bulma-dialog-title-weight`, `--bulma-dialog-width`
+
+### Dropzone
+
+Declared on the root, `.dropzone`. The zone is Bulma's `.file`, so its fill, text and resting
+border color, its hover look and its color modifiers come from the `--bulma-file-*` tokens on
+that `.file`. These add the dashed border, the drag states and the file list, whose surfaces come
+from Bulma's scheme tokens, so the list follows dark mode with no override. While files are
+dragged over the zone it gives File's `--bulma-file-background-l-delta`,
+`--bulma-file-border-l-delta` and `--bulma-file-color-l-delta` their hover values on the zone's
+label, and a disabled zone sets them to `0%`. In forced colors the drop target's border takes the
+system highlight color whatever these say.
+
+`--bulma-dropzone-border-style`, `--bulma-dropzone-border-width`,
+`--bulma-dropzone-disabled-opacity`, `--bulma-dropzone-dragover-border-color`,
+`--bulma-dropzone-item-background`, `--bulma-dropzone-item-border-color`,
+`--bulma-dropzone-item-border-width`, `--bulma-dropzone-item-gap`, `--bulma-dropzone-item-padding`,
+`--bulma-dropzone-item-radius`, `--bulma-dropzone-item-spacing`, `--bulma-dropzone-min-height`,
+`--bulma-dropzone-name-color`, `--bulma-dropzone-reject-border-color`,
+`--bulma-dropzone-size-color`, `--bulma-dropzone-size-font-size`, `--bulma-dropzone-spacing`
+
+In forced colors `--bulma-dropzone-disabled-opacity` doesn't apply: a disabled zone draws at full
+strength, its border and text in the system's color for a disabled control.
+
+### EmptyState
+
+Declared on the root, `.empty-state`. Each size class (`.is-small`, `.is-medium`, `.is-large`)
+sets its own gap, padding, indicator and icon sizes, and title and description sizes, so retune a
+size on that class. The color classes and `.is-filled` set the indicator's background and color
+from Bulma's scheme tokens, so the circle follows dark mode with no override. The description is
+`currentColor`, so it reads on whatever surface holds it.
+
+`--bulma-empty-state-description-color`, `--bulma-empty-state-description-max-width`,
+`--bulma-empty-state-description-size`, `--bulma-empty-state-gap`, `--bulma-empty-state-icon-size`,
+`--bulma-empty-state-indicator-background`, `--bulma-empty-state-indicator-color`,
+`--bulma-empty-state-indicator-radius`, `--bulma-empty-state-indicator-size`,
+`--bulma-empty-state-padding`, `--bulma-empty-state-title-size`
+
+### Fieldset
+
+Declared on the root, `.fieldset`. The surfaces and the border come from Bulma's scheme tokens, so
+the box follows dark mode with no override. `.is-filled` paints
+`--bulma-fieldset-filled-background` in place of `--bulma-fieldset-background`, and `.is-unstyled`
+drops the box. The legend takes Bulma's
+label look from the `--bulma-label-*` tokens. In forced colors the border takes the system's text
+color whatever these say.
+
+`--bulma-fieldset-background`, `--bulma-fieldset-border-color`, `--bulma-fieldset-border-width`,
+`--bulma-fieldset-filled-background`, `--bulma-fieldset-legend-color`,
+`--bulma-fieldset-legend-padding`, `--bulma-fieldset-legend-size`,
+`--bulma-fieldset-legend-spacing`, `--bulma-fieldset-legend-weight`, `--bulma-fieldset-padding`,
+`--bulma-fieldset-padding-top`, `--bulma-fieldset-radius`, `--bulma-fieldset-spacing`
+
+### FloatButton
+
+The shadow and the duration are declared on the button, `.button.float-button`, and the speed
+dial's gap and duration again on `.float-button-speed-dial`, whose actions fade in apart from any
+one button. `FloatButtons` declares its gap on `.float-buttons`. The shadow starts at Bulma's
+`--bulma-shadow` and gives way to Bulma's focus ring while the button has focus. The colors,
+sizes and border are the button's, `--bulma-button-*`, and the corner, its offsets and the z-index
+are Affix's, `--bulma-affix-*`.
+
+`--bulma-float-button-actions-gap`, `--bulma-float-button-shadow`,
+`--bulma-float-button-transition-duration`, `--bulma-float-buttons-gap`
 
 ### HoverCard
 
@@ -320,6 +798,43 @@ them. See the constituent-element exception above.
 `--bulma-hover-card-border-color`, `--bulma-hover-card-color`, `--bulma-hover-card-max-width`,
 `--bulma-hover-card-min-width`, `--bulma-hover-card-offset`, `--bulma-hover-card-padding`,
 `--bulma-hover-card-radius`, `--bulma-hover-card-shadow`, `--bulma-hover-card-z-index`
+
+### Kbd
+
+Declared on each key, `.kbd`. The border color and the fill default to `color-mix()` of
+`currentColor` with `transparent`, so a key follows its text in dark mode, in a filled button and
+in a tooltip without an override of its own. The sizes are in `em`, so `textSize` scales them.
+
+`--bulma-kbd-background`, `--bulma-kbd-border-bottom-width`, `--bulma-kbd-border-color`,
+`--bulma-kbd-border-width`, `--bulma-kbd-color`, `--bulma-kbd-family`, `--bulma-kbd-padding`,
+`--bulma-kbd-radius`, `--bulma-kbd-size`, `--bulma-kbd-weight`
+
+### Lightbox
+
+Declared on the viewer's root, `.modal.lightbox`, which also sets Bulma's own
+`--bulma-modal-content-width`, so the image is as wide as the viewer less the room for the arrows.
+That's two classes, so a lone class through `className` loses to it: set them inline through
+`style`, which lands on the root, or with a rule at least as specific that loads after the
+library's. Its background is Bulma's modal background, `--bulma-modal-background-background-color`,
+near-black in both schemes, which is why the text and the icons default to white; keep them light
+if you change it. In forced colors the buttons' borders take the system's colors whatever these say.
+The zoom buttons start from the arrows' backgrounds and the error's text from the caption's color,
+so each follows the other until you set it apart. The fades and the zoom take Bulma's
+`--bulma-duration` and `--bulma-easing`.
+
+`--bulma-lightbox-animation-duration`, `--bulma-lightbox-arrow-background`,
+`--bulma-lightbox-arrow-background-hover`, `--bulma-lightbox-arrow-color`,
+`--bulma-lightbox-arrow-icon-size`, `--bulma-lightbox-arrow-offset`, `--bulma-lightbox-arrow-size`,
+`--bulma-lightbox-button-border-width`, `--bulma-lightbox-caption-color`,
+`--bulma-lightbox-caption-max-width`, `--bulma-lightbox-caption-padding`,
+`--bulma-lightbox-controls-z-index`, `--bulma-lightbox-disabled-opacity`,
+`--bulma-lightbox-error-color`, `--bulma-lightbox-error-gap`, `--bulma-lightbox-error-padding`,
+`--bulma-lightbox-image-max-height`, `--bulma-lightbox-loader-size`, `--bulma-lightbox-spacing`,
+`--bulma-lightbox-toolbar-button-background`, `--bulma-lightbox-toolbar-button-background-hover`,
+`--bulma-lightbox-toolbar-color`, `--bulma-lightbox-toolbar-gap`, `--bulma-lightbox-toolbar-icon-size`
+
+In forced colors `--bulma-lightbox-disabled-opacity` doesn't apply: a button that does nothing at
+an end or a zoom limit draws at full strength in the system's color for a disabled control.
 
 ### LinkButton
 
@@ -344,13 +859,64 @@ Declared on the compound `.button.link-button` — see the compound-selector exc
 `--bulma-loading-overlay-opacity-opaque`, `--bulma-loading-text-color`,
 `--bulma-loading-text-size`
 
+### Menu
+
+`Menu.Section`'s, declared on the root, `.menu`, where Bulma declares its own `--bulma-menu-*`:
+the room between a section heading's words and its chevron, and the chevron's box, color and
+turn. Beside them, `--bulma-menu-icon-gap` is the room between an `icon` and its label, an
+item's or a section's. The heading itself reads Bulma's label variables (`--bulma-menu-label-color`,
+`--bulma-menu-label-font-size`, `--bulma-menu-label-letter-spacing`,
+`--bulma-menu-label-spacing`), so retheming the menu's labels restyles section headings too.
+
+`--bulma-menu-icon-gap`, `--bulma-menu-section-chevron-color`,
+`--bulma-menu-section-chevron-duration`, `--bulma-menu-section-chevron-size`,
+`--bulma-menu-section-gap`
+
+### Navbar
+
+An active or selected item works `--bulma-navbar-item-color` out again on itself, from the values
+Bulma sets there, so its text takes `--bulma-navbar-item-selected-color-l`, the invert of the
+selected color it sits on, which is the link color in a navbar with no `color`. Bulma works the variable out on `.navbar`, so a value set there doesn't
+reach an active item. Set `--bulma-navbar-item-color` on the item itself to give its text a color
+of your own, since bestax's rule weighs nothing. A theme that changes the selected fill
+(`--bulma-navbar-item-selected-background-l` and the rest) sets
+`--bulma-navbar-item-selected-color-l` to match. An item with a `bgColor` is left out, and keeps
+the navbar's text color.
+
+In a colored `Hero`, a navbar with no `color` of its own takes the hero's colors.
+`--bulma-navbar-burger-color`, `--bulma-navbar-tab-active-color`,
+`--bulma-navbar-tab-active-border-bottom-color` and `--bulma-navbar-tab-hover-border-bottom-color`
+are `--bulma-navbar-item-color` there, the hero's text color, and `--bulma-navbar-dropdown-arrow` is
+`currentColor`, so the arrow follows its link's text at rest, hovered and active. `--bulma-navbar-background-color`,
+which shows there only as the background of the menu the burger opens, is the hero's background,
+and the dropdown's rows in that menu take the hero's hue, background and text through
+`--bulma-navbar-dropdown-item-h`, `-s`, `-background-l` and `-color-l`. They're declared on the
+navbar inside the hero with a selector three classes heavier than `.navbar`, so set them on the
+navbar through `style`, or with a heavier selector. The items' hover and active colors are Bulma's
+hero variables, `--bulma-navbar-item-hover-background-color` and the rest.
+
+`--bulma-navbar-background-color`, `--bulma-navbar-burger-color`, `--bulma-navbar-dropdown-arrow`,
+`--bulma-navbar-dropdown-item-background-l`, `--bulma-navbar-dropdown-item-color-l`,
+`--bulma-navbar-dropdown-item-h`, `--bulma-navbar-dropdown-item-s`, `--bulma-navbar-item-color`,
+`--bulma-navbar-tab-active-border-bottom-color`, `--bulma-navbar-tab-active-color`,
+`--bulma-navbar-tab-hover-border-bottom-color`
+
 ### Notification
 
 `--bulma-notification-delete-padding-inline-end` is the end padding of a notification with a close
 button, which keeps the text clear of the button. It applies with `hasDelete`, and to a `Delete`
 passed as a direct child in browsers that support `:has()`. It is the padding for a default-size
 button: a `Delete` passed in with a `size` gets it plus or minus the difference between the two
-sizes. Bulma's own `--bulma-notification-*` variables set the rest.
+sizes.
+
+A dark or light notification, with or without `isLight`, sets `--bulma-notification-background-l`
+and `--bulma-notification-color-l` to that color's own `--bulma-dark-l` and
+`--bulma-dark-invert-l`, or `--bulma-light-l` and `--bulma-light-invert-l`, so it reads as a dark
+or light button does. A white or black notification with `isLight` keeps Bulma's light gray
+background and sets `--bulma-notification-color-l` to `--bulma-light-invert-l`. Bulma's own variant
+of each of those colors would otherwise give it text that inherits the color around it. Those rules
+outrank a selector like `.notification.is-dark`, so set either variable on such a notification
+through `style`. Bulma's own `--bulma-notification-*` variables set the rest.
 
 ### Numberinput
 
@@ -359,14 +925,86 @@ sizes. Bulma's own `--bulma-notification-*` variables set the rest.
 `--bulma-numberinput-stepper-button-hover-bg`, `--bulma-numberinput-stepper-button-hover-color`,
 `--bulma-numberinput-stepper-width`
 
-### Picker popover (DateInput / TimeInput / DateTimeInput / DateRangeInput)
+In forced colors `--bulma-numberinput-disabled-opacity` doesn't apply: a disabled Numberinput
+isn't faded as a whole, and a stepper button disabled at a limit draws at full strength in the
+system's color for a disabled control.
+
+### Panel
+
+Declared on the root, `.panel`, where Bulma declares its own `--bulma-panel-*`. Bulma writes the
+heading of a panel with no `color` in the text color, with its title in `--bulma-text-invert-l`,
+and its dark scheme lightens the text color without darkening that, so the panel sets it to the
+page background's lightness, which reads on the text color on both schemes. A colored panel takes
+its title color from its own color, and something inside a panel that reads
+`--bulma-text-invert-l` gets the panel's value. To change only the title,
+`--bulma-panel-heading-color-l` on the panel is Bulma's own.
+
+Bulma points its `--bulma-panel-block-active-color` and `--bulma-panel-tab-active-color` at
+`--bulma-link-active`, which it never defines, so the active block and tab inherit the panel's
+color. In a colored Panel, `.panel.is-<color>.has-text-<color>`, the partial gives the active
+block and tab a fallback for the two, the color at its on-scheme lightness
+(`--bulma-<color>-on-scheme-l`), which reads on the page on both schemes, and sets Bulma's
+`--bulma-panel-color-l`, which draws the active icon and the active tab's underline, to the same
+lightness. Black takes the title text's lightness, `--bulma-text-title-l`, white on the dark
+scheme. A value of your own for the two active colors, set on the panel, still wins, and so does a
+`--bulma-panel-color-l` set through the panel's `style`.
+
+`--bulma-text-invert-l`
+
+### PasswordInput
+
+Declared on the container around the input, `.password-input-container`. The input is Bulma's
+`.input`, so Bulma's `--bulma-input-*` variables color it. The button inside it takes
+`--bulma-password-input-toggle-width`, or `--bulma-password-input-toggle-text-width` with
+`variant="text"`, in em so it grows with the input's size, and the input keeps that width clear
+of text. A translation longer than "Show" and "Hide" may want a wider text width.
+
+`--bulma-password-input-toggle-color`, `--bulma-password-input-toggle-disabled-opacity`,
+`--bulma-password-input-toggle-hover-color`, `--bulma-password-input-toggle-text-width`,
+`--bulma-password-input-toggle-width`
+
+### PinInput
+
+Declared on the row, `.pin-input`. Each box is a Bulma `.input`, so Bulma's `--bulma-input-*`
+variables color it, and a box's size comes from its size class. The gap and the caret's size are
+in `em`, so they follow the size of the boxes, and the caret is `currentColor`, the box's text.
+
+`--bulma-pin-input-box-width`, `--bulma-pin-input-caret-blink-duration`,
+`--bulma-pin-input-caret-color`, `--bulma-pin-input-caret-height`, `--bulma-pin-input-caret-width`,
+`--bulma-pin-input-gap`
+
+### Picker popover (DateInput / TimeInput / DateTimeInput / DateRangeInput / ColorInput / TreeSelect / Cascader)
+
+ColorInput's, TreeSelect's and Cascader's panels take the `--bulma-picker-popover-*` variables here. The `--bulma-picker-trigger-*`
+ones are the date and time pickers' launcher, which sits at the inline end, with the calendar or
+clock icon at the inline start, so both swap sides on a right-to-left page. ColorInput's swatch
+and launcher take the `--bulma-colorinput-*` variables in its own section, above. PasswordInput's
+show button stays on the physical right.
+
+`--bulma-picker-popover-months-max-width` caps the width of a panel showing several months, a
+DateRangeInput's with `monthsToShow`, past which the months wrap to a column.
 
 `--bulma-picker-popover-animation-duration`, `--bulma-picker-popover-background`,
-`--bulma-picker-popover-border-color`, `--bulma-picker-popover-offset`,
+`--bulma-picker-popover-border-color`, `--bulma-picker-popover-months-max-width`,
+`--bulma-picker-popover-offset`,
 `--bulma-picker-popover-padding`, `--bulma-picker-popover-radius`,
 `--bulma-picker-popover-shadow`, `--bulma-picker-popover-z-index`,
-`--bulma-picker-trigger-color`, `--bulma-picker-trigger-hover-color`,
-`--bulma-picker-trigger-width`
+`--bulma-picker-trigger-color`, `--bulma-picker-trigger-disabled-opacity`,
+`--bulma-picker-trigger-hover-color`, `--bulma-picker-trigger-width`
+
+In forced colors `--bulma-picker-trigger-disabled-opacity` doesn't apply: a disabled launcher
+draws at full strength in the system's color for a disabled control, as PasswordInput's toggle
+does.
+
+### A panel's shift at a corner (Popover / HoverCard / Combobox / the pickers)
+
+`--bulma-anchored-shift` is how far the component moves a panel in place sideways, from its
+corner's edge, so it doesn't run past the viewport. The component writes it on the panel itself,
+0 while the panel fits, and the corner rules add it to the corner's edge. It isn't for a theme to
+set: a value set on a panel is replaced, and a theme that places a panel by its own rules leaves
+it out.
+
+`--bulma-anchored-shift`
 
 ### Popover
 
@@ -386,6 +1024,38 @@ them. See the constituent-element exception above.
 `--bulma-radio-border-width`, `--bulma-radio-dot-color`, `--bulma-radio-focus-shadow-size`,
 `--bulma-radio-label-gap`, `--bulma-radio-size`, `--bulma-radio-transition-duration`
 
+As with Checkbox, set these on a class you pass through `className`, with both classes in the
+selector (`.styled-radio.my-radio`): `style` goes to the hidden `<input>`. A `color` prop
+declares `--bulma-radio-active-color` again on `.styled-radio.is-<color>`, which ties that
+selector, so leave `color` unset when a class sets it. The unchecked ring, `--bulma-radio-border-color`, defaults to `text-weak` for the same 3:1 boundary
+contrast. The checked dot, `--bulma-radio-dot-color`, defaults to `--bulma-radio-active-color`,
+so it follows the ring and a `color` prop until a class gives it a color of its own.
+
+`--bulma-radio-size` (default `1.25em`) can't take the circle below 24px: the stylesheet gives the
+`.check` circle a `min-width` and `min-height` of 24px, WCAG 2.2's minimum target size, so with
+Bulma's default font sizes the circle is 24px at the default and `small` sizes. For a smaller circle, set the size and also
+`min-width: 0; min-height: 0` on `.styled-radio.my-radio .check` (mind the class prefix), and keep
+the label text inside the `Radio`, since the whole label is the click target.
+
+`--bulma-radio-focus-shadow-size` is registered but has no effect: the keyboard focus ring is a
+`2px` outline in `--bulma-radio-active-color`, with no shadow for a size to apply to.
+
+### RadioCard
+
+`--bulma-radio-card-active-color`, `--bulma-radio-card-border-color`,
+`--bulma-radio-card-border-width`, `--bulma-radio-card-checked-border-width`,
+`--bulma-radio-card-description-color`, `--bulma-radio-card-disabled-opacity`,
+`--bulma-radio-card-focus-color`, `--bulma-radio-card-focus-offset`,
+`--bulma-radio-card-focus-width`, `--bulma-radio-card-gap`,
+`--bulma-radio-card-hover-border-color`, `--bulma-radio-card-indicator-border-color`,
+`--bulma-radio-card-indicator-border-width`, `--bulma-radio-card-indicator-size`,
+`--bulma-radio-card-min-width`, `--bulma-radio-card-title-weight`,
+`--bulma-radio-card-transition-duration`
+
+The same as CheckboxCard's, on the `.radio-card` label, with a ring and a dot for the indicator and
+`--bulma-radio-card-min-width` for a `Radios` row. In forced colors
+`--bulma-radio-card-disabled-opacity` doesn't apply either.
+
 ### Rate
 
 `--bulma-rate-color-active`, `--bulma-rate-color-hover`, `--bulma-rate-color-inactive`,
@@ -397,12 +1067,46 @@ them. See the constituent-element exception above.
 `--bulma-rate-spaced-gap`, `--bulma-rate-text-color`, `--bulma-rate-text-size`,
 `--bulma-rate-transition-duration`
 
+In forced colors `--bulma-rate-disabled-opacity` doesn't apply: a disabled Rate draws at full
+strength, its empty stars, score and text in the system's color for disabled text and its filled
+parts in the text color.
+
+### RingProgress
+
+Declared on the root, `.ring-progress`; the color and size classes set `--bulma-ring-progress-arc-color`
+and `--bulma-ring-progress-size`. The thickness is in the ring's own units: it's 100 across with a
+radius of 42, so up to 16 fits. In forced colors the arcs take `CanvasText` and the track `GrayText`
+whatever these say.
+
+`--bulma-ring-progress-arc-color`, `--bulma-ring-progress-duration`,
+`--bulma-ring-progress-label-color`, `--bulma-ring-progress-label-size`,
+`--bulma-ring-progress-label-weight`,
+`--bulma-ring-progress-size`, `--bulma-ring-progress-thickness`,
+`--bulma-ring-progress-track-color`
+
 ### Reveal
 
 `--bulma-reveal-duration`, `--bulma-reveal-easing`, `--bulma-reveal-flip-angle`,
 `--bulma-reveal-offset`, `--bulma-reveal-offset-large`, `--bulma-reveal-scale`
 
+### ScrollArea
+
+Declared on the frame, `.scroll-area`, and read by the viewport inside it, so set them on the
+frame, through `className` or `style`. `--bulma-scroll-area-scrollbar-width` takes what
+`scrollbar-width` takes: `thin`, `auto` or `none`. `none` hides the bars while the area still
+scrolls, which hides that it scrolls at all, so keep to `thin` or `auto`. Restyled bars owe
+WCAG's 3:1, so keep a thumb color that clears it against the background in both schemes. In forced colors the browser gives the bars the system's colors
+whatever these say.
+
+`--bulma-scroll-area-fade-size`, `--bulma-scroll-area-scrollbar-width`,
+`--bulma-scroll-area-thumb-color`, `--bulma-scroll-area-thumb-hover-color`,
+`--bulma-scroll-area-track-color`
+
 ### Sidebar
+
+In forced colors a sidebar other than a static one gets a `CanvasText` edge in place of
+`--bulma-sidebar-shadow`, and the close button's cross takes `CanvasText`, or `GrayText` when the
+button is `disabled` or `aria-disabled`, whatever `--bulma-sidebar-close-color` says.
 
 `--bulma-sidebar-background`, `--bulma-sidebar-close-color`,
 `--bulma-sidebar-close-hover-background`, `--bulma-sidebar-close-line-width`,
@@ -421,6 +1125,12 @@ them. See the constituent-element exception above.
 
 ### Slider
 
+A mark's label sits inside its tick, so outside forced colors `--bulma-slider-tick-opacity` dims
+the label along with the tick's line, whatever `--bulma-slider-tick-label-color` you set. In forced
+colors neither `--bulma-slider-tick-opacity` nor `--bulma-slider-disabled-opacity` applies, and the
+system's colors replace the tick and label colors. Where a tick's line crosses the track there, it
+has a hairline in the page's color as long as `--bulma-slider-track-height`.
+
 `--bulma-slider-disabled-opacity`, `--bulma-slider-fill-color`,
 `--bulma-slider-output-background`, `--bulma-slider-output-color`,
 `--bulma-slider-output-font-size`, `--bulma-slider-output-font-weight`, `--bulma-slider-radius`,
@@ -434,17 +1144,61 @@ them. See the constituent-element exception above.
 `--bulma-slider-track-height-small`, `--bulma-slider-transition-duration`,
 `--bulma-slider-vertical-height`
 
+### Splitter
+
+Declared on the root, `.splitter`. The handle reads them, and its line and grip are borders, so a
+forced-colors page keeps them and draws an active handle in `Highlight`.
+`--bulma-splitter-handle-size-coarse` is the strip's width for a coarse pointer, kept at 24px or
+more for WCAG 2.5.8.
+
+`--bulma-splitter-grip-color`, `--bulma-splitter-grip-length`, `--bulma-splitter-grip-radius`,
+`--bulma-splitter-grip-size`, `--bulma-splitter-handle-size`,
+`--bulma-splitter-handle-size-coarse`, `--bulma-splitter-line-active-color`,
+`--bulma-splitter-line-active-size`, `--bulma-splitter-line-color`, `--bulma-splitter-line-size`
+
+### Stack and Group
+
+Declared on the `.stack` element that `Stack`, `Group`, `Center` and `Flex` all render, so set
+them there, through `className` or `style`. `--bulma-stack-gap` is a Stack's gap and follows
+`--bulma-block-spacing`; `--bulma-stack-horizontal-gap` is a Group's, half of it. A `gap` prop's
+helper class is `!important` and wins over either. `Center` and `Flex` read neither.
+
+`--bulma-stack-gap`, `--bulma-stack-horizontal-gap`
+
+### Stat
+
+Declared on each Stat, `.stat`, whether it's on its own or in a `Stats` row, so retheme a row
+through a selector that reaches its Stats. The figure takes the Stat's color, so a `textColor` on
+the Stat recolors it, and the label, the change and the note keep theirs. `size` re-points
+`--bulma-stat-value-size` at Bulma's `size-4`, `size-2` or `size-1`, and a change's `color`
+sets that change's color to the color's `-on-scheme` variable directly, so
+`--bulma-stat-change-color` is the uncolored change's only.
+
+`--bulma-stat-change-color`, `--bulma-stat-change-gap`, `--bulma-stat-change-size`,
+`--bulma-stat-description-color`, `--bulma-stat-description-size`, `--bulma-stat-label-color`,
+`--bulma-stat-label-size`, `--bulma-stat-value-color`, `--bulma-stat-value-line-height`,
+`--bulma-stat-value-size`, `--bulma-stat-value-weight`
+
 ### Steps
 
 `--bulma-steps-animation-duration`, `--bulma-steps-content-margin-top`,
-`--bulma-steps-default-color`, `--bulma-steps-divider-height`, `--bulma-steps-marker-background`,
-`--bulma-steps-marker-font-size`, `--bulma-steps-marker-font-weight`,
+`--bulma-steps-default-color`, `--bulma-steps-divider-height`, `--bulma-steps-label-background`,
+`--bulma-steps-marker-background`, `--bulma-steps-marker-font-size`, `--bulma-steps-marker-font-weight`,
 `--bulma-steps-marker-size`, `--bulma-steps-marker-size-large`,
 `--bulma-steps-marker-size-medium`, `--bulma-steps-marker-size-small`,
 `--bulma-steps-navigation-margin-top`, `--bulma-steps-title-active-color`,
 `--bulma-steps-title-active-weight`, `--bulma-steps-title-color`, `--bulma-steps-title-size`,
 `--bulma-steps-title-weight`, `--bulma-steps-vertical-content-margin-left`,
 `--bulma-steps-vertical-padding`
+
+`--bulma-steps-label-background` is the patch behind a side label, which hides the line under it.
+It's the page's color on its own, apart from the marker background.
+
+On a colored `Notification` or `Hero`, steps set the title colors and
+`--bulma-steps-label-background` from the surface, and steps with no color set
+`--bulma-steps-default-color` and `--bulma-steps-marker-background` from it too, unless they're on a Box, a Card, a Message or a Modal there, or in a Notification inside the
+Hero. To retheme them there, set these on the steps themselves, through their `style`
+or a class loaded after bestax's stylesheet, or give them a `color`.
 
 ### Switch
 
@@ -454,10 +1208,27 @@ them. See the constituent-element exception above.
 `--bulma-switch-radius`, `--bulma-switch-thin-circle-size`, `--bulma-switch-thin-height`,
 `--bulma-switch-transition-duration`, `--bulma-switch-width`
 
+### TableOfContents
+
+Declared on the root, `.table-of-contents`, which is also a `.menu`, so Bulma's `--bulma-menu-*`
+variables theme its title, links and current link. With `isSticky`, the list sticks this far below
+the viewport's top; under a fixed or sticky header, make it the header's height plus a little room,
+set on the root itself, since its own declaration wins over one on an ancestor.
+
+`--bulma-table-of-contents-sticky-top`
+
 ### Tabs
 
 `--bulma-tabs-content-padding`, `--bulma-tabs-vertical-border-color`,
 `--bulma-tabs-vertical-border-width`, `--bulma-tabs-vertical-min-width`
+
+### Tag
+
+A light tag, with or without `isLight`, and a white, black or dark one with `isLight`, sets
+`--bulma-tag-color-l` to the light color's own `--bulma-light-invert-l`, so its text reads as a
+light button's does. Bulma's light variant of each of those colors would otherwise give it text
+that inherits the color around it. That rule outranks a selector like `.tag.is-light`, so set the
+variable on such a tag through `style`. Bulma's own `--bulma-tag-*` variables set the rest.
 
 ### Taginput
 
@@ -478,7 +1249,47 @@ them. See the constituent-element exception above.
 `--bulma-timeinput-wheel-item-height` is registered but has no effect: the component sets each
 wheel item's height inline.
 
+In forced colors (Windows' contrast themes) the band is the system's highlight color, with the
+focus ring in the color made to read on it, whatever `--bulma-timeinput-wheel-selected-bg` and
+`--bulma-timeinput-wheel-selected-color` say, and the values take the system's text color. On a
+disabled picker the band and the values take its color for a disabled control, and so does a
+value the picker blocks. The wheels in `DateTimeInput` are these.
+
+### Timeline
+
+Declared on the root, `.timeline`. The states and the color classes set
+`--bulma-timeline-marker-color` for each marker, and the layouts set
+`--bulma-timeline-rail-center`, so retheme the markers through `--bulma-timeline-neutral-color`
+and `--bulma-timeline-active-color` rather than those two. `--bulma-timeline-marker-background`
+fills the upcoming rings and the pending loader, and a reached icon marker's tint is mixed into
+it. It's the page's color by default, so it hides the line behind them. A record's icon circles
+take `--bulma-timeline-marker-icon-background`, which the color classes set. An upcoming icon is
+drawn in `--bulma-text-weak`, not `--bulma-timeline-marker-icon-color`. A color class, and the default progress color, read the color's hue,
+saturation and lightness, so a Theme that sets them around the timeline reaches it. Every size is
+in `em`, so `textSize` scales them all.
+
+`--bulma-timeline-active-color`, `--bulma-timeline-content-gap`, `--bulma-timeline-dot-size`,
+`--bulma-timeline-gap`, `--bulma-timeline-halo-offset`, `--bulma-timeline-line-color`,
+`--bulma-timeline-line-width`, `--bulma-timeline-marker-background`,
+`--bulma-timeline-marker-color`, `--bulma-timeline-marker-icon-background`,
+`--bulma-timeline-marker-icon-color`, `--bulma-timeline-marker-size`,
+`--bulma-timeline-neutral-color`, `--bulma-timeline-pending-duration`,
+`--bulma-timeline-pending-size`,
+`--bulma-timeline-rail-center`, `--bulma-timeline-rail-size`, `--bulma-timeline-rail-size-icon`,
+`--bulma-timeline-time-color`, `--bulma-timeline-time-size`, `--bulma-timeline-title-color`,
+`--bulma-timeline-title-weight`
+
+In a colored `Hero`, a timeline with no color sets its neutral, active and icon colors to the
+Hero's text color and its marker and icon backgrounds to the Hero's background, and draws an
+upcoming icon in its neutral color, and any timeline sets its title and time colors to the Hero's
+text color, unless it's on a Box, a Card, a Message, a Modal or a Notification there. To retheme
+one there, set these on the timeline itself, through its `style` or a class loaded after bestax's
+stylesheet, or give it a `color`.
+
 ### Toast
+
+Forced colors drop the toast's shadow and repaint its fill in the system's `Canvas`, so there the
+toast takes a one pixel `CanvasText` edge, and the cancel button's text is drawn at full strength.
 
 `--bulma-toast-action-hover-opacity`, `--bulma-toast-action-radius`,
 `--bulma-toast-action-weight`, `--bulma-toast-animation-duration`, `--bulma-toast-background`,
@@ -500,6 +1311,100 @@ trigger and the tooltip past what the pointer can cross on its own, so give the 
 `--bulma-tooltip-font-weight`, `--bulma-tooltip-line-height`, `--bulma-tooltip-max-width`,
 `--bulma-tooltip-multiline-width`, `--bulma-tooltip-padding`, `--bulma-tooltip-radius`,
 `--bulma-tooltip-z-index`
+
+### Tour
+
+Declared on the root, `.tour`, which holds the overlay, the current step and the beacons, so a
+`className` or `style` on `Tour` reaches every step, and one on a `Tour.Step` reaches that step's
+panel alone. The overlay, the spotlight and the beacons read theirs from `.tour`, so set
+`--bulma-tour-overlay-*`, `--bulma-tour-spotlight-*`, `--bulma-tour-beacon-*` and
+`--bulma-tour-z-index` on `Tour`. The step
+takes Popover's look from the same Bulma tokens Popover's panel reads, since `--bulma-popover-*`
+is declared on Popover's own panel and doesn't reach a step. `--bulma-tour-overlay-background` is
+Bulma's modal backdrop color at half its strength. `--bulma-tour-spotlight-padding` grows the
+spotlight past the target's edge, and the step sits `--bulma-tour-step-offset` past that. In
+`mode="beacon"`, `--bulma-tour-beacon-size` is a beacon's hit area too, and it can't take a beacon
+below 24px: the stylesheet gives `.tour-beacon` a `min-width` and `min-height` of 24px, WCAG 2.2's
+minimum target size, under any root font size. While only the beacons show, the tour sits at
+`--bulma-tour-beacon-z-index`, 19, one under the dropdown tier, so everything there or above covers
+them: a Bulma navbar, fixed or not (30), sidebars and modals, and the dropdown menus of
+`Dropdown`, `Combobox`, `Autocomplete` and `Taginput` (20). Raise it above the layer a target sits
+in, such as 31 over a navbar, for beacons on targets inside one.
+
+`--bulma-tour-beacon-animation-duration`, `--bulma-tour-beacon-color`,
+`--bulma-tour-beacon-ring-color`, `--bulma-tour-beacon-ring-width`, `--bulma-tour-beacon-size`,
+`--bulma-tour-beacon-z-index`, `--bulma-tour-overlay-background`, `--bulma-tour-progress-color`,
+`--bulma-tour-spotlight-padding`, `--bulma-tour-spotlight-radius`,
+`--bulma-tour-step-background`, `--bulma-tour-step-body-padding`,
+`--bulma-tour-step-border-color`, `--bulma-tour-step-border-width`,
+`--bulma-tour-step-color`, `--bulma-tour-step-footer-gap`, `--bulma-tour-step-footer-padding`,
+`--bulma-tour-step-header-color`, `--bulma-tour-step-header-gap`,
+`--bulma-tour-step-header-padding`,
+`--bulma-tour-step-header-weight`, `--bulma-tour-step-max-width`, `--bulma-tour-step-offset`,
+`--bulma-tour-step-radius`, `--bulma-tour-step-shadow`, `--bulma-tour-z-index`
+
+### TreeSelect
+
+Declared on the root, `.tree-select`, and on a portaled panel, `.tree-select-panel`, which sits
+outside it. They draw the chevron and the clear button on the field, set the panel's height and
+space the search box over the tree. The chevron's defaults are the tokens Bulma's input icon variables
+start from (`control-height`, `text-light`, `text-weak`, `link`), since Bulma registers those on
+the field and its Control. The panel is the picker popover, above, and the tree in it is a
+`TreeView`, below, so `--bulma-picker-popover-*` and `--bulma-tree-view-*` theme them here too.
+The panel is at least as wide as the field, in place through the picker popover's own rule and
+portaled through the field's width set inline.
+
+`--bulma-tree-select-chevron-color`, `--bulma-tree-select-chevron-focus-color`,
+`--bulma-tree-select-chevron-hover-color`, `--bulma-tree-select-chevron-width`,
+`--bulma-tree-select-chevron-z-index`, `--bulma-tree-select-clear-z-index`,
+`--bulma-tree-select-empty-color`, `--bulma-tree-select-empty-padding`,
+`--bulma-tree-select-panel-max-height`, `--bulma-tree-select-search-gap`,
+`--bulma-tree-select-tree-inset`
+
+### TreeView
+
+Declared on the root, `.tree-view`. A tree looks like Bulma's menu, but the menu's variables
+don't reach it: `--bulma-menu-*` is registered on `.menu` alone, so retheme a tree through these.
+Each default is the base token the matching menu variable defaults to (`scheme-h`, `text-l`,
+`link-l`, `radius-small`, `border` and so on), so a theme's base tokens move the tree and the menu
+together. A selected row swaps in the `item-selected-*` values on its own row, and a row's hover
+and press tints change `--bulma-tree-view-item-background-l-delta` there. A checkbox tree's boxes
+are `Checkbox`'s, themed through `--bulma-checkbox-*`.
+
+`--bulma-tree-view-gap`, `--bulma-tree-view-group-border`, `--bulma-tree-view-group-margin`,
+`--bulma-tree-view-group-padding`, `--bulma-tree-view-item-active-background-l-delta`,
+`--bulma-tree-view-item-background-l`, `--bulma-tree-view-item-background-l-delta`,
+`--bulma-tree-view-item-color-l`, `--bulma-tree-view-item-disabled-color`,
+`--bulma-tree-view-item-h`, `--bulma-tree-view-item-hover-background-l-delta`,
+`--bulma-tree-view-item-padding`, `--bulma-tree-view-item-radius`, `--bulma-tree-view-item-s`,
+`--bulma-tree-view-item-selected-background-l`, `--bulma-tree-view-item-selected-color-l`,
+`--bulma-tree-view-item-selected-h`, `--bulma-tree-view-item-selected-s`,
+`--bulma-tree-view-line-height`, `--bulma-tree-view-toggle-color`,
+`--bulma-tree-view-toggle-duration`, `--bulma-tree-view-toggle-size`
+
+## The scroll lock's offsets: read them, don't set them
+
+An overlay that locks the page's scrolling, such as a Modal, a Sidebar with its overlay or a
+full-page Loading, takes the page's scrollbar away and pads `<html>` by the room it took, so the
+page doesn't shift. An element fixed to the window is placed against the window, which grows by
+that room, so the padding doesn't reach it. While the lock is on, it sets the room it padded on
+`<html>` as `--bulma-scroll-lock-offset-right`, or `--bulma-scroll-lock-offset-left` where the
+scrollbar was on the left. A `fixed` Navbar, the toast and notification stacks and an Affix add
+them to their offsets, so they stay put. A fixed element of the app's own does the same, with a
+`0px` fallback for when no lock is on:
+
+```css
+.chat-launcher {
+  position: fixed;
+  bottom: 1rem;
+  right: calc(1rem + var(--bulma-scroll-lock-offset-right, 0px));
+}
+```
+
+The sides are physical, left and right, whatever the text's direction: an element fixed to the
+window's right edge reads the `-right` one on a right-to-left page too. Neither is set while no
+lock is on, or where the scrollbar takes no room, so the fallback applies. The lock writes them and
+removes them when the last overlay closes, so don't set them in a theme.
 
 ## Dark mode (`Theme colorMode`)
 
@@ -530,22 +1435,48 @@ custom dark-mode CSS keyed off `[data-theme='dark']` still matches, because `col
 Under dark mode Bulma flips the scheme/text/border/background lightness variables (e.g.
 `--bulma-scheme-main-l` 100% → 9%, `--bulma-text-l` 29% → 71%). Your brand color overrides from
 `Theme isRoot` or `:root` still apply on top, because they set the hue/saturation/lightness
-channels directly.
+channels directly. Each color's on-scheme lightness is the exception: Bulma gives dark mode its
+own, so a new color sets one per scheme (see "The lightnesses Bulma's build picks for contrast").
+
+### The scheme of the first paint
+
+`Theme` writes the attribute before the browser paints what it rendered, but a page can paint
+before the app's script runs at all: a client-rendered app (the create-bestax scaffold, for one)
+can show its empty page first, and a server-rendered one shows its server HTML. That first frame
+takes whatever `<html>` already carries: with nothing there, the visitor's OS scheme, which then
+flips. So the scheme for that frame comes from `index.html`:
+
+- **A scheme that never changes** goes on the `<html>` itself,
+  `<html lang="en" data-theme="light">`, and needs no `colorMode`.
+- **A scheme the visitor picks** is written by an inline script in `<head>`, from the saved
+  choice or else the OS preference, before anything renders. `examples/dark-mode.tsx` has the
+  script and the app's side: the app starts from the attribute the script wrote, passes its
+  state to `Theme colorMode` for the toggle, and saves each choice in `localStorage` under the
+  key the script reads. Keep it a plain inline script: one with `type="module"`, like the app's
+  own, waits until the whole page is parsed, which can be after the first paint.
+
+A prefixed flavor reads `data-bestax-theme`, so with one, `index.html` and the script write that
+attribute as well.
+
+Because the script always writes an attribute, custom dark-mode CSS keyed on `[data-theme='dark']`
+reaches every visitor. To offer the OS preference as a third choice, both sides change. The script
+writes no attribute for a saved `'system'`. The app adds `'system'` to its `ColorMode` and to what
+it reads back from storage, so it passes `colorMode="system"`, which keeps the attribute off, and
+its toggle becomes a choice of three, such as a `SegmentedControl`. With no attribute, Bulma's
+`prefers-color-scheme` rules apply from the first frame and follow the OS when it changes, and
+custom tokens then need both dark-mode paths (below).
 
 ### The single-mode contrast trap
 
-Because the OS preference applies whenever no `data-theme` attribute is set — the default state
-of every app that never configured `colorMode` — a light-only design silently breaks for any
-dark-mode visitor: Bulma's text goes near-white while author-defined fixed tokens stay light —
+Because the OS preference applies whenever no `data-theme` attribute is set, which is the
+default state of every app that never sets one, a light-only design silently breaks for any
+dark-mode visitor: Bulma's text goes near-white while author-defined fixed tokens stay light,
 white text on cream. The failure is invisible unless the author's own OS is in dark mode.
 
-**If the design is single-mode, pin the scheme** so text can't flip out from under the palette:
-
-```tsx
-<Theme isRoot colorMode="light">
-  <App />
-</Theme>
-```
+**If the design is single-mode, pin the scheme** on the `<html>` in `index.html`
+(`<html lang="en" data-theme="light">`, as above), so text can't flip out from under the palette.
+`<Theme isRoot colorMode="light">` pins it too, but only once the app's script runs, so the
+page can show the OS scheme before that.
 
 **If both modes are supported, never expose a fixed custom token to the flip** — derive it from
 scheme variables, or flip it yourself:
@@ -588,4 +1519,6 @@ Color trios: `primaryH/primaryS/primaryL`, `linkH/linkS/linkL`, `infoH/S/L`, `su
 `darkInvertL`, `softL`, `boldL`, `softInvertL`, `boldInvertL`. Interaction deltas:
 `hoverBackgroundLDelta`, `activeBackgroundLDelta`, `hoverBorderLDelta`, `activeBorderLDelta`,
 `hoverColorLDelta`, `activeColorLDelta`, `hoverShadowADelta`, `activeShadowADelta`. Everything else:
-`bulmaVars={{ '--bulma-…': '…' }}`. All values are strings.
+`bulmaVars={{ '--bulma-…': '…' }}`, each color's `--bulma-<c>-invert-l` and
+`--bulma-<c>-on-scheme-l` included. All values are strings, except that an on-scheme key also
+takes `{ light, dark }` on an `isRoot` `Theme`.

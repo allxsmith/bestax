@@ -9,10 +9,10 @@
  * such holes, both found by review rather than by a test, which is what
  * `.github/CLAUDE.md` asks a sibling like this to prevent.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 
-import { turboTasksIn } from './check-conformance.mjs';
+import { testsOutsideTheGate, turboTasksIn } from './check-conformance.mjs';
 
 const tasksOf = (scripts, entry = 'all') =>
   [...turboTasksIn(scripts, entry).keys()].sort();
@@ -169,4 +169,31 @@ test('unions the packages of two filtered runs', () => {
 
 test('a task with no filter anywhere has a null scope', () => {
   assert.equal(scopeOf({ all: 'turbo run test' }, 'test'), null);
+});
+
+// --- testsOutsideTheGate -----------------------------------------------------
+
+const outside = manifests => testsOutsideTheGate(manifests).map(m => m.dir);
+
+const MANIFESTS = [
+  {
+    dir: 'jest-pkg',
+    scripts: { test: 'jest', 'test:coverage': 'jest --coverage' },
+  },
+  { dir: 'node-pkg', scripts: { test: 'node --test' } },
+  { dir: 'no-tests', scripts: { build: 'tsc' } },
+  { dir: 'no-scripts' },
+];
+
+test('a package with tests and no test:coverage is outside the gate', () => {
+  assert.deepEqual(outside(MANIFESTS), ['node-pkg']);
+});
+
+test('an alias brings a package inside the gate', () => {
+  const aliased = MANIFESTS.map(m =>
+    m.dir === 'node-pkg'
+      ? { ...m, scripts: { ...m.scripts, 'test:coverage': 'pnpm run test' } }
+      : m
+  );
+  assert.deepEqual(outside(aliased), []);
 });

@@ -292,6 +292,14 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
 
 Next.js is a popular React framework that provides server-side rendering, static site generation, and many other features out of the box.
 
+:::tip Start from a scaffold
+
+`npm create bestax@latest my-app -- -t next-ts` (or `-t next` for JavaScript) sets all of this up
+for you: an App Router app with the stylesheets in the root layout, a navbar that links with
+`next/link`, the starter page, and an About page that's a Server Component.
+
+:::
+
 ### JavaScript Example (Next.js 13+ with App Router)
 
 1. **Create a new Next.js project:**
@@ -862,6 +870,45 @@ import '@allxsmith/bestax-bulma/bestax.css';
 // ❌ Avoid: Importing CSS in individual components
 // This can cause CSS to load after component render
 ```
+
+**Server Components.** Every bestax-bulma component is marked as client code (`'use client'`), so
+a Server Component, the App Router's default, can import and render them directly. They render on
+the server and hydrate on the client, like any client component. The helpers that don't use React,
+such as `classNames`, run on the server as plain functions. `ConfigProvider` can wrap the whole app
+from the root layout, and a class prefix or icon library set there reaches every page.
+
+Worth knowing:
+
+- A Server Component can't reach a component's parts through a dot. `Figure.Caption` comes out
+  `undefined` there, which is React's rule for client modules. Import the part by name instead.
+  It's the same component as the dotted name.
+
+  ```tsx
+  import { Figure, FigureCaption, Image } from '@allxsmith/bestax-bulma';
+
+  export default function Page() {
+    return (
+      <Figure>
+        <Image src="/chart.png" alt="Sign-ups by month" />
+        <FigureCaption>Sign-ups by month</FigureCaption>
+      </Figure>
+    );
+  }
+  ```
+
+  Sidebar's parts work the same way (`SidebarHeader`, `SidebarTitle`, `SidebarClose`,
+  `SidebarBody`, `SidebarFooter`), and so do Card's and Modal's (`CardHeader`, `ModalCard`, and
+  the rest), Navbar's (`NavbarItem`, `NavbarBrand`, and the rest), `SegmentedControlSegment`,
+  and `ListItem`, which is `OrderedList.Item` and
+  `UnorderedList.Item`. The dotted names still work inside a client component, a file that
+  starts with `'use client'`.
+
+- A Server Component can only pass a client component props React can send from the server, and a
+  function isn't one. So an event handler (`<Button onClick={...}>`) or `ClientOnly`'s render
+  function child goes in a client component, the same as anything that keeps state.
+
+The example pages above start with `'use client'` because they use `useState`, not because of
+bestax-bulma.
 
 ### Remix
 

@@ -22,6 +22,23 @@ hand-written `## Usage` / `## Accessibility` sections of the API pages.
   it by following that source's planner class by class, and
   `src/__tests__/bulma-classes-agree.test.ts` imports the planner itself to hold
   the two together, so a change to either side of that table shows up here.
+  Beside the table it carries every class in Bulma v1's compiled stylesheet,
+  read from `node_modules/bulma` with the walk bestax-migrate's vocabulary test
+  uses (`e2e/support/bulma-stylesheet.ts`), so a lookup can tell a v1 class with
+  no prop from a 0.9 one v1 removed (`REMOVED_IN_V1` in the class map) and from
+  one v1 has no rule for. Of those, it names what styles one where it can: a
+  root class of bestax's own (`ownClasses`, each record's root class Bulma 1
+  lacks, so `carousel` is `Carousel`'s) and another stylesheet's (`ELSEWHERE`
+  in the class map: Font Awesome, Material Design Icons, bulma-social,
+  bulma-carousel). `BY_HAND` there names the table part that renders a plain
+  `<th>` or `<td>`, which the codemod leaves, and the generator lists the props
+  its record has beside the helper props (#1236).
+- The `useBulmaClasses` record carries the helper props as rows (`helperProps`),
+  read from `BulmaClassesProps` and the interfaces it extends, less the
+  breakpoint variants, so `search_bestax` finds one by what it does. A part
+  whose helper props go on another element than its attributes carries
+  `helperPropsNote`, from `@helperProps` on its props type, which `get_props`
+  prints beside the catch-all row (#1273).
 - `data/skills/` is **gitignored** and synced from `/skills` by
   `scripts/sync-skills.mjs`, which runs on `build`, `test`, `test:coverage`,
   `test:watch` and `prepack`. Only the manifest (`data/skills.json`) is
@@ -65,7 +82,10 @@ the API pages and the skill catalog.
   a note a model learns to skip. Finding no install is said once, on the first
   answer, since it is also what a server started outside the project looks like;
   `BESTAX_MCP_PROJECT_DIR` points the probe at the project for a client that
-  does that. `BESTAX_MCP_NO_VERSION_CHECK=1` disables the check.
+  does that. `BESTAX_MCP_NO_VERSION_CHECK=1` disables the check. A server run
+  from this repository's source, at its root, finds the workspace's library
+  beside itself (`checkoutVersion` in `src/version.ts`); an installed one, under
+  a `node_modules`, never reads its own copy for the project's.
 - **Unhelpful answers are bugs.** A missing component suggests near misses by
   edit distance; a bad dot-path lists the real ones; a component with no CSS
   variables says so rather than returning blank. An empty response reads as a
@@ -73,6 +93,23 @@ the API pages and the skill catalog.
   element (`RENDERS_ELEMENT_OF` in `scripts/lib/api-sources.mjs`) names that
   component's `get_css_variables` call too, since "none" alone reads as "can't
   be themed".
+- **Every name an answer hands out is one the tools answer for.** An export
+  with no page of its own is a part of the record that documents it: the bare
+  control a convenience component renders (`InputBase` in `Input`), what a page
+  imports beside its component (`CarouselItem` in `Carousel`), and a sub the
+  barrel exports by name too, from a module of its own (`Thead`, as
+  `Table.Thead`) or beside its parent (`NavbarItem`, as `Navbar.Item`). The
+  catalog's `documentedWith` resolves each name to its part. A name an import
+  line gives that is no part at all, a hook (`useDataTable`), a function
+  (`toast`) or a constant (`validColors`), has no path there: the tools answer
+  with its record and name the section of the page that documents it (#1465).
+  A dot-path through a part that is a component of its own goes on in that
+  component's record, by the part's `component`, so `Stats.Stat.Label` is
+  `Stat.Label` (#1480). A sweep in `src/__tests__/server.test.ts` fails on a
+  name from the catalog, a record, `lookup_bulma_classes` or the library's
+  `index.ts` that `get_props` refuses (#1150, #1174). It reads that barrel from
+  `bulma-ui/src`, so `turbo.json` lists the library's source among this
+  package's test inputs.
 
 ## Dependencies
 
@@ -108,7 +145,11 @@ that includes schema validation and the tool/resource/prompt listings. A handler
 test would pass while the server advertised nothing.
 
 They run against the committed index, not fixtures. The index is the product; a
-test that stubs it proves nothing about what ships.
+test that stubs it proves nothing about what ships. What the server checks the
+index against is a fixture, though: the main client answers for a project with
+the library installed at the index's version, so no drift warning rides on the
+answers between a minor or major release and the index's restamp, when the
+workspace's own library is ahead. The index itself stays the committed one.
 
 ## Releases
 

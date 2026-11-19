@@ -1,6 +1,7 @@
 import React, {
   forwardRef,
   useCallback,
+  useId,
   useState,
   useRef,
   useEffect,
@@ -17,6 +18,10 @@ import {
 } from '../helpers/anchorAttrs';
 import { buttonType } from '../helpers/buttonType';
 import { enabledMenuItems, useMenuKeys } from '../helpers/useMenuKeys';
+import { useLatestRef } from '../helpers/useLatestRef';
+import { focusTabStopAfter } from '../helpers/useFocusTrap';
+import { useHoverDismiss } from '../helpers/useHoverDismiss';
+import { chain } from '../helpers/useHoverOpen';
 
 /**
  * Checks if code is running in a browser environment.
@@ -43,7 +48,7 @@ export interface DropdownProps
   /** Dropdown menu items and dividers. */
   children: React.ReactNode;
   /** Additional CSS classes for root. */
-  className?: string;
+  className?: string | undefined;
   /** Additional CSS classes for the dropdown menu. */
   menuClassName?: string;
   /** Whether the dropdown is open (controlled). */
@@ -52,33 +57,46 @@ export interface DropdownProps
   up?: boolean;
   /** Menu is right-aligned. */
   right?: boolean;
-  /** Open on hover instead of click. */
+  /**
+   * Open on hover instead of click. Escape puts away a menu the pointer is
+   * showing, and it stays away until the pointer leaves the Dropdown.
+   */
   hoverable?: boolean;
   /** Disables the dropdown trigger. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Callback when dropdown active state changes. */
   onActiveChange?: (active: boolean) => void;
   /** Close dropdown when a menu item is clicked, or activated with Enter or Space. */
   closeOnClick?: boolean;
-  /** Root element ID (for aria-controls, etc). */
-  id?: string;
+  /**
+   * Root element ID. The trigger gets `<id>-trigger` and the menu `<id>-menu`,
+   * which the trigger's `aria-controls` and the menu's `aria-labelledby` point
+   * at. Without one, both ids come from `useId`.
+   */
+  id?: React.HTMLAttributes<HTMLElement>['id'];
 }
 
 /**
  * The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI.
  *
  * Down, Enter and Space on the trigger open the menu on its first enabled
- * item, and Up opens it on its last. On the trigger of a menu that's already
- * open, Down and Up move focus to its first and last item. In the menu, the
- * arrow keys, Home and End move between the items, and Enter and Space run
- * the focused one the way a click does. Typing a letter moves to the next
- * item whose text starts with it, skipping disabled ones, and letters typed
- * in quick succession add up to one search. Typing searches once focus is in
- * the menu, so a letter typed on the trigger does nothing. Escape closes the
- * menu and focuses the trigger, and Tab closes it and lets focus move on.
- * Anything focusable in the menu that isn't an item, such as a field, keeps
- * its own keys apart from Escape and Tab. For a panel built around fields,
- * use `Popover`.
+ * item, and Up opens it on its last. A click the browser dispatches with no
+ * pointer behind it (`detail` 0), as a screen reader's browse mode can send,
+ * opens it on its first enabled item too. A pointer's click on the trigger,
+ * and a script's `click()`, move no focus into the menu. On the trigger of a
+ * menu that's already open, Down and Up move focus to its first and last
+ * item. In the menu, the arrow keys, Home and End move between the items,
+ * and Enter and Space run the focused one the way a click does. Typing a
+ * letter moves to the next item whose text starts with it, skipping disabled
+ * ones, and letters typed in quick succession add up to one search. Typing
+ * searches once focus is in the menu, so a letter typed on the trigger does
+ * nothing. Escape closes the menu and focuses the trigger. Tab closes it and
+ * moves focus to the next tab stop after the Dropdown, wrapping inside a
+ * focus trap such as Modal's, and Shift+Tab closes it and focuses the
+ * trigger. Anything focusable in the menu that isn't an item, such as a
+ * field, keeps its own keys apart from Escape and Tab, though an Escape it
+ * calls `preventDefault()` on in its own `onKeyDown` stays its own and
+ * leaves the menu open. For a panel built around fields, use `Popover`.
  *
  * @function
  * @param {DropdownProps} props - Props for the Dropdown component.
@@ -101,16 +119,28 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
       onActiveChange,
       closeOnClick = true,
       id,
+      onPointerLeave,
       ...props
     },
     ref
   ) {
     const [active, setActive] = useState<boolean>(!!activeProp);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    // A `hoverable` menu shows while the pointer is over the Dropdown, through
+    // Bulma's `:hover` rule. Escape puts it away without moving the pointer
+    // (WCAG 1.4.13, content on hover is dismissible): `is-hoverable` stays off
+    // until the pointer leaves.
+    const hover = useHoverDismiss(dropdownRef, { enabled: !!hoverable });
     const triggerRef = useRef<HTMLButtonElement>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     const menuKeys = useMenuKeys();
     const pendingFocusRef = useRef<'first' | 'last' | null>(null);
+    // The trigger names the menu and the menu is what it controls, so both
+    // need an id whether or not the Dropdown has one.
+    const generatedId = useId();
+    const baseId = id || generatedId;
+    const triggerId = `${baseId}-trigger`;
+    const menuId = `${baseId}-menu`;
 
     // Cleanup returned by a consumer's callback ref on attach, held until detach.
     const consumerCleanupRef = useRef<(() => void) | null>(null);
@@ -153,7 +183,7 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
       'is-active': active,
       'is-up': up,
       'is-right': right,
-      'is-hoverable': hoverable,
+      'is-hoverable': hoverable && !hover.dismissed,
       'is-disabled': disabled,
     });
 
@@ -167,27 +197,42 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
       if (typeof activeProp === 'boolean') setActive(activeProp);
     }, [activeProp]);
 
+    // Read when a click lands outside, so the listener stays put while
+    // `onActiveChange` changes identity, as an inline one does on every
+    // render of the parent.
+    const onActiveChangeRef = useLatestRef(onActiveChange);
+
     // SSR-safe outside click
     useEffect(() => {
       if (!active) return;
 
-      if (!isBrowser(window, document)) return;
+      // Reading `window` or `document` bare throws where neither exists, so
+      // the check is `typeof`, as `isBrowser`'s own note recommends.
+      /* istanbul ignore next: React DOM runs effects only in a browser */
+      if (typeof document === 'undefined') return;
 
       const handleClick = (e: MouseEvent) => {
         if (!isEventInside(e, dropdownRef.current)) {
           setActive(false);
-          onActiveChange?.(false);
+          onActiveChangeRef.current?.(false);
         }
       };
       document.addEventListener('mousedown', handleClick);
       return () => document.removeEventListener('mousedown', handleClick);
-    }, [active, onActiveChange]);
+    }, [active, onActiveChangeRef]);
 
-    const handleToggle = () => {
+    // A click the browser dispatched with no pointer behind it (`detail` 0,
+    // trusted), as a screen reader's browse mode can send, opens the menu on
+    // its first item, as Enter does. A pointer's click on the trigger, and a
+    // script's, move no focus into the menu.
+    const handleToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
       /* istanbul ignore next: guard is enforced by button[disabled] at the DOM level */
       if (disabled) return;
 
       const newActive = !active;
+      if (newActive && e.detail === 0 && e.nativeEvent.isTrusted) {
+        pendingFocusRef.current = 'first';
+      }
       setActive(newActive);
       onActiveChange?.(newActive);
     };
@@ -268,6 +313,12 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
           }
           break;
         case 'Escape':
+          // A menu the pointer shows uses the key too, so a Modal around the
+          // Dropdown waits for the next one.
+          if (hover.shown()) {
+            e.preventDefault();
+            hover.dismiss();
+          }
           if (active) {
             e.preventDefault();
             setActive(false);
@@ -283,9 +334,13 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
       // Closing is Dropdown's: Escape and Tab close the menu from anywhere in
       // it, a field included, and an empty or all-disabled menu too. Moving
       // between the items, running them and typeahead are the hook's, which
-      // acts only while focus is on the menu or one of its items.
+      // acts only while focus is on the menu or one of its items. An Escape
+      // something in the menu already used, such as a field's own list
+      // closing on it, leaves the menu open for the next one.
       if (e.key === 'Escape') {
+        if (e.defaultPrevented) return;
         e.preventDefault();
+        if (hover.shown()) hover.dismiss();
         setActive(false);
         onActiveChange?.(false);
         triggerRef.current?.focus();
@@ -294,6 +349,20 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
       if (e.key === 'Tab') {
         setActive(false);
         onActiveChange?.(false);
+        // Closing can hide the items before the browser moves focus, and
+        // Firefox then drops focus to the page from one, so focus moves here
+        // instead: Shift+Tab to the trigger, and Tab on past the Dropdown.
+        // A menu the pointer shows on a `hoverable` Dropdown isn't open and
+        // stays shown, so Tab walks its items as the browser does. A Tab
+        // something already used, such as a focus trap around the Dropdown
+        // wrapping from the last item, keeps the focus it gave.
+        if (!active || e.defaultPrevented) return;
+        if (e.shiftKey) {
+          e.preventDefault();
+          triggerRef.current?.focus();
+        } else if (focusTabStopAfter(dropdownRef.current as HTMLElement)) {
+          e.preventDefault();
+        }
         return;
       }
 
@@ -313,13 +382,15 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
         id={id}
         data-testid="dropdown-root"
         {...rest}
+        onPointerLeave={chain(onPointerLeave, hover.onPointerLeave)}
       >
         <div className={usePrefixedClassNames('dropdown-trigger')}>
           <button
             ref={triggerRef}
+            id={triggerId}
             className={buttonClass}
             aria-haspopup="true"
-            aria-controls={id ? `${id}-menu` : undefined}
+            aria-controls={menuId}
             aria-expanded={active}
             onClick={handleToggle}
             onKeyDown={handleTriggerKeyDown}
@@ -340,9 +411,10 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
             usePrefixedClassNames('dropdown-menu'),
             menuClassName
           )}
-          id={id ? `${id}-menu` : undefined}
+          id={menuId}
           ref={menuRef}
           role="menu"
+          aria-labelledby={triggerId}
           data-testid="dropdown-menu"
           onKeyDown={handleMenuKeyDown}
           // The menu, not its content, takes focus from a click between items,
@@ -372,12 +444,18 @@ export type DropdownItemElement = 'a' | 'div' | 'button';
  * The DropdownItem component's own props.
  */
 export interface DropdownItemOwnProps extends BulmaClassesProps {
-  /** Whether the item is active. */
+  /**
+   * Marks the item as the current one. It adds Bulma's `is-active` class, and
+   * `aria-current="true"`, so assistive tech can tell which item is current
+   * too. An `aria-current` you pass wins, `false` and `undefined` included,
+   * so an item that says its state another way, such as a `menuitemradio`
+   * with `aria-checked`, takes `aria-current={false}`.
+   */
   active?: boolean;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Marks the item as disabled; disabled items are skipped during keyboard navigation. Use with `as="button"` for a native disabled control, or pair with `aria-disabled` on a link. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Item content. */
   children?: React.ReactNode;
 }
@@ -412,7 +490,7 @@ export type DropdownItemProps<
      * `'button'` renders `type="button"` unless you pass `type="submit"` or `type="reset"`, so
      * an item inside a form does not submit it.
      */
-    as?: T;
+    as?: T | undefined;
   };
 
 /**
@@ -493,6 +571,11 @@ export const DropdownItem = ((itemProps: DropdownItemProps) => {
         className
       )}
       data-testid="dropdown-item"
+      // The current item, as Menu.Item and Navbar.Item mark theirs, with
+      // "true" rather than "page": a menu's items are actions more often than
+      // pages. Before the spread, so an `aria-current` the caller passes
+      // decides, `false` and `undefined` included.
+      aria-current={active ? 'true' : undefined}
       {...forwarded}
       // After `forwarded` for the same reason as `role` and `type` below: a
       // spread carrying `tabIndex: undefined` would otherwise erase the

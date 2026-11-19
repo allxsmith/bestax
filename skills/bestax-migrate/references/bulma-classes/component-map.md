@@ -4,7 +4,15 @@ For apps that style plain JSX with Bulma's classes (`<div className="columns">`)
 wrapper library. The codemod converts an element only when the bestax component renders
 **exactly the markup the element did**: same tag, same classes, same attributes. Anything else
 stays as written, with a `TODO(bestax-migrate)` when there is something to decide (see
-[unmappables.md](unmappables.md)).
+[unmappables.md](unmappables.md)). The exceptions are deliberate. Font Awesome's own
+`<i aria-hidden="true">` alone in a `.icon` that carries nothing assistive tech reads becomes
+`Icon`, which puts that attribute on the `.icon` instead, since the glyph is hidden either way.
+Such a `.icon` around a bare glyph, in a link or button its own `aria-label` or
+`aria-labelledby` names, becomes `Icon` too, which hides it, since the label is what assistive
+tech reads for the control. Font Awesome 6's long name for a style (`fa-brands`) becomes the
+`bestax-icons` skill's `variant` (`brands`), which renders the short name (`fab`), the same
+style (see `.icon` below). And a Bulma 0.9 helper that v1 removed, which styles nothing now,
+becomes the v1 helper that does its job (the [prop map](prop-map.md) lists them).
 
 A class the codemod doesn't know, such as the app's own `pricing-card`, rides along in
 `className`, which every bestax component passes through. So does a Bulma class with no bestax
@@ -17,98 +25,104 @@ test holds it to that table. Render tests hold the table to the library itself.
 ## Components
 
 The **Tags** column is what the codemod converts the class on: an element on any other tag gets
-a `tag:<Target>` TODO instead of a conversion. A component's own `as` can take more. One exception:
-a `<label>` or `<div>` `.panel-block` stays markup with no TODO, since bestax renders those as
-`Panel.CheckboxBlock`, `Panel.InputBlock` and `Panel.ButtonBlock`, which build their own contents.
+a `tag:<Target>` TODO instead of a conversion. A component's own `as` can take more.
 
-| Bulma class            | bestax-bulma          | Tags                                                           |
-| ---------------------- | --------------------- | -------------------------------------------------------------- |
-| `.block`               | `Block`               | `<div>` only                                                   |
-| `.box`                 | `Box`                 | `<div>` only                                                   |
-| `.button`              | `Button`              | `<button>`, any tag via `as`                                   |
-| `.buttons`             | `Buttons`             | `<div>` only                                                   |
-| `.card`                | `Card`                | `<div>` only                                                   |
-| `.card-header`         | `Card.Header`         | `<header>` only                                                |
-| `.card-header-title`   | `Card.Header.Title`   | `<div>`, `<p>`, `<h2>`, `<h3>`, `<h4>` via `as`                |
-| `.card-header-icon`    | `Card.Header.Icon`    | `<button>` only                                                |
-| `.card-image`          | `Card.Image`          | `<div>` only                                                   |
-| `.card-content`        | `Card.Content`        | `<div>` only                                                   |
-| `.card-footer`         | `Card.Footer`         | `<footer>` only                                                |
-| `.card-footer-item`    | `Card.FooterItem`     | `<span>`, `<a>`, `<button>` via `as`                           |
-| `.columns`             | `Columns`             | `<div>` only                                                   |
-| `.column`              | `Column`              | `<div>` only                                                   |
-| `.grid`                | `Grid`                | `<div>` only                                                   |
-| `.cell`                | `Cell`                | `<div>` only                                                   |
-| `.container`           | `Container`           | `<div>` only                                                   |
-| `.content`             | `Content`             | `<div>` only                                                   |
-| `.delete`              | `Delete`              | `<button>` only                                                |
-| `.field`               | `Field`               | `<div>` only                                                   |
-| `.field-label`         | `Field.Label`         | `<div>` only                                                   |
-| `.field-body`          | `Field.Body`          | `<div>` only                                                   |
-| `.control`             | `Control`             | `<div>`, `<p>` via `as`                                        |
-| `.input`               | `InputBase`           | `<input>` only                                                 |
-| `.textarea`            | `TextAreaBase`        | `<textarea>` only                                              |
-| `.select`              | `SelectBase`          | `<div>` only                                                   |
-| `.footer`              | `Footer`              | `<footer>`, `<div>` via `as`                                   |
-| `.hero`                | `Hero`                | `<section>` only                                               |
-| `.hero-head`           | `Hero.Head`           | `<div>` only                                                   |
-| `.hero-body`           | `Hero.Body`           | `<div>` only                                                   |
-| `.hero-foot`           | `Hero.Foot`           | `<div>` only                                                   |
-| `.level`               | `Level`               | `<nav>` only                                                   |
-| `.level-left`          | `Level.Left`          | `<div>` only                                                   |
-| `.level-right`         | `Level.Right`         | `<div>` only                                                   |
-| `.level-item`          | `Level.Item`          | `<div>`, `<p>`, `<a>` via `as`                                 |
-| `.media`               | `Media`               | `<article>`, `<div>` via `as`                                  |
-| `.media-left`          | `Media.Left`          | `<figure>`, `<div>` via `as`                                   |
-| `.media-content`       | `Media.Content`       | `<div>` only                                                   |
-| `.media-right`         | `Media.Right`         | `<div>` only                                                   |
-| `.navbar`              | `Navbar`              | `<nav>` only                                                   |
-| `.navbar-brand`        | `Navbar.Brand`        | `<div>` only                                                   |
-| `.navbar-menu`         | `Navbar.Menu`         | `<div>` only                                                   |
-| `.navbar-start`        | `Navbar.Start`        | `<div>` only                                                   |
-| `.navbar-end`          | `Navbar.End`          | `<div>` only                                                   |
-| `.navbar-item`         | `Navbar.Item`         | `<a>`, any tag via `as`                                        |
-| `.navbar-dropdown`     | `Navbar.DropdownMenu` | `<div>` only                                                   |
-| `.navbar-divider`      | `Navbar.Divider`      | `<hr>` only                                                    |
-| `.notification`        | `Notification`        | `<div>` only                                                   |
-| `.progress`            | `Progress`            | `<progress>` only                                              |
-| `.section`             | `Section`             | `<section>` only                                               |
-| `.subtitle`            | `SubTitle`            | `<h1>`, `<h2>`, `<h3>`, `<h4>`, `<h5>`, `<h6>`, `<p>` via `as` |
-| `.table`               | `Table`               | `<table>` only                                                 |
-| `.tag`                 | `Tag`                 | `<span>` only                                                  |
-| `.tags`                | `Tags`                | `<div>` only                                                   |
-| `.title`               | `Title`               | `<h1>`, `<h2>`, `<h3>`, `<h4>`, `<h5>`, `<h6>`, `<p>` via `as` |
-| `.breadcrumb`          | `Breadcrumb`          | `<nav>` only                                                   |
-| `.skeleton-block`      | `Skeleton`            | `<div>` only                                                   |
-| `.skeleton-lines`      | `Skeleton`            | `<div>` only                                                   |
-| `.file`                | `File`                | `<div>` only                                                   |
-| `.icon`                | `Icon`                | `<span>` only                                                  |
-| `.icon-text`           | `IconText`            | `<span>` only                                                  |
-| `.image`               | `Image`               | `<div>`, `<figure>`, `<p>` via `as`                            |
-| `.menu`                | `Menu`                | `<aside>` only                                                 |
-| `.menu-label`          | `Menu.Label`          | `<p>` only                                                     |
-| `.menu-list`           | `Menu.List`           | `<ul>` only                                                    |
-| `.modal-background`    | `Modal.Background`    | `<div>` only                                                   |
-| `.modal-content`       | `Modal.Content`       | `<div>` only                                                   |
-| `.modal-card`          | `Modal.Card`          | `<div>` only                                                   |
-| `.modal-card-head`     | `Modal.Card.Head`     | `<header>` only                                                |
-| `.modal-card-title`    | `Modal.Card.Title`    | `<p>` only                                                     |
-| `.modal-card-body`     | `Modal.Card.Body`     | `<section>` only                                               |
-| `.modal-card-foot`     | `Modal.Card.Foot`     | `<footer>` only                                                |
-| `.pagination`          | `Pagination`          | `<nav>` only                                                   |
-| `.pagination-list`     | `Pagination.List`     | `<ul>` only                                                    |
-| `.pagination-previous` | `Pagination.Previous` | `<a>` only                                                     |
-| `.pagination-next`     | `Pagination.Next`     | `<a>` only                                                     |
-| `.pagination-link`     | `Pagination.Link`     | `<a>` only                                                     |
-| `.pagination-ellipsis` | `Pagination.Ellipsis` | `<span>` only                                                  |
-| `.panel`               | `Panel`               | `<nav>` only                                                   |
-| `.panel-heading`       | `Panel.Heading`       | `<p>` only                                                     |
-| `.panel-tabs`          | `Panel.Tabs`          | `<p>` only                                                     |
-| `.panel-block`         | `Panel.Block`         | `<a>` only                                                     |
-| `.tabs`                | `Tabs`                | `<div>` only                                                   |
+| Bulma class            | bestax-bulma          | Tags                                                                                             |
+| ---------------------- | --------------------- | ------------------------------------------------------------------------------------------------ |
+| `.block`               | `Block`               | `<div>` only                                                                                     |
+| `.box`                 | `Box`                 | `<div>` only                                                                                     |
+| `.button`              | `Button`              | `<button>`, any tag via `as`                                                                     |
+| `.buttons`             | `Buttons`             | `<div>` only                                                                                     |
+| `.card`                | `Card`                | `<div>` only                                                                                     |
+| `.card-header`         | `Card.Header`         | `<header>` only                                                                                  |
+| `.card-header-title`   | `Card.Header.Title`   | `<div>`, `<p>`, `<h2>`, `<h3>`, `<h4>` via `as`                                                  |
+| `.card-header-icon`    | `Card.Header.Icon`    | `<button>` only                                                                                  |
+| `.card-image`          | `Card.Image`          | `<div>` only                                                                                     |
+| `.card-content`        | `Card.Content`        | `<div>` only                                                                                     |
+| `.card-footer`         | `Card.Footer`         | `<footer>` only                                                                                  |
+| `.card-footer-item`    | `Card.FooterItem`     | `<span>`, `<a>`, `<button>` via `as`                                                             |
+| `.columns`             | `Columns`             | `<div>` only                                                                                     |
+| `.column`              | `Column`              | `<div>` only                                                                                     |
+| `.grid`                | `Grid`                | `<div>` only                                                                                     |
+| `.cell`                | `Cell`                | `<div>` only                                                                                     |
+| `.container`           | `Container`           | `<div>`, `<main>`, `<section>`, `<article>`, `<aside>`, `<header>`, `<footer>`, `<nav>` via `as` |
+| `.content`             | `Content`             | `<div>` only                                                                                     |
+| `.delete`              | `Delete`              | `<button>` only                                                                                  |
+| `.field`               | `Field`               | `<div>` only                                                                                     |
+| `.field-label`         | `Field.Label`         | `<div>` only                                                                                     |
+| `.field-body`          | `Field.Body`          | `<div>` only                                                                                     |
+| `.control`             | `Control`             | `<div>`, `<p>` via `as`                                                                          |
+| `.input`               | `InputBase`           | `<input>` only                                                                                   |
+| `.textarea`            | `TextAreaBase`        | `<textarea>` only                                                                                |
+| `.select`              | `SelectBase`          | `<div>` only                                                                                     |
+| `.footer`              | `Footer`              | `<footer>`, `<div>` via `as`                                                                     |
+| `.hero`                | `Hero`                | `<section>`, `<div>`, `<main>`, `<header>`, `<footer>`, `<article>`, `<aside>` via `as`          |
+| `.hero-head`           | `Hero.Head`           | `<div>`, `<header>`, `<nav>` via `as`                                                            |
+| `.hero-body`           | `Hero.Body`           | `<div>` only                                                                                     |
+| `.hero-foot`           | `Hero.Foot`           | `<div>`, `<footer>`, `<nav>` via `as`                                                            |
+| `.level`               | `Level`               | `<nav>`, `<div>`, `<header>`, `<footer>` via `as`                                                |
+| `.level-left`          | `Level.Left`          | `<div>` only                                                                                     |
+| `.level-right`         | `Level.Right`         | `<div>` only                                                                                     |
+| `.level-item`          | `Level.Item`          | `<div>`, `<p>`, `<a>` via `as`                                                                   |
+| `.media`               | `Media`               | `<article>`, `<div>` via `as`                                                                    |
+| `.media-left`          | `Media.Left`          | `<figure>`, `<div>` via `as`                                                                     |
+| `.media-content`       | `Media.Content`       | `<div>` only                                                                                     |
+| `.media-right`         | `Media.Right`         | `<div>` only                                                                                     |
+| `.navbar`              | `Navbar`              | `<nav>` only                                                                                     |
+| `.navbar-brand`        | `Navbar.Brand`        | `<div>` only                                                                                     |
+| `.navbar-menu`         | `Navbar.Menu`         | `<div>` only                                                                                     |
+| `.navbar-start`        | `Navbar.Start`        | `<div>` only                                                                                     |
+| `.navbar-end`          | `Navbar.End`          | `<div>` only                                                                                     |
+| `.navbar-item`         | `Navbar.Item`         | `<a>`, any tag via `as`                                                                          |
+| `.navbar-dropdown`     | `Navbar.DropdownMenu` | `<div>` only                                                                                     |
+| `.navbar-divider`      | `Navbar.Divider`      | `<hr>` only                                                                                      |
+| `.notification`        | `Notification`        | `<div>` only                                                                                     |
+| `.progress`            | `Progress`            | `<progress>` only                                                                                |
+| `.section`             | `Section`             | `<section>` only                                                                                 |
+| `.subtitle`            | `SubTitle`            | `<h1>`, `<h2>`, `<h3>`, `<h4>`, `<h5>`, `<h6>`, `<p>` via `as`                                   |
+| `.table`               | `Table`               | `<table>` only                                                                                   |
+| `.tag`                 | `Tag`                 | `<span>`, `<a>`, `<button>` via `as`                                                             |
+| `.tags`                | `Tags`                | `<div>` only                                                                                     |
+| `.title`               | `Title`               | `<h1>`, `<h2>`, `<h3>`, `<h4>`, `<h5>`, `<h6>`, `<p>` via `as`                                   |
+| `.breadcrumb`          | `Breadcrumb`          | `<nav>` only                                                                                     |
+| `.skeleton-block`      | `Skeleton`            | `<div>` only                                                                                     |
+| `.skeleton-lines`      | `Skeleton`            | `<div>` only                                                                                     |
+| `.file`                | `File`                | `<div>` only                                                                                     |
+| `.icon`                | `Icon`                | `<span>` only                                                                                    |
+| `.icon-text`           | `IconText`            | `<span>` only                                                                                    |
+| `.image`               | `Image`               | `<div>`, `<figure>`, `<p>` via `as`                                                              |
+| `.menu`                | `Menu`                | `<aside>` only                                                                                   |
+| `.menu-label`          | `Menu.Label`          | `<p>` only                                                                                       |
+| `.menu-list`           | `Menu.List`           | `<ul>` only                                                                                      |
+| `.modal-background`    | `Modal.Background`    | `<div>` only                                                                                     |
+| `.modal-content`       | `Modal.Content`       | `<div>` only                                                                                     |
+| `.modal-card`          | `Modal.Card`          | `<div>` only                                                                                     |
+| `.modal-card-head`     | `Modal.Card.Head`     | `<header>` only                                                                                  |
+| `.modal-card-title`    | `Modal.Card.Title`    | `<p>` only                                                                                       |
+| `.modal-card-body`     | `Modal.Card.Body`     | `<section>` only                                                                                 |
+| `.modal-card-foot`     | `Modal.Card.Foot`     | `<footer>` only                                                                                  |
+| `.pagination`          | `Pagination`          | `<nav>` only                                                                                     |
+| `.pagination-list`     | `Pagination.List`     | `<ul>` only                                                                                      |
+| `.pagination-previous` | `Pagination.Previous` | `<a>` only                                                                                       |
+| `.pagination-next`     | `Pagination.Next`     | `<a>` only                                                                                       |
+| `.pagination-link`     | `Pagination.Link`     | `<a>` only                                                                                       |
+| `.pagination-ellipsis` | `Pagination.Ellipsis` | `<span>` only                                                                                    |
+| `.panel`               | `Panel`               | `<nav>`, `<article>`, `<section>`, `<aside>`, `<div>` via `as`                                   |
+| `.panel-heading`       | `Panel.Heading`       | `<p>` only                                                                                       |
+| `.panel-tabs`          | `Panel.Tabs`          | `<p>` only                                                                                       |
+| `.panel-block`         | `Panel.Block`         | `<a>`, `<div>`, `<label>` via `as`                                                               |
+| `.tabs`                | `Tabs`                | `<div>` only                                                                                     |
 
-An element with two of these (`<div className="column box">`) becomes the layout one
-(`Column`), and the other class stays in `className`.
+An element with two of these (`<div className="column box">`) becomes the one whose component
+fits its tag best, and the other class stays in `className` with a `second-component:<Target>`
+TODO. A component that renders the tag with no `as` beats one that reaches it only through `as`,
+which beats one that can't render it, and between equals the layout one wins (`Column`). So
+`<section className="hero container">` becomes a `Hero`, and `<figure className="image container">`
+an `Image`, which `Container` can't render. The tag a component renders with no `as` is the one
+the element's classes give it: a ratio puts `Image` on a `<figure>`, so
+`<figure className="navbar-item image is-16by9">` becomes an `Image`, and
+`<div className="media-left image is-1by1">` a `Media.Left`, since both reach a `<div>` only
+through `as` there. A heading's size does the same for `Title` and `SubTitle`.
 
 `Card` renders its children inside a `.card-content` of its own unless one of them is one of
 its parts, and `Card.Header` its children inside a `.card-header-title` unless one of them is a
@@ -118,13 +132,16 @@ does. Otherwise it gets a `children:<Target>` TODO. Bulma's own example card, wi
 `<p className="card-header-title">` and `<a className="card-footer-item">` links, converts through
 `as`. A `.card-footer-item` `<button>` converts only with its `type` written out as `button`,
 `submit` or `reset`, since `Card.FooterItem` writes `type="button"` on a button in place of
-anything else.
+anything else. A `.tag` link or button converts through `as` the same way, with the same rule for
+a `<button>`'s `type`.
 
 `Navbar` writes `role="navigation"` and `aria-label="main navigation"`, the attributes Bulma's
 own navbar carries, so a `.navbar` that sets both converts (whatever the label says), and one
 that doesn't gets a `defaults:Navbar` TODO. A `.navbar-item` `<button>` converts only with its
 `type` written out as `button`, `submit` or `reset`, since `Navbar.Item` writes `type="button"` on
-a button in place of anything else. A `.has-dropdown` item becomes a `Navbar.Item` that
+a button in place of anything else. `is-active` on a `.navbar-item` becomes `active` beside an
+`aria-current` of the element's own, since `active` writes `aria-current="page"` otherwise; without
+one, the class stays. A `.has-dropdown` item becomes a `Navbar.Item` that
 keeps `has-dropdown` as a class, because a `Navbar.Dropdown` would give the `.navbar-link` inside
 it dropdown semantics the markup didn't have. That link and the `.navbar-burger` stay markup with
 a `family:<class>` TODO; converting either means building the dropdown or the toggle with bestax,
@@ -144,9 +161,64 @@ component, which could hand it a labelled Field's generated one.
 A `.tabs` converts around its `<ul>`, and the `<li>`s and `<a>`s inside stay as written: `Tabs.Tab`
 renders its own `<a>` with tab roles and puts its label in a `<span>`, so converting the tabs
 themselves is by hand (something that sat beside the text in the `<a>`, a `Tag` say, then wants a
-`Span display="flex" alignItems="center"` around it and the label). A `.icon` converts around the
-`<i>` inside it when it carries the attribute `Icon` writes otherwise: `aria-hidden` with no name,
-no `role` and no `tabIndex`, and `role="img"` beside an `aria-label` or `aria-labelledby`.
+`Span display="flex" alignItems="center"` around it and the label). A `.icon` converts when it
+carries the attribute `Icon` writes otherwise: `aria-hidden` with no name, no `role` and no
+`tabIndex`, and `role="img"` beside an `aria-label` or `aria-labelledby`. Those attributes are
+left out, since `Icon` renders them by itself. When all it holds is a bare, empty `<i>` naming a
+Font Awesome or Material Design Icons glyph, the `<i>` goes and its classes become `Icon`'s
+props, read as `IconText` reads them (below), and the `Icon` closes itself:
+
+```jsx
+<span className="icon is-small" aria-hidden="true">
+  <i className="fab fa-github fa-lg"></i>
+</span>
+// becomes, rendering aria-hidden="true" on the .icon
+<Icon name="github" variant="brands" features="fa-lg" size="small" />
+```
+
+Font Awesome's own markup hides the `<i>` instead, and converts the same way when the `.icon`
+carries nothing but its classes, an `id`, a `style` and `data-` attributes: the `aria-hidden`
+moves up onto the `.icon`, where `Icon` writes it, so the glyph is hidden either way. That is a
+place a conversion changes the markup, on purpose:
+
+```jsx
+<span className="icon is-small is-left">
+  <i className="fas fa-envelope" aria-hidden="true"></i>
+</span>
+// becomes, rendering aria-hidden="true" on the .icon
+<Icon name="envelope" size="small" className="is-left" />
+```
+
+A `.icon` with no `aria-hidden` converts the same way when it sits in a `<button>`, or in a link
+(an `<a>` with an `href`), that its own `aria-label` or `aria-labelledby` names. That label is
+what assistive tech reads for the control, in place of what it holds, so the icon is decoration
+there, and `Icon` hides it. That is another place a conversion changes the markup, on purpose,
+held to the same shape: a bare glyph, in a `.icon` that carries nothing but its classes, an `id`,
+a `style` and `data-` attributes.
+
+```jsx
+<a className="button" href="https://github.com/" aria-label="GitHub">
+  <span className="icon"><i className="fab fa-github"></i></span>
+</a>
+// becomes, rendering aria-hidden="true" on the .icon
+<Button as="a" href="https://github.com/" aria-label="GitHub">
+  <Icon name="github" variant="brands" />
+</Button>
+```
+
+Around anything else, an `<i>` with an attribute of its own or an `<svg>` say, it converts around
+what it holds, kept as written.
+
+The glyph's props are spelled the way the `bestax-icons` skill writes them. `library` is left out
+for Font Awesome, `Icon`'s default, and written for Material Design Icons. The style is `variant`:
+none for `fas`, and `regular`, `brands`, `light`, `duotone` or `thin` for the others. Font
+Awesome 6's long names for them (`fa-solid`, `fa-brands`, ...) read the same way, and `Icon`
+renders the short name (`fab`), the class Font Awesome 5 knows, which 6 and 7 style the same:
+a third place the markup changes on purpose. Beside `fa-sharp`, whose family Font Awesome 7's
+short name would set back to the classic one, the long name stays as written. Font Awesome 4's
+`fa` reads as `variant="fa"`, which `Icon` renders as written: 4 styles nothing else, and some
+4 names draw another glyph in 5 and later (the `bestax-icons` skill's
+`references/icon-libraries.md` lists them).
 
 A `.menu` converts with its `.menu-label`s and `.menu-list`s, and so do the items in a list. An
 item has no class to go by, so the codemod finds it by where it sits: a `<li>` whose nearest
@@ -154,11 +226,16 @@ element is a `.menu-list`, a bestax `Menu.List`, or the bare `<ul>` nested in on
 so the `<li>`s a `.map()` renders count too. One handed to any other function doesn't, since that
 function could render it anywhere. `Menu.Item` renders the `<li>` and its `<a>`
 together, so an item converts when its `<li>` holds one `<a>` and at most one bare `<ul>` after
-it, which becomes a `Menu.List`. `is-active` on the `<a>` becomes `active`, and the `<li>`'s own
+it, which becomes a `Menu.List`. `is-active` on the `<a>` becomes `active` beside an
+`aria-current` of the `<a>`'s own, since `active` writes `aria-current="page"` otherwise; without
+one, the item stays markup with an `attr:aria-current` TODO. If the item is the current page, add
+`aria-current="page"` to the `<a>` and re-run. The `<li>`'s own
 classes stay in `className`, which `Menu.Item` puts on the `<li>`. It puts `id`, `title`, `role`,
 `tabIndex`, `style` and `data-testid` there too, and everything else on the `<a>`, so an item
 converts only when its attributes already sit that way. A `.menu-item` gets a
-`family:menu-item` TODO. `Menu.List` drops `.menu-list` on a list inside another, so a
+`family:menu-item` TODO. `Menu.List` writes `role="list"` on its `<ul>`, which is the role a
+list already has, so a `.menu-list` with no `role` converts, and one with another `role` stays
+markup with an `attr:role` TODO. `Menu.List` drops `.menu-list` on a list inside another, so a
 `.menu-list` inside another, or around a bestax `Menu.List`, stays markup with a
 `context:Menu.List` TODO, and an item's nested list converts only inside a list that is a
 `Menu.List` or becomes one.
@@ -166,7 +243,7 @@ converts only when its attributes already sit that way. A `.menu-item` gets a
 ```tsx
 <ul className="menu-list">
   <li>
-    <a className="is-active" href="/team">Team</a>
+    <a className="is-active" href="/team" aria-current="page">Team</a>
     <ul>
       <li><a href="/team/members">Members</a></li>
     </ul>
@@ -174,7 +251,7 @@ converts only when its attributes already sit that way. A `.menu-item` gets a
 </ul>
 // becomes
 <Menu.List>
-  <Menu.Item active href="/team">
+  <Menu.Item active href="/team" aria-current="page">
     Team
     <Menu.List>
       <Menu.Item href="/team/members">Members</Menu.Item>
@@ -201,6 +278,9 @@ prop: `<p className="has-text-centered mt-4">` → `<Paragraph textAlign="center
 | `<ol>`     | `OrderedList`   |
 | `<ul>`     | `UnorderedList` |
 | `<figure>` | `Figure`        |
+
+`UnorderedList` writes `role="list"` on its `<ul>` when the `<ul>` has no `role`, the role a list
+already has, and renders any `role` it's given as written, so a `<ul>` converts either way.
 
 bestax has no plain `<div>` wrapper, so `<div className="is-flex mt-4">` stays as it is, with
 no TODO: it is valid Bulma, and nothing unsafe was skipped.
@@ -238,7 +318,8 @@ go straight inside `Breadcrumb`, and `<figure className="image is-64x64"><img sr
   one, so the `<ul>` carries nothing and the `.breadcrumb` needs an `aria-label` of its own.
 - `Image` renders its `<img>` from `src` and `alt`, so the `<img>` carries nothing else, and
   `is-rounded` on it becomes `isRounded`. The `.image` keeps its own attributes. A ratio
-  (`is-4by3`) stays a class, since `size` would add `has-ratio` as well. Around anything else (an
+  (`is-4by3`) becomes `size` too. `Image` renders a ratio on a `<figure>`, so a `<figure>` needs no
+  `as` there and a `<div>` keeps `as="div"`. Around anything else (an
   `<img>` with more attributes, an `<iframe>`), `Image` renders its children as given, so the
   `.image` converts around them and they stay as written, as long as they're HTML elements written
   out. An empty `.image` stays markup, since `Image` would render an `<img>` of its own, and so does
@@ -271,14 +352,16 @@ as `items`.
   <span>Home</span>
 </span>
 // becomes
-<IconText iconProps={{ library: "fa", name: "home", "aria-hidden": "true" }}>Home</IconText>
+<IconText iconProps={{ name: "home" }}>Home</IconText>
 ```
 
 The glyph is read from the `<i>`: its Font Awesome style class (`fas`, `far`, `fa-solid`, ...) or
 `mdi`, the one class that names the glyph (`fa-home` as `name: "home"`), and the rest as
-`features`. `library` is always written, so a `ConfigProvider` with another `iconLibrary` doesn't
-change what renders. The `.icon`'s own classes and attributes join the glyph's props as they
-would on `Icon`, under their own names.
+`features`, spelled as on `Icon` (above). Like every conversion, this takes the app's
+`ConfigProvider` as unset: one with another `iconLibrary` needs `library: "fa"` written back on
+the Font Awesome ones, as one with a `classPrefix` changes every component's classes. The
+`.icon`'s own classes and attributes join the glyph's props as they would on `Icon`, under their
+own names, but for those `Icon` renders by itself.
 
 It converts only when every `.icon` inside converts to `Icon` on its own and holds a bare, empty
 `<i>` naming a Font Awesome or Material Design Icons glyph, and the only other children are those
@@ -340,7 +423,12 @@ button, the navbar's burger and dropdown link, the panel's icon, Radio and Radio
 ## Classes left alone
 
 `.help`, `.label`, `.hero-buttons`, `.hero-video`, `.theme-dark`, `.theme-light`, `.fa`,
-`.marginless`, `.paddingless`, `.navbar-content`, `.navbar-tabs` and `.panel-list` are valid
-Bulma with nothing in bestax to convert to. `.loader` is left alone as well, although bestax's
-`Loader` renders the same element: swap it in by hand for its progressbar role and accessible name.
-An element carrying one stays as written, and gets no TODO.
+`.navbar-content`, `.navbar-tabs` and `.panel-list` are valid Bulma with nothing in bestax to
+convert to. `.loader` is left alone as well, although bestax's `Loader` renders the same
+element: swap it in by hand for its progressbar role and accessible name. An element carrying
+one stays as written, and gets no TODO.
+
+v1's `marginless` and `paddingless` are helpers, not components, so they don't hold an element
+back: `<p className="has-text-centered marginless">` becomes
+`<Paragraph textAlign="centered" className="marginless">`. They keep their names, since bestax
+writes the same rules as `m-0` and `p-0`.

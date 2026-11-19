@@ -1,0 +1,474 @@
+// A Switch draws its track and its knob from _switch.scss, which jsdom never
+// loads on its own. jsdom also evaluates no media query and computes no
+// pseudo-element styles, so these compile the partial, with no prefix and
+// under one, read its rules off the sheet, and resolve which one wins on the
+// markup a Switch renders, the way a browser with forced colors on (or off)
+// would.
+import * as sass from 'sass';
+import path from 'path';
+import { render } from '@testing-library/react';
+import { Switch, type SwitchProps } from '../Switch';
+import { ConfigProvider } from '../../helpers/Config';
+
+const SCSS = path.resolve(__dirname, '../../scss');
+
+// The Bulma bulma-ui depends on, found through its package.json.
+const BULMA = path.dirname(require.resolve('bulma/package.json'));
+
+const compile = (prefix: string) =>
+  sass.compileString(
+    `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+     @use 'form/switch';`,
+    {
+      loadPaths: [SCSS, path.dirname(BULMA)],
+      quietDeps: true,
+      logger: sass.Logger.silent,
+    }
+  ).css;
+
+type Rule = { selector: string; style: CSSStyleDeclaration; media: string };
+
+/** Every style rule in the sheet, in source order, with its media query. */
+function rulesOf(source: string): Rule[] {
+  const sheet = document.createElement('style');
+  sheet.textContent = source.replace(/@charset "UTF-8";/g, '');
+  document.head.appendChild(sheet);
+  const out: Rule[] = [];
+  const walk = (list: CSSRuleList, media: string) => {
+    for (const rule of Array.from(list)) {
+      if (rule instanceof CSSStyleRule) {
+        for (const selector of rule.selectorText.split(/,(?![^(]*\))/)) {
+          out.push({ selector: selector.trim(), style: rule.style, media });
+        }
+      } else if (rule instanceof CSSMediaRule) {
+        walk(rule.cssRules, rule.media.mediaText);
+      }
+    }
+  };
+  try {
+    walk((sheet.sheet as CSSStyleSheet).cssRules, '');
+  } finally {
+    sheet.remove();
+  }
+  return out;
+}
+
+/** `selector` without its `:where()` groups, which add no specificity. */
+function withoutWhere(selector: string): string {
+  let out = '';
+  for (let i = 0; i < selector.length;) {
+    if (!selector.startsWith(':where(', i)) {
+      out += selector[i++];
+      continue;
+    }
+    let depth = 0;
+    let j = i + ':where'.length;
+    for (; j < selector.length; j++) {
+      if (selector[j] === '(') depth++;
+      else if (selector[j] === ')' && --depth === 0) break;
+    }
+    i = j + 1;
+  }
+  return out;
+}
+
+/** Specificity as [ids, classes, types], enough for this partial's rules. */
+const specificity = (selector: string): number[] => {
+  // `:not(x)` weighs what `x` does, so only its argument is counted. One
+  // with a list or a nested group weighs its heaviest part, which this
+  // doesn't work out, so it refuses one rather than miscount it.
+  const counted = withoutWhere(selector).replace(/:not\(([^(),]*)\)/g, '$1');
+  if (counted.includes(':not(')) {
+    throw new Error(`can't weigh the :not() in ${selector}`);
+  }
+  return [
+    (counted.match(/#[\w-]+/g) ?? []).length,
+    (counted.match(/\.[\w-]+|\[[^\]]*\]|:(?!:)[\w-]+/g) ?? []).length,
+    (counted.match(/(?:^|[\s>+~])[a-z][\w-]*/gi) ?? []).length,
+  ];
+};
+
+const outranks = (a: number[], b: number[]) => {
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return a[i] > b[i];
+  }
+  return true; // equal: the later declaration wins
+};
+
+/**
+ * The value `property` gets on `el`, or on its `::before` (the knob), from
+ * the rules: the most specific matching rule, the later one on a tie. Forced
+ * colors adds the rules in its media block, and an OS scheme the rules in its
+ * `prefers-color-scheme` block; every other media block is left out. jsdom
+ * serializes a zero length as `0px` and a system color lowercase, as
+ * browsers do.
+ */
+function resolveIn(
+  rules: Rule[],
+  el: Element,
+  property: string,
+  {
+    pseudo,
+    forcedColors = false,
+    scheme,
+  }: {
+    pseudo?: '::before';
+    forcedColors?: boolean;
+    scheme?: 'light' | 'dark';
+  } = {}
+): string | undefined {
+  let won: { value: string; rank: number[] } | undefined;
+  for (const { selector, style, media } of rules) {
+    if (
+      media &&
+      !(forcedColors && media === '(forced-colors: active)') &&
+      !(scheme && media === `(prefers-color-scheme: ${scheme})`)
+    ) {
+      continue;
+    }
+    const target = pseudo
+      ? selector.endsWith(pseudo) && selector.slice(0, -pseudo.length)
+      : !selector.includes('::') && selector;
+    if (!target || !el.matches(target)) continue;
+    const value = style.getPropertyValue(property);
+    if (!value) continue;
+    const rank = specificity(target);
+    if (!won || outranks(rank, won.rank)) won = { value, rank };
+  }
+  return won?.value;
+}
+
+describe.each([
+  ['no prefix', ''],
+  ['a class prefix', 'bestax-'],
+])('the Switch partial with %s', (_label, prefix) => {
+  const RULES = rulesOf(compile(prefix));
+  const resolve = (
+    el: Element,
+    property: string,
+    options?: Parameters<typeof resolveIn>[3]
+  ) => resolveIn(RULES, el, property, options);
+  const knob = (el: Element, property: string) =>
+    resolve(el, property, { pseudo: '::before' });
+
+  const renderSwitch = (props: SwitchProps) =>
+    render(
+      <ConfigProvider classPrefix={prefix}>
+        <Switch onChange={() => {}} {...props} />
+      </ConfigProvider>
+    ).container;
+
+  const trackOf = (props: SwitchProps) =>
+    renderSwitch(props).querySelector(`.${prefix}check`) as HTMLElement;
+
+  const labelOf = (props: SwitchProps) =>
+    renderSwitch({ children: 'Notifications', ...props }).querySelector(
+      `.${prefix}control-label`
+    ) as HTMLElement;
+
+  it('selects every class by the prefix the Switch renders it with', () => {
+    // A class the partial writes bare matches nothing in a prefixed build,
+    // which is how the track once went undrawn there.
+    const classes = RULES.flatMap(({ selector }) =>
+      Array.from(selector.matchAll(/\.(-?[_a-zA-Z][\w-]*)/g), m => m[1])
+    );
+    expect(classes).toEqual(
+      expect.arrayContaining([`${prefix}check`, `${prefix}control-label`])
+    );
+    expect(classes.filter(name => !name.startsWith(prefix))).toEqual([]);
+  });
+
+  it('draws the track, and fills it when checked', () => {
+    const track = trackOf({});
+    expect(resolve(track, 'width')).toBe('var(--bulma-switch-width)');
+    expect(resolve(track, 'height')).toBe('var(--bulma-switch-height)');
+    expect(resolve(track, 'background-color')).toBe(
+      'var(--bulma-switch-background)'
+    );
+    expect(resolve(trackOf({ checked: true }), 'background-color')).toBe(
+      'var(--bulma-switch-active-color)'
+    );
+  });
+
+  it('draws the thin, outlined and passive tracks', () => {
+    expect(resolve(trackOf({ isThin: true }), 'height')).toBe(
+      'var(--bulma-switch-thin-height)'
+    );
+    expect(
+      resolve(trackOf({ isOutlined: true, checked: true }), 'border-color')
+    ).toBe('var(--bulma-switch-active-color)');
+    expect(
+      resolve(trackOf({ passiveType: 'danger' }), 'background-color')
+    ).toBe('var(--bulma-danger)');
+  });
+
+  it('sets the label a gap from the track, on the other side with isRtl', () => {
+    // The row mirrors on a right-to-left page, so a physical margin stayed
+    // on the text's far side and the text touched the track. Logical ones
+    // follow the page's direction, and isRtl's reversed row.
+    const label = labelOf({});
+    expect(resolve(label, 'margin-inline-start')).toBe(
+      'var(--bulma-switch-label-gap)'
+    );
+    const reversed = labelOf({ isRtl: true });
+    expect(resolve(reversed, 'margin-inline-start')).toBe('0px');
+    expect(resolve(reversed, 'margin-inline-end')).toBe(
+      'var(--bulma-switch-label-gap)'
+    );
+    for (const el of [label, reversed]) {
+      expect(resolve(el, 'margin-left')).toBeUndefined();
+      expect(resolve(el, 'margin-right')).toBeUndefined();
+    }
+  });
+
+  it('dims the track and its label when disabled', () => {
+    expect(resolve(trackOf({ disabled: true }), 'opacity')).toBe('0.5');
+    expect(resolve(labelOf({ disabled: true }), 'opacity')).toBe('0.5');
+    // In forced colors they're drawn in GrayText, which the opacity would
+    // only halve, so both draw at full strength there (#1996).
+    const forced = { forcedColors: true };
+    expect(resolve(trackOf({ disabled: true }), 'opacity', forced)).toBe('1');
+    expect(resolve(labelOf({ disabled: true }), 'opacity', forced)).toBe('1');
+    expect(resolve(labelOf({ disabled: true }), 'color', forced)).toBe(
+      'graytext'
+    );
+  });
+
+  it('draws the track in system colors in forced colors', () => {
+    const forced = { forcedColors: true };
+    expect(resolve(trackOf({}), 'border-color', forced)).toBe('buttontext');
+    expect(
+      resolve(trackOf({ checked: true }), 'background-color', forced)
+    ).toBe('highlight');
+    expect(resolve(trackOf({ disabled: true }), 'border-color', forced)).toBe(
+      'graytext'
+    );
+  });
+
+  describe('the knob in forced colors', () => {
+    // The knob is painted from a variable, which forced colors repaints in
+    // the page's background, so it vanished on the track. A thin or outlined
+    // track never fills, so the knob was all that showed it on (#1965).
+    const forcedKnob = (props: SwitchProps) =>
+      resolve(trackOf(props), 'background-color', {
+        pseudo: '::before',
+        forcedColors: true,
+      });
+    const forcedEdge = (props: SwitchProps) =>
+      resolve(trackOf(props), 'border-color', { forcedColors: true });
+
+    it.each([
+      ['the default', {}],
+      ['a thin', { isThin: true }],
+      ['an outlined', { isOutlined: true }],
+      ['a passive outlined', { isOutlined: true, passiveType: 'danger' }],
+      ['a passive', { passiveType: 'danger' }],
+    ] as const)(
+      'draws %s knob and edge in the text color when off, gray when disabled',
+      (_style, props) => {
+        expect(forcedKnob(props)).toBe('buttontext');
+        expect(forcedEdge(props)).toBe('buttontext');
+        expect(forcedKnob({ ...props, disabled: true })).toBe('graytext');
+        expect(forcedEdge({ ...props, disabled: true })).toBe('graytext');
+      }
+    );
+
+    it.each([
+      ['the default', {}],
+      ['a passive', { passiveType: 'danger' }],
+    ] as const)(
+      'draws %s knob in the highlight text color on its filled track',
+      (_style, props) => {
+        const on = { ...props, checked: true };
+        const fill = (p: SwitchProps) =>
+          resolve(trackOf(p), 'background-color', { forcedColors: true });
+        expect(fill(on)).toBe('highlight');
+        expect(forcedKnob(on)).toBe('highlighttext');
+        // Disabled, the fill is GrayText and the knob the page's color on
+        // it, so it doesn't draw as an enabled switch (#1996).
+        const disabledOn = { ...on, disabled: true };
+        expect(fill(disabledOn)).toBe('graytext');
+        expect(forcedKnob(disabledOn)).toBe('canvas');
+        expect(forcedEdge(disabledOn)).toBe('graytext');
+      }
+    );
+
+    it.each([
+      ['thin', { isThin: true }],
+      ['outlined', { isOutlined: true }],
+      ['passive outlined', { isOutlined: true, passiveType: 'danger' }],
+      ['passive thin', { isThin: true, passiveType: 'danger' }],
+    ] as const)(
+      'draws a %s knob and edge in the highlight on an unfilled track when on, gray when disabled',
+      (_style, props) => {
+        const on = { ...props, checked: true };
+        // The knob shows only while the track's own rule outranks the fill.
+        expect(
+          resolve(trackOf(on), 'background-color', { forcedColors: true })
+        ).not.toBe('highlight');
+        expect(forcedKnob(on)).toBe('highlight');
+        expect(forcedEdge(on)).toBe('highlight');
+        // Disabled, the knob and edge are GrayText on a track that still
+        // doesn't fill (#1996).
+        const disabledOn = { ...on, disabled: true };
+        expect(forcedKnob(disabledOn)).toBe('graytext');
+        expect(forcedEdge(disabledOn)).toBe('graytext');
+        expect(
+          resolve(trackOf(disabledOn), 'background-color', {
+            forcedColors: true,
+          })
+        ).toBe('transparent');
+      }
+    );
+  });
+
+  describe('the knob', () => {
+    it('draws a round knob at the start of the track', () => {
+      const track = trackOf({});
+      expect(knob(track, 'content')).toBe('""');
+      expect(knob(track, 'border-radius')).toBe('50%');
+      expect(knob(track, 'top')).toBe('var(--bulma-switch-padding)');
+      expect(knob(track, 'left')).toBe('var(--bulma-switch-padding)');
+      expect(knob(track, 'background-color')).toBe(
+        'var(--bulma-switch-circle-color)'
+      );
+      expect(knob(track, 'transform')).toBeUndefined();
+    });
+
+    it('moves the knob to the end when checked', () => {
+      expect(knob(trackOf({ checked: true }), 'transform')).toBe(
+        'translateX(calc(var(--bulma-switch-width) - var(--bulma-switch-height)))'
+      );
+    });
+
+    it('draws the thin knob, and colors and moves it when checked', () => {
+      const thin = trackOf({ isThin: true });
+      expect(knob(thin, 'width')).toBe('var(--bulma-switch-thin-circle-size)');
+      expect(knob(thin, 'background-color')).toBe(
+        'var(--bulma-switch-background)'
+      );
+      const checked = trackOf({ isThin: true, checked: true });
+      expect(knob(checked, 'background-color')).toBe(
+        'var(--bulma-switch-active-color)'
+      );
+      expect(knob(checked, 'transform')).toBe(
+        'translateX(calc(var(--bulma-switch-width) - var(--bulma-switch-thin-circle-size) - var(--bulma-switch-padding) * 2))'
+      );
+    });
+
+    it('colors the outlined and passive knobs', () => {
+      expect(knob(trackOf({ isOutlined: true }), 'background-color')).toBe(
+        'var(--bulma-switch-background)'
+      );
+      expect(
+        knob(trackOf({ isOutlined: true, checked: true }), 'background-color')
+      ).toBe('var(--bulma-switch-active-color)');
+      expect(
+        knob(
+          trackOf({ isOutlined: true, passiveType: 'danger' }),
+          'background-color'
+        )
+      ).toBe('var(--bulma-danger)');
+      expect(knob(trackOf({ isRounded: true }), 'border-radius')).toBe('50%');
+    });
+  });
+
+  describe('the circle on each scheme', () => {
+    // The light scheme's circle is a soft grey rather than pure white. It
+    // came from a `prefers-color-scheme` rule alone, so a page that pinned a
+    // scheme still got the OS's circle: the light one on a dark switch, or
+    // the dark one on a light switch.
+    const LIGHT = 'var(--bulma-white-ter)';
+    const DARK = 'var(--bulma-scheme-main)';
+    const attr = `data-${prefix}theme`;
+    const root = document.documentElement;
+    const pin = (scheme: 'light' | 'dark') => ({ [attr]: scheme });
+    const pinClass = (scheme: 'light' | 'dark') => ({
+      className: `${prefix}theme-${scheme}`,
+    });
+
+    afterEach(() => {
+      root.removeAttribute(attr);
+      root.removeAttribute('class');
+    });
+
+    /** A Switch inside one element per pin, the first one outermost. */
+    const switchIn = (...pins: Record<string, string>[]) => {
+      let tree = <Switch onChange={() => {}} />;
+      for (const props of [...pins].reverse()) {
+        tree = <div {...props}>{tree}</div>;
+      }
+      return render(
+        <ConfigProvider classPrefix={prefix}>{tree}</ConfigProvider>
+      ).container.querySelector(`.${prefix}switch`) as HTMLElement;
+    };
+
+    /** The circle a switch draws with the OS on `scheme`. */
+    const circle = (el: Element, scheme: 'light' | 'dark') =>
+      resolve(el, '--bulma-switch-circle-color', { scheme });
+
+    it('follows the OS scheme when the page pins none', () => {
+      expect(circle(switchIn(), 'light')).toBe(LIGHT);
+      expect(circle(switchIn(), 'dark')).toBe(DARK);
+    });
+
+    it('follows a scheme pinned on the root over the OS one', () => {
+      root.setAttribute(attr, 'dark');
+      expect(circle(switchIn(), 'light')).toBe(DARK);
+      root.setAttribute(attr, 'light');
+      expect(circle(switchIn(), 'dark')).toBe(LIGHT);
+      root.removeAttribute(attr);
+      root.className = `${prefix}theme-dark`;
+      expect(circle(switchIn(), 'light')).toBe(DARK);
+      root.className = `${prefix}theme-light`;
+      expect(circle(switchIn(), 'dark')).toBe(LIGHT);
+    });
+
+    it('follows a scheme pinned on an element around it', () => {
+      for (const scheme of ['light', 'dark'] as const) {
+        expect(circle(switchIn(pin('dark')), scheme)).toBe(DARK);
+        expect(circle(switchIn(pinClass('dark')), scheme)).toBe(DARK);
+        expect(circle(switchIn(pin('light')), scheme)).toBe(LIGHT);
+        expect(circle(switchIn(pinClass('light')), scheme)).toBe(LIGHT);
+        expect(circle(switchIn(pinClass('light'), pin('dark')), scheme)).toBe(
+          DARK
+        );
+      }
+      root.setAttribute(attr, 'light');
+      expect(circle(switchIn(pinClass('dark')), 'light')).toBe(DARK);
+    });
+
+    it('follows a scheme pinned on the switch itself', () => {
+      const pinned = (scheme: 'light' | 'dark') =>
+        render(
+          <ConfigProvider classPrefix={prefix}>
+            <Switch
+              onChange={() => {}}
+              className={`${prefix}theme-${scheme}`}
+            />
+          </ConfigProvider>
+        ).container.querySelector(`.${prefix}switch`) as HTMLElement;
+      expect(circle(pinned('dark'), 'light')).toBe(DARK);
+      expect(circle(pinned('light'), 'dark')).toBe(LIGHT);
+    });
+
+    it('lets a circle color set on the switch win under a pin', () => {
+      // The pin rules sit in `:where()`, so they weigh as much as `.switch`
+      // and lose to an app's `.switch` rule that loads after them, as the OS
+      // rule always has.
+      const withOverride = [
+        ...RULES,
+        ...rulesOf(`.${prefix}switch { --bulma-switch-circle-color: red; }`),
+      ];
+      for (const el of [switchIn(pin('dark')), switchIn(pinClass('light'))]) {
+        for (const scheme of ['light', 'dark'] as const) {
+          expect(
+            resolveIn(withOverride, el, '--bulma-switch-circle-color', {
+              scheme,
+            })
+          ).toBe('red');
+        }
+      }
+    });
+  });
+});

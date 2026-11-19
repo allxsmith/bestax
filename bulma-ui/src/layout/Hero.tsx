@@ -23,8 +23,25 @@ export interface HeroProps
   extends
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /**
+   * HTML element to render (default: `section`). Bulma pages often put the
+   * hero on a landmark: `main` when the hero is the page's main content,
+   * `header` for a banner above it, `footer` for one below it. A page has
+   * only one visible `main`, and a `section` is a `region` landmark only once
+   * it has an accessible name (`aria-label`, or `aria-labelledby` pointing at
+   * its heading).
+   */
+  as?:
+    | 'section'
+    | 'div'
+    | 'main'
+    | 'header'
+    | 'footer'
+    | 'article'
+    | 'aside'
+    | undefined;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /**
    * Bulma color modifier for the hero section (renders `is-<color>`).
    *
@@ -34,9 +51,9 @@ export interface HeroProps
    * renders unstyled; those log a console warning in development and will be
    * removed from this union in the next major version.
    */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /** Hero size. */
-  size?: HeroSize;
+  size?: HeroSize | undefined;
   /**
    * Bulma background color helper. `scheme-*` values render as a
    * dark-mode-safe inline `background-color: var(--bulma-scheme-*)` instead
@@ -63,6 +80,7 @@ export interface HeroProps
  * @see {@link https://bulma.io/documentation/layout/hero/ | Bulma Hero documentation}
  */
 const HeroComponent: React.FC<HeroProps> = ({
+  as: Tag = 'section',
   className,
   color,
   size,
@@ -88,13 +106,13 @@ const HeroComponent: React.FC<HeroProps> = ({
   const heroClasses = classNames(mainClass, bulmaHelperClasses, className);
 
   return (
-    <section
+    <Tag
       className={heroClasses}
       style={mergeBulmaStyles(bulmaHelperStyles, style)}
       {...rest}
     >
       {children}
-    </section>
+    </Tag>
   );
 };
 
@@ -103,12 +121,20 @@ const HeroComponent: React.FC<HeroProps> = ({
  */
 export interface HeroHeadProps
   extends
-    React.HTMLAttributes<HTMLDivElement>,
+    React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /**
+   * HTML element to render (default: `div`). `nav` suits a head that holds
+   * only the site's navigation. A `header` is a `banner` landmark only when
+   * no `section`, `article`, `aside`, `nav` or `main` is around it, so inside
+   * the default `<section>` hero it is not one: render the hero as a `div`
+   * for that. A `header` may not sit inside another `header` or a `footer`.
+   */
+  as?: 'div' | 'header' | 'nav' | undefined;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Bulma color modifier for text. */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /**
    * Background color. `scheme-*` values render as a dark-mode-safe inline
    * `background-color: var(--bulma-scheme-*)` instead of a class. The
@@ -134,6 +160,7 @@ export interface HeroHeadProps
  * @returns {JSX.Element} The rendered hero head.
  */
 export const HeroHead: React.FC<HeroHeadProps> = ({
+  as: Tag = 'div',
   className,
   children,
   color,
@@ -150,13 +177,13 @@ export const HeroHead: React.FC<HeroHeadProps> = ({
   const mainClass = usePrefixedClassNames('hero-head');
   const heroHeadClasses = classNames(mainClass, bulmaHelperClasses, className);
   return (
-    <div
+    <Tag
       className={heroHeadClasses}
       style={mergeBulmaStyles(bulmaHelperStyles, style)}
       {...rest}
     >
       {children}
-    </div>
+    </Tag>
   );
 };
 
@@ -168,9 +195,9 @@ export interface HeroBodyProps
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Bulma color modifier for text. */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /**
    * Background color. `scheme-*` values render as a dark-mode-safe inline
    * `background-color: var(--bulma-scheme-*)` instead of a class. The
@@ -227,12 +254,20 @@ export const HeroBody: React.FC<HeroBodyProps> = ({
  */
 export interface HeroFootProps
   extends
-    React.HTMLAttributes<HTMLDivElement>,
+    React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /**
+   * HTML element to render (default: `div`). `nav` suits a foot that holds
+   * tabs or links. A `footer` is a `contentinfo` landmark only when no
+   * `section`, `article`, `aside`, `nav` or `main` is around it, so inside
+   * the default `<section>` hero it is not one: render the hero as a `div`
+   * for that. A `footer` may not sit inside another `footer` or a `header`.
+   */
+  as?: 'div' | 'footer' | 'nav' | undefined;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Bulma color modifier for text. */
-  color?: (typeof validColors)[number] | 'inherit' | 'current';
+  color?: (typeof validColors)[number] | 'inherit' | 'current' | undefined;
   /**
    * Background color. `scheme-*` values render as a dark-mode-safe inline
    * `background-color: var(--bulma-scheme-*)` instead of a class. The
@@ -258,6 +293,7 @@ export interface HeroFootProps
  * @returns {JSX.Element} The rendered hero foot.
  */
 export const HeroFoot: React.FC<HeroFootProps> = ({
+  as: Tag = 'div',
   className,
   children,
   color,
@@ -274,13 +310,13 @@ export const HeroFoot: React.FC<HeroFootProps> = ({
   const mainClass = usePrefixedClassNames('hero-foot');
   const heroFootClasses = classNames(mainClass, bulmaHelperClasses, className);
   return (
-    <div
+    <Tag
       className={heroFootClasses}
       style={mergeBulmaStyles(bulmaHelperStyles, style)}
       {...rest}
     >
       {children}
-    </div>
+    </Tag>
   );
 };
 

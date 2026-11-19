@@ -24,11 +24,8 @@
  * clock are injected, so the whole budget costs no time however large it is
  * set, and a crafted spec is never handed to a real subprocess that might give
  * it a second reading.
- *
- * `.mjs` and `node --test` rather than jest: root-level scripts with no
- * package of their own, matching consumer-sbom-meta.test.mjs.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
   installWithRetry,

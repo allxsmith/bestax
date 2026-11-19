@@ -6,13 +6,14 @@ import React, {
   useId,
   useState,
   useRef,
-  useLayoutEffect,
 } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { chain, useHoverOpen } from '../helpers/useHoverOpen';
 import { isTabbableKind } from '../helpers/useFocusTrap';
 import { isDev, warnOnce } from '../helpers/devWarnings';
+import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
+import { lengthToPx, remPxOf } from '../helpers/cssLength';
 
 /** Screen positions for the tooltip. */
 export type TooltipPosition = 'top' | 'bottom' | 'left' | 'right' | 'auto';
@@ -56,7 +57,8 @@ const triggerTabStop = (wrapper: Element, tooltip: Element) => {
  * button, a link or a `Span` with `tabIndex={0}`: something focusable inside
  * it doesn't get the link, and text, a fragment or several elements get none.
  * A development build warns when the first element Tab reaches in the
- * trigger doesn't carry the link, or there isn't one.
+ * trigger doesn't carry the link, or there isn't one. With
+ * `describesTrigger` off, there's no link and no warning.
  * @extraProp {string} [className] - Additional CSS classes.
  */
 export interface TooltipProps
@@ -64,7 +66,7 @@ export interface TooltipProps
     Omit<React.HTMLAttributes<HTMLSpanElement>, 'color' | 'content'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** The tooltip text content. */
-  label?: string;
+  label?: string | undefined;
   /**
    * Rich tooltip content (alternative to `label`), to read rather than use.
    * Nothing in it should take focus or a click: it isn't in the Tab order
@@ -74,19 +76,31 @@ export interface TooltipProps
    * it's the trigger's description.
    */
   content?: React.ReactNode;
-  /** Position of the tooltip. Default: 'top'. */
+  /**
+   * Position of the tooltip. Default: 'top'. `'auto'` puts it on the first
+   * side with room for it as it is, its own size and its arrow's gap, and at
+   * least 40px, as a one-line tooltip has always had: top, then bottom, then
+   * the wider of right and left. Where none has room, it goes on the side
+   * that falls shortest of it. It's placed as it shows, and again when what
+   * it says, `multiline`, `size` or `tooltipClassName` changes.
+   */
   position?: TooltipPosition;
   /** Color variant for the tooltip. */
-  color?: TooltipColor;
+  color?: TooltipColor | undefined;
   /** Size of the tooltip. */
-  size?: TooltipSize;
+  size?: TooltipSize | undefined;
   /**
    * Force tooltip to be always visible. Hover, focus and Escape leave it
    * shown, so Escape goes on to whatever has focus, or to a `Modal` or
    * `Popover` around it.
    */
   active?: boolean;
-  /** Allow tooltip to wrap to multiple lines. */
+  /**
+   * Give the tooltip a fixed width, `--bulma-tooltip-multiline-width` up to
+   * `--bulma-tooltip-max-width`, whatever its label's length, with its text
+   * centered. Without it, the tooltip is as wide as its text, and wraps a
+   * label once the box reaches `--bulma-tooltip-max-width`.
+   */
   multiline?: boolean;
   /** Enable fade animation. Default: true. */
   animated?: boolean;
@@ -119,8 +133,45 @@ export interface TooltipProps
    * @defaultValue false
    */
   openOnTap?: boolean;
+  /**
+   * Whether the tooltip is its trigger's description. Turn it off for a
+   * tooltip that only shows the name the trigger already has, such as an
+   * icon button's `aria-label`, so a screen reader doesn't read the name
+   * twice. Off, the trigger's `aria-describedby` is left as it is, the
+   * tooltip is hidden from assistive technology with `aria-hidden`, and
+   * there's no warning about a trigger that can't carry the link. It still
+   * shows on hover and keyboard focus.
+   * @defaultValue true
+   */
+  describesTrigger?: boolean;
+  /**
+   * Keeps the tooltip closed, and leaves its trigger as it is: hover,
+   * keyboard focus and a tap don't open it, and one that's open closes. For
+   * a tooltip that applies only some of the time, without unmounting the
+   * trigger, which would drop its focus. While it's disabled the trigger's
+   * `aria-describedby` doesn't point at it, so a screen reader doesn't read
+   * a tooltip that's kept closed. Turned off again, it opens on the next
+   * hover or focus. `active` still shows it.
+   * @defaultValue false
+   */
+  disabled?: boolean | undefined;
   /** Additional classes for the tooltip element. */
   tooltipClassName?: string;
+}
+
+/**
+ * The gap the arrow takes between the trigger and the tooltip, the same on
+ * every side: `--bulma-tooltip-arrow-size` and `--bulma-tooltip-arrow-margin`
+ * as the tooltip has them, which a size or a theme can change. A length that
+ * isn't in `px` or `rem` counts for nothing.
+ */
+function arrowGap(content: HTMLElement): number {
+  const style = getComputedStyle(content);
+  const remPx = remPxOf(content);
+  return ['--bulma-tooltip-arrow-size', '--bulma-tooltip-arrow-margin'].reduce(
+    (gap, name) => gap + (lengthToPx(style.getPropertyValue(name), remPx) ?? 0),
+    0
+  );
 }
 
 /**
@@ -175,6 +226,8 @@ export const Tooltip: React.FC<TooltipProps> = ({
   delay = 0,
   closeDelay = 0,
   openOnTap = false,
+  describesTrigger = true,
+  disabled = false,
   children,
   className,
   tooltipClassName,
@@ -192,6 +245,14 @@ export const Tooltip: React.FC<TooltipProps> = ({
     ...attrs
   } = rest;
   const [isVisible, setIsVisible] = useState(false);
+  // Disabling it closes it, which lets go of its Escape and of the pointer
+  // and focus that held it, so enabling it again opens nothing until a new
+  // hover or focus. Set while rendering, so it's closed in the same commit.
+  const [wasDisabled, setWasDisabled] = useState(disabled);
+  if (disabled !== wasDisabled) {
+    setWasDisabled(disabled);
+    if (disabled) setIsVisible(false);
+  }
   const [resolvedPosition, setResolvedPosition] = useState<
     Exclude<TooltipPosition, 'auto'>
   >(position === 'auto' ? 'top' : position);
@@ -201,8 +262,11 @@ export const Tooltip: React.FC<TooltipProps> = ({
   const tooltipId = `${useId()}-tooltip`;
 
   // Only a single element can be given the link, and a fragment takes no
-  // props of its own.
+  // props of its own. A tooltip that doesn't describe its trigger gives none,
+  // and neither does one that's disabled.
   const linkable =
+    describesTrigger &&
+    !disabled &&
     isValidElement<{ 'aria-describedby'?: string }>(children) &&
     children.type !== Fragment;
 
@@ -212,7 +276,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
   // element that took it. After every commit, since the children can change,
   // and only in development.
   useEffect(() => {
-    if (!isDev()) return;
+    if (!isDev() || !describesTrigger || disabled) return;
     const stop = triggerTabStop(
       wrapperRef.current as HTMLSpanElement,
       contentRef.current as HTMLSpanElement
@@ -237,8 +301,12 @@ export const Tooltip: React.FC<TooltipProps> = ({
     // The pointer and focus as they are. `active` shows it on top of that, so
     // dropping `active` leaves it shown while the pointer or focus holds it.
     // An ask to close can come while it's already hidden, which is no change.
+    // An ask to open while it's disabled is turned down, so nothing measures
+    // it.
     open: isVisible,
-    onOpenChange: setIsVisible,
+    onOpenChange: next => {
+      if (!next || !disabled) setIsVisible(next);
+    },
     openDelay: delay,
     closeDelay,
     // The wrapper stands in for the trigger. It holds only the children and
@@ -253,11 +321,10 @@ export const Tooltip: React.FC<TooltipProps> = ({
   });
 
   // Auto-placement and overflow correction
-  useLayoutEffect(() => {
+  useClientLayoutEffect(() => {
     const isAuto = position === 'auto';
 
     if (!isAuto) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- layout measurement effect resolves placement
       setResolvedPosition(position);
     }
 
@@ -274,21 +341,36 @@ export const Tooltip: React.FC<TooltipProps> = ({
     const wrapperRect = wrapper.getBoundingClientRect();
     const margin = 40;
     const edgePadding = 8; // minimum distance from viewport edge
+    // The viewport is the root element's client area, so a classic scrollbar
+    // doesn't hide the tooltip's edge.
+    const { clientWidth: viewWidth, clientHeight: viewHeight } =
+      wrapper.ownerDocument.documentElement;
+    // The side it goes on, which the overflow correction below goes by.
+    let side = position === 'auto' ? resolvedPosition : position;
 
-    // Step 1: determine position (auto mode only)
+    // Step 1: determine position (auto mode only). A side has room for the
+    // tooltip as it is, its own size and the gap its arrow takes, and never
+    // less than the 40px a one-line tooltip takes. Top first, then bottom,
+    // then the wider of right and left; where none has room, the side that
+    // falls shortest of it.
     if (isAuto) {
-      const spaceTop = wrapperRect.top;
-      const spaceBottom = window.innerHeight - wrapperRect.bottom;
-
-      if (spaceTop >= margin) {
-        setResolvedPosition('top');
-      } else if (spaceBottom >= margin) {
-        setResolvedPosition('bottom');
-      } else if (window.innerWidth - wrapperRect.right >= wrapperRect.left) {
-        setResolvedPosition('right');
-      } else {
-        setResolvedPosition('left');
-      }
+      const gap = arrowGap(content);
+      const tall = Math.max(margin, content.offsetHeight + gap);
+      const wide = Math.max(margin, content.offsetWidth + gap);
+      const spaceRight = viewWidth - wrapperRect.right;
+      const wider = spaceRight >= wrapperRect.left ? 'right' : 'left';
+      const room: Record<Exclude<TooltipPosition, 'auto'>, number> = {
+        top: wrapperRect.top - tall,
+        bottom: viewHeight - wrapperRect.bottom - tall,
+        right: spaceRight - wide,
+        left: wrapperRect.left - wide,
+      };
+      side =
+        (['top', 'bottom', wider] as const).find(pos => room[pos] >= 0) ??
+        (Object.keys(room) as (keyof typeof room)[]).reduce((best, pos) =>
+          room[pos] > room[best] ? pos : best
+        );
+      setResolvedPosition(side);
     }
 
     // Step 2: measure tooltip content and correct overflow.
@@ -303,13 +385,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
       // For top/bottom positions, tooltip is centered horizontally via CSS
       // (left: 50%; transform: translateX(-50%)).
       // Check if it overflows left or right and apply a corrective shift.
-      const pos = isAuto ? undefined : position; // read from state won't be updated yet in auto
-      const effectivePos = pos || 'top'; // fallback, actual is set by state
-      const isVertical =
-        effectivePos === 'top' ||
-        effectivePos === 'bottom' ||
-        resolvedPosition === 'top' ||
-        resolvedPosition === 'bottom';
+      const isVertical = side === 'top' || side === 'bottom';
 
       if (isVertical) {
         if (contentRect.left < edgePadding) {
@@ -318,9 +394,9 @@ export const Tooltip: React.FC<TooltipProps> = ({
           style.left = `calc(50% + ${shift}px)`;
           (style as Record<string, string>)['--tooltip-arrow-offset'] =
             `${-shift}px`;
-        } else if (contentRect.right > window.innerWidth - edgePadding) {
+        } else if (contentRect.right > viewWidth - edgePadding) {
           // Overflows right — shift left
-          const shift = contentRect.right - (window.innerWidth - edgePadding);
+          const shift = contentRect.right - (viewWidth - edgePadding);
           style.left = `calc(50% - ${shift}px)`;
           (style as Record<string, string>)['--tooltip-arrow-offset'] =
             `${shift}px`;
@@ -333,8 +409,8 @@ export const Tooltip: React.FC<TooltipProps> = ({
           style.top = `calc(50% + ${shift}px)`;
           (style as Record<string, string>)['--tooltip-arrow-offset'] =
             `${-shift}px`;
-        } else if (contentRect.bottom > window.innerHeight - edgePadding) {
-          const shift = contentRect.bottom - (window.innerHeight - edgePadding);
+        } else if (contentRect.bottom > viewHeight - edgePadding) {
+          const shift = contentRect.bottom - (viewHeight - edgePadding);
           style.top = `calc(50% - ${shift}px)`;
           (style as Record<string, string>)['--tooltip-arrow-offset'] =
             `${shift}px`;
@@ -343,7 +419,18 @@ export const Tooltip: React.FC<TooltipProps> = ({
 
       setContentStyle(style);
     });
-  }, [position, resolvedPosition, isVisible, alwaysActive, label, content]);
+    // What sizes the tooltip, which auto goes by, as well as what it says.
+  }, [
+    position,
+    resolvedPosition,
+    isVisible,
+    alwaysActive,
+    label,
+    content,
+    multiline,
+    size,
+    tooltipClassName,
+  ]);
 
   // Generate Bulma classes
   const tooltipClasses = usePrefixedClassNames('tooltip', {
@@ -400,7 +487,9 @@ export const Tooltip: React.FC<TooltipProps> = ({
         className={combinedTooltipClasses}
         // Hidden by `visibility: hidden` in the stylesheet, which keeps it out
         // of the accessibility tree and still lets it describe the trigger
-        // (accname step 2A), so it takes no aria-hidden.
+        // (accname step 2A), so a describing one takes no aria-hidden. One
+        // that only repeats the trigger's name is hidden even while it shows.
+        aria-hidden={describesTrigger ? undefined : true}
         role="tooltip"
         style={Object.keys(contentStyle).length > 0 ? contentStyle : undefined}
       >

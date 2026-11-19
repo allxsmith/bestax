@@ -24,6 +24,25 @@ export const FieldProvider = FieldContext.Provider;
 /** Provider for Control context — used internally by Control component. */
 export const ControlProvider = ControlContext.Provider;
 
+const FieldsetDisabledContext = createContext(false);
+
+/**
+ * An input's `disabled`: its own prop when the caller set one, otherwise
+ * whether a disabled `Fieldset` holds it. A `<fieldset disabled>` disables the
+ * native controls inside on its own, and this carries the same state to what
+ * the browser doesn't reach, such as Rate's stars, the time wheels, and the
+ * `is-disabled` classes. The content of a Fieldset's legend reads the state
+ * from outside that Fieldset, as the browser leaves the first legend's
+ * controls enabled. Internal; not part of the public API.
+ */
+export const useFieldsetDisabled = (disabled: boolean | undefined): boolean => {
+  const inherited = useContext(FieldsetDisabledContext);
+  return disabled ?? inherited;
+};
+
+/** Provider for a Fieldset's disabled state, used internally by Fieldset. */
+export const FieldsetDisabledProvider = FieldsetDisabledContext.Provider;
+
 /** The wrapper props that change what its own `Field` renders. */
 interface FieldShapingProps {
   /** Rendered as the `Field`'s label. */
@@ -245,7 +264,8 @@ const FieldLabelElementIdContext = createContext<string | undefined>(undefined);
 
 /**
  * The id of a labeled Field's own `<label>`, for a group control (Radios,
- * Checkboxes, Rate, DateRangeInput and DateRangeInputBase) to point
+ * Checkboxes, Rate, DateRangeInput and DateRangeInputBase, and an inline
+ * DateInputBase, TimeInputBase or DateTimeInputBase) to point
  * `aria-labelledby` at, since a group cannot take the label's `htmlFor`
  * (#939, #1005). Set under the same conditions as
  * {@link useFieldLabelId}. Consumed through `useAutoLabelledBy`.
@@ -273,7 +293,8 @@ const FieldLabelForContext = createContext<FieldLabelFor>({});
  * renders with, if it has one. An unlabeled Field passes both through
  * together, so a control in the inner Field of a horizontal layout can tell
  * the outer label names it, and point at that label by its id, as a range
- * Slider's thumbs (#981) and Autocomplete's suggestion list (#998) do. The
+ * Slider's thumbs (#981) and Autocomplete's and Taginput's suggestion lists
+ * (#998, #1082) do. The
  * `htmlFor` is only ever compared with a control's own id, never adopted, so
  * it hands out no id for a control. It keeps the generated id after the
  * label drops a `for` nothing took (#1004), which no control's id matches
@@ -345,30 +366,84 @@ export const useFieldLabelTarget = (
 
 /**
  * Shape of the Radios group context. The group provides:
- * - `name`: shared form field name (Stage 1)
+ * - `name`: shared form field name, the caller's or, without one, a
+ *   generated one, so the radios are always one group to the browser
  * - `value`: currently-selected radio value (Stage 2 — group-managed selection)
  * - `onChange`: dispatched by child Radios when clicked (Stage 2)
  *
  * Group sets `value`/`onChange` only when actively managing selection
  * (i.e., the user passed `value`, `defaultValue`, or `onChange` to `<Radios>`).
- * When only `name` is provided, the group is in "name-only" mode and child
- * Radios manage their own checked state independently.
+ * Otherwise the group is in "name-only" mode and child Radios manage their
+ * own checked state, which the shared name keeps to one at a time.
+ *
+ * A group given only `onChange` manages the selection but holds no value
+ * until its first change. Until then a Radio with a value shows its own
+ * `defaultChecked`, still controlled, so that change doesn't flip it from
+ * uncontrolled to controlled.
  */
 export interface RadiosGroupContextValue {
   name?: string;
-  value?: string;
+  /** `null` once a radio without a value was picked before the group held one, so no radio with a value shows checked. */
+  value?: string | null;
   onChange?: (value: string) => void;
+  /** Set with `onChange`. Tells the group a radio without a value, sharing its name, was picked. */
+  pickWithoutValue?: () => void;
 }
+
+/**
+ * Tells a surrounding `<Radios>` that one of its radios was picked. A radio
+ * with a value hands the group that value. One without a value tells the
+ * group nothing it reports, but when it shares the group's name the browser
+ * has just unchecked the radio that showed checked, so the group learns the
+ * pick left its radios and React doesn't check that one again, undoing the
+ * pick. `Radio` and `RadioCard` call it with their effective name.
+ */
+export const pickInRadiosGroup = (
+  group: RadiosGroupContextValue | undefined,
+  value: string | number | readonly string[] | undefined,
+  name: string | undefined
+) => {
+  if (!group?.onChange) return;
+  if (value !== undefined) group.onChange(String(value));
+  else if (name !== undefined && name === group.name) group.pickWithoutValue!();
+};
 
 /**
  * Shape of the Checkboxes group context. Like Radios but with array semantics
  * for multi-select.
+ *
+ * While the group manages the selection it also sets `registerChecked` and
+ * `startingValue`. A group given only `onChange` holds no value until its
+ * first change, so its choices register the values they start checked with,
+ * and that change starts from them rather than from an empty array.
  */
 export interface CheckboxesGroupContextValue {
   name?: string;
   value?: string[];
   onChange?: (values: string[]) => void;
+  /** Registers a value a choice starts checked with, and returns the function that takes it back. */
+  registerChecked?: (value: string) => () => void;
+  /** The values registered as starting checked, each once, in the order they came. */
+  startingValue?: () => string[];
 }
+
+/**
+ * Registers a choice with its surrounding `<Checkboxes>` while it starts
+ * checked, so a group with no value yet starts its first change from the
+ * choices that were checked. `Checkbox` and `CheckboxCard` call it. It does
+ * nothing outside a group that manages the selection, or without a value.
+ */
+export const useRegisterChecked = (
+  group: CheckboxesGroupContextValue | undefined,
+  value: string | undefined,
+  startsChecked: boolean
+) => {
+  const register = group?.registerChecked;
+  useClientLayoutEffect(() => {
+    if (!register || value === undefined || !startsChecked) return;
+    return register(value);
+  }, [register, value, startsChecked]);
+};
 
 const RadiosContext = createContext<RadiosGroupContextValue | undefined>(
   undefined

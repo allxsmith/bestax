@@ -53,7 +53,10 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-optimize
   @use 'bulma/sass/themes';
   @use 'bulma/sass/elements/button';
   @use 'bulma/sass/components/card';
+  @use 'bulma/sass/components/modal'; // Dialog is drawn inside a Modal
   @use '@allxsmith/bestax-bulma/scss/components/dialog';
+  @use '@allxsmith/bestax-bulma/scss/elements/button' as bestax-button;
+  @use '@allxsmith/bestax-bulma/scss/components/card' as bestax-card;
   @use 'bulma/sass/helpers/flexbox';
   ```
 
@@ -67,8 +70,8 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-optimize
 
 - [`references/modular-build.md`](https://github.com/allxsmith/bestax/blob/main/skills/bestax-optimize/references/modular-build.md)
   — the full Lever&nbsp;2 procedure: the component→partial mapping rule, the authoritative
-  bestax extras partial inventory (more complete than the docs example), Bulma helper
-  categories, and a worked `styles.scss` for the starter app.
+  bestax extras partial inventory, Bulma helper categories, and a worked `styles.scss` for the
+  starter app.
 
 ## Related
 

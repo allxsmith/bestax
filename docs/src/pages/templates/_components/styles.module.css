@@ -1,0 +1,169 @@
+/* The Templates page. The filter panel, chips, search box and empty state
+   come from ComponentComparison's stylesheet, which the components import
+   alongside this one; what is here is only what the page adds. */
+
+.header {
+  text-align: center;
+}
+.header p {
+  max-width: 44rem;
+  margin-inline: auto;
+}
+.credit {
+  color: var(--ifm-color-content-secondary);
+}
+
+/* ---- filters ---------------------------------------------------------- */
+.filtersHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+}
+.filtersTitle {
+  margin: 0;
+  font-size: 1.25rem;
+}
+.tagSet {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.tagSet legend {
+  margin-bottom: 0.4rem;
+}
+/* The checkbox is visually hidden behind its chip-styled label, so the
+   label shows its focus. */
+.tagInput:focus-visible + label,
+.operatorInput:focus-visible + label {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+
+.operatorLabel {
+  display: inline-flex;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 999px;
+  overflow: hidden;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.op {
+  padding: 0.25rem 0.7rem;
+  color: var(--ifm-color-content-secondary);
+}
+/* White on the light theme's primary, the page background on the dark
+   theme's lighter one: each clears 4.5:1. */
+.opOn {
+  background: var(--ifm-color-primary);
+  color: #fff;
+  font-weight: 600;
+}
+[data-theme='dark'] .opOn {
+  color: var(--ifm-background-color);
+}
+
+/* ---- cards ------------------------------------------------------------ */
+.sectionHeading {
+  margin: 0 0 1rem;
+}
+.grid + .sectionHeading {
+  margin-top: 2.5rem;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+  gap: 1.5rem;
+}
+
+/* The CategoryCards card look: the same border, radius, surface and shadow,
+   in both themes. */
+.card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 16px;
+  background: var(--ifm-background-surface-color);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+[data-theme='dark'] .card {
+  border-color: var(--ifm-color-emphasis-300);
+  background: var(--ifm-color-emphasis-100);
+}
+
+.shot {
+  display: block;
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+.shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1280 / 800;
+  object-fit: cover;
+  object-position: top;
+  background: var(--ifm-color-emphasis-100);
+}
+/* Inset, since the card clips anything drawn outside it. */
+.shot:focus-visible {
+  outline: 3px solid var(--ifm-color-primary);
+  outline-offset: -3px;
+}
+
+.body {
+  flex: 1;
+  padding: 1rem 1.25rem 0.75rem;
+}
+.title {
+  margin: 0 0 0.4rem;
+  font-size: 1.15rem;
+}
+.title a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.description {
+  margin: 0 0 0.75rem;
+  color: var(--ifm-color-content-secondary);
+  font-size: 0.9rem;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  font-size: 0.78rem;
+  color: var(--ifm-color-content-secondary);
+}
+.tags li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0;
+}
+.swatch {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--tag-color);
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  padding: 0.6rem 1.25rem;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+  font-size: 0.83rem;
+}
+.footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}

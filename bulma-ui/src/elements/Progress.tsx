@@ -15,7 +15,7 @@ export interface ProgressProps
     React.ProgressHTMLAttributes<HTMLProgressElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * Bulma color modifier for the progress bar (renders `is-<color>`).
    *
@@ -25,24 +25,28 @@ export interface ProgressProps
    * bar renders unstyled; those log a console warning in development and will
    * be removed from this union in the next major version.
    */
-  color?: (typeof validColors)[number];
+  color?: (typeof validColors)[number] | undefined;
   /** Size modifier for the progress bar. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /**
    * Current value of the progress bar. Leave it unset for an indeterminate
    * bar, which sweeps across the track. Under `prefers-reduced-motion: reduce`
    * that bar holds still (with bestax's CSS loaded), so it can read as
    * partly filled.
    */
-  value?: number;
+  value?: number | undefined;
   /** Maximum value of the progress bar. */
-  max?: number;
+  max?: number | undefined;
   /** Optional custom content inside the progress bar. */
   children?: React.ReactNode;
 }
 
 /**
  * The `Progress` component displays a Bulma-styled progress bar.
+ *
+ * In forced colors, with bestax's CSS loaded, its fill and an edge around
+ * its track are drawn in the text color, where Bulma's whole bar would take
+ * the page's color and disappear.
  *
  * @function
  * @param {ProgressProps} props - Props for the Progress component.

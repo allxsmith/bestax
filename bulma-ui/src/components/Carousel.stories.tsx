@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
+import { expect } from 'storybook/test';
 import { Carousel, CarouselItem } from './Carousel';
 import { Hero } from '../layout/Hero';
 import { Block } from '../elements/Block';
@@ -12,6 +13,14 @@ import { Card } from './Card';
 import { Columns } from '../columns/Columns';
 import { Column } from '../columns/Column';
 import SubTitle from '../elements/SubTitle';
+import { LocaleProvider } from '../helpers/LocaleProvider';
+// Credits and licenses for the pictures: ../../images/LICENSE.md
+import fjord from '../../images/sample-fjord-3by2.jpg';
+import kingsCanyon from '../../images/sample-kings-canyon-3by2.jpg';
+import skye from '../../images/sample-skye-3by2.jpg';
+import fortEbey from '../../images/sample-fort-ebey-3by2.jpg';
+import saltCreekFalls from '../../images/sample-salt-creek-falls-3by2.jpg';
+import yosemite from '../../images/sample-yosemite-3by2.jpg';
 
 const meta: Meta<typeof Carousel> = {
   title: 'Components/Carousel',
@@ -51,6 +60,36 @@ const meta: Meta<typeof Carousel> = {
       control: 'boolean',
       description: 'Enable drag/swipe navigation',
     },
+    itemsToShow: {
+      control: 'number',
+      description:
+        'How many items are in view at every width no itemsToShow<Viewport> prop covers',
+    },
+    itemsToShowMobile: {
+      control: 'number',
+      description: "Items in view below Bulma's tablet breakpoint",
+    },
+    itemsToShowTablet: {
+      control: 'number',
+      description: "Items in view from Bulma's tablet breakpoint up",
+    },
+    itemsToShowDesktop: {
+      control: 'number',
+      description: "Items in view from Bulma's desktop breakpoint up",
+    },
+    itemsToShowWidescreen: {
+      control: 'number',
+      description: "Items in view from Bulma's widescreen breakpoint up",
+    },
+    itemsToShowFullhd: {
+      control: 'number',
+      description: "Items in view from Bulma's fullhd breakpoint up",
+    },
+    itemsToScroll: {
+      control: 'number',
+      description:
+        'How many items one step moves, capped at the number in view',
+    },
     arrow: {
       control: 'boolean',
       description: 'Show navigation arrows',
@@ -67,7 +106,7 @@ const meta: Meta<typeof Carousel> = {
       control: 'select',
       options: [undefined, 'light', 'dark'],
       description:
-        'Arrow icon color variant for visibility on different backgrounds',
+        'Arrow icon color variant for visibility on different backgrounds. Not applied while the overlay look is on (overlayControls, which indicatorInside turns on)',
     },
     indicator: {
       control: 'boolean',
@@ -75,12 +114,19 @@ const meta: Meta<typeof Carousel> = {
     },
     indicatorInside: {
       control: 'boolean',
-      description: 'Position indicators inside carousel',
+      description:
+        'Put the indicators over the slides. Also turns on the overlay look unless overlayControls says otherwise',
+    },
+    overlayControls: {
+      control: 'boolean',
+      description:
+        'The overlay look for photos: the arrows, and indicators over the slides, take the --bulma-carousel-overlay-* colors, with a dark band behind indicators over the slides. Follows indicatorInside unless set',
     },
     indicatorPosition: {
       control: 'select',
       options: ['bottom', 'top'],
-      description: 'Indicator position',
+      description:
+        'The edge of the slides indicatorInside puts the indicators on. Without indicatorInside they sit below the slides',
     },
     indicatorStyle: {
       control: 'select',
@@ -119,6 +165,11 @@ const meta: Meta<typeof Carousel> = {
     iconFeatures: {
       control: 'text',
       description: 'Additional icon modifiers',
+    },
+    labels: {
+      control: false,
+      description:
+        'The words it writes for its arrows, indicators and items, for another language: previous, next, indicator(slide) and item(current, total). English unless given',
     },
   },
 };
@@ -159,6 +210,24 @@ export const Default: Story = {
 };
 
 /**
+ * On a right-to-left page the slides run from right to left, the previous
+ * arrow sits on the right and the built-in chevrons flip.
+ */
+export const RightToLeft: Story = {
+  render: () => (
+    <LocaleProvider locale="ar" dir="rtl">
+      <Block p="5">
+        <Carousel>
+          <CarouselItem>الأول</CarouselItem>
+          <CarouselItem>الثاني</CarouselItem>
+          <CarouselItem>الثالث</CarouselItem>
+        </Carousel>
+      </Block>
+    </LocaleProvider>
+  ),
+};
+
+/**
  * Auto-playing carousel.
  */
 export const Autoplay: Story = {
@@ -166,7 +235,8 @@ export const Autoplay: Story = {
     return (
       <Block p="5">
         <Paragraph mb="4" className="help">
-          Auto-advances every 3 seconds. Pause on hover.
+          Auto-advances every 3 seconds. Waits while the pointer is over it and
+          while focus is in it.
         </Paragraph>
         <Carousel autoplay interval={3000}>
           {heroColors.map((color, i) => (
@@ -191,12 +261,7 @@ export const Autoplay: Story = {
  */
 export const WithImages: Story = {
   render: function WithImagesExample() {
-    const images = [
-      'https://picsum.photos/id/1018/800/400',
-      'https://picsum.photos/id/1015/800/400',
-      'https://picsum.photos/id/1019/800/400',
-      'https://picsum.photos/id/1016/800/400',
-    ];
+    const images = [skye, fjord, fortEbey, kingsCanyon];
 
     return (
       <Block p="5">
@@ -303,6 +368,59 @@ export const IndicatorTop: Story = {
 };
 
 /**
+ * Indicators over the slides with the plain look. `overlayControls={false}`
+ * leaves off the overlay colors and the dark band, for light slides such as
+ * white cards. The arrows and indicators sit over each slide's edges, so the
+ * card centers its text between them, with room above and below it.
+ */
+export const IndicatorInsidePlain: Story = {
+  render: function IndicatorInsidePlainExample() {
+    const rooms = ['Garden Room', 'Harbor Suite', 'Loft', 'Courtyard Twin'];
+    return (
+      <Block p="5">
+        <Carousel indicatorInside overlayControls={false}>
+          {rooms.map(room => (
+            <CarouselItem key={room}>
+              <Card m="2">
+                <Card.Content px="6" py="6" textAlign="centered">
+                  <Title as="p" size="5" mt="5">
+                    {room}
+                  </Title>
+                  <SubTitle as="p" size="6" mb="5">
+                    Sleeps two
+                  </SubTitle>
+                </Card.Content>
+              </Card>
+            </CarouselItem>
+          ))}
+        </Carousel>
+      </Block>
+    );
+  },
+};
+
+/**
+ * The overlay look on the arrows, with the indicators below the slides:
+ * `overlayControls` without `indicatorInside`.
+ */
+export const OverlayArrows: Story = {
+  render: function OverlayArrowsExample() {
+    const images = [skye, fjord, fortEbey];
+    return (
+      <Block p="5">
+        <Carousel overlayControls>
+          {images.map((src, i) => (
+            <CarouselItem key={src}>
+              <Image src={src} alt={`Slide ${i + 1}`} />
+            </CarouselItem>
+          ))}
+        </Carousel>
+      </Block>
+    );
+  },
+};
+
+/**
  * No repeat - stops at first and last slide.
  */
 export const NoRepeat: Story = {
@@ -381,6 +499,40 @@ export const NoIndicators: Story = {
 };
 
 /**
+ * The arrows, the indicators and the items named in French with `labels`,
+ * and the role descriptions with `aria-roledescription`.
+ */
+export const Labels: Story = {
+  render: function LabelsExample() {
+    return (
+      <Block p="5">
+        <Carousel
+          lang="fr"
+          aria-roledescription="carrousel"
+          ariaLabel="Couleurs"
+          labels={{
+            previous: 'Diapositive précédente',
+            next: 'Diapositive suivante',
+            indicator: slide => `Aller à la diapositive ${slide}`,
+            item: (current, total) => `${current} sur ${total}`,
+          }}
+        >
+          {heroColors.map((color, i) => (
+            <CarouselItem key={i} aria-roledescription="diapositive">
+              <Hero color={color} size="medium">
+                <Hero.Body textAlign="centered">
+                  <Title as="p">Diapositive {i + 1}</Title>
+                </Hero.Body>
+              </Hero>
+            </CarouselItem>
+          ))}
+        </Carousel>
+      </Block>
+    );
+  },
+};
+
+/**
  * Without drag/swipe navigation.
  */
 export const NoDrag: Story = {
@@ -444,6 +596,93 @@ export const Controlled: Story = {
 };
 
 /**
+ * Several cards in view: three on desktop, two on tablet and one on mobile.
+ * A step moves one card, and the indicators mark where the view can start.
+ * Each photo is stretched to fill a 16:9 `Image` frame, so the cards line up
+ * whatever shape the photos are.
+ */
+export const SeveralInView: Story = {
+  args: {
+    itemsToShow: 1,
+    itemsToShowTablet: 2,
+    itemsToShowDesktop: 3,
+    itemsToScroll: 1,
+  },
+  render: function SeveralInViewExample(args) {
+    const rooms = [
+      {
+        title: 'Garden Room',
+        description: 'A queen bed and doors onto the garden.',
+        image: skye,
+      },
+      {
+        title: 'Harbor Suite',
+        description: 'A sitting room with a view of the boats.',
+        image: fjord,
+      },
+      {
+        title: 'Loft',
+        description: 'Under the eaves, with a reading nook.',
+        image: fortEbey,
+      },
+      {
+        title: 'Courtyard Twin',
+        description: 'Two beds, a desk and a quiet courtyard.',
+        image: kingsCanyon,
+      },
+      {
+        title: 'Terrace Room',
+        description: 'A private terrace for breakfast outside.',
+        image: saltCreekFalls,
+      },
+      {
+        title: 'Family Suite',
+        description: 'Two rooms and space for a cot.',
+        image: yosemite,
+      },
+    ];
+
+    return (
+      <Block p="5">
+        <Carousel {...args}>
+          {rooms.map(room => (
+            <CarouselItem key={room.title}>
+              <Card m="2">
+                <Card.Image>
+                  <Image size="16by9" src={room.image} alt={room.title} />
+                </Card.Image>
+                <Card.Content>
+                  <Title as="p" size="5">
+                    {room.title}
+                  </Title>
+                  <SubTitle as="p" size="6">
+                    {room.description}
+                  </SubTitle>
+                </Card.Content>
+              </Card>
+            </CarouselItem>
+          ))}
+        </Carousel>
+      </Block>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    // The photos are 3:2, taller than their 16:9 frames, so one that kept
+    // its own height would run past its frame and over the card's title
+    // (#1166). A frame the same shape as its photo would hide that.
+    const frames = canvasElement.querySelectorAll('.image.is-16by9');
+    await expect(frames.length).toBeGreaterThan(0);
+    for (const frame of Array.from(frames)) {
+      const photo = frame.querySelector('img') as HTMLImageElement;
+      await expect(photo.getBoundingClientRect().height).toBeCloseTo(
+        frame.getBoundingClientRect().height,
+        0
+      );
+    }
+  },
+};
+
+/**
  * Card content carousel.
  */
 export const CardContent: Story = {
@@ -452,22 +691,22 @@ export const CardContent: Story = {
       {
         title: 'Mountain Retreat',
         description: 'Escape to the mountains and enjoy nature.',
-        image: 'https://picsum.photos/id/1018/800/400',
+        image: skye,
       },
       {
         title: 'Beach Paradise',
         description: 'Relax on pristine beaches with crystal-clear water.',
-        image: 'https://picsum.photos/id/1015/800/400',
+        image: fjord,
       },
       {
         title: 'City Adventure',
         description: 'Explore vibrant urban landscapes and culture.',
-        image: 'https://picsum.photos/id/1019/800/400',
+        image: fortEbey,
       },
       {
         title: 'Forest Haven',
         description: 'Discover the tranquility of ancient forests.',
-        image: 'https://picsum.photos/id/1016/800/400',
+        image: kingsCanyon,
       },
     ];
 

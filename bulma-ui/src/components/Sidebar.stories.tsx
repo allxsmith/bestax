@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { Menu } from './Menu';
 import { Box } from '../elements/Box';
@@ -89,15 +89,22 @@ type Story = StoryObj<typeof Sidebar>;
 export const Default: Story = {
   render: function DefaultExample() {
     const [isOpen, setIsOpen] = useState(false);
+    // Storybook's docs page shows this story twice, so its id comes from
+    // useId rather than being written out.
+    const titleId = useId();
 
     return (
       <Section>
         <Button color="primary" onClick={() => setIsOpen(true)}>
           Open Sidebar
         </Button>
-        <Sidebar isOpen={isOpen} onClose={() => setIsOpen(false)}>
+        <Sidebar
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+          aria-labelledby={titleId}
+        >
           <Sidebar.Header>
-            <Sidebar.Title>Menu</Sidebar.Title>
+            <Sidebar.Title id={titleId}>Menu</Sidebar.Title>
             <Sidebar.Close onClick={() => setIsOpen(false)} />
           </Sidebar.Header>
           <Sidebar.Body>
@@ -139,9 +146,10 @@ export const RightPosition: Story = {
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
           position="right"
+          aria-labelledby="sidebar-title-settings"
         >
           <Sidebar.Header>
-            <Sidebar.Title>Settings</Sidebar.Title>
+            <Sidebar.Title id="sidebar-title-settings">Settings</Sidebar.Title>
             <Sidebar.Close onClick={() => setIsOpen(false)} />
           </Sidebar.Header>
           <Sidebar.Body>
@@ -177,9 +185,16 @@ export const CustomWidth: Story = {
         <Button color="success" onClick={() => setIsOpen(true)}>
           Open Wide Sidebar
         </Button>
-        <Sidebar isOpen={isOpen} onClose={() => setIsOpen(false)} width="400px">
+        <Sidebar
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+          width="400px"
+          aria-labelledby="sidebar-title-wide-panel"
+        >
           <Sidebar.Header>
-            <Sidebar.Title>Wide Panel</Sidebar.Title>
+            <Sidebar.Title id="sidebar-title-wide-panel">
+              Wide Panel
+            </Sidebar.Title>
             <Sidebar.Close onClick={() => setIsOpen(false)} />
           </Sidebar.Header>
           <Sidebar.Body>
@@ -209,9 +224,16 @@ export const FullWidth: Story = {
         <Button color="warning" onClick={() => setIsOpen(true)}>
           Open Full Width
         </Button>
-        <Sidebar isOpen={isOpen} onClose={() => setIsOpen(false)} isFullwidth>
+        <Sidebar
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+          isFullwidth
+          aria-labelledby="sidebar-title-full-width-panel"
+        >
           <Sidebar.Header>
-            <Sidebar.Title>Full Width Panel</Sidebar.Title>
+            <Sidebar.Title id="sidebar-title-full-width-panel">
+              Full Width Panel
+            </Sidebar.Title>
             <Sidebar.Close onClick={() => setIsOpen(false)} />
           </Sidebar.Header>
           <Sidebar.Body>
@@ -250,9 +272,12 @@ export const NoOverlay: Story = {
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
           overlay={false}
+          aria-labelledby="sidebar-title-no-overlay"
         >
           <Sidebar.Header>
-            <Sidebar.Title>No Overlay</Sidebar.Title>
+            <Sidebar.Title id="sidebar-title-no-overlay">
+              No Overlay
+            </Sidebar.Title>
             <Sidebar.Close onClick={() => setIsOpen(false)} />
           </Sidebar.Header>
           <Sidebar.Body>
@@ -295,9 +320,12 @@ export const NonDismissible: Story = {
           overlayClose={false}
           escapeClose={false}
           canCancel={agreed}
+          aria-labelledby="sidebar-title-terms-of-service"
         >
           <Sidebar.Header>
-            <Sidebar.Title>Terms of Service</Sidebar.Title>
+            <Sidebar.Title id="sidebar-title-terms-of-service">
+              Terms of Service
+            </Sidebar.Title>
           </Sidebar.Header>
           <Sidebar.Body>
             <Content>
@@ -350,9 +378,15 @@ export const WithFooter: Story = {
         <Button color="primary" onClick={() => setIsOpen(true)}>
           Open With Footer
         </Button>
-        <Sidebar isOpen={isOpen} onClose={() => setIsOpen(false)}>
+        <Sidebar
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+          aria-labelledby="sidebar-title-navigation"
+        >
           <Sidebar.Header>
-            <Sidebar.Title>Navigation</Sidebar.Title>
+            <Sidebar.Title id="sidebar-title-navigation">
+              Navigation
+            </Sidebar.Title>
             <Sidebar.Close onClick={() => setIsOpen(false)} />
           </Sidebar.Header>
           <Sidebar.Body>
@@ -402,9 +436,10 @@ export const MultipleSidebars: Story = {
           isOpen={leftOpen}
           onClose={() => setLeftOpen(false)}
           position="left"
+          aria-labelledby="sidebar-title-menu-2"
         >
           <Sidebar.Header>
-            <Sidebar.Title>Menu</Sidebar.Title>
+            <Sidebar.Title id="sidebar-title-menu-2">Menu</Sidebar.Title>
             <Sidebar.Close onClick={() => setLeftOpen(false)} />
           </Sidebar.Header>
           <Sidebar.Body>
@@ -421,9 +456,12 @@ export const MultipleSidebars: Story = {
           isOpen={rightOpen}
           onClose={() => setRightOpen(false)}
           position="right"
+          aria-labelledby="sidebar-title-notifications"
         >
           <Sidebar.Header>
-            <Sidebar.Title>Notifications</Sidebar.Title>
+            <Sidebar.Title id="sidebar-title-notifications">
+              Notifications
+            </Sidebar.Title>
             <Sidebar.Close onClick={() => setRightOpen(false)} />
           </Sidebar.Header>
           <Sidebar.Body>
@@ -489,9 +527,12 @@ export const ShoppingCart: Story = {
           onClose={() => setIsOpen(false)}
           position="right"
           width="350px"
+          aria-labelledby="sidebar-title-shopping-cart"
         >
           <Sidebar.Header>
-            <Sidebar.Title>Shopping Cart</Sidebar.Title>
+            <Sidebar.Title id="sidebar-title-shopping-cart">
+              Shopping Cart
+            </Sidebar.Title>
             <Sidebar.Close onClick={() => setIsOpen(false)} />
           </Sidebar.Header>
           <Sidebar.Body>
@@ -530,7 +571,7 @@ export const ShoppingCart: Story = {
             )}
           </Sidebar.Body>
           <Sidebar.Footer>
-            <Level mb="3">
+            <Level as="div" mb="3">
               <Level.Left>
                 <Strong>Total:</Strong>
               </Level.Left>
@@ -565,9 +606,13 @@ export const FilterSidebar: Story = {
           <Span className="icon">⚙</Span>
           <Span>Filters</Span>
         </Button>
-        <Sidebar isOpen={isOpen} onClose={() => setIsOpen(false)}>
+        <Sidebar
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+          aria-labelledby="sidebar-title-filters"
+        >
           <Sidebar.Header>
-            <Sidebar.Title>Filters</Sidebar.Title>
+            <Sidebar.Title id="sidebar-title-filters">Filters</Sidebar.Title>
             <Sidebar.Close onClick={() => setIsOpen(false)} />
           </Sidebar.Header>
           <Sidebar.Body>
@@ -634,9 +679,15 @@ export const CompoundUsage: Story = {
         <Button color="primary" onClick={() => setIsOpen(true)}>
           Open Sidebar
         </Button>
-        <Sidebar isOpen={isOpen} onClose={() => setIsOpen(false)}>
+        <Sidebar
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+          aria-labelledby="sidebar-title-dot-notation"
+        >
           <Sidebar.Header>
-            <Sidebar.Title>Dot Notation</Sidebar.Title>
+            <Sidebar.Title id="sidebar-title-dot-notation">
+              Dot Notation
+            </Sidebar.Title>
             <Sidebar.Close onClick={() => setIsOpen(false)} />
           </Sidebar.Header>
           <Sidebar.Body>

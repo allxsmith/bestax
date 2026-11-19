@@ -32,13 +32,13 @@ export const UNIVERSAL_PROPS: Record<string, PropAction> = {
     todo: 'this bestax component has no `as` prop; restructure the element instead',
   },
   domRef: {
-    todo: 'bestax-bulma has no `domRef`. The form controls, plus `Avatar`, `Button`, `Carousel`, `CarouselItem`, `Dialog`, `Dropdown`, `Link`, `LinkButton`, `Loader`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`, `Navbar.Item`, `Navbar.Link`, `SegmentedControl`, `SegmentedControl.Segment`, `Sidebar`, `Toast` and `ToggleButton` forward a ref — on those, rename `domRef` to `ref`, though not on the `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios` wrappers, which forward none. Mind the `Navbar.Dropdown` collision: the `Navbar.Item` that wrapped your dropdown became bestax `Navbar.Dropdown` and forwards one, while your `Navbar.Dropdown` became `Navbar.DropdownMenu` and does not. The rest forward no ref: React 18 drops it with a warning, React 19 leaves it wherever the rest props go, so put the ref on a DOM child or wrap the component',
+    todo: 'bestax-bulma has no `domRef`. The form controls, plus `Affix`, `AppFrame`, `AppFrame.Aside`, `AppFrame.Burger`, `AppFrame.Footer`, `AppFrame.Header`, `AppFrame.Main`, `AppFrame.Nav`, `Avatar`, `Button`, `Carousel`, `CarouselItem`, `Center`, `ColorSwatch`, `Command`, `Command.Dialog`, `Command.Input`, `CopyButton`, `DataTable`, `DescriptionList`, `DescriptionList.Item`, `DescriptionList.Label`, `DescriptionList.Value`, `Dialog`, `Dropdown`, `EmptyState`, `Flex`, `FloatButton`, `FloatButton.BackToTop`, `FloatButton.SpeedDial`, `FloatButtons`, `Group`, `IconButton`, `Kbd`, `Kbd.Group`, `Lightbox`, `Lightbox.Trigger`, `Link`, `LinkButton`, `Loader`, `LocaleProvider`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`, `Navbar.Item`, `Navbar.Link`, `NumberFormatter`, `RingProgress`, `ScrollArea`, `SegmentedControl`, `SegmentedControl.Segment`, `Sidebar`, `Splitter`, `Splitter.Pane`, `Stack`, `Stat`, `Stat.Change`, `Stat.Description`, `Stat.Label`, `Stat.Value`, `Stats`, `TableOfContents`, `Timeline`, `Timeline.Item`, `Toast`, `ToggleButton`, `Tour`, `Tour.Back`, `Tour.Next`, `Tour.Skip`, `Tour.Step`, `TreeView` and `TreeView.Item` forward a ref — on those, rename `domRef` to `ref`, though not on the `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios` wrappers, which forward none. Mind the `Navbar.Dropdown` collision: the `Navbar.Item` that wrapped your dropdown became bestax `Navbar.Dropdown` and forwards one, while your `Navbar.Dropdown` became `Navbar.DropdownMenu` and does not. The rest forward no ref: React 18 drops it with a warning, React 19 leaves it wherever the rest props go, so put the ref on a DOM child or wrap the component',
   },
   // ColorProps
   backgroundColor: { rename: 'bgColor' },
   textColor: {},
   colorVariant: {
-    todo: "no direct equivalent; use isLight (Button/Notification) or a color shade like textColor='primary-dark'",
+    todo: "no direct equivalent; for 'light', use isLight (Button/Notification/Tag) or a color shade like bgColor='primary' backgroundColorShade='90'",
   },
   // TypographyProps
   textSize: { numberToString: true },
@@ -120,6 +120,18 @@ export const RESPONSIVE_BREAKPOINTS: Record<string, string | null> = {
 };
 
 const activeKept: Record<string, PropAction> = { active: {} };
+
+/**
+ * The targets whose bestax component renders `is-light` from `isLight`, the
+ * class react-bulma-components renders for `colorVariant="light"`.
+ * `color-variant.ts` converts a literal `light` there; everything else keeps
+ * the universal `colorVariant` TODO.
+ */
+export const IS_LIGHT_TARGETS: readonly string[] = [
+  'Button',
+  'Notification',
+  'Tag',
+];
 
 export const MAPPING: Record<string, ComponentMapping> = {
   Block: { status: 'mapped', target: 'Block' },
@@ -268,6 +280,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     status: 'mapped',
     target: 'Container',
     props: {
+      renderAs: { rename: 'as' },
       max: { booleanToProp: { name: 'isMax' } },
       breakpoint: {
         // 'tablet' / 'desktop' stay as breakpoint="..." (same prop in bestax)
@@ -294,7 +307,9 @@ export const MAPPING: Record<string, ComponentMapping> = {
     target: 'Dropdown',
     props: {
       label: {},
-      color: {},
+      color: {
+        todo: "react-bulma-components colored the dropdown's trigger button with it, and bestax's Dropdown has no prop for that: its own `color` is the text color helper on the root, so remove it",
+      },
       hoverable: {},
       right: {},
       up: {},
@@ -446,6 +461,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     status: 'mapped',
     target: 'Hero',
     props: {
+      renderAs: { rename: 'as' },
       color: {},
       size: {
         valueTodo: {
@@ -459,9 +475,17 @@ export const MAPPING: Record<string, ComponentMapping> = {
       hasNavbar: { booleanToProp: { name: 'fullheightWithNavbar' } },
     },
     subs: {
-      Header: { status: 'mapped', target: 'Hero.Head' },
+      Header: {
+        status: 'mapped',
+        target: 'Hero.Head',
+        props: { renderAs: { rename: 'as' } },
+      },
       Body: { status: 'mapped', target: 'Hero.Body' },
-      Footer: { status: 'mapped', target: 'Hero.Foot' },
+      Footer: {
+        status: 'mapped',
+        target: 'Hero.Foot',
+        props: { renderAs: { rename: 'as' } },
+      },
     },
   },
   Icon: {
@@ -506,6 +530,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     status: 'mapped',
     target: 'Level',
     props: {
+      renderAs: { rename: 'as' },
       breakpoint: {
         valueMap: { mobile: 'isMobile' },
         valueToProp: true,
@@ -705,7 +730,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
   Panel: {
     status: 'mapped',
     target: 'Panel',
-    props: { color: {} },
+    props: { renderAs: { rename: 'as' }, color: {} },
     subs: {
       Header: { status: 'mapped', target: 'Panel.Heading' },
       Tabs: {
@@ -716,7 +741,11 @@ export const MAPPING: Record<string, ComponentMapping> = {
           Tab: { status: 'mapped', special: 'panel-tab' },
         },
       },
-      Block: { status: 'mapped', target: 'Panel.Block', props: activeKept },
+      Block: {
+        status: 'mapped',
+        target: 'Panel.Block',
+        props: { ...activeKept, renderAs: { rename: 'as' } },
+      },
       Icon: { status: 'partial', target: 'Panel.Icon', special: 'icon' },
     },
   },
@@ -776,6 +805,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     status: 'mapped',
     target: 'Tag',
     props: {
+      renderAs: { rename: 'as' },
       color: {},
       size: {},
       rounded: { booleanToProp: { name: 'isRounded' } },

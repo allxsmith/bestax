@@ -27,8 +27,9 @@ interface UseAutoLabelIdOptions {
   hasInput?: boolean;
   /**
    * True when the control also points `aria-labelledby` at the label, as a
-   * range Slider's thumbs (#981) and Autocomplete's suggestion list (#998)
-   * do, so it needs the label's own id. Its own label then gets one
+   * range Slider's thumbs (#981), Autocomplete's and Taginput's suggestion
+   * lists (#998, #1082) and Combobox's list (#1083) do, so it needs the
+   * label's own id. Its own label then gets one
    * (`labelProps.id` when given, otherwise a generated one), and the hook
    * returns it, or a surrounding Field's, as `labelId`.
    */
@@ -100,10 +101,10 @@ export function useAutoLabelId({
     needsLabelId && active && labelled
       ? (labelProps?.id ?? `${generatedId}-label`)
       : undefined;
-  // Inactive with a label still means an own Field may render it (pickers'
-  // inline mode, Taginput at maxTags) — the explicit `htmlFor: undefined`
-  // tells Field the association is owned here, so it must not generate one
-  // that would dangle (#495 presence semantics).
+  // Inactive with a label still means an own Field may render it (an inline
+  // picker whose label is wired by hand). The explicit `htmlFor: undefined` tells Field the
+  // association is owned here, so it must not generate one that would
+  // dangle (#495 presence semantics).
   const fieldLabelProps = active
     ? ownLabelId
       ? { ...ownLabelProps, id: ownLabelId }
@@ -131,7 +132,8 @@ interface UseAutoLabelledByOptions {
    * The caller's remaining props. A non-empty `aria-label` among them names
    * the group, and so does any `aria-labelledby` key, even an undefined one,
    * since the group spreads them after its own attribute. Either keeps every
-   * label off the group, its own and a surrounding Field's alike.
+   * label off the group, its own and a surrounding Field's alike. `named`
+   * counts only a non-empty one.
    */
   callerProps: object;
 }
@@ -158,6 +160,11 @@ export function useAutoLabelledBy({
 }: UseAutoLabelledByOptions): {
   ariaLabelledBy: string | undefined;
   fieldLabelProps: FieldProps['labelProps'] | undefined;
+  /**
+   * Whether anything names the group: a label it points at, or a non-empty
+   * `aria-label` or `aria-labelledby` of the caller's.
+   */
+  named: boolean;
 } {
   // Called unconditionally per the rules of hooks; SSR-safe on React 18 and 19.
   const generatedId = useId();
@@ -180,5 +187,7 @@ export function useAutoLabelledBy({
     : active
       ? labelId
       : fieldLabelElementId;
-  return { ariaLabelledBy, fieldLabelProps };
+  const named =
+    !!ariaLabelledBy || !!aria['aria-label'] || !!aria['aria-labelledby'];
+  return { ariaLabelledBy, fieldLabelProps, named };
 }

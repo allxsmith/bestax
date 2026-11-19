@@ -12,15 +12,17 @@
  * changed the default path too" — `pnpm gen:api-docs:check` catches it in CI,
  * but only after a full 87-page regeneration. These assertions pin the contract
  * directly, both directions.
- *
- * `.mjs` and `node --test` rather than jest: these are root-level scripts with
- * no package of their own, matching how docs/scripts is covered.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
+  barrelExports,
   createProgram,
   extractComponent,
+  extractHelperProps,
+  helperPropsNoteOf,
+  readsOwnChildren,
+  renderTypeText,
   topLevelInitializers,
   transparentPropWrapper,
   unsupportedPropWrapper,
@@ -97,6 +99,58 @@ test('the catch-all row loses its code spans in structured mode', () => {
   assert.equal(structured.helpers, md.helpers);
 });
 
+test('@helperProps says where the helper props go, from a base too (#1273)', () => {
+  const note = (component, opts) =>
+    extractComponent(component, opts).tables[0].catchAll.helperPropsNote;
+  assert.match(note('Checkbox'), /^Helper props go on the outer `<label>`/);
+  // Select's props type extends SelectBase's, which carries the tag.
+  assert.match(note('Select'), /`\.select` wrapper `<div>`/);
+  // The note keeps its code spans in both modes: it is prose, not a type.
+  assert.equal(note('Checkbox', { markdown: false }), note('Checkbox'));
+  // Where they land with the other attributes, there is nothing to say.
+  assert.equal(note('Button'), undefined);
+});
+
+test('the most-derived @helperProps wins, and one on a type with no helper props stops the build', () => {
+  const helpers = { helpers: true };
+  assert.equal(
+    helperPropsNoteOf('X', [null, 'Base.', 'Root.'], helpers),
+    'Base.'
+  );
+  assert.equal(helperPropsNoteOf('X', [null, null], helpers), null);
+  assert.equal(helperPropsNoteOf('X', [], null), null);
+  for (const catchAll of [null, { helpers: false }]) {
+    assert.throws(
+      () => helperPropsNoteOf('Skeleton', ['On the <div>.'], catchAll),
+      /Skeleton: @helperProps says where its helper props go, but its props type takes none/
+    );
+  }
+});
+
+test('the helper props are read with their TSDoc and values, less breakpoint variants (#1273)', () => {
+  const rows = extractHelperProps({ markdown: false });
+  const visibility = rows.find(r => r.name === 'visibility');
+  assert.equal(visibility.type, "'hidden' | 'sr-only' | 'invisible'");
+  assert.match(visibility.description, /screen readers/);
+  assert.ok(rows.some(r => r.name === 'mt'));
+  // `visibilityMobile` is `visibility` at one `viewport` value.
+  assert.ok(!rows.some(r => r.name === 'visibilityMobile'));
+  // A prop whose name extends another's without a viewport stays.
+  assert.ok(rows.some(r => r.name === 'colorShade'));
+  assert.ok(rows.every(r => !('node' in r)));
+  const md = extractHelperProps().find(r => r.name === 'visibility');
+  assert.equal(md.type, "`'hidden'` | `'sr-only'` | `'invisible'`");
+  // In the tuple's own order, not the order the checker met the literals in.
+  assert.equal(
+    rows.find(r => r.name === 'textWeight').type,
+    "'light' | 'normal' | 'medium' | 'semibold' | 'bold'"
+  );
+  assert.throws(
+    () => extractHelperProps({ type: 'NoSuchProps' }),
+    /exports no NoSuchProps interface/
+  );
+});
+
 // --- the polymorphic `as` contract (#641) --------------------------------
 //
 // The eight polymorphic components are declared
@@ -136,6 +190,59 @@ test('a sub-component imported from a module named something else keeps its tabl
   const divider = table('ContextMenu', 'ContextMenu.Divider');
   assert.ok(divider?.listOnly, 'ContextMenu.Divider is not listed');
   assert.equal(divider.component, 'DropdownDivider');
+});
+
+test('props declared inline on the component are read as its props (#1174)', () => {
+  // `ToastContainer: React.FC<{ position?: ToastPosition; … }>`: the
+  // literal's text named no interface, so the table came back empty.
+  const [toast] = extractComponent('ToastContainer', {
+    markdown: false,
+  }).tables;
+  assert.equal(toast.listOnly, undefined);
+  assert.equal(toast.interfaceName, null);
+  assert.deepEqual(
+    toast.rows.map(r => [r.name, r.default, r.inherited]),
+    [
+      ['position', "'top-right'", false],
+      ['hotkey', "['F8']", false],
+      ['ariaLabel', "'Notifications'", false],
+    ]
+  );
+  assert.match(toast.rows[0].description, /shown without a `position`/);
+  // It takes nothing else, not even its element's attributes.
+  assert.equal(toast.catchAll, null);
+});
+
+test('the barrel exports read every value name, an `export *` one included', () => {
+  const names = barrelExports();
+  // Named outright, and re-exported from a module named after something else.
+  for (const name of ['InputBase', 'Navbar', 'NavbarItem', 'TreeViewItem']) {
+    assert.ok(names.has(name), `${name} is missing`);
+  }
+  // Types are not values.
+  assert.equal(names.has('InputBaseProps'), false);
+});
+
+test('a sub that is a compound itself keeps the name of the constant composing it', () => {
+  const { compoundNames, tables } = extractComponent('Tabs', {
+    markdown: false,
+  });
+  assert.equal(compoundNames.get('Tabs.Content'), 'TabsContent');
+  assert.equal(
+    tables.find(t => t.path === 'Tabs.Content').impl,
+    'TabsContentComponent'
+  );
+  // The root is no sub, and a plain sub has its implementation's name already.
+  assert.equal(compoundNames.has('Tabs'), false);
+  assert.equal(compoundNames.has('Tabs.Tab'), false);
+});
+
+test('a component that names no props type says it takes none', () => {
+  // Apart from one whose props are an inline DOM type, which takes those.
+  assert.equal(table('Dropdown', 'Dropdown.Divider').noProps, true);
+  assert.equal(table('ContextMenu', 'ContextMenu.Divider').noProps, true);
+  assert.equal(table('Navbar', 'Navbar.Divider').noProps, undefined);
+  assert.equal(extractComponent('DialogContainer').tables[0].noProps, true);
 });
 
 test('a polymorphic component still resolves its props type', () => {
@@ -241,11 +348,14 @@ test('a constrained `as` names no default element in the catch-all', () => {
 test('every polymorphic component has a recognized `as` constraint', () => {
   // The catch-all wording is chosen from this. 'unknown' falls back to the open
   // phrasing, which on a CONSTRAINED component promises a shape the compiler
-  // refuses — the defect the constraint reader was added to fix. The reader
-  // resolves a tag-union alias only within the same source file, so moving
-  // `DropdownItemElement` next to its paired interface in helpers/polymorphic.ts
-  // would silently regress the docs and the MCP index. This is what notices.
-  const targets = [...POLYMORPHIC, ['Dropdown', 'Dropdown.Item']];
+  // refuses — the defect the constraint reader was added to fix. A tag-union
+  // alias it can't follow, one hop away in the same file or imported, would
+  // silently regress the docs and the MCP index. This is what notices.
+  const targets = [
+    ...POLYMORPHIC,
+    ['Dropdown', 'Dropdown.Item'],
+    ...CONSTRAINED_LAYOUTS,
+  ];
   for (const [component, path] of targets) {
     assert.deepEqual(
       table(component, path).catchAll.asKinds?.filter(k => k === 'unknown'),
@@ -257,6 +367,53 @@ test('every polymorphic component has a recognized `as` constraint', () => {
     'tags',
   ]);
   assert.deepEqual(table('Button', 'Button').catchAll.asKinds, ['open']);
+});
+
+// Stack, Group, Center and Flex constrain `as` to `LayoutElement`, which they
+// IMPORT from helpers/stackLayout.tsx rather than declare beside themselves, so
+// the reader has to follow the import to see it's a closed set of tags.
+const CONSTRAINED_LAYOUTS = [
+  ['Stack', 'Stack'],
+  ['Group', 'Group'],
+  ['Center', 'Center'],
+  ['Flex', 'Flex'],
+];
+
+test('an imported tag union is a closed `as`, which takes no component', () => {
+  for (const [component, path] of CONSTRAINED_LAYOUTS) {
+    const t = table(component, path);
+    assert.deepEqual(t.catchAll.asKinds, ['tags'], `${path} asKinds`);
+    assert.match(
+      t.catchAll.text,
+      /^Remaining props of the element selected by `as` and/,
+      `${path} promises a component`
+    );
+    assert.equal(
+      t.rows.find(r => r.name === 'as').type,
+      '`LayoutElement`',
+      `${path} as`
+    );
+    assert.ok(
+      t.extraProps.some(r => r.name === 'ref'),
+      `${path} lost its ref row`
+    );
+  }
+});
+
+test('`@flexContainer` on a base marks the part a flex container, and only then', () => {
+  // The ESLint plugin's metadata takes its flex containers from this, so a
+  // tag that stopped reaching through the shared `LayoutOwnProps` would have
+  // `no-inert-flex-props` report props that render.
+  for (const [component, path] of CONSTRAINED_LAYOUTS) {
+    assert.equal(table(component, path).flexContainer, true, path);
+  }
+  for (const [component, path] of [
+    ['Box', 'Box'],
+    ['Level', 'Level'],
+    ['Buttons', 'Buttons'],
+  ]) {
+    assert.equal(table(component, path).flexContainer, undefined, path);
+  }
 });
 
 test('a union element base names every element, not the first', () => {
@@ -378,6 +535,112 @@ test('an overloaded component resolves to its implementation, not a signature', 
   assert.match(widget.parameters[0].getText(), /size = 'normal'/);
   // A constant of the same name still wins over a function.
   assert.ok(ts.isArrowFunction(inits.get('Gadget')));
+});
+
+test("only the props' own children earn the synthesized children row", () => {
+  // A property access's name is an identifier too, so an element's `.children`
+  // on a ref, or a data node's, counted as the component naming its children,
+  // and a component that takes none got the row (#2125). The checker decides
+  // which value a name is, so the fixture is a program of its own. Its props
+  // inherit a DOM-style `children`, and so do its items, as React's do, so a
+  // check by the property's declaration can't tell them apart.
+  const { ts } = createProgram();
+  const source = [
+    'interface DOMAttributes { children?: unknown; title?: string }',
+    'interface P extends DOMAttributes { items?: P[] }',
+    'type Ref<T> = { current: T | null };',
+    'declare function forwardRef<T, Q>(fn: (props: Q, ref: Ref<T>) => unknown): object;',
+    'declare function memo<C>(c: C): C;',
+    // Another value's children: none of these count.
+    'const OnRef = forwardRef<HTMLDivElement, P>((props, ref) => ref.current?.children[0]);',
+    'const OnItem = ({ items }: P) => items?.map(n => n.children);',
+    'const ItemDestructured = ({ items }: P) => items?.map(({ children }) => children);',
+    'const Shadowed = (props: P) => props.items?.map(props => props.children);',
+    'const OnElement = (props: P, el: { props: P }) => [props.title, el.props.children];',
+    'const ItemLiteral = (props: P) => ({ title: props.title, children: [] });',
+    "const InText = (props: P) => { /* children */ return 'children'; };",
+    'const NoProps = () => null;',
+    'const WithParts = Object.assign(',
+    '  forwardRef<HTMLUListElement, P>((props, ref) => props.title),',
+    '  { Item: forwardRef<HTMLLIElement, P>(({ children }, ref) => children) }',
+    ');',
+    // The props' own: each of these counts.
+    'const Destructured = ({ children, ...rest }: P) => [children, rest];',
+    'const OnProps = forwardRef<HTMLDivElement, P>((props, ref) => props.children);',
+    'const Named = forwardRef(function Named(props: P) { return props.children; });',
+    'const InBody = (props: P) => { const { children: kids } = props; return kids; };',
+    "const ByKey = (props: P) => props['children'];",
+    "const KeyDestructured = ({ 'children': kids }: P) => kids;",
+    'const OnRest = ({ items, ...rest }: P) => rest.children;',
+    'const Cast = (props: unknown) => (props as P).children;',
+    'const Asserted = (props?: P) => props!.children;',
+    'const Aliased = (props: P) => { const p = props; return p.children; };',
+    'const Memoized = memo(forwardRef<HTMLDivElement, P>((props, ref) => props.children));',
+    'const WithThis = function (this: void, props: P) { return props.children; };',
+    'function DeclaredImpl(props: P) { return props.children; }',
+    'const Declared = DeclaredImpl as unknown as (props: P) => unknown;',
+    'const BothWays = (props: P) => [props.items?.[0].children, props.children];',
+  ].join('\n');
+  const options = {
+    lib: ['lib.es2020.d.ts', 'lib.dom.d.ts'],
+    noEmit: true,
+    strict: true,
+    target: ts.ScriptTarget.ES2020,
+  };
+  const host = ts.createCompilerHost(options);
+  const read = host.getSourceFile.bind(host);
+  host.getSourceFile = (name, version, ...rest) =>
+    name === 'fixture.ts'
+      ? ts.createSourceFile(name, source, version, true)
+      : read(name, version, ...rest);
+  const program = ts.createProgram(['fixture.ts'], options, host);
+  // A fixture that doesn't type-check resolves nothing, and every case would
+  // read as another value's.
+  assert.deepEqual(
+    ts
+      .getPreEmitDiagnostics(program)
+      .map(d => ts.flattenDiagnosticMessageText(d.messageText, '\n')),
+    []
+  );
+  const checker = program.getTypeChecker();
+  const inits = topLevelInitializers(ts, program.getSourceFile('fixture.ts'));
+  const names = name => readsOwnChildren(ts, checker, inits.get(name));
+
+  for (const name of [
+    'OnRef',
+    'OnItem',
+    'ItemDestructured',
+    'Shadowed',
+    'OnElement',
+    'ItemLiteral',
+    'InText',
+    'NoProps',
+    'WithParts',
+  ]) {
+    assert.equal(
+      names(name),
+      false,
+      `${name} counted another value's children`
+    );
+  }
+  for (const name of [
+    'Destructured',
+    'OnProps',
+    'Named',
+    'InBody',
+    'ByKey',
+    'KeyDestructured',
+    'OnRest',
+    'Cast',
+    'Asserted',
+    'Aliased',
+    'Memoized',
+    'WithThis',
+    'Declared',
+    'BothWays',
+  ]) {
+    assert.equal(names(name), true, `${name} lost its own children`);
+  }
 });
 
 test('a component the barrel re-exports with `export *` from another module resolves', () => {
@@ -507,6 +770,138 @@ test('defaults, inheritance and compound sub-paths are mode-independent', () => 
     }
     assert.equal(structured.rootClass, md.rootClass);
   }
+});
+
+test('a discriminant merged with a plain boolean reads as boolean', () => {
+  // Combobox's `multiple` is `false` given `data` with one value, `true` with
+  // several, and `boolean` built from parts. Slider's `range` is the two
+  // literals alone. Both are a boolean to the reader, in either mode.
+  for (const [component, prop] of [
+    ['Combobox', 'multiple'],
+    ['Slider', 'range'],
+  ]) {
+    assert.equal(row(component, prop).type, '`boolean`', component);
+    assert.equal(
+      row(component, prop, { markdown: false }).type,
+      'boolean',
+      component
+    );
+  }
+});
+
+test('a branch that forbids a prop adds nothing to its row (#1460)', () => {
+  // A union branch says a prop is absent by typing it `undefined` or `never`.
+  // Icon's children branch says `name?: undefined`, which is not a value to
+  // pass, so the row lists the one type the name branch takes.
+  assert.equal(row('Icon', 'name').type, '`string`');
+  assert.equal(row('Icon', 'name', { markdown: false }).type, 'string');
+  // Nor does a forbidding branch listed first describe the row. Command's
+  // `actions` branch forbids `children` ahead of the branch built from parts,
+  // which is the one that takes it.
+  const children = row('Command', 'children', { markdown: false });
+  assert.equal(children.type, 'React.ReactNode');
+  assert.match(children.description, /^The parts, in order/);
+  // The row sits where the branch that takes the prop declares it. Slider's
+  // single value branch forbids `minDistance` ahead of `ariaLabel`, and the
+  // range branch declares it after.
+  const slider = extractComponent('Slider').tables[0].rows.map(r => r.name);
+  assert.ok(
+    slider.indexOf('minDistance') > slider.indexOf('ariaLabel'),
+    slider.join(', ')
+  );
+});
+
+test('a required prop is marked, in the table and as a field (#1754)', () => {
+  // The table leads its description with the mark, the way it leads a
+  // deprecated prop's.
+  assert.match(row('Dropdown', 'label').description, /^\*\*Required\.\*\* /);
+  assert.doesNotMatch(row('Dropdown', 'className').description, /Required/);
+  // The structured row says it in a field and leaves the text alone.
+  const label = row('Dropdown', 'label', { markdown: false });
+  assert.equal(label.required, true);
+  assert.doesNotMatch(label.description, /Required/);
+  assert.equal(
+    row('Dropdown', 'className', { markdown: false }).required,
+    false
+  );
+  // Required means required in every branch of a union props type: Combobox
+  // built from parts takes no `data`, and its data branches forbid `children`.
+  assert.equal(row('Combobox', 'data', { markdown: false }).required, false);
+  assert.equal(
+    row('Combobox', 'children', { markdown: false }).required,
+    false
+  );
+  assert.equal(row('TreeSelect', 'data', { markdown: false }).required, true);
+  // A polymorphic component's own props, read through its generic alias.
+  const item = extractComponent('Menu', { markdown: false }).tables.find(
+    t => t.path === 'Menu.Item'
+  );
+  assert.equal(item.rows.find(r => r.name === 'children').required, true);
+  assert.equal(item.rows.find(r => r.name === 'active').required, false);
+});
+
+test("an optional prop's `undefined` stays out of its row, and `null` stays in (#1707)", () => {
+  // Props type themselves `T | undefined` so a caller with
+  // `exactOptionalPropertyTypes` on can pass `undefined`, and the row reads `T`.
+  assert.equal(row('Dropdown', 'className').type, '`string`');
+  const burger = extractComponent('Navbar', { markdown: false }).tables.find(
+    t => t.path === 'Navbar.Burger'
+  );
+  assert.equal(
+    burger.rows.find(r => r.name === 'aria-expanded').type,
+    'boolean | null'
+  );
+  assert.equal(
+    burger.rows.find(r => r.name === 'onClick').type,
+    'React.MouseEventHandler<HTMLButtonElement>'
+  );
+  // An optional `boolean | undefined` still documents its default as `false`,
+  // and a lookup type (`AvatarProps['size']`) prints the looked-up member the
+  // same way.
+  assert.equal(
+    row('Checkbox', 'disabled', { markdown: false }).default,
+    'false'
+  );
+  assert.ok(
+    !row('Avatars', 'size', { markdown: false }).type.includes('undefined'),
+    row('Avatars', 'size', { markdown: false }).type
+  );
+
+  // The rule itself, on members no component declares.
+  const { ts } = createProgram();
+  const sf = ts.createSourceFile(
+    'fixture.tsx',
+    [
+      'interface Fixture {',
+      '  optional?: string | undefined;',
+      '  nullable?: string | null | undefined;',
+      '  required: string | undefined;',
+      '  forbidden?: undefined;',
+      '  handler?: (() => void) | undefined;',
+      "  looked?: AvatarProps['size'];",
+      "  lookedRequired: AvatarProps['size'];",
+      '}',
+    ].join('\n'),
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX
+  );
+  const members = Object.fromEntries(
+    sf.statements[0].members.map(m => [m.name.getText(), m])
+  );
+  const render = name =>
+    renderTypeText(ts, members[name], new Map(), '', null, {
+      markdown: false,
+    });
+  assert.equal(render('optional'), 'string');
+  assert.equal(render('nullable'), 'string | null');
+  assert.equal(render('required'), 'string | undefined');
+  assert.equal(render('forbidden'), 'undefined');
+  assert.equal(render('handler'), '() => void');
+  // A lookup type copies the looked-up member's union, `undefined` and all,
+  // and the prop that holds it decides whether that shows.
+  assert.equal(render('looked'), 'AvatarSize | number');
+  assert.equal(render('lookedRequired'), 'AvatarSize | number | undefined');
 });
 
 test('structured mode leaks no markdown into any documented component', () => {

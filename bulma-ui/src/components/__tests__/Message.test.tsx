@@ -10,6 +10,35 @@ describe('Message', () => {
     expect(screen.getByTestId('message')).toHaveClass('message');
   });
 
+  it('writes data-testid="message" when given none', () => {
+    const { container } = render(<Message>Body</Message>);
+    expect(container.querySelector('article')).toHaveAttribute(
+      'data-testid',
+      'message'
+    );
+  });
+
+  it('writes data-testid="message" when a wrapper forwards undefined', () => {
+    const { container } = render(
+      <Message data-testid={undefined}>Body</Message>
+    );
+    expect(container.querySelector('article')).toHaveAttribute(
+      'data-testid',
+      'message'
+    );
+  });
+
+  it('keeps a data-testid the caller passes', () => {
+    const { container } = render(
+      <Message data-testid="billing-error">Body</Message>
+    );
+    expect(container.querySelector('article')).toHaveAttribute(
+      'data-testid',
+      'billing-error'
+    );
+    expect(screen.queryByTestId('message')).not.toBeInTheDocument();
+  });
+
   it('applies color class', () => {
     render(<Message color="danger" title="Error" />);
     expect(screen.getByTestId('message')).toHaveClass('is-danger');
@@ -31,7 +60,7 @@ describe('Message', () => {
   });
 
   it('calls onClose when close button clicked', () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     render(
       <Message title="Closable" onClose={onClose}>
         Bye
@@ -39,6 +68,39 @@ describe('Message', () => {
     );
     fireEvent.click(screen.getByTestId('message-close'));
     expect(onClose).toHaveBeenCalled();
+  });
+
+  describe('close button name', () => {
+    it('is "delete" by default', () => {
+      render(<Message title="Closable" onClose={() => {}} />);
+      expect(screen.getByRole('button', { name: 'delete' })).toBe(
+        screen.getByTestId('message-close')
+      );
+    });
+
+    it('is ariaCloseLabel when given, and not on the article', () => {
+      render(
+        <Message
+          title="Avis"
+          onClose={() => {}}
+          ariaCloseLabel="Fermer le message"
+          aria-label="Avis important"
+        />
+      );
+      expect(screen.getByRole('button', { name: 'Fermer le message' })).toBe(
+        screen.getByTestId('message-close')
+      );
+      // An aria-label on Message still names the article.
+      const article = screen.getByRole('article', { name: 'Avis important' });
+      expect(article).not.toHaveAttribute('ariaCloseLabel');
+    });
+
+    it('falls back to "delete" for an empty ariaCloseLabel', () => {
+      render(<Message title="Closable" onClose={() => {}} ariaCloseLabel="" />);
+      expect(
+        screen.getByRole('button', { name: 'delete' })
+      ).toBeInTheDocument();
+    });
   });
 
   it('renders without header if neither title nor onClose is provided', () => {
@@ -213,6 +275,72 @@ describe('Message', () => {
         screen.getByText('This is a message using compound components.')
       ).toBeInTheDocument();
       expect(screen.getByLabelText('delete')).toBeInTheDocument();
+    });
+
+    test('puts its parts straight in the article, with no body around them', () => {
+      const { container } = render(
+        <Message>
+          <Message.Header>Header</Message.Header>
+          <Message.Body>Body</Message.Body>
+        </Message>
+      );
+      const article = container.querySelector('article.message')!;
+      expect(Array.from(article.children, child => child.className)).toEqual([
+        'message-header',
+        'message-body',
+      ]);
+      expect(screen.queryByTestId('message-body')).not.toBeInTheDocument();
+    });
+
+    test('puts a lone part straight in the article', () => {
+      const { container } = render(
+        <Message>
+          <Message.Body>Body</Message.Body>
+        </Message>
+      );
+      expect(
+        container.querySelector(
+          'article.message > .message-body > .message-body'
+        )
+      ).toBeNull();
+      expect(container.querySelectorAll('.message-body')).toHaveLength(1);
+    });
+
+    test('follows the header its title makes with a Message.Body', () => {
+      const { container } = render(
+        <Message title="Title" onClose={() => {}}>
+          <Message.Body>Body</Message.Body>
+        </Message>
+      );
+      const article = container.querySelector('article.message')!;
+      expect(Array.from(article.children, child => child.className)).toEqual([
+        'message-header',
+        'message-body',
+      ]);
+      expect(article.querySelectorAll('.message-body')).toHaveLength(1);
+      expect(article.firstElementChild).toHaveTextContent('Title');
+      expect(screen.getByTestId('message-close')).toBeInTheDocument();
+    });
+
+    test('keeps wrapping plain children under a class prefix', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bestax-">
+          <Message>
+            <Message.Header>Header</Message.Header>
+            <Message.Body>Body</Message.Body>
+          </Message>
+          <Message>Plain</Message>
+        </ConfigProvider>
+      );
+      const [composed, plain] = container.querySelectorAll(
+        'article.bestax-message'
+      );
+      expect(Array.from(composed.children, child => child.className)).toEqual([
+        'bestax-message-header',
+        'bestax-message-body',
+      ]);
+      expect(plain.firstElementChild).toHaveClass('bestax-message-body');
+      expect(plain.firstElementChild).toHaveTextContent('Plain');
     });
 
     test('compound components accept additional HTML attributes', () => {

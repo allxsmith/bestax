@@ -14,6 +14,14 @@
       "code": "<Icon\n  name=\"star\"\n  variant=\"solid\"\n  features=\"fa-2x\"\n  ariaLabel=\"Star icon large\"\n/>"
     },
     {
+      "title": "Brand Icons",
+      "code": "<Block display=\"flex\" alignItems=\"center\">\n  <Icon name=\"github\" variant=\"brands\" ariaLabel=\"GitHub\" />\n  <Icon name=\"linkedin\" variant=\"brands\" ariaLabel=\"LinkedIn\" />\n  <Icon name=\"mastodon\" variant=\"brands\" ariaLabel=\"Mastodon\" />\n</Block>"
+    },
+    {
+      "title": "Brand Icons",
+      "code": "<Block display=\"flex\" alignItems=\"center\">\n  <Link href=\"https://github.com\" aria-label=\"GitHub\" mr=\"3\">\n    <Icon name=\"github\" variant=\"brands\" size=\"medium\" features=\"fa-lg\" />\n  </Link>\n  <Link href=\"https://www.linkedin.com\" aria-label=\"LinkedIn\" mr=\"3\">\n    <Icon name=\"linkedin\" variant=\"brands\" size=\"medium\" features=\"fa-lg\" />\n  </Link>\n  <Link href=\"https://mastodon.social\" aria-label=\"Mastodon\">\n    <Icon name=\"mastodon\" variant=\"brands\" size=\"medium\" features=\"fa-lg\" />\n  </Link>\n</Block>"
+    },
+    {
       "title": "Spinning Icon",
       "code": "<Icon\n  name=\"spinner\"\n  variant=\"solid\"\n  features={['fa-spin', 'fa-2x']}\n  ariaLabel=\"Loading spinner\"\n/>"
     },
@@ -69,7 +77,7 @@
       "props": [
         {
           "name": "name",
-          "type": "string | undefined",
+          "type": "string",
           "default": null,
           "description": "The icon name, with or without its library prefix (e.g. `'star'` or `'fa-star'`). Mutually exclusive with `children`.",
           "required": false,
@@ -118,7 +126,7 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Bulma color modifier for the icon.",
+          "description": "Text color alias: renders `has-text-<color>`, exactly like `textColor`. Not a filled variant (no `.icon.is-<color>` CSS exists). Prefer `textColor`, which takes precedence when both are set; use `bgColor` for a colored surface.",
           "required": false,
           "inherited": true,
           "deprecated": false

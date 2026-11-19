@@ -1,6 +1,6 @@
 import React from 'react';
 import root from 'react-shadow';
-import { LivePreview } from 'react-live';
+import { LiveContext, LivePreview } from 'react-live';
 import { useColorMode } from '@docusaurus/theme-common';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import { ConfigProvider } from '@allxsmith/bestax-bulma';
@@ -9,6 +9,7 @@ import {
   colorModeVars,
 } from '@site/src/components/ShadowPreview/shadowStyles';
 import useShadowStyleSheets, {
+  useFenceStyles,
   useInstanceStyleSheet,
 } from '@site/src/components/ShadowPreview/useShadowStyleSheets';
 import { ShadowThemeContext, hostRule } from './ShadowTheme';
@@ -25,10 +26,20 @@ import { ShadowThemeContext, hostRule } from './ShadowTheme';
  * only `themeSheet`, which holds whatever `<Theme isRoot>` in the example set,
  * belongs to this instance.
  */
-export default function ShadowLivePreview() {
-  const { colorMode } = useColorMode();
+export default function ShadowLivePreview({ forcedColorMode }) {
+  const { colorMode: siteColorMode } = useColorMode();
+  // An example window can pin its own palette, e.g. the dark example window.
+  const colorMode = forcedColorMode ?? siteColorMode;
   const themeSheet = useInstanceStyleSheet(null);
-  const styleSheets = useShadowStyleSheets(themeSheet);
+  // A library build the example imports, such as the prefixed one, read from
+  // the code as the reader last ran it (`newCode` once they've edited it).
+  const live = React.useContext(LiveContext);
+  const fenceStyles = useFenceStyles(live.newCode ?? live.code);
+  const fenceSheets = React.useMemo(
+    () => fenceStyles.map(({ sheet }) => sheet).filter(Boolean),
+    [fenceStyles]
+  );
+  const styleSheets = useShadowStyleSheets(themeSheet, fenceSheets);
 
   // Fallback path only: the <style> element standing in for themeSheet.
   const themeStyleRef = React.useRef(null);
@@ -92,6 +103,9 @@ export default function ShadowLivePreview() {
           <>
             {shadowStyleSheets.map((styles, i) => (
               <style key={i}>{styles}</style>
+            ))}
+            {fenceStyles.map(({ css }, i) => (
+              <style key={`fence-${i}`}>{css}</style>
             ))}
             <style ref={themeStyleRef} />
           </>

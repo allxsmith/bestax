@@ -8,7 +8,8 @@ import React, {
   useState,
 } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
-import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useFieldHelperClasses } from '../helpers/useFieldHelperClasses';
 import {
   PickerPosition,
   HourFormat,
@@ -33,8 +34,18 @@ import { TimeWheels } from './_pickerInternals/TimeWheels';
 import { PickerPopover } from './_pickerInternals/PickerPopover';
 import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker';
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
+import {
+  usePickerLocale,
+  usePickerLocaleScope,
+} from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
-import { useFieldLabelTarget } from './FormContext';
+import { useFieldLabelTarget, useFieldsetDisabled } from './FormContext';
+import { useAutoLabelledBy } from './useAutoLabelId';
+import {
+  joinIds,
+  splitControlState,
+  useFieldMessageId,
+} from './useFieldMessage';
 import { Icon } from '../elements/Icon';
 import { Buttons } from '../elements/Buttons';
 
@@ -66,6 +77,26 @@ const fromIsoTime = (s: string): Date | null => {
 /**
  * Props for the raw TimeInput base. Use the higher-level `TimeInput` for
  * Field/Control composition; `TimeInputBase` is the input + popover only.
+ * `aria-invalid` and `aria-errormessage`, which report the input's state,
+ * go on the `<input>`, and inline, where there is none, on the `<div>`.
+ * `autoComplete` goes on the `<input>` too, the text field's `off` unless
+ * you give one, and inline nowhere.
+ *
+ * @helperProps Helper props go on the `.timeinput-container` `<div>`, with
+ * `className` and the other attributes, except that the background helpers
+ * go on the `<input>`, and the text helpers on both, since Bulma's `.input`
+ * sets its own background and font, and the popover inside the `<div>`
+ * takes the text ones. Inline they all go on the `<div>`, and on the native
+ * mobile input, on the `<input>`.
+ *
+ * Among the other attributes, `aria-label`, `aria-labelledby` and
+ * `aria-describedby` go on the `<div>` too, so they don't name or describe
+ * the `<input>`, except the native one `mobileNative` renders. Name it with
+ * `TimeInput`'s `label`; with a labeled `Field` that isn't `grouped` or
+ * `hasAddons`, if you give it no `id`; or with an `id` and a
+ * `<label htmlFor>` of your own. Describe it with `TimeInput`'s `message`:
+ * `TimeInputBase` on its own has no way to describe it. Inline there is no
+ * `<input>` to name.
  */
 export interface TimeInputBaseProps
   extends
@@ -83,11 +114,11 @@ export interface TimeInputBaseProps
     >,
     Omit<BulmaClassesProps, 'color'> {
   /** Controlled selected time (date portion is preserved). */
-  value?: Date | null;
+  value?: Date | null | undefined;
   /** Initial value for uncontrolled usage. */
-  defaultValue?: Date | null;
+  defaultValue?: Date | null | undefined;
   /** Fired when the value changes. */
-  onChange?: (d: Date | null) => void;
+  onChange?: ((d: Date | null) => void) | undefined;
   /** Fired when the popover opens. */
   onOpen?: () => void;
   /** Fired when the popover closes. */
@@ -97,15 +128,22 @@ export interface TimeInputBaseProps
    * 1 January of year 1, and a `value` dated before then is out of range, so
    * the wheels and typing change nothing on it, as in the date pickers.
    */
-  min?: Date;
+  min?: Date | undefined;
   /** Latest selectable time. */
-  max?: Date;
-  /** Disable the input. */
-  disabled?: boolean;
-  /** Make the input read-only. */
-  readOnly?: boolean;
+  max?: Date | undefined;
+  /**
+   * Disable the input. An `inline` picker's wheels leave the tab order and
+   * carry `aria-disabled`, and nothing turns them.
+   */
+  disabled?: boolean | undefined;
+  /**
+   * Make the input read-only. An `inline` picker's wheels keep their tab
+   * stops and carry `aria-readonly`, but no key, scroll, drag or click turns
+   * them, so the time can't change.
+   */
+  readOnly?: boolean | undefined;
   /** Placeholder text for the input. */
-  placeholder?: string;
+  placeholder?: string | undefined;
   /**
    * Token format string or `Intl.DateTimeFormat` options.
    * @defaultValue (see below)
@@ -117,16 +155,28 @@ export interface TimeInputBaseProps
    * keeps what the format leaves out, such as seconds and the date.
    */
   parse?: (s: string) => Date | null;
-  /** BCP-47 locale tag for Intl formatting. */
+  /**
+   * BCP-47 locale tag for Intl formatting, the digits the wheels write
+   * their hours, minutes and seconds in, and the words a 12-hour wheel shows
+   * for AM and PM. Unset, it is the `locale` of a `LocaleProvider` around
+   * the picker, and with neither, `Intl` uses the runtime's own locale and
+   * the wheels keep plain digits and AM and PM.
+   */
   locale?: string;
-  /** Render the spinner inline (no popover). */
+  /**
+   * Render the spinner inline (no popover).
+   * Inline, the root is a `role="group"` when something names it: a labeled
+   * `Field` around it that isn't `grouped` or `hasAddons` and has no
+   * `labelProps.htmlFor`, or an `aria-label` or `aria-labelledby` you give
+   * it. The `message` of a wrapper around it describes it then.
+   */
   inline?: boolean;
   /** Use `<input type="time">` on coarse-pointer + small-viewport devices. */
   mobileNative?: boolean | 'auto';
   /** Allow segmented keyboard typing in the input (type the time directly, auto-advancing across segments). `false` makes the field picker-only. */
   editable?: boolean;
   /** Whether the spinner popover exists. `false` makes the field input-only (segmented typing, no popover). */
-  popover?: boolean;
+  popover?: boolean | undefined;
   /**
    * Open the popover when the input is focused. Focus that a closing popover
    * hands back to the input leaves it closed. Dismissing it commits nothing:
@@ -136,11 +186,21 @@ export interface TimeInputBaseProps
   openOnFocus?: boolean;
   /** Close the popover after a time is selected (off by default). */
   closeOnSelect?: boolean;
-  /** Popover anchor position relative to the input. */
+  /**
+   * Where the popover opens against the field. Left out, it opens below and
+   * lines up with the field's start edge, which is its right edge when the
+   * picker reads right to left. A corner you pass stays physical, so
+   * `bottom-left` lines up the left edges either way.
+   * A panel that would run past the viewport's left or right edge keeps
+   * its corner and moves sideways, just far enough to fit or, wider than
+   * the viewport, to the edge its text starts from.
+   * @defaultValue 'bottom-left'
+   */
   position?: PickerPosition;
   /**
    * Render the popover through a portal, into the `portalContainer` a
-   * `ConfigProvider` sets, `document.body` by default. On a narrow screen
+   * `ConfigProvider` sets, else the overlay it's in that takes its popups,
+   * such as a `Modal`, else `document.body`. On a narrow screen
    * an in-place popover spans the bottom of the viewport, while a portaled
    * one stays on its `position` corner.
    */
@@ -151,10 +211,15 @@ export interface TimeInputBaseProps
    * inside the band in the color's `-invert`, like the selected value, so it
    * shows on the fill. Unset, the wheels use
    * `--bulma-timeinput-wheel-selected-bg`, which defaults to `primary`.
+   * Forced colors (Windows' contrast themes) replaces the band, so there it's
+   * drawn in the system's highlight color instead, with the ring in the color
+   * made to read on it, or in its color for a disabled control while the
+   * picker is disabled, whatever the color, which needs bestax's CSS.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Size variant. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Render the input with rounded corners. */
   isRounded?: boolean;
   /** Hour format. `'12'` adds an AM/PM column to the wheels. */
@@ -209,19 +274,19 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       onClose,
       min,
       max,
-      disabled,
+      disabled: disabledProp,
       readOnly,
       placeholder,
       format,
       parse,
-      locale,
+      locale: localeProp,
       inline = false,
       mobileNative = 'auto',
       editable = true,
       popover = true,
       openOnFocus = true,
       closeOnSelect = false,
-      position = 'bottom-left',
+      position,
       appendToBody = false,
       color,
       size,
@@ -235,6 +300,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       className,
       name,
       form,
+      autoComplete,
       required,
       id: idProp,
       onFocus,
@@ -249,6 +315,12 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       haptics = false,
       ...rest
     } = props;
+    // A LocaleProvider around the picker sets its default locale.
+    const locale = usePickerLocale(localeProp);
+    // Its own language and direction, which its root and a portaled panel
+    // carry inside a provider.
+    const localeScope = usePickerLocaleScope(localeProp, props.dir);
+    const disabled = useFieldsetDisabled(disabledProp);
     // Inside a labeled Field the input takes the id the label points at
     // when the caller set none, as InputBase does, and the popover's ids
     // follow it. Inline there is no input to name, so nothing takes the
@@ -306,7 +378,31 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
     const reactId = useId();
     const popoverId = id ? `${id}-popover` : `picker-${reactId}`;
 
-    const { bulmaHelperClasses, rest: cleanRest } = useBulmaClasses(rest);
+    // The input takes `aria-invalid` and `aria-errormessage`, which report
+    // its state, and the container the rest (#2002). With no input, inline,
+    // the container keeps them, as before.
+    const { control: controlState, rest: containerRest } =
+      splitControlState(rest);
+    // The field takes the background and text helpers, since Bulma's `.input`
+    // sets its own background and font. The container keeps the rest, and the
+    // text helpers too where a popover inside it takes them.
+    const {
+      bulmaHelperClasses,
+      backgroundClasses,
+      textClasses,
+      otherClasses,
+      rest: cleanRest,
+    } = useFieldHelperClasses(containerRest);
+
+    // Inline there's no input for a label's `for` to name, so the picker is a
+    // group, as DateRangeInputBase is, when something names it: a labeled
+    // Field around it, or an `aria-label` or `aria-labelledby` you give it,
+    // which wins. The wrapper's message describes the group then.
+    const { ariaLabelledBy, named } = useAutoLabelledBy({
+      label: undefined,
+      rendersLabel: false,
+      callerProps: rest,
+    });
 
     const { shouldUseNative, isSmallViewport } = useNativeMobilePicker({
       force: mobileNative === 'auto' ? undefined : mobileNative,
@@ -376,6 +472,9 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
     // wheels show.
     const handleSpinnerChange = useCallback(
       (parts: { hours: number; minutes: number; seconds?: number }) => {
+        // The wheels start nothing while read-only. This catches a drag or a
+        // fling already under way when `readOnly` turns on.
+        if (readOnly) return;
         const next = value
           ? setTimeOfDay(value, parts)
           : setTimeOfDay(new Date(), {
@@ -386,7 +485,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
         if (!isWithin(next, lowerBound, max)) return;
         commitValue(next);
       },
-      [value, lowerBound, max, commitValue]
+      [readOnly, value, lowerBound, max, commitValue]
     );
 
     const tryParse = useCallback(
@@ -459,14 +558,23 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       [ref]
     );
 
+    // The wrapper's message describes the input (#1963). The native input
+    // lists it after the caller's ids; the text input takes it alone, since
+    // the caller's attributes go on the container.
+    const messageId = useFieldMessageId();
+
     if (useNative) {
       const nativeStep = enableSeconds
         ? incrementSeconds
         : incrementMinutes * 60;
       return (
         <input
+          {...localeScope.rootAttrs}
           {...cleanRest}
           ref={combinedRef}
+          autoComplete={autoComplete}
+          aria-describedby={joinIds(cleanRest['aria-describedby'], messageId)}
+          {...controlState}
           type="time"
           step={nativeStep}
           className={classNames(inputClass, bulmaHelperClasses, className)}
@@ -508,11 +616,13 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
           color={color}
           size={size}
           disabled={disabled}
+          readOnly={readOnly}
           // The popover panel takes `popoverId`, so the wheels inside it take
           // one of their own. Inline there is no panel, and the wheels keep
           // the id they released with.
           id={inline ? popoverId : `${popoverId}-time`}
           labels={labels}
+          locale={locale}
           itemHeight={wheelItemHeight}
           audioTick={effectiveAudioTick}
           onCommit={() => setOpen(false)}
@@ -601,7 +711,17 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
     if (inline) {
       return (
         <div
+          role={named ? 'group' : undefined}
+          aria-labelledby={ariaLabelledBy}
+          {...localeScope.rootAttrs}
           {...cleanRest}
+          {...(named && {
+            'aria-describedby': joinIds(
+              cleanRest['aria-describedby'],
+              messageId
+            ),
+          })}
+          {...controlState}
           ref={containerRef}
           className={classNames(containerClass, bulmaHelperClasses, className)}
         >
@@ -622,7 +742,13 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
     return (
       <div
         ref={containerRef}
-        className={classNames(containerClass, bulmaHelperClasses, className)}
+        className={classNames(
+          containerClass,
+          otherClasses,
+          textClasses,
+          className
+        )}
+        {...localeScope.rootAttrs}
         {...cleanRest}
       >
         <input
@@ -632,8 +758,10 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
           aria-haspopup="dialog"
           aria-expanded={open}
           aria-controls={popoverId}
-          autoComplete="off"
-          className={inputClass}
+          autoComplete={autoComplete || 'off'}
+          aria-describedby={messageId}
+          {...controlState}
+          className={classNames(inputClass, textClasses, backgroundClasses)}
           value={text}
           placeholder={placeholder}
           disabled={disabled}
@@ -663,6 +791,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
         )}
         {popover && (
           <PickerPopover
+            localeScope={localeScope.panel}
             isOpen={open}
             onClose={() => setOpen(false)}
             anchorRef={containerRef}

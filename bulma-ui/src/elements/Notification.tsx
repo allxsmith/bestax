@@ -1,5 +1,4 @@
 import React, {
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -17,7 +16,13 @@ import { warnUnstyledColor } from '../helpers/colorDeprecations';
 import { groupIntoPositionStacks } from '../helpers/positionStacks';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { usePortalContainer } from '../helpers/portal';
+import { LocalePortalScope } from '../helpers/LocaleProvider';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
+import { scrollLockOffset } from '../helpers/scrollLock';
+import { useDismissTimer } from '../helpers/useDismissTimer';
+import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
+import { passFocusOn, useFocusOrigin } from '../helpers/focusHandOff';
+import { useLatestRef } from '../helpers/useLatestRef';
 
 /**
  * Props for the Notification component.
@@ -27,7 +32,7 @@ export interface NotificationProps
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * Bulma color modifier for the notification (renders `is-<color>`).
    *
@@ -36,11 +41,26 @@ export interface NotificationProps
    * other value the union accepts emits a class no CSS rule matches, so the
    * notification renders unstyled; those log a console warning in development
    * and will be removed from this union in the next major version.
+   *
+   * `dark` and `light` take their color's own text and background from
+   * bestax's stylesheets, as a dark or light `Button` has. With Bulma's CSS
+   * alone, their text inherits the color around it, which on a light page is
+   * one shade off a dark notification's background, and on a dark page is
+   * hard to read on a light one.
    */
-  color?: (typeof validColors)[number];
+  color?: (typeof validColors)[number] | undefined;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Use the light color variant. */
+  /**
+   * Use the light color variant. The light and dark colors have none, so
+   * `color="light"` or `color="dark"` with `isLight` looks the same as
+   * without it, as a light or dark `Button` does.
+   *
+   * `white` and `black` with `isLight` take Bulma's light gray background,
+   * and the light color's text from bestax's stylesheets. With Bulma's CSS
+   * alone, their text inherits the color around it, which on a dark page is
+   * hard to read.
+   */
   isLight?: boolean;
   /**
    * Shows a close (delete) button in the notification. It renders
@@ -54,6 +74,12 @@ export interface NotificationProps
   hasDelete?: boolean;
   /** Callback fired when the delete button is clicked. */
   onDelete?: () => void;
+  /**
+   * Names the close button `hasDelete` shows, in place of "Close
+   * notification", for an app in another language. An empty one keeps that
+   * name.
+   */
+  ariaCloseLabel?: string;
   /** Content inside the notification. */
   children?: React.ReactNode;
 }
@@ -73,6 +99,7 @@ export const Notification: React.FC<NotificationProps> = ({
   isLight,
   hasDelete,
   onDelete,
+  ariaCloseLabel,
   children,
   ...props
 }) => {
@@ -88,7 +115,9 @@ export const Notification: React.FC<NotificationProps> = ({
 
   const bulmaClasses = usePrefixedClassNames('notification', {
     [`is-${color}`]: color && validColors.includes(color),
-    'is-light': isLight,
+    // The light color's own class is this key too, and this one comes later,
+    // so it has to set the class for `light` as well or it erases it.
+    'is-light': isLight || color === 'light',
     'has-delete': hasDelete,
   });
 
@@ -107,7 +136,7 @@ export const Notification: React.FC<NotificationProps> = ({
           type="button"
           className={deleteClasses}
           onClick={onDelete}
-          aria-label="Close notification"
+          aria-label={ariaCloseLabel || 'Close notification'}
         />
       )}
       {children}
@@ -146,11 +175,32 @@ export interface NotificationOptions {
    * other value the union accepts emits a class no CSS rule matches, so the
    * notification renders unstyled; those log a console warning in development
    * and will be removed from this union in the next major version.
+   *
+   * `dark` and `light` take their color's own text and background from
+   * bestax's stylesheets, as a dark or light `Button` has. With Bulma's CSS
+   * alone, their text inherits the color around it, which on a light page is
+   * one shade off a dark notification's background, and on a dark page is
+   * hard to read on a light one.
    */
   color?: (typeof validColors)[number];
-  /** Use the light color variant. */
+  /**
+   * Use the light color variant. The light and dark colors have none, so
+   * `color="light"` or `color="dark"` with `isLight` looks the same as
+   * without it, as a light or dark `Button` does.
+   *
+   * `white` and `black` with `isLight` take Bulma's light gray background,
+   * and the light color's text from bestax's stylesheets. With Bulma's CSS
+   * alone, their text inherits the color around it, which on a dark page is
+   * hard to read.
+   */
   isLight?: boolean;
-  /** Duration in ms before auto-close. Default 3000. */
+  /**
+   * Duration in ms before auto-close. Default 3000.
+   *
+   * The countdown waits while focus is inside the notification, on its close
+   * button or on a link in its message, whatever `pauseOnHover` says, and once
+   * focus leaves, the notification gets its whole duration again.
+   */
   duration?: number;
   /**
    * Position on the screen. A notification shown without one goes to
@@ -164,9 +214,17 @@ export interface NotificationOptions {
   queue?: boolean;
   /** Show a delete (close) button. Default true. */
   hasDelete?: boolean;
+  /**
+   * Names the close button, in place of "Close notification", for an app in
+   * another language. An empty one keeps that name.
+   */
+  ariaCloseLabel?: string;
   /** Stay open until dismissed. */
   indefinite?: boolean;
-  /** Pause auto-close timer on hover. Default true. */
+  /**
+   * Pause auto-close timer on hover. Default true. Focus inside the
+   * notification pauses it either way (see `duration`).
+   */
   pauseOnHover?: boolean;
 }
 
@@ -353,20 +411,22 @@ const isUrgentColor = (color: NotificationOptions['color']): boolean =>
  * Single auto-dismissing notification item used by NotificationContainer.
  *
  * @function
- * @param {{ instance: NotificationInstance; onClose: (id: string) => void; registerMessage: (id: string, node: HTMLElement | null) => void }} props - Component props.
+ * @param {{ instance: NotificationInstance; onClose: (id: string) => void; registerMessage: (id: string, node: HTMLElement | null) => void; handOffFocus: (id: string, node: HTMLElement) => void }} props - Component props.
  * @returns {JSX.Element} The rendered notification item.
  */
 const NotificationItem: React.FC<{
   instance: NotificationInstance;
   onClose: (id: string) => void;
   registerMessage: (id: string, node: HTMLElement | null) => void;
-}> = ({ instance, onClose, registerMessage }) => {
+  handOffFocus: (id: string, node: HTMLElement) => void;
+}> = ({ instance, onClose, registerMessage, handOffFocus }) => {
   const {
     message,
     color,
     isLight,
     duration = 3000,
     hasDelete = true,
+    ariaCloseLabel,
     indefinite = false,
     pauseOnHover = true,
   } = instance.options;
@@ -378,20 +438,40 @@ const NotificationItem: React.FC<{
     onClose(instance.id);
   }, [onClose, instance.id]);
 
+  // The message's element, whose parent is the notification's, since
+  // Notification takes no ref. The container keeps it too, to read a polite
+  // one's text for its status region and to find the notification. It's
+  // attached for as long as the notification is on the page, which covers
+  // every read: the timer's, after each render, and the cleanup below.
+  const messageElRef = useRef<HTMLElement | null>(null);
+  const notificationEl = useCallback(
+    () => messageElRef.current!.parentElement!,
+    []
+  );
   const messageRef = useCallback(
     (node: HTMLElement | null) => {
+      messageElRef.current = node;
       registerMessage(instance.id, node);
     },
     [registerMessage, instance.id]
   );
 
-  // Auto-close timer
-  useEffect(() => {
-    if (indefinite || duration === 0 || isPaused) return undefined;
+  // Auto-close timer. It waits while focus is inside the notification, so
+  // what someone is using doesn't go away under them, whatever pauseOnHover
+  // says.
+  const { onFocus: handleFocus } = useDismissTimer(
+    handleClose,
+    indefinite || duration === 0 || isPaused ? null : duration,
+    notificationEl
+  );
 
-    const timer = setTimeout(handleClose, duration);
-    return () => clearTimeout(timer);
-  }, [duration, indefinite, isPaused, handleClose]);
+  // A layout effect's cleanup, because it runs before the notification's
+  // element leaves the page, while focus can still be in it. The container
+  // decides where focus goes.
+  useClientLayoutEffect(
+    () => () => handOffFocus(instance.id, notificationEl()),
+    [handOffFocus, instance.id, notificationEl]
+  );
 
   const handleMouseEnter = useCallback(() => {
     if (pauseOnHover) setIsPaused(true);
@@ -406,9 +486,11 @@ const NotificationItem: React.FC<{
       color={color}
       isLight={isLight}
       hasDelete={hasDelete}
+      ariaCloseLabel={ariaCloseLabel}
       onDelete={handleClose}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onFocus={handleFocus}
       style={{ pointerEvents: 'auto' }}
     >
       {/* Only the message is announced, not the close button Notification
@@ -419,7 +501,7 @@ const NotificationItem: React.FC<{
           this span, so it carries no role of its own that would announce them
           a second time. */}
       {urgent ? (
-        <span role="alert" aria-live="assertive">
+        <span role="alert" aria-live="assertive" ref={messageRef}>
           {message}
         </span>
       ) : (
@@ -442,6 +524,8 @@ const notificationStackOrder: readonly NotificationPosition[] = [
 
 /**
  * Inline style that fixes a stack of notifications to its place on the screen.
+ * While an overlay locks the page, each side adds the room the page's
+ * scrollbar gave back there, so the stack stays put as the scrollbar goes.
  *
  * @function
  * @param {NotificationPosition} position - Where the stack sits.
@@ -453,6 +537,8 @@ const notificationStackStyle = (
   const isBottom = position.startsWith('bottom');
   const isCenter = position === 'top' || position === 'bottom';
   const isRight = position.endsWith('right');
+  const left = scrollLockOffset('left');
+  const right = scrollLockOffset('right');
 
   return {
     position: 'fixed',
@@ -462,13 +548,17 @@ const notificationStackStyle = (
     gap: '0.75rem',
     padding: '1rem',
     pointerEvents: 'none',
-    maxWidth: '100%',
+    maxWidth: `calc(100% - ${left} - ${right})`,
     ...(isBottom ? { bottom: 0 } : { top: 0 }),
     ...(isCenter
-      ? { left: '50%', transform: 'translateX(-50%)', alignItems: 'center' }
+      ? {
+          left: `calc(50% + (${left} - ${right}) / 2)`,
+          transform: 'translateX(-50%)',
+          alignItems: 'center',
+        }
       : isRight
-        ? { right: 0, alignItems: 'flex-end' }
-        : { left: 0, alignItems: 'flex-start' }),
+        ? { right, alignItems: 'flex-end' }
+        : { left, alignItems: 'flex-start' }),
   };
 };
 
@@ -490,6 +580,12 @@ const notificationStackStyle = (
  * moment after it appears, isn't announced at all. `danger` and `warning`
  * notifications announce themselves as assertive alerts. The region is hidden
  * with inline styles, so it needs no stylesheet.
+ *
+ * When a notification closes with focus inside it, focus moves to the close
+ * button of the next notification in its stack that stays open and has one,
+ * or else of the one before it, or, with neither, back to where it was before
+ * it went into a notification, while that's still on the page. Focus anywhere
+ * else stays where it is.
  *
  * @function
  * @param {{ position?: NotificationPosition }} props - Container props.
@@ -524,8 +620,9 @@ export const NotificationContainer: React.FC<{
     [items]
   );
 
-  // Each polite notification's message element, so the text the region
-  // announces is the text on screen, whatever the message renders.
+  // Each notification's message element: the status region reads a polite
+  // one's text, so it announces the text on screen, whatever the message
+  // renders, and its parent is the notification, for handing focus on.
   const messageNodesRef = useRef(new Map<string, HTMLElement>());
   const registerMessage = useCallback(
     (id: string, node: HTMLElement | null) => {
@@ -537,6 +634,52 @@ export const NotificationContainer: React.FC<{
     },
     []
   );
+
+  // Where focus last was outside the notifications, for handing it back.
+  const focusOriginRef = useFocusOrigin(target => {
+    for (const message of messageNodesRef.current.values()) {
+      if (message.parentElement!.contains(target)) return true;
+    }
+    return false;
+  });
+
+  // When a notification closes with focus inside it, as one does from its
+  // close button, the browser would drop focus to the page, and the next Tab
+  // would start from wherever it resumes, the end of the page for a portaled
+  // stack. So focus moves first: to the close button of the next
+  // notification in its stack that stays open and has one, or else of the
+  // one before it, and otherwise back to where it was before it went into a
+  // notification, while that's still on the page. One that arrives in the same render, as a queued one does,
+  // isn't on the page yet to take it. A notification that leaves the page
+  // without closing, as one remounting at a new position does, and focus
+  // anywhere else, are left alone. React hears no focus event for a move
+  // made while notifications leave, so the notification focus lands in hears
+  // it through its own element instead.
+  const deleteClassRef = useLatestRef(usePrefixedClassNames('delete'));
+  const handOffFocus = useCallback(
+    (id: string, node: HTMLElement) =>
+      passFocusOn({
+        id,
+        closing: node,
+        showing: getVisibleNotifications,
+        elements: () =>
+          Array.from(
+            messageNodesRef.current,
+            ([otherId, message]) => [otherId, message.parentElement!] as const
+          ),
+        // A notification's close button, which Notification renders first,
+        // when it has one.
+        pick: el => {
+          const first = el.firstElementChild;
+          return first?.classList.contains(deleteClassRef.current)
+            ? (first as HTMLElement)
+            : null;
+        },
+        origin: focusOriginRef.current,
+      }),
+    [deleteClassRef, focusOriginRef]
+  );
+
   // StatusRegion only describes polite notifications that are on screen, and
   // each of those registered its message element when it mounted. The
   // fallback is for a notification announced without being rendered, should
@@ -563,8 +706,9 @@ export const NotificationContainer: React.FC<{
     notificationStackOrder
   );
 
+  const target = resolveContainer();
   return createPortal(
-    <>
+    <LocalePortalScope target={target}>
       {stacks.map(stack => (
         <div key={stack.key} style={notificationStackStyle(stack.position)}>
           {stack.items.map(item => (
@@ -573,12 +717,13 @@ export const NotificationContainer: React.FC<{
               instance={item}
               onClose={notification.close}
               registerMessage={registerMessage}
+              handOffFocus={handOffFocus}
             />
           ))}
         </div>
       ))}
       <StatusRegion items={politeItems} describe={describe} />
-    </>,
-    resolveContainer()
+    </LocalePortalScope>,
+    target
   );
 };

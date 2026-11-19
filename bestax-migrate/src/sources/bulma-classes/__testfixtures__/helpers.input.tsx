@@ -28,3 +28,30 @@ export function StaysBeside() {
     </section>
   );
 }
+
+export function Bulma09Spacing() {
+  return (
+    <section className="section is-paddingless">
+      <div className="box is-paddingless">Bulma 0.9&apos;s, as v1&apos;s</div>
+      <p className="has-text-centered is-marginless">Centered, no margin</p>
+      <p className="has-text-centered marginless">v1&apos;s own name stays</p>
+    </section>
+  );
+}
+
+export function Shades() {
+  return (
+    <section>
+      <p className="has-text-primary-on-scheme">On the scheme</p>
+      <span className="has-background-info-light has-text-info-dark">
+        A light tag
+      </span>
+      <div className="box has-text-link-30">A darker link color</div>
+      <a className="has-text-danger-on-scheme" href="/x">
+        A readable link
+      </a>
+      <p className="has-text-primary-30 has-text-info-40">The second stays</p>
+      <p className="has-text-primary-30-invert">No single shade writes it</p>
+    </section>
+  );
+}

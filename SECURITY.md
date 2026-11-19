@@ -108,6 +108,15 @@ Measures active in this repository and its release pipeline:
   workflow. The plugin starts
   `bestax-mcp` through `npx` pinned to one exact version, the latest
   release, never a range.
+- **The templates mirror repository.** The ported Bulma templates open in
+  StackBlitz from
+  [allxsmith/bestax-templates](https://github.com/allxsmith/bestax-templates),
+  which `.github/workflows/templates-publish.yml` generates from this
+  repository's `main` and pushes the way the plugin repository above is
+  pushed. Nobody edits it by hand. The generator publishes only files git
+  tracks and refuses symbolic links, and the deploy key can write to that
+  one repository, is a secret of an environment that admits `main` only,
+  and is used by a job that checks out nothing and runs no repository code.
 - **Socket.dev** — the Socket GitHub App reviews every pull request for
   malware, install scripts, obfuscated code, and privilege escalation in
   dependency changes, and posts two checks on every pull request. Its policy

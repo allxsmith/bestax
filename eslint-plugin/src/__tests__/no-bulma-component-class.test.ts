@@ -1,9 +1,13 @@
+import { describe, expect, it } from 'vitest';
 import rule from '../rules/no-bulma-component-class.js';
 import { BULMA_COMPONENT_CLASSES } from '../generated/metadata.js';
 import { ruleTester } from './helpers.js';
 
-// Plain elements need no import, so no fixture here uses `imported()`.
+// Plain elements need no import, and the components' fixtures spell theirs
+// out, one of them below the JSX, so no fixture here uses `imported()`.
 const jsx = (element: string) => `const x = ${element};\n`;
+const bestax = (names: string, element: string) =>
+  `import { ${names} } from '@allxsmith/bestax-bulma';\n${jsx(element)}`;
 
 const converts = (cls: string, component: string, tag = 'div') => ({
   messageId: 'converts' as const,
@@ -12,6 +16,15 @@ const converts = (cls: string, component: string, tag = 'div') => ({
 const family = (cls: string, component: string, tag = 'div') => ({
   messageId: 'family' as const,
   data: { tag, cls, component },
+});
+const also = (element: string, cls: string, component: string) => ({
+  messageId: 'alsoConverts' as const,
+  data: {
+    element,
+    cls,
+    component,
+    advice: `Give \`${component}\` an element of its own around or inside this one and drop the class, then check the layout`,
+  },
 });
 
 ruleTester.run('no-bulma-component-class', rule, {
@@ -63,6 +76,20 @@ ruleTester.run('no-bulma-component-class', rule, {
       jsx("<div className={cx('card')} />"),
     // The last className is the one that renders.
     jsx('<div className="box" className="my-box" />'),
+    // A component's own classes, its modifiers and helpers, and the app's.
+    bestax('Box', '<Box className="box" />'),
+    bestax('Columns', '<Columns className="columns is-mobile mt-4 my-grid" />'),
+    bestax('Card', '<Card.Content className="card-content" />'),
+    bestax('Hero', '<Hero as="div" className="hero is-medium" />'),
+    // Inside <svg> or <math> nothing is HTML, a component included.
+    bestax('Columns', '<svg><Columns className="box" /></svg>'),
+    bestax('Columns', '<math><g><Columns className="box" /></g></math>'),
+    // A component the table names no class for: which it renders is unknown.
+    bestax('Input', '<Input className="box" />'),
+    // Not ours: a capitalised name the file doesn't import, or a local one.
+    jsx('<Columns className="box" />'),
+    "import { Columns } from '@allxsmith/bestax-bulma';\n" +
+      'function F() {\n  const Columns = () => null;\n  return <Columns className="box" />;\n}\n',
   ],
   invalid: [
     {
@@ -177,6 +204,113 @@ ruleTester.run('no-bulma-component-class', rule, {
         "import { Card } from '@allxsmith/bestax-bulma';\n" +
         jsx('<Card><div className="content" /></Card>'),
       errors: [converts('content', 'Content')],
+    },
+    // A class whose component renders the tag beats one ranked ahead of it,
+    // as the codemod decides.
+    {
+      code: jsx('<figure className="image is-128x128 container" />'),
+      errors: [converts('image', 'Image', 'figure')],
+    },
+    {
+      code: jsx('<div className="image is-128x128 container" />'),
+      errors: [converts('container', 'Container')],
+    },
+    // A class whose component's own tag it is beats one that reaches it only
+    // through `as`; two that reach it through `as` go by the table's order.
+    {
+      code: jsx('<section className="container hero is-primary" />'),
+      errors: [converts('hero', 'Hero', 'section')],
+    },
+    {
+      code: jsx('<main className="hero container" />'),
+      errors: [converts('container', 'Container', 'main')],
+    },
+    // `Level` reaches a <div> through `as`, which `Section` doesn't.
+    {
+      code: jsx('<div className="section level" />'),
+      errors: [converts('level', 'Level')],
+    },
+    // The tag a class beside it picks counts as the component's own: a ratio
+    // puts `Image` on a <figure>, so on a <div> it reaches it through `as`,
+    // as `Media.Left` does, and the table's order decides.
+    {
+      code: jsx('<div className="media-left image is-1by1" />'),
+      errors: [converts('media-left', 'Media.Left')],
+    },
+    {
+      code: jsx('<figure className="navbar-item image is-16by9" />'),
+      errors: [converts('image', 'Image', 'figure')],
+    },
+    // The first class for the prop decides: a fixed size keeps its <div>.
+    {
+      code: jsx('<div className="media-left image is-64x64 is-1by1" />'),
+      errors: [converts('image', 'Image')],
+    },
+    // A heading's size picks it only on the heading it names.
+    {
+      code: jsx('<h3 className="navbar-item title is-2 is-3" />'),
+      errors: [converts('title', 'Title', 'h3')],
+    },
+    {
+      code: jsx('<h2 className="navbar-item title is-3" />'),
+      errors: [converts('navbar-item', 'Navbar.Item', 'h2')],
+    },
+    // Another component's class on a bestax component, which the codemod
+    // leaves in `className` with a TODO.
+    {
+      code: bestax('Columns', '<Columns className="box" />'),
+      errors: [also('Columns', 'box', 'Box')],
+    },
+    // Through `as`, which renders its own class on another tag.
+    {
+      code: bestax('Container', '<Container as="main" className="hero" />'),
+      errors: [also('Container', 'hero', 'Hero')],
+    },
+    // Two others on a component: no tag of theirs to fit, so the first in
+    // the table's order is reported, whatever the className's order.
+    {
+      code: bestax('Columns', '<Columns className="content box" />'),
+      errors: [also('Columns', 'box', 'Box')],
+    },
+    {
+      code: bestax('Card', '<Card.Content className="card-content content" />'),
+      errors: [also('Card.Content', 'content', 'Content')],
+    },
+    // Through an alias, a namespace and a joiner, with the import below.
+    {
+      code:
+        jsx("<B.Columns className={clsx('columns', boxed && 'box')} />") +
+        "import * as B from '@allxsmith/bestax-bulma';\nimport clsx from 'clsx';\n",
+      errors: [also('Columns', 'box', 'Box')],
+    },
+    {
+      code: bestax('Columns as Row', '<Row className="notification" />'),
+      errors: [also('Columns', 'notification', 'Notification')],
+    },
+    // A class with advice of its own says it.
+    {
+      code: bestax('Image', '<Image as="figure" className="container" />'),
+      errors: [
+        {
+          messageId: 'alsoConverts' as const,
+          data: {
+            element: 'Image',
+            cls: 'container',
+            component: 'Container',
+            advice:
+              'Where it is only there to center this element, `mx="auto"` centers it, and otherwise wrap the element in a `Container`; either way drop the class, then check the layout',
+          },
+        },
+      ],
+    },
+    {
+      code: bestax('Box', '<Box className="dropdown is-active" />'),
+      errors: [
+        {
+          messageId: 'alsoFamily' as const,
+          data: { element: 'Box', cls: 'dropdown', component: 'Dropdown' },
+        },
+      ],
     },
   ],
 });

@@ -12,6 +12,9 @@ React component library for **Bulma v1** in TypeScript. pnpm monorepo orchestrat
 - `eslint-plugin/` — `@allxsmith/eslint-plugin-bestax`, lint rules for the library;
   its `src/generated/` metadata is **generated** (has its own CLAUDE.md)
 - `skills/` — Agent Skills, a **shipped product** bundled into create-bestax (has its own CLAUDE.md)
+- `templates/`: Bulma templates rebuilt with bestax, each a create-bestax project the docs
+  Templates page lists, published to a mirror StackBlitz opens; **not** workspace packages (has
+  its own CLAUDE.md, the porting guide)
 - `plugin/`: the hand-written inputs of the `bestax` coding-agent plugin, which is **generated**
   into allxsmith/bestax-skills (see "The bestax plugin" below)
 - `telemetry-worker/` — Cloudflare Worker ingesting the CLIs' opt-in telemetry
@@ -38,10 +41,10 @@ Node 22 locally (`.nvmrc`; CI runs Node 24) and `pnpm@11.9.0` (pinned via `packa
 ## Commands
 
 ```bash
-pnpm all            # the pre-PR gate: build, typecheck, test+coverage, bundle:stats, conformance, the three staleness checks, lint, format:check, storybook build
-pnpm test           # jest (bulma-ui + create-bestax + bestax-migrate + bestax-mcp + eslint-plugin), then test:scripts
-pnpm test:scripts   # the root scripts/ node:test suite, with coverage held to per-file floors (see below)
-pnpm test:coverage  # coverage — thresholds live in each package's jest config (see below)
+pnpm all            # the pre-PR gate: build, typecheck, tests (once, with coverage), bundle:stats, conformance, the three staleness checks, lint, format:check, storybook build
+pnpm test           # every package's suite (turbo), then test:scripts
+pnpm test:scripts   # the root scripts/ suite, with coverage held to per-file floors (see below)
+pnpm test:coverage  # coverage — thresholds live in each package's `vitest.config.ts` (see below); pnpm all and CI run package tests through it, so a package with no coverage tool aliases it to its `test`
 pnpm lint           # eslint
 pnpm typecheck      # tsc --noEmit (each package's build program)
 pnpm typecheck:tests # tsc over bulma-ui's tests and stories, which `typecheck` excludes
@@ -67,8 +70,8 @@ pnpm exec turbo run test --filter=@allxsmith/bestax-bulma   # scope any task to 
 
 Enforced by CI (`.github/workflows/ci.yml`):
 
-- Coverage thresholds from the jest configs: **bulma-ui 99%** (all metrics);
-  every other jest package 95% (78% branches). `docs` has no jest suite.
+- Coverage thresholds from each package's `vitest.config.ts`: **bulma-ui 99%** (all
+  metrics); every other published package 95% (78% branches). `docs` has none.
 - The root `scripts/` suite has a coverage floor per file in `scripts/coverage-floors.json`,
   checked by `pnpm test:scripts` (which `pnpm test` and `pnpm all` run). Per file because a
   total hides a small script losing most of its coverage. A floor is where the file stood,
@@ -83,8 +86,8 @@ Enforced by CI (`.github/workflows/ci.yml`):
   format, audit.
 - **Tests and stories are type-checked too**, by a second project
   (`bulma-ui/tsconfig.test.json`, script `typecheck:tests`) — `tsconfig.json` excludes
-  them because it is also the build's program. ts-jest transpiles rather than checks
-  (the repo sets `isolatedModules`), so jest never stands in for this. Two consequences
+  them because it is also the build's program. Vitest strips types rather than checking
+  them, so the test run never stands in for this. Two consequences
   worth knowing: an `@ts-expect-error` in a test or story is live and fails as TS2578
   once it stops being needed, and in JSX the directive must sit in its OWN single-line
   `{/* … */}` — TypeScript anchors it to the line a comment STARTS on, so a multi-line
@@ -97,13 +100,85 @@ Enforced by CI (`.github/workflows/ci.yml`):
   narrower `typecheck` checks the shipped program without `types/assets.d.ts` — and its
   `declare module '*.svg'` — in scope.
 - House conventions fail via `pnpm check:conformance` (error messages name the file and fix);
-  a **React 18/19 matrix** builds and tests bulma-ui on both majors.
+  a **React 18/19 matrix** runs bulma-ui's tests on the newest release of both majors.
 
 Enforced in review (a green CI does **not** check these):
 
 - CI only checks that a story and docs page **exist** per component — prop-level changes still
   need both updated, and skill-affecting changes update `skills/` **in the same PR**.
 - Run `pnpm all` locally before opening a PR.
+
+## Finishing a change
+
+A change is rarely one file. Go through this list before you commit, for a one-line fix as much
+as for a feature. CI catches some of these and not others, so a green run doesn't mean it's done.
+
+- **Read the issue's comments, not only its body.** A maintainer's comment can widen the scope or
+  settle a design question the body left open. Do what the latest one asks, or say in the PR body
+  why you didn't.
+- **Look for the same defect next door:** the other variants, sizes and states a selector
+  reaches, the components that share the hook or mixin, a sibling with the same default. Fix what
+  the issue covers and name the rest in the PR body.
+- **Read the guide for each directory you change.** Every `CLAUDE.md` on the path to a file you
+  edit applies to it (`bulma-ui/CLAUDE.md`, `bulma-ui/src/scss/CLAUDE.md`, `docs/CLAUDE.md`,
+  `skills/CLAUDE.md` and the rest). Some agent tools load only the ones on the path to the
+  directory they started in, so open them yourself.
+- **Edited a skill, an API docs page or a TSDoc comment:** run `pnpm format`, then `pnpm gen`,
+  and commit what they rewrite. `gen` reads the API pages' examples as `format` leaves them, so
+  formatting after `gen` can leave what it wrote stale.
+- **Added an SCSS partial:** register it in its folder's `_index.scss`, then update everything
+  that lists the partials or shows a modular build: `skills/bestax-optimize/references/modular-build.md`
+  (the inventory, which stock components have a partial, and the starter's worked example), the
+  quick example in `skills/bestax-optimize/SKILL.md` and its copy in
+  `docs/docs/skills/optimize.mdx`, and `docs/docs/guides/getting-started/modular.md` (the
+  lists of what each partial adjusts or draws on, and what it needs). The guide's extras block
+  is a short example that links the inventory, so a new partial doesn't join it. Only the
+  inventory has a test.
+- **Changed what a partial does,** for example it now applies outside forced colors: update how
+  those same pages describe it.
+- **Changed what a component does for accessibility** (a focus ring, forced colors, an `aria-*`
+  attribute it sets): add or update the bullet in the Accessibility section of its API page. That
+  section is written by hand, and nothing checks it.
+- **Declared a prop on a props interface,** even one it already inherits, to give it TSDoc: keep
+  the inherited type (see TSDoc in `bulma-ui/CLAUDE.md`). If the component is a target of
+  bestax-migrate's bulma-classes class map, classify the prop there (`ownProps` or
+  `passThrough`), since its truth test holds the map to every prop a target declares.
+- **Test the fix, not the code near it.** Assert the declaration or behavior that is the fix,
+  revert the fix and watch the test fail, then put it back. For CSS, cover the class-prefixed
+  build too.
+- **Changed more than one package:** one commit per package, each with that package's scope (see
+  "Commits" below).
+- **Keep the PR body true.** Tick only what you did, name follow-up work as an issue or as not
+  done, and leave no placeholders. Change the body in the same step as the push that changes what
+  it describes.
+
+## Bulma's stock colors and the bestax blue
+
+How bestax draws Bulma's stock colors (its named colors and its scheme's own shades) or the bestax
+blue (the primary its builds use) changes only when Alex, the repo's owner, asks for it, whether the
+change is in a component, a helper or the color values themselves. That covers a fill, an edge, a
+ring (a focus ring included), a mark, a track or text, at rest or in a state like focused, checked,
+active, current or picked, and swapping one for an on-scheme, darker or lighter shade. Asking means
+his own words ask for that change, in an issue he wrote or in his `@claude` or steer prompt. A
+`claude-fix` label on its own doesn't count.
+
+An accessibility or WCAG contrast finding isn't a reason to open a PR that changes those colors.
+Report it to Alex where you found it, on the issue, the PR or in the session, and leave the colors
+as they are unless he decides otherwise. On a PR, a review finding that asks for such a change is
+answered with this rule, and the reviewer takes that answer as settling it. No agent opens such a
+PR on its own, the fix loop and the `@claude` action included.
+
+The reason is that bestax follows Bulma's look. Contrast fixes that recolored the stock colors could
+read badly: a warning color turned an olive brown on white, and the carousel's dots became rings.
+One was [closed](https://github.com/allxsmith/bestax/pull/1785) and the other
+[rolled back](https://github.com/allxsmith/bestax/pull/1817).
+
+This doesn't cover a change that leaves those colors as they are, at rest and in those states: a bug
+fix, layout, a fix that applies only in forced colors, making a missing element appear the way Bulma
+draws it, or a new component drawn the way its Bulma siblings are. One change to the focused state
+doesn't need his ask either: adding a keyboard focus ring where an element shows none, in the color
+Bulma's own focus styles use there. Changing the color of a focus ring that already shows, or
+drawing one in any other color, still does.
 
 ## Commits — release-affecting, not cosmetic
 
@@ -123,6 +198,9 @@ semantic-release. Two repo-specific rules:
   `@allxsmith/bestax-bulma` release because its index documents the library (VERSIONING.md,
   "bestax-mcp releases with bestax-bulma"). The `releaseRules` in each package's
   `release.config.js` are the source of truth.
+- **A change to two packages needs a commit for each,** with that package's scope. A release reads
+  the scope of each commit, so a bestax-migrate change inside a `fix(bulma-ui)` commit releases
+  only the library, and the published codemod never gets it.
 
 ```
 feat(bulma-ui): add Collapse component   → minor release of bulma-ui, patch of bestax-mcp
@@ -131,6 +209,17 @@ docs: fix typo in contributing guide     → no release; scope optional
 ```
 
 Full versioning details (breaking-change footers, tag formats): `VERSIONING.md`.
+
+**No breaking changes to `@allxsmith/bestax-bulma` until its next major.** A library change
+that would need a `BREAKING CHANGE:` footer doesn't ship: a removed or renamed export, prop or
+type, a narrowed type or peer range, a raised Node floor, or a default or behavior existing code
+relies on. That includes what a value a caller passes means. A fix may change what happens by
+default where nothing could rely on the old result, but an explicit prop value keeps its meaning
+(#1336). Its issue gets the `next-major` label and waits, so the library's breaking changes land
+together in one major release rather than one at a time. Where an issue offers a breaking fix and
+a compatible one, ship the compatible one and split the breaking option into its own `next-major`
+issue. The other packages may take a major of their own when a change needs one: put the
+`BREAKING CHANGE:` footer on that package's commit, and say so in the PR body.
 
 ## Dependencies are a deliberate act
 
@@ -179,6 +268,11 @@ shipped product (see `skills/CLAUDE.md`); the MCP server serves a generated inde
 `bestax-mcp/CLAUDE.md`). This file is also read by **CodeRabbit** (PR reviews), by the
 **`@claude`** GitHub Action and the Claude deep review (project instructions), and by
 **bestaxbot**'s sessions, so keep it accurate.
+
+**The templates mirror.** StackBlitz opens the ported templates from allxsmith/bestax-templates,
+whose whole tree `.github/workflows/templates-publish.yml` generates with
+`scripts/gen-templates-repo.mjs` on each change to `templates/` on `main`. Never edit
+bestax-templates. CONTRIBUTING.md ("The bestax-templates repository") has the rest.
 
 **The bestax plugin.** The `bestax` coding-agent plugin, the skills plus the MCP server, installs
 from its own repository, allxsmith/bestax-skills, so an install does not clone this one.
@@ -309,7 +403,7 @@ conclusion, and merge `main` into the branch after any edit to that file.
 
 **Guardrails.** Humans always merge. A repository ruleset confines the bot to `claude/`
 branches and its token carries no `workflow` scope, so it cannot change workflows, and a PR
-touching `.github/**` or the jest, commitlint, release or pnpm-workspace configs is a human's
+touching `.github/**` or the vitest, commitlint, release or pnpm-workspace configs is a human's
 to write. After a
 bounded number of rounds the bot parks a PR rather than thrashing. Remove `ai-loop` to stop
 one PR; the maintainers can stop the bot entirely. This repository still carries its own

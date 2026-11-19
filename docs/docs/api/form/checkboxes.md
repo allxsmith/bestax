@@ -73,31 +73,33 @@ The simplest usage — the component automatically renders its own Field and Con
 
 #### With Field Wrapper
 
-When you need manual control over the Field layout (e.g., horizontal forms), wrap the component in `Field`. The component detects it's inside a Field and skips rendering its own.
-
-A labeled `Field` that holds the Checkboxes directly names the group through `aria-labelledby`, with no extra wiring. In a horizontal form the label sits on the outer `Field` and the Checkboxes in an inner one, which starts its own scope, so these examples point the group at the label by hand: `labelProps={{ id, htmlFor: undefined }}` on that `Field` and a matching `aria-labelledby` on the Checkboxes. Nothing in the inner `Field` takes the label's `for`, so the label drops it once the page mounts and `labelProps={{ id }}` works too. The `htmlFor: undefined` keeps the `for` out of server-rendered HTML as well.
+When you need manual control over the Field layout, wrap the component in `Field`. The component detects it's inside a Field and skips rendering its own, and a labeled `Field` that holds the Checkboxes directly names the group through `aria-labelledby`, with no extra wiring.
 
 ```tsx live
-function example() {
-  return (
-    <Field
-      horizontal
-      label="Chores"
-      labelProps={{ id: 'chores-label', htmlFor: undefined }}
-    >
-      <Field.Body>
-        <Field>
-          <Checkboxes aria-labelledby="chores-label">
-            <Checkbox> Make the bed </Checkbox>
-            <Checkbox> Brush teeth </Checkbox>
-            <Checkbox> Do homework </Checkbox>
-          </Checkboxes>
-        </Field>
-      </Field.Body>
-    </Field>
-  );
-}
+<Field label="Chores">
+  <Checkboxes>
+    <Checkbox> Make the bed </Checkbox>
+    <Checkbox> Brush teeth </Checkbox>
+    <Checkbox> Do homework </Checkbox>
+  </Checkboxes>
+</Field>
 ```
+
+---
+
+#### In a Horizontal Form
+
+`as="fieldset"` renders the Checkboxes' own `Field` as a native `<fieldset>`, with the `label` as its `<legend>`. With `horizontal`, the legend is the label column, and it names the group, so there are no ids to wire.
+
+```tsx live
+<Checkboxes as="fieldset" horizontal label="Chores">
+  <Checkbox> Make the bed </Checkbox>
+  <Checkbox> Brush teeth </Checkbox>
+  <Checkbox> Do homework </Checkbox>
+</Checkboxes>
+```
+
+To compose the row from a horizontal `Field` yourself, as the next example does, the label sits on the outer `Field` and the Checkboxes in an inner one, which starts its own scope, so point the group at the label by hand: `labelProps={{ id, htmlFor: undefined }}` on that `Field` and a matching `aria-labelledby` on the Checkboxes. Nothing in the inner `Field` takes the label's `for`, so the label drops it once the page mounts and `labelProps={{ id }}` works too. The `htmlFor: undefined` keeps the `for` out of server-rendered HTML as well.
 
 ---
 
@@ -148,11 +150,12 @@ Inside a `Control` with no `Field` around it, `Checkboxes` renders no `Field` of
 
 ## Group State
 
-`Checkboxes` can manage the selected-values array for the entire group, matching the pattern used by React Aria's `CheckboxGroup`. Three usage modes:
+`Checkboxes` can manage the selected-values array for the entire group, matching the pattern used by React Aria's `CheckboxGroup`. It has these usage modes:
 
-1. **Name-only** — pass just `name`. Each child `Checkbox` manages its own checked state. Backwards compatible.
-2. **Controlled** — pass `value` (an array of selected values) and `onChange`. The parent owns selection; each `Checkbox` derives `checked` from `value.includes(my.value)`.
-3. **Uncontrolled** — pass `defaultValue` (an array) and optionally `onChange`. The group manages internal state; `onChange` fires with the new array.
+1. **Name-only**: pass just `name`. Each child `Checkbox` manages its own checked state. Backwards compatible.
+2. **Controlled**: pass `value` (an array of selected values) and `onChange`. The parent owns selection; each `Checkbox` derives `checked` from `value.includes(my.value)`.
+3. **Uncontrolled**: pass `defaultValue` (an array) and optionally `onChange`. The group manages internal state; `onChange` fires with the new array.
+4. **Only `onChange`**: the group manages the selection as in uncontrolled mode, starting from the checkboxes' own `defaultChecked`. A box that starts checked stays checked when another is clicked, and the first array `onChange` gets holds it.
 
 Local props (`checked`, `onChange`) on individual `Checkbox` children always win over the group context.
 
@@ -196,6 +199,31 @@ function UncontrolledCheckboxes() {
       {latest.length > 0 && (
         <p style={{ marginTop: '1rem' }}>
           Latest: <strong>{latest.join(', ')}</strong>
+        </p>
+      )}
+    </div>
+  );
+}
+```
+
+### Only onChange
+
+```tsx live
+function ListeningCheckboxes() {
+  const [latest, setLatest] = React.useState<string[] | null>(null);
+  return (
+    <div>
+      <Checkboxes name="toppings" onChange={setLatest}>
+        <Checkbox value="cheese" defaultChecked>
+          Cheese
+        </Checkbox>
+        <Checkbox value="mushrooms">Mushrooms</Checkbox>
+        <Checkbox value="olives">Olives</Checkbox>
+      </Checkboxes>
+      {latest && (
+        <p className="mt-4">
+          Latest:{' '}
+          <strong>{latest.length ? latest.join(', ') : '(none)'}</strong>
         </p>
       )}
     </div>
@@ -249,11 +277,13 @@ function CheckboxesFormDemo() {
 
 ## Accessibility
 
-- The group is rendered as a `<div class="checkboxes" role="group">` containing labeled checkboxes.
+- By default the group is rendered as a `<div class="checkboxes" role="group">` containing labeled checkboxes.
 - The `label` prop names the whole group: the rendered `<label>` gets an id (yours via `labelProps.id`, or a generated one) and the group points at it with `aria-labelledby`.
 - Inside a labeled `Field`, that `Field`'s label names the group the same way.
+- With `as="fieldset"`, the group is a native `<fieldset>`, named by its `<legend>` where it renders its own `Field`, or by an outer `Field`'s label through `aria-labelledby` inside one.
 - An `aria-label` or `aria-labelledby` you give the group wins over either label, whether that label sits on the Checkboxes or on a `Field` around them.
 - Each child should be a `Checkbox` for proper labeling and accessibility.
+- The `message` describes the group through `aria-describedby`, after any ids you pass there, as the label names it. That holds with `as="fieldset"` too.
 
 ---
 
@@ -283,11 +313,12 @@ function CheckboxesFormDemo() {
 | `name`           | `string`                                                                        | —       | Form field name shared by every Checkbox in the group (via context).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `value`          | `string[]`                                                                      | —       | Currently-selected values (controlled mode).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `defaultValue`   | `string[]`                                                                      | —       | Initial selected values (uncontrolled mode).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `onChange`       | `(values: string[]) => void`                                                    | —       | Fires when the selection changes; receives the new array.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `onChange`       | `(values: string[]) => void`                                                    | —       | Fires when the selection changes; receives the new array. Passed without `value` or `defaultValue`, it still has the group manage the selection, starting from the checkboxes' own `defaultChecked`: a box that starts checked stays checked when another is clicked, and the first array holds it.                                                                                                                                                                                                                                                                                                                          |
 | `children`       | `React.ReactNode`                                                               | —       | Checkbox elements to render in the group.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `as`             | `'div'` \| `'fieldset'`                                                         | `'div'` | The element the group renders as. With `fieldset` it's a native `<fieldset>`. Where the group renders a `Field` of its own, that `Field` is the `<fieldset>` and the `label` is its `<legend>`, in the label column when `horizontal`, so the legend names the group with no ids to wire. Your other attributes then go on the `<fieldset>`, while `className` and the helper props stay on the box that lays out the checkboxes. Inside an outer `Field` there's no legend: the group element itself is the `<fieldset>`, named by that `Field`'s label as before. `div`, the default, renders the group as it always has.  |
 | `labelSize`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size for the label (used in horizontal layouts).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | `horizontal`     | `boolean`                                                                       | `false` | Horizontal field layout.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `message`        | `React.ReactNode`                                                               | —       | Help/validation message below the input.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `message`        | `React.ReactNode`                                                               | —       | Help or validation text under the widget. It describes the control its label names through `aria-describedby`, so a screen reader reads it there.                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `messageColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Bulma color for the message.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `fieldClassName` | `string`                                                                        | —       | Additional CSS classes for the Field wrapper.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `...`            | Bulma helper props                                                              | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |

@@ -165,7 +165,7 @@ describe('Field', () => {
     // React itself will refuse to render the fake child, so we silence and catch.
     const real = React.createElement('div');
     const fake = { ...real, type: null } as unknown as React.ReactElement;
-    const errorSpy = jest
+    const errorSpy = vi
       .spyOn(console, 'error')
       .mockImplementation(() => undefined);
     try {
@@ -240,6 +240,43 @@ describe('Field', () => {
     expect(screen.getByTestId('label-x')).toHaveAttribute('aria-label', 'lbl');
     expect(screen.getByTestId('body-x')).toHaveAttribute('aria-label', 'body');
   });
+
+  it.each([
+    ['Field.Label', FieldLabel],
+    ['Field.Body', FieldBody],
+  ] as const)(
+    'turns helper props on %s into classes and writes none of them as attributes',
+    (_name, Part) => {
+      // It spread the props it was given, helper props included, beside what
+      // useBulmaClasses left, so each one also landed on the element as an
+      // attribute and React warned about it.
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+      render(
+        <Part
+          mt="3"
+          textWeight="bold"
+          textAlign="right"
+          textColor="danger"
+          data-testid="part"
+          aria-label="Part"
+        >
+          A
+        </Part>
+      );
+      const el = screen.getByTestId('part');
+      expect(el).toHaveClass(
+        'mt-3',
+        'has-text-weight-bold',
+        'has-text-right',
+        'has-text-danger'
+      );
+      expect(el.getAttributeNames().sort()).toEqual(
+        ['aria-label', 'class', 'data-testid'].sort()
+      );
+      expect(error).not.toHaveBeenCalled();
+      error.mockRestore();
+    }
+  );
 
   it('passes labelProps.style to label in horizontal layout', () => {
     render(
@@ -657,6 +694,13 @@ describe('label names the convenience controls (#939)', () => {
         () => screen.getByRole('combobox'),
       ],
       ['Taginput', () => <Taginput />, () => screen.getByRole('textbox')],
+      // Read-only at its limit rather than gone, so it still takes the id
+      // (#1103).
+      [
+        'a Taginput at its tag limit',
+        () => <Taginput defaultValue={['React']} maxTags={1} />,
+        () => screen.getByRole('textbox'),
+      ],
       [
         'File',
         () => <File />,
@@ -812,7 +856,7 @@ describe('label names the convenience controls (#939)', () => {
   );
 
   it("keeps a File's picked name and onChange beside the Field label's id", () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     const { container } = render(
       <Field label="Resume">
         <File id={undefined} hasName onChange={onChange} />
@@ -935,10 +979,6 @@ describe('label names the convenience controls (#939)', () => {
     ['an inline DateInput', () => <DateInput inline />],
     ['an inline TimeInput', () => <TimeInput inline />],
     ['an inline DateTimeInput', () => <DateTimeInput inline />],
-    [
-      'a Taginput at its tag limit',
-      () => <Taginput defaultValue={['React']} maxTags={1} />,
-    ],
   ])('leaves %s alone: it has no input to name', (_, element) => {
     const { labelElement, target, takers } = renderInLabeledField(
       'Pick',
@@ -1526,7 +1566,7 @@ describe('a label over content that takes no for (#1004)', () => {
   });
 
   it('renders a Field whose content takes the id only once', () => {
-    const onRender = jest.fn();
+    const onRender = vi.fn();
     render(
       <Profiler id="field" onRender={onRender}>
         <Field label="Email">
@@ -1543,9 +1583,7 @@ describe('a label over content that takes no for (#1004)', () => {
       // React 18 warns about each layout effect a server render meets, and
       // under jsdom the reports use the client's layout effect, so that one
       // warning is expected here. A real server picks the plain effect.
-      const serverSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const serverSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       container.innerHTML = renderToString(ui);
       const serverErrors = serverSpy.mock.calls.filter(
         ([message]) =>
@@ -1557,10 +1595,8 @@ describe('a label over content that takes no for (#1004)', () => {
       expect(serverErrors).toEqual([]);
       document.body.appendChild(container);
       const serverHtml = container.innerHTML;
-      const errorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
-      const onRecoverableError = jest.fn();
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const onRecoverableError = vi.fn();
       let root: ReturnType<typeof hydrateRoot> | undefined;
       await act(async () => {
         root = hydrateRoot(container, ui, { onRecoverableError });

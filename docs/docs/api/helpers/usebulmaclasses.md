@@ -133,7 +133,7 @@ Flexbox properties are divided into two categories:
 
 #### Container Properties
 
-These properties apply to elements with `display: flex` or `display: inline-flex`:
+These properties apply to elements with `display: flex` or `display: inline-flex`, which on most components means a `display` prop of `flex` or `inline-flex` as well. [`Stack`](../layout/stack.md), [`Group`](../layout/group.md), [`Center`](../layout/center.md) and [`Flex`](../layout/flex.md) are flex containers already, so they take these with no `display` prop:
 
 - `flexDirection` - Direction of flex items
 - `flexWrap` - Whether items wrap
@@ -698,12 +698,12 @@ function OverlayExample() {
 
 ### Interaction
 
-Show text in a Box with `unselectable`, and another Box with `clickable`:
+Show text in a Box with `unselectable`, and another Box with `clickable`. `clickable` adds no role, tab stop or keyboard handling, so an element people click should still be a `<button>` or a link:
 
 ```tsx live
 <>
   <Box interaction="unselectable">This text cannot be selected.</Box>
-  <Box interaction="clickable">This box is clickable.</Box>
+  <Box interaction="clickable">This box shows a pointer cursor.</Box>
 </>
 ```
 
@@ -836,28 +836,36 @@ On `Image`, use its own `size` ratios instead, which also fit the picture to the
 
 ### Skeleton Examples
 
-The `skeleton` prop applies Bulma's skeleton loading effect. [Skeleton's accessibility notes](../elements/skeleton.md#accessibility) cover it too, reduced motion included. Here are examples for each component:
+The `skeleton` prop applies Bulma's skeleton loading effect. [Skeleton's accessibility notes](../elements/skeleton.md#accessibility) cover it too, reduced motion and forced colors included. In short, hide a skeleton from screen readers, and take a skeleton control out of the tab order. Here are examples for each component:
 
 #### Skeleton Button
 
 ```tsx live
-<Button skeleton>Skeleton Button</Button>
+<Button skeleton tabIndex={-1} aria-hidden="true">
+  Skeleton Button
+</Button>
 ```
 
 #### Skeleton Buttons Group
 
 ```tsx live
 <Buttons>
-  <Button skeleton>Skeleton</Button>
-  <Button skeleton>Skeleton</Button>
-  <Button skeleton>Skeleton</Button>
+  <Button skeleton tabIndex={-1} aria-hidden="true">
+    Skeleton
+  </Button>
+  <Button skeleton tabIndex={-1} aria-hidden="true">
+    Skeleton
+  </Button>
+  <Button skeleton tabIndex={-1} aria-hidden="true">
+    Skeleton
+  </Button>
 </Buttons>
 ```
 
 #### Skeleton Icon
 
 ```tsx live
-<Icon name="star" skeleton ariaLabel="Star icon skeleton" />
+<Icon name="star" skeleton />
 ```
 
 #### Skeleton Image
@@ -869,19 +877,23 @@ The `skeleton` prop applies Bulma's skeleton loading effect. [Skeleton's accessi
 #### Skeleton Notification
 
 ```tsx live
-<Notification skeleton>Skeleton notification message.</Notification>
+<Notification skeleton aria-hidden="true">
+  Skeleton notification message.
+</Notification>
 ```
 
 #### Skeleton Tag
 
 ```tsx live
-<Tag skeleton>Skeleton Tag</Tag>
+<Tag skeleton aria-hidden="true">
+  Skeleton Tag
+</Tag>
 ```
 
 #### Skeleton Title
 
 ```tsx live
-<Title skeleton size="2">
+<Title skeleton aria-hidden="true" size="2">
   Skeleton Title
 </Title>
 ```
@@ -889,7 +901,7 @@ The `skeleton` prop applies Bulma's skeleton loading effect. [Skeleton's accessi
 #### Skeleton SubTitle
 
 ```tsx live
-<SubTitle skeleton size="4">
+<SubTitle skeleton aria-hidden="true" size="4">
   Skeleton SubTitle
 </SubTitle>
 ```
@@ -897,13 +909,19 @@ The `skeleton` prop applies Bulma's skeleton loading effect. [Skeleton's accessi
 #### Skeleton Input
 
 ```tsx live
-<Input skeleton placeholder="Skeleton Input" />
+<Input skeleton tabIndex={-1} aria-hidden="true" placeholder="Skeleton Input" />
 ```
 
 #### Skeleton TextArea
 
 ```tsx live
-<TextArea skeleton placeholder="Skeleton TextArea" rows={3} />
+<TextArea
+  skeleton
+  tabIndex={-1}
+  aria-hidden="true"
+  placeholder="Skeleton TextArea"
+  rows={3}
+/>
 ```
 
 ---
@@ -912,9 +930,13 @@ The `skeleton` prop applies Bulma's skeleton loading effect. [Skeleton's accessi
 
 ```tsx
 const { bulmaHelperClasses, bulmaHelperStyles, rest } = useBulmaClasses(props);
+
+// For an element whose own CSS makes it a flex container:
+const flex = useBulmaClasses(props, { flexContainer: true });
 ```
 
 - **props**: An object supporting all Bulma helper class props (see [Supported Props](#supported-props)), plus any additional props. `backgroundColor` additionally accepts the six [`validSchemeColors`](./valid-values.md) values.
+- **options**: Optional. `{ flexContainer: true }` says the element is a flex container by its own stylesheet, so the flex container props (`flexDirection`, `flexWrap`, `justifyContent`, `alignContent`, `alignItems`) emit their classes with no `display` prop. It adds no display class. [`Stack`](../layout/stack.md), [`Group`](../layout/group.md), [`Center`](../layout/center.md) and [`Flex`](../layout/flex.md) pass it. Passed through to `useFlexboxClasses`.
 - **bulmaHelperClasses**: A string of Bulma utility classes to be applied to your element.
 - **bulmaHelperStyles**: `React.CSSProperties | undefined` — an inline style for a scheme `backgroundColor` (see [Scheme Backgrounds](#scheme-backgrounds-and-bulmahelperstyles)); `undefined` for every other input. Apply it with [`mergeBulmaStyles`](#scheme-backgrounds-and-bulmahelperstyles) so a user `style` prop wins.
 - **rest**: An object of all remaining props (with helper props stripped out), suitable for spreading onto your component.
@@ -925,15 +947,15 @@ const { bulmaHelperClasses, bulmaHelperStyles, rest } = useBulmaClasses(props);
 
 `useBulmaClasses` remains the everything-hook — it is what every bestax-bulma component uses internally, and it covers the full helper prop surface with zero behavior change. If you are building a custom component that only needs a slice of that surface, you can reach for one of seven composable mini hooks instead. Each mini hook accepts just its own group of props and returns a plain class string (except `useColorStyles`, which returns an inline style object or `undefined`), which you can combine with the [`classNames`](./classnames.md) utility.
 
-| Hook                   | Props Covered                                                                                                                                                                                                                               | Returns                                                                                                                                                                                 |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `useColorClasses`      | `color`, `colorShade`, `backgroundColor`, `backgroundColorShade`                                                                                                                                                                            | Text and background color classes, including palette shades                                                                                                                             |
-| `useColorStyles`       | `backgroundColor` (scheme values)                                                                                                                                                                                                           | `{ backgroundColor: 'var(--bulma-scheme-*)' }` for a scheme background, `undefined` otherwise — the source of `bulmaHelperStyles`                                                       |
-| `useSpacingClasses`    | `m`, `mt`, `mr`, `mb`, `ml`, `mx`, `my`, `p`, `pt`, `pr`, `pb`, `pl`, `px`, `py`, `gap`, `columnGap`, `rowGap`, `gapless`                                                                                                                   | Margin, padding and gap classes                                                                                                                                                         |
-| `useTypographyClasses` | `textSize`, `textAlign`, `textTransform`, `textWeight`, `fontFamily`, `viewport`, plus `textSize{Mobile..Fullhd}`, `textAlign{Mobile..Fullhd}`                                                                                              | Typography classes, including responsive size/alignment variants                                                                                                                        |
-| `useVisibilityClasses` | `display`, `visibility`, `viewport`, plus `display{Mobile,Tablet,TabletOnly,Touch,Desktop,DesktopOnly,Widescreen,WidescreenOnly,Fullhd}`, `visibility{Mobile,Tablet,TabletOnly,Touch,Desktop,DesktopOnly,Widescreen,WidescreenOnly,Fullhd}` | Display and visibility classes (this hook owns all display emission)                                                                                                                    |
-| `useFlexboxClasses`    | `flexDirection`, `flexWrap`, `justifyContent`, `alignContent`, `alignItems`, `alignSelf`, `flexGrow`, `flexShrink`                                                                                                                          | Flexbox classes; container classes are only emitted when a `display`/`display{Viewport}` prop is `flex`/`inline-flex`, item classes (`alignSelf`, `flexGrow`, `flexShrink`) always emit |
-| `useOtherClasses`      | `float`, `overflow`, `overflowX`, `overflowY`, `overlay`, `interaction`, `cursor`, `radius`, `shadow`, `responsive`, `skeleton`, `clearfix`, `pos`, `relative`, `fullHeight`, `aspectRatio`                                                 | Miscellaneous utility classes                                                                                                                                                           |
+| Hook                   | Props Covered                                                                                                                                                                                                                               | Returns                                                                                                                                                                                                                                     |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `useColorClasses`      | `color`, `colorShade`, `backgroundColor`, `backgroundColorShade`                                                                                                                                                                            | Text and background color classes, including palette shades                                                                                                                                                                                 |
+| `useColorStyles`       | `backgroundColor` (scheme values)                                                                                                                                                                                                           | `{ backgroundColor: 'var(--bulma-scheme-*)' }` for a scheme background, `undefined` otherwise — the source of `bulmaHelperStyles`                                                                                                           |
+| `useSpacingClasses`    | `m`, `mt`, `mr`, `mb`, `ml`, `mx`, `my`, `p`, `pt`, `pr`, `pb`, `pl`, `px`, `py`, `gap`, `columnGap`, `rowGap`, `gapless`                                                                                                                   | Margin, padding and gap classes                                                                                                                                                                                                             |
+| `useTypographyClasses` | `textSize`, `textAlign`, `textTransform`, `textWeight`, `fontFamily`, `viewport`, plus `textSize{Mobile..Fullhd}`, `textAlign{Mobile..Fullhd}`                                                                                              | Typography classes, including responsive size/alignment variants                                                                                                                                                                            |
+| `useVisibilityClasses` | `display`, `visibility`, `viewport`, plus `display{Mobile,Tablet,TabletOnly,Touch,Desktop,DesktopOnly,Widescreen,WidescreenOnly,Fullhd}`, `visibility{Mobile,Tablet,TabletOnly,Touch,Desktop,DesktopOnly,Widescreen,WidescreenOnly,Fullhd}` | Display and visibility classes (this hook owns all display emission)                                                                                                                                                                        |
+| `useFlexboxClasses`    | `flexDirection`, `flexWrap`, `justifyContent`, `alignContent`, `alignItems`, `alignSelf`, `flexGrow`, `flexShrink`                                                                                                                          | Flexbox classes; container classes are only emitted when a `display`/`display{Viewport}` prop is `flex`/`inline-flex` or the second argument is `{ flexContainer: true }`, item classes (`alignSelf`, `flexGrow`, `flexShrink`) always emit |
+| `useOtherClasses`      | `float`, `overflow`, `overflowX`, `overflowY`, `overlay`, `interaction`, `cursor`, `radius`, `shadow`, `responsive`, `skeleton`, `clearfix`, `pos`, `relative`, `fullHeight`, `aspectRatio`                                                 | Miscellaneous utility classes                                                                                                                                                                                                               |
 
 All seven hooks (plus `classNames` and `mergeBulmaStyles`) are exported from the package root:
 
@@ -994,6 +1016,16 @@ function example() {
 :::note useFlexboxClasses and display
 
 `useFlexboxClasses` only emits container classes (`flexDirection`, `flexWrap`, `justifyContent`, `alignContent`, `alignItems`) when a `display` or `display{Viewport}` prop is `flex` or `inline-flex` — it reads those display props for gating but never emits the display class itself. Pair it with `useVisibilityClasses` (which owns display emission), or just use `useBulmaClasses`.
+
+For an element whose own stylesheet makes it a flex container, pass `{ flexContainer: true }` as the second argument (to either hook), and the container classes emit with no `display` prop:
+
+```tsx
+const flexboxClasses = useFlexboxClasses(
+  { alignItems: 'center' },
+  { flexContainer: true }
+);
+// 'is-align-items-center'
+```
 
 :::
 
@@ -1098,6 +1130,14 @@ The following properties allow you to set different values for each viewport bre
 | `clearfix`                 | `true`                                                                                                                             | `is-clearfix`                                                                             |
 | `relative`                 | `true`                                                                                                                             | `is-relative`                                                                             |
 | `viewport`                 | `'mobile'`, `'tablet'`, `'tablet-only'`, `'touch'`, `'desktop'`, `'desktop-only'`, `'widescreen'`, `'widescreen-only'`, `'fullhd'` | Adds suffix, e.g. `-mobile`, `-desktop`, `-touch`, `-tablet-only`                         |
+
+The viewport properties' ranges overlap: the tablet, desktop and widescreen ones run from their
+breakpoint up, the touch ones cover mobile and tablet, and an `Only` property sits inside the plain
+one for its breakpoint. Where two display properties overlap, Bulma's stylesheet picks the winner,
+not the breakpoint, so `displayTablet="none"` keeps an element hidden on desktop whatever
+`displayDesktop` asks. The
+[Visibility guide](../../guides/helpers/visibility.md#viewport-specific-display-properties) has the
+rule and the `Only` properties that set one range alone.
 
 ---
 
@@ -1414,7 +1454,7 @@ const { bulmaHelperClasses } = useBulmaClasses({
 
   // Different visibility for each viewport
   visibilityMobile: 'hidden', // Hidden on mobile
-  visibilityTablet: 'invisible', // Invisible on tablet
+  visibilityTablet: 'invisible', // Invisible from tablet up
 });
 // Result: is-size-6-mobile is-size-5-tablet is-size-4-desktop
 //         has-text-centered-mobile has-text-left-desktop is-hidden-mobile is-invisible-tablet

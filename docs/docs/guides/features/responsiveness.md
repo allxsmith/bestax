@@ -41,7 +41,7 @@ These components automatically stack vertically on mobile:
     </Column>
   </Columns>
 
-  <Level>
+  <Level as="div">
     <LevelLeft>
       <LevelItem>Left content</LevelItem>
     </LevelLeft>
@@ -54,7 +54,7 @@ These components automatically stack vertically on mobile:
 
 ### Mobile Override
 
-Use the `isMobile` property to maintain horizontal layout even on mobile devices:
+Use the `isMobile` property to maintain horizontal layout even on mobile devices. Keep such a row to what fits a phone: a row that doesn't fit runs past the edge of the screen, where Bulma's default `overflow-x: hidden` on the page cuts it off (WCAG 1.4.10 Reflow). On a `Level`, the items inside `LevelLeft` and `LevelRight` still stack on a phone.
 
 ```tsx live
 <>
@@ -68,7 +68,7 @@ Use the `isMobile` property to maintain horizontal layout even on mobile devices
     </Column>
   </Columns>
 
-  <Level isMobile>
+  <Level as="div" isMobile>
     <LevelLeft>
       <LevelItem>Left</LevelItem>
     </LevelLeft>

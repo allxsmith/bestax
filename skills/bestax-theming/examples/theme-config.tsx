@@ -1,11 +1,21 @@
 // Custom brand theme for an app built on @allxsmith/bestax-bulma.
 // Copy this to your app and adjust the HSL values to your brand.
 //
-// Bulma 1.x derives every shade of a color from its hue/saturation/lightness
-// trio (--bulma-<color>-h / -s / -l), so overriding the trio recolors the whole
-// palette. The <Theme> component writes those CSS variables for you:
+// Bulma 1.x builds each color from a hue/saturation/lightness trio
+// (--bulma-<color>-h / -s / -l). Overriding the trio recolors the color
+// itself, and its shades and variants take the new hue and saturation at the
+// lightnesses the stylesheet was built with.
+// The <Theme> component writes those CSS variables for you:
 //   - isRoot          -> inject the variables globally at :root (use once, at the app root)
 //   - without isRoot  -> wrap children in a <div> and scope the variables to it
+//
+// Of those built lightnesses, the label on a solid color
+// (--bulma-<color>-invert-l) and the color's text on the page
+// (--bulma-<color>-on-scheme-l, which for `link` is every link) were picked
+// for contrast with the stylesheet's own color. A color that reads lighter or
+// darker than that one sets them too, through bulmaVars. On an isRoot Theme
+// the on-scheme one takes a value for each scheme. references/css-variables.md
+// ("Colors") says how to pick them.
 import type { ReactNode } from 'react';
 import {
   Theme,
@@ -25,13 +35,15 @@ export function ThemedApp({ children }: { children: ReactNode }) {
       primaryH="265"
       primaryS="65%"
       primaryL="55%"
-      // A matching link color.
-      linkH="200"
-      linkS="80%"
-      linkL="45%"
       // Anything without a named prop goes through `bulmaVars`, keyed by the real
       // --bulma-* variable names (string values).
       bulmaVars={{
+        // Purple text reads darker than the stylesheet's blue at the same
+        // lightness, so on a dark page it needs a lighter shade than the one
+        // built for the blue. Each scheme gets its own, and these read at 4.5:1
+        // or more on Bulma's white and near-black pages. The white label the
+        // blue was built with still reads on this purple, so the invert stays.
+        '--bulma-primary-on-scheme-l': { light: '41%', dark: '65%' },
         '--bulma-radius': '0.75rem',
         '--bulma-radius-large': '1.25rem',
         // 'Inter' must actually be loaded (index.html <link> or an @fontsource
@@ -47,7 +59,7 @@ export function ThemedApp({ children }: { children: ReactNode }) {
 // 2) Scoped override — theme just one section; the rest of the app is untouched.
 export function PromoPanel() {
   return (
-    <Theme primaryH="16" primaryS="85%" primaryL="55%">
+    <Theme primaryH="16" primaryS="85%" primaryL="40%">
       <Box>
         <Title size="4">Limited offer</Title>
         <Notification color="primary">

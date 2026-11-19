@@ -7,7 +7,7 @@
  * reasoning: why it is a workflow of its own, why this file is read from
  * `main` rather than from the release tag, and what its egress list allows.
  * This file carries the logic rule 9 of .github/CLAUDE.md wants out of YAML
- * and under `node --test`. Two modes, run in this order:
+ * and under test. Two modes, run in this order:
  *
  *   prepare  turn the release tag into a version, check the committed
  *            bestax-mcp/server.json against bestax-mcp/package.json, and

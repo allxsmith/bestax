@@ -1,14 +1,17 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import Media from './Media';
 import { Image } from '../elements/Image';
-import { Icon } from '../elements/Icon';
 import { Button } from '../elements/Button';
+import { IconButton } from '../elements/IconButton';
+import { LinkButton } from '../elements/LinkButton';
 import Field from '../form/Field';
 import { TextArea } from '../form/TextArea';
 import Checkbox from '../form/Checkbox';
 import Level from '../layout/Level';
 import { Content } from '../elements/Content';
 import Control from '../form/Control';
+// Credits and licenses for the pictures: ../../images/LICENSE.md
+import lioness from '../../images/sample-lioness.jpg';
 
 const meta: Meta<typeof Media> = {
   title: 'Layout/Media',
@@ -22,12 +25,7 @@ export const Default: StoryObj<typeof Media> = {
   render: () => (
     <Media>
       <Media.Left>
-        <Image
-          as="p"
-          size="64x64"
-          src="https://bulma.io/assets/images/placeholders/128x128.png"
-          alt=""
-        />
+        <Image as="p" size="64x64" src={lioness} alt="" />
       </Media.Left>
       <Media.Content>
         <div className="content">
@@ -40,22 +38,31 @@ export const Default: StoryObj<typeof Media> = {
             would be necessary.
           </p>
         </div>
-        <Level isMobile>
+        <Level as="div" isMobile>
           <Level.Left>
-            <Level.Item as="a">
-              <span className="icon is-small">
-                <Icon name="reply" library="fa" variant="solid" />
-              </span>
+            <Level.Item>
+              <IconButton
+                color="text"
+                size="small"
+                icon="reply"
+                aria-label="Reply"
+              />
             </Level.Item>
-            <Level.Item as="a">
-              <span className="icon is-small">
-                <Icon name="retweet" library="fa" variant="solid" />
-              </span>
+            <Level.Item>
+              <IconButton
+                color="text"
+                size="small"
+                icon="retweet"
+                aria-label="Retweet"
+              />
             </Level.Item>
-            <Level.Item as="a">
-              <span className="icon is-small">
-                <Icon name="heart" library="fa" variant="solid" />
-              </span>
+            <Level.Item>
+              <IconButton
+                color="text"
+                size="small"
+                icon="heart"
+                aria-label="Like"
+              />
             </Level.Item>
           </Level.Left>
         </Level>
@@ -72,12 +79,7 @@ export const WithInputs: StoryObj<typeof Media> = {
   render: () => (
     <Media>
       <Media.Left>
-        <Image
-          as="p"
-          size="64x64"
-          src="https://bulma.io/assets/images/placeholders/128x128.png"
-          alt=""
-        />
+        <Image as="p" size="64x64" src={lioness} alt="" />
       </Media.Left>
       <Media.Content>
         <Field>
@@ -85,12 +87,10 @@ export const WithInputs: StoryObj<typeof Media> = {
             <TextArea className="textarea" placeholder="Add a comment..." />
           </Control>
         </Field>
-        <Level>
+        <Level as="div">
           <Level.Left>
             <Level.Item>
-              <Button as="a" color="info">
-                Submit
-              </Button>
+              <Button color="info">Submit</Button>
             </Level.Item>
           </Level.Left>
           <Level.Right>
@@ -109,12 +109,7 @@ export const Nesting: StoryObj<typeof Media> = {
   render: () => (
     <Media>
       <Media.Left>
-        <Image
-          as="p"
-          size="64x64"
-          src="https://bulma.io/assets/images/placeholders/128x128.png"
-          alt=""
-        />
+        <Image as="p" size="64x64" src={lioness} alt="" />
       </Media.Left>
       <Media.Content>
         <Content>
@@ -126,19 +121,21 @@ export const Nesting: StoryObj<typeof Media> = {
             America against foreign danger.
             <br />
             <small>
-              <a>Like</a> &middot; <a>Reply</a> &middot; 3 hrs
+              <LinkButton variant="underline" size="small" color="link">
+                Like
+              </LinkButton>{' '}
+              &middot;{' '}
+              <LinkButton variant="underline" size="small" color="link">
+                Reply
+              </LinkButton>{' '}
+              &middot; 3 hrs
             </small>
           </p>
         </Content>
         {/* First nested media */}
         <Media>
           <Media.Left>
-            <Image
-              as="p"
-              size="48x48"
-              src="https://bulma.io/assets/images/placeholders/96x96.png"
-              alt=""
-            />
+            <Image as="p" size="48x48" src={lioness} alt="" />
           </Media.Left>
           <Media.Content>
             <Content>
@@ -150,7 +147,14 @@ export const Nesting: StoryObj<typeof Media> = {
                 definition of tyranny.
                 <br />
                 <small>
-                  <a>Like</a> &middot; <a>Reply</a> &middot; 2 hrs
+                  <LinkButton variant="underline" size="small" color="link">
+                    Like
+                  </LinkButton>{' '}
+                  &middot;{' '}
+                  <LinkButton variant="underline" size="small" color="link">
+                    Reply
+                  </LinkButton>{' '}
+                  &middot; 2 hrs
                 </small>
               </p>
             </Content>
@@ -165,12 +169,7 @@ export const Nesting: StoryObj<typeof Media> = {
         {/* Second nested media */}
         <Media>
           <Media.Left>
-            <Image
-              as="p"
-              size="48x48"
-              src="https://bulma.io/assets/images/placeholders/96x96.png"
-              alt=""
-            />
+            <Image as="p" size="48x48" src={lioness} alt="" />
           </Media.Left>
           <Media.Content>
             <Content>
@@ -182,7 +181,14 @@ export const Nesting: StoryObj<typeof Media> = {
                 always influence the policy of nations.
                 <br />
                 <small>
-                  <a>Like</a> &middot; <a>Reply</a> &middot; 2 hrs
+                  <LinkButton variant="underline" size="small" color="link">
+                    Like
+                  </LinkButton>{' '}
+                  &middot;{' '}
+                  <LinkButton variant="underline" size="small" color="link">
+                    Reply
+                  </LinkButton>{' '}
+                  &middot; 2 hrs
                 </small>
               </p>
             </Content>
@@ -198,23 +204,18 @@ export const WithButtonBelow: StoryObj<typeof Media> = {
   render: () => (
     <Media>
       <Media.Left>
-        <Image
-          as="p"
-          size="64x64"
-          src="https://bulma.io/assets/images/placeholders/128x128.png"
-          alt=""
-        />
+        <Image as="p" size="64x64" src={lioness} alt="" />
       </Media.Left>
       <Media.Content>
         <Field>
-          <p className="control">
-            <TextArea className="textarea" placeholder="Add a comment..." />
-          </p>
+          <Control as="p">
+            <TextArea placeholder="Add a comment..." />
+          </Control>
         </Field>
         <Field>
-          <p className="control">
+          <Control as="p">
             <Button>Post comment</Button>
-          </p>
+          </Control>
         </Field>
       </Media.Content>
     </Media>
@@ -226,12 +227,7 @@ export const CompoundUsage: StoryObj<typeof Media> = {
   render: () => (
     <Media>
       <Media.Left>
-        <Image
-          as="p"
-          size="64x64"
-          src="https://bulma.io/assets/images/placeholders/128x128.png"
-          alt=""
-        />
+        <Image as="p" size="64x64" src={lioness} alt="" />
       </Media.Left>
       <Media.Content>
         <Content>
@@ -243,9 +239,7 @@ export const CompoundUsage: StoryObj<typeof Media> = {
         </Content>
       </Media.Content>
       <Media.Right>
-        <Button as="a" size="small">
-          Reply
-        </Button>
+        <Button size="small">Reply</Button>
       </Media.Right>
     </Media>
   ),

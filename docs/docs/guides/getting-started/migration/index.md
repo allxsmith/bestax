@@ -63,6 +63,6 @@ Coming from `bloomer`, the oldest React Bulma wrapper (archived since 2018, Bulm
 
 ## [Migrating from plain Bulma classes](./bulma-classes.md)
 
-No wrapper library, just Bulma's classes on your JSX (`<div className="columns">`)? The **`bestax-migrate`** codemod's `bulma-classes` source turns that markup into bestax components and props, and it converts an element only when the component renders the same markup. Computed classNames, components that render parts of their own, and Next.js server components are flagged for you rather than guessed at.
+No wrapper library, just Bulma's classes on your JSX (`<div className="columns">`)? The **`bestax-migrate`** codemod's `bulma-classes` source turns that markup into bestax components and props, and it converts an element only when the component renders the same markup. Computed classNames, components that render parts of their own, and Next.js server components are flagged for you rather than guessed at. It reads static HTML pages and templates styled with Bulma too, writing a React component beside each page.
 
 [Read the Bulma classes guide →](./bulma-classes.md)

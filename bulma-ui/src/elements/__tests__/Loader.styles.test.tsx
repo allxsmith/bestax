@@ -20,18 +20,32 @@
 // reduced motion too. A rule the walk cannot place, a selector it cannot build
 // an element for, or a value it cannot read fails the test rather than
 // dropping out of that list.
+//
+// Bulma draws each ring with two `transparent` sides, and forced colors
+// paints those in the text color like any other border, which closes the
+// ring. `_loader.scss` sets them to `Canvas` there, so the same walk resolves
+// the open sides' colors with forced colors on, and checks each ring stays
+// open. Bulma paints a progress bar's track and fill as background colors,
+// which forced colors turns into the page's color, so the walk also checks
+// `_progress.scss` names system colors for them there. Bulma's skeleton
+// shapes are background colors too, with their text hidden in a transparent
+// color that forced colors paints, so it checks `_skeleton.scss` draws them
+// in `GrayText` there and keeps their text hidden.
 import fs from 'fs';
 import path from 'path';
 import React from 'react';
-import * as sass from 'sass';
 import { render } from '@testing-library/react';
+import { SCSS, compileSheet } from '../../__tests__/compile-scss';
 import { ConfigProvider } from '../../helpers/Config';
 import {
   Autocomplete,
+  Box,
   Button,
   Control,
   DateInput,
   DateTimeInput,
+  Icon,
+  IconButton,
   Input,
   LinkButton,
   Loader,
@@ -42,23 +56,17 @@ import {
   SelectBase,
   Sidebar,
   Skeleton,
+  Tag,
   Taginput,
   TextArea,
   TimeInput,
   Title,
+  ToggleButton,
 } from '../../index';
 
 const PKG = path.resolve(__dirname, '../../..');
-const SCSS = path.join(PKG, 'src', 'scss');
 
-const compile = (file: string) =>
-  sass.compile(path.join(SCSS, file), {
-    loadPaths: [path.resolve(PKG, '../node_modules')],
-    quietDeps: true,
-    logger: sass.Logger.silent,
-  }).css;
-
-// Resolved through package.json: jest maps any `.css` specifier to a stub.
+// Found through the package.json of the Bulma bulma-ui depends on.
 const bulmaCss = () =>
   fs.readFileSync(
     path.join(
@@ -114,8 +122,37 @@ type Rule = {
   name: Setting | null;
   /** The `animation-duration` the rule sets, likewise. */
   duration: Setting | null;
+  /** The `border-top-color` the rule sets, from the longhand or a shorthand. */
+  top: Setting | null;
+  /** The `border-right-color` the rule sets, likewise. */
+  right: Setting | null;
+  /** The `border-bottom-color` the rule sets, likewise. */
+  bottom: Setting | null;
+  /** The `border-left-color` the rule sets, likewise. */
+  left: Setting | null;
+  /** Every declaration the rule makes, by the property it was written with. */
+  values: Record<string, Setting>;
   order: number;
   reducedMotionOnly: boolean;
+  forcedColorsOnly: boolean;
+};
+
+/** What the user's settings are, for the rules that depend on them. */
+type When = { reducedMotion?: boolean; forcedColors?: boolean };
+
+type Side = 'top' | 'right' | 'bottom' | 'left';
+
+/**
+ * The logical color longhand for each side, read the way a horizontal,
+ * left-to-right page draws it, which is how the rest of this file reads a
+ * page. A sheet sets a logical longhand as a property of its own, so without
+ * this a ring opened on its inline end reads as closed.
+ */
+const LOGICAL_COLOR: Record<Side, string> = {
+  top: 'border-block-start-color',
+  right: 'border-inline-end-color',
+  bottom: 'border-block-end-color',
+  left: 'border-inline-start-color',
 };
 
 /** Top-level tokens of a value, keeping `var(…)` and other functions whole. */
@@ -177,64 +214,183 @@ function shorthand(value: string): { name: string; duration: string } {
   return { name: name ?? 'none', duration: duration ?? '0s' };
 }
 
-/** Every style rule in the sheet, in source order, with its media context. */
+/** `css` with its comments taken out and its strings kept whole. */
+const uncommented = (css: string) =>
+  css.replace(
+    /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\/\*[\s\S]*?\*\//g,
+    (_, kept?: string) => kept ?? ''
+  );
+
+/**
+ * The items at the top level of a list of rules or of declarations, in
+ * order: each one's prelude and the text of its `{…}` block, or null for
+ * one that ends in `;` instead. A `;` or a brace inside a string or a
+ * `url(…)` ends nothing.
+ */
+function itemsOf(text: string) {
+  const out: { prelude: string; block: string | null }[] = [];
+  let quote = '';
+  let parens = 0;
+  let braces = 0;
+  let start = 0;
+  let open = 0;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (quote) {
+      if (ch === '\\') i++;
+      else if (ch === quote) quote = '';
+    } else if (ch === '"' || ch === "'") quote = ch;
+    else if (ch === '(') parens++;
+    else if (ch === ')') parens--;
+    else if (parens > 0) continue;
+    else if (ch === '{') {
+      if (braces++ === 0) open = i;
+    } else if (ch === '}') {
+      if (--braces === 0) {
+        out.push({
+          prelude: text.slice(start, open).trim(),
+          block: text.slice(open + 1, i),
+        });
+        start = i + 1;
+      }
+    } else if (ch === ';' && braces === 0) {
+      const prelude = text.slice(start, i).trim();
+      if (prelude) out.push({ prelude, block: null });
+      start = i + 1;
+    }
+  }
+  const rest = text.slice(start).trim();
+  if (rest) out.push({ prelude: rest, block: null });
+  return out;
+}
+
+/**
+ * A style rule's declarations as the sheet writes them, by property. A later
+ * one replaces an earlier one, unless only the earlier is `!important`.
+ */
+function declarationsOf(block: string): Record<string, Setting> {
+  const out: Record<string, Setting> = {};
+  for (const { prelude, block: nested } of itemsOf(block)) {
+    const colon = prelude.indexOf(':');
+    if (nested !== null || colon < 0) continue;
+    const property = prelude.slice(0, colon).trim();
+    const written = prelude.slice(colon + 1).trim();
+    const important = /!\s*important$/i.test(written);
+    if (out[property]?.important && !important) continue;
+    out[property] = {
+      value: written.replace(/\s*!\s*important$/i, ''),
+      important,
+    };
+  }
+  return out;
+}
+
+/**
+ * Every style rule in the sheet, in source order, with its media context.
+ * It's read off the sheet's text rather than jsdom's CSSOM, which expands a
+ * shorthand into its longhands, lowercases keywords, and drops a shorthand
+ * with a `var()` in it when a longhand follows, as Bulma's ring does
+ * (`border: 2px solid var(--x); border-top-color: transparent` keeps only
+ * the top), where a browser keeps the other sides.
+ */
 function rulesOf(css: string): Rule[] {
-  const style = document.createElement('style');
-  style.textContent = css;
-  document.head.appendChild(style);
   const out: Rule[] = [];
-  const walk = (list: CSSRuleList, reducedMotionOnly: boolean) => {
-    for (const rule of Array.from(list)) {
-      if (rule instanceof CSSMediaRule) {
-        const media = rule.media.mediaText;
+  const walk = (
+    text: string,
+    reducedMotionOnly: boolean,
+    forcedColorsOnly: boolean
+  ) => {
+    for (const { prelude, block } of itemsOf(text)) {
+      // A statement like `@charset` holds no rules.
+      if (block === null) continue;
+      if (/^@media\b/i.test(prelude)) {
+        const media = prelude.slice('@media'.length).trim();
         // Read below as a plain match, so a negated or listed query would
         // apply its rules to the wrong users.
         if (
-          /prefers-reduced-motion/.test(media) &&
+          /prefers-reduced-motion|forced-colors/.test(media) &&
           /\bnot\b|\bor\b|,/.test(media)
         ) {
           throw new Error(
-            `@media ${media} negates or lists a reduced-motion query, which ` +
-              'this test does not resolve. Extend `rulesOf` before trusting ' +
-              'a result.'
+            `@media ${media} negates or lists a reduced-motion or ` +
+              'forced-colors query, which this test does not resolve. ' +
+              'Extend `rulesOf` before trusting a result.'
           );
         }
-        // A user who asked for less motion never matches `no-preference`.
+        // A user who asked for less motion never matches `no-preference`,
+        // and one in forced colors never matches `none`. The checks below
+        // are about those users.
         if (/prefers-reduced-motion:\s*no-preference/.test(media)) continue;
+        if (/forced-colors:\s*none/.test(media)) continue;
+        // Anything left is for those users, the boolean form included:
+        // `(forced-colors)` means `active`, as `(prefers-reduced-motion)`
+        // means `reduce`.
         walk(
-          rule.cssRules,
-          reducedMotionOnly || /prefers-reduced-motion:\s*reduce/.test(media)
+          block,
+          reducedMotionOnly || /prefers-reduced-motion/.test(media),
+          forcedColorsOnly || /forced-colors/.test(media)
         );
-      } else if (rule instanceof CSSStyleRule) {
-        const decl = rule.style;
-        const properties = Array.from(
-          { length: decl.length },
-          (_, i) => decl[i]
-        );
-        // jsdom keeps the shorthand whole rather than expanding it.
+      } else if (!prelude.startsWith('@')) {
+        const values = declarationsOf(block);
+        const properties = Object.keys(values);
+        // As the sheet writes it, a shorthand is whole.
         const longhand = (prop: 'name' | 'duration'): Setting | null => {
           for (const p of [`animation-${prop}`, 'animation']) {
-            const value = decl.getPropertyValue(p).trim();
-            if (!value) continue;
+            const setting = values[p];
+            if (!setting) continue;
             return {
-              value: p === 'animation' ? shorthand(value)[prop] : value,
-              important: decl.getPropertyPriority(p) === 'important',
+              value:
+                p === 'animation'
+                  ? shorthand(setting.value)[prop]
+                  : setting.value,
+              important: setting.important,
             };
           }
           return null;
         };
+        // Likewise for a side's color: the longhand, its logical twin, then
+        // each shorthand that sets it. A shorthand is kept whole, so it never
+        // reads as a single color.
+        const side = (name: Side): Setting | null => {
+          for (const p of [
+            `border-${name}-color`,
+            LOGICAL_COLOR[name],
+            `border-${name}`,
+            'border-color',
+            'border',
+          ]) {
+            const setting = values[p];
+            if (!setting) continue;
+            // One color per side would have to be picked out of it by
+            // position, which `colorOf` doesn't do.
+            if (p === 'border-color' && tokensOf(setting.value).length > 1) {
+              throw new Error(
+                `\`border-color: ${setting.value}\` gives the sides different ` +
+                  'colors, which this test does not split. Extend `side` ' +
+                  'before trusting a result.'
+              );
+            }
+            return setting;
+          }
+          return null;
+        };
         out.push({
-          selectors: splitSelectors(rule.selectorText),
+          selectors: splitSelectors(prelude),
           properties,
           name: longhand('name'),
           duration: longhand('duration'),
+          top: side('top'),
+          right: side('right'),
+          bottom: side('bottom'),
+          left: side('left'),
+          values,
           order: out.length,
           reducedMotionOnly,
+          forcedColorsOnly,
         });
       } else if (
-        'cssRules' in rule &&
-        !/^@(-\w+-)?keyframes\b/.test(rule.cssText) &&
-        /[{;\s]animation(-[a-z-]+)?\s*:/.test(rule.cssText)
+        !/^@(-\w+-)?keyframes\b/.test(prelude) &&
+        /[{;\s]animation(-[a-z-]+)?\s*:/.test(block)
       ) {
         // `@supports`, `@layer`, `@container` and the like change when or in
         // what order their rules apply, which this test does not model.
@@ -242,18 +398,13 @@ function rulesOf(css: string): Rule[] {
         // here, but an animation set in one has to fail rather than go
         // unchecked. Keyframes hold no style rules.
         throw new Error(
-          `${rule.cssText.split('{')[0].trim()} sets an animation in rules ` +
-            'this test does not walk. Extend `rulesOf` before trusting a ' +
-            'result.'
+          `${prelude} sets an animation in rules this test does not walk. ` +
+            'Extend `rulesOf` before trusting a result.'
         );
       }
     }
   };
-  try {
-    walk(style.sheet!.cssRules, false);
-  } finally {
-    style.remove();
-  }
+  walk(uncommented(css), false, false);
   return out;
 }
 
@@ -273,15 +424,33 @@ function matches(selector: string, el: Element, pseudo: string): boolean {
   }
 }
 
-/** Specificity of a plain compound selector; functional pseudos are refused. */
+/**
+ * Specificity of a selector. `:not()` and `:is()` count as their most
+ * specific argument and `:where()` as nothing, as Selectors 4 has it; any
+ * other functional pseudo is refused.
+ */
 function specificity(selector: string): [number, number, number] {
-  if (selector.includes('(')) {
+  let inner = [0, 0, 0];
+  const plain = selector.replace(
+    /:(not|is|where)\(([^()]*)\)/g,
+    (_, name: string, args: string) => {
+      if (name !== 'where') {
+        const most = args
+          .split(',')
+          .map(arg => specificity(arg.trim()))
+          .reduce((a, b) => (beats(b, a) ? b : a));
+        inner = inner.map((n, i) => n + most[i]);
+      }
+      return '';
+    }
+  );
+  if (plain.includes('(')) {
     throw new Error(
-      `${selector} animates a spinner and has a functional pseudo-class, which ` +
+      `${selector} styles a spinner and has a functional pseudo-class, which ` +
         'this test does not rank. Extend `specificity` before trusting a result.'
     );
   }
-  const stripped = selector.replace(/\[[^\]]*\]/g, '.x');
+  const stripped = plain.replace(/\[[^\]]*\]/g, '.x');
   const ids = (stripped.match(/#[\w-]+/g) ?? []).length;
   const classes = (
     stripped.match(/\.[\w-]+|(?<!:):(?!after|before)[\w-]+/g) ?? []
@@ -289,7 +458,7 @@ function specificity(selector: string): [number, number, number] {
   const types =
     (stripped.match(/(?:^|[\s>+~])[a-zA-Z][\w-]*/g) ?? []).length +
     (PSEUDO.test(stripped) ? 1 : 0);
-  return [ids, classes, types];
+  return [ids + inner[0], classes + inner[1], types + inner[2]];
 }
 
 const beats = (a: number[], b: number[]) => {
@@ -297,18 +466,62 @@ const beats = (a: number[], b: number[]) => {
   return false;
 };
 
-/** One animation longhand on the element, as a browser would resolve it. */
+/** One longhand on the element, as a browser would resolve it. */
 function winning(
   rules: Rule[],
   el: Element,
   pseudo: string,
-  reducedMotion: boolean,
-  prop: 'name' | 'duration'
+  when: When,
+  prop: 'name' | 'duration' | Side
 ): string | null {
   let best: { rank: number[]; value: string } | null = null;
   for (const rule of rules) {
     const setting = rule[prop];
-    if (!setting || (rule.reducedMotionOnly && !reducedMotion)) continue;
+    if (
+      !setting ||
+      (rule.reducedMotionOnly && !when.reducedMotion) ||
+      (rule.forcedColorsOnly && !when.forcedColors)
+    ) {
+      continue;
+    }
+    for (const selector of rule.selectors) {
+      if (!matches(selector, el, pseudo)) continue;
+      const rank = [
+        setting.important ? 1 : 0,
+        ...specificity(selector),
+        rule.order,
+      ];
+      if (!best || beats(rank, best.rank)) {
+        best = { rank, value: setting.value };
+      }
+    }
+  }
+  return best && best.value;
+}
+
+/**
+ * Any property on the element as a browser would resolve it, read from the
+ * first of `names` a rule sets: the longhand, then any shorthand that sets
+ * it, which is kept whole. Ranked the way `winning` ranks the rest.
+ */
+function resolved(
+  rules: Rule[],
+  el: Element,
+  pseudo: string,
+  when: When,
+  names: string[]
+): string | null {
+  let best: { rank: number[]; value: string } | null = null;
+  for (const rule of rules) {
+    const name = names.find(n => rule.values[n]);
+    if (
+      !name ||
+      (rule.reducedMotionOnly && !when.reducedMotion) ||
+      (rule.forcedColorsOnly && !when.forcedColors)
+    ) {
+      continue;
+    }
+    const setting = rule.values[name];
     for (const selector of rule.selectors) {
       if (!matches(selector, el, pseudo)) continue;
       const rank = [
@@ -337,32 +550,43 @@ function moves(
   pseudo: string,
   reducedMotion: boolean
 ): boolean {
-  const name = winning(rules, el, pseudo, reducedMotion, 'name') ?? 'none';
+  const name = winning(rules, el, pseudo, { reducedMotion }, 'name') ?? 'none';
   const duration =
-    winning(rules, el, pseudo, reducedMotion, 'duration') ?? '0s';
+    winning(rules, el, pseudo, { reducedMotion }, 'duration') ?? '0s';
   return name !== 'none' && parseFloat(duration) !== 0;
 }
 
 /**
  * The plainest element a selector matches: each compound becomes an element
- * with exactly its tag and classes, nested in the one before it. A selector
- * that takes more than that fails here rather than being skipped, so no
- * animation goes unchecked.
+ * with exactly its tag and classes, nested in the one before it, or placed
+ * after it for `+` and `~`. A class inside `:not()` is one the element must
+ * not have, so it's left off. A selector that takes more than that fails
+ * here rather than being skipped, so no animation goes unchecked.
  */
 function witness(selector: string): { el: Element; pseudo: string } {
   const found = PSEUDO.exec(selector);
   const base = found ? selector.slice(0, found.index) : selector;
   let el: Element = document.createElement('div');
-  for (const part of base.split(/[\s>]+/).filter(Boolean)) {
+  let combinator = ' ';
+  for (const part of base.trim().split(/\s*([>+~])\s*|\s+/)) {
+    if (!part) continue;
+    if (/^[>+~]$/.test(part)) {
+      combinator = part;
+      continue;
+    }
+    const compound = part.replace(/:not\([^)]*\)/g, '');
     // Only a progress bar with no value is `:indeterminate`.
     const tag =
-      /^[a-zA-Z][\w-]*/.exec(part)?.[0] ??
-      (part.includes(':indeterminate') ? 'progress' : 'div');
+      /^[a-zA-Z][\w-]*/.exec(compound)?.[0] ??
+      (compound.includes(':indeterminate') ? 'progress' : 'div');
     const next = document.createElement(tag);
-    for (const [, name] of part.matchAll(/\.([\w-]+)/g)) {
+    for (const [, name] of compound.matchAll(/\.([\w-]+)/g)) {
       next.classList.add(name);
     }
-    el = el.appendChild(next);
+    if (combinator === '+' || combinator === '~') el.after(next);
+    else el.appendChild(next);
+    el = next;
+    combinator = ' ';
   }
   let built = false;
   try {
@@ -407,11 +631,137 @@ function unstopped(rules: Rule[]) {
   return { checked: outsideReduced.size, idle, stillMoving };
 }
 
+const STYLE =
+  /^(none|hidden|dotted|dashed|solid|double|groove|ridge|inset|outset)$/;
+const WIDTH = /^(thin|medium|thick|[+-]?[\d.]+[a-z%]*|calc\(.*\))$/;
+
 /**
- * Each component that draws a loading animation, with the prop that turns it
- * on: the spinners, the indeterminate progress bar and the skeleton pulse.
+ * The color in a side's winning value: the value itself for a color
+ * longhand, or the part of a `border` shorthand that is neither a width nor
+ * a style. A side nothing sets, or a shorthand with no color, is
+ * `currentcolor`, as CSS has it.
  */
-const ANIMATED: Array<[string, React.ReactElement]> = [
+function colorOf(value: string | null): string {
+  if (value === null) return 'currentcolor';
+  const color = tokensOf(value)
+    .filter(token => !STYLE.test(token) && !WIDTH.test(token))
+    .pop();
+  return color ?? 'currentcolor';
+}
+
+/** The CSS system colors: the colors a forced-colors theme picks. */
+const SYSTEM =
+  /^(Canvas|CanvasText|LinkText|VisitedText|ActiveText|ButtonFace|ButtonText|ButtonBorder|Field|FieldText|Highlight|HighlightText|SelectedItem|SelectedItemText|Mark|MarkText|GrayText|AccentColor|AccentColorText)$/;
+
+/**
+ * An inherited property on the element, or on its `::after` or `::before`,
+ * in forced colors: read off the first of them, going up the tree, that a
+ * rule sets it on.
+ */
+function inherited(
+  rules: Rule[],
+  el: Element,
+  pseudo: string,
+  property: string
+): string | null {
+  const own = (node: Element, p: string) =>
+    resolved(rules, node, p, { forcedColors: true }, [property]);
+  if (pseudo) {
+    const value = own(el, pseudo);
+    if (value) return value;
+  }
+  for (let node: Element | null = el; node; node = node.parentElement) {
+    const value = own(node, '');
+    if (value) return value;
+  }
+  return null;
+}
+
+/** The `forced-color-adjust` in effect, which is inherited. */
+const forcing = (rules: Rule[], el: Element, pseudo: string) =>
+  inherited(rules, el, pseudo, 'forced-color-adjust') ?? 'auto';
+
+/**
+ * Why a ring wouldn't read as an open ring in forced colors, or null when it
+ * would. Where forcing paints it, the drawn sides come out in a text color,
+ * so the open sides have to be Canvas, the page's own color, and the drawn
+ * ones mustn't be. Where forcing is off, as it is on a loading button,
+ * nothing is painted for it: the open sides have to be transparent, and the
+ * drawn ones a system color the theme picks, since an author color comes
+ * with no contrast promised. `inherit` reads the side off the element the
+ * pseudo-element is on.
+ */
+function ringProblem(
+  rules: Rule[],
+  el: Element,
+  pseudo: string
+): string | null {
+  const side = (name: Side) => {
+    const value = winning(rules, el, pseudo, { forcedColors: true }, name);
+    return value === 'inherit' && pseudo
+      ? winning(rules, el, '', { forcedColors: true }, name)
+      : value;
+  };
+  const [top, right, bottom, left] = (
+    ['top', 'right', 'bottom', 'left'] as const
+  ).map(name => colorOf(side(name)));
+  if (forcing(rules, el, pseudo) === 'none') {
+    if (top !== 'transparent' || right !== 'transparent') {
+      return `forcing is off and its open sides are ${top} and ${right}`;
+    }
+    if (!SYSTEM.test(bottom) || !SYSTEM.test(left)) {
+      return `forcing is off and it's drawn in ${bottom} and ${left}`;
+    }
+    return null;
+  }
+  if (top !== 'Canvas' || right !== 'Canvas') {
+    return `its open sides are ${top} and ${right}`;
+  }
+  // Firefox paints a forced border in the element's text color and keeps a
+  // transparent one transparent, so on an element whose text is hidden, as a
+  // loading button's is, a forced ring doesn't show there at all.
+  if (inherited(rules, el, pseudo, 'color') === 'transparent') {
+    return 'forcing paints it in a transparent text color, which Firefox keeps';
+  }
+  if (bottom === 'Canvas' || left === 'Canvas') {
+    return "it's drawn in Canvas, the page's own color";
+  }
+  return null;
+}
+
+/**
+ * Every ring the sheet draws, read off the sheet rather than off a roster:
+ * an element something spins, whose four sides aren't all one color, which
+ * is how a spinner shows it's turning. Forced colors paints every side in
+ * one color, so `closed` holds the rings `ringProblem` finds fault with
+ * there, which would turn as a full circle or not show at all.
+ */
+function unopened(rules: Rule[]) {
+  const spun = new Set<string>();
+  for (const rule of rules) {
+    if ((rule.name?.value ?? 'none') === 'none') continue;
+    if (rule.reducedMotionOnly || rule.forcedColorsOnly) continue;
+    rule.selectors.forEach(selector => spun.add(selector));
+  }
+  const rings: string[] = [];
+  const closed: string[] = [];
+  for (const selector of spun) {
+    const { el, pseudo } = witness(selector);
+    const sides = (['top', 'right', 'bottom', 'left'] as const).map(side =>
+      colorOf(winning(rules, el, pseudo, {}, side))
+    );
+    if (new Set(sides).size < 2) continue;
+    rings.push(selector);
+    if (ringProblem(rules, el, pseudo) !== null) closed.push(selector);
+  }
+  return { rings, closed };
+}
+
+/**
+ * Each component that draws Bulma's loader ring, or a ring of its own built
+ * the same way, with the prop that turns it on.
+ */
+const RINGS: Array<[string, React.ReactElement]> = [
   ['Loader', <Loader key="x" />],
   [
     'Button isLoading',
@@ -446,6 +796,14 @@ const ANIMATED: Array<[string, React.ReactElement]> = [
   ['DateTimeInput isLoading', <DateTimeInput key="x" isLoading />],
   ['Autocomplete loading', <Autocomplete key="x" data={[]} loading />],
   ['Taginput loading', <Taginput key="x" loading />],
+];
+
+/**
+ * Each component that draws a loading animation, with the prop that turns it
+ * on: the rings, the indeterminate progress bar and the skeleton pulse.
+ */
+const ANIMATED: Array<[string, React.ReactElement]> = [
+  ...RINGS,
   // Not Bulma's ring: `_loading.scss` spins its own icon and stops it in
   // the same file, which holds whatever order the partial lands in.
   ['Loading active', <Loading key="x" active />],
@@ -510,16 +868,16 @@ const SHEETS: Sheet[] = publishedStylesheets().flatMap((file): Sheet[] => {
       {
         label: `${file} linked before Bulma's CSS`,
         prefix,
-        css: () => compile(file) + bulmaCss(),
+        css: () => compileSheet(file) + bulmaCss(),
       },
       {
         label: `${file} linked after Bulma's CSS`,
         prefix,
-        css: () => bulmaCss() + compile(file),
+        css: () => bulmaCss() + compileSheet(file),
       },
     ];
   }
-  return [{ label: file, prefix, css: () => compile(file) }];
+  return [{ label: file, prefix, css: () => compileSheet(file) }];
 });
 
 // The sheet-wide check is only as wide as what the rule walk collects, so
@@ -541,6 +899,7 @@ describe('the cascade resolver', () => {
     '@layer base { .x { animation: spin 1s; } }',
     '@container (min-width: 1px) { .x { animation: spin 1s; } }',
     '@media not all and (prefers-reduced-motion: reduce) { .x { animation: none; } }',
+    '@media not all and (forced-colors: active) { .x { border-top-color: red; } }',
   ])('refuses rules it cannot place: %s', css => {
     expect(() => rulesOf(css)).toThrow('Extend `rulesOf`');
   });
@@ -549,6 +908,139 @@ describe('the cascade resolver', () => {
     expect(
       rulesOf('@container (min-width: 1px) { .x { color: red; } }')
     ).toEqual([]);
+  });
+
+  it('reads a side’s color from the longhand before the shorthand, and keeps a forced-colors rule to forced colors', () => {
+    const rules = rulesOf(
+      '.x { border: 2px solid red; border-top-color: transparent; } ' +
+        '@media (forced-colors: active) { .x { border-top-color: Canvas !important; } } ' +
+        '@media (forced-colors: none) { .x { border-top-color: blue !important; } }'
+    );
+    const el = document.createElement('div');
+    el.className = 'x';
+    expect(winning(rules, el, '', {}, 'top')).toBe('transparent');
+    expect(winning(rules, el, '', { forcedColors: true }, 'top')).toBe(
+      'Canvas'
+    );
+    expect(winning(rules, el, '', { forcedColors: true }, 'right')).toBe(
+      '2px solid red'
+    );
+  });
+
+  it.each([
+    [
+      '@media (forced-colors) { .x { border-top-color: Canvas; } }',
+      'forcedColorsOnly',
+    ],
+    [
+      '@media (prefers-reduced-motion) { .x { animation: none; } }',
+      'reducedMotionOnly',
+    ],
+  ] as const)(
+    'reads a query in its boolean form as the active one: %s',
+    (css, flag) => {
+      // `(forced-colors)` means `active`, and `(prefers-reduced-motion)`
+      // means `reduce`, so the rule is for those users only.
+      const rules = rulesOf(css);
+      expect(rules).toHaveLength(1);
+      expect(rules[0][flag]).toBe(true);
+    }
+  );
+
+  it('finds a ring nobody listed, and lets it pass once its top and right are Canvas', () => {
+    const ring =
+      '.spinner { animation: spin 1s; border: 2px solid var(--x); border-top-color: transparent; }';
+    expect(unopened(rulesOf(ring))).toEqual({
+      rings: ['.spinner'],
+      closed: ['.spinner'],
+    });
+    expect(
+      unopened(
+        rulesOf(
+          ring +
+            '@media (forced-colors: active) { .spinner { border-top-color: Canvas; border-right-color: Canvas; } }'
+        )
+      )
+    ).toEqual({ rings: ['.spinner'], closed: [] });
+  });
+
+  it('lets a ring out of forcing pass only with transparent open sides and system-color drawn ones', () => {
+    const ring =
+      '.b::after { animation: spin 1s; border: 2px solid red; border-top-color: transparent; border-right-color: transparent; }';
+    // Forcing off, and the ring still in its author color.
+    expect(
+      unopened(
+        rulesOf(
+          ring +
+            '@media (forced-colors: active) { .b { forced-color-adjust: none; } }'
+        )
+      )
+    ).toEqual({ rings: ['.b::after'], closed: ['.b::after'] });
+    // Forcing off, Canvas open sides, which can differ from the surface.
+    expect(
+      unopened(
+        rulesOf(
+          ring +
+            '@media (forced-colors: active) { .b { forced-color-adjust: none; border-color: ButtonText; } .b::after { border-color: inherit; border-top-color: Canvas; border-right-color: Canvas; } }'
+        )
+      )
+    ).toEqual({ rings: ['.b::after'], closed: ['.b::after'] });
+    // Forcing off, drawn in the button's system color, open onto its surface.
+    expect(
+      unopened(
+        rulesOf(
+          ring +
+            '@media (forced-colors: active) { .b { forced-color-adjust: none; border-color: ButtonText; } .b::after { border-color: inherit; border-top-color: transparent; border-right-color: transparent; } }'
+        )
+      )
+    ).toEqual({ rings: ['.b::after'], closed: [] });
+  });
+
+  it('fails a forced ring on an element whose text is transparent, which Firefox keeps', () => {
+    expect(
+      unopened(
+        rulesOf(
+          '.b { color: transparent; } ' +
+            '.b::after { animation: spin 1s; border: 2px solid red; border-top-color: transparent; } ' +
+            '@media (forced-colors: active) { .b::after { border-top-color: Canvas; border-right-color: Canvas; } }'
+        )
+      )
+    ).toEqual({ rings: ['.b::after'], closed: ['.b::after'] });
+  });
+
+  it('reads a ring opened on its logical sides as a left-to-right page draws it', () => {
+    // Timeline's pending ring opens its top and inline end, which is the
+    // right in a left-to-right page, the side Bulma's loader opens.
+    const ring =
+      '.spinner { animation: spin 1s; border: 2px solid var(--x); border-block-start-color: transparent; border-inline-end-color: transparent; }';
+    expect(unopened(rulesOf(ring))).toEqual({
+      rings: ['.spinner'],
+      closed: ['.spinner'],
+    });
+    expect(
+      unopened(
+        rulesOf(
+          ring +
+            '@media (forced-colors: active) { .spinner { border-block-start-color: Canvas; border-inline-end-color: Canvas; } }'
+        )
+      )
+    ).toEqual({ rings: ['.spinner'], closed: [] });
+  });
+
+  it('takes a spinning box whose sides are all one color for something other than a ring', () => {
+    expect(
+      unopened(
+        rulesOf(
+          '.pulse { animation: pulse 1s; border: 1px solid red; } .bar { animation: sweep 1s; }'
+        )
+      )
+    ).toEqual({ rings: [], closed: [] });
+  });
+
+  it('refuses a border-color that gives the sides different colors', () => {
+    expect(() =>
+      rulesOf('.x { border-color: red transparent red red; }')
+    ).toThrow('Extend `side`');
   });
 
   it('refuses a shorthand whose only candidate name is a var()', () => {
@@ -630,4 +1122,719 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
       );
     expect(extra).toEqual([]);
   });
+
+  it.each(RINGS)(
+    '%s keeps its ring open in forced colors, and only there',
+    (_label, element) => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>{element}</ConfigProvider>
+      );
+      const rings = animatedIn(container, rules);
+      // It has to draw a ring to begin with, or the check below is vacuous.
+      expect(rings.length).toBeGreaterThan(0);
+      const sides = (when: When) =>
+        rings.map(({ el, pseudo }) => ({
+          ring: describeEl(el, pseudo),
+          top: winning(rules, el, pseudo, when, 'top'),
+          right: winning(rules, el, pseudo, when, 'right'),
+        }));
+      // Its open sides stay open: Canvas, the page's own color, which forced
+      // colors leaves alone, or transparent where forcing is off.
+      expect(
+        rings.map(({ el, pseudo }) => ({
+          ring: describeEl(el, pseudo),
+          problem: ringProblem(rules, el, pseudo),
+        }))
+      ).toEqual(
+        rings.map(({ el, pseudo }) => ({
+          ring: describeEl(el, pseudo),
+          problem: null,
+        }))
+      );
+      // Anywhere else, the ring keeps the sides it had.
+      for (const { top, right } of sides({})) {
+        expect(top).not.toBe('Canvas');
+        expect(right).not.toBe('Canvas');
+      }
+    }
+  );
+
+  it('opens every ring it draws in forced colors', () => {
+    // The roster above only sees the components on it. This reads the
+    // rings off the sheet instead, so one a partial or Bulma adds is
+    // checked without anyone listing it.
+    const { rings, closed } = unopened(rules);
+    // Floor against the read going quietly empty.
+    expect(rings).toContain(`.${prefix}loader`);
+    expect(closed).toEqual([]);
+  });
+
+  it('changes nothing but a ring’s border colors in forced colors', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>
+        {RINGS.map(([label, element]) => (
+          <React.Fragment key={label}>{element}</React.Fragment>
+        ))}
+      </ConfigProvider>
+    );
+    const targets = animatedIn(container, rules);
+    // Each ring has to stay drawn as it was, so a rule here may set its
+    // border colors and nothing else: Canvas for the open sides where
+    // forcing paints it, and transparent and `inherit` for a loading
+    // button's, where it doesn't. `ringProblem` checks what they add up to.
+    const extra = rules
+      .filter(rule => rule.forcedColorsOnly)
+      .filter(rule =>
+        targets.some(({ el, pseudo }) =>
+          rule.selectors.some(selector => matches(selector, el, pseudo))
+        )
+      )
+      .flatMap(rule =>
+        rule.properties.map(
+          property => `${property}: ${rule.values[property].value}`
+        )
+      )
+      .filter(
+        declaration =>
+          !/^border(-(top|right|bottom|left|(block|inline)-(start|end)))?-color: (Canvas|transparent|inherit)$/.test(
+            declaration
+          )
+      );
+    expect(extra).toEqual([]);
+  });
+
+  /** Each kind of bar Bulma draws: with a value, in a color, and indeterminate. */
+  const BARS: Array<[string, React.ReactElement]> = [
+    ['Progress value', <Progress key="x" value={40} max={100} />],
+    [
+      'Progress color="primary" value',
+      <Progress key="x" color="primary" value={70} max={100} />,
+    ],
+    [
+      'Progress color="danger" indeterminate',
+      <Progress key="x" color="danger" />,
+    ],
+  ];
+
+  it.each(BARS)(
+    '%s draws its track, fill and edge in forced colors, and only there',
+    (_label, element) => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>{element}</ConfigProvider>
+      );
+      const bar = container.querySelector(`.${prefix}progress`)!;
+      const forced = (names: string[]) =>
+        resolved(rules, bar, '', { forcedColors: true }, names);
+      // Forced colors paints Bulma's track and fill in the page's color and
+      // drops the indeterminate gradient. With forcing off, the two
+      // variables Bulma paints them with name system colors, and so does
+      // the element's own background, which is Firefox's track.
+      expect(forced(['forced-color-adjust'])).toBe('none');
+      expect(forced(['--bulma-progress-bar-background-color'])).toBe('Canvas');
+      expect(forced(['--bulma-progress-value-background-color'])).toBe(
+        'CanvasText'
+      );
+      expect(forced(['background-color', 'background'])).toBe('Canvas');
+      expect(colorOf(forced(['border']))).toBe('CanvasText');
+      // None of it reaches anyone not in forced colors, where the fill keeps
+      // the Bulma color it reads.
+      expect(resolved(rules, bar, '', {}, ['forced-color-adjust'])).toBeNull();
+      expect(
+        resolved(rules, bar, '', {}, [
+          '--bulma-progress-value-background-color',
+        ])
+      ).toMatch(/^var\(--bulma-/);
+    }
+  );
+
+  it('gives a bar no background outside forced colors but the two variables set there', () => {
+    // The rule above sets the variables, not the paint, so it's only a fix
+    // while every background the sheet gives a bar reads them. Bulma paints
+    // the track and the fill on vendor pseudo-elements, which the resolver
+    // can't match, so the sheet's rules are read for them directly: any rule
+    // the walk collects with the bar's class anywhere in a selector.
+    const bar = new RegExp(`\\.${prefix}progress(?![\\w-])`);
+    const ours =
+      /var\(--bulma-progress-(bar|value)-background-color\)|transparent/g;
+    const paints = rules
+      .filter(rule => !rule.forcedColorsOnly)
+      .flatMap(rule =>
+        rule.selectors
+          .filter(selector => bar.test(selector))
+          .flatMap(selector =>
+            ['background-color', 'background', 'background-image']
+              .filter(property => rule.values[property])
+              .map(property => ({
+                selector,
+                property,
+                value: rule.values[property].value,
+              }))
+          )
+      );
+    // Floor against the read going quietly empty: the fill is one of them.
+    expect(paints).toContainEqual({
+      selector: `.${prefix}progress::-webkit-progress-value`,
+      property: 'background-color',
+      value: 'var(--bulma-progress-value-background-color)',
+    });
+    // Once the two variables are out, all a paint may have left is the
+    // indeterminate gradient's direction and stops. A color, another
+    // variable or `currentColor` is a paint forced colors would replace.
+    expect(
+      paints
+        .filter(
+          ({ value }) =>
+            value
+              .replace(ours, '')
+              .replace(
+                /linear-gradient|to (left|right)|[\d.]+%|none|[(),\s]/g,
+                ''
+              ) !== ''
+        )
+        .map(
+          ({ selector, property, value }) =>
+            `${selector} { ${property}: ${value} }`
+        )
+    ).toEqual([]);
+  });
+
+  /**
+   * Each kind of skeleton: `Skeleton`'s block and lines, the `skeleton` prop
+   * on text and on controls, and `hasSkeleton`, with whether it holds text
+   * Bulma hides.
+   */
+  const SHAPES: Array<[string, React.ReactElement, boolean]> = [
+    ['Skeleton block', <Skeleton key="x">Placeholder</Skeleton>, true],
+    ['Skeleton lines', <Skeleton key="x" variant="lines" />, false],
+    [
+      'Title skeleton',
+      <Title key="x" skeleton>
+        Heading
+      </Title>,
+      true,
+    ],
+    [
+      'Button skeleton',
+      <Button key="x" color="dark" skeleton>
+        Delete
+      </Button>,
+      true,
+    ],
+    ['Input skeleton', <Input key="x" skeleton placeholder="Name" />, true],
+    [
+      'Title hasSkeleton',
+      <Title key="x" hasSkeleton>
+        Heading
+      </Title>,
+      true,
+    ],
+    // Its text is in a child, which inherits the transparent color and the
+    // opt-out both. A child with a color of its own, such as a Tag, keeps
+    // Bulma's, which the API page says.
+    [
+      'Box skeleton holding a paragraph and a Tag',
+      <Box key="x" skeleton>
+        <p>Paragraph</p>
+        <Tag color="primary">New</Tag>
+      </Box>,
+      true,
+    ],
+  ];
+
+  it.each(SHAPES)(
+    '%s keeps its shape and hides its text in forced colors, and only there',
+    (_label, element, holdsText) => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>{element}</ConfigProvider>
+      );
+      // The shapes are what Bulma pulses.
+      const shapes = animatedIn(container, rules);
+      expect(shapes.length).toBeGreaterThan(0);
+      const fill = (el: Element, pseudo: string, when: When) =>
+        resolved(rules, el, pseudo, when, ['background-color', 'background']);
+      for (const { el, pseudo } of shapes) {
+        // Forced colors paints a shape's own background in the page's
+        // color, and leaves a system color alone.
+        expect(fill(el, pseudo, { forcedColors: true })).toBe('GrayText');
+        // Anywhere else it keeps Bulma's.
+        expect(fill(el, pseudo, {})).not.toBe('GrayText');
+        expect(fill(el, pseudo, {})).not.toBeNull();
+      }
+      // Forced colors paints a transparent text color in the theme's own,
+      // so wherever Bulma hides text that way, forcing has to be off. An
+      // input's text is its value and placeholder.
+      const hidden = Array.from(container.querySelectorAll('*')).filter(
+        el =>
+          (el.tagName === 'INPUT' ||
+            Array.from(el.childNodes).some(
+              node => node.nodeType === 3 && node.textContent?.trim()
+            )) &&
+          inherited(rules, el, '', 'color') === 'transparent'
+      );
+      expect(hidden.length > 0).toBe(holdsText);
+      for (const el of hidden) {
+        expect({
+          el: describeEl(el, ''),
+          forcing: forcing(rules, el, ''),
+        }).toEqual({ el: describeEl(el, ''), forcing: 'none' });
+        // None of it reaches anyone not in forced colors.
+        expect(resolved(rules, el, '', {}, ['forced-color-adjust'])).toBeNull();
+      }
+      // A child with a color of its own is inside the opt-out too, so it
+      // keeps Bulma's color rather than the theme's, as the API page says.
+      for (const tag of Array.from(
+        container.querySelectorAll(`.${prefix}tag`)
+      )) {
+        expect(forcing(rules, tag, '')).toBe('none');
+      }
+    }
+  );
+
+  /**
+   * Each kind of loading button, with what forced colors gives it when it's
+   * idle, which is what it keeps while it loads: a `<button>` a button's
+   * surface and text color, a link a link's, anything else the page's own.
+   * A variant with no surface of its own has none, and shows the page
+   * through it, so it pairs with the page's text color unless it's a link.
+   * A disabled one keeps the gray forced colors gives a disabled control.
+   */
+  const LOADING_LOOKS: Array<
+    [string, React.ReactElement, { surface: string; border: string }]
+  > = [
+    [
+      'Button isLoading',
+      <Button key="x" isLoading>
+        Save
+      </Button>,
+      { surface: 'ButtonFace', border: 'ButtonText' },
+    ],
+    [
+      'Button color="primary" isLoading',
+      <Button key="x" color="primary" isLoading>
+        Save
+      </Button>,
+      { surface: 'ButtonFace', border: 'ButtonText' },
+    ],
+    [
+      'Button color="ghost" isLoading',
+      <Button key="x" color="ghost" isLoading>
+        Save
+      </Button>,
+      { surface: 'transparent', border: 'CanvasText' },
+    ],
+    [
+      'Button color="text" isLoading',
+      <Button key="x" color="text" isLoading>
+        Save
+      </Button>,
+      { surface: 'transparent', border: 'CanvasText' },
+    ],
+    [
+      'Button isOutlined isLoading',
+      <Button key="x" color="primary" isOutlined isLoading>
+        Save
+      </Button>,
+      { surface: 'transparent', border: 'CanvasText' },
+    ],
+    [
+      'LinkButton isLoading',
+      <LinkButton key="x" isLoading>
+        Save
+      </LinkButton>,
+      { surface: 'transparent', border: 'CanvasText' },
+    ],
+    [
+      'LinkButton variant="underline" isLoading',
+      <LinkButton key="x" variant="underline" isLoading>
+        Save
+      </LinkButton>,
+      { surface: 'transparent', border: 'CanvasText' },
+    ],
+    [
+      'Button as="a" href isLoading',
+      <Button key="x" as="a" href="#" isLoading>
+        Save
+      </Button>,
+      { surface: 'Canvas', border: 'LinkText' },
+    ],
+    [
+      'LinkButton as="a" href isLoading',
+      <LinkButton key="x" as="a" href="#" isLoading>
+        Save
+      </LinkButton>,
+      { surface: 'transparent', border: 'LinkText' },
+    ],
+    [
+      'Button as="a" isLoading, with no href',
+      <Button key="x" as="a" isLoading>
+        Save
+      </Button>,
+      { surface: 'Canvas', border: 'CanvasText' },
+    ],
+    [
+      'Button as="span" isLoading',
+      <Button key="x" as="span" isLoading>
+        Save
+      </Button>,
+      { surface: 'Canvas', border: 'CanvasText' },
+    ],
+    [
+      'Button isDisabled isLoading',
+      <Button key="x" isDisabled isLoading>
+        Save
+      </Button>,
+      { surface: 'ButtonFace', border: 'GrayText' },
+    ],
+    [
+      'Button color="ghost" isDisabled isLoading',
+      <Button key="x" color="ghost" isDisabled isLoading>
+        Save
+      </Button>,
+      { surface: 'transparent', border: 'GrayText' },
+    ],
+    [
+      'Button isLoading in a disabled fieldset',
+      <fieldset key="x" disabled>
+        <Button isLoading>Save</Button>
+      </fieldset>,
+      { surface: 'ButtonFace', border: 'GrayText' },
+    ],
+    // Pressed, it takes these colors too while it loads: `_button.scss`
+    // draws a selected button in Highlight in forced colors, and skips a
+    // loading one.
+    [
+      'ToggleButton pressed isLoading',
+      <ToggleButton key="x" defaultPressed isLoading>
+        Bold
+      </ToggleButton>,
+      { surface: 'ButtonFace', border: 'ButtonText' },
+    ],
+  ];
+
+  it('checks the loading buttons on the roster', () => {
+    const labels = LOADING_LOOKS.map(([label]) => label);
+    for (const [label] of RINGS.filter(([name]) =>
+      /Button isLoading$/.test(name)
+    )) {
+      expect(labels).toContain(label);
+    }
+  });
+
+  it.each(LOADING_LOOKS)(
+    '%s hides its label in forced colors and keeps the surface it has when idle',
+    (_label, element, look) => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>{element}</ConfigProvider>
+      );
+      const button = container.querySelector(`.${prefix}button`)!;
+      const forced = (names: string[]) =>
+        resolved(rules, button, '', { forcedColors: true }, names);
+      // Forced colors paints any text color in the theme's own, so the label
+      // Bulma hides with `transparent` would show. With forcing off on the
+      // button, it stays transparent, and every other color it shows is a
+      // system one the theme picks, paired with the surface it shows.
+      expect(forced(['forced-color-adjust'])).toBe('none');
+      expect(forced(['color'])).toBe('transparent');
+      expect(forced(['background-color', 'background'])).toBe(look.surface);
+      for (const side of ['top', 'right', 'bottom', 'left'] as const) {
+        expect(winning(rules, button, '', { forcedColors: true }, side)).toBe(
+          look.border
+        );
+      }
+      // Focused, it's outlined in its border color. A browser won't focus a
+      // disabled one, though jsdom will, so there's no outline to check.
+      if (!button.matches(':disabled')) {
+        button.setAttribute('tabindex', '0');
+        (button as HTMLElement).focus();
+        expect(
+          colorOf(
+            resolved(rules, button, '', { forcedColors: true }, [
+              'outline-color',
+              'outline',
+            ])
+          )
+        ).toBe(look.border);
+      }
+      // Its ring stays out of forcing with it, drawn in its border color and
+      // open onto its surface.
+      expect(forcing(rules, button, '::after')).toBe('none');
+      expect(ringProblem(rules, button, '::after')).toBeNull();
+      expect(
+        winning(rules, button, '::after', { forcedColors: true }, 'top')
+      ).toBe('transparent');
+      expect(
+        winning(rules, button, '::after', { forcedColors: true }, 'bottom')
+      ).toBe('inherit');
+      // None of it reaches anyone not in forced colors.
+      expect(
+        resolved(rules, button, '', {}, ['forced-color-adjust'])
+      ).toBeNull();
+    }
+  );
+
+  it.each([
+    [
+      'a Tag with a color',
+      <Button key="x" isLoading>
+        <Tag color="danger">3</Tag>
+        <span>Save</span>
+      </Button>,
+    ],
+    [
+      'an Icon with a text color',
+      <Button key="x" isLoading>
+        <Icon name="floppy-disk" textColor="danger" />
+        <span>Save</span>
+      </Button>,
+    ],
+    [
+      'an Icon with a background',
+      <Button key="x" isLoading>
+        <Icon name="floppy-disk" bgColor="danger" />
+      </Button>,
+    ],
+    [
+      'an SVG with its own fill',
+      <Button key="x" isLoading>
+        <svg viewBox="0 0 24 24" fill="#3e8ed0" aria-hidden="true">
+          <path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z" />
+        </svg>
+        <span>Save</span>
+      </Button>,
+    ],
+    [
+      'a LinkButton holding a Tag',
+      <LinkButton key="x" isLoading>
+        <Tag color="danger">3</Tag>
+        <span>Save</span>
+      </LinkButton>,
+    ],
+    [
+      'a ToggleButton holding an Icon with a background',
+      <ToggleButton key="x" isLoading>
+        <Icon name="floppy-disk" bgColor="danger" />
+      </ToggleButton>,
+    ],
+  ] as Array<[string, React.ReactElement<{ isLoading?: boolean }>]>)(
+    'hides everything inside a loading button, in every mode: %s',
+    (_label, element) => {
+      const { container, rerender } = render(
+        <ConfigProvider classPrefix={prefix}>{element}</ConfigProvider>
+      );
+      const button = container.querySelector(`.${prefix}button`)!;
+      const children = Array.from(button.children);
+      expect(children.length).toBeGreaterThan(0);
+      // Bulma's transparent label only reaches what inherits it, so a color,
+      // a background or a fill of a child's own would show through the
+      // spinner, and in forced colors, with forcing off, so would anything.
+      // A child at no opacity paints nothing, whatever it sets, keeps its
+      // box, so the button keeps its size, and stays in the accessibility
+      // tree, so the button keeps its name.
+      for (const el of children) {
+        for (const when of [
+          {},
+          { forcedColors: true },
+          { reducedMotion: true },
+        ]) {
+          expect(resolved(rules, el, '', when, ['opacity'])).toBe('0');
+        }
+      }
+      // The spinner is the button's own `::after`, which stays.
+      expect(resolved(rules, button, '::after', {}, ['opacity'])).toBeNull();
+      // And it all comes back when loading ends.
+      rerender(
+        <ConfigProvider classPrefix={prefix}>
+          {React.cloneElement(element, { isLoading: false })}
+        </ConfigProvider>
+      );
+      const done = container.querySelector(`.${prefix}button`)!;
+      expect(done.classList.contains(`${prefix}is-loading`)).toBe(false);
+      for (const el of Array.from(done.children)) {
+        expect(resolved(rules, el, '', {}, ['opacity'])).toBeNull();
+      }
+    }
+  );
+
+  it.each(
+    RINGS.filter(
+      ([name]) => !/Button isLoading$/.test(name) && name !== 'Loader'
+    ).map(([name, element]): [string, React.ReactElement] =>
+      // The roster's `Control` holds nothing, which would check nothing.
+      name === 'Control isLoading'
+        ? [
+            name,
+            <Control key="x" isLoading>
+              <Input />
+            </Control>,
+          ]
+        : [name, element]
+    )
+  )('leaves what is inside a loading field showing: %s', (_label, element) => {
+    // The hide is for a loading button. A control, a select or a field
+    // marked loading keeps itself, its input, its select and its own buttons.
+    // Autocomplete and Taginput mark an element with nothing inside, so for
+    // them it's the element itself that counts.
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>{element}</ConfigProvider>
+    );
+    const loading = Array.from(
+      container.querySelectorAll(`.${prefix}is-loading`)
+    );
+    // With nothing marked loading, it would pass whatever the sheet says.
+    expect(loading.length).toBeGreaterThan(0);
+    const shown = loading.flatMap(el => [
+      el,
+      ...Array.from(el.querySelectorAll('*')),
+    ]);
+    for (const el of shown) {
+      for (const when of [{}, { forcedColors: true }]) {
+        expect(resolved(rules, el, '', when, ['opacity'])).not.toBe('0');
+      }
+    }
+  });
+
+  it.each([
+    [
+      'rendered as a div',
+      <Button key="x" as="div" isLoading>
+        <a href="#details">Details</a>
+        <span>Saving</span>
+      </Button>,
+    ],
+    [
+      'rendered as a span',
+      <Button key="x" as="span" isLoading>
+        <span>
+          <a href="#details">Details</a>
+        </span>
+        <span>Saving</span>
+      </Button>,
+    ],
+  ] as Array<[string, React.ReactElement]>)(
+    'shows a child of a loading button while it holds focus, %s',
+    (_label, element) => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>{element}</ConfigProvider>
+      );
+      const [holder, other] = Array.from(
+        container.querySelector(`.${prefix}button`)!.children
+      );
+      // Hidden like the rest until it has focus, since opacity leaves it in
+      // the tab order. Then it comes back, so focus is never on something
+      // nobody can see, and the rest stays hidden.
+      expect(resolved(rules, holder, '', {}, ['opacity'])).toBe('0');
+      container.querySelector<HTMLElement>('a')!.focus();
+      for (const when of [{}, { forcedColors: true }]) {
+        expect(resolved(rules, holder, '', when, ['opacity'])).toBe('1');
+        expect(resolved(rules, other, '', when, ['opacity'])).toBe('0');
+      }
+    }
+  );
+
+  it('rings a focused loading button in forced colors, where its border holds still', () => {
+    // The `!important` border above stops the browser recoloring it to show
+    // focus, so the rules draw an outline instead, in its border color.
+    const focus = (selector: string) =>
+      rules.filter(
+        rule => rule.forcedColorsOnly && rule.selectors.includes(selector)
+      );
+    // From the keyboard, or from `isFocused`, which forced colors outlines
+    // on every button.
+    for (const state of [':focus-visible', `.${prefix}is-focused`]) {
+      const base = focus(`.${prefix}button.${prefix}is-loading${state}`);
+      expect(base.map(rule => rule.values.outline?.value)).toEqual([
+        '2px solid CanvasText',
+      ]);
+      expect(base[0].values['outline-offset']?.value).toBe('2px');
+      expect(
+        focus(`button.${prefix}button.${prefix}is-loading${state}`).map(
+          rule => rule.values['outline-color']?.value
+        )
+      ).toEqual(['ButtonText']);
+      expect(
+        focus(`a[href].${prefix}button.${prefix}is-loading${state}`).map(
+          rule => rule.values['outline-color']?.value
+        )
+      ).toEqual(['LinkText']);
+      for (const variant of ['is-ghost', 'is-text', 'is-outlined']) {
+        expect(
+          focus(
+            `.${prefix}button.${prefix}${variant}.${prefix}is-loading${state}`
+          ).map(rule => rule.values['outline-color']?.value)
+        ).toEqual(['CanvasText']);
+      }
+    }
+    // And no system color outside forced colors, anywhere in the sheet: one
+    // there would show in every theme, not just a contrast one.
+    expect(
+      rules
+        .filter(rule => !rule.forcedColorsOnly)
+        .flatMap(rule =>
+          Object.entries(rule.values)
+            .filter(([, { value }]) =>
+              tokensOf(value).some(token => SYSTEM.test(token))
+            )
+            .map(
+              ([property, { value }]) =>
+                `${rule.selectors.join(', ')} { ${property}: ${value} }`
+            )
+        )
+    ).toEqual([]);
+  });
+
+  /** Bulma's focus outline, in its focus color, style, width and offset. */
+  const FOCUS_OUTLINE = {
+    'outline-color':
+      'hsl(var(--bulma-focus-h), var(--bulma-focus-s), var(--bulma-focus-l))',
+    'outline-style': 'var(--bulma-focus-style)',
+    'outline-width': 'var(--bulma-focus-width)',
+    'outline-offset': 'var(--bulma-focus-offset)',
+  };
+
+  it.each([
+    ...LOADING_LOOKS.filter(
+      ([label]) => !/isDisabled|disabled fieldset/.test(label)
+    ).map(([label, element]): [string, React.ReactElement] => [label, element]),
+    // Over Bulma's static rule, which drops the shadow too, and on a
+    // component that renders through Button.
+    [
+      'Button isStatic isLoading',
+      <Button key="x" isStatic isLoading>
+        Save
+      </Button>,
+    ],
+    [
+      'IconButton isLoading',
+      <IconButton key="x" icon="trash" aria-label="Delete" isLoading />,
+    ],
+  ] as Array<[string, React.ReactElement]>)(
+    "%s takes Bulma's focus outline from the keyboard or isFocused, outside forced colors",
+    (_label, element) => {
+      // Bulma's `is-loading` drops the shadow a focused button shows, and
+      // its control mixin sets `outline: none`, so without this a colored one
+      // keeps a 1px border in the focus color on its own fill, and an
+      // outlined or text one nothing.
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>{element}</ConfigProvider>
+      );
+      const button = container.querySelector<HTMLElement>(`.${prefix}button`)!;
+      const outline = () =>
+        Object.fromEntries(
+          Object.keys(FOCUS_OUTLINE).map(longhand => [
+            longhand,
+            resolved(rules, button, '', {}, [longhand, 'outline']),
+          ])
+        );
+      // At rest it draws none of it.
+      expect(outline()['outline-style']).not.toBe(
+        FOCUS_OUTLINE['outline-style']
+      );
+      button.setAttribute('tabindex', '0');
+      button.focus();
+      expect(outline()).toEqual(FOCUS_OUTLINE);
+      button.blur();
+      button.classList.add(`${prefix}is-focused`);
+      expect(outline()).toEqual(FOCUS_OUTLINE);
+    }
+  );
 });

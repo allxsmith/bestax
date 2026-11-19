@@ -224,7 +224,7 @@ jobs:
       # the job that quietly loses egress monitoring when the old single job
       # was split. ENFORCED as of #487, and asserted below.
       - name: Harden runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: block
           disable-sudo-and-containers: true
@@ -289,6 +289,10 @@ jobs:
       #             and everyone else charges the daily budget BEFORE any
       #             Claude spend.
       # Every later job gates on `run`.
+      #
+      # The role lookup retries, and an API error fails this step rather than
+      # reading as no access. "When the agent drops a job's first connections"
+      # under rule 10 in .github/CLAUDE.md says why (#1258).
       - name: Gate (permissions / budget)
         id: gate
         env:
@@ -305,9 +309,42 @@ jobs:
           out is_pr "$IS_PR"
           out number "$NUMBER"
 
+          # lookup_role is hand-copied into every live-role check. It runs before
+          # any checkout, and rule 1 keeps security steps inline, so no shared script
+          # can hold it. scripts/role-lookup.test.mjs holds the copies equal.
+          lookup_role() {
+            local delay err status
+            err=$(mktemp)
+            for delay in 5 10 20 30 30 0; do
+              if ROLE=$(timeout 10 gh api "repos/$REPO/collaborators/$1/permission" \
+                --jq '.role_name' 2>"$err"); then
+                return 0
+              fi
+              cat "$err" >&2
+              status=$(grep -oE '\(HTTP [0-9]{3}\)' "$err" | tail -n 1 || true)
+              case "$status" in
+                # No such user: the login was renamed or deleted, so it has no access.
+                "(HTTP 404)")
+                  ROLE=none
+                  return 0 ;;
+                # A rate limit passes, so it is retried like a dropped connection.
+                "(HTTP 403)" | "(HTTP 429)") ;;
+                # Any other 4xx is GitHub's final answer, but not a role.
+                "(HTTP 4"*)
+                  echo "::error::GitHub refused the role lookup for $1 $status. That is not a role, and a retry won't change it, so the run stops here."
+                  exit 1 ;;
+              esac
+              if [ "$delay" -eq 0 ]; then
+                echo "::error::Could not look up $1's role because every GitHub API call failed (errors above). That is a network, egress or GitHub failure, not a permissions answer, so the run stops here. Re-run or re-trigger it to retry."
+                exit 1
+              fi
+              echo "Role lookup for $1 failed. Retrying in ${delay}s."
+              sleep "$delay"
+            done
+          }
+
           if [ "$ACTION" = "labeled" ]; then
-            ROLE=$(gh api "repos/$REPO/collaborators/$SENDER/permission" \
-              --jq '.role_name' || echo none)
+            lookup_role "$SENDER"
             case "$ROLE" in
               admin|maintain|write|triage)
                 out run true
@@ -350,8 +387,7 @@ jobs:
           #      Same live role check as the labeled path (the opened
           #      event's sender IS the author), so a stale association or
           #      revoked collaborator can never bypass the cap. ----
-          ROLE=$(gh api "repos/$REPO/collaborators/$SENDER/permission" \
-            --jq '.role_name' || echo none)
+          lookup_role "$SENDER"
           case "$ROLE" in
             admin|maintain|write|triage)
               out run true
@@ -475,7 +511,7 @@ jobs:
       # so nothing attempts it. Leaving it unlisted and silencing it beat
       # allow-listing.
       - name: Harden runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: block
           disable-sudo-and-containers: true
@@ -575,7 +611,7 @@ jobs:
         # rebase away from being wrong.
         env:
           CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1'
-        uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
+        uses: anthropics/claude-code-action@d535f5172dec02b204866b393d6b20b9b2aaf98d # v1.0.266
         with:
           # CLAUDE_CODE_OAUTH_TOKEN pays for the session. github_token is
           # passed explicitly so the action skips its OIDC→app token
@@ -914,7 +950,7 @@ jobs:
       # through the PAT. What holds that is the publisher re-asserting each
       # body's invariants below, and the marker-scoped upsert.
       - name: Harden runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: block
           disable-sudo-and-containers: true
@@ -1066,7 +1102,7 @@ jobs:
       # not unwedge it at all was never an acceptable trade.
       - name: Harden runner
         continue-on-error: true
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: block
           disable-sudo-and-containers: true

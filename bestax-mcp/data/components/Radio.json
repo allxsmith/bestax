@@ -24,9 +24,13 @@
     {
       "title": "Valid Colors and Sizes",
       "code": "import { Radio, Radios } from '@allxsmith/bestax-bulma';\nimport { radioColors, radioSizes } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  return (\n    <>\n      <Radios label=\"Accent color\" name=\"accent\" defaultValue=\"primary\">\n        {radioColors.map(color => (\n          <Radio key={color} value={color} color={color}>\n            {color}\n          </Radio>\n        ))}\n      </Radios>\n      <Radios label=\"Size\" name=\"accent-size\" defaultValue=\"normal\">\n        {radioSizes.map(size => (\n          <Radio key={size} value={size} size={size}>\n            {size}\n          </Radio>\n        ))}\n      </Radios>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Circle Size",
+      "code": "<Radio name=\"plan\" value=\"basic\" className=\"compact-radio\">\n  Basic\n</Radio>"
     }
   ],
-  "accessibility": "- Each `Radio` is rendered as a `<label>` wrapping an `<input type=\"radio\">` and the label text, for optimal accessibility.\n- Use the same `name` prop for a group of radios to ensure only one can be selected.",
+  "accessibility": "- Each `Radio` is rendered as a `<label>` wrapping an `<input type=\"radio\">` and the label text, for optimal accessibility.\n- Radios that share a `name` are one group: only one can be checked, and the arrow keys move between them. Inside `Radios` they take the group's `name`, or one it generates when you give it none. Outside one, give each the same `name`.\n- The circle is at least 24px across, the minimum size WCAG 2.2 sets for a target (2.5.8), whatever `--bulma-radio-size` says. [Circle Size](https://bestax.io/docs/api/form/radio#circle-size) shows how to make it smaller, and why to keep the label text inside the `Radio` when you do.\n- An unchecked radio shows only its ring, `--bulma-radio-border-color`. It defaults to `--bulma-text-weak`, which holds the 3:1 contrast WCAG asks of a control's boundary (non-text contrast) on Bulma's page and card surfaces in light and dark. Set a replacement on a class you pass through `className`, since `style` goes to the `<input>`, naming the label's class too (`.styled-radio.my-radio`) so load order can't undo it, and hold it to 3:1 as well.\n- In forced colors (Windows contrast themes), the circle and the dot take system colors. A disabled radio, its dot and its label draw in the system's color for disabled text there, at full strength rather than dimmed.",
   "related": ["Field", "Radios", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-radio--mutually-exclusive",
   "summary": "The `Radio` component provides a Bulma-styled radio button input with flexible labels and helper classes.",
@@ -80,7 +84,7 @@
           "name": "className",
           "type": "string",
           "default": null,
-          "description": "Additional CSS classes to apply.",
+          "description": "Additional CSS classes, on the outer `<label>`. That's the element that declares the `--bulma-radio-*` variables, so a class is how to set one: `style` and the other input attributes go to the `<input>`. Name `.styled-radio` beside your class in the selector, so it beats the label's own declaration whatever order the stylesheets load in. A `color` prop declares the active color again on `.styled-radio.is-<color>`, which ties that selector, so leave `color` unset when a class sets it.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -106,6 +110,7 @@
       ],
       "extraProps": [],
       "catchAll": "All standard <input> attributes and Bulma helper props",
+      "helperPropsNote": "Helper props go on the outer `<label>`, with `className`. The other attributes go on the `<input>`.",
       "types": []
     }
   ],
@@ -125,7 +130,7 @@
     {
       "css": "--bulma-radio-border-color",
       "sass": "$radio-border-color",
-      "default": "var(--bulma-border)",
+      "default": "var(--bulma-text-weak)",
       "scope": "root"
     },
     {
@@ -137,7 +142,7 @@
     {
       "css": "--bulma-radio-dot-color",
       "sass": "$radio-dot-color",
-      "default": "var(--bulma-scheme-main)",
+      "default": "var(--bulma-radio-active-color)",
       "scope": "root"
     },
     {

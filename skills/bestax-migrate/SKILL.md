@@ -1,6 +1,6 @@
 ---
 name: bestax-migrate
-description: Migrate an existing React app to @allxsmith/bestax-bulma on Bulma v1, from raw Bulma CSS classes on plain JSX (className="button is-primary") or from an unmaintained React Bulma library (react-bulma-components v4, rbx v2, bloomer 0.6). Run the bestax-migrate codemod, then resolve every TODO(bestax-migrate) comment it leaves using the per-source mapping references. Use when a React app styles its markup with Bulma classes and wants bestax components instead, when a repo imports react-bulma-components, rbx or bloomer, when TODO(bestax-migrate) comments are present in a codebase, or when asked to convert Bulma classNames to bestax-bulma.
+description: Migrate an existing React app to @allxsmith/bestax-bulma on Bulma v1, from raw Bulma CSS classes on plain JSX (className="button is-primary") or in static HTML pages and templates styled with Bulma, or from an unmaintained React Bulma library (react-bulma-components v4, rbx v2, bloomer 0.6). Run the bestax-migrate codemod, then resolve every TODO(bestax-migrate) comment it leaves using the per-source mapping references. Use when a React app styles its markup with Bulma classes and wants bestax components instead, when static HTML pages or templates styled with Bulma should become React components, when a repo imports react-bulma-components, rbx or bloomer, when TODO(bestax-migrate) comments are present in a codebase, or when asked to convert Bulma classNames to bestax-bulma.
 license: MIT
 ---
 
@@ -21,6 +21,7 @@ The codemod's first argument names the library you are migrating _from_. Check t
 | `rbx` v2 (abandoned 2019, pins Bulma **0.7.5** plus four extensions)             | `rbx`                    | [`references/rbx/`](references/rbx/component-map.md)                                       |
 | `bloomer` 0.6 (archived 2018, Bulma 0.6 era, React 16 + `create-react-class`)    | `bloomer`                | [`references/bloomer/`](references/bloomer/component-map.md)                               |
 | Raw Bulma classes on plain JSX (`<div className="box">`), no React Bulma library | `bulma-classes`          | [`references/bulma-classes/`](references/bulma-classes/component-map.md)                   |
+| Static HTML pages or templates styled with Bulma (`<div class="box">`)           | `bulma-classes`          | [`references/bulma-classes/`](references/bulma-classes/unmappables.md)                     |
 
 Everything below is written as `<source>`; substitute the argument from that table. The
 reference paths follow the same split — `references/<source>/component-map.md`,
@@ -37,6 +38,29 @@ Run these steps in order. Don't hand-convert what the codemod converts automatic
    ```sh
    pnpm dlx bestax-migrate <source> src/ --dry
    ```
+
+   For HTML pages, name a page, or walk a folder with `-e html` (`-e html,htm` for `.htm` pages
+   too; a plain walk skips them,
+   since most of it in a React project isn't a page to convert, and reports the Bulma pages it
+   skipped as `html-file:not-included`):
+
+   ```sh
+   pnpm dlx bestax-migrate bulma-classes src/pages/login/index.html --dry
+   pnpm dlx bestax-migrate bulma-classes -e html src/pages/ --dry
+   ```
+
+   Each page becomes a module beside it (`index.tsx`, or `.jsx` when the package isn't
+   TypeScript) whose default export is `<Name>Page`, named from the file (its folder's for an
+   `index.html`). The page stays as it was, and the codemod never writes over a module that's
+   already there, so a re-run on the page writes nothing: after fixing a TODO, re-run on the
+   module, which is what each TODO says. Its head, its `<html>` and `<body>` attributes and
+   its scripts become `html-*` TODOs: put the app-wide parts in the app's `index.html` and
+   entry, and port each script's work into the component. Under `--css bestax` or `--css bulma`
+   the module imports the stylesheet in place of the page's Bulma `<link>`.
+
+   A file that fails to parse or transform is marked `✖`, listed under `failed` in the report
+   and left as it was, and the run exits 1 while every other file still converts. Fix that file
+   and run the codemod on it again. TODOs alone leave the exit code at 0.
 
 2. **Apply it** (same command without `--dry`), then run the project's formatter — the
    codemod preserves surrounding formatting but doesn't prettify what it rewrites.
@@ -62,8 +86,9 @@ Run these steps in order. Don't hand-convert what the codemod converts automatic
    import the codemod could not rewrite and left in place; `unsupported-file` names
    a file type it cannot parse (`.vue`, `.astro`) that still imports the source;
    `value-reference` marks a component used as a value rather than as JSX. Rules
-   named `component:X` and `prop:y` are per-component and per-prop, and each is
-   documented in the per-source `references/` pages.
+   named `component:X` and `prop:y` are per-component and per-prop, `name:X` asks
+   for an accessible name the codemod can't write, and each is documented in the
+   per-source `references/` pages.
 
    The report's `peer-deps` entries predict install failures: bestax-bulma needs
    **React 18/19** (react-bulma-components also ran on 17, while rbx and bloomer peer-depended
@@ -113,15 +138,25 @@ code per the references, or deliberately keep the old markup with `className` st
   drift than the 0.9 → 1 guide alone describes.
 - **bulma-classes**: there is no library to remove. An element converts only when the bestax
   component renders the same markup (tag, classes, attributes), so a converted page renders
-  the same HTML; everything else stays as written, with a TODO when there is something to
-  decide. Static class strings convert, and so does a `clsx` or `classnames` call of strings
-  and conditional classes, where a condition on a flag becomes its prop (`isLoading={busy}`);
+  the same HTML, but for deliberate exceptions. Font Awesome's own hidden `<i>` in a `.icon`
+  that carries nothing else assistive tech reads becomes `Icon`, which hides the `.icon`
+  instead, the glyph hidden either way. Such a `.icon` around a bare glyph, in a link or button
+  its own `aria-label` names, becomes `Icon` too, which hides it, since the label is what a
+  screen reader reads there. Font Awesome 6's long style names (`fa-brands`) become the
+  `bestax-icons` skill's `variant` (`brands`), which renders the short name (`fab`), the same
+  style. And Bulma 0.9's `is-marginless` and `is-paddingless`,
+  which style nothing under v1, become `m="0"` and `p="0"`. Everything else stays as written, with a
+  TODO when there is something to decide. Static class strings convert, and so does a `clsx` or
+  `classnames` call of strings and conditional classes, where a condition on a flag becomes
+  its prop (`isLoading={busy}`);
   any other computed className gets `dynamic-class:<Target>`, naming the component the element
   would become. Files a Next.js
   App Router may render as server components are left alone (`rsc`), and the manifest gains
   `@allxsmith/bestax-bulma` while the app's Bulma and stylesheets stay (the default
   `--css keep`). Its rules are `kind:<name>` shaped; see
-  `references/bulma-classes/unmappables.md`.
+  `references/bulma-classes/unmappables.md`. An HTML page converts the same way once it is JSX,
+  and what a component can't carry (the head, scripts, inline handlers, `<html>` and `<body>`
+  classes such as `has-navbar-fixed-top`) gets an `html-*` rule with its recipe there.
 - **bloomer**: every export is a flat name and most become dotted bestax compounds
   (`CardHeaderTitle` → `Card.Header.Title`). Most of its `is*` booleans already are bestax's
   (`isActive` becomes `active` where bestax names it so; `isFullWidth` becomes `isFullwidth`
@@ -135,7 +170,8 @@ code per the references, or deliberately keep the old markup with `className` st
 
 - The codemod is safe to re-run after partial manual work: a library source only touches files
   that still import the library, and `bulma-classes` skips elements that are already
-  components and never repeats a TODO it already wrote.
+  components, never repeats a TODO it already wrote, and drops one that asked for a re-run once
+  it no longer applies.
 - Don't downgrade converted props back to the old names; bestax uses `is*` booleans
   (`isLoading`), string size unions (`textSize="4"`), and `as` rather than `renderAs`.
 - If a component the app uses isn't in the component map, it wasn't part of that library's

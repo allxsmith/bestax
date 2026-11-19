@@ -5,7 +5,8 @@ import fs from 'fs-extra';
 import {
   checkDirectoryExists,
   listDirectoryEntries,
-  existsAsNonDirectory,
+  findNonDirectoryInPath,
+  realPath,
   emptyDirectory,
   ensureDirectory,
   copyDirectory,
@@ -15,9 +16,11 @@ import {
   promptProjectName,
   promptOverwriteDirectory,
   promptTemplate,
+  promptLinter,
   promptIconLibrary,
   promptBulmaFlavor,
   promptInstallSkills,
+  promptImmediate,
   promptTelemetryConsent,
 } from './prompts.js';
 import { reportScaffold, type ScaffoldChoices } from './telemetry.js';
@@ -26,13 +29,31 @@ import {
   displaySuccess,
   displayError,
   displayCancelled,
+  quoteShellArgument,
 } from './display.js';
-import { validateProjectName, toValidPackageName } from './validators.js';
+import {
+  validateProjectDirectory,
+  toValidPackageName,
+  isCurrentDirectory,
+} from './validators.js';
+import { runCommand } from './run-command.js';
 import {
   MESSAGES,
   TEMPLATES,
   ICON_LIBRARIES,
   BULMA_FLAVORS,
+  LINTERS,
+  ESLINT_CONFIG,
+  ESLINT_DEV_DEPENDENCIES,
+  ESLINT_TYPESCRIPT_DEV_DEPENDENCIES,
+  REACT_COMPILER_DEV_DEPENDENCIES,
+  REACT_COMPILER_TYPESCRIPT_DEV_DEPENDENCIES,
+  REACT_COMPILER_README,
+  ROUTER_SETUPS,
+  NEXT_STARTER_EDITS,
+  NEXT_ESLINT_CONFIG,
+  NEXT_ESLINT_DEV_DEPENDENCIES,
+  NEXT_LAUNCH_JSON,
   CLAUDE_MD,
   LAUNCH_JSON,
   CONFIG_PROVIDER_ICON_VALUES,
@@ -42,14 +63,17 @@ import {
   type ClaudeMdOptions,
 } from './constants.js';
 import { detectPackageManager } from './package-manager.js';
+import { LIBRARY, libraryRange } from './library-range.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // npm strips literal `.gitignore` files from published tarballs, so the
 // templates track `_gitignore` instead and the scaffolder renames it back
 // on copy — otherwise published scaffolds would ship with no .gitignore.
+// The Oxlint config follows create-vite, which names it the same way.
 const TEMPLATE_RENAMES: Record<string, string> = {
   _gitignore: '.gitignore',
+  '_oxlintrc.json': '.oxlintrc.json',
 };
 
 export interface ProjectConfig {
@@ -62,12 +86,14 @@ export interface ProjectConfig {
 
 export interface CLIOptions {
   template?: string;
+  lint?: string;
   bulma?: string;
   icon?: string;
   skills?: boolean;
   telemetry?: boolean;
   yes?: boolean;
   overwrite?: boolean;
+  immediate?: boolean;
 }
 
 /**
@@ -77,6 +103,103 @@ export interface CLIOptions {
  */
 export type ExistingDirectoryPlan = 'empty' | 'overwrite' | 'stop';
 
+/**
+ * runCommand, with a command that couldn't start at all, such as a package
+ * manager missing from PATH, reported and ending the run with 1 rather than
+ * escaping create() as an unhandled rejection. The project is written either
+ * way.
+ */
+function runOrExit(command: string, cwd: string): number {
+  try {
+    return runCommand(command, cwd);
+  } catch (error) {
+    displayError((error as Error).message);
+    process.exit(1);
+  }
+}
+
+// The Ionicons loader, pinned to an immutable unpkg URL.
+const IONICONS_URL =
+  'https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.esm.js';
+
+const templateNamed = (template: string) =>
+  TEMPLATES.find(t => t.name === template);
+
+const isNext = (template: string) =>
+  templateNamed(template)?.framework === 'next';
+
+/**
+ * The file, from the project root, that loads the stylesheets and wraps the
+ * app in any provider: `src/main` for a Vite app, the root layout for a
+ * Next.js one, which has no `src/main`.
+ */
+export function entryFile(template: string): string {
+  const ext = template.includes('-ts') ? 'tsx' : 'jsx';
+  return isNext(template) ? `src/app/layout.${ext}` : `src/main.${ext}`;
+}
+
+/**
+ * The ConfigProvider props a flavor and icon library need: the class prefix,
+ * and the provider value of an icon library other than the default.
+ */
+function configPropsFor(
+  flavor: { needsPrefix?: boolean } | undefined,
+  iconLibrary: string
+): string[] {
+  const configProps: string[] = [];
+  if (flavor?.needsPrefix) {
+    configProps.push('classPrefix="bestax-"');
+  }
+  if (iconLibrary !== 'none' && iconLibrary !== 'fontawesome') {
+    // Shared with the CLAUDE_MD template so the generated docs always
+    // name the same provider value the scaffolder writes here.
+    const iconLibraryValue = CONFIG_PROVIDER_ICON_VALUES[iconLibrary];
+    if (iconLibraryValue) {
+      configProps.push(`iconLibrary="${iconLibraryValue}"`);
+    }
+  }
+  return configProps;
+}
+
+/**
+ * A Next.js root layout with ConfigProvider imported after its Navigation
+ * import and wrapped around everything inside <body>, indented one step.
+ */
+function wrapNextBody(
+  layout: string,
+  importLine: string,
+  configProps: string[]
+): string {
+  const props = configProps.length > 0 ? ' ' + configProps.join(' ') : '';
+  return layout
+    .replace(
+      /^import Navigation from '\.\.\/Navigation';$/m,
+      `$&\n${importLine}`
+    )
+    .replace(
+      /^([ \t]*)<body>\n([\s\S]*?)\n\1<\/body>$/m,
+      (_match, indent: string, inner: string) =>
+        [
+          `${indent}<body>`,
+          `${indent}  <ConfigProvider${props}>`,
+          ...inner.split('\n').map(line => `  ${line}`),
+          `${indent}  </ConfigProvider>`,
+          `${indent}</body>`,
+        ].join('\n')
+    );
+}
+
+/** A dependency map in code-point order, the order the templates keep. */
+function sortedByName(
+  dependencies: Record<string, string>
+): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(dependencies).sort(([a], [b]) =>
+      a < b ? -1 : a > b ? 1 : 0
+    )
+  );
+}
+
 export class ProjectCreator {
   private templatesDir: string;
 
@@ -84,9 +207,13 @@ export class ProjectCreator {
     this.templatesDir = templatesDir || path.resolve(__dirname, '../templates');
   }
 
+  /**
+   * The project directory, as typed or answered: a name or a path, absolute
+   * or relative, whose last segment must be a valid project name (#1154).
+   */
   async getProjectName(projectDir?: string): Promise<string | null> {
     if (projectDir) {
-      const validation = validateProjectName(projectDir);
+      const validation = validateProjectDirectory(projectDir);
       if (validation !== true) {
         console.log(chalk.red(`✖ ${validation}`));
         return null;
@@ -103,21 +230,44 @@ export class ProjectCreator {
    * question leaves the user's files where they were (#945). Only --overwrite
    * or a yes at the prompt removes files. -y never does, and neither -y nor a
    * missing terminal can ask, so both stop at a non-empty directory instead.
-   * A file at the target path stops the run too, whatever the flags say.
+   * Whatever the flags say, the run stops at a file on the target path or in
+   * place of one of its parents, and before emptying the working directory or
+   * one that holds it (#310), however the path spells it. create() calls this
+   * straight after the project name, so neither waits for the other prompts.
    */
   async checkExistingDirectory(
     targetPath: string,
     targetDir: string,
     options?: CLIOptions
   ): Promise<ExistingDirectoryPlan> {
-    if (await existsAsNonDirectory(targetPath)) {
-      displayError(MESSAGES.NOT_A_DIRECTORY(targetDir));
+    const blocker = await findNonDirectoryInPath(targetPath);
+    if (blocker !== null) {
+      displayError(
+        MESSAGES.NOT_A_DIRECTORY(
+          blocker === path.resolve(targetPath) ? targetDir : blocker
+        )
+      );
       return 'stop';
     }
 
+    // A directory holding only .git counts as empty, as create-vite counts
+    // it, so `git init` then `create bestax .` works. The scaffold is written
+    // beside .git, which nothing here ever removes.
     const entries = await listDirectoryEntries(targetPath);
-    if (entries.length === 0) {
+    if (
+      entries.length === 0 ||
+      (entries.length === 1 && entries[0] === '.git')
+    ) {
       return 'empty';
+    }
+
+    if (await this.holdsWorkingDirectory(targetPath)) {
+      displayError(
+        isCurrentDirectory(targetDir)
+          ? MESSAGES.CURRENT_DIRECTORY_NOT_EMPTY(entries)
+          : MESSAGES.DIRECTORY_HOLDS_CWD(targetDir)
+      );
+      return 'stop';
     }
 
     if (options?.overwrite) {
@@ -137,6 +287,26 @@ export class ProjectCreator {
   }
 
   /**
+   * Whether targetPath is the working directory or one of its ancestors, with
+   * symbolic links resolved on both sides. Emptying either deletes the folder
+   * the user is standing in, which the leading-dot rule refuses for "." and
+   * "..", and a path such as "../<its name>" or its absolute spelling reaches
+   * the same folder (#310, #1154).
+   */
+  private async holdsWorkingDirectory(targetPath: string): Promise<boolean> {
+    const relative = path.relative(
+      await realPath(targetPath),
+      await realPath(process.cwd())
+    );
+    return (
+      relative === '' ||
+      (!path.isAbsolute(relative) &&
+        relative !== '..' &&
+        !relative.startsWith(`..${path.sep}`))
+    );
+  }
+
+  /**
    * Every flag's value is checked here, before any prompt runs or anything on
    * disk changes, so a typo can never cost the user an emptied directory (#945).
    */
@@ -144,6 +314,11 @@ export class ProjectCreator {
     const validTemplates = TEMPLATES.map(t => t.name);
     if (options?.template && !validTemplates.includes(options.template)) {
       return `Invalid template: ${options.template}. Valid options are: ${validTemplates.join(', ')}`;
+    }
+
+    const validLinters = LINTERS.map(l => l.name);
+    if (options?.lint && !validLinters.includes(options.lint)) {
+      return `Invalid linter: ${options.lint}. Valid options are: ${validLinters.join(', ')}`;
     }
 
     const validFlavors = BULMA_FLAVORS.map(f => f.name);
@@ -160,13 +335,39 @@ export class ProjectCreator {
   }
 
   getTemplatePath(template: string): string {
-    return path.join(this.templatesDir, template);
+    const directory =
+      TEMPLATES.find(t => t.name === template)?.directory ?? template;
+    return path.join(this.templatesDir, directory);
   }
 
   async copyTemplate(template: string, targetPath: string): Promise<void> {
     const templatePath = this.getTemplatePath(template);
     await ensureDirectory(targetPath);
     await copyDirectory(templatePath, targetPath, TEMPLATE_RENAMES);
+
+    // A template that takes its starter page from another copies it in, so
+    // every template shows the same page, and a Next.js one adapts it.
+    const starter = templateNamed(template)?.starter;
+    if (!starter) return;
+    const ext = template.includes('-ts') ? 'tsx' : 'jsx';
+    const from = path.join(this.templatesDir, starter, 'src');
+    const to = path.join(targetPath, 'src');
+    for (const file of [`App.${ext}`, 'App.css', 'index.css']) {
+      await fs.copy(path.join(from, file), path.join(to, file));
+    }
+    if (isNext(template)) {
+      const appPath = path.join(to, `App.${ext}`);
+      let app = await fs.readFile(appPath, 'utf8');
+      for (const [pattern, replacement] of NEXT_STARTER_EDITS) {
+        if (!pattern.test(app)) {
+          throw new Error(
+            MESSAGES.STARTER_NOT_ADAPTED(starter, String(pattern))
+          );
+        }
+        app = app.replace(pattern, replacement);
+      }
+      await fs.writeFile(appPath, app);
+    }
   }
 
   async updateIndexHtmlTitle(
@@ -174,7 +375,10 @@ export class ProjectCreator {
     projectName: string
   ): Promise<void> {
     const indexHtmlPath = path.join(targetPath, 'index.html');
-    if (!fs.existsSync(indexHtmlPath)) return;
+    if (!fs.existsSync(indexHtmlPath)) {
+      await this.updateNextTitle(targetPath, projectName);
+      return;
+    }
 
     const htmlContent = await fs.readFile(indexHtmlPath, 'utf8');
     // projectName is validated against PROJECT_NAME_REGEX (letters, digits,
@@ -185,6 +389,27 @@ export class ProjectCreator {
     );
     if (updated !== htmlContent) {
       await fs.writeFile(indexHtmlPath, updated);
+    }
+  }
+
+  /**
+   * A Next.js app has no index.html: its title is the first `title` in its
+   * root layout's metadata. projectName holds only letters, digits, dots,
+   * dashes and underscores, so it needs no escaping in a string literal.
+   */
+  async updateNextTitle(
+    targetPath: string,
+    projectName: string
+  ): Promise<void> {
+    for (const ext of ['tsx', 'jsx']) {
+      const layoutPath = path.join(targetPath, 'src', 'app', `layout.${ext}`);
+      if (!fs.existsSync(layoutPath)) continue;
+      const layout = await fs.readFile(layoutPath, 'utf8');
+      const updated = layout.replace(
+        /^([ \t]*title: )'[^'\n]*',$/m,
+        `$1'${projectName}',`
+      );
+      if (updated !== layout) await fs.writeFile(layoutPath, updated);
     }
   }
 
@@ -212,6 +437,244 @@ export class ProjectCreator {
     await fs.writeFile(readmePath, readme);
   }
 
+  /**
+   * The templates ship create-vite's default lint setup, Oxlint. For ESLint,
+   * write what create-vite's `--eslint` writes in its place: the config, the
+   * packages and the lint script, and for TypeScript, TypeScript 6, since
+   * typescript-eslint can't load TypeScript 7 (#394).
+   */
+  async setupLinter(
+    targetPath: string,
+    linter: string,
+    template: string
+  ): Promise<void> {
+    if (linter !== 'eslint') return;
+    const isTypeScript = template.includes('-ts');
+    if (isNext(template)) {
+      await this.setupNextEslint(targetPath, isTypeScript);
+      return;
+    }
+
+    await fs.remove(path.join(targetPath, '.oxlintrc.json'));
+    await fs.writeFile(
+      path.join(targetPath, 'eslint.config.js'),
+      ESLINT_CONFIG(isTypeScript)
+    );
+
+    const packageJsonPath = path.join(targetPath, 'package.json');
+    if (fs.existsSync(packageJsonPath)) {
+      const packageJson = await fs.readJson(packageJsonPath);
+      const devDependencies: Record<string, string> = {
+        ...packageJson.devDependencies,
+        ...ESLINT_DEV_DEPENDENCIES,
+        ...(isTypeScript ? ESLINT_TYPESCRIPT_DEV_DEPENDENCIES : {}),
+      };
+      delete devDependencies.oxlint;
+      packageJson.devDependencies = sortedByName(devDependencies);
+      packageJson.scripts = { ...packageJson.scripts, lint: 'eslint .' };
+      await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
+    }
+
+    const readmePath = path.join(targetPath, 'README.md');
+    if (fs.existsSync(readmePath)) {
+      const readme = await fs.readFile(readmePath, 'utf8');
+      await fs.writeFile(readmePath, readme.replace(/\bOxlint\b/g, 'ESLint'));
+    }
+  }
+
+  /**
+   * ESLint for a Next.js app, as create-next-app sets it up: eslint-config-next
+   * in place of oxlint, and for TypeScript, TypeScript 6, since the config
+   * brings typescript-eslint, which can't load TypeScript 7.
+   */
+  async setupNextEslint(
+    targetPath: string,
+    isTypeScript: boolean
+  ): Promise<void> {
+    await fs.remove(path.join(targetPath, '.oxlintrc.json'));
+    await fs.writeFile(
+      path.join(targetPath, 'eslint.config.mjs'),
+      NEXT_ESLINT_CONFIG(isTypeScript)
+    );
+
+    const packageJsonPath = path.join(targetPath, 'package.json');
+    if (fs.existsSync(packageJsonPath)) {
+      const packageJson = await fs.readJson(packageJsonPath);
+      const devDependencies: Record<string, string> = {
+        ...packageJson.devDependencies,
+        ...NEXT_ESLINT_DEV_DEPENDENCIES,
+        ...(isTypeScript
+          ? { typescript: ESLINT_TYPESCRIPT_DEV_DEPENDENCIES.typescript }
+          : {}),
+      };
+      delete devDependencies.oxlint;
+      packageJson.devDependencies = sortedByName(devDependencies);
+      packageJson.scripts = { ...packageJson.scripts, lint: 'eslint' };
+      await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
+    }
+
+    const readmePath = path.join(targetPath, 'README.md');
+    if (fs.existsSync(readmePath)) {
+      const readme = await fs.readFile(readmePath, 'utf8');
+      await fs.writeFile(readmePath, readme.replace(/\bOxlint\b/g, 'ESLint'));
+    }
+  }
+
+  /**
+   * A React Compiler template is its plain template with the compiler turned
+   * on, the way create-vite builds its react-compiler starters: the Babel
+   * packages, the compiler preset in vite.config, and a README section.
+   */
+  async setupReactCompiler(
+    targetPath: string,
+    template: string
+  ): Promise<void> {
+    if (!TEMPLATES.find(t => t.name === template)?.reactCompiler) return;
+    const isTypeScript = template.includes('-ts');
+
+    const packageJsonPath = path.join(targetPath, 'package.json');
+    if (fs.existsSync(packageJsonPath)) {
+      const packageJson = await fs.readJson(packageJsonPath);
+      packageJson.devDependencies = sortedByName({
+        ...packageJson.devDependencies,
+        ...REACT_COMPILER_DEV_DEPENDENCIES,
+        ...(isTypeScript ? REACT_COMPILER_TYPESCRIPT_DEV_DEPENDENCIES : {}),
+      });
+      await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
+    }
+
+    const configFileName = isTypeScript ? 'vite.config.ts' : 'vite.config.js';
+    const configPath = path.join(targetPath, configFileName);
+    if (fs.existsSync(configPath)) {
+      const config = await fs.readFile(configPath, 'utf8');
+      const pluginImport =
+        /^import react from ['"]@vitejs\/plugin-react['"];?$/m;
+      const plugins = /^([ \t]*)plugins: \[react\(\)\],$/m;
+      if (pluginImport.test(config) && plugins.test(config)) {
+        await fs.writeFile(
+          configPath,
+          config
+            .replace(
+              pluginImport,
+              "import react, { reactCompilerPreset } from '@vitejs/plugin-react';\n" +
+                "import babel from '@rolldown/plugin-babel';"
+            )
+            .replace(
+              plugins,
+              '$1plugins: [react(), babel({ presets: [reactCompilerPreset()] })],'
+            )
+        );
+      } else {
+        console.log(
+          chalk.yellow(MESSAGES.REACT_COMPILER_NOT_ADDED(configFileName))
+        );
+      }
+    }
+
+    const readmePath = path.join(targetPath, 'README.md');
+    if (fs.existsSync(readmePath)) {
+      const readme = await fs.readFile(readmePath, 'utf8');
+      await fs.writeFile(
+        readmePath,
+        readme.replace(/\n*$/, '\n') + REACT_COMPILER_README
+      );
+    }
+  }
+
+  /**
+   * --immediate: install with the package manager that ran the CLI, then run
+   * the dev server in the foreground until it's stopped, as create-vite does.
+   * A failed install ends the run with its exit code, and so does the server.
+   * Its message names the cd into the project, since the next steps that
+   * would have named it weren't printed.
+   */
+  installAndStart(targetPath: string, targetDir: string, pm: string): void {
+    console.log(chalk.green(MESSAGES.INSTALLING(pm)));
+    const installed = runOrExit(`${pm} install`, targetPath);
+    if (installed !== 0) {
+      const cd = isCurrentDirectory(targetDir)
+        ? ''
+        : `cd ${quoteShellArgument(targetDir)}, then `;
+      displayError(MESSAGES.INSTALL_FAILED(pm, cd));
+      process.exit(installed);
+    }
+    console.log(chalk.green(MESSAGES.STARTING_DEV_SERVER));
+    process.exitCode = runOrExit(`${pm} run dev`, targetPath);
+  }
+
+  /**
+   * A router template is its plain template with the router's files copied
+   * over it from templates/overlays/<router>: a navbar layout, a second page
+   * and the routes, with App, the starter page, as the home page. The entry
+   * file then renders the router where it rendered App, inside any
+   * ConfigProvider the earlier steps wrapped App in, so a prefix or an icon
+   * library reaches every page. It runs after those steps, which edit the
+   * entry file and App as they do in the plain template.
+   */
+  async setupRouter(targetPath: string, template: string): Promise<void> {
+    const entry = TEMPLATES.find(t => t.name === template);
+    if (!entry?.router) return;
+    const setup = ROUTER_SETUPS[entry.router];
+    const ext = template.includes('-ts') ? 'tsx' : 'jsx';
+
+    await fs.copy(
+      path.join(this.templatesDir, 'overlays', entry.router, entry.directory),
+      targetPath
+    );
+
+    const packageJsonPath = path.join(targetPath, 'package.json');
+    if (fs.existsSync(packageJsonPath)) {
+      const packageJson = await fs.readJson(packageJsonPath);
+      packageJson.dependencies = sortedByName({
+        ...packageJson.dependencies,
+        ...setup.dependencies,
+      });
+      if (setup.nodeEngine) {
+        packageJson.engines = {
+          ...packageJson.engines,
+          node: setup.nodeEngine,
+        };
+      }
+      await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
+    }
+
+    const mainFileName = `main.${ext}`;
+    const mainPath = path.join(targetPath, 'src', mainFileName);
+    if (fs.existsSync(mainPath)) {
+      const main = await fs.readFile(mainPath, 'utf8');
+      const appImport = new RegExp(
+        `^import App from ['"]\\./App\\.${ext}['"];?$`,
+        'm'
+      );
+      const appElement = /<App\s*\/>/;
+      if (appImport.test(main) && appElement.test(main)) {
+        await fs.writeFile(
+          mainPath,
+          main
+            .replace(
+              appImport,
+              `import { RouterProvider } from '${setup.providerModule}';\n` +
+                `import { router } from './router.${ext}';`
+            )
+            .replace(appElement, '<RouterProvider router={router} />')
+        );
+      } else {
+        console.log(
+          chalk.yellow(MESSAGES.REACT_ROUTER_NOT_ADDED(`src/${mainFileName}`))
+        );
+      }
+    }
+
+    const readmePath = path.join(targetPath, 'README.md');
+    if (fs.existsSync(readmePath)) {
+      const readme = await fs.readFile(readmePath, 'utf8');
+      await fs.writeFile(
+        readmePath,
+        readme.replace(/\n*$/, '\n') + setup.readme(ext)
+      );
+    }
+  }
+
   async setupSkills(
     targetPath: string,
     projectName: string,
@@ -228,7 +691,7 @@ export class ProjectCreator {
     await fs.copy(skillsSrc, path.join(targetPath, '.claude', 'skills'));
     await fs.writeFile(
       path.join(targetPath, '.claude', 'launch.json'),
-      LAUNCH_JSON
+      options.framework === 'next' ? NEXT_LAUNCH_JSON : LAUNCH_JSON
     );
     await fs.writeFile(
       path.join(targetPath, 'CLAUDE.md'),
@@ -250,9 +713,7 @@ export class ProjectCreator {
       return;
     }
 
-    const isTypeScript = template.includes('-ts');
-    const mainFileName = isTypeScript ? 'main.tsx' : 'main.jsx';
-    const mainFilePath = path.join(targetPath, 'src', mainFileName);
+    const mainFilePath = path.join(targetPath, entryFile(template));
 
     if (fs.existsSync(mainFilePath)) {
       let content = await fs.readFile(mainFilePath, 'utf8');
@@ -383,7 +844,37 @@ export class ProjectCreator {
     if (!library) return;
 
     // Special handling for ionicons - add to index.html instead of package.json
-    if (iconLibrary === 'ionicons') {
+    if (iconLibrary === 'ionicons' && isNext(template)) {
+      // A Next.js app has no index.html, so its root layout loads the script
+      // through next/script, from the same pinned URL.
+      const layoutPath = path.join(targetPath, entryFile(template));
+      if (fs.existsSync(layoutPath)) {
+        const layout = await fs.readFile(layoutPath, 'utf8');
+        const navigationImport =
+          /^import Navigation from '\.\.\/Navigation';$/m;
+        const body = /^([ \t]*)<body>$/m;
+        if (navigationImport.test(layout) && body.test(layout)) {
+          await fs.writeFile(
+            layoutPath,
+            layout
+              .replace(
+                navigationImport,
+                "$&\nimport Script from 'next/script';"
+              )
+              .replace(
+                body,
+                `$&\n$1  <Script type="module" src="${IONICONS_URL}" />`
+              )
+          );
+        } else {
+          console.log(
+            chalk.yellow(
+              MESSAGES.IONICONS_NOT_ADDED(entryFile(template), IONICONS_URL)
+            )
+          );
+        }
+      }
+    } else if (iconLibrary === 'ionicons') {
       const indexHtmlPath = path.join(targetPath, 'index.html');
       if (fs.existsSync(indexHtmlPath)) {
         let htmlContent = await fs.readFile(indexHtmlPath, 'utf8');
@@ -396,7 +887,7 @@ export class ProjectCreator {
           // loader dynamically imports per-icon chunks that cannot carry
           // integrity hashes, so entry-file SRI would give false assurance.
           const ioniconScripts = `    <!-- Ionicons (v8 is ESM-only; no legacy nomodule fallback exists) -->
-    <script type="module" src="https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.esm.js"></script>
+    <script type="module" src="${IONICONS_URL}"></script>
   `;
           htmlContent =
             htmlContent.slice(0, insertPosition) +
@@ -425,9 +916,7 @@ export class ProjectCreator {
 
         // Add import statement to main file
         if (library.importStatement) {
-          const isTypeScript = template.includes('-ts');
-          const mainFileName = isTypeScript ? 'main.tsx' : 'main.jsx';
-          const mainFilePath = path.join(targetPath, 'src', mainFileName);
+          const mainFilePath = path.join(targetPath, entryFile(template));
 
           if (fs.existsSync(mainFilePath)) {
             let content = await fs.readFile(mainFilePath, 'utf8');
@@ -452,7 +941,7 @@ export class ProjectCreator {
               console.log(
                 chalk.yellow(
                   MESSAGES.ICON_CSS_NOT_ADDED(
-                    `src/${mainFileName}`,
+                    entryFile(template),
                     library.importStatement
                   )
                 )
@@ -541,9 +1030,7 @@ export class ProjectCreator {
     // Only add ConfigProvider if we need prefix or non-default icon library
     if (!needsPrefix && !needsIconLibrary) return;
 
-    const isTypeScript = template.includes('-ts');
-    const mainFileName = isTypeScript ? 'main.tsx' : 'main.jsx';
-    const mainFilePath = path.join(targetPath, 'src', mainFileName);
+    const mainFilePath = path.join(targetPath, entryFile(template));
 
     if (fs.existsSync(mainFilePath)) {
       let content = await fs.readFile(mainFilePath, 'utf8');
@@ -551,6 +1038,21 @@ export class ProjectCreator {
       // Add ConfigProvider import from bestax-bulma
       const configProviderImport =
         "import { ConfigProvider } from '@allxsmith/bestax-bulma';";
+
+      // A Next.js root layout has no App to wrap: the provider goes around
+      // everything in <body>, so the navbar and every page are inside it.
+      // bestax marks it 'use client', so the server layout can render it.
+      if (isNext(template)) {
+        await fs.writeFile(
+          mainFilePath,
+          wrapNextBody(
+            content,
+            configProviderImport,
+            configPropsFor(flavor, iconLibrary)
+          )
+        );
+        return;
+      }
 
       // Check if ConfigProvider is already imported
       if (!content.includes('ConfigProvider')) {
@@ -569,19 +1071,7 @@ export class ProjectCreator {
         }
       }
 
-      // Build ConfigProvider props
-      const configProps: string[] = [];
-      if (needsPrefix) {
-        configProps.push('classPrefix="bestax-"');
-      }
-      if (needsIconLibrary) {
-        // Shared with the CLAUDE_MD template so the generated docs always
-        // name the same provider value the scaffolder writes here.
-        const iconLibraryValue = CONFIG_PROVIDER_ICON_VALUES[iconLibrary];
-        if (iconLibraryValue) {
-          configProps.push(`iconLibrary="${iconLibraryValue}"`);
-        }
-      }
+      const configProps = configPropsFor(flavor, iconLibrary);
 
       // Wrap <App /> with ConfigProvider in the render call
       const appRegex = /<App\s*\/>/;
@@ -615,6 +1105,9 @@ export class ProjectCreator {
       return; // TypeScript flow control
     }
 
+    // An absolute path is used as it is and a relative one from the working
+    // directory. Its last segment names the package and the page title, and
+    // copyTemplate creates it and any missing parent after the last prompt.
     const targetPath = path.resolve(process.cwd(), targetDir);
     const projectName = path.basename(targetPath);
 
@@ -638,6 +1131,23 @@ export class ProjectCreator {
     } else {
       template = await promptTemplate();
       if (!template) {
+        displayCancelled();
+        process.exit(1);
+      }
+    }
+
+    // Select linter (use option or prompt). The question is newer than the
+    // others, so a run without a terminal that answers every other one by
+    // flag takes the default here rather than stopping, as it did before the
+    // question existed (#192).
+    let linter: string | null;
+    if (options?.lint) {
+      linter = options.lint;
+    } else if (options?.yes || !process.stdin.isTTY) {
+      linter = 'oxlint'; // default linter
+    } else {
+      linter = await promptLinter();
+      if (linter === null) {
         displayCancelled();
         process.exit(1);
       }
@@ -685,7 +1195,26 @@ export class ProjectCreator {
       }
     }
 
+    // Install and start now? (use option -> no under -y or without a
+    // terminal, so a scripted run never starts a server it can't stop -> prompt)
+    const pm = detectPackageManager();
+    let immediate: boolean | null;
+    if (options?.immediate !== undefined) {
+      immediate = options.immediate;
+    } else if (options?.yes || !process.stdin.isTTY) {
+      immediate = false;
+    } else {
+      immediate = await promptImmediate(pm);
+      if (immediate === null) {
+        displayCancelled();
+        process.exit(1);
+      }
+    }
+
     try {
+      // Read before the directory is emptied, so a failed read costs nothing.
+      const libraryDependency = { [LIBRARY]: libraryRange() };
+
       if (directoryPlan === 'overwrite') {
         console.log(chalk.yellow(MESSAGES.EMPTYING_DIRECTORY(targetDir)));
         await emptyDirectory(targetPath);
@@ -700,7 +1229,7 @@ export class ProjectCreator {
       }
 
       await this.copyTemplate(template, targetPath);
-      await updatePackageJson(targetPath, packageName);
+      await updatePackageJson(targetPath, packageName, libraryDependency);
       await this.updateIndexHtmlTitle(targetPath, projectName);
       await this.updateReadme(targetPath, iconLibrary);
       await this.setupBulmaFlavor(targetPath, bulmaFlavor, template);
@@ -711,13 +1240,18 @@ export class ProjectCreator {
         iconLibrary,
         template
       );
+      await this.setupLinter(targetPath, linter, template);
+      await this.setupReactCompiler(targetPath, template);
+      await this.setupRouter(targetPath, template);
       if (installSkills) {
         await this.setupSkills(targetPath, projectName, {
           bulmaFlavor,
           iconLibrary,
+          router: TEMPLATES.find(t => t.name === template)?.router,
+          framework: isNext(template) ? 'next' : 'vite',
         });
       }
-      displaySuccess(targetDir);
+      displaySuccess(targetDir, immediate);
       await this.handleTelemetry(options, {
         template,
         bulmaFlavor,
@@ -727,6 +1261,11 @@ export class ProjectCreator {
     } catch (error) {
       displayError((error as Error).message);
       process.exit(1);
+    }
+
+    // Last, since the dev server holds the terminal until it's stopped.
+    if (immediate) {
+      this.installAndStart(targetPath, targetDir, pm);
     }
   }
 

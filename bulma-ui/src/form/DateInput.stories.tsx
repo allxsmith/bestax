@@ -7,6 +7,11 @@ import { Field } from './Field';
 import { Control } from './Control';
 import { Block } from '../elements/Block';
 import { Paragraph } from '../elements/Paragraph';
+import { LocaleProvider } from '../helpers/LocaleProvider';
+import { TimeInput } from './TimeInput';
+import { DateTimeInput } from './DateTimeInput';
+import { DateRangeInput } from './DateRangeInput';
+import { Button } from '../elements/Button';
 
 const meta: Meta<typeof DateInput> = {
   title: 'Form/DateInput',
@@ -209,6 +214,21 @@ export const FirstDayOfWeek: Story = {
   },
 };
 
+export const RightToLeft: Story = {
+  render: () => (
+    <LocaleProvider locale="ar" dir="rtl">
+      <Block>
+        <DateInput label="التاريخ" mobileNative={false} />
+        <TimeInput label="الوقت" />
+        <DateTimeInput label="التاريخ والوقت" mobileNative={false} />
+        <DateRangeInput label="المدى" mobileNative={false} />
+        {/* A picker of the other direction keeps its icon and launcher apart. */}
+        <DateInput label="Date" locale="fr" mobileNative={false} />
+      </Block>
+    </LocaleProvider>
+  ),
+};
+
 export const Locale: Story = {
   render: () => (
     <Block>
@@ -337,6 +357,7 @@ export const MobileNative: Story = {
 export const HorizontalField: Story = {
   args: {
     label: 'Date of birth',
+    autoComplete: 'bday',
     horizontal: true,
     placeholder: 'YYYY-MM-DD',
   },
@@ -646,6 +667,7 @@ export const ManualEntryColors: Story = {
 export const ManualEntryHorizontalField: Story = {
   args: {
     label: 'Date of birth',
+    autoComplete: 'bday',
     horizontal: true,
     placeholder: 'YYYY-MM-DD',
     openOnFocus: false,
@@ -913,9 +935,9 @@ export const InForm: Story = {
           defaultValue={new Date()}
         />
         <Block>
-          <button type="submit" className="button is-primary">
+          <Button type="submit" color="primary">
             Submit
-          </button>
+          </Button>
         </Block>
         {submitted !== null && (
           <Paragraph>Submitted booking={submitted}</Paragraph>

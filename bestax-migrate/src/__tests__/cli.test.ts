@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { vi, type Mock } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -37,7 +37,7 @@ const originalStdinTTY = Object.getOwnPropertyDescriptor(
   'isTTY'
 );
 
-let fetchMock: jest.Mock;
+let fetchMock: Mock;
 
 type FetchArgs = [
   string,
@@ -65,7 +65,7 @@ beforeEach(() => {
   const configHome = fs.mkdtempSync(path.join(os.tmpdir(), 'bestax-cli-cfg-'));
   tempDirs.push(configHome);
   process.env.XDG_CONFIG_HOME = configHome;
-  fetchMock = jest.fn(async () => new Response(null, { status: 204 }));
+  fetchMock = vi.fn(async () => new Response(null, { status: 204 }));
   globalThis.fetch = fetchMock as unknown as typeof fetch;
   setTTY(process.stdout, false);
   setTTY(process.stdin, false);
@@ -139,9 +139,29 @@ function makeTempProject(): string {
   return dir;
 }
 
-async function runCli(
+/**
+ * Runs `program` and hands back the exit code it left, restoring the
+ * process's own: a code left set would become the test run's.
+ */
+async function exitCodeOf(
+  program: ReturnType<typeof createCLI>,
   args: string[]
-): Promise<{ logs: string[]; errors: string[] }> {
+): Promise<typeof process.exitCode> {
+  const original = process.exitCode;
+  process.exitCode = undefined;
+  try {
+    await program.parseAsync(['node', 'bestax-migrate', ...args]);
+    return process.exitCode;
+  } finally {
+    process.exitCode = original;
+  }
+}
+
+async function runCli(args: string[]): Promise<{
+  logs: string[];
+  errors: string[];
+  exitCode: typeof process.exitCode;
+}> {
   const logs: string[] = [];
   const errors: string[] = [];
   const program = createCLI({
@@ -149,8 +169,8 @@ async function runCli(
     error: m => errors.push(m),
   });
   program.exitOverride();
-  await program.parseAsync(['node', 'bestax-migrate', ...args]);
-  return { logs, errors };
+  const exitCode = await exitCodeOf(program, args);
+  return { logs, errors, exitCode };
 }
 
 describe('collectFiles', () => {
@@ -170,6 +190,16 @@ describe('collectFiles', () => {
     expect(() => collectFiles(['/definitely/not/here'], ['ts'])).toThrow(
       /no such file or directory/
     );
+  });
+
+  it('takes a named file of an extension it is told to, wherever a walk would not', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bestax-collect-'));
+    tempDirs.push(dir);
+    fs.writeFileSync(path.join(dir, 'a.html'), '');
+    fs.writeFileSync(path.join(dir, 'b.html'), '');
+    const named = path.join(dir, 'a.html');
+    expect(collectFiles([named, dir], ['tsx'], ['html'])).toEqual([named]);
+    expect(collectFiles([named], ['tsx'])).toEqual([]);
   });
 });
 
@@ -416,6 +446,257 @@ describe('the bulma-classes source', () => {
   });
 });
 
+describe('HTML pages', () => {
+  const page = (body: string) =>
+    `<!DOCTYPE html>\n<html lang="en">\n<head><title>T</title></head>\n<body>\n${body}\n</body>\n</html>\n`;
+  const bulmaPage = page(
+    '  <section class="section"><div class="box">x</div></section>'
+  );
+  // Vite's shell: no Bulma component class, so nothing to convert.
+  const shell = page('  <div id="root"></div>');
+
+  function site(files: Record<string, string>): string {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bestax-migrate-html-'));
+    tempDirs.push(dir);
+    for (const [file, content] of Object.entries(files)) {
+      fs.mkdirSync(path.dirname(path.join(dir, file)), { recursive: true });
+      fs.writeFileSync(path.join(dir, file), content);
+    }
+    return dir;
+  }
+
+  async function failingCli(args: string[]): Promise<string[]> {
+    const errors: string[] = [];
+    const program = createCLI({ log: () => {}, error: m => errors.push(m) });
+    program.exitOverride();
+    await expect(
+      program.parseAsync(['node', 'bestax-migrate', ...args])
+    ).rejects.toThrow();
+    return errors;
+  }
+
+  it('converts a named page into a module beside it, and leaves the page alone', async () => {
+    const dir = site({ 'pages/about.html': bulmaPage });
+    const named = path.join(dir, 'pages', 'about.html');
+    const { logs } = await runCli(['bulma-classes', named, '--no-deps']);
+    const written = fs.readFileSync(
+      path.join(dir, 'pages', 'about.jsx'),
+      'utf8'
+    );
+    expect(written).toContain('export default function AboutPage() {');
+    expect(written).toContain('<Section>');
+    expect(fs.readFileSync(named, 'utf8')).toBe(bulmaPage);
+    const text = logs.join('\n');
+    expect(text).toContain(`Wrote ${path.join(dir, 'pages', 'about.jsx')}`);
+    // The report names the page and its line.
+    expect(text).toContain(`${named}:2`);
+    expect(text).toContain('html-document:lang');
+    expect(text).toMatch(/1 transformed/);
+  });
+
+  it("names the folder walk's top index.html the home page, and a section's after its folder", async () => {
+    const dir = site({
+      'index.html': bulmaPage,
+      'about.html': bulmaPage,
+      'docs/index.html': bulmaPage,
+      'docs/api.html': bulmaPage,
+    });
+    await runCli(['bulma-classes', dir, '-e', 'html', '--no-deps']);
+    const exported = (file: string) =>
+      /export default function (\w+)/.exec(
+        fs.readFileSync(path.join(dir, file), 'utf8')
+      )?.[1];
+    expect(exported('index.jsx')).toBe('HomePage');
+    expect(exported(path.join('docs', 'index.jsx'))).toBe('DocsPage');
+    expect(exported('about.jsx')).toBe('AboutPage');
+  });
+
+  it('writes .tsx where the package says TypeScript', async () => {
+    const dir = site({
+      'package.json': JSON.stringify({
+        name: 'a',
+        devDependencies: { typescript: '^5.0.0' },
+      }),
+      'index.html': bulmaPage,
+    });
+    await runCli(['bulma-classes', path.join(dir, 'index.html'), '--no-deps']);
+    expect(fs.existsSync(path.join(dir, 'index.tsx'))).toBe(true);
+    expect(fs.existsSync(path.join(dir, 'index.jsx'))).toBe(false);
+  });
+
+  it('walks pages only under -e html, and says so for the Bulma ones it skipped', async () => {
+    const dir = site({
+      'pages/home.html': bulmaPage,
+      'pages/legacy.htm': bulmaPage,
+      'index.html': shell,
+    });
+    const { logs } = await runCli(['bulma-classes', dir, '--no-deps']);
+    const text = logs.join('\n');
+    expect(text).toContain('html-file:not-included (2)');
+    expect(text).toContain(`${path.join(dir, 'pages', 'home.html')}:5`);
+    expect(text).not.toContain(path.join(dir, 'index.html'));
+    expect(fs.existsSync(path.join(dir, 'pages', 'home.jsx'))).toBe(false);
+
+    const walked = await runCli([
+      'bulma-classes',
+      '-e',
+      'html,htm',
+      dir,
+      '--no-deps',
+    ]);
+    expect(walked.logs.join('\n')).not.toContain('not-included');
+    expect(fs.existsSync(path.join(dir, 'pages', 'home.jsx'))).toBe(true);
+    expect(fs.existsSync(path.join(dir, 'pages', 'legacy.jsx'))).toBe(true);
+    // Vite's shell has no Bulma component class, so nothing is written.
+    expect(fs.existsSync(path.join(dir, 'index.jsx'))).toBe(false);
+  });
+
+  it('tells a .htm page left out of an -e html walk the extension it needs', async () => {
+    const dir = site({
+      'pages/home.html': bulmaPage,
+      'pages/legacy.htm': bulmaPage,
+    });
+    const { logs } = await runCli([
+      'bulma-classes',
+      '-e',
+      'html',
+      dir,
+      '--no-deps',
+    ]);
+    const text = logs.join('\n');
+    // `-e` matches an extension exactly: html took home.html, not legacy.htm.
+    expect(fs.existsSync(path.join(dir, 'pages', 'home.jsx'))).toBe(true);
+    expect(fs.existsSync(path.join(dir, 'pages', 'legacy.jsx'))).toBe(false);
+    expect(text).toContain('html-file:not-included (1)');
+    expect(text).toContain(`${path.join(dir, 'pages', 'legacy.htm')}:5`);
+    expect(text).toContain("it doesn't list `htm`");
+    expect(text).toContain('(`-e htm` for the pages alone)');
+    expect(text).not.toContain('`-e html`');
+  });
+
+  it('never writes over a module already there, so a second run changes nothing', async () => {
+    const dir = site({ 'home.html': bulmaPage });
+    const named = path.join(dir, 'home.html');
+    await runCli(['bulma-classes', named, '--no-deps']);
+    const first = fs.readFileSync(path.join(dir, 'home.jsx'), 'utf8');
+    const { logs } = await runCli(['bulma-classes', named, '--no-deps']);
+    const text = logs.join('\n');
+    expect(text).toContain('html-file:exists');
+    expect(text).toMatch(/0 transformed/);
+    expect(fs.readFileSync(path.join(dir, 'home.jsx'), 'utf8')).toBe(first);
+  });
+
+  it('says what it would write under --dry, and prints the module under --print', async () => {
+    const dir = site({ 'home.html': bulmaPage });
+    const named = path.join(dir, 'home.html');
+    const { logs } = await runCli([
+      'bulma-classes',
+      named,
+      '--dry',
+      '--print',
+      '--no-deps',
+    ]);
+    const text = logs.join('\n');
+    expect(text).toContain('export default function HomePage() {');
+    expect(text).toContain(`Would write ${path.join(dir, 'home.jsx')}`);
+    expect(fs.existsSync(path.join(dir, 'home.jsx'))).toBe(false);
+  });
+
+  it("reads the module's stylesheet import for the manifest, as it reads a JSX file's", async () => {
+    const linked = (css: string) => {
+      const dir = site({
+        'package.json': JSON.stringify({
+          name: 'a',
+          dependencies: { react: '^18.2.0' },
+        }),
+        'home.html': bulmaPage.replace(
+          '</head>',
+          '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css"></head>'
+        ),
+      });
+      return { dir, css };
+    };
+    const run = async ({ dir, css }: { dir: string; css: string }) => {
+      await runCli([
+        'bulma-classes',
+        path.join(dir, 'home.html'),
+        '--css',
+        css,
+      ]);
+      return {
+        module: fs.readFileSync(path.join(dir, 'home.jsx'), 'utf8'),
+        deps: JSON.parse(
+          fs.readFileSync(path.join(dir, 'package.json'), 'utf8')
+        ).dependencies,
+      };
+    };
+    // The module imports bulma/…, so the app declares `bulma`.
+    const bulma = await run(linked('bulma'));
+    expect(bulma.module).toContain('import "bulma/css/bulma.min.css";');
+    expect(bulma.deps.bulma).toMatch(/^\^1\./);
+    // bestax's bundle arrives with bestax-bulma, so no `bulma` is added.
+    const bestax = await run(linked('bestax'));
+    expect(bestax.module).toContain(
+      'import "@allxsmith/bestax-bulma/bestax.css";'
+    );
+    expect(bestax.deps).not.toHaveProperty('bulma');
+  });
+
+  it('refuses a server template', async () => {
+    const dir = site({
+      'home.html': page('<div class="box">{{ name }}</div>'),
+    });
+    const { logs } = await runCli([
+      'bulma-classes',
+      path.join(dir, 'home.html'),
+      '--no-deps',
+    ]);
+    expect(logs.join('\n')).toContain('html-file:template-syntax');
+    expect(fs.existsSync(path.join(dir, 'home.jsx'))).toBe(false);
+  });
+
+  it('reports a page that fails to convert and carries on', async () => {
+    const pages: MigrationSource = {
+      name: 'fake-pages',
+      label: 'Fake pages',
+      packageName: null,
+      transform: () => undefined,
+      htmlExtensions: ['html'],
+      transformHtml: file => {
+        if (file.endsWith('a.html')) throw new Error('cannot read it');
+        return { outputPath: file.replace(/html$/, 'jsx'), output: 'x\n' };
+      },
+    };
+    SOURCES[pages.name] = pages;
+    try {
+      const dir = site({ 'a.html': bulmaPage, 'b.html': bulmaPage });
+      const { logs, errors, exitCode } = await runCli([
+        'fake-pages',
+        path.join(dir, 'a.html'),
+        path.join(dir, 'b.html'),
+      ]);
+      expect(errors.join('\n')).toContain('a.html: cannot read it');
+      expect(fs.readFileSync(path.join(dir, 'b.jsx'), 'utf8')).toBe('x\n');
+      expect(logs.join('\n')).toContain('1 transformed, 1 failed');
+      expect(exitCode).toBe(1);
+    } finally {
+      delete SOURCES[pages.name];
+    }
+  });
+
+  it('refuses a page, or -e html, for a source that reads no HTML', async () => {
+    const dir = site({ 'home.html': bulmaPage });
+    const named = await failingCli([
+      'react-bulma-components',
+      path.join(dir, 'home.html'),
+    ]);
+    expect(named.join('\n')).toMatch(/reads no HTML pages[\s\S]*bulma-classes/);
+    const walked = await failingCli(['rbx', '-e', 'tsx,html', dir]);
+    expect(walked.join('\n')).toContain('reads no HTML pages (html)');
+    expect(fs.existsSync(path.join(dir, 'home.jsx'))).toBe(false);
+  });
+});
+
 describe('a source with no package', () => {
   const seen: DepsOptions[] = [];
   const markupSource: MigrationSource = {
@@ -497,15 +778,83 @@ describe('CLI', () => {
     expect(logs.join('\n')).toContain('(dry run)');
   });
 
-  it('reports files that fail to parse and continues', async () => {
+  it('still writes under --print without --dry, as its help says', async () => {
     const dir = makeTempProject();
-    fs.writeFileSync(path.join(dir, 'src', 'broken.tsx'), 'const = <<>;\n');
-    const { logs, errors } = await runCli([
+    const before = fs.readFileSync(path.join(dir, 'src', 'App.tsx'), 'utf8');
+    const { logs } = await runCli([
+      'react-bulma-components',
+      path.join(dir, 'src'),
+      '--print',
+    ]);
+    const after = fs.readFileSync(path.join(dir, 'src', 'App.tsx'), 'utf8');
+    expect(after).not.toBe(before);
+    expect(logs.join('\n')).toContain(after.trim());
+    const print = createCLI().options.find(option => option.long === '--print');
+    expect(print?.description).toContain('still writes them unless --dry');
+  });
+
+  it('reports files that fail to parse, continues, and exits 1', async () => {
+    const dir = makeTempProject();
+    const broken = path.join(dir, 'src', 'broken.tsx');
+    fs.writeFileSync(broken, 'const = <<>;\n');
+    const { logs, errors, exitCode } = await runCli([
       'react-bulma-components',
       path.join(dir, 'src'),
     ]);
-    expect(errors.join('\n')).toContain('broken.tsx');
-    expect(logs.join('\n')).toContain('3 transformed');
+    expect(errors.join('\n')).toContain(`✖ ${broken}: `);
+    const text = logs.join('\n');
+    expect(text).toContain('3 transformed, 1 failed');
+    expect(text).toContain(`failed (1)\n    ${broken} — `);
+    expect(text).toContain('fix each one and run the codemod on it again');
+    expect(fs.readFileSync(broken, 'utf8')).toBe('const = <<>;\n');
+    expect(fs.readFileSync(path.join(dir, 'src', 'App.tsx'), 'utf8')).toContain(
+      '@allxsmith/bestax-bulma'
+    );
+    expect(exitCode).toBe(1);
+  });
+
+  it('exits 1 under --dry too, and 0 once every file migrates', async () => {
+    const dir = makeTempProject();
+    const broken = path.join(dir, 'src', 'broken.tsx');
+    fs.writeFileSync(broken, 'const = <<>;\n');
+    const dry = await runCli([
+      'react-bulma-components',
+      path.join(dir, 'src'),
+      '--dry',
+    ]);
+    expect(dry.exitCode).toBe(1);
+    fs.writeFileSync(broken, 'export const fixed = 1;\n');
+    const { logs, exitCode } = await runCli([
+      'react-bulma-components',
+      path.join(dir, 'src'),
+    ]);
+    expect(logs.join('\n')).not.toContain('failed');
+    expect(exitCode).toBeUndefined();
+  });
+
+  it('exits 1 for a package.json it cannot read, after the sources', async () => {
+    const dir = makeTempProject();
+    fs.writeFileSync(path.join(dir, 'package.json'), '{ not json\n');
+    const { logs, errors, exitCode } = await runCli([
+      'react-bulma-components',
+      path.join(dir, 'src'),
+    ]);
+    expect(errors.join('\n')).toContain(
+      `✖ ${path.join(dir, 'package.json')}: `
+    );
+    expect(logs.join('\n')).toContain('2 transformed, 1 failed');
+    expect(logs.join('\n')).not.toContain('Updated ');
+    expect(exitCode).toBe(1);
+  });
+
+  it('documents its exit codes in --help', () => {
+    const program = createCLI();
+    let help = '';
+    program.configureOutput({ writeOut: text => (help += text) });
+    program.exitOverride();
+    expect(() => program.parse(['node', 'bestax-migrate', '--help'])).toThrow();
+    expect(help).toContain('Exit codes:');
+    expect(help).toMatch(/^ {2}1 +a file could not be parsed or transformed/m);
   });
 
   it('migrates SCSS files and updates package.json dependencies', async () => {
@@ -704,6 +1053,22 @@ describe('CLI telemetry', () => {
     process.env.DO_NOT_TRACK = '1';
     const dir = makeTempProject();
     await runCli(['react-bulma-components', path.join(dir, 'src')]);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('a run with a failed file', () => {
+  it('ends at its report: no nudge, no prompt and no telemetry', async () => {
+    setTTY(process.stdout, true);
+    const dir = makeTempProject();
+    fs.writeFileSync(path.join(dir, 'src', 'broken.tsx'), 'const = <<>;\n');
+    const { logs, exitCode } = await runCli([
+      'react-bulma-components',
+      path.join(dir, 'src'),
+      '--telemetry',
+    ]);
+    expect(exitCode).toBe(1);
+    expect(logs.join('\n')).not.toContain('star us on GitHub');
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });

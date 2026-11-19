@@ -1,11 +1,17 @@
 import React, { forwardRef, useState, useCallback, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import type { JSX } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useInsideField, useInsideControl } from './FormContext';
+import {
+  useFieldsetDisabled,
+  useInsideField,
+  useInsideControl,
+} from './FormContext';
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
+import { useFieldMessage } from './useFieldMessage';
 
 /** Valid sizes for the Numberinput component. */
 export type NumberinputSize = 'small' | 'medium' | 'large';
@@ -31,8 +37,24 @@ export type NumberinputControlsPosition = 'left' | 'right' | 'both';
 /** Visual variant for the Numberinput controls. */
 export type NumberinputVariant = 'plusminus' | 'stepper';
 
+/** The buttons' names, in your app's language. */
+export interface NumberinputLabels {
+  /**
+   * Names the button that raises the value. An empty string counts as none.
+   * @defaultValue 'Increase value'
+   */
+  increase?: string;
+  /**
+   * Names the button that lowers the value. An empty string counts as none.
+   * @defaultValue 'Decrease value'
+   */
+  decrease?: string;
+}
+
 /**
  * Props for the Numberinput component.
+ * @helperProps Helper props go on the outer `.numberinput` `<div>`, with
+ * `className`. The other attributes go on the `<input>`.
  * @extraProp {string} [className] - Additional CSS classes.
  * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the input element.
  */
@@ -51,19 +73,19 @@ export interface NumberinputProps
     [key: string]: unknown;
   };
   /** Controlled value. */
-  value?: number;
+  value?: number | undefined;
   /** Default value for uncontrolled usage. */
-  defaultValue?: number;
+  defaultValue?: number | undefined;
   /** Minimum allowed value. */
-  min?: number;
+  min?: number | undefined;
   /** Maximum allowed value. */
-  max?: number;
+  max?: number | undefined;
   /** Step increment (default: 1). */
-  step?: number;
+  step?: number | undefined;
   /** Size variant. */
-  size?: NumberinputSize;
+  size?: NumberinputSize | undefined;
   /** Color variant for buttons. */
-  color?: NumberinputColor;
+  color?: NumberinputColor | undefined;
   /** Color of the input field itself. */
   inputColor?: NumberinputInputColor;
   /** Position of +/- buttons. */
@@ -77,15 +99,24 @@ export interface NumberinputProps
    * they join the row of a `Field` with `hasAddons` or `grouped` they sit
    * in. On by default inside a `Field`, unless a `Control` is anywhere above
    * it: a `Control` stacks its children, so there the controls keep their
-   * own row.
+   * own row. Bare plusminus controls render no `message`, so put help text
+   * after that row yourself.
    * @defaultValue auto
    */
   bare?: boolean;
   /** Style variant for the control buttons. */
   variant?: NumberinputVariant;
+  /** The buttons' names, in your app's language, in both variants. */
+  labels?: NumberinputLabels;
   /** Whether the input is disabled. */
-  disabled?: boolean;
-  /** Whether the input can be typed in. */
+  disabled?: boolean | undefined;
+  /**
+   * Whether the input can be typed in. With `false` the input is `readOnly`,
+   * so nothing can be typed or pasted, but the arrow keys and the buttons
+   * still change the value, and a screen reader announces the field as
+   * read-only all the same. Say that the buttons set it in its label, or in
+   * its `message` where it renders one.
+   */
   editable?: boolean;
   /**
    * Shows a loading spinner on the input's control.
@@ -94,13 +125,35 @@ export interface NumberinputProps
    * Use this rather than `isLoading` on a `Control` around the Numberinput:
    * that spinner sits at the `Control`'s right edge, on top of whichever
    * button is there, while this one stays inside the input.
+   * The spinner is only drawn, so a screen reader hears nothing of it. Say
+   * that the field is loading in its `message` as well, where it renders
+   * one, or in text you tie to the input with `aria-describedby`, which a
+   * screen reader reads when the input takes focus.
+   * A load that starts while the user is in the field, such as a search as
+   * they type, isn't reliably heard without a live region, such as a
+   * `role="status"` element.
    */
   isLoading?: boolean;
   /** Enables exponential step increments when holding buttons. */
   exponential?: boolean;
-  /** Callback when value changes. */
-  onChange?: (value: number) => void;
+  /**
+   * Called with the new value, within `min` and `max`. While the field is
+   * edited it isn't called for a number typed outside them, such as the `2`
+   * of `25` when `min` is 10: Enter or leaving the field clamps that number
+   * and calls it, and a step toward `min` and `max` calls it with the nearer
+   * one, while a step away from them does nothing. It isn't called either while the field is empty or holds text
+   * that isn't a number yet, such as a lone `-`: Enter or leaving the field
+   * puts the last value back, and a step starts from the last value.
+   */
+  onChange?: ((value: number) => void) | undefined;
 }
+
+// The buttons are out of the Tab order, and a pointer press on one leaves
+// focus where it was, in the input when it had it, so the arrow keys keep
+// working and a button that disables at `min` or `max` takes no focus with it
+// (#1971). A press on a disabled one blurs the input, as a press on any text
+// does.
+const keepFocus = (event: React.MouseEvent) => event.preventDefault();
 
 const ArrowDropUp = () => (
   <svg
@@ -169,7 +222,8 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
       compact = false,
       bare,
       variant = 'plusminus',
-      disabled = false,
+      labels,
+      disabled: disabledProp,
       editable = true,
       isLoading = false,
       exponential = false,
@@ -179,6 +233,7 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
     },
     ref
   ) => {
+    const disabled = useFieldsetDisabled(disabledProp);
     const insideField = useInsideField();
     // Bare controls join their parent's row, which a `.control` does not lay
     // out. `useInsideControl()` is true anywhere below a `Control`, even past
@@ -194,6 +249,21 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
     // Determine if controlled
     const isControlled = controlledValue !== undefined;
     const currentValue = isControlled ? controlledValue : internalValue;
+
+    // What the field holds while it's edited, when that isn't a value to
+    // report: no number, which a number input reports as '' (empty, or a
+    // lone `-`), or a number outside `min` and `max`, such as the `2` of `25`
+    // when `min` is 10. Without it React wrote the last value, or the clamped
+    // one, straight back, so the field couldn't be cleared to retype (#1976)
+    // or take a number typed digit by digit (#2110). A value from a number in
+    // range, a step that moves or outside ends it, and so do Enter and
+    // leaving the field.
+    const [draft, setDraft] = useState<{
+      over: number | undefined;
+      text: string;
+    } | null>(null);
+    if (draft && draft.over !== currentValue) setDraft(null);
+    const draftNumber = draft ? parseFloat(draft.text) : NaN;
 
     // Layout mode
     const isStepper = variant === 'stepper';
@@ -223,6 +293,7 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
     const updateValue = useCallback(
       (newValue: number) => {
         const clampedValue = clampValue(newValue);
+        setDraft(null);
         if (!isControlled) {
           setInternalValue(clampedValue);
         }
@@ -231,31 +302,66 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
       [isControlled, clampValue, onChange]
     );
 
+    // Ends the draft before a caller's handler, or a form, reads the field:
+    // a number outside `min` and `max` is clamped and reported, and with no
+    // number the last value comes back.
+    const commit = () => {
+      if (!draft) return;
+      // eslint-disable-next-line @eslint-react/dom-no-flush-sync -- the caller's onBlur or the form reads the field right after
+      flushSync(() => {
+        if (isNaN(draftNumber)) setDraft(null);
+        else updateValue(draftNumber);
+      });
+    };
+
+    // The number the field holds, for a step and for the buttons' limits: a
+    // number typed, or the last value.
+    const shown = isNaN(draftNumber) ? currentValue : draftNumber;
+
     // Exponential step: step grows with value magnitude
     const getEffectiveStep = useCallback(() => {
       if (!exponential) return step;
-      return step * Math.max(1, Math.floor(Math.abs(currentValue ?? 0)));
-    }, [exponential, step, currentValue]);
+      return step * Math.max(1, Math.floor(Math.abs(shown ?? 0)));
+    }, [exponential, step, shown]);
+
+    // A step from the number the field holds. From outside `min` and `max`,
+    // one toward them lands on the nearer one and one away does nothing, the
+    // way a native number input's step moves (though that lands on its step
+    // grid rather than on the bound itself). Inside them it moves by the step
+    // and is clamped.
+    const stepBy = useCallback(
+      (direction: 1 | -1) => {
+        if (shown !== undefined) {
+          const clamped = clampValue(shown);
+          if (clamped !== shown) {
+            if ((clamped - shown) * direction > 0) updateValue(clamped);
+            return;
+          }
+        }
+        updateValue((shown ?? 0) + direction * getEffectiveStep());
+      },
+      [shown, clampValue, getEffectiveStep, updateValue]
+    );
 
     // Handle increment
-    const handleIncrement = useCallback(() => {
-      updateValue((currentValue ?? 0) + getEffectiveStep());
-    }, [currentValue, getEffectiveStep, updateValue]);
+    const handleIncrement = useCallback(() => stepBy(1), [stepBy]);
 
     // Handle decrement
-    const handleDecrement = useCallback(() => {
-      updateValue((currentValue ?? 0) - getEffectiveStep());
-    }, [currentValue, getEffectiveStep, updateValue]);
+    const handleDecrement = useCallback(() => stepBy(-1), [stepBy]);
 
-    // Handle input change
+    // Handle input change: a number in range is reported as it's typed, and
+    // anything else is held as a draft.
     const handleInputChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newValue = parseFloat(e.target.value);
-        if (!isNaN(newValue)) {
+        const text = e.target.value;
+        const newValue = parseFloat(text);
+        if (!isNaN(newValue) && clampValue(newValue) === newValue) {
           updateValue(newValue);
+        } else {
+          setDraft({ over: currentValue, text });
         }
       },
-      [updateValue]
+      [currentValue, clampValue, updateValue]
     );
 
     // Handle keyboard
@@ -272,11 +378,12 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
       [handleIncrement, handleDecrement]
     );
 
-    // Check if at limits
-    const isAtMin =
-      min !== undefined && currentValue !== undefined && currentValue <= min;
-    const isAtMax =
-      max !== undefined && currentValue !== undefined && currentValue >= max;
+    const increaseLabel = labels?.increase || 'Increase value';
+    const decreaseLabel = labels?.decrease || 'Decrease value';
+
+    // Check if at limits, or past one with a number typed outside them
+    const isAtMin = min !== undefined && shown !== undefined && shown <= min;
+    const isAtMax = max !== undefined && shown !== undefined && shown >= max;
 
     // Generate classes
     const fieldClasses = usePrefixedClassNames('field', {
@@ -323,10 +430,13 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
       className
     );
 
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+    // A bare plusminus Numberinput renders no message, so it describes
+    // nothing with one either.
+    const { messageEl, describedBy } = useFieldMessage(
+      isStepper || !effectiveBare ? message : undefined,
+      messageColor,
+      props['aria-describedby']
+    );
 
     // Use combined ref
     const combinedRef = (node: HTMLInputElement | null) => {
@@ -346,20 +456,32 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
           ref={combinedRef}
           type="number"
           className={inputClasses}
-          value={currentValue ?? ''}
+          value={draft ? draft.text : (currentValue ?? '')}
           min={min}
           max={max}
           step={step}
           disabled={disabled}
           readOnly={!editable}
           onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
-          aria-valuenow={currentValue ?? undefined}
+          // A draft is no value yet, so the field reports what it holds.
+          aria-valuenow={draft ? undefined : currentValue}
           aria-valuemin={min}
           aria-valuemax={max}
           {...rest}
           // After the spread: an undefined `id` key in rest would wipe it.
           id={controlId}
+          aria-describedby={describedBy}
+          // After the spread, so a draft ends on Enter or when the field is
+          // left, before a form or a caller's own handler reads it. A
+          // caller's `onKeyDown` still takes the place of the arrow keys'.
+          onKeyDown={event => {
+            if (event.key === 'Enter') commit();
+            (props.onKeyDown ?? handleKeyDown)(event);
+          }}
+          onBlur={event => {
+            commit();
+            props.onBlur?.(event);
+          }}
         />
       </div>
     );
@@ -377,7 +499,8 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
                 onClick={handleIncrement}
                 disabled={disabled || isAtMax}
                 tabIndex={-1}
-                aria-label="Increase value"
+                onMouseDown={keepFocus}
+                aria-label={increaseLabel}
               >
                 <ArrowDropUp />
               </button>
@@ -387,7 +510,8 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
                 onClick={handleDecrement}
                 disabled={disabled || isAtMin}
                 tabIndex={-1}
-                aria-label="Decrease value"
+                onMouseDown={keepFocus}
+                aria-label={decreaseLabel}
               >
                 <ArrowDropDown />
               </button>
@@ -427,7 +551,8 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
         onClick={handleDecrement}
         disabled={disabled || isAtMin}
         tabIndex={-1}
-        aria-label="Decrease value"
+        onMouseDown={keepFocus}
+        aria-label={decreaseLabel}
       >
         <span className={iconClasses}>
           <span aria-hidden="true">&minus;</span>
@@ -442,7 +567,8 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
         onClick={handleIncrement}
         disabled={disabled || isAtMax}
         tabIndex={-1}
-        aria-label="Increase value"
+        onMouseDown={keepFocus}
+        aria-label={increaseLabel}
       >
         <span className={iconClasses}>
           <span aria-hidden="true">+</span>

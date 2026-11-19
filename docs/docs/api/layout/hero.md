@@ -157,108 +157,167 @@ This example showcases the `size` prop to demonstrate the different predefined h
 
 ### Fullheight with Navbar
 
-This example demonstrates using the `fullheightWithNavbar` prop to create a hero that takes the full height of the screen, adjusting for the height of the navbar. This is useful for landing pages or sections that require prominent visibility.
+This example demonstrates using the `fullheightWithNavbar` prop to create a hero that takes the full height of the screen, adjusting for the height of the navbar. This is useful for landing pages or sections that require prominent visibility. On a narrow screen the burger opens the navbar's menu, through `active` on both.
 
 ```tsx live
-<>
-  <Navbar>
-    <Container>
-      <Navbar.Menu id="navMenu">
-        <Navbar.Start>
-          <Navbar.Item as="a">Getting Started</Navbar.Item>
-          <Navbar.Item as="a">APIs</Navbar.Item>
-          <Navbar.Item as="a">Blog</Navbar.Item>
-        </Navbar.Start>
-        <Navbar.End>
-          <Navbar.Item as="span">
-            <Button color="primary" isInverted as="a" mx="2">
-              Github
-            </Button>
-          </Navbar.Item>
-        </Navbar.End>
-      </Navbar.Menu>
-    </Container>
-  </Navbar>
-  <Hero color="link" fullheightWithNavbar>
-    <Hero.Body>
-      <Container>
-        <Title>Fullheight with navbar</Title>
-      </Container>
-    </Hero.Body>
-  </Hero>
-</>
+function example() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Navbar>
+        <Container>
+          <Navbar.Brand>
+            <Navbar.Burger
+              active={open}
+              aria-controls="navMenu"
+              onClick={() => setOpen(o => !o)}
+            />
+          </Navbar.Brand>
+          <Navbar.Menu id="navMenu" active={open}>
+            <Navbar.Start>
+              <Navbar.Item as="a" href="#getting-started">
+                Getting Started
+              </Navbar.Item>
+              <Navbar.Item as="a" href="#apis">
+                APIs
+              </Navbar.Item>
+              <Navbar.Item as="a" href="#blog">
+                Blog
+              </Navbar.Item>
+            </Navbar.Start>
+            <Navbar.End>
+              <Navbar.Item as="span">
+                <Button color="primary" isInverted as="a" href="#github" mx="2">
+                  Github
+                </Button>
+              </Navbar.Item>
+            </Navbar.End>
+          </Navbar.Menu>
+        </Container>
+      </Navbar>
+      <Hero color="link" fullheightWithNavbar>
+        <Hero.Body>
+          <Container>
+            <Title>Fullheight with navbar</Title>
+          </Container>
+        </Hero.Body>
+      </Hero>
+    </>
+  );
+}
 ```
 
 ---
 
 ### Fullheight with Head, Body, and Foot
 
-This example shows a comprehensive usage of the `Hero` component with all its subcomponents: `Hero.Head`, `Hero.Body`, and `Hero.Foot`. It's a complete layout for a hero section, including navigation, main content, and footer tabs.
+This example shows a comprehensive usage of the `Hero` component with all its subcomponents: `Hero.Head`, `Hero.Body`, and `Hero.Foot`. It's a complete layout for a hero section, including navigation, main content, and footer tabs. On a narrow screen the burger opens the navbar's menu, through `active` on both, as on the [`Navbar`](../components/navbar.md) page.
 
 ```tsx live
-<Hero color="primary" size="medium">
-  <Hero.Head>
-    <Navbar>
-      <Container>
-        <Navbar.Brand>
-          <Navbar.Item as="a">
-            <Image src="/img/bestax-type-white.svg" alt="Bestax" mx="2" />
-          </Navbar.Item>
-          <Navbar.Burger />
-        </Navbar.Brand>
-        <Navbar.Menu id="navbarMenuHeroA">
-          <Navbar.End>
-            <Navbar.Item as="a" active>
-              Getting Started
-            </Navbar.Item>
-            <Navbar.Item as="a">APIs</Navbar.Item>
-            <Navbar.Item as="a">Blog</Navbar.Item>
-            <Navbar.Item as="span">
-              <Button color="primary" isInverted as="a" mx="2">
-                <Icon
-                  library="fa"
-                  name="github"
-                  variant="brands"
-                  ariaLabel="github"
-                />
-                <Span>Github</Span>
-              </Button>
-            </Navbar.Item>
-          </Navbar.End>
-        </Navbar.Menu>
-      </Container>
-    </Navbar>
-  </Hero.Head>
+function example() {
+  const [open, setOpen] = useState(false);
+  return (
+    <Hero color="primary" size="medium">
+      <Hero.Head>
+        <Navbar>
+          <Container>
+            <Navbar.Brand>
+              <Navbar.Item as="a" href="#home">
+                <Image src="/img/bestax-type-white.svg" alt="Bestax" mx="2" />
+              </Navbar.Item>
+              <Navbar.Burger
+                active={open}
+                aria-controls="navbarMenuHeroA"
+                onClick={() => setOpen(o => !o)}
+              />
+            </Navbar.Brand>
+            <Navbar.Menu id="navbarMenuHeroA" active={open}>
+              <Navbar.End>
+                <Navbar.Item as="a" href="#getting-started" active>
+                  Getting Started
+                </Navbar.Item>
+                <Navbar.Item as="a" href="#apis">
+                  APIs
+                </Navbar.Item>
+                <Navbar.Item as="a" href="#blog">
+                  Blog
+                </Navbar.Item>
+                <Navbar.Item as="span">
+                  <Button
+                    color="primary"
+                    isInverted
+                    as="a"
+                    href="#github"
+                    mx="2"
+                  >
+                    <Icon library="fa" name="github" variant="brands" />
+                    <Span>Github</Span>
+                  </Button>
+                </Navbar.Item>
+              </Navbar.End>
+            </Navbar.Menu>
+          </Container>
+        </Navbar>
+      </Hero.Head>
 
+      <Hero.Body>
+        <Container textAlign="centered">
+          <Title>Bestax</Title>
+          <SubTitle>A Bulma Component Library</SubTitle>
+        </Container>
+      </Hero.Body>
+
+      <Hero.Foot>
+        <Tabs>
+          <Container>
+            <ul>
+              <Tabs.Item>
+                <a href="#elements">Elements</a>
+              </Tabs.Item>
+              <Tabs.Item>
+                <a href="#components">Components</a>
+              </Tabs.Item>
+              <Tabs.Item>
+                <a href="#columns">Columns</a>
+              </Tabs.Item>
+              <Tabs.Item>
+                <a href="#grid">Grid</a>
+              </Tabs.Item>
+              <Tabs.Item>
+                <a href="#layout">Layout</a>
+              </Tabs.Item>
+            </ul>
+          </Container>
+        </Tabs>
+      </Hero.Foot>
+    </Hero>
+  );
+}
+```
+
+---
+
+### Landmark Tags
+
+Bulma pages often put the hero classes on landmarks: `<main class="hero">` for a page that is all hero, or `<footer class="hero-foot">`. The `as` prop on `Hero`, `Hero.Head` and `Hero.Foot` (and on the `Container` inside) renders those tags directly. A `header` or `footer` is the page's banner or footer landmark only when no `section`, `article`, `aside`, `nav` or `main` is around it, so this hero renders as a `div` to let its head and foot be landmarks. Its `Container` is a named `section` rather than a `main`, since the page around the example already has its `main`.
+
+```tsx live
+<Hero as="div" color="primary">
+  <Hero.Head as="header">
+    <Container textAlign="centered" pt="4">
+      <SubTitle size="6">Hero.Head as="header"</SubTitle>
+    </Container>
+  </Hero.Head>
   <Hero.Body>
-    <Container textAlign="centered">
-      <Title>Bestax</Title>
-      <SubTitle>A Bulma Component Library</SubTitle>
+    <Container as="section" textAlign="centered" aria-label="Welcome">
+      <Title>Hero as="div"</Title>
+      <SubTitle>Container as="section"</SubTitle>
     </Container>
   </Hero.Body>
-
-  <Hero.Foot>
-    <Tabs>
-      <Container>
-        <Tabs.List>
-          <Tabs.Item>
-            <a>Elements</a>
-          </Tabs.Item>
-          <Tabs.Item>
-            <a>Components</a>
-          </Tabs.Item>
-          <Tabs.Item>
-            <a>Columns</a>
-          </Tabs.Item>
-          <Tabs.Item>
-            <a>Grid</a>
-          </Tabs.Item>
-          <Tabs.Item>
-            <a>Layout</a>
-          </Tabs.Item>
-        </Tabs.List>
-      </Container>
-    </Tabs>
+  <Hero.Foot as="footer">
+    <Container textAlign="centered" pb="4">
+      <SubTitle size="6">Hero.Foot as="footer"</SubTitle>
+    </Container>
   </Hero.Foot>
 </Hero>
 ```
@@ -294,9 +353,14 @@ This example shows a comprehensive usage of the `Hero` component with all its su
 
 ## Accessibility
 
-- The hero renders as a semantic `<section>` by default.
-- Subcomponents use semantic `<div>` for layout but you can use accessible children/content.
+- The hero renders as a semantic `<section>` by default. A `<section>` is a region landmark only once it has an accessible name, so give it an `aria-label` or `aria-labelledby` if it should be one.
+- `as` renders the hero as `div`, `main`, `header`, `footer`, `article` or `aside` instead, `Hero.Head` as `header` or `nav`, and `Hero.Foot` as `footer` or `nav`; each takes that element's landmark role. Keep one visible `main` per page, and don't put a `header` or `footer` inside another one.
+- `Hero.Body` renders a `<div>` for layout; use accessible children/content.
 - Use headings (`<Title>`, `<SubTitle>`) for best screen reader support.
+- A `Navbar` with no `color` of its own, in a hero with one, draws its focused, hovered and active
+  items and its burger in the hero's colors;
+  [Navbar's Accessibility section](../components/navbar.md#accessibility) says what bestax adds to
+  Bulma there.
 
 :::note
 When using fullheight or fullheight-with-navbar, ensure your layout remains keyboard navigable and visually accessible.
@@ -320,7 +384,7 @@ When using fullheight or fullheight-with-navbar, ensure your layout remains keyb
 - [Storybook: Hero Stories](https://bestax.io/storybook/?path=/story/layout-hero--default)
 
 :::tip Pro Tip
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Hero />` and its subcomponents for utility-based styling.
+You can use [Bulma helper props](../helpers/usebulmaclasses.md) with `<Hero />` and its subcomponents for utility-based styling.
 :::
 
 ---
@@ -329,15 +393,16 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Hero 
 
 <!-- bestax:generated props -->
 
-| Prop                   | Type                                                                                                            | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                          |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `className`            | `string`                                                                                                        | —       | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                                                              |
-| `color`                | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                         | —       | Bulma color modifier for the hero section (renders `is-<color>`). Only `primary`, `link`, `info`, `success`, `warning`, `danger`, `black`, `white`, `light`, and `dark` have shipped CSS for `.hero`. Every other value the union accepts emits a class no CSS rule matches, so the hero renders unstyled; those log a console warning in development and will be removed from this union in the next major version. |
-| `size`                 | `'small'` \| `'medium'` \| `'large'` \| `'fullheight'` \| `'fullheight-with-navbar'`                            | —       | Hero size.                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `bgColor`              | [Bulma color](../helpers/valid-values.md) \| `(typeof validSchemeColors)[number]` \| `'inherit'` \| `'current'` | —       | Bulma background color helper. `scheme-*` values render as a dark-mode-safe inline `background-color: var(--bulma-scheme-*)` instead of a class. The `scheme-invert*` values do not change text color — pair them with a contrasting foreground.                                                                                                                                                                     |
-| `fullheightWithNavbar` | `boolean`                                                                                                       | `false` | Use fullheight hero with a navbar offset.                                                                                                                                                                                                                                                                                                                                                                            |
-| `children`             | `React.ReactNode`                                                                                               | —       | Hero content (often includes `Hero.Head`, `Hero.Body`, `Hero.Foot`).                                                                                                                                                                                                                                                                                                                                                 |
-| `...`                  | All standard HTML attributes and Bulma helper props                                                             | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                    |
+| Prop                   | Type                                                                                                            | Default     | Description                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `as`                   | `'section'` \| `'div'` \| `'main'` \| `'header'` \| `'footer'` \| `'article'` \| `'aside'`                      | `'section'` | HTML element to render (default: `section`). Bulma pages often put the hero on a landmark: `main` when the hero is the page's main content, `header` for a banner above it, `footer` for one below it. A page has only one visible `main`, and a `section` is a `region` landmark only once it has an accessible name (`aria-label`, or `aria-labelledby` pointing at its heading).                                  |
+| `className`            | `string`                                                                                                        | —           | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                                                              |
+| `color`                | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                         | —           | Bulma color modifier for the hero section (renders `is-<color>`). Only `primary`, `link`, `info`, `success`, `warning`, `danger`, `black`, `white`, `light`, and `dark` have shipped CSS for `.hero`. Every other value the union accepts emits a class no CSS rule matches, so the hero renders unstyled; those log a console warning in development and will be removed from this union in the next major version. |
+| `size`                 | `'small'` \| `'medium'` \| `'large'` \| `'fullheight'` \| `'fullheight-with-navbar'`                            | —           | Hero size.                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `bgColor`              | [Bulma color](../helpers/valid-values.md) \| `(typeof validSchemeColors)[number]` \| `'inherit'` \| `'current'` | —           | Bulma background color helper. `scheme-*` values render as a dark-mode-safe inline `background-color: var(--bulma-scheme-*)` instead of a class. The `scheme-invert*` values do not change text color — pair them with a contrasting foreground.                                                                                                                                                                     |
+| `fullheightWithNavbar` | `boolean`                                                                                                       | `false`     | Use fullheight hero with a navbar offset.                                                                                                                                                                                                                                                                                                                                                                            |
+| `children`             | `React.ReactNode`                                                                                               | —           | Hero content (often includes `Hero.Head`, `Hero.Body`, `Hero.Foot`).                                                                                                                                                                                                                                                                                                                                                 |
+| `...`                  | All standard HTML attributes and Bulma helper props                                                             | —           | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                    |
 
 **Subcomponents:**
 
@@ -347,14 +412,15 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Hero 
 
 ### Hero.Head
 
-| Prop        | Type                                                                                                            | Default | Description                                                                                                                                                                                                                         |
-| ----------- | --------------------------------------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `className` | `string`                                                                                                        | —       | Additional CSS classes.                                                                                                                                                                                                             |
-| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                         | —       | Bulma color modifier for text.                                                                                                                                                                                                      |
-| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `(typeof validSchemeColors)[number]` \| `'inherit'` \| `'current'` | —       | Background color. `scheme-*` values render as a dark-mode-safe inline `background-color: var(--bulma-scheme-*)` instead of a class. The `scheme-invert*` values do not change text color — pair them with a contrasting foreground. |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                         | —       | Text color.                                                                                                                                                                                                                         |
-| `children`  | `React.ReactNode`                                                                                               | —       | Content.                                                                                                                                                                                                                            |
-| `...`       | All standard `<div>` attributes and Bulma helper props                                                          | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                   |
+| Prop        | Type                                                                                                            | Default | Description                                                                                                                                                                                                                                                                                                                                                             |
+| ----------- | --------------------------------------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `as`        | `'div'` \| `'header'` \| `'nav'`                                                                                | `'div'` | HTML element to render (default: `div`). `nav` suits a head that holds only the site's navigation. A `header` is a `banner` landmark only when no `section`, `article`, `aside`, `nav` or `main` is around it, so inside the default `<section>` hero it is not one: render the hero as a `div` for that. A `header` may not sit inside another `header` or a `footer`. |
+| `className` | `string`                                                                                                        | —       | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                 |
+| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                         | —       | Bulma color modifier for text.                                                                                                                                                                                                                                                                                                                                          |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `(typeof validSchemeColors)[number]` \| `'inherit'` \| `'current'` | —       | Background color. `scheme-*` values render as a dark-mode-safe inline `background-color: var(--bulma-scheme-*)` instead of a class. The `scheme-invert*` values do not change text color — pair them with a contrasting foreground.                                                                                                                                     |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                         | —       | Text color.                                                                                                                                                                                                                                                                                                                                                             |
+| `children`  | `React.ReactNode`                                                                                               | —       | Content.                                                                                                                                                                                                                                                                                                                                                                |
+| `...`       | All standard HTML attributes and Bulma helper props                                                             | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                       |
 
 ### Hero.Body
 
@@ -369,14 +435,15 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Hero 
 
 ### Hero.Foot
 
-| Prop        | Type                                                                                                            | Default | Description                                                                                                                                                                                                                         |
-| ----------- | --------------------------------------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `className` | `string`                                                                                                        | —       | Additional CSS classes.                                                                                                                                                                                                             |
-| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                         | —       | Bulma color modifier for text.                                                                                                                                                                                                      |
-| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `(typeof validSchemeColors)[number]` \| `'inherit'` \| `'current'` | —       | Background color. `scheme-*` values render as a dark-mode-safe inline `background-color: var(--bulma-scheme-*)` instead of a class. The `scheme-invert*` values do not change text color — pair them with a contrasting foreground. |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                         | —       | Text color.                                                                                                                                                                                                                         |
-| `children`  | `React.ReactNode`                                                                                               | —       | Content.                                                                                                                                                                                                                            |
-| `...`       | All standard `<div>` attributes and Bulma helper props                                                          | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                   |
+| Prop        | Type                                                                                                            | Default | Description                                                                                                                                                                                                                                                                                                                                                     |
+| ----------- | --------------------------------------------------------------------------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `as`        | `'div'` \| `'footer'` \| `'nav'`                                                                                | `'div'` | HTML element to render (default: `div`). `nav` suits a foot that holds tabs or links. A `footer` is a `contentinfo` landmark only when no `section`, `article`, `aside`, `nav` or `main` is around it, so inside the default `<section>` hero it is not one: render the hero as a `div` for that. A `footer` may not sit inside another `footer` or a `header`. |
+| `className` | `string`                                                                                                        | —       | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                         |
+| `color`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                         | —       | Bulma color modifier for text.                                                                                                                                                                                                                                                                                                                                  |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `(typeof validSchemeColors)[number]` \| `'inherit'` \| `'current'` | —       | Background color. `scheme-*` values render as a dark-mode-safe inline `background-color: var(--bulma-scheme-*)` instead of a class. The `scheme-invert*` values do not change text color — pair them with a contrasting foreground.                                                                                                                             |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                         | —       | Text color.                                                                                                                                                                                                                                                                                                                                                     |
+| `children`  | `React.ReactNode`                                                                                               | —       | Content.                                                                                                                                                                                                                                                                                                                                                        |
+| `...`       | All standard HTML attributes and Bulma helper props                                                             | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                               |
 
 <!-- /bestax:generated props -->
 

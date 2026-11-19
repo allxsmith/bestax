@@ -1,0 +1,233 @@
+/**
+ * @vitest-environment node
+ *
+ * A server render runs no layout effects, and React 18 logs a warning in
+ * development for each `useLayoutEffect` it meets there. The library's layout
+ * effects go through `useClientLayoutEffect`, which hands the server a plain
+ * `useEffect` instead, so a server render of these logs nothing. React 19
+ * dropped that warning, so only the React 18 run can fail here.
+ *
+ * Lint keeps `useLayoutEffect` from React out of the source. This holds the
+ * helper's callers to it, so a component that starts calling the helper, or a
+ * hook built on it, belongs in the cases too.
+ */
+import type { MockInstance } from 'vitest';
+
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { Tooltip } from '../components/Tooltip';
+import { ContextMenu } from '../components/ContextMenu';
+import { Popover } from '../components/Popover';
+import { SegmentedControl } from '../components/SegmentedControl';
+import { ScrollArea } from '../components/ScrollArea';
+import { Table } from '../elements/Table';
+import { Tour } from '../components/Tour';
+import { Command } from '../components/Command';
+import { DataTable } from '../components/DataTable';
+import { Lightbox } from '../components/Lightbox';
+import { TableOfContents } from '../components/TableOfContents';
+import { Splitter } from '../layout/Splitter';
+import { AppFrame } from '../layout/AppFrame';
+import { Slider } from '../form/Slider';
+import { PinInput } from '../form/PinInput';
+import { ColorPicker } from '../form/ColorPicker';
+import { ColorInput } from '../form/ColorInput';
+import { PasswordInput } from '../form/PasswordInput';
+import { DateInput } from '../form/DateInput';
+import { TimeInput } from '../form/TimeInput';
+import { DateTimeInput } from '../form/DateTimeInput';
+import { DateRangeInput } from '../form/DateRangeInput';
+import { TreeSelect } from '../form/TreeSelect';
+import { Cascader } from '../form/Cascader';
+
+const cases: Array<[string, React.ReactElement]> = [
+  [
+    'Tooltip',
+    <Tooltip key="tooltip" label="Delete item">
+      <button>Delete</button>
+    </Tooltip>,
+  ],
+  [
+    'ContextMenu',
+    <ContextMenu
+      key="context-menu"
+      aria-label="Actions for report.pdf"
+      trigger={<div>report.pdf</div>}
+    >
+      <ContextMenu.Item as="button">Rename</ContextMenu.Item>
+    </ContextMenu>,
+  ],
+  [
+    // Open and inline, so its panel and header render on the server too.
+    'Popover',
+    <Popover key="popover" trigger={<button>Filters</button>} defaultOpen>
+      <Popover.Header>Filter rows</Popover.Header>
+      <Popover.Body>Body</Popover.Body>
+    </Popover>,
+  ],
+  [
+    'SegmentedControl',
+    <SegmentedControl
+      key="segmented"
+      aria-label="Text alignment"
+      defaultValue="left"
+    >
+      <SegmentedControl.Segment value="left">Left</SegmentedControl.Segment>
+      <SegmentedControl.Segment value="right">Right</SegmentedControl.Segment>
+    </SegmentedControl>,
+  ],
+  [
+    'Tour',
+    // A tour renders nothing on the server, so its target gives the render
+    // something to show while the tour's hooks run.
+    <React.Fragment key="tour">
+      <button id="filters">Filters</button>
+      <Tour defaultOpen>
+        <Tour.Step target="#filters" title="Filters">
+          The filters narrow the list.
+        </Tour.Step>
+      </Tour>
+    </React.Fragment>,
+  ],
+  [
+    'ScrollArea',
+    <ScrollArea key="scroll-area" aria-label="Notes" height={120}>
+      <p>Notes</p>
+    </ScrollArea>,
+  ],
+  [
+    // Responsive, for its container's scroll measurement.
+    'Table',
+    <Table key="table" isResponsive aria-label="Scores">
+      <tbody>
+        <tr>
+          <td>Ice Wolves</td>
+        </tr>
+      </tbody>
+    </Table>,
+  ],
+  [
+    'Splitter',
+    <Splitter key="splitter" height={200}>
+      <Splitter.Pane label="Files" minSize="10rem" collapsible>
+        Files
+      </Splitter.Pane>
+      <Splitter.Pane label="Editor">Editor</Splitter.Pane>
+    </Splitter>,
+  ],
+  [
+    // It reads the width in a layout effect, to know which state the burger
+    // toggles.
+    'AppFrame',
+    <AppFrame key="app-frame" defaultNavOpen>
+      <AppFrame.Header>
+        <AppFrame.Burger />
+      </AppFrame.Header>
+      <AppFrame.Nav>Nav</AppFrame.Nav>
+      <AppFrame.Main>Main</AppFrame.Main>
+    </AppFrame>,
+  ],
+  [
+    'Command',
+    <Command
+      key="command"
+      label="Commands"
+      actions={[{ id: 'open', label: 'Open', group: 'Files' }]}
+    />,
+  ],
+  [
+    // Open, so the Modal and the Command in it render on the server too.
+    'Command.Dialog',
+    <Command.Dialog
+      key="command-dialog"
+      defaultOpen
+      actions={[{ id: 'open', label: 'Open' }]}
+    />,
+  ],
+  [
+    // Open, so the viewer and its image render on the server too.
+    'Lightbox',
+    <Lightbox
+      key="lightbox"
+      defaultOpen
+      items={[{ src: '/a.jpg', alt: 'Harbour at dusk' }]}
+    />,
+  ],
+  [
+    // Selectable, for its checkboxes, and responsive, for its ScrollArea.
+    'DataTable',
+    <DataTable
+      key="data-table"
+      caption="People"
+      columns={[{ id: 'name', header: 'Name', sortable: true }]}
+      data={[{ id: '1', name: 'Ada' }]}
+      selectionMode="multiple"
+      isResponsive
+    />,
+  ],
+  [
+    // Its scroll spy keeps its callback through useLatestRef.
+    'TableOfContents',
+    <TableOfContents
+      key="table-of-contents"
+      items={[{ id: 'intro', label: 'Intro' }]}
+      onCurrentChange={() => {}}
+    />,
+  ],
+  ['Slider', <Slider key="slider" label="Volume" />],
+  ['PinInput', <PinInput key="pin" label="Code" defaultValue="12" />],
+  [
+    'ColorPicker',
+    <ColorPicker key="color" label="Color" alpha swatches={['red']} />,
+  ],
+  ['ColorInput', <ColorInput key="color-input" label="Color" />],
+  [
+    'PasswordInput',
+    <PasswordInput key="password" label="Password" defaultValue="x" />,
+  ],
+  ['DateInput', <DateInput key="date" label="Date" />],
+  ['TimeInput', <TimeInput key="time" label="Time" />],
+  ['DateTimeInput', <DateTimeInput key="datetime" label="When" />],
+  ['DateRangeInput', <DateRangeInput key="range" label="Dates" />],
+  [
+    // Open, so the panel and the tree in it render on the server too.
+    'TreeSelect',
+    <TreeSelect
+      key="tree-select"
+      label="Folder"
+      defaultOpen
+      searchable
+      data={[{ value: 'a', label: 'A', children: [{ value: 'b' }] }]}
+    />,
+  ],
+  [
+    // Open on the picked node's path, so the panel and its columns render
+    // on the server too.
+    'Cascader',
+    <Cascader
+      key="cascader"
+      label="City"
+      defaultOpen
+      searchable
+      defaultValue="b"
+      data={[{ value: 'a', label: 'A', children: [{ value: 'b' }] }]}
+    />,
+  ],
+];
+
+describe('server rendering (node environment)', () => {
+  let errorSpy: MockInstance;
+
+  beforeEach(() => {
+    errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    errorSpy.mockRestore();
+  });
+
+  it.each(cases)('logs nothing for a %s', (_, ui) => {
+    expect(renderToStaticMarkup(ui)).not.toBe('');
+    expect(errorSpy).not.toHaveBeenCalled();
+  });
+});

@@ -4,7 +4,7 @@
  * `hasDropdown`), wrappers bestax renders itself (Page, whose Pagination.Link
  * child renders its own <li>), replacement with plain HTML where bestax has
  * no component (Help, Label, Heading, BreadcrumbItem, PanelTab, TabLink,
- * HeroVideo), and the two props whose bloomer shape has no single bestax
+ * HeroVideo) or where its part would add a role (TabList), and the two props whose bloomer shape has no single bestax
  * prop (Icon's className, Control's hasIcons).
  *
  * A handler may return a `target` override for the rename step, or mark the
@@ -12,7 +12,12 @@
  */
 
 import type { ASTPath } from 'jscodeshift';
-import { RENDER_TODO, RESPONSIVE_PROPS, UNIVERSAL_PROPS } from './mapping.js';
+import {
+  helperClassHint,
+  RENDER_TODO,
+  RESPONSIVE_PROPS,
+  UNIVERSAL_PROPS,
+} from './mapping.js';
 import {
   addAttr,
   attrSource,
@@ -26,12 +31,17 @@ import {
   type TransformContext,
 } from '../_shared/jsx-utils.js';
 import { applyPropAction } from '../_shared/props.js';
+import { aTag } from '../_shared/articles.js';
+import { AS_UNIONS } from '../_shared/polymorphic.js';
 import {
   applyIconProps,
+  flagDroppedHeading,
+  keepTitleLevel,
   makeStripModifierProps,
   makeStructuralHelpers,
   modifierClass,
   parseIconClasses,
+  plainTag,
   restrictAsToTargets,
   type SpecialHandler,
   type SpecialResult,
@@ -66,31 +76,8 @@ const { replaceWithPlain, collapseOntoChild } = makeStructuralHelpers(
   }
 );
 
-/**
- * bloomer rendered every component through `React.createElement(tag, …)`, so
- * a plain-element rewrite can honour a literal `tag` instead of dropping it.
- */
-function plainTag(
-  ctx: TransformContext,
-  path: ASTPath<any>,
-  element: any,
-  fallback: string,
-  where: string
-): string {
-  const attr = findAttr(element, 'tag');
-  if (!attr) return fallback;
-  const literal = literalValueOf(attr);
-  removeAttr(element, attr);
-  ctx.dirty = true;
-  if (literal.kind === 'string') return literal.value;
-  addTodo(
-    ctx,
-    path,
-    'prop:tag',
-    `dynamic ${where} \`tag\`; it became a plain <${fallback}> — render the tag yourself`
-  );
-  return fallback;
-}
+/** The tags bestax's `Panel.Block` renders through `as`, its default first. */
+const PANEL_BLOCK_TAGS = new Set(AS_UNIONS['Panel.Block']);
 
 /** A booleanish modifier prop → an `is-*` class fragment, always removed. */
 function booleanClass(
@@ -257,9 +244,9 @@ function anchorWhenHref(
       const other = dynamicTag
         ? 'the element `tag` named'
         : tagValue?.kind === 'string'
-          ? `a <${tagValue.value}>`
+          ? aTag(tagValue.value)
           : options.bareAs
-            ? `a <${options.bareAs}>`
+            ? aTag(options.bareAs)
             : 'its default tag';
       addTodo(
         ctx,
@@ -470,13 +457,8 @@ const SPECIALS: Record<string, SpecialHandler> = {
    * plain element bloomer rendered, and the TODO says the styling is gone.
    */
   heading(ctx, path, element) {
-    addTodo(
-      ctx,
-      path,
-      'component:Heading',
-      'Bulma v1 dropped the `.heading` styles, so this plain <p className="heading"> renders unstyled; restyle it with bestax helpers (e.g. `textSize="7" textTransform="uppercase" textWeight="semibold"`) or your own class'
-    );
-    const tag = plainTag(ctx, path, element, 'p', 'Heading');
+    const tag = plainTag(ctx, path, element, 'tag', 'p', 'Heading');
+    flagDroppedHeading(ctx, path, tag);
     return replaceWithPlain(ctx, path, element, tag, 'heading', 'Heading');
   },
 
@@ -638,7 +620,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       'help',
       'Help'
     );
-    const tag = plainTag(ctx, path, element, 'p', 'Help');
+    const tag = plainTag(ctx, path, element, 'tag', 'p', 'Help');
     return replaceWithPlain(ctx, path, element, tag, className, 'Help');
   },
 
@@ -652,7 +634,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       'label',
       'Label'
     );
-    const tag = plainTag(ctx, path, element, 'label', 'Label');
+    const tag = plainTag(ctx, path, element, 'tag', 'label', 'Label');
     return replaceWithPlain(ctx, path, element, tag, className, 'Label');
   },
 
@@ -670,7 +652,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       'is-active',
       'BreadcrumbItem'
     );
-    const tag = plainTag(ctx, path, element, 'li', 'BreadcrumbItem');
+    const tag = plainTag(ctx, path, element, 'tag', 'li', 'BreadcrumbItem');
     return replaceWithPlain(ctx, path, element, tag, cls, 'BreadcrumbItem');
   },
 
@@ -849,9 +831,11 @@ const SPECIALS: Record<string, SpecialHandler> = {
   },
 
   /**
-   * bestax's Panel.Block is always an <a>; bloomer's was a <div> unless
-   * `href` was set (a checkbox label, a search box). Only the anchor case
-   * is the bestax component — the rest stays the plain block it was.
+   * bloomer's PanelBlock was a <div> unless `href` was set (a checkbox label,
+   * a search box), or the `tag` it was given. bestax's Panel.Block is an <a>
+   * by default and a <div> or a <label> through `as`, so a block on one of
+   * those tags is the bestax component, and one on any other tag, or a
+   * dynamic one, stays the plain block it was.
    */
   'panel-block'(ctx, path, element) {
     // The same rule as anchorWhenHref: bloomer chose the anchor with
@@ -866,12 +850,35 @@ const SPECIALS: Record<string, SpecialHandler> = {
     if (anchored) {
       return { handledProps: anchorWhenHref(ctx, path, element) };
     }
+    // bloomer had no `as`, so one on the element is a stray attribute; the
+    // plain block below keeps it where it was, rather than this pass writing
+    // a second `as` beside it.
+    const tagAttr = findAttr(element, 'tag');
+    const tagValue = tagAttr ? literalValueOf(tagAttr) : undefined;
+    const blockTag = !tagAttr
+      ? 'div'
+      : tagValue?.kind === 'string'
+        ? tagValue.value
+        : undefined;
+    if (
+      blockTag &&
+      PANEL_BLOCK_TAGS.has(blockTag) &&
+      !findAttr(element, 'as')
+    ) {
+      if (tagAttr) removeAttr(element, tagAttr);
+      // `a` is the default, so it needs no `as`.
+      if (blockTag !== 'a') {
+        addAttr(element, makeAttr(ctx.j, 'as', blockTag));
+      }
+      ctx.dirty = true;
+      return { handledProps: ['tag'] };
+    }
     const cls = join(
       'panel-block',
       booleanClass(ctx, path, element, 'isActive', 'is-active', 'PanelBlock'),
       booleanClass(ctx, path, element, 'isWrapped', 'is-wrapped', 'PanelBlock')
     );
-    const tag = plainTag(ctx, path, element, 'div', 'PanelBlock');
+    const tag = plainTag(ctx, path, element, 'tag', 'div', 'PanelBlock');
     return replaceWithPlain(ctx, path, element, tag, cls, 'PanelBlock');
   },
 
@@ -1110,7 +1117,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       'PageEllipsis',
     ]);
     if (collapsed) return collapsed;
-    const tag = plainTag(ctx, path, element, 'li', 'Page');
+    const tag = plainTag(ctx, path, element, 'tag', 'li', 'Page');
     return replaceWithPlain(ctx, path, element, tag, undefined, 'Page');
   },
 
@@ -1124,13 +1131,86 @@ const SPECIALS: Record<string, SpecialHandler> = {
       'is-active',
       'PanelTab'
     );
-    const tag = plainTag(ctx, path, element, 'a', 'PanelTab');
+    const tag = plainTag(ctx, path, element, 'tag', 'a', 'PanelTab');
     return replaceWithPlain(ctx, path, element, tag, cls, 'PanelTab');
+  },
+
+  /**
+   * bloomer's TabList is the tabs' <ul>, and stays one: bestax's `Tabs.List`
+   * renders `role="tablist"`, which the `Tabs.Item`s inside are not the tabs
+   * of (#1961).
+   */
+  'tab-list'(ctx, path, element) {
+    const align = findAttr(element, 'isAlign');
+    if (align) {
+      removeAttr(element, align);
+      ctx.dirty = true;
+      addTodo(
+        ctx,
+        path,
+        'prop:isAlign',
+        "`isAlign` — Bulma aligns tabs on the `.tabs` container, not the list (bloomer's `is-center` on the <ul> did nothing); set `align` on the `<Tabs>` instead"
+      );
+    }
+    // A helper whose literal value stands for one Bulma class becomes that
+    // class, as it did when this was a `Tabs.List`, a part that takes no
+    // helper props. Any other helper is left to `replaceWithPlain`, which
+    // drops it with a `plain-element` TODO, as on every plain element.
+    const classes: string[] = [];
+    for (const attr of attributesOf(element)) {
+      const literal = literalValueOf(attr);
+      if (literal.kind !== 'string' && literal.kind !== 'boolean') continue;
+      const cls = helperClassHint(attr.name.name, literal.value);
+      if (!cls) continue;
+      // A helper set to false did nothing in bloomer, and a bare boolean on
+      // one that takes a value hints a placeholder rather than a class.
+      if (literal.value !== false && cls.includes('<')) continue;
+      removeAttr(element, attr);
+      ctx.dirty = true;
+      if (literal.value !== false) classes.push(cls);
+    }
+    // A dynamic `className` stays as written. `replaceWithPlain` would drop
+    // it, since it can merge only a literal one with a class of its own.
+    const className = findAttr(element, 'className');
+    const dynamic =
+      className && literalValueOf(className).kind !== 'string'
+        ? className
+        : undefined;
+    const attrs = element.openingElement.attributes ?? [];
+    const before = dynamic ? attrs.slice(0, attrs.indexOf(dynamic)) : [];
+    if (dynamic) {
+      removeAttr(element, dynamic);
+      if (classes.length > 0) {
+        addTodo(
+          ctx,
+          path,
+          'prop:className',
+          `dynamic TabList className; merge it with the \`${classes.join(' ')}\` class by hand`
+        );
+      }
+    }
+    const tag = plainTag(ctx, path, element, 'tag', 'ul', 'TabList');
+    const result = replaceWithPlain(
+      ctx,
+      path,
+      element,
+      tag,
+      dynamic ? undefined : join(...classes),
+      'TabList'
+    );
+    if (dynamic) {
+      // Back in its place: after the last attribute before it that the
+      // plain element kept, so a spread keeps the precedence it had.
+      const now = path.node.openingElement.attributes;
+      const anchor = [...before].reverse().find(a => now.includes(a));
+      now.splice(anchor ? now.indexOf(anchor) + 1 : 0, 0, dynamic);
+    }
+    return result;
   },
 
   /** bestax's Tabs.Item is the <li>; the anchor inside it is plain markup. */
   'tab-link'(ctx, path, element) {
-    const tag = plainTag(ctx, path, element, 'a', 'TabLink');
+    const tag = plainTag(ctx, path, element, 'tag', 'a', 'TabLink');
     return replaceWithPlain(ctx, path, element, tag, undefined, 'TabLink');
   },
 
@@ -1147,20 +1227,39 @@ const SPECIALS: Record<string, SpecialHandler> = {
         'HeroVideo'
       )
     );
-    const tag = plainTag(ctx, path, element, 'div', 'HeroVideo');
+    const tag = plainTag(ctx, path, element, 'tag', 'div', 'HeroVideo');
     return replaceWithPlain(ctx, path, element, tag, cls, 'HeroVideo');
   },
 
   /**
-   * bloomer's Subtitle defaulted to an <h2>; bestax's SubTitle defaults to an
-   * <h1>. Keeping the heading level is what a screen reader hears.
+   * bloomer's Title rendered an <h1> and its Subtitle an <h2> at every
+   * `isSize`, while bestax's render the heading their `size` names. Keeping
+   * the heading level is what a screen reader hears, so the size moves to
+   * `textSize` wherever `size` would change it (see `keepTitleLevel`).
    */
-  subtitle(ctx, _path, element) {
-    if (!findAttr(element, 'tag') && !findAttr(element, 'as')) {
-      addAttr(element, makeAttr(ctx.j, 'as', 'h2'));
-      ctx.dirty = true;
-    }
-    return {};
+  title(ctx, path, element) {
+    return {
+      handledProps: keepTitleLevel(ctx, path, element, {
+        where: 'Title',
+        target: 'Title',
+        size: 'isSize',
+        tag: 'tag',
+        level: 'h1',
+      }),
+    };
+  },
+
+  /** As `title`, from bloomer's <h2>; bestax's SubTitle defaults to an <h1>. */
+  subtitle(ctx, path, element) {
+    return {
+      handledProps: keepTitleLevel(ctx, path, element, {
+        where: 'Subtitle',
+        target: 'SubTitle',
+        size: 'isSize',
+        tag: 'tag',
+        level: 'h2',
+      }),
+    };
   },
 
   /**

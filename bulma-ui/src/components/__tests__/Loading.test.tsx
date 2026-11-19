@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import { Loading } from '../Loading';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { Loading, LoadingProps } from '../Loading';
+import { inertProps } from '../../helpers/inertProps';
 
 describe('Loading', () => {
   describe('rendering', () => {
@@ -130,11 +131,27 @@ describe('Loading', () => {
   });
 
   describe('cancel functionality', () => {
-    it('renders cancel button when canCancel is true', () => {
+    it('renders a cancel button when canCancel is true, showing "Cancel" and named "Cancel loading"', () => {
       render(<Loading active canCancel />);
+      const button = screen.getByRole('button', { name: 'Cancel loading' });
+      expect(button).toHaveTextContent(/^Cancel$/);
+    });
+
+    it('shows cancelText and is named by it, with no name of its own', () => {
+      render(<Loading active canCancel cancelText="Annuler" />);
+      const button = screen.getByRole('button', { name: 'Annuler' });
+      expect(button).toHaveTextContent(/^Annuler$/);
+      expect(button).not.toHaveAttribute('aria-label');
+    });
+
+    it.each([
+      ['an empty', ''],
+      ['a spaces-only', '  '],
+    ])('falls back to "Cancel" for %s cancelText', (_label, cancelText) => {
+      render(<Loading active canCancel cancelText={cancelText} />);
       expect(
-        screen.getByRole('button', { name: /cancel/i })
-      ).toBeInTheDocument();
+        screen.getByRole('button', { name: 'Cancel loading' })
+      ).toHaveTextContent(/^Cancel$/);
     });
 
     it('does not render cancel button when canCancel is false', () => {
@@ -152,7 +169,7 @@ describe('Loading', () => {
     });
 
     it('calls onCancel when cancel button is clicked', () => {
-      const handleCancel = jest.fn();
+      const handleCancel = vi.fn();
       render(<Loading active canCancel onCancel={handleCancel} />);
 
       fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
@@ -160,7 +177,7 @@ describe('Loading', () => {
     });
 
     it('calls onCancel when overlay is clicked', () => {
-      const handleCancel = jest.fn();
+      const handleCancel = vi.fn();
       const { container } = render(
         <Loading active canCancel onCancel={handleCancel} />
       );
@@ -170,7 +187,7 @@ describe('Loading', () => {
     });
 
     it('does not call onCancel on overlay click when canCancel is false', () => {
-      const handleCancel = jest.fn();
+      const handleCancel = vi.fn();
       const { container } = render(
         <Loading active canCancel={false} onCancel={handleCancel} />
       );
@@ -180,15 +197,47 @@ describe('Loading', () => {
     });
 
     it('calls onCancel when Escape key is pressed', () => {
-      const handleCancel = jest.fn();
+      const handleCancel = vi.fn();
       render(<Loading active canCancel onCancel={handleCancel} />);
 
       fireEvent.keyDown(document, { key: 'Escape' });
       expect(handleCancel).toHaveBeenCalledTimes(1);
     });
 
+    it('leaves an Escape that something on the page already used', () => {
+      const handleCancel = vi.fn();
+      render(
+        <>
+          <Loading active canCancel onCancel={handleCancel} />
+          <input
+            aria-label="Search"
+            onKeyDown={e => {
+              if (e.key === 'Escape') e.preventDefault();
+            }}
+          />
+        </>
+      );
+      fireEvent.keyDown(screen.getByLabelText('Search'), { key: 'Escape' });
+      expect(handleCancel).not.toHaveBeenCalled();
+    });
+
+    it('hears Escape after a document listener added once it was active', () => {
+      // A popup that opens while it shows adds its listener after this one,
+      // and still gets the key first.
+      const handleCancel = vi.fn();
+      render(<Loading active canCancel onCancel={handleCancel} />);
+      const claim = (e: KeyboardEvent) => e.preventDefault();
+      document.addEventListener('keydown', claim);
+      try {
+        fireEvent.keyDown(document.body, { key: 'Escape' });
+        expect(handleCancel).not.toHaveBeenCalled();
+      } finally {
+        document.removeEventListener('keydown', claim);
+      }
+    });
+
     it('does not call onCancel on Escape when canCancel is false', () => {
-      const handleCancel = jest.fn();
+      const handleCancel = vi.fn();
       render(<Loading active canCancel={false} onCancel={handleCancel} />);
 
       fireEvent.keyDown(document, { key: 'Escape' });
@@ -196,7 +245,7 @@ describe('Loading', () => {
     });
 
     it('does not call onCancel on Escape when not active', () => {
-      const handleCancel = jest.fn();
+      const handleCancel = vi.fn();
       render(<Loading active={false} canCancel onCancel={handleCancel} />);
 
       fireEvent.keyDown(document, { key: 'Escape' });
@@ -205,7 +254,7 @@ describe('Loading', () => {
 
     it('does not call onCancel on non-Escape keys', () => {
       // Hits the `e.key === 'Escape'` false branch in the keydown handler.
-      const handleCancel = jest.fn();
+      const handleCancel = vi.fn();
       render(<Loading active canCancel onCancel={handleCancel} />);
 
       fireEvent.keyDown(document, { key: 'Enter' });
@@ -247,6 +296,120 @@ describe('Loading', () => {
         'aria-label',
         'Cancel loading'
       );
+    });
+  });
+
+  describe('what it covers', () => {
+    // jsdom implements neither `inert` nor a tab order, so this applies the
+    // browser's rule itself, as Collapse's tests do: an element inside an
+    // inert subtree can't take focus. Named by label, else by text.
+    const tabStops = () =>
+      Array.from(
+        document.body.querySelectorAll<HTMLElement>(
+          'a[href], button, input, select, textarea, [tabindex]'
+        )
+      )
+        .filter(el => el.tabIndex >= 0 && !el.closest('[inert]'))
+        .map(el => el.getAttribute('aria-label') ?? el.textContent);
+
+    // The issue's reproduction: a control in a container the loading covers,
+    // with something to Tab from before it and to after it.
+    const Orders = (props: LoadingProps) => (
+      <>
+        <a href="#top">Before</a>
+        <div className="orders">
+          <button type="button">Edit order</button>
+          <Loading overlay="opaque" {...props}>
+            Loading orders
+          </Loading>
+        </div>
+        <a href="#next">After</a>
+      </>
+    );
+
+    it('takes the rest of its container out of the tab order', () => {
+      render(<Orders active />);
+      expect(tabStops()).toEqual(['Before', 'After']);
+    });
+
+    it('keeps its cancel button in the tab order', () => {
+      render(<Orders active canCancel />);
+      expect(tabStops()).toEqual(['Before', 'Cancel loading', 'After']);
+    });
+
+    it('with isFullPage, takes the rest of the page out, all but its cancel button', () => {
+      render(<Orders active isFullPage canCancel />);
+      expect(tabStops()).toEqual(['Cancel loading']);
+    });
+
+    it.each([
+      ['in a container', false],
+      ['over the whole page', true],
+    ])(
+      '%s, puts it all back when it goes inactive and on unmount',
+      (_, isFullPage) => {
+        const everything = ['Before', 'Edit order', 'After'];
+        const { rerender, unmount } = render(
+          <Orders active isFullPage={isFullPage} />
+        );
+        expect(tabStops()).not.toContain('Edit order');
+
+        rerender(<Orders active={false} isFullPage={isFullPage} />);
+        expect(tabStops()).toEqual(everything);
+
+        rerender(<Orders active isFullPage={isFullPage} />);
+        expect(tabStops()).not.toContain('Edit order');
+
+        unmount();
+        expect(document.querySelectorAll('[inert]')).toHaveLength(0);
+      }
+    );
+
+    it('leaves content that was inert already inert', () => {
+      const Page = ({ loading }: { loading: boolean }) => (
+        <div>
+          <div {...inertProps(true)}>
+            <button type="button">Archived</button>
+          </div>
+          {loading && <Loading active />}
+        </div>
+      );
+      const { rerender } = render(<Page loading />);
+      const archived = screen.getByText('Archived').parentElement!;
+      expect(archived).toHaveAttribute('inert');
+
+      rerender(<Page loading={false} />);
+      expect(archived).toHaveAttribute('inert');
+    });
+
+    it('gives focus back to a covered control once it goes away', () => {
+      const { rerender } = render(<Orders active={false} />);
+      const edit = screen.getByText('Edit order');
+      edit.focus();
+
+      rerender(<Orders active />);
+      // jsdom leaves focus on an inert element; a browser moves it to <body>.
+      edit.blur();
+      rerender(<Orders active={false} />);
+      expect(edit).toHaveFocus();
+    });
+
+    it('leaves focus it never took alone, as after a click on the overlay', () => {
+      const { rerender } = render(<Orders active={false} canCancel />);
+      const after = screen.getByText('After');
+      after.focus();
+
+      rerender(<Orders active canCancel />);
+      // A mousedown on the overlay, which can't take focus, leaves it on
+      // <body>, and the loading goes away from there.
+      after.blur();
+      rerender(<Orders active={false} canCancel />);
+      expect(document.body).toHaveFocus();
+    });
+
+    it('renders the same markup on the server, with nothing inert', () => {
+      const html = renderToStaticMarkup(<Orders active isFullPage canCancel />);
+      expect(html).not.toContain('inert');
     });
   });
 
@@ -294,32 +457,32 @@ describe('Loading', () => {
     });
   });
 
-  describe('body scroll lock', () => {
+  describe('page scroll lock', () => {
     afterEach(() => {
-      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     });
 
-    it('sets body overflow to hidden when full page and active', () => {
+    it('locks the page when full page and active', () => {
       render(<Loading active isFullPage />);
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
     });
 
-    it('does not set body overflow when not full page', () => {
+    it('does not lock the page when not full page', () => {
       render(<Loading active />);
-      expect(document.body.style.overflow).toBe('');
+      expect(document.documentElement.style.overflow).toBe('');
     });
 
-    it('does not set body overflow when not active', () => {
+    it('does not lock the page when not active', () => {
       render(<Loading active={false} isFullPage />);
-      expect(document.body.style.overflow).toBe('');
+      expect(document.documentElement.style.overflow).toBe('');
     });
 
-    it('restores body overflow on unmount', () => {
+    it('restores the page overflow on unmount', () => {
       const { unmount } = render(<Loading active isFullPage />);
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
 
       unmount();
-      expect(document.body.style.overflow).toBe('');
+      expect(document.documentElement.style.overflow).toBe('');
     });
   });
 

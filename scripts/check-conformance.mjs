@@ -23,7 +23,8 @@
  *   autodocs-tag         every story file opts into autodocs
  *   inline-style         no NEW inline style={{}} in stories/docs (ratcheted
  *                        against scripts/conformance-baseline.json; after
- *                        removing styles, shrink it with `--update-baseline`)
+ *                        removing styles, shrink it with `--update-baseline`,
+ *                        which a row above its file's count warns about)
  *   skills-sync          the theming skill's references name every registered
  *                        CSS variable and every color-prop component
  *   skills-roster        every skill directory under skills/ is named in each
@@ -68,7 +69,9 @@
  *                        (templates, flavors, icons, sources, css modes, PMs)
  *   turbo-tasks          every task the root `all` chain runs through turbo is
  *                        implemented by at least one package, so a renamed
- *                        script cannot leave the gate green and empty (#663)
+ *                        script cannot leave the gate green and empty (#663),
+ *                        and every package with tests declares test:coverage,
+ *                        which pnpm all and CI run package tests through
  *   peer-ranges          every copy of a bestax-bulma peer that bulma-ui or
  *                        the docs site installs sits in the newest arm of
  *                        that peer range, so a release Dependabot brings in
@@ -81,6 +84,9 @@
  *                        run ids in a guide (a workflow comment may cite the
  *                        run that justified a flip); a count lives in a
  *                        command and evidence on the issue (#643)
+ *   image-hosts          no story, docs page or skill has a URL on a
+ *                        placeholder or stock-photo host, the templates
+ *                        check's IMAGE_HOSTS (#1700)
  */
 import { readFile, readdir, writeFile, access } from 'node:fs/promises';
 import { join, relative, dirname, isAbsolute, extname, sep } from 'node:path';
@@ -135,6 +141,7 @@ import {
   findExpired,
 } from './lib/bypass-annotations.mjs';
 import { scanFragileProse, describeHit } from './lib/fragile-prose.mjs';
+import { imageHostUrls } from './lib/template-images.mjs';
 import {
   compareVersions,
   versionRegressionProblems,
@@ -155,12 +162,11 @@ const BASELINE = join(HERE, 'conformance-baseline.json');
 // Plural group containers of "Beyond Bulma" extras are not listed as homepage
 // cards (owner call on #257: Avatar yes, Avatars no). The guide page still
 // lists them.
-const HOME_EXEMPT = new Set(['Avatars', 'Collapses']);
+const HOME_EXEMPT = new Set(['Avatars', 'Collapses', 'FloatButtons', 'Stats']);
 
 // Legacy API pages missing `## Accessibility`. New pages must have it.
 const ACCESSIBILITY_EXEMPT = new Set([
   'columns/column.md',
-  'columns/columns.md',
   'grid/cell.md',
   'grid/grid.md',
   'helpers/classnames.md',
@@ -503,6 +509,29 @@ async function checkDocsGenerated() {
  */
 const ORPHAN_EXEMPT = new Map([
   [
+    'bulma-ui/src/scss/elements/_button.scss',
+    're-sets button-border-width, a Bulma variable Button already ' +
+      'documents, inside a forced-colors media query, on a doubled color ' +
+      'class with :not() the attribution walk cannot place, and button-l, ' +
+      'another, on an outlined colored button. It registers nothing of its ' +
+      'own to claim, so this stays until it does',
+  ],
+  [
+    'bulma-ui/src/scss/components/_navbar.scss',
+    're-sets Bulma variables Navbar already documents (the burger, the ' +
+      'dropdown arrow, the tab colors, the menu background and the ' +
+      "dropdown's row colors) on a " +
+      "colored hero's navbar, a selector the attribution walk cannot " +
+      'place. It registers nothing of its own to claim, so this stays ' +
+      'until it does',
+  ],
+  [
+    'bulma-ui/src/scss/elements/_tag.scss',
+    're-sets tag-color-l, a Bulma variable Tag already documents, on a ' +
+      'doubled color class with :not() the attribution walk cannot place. ' +
+      'It registers nothing of its own to claim, so this stays until it does',
+  ],
+  [
     'bulma-ui/src/scss/form/_picker-popover.scss',
     'shared picker chrome owned by no single component; needs an ownership ' +
       'decision before it can be claimed — #543',
@@ -702,7 +731,7 @@ async function checkScssConformance() {
   const visited = new Set();
   // Component partials live here; scss/helpers are static utility classes and
   // scss/versions are build entrypoints (both out of scope).
-  const dirs = ['components', 'elements', 'form'];
+  const dirs = ['components', 'elements', 'form', 'layout'];
   for (const dir of dirs) {
     const dirPath = join(scssRoot, dir);
     let files;
@@ -774,8 +803,8 @@ async function checkScssConformance() {
         const code = line.replace(/\/\/.*$/, '');
 
         // 2. Top-level class selectors must carry the ConfigProvider prefix.
-        //    (Nested selectors may legitimately target internal structural
-        //    classes or third-party icon classes like `.fa-solid`.)
+        //    Nested ones are bulma-ui's `src/__tests__/scss-prefix.test.ts`,
+        //    which compiles each partial and allows only icon-library classes.
         if (/^\.(?!#\{)[a-zA-Z]/.test(code) && /[,{]\s*$/.test(code)) {
           violations.push(
             `${loc} has an unprefixed top-level class selector — the ` +
@@ -854,7 +883,7 @@ async function checkSkillsSync() {
   // 1. Every registered component-scoped CSS variable is named (as its full
   //    `--bulma-*` form) in css-variables.md.
   const varsDoc = await readFile(join(refsDir, 'css-variables.md'), 'utf8');
-  for (const dir of ['components', 'elements', 'form']) {
+  for (const dir of ['components', 'elements', 'form', 'layout']) {
     const dirPath = join(REPO, 'bulma-ui', 'src', 'scss', dir);
     let files;
     try {
@@ -925,7 +954,7 @@ async function checkSkillsSync() {
 // The inline-style → helper-prop mapping (#350) is deliberately triplicated so
 // it is in context at generation time: the scaffolded CLAUDE_MD template plus
 // the two skills that generate the most JSX. Only the template copy is guarded
-// by jest, so this check pins the mapping three ways:
+// by a test, so this check pins the mapping three ways:
 //   1. the load-bearing facts (spacing scale, value sets, the gap scale, the
 //      named-class fallback) appear verbatim in every copy;
 //   2. the copies name the same set of props, so a row added to one skill
@@ -2012,34 +2041,108 @@ async function checkInlineStyle(updateBaseline) {
   }
 
   if (updateBaseline) {
-    // Ratchet: the baseline can only shrink. Raising it is a reviewed edit.
-    const next = {};
-    for (const [file, n] of Object.entries(current)) {
-      next[file] = file in baseline ? Math.min(baseline[file], n) : n;
-    }
-    const sorted = Object.fromEntries(
-      Object.entries(next).sort(([a], [b]) => (a < b ? -1 : 1))
-    );
-    await writeFile(BASELINE, JSON.stringify(sorted, null, 2) + '\n');
+    const next = lowerInlineStyleBaseline(current, baseline);
+    await writeFile(BASELINE, JSON.stringify(next, null, 2) + '\n');
     process.stdout.write(
-      `Wrote ${relative(REPO, BASELINE)} (${Object.keys(sorted).length} files)\n`
+      `Wrote ${relative(REPO, BASELINE)} (${Object.keys(next).length} files)\n`
     );
     return [];
   }
 
+  // A row above its file's count warns rather than fails: the AI fix loop
+  // may not edit the baseline, so failing would strand its PRs (#1862).
+  const warning = inlineStyleWarning(staleInlineStyleRows(current, baseline), {
+    ci: process.env.GITHUB_ACTIONS === 'true',
+  });
+  for (const line of warning) console.error(line);
+  return inlineStyleViolations(current, baseline);
+}
+
+/**
+ * The baseline `--update-baseline` writes: each row lowered to its file's
+ * count, and the rows for files that hold none or are gone dropped. It only
+ * shrinks. A file with no row gets none, so it stays a violation, and raising
+ * the baseline is a hand edit someone reviews.
+ */
+export function lowerInlineStyleBaseline(current, baseline) {
+  const next = {};
+  for (const [file, allowed] of Object.entries(baseline)) {
+    const n = Math.min(allowed, current[file] ?? 0);
+    if (n > 0) next[file] = n;
+  }
+  return Object.fromEntries(
+    Object.entries(next).sort(([a], [b]) => (a < b ? -1 : 1))
+  );
+}
+
+/**
+ * The inline-style ratchet, given each file's count of inline `style={{}}`
+ * uses (files holding none left out) and the baseline's rows: a file may hold
+ * no more than its row allows.
+ */
+export function inlineStyleViolations(current, baseline) {
   const violations = [];
   for (const [file, n] of Object.entries(current)) {
     const allowed = baseline[file] ?? 0;
     if (n > allowed) {
       violations.push(
         `${file} has ${n} inline style={{}} (baseline allows ${allowed}). ` +
-          `Use Bulma helper props instead: Block/Box with display="flex", ` +
-          `flexDirection, alignItems, justifyContent, m*/p* spacing, and ` +
-          `gap between the children.`
+          `Use Bulma helper props instead: Stack, Group, Center or Flex ` +
+          `for layout, with alignItems, justifyContent and gap between the ` +
+          `children, and m*/p* spacing.`
       );
     }
   }
   return violations;
+}
+
+/**
+ * The rows that allow more inline `style={{}}` uses than their file holds. A
+ * stale row lets the file gain inline styles back up to the old count without
+ * failing (#1649, #1862).
+ */
+export function staleInlineStyleRows(current, baseline) {
+  const stale = [];
+  for (const [file, allowed] of Object.entries(baseline)) {
+    const n = current[file] ?? 0;
+    if (allowed > n) {
+      stale.push(
+        `${file}: the baseline allows ${allowed}, and it ` +
+          `${n ? `holds ${n}` : 'holds none or is gone'}.`
+      );
+    }
+  }
+  return stale;
+}
+
+/**
+ * The lines that report stale rows: a heading naming the command that lowers
+ * them, then one line per row. In GitHub Actions (`ci`) it adds a single
+ * `::warning` annotation holding all of them, since a run shows only so many
+ * annotations a step.
+ */
+export function inlineStyleWarning(stale, { ci = false } = {}) {
+  if (!stale.length) return [];
+  const heading =
+    `⚠ inline-style: ${stale.length} row(s) in ` +
+    `${relative(REPO, BASELINE)} allow more inline style={{}} than their ` +
+    `file holds, so the file can gain them back without failing. Lower ` +
+    `them with \`node scripts/check-conformance.mjs --only=inline-style ` +
+    `--update-baseline\` and commit the result. A PR from the AI fix loop ` +
+    `leaves this to a maintainer. Stale rows alone don't fail the check.`;
+  const lines = ['', heading, ...stale.map(row => `  - ${row}`)];
+  if (ci) {
+    const message = [heading, ...stale.map(row => `- ${row}`)]
+      .join('\n')
+      .replace(/%/g, '%25')
+      .replace(/\r/g, '%0D')
+      .replace(/\n/g, '%0A');
+    lines.push(
+      `::warning file=${relative(REPO, BASELINE)},title=inline-style ` +
+        `baseline::${message}`
+    );
+  }
+  return lines;
 }
 
 // The `packages:` list out of pnpm-workspace.yaml. Reads only that block —
@@ -4035,18 +4138,20 @@ async function claudeMdFiles(dir, out = []) {
   return out;
 }
 
+/** `fn(dir)` when `dir` exists, and nothing when it does not. */
+async function ifPresent(dir, fn) {
+  try {
+    await access(dir);
+  } catch {
+    return [];
+  }
+  return fn(dir);
+}
+
 // `root` is injectable so scripts/fragile-prose.test.mjs can walk a temporary
 // tree and prove the target set (and every exclusion) rather than only the
 // scanner.
 export async function checkFragileProse(root = REPO) {
-  const ifPresent = async (dir, fn) => {
-    try {
-      await access(dir);
-    } catch {
-      return [];
-    }
-    return fn(dir);
-  };
   const targets = [
     ...(
       await ifPresent(root ? join(root, '.github') : root, async d => [
@@ -4067,6 +4172,51 @@ export async function checkFragileProse(root = REPO) {
     const rel = relative(root, file).split('\\').join('/');
     const hits = scanFragileProse(await readFile(file, 'utf8'), { kind });
     for (const hit of hits) violations.push(describeHit(rel, hit));
+  }
+  return violations;
+}
+
+// A picture in a story, a docs page or a skill comes from a file the repo
+// keeps, or for an agent following a skill, from the reader's own app. A URL
+// on a placeholder or stock-photo host is a hot-link that can change or
+// disappear and records nothing about whose picture it is (#1700). The host
+// list is the templates check's IMAGE_HOSTS; a credit link to a photo's page
+// is on another host. Each area lists the files it reads and says where a
+// picture there comes from instead.
+const DOCS_IMAGE_FIX = 'use a picture the site serves from docs/static/img';
+const IMAGE_HOST_AREAS = [
+  {
+    // The files bulma-ui/.storybook/main.ts loads as stories.
+    dir: ['bulma-ui', 'src'],
+    list: d => mdFiles(d, /\.(mdx|stories\.(jsx?|mjs|tsx?))$/),
+    fix: 'import a picture from bulma-ui/images and credit it in bulma-ui/images/LICENSE.md',
+  },
+  { dir: ['docs', 'docs'], list: docFiles, fix: DOCS_IMAGE_FIX },
+  { dir: ['docs', 'src'], list: d => mdFiles(d, /./), fix: DOCS_IMAGE_FIX },
+  {
+    dir: ['skills'],
+    list: d => mdFiles(d, /./),
+    fix: "point it at a file the reader's app serves itself, and say to replace it",
+  },
+];
+
+// `root` is injectable so scripts/image-hosts.test.mjs can walk a temporary
+// tree and prove which files the rule reads, not only the URL matcher.
+export async function checkImageHosts(root = REPO) {
+  const violations = [];
+  for (const { dir, list, fix } of IMAGE_HOST_AREAS) {
+    for (const file of await ifPresent(join(root, ...dir), d => list(d))) {
+      const rel = relative(root, file).split(sep).join('/');
+      (await readFile(file, 'utf8')).split(/\r?\n/).forEach((line, i) => {
+        for (const url of imageHostUrls(line)) {
+          violations.push(
+            `${rel}:${i + 1} has ${url}, on a placeholder or stock-photo ` +
+              `host (IMAGE_HOSTS in scripts/lib/template-images.mjs). For a ` +
+              `picture, ${fix}.`
+          );
+        }
+      });
+    }
   }
   return violations;
 }
@@ -4124,7 +4274,7 @@ const TURBO_VALUE_FLAGS = new Set([
  * script expanded at most once, so a script naming itself cannot loop.
  *
  * Exported for `scripts/turbo-tasks.test.mjs`. `.github/CLAUDE.md` asks for
- * non-trivial parsing to carry a `node --test` sibling, and this parser had
+ * non-trivial parsing to carry a test sibling, and this parser had
  * two option-handling holes found by review before it had one.
  */
 export function turboTasksIn(scripts, entry) {
@@ -4178,6 +4328,20 @@ export function turboTasksIn(scripts, entry) {
   return tasks;
 }
 
+/**
+ * The packages that declare `test` and no `test:coverage`. pnpm all and CI
+ * run package tests through test:coverage, so such a package's tests run in
+ * neither, with both green. A package with no coverage tool aliases
+ * test:coverage to its test.
+ *
+ * Exported for `scripts/turbo-tasks.test.mjs`.
+ */
+export function testsOutsideTheGate(manifests) {
+  return manifests.filter(
+    ({ scripts }) => scripts?.test && !scripts?.['test:coverage']
+  );
+}
+
 async function checkTurboTasks() {
   const violations = [];
   const root = JSON.parse(await readFile(join(REPO, 'package.json'), 'utf8'));
@@ -4192,6 +4356,7 @@ async function checkTurboTasks() {
     await readFile(join(REPO, 'pnpm-workspace.yaml'), 'utf8')
   );
   const owners = new Map([...tasks.keys()].map(t => [t, []]));
+  const manifests = [];
   for (const dir of dirs) {
     let pkg;
     try {
@@ -4200,9 +4365,19 @@ async function checkTurboTasks() {
       continue; // `publishable-manifests` reports an unreadable manifest
     }
     if (!pkg || typeof pkg !== 'object' || Array.isArray(pkg)) continue;
+    manifests.push({ dir, scripts: pkg.scripts });
     for (const task of tasks.keys()) {
       if (pkg.scripts?.[task]) owners.get(task).push(pkg.name ?? dir);
     }
+  }
+
+  for (const { dir } of testsOutsideTheGate(manifests)) {
+    violations.push(
+      `${dir}/package.json declares "test" and no "test:coverage". pnpm all ` +
+        `and CI run package tests through test:coverage, so its tests run in ` +
+        `neither. Add "test:coverage": "pnpm run test" when the package has ` +
+        `no coverage tool.`
+    );
   }
 
   for (const [task, found] of [...owners].sort()) {
@@ -4936,6 +5111,7 @@ const CHECKS = {
   'telemetry-allowlists': checkTelemetryAllowlists,
   'docs-api-urls': checkDocsApiUrls,
   'fragile-prose': checkFragileProse,
+  'image-hosts': checkImageHosts,
   'turbo-tasks': checkTurboTasks,
   'peer-ranges': checkPeerRanges,
   'version-regression': null, // handled below (takes the flag)

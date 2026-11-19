@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  *
  * SSR coverage for Portal, where `document` is genuinely undefined: a
  * regression that resolved the portal target during a server render fails

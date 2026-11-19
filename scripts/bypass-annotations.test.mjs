@@ -8,11 +8,8 @@
  * comes due, a second marker that is quietly ignored, and an unparsed line
  * that drops every entry beneath it. A diff review cannot tell any of those
  * apart from correct behaviour, which is why they are pinned here.
- *
- * `.mjs` and `node --test` rather than jest: these are root-level scripts with
- * no package of their own, matching how docs/scripts is covered.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';

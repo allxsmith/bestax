@@ -135,11 +135,3 @@ export const FilePath: Story = {
     </Paragraph>
   ),
 };
-
-export const KeyboardShortcut: Story = {
-  render: () => (
-    <Paragraph>
-      Press <Code>Ctrl + C</Code> to copy and <Code>Ctrl + V</Code> to paste.
-    </Paragraph>
-  ),
-};

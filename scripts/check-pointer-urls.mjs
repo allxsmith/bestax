@@ -4,7 +4,7 @@
  * bestax-bulma tarball (issue #344) still resolves, so a release can't ship
  * dead links to the docs site.
  *
- * Runs in ci.yml's `Build and Test` job (`pnpm run check:urls`), a required
+ * Runs in ci.yml under `Build and Test` (`pnpm run check:urls`), a required
  * check — so this decides whether every open PR is red. #525 is the record of
  * getting that wrong: during the 2026-08-17 GitHub incident this failed #524
  * on `blob/main/SECURITY.md` with a 404 while the file was present on `main`

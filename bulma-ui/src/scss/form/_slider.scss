@@ -92,6 +92,17 @@ $slider-vertical-height: 200px !default;
     cv.getVar("slider-track-color") var(--slider-progress, 0%),
     cv.getVar("slider-track-color") 100%
   );
+  // The native range mirrors, so 0% of this gradient is the inline start
+  // (the right), where the minimum sits. `to right` would paint the left.
+  &:dir(rtl) {
+    background: linear-gradient(
+      to left,
+      cv.getVar("slider-fill-color") 0%,
+      cv.getVar("slider-fill-color") var(--slider-progress, 0%),
+      cv.getVar("slider-track-color") var(--slider-progress, 0%),
+      cv.getVar("slider-track-color") 100%
+    );
+  }
   border-radius: cv.getVar("slider-radius");
   outline: none;
   cursor: pointer;
@@ -198,6 +209,11 @@ $slider-vertical-height: 200px !default;
   top: -2rem;
   // Default transform; overridden by inline style when nudge is applied
   transform: translateX(-50%);
+  // The inline transform centres a horizontal bubble on the thumb by this.
+  // It's placed from the inline start, which is its right edge right to
+  // left, so there it shifts the other way. Set on every bubble, so none
+  // takes another slider's.
+  --slider-output-shift: -50%;
   padding: 0.25rem 0.5rem;
   font-size: cv.getVar("slider-output-font-size");
   font-weight: cv.getVar("slider-output-font-weight");
@@ -211,6 +227,10 @@ $slider-vertical-height: 200px !default;
   transition-property: opacity, visibility;
   transition-duration: cv.getVar("slider-transition-duration");
   transition-timing-function: ease;
+
+  &:dir(rtl) {
+    --slider-output-shift: 50%;
+  }
 
   &::after {
     content: "";
@@ -268,6 +288,12 @@ $slider-vertical-height: 200px !default;
 .#{iv.$class-prefix}slider-tick {
   position: absolute;
   transform: translateX(-50%);
+
+  // The inline start edge is the right one right to left, so centering
+  // shifts the other way. A vertical tick replaces this transform.
+  &:dir(rtl) {
+    transform: translateX(50%);
+  }
   width: cv.getVar("slider-tick-width");
   height: cv.getVar("slider-tick-height");
   background: cv.getVar("slider-tick-color");
@@ -318,6 +344,19 @@ $slider-vertical-height: 200px !default;
       cv.getVar("slider-track-color") var(--slider-progress-high, 100%),
       cv.getVar("slider-track-color") 100%
     );
+    // Same mirror as the single thumb: the stops are measured from the
+    // inline start, which is the right when the page is.
+    &:dir(rtl) {
+      background: linear-gradient(
+        to left,
+        cv.getVar("slider-track-color") 0%,
+        cv.getVar("slider-track-color") var(--slider-progress-low, 0%),
+        cv.getVar("slider-fill-color") var(--slider-progress-low, 0%),
+        cv.getVar("slider-fill-color") var(--slider-progress-high, 100%),
+        cv.getVar("slider-track-color") var(--slider-progress-high, 100%),
+        cv.getVar("slider-track-color") 100%
+      );
+    }
     pointer-events: none;
   }
 
@@ -561,7 +600,46 @@ $slider-vertical-height: 200px !default;
 
 // High Contrast Mode support
 @media (forced-colors: active) {
+  // The track and the fill are a gradient, which forced colors drops, so a
+  // single-thumb slider showed only its thumb. The element that paints them
+  // opts out and paints them in the system's colors: the fill in Highlight,
+  // the rest of the track in CanvasText, and both in GrayText while
+  // disabled. The range slider's track paints the same gradient and had
+  // opted out with its own colors, so it takes these too.
+  .#{iv.$class-prefix}slider-input,
+  .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-range .#{iv.$class-prefix}slider-track {
+    forced-color-adjust: none;
+    @include cv.register-vars(
+      (
+        "slider-fill-color": Highlight,
+        "slider-track-color": CanvasText,
+      )
+    );
+  }
+
+  .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-disabled .#{iv.$class-prefix}slider-input,
+  .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-disabled.#{iv.$class-prefix}is-range .#{iv.$class-prefix}slider-track {
+    @include cv.register-vars(
+      (
+        "slider-fill-color": GrayText,
+        "slider-track-color": GrayText,
+      )
+    );
+  }
+
   .#{iv.$class-prefix}slider-input {
+    // The opt-out reaches the thumb too, and forced colors would have
+    // dropped its shadows, the focus ring's included. Its border shows focus.
+    &::-webkit-slider-thumb,
+    &:focus::-webkit-slider-thumb {
+      box-shadow: none;
+    }
+
+    &::-moz-range-thumb,
+    &:focus::-moz-range-thumb {
+      box-shadow: none;
+    }
+
     &::-webkit-slider-thumb {
       background: ButtonText;
       border-color: ButtonText;
@@ -569,6 +647,17 @@ $slider-vertical-height: 200px !default;
 
     &::-moz-range-thumb {
       background: ButtonText;
+      border-color: ButtonText;
+    }
+
+    // Hover would paint the border from the fill color, Highlight here, the
+    // same as focus. It keeps the rest color, and focus, later, still wins. A
+    // disabled thumb's rule below outranks both.
+    &::-webkit-slider-thumb:hover {
+      border-color: ButtonText;
+    }
+
+    &::-moz-range-thumb:hover {
       border-color: ButtonText;
     }
 
@@ -581,7 +670,12 @@ $slider-vertical-height: 200px !default;
     }
   }
 
+  // A disabled slider is drawn in GrayText, so its usual opacity would only
+  // halve that, and in range mode only on the thumbs. It draws at full
+  // strength here, the track and thumbs alike.
   .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-disabled .#{iv.$class-prefix}slider-input {
+    opacity: 1;
+
     &::-webkit-slider-thumb {
       background: GrayText;
       border-color: GrayText;
@@ -593,16 +687,82 @@ $slider-vertical-height: 200px !default;
     }
   }
 
+  // Forced colors keeps an opacity, and the tick's would dim the line and the
+  // label inside it to half strength, so both draw at full strength here. The
+  // label sits on the page, so it takes the text color paired with it.
   .#{iv.$class-prefix}slider-tick {
     background: ButtonText;
+    color: ButtonText;
+    opacity: 1;
   }
 
   .#{iv.$class-prefix}slider-tick-label {
-    color: ButtonText;
+    color: CanvasText;
+  }
+
+  // A disabled slider's ticks and labels take the color for disabled text,
+  // the color its track and thumb take. An endpoint's tick keeps no line.
+  .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-disabled
+    .#{iv.$class-prefix}slider-tick:not(.#{iv.$class-prefix}is-endpoint) {
+    background: GrayText;
+    color: GrayText;
+  }
+
+  .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-disabled .#{iv.$class-prefix}slider-tick-label {
+    color: GrayText;
+  }
+
+  // A tick's line crosses the track, drawn in CanvasText, which most
+  // contrast themes make the same color as ButtonText, so the line merged
+  // into the track there. A hairline of Canvas down the middle of the line,
+  // across the track's band, sets it apart from the track and from the fill
+  // alike. It's half the line's width, so close ticks still leave most of
+  // the track showing, and the band is the default track's height, centered
+  // on the tick as the ticks are centered on that track. Forced colors drops
+  // a gradient, so the tick opts out and paints its line from its color,
+  // GrayText while disabled, and its label goes back to the user's palette.
+  // A horizontal range slider's ticks hang below its track (#2101), so they
+  // keep the plain line; its `:not()` goes once they cross it.
+  .#{iv.$class-prefix}slider:not(.#{iv.$class-prefix}is-range)
+    .#{iv.$class-prefix}slider-tick:not(.#{iv.$class-prefix}is-endpoint),
+  .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-vertical
+    .#{iv.$class-prefix}slider-tick:not(.#{iv.$class-prefix}is-endpoint) {
+    forced-color-adjust: none;
+    background:
+      linear-gradient(Canvas, Canvas) center / 50% #{cv.getVar("slider-track-height")} no-repeat,
+      currentColor;
+
+    .#{iv.$class-prefix}slider-tick-label {
+      forced-color-adjust: auto;
+    }
+  }
+
+  // A vertical slider's tick lies across its track, so the hairline does too.
+  .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-vertical
+    .#{iv.$class-prefix}slider-tick:not(.#{iv.$class-prefix}is-endpoint) {
+    background-size: #{cv.getVar("slider-track-height")} 50%;
   }
 
   .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-range .#{iv.$class-prefix}slider-track {
     forced-color-adjust: none;
+  }
+
+  // Forced colors turns the value bubble's fill into the page's and paints
+  // every side of its arrow, which then draws as a square. An outline, not a
+  // border, so the bubble doesn't grow. Only the arrow opts out, so its
+  // transparent sides stay transparent and the side that points, whichever
+  // way the bubble faces, takes the system's text color.
+  .#{iv.$class-prefix}slider-output {
+    outline: 1px solid CanvasText;
+  }
+
+  .#{iv.$class-prefix}slider-output::after {
+    forced-color-adjust: none;
+    @include cv.register-vars(
+      (
+        "slider-output-background": CanvasText,
+      )
+    );
   }
 }
 

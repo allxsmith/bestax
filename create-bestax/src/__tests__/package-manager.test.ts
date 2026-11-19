@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { detectPackageManager } from '../package-manager.js';
 
 describe('detectPackageManager', () => {
-  // Jest itself runs under a package manager, so npm_config_user_agent is
+  // The test runner itself runs under a package manager, so npm_config_user_agent is
   // live in this process. Clear it so every case is deterministic —
   // an explicit `undefined` argument falls through to the env default.
   const originalUserAgent = process.env.npm_config_user_agent;

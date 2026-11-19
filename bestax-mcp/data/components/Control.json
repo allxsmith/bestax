@@ -35,11 +35,11 @@
     },
     {
       "title": "Loading State",
-      "code": "<Field label=\"Loading\">\n  <Control isLoading>\n    <Input placeholder=\"Loading state\" />\n  </Control>\n</Field>"
+      "code": "<Field label=\"Loading\">\n  <Control isLoading>\n    <Input placeholder=\"Loading state\" message=\"Loading…\" />\n  </Control>\n</Field>"
     },
     {
       "title": "Loading State with Size Variations",
-      "code": "<>\n  <Field label=\"Loading Small\">\n    <Control isLoading size=\"small\">\n      <Input size=\"small\" placeholder=\"Loading small\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Loading Medium\">\n    <Control isLoading size=\"medium\">\n      <Input size=\"medium\" placeholder=\"Loading medium\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Loading Large\">\n    <Control isLoading size=\"large\">\n      <Input size=\"large\" placeholder=\"Loading large\" />\n    </Control>\n  </Field>\n</>"
+      "code": "<>\n  <Field label=\"Loading Small\">\n    <Control isLoading size=\"small\">\n      <Input size=\"small\" placeholder=\"Loading small\" message=\"Loading…\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Loading Medium\">\n    <Control isLoading size=\"medium\">\n      <Input size=\"medium\" placeholder=\"Loading medium\" message=\"Loading…\" />\n    </Control>\n  </Field>\n\n  <Field label=\"Loading Large\">\n    <Control isLoading size=\"large\">\n      <Input size=\"large\" placeholder=\"Loading large\" message=\"Loading…\" />\n    </Control>\n  </Field>\n</>"
     },
     {
       "title": "Expanded Control",
@@ -97,7 +97,7 @@
           "name": "hasIconsLeft",
           "type": "boolean",
           "default": "false",
-          "description": "Adds left icon container.",
+          "description": "Adds left icon container. Over a `TextArea` the icon covers the text.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -106,7 +106,7 @@
           "name": "hasIconsRight",
           "type": "boolean",
           "default": "false",
-          "description": "Adds right icon container.",
+          "description": "Adds right icon container. Over a `TextArea` the icon covers the text.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -115,7 +115,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Shows a loading spinner inside the control. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded). The spinner sits at the right edge, where a right icon also sits, and the two overlap; leave the right icon out while loading.",
+          "description": "Shows a loading spinner inside the control. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded). The spinner sits at the right edge, where a right icon also sits, and the two overlap; leave the right icon out while loading. The spinner is only drawn, so a screen reader hears nothing of it. Say that the field is loading in text that describes the input, select or textarea inside, such as its `message`, or text tied to that control with `aria-describedby`, which a screen reader reads when the control takes focus. A load that starts while the user is in the field, such as a search as they type, isn't reliably heard without a live region, such as a `role=\"status\"` element.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -171,7 +171,7 @@
           "name": "iconLeft",
           "type": "IconProps | React.ReactNode",
           "default": null,
-          "description": "Icon props for left icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph. Bulma gives control icons `pointer-events: none`, so a click lands on the input and a clickable node placed here never receives one. Put a button beside the input in its own addon `Control` instead.",
+          "description": "Icon props for left icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph. Over a `TextArea` the icon covers the text. Bulma gives control icons `pointer-events: none`, so a click lands on the input and a clickable node placed here never receives one. Put a button beside the input in its own addon `Control` instead.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -180,7 +180,7 @@
           "name": "iconRight",
           "type": "IconProps | React.ReactNode",
           "default": null,
-          "description": "Icon props for right icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph. Bulma gives control icons `pointer-events: none`, so a click lands on the input and a clickable node placed here never receives one. Put a button beside the input in its own addon `Control` instead.",
+          "description": "Icon props for right icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph. Over a `TextArea` the icon covers the text. Bulma gives control icons `pointer-events: none`, so a click lands on the input and a clickable node placed here never receives one. Put a button beside the input in its own addon `Control` instead.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -189,7 +189,7 @@
           "name": "iconLeftName",
           "type": "string",
           "default": null,
-          "description": "Shortcut for left icon name.",
+          "description": "Shortcut for left icon name. Over a `TextArea` the icon covers the text.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -207,7 +207,7 @@
           "name": "iconRightName",
           "type": "string",
           "default": null,
-          "description": "Shortcut for right icon name.",
+          "description": "Shortcut for right icon name. Over a `TextArea` the icon covers the text.",
           "required": false,
           "inherited": true,
           "deprecated": false

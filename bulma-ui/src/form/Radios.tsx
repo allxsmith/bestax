@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useId, useMemo, useState } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
@@ -15,6 +15,8 @@ import { Control } from './Control';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelledBy } from './useAutoLabelId';
 import { Radio } from './Radio';
+import { GroupFieldset } from './groupFieldset';
+import { useFieldMessage } from './useFieldMessage';
 
 /**
  * Props for the Radios component.
@@ -35,17 +37,44 @@ export interface RadiosProps
     [key: string]: unknown;
   };
   /** Additional CSS classes to apply. */
-  className?: string;
-  /** Form field name shared by every Radio in the group (via context). */
-  name?: string;
+  className?: string | undefined;
+  /**
+   * Form field name shared by every Radio in the group (via context). Without
+   * one, the group generates a name, since a browser groups radios by their
+   * name: that's what makes them one Tab stop the arrow keys move through,
+   * with one checked at a time. A checked radio is then sent with a form
+   * under the generated name, so pass `name` to choose the key it's sent
+   * under. A generated name comes from React's `useId`, which repeats across
+   * React roots, so on a page with more than one, pass `name` or give each
+   * root an `identifierPrefix`. A `name` on a single Radio still wins for
+   * that Radio.
+   */
+  name?: string | undefined;
   /** Currently-selected value (controlled mode). */
-  value?: string;
+  value?: string | undefined;
   /** Initial selected value (uncontrolled mode). */
-  defaultValue?: string;
-  /** Fires when the selection changes. */
-  onChange?: (value: string) => void;
+  defaultValue?: string | undefined;
+  /**
+   * Fires when the selection changes; receives the value picked. Passed
+   * without `value` or `defaultValue`, it still has the group manage the
+   * selection, starting from the radio with `defaultChecked`.
+   */
+  onChange?: ((value: string) => void) | undefined;
   /** Radio elements to render in the group. */
   children: React.ReactNode;
+  /**
+   * The element the group renders as. With `fieldset` it's a native
+   * `<fieldset>` that keeps `role="radiogroup"`. Where the group renders a
+   * `Field` of its own, that `Field` is the `<fieldset>` and the `label` is
+   * its `<legend>`, in the label column when `horizontal`, so the legend names
+   * the group with no ids to wire. Your other attributes then go on the
+   * `<fieldset>`, while `className` and the helper props stay on the box that
+   * lays out the radios. Inside an outer `Field` there's no legend: the group
+   * element itself is the `<fieldset>`, named by that `Field`'s label as
+   * before. `div`, the default, renders the group as it always has.
+   * @defaultValue 'div'
+   */
+  as?: 'div' | 'fieldset' | undefined;
 }
 
 /**
@@ -86,6 +115,7 @@ const RadiosComponent: React.FC<RadiosProps> = ({
   onChange,
   children,
   className,
+  as,
   ...props
 }) => {
   const insideField = useInsideField();
@@ -98,10 +128,14 @@ const RadiosComponent: React.FC<RadiosProps> = ({
     horizontal,
     fieldClassName,
   });
+  // As a fieldset with a Field of its own, the group's label is its legend,
+  // which names it with no id, so nothing points `aria-labelledby` at it.
+  const asFieldset = as === 'fieldset';
+  const fieldsetField = asFieldset && ownField;
   const { ariaLabelledBy, fieldLabelProps } = useAutoLabelledBy({
     label,
     labelProps,
-    rendersLabel: ownField,
+    rendersLabel: ownField && !fieldsetField,
     callerProps: props,
   });
   const { bulmaHelperClasses, rest } = useBulmaClasses({
@@ -111,18 +145,21 @@ const RadiosComponent: React.FC<RadiosProps> = ({
   const mainClass = usePrefixedClassNames('radios');
   const wrapperClass = classNames(mainClass, bulmaHelperClasses, className);
 
-  const helpClass = usePrefixedClassNames('help', {
-    [`is-${messageColor}`]: !!messageColor,
-  });
-  const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+  const { messageEl, describedBy } = useFieldMessage(
+    message,
+    messageColor,
+    (props as React.AriaAttributes)['aria-describedby']
+  );
 
   // The group is "active" (manages child selection) when the user opted in by
   // passing value, defaultValue, or onChange. Otherwise it's name-only and
-  // children manage their own checked state (Stage 1 behavior).
+  // children manage their own checked state (Stage 1 behavior). With only
+  // onChange it holds no value until the first change, and the radios show
+  // their own defaultChecked until then.
   const groupActive =
     value !== undefined || defaultValue !== undefined || onChange !== undefined;
 
-  const [internalValue, setInternalValue] = useState<string | undefined>(
+  const [internalValue, setInternalValue] = useState<string | null | undefined>(
     defaultValue
   );
   const isControlled = value !== undefined;
@@ -136,29 +173,70 @@ const RadiosComponent: React.FC<RadiosProps> = ({
     [isControlled, onChange]
   );
 
+  // A radio without a value, sharing the group's name, was picked, and the
+  // browser unchecked the radio showing checked. A group with no value yet
+  // holds `null`, which no radio's value matches, so React leaves that radio
+  // unchecked instead of undoing the pick. A group that holds a value keeps
+  // it, as it always has.
+  const pickWithoutValue = useCallback(() => {
+    setInternalValue(current => (current === undefined ? null : current));
+  }, []);
+
+  // A browser groups radios by name, so with none the radios would each be a
+  // group of their own: a Tab stop each, and, unmanaged, any number checked.
+  // The group names them itself when the caller gives no name. A name the
+  // caller gives, even an empty one, keeps its meaning.
+  const generatedName = useId();
+  const groupName = name ?? generatedName;
+
   const ctx = useMemo<RadiosGroupContextValue>(
     () => ({
-      name,
-      ...(groupActive ? { value: currentValue, onChange: handleChange } : {}),
+      name: groupName,
+      ...(groupActive
+        ? { value: currentValue, onChange: handleChange, pickWithoutValue }
+        : {}),
     }),
-    [name, groupActive, currentValue, handleChange]
+    [groupName, groupActive, currentValue, handleChange, pickWithoutValue]
   );
 
-  const radiosElement = (
-    <div
+  const choices = <RadiosProvider value={ctx}>{children}</RadiosProvider>;
+  // ARIA in HTML allows `radiogroup` on a fieldset, so it keeps the role.
+  const Group = asFieldset ? 'fieldset' : 'div';
+  const radiosElement = fieldsetField ? (
+    <div className={wrapperClass}>{choices}</div>
+  ) : (
+    <Group
       className={wrapperClass}
       role="radiogroup"
       aria-labelledby={ariaLabelledBy}
       {...rest}
+      aria-describedby={describedBy}
     >
-      <RadiosProvider value={ctx}>{children}</RadiosProvider>
-    </div>
+      {choices}
+    </Group>
   );
 
   let content = radiosElement;
 
   if (rendersOwnControl('Radios', { insideControl })) {
     content = <Control>{content}</Control>;
+  }
+
+  if (fieldsetField) {
+    return (
+      <GroupFieldset
+        label={label}
+        labelSize={labelSize}
+        labelProps={labelProps}
+        horizontal={horizontal}
+        fieldClassName={fieldClassName}
+        role="radiogroup"
+        attributes={{ ...rest, 'aria-describedby': describedBy }}
+        message={messageEl}
+      >
+        {content}
+      </GroupFieldset>
+    );
   }
 
   if (ownField) {

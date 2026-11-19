@@ -1,4 +1,6 @@
 import React from 'react';
+import { renderToString } from 'react-dom/server';
+import { hydrateRoot } from 'react-dom/client';
 import { render, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Calendar, CalendarProps } from '../_pickerInternals/Calendar';
@@ -37,12 +39,15 @@ describe('Calendar', () => {
 
   it('groups the days into rows of a week', () => {
     // A grid owns rows, and rows own cells, so assistive technology can walk
-    // the grid, and the days it marks selected, row by row.
+    // the grid, and the days it marks selected, row by row. The first row
+    // holds the weekday names.
     const { container } = render(<Harness />);
     const grid = container.querySelector('[role="grid"]')!;
-    const rows = Array.from(grid.children);
-    expect(rows.length).toBeGreaterThan(0);
-    for (const row of rows) {
+    const [header, ...weeks] = Array.from(grid.children);
+    expect(header).toHaveAttribute('role', 'row');
+    expect(header).toHaveClass('dateinput-day-names');
+    expect(weeks.length).toBeGreaterThan(0);
+    for (const row of weeks) {
       expect(row).toHaveAttribute('role', 'row');
       expect(row).toHaveClass('dateinput-week');
       expect(row.querySelectorAll(':scope > [role="gridcell"]')).toHaveLength(
@@ -50,8 +55,127 @@ describe('Calendar', () => {
       );
     }
     expect(grid.querySelectorAll('[role="gridcell"]')).toHaveLength(
-      rows.length * 7
+      weeks.length * 7
     );
+  });
+
+  describe('weekday column headers', () => {
+    const headers = (container: HTMLElement) =>
+      Array.from(
+        container.querySelectorAll(
+          '[role="grid"] > [role="row"] > [role="columnheader"]'
+        )
+      );
+
+    it('heads each column with its weekday, named in full', () => {
+      const { container } = render(<Harness locale="en-US" />);
+      const row = container.querySelector('[role="grid"] > [role="row"]')!;
+      expect(row).not.toHaveAttribute('aria-hidden');
+      expect(headers(container).map(h => h.textContent)).toEqual([
+        'Sun',
+        'Mon',
+        'Tue',
+        'Wed',
+        'Thu',
+        'Fri',
+        'Sat',
+      ]);
+      expect(headers(container).map(h => h.getAttribute('aria-label'))).toEqual(
+        [
+          'Sunday',
+          'Monday',
+          'Tuesday',
+          'Wednesday',
+          'Thursday',
+          'Friday',
+          'Saturday',
+        ]
+      );
+    });
+
+    it('starts the names on the first day of the week', () => {
+      const { container } = render(
+        <Harness locale="en-US" firstDayOfWeek={1} />
+      );
+      const names = headers(container).map(h => h.getAttribute('aria-label'));
+      expect(names[0]).toBe('Monday');
+      expect(names[6]).toBe('Sunday');
+    });
+
+    it('names the columns by day names of your own, adding none', () => {
+      const { container, getAllByRole } = render(
+        <Harness
+          locale="de-DE"
+          firstDayOfWeek={1}
+          dayNames={['M', 'D', 'M', 'D', 'F', 'S', 'S']}
+        />
+      );
+      expect(
+        headers(container)
+          .map(h => h.textContent)
+          .join('')
+      ).toBe('MDMDFSS');
+      for (const header of headers(container)) {
+        expect(header).not.toHaveAttribute('aria-label');
+      }
+      expect(getAllByRole('columnheader', { name: 'M' })).toHaveLength(2);
+    });
+
+    it('names the columns in full beside day names it ignores', () => {
+      // Names that aren't seven are ignored, as the header shows.
+      const { container } = render(
+        <Harness locale="en-US" dayNames={['A', 'B']} />
+      );
+      expect(headers(container)[0]).toHaveTextContent('Sun');
+      expect(headers(container)[0]).toHaveAttribute('aria-label', 'Sunday');
+    });
+
+    it('adds the full names once the page has hydrated', async () => {
+      // The server and the render hydrating its HTML name the columns by
+      // what they show, so a browser that spells the long names otherwise
+      // hydrates without a mismatch; the commit after adds them.
+      const ui = <Harness locale="en-US" />;
+      const container = document.createElement('div');
+      container.innerHTML = renderToString(ui);
+      expect(headers(container)).toHaveLength(7);
+      for (const header of headers(container)) {
+        expect(header).not.toHaveAttribute('aria-label');
+      }
+      document.body.appendChild(container);
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      let root: ReturnType<typeof hydrateRoot> | undefined;
+      try {
+        await act(async () => {
+          root = hydrateRoot(container, ui);
+        });
+        expect(errorSpy).not.toHaveBeenCalled();
+        expect(
+          headers(container).map(h => h.getAttribute('aria-label'))
+        ).toEqual([
+          'Sunday',
+          'Monday',
+          'Tuesday',
+          'Wednesday',
+          'Thursday',
+          'Friday',
+          'Saturday',
+        ]);
+      } finally {
+        errorSpy.mockRestore();
+        await act(async () => root?.unmount());
+        container.remove();
+      }
+    });
+
+    it('leaves every day named by its number', () => {
+      const { getByRole } = render(<Harness locale="en-US" />);
+      expect(
+        getByRole('columnheader', { name: 'Tuesday' })
+      ).toBeInTheDocument();
+      const day = getByRole('gridcell', { name: '20' });
+      expect(day).not.toHaveAttribute('aria-label');
+      expect(day).toHaveTextContent(/^20$/);
+    });
   });
 
   it('renders 7 day name headers', () => {
@@ -72,7 +196,7 @@ describe('Calendar', () => {
   });
 
   it('selecting via click fires onSelect', () => {
-    const onSelect = jest.fn();
+    const onSelect = vi.fn();
     const { container } = render(<Harness onSelect={onSelect} />);
     const cells = container.querySelectorAll('[role="gridcell"]');
     fireEvent.click(cells[10]);
@@ -80,7 +204,7 @@ describe('Calendar', () => {
   });
 
   it('keyboard ArrowRight moves focusedDate +1 day', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <Harness onFocusedDateChange={onFocusedDateChange} />
     );
@@ -93,7 +217,7 @@ describe('Calendar', () => {
   });
 
   it('keyboard ArrowDown moves +7 days', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <Harness onFocusedDateChange={onFocusedDateChange} />
     );
@@ -107,7 +231,7 @@ describe('Calendar', () => {
   it('ArrowRight skips disabled weekend in one keypress (Fri -> Mon)', () => {
     // June 14, 2024 is a Friday. With Sat+Sun disabled, ArrowRight should
     // land on Monday June 17 in a single keypress, not on Saturday.
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const friday = new Date(2024, 5, 14);
     const { container } = render(
       <Harness
@@ -126,7 +250,7 @@ describe('Calendar', () => {
   });
 
   it('ArrowLeft skips disabled weekend in one keypress (Mon -> Fri)', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const monday = new Date(2024, 5, 17);
     const { container } = render(
       <Harness
@@ -147,7 +271,7 @@ describe('Calendar', () => {
   it('Arrow keys leave focus put when range is entirely disabled', () => {
     // With min and max both pointing at the only disabled date, there is no
     // valid neighbour to move to. Focus should stay where it is.
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const day = new Date(2024, 5, 15);
     const { container } = render(
       <Harness
@@ -165,7 +289,7 @@ describe('Calendar', () => {
   });
 
   it('PageUp without shift moves -1 month', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <Harness onFocusedDateChange={onFocusedDateChange} />
     );
@@ -177,7 +301,7 @@ describe('Calendar', () => {
   });
 
   it('Shift+PageUp moves -1 year', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <Harness onFocusedDateChange={onFocusedDateChange} />
     );
@@ -190,7 +314,7 @@ describe('Calendar', () => {
   });
 
   it('Enter on focused selects', () => {
-    const onSelect = jest.fn();
+    const onSelect = vi.fn();
     const { container } = render(<Harness onSelect={onSelect} />);
     fireEvent.keyDown(container.querySelector('[role="grid"]')!, {
       key: 'Enter',
@@ -238,7 +362,7 @@ describe('Calendar', () => {
       ) as HTMLButtonElement;
 
     it('selects a day in year 1 and disables the days before it', () => {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       const { container, getByLabelText } = render(
         <PeriodHarness focusedDate={makeDate(1, 0, 15)} onSelect={onSelect} />
       );
@@ -249,7 +373,7 @@ describe('Calendar', () => {
     });
 
     it('keeps keyboard focus from leaving year 1 backwards', () => {
-      const onFocusedDateChange = jest.fn();
+      const onFocusedDateChange = vi.fn();
       const { container } = render(
         <PeriodHarness
           focusedDate={makeDate(1, 0, 1)}
@@ -306,7 +430,7 @@ describe('Calendar', () => {
   });
 
   it('shouldDisableDate predicate disables matching cells', () => {
-    const onSelect = jest.fn();
+    const onSelect = vi.fn();
     const { container } = render(
       <Harness
         shouldDisableDate={d => d.getDate() === 15}
@@ -331,7 +455,7 @@ describe('Calendar', () => {
   });
 
   it('clicking the next-month button advances focusedDate', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { getByLabelText } = render(
       <Harness onFocusedDateChange={onFocusedDateChange} />
     );
@@ -341,7 +465,7 @@ describe('Calendar', () => {
   });
 
   it('clicking the previous-month button moves focusedDate back', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { getByLabelText } = render(
       <Harness onFocusedDateChange={onFocusedDateChange} />
     );
@@ -351,7 +475,7 @@ describe('Calendar', () => {
   });
 
   it('keyboard ArrowUp moves -7 days', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <Harness onFocusedDateChange={onFocusedDateChange} />
     );
@@ -364,7 +488,7 @@ describe('Calendar', () => {
   });
 
   it('PageDown without shift moves +1 month', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <Harness onFocusedDateChange={onFocusedDateChange} />
     );
@@ -377,7 +501,7 @@ describe('Calendar', () => {
   });
 
   it('Shift+PageDown moves +1 year', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <Harness onFocusedDateChange={onFocusedDateChange} />
     );
@@ -393,7 +517,7 @@ describe('Calendar', () => {
   it('Home moves to the first day of the week', () => {
     // June 12, 2024 is a Wednesday; with Sunday-first weeks Home lands on
     // Sunday June 9.
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const wednesday = new Date(2024, 5, 12);
     const { container } = render(
       <Harness
@@ -412,7 +536,7 @@ describe('Calendar', () => {
   it('End moves to the last day of the week', () => {
     // June 12, 2024 is a Wednesday; with Sunday-first weeks End lands on
     // Saturday June 15.
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const wednesday = new Date(2024, 5, 12);
     const { container } = render(
       <Harness
@@ -429,7 +553,7 @@ describe('Calendar', () => {
   });
 
   it('Home/End respect firstDayOfWeek=1 (Monday-first weeks)', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const wednesday = new Date(2024, 5, 12);
     const { container } = render(
       <Harness
@@ -447,7 +571,7 @@ describe('Calendar', () => {
   });
 
   it('ArrowUp stays put when the jump would land before min', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <Harness
         min={new Date(2024, 5, 10)}
@@ -462,7 +586,7 @@ describe('Calendar', () => {
   });
 
   it('ArrowDown stays put when the jump would land after max', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <Harness
         max={new Date(2024, 5, 18)}
@@ -477,7 +601,7 @@ describe('Calendar', () => {
   });
 
   it('Enter does not select when the focused date is unselectable', () => {
-    const onSelect = jest.fn();
+    const onSelect = vi.fn();
     const { container } = render(
       <Harness
         shouldDisableDate={d => d.getDate() === 15}
@@ -491,8 +615,8 @@ describe('Calendar', () => {
   });
 
   it('clicking an unselectable cell does not select or move focus', () => {
-    const onSelect = jest.fn();
-    const onFocusedDateChange = jest.fn();
+    const onSelect = vi.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <Harness
         shouldDisableDate={d => d.getDate() === 20}
@@ -588,7 +712,7 @@ describe('Calendar', () => {
   });
 
   describe('year-picker view', () => {
-    const scrollIntoViewMock = jest.fn();
+    const scrollIntoViewMock = vi.fn();
 
     beforeAll(() => {
       HTMLElement.prototype.scrollIntoView = scrollIntoViewMock;
@@ -698,7 +822,7 @@ describe('Calendar', () => {
     });
 
     it('selecting a year updates focusedDate and returns to the day view', () => {
-      const onFocusedDateChange = jest.fn();
+      const onFocusedDateChange = vi.fn();
       const { container, getByText } = render(
         <Harness
           min={new Date(2020, 0, 1)}
@@ -734,7 +858,7 @@ describe('Calendar', () => {
 
     it('arrows move focus through the years and Enter jumps to the one with focus', async () => {
       const user = userEvent.setup();
-      const onFocusedDateChange = jest.fn();
+      const onFocusedDateChange = vi.fn();
       const { container } = render(
         <PeriodHarness
           autoFocusCell
@@ -809,6 +933,166 @@ const yearOption = (container: HTMLElement, year: number) =>
 const focusedYearOption = (container: HTMLElement) =>
   container.querySelector<HTMLElement>('[data-focused-year="true"]')!;
 
+describe('Calendar today across hydration', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  // Renders `ui` on the server at `serverNow` and hydrates it in a browser
+  // whose clock reads `browserNow`, a day later.
+  const hydrate = async (
+    ui: React.ReactElement,
+    serverNow: Date,
+    browserNow: Date
+  ) => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(serverNow);
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(ui);
+    document.body.appendChild(container);
+    const serverHtml = container.innerHTML;
+    vi.setSystemTime(browserNow);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    let root: ReturnType<typeof hydrateRoot> | undefined;
+    await act(async () => {
+      root = hydrateRoot(container, ui);
+    });
+    const errors = errorSpy.mock.calls.length;
+    errorSpy.mockRestore();
+    return {
+      container,
+      serverHtml,
+      errors,
+      cleanup: async () => {
+        await act(async () => root!.unmount());
+        container.remove();
+      },
+    };
+  };
+
+  it.each([
+    // December's grid ends in January, so both days are on show.
+    ['day', new Date(2026, 11, 31, 12), new Date(2027, 0, 1, 12), '1'],
+    ['month', new Date(2026, 10, 30, 12), new Date(2026, 11, 1, 12), 'Dec'],
+    ['year', new Date(2026, 11, 31, 12), new Date(2027, 0, 1, 12), '2027'],
+  ] as const)(
+    "marks the browser's today in the %s view once hydrated",
+    async (granularity, serverNow, browserNow, marked) => {
+      const { container, serverHtml, errors, cleanup } = await hydrate(
+        <PeriodHarness granularity={granularity} focusedDate={serverNow} />,
+        serverNow,
+        browserNow
+      );
+      try {
+        expect(serverHtml).not.toContain('aria-current');
+        expect(serverHtml).not.toContain('is-today');
+        expect(errors).toBe(0);
+        const current = container.querySelectorAll('[aria-current="date"]');
+        expect(current).toHaveLength(1);
+        expect(current[0].textContent).toBe(marked);
+        expect(current[0]).toHaveClass('is-today');
+      } finally {
+        await cleanup();
+      }
+    }
+  );
+});
+
+describe('Calendar heading in a locale', () => {
+  const heading = (container: HTMLElement) =>
+    container.querySelector('.dateinput-month-label')!.textContent;
+
+  it.each([
+    ['en-US', 'June 2024'],
+    ['es-ES', 'junio de 2024'],
+    // Chinese and Japanese put the year first.
+    ['ja-JP', '2024年6月'],
+    ['zh-CN', '2024年6月'],
+    // The year comes in the locale's own digits.
+    ['ar-EG', 'يونيو ٢٠٢٤'],
+  ])('writes the month and year as %s does', (locale, text) => {
+    const { container } = render(<PeriodHarness locale={locale} />);
+    expect(heading(container)).toBe(text);
+  });
+
+  it('follows the focused month', () => {
+    const { container, getByLabelText } = render(
+      <PeriodHarness locale="ja-JP" />
+    );
+    fireEvent.click(getByLabelText('Next month'));
+    expect(heading(container)).toBe('2024年7月');
+  });
+
+  it.each([
+    // Thai counts years from the Buddha, and Persian has months and years of
+    // its own, where the grid's days are Gregorian.
+    ['th-TH', 'มิถุนายน 2024'],
+    ['fa-IR', 'ژوئن ۲۰۲۴'],
+  ])('names the Gregorian month and year in %s', (locale, text) => {
+    const { container } = render(<PeriodHarness locale={locale} />);
+    expect(heading(container)).toBe(text);
+  });
+
+  it('names the Gregorian months on the month grid', () => {
+    // June, where the Persian calendar's own month then is Khordad.
+    const { container } = render(
+      <PeriodHarness granularity="month" locale="fa-IR" />
+    );
+    expect(monthCell(container, 'ژوئن')).toHaveTextContent('ژوئن');
+    expect(container.querySelector('[aria-label="خرداد"]')).toBeNull();
+  });
+
+  it('keeps month names of your own ahead of the year', () => {
+    const names = Array.from({ length: 12 }, (_, i) => `M${i + 1}`);
+    const { container } = render(
+      <PeriodHarness locale="ja-JP" monthNames={names} />
+    );
+    expect(heading(container)).toBe('M6 2024');
+  });
+
+  it('asks Intl for nothing when the names are all your own', () => {
+    // So a tag Intl refuses still renders, as it did before the heading
+    // came from Intl.
+    const names = Array.from({ length: 12 }, (_, i) => `M${i + 1}`);
+    const days = ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7'];
+    const { container } = render(
+      <PeriodHarness locale="en_US" monthNames={names} dayNames={days} />
+    );
+    expect(heading(container)).toBe('M6 2024');
+  });
+
+  it('labels the year list with the heading', () => {
+    HTMLElement.prototype.scrollIntoView = vi.fn();
+    const { container } = render(<PeriodHarness locale="ja-JP" />);
+    fireEvent.click(container.querySelector('[aria-haspopup="listbox"]')!);
+    expect(container.querySelector('[role="listbox"]')).toHaveAttribute(
+      'aria-label',
+      '2024年6月'
+    );
+  });
+
+  it('hydrates the heading a server wrote', async () => {
+    const ui = <PeriodHarness locale="ja-JP" />;
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(ui);
+    expect(heading(container)).toBe('2024年6月');
+    document.body.appendChild(container);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    let root: ReturnType<typeof hydrateRoot> | undefined;
+    try {
+      await act(async () => {
+        root = hydrateRoot(container, ui);
+      });
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(heading(container)).toBe('2024年6月');
+    } finally {
+      errorSpy.mockRestore();
+      await act(async () => root?.unmount());
+      container.remove();
+    }
+  });
+});
+
 describe('Calendar month granularity', () => {
   const grid = (container: HTMLElement) =>
     container.querySelector<HTMLElement>('[role="grid"]')!;
@@ -861,8 +1145,8 @@ describe('Calendar month granularity', () => {
   });
 
   it('reports the first of the clicked month and focuses it inside min', () => {
-    const onSelect = jest.fn();
-    const onFocusedDateChange = jest.fn();
+    const onSelect = vi.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <PeriodHarness
         granularity="month"
@@ -923,7 +1207,7 @@ describe('Calendar month granularity', () => {
     ['PageDown', 2025, 5],
     ['PageUp', 2023, 5],
   ])('%s moves focus to %i-%i', (key, year, month) => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <PeriodHarness
         granularity="month"
@@ -967,7 +1251,7 @@ describe('Calendar month granularity', () => {
   });
 
   it('stays put at the min and max months', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <PeriodHarness
         granularity="month"
@@ -982,7 +1266,7 @@ describe('Calendar month granularity', () => {
   });
 
   it('gives up when no month nearby has a selectable day', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <PeriodHarness
         granularity="month"
@@ -995,7 +1279,7 @@ describe('Calendar month granularity', () => {
   });
 
   it('ignores keys the grid does not handle', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <PeriodHarness
         granularity="month"
@@ -1006,8 +1290,8 @@ describe('Calendar month granularity', () => {
     expect(onFocusedDateChange).not.toHaveBeenCalled();
   });
 
-  it.each(['Enter', ' '])('%p selects the first of the focused month', key => {
-    const onSelect = jest.fn();
+  it.each(['Enter', ' '])('%j selects the first of the focused month', key => {
+    const onSelect = vi.fn();
     const { container } = render(
       <PeriodHarness granularity="month" onSelect={onSelect} />
     );
@@ -1016,7 +1300,7 @@ describe('Calendar month granularity', () => {
   });
 
   it('Enter does not select a month with no selectable day', () => {
-    const onSelect = jest.fn();
+    const onSelect = vi.fn();
     const { container } = render(
       <PeriodHarness
         granularity="month"
@@ -1090,8 +1374,8 @@ describe('Calendar month granularity', () => {
     );
 
     it('makes the month Tab reaches the focused one, so keys move from it', () => {
-      const onFocusedDateChange = jest.fn();
-      const onSelect = jest.fn();
+      const onFocusedDateChange = vi.fn();
+      const onSelect = vi.fn();
       const { container } = render(
         <PeriodHarness
           granularity="month"
@@ -1118,7 +1402,7 @@ describe('Calendar month granularity', () => {
 
   it('stops stepping back at year 1', () => {
     for (const min of [undefined, makeDate(0, 6, 1), makeDate(-5, 0, 1)]) {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       const { container, getByLabelText, unmount } = render(
         <PeriodHarness
           granularity="month"
@@ -1137,7 +1421,7 @@ describe('Calendar month granularity', () => {
   it('keeps a year below 100 when a month is picked', () => {
     const early = new Date(2024, 5, 15);
     early.setFullYear(19);
-    const onSelect = jest.fn();
+    const onSelect = vi.fn();
     const { container, getByText } = render(
       <PeriodHarness
         granularity="month"
@@ -1186,7 +1470,7 @@ describe('Calendar month granularity', () => {
 
   describe('year list as navigation', () => {
     beforeAll(() => {
-      HTMLElement.prototype.scrollIntoView = jest.fn();
+      HTMLElement.prototype.scrollIntoView = vi.fn();
     });
 
     const openYears = (container: HTMLElement) =>
@@ -1233,7 +1517,7 @@ describe('Calendar month granularity', () => {
     // centred on it, so moving it would reflow the list under the keyboard.
     it('moves focus through the years with the arrows, Home and End', async () => {
       const user = userEvent.setup();
-      const onFocusedDateChange = jest.fn();
+      const onFocusedDateChange = vi.fn();
       const { container } = render(
         <PeriodHarness
           granularity="month"
@@ -1271,7 +1555,7 @@ describe('Calendar month granularity', () => {
       '%s jumps to the year with focus and returns to the month grid',
       async (_key, keys) => {
         const user = userEvent.setup();
-        const onFocusedDateChange = jest.fn();
+        const onFocusedDateChange = vi.fn();
         const { container } = render(
           <PeriodHarness
             granularity="month"
@@ -1292,7 +1576,7 @@ describe('Calendar month granularity', () => {
 
     it('Escape after moving returns to the month grid on the year it left', async () => {
       const user = userEvent.setup();
-      const onFocusedDateChange = jest.fn();
+      const onFocusedDateChange = vi.fn();
       const { container, getByText } = render(
         <PeriodHarness
           granularity="month"
@@ -1386,7 +1670,7 @@ describe('Calendar year granularity', () => {
   const press = (container: HTMLElement, key: string) =>
     fireEvent.keyDown(list(container), { key });
 
-  const scrollIntoView = jest.fn();
+  const scrollIntoView = vi.fn();
   beforeAll(() => {
     HTMLElement.prototype.scrollIntoView = scrollIntoView;
   });
@@ -1474,7 +1758,7 @@ describe('Calendar year granularity', () => {
     );
 
     it('makes the year Tab reaches the focused one, so keys move from it', () => {
-      const onFocusedDateChange = jest.fn();
+      const onFocusedDateChange = vi.fn();
       const { container } = render(
         <PeriodHarness
           granularity="year"
@@ -1489,7 +1773,7 @@ describe('Calendar year granularity', () => {
     });
 
     it('leaves focus moving through the list alone', () => {
-      const onFocusedDateChange = jest.fn();
+      const onFocusedDateChange = vi.fn();
       const { container } = render(
         <PeriodHarness
           granularity="year"
@@ -1528,7 +1812,7 @@ describe('Calendar year granularity', () => {
     );
 
     it('makes the end of the list Tab reaches the focused year', () => {
-      const onFocusedDateChange = jest.fn();
+      const onFocusedDateChange = vi.fn();
       const { container } = render(
         <PeriodHarness
           granularity="year"
@@ -1544,8 +1828,8 @@ describe('Calendar year granularity', () => {
   });
 
   it('reports the first day of the clicked year and focuses it inside min', () => {
-    const onSelect = jest.fn();
-    const onFocusedDateChange = jest.fn();
+    const onSelect = vi.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <PeriodHarness
         granularity="year"
@@ -1617,7 +1901,7 @@ describe('Calendar year granularity', () => {
   });
 
   it('stays put at the ends of the list', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <PeriodHarness
         granularity="year"
@@ -1641,8 +1925,8 @@ describe('Calendar year granularity', () => {
   it('keeps a year below 100 when it is picked or reached', () => {
     const early = new Date(2024, 5, 15);
     early.setFullYear(19);
-    const onSelect = jest.fn();
-    const onFocusedDateChange = jest.fn();
+    const onSelect = vi.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <PeriodHarness
         granularity="year"
@@ -1665,7 +1949,7 @@ describe('Calendar year granularity', () => {
 
   it('lists no year before 1', () => {
     for (const min of [undefined, makeDate(0, 6, 1), makeDate(-5, 0, 1)]) {
-      const onSelect = jest.fn();
+      const onSelect = vi.fn();
       const { container, unmount } = render(
         <PeriodHarness
           granularity="year"
@@ -1693,16 +1977,17 @@ describe('Calendar year granularity', () => {
   });
 
   describe('focus and scrolling', () => {
-    afterEach(() => jest.restoreAllMocks());
+    afterEach(() => vi.restoreAllMocks());
 
     it('centres the focused year by scrolling the list itself', () => {
-      jest
-        .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
-        .mockImplementation(function (this: Element) {
-          const isList = this.getAttribute('role') === 'listbox';
-          return { top: isList ? 100 : 400, height: 36 } as DOMRect;
-        });
-      jest.spyOn(Element.prototype, 'clientHeight', 'get').mockReturnValue(200);
+      vi.spyOn(
+        HTMLElement.prototype,
+        'getBoundingClientRect'
+      ).mockImplementation(function (this: Element) {
+        const isList = this.getAttribute('role') === 'listbox';
+        return { top: isList ? 100 : 400, height: 36 } as DOMRect;
+      });
+      vi.spyOn(Element.prototype, 'clientHeight', 'get').mockReturnValue(200);
       const { container } = render(<PeriodHarness granularity="year" />);
       // 400 - 100 puts the year 300px down; centring it in a 200px list
       // leaves (200 - 36) / 2 above it.
@@ -1831,8 +2116,8 @@ describe('Calendar day grid focus', () => {
     );
 
     it('makes the day Tab reaches the focused one, so keys move from it', () => {
-      const onFocusedDateChange = jest.fn();
-      const onSelect = jest.fn();
+      const onFocusedDateChange = vi.fn();
+      const onSelect = vi.fn();
       const { container } = render(
         <PeriodHarness
           shouldDisableDate={d => d.getMonth() === 5 && d.getDate() === 15}
@@ -1849,7 +2134,7 @@ describe('Calendar day grid focus', () => {
     });
 
     it("leaves a nearby month's day to its click, which turns the grid", () => {
-      const onFocusedDateChange = jest.fn();
+      const onFocusedDateChange = vi.fn();
       const { container } = render(
         <PeriodHarness onFocusedDateChange={onFocusedDateChange} />
       );
@@ -1906,7 +2191,7 @@ describe('Calendar day grid focus', () => {
       // there and then, inside React's commit, so this does the same.
       const setAttribute = Element.prototype.setAttribute;
       let dropped = false;
-      const spy = jest
+      const spy = vi
         .spyOn(Element.prototype, 'setAttribute')
         .mockImplementation(function (this: Element, name, value) {
           setAttribute.call(this, name, value);
@@ -1949,7 +2234,7 @@ describe('Calendar day grid focus', () => {
   describe('with autoFocusCell, as the popover renders it', () => {
     beforeAll(() => {
       // jsdom has no scrollIntoView, which the year list calls.
-      HTMLElement.prototype.scrollIntoView ??= jest.fn();
+      HTMLElement.prototype.scrollIntoView ??= vi.fn();
     });
 
     it('leaves focus on the header button the user pressed', () => {
@@ -2041,7 +2326,7 @@ describe('Calendar and the popover toggle keys', () => {
   // Alt+ArrowDown and Alt+ArrowUp open and close a picker's popover, so the
   // calendar leaves them to it in every view rather than moving focus.
   beforeAll(() => {
-    HTMLElement.prototype.scrollIntoView = jest.fn();
+    HTMLElement.prototype.scrollIntoView = vi.fn();
   });
   const toggleKeys = (el: Element) =>
     ['ArrowUp', 'ArrowDown'].map(key =>
@@ -2053,7 +2338,7 @@ describe('Calendar and the popover toggle keys', () => {
     ['the month grid', 'month', '[data-focused="true"]'],
     ['the year list', 'year', '[data-focused-year="true"]'],
   ] as const)('in %s', (_view, granularity, selector) => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <PeriodHarness
         granularity={granularity}
@@ -2066,7 +2351,7 @@ describe('Calendar and the popover toggle keys', () => {
   });
 
   it('in the year list opened from the header', () => {
-    const onFocusedDateChange = jest.fn();
+    const onFocusedDateChange = vi.fn();
     const { container } = render(
       <PeriodHarness onFocusedDateChange={onFocusedDateChange} />
     );
@@ -2075,5 +2360,284 @@ describe('Calendar and the popover toggle keys', () => {
     expect(toggleKeys(year)).toEqual([true, true]);
     expect(container.querySelector('[role="listbox"]')).not.toBeNull();
     expect(onFocusedDateChange).not.toHaveBeenCalled();
+  });
+});
+
+describe('Calendar disabled and read-only', () => {
+  beforeAll(() => {
+    HTMLElement.prototype.scrollIntoView = vi.fn();
+  });
+  const buttons = (container: HTMLElement) =>
+    Array.from(container.querySelectorAll('button'));
+  /** The cell for `day` of the month on show, skipping nearby months' days. */
+  const day = (container: HTMLElement, n: number) =>
+    Array.from(
+      container.querySelectorAll<HTMLButtonElement>('[role="gridcell"]')
+    ).find(
+      c => !c.className.includes('is-other-month') && c.textContent === `${n}`
+    )!;
+
+  it('marks neither on a calendar without them', () => {
+    const { getByRole } = render(<Harness />);
+    expect(getByRole('grid')).not.toHaveAttribute('aria-disabled');
+    expect(getByRole('grid')).not.toHaveAttribute('aria-readonly');
+  });
+
+  describe('disabled', () => {
+    it('disables every button and marks the grid', () => {
+      const { container, getByRole } = render(<Harness disabled />);
+      expect(getByRole('grid')).toHaveAttribute('aria-disabled', 'true');
+      for (const button of buttons(container)) expect(button).toBeDisabled();
+      expect(day(container, 20)).toHaveAttribute('aria-disabled', 'true');
+    });
+
+    it('picks nothing by pointer or key', () => {
+      const onSelect = vi.fn();
+      const { container, getByRole } = render(
+        <Harness disabled onSelect={onSelect} />
+      );
+      fireEvent.click(day(container, 20));
+      fireEvent.keyDown(getByRole('grid'), { key: 'Enter' });
+      fireEvent.keyDown(getByRole('grid'), { key: ' ' });
+      expect(onSelect).not.toHaveBeenCalled();
+      expect(
+        container.querySelector('[aria-selected="true"]')
+      ).not.toBeInTheDocument();
+    });
+
+    it('disables the month grid', () => {
+      const onSelect = vi.fn();
+      const { container, getByRole } = render(
+        <PeriodHarness granularity="month" disabled onSelect={onSelect} />
+      );
+      expect(getByRole('grid')).toHaveAttribute('aria-disabled', 'true');
+      for (const button of buttons(container)) expect(button).toBeDisabled();
+      fireEvent.keyDown(getByRole('grid'), { key: 'Enter' });
+      expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it('disables the year list', () => {
+      const { container, getByRole } = render(
+        <PeriodHarness granularity="year" disabled />
+      );
+      expect(getByRole('listbox')).toHaveAttribute('aria-disabled', 'true');
+      for (const button of buttons(container)) expect(button).toBeDisabled();
+    });
+  });
+
+  describe('readOnly', () => {
+    it('marks the grid and keeps its tab stop', () => {
+      const { container, getByRole } = render(<Harness readOnly />);
+      expect(getByRole('grid')).toHaveAttribute('aria-readonly', 'true');
+      expect(getByRole('grid')).not.toHaveAttribute('aria-disabled');
+      const stop = container.querySelector('[tabindex="0"]')!;
+      expect(stop).toHaveTextContent('15');
+      expect(stop).toBeEnabled();
+    });
+
+    it('moves focus by key and pointer and picks nothing', () => {
+      const onSelect = vi.fn();
+      const onFocusedDateChange = vi.fn();
+      const { container, getByRole } = render(
+        <Harness
+          readOnly
+          onSelect={onSelect}
+          onFocusedDateChange={onFocusedDateChange}
+        />
+      );
+      fireEvent.keyDown(getByRole('grid'), { key: 'ArrowRight' });
+      expect(onFocusedDateChange).toHaveBeenLastCalledWith(
+        new Date(2024, 5, 16)
+      );
+      fireEvent.keyDown(getByRole('grid'), { key: 'Enter' });
+      fireEvent.keyDown(getByRole('grid'), { key: ' ' });
+      fireEvent.click(day(container, 20));
+      expect(onFocusedDateChange).toHaveBeenLastCalledWith(
+        new Date(2024, 5, 20)
+      );
+      expect(onSelect).not.toHaveBeenCalled();
+      expect(
+        container.querySelector('[aria-selected="true"]')
+      ).not.toBeInTheDocument();
+    });
+
+    it('keeps the header working', () => {
+      const onFocusedDateChange = vi.fn();
+      const { getByLabelText } = render(
+        <Harness readOnly onFocusedDateChange={onFocusedDateChange} />
+      );
+      fireEvent.click(getByLabelText('Next month'));
+      expect(onFocusedDateChange).toHaveBeenCalledWith(new Date(2024, 6, 15));
+    });
+
+    it('picks no month', () => {
+      const onSelect = vi.fn();
+      const { container, getByRole } = render(
+        <PeriodHarness granularity="month" readOnly onSelect={onSelect} />
+      );
+      expect(getByRole('grid')).toHaveAttribute('aria-readonly', 'true');
+      fireEvent.click(container.querySelector('[aria-label="March"]')!);
+      fireEvent.keyDown(getByRole('grid'), { key: 'Enter' });
+      expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it('picks no year', () => {
+      const onSelect = vi.fn();
+      const { getByRole, getByText } = render(
+        <PeriodHarness granularity="year" readOnly onSelect={onSelect} />
+      );
+      expect(getByRole('listbox')).toHaveAttribute('aria-readonly', 'true');
+      fireEvent.click(getByText('2020'));
+      expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it('still jumps through the year list it opens as navigation', () => {
+      const onFocusedDateChange = vi.fn();
+      const { container, getByRole, getByText } = render(
+        <Harness readOnly onFocusedDateChange={onFocusedDateChange} />
+      );
+      fireEvent.click(container.querySelector('[aria-haspopup="listbox"]')!);
+      expect(getByRole('listbox')).not.toHaveAttribute('aria-readonly');
+      fireEvent.click(getByText('2020'));
+      expect(onFocusedDateChange).toHaveBeenCalledWith(new Date(2020, 5, 15));
+    });
+  });
+});
+
+describe('Calendar numbers in a locale', () => {
+  beforeAll(() => {
+    // jsdom has no scrollIntoView, which the year list calls as it opens.
+    HTMLElement.prototype.scrollIntoView = vi.fn();
+  });
+
+  /** The days of the month on show, as the grid writes them. */
+  const days = (container: HTMLElement) =>
+    Array.from(container.querySelectorAll('[role="gridcell"]'))
+      .filter(c => !c.className.includes('is-other-month'))
+      .map(c => c.textContent);
+  const heading = (container: HTMLElement) =>
+    container.querySelector('.dateinput-month-label')!.textContent;
+
+  it.each([
+    ['en-US', '1', '15', '30'],
+    // Arabic-Indic digits, and the extended ones Persian writes.
+    ['ar-EG', '١', '١٥', '٣٠'],
+    ['fa-IR', '۱', '۱۵', '۳۰'],
+    // The number alone, without the 日 a Japanese or Chinese date adds.
+    ['ja-JP', '1', '15', '30'],
+    ['zh-CN', '1', '15', '30'],
+  ])('numbers the days as %s writes them', (locale, first, mid, last) => {
+    const { container } = render(<PeriodHarness locale={locale} />);
+    const shown = days(container);
+    expect(shown).toHaveLength(30);
+    expect([shown[0], shown[14], shown[29]]).toEqual([first, mid, last]);
+  });
+
+  it('keeps plain digits with no locale, whatever the runtime writes', () => {
+    // A server and a browser can write numbers differently, so with no
+    // locale to agree on the calendar writes plain digits. This stands in
+    // for a runtime whose own locale is Egyptian Arabic: dates are written
+    // in it, and any number would come out as ٩. (`format` is a getter that
+    // hands back a bound function.)
+    const DateTimeFormat = Intl.DateTimeFormat;
+    const dates = vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(function (
+      locales?: Intl.LocalesArgument,
+      options?: Intl.DateTimeFormatOptions
+    ) {
+      return new DateTimeFormat(locales ?? 'ar-EG', options);
+    } as typeof Intl.DateTimeFormat);
+    const numbers = vi
+      .spyOn(
+        Intl.NumberFormat.prototype as { format: unknown },
+        'format',
+        'get'
+      )
+      .mockReturnValue(() => '٩');
+    try {
+      const { container } = render(<PeriodHarness />);
+      expect(heading(container)).toBe('يونيو 2024');
+      expect(days(container)[14]).toBe('15');
+      fireEvent.click(container.querySelector('[aria-haspopup="listbox"]')!);
+      expect(focusedYearOption(container).textContent).toBe('2024');
+      expect(numbers).not.toHaveBeenCalled();
+    } finally {
+      dates.mockRestore();
+      numbers.mockRestore();
+    }
+  });
+
+  it('names each day by its number in those digits', () => {
+    const { getByRole } = render(<PeriodHarness locale="ar-EG" />);
+    const day = getByRole('gridcell', { name: '١٥' });
+    expect(day).toHaveTextContent(/^١٥$/);
+    expect(day).not.toHaveAttribute('aria-label');
+  });
+
+  it.each([
+    ['ar-EG-u-nu-latn', '15'],
+    ['en-US-u-nu-arab', '١٥'],
+  ])('takes the digits %s asks for', (locale, mid) => {
+    const { container } = render(<PeriodHarness locale={locale} />);
+    expect(days(container)[14]).toBe(mid);
+  });
+
+  it('numbers the year list in the locale', () => {
+    const { container } = render(<PeriodHarness locale="ar-EG" />);
+    fireEvent.click(container.querySelector('[aria-haspopup="listbox"]')!);
+    expect(focusedYearOption(container).textContent).toBe('٢٠٢٤');
+    expect(
+      yearOptions(container).every(o => /^[٠-٩]+$/.test(o.textContent!))
+    ).toBe(true);
+  });
+
+  it.each(['month', 'year'] as const)(
+    'heads the %s view with the year in the locale',
+    granularity => {
+      const { container } = render(
+        <PeriodHarness granularity={granularity} locale="ar-EG" />
+      );
+      expect(heading(container)).toBe('٢٠٢٤');
+    }
+  );
+
+  it('writes the year after month names of your own in the locale', () => {
+    const names = Array.from({ length: 12 }, (_, i) => `M${i + 1}`);
+    const { container } = render(
+      <PeriodHarness locale="ar-EG" monthNames={names} />
+    );
+    expect(heading(container)).toBe('M6 ٢٠٢٤');
+  });
+
+  it('keeps plain digits for a tag Intl refuses, given names of your own', () => {
+    // With every name given the calendar asks Intl for no words, so the tag
+    // goes unreported, and the numbers don't report it either.
+    const names = Array.from({ length: 12 }, (_, i) => `M${i + 1}`);
+    const dayNames = ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7'];
+    const { container } = render(
+      <PeriodHarness locale="en_US" monthNames={names} dayNames={dayNames} />
+    );
+    expect(days(container)[14]).toBe('15');
+    expect(heading(container)).toBe('M6 2024');
+  });
+
+  it('hydrates the numbers a server wrote', async () => {
+    const ui = <PeriodHarness locale="ar-EG" />;
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(ui);
+    expect(days(container)[14]).toBe('١٥');
+    document.body.appendChild(container);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    let root: ReturnType<typeof hydrateRoot> | undefined;
+    try {
+      await act(async () => {
+        root = hydrateRoot(container, ui);
+      });
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(days(container)[14]).toBe('١٥');
+    } finally {
+      errorSpy.mockRestore();
+      await act(async () => root?.unmount());
+      container.remove();
+    }
   });
 });

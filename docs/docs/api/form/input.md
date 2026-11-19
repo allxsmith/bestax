@@ -95,14 +95,19 @@ The `isRounded` prop gives the input rounded corners for a softer appearance.
 
 ### States
 
-`isHovered`, `isFocused`, and `isLoading` force the corresponding state on the input.
+`isHovered`, `isFocused`, and `isLoading` force the corresponding state on the input. A screen reader doesn't hear the spinner, so the loading one says so in its `message` as well.
 
 ```tsx live
 <>
   <Input label="Normal" placeholder="Normal state" />
   <Input label="Hover" isHovered placeholder="Hovered state" />
   <Input label="Focus" isFocused placeholder="Focused state" />
-  <Input label="Loading" isLoading placeholder="Loading state" />
+  <Input
+    label="Loading"
+    isLoading
+    message="Loading…"
+    placeholder="Loading state"
+  />
 </>
 ```
 
@@ -119,14 +124,21 @@ The loading indicator at every input size. Use `controlSize` on `<Input>` to sca
     size="small"
     controlSize="small"
     isLoading
+    message="Loading…"
     placeholder="Loading small"
   />
-  <Input label="Loading Normal" isLoading placeholder="Loading normal" />
+  <Input
+    label="Loading Normal"
+    isLoading
+    message="Loading…"
+    placeholder="Loading normal"
+  />
   <Input
     label="Loading Medium"
     size="medium"
     controlSize="medium"
     isLoading
+    message="Loading…"
     placeholder="Loading medium"
   />
   <Input
@@ -134,6 +146,7 @@ The loading indicator at every input size. Use `controlSize` on `<Input>` to sca
     size="large"
     controlSize="large"
     isLoading
+    message="Loading…"
     placeholder="Loading large"
   />
 </>
@@ -231,6 +244,7 @@ Pair `color` and `messageColor` to produce success and danger validation states 
 ```tsx live
 <>
   <Input
+    autoComplete="username"
     label="Username"
     color="success"
     value="bulma"
@@ -241,6 +255,7 @@ Pair `color` and `messageColor` to produce success and danger validation states 
     onChange={() => {}}
   />
   <Input
+    autoComplete="email"
     label="Email"
     type="email"
     color="danger"
@@ -256,16 +271,34 @@ Pair `color` and `messageColor` to produce success and danger validation states 
 
 ---
 
+### Visually Hidden Label for Screen Readers
+
+A field the design shows with no label still needs one for screen readers. Keep the `label` and hide it from view with `labelProps={{ className: 'is-sr-only' }}`. It stays the input's name and takes no space. `visibility="sr-only"` on the `Input` won't do it: `Input` puts its helper props on the `<input>`, so that hides the input instead.
+
+```tsx live
+<Input
+  autoComplete="email"
+  label="Email"
+  labelProps={{ className: 'is-sr-only' }}
+  type="email"
+  placeholder="you@example.com"
+/>
+```
+
+---
+
 ### Form Addons
 
 For multi-control rows like input + button, drop down to manual `Field` + `Control` composition. Use `<Field hasAddons>` with multiple `<Control>` children. Use `<Control isExpanded>` on the input so it fills the available space.
+
+A `hasAddons` Field names none of the controls it holds, and a placeholder disappears once the reader starts typing, so give each input a name of its own: an `aria-label`, as these examples do, or a visible label on an outer `Field`, as [Copy Button](#copy-button) does.
 
 #### Input + Button
 
 ```tsx live
 <Field hasAddons>
   <Control isExpanded>
-    <Input placeholder="Find a repository" />
+    <Input placeholder="Find a repository" aria-label="Find a repository" />
   </Control>
   <Control>
     <Button color="info">Search</Button>
@@ -275,15 +308,17 @@ For multi-control rows like input + button, drop down to manual `Field` + `Contr
 
 #### Input + Static Suffix
 
-A static button is non-interactive — useful for fixed prefixes/suffixes such as an email domain.
+A static button draws a fixed prefix or suffix, such as an email domain. `isStatic` only styles it, so render it `as="span"`, which Tab skips and a screen reader reads as text.
 
 ```tsx live
 <Field hasAddons>
   <Control isExpanded>
-    <Input placeholder="Your email" />
+    <Input placeholder="Your email" aria-label="Email username" />
   </Control>
   <Control>
-    <Button isStatic>@gmail.com</Button>
+    <Button as="span" isStatic>
+      @gmail.com
+    </Button>
   </Control>
 </Field>
 ```
@@ -293,14 +328,19 @@ A static button is non-interactive — useful for fixed prefixes/suffixes such a
 ```tsx live
 <Field hasAddons>
   <Control>
-    <Select aria-label="Country code">
+    <Select autoComplete="tel-country-code" aria-label="Country code">
       <option>+1</option>
       <option>+44</option>
       <option>+33</option>
     </Select>
   </Control>
   <Control isExpanded>
-    <Input type="tel" placeholder="Your phone number" />
+    <Input
+      autoComplete="tel-national"
+      type="tel"
+      placeholder="Your phone number"
+      aria-label="Phone number"
+    />
   </Control>
   <Control>
     <Button color="primary">Call</Button>
@@ -348,36 +388,64 @@ Pass `hasAddons="right"` to right-align the group.
 
 ### Password Reveal
 
-A show-password toggle is an addon: the `Input` in one `Control` and a `Button` in the next, switching the input's `type` between `password` and `text`. It can't be an icon inside the input the way `iconRight` draws one, because Bulma gives control icons `pointer-events: none` and a click on one lands on the input instead.
-
-The button keeps one accessible name, "Show password", and reports whether it's on through `aria-pressed`, so a screen reader announces a toggle that is pressed or not. `type="button"` stops it submitting the form it sits in. The label goes on an outer `Field`, since a `hasAddons` field lays its children out in a row, and `labelProps={{ htmlFor }}` with a matching `id` associates it with the input across the nested field.
+A password field with a button that shows what was typed is [`PasswordInput`](./passwordinput.md). Its button sits inside the field and leaves focus there, and the field asks for `autocomplete="current-password"`, turns spellcheck off and hides the password again when its form submits.
 
 ```tsx live
-function PasswordReveal() {
+<PasswordInput label="Password" />
+```
+
+---
+
+### Copy Button
+
+A copy field is an addon: a read-only `Input` holding the text, and a [`CopyButton`](../elements/copybutton.md) in the second `Control`. The button writes the text, falling back to the older copy command where the Clipboard API is missing or refused, reads "Copied" for a moment, and announces the result itself. Its announcement is portaled out of the `Control`, so Bulma still joins the two.
+
+When nothing can write, a line under the field explains, and the input takes focus with its text selected, so the reader can copy it themselves. The line is the input's description (`aria-describedby`), and the field takes focus only once it's in the page, so a screen reader reads the instruction with the field. The button's own short failure status is the only announcement.
+
+```tsx live
+function ShareLink() {
   const id = React.useId();
-  const [visible, setVisible] = useState(false);
+  const helpId = `${id}-help`;
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  // Counts the failed copies in a row, so each one moves focus.
+  const [failures, setFailures] = useState(0);
+  const link = 'https://bestax.io/docs/api/form/input';
+
+  // Focus the field once its description is in the page, so a screen
+  // reader reads the instruction with the field.
+  useEffect(() => {
+    if (failures === 0) return;
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, [failures]);
 
   return (
-    <Field label="Password" labelProps={{ htmlFor: id }}>
+    <Field label="Share link" labelProps={{ htmlFor: id }}>
       <Field hasAddons>
         <Control isExpanded>
           <Input
+            ref={inputRef}
             id={id}
-            type={visible ? 'text' : 'password'}
-            autoComplete="current-password"
+            value={link}
+            readOnly
+            aria-describedby={failures > 0 ? helpId : undefined}
           />
         </Control>
         <Control>
-          <Button
-            type="button"
-            aria-label="Show password"
-            aria-pressed={visible}
-            onClick={() => setVisible(shown => !shown)}
-          >
-            <Icon name={visible ? 'eye-slash' : 'eye'} aria-hidden="true" />
-          </Button>
+          <CopyButton
+            value={link}
+            labels={{ failedStatus: "Couldn't copy the link" }}
+            onCopiedChange={() => setFailures(0)}
+            onCopyError={() => setFailures(count => count + 1)}
+          />
         </Control>
       </Field>
+      {failures > 0 && (
+        <p id={helpId} className="help is-danger">
+          Couldn't copy automatically. The link is selected, so copy it from the
+          field.
+        </p>
+      )}
     </Field>
   );
 }
@@ -385,64 +453,12 @@ function PasswordReveal() {
 
 ---
 
-### Copy Button
+### Choosing a Color
 
-A copy button is an addon too: a read-only `Input` holding the text, and a `Button` that writes it with `navigator.clipboard.writeText`. The button's label reads "Copied" for a moment afterwards. Screen readers don't reliably announce a change to a button's label, so a `role="status"` line under the field says it too.
-
-The clipboard can be missing, since `navigator.clipboard` exists only in secure contexts (HTTPS or localhost), and the browser can refuse the write. Either way the example focuses and selects the text, so the reader can copy it themselves, and explains in a `role="alert"` line. That message is an alert rather than a status because focus moves to the input at the same moment, and a screen reader announcing the focused field can drop a polite message. Both lines are in the page from the start, since a live region that appears together with its text isn't reliably announced.
+`type="color"` is the browser's own color well, with no JavaScript: a click opens the system's color dialog, and the value is a hex color such as `#1e6b99`. It always holds a color, so it can't be left empty, and `required` and `placeholder` don't apply to it. It takes alpha only in Safari, and Firefox for Android offers only preset colors. For an empty value, alpha, swatches, HSL, or one look on every device, use [`ColorPicker`](./colorpicker.md).
 
 ```tsx live
-function CopyButton() {
-  const id = React.useId();
-  const inputRef = React.useRef<HTMLInputElement>(null);
-  const [status, setStatus] = useState<'idle' | 'copied' | 'failed'>('idle');
-  const link = 'https://bestax.io/docs/api/form/input';
-
-  // Put the button's label back after a moment.
-  useEffect(() => {
-    if (status !== 'copied') return undefined;
-    const timer = setTimeout(() => setStatus('idle'), 2000);
-    return () => clearTimeout(timer);
-  }, [status]);
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(link);
-      setStatus('copied');
-    } catch {
-      // No clipboard on this page, or the browser refused the write.
-      inputRef.current?.focus();
-      inputRef.current?.select();
-      setStatus('failed');
-    }
-  };
-
-  return (
-    <Field label="Share link" labelProps={{ htmlFor: id }}>
-      <Field hasAddons>
-        <Control isExpanded>
-          <Input ref={inputRef} id={id} value={link} readOnly />
-        </Control>
-        <Control>
-          <Button type="button" onClick={copy}>
-            <Icon
-              name={status === 'copied' ? 'check' : 'copy'}
-              aria-hidden="true"
-            />
-            <span>{status === 'copied' ? 'Copied' : 'Copy'}</span>
-          </Button>
-        </Control>
-      </Field>
-      <p role="status" className="help">
-        {status === 'copied' && 'Copied to the clipboard.'}
-      </p>
-      <p role="alert" className="help is-danger">
-        {status === 'failed' &&
-          "Couldn't copy automatically. The link is selected, so copy it from the field."}
-      </p>
-    </Field>
-  );
-}
+<Input type="color" label="Brand color" defaultValue="#1e6b99" />
 ```
 
 ---
@@ -495,7 +511,7 @@ Use `<Field grouped>` to lay multiple controls out on a single row with consiste
 ```tsx live
 <Field grouped>
   <Control isExpanded>
-    <Input placeholder="Find a repository" />
+    <Input placeholder="Find a repository" aria-label="Find a repository" />
   </Control>
   <Control>
     <Button color="info">Search</Button>
@@ -543,6 +559,7 @@ Place a `color="danger"` Input and a danger help message inside the horizontal f
     <Field>
       <Control iconLeftName="envelope" iconRightName="exclamation-triangle">
         <Input
+          autoComplete="email"
           id="invalid-email"
           type="email"
           color="danger"
@@ -567,10 +584,17 @@ Combine `Field horizontal` with a nested `Field hasAddons` inside the body to mi
   <Field.Body>
     <Field hasAddons>
       <Control>
-        <Button isStatic>+44</Button>
+        <Button as="span" isStatic>
+          +44
+        </Button>
       </Control>
       <Control isExpanded>
-        <Input id="phone-number" type="tel" placeholder="Your phone number" />
+        <Input
+          autoComplete="tel-national"
+          id="phone-number"
+          type="tel"
+          placeholder="Your phone number"
+        />
       </Control>
     </Field>
   </Field.Body>
@@ -589,7 +613,11 @@ Use an empty `Field.Label` to align the submit button under the inputs above it.
     <Field.Body>
       <Field>
         <Control>
-          <Input id="submit-row-name" placeholder="Your name" />
+          <Input
+            autoComplete="name"
+            id="submit-row-name"
+            placeholder="Your name"
+          />
         </Control>
       </Field>
     </Field.Body>
@@ -611,13 +639,18 @@ Use an empty `Field.Label` to align the submit button under the inputs above it.
 
 ### Disabled Fieldset
 
-Wrap multiple Inputs in a native `<fieldset disabled>` to disable every field at once.
+Wrap several Inputs in a disabled [`Fieldset`](./fieldset.md) to disable every field at once.
 
 ```tsx live
-<fieldset disabled>
-  <Input label="Name" placeholder="Your name" />
-  <Input label="Email" type="email" placeholder="Your email" />
-</fieldset>
+<Fieldset variant="unstyled" disabled>
+  <Input autoComplete="name" label="Name" placeholder="Your name" />
+  <Input
+    autoComplete="email"
+    label="Email"
+    type="email"
+    placeholder="Your email"
+  />
+</Fieldset>
 ```
 
 ---
@@ -631,7 +664,7 @@ The `Input` component is context-aware: it detects whether it is already inside 
 The simplest usage — the component automatically renders its own Field and Control wrappers.
 
 ```tsx live
-<Input label="Username" placeholder="Enter username" />
+<Input autoComplete="username" label="Username" placeholder="Enter username" />
 ```
 
 ---
@@ -652,7 +685,11 @@ function example() {
     >
       <Field.Body>
         <Field>
-          <Input id="username-field" placeholder="Enter username" />
+          <Input
+            autoComplete="username"
+            id="username-field"
+            placeholder="Enter username"
+          />
         </Field>
       </Field.Body>
     </Field>
@@ -677,7 +714,11 @@ function example() {
       <Field.Body>
         <Field>
           <Control iconLeftName="user">
-            <Input id="username-field-control" placeholder="Enter username" />
+            <Input
+              autoComplete="username"
+              id="username-field-control"
+              placeholder="Enter username"
+            />
           </Control>
         </Field>
       </Field.Body>
@@ -697,6 +738,7 @@ Inside a `Control` with no `Field` around it, `Input` renders no `Field` of its 
 - Always provide a label. The `label` prop is automatically associated with the input (`htmlFor` plus a generated `id`, or your own `id` if you pass one), so clicking the label focuses the input and assistive technology announces it.
 - When composing with `Field` instead, the `Field`'s own `label` associates with the input automatically when the input sits directly in that labeled `Field` and has no `id` of its own. A nested unlabeled `Field` (as in horizontal multi-field layouts) starts its own scope. With an `id` of your own, or across a nested `Field`, the label names the input only when you pass that `id` as `labelProps={{ htmlFor }}`.
 - Use the correct input `type` for semantics (`text`, `email`, etc.).
+- **Help and errors:** the `message` describes the input through `aria-describedby`, after any ids you pass there, so a screen reader reads it when the input takes focus. A red `color` says nothing to a screen reader, so on an error also set `aria-invalid`, and put the error in the `message`.
 
 ---
 
@@ -718,38 +760,38 @@ Inside a `Control` with no `Field` around it, `Input` renders no `Field` of its 
 
 <!-- bestax:generated props -->
 
-| Prop               | Type                                                                                                                               | Default | Description                                                                                                                                                                                                                                                                                                                       |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `label`            | `React.ReactNode`                                                                                                                  | —       | Field label. Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here. |
-| `labelSize`        | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                                                                                 | —       | Size for the label.                                                                                                                                                                                                                                                                                                               |
-| `labelProps`       | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`                                                        | —       | Props for the label element when the component renders its own `Field`; dropped inside an outer `Field` (use that `Field`'s `labelProps` instead). An explicit `htmlFor` key — even `undefined` — overrides the automatic association and no id is generated.                                                                     |
-| `horizontal`       | `boolean`                                                                                                                          | `false` | Horizontal field layout.                                                                                                                                                                                                                                                                                                          |
-| `iconLeft`         | `IconProps` \| `React.ReactNode`                                                                                                   | —       | Icon props for left icon. Bulma gives control icons `pointer-events: none`, so a clickable node here never receives a click. Put a button beside the input in its own addon `Control` instead.                                                                                                                                    |
-| `iconRight`        | `IconProps` \| `React.ReactNode`                                                                                                   | —       | Icon props for right icon. Bulma gives control icons `pointer-events: none`, so a clickable node here never receives a click. Put a button beside the input in its own addon `Control` instead.                                                                                                                                   |
-| `iconLeftName`     | `string`                                                                                                                           | —       | Shortcut for left icon name.                                                                                                                                                                                                                                                                                                      |
-| `iconRightName`    | `string`                                                                                                                           | —       | Shortcut for right icon name.                                                                                                                                                                                                                                                                                                     |
-| `iconLeftSize`     | `'small'` \| `'medium'` \| `'large'`                                                                                               | —       | Shortcut for left icon size.                                                                                                                                                                                                                                                                                                      |
-| `iconRightSize`    | `'small'` \| `'medium'` \| `'large'`                                                                                               | —       | Shortcut for right icon size.                                                                                                                                                                                                                                                                                                     |
-| `hasIconsLeft`     | `boolean`                                                                                                                          | `false` | Force left icon container.                                                                                                                                                                                                                                                                                                        |
-| `hasIconsRight`    | `boolean`                                                                                                                          | `false` | Force right icon container.                                                                                                                                                                                                                                                                                                       |
-| `isLoading`        | `boolean`                                                                                                                          | `false` | Shows a loading spinner on the `Control` it renders. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded). The spinner sits at the right edge, where `iconRight` also sits, and the two overlap; leave the right icon out while loading.                                           |
-| `isExpanded`       | `boolean`                                                                                                                          | `false` | Expand the control.                                                                                                                                                                                                                                                                                                               |
-| `controlSize`      | `'small'` \| `'medium'` \| `'large'`                                                                                               | —       | Control size.                                                                                                                                                                                                                                                                                                                     |
-| `message`          | `React.ReactNode`                                                                                                                  | —       | Help/validation message below the input.                                                                                                                                                                                                                                                                                          |
-| `messageColor`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                                                    | —       | Bulma color for the message.                                                                                                                                                                                                                                                                                                      |
-| `fieldClassName`   | `string`                                                                                                                           | —       | Additional CSS classes for the Field.                                                                                                                                                                                                                                                                                             |
-| `controlClassName` | `string`                                                                                                                           | —       | Additional CSS classes for the Control.                                                                                                                                                                                                                                                                                           |
-| `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'` | —       | Bulma color modifier for the input.                                                                                                                                                                                                                                                                                               |
-| `size`             | `'small'` \| `'medium'` \| `'large'`                                                                                               | —       | Size modifier for the input.                                                                                                                                                                                                                                                                                                      |
-| `isRounded`        | `boolean`                                                                                                                          | `false` | Rounded input corners.                                                                                                                                                                                                                                                                                                            |
-| `isStatic`         | `boolean`                                                                                                                          | `false` | Styles the input as static text. It stays editable; add `readOnly` to stop edits.                                                                                                                                                                                                                                                 |
-| `isHovered`        | `boolean`                                                                                                                          | `false` | Applies hovered state.                                                                                                                                                                                                                                                                                                            |
-| `isFocused`        | `boolean`                                                                                                                          | `false` | Applies focused state.                                                                                                                                                                                                                                                                                                            |
-| `className`        | `string`                                                                                                                           | —       | Additional CSS classes to apply.                                                                                                                                                                                                                                                                                                  |
-| `disabled`         | `boolean`                                                                                                                          | `false` | Disabled input.                                                                                                                                                                                                                                                                                                                   |
-| `readOnly`         | `boolean`                                                                                                                          | `false` | Read-only input.                                                                                                                                                                                                                                                                                                                  |
-| `ref`              | `React.Ref<HTMLInputElement>`                                                                                                      | —       | Forwarded to the underlying element.                                                                                                                                                                                                                                                                                              |
-| `...`              | All standard `<input>` attributes and Bulma helper props                                                                           | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                 |
+| Prop               | Type                                                                                                                               | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`            | `React.ReactNode`                                                                                                                  | —       | Field label. Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here.                                                                                                                                                                                                                                                                                                                                                |
+| `labelSize`        | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                                                                                 | —       | Size for the label.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `labelProps`       | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`                                                        | —       | Props for the label element when the component renders its own `Field`; dropped inside an outer `Field` (use that `Field`'s `labelProps` instead). An explicit `htmlFor` key — even `undefined` — overrides the automatic association and no id is generated.                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `horizontal`       | `boolean`                                                                                                                          | `false` | Horizontal field layout.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `iconLeft`         | `IconProps` \| `React.ReactNode`                                                                                                   | —       | Icon props for left icon. Bulma gives control icons `pointer-events: none`, so a clickable node here never receives a click. Put a button beside the input in its own addon `Control` instead.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `iconRight`        | `IconProps` \| `React.ReactNode`                                                                                                   | —       | Icon props for right icon. Bulma gives control icons `pointer-events: none`, so a clickable node here never receives a click. Put a button beside the input in its own addon `Control` instead.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `iconLeftName`     | `string`                                                                                                                           | —       | Shortcut for left icon name.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `iconRightName`    | `string`                                                                                                                           | —       | Shortcut for right icon name.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `iconLeftSize`     | `'small'` \| `'medium'` \| `'large'`                                                                                               | —       | Shortcut for left icon size.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `iconRightSize`    | `'small'` \| `'medium'` \| `'large'`                                                                                               | —       | Shortcut for right icon size.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `hasIconsLeft`     | `boolean`                                                                                                                          | `false` | Force left icon container.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `hasIconsRight`    | `boolean`                                                                                                                          | `false` | Force right icon container.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `isLoading`        | `boolean`                                                                                                                          | `false` | Shows a loading spinner on the `Control` it renders. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded). The spinner sits at the right edge, where `iconRight` also sits, and the two overlap; leave the right icon out while loading. The spinner is only drawn, so a screen reader hears nothing of it. Say that the field is loading in text that describes it, tied to it with `aria-describedby`, which a screen reader reads when the field takes focus. A load that starts while the user is in the field, such as a search as they type, isn't reliably heard without a live region, such as a `role="status"` element. |
+| `isExpanded`       | `boolean`                                                                                                                          | `false` | Expand the control.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `controlSize`      | `'small'` \| `'medium'` \| `'large'`                                                                                               | —       | Control size.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `message`          | `React.ReactNode`                                                                                                                  | —       | Help or validation text under the input. It describes the input through `aria-describedby`, after any ids you pass there.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `messageColor`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`                                                    | —       | Bulma color for the message.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `fieldClassName`   | `string`                                                                                                                           | —       | Additional CSS classes for the Field.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `controlClassName` | `string`                                                                                                                           | —       | Additional CSS classes for the Control.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'` | —       | Bulma color modifier for the input.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `size`             | `'small'` \| `'medium'` \| `'large'`                                                                                               | —       | Size modifier for the input.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `isRounded`        | `boolean`                                                                                                                          | `false` | Rounded input corners.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `isStatic`         | `boolean`                                                                                                                          | `false` | Styles the input as static text. It stays editable; add `readOnly` to stop edits.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `isHovered`        | `boolean`                                                                                                                          | `false` | Applies hovered state.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `isFocused`        | `boolean`                                                                                                                          | `false` | Applies focused state.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `className`        | `string`                                                                                                                           | —       | Additional CSS classes to apply.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `disabled`         | `boolean`                                                                                                                          | `false` | Disabled input.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `readOnly`         | `boolean`                                                                                                                          | `false` | Read-only input.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `ref`              | `React.Ref<HTMLInputElement>`                                                                                                      | —       | Forwarded to the underlying element.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `...`              | All standard `<input>` attributes and Bulma helper props                                                                           | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 
 <!-- /bestax:generated props -->
 

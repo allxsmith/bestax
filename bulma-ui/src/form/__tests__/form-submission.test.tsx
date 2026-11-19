@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { Rate } from '../Rate';
 import { Taginput } from '../Taginput';
 import { Autocomplete } from '../Autocomplete';
+import { Combobox } from '../Combobox';
 import { Slider } from '../Slider';
 import { Radios } from '../Radios';
 import { Radio } from '../Radio';
@@ -28,6 +29,32 @@ describe('Form submission integration', () => {
     expect(hidden[0]).toHaveAttribute('name', 'tags');
     expect(hidden[0]).toHaveAttribute('value', 'a');
     expect(hidden[2]).toHaveAttribute('value', 'c');
+  });
+
+  it('Combobox with data and name renders one hidden input with its value', () => {
+    const { container } = render(
+      <Combobox name="fruit" data={['Apple', 'Pear']} defaultValue="Pear" />
+    );
+    const hidden = container.querySelectorAll('input[type="hidden"]');
+    expect(hidden).toHaveLength(1);
+    expect(hidden[0]).toHaveAttribute('name', 'fruit');
+    expect(hidden[0]).toHaveAttribute('value', 'Pear');
+  });
+
+  it('Combobox with data, multiple and name renders one hidden input per value', () => {
+    const { container } = render(
+      <Combobox
+        name="fruit"
+        data={['Apple', 'Pear', 'Plum']}
+        multiple
+        defaultValue={['Apple', 'Plum']}
+      />
+    );
+    const hidden = container.querySelectorAll('input[type="hidden"]');
+    expect(Array.from(hidden, h => h.getAttribute('value'))).toEqual([
+      'Apple',
+      'Plum',
+    ]);
   });
 
   it('Autocomplete forwards name to inner input', () => {

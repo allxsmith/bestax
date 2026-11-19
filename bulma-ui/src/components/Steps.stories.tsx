@@ -8,6 +8,8 @@ import { Buttons } from '../elements/Buttons';
 import { Column } from '../columns/Column';
 import { Columns } from '../columns/Columns';
 import { Icon } from '../elements/Icon';
+import { Notification } from '../elements/Notification';
+import { Hero } from '../layout/Hero';
 import { Title } from '../elements/Title';
 import { Paragraph } from '../elements/Paragraph';
 
@@ -19,7 +21,7 @@ const meta: Meta<typeof Steps> = {
     docs: {
       description: {
         component:
-          'A multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow. Supports step numbers, icons, navigation buttons, and multiple layouts.',
+          'A multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow. Supports step numbers, icons, navigation buttons, and multiple layouts.\n\n**Timeline or Steps?** Steps is a journey the user moves through themselves, such as a wizard or a checkout. It renders a `<ul role="list">` of steps with `aria-current="step"` on the current one, a check mark in place of the number on a completed one, and the state of each other step in words. A `clickable` step is a `<button>` that calls `onStepClick`, and `hasNavigation` adds Previous and Next buttons. A [Timeline](?path=/docs/components-timeline--docs) is a record of what happened, or the progress of something that moves along on its own: an `<ol role="list">` with a heading per event, its markers hidden from assistive tech, and nothing to click.',
       },
     },
   },
@@ -582,7 +584,9 @@ export const LabelPositions: Story = {
 };
 
 /**
- * Click on any step to jump to it, plus navigation buttons.
+ * Click on any step to jump to it, plus navigation buttons. Each step is a
+ * button inside its list item, so Tab reaches it and Enter or Space presses
+ * it, with the focus ring around the whole step.
  */
 export const Clickable: Story = {
   render: function ClickableStory() {
@@ -812,6 +816,116 @@ export const VerticalLabelsBottom: Story = {
           </Buttons>
         </Column>
       </Columns>
+    );
+  },
+};
+
+/**
+ * Both layouts in a right-to-left page. The steps run from the right, and each
+ * line joins its marker to the next one. `labelPosition="right"` means the end
+ * of the line, so here it puts each label to the left of its marker.
+ */
+export const RightToLeft: Story = {
+  render: function RightToLeftStory() {
+    const [step, setStep] = useState(1);
+    const items = [
+      { label: 'الحساب', clickable: true },
+      { label: 'الملف الشخصي', clickable: true },
+      { label: 'الإعدادات', clickable: true },
+      { label: 'تم', clickable: true },
+    ];
+
+    return (
+      <div dir="rtl" lang="ar">
+        <Block>
+          <Title size="6">أفقي</Title>
+          <Steps
+            value={step}
+            onStepClick={setStep}
+            color="primary"
+            completedLabel="مكتملة"
+            upcomingLabel="قادمة"
+            items={items}
+          />
+        </Block>
+        <Block>
+          <Title size="6">عمودي</Title>
+          <Steps
+            value={step}
+            onStepClick={setStep}
+            vertical
+            labelPosition="right"
+            color="primary"
+            completedLabel="مكتملة"
+            upcomingLabel="قادمة"
+            items={items}
+          />
+        </Block>
+      </div>
+    );
+  },
+};
+
+/**
+ * The words a screen reader hears after a completed step and one not reached
+ * yet, in another language. They're hidden on screen; a clickable step's
+ * button reads them as its description.
+ */
+export const LocalizedWords: Story = {
+  render: function LocalizedWordsStory() {
+    const [step, setStep] = useState(1);
+    const items = [
+      { label: 'Compte', clickable: true },
+      { label: 'Profil', clickable: true },
+      { label: 'Confirmation', clickable: true },
+    ];
+
+    return (
+      <div lang="fr">
+        <Steps
+          value={step}
+          onStepClick={setStep}
+          color="primary"
+          completedLabel="terminée"
+          upcomingLabel="à venir"
+          hasNavigation
+          prevLabel="Précédent"
+          nextLabel="Suivant"
+          items={items}
+        />
+      </div>
+    );
+  },
+};
+
+/**
+ * Steps on a colored Notification and a colored Hero. With no color of their
+ * own, they take the surface's text color and fill their markers with its
+ * background, as the surface's other text does.
+ */
+export const OnColoredSurfaces: Story = {
+  render: function OnColoredSurfacesStory() {
+    const items = [
+      { label: 'Account' },
+      { label: 'Profile' },
+      { label: 'Settings' },
+      { label: 'Complete' },
+    ];
+
+    return (
+      <div>
+        <Notification color="info">
+          <Steps value={1} items={items} />
+        </Notification>
+        <Notification color="success">
+          <Steps value={2} labelPosition="right" items={items} />
+        </Notification>
+        <Hero color="link">
+          <Hero.Body>
+            <Steps value={1} items={items} />
+          </Hero.Body>
+        </Hero>
+      </div>
     );
   },
 };

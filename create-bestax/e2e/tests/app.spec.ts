@@ -14,13 +14,20 @@ import { test, expect } from '@playwright/test';
  * for visual regression detection.
  */
 
+// CI names each scenario template-flavor-icon. A Next.js scaffold's starter
+// page names Next.js where a Vite one names Vite, and shows no Vite logo.
+const IS_NEXT = /^next(-ts)?-/.test(process.env.TEST_SCENARIO ?? '');
+const STARTER_TITLE = IS_NEXT
+  ? 'Bestax + Next.js + React'
+  : 'Bestax + Vite + React';
+
 test.describe('Scaffolded App - Logo Section', () => {
   test('logo section renders with correct branding', async ({ page }) => {
     await page.goto('/');
 
     // Verify logo section title
     const logoTitle = page.locator('h1').first();
-    await expect(logoTitle).toContainText('Bestax + Vite + React');
+    await expect(logoTitle).toContainText(STARTER_TITLE);
 
     // Verify all three logos are present
     const bestaxLogo = page.locator('img[alt="Bestax"]');
@@ -28,7 +35,11 @@ test.describe('Scaffolded App - Logo Section', () => {
     const reactLogo = page.locator('img[alt="React"]');
 
     await expect(bestaxLogo).toBeVisible();
-    await expect(viteLogo).toBeVisible();
+    if (IS_NEXT) {
+      await expect(viteLogo).toHaveCount(0);
+    } else {
+      await expect(viteLogo).toBeVisible();
+    }
     await expect(reactLogo).toBeVisible();
 
     // Visual regression check
@@ -240,9 +251,7 @@ test.describe('Scaffolded App - Responsive Design', () => {
     await page.goto('/');
 
     // Verify content is still visible
-    await expect(page.locator('h1').first()).toContainText(
-      'Bestax + Vite + React'
-    );
+    await expect(page.locator('h1').first()).toContainText(STARTER_TITLE);
 
     // Visual regression check
     await expect(page).toHaveScreenshot('08-tablet-view.png', {
@@ -255,9 +264,7 @@ test.describe('Scaffolded App - Responsive Design', () => {
     await page.goto('/');
 
     // Verify content is still visible
-    await expect(page.locator('h1').first()).toContainText(
-      'Bestax + Vite + React'
-    );
+    await expect(page.locator('h1').first()).toContainText(STARTER_TITLE);
 
     // Visual regression check
     await expect(page).toHaveScreenshot('09-mobile-view.png', {
@@ -490,5 +497,67 @@ test.describe('Scaffolded App - Layout and Accessibility', () => {
       'text-decoration-line',
       'underline'
     );
+  });
+});
+
+// Only the router and Next.js templates have more than one page. CI names
+// each scenario template-flavor-icon, so theirs start with react-router,
+// tanstack-router or next; every other scenario skips these.
+test.describe('Scaffolded App - Routing', () => {
+  test.beforeEach(() => {
+    test.skip(
+      !/^(react-router|tanstack-router|next(-ts)?)-/.test(
+        process.env.TEST_SCENARIO ?? ''
+      ),
+      'only the router and Next.js templates have pages'
+    );
+  });
+
+  test('moves between pages from the navbar, marking the current one', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    const nav = page.getByRole('navigation');
+    const home = nav.getByRole('link', { name: 'Home', exact: true });
+    const about = nav.getByRole('link', { name: 'About', exact: true });
+    await expect(home).toHaveAttribute('aria-current', 'page');
+    await expect(home).toHaveClass(/is-active/);
+    await expect(about).not.toHaveAttribute('aria-current', /.*/);
+
+    await about.click();
+    await expect(page).toHaveURL(/\/about$/);
+    await expect(page.locator('h1')).toHaveText('About');
+    await expect(about).toHaveAttribute('aria-current', 'page');
+    await expect(home).not.toHaveAttribute('aria-current', /.*/);
+
+    await page.goBack();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.locator('img[alt="Bestax"]')).toBeVisible();
+  });
+
+  test('loads a page from its own address', async ({ page }) => {
+    await page.goto('/about');
+    await expect(page.locator('h1')).toHaveText('About');
+    await expect(page.getByRole('main')).toHaveCount(1);
+  });
+
+  test('opens the menu from the burger at phone width, and closes it on a link', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto('/');
+    const burger = page.getByRole('button', { name: 'menu' });
+    const about = page
+      .getByRole('navigation')
+      .getByRole('link', { name: 'About', exact: true });
+    await expect(about).toBeHidden();
+
+    await burger.click();
+    await expect(burger).toHaveAttribute('aria-expanded', 'true');
+    await about.click();
+
+    await expect(page).toHaveURL(/\/about$/);
+    await expect(burger).toHaveAttribute('aria-expanded', 'false');
+    await expect(about).toBeHidden();
   });
 });

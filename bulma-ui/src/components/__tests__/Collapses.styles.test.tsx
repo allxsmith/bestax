@@ -8,6 +8,7 @@ import type { CSSProperties } from 'react';
 import { render, screen } from '@testing-library/react';
 import { Collapses } from '../Collapses';
 import { Collapse } from '../Collapse';
+import { compilePartial, rulesOf } from '../../__tests__/css-cascade';
 
 let styleEl: HTMLStyleElement;
 
@@ -170,12 +171,33 @@ describe('Collapses styles', () => {
     // longhands the outer corners use, so this reads the reset every joined
     // item gets.
     expect(getComputedStyle(screen.getByTestId('first')).borderRadius).toBe(
-      '0'
+      '0px'
     );
 
     // A bordered Collapse inside an item's content is not one of the joins.
     expect(getComputedStyle(screen.getByTestId('nested')).borderRadius).toBe(
       'var(--bulma-collapse-radius)'
+    );
+  });
+});
+
+describe.each([
+  ['no prefix', ''],
+  ['a prefix', 'bestax-'],
+])('the Collapse partial under reduced motion, with %s', (_name, p) => {
+  it("stops the chevron's turn and the bordered trigger's edge transition", () => {
+    const reduced = rulesOf(
+      compilePartial('components/collapse', p)
+    ).nested.filter(
+      ({ within }) => within === '@media (prefers-reduced-motion: reduce)'
+    );
+    expect(
+      reduced.map(({ rule }) => rule.selectorText.replace(/\s+/g, ' '))
+    ).toEqual([
+      `.${p}collapse-trigger-icon, .${p}collapse.${p}is-bordered .${p}collapse-trigger`,
+    ]);
+    expect(reduced[0].rule.style.getPropertyValue('transition')).toMatch(
+      /^none/
     );
   });
 });

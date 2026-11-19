@@ -9,13 +9,13 @@ import { useIconLibrary } from '../helpers/Config';
 
 // TypeScript declaration for Ionicons web component
 interface IonIconProps extends React.HTMLAttributes<HTMLElement> {
-  name?: string;
-  src?: string;
+  name?: string | undefined;
+  src?: string | undefined;
   icon?: unknown;
-  size?: string;
+  size?: string | undefined;
   lazy?: boolean;
   sanitize?: boolean;
-  color?: string;
+  color?: string | undefined;
   flipRtl?: boolean;
   ariaLabel?: string;
   ariaHidden?: string;
@@ -41,11 +41,17 @@ type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
 interface IconBaseProps
   extends React.HTMLAttributes<HTMLSpanElement>, BulmaClassesProps {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Bulma color modifier for the icon. */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  /**
+   * Text color alias: renders `has-text-<color>`, exactly like `textColor`.
+   * Not a filled variant (no `.icon.is-<color>` CSS exists). Prefer
+   * `textColor`, which takes precedence when both are set; use `bgColor` for
+   * a colored surface.
+   */
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
@@ -73,7 +79,7 @@ interface IconBaseProps
    */
   libraryFeatures?: string | string[];
   /** Size modifier for the icon container. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /**
    * Accessible name for an icon that means something on its own. Set it and the container
    * span gets `role="img"` with this `aria-label`, so the name is exactly this text: a
@@ -88,7 +94,7 @@ interface IconBaseProps
    */
   ariaLabel?: string;
   /** Inline style object. */
-  style?: React.CSSProperties;
+  style?: React.CSSProperties | undefined;
   /** Override the default `'icon'` container class (e.g., `'panel-icon'`). */
   containerClassName?: string; // Override the default 'icon' container class (e.g., 'panel-icon')
 }
@@ -280,7 +286,7 @@ export const Icon: React.FC<IconProps> = ({
   ariaLabel,
   style,
   icon, // Capture and exclude the deprecated 'icon' prop from DOM
-  color: _color, // Exclude 'color' prop if passed directly
+  color,
   containerClassName,
   children,
   ...restProps
@@ -293,7 +299,7 @@ export const Icon: React.FC<IconProps> = ({
    * Note: variant, features, and libraryFeatures are excluded from props spread
    */
   const { bulmaHelperClasses, rest } = useBulmaClasses({
-    color: textColor,
+    color: textColor ?? color,
     backgroundColor: bgColor,
     ...restProps,
   });

@@ -1,7 +1,16 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { renderToString } from 'react-dom/server';
+import { hydrateRoot } from 'react-dom/client';
 import { Sidebar } from '../Sidebar';
+import { Loading } from '../Loading';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Sidebar', () => {
@@ -162,7 +171,7 @@ describe('Sidebar', () => {
 
   describe('Closing Behavior', () => {
     it('calls onClose when overlay is clicked', async () => {
-      const handleClose = jest.fn();
+      const handleClose = vi.fn();
       render(
         <Sidebar isOpen onClose={handleClose}>
           <div>Content</div>
@@ -176,7 +185,7 @@ describe('Sidebar', () => {
     });
 
     it('does not call onClose when overlay clicked and overlayClose is false', async () => {
-      const handleClose = jest.fn();
+      const handleClose = vi.fn();
       render(
         <Sidebar isOpen onClose={handleClose} overlayClose={false}>
           <div>Content</div>
@@ -190,7 +199,7 @@ describe('Sidebar', () => {
     });
 
     it('calls onClose when Escape key is pressed', () => {
-      const handleClose = jest.fn();
+      const handleClose = vi.fn();
       render(
         <Sidebar isOpen onClose={handleClose}>
           <div>Content</div>
@@ -202,8 +211,45 @@ describe('Sidebar', () => {
       expect(handleClose).toHaveBeenCalledTimes(1);
     });
 
+    it('leaves an Escape that content inside already used', () => {
+      const handleClose = vi.fn();
+      render(
+        <Sidebar isOpen onClose={handleClose}>
+          <input
+            aria-label="Search"
+            onKeyDown={e => {
+              if (e.key === 'Escape') e.preventDefault();
+            }}
+          />
+        </Sidebar>
+      );
+
+      fireEvent.keyDown(screen.getByLabelText('Search'), { key: 'Escape' });
+      expect(handleClose).not.toHaveBeenCalled();
+
+      fireEvent.keyDown(document.body, { key: 'Escape' });
+      expect(handleClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('hears Escape after a document listener added once it was open', () => {
+      const handleClose = vi.fn();
+      render(
+        <Sidebar isOpen onClose={handleClose}>
+          <div>Content</div>
+        </Sidebar>
+      );
+      const claim = (e: KeyboardEvent) => e.preventDefault();
+      document.addEventListener('keydown', claim);
+      try {
+        fireEvent.keyDown(document.body, { key: 'Escape' });
+        expect(handleClose).not.toHaveBeenCalled();
+      } finally {
+        document.removeEventListener('keydown', claim);
+      }
+    });
+
     it('does not call onClose on Escape when escapeClose is false', () => {
-      const handleClose = jest.fn();
+      const handleClose = vi.fn();
       render(
         <Sidebar isOpen onClose={handleClose} escapeClose={false}>
           <div>Content</div>
@@ -216,7 +262,7 @@ describe('Sidebar', () => {
     });
 
     it('does not call onClose when canCancel is false', async () => {
-      const handleClose = jest.fn();
+      const handleClose = vi.fn();
       render(
         <Sidebar isOpen onClose={handleClose} canCancel={false}>
           <div>Content</div>
@@ -230,7 +276,7 @@ describe('Sidebar', () => {
     });
 
     it('does not call onClose on Escape when canCancel is false', () => {
-      const handleClose = jest.fn();
+      const handleClose = vi.fn();
       render(
         <Sidebar isOpen onClose={handleClose} canCancel={false}>
           <div>Content</div>
@@ -243,18 +289,18 @@ describe('Sidebar', () => {
     });
   });
 
-  describe('Body Scroll Lock', () => {
-    it('prevents body scroll when open with overlay', () => {
+  describe('Page Scroll Lock', () => {
+    it('prevents page scroll when open with overlay', () => {
       render(
         <Sidebar isOpen onClose={() => {}}>
           <div>Content</div>
         </Sidebar>
       );
 
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
     });
 
-    it('restores body scroll when closed', () => {
+    it('restores page scroll when closed', () => {
       const { rerender } = render(
         <Sidebar isOpen onClose={() => {}}>
           <div>Content</div>
@@ -267,18 +313,18 @@ describe('Sidebar', () => {
         </Sidebar>
       );
 
-      expect(document.body.style.overflow).not.toBe('hidden');
+      expect(document.documentElement.style.overflow).not.toBe('hidden');
     });
 
-    it('does not lock body scroll when overlay is false', () => {
-      const originalOverflow = document.body.style.overflow;
+    it('does not lock page scroll when overlay is false', () => {
+      const originalOverflow = document.documentElement.style.overflow;
       render(
         <Sidebar isOpen onClose={() => {}} overlay={false}>
           <div>Content</div>
         </Sidebar>
       );
 
-      expect(document.body.style.overflow).toBe(originalOverflow);
+      expect(document.documentElement.style.overflow).toBe(originalOverflow);
     });
   });
 
@@ -306,9 +352,492 @@ describe('Sidebar', () => {
         expect(document.activeElement).toBe(screen.getByRole('dialog'));
       });
     });
+
+    it('takes focus without an overlay too, with no modal overlay open', () => {
+      render(
+        <Sidebar isOpen onClose={() => {}} overlay={false}>
+          <button type="button">Inside</button>
+        </Sidebar>
+      );
+      expect(screen.getByText('Inside')).toHaveFocus();
+    });
+
+    it('leaves focus where the user put it when overlay changes while open', () => {
+      const ui = (overlay: boolean) => (
+        <Sidebar isOpen onClose={() => {}} overlay={overlay}>
+          <button type="button">First</button>
+          <button type="button">Last</button>
+        </Sidebar>
+      );
+      const { rerender } = render(ui(true));
+      const last = screen.getByText('Last');
+      act(() => last.focus());
+
+      // Without an overlay there's no trap, so Tab is the browser's.
+      rerender(ui(false));
+      expect(last).toHaveFocus();
+      expect(fireEvent.keyDown(last, { key: 'Tab' })).toBe(true);
+
+      // With one again, the trap is back, and focus still hasn't moved.
+      rerender(ui(true));
+      expect(last).toHaveFocus();
+      expect(fireEvent.keyDown(last, { key: 'Tab' })).toBe(false);
+      expect(screen.getByText('First')).toHaveFocus();
+    });
+
+    it('moves focus past a control Tab would skip', () => {
+      render(
+        <Sidebar isOpen onClose={() => {}}>
+          <button type="button" disabled>
+            Disabled
+          </button>
+          <a href="#skip" tabIndex={-1}>
+            Not tabbable
+          </a>
+          <button type="button">Enabled</button>
+        </Sidebar>
+      );
+      expect(screen.getByText('Enabled')).toHaveFocus();
+    });
+
+    describe('when it closes', () => {
+      let opener: HTMLButtonElement;
+      beforeEach(() => {
+        opener = document.createElement('button');
+        opener.textContent = 'Open filters';
+        document.body.appendChild(opener);
+        opener.focus();
+      });
+      afterEach(() => opener.remove());
+
+      const ui = (isOpen: boolean, overlay = true) => (
+        <Sidebar isOpen={isOpen} onClose={() => {}} overlay={overlay}>
+          <button type="button">Inside</button>
+        </Sidebar>
+      );
+
+      it('hands focus back to the element that had it when it opened', () => {
+        const { rerender } = render(ui(true));
+        expect(screen.getByText('Inside')).toHaveFocus();
+
+        rerender(ui(false));
+        expect(opener).toHaveFocus();
+      });
+
+      it('hands focus back when it unmounts while open', () => {
+        const { unmount } = render(ui(true));
+        unmount();
+        expect(opener).toHaveFocus();
+      });
+
+      it('leaves focus that moved out to the page where it is', () => {
+        const elsewhere = document.createElement('button');
+        document.body.appendChild(elsewhere);
+        try {
+          const { rerender } = render(ui(true, false));
+          elsewhere.focus();
+
+          rerender(ui(false, false));
+          expect(elsewhere).toHaveFocus();
+        } finally {
+          elsewhere.remove();
+        }
+      });
+
+      it('does not pull focus out of a sidebar still open on top', () => {
+        const stack = (backgroundOpen: boolean) => (
+          <>
+            <Sidebar isOpen={backgroundOpen} onClose={() => {}}>
+              <button type="button">Background</button>
+            </Sidebar>
+            <Sidebar isOpen onClose={() => {}}>
+              <button type="button">Top</button>
+            </Sidebar>
+          </>
+        );
+        const { rerender } = render(stack(true));
+        expect(screen.getByText('Top')).toHaveFocus();
+
+        rerender(stack(false));
+        expect(screen.getByText('Top')).toHaveFocus();
+      });
+    });
+  });
+
+  describe('Focus containment', () => {
+    const three = (
+      props: Partial<React.ComponentProps<typeof Sidebar>> = {}
+    ) => (
+      <Sidebar isOpen onClose={() => {}} aria-label="Filters" {...props}>
+        <button type="button">First</button>
+        <button type="button">Middle</button>
+        <button type="button">Last</button>
+      </Sidebar>
+    );
+
+    it('wraps Tab from the last tab stop to the first', () => {
+      render(three());
+      const last = screen.getByText('Last');
+      last.focus();
+
+      expect(fireEvent.keyDown(last, { key: 'Tab' })).toBe(false);
+      expect(screen.getByText('First')).toHaveFocus();
+    });
+
+    it('wraps Shift+Tab from the first tab stop to the last', () => {
+      render(three());
+      const first = screen.getByText('First');
+      expect(first).toHaveFocus();
+
+      expect(fireEvent.keyDown(first, { key: 'Tab', shiftKey: true })).toBe(
+        false
+      );
+      expect(screen.getByText('Last')).toHaveFocus();
+    });
+
+    it('leaves Tab to the browser between the ends', () => {
+      render(three());
+      const middle = screen.getByText('Middle');
+      middle.focus();
+
+      expect(fireEvent.keyDown(middle, { key: 'Tab' })).toBe(true);
+      expect(fireEvent.keyDown(middle, { key: 'Tab', shiftKey: true })).toBe(
+        true
+      );
+      expect(middle).toHaveFocus();
+    });
+
+    it('wraps at the stops Tab visits, past a disabled control and a radio group', () => {
+      render(
+        <Sidebar isOpen onClose={() => {}} aria-label="Filters">
+          <button type="button">First</button>
+          <input type="radio" name="rating" aria-label="4 stars" />
+          <input type="radio" name="rating" aria-label="3 stars" />
+          <button type="button" disabled>
+            Apply
+          </button>
+        </Sidebar>
+      );
+      // A radio group is one stop, its first button while none is checked.
+      const group = screen.getByLabelText('4 stars');
+      group.focus();
+
+      expect(fireEvent.keyDown(group, { key: 'Tab' })).toBe(false);
+      expect(screen.getByText('First')).toHaveFocus();
+    });
+
+    it('pulls focus back in when Tab is pressed from outside the sidebar', () => {
+      const outside = document.createElement('button');
+      document.body.appendChild(outside);
+      try {
+        render(three());
+
+        outside.focus();
+        expect(fireEvent.keyDown(outside, { key: 'Tab' })).toBe(false);
+        expect(screen.getByText('First')).toHaveFocus();
+
+        outside.focus();
+        expect(fireEvent.keyDown(outside, { key: 'Tab', shiftKey: true })).toBe(
+          false
+        );
+        expect(screen.getByText('Last')).toHaveFocus();
+      } finally {
+        outside.remove();
+      }
+    });
+
+    it('holds focus on the sidebar when nothing inside can take it', () => {
+      render(
+        <Sidebar isOpen onClose={() => {}} aria-label="Filters">
+          <p>Nothing to focus</p>
+        </Sidebar>
+      );
+      const sidebar = screen.getByRole('dialog');
+      sidebar.blur();
+
+      expect(fireEvent.keyDown(document.body, { key: 'Tab' })).toBe(false);
+      expect(sidebar).toHaveFocus();
+    });
+
+    it('leaves a Tab that a trap inside already used', () => {
+      // A portaled popup's own trap moves focus outside the sidebar's node and
+      // claims the key; the sidebar must not pull focus back.
+      const panel = document.createElement('button');
+      document.body.appendChild(panel);
+      const trap = (e: KeyboardEvent) => {
+        e.preventDefault();
+        panel.focus();
+      };
+      render(three());
+      document.addEventListener('keydown', trap);
+      try {
+        fireEvent.keyDown(screen.getByText('Last'), { key: 'Tab' });
+        expect(panel).toHaveFocus();
+      } finally {
+        document.removeEventListener('keydown', trap);
+        panel.remove();
+      }
+    });
+
+    it('leaves Tab alone without an overlay, which is not modal', () => {
+      const outside = document.createElement('button');
+      document.body.appendChild(outside);
+      try {
+        render(three({ overlay: false }));
+        const last = screen.getByText('Last');
+        last.focus();
+
+        expect(fireEvent.keyDown(last, { key: 'Tab' })).toBe(true);
+        expect(last).toHaveFocus();
+
+        outside.focus();
+        expect(fireEvent.keyDown(outside, { key: 'Tab' })).toBe(true);
+        expect(outside).toHaveFocus();
+      } finally {
+        outside.remove();
+      }
+    });
+
+    it('lets go of Tab once it closes', () => {
+      const { rerender } = render(three());
+      rerender(three({ isOpen: false }));
+      const last = screen.getByText('Last');
+      last.focus();
+
+      expect(fireEvent.keyDown(last, { key: 'Tab' })).toBe(true);
+      expect(last).toHaveFocus();
+    });
+
+    it('keeps holding Tab once a portalContainer selector that matched nothing starts matching', () => {
+      // The selector puts the sidebar in document.body until it matches. The
+      // render after the target appears moves the sidebar there, remounting
+      // its nodes while every prop stays the same.
+      const ui = () => (
+        <ConfigProvider portalContainer="#late-sidebar-target">
+          <Sidebar isOpen onClose={() => {}} aria-label="Filters">
+            <button type="button">First</button>
+            <button type="button">Last</button>
+          </Sidebar>
+        </ConfigProvider>
+      );
+      const { rerender } = render(ui());
+      const target = document.createElement('div');
+      target.id = 'late-sidebar-target';
+      document.body.appendChild(target);
+      try {
+        rerender(ui());
+        const last = screen.getByText('Last');
+        expect(target).toContainElement(last);
+        act(() => last.focus());
+
+        expect(fireEvent.keyDown(last, { key: 'Tab' })).toBe(false);
+        expect(screen.getByText('First')).toHaveFocus();
+      } finally {
+        target.remove();
+      }
+    });
+
+    it('passes over an <object> that refuses focus, on open and when Tab comes in from outside', () => {
+      // Browsers won't focus an <object> with nothing to show (#1211), and
+      // jsdom can't tell, so focus() on one does nothing here.
+      const objectFocus = vi
+        .spyOn(HTMLObjectElement.prototype, 'focus')
+        .mockImplementation(() => {});
+      const outside = document.createElement('button');
+      document.body.appendChild(outside);
+      try {
+        render(
+          <Sidebar isOpen onClose={() => {}} aria-label="Preview">
+            <object data="missing.pdf" type="application/pdf">
+              Preview unavailable
+            </object>
+            <button type="button">First</button>
+            <button type="button">Last</button>
+          </Sidebar>
+        );
+        const first = screen.getByText('First');
+        expect(first).toHaveFocus();
+
+        act(() => outside.focus());
+        expect(fireEvent.keyDown(outside, { key: 'Tab' })).toBe(false);
+        expect(first).toHaveFocus();
+      } finally {
+        outside.remove();
+        objectFocus.mockRestore();
+      }
+    });
+
+    it('holds Tab in the topmost sidebar only', () => {
+      render(
+        <>
+          <Sidebar isOpen onClose={() => {}} aria-label="Menu">
+            <button type="button">Under</button>
+          </Sidebar>
+          {three()}
+        </>
+      );
+      const last = screen.getByText('Last');
+      last.focus();
+
+      expect(fireEvent.keyDown(last, { key: 'Tab' })).toBe(false);
+      expect(screen.getByText('First')).toHaveFocus();
+    });
+
+    describe('when a Tab it let through leaves anyway', () => {
+      // A browser can leave out a stop the sidebar has, as Safari leaves out
+      // links when its settings say to, and walk focus out of the sidebar on
+      // a Tab the sidebar left to it. jsdom moves no focus on Tab, so each
+      // test moves it out by hand the way that browser would.
+      let outside: HTMLButtonElement;
+      beforeEach(() => {
+        outside = document.createElement('button');
+        outside.textContent = 'Behind the overlay';
+        document.body.appendChild(outside);
+      });
+      afterEach(() => outside.remove());
+
+      it('sends focus forward to the first stop', () => {
+        render(
+          <Sidebar isOpen onClose={() => {}} aria-label="Navigation">
+            <button type="button">Close</button>
+            <a href="#home">Skipped by the browser</a>
+          </Sidebar>
+        );
+        const close = screen.getByText('Close');
+        expect(close).toHaveFocus();
+
+        expect(fireEvent.keyDown(close, { key: 'Tab' })).toBe(true);
+        act(() => outside.focus());
+        expect(close).toHaveFocus();
+      });
+
+      it('sends focus back to the last stop on Shift+Tab', () => {
+        render(
+          <Sidebar isOpen onClose={() => {}} aria-label="Navigation">
+            <a href="#home">Skipped by the browser</a>
+            <button type="button">Close</button>
+          </Sidebar>
+        );
+        const close = screen.getByText('Close');
+        act(() => close.focus());
+
+        expect(fireEvent.keyDown(close, { key: 'Tab', shiftKey: true })).toBe(
+          true
+        );
+        act(() => outside.focus());
+        expect(close).toHaveFocus();
+      });
+
+      it('leaves focus a pointer or a script moves out', () => {
+        render(three());
+        act(() => outside.focus());
+        expect(outside).toHaveFocus();
+      });
+
+      it('leaves it alone under another overlay', () => {
+        // A full-page Loading is in the overlay stack but holds no Tab, so
+        // nothing else moves focus here.
+        const Page = ({ loading }: { loading: boolean }) => (
+          <>
+            {three()}
+            <Loading active={loading} isFullPage />
+          </>
+        );
+        const { rerender } = render(<Page loading={false} />);
+        rerender(<Page loading />);
+        const middle = screen.getByText('Middle');
+        act(() => middle.focus());
+
+        expect(fireEvent.keyDown(middle, { key: 'Tab' })).toBe(true);
+        act(() => outside.focus());
+        expect(outside).toHaveFocus();
+      });
+    });
+  });
+
+  describe('Closed', () => {
+    // jsdom implements neither `inert` nor a tab order, so this applies the
+    // browser's rule itself, as Collapse's tests do: a focusable element
+    // inside an inert subtree can't take focus.
+    const tabbable = () =>
+      Array.from(document.body.querySelectorAll<HTMLElement>('a[href], button'))
+        .filter(el => el.tabIndex >= 0 && !el.closest('[inert]'))
+        .map(el => el.textContent);
+
+    const ui = (isOpen: boolean) => (
+      <Sidebar isOpen={isOpen} onClose={() => {}} aria-label="Navigation">
+        <button type="button">Close</button>
+        <a href="#home">Home</a>
+      </Sidebar>
+    );
+
+    it('is inert, so Tab passes over its content, and open it is not', () => {
+      const { rerender } = render(ui(false));
+      const sidebar = screen.getByRole('dialog', { hidden: true });
+      expect(sidebar).toHaveAttribute('inert');
+      expect(tabbable()).toEqual([]);
+
+      rerender(ui(true));
+      expect(sidebar).not.toHaveAttribute('inert');
+      expect(tabbable()).toEqual(['Close', 'Home']);
+
+      rerender(ui(false));
+      expect(sidebar).toHaveAttribute('inert');
+      expect(tabbable()).toEqual([]);
+    });
+
+    it('stops being inert before focus moves in on open', () => {
+      const focus = HTMLElement.prototype.focus;
+      const inertWhenFocused: boolean[] = [];
+      const spy = vi
+        .spyOn(HTMLElement.prototype, 'focus')
+        .mockImplementation(function (this: HTMLElement, options) {
+          inertWhenFocused.push(this.closest('[inert]') !== null);
+          focus.call(this, options);
+        });
+      try {
+        const { rerender } = render(ui(false));
+        rerender(ui(true));
+      } finally {
+        spy.mockRestore();
+      }
+      expect(screen.getByText('Close')).toHaveFocus();
+      expect(inertWhenFocused).toEqual([false]);
+    });
+
+    it('is inert by the time it hands focus back on close', () => {
+      const opener = document.createElement('button');
+      document.body.appendChild(opener);
+      try {
+        opener.focus();
+        const { rerender } = render(ui(true));
+        expect(screen.getByText('Close')).toHaveFocus();
+
+        rerender(ui(false));
+        expect(screen.getByRole('dialog', { hidden: true })).toHaveAttribute(
+          'inert'
+        );
+        expect(opener).toHaveFocus();
+      } finally {
+        opener.remove();
+      }
+    });
   });
 
   describe('Accessibility', () => {
+    // Nothing names the dialog on its own, Sidebar.Title included; the docs
+    // teach pointing aria-labelledby at the title's id (#1893).
+    it('is named by its Sidebar.Title through the aria-labelledby the caller gives it', () => {
+      render(
+        <Sidebar isOpen onClose={() => {}} aria-labelledby="nav-title">
+          <Sidebar.Header>
+            <Sidebar.Title id="nav-title">Navigation</Sidebar.Title>
+          </Sidebar.Header>
+        </Sidebar>
+      );
+      expect(screen.getByRole('dialog')).toHaveAccessibleName('Navigation');
+    });
+
     it('has dialog role', () => {
       render(
         <Sidebar isOpen onClose={() => {}}>
@@ -481,7 +1010,7 @@ describe('Sidebar', () => {
     });
 
     it('cleans up event listeners on unmount', () => {
-      const handleClose = jest.fn();
+      const handleClose = vi.fn();
       const { unmount } = render(
         <Sidebar isOpen onClose={handleClose}>
           <div>Content</div>
@@ -496,7 +1025,7 @@ describe('Sidebar', () => {
     });
 
     it('removes keydown listener on unmount (no leak)', () => {
-      const removeSpy = jest.spyOn(document, 'removeEventListener');
+      const removeSpy = vi.spyOn(window, 'removeEventListener');
       const { unmount } = render(
         <Sidebar isOpen onClose={() => {}}>
           <div>Content</div>
@@ -512,9 +1041,9 @@ describe('Sidebar', () => {
       removeSpy.mockRestore();
     });
 
-    it('restores body overflow to original value on unmount', () => {
+    it('restores the page overflow to its original value on unmount', () => {
       const original = 'scroll';
-      document.body.style.overflow = original;
+      document.documentElement.style.overflow = original;
 
       const { unmount } = render(
         <Sidebar isOpen onClose={() => {}}>
@@ -522,18 +1051,18 @@ describe('Sidebar', () => {
         </Sidebar>
       );
 
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
 
       unmount();
 
-      expect(document.body.style.overflow).toBe(original);
+      expect(document.documentElement.style.overflow).toBe(original);
 
       // cleanup
-      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     });
 
     it('does not trigger onClose for non-Escape keys', () => {
-      const handleClose = jest.fn();
+      const handleClose = vi.fn();
       render(
         <Sidebar isOpen onClose={handleClose}>
           <div>Content</div>
@@ -566,7 +1095,7 @@ describe('Sidebar', () => {
 
   describe('Ref Forwarding (function ref)', () => {
     it('invokes function refs with the sidebar element', () => {
-      const fnRef = jest.fn();
+      const fnRef = vi.fn();
       render(
         <Sidebar isOpen onClose={() => {}} ref={fnRef}>
           <div>Content</div>
@@ -613,7 +1142,7 @@ describe('Sidebar', () => {
     });
 
     it('renders Sidebar.Close as a button with sidebar-close class', () => {
-      const handleClick = jest.fn();
+      const handleClick = vi.fn();
       render(
         <Sidebar isOpen onClose={() => {}}>
           <Sidebar.Close data-testid="close" onClick={handleClick}>
@@ -738,7 +1267,7 @@ describe('Sidebar', () => {
   // ref, so neither this nor its siblings branch on React.version.
   it('runs a forwarded callback ref cleanup on unmount instead of calling it with null', () => {
     const calls: (HTMLElement | null)[] = [];
-    const cleanup = jest.fn();
+    const cleanup = vi.fn();
     const callbackRef = (node: HTMLElement | null) => {
       calls.push(node);
       if (!node) return undefined;
@@ -760,5 +1289,53 @@ describe('Sidebar', () => {
 
     expect(cleanup).toHaveBeenCalledTimes(1);
     expect(calls).toHaveLength(1);
+  });
+});
+
+describe('Sidebar hydration', () => {
+  it('hydrates an open sidebar in place, then moves it into its portal', async () => {
+    const outside = document.createElement('button');
+    document.body.appendChild(outside);
+    outside.focus();
+    const app = (
+      <main>
+        <Sidebar isOpen onClose={() => {}}>
+          <button type="button">Inside</button>
+        </Sidebar>
+      </main>
+    );
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(app);
+    document.body.appendChild(container);
+
+    // The server renders it in place, so the hydrating render has markup to
+    // match.
+    expect(container.querySelector('aside')).not.toBeNull();
+
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const onRecoverableError = vi.fn();
+    let unmountRoot = () => {};
+    try {
+      await act(async () => {
+        const root = hydrateRoot(container, app, { onRecoverableError });
+        unmountRoot = () => root.unmount();
+      });
+
+      expect(onRecoverableError).not.toHaveBeenCalled();
+      expect(errorSpy).not.toHaveBeenCalled();
+      // Then it moved into document.body, and focus went with it.
+      expect(container.querySelector('aside')).toBeNull();
+      const aside = document.body.querySelector('aside');
+      expect(aside).not.toBeNull();
+      expect(container).not.toContainElement(aside);
+      expect(screen.getByRole('button', { name: 'Inside' })).toHaveFocus();
+
+      await act(async () => unmountRoot());
+      expect(outside).toHaveFocus();
+    } finally {
+      errorSpy.mockRestore();
+      container.remove();
+      outside.remove();
+    }
   });
 });

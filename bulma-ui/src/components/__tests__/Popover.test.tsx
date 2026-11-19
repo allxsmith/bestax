@@ -1,9 +1,9 @@
+import type { MockInstance } from 'vitest';
 import React, { Profiler, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { render, screen, fireEvent, act, within } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import {
   Popover,
   PopoverBody,
@@ -14,6 +14,10 @@ import {
 import { Button } from '../../elements/Button';
 import { ConfigProvider } from '../../helpers/Config';
 import { resetDevWarnings } from '../../helpers/devWarnings';
+import {
+  clientWidthFollowsWindow,
+  narrowWindow,
+} from '../../__tests__/viewport';
 
 const FilterPopover: React.FC<
   Partial<React.ComponentProps<typeof Popover>>
@@ -33,7 +37,7 @@ const openWith = (name = 'Filters') =>
 
 afterEach(() => {
   resetDevWarnings();
-  jest.restoreAllMocks();
+  vi.restoreAllMocks();
 });
 
 describe('Popover', () => {
@@ -48,7 +52,7 @@ describe('Popover', () => {
     });
 
     it('opens and closes the panel on click, naming it in aria-controls while open', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<FilterPopover onOpenChange={onOpenChange} />);
       const trigger = screen.getByRole('button', { name: 'Filters' });
 
@@ -154,7 +158,7 @@ describe('Popover', () => {
     });
 
     it("runs the trigger's own onKeyDown first, and stands aside when it prevents the default", () => {
-      const own = jest.fn((e: React.KeyboardEvent) => e.preventDefault());
+      const own = vi.fn((e: React.KeyboardEvent) => e.preventDefault());
       render(<FilterPopover trigger={<span onKeyDown={own}>Filters</span>} />);
       fireEvent.keyDown(screen.getByRole('button', { name: 'Filters' }), {
         key: 'Enter',
@@ -196,7 +200,7 @@ describe('Popover', () => {
     });
 
     it('follows `open` when controlled, reporting the trigger through onOpenChange', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       const { rerender } = render(
         <FilterPopover open onOpenChange={onOpenChange} />
       );
@@ -459,7 +463,7 @@ describe('Popover', () => {
     });
 
     it('closes on Escape from the trigger while open, and does nothing while closed', () => {
-      const onOpenChange = jest.fn();
+      const onOpenChange = vi.fn();
       render(<FilterPopover onOpenChange={onOpenChange} trapFocus={false} />);
       const trigger = screen.getByRole('button', { name: 'Filters' });
       fireEvent.keyDown(trigger, { key: 'Escape' });
@@ -521,7 +525,7 @@ describe('Popover', () => {
     });
 
     it('closes from Popover.Close, after its own onClick, and hands focus back', () => {
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       render(
         <Popover trigger={<button>Open</button>} ariaLabel="Share">
           <Popover.Footer>
@@ -544,6 +548,52 @@ describe('Popover', () => {
       );
       fireEvent.click(screen.getByRole('button', { name: 'Done' }));
       expect(panel()).toBeInTheDocument();
+    });
+  });
+
+  // The outside-press listener reads the latest `onOpenChange` when a press
+  // arrives, so a parent that renders while the panel is open, handing over
+  // an inline one each time, doesn't take the listener off and put it back.
+  // React can render between two listeners for one event, and the browser
+  // runs neither a listener taken off mid-event nor one added mid-event
+  // (#1186).
+  describe('while onOpenChange changes', () => {
+    const Page = ({
+      onOpenChange,
+    }: {
+      onOpenChange: (open: boolean) => void;
+    }) => (
+      <>
+        <button>Outside</button>
+        <FilterPopover defaultOpen onOpenChange={open => onOpenChange(open)} />
+      </>
+    );
+
+    const pointerdownCalls = (spy: MockInstance) =>
+      spy.mock.calls.filter(([type]) => type === 'pointerdown');
+
+    it('keeps its outside-press listener when the parent renders again', () => {
+      const onOpenChange = vi.fn();
+      const { rerender } = render(<Page onOpenChange={onOpenChange} />);
+      expect(panel()).toBeInTheDocument();
+      const addSpy = vi.spyOn(document, 'addEventListener');
+      const removeSpy = vi.spyOn(document, 'removeEventListener');
+      rerender(<Page onOpenChange={onOpenChange} />);
+      expect(pointerdownCalls(addSpy)).toHaveLength(0);
+      expect(pointerdownCalls(removeSpy)).toHaveLength(0);
+    });
+
+    it('calls the onOpenChange of the latest render on a press outside', () => {
+      const first = vi.fn();
+      const latest = vi.fn();
+      const { rerender } = render(<Page onOpenChange={first} />);
+      rerender(<Page onOpenChange={latest} />);
+
+      fireEvent.pointerDown(screen.getByRole('button', { name: 'Outside' }));
+
+      expect(panel()).toBeNull();
+      expect(latest).toHaveBeenCalledWith(false);
+      expect(first).not.toHaveBeenCalled();
     });
   });
 
@@ -576,7 +626,7 @@ describe('Popover', () => {
     });
 
     it('points aria-labelledby only at a header that is there', () => {
-      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
       const Panel = ({ header }: { header: boolean }) => (
         <Popover trigger={<button>Open</button>} defaultOpen>
           {header && <Popover.Header>Title</Popover.Header>}
@@ -616,7 +666,7 @@ describe('Popover', () => {
     });
 
     it('warns in development when the panel has no name', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(
         <Popover trigger={<button>Open</button>} defaultOpen>
           Nameless
@@ -628,7 +678,7 @@ describe('Popover', () => {
     });
 
     it('does not warn when the panel is named', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       render(<FilterPopover defaultOpen />);
       render(
         <Popover trigger={<button>Open</button>} ariaLabel="Named" defaultOpen>
@@ -640,6 +690,34 @@ describe('Popover', () => {
   });
 
   describe('placement', () => {
+    clientWidthFollowsWindow();
+
+    it('shifts a panel in place back inside a narrow window, leaving its fade to the stylesheet', () => {
+      narrowWindow(el => el.classList.contains('popover'), '.popover-content');
+      try {
+        render(
+          <Popover
+            trigger={<button type="button">Open</button>}
+            ariaLabel="Details"
+            defaultOpen
+            position="bottom-left"
+          >
+            Details
+          </Popover>
+        );
+        const panel = document.querySelector('.popover-content') as HTMLElement;
+        expect(panel).toHaveClass('is-bottom-left');
+        expect(panel.style.getPropertyValue('--bulma-anchored-shift')).toBe(
+          '-40px'
+        );
+        expect(panel.style.marginLeft).toBe('');
+        expect(panel.style.transform).toBe('');
+        expect(panel.style.translate).toBe('');
+      } finally {
+        vi.restoreAllMocks();
+      }
+    });
+
     const originalWidth = window.innerWidth;
     const originalHeight = window.innerHeight;
 
@@ -656,7 +734,17 @@ describe('Popover', () => {
       });
     };
 
-    afterEach(() => setViewport(originalWidth, originalHeight));
+    // A scroll or resize places the panel again in the next frame.
+    beforeEach(() => {
+      vi.useFakeTimers({
+        toFake: ['requestAnimationFrame', 'cancelAnimationFrame'],
+      });
+    });
+
+    afterEach(() => {
+      setViewport(originalWidth, originalHeight);
+      vi.useRealTimers();
+    });
 
     const rect = (r: {
       top: number;
@@ -673,31 +761,141 @@ describe('Popover', () => {
         toJSON: () => ({}),
       }) as DOMRect;
 
-    /** Mocks the wrapper's and the panel's rects, then re-measures. */
+    /** Mocks the wrapper's and the panel's rects, then measures again. */
     const measure = (
       container: HTMLElement,
       anchor: DOMRect,
       size: { width: number; height: number }
     ) => {
-      jest
-        .spyOn(container.querySelector('.popover')!, 'getBoundingClientRect')
-        .mockReturnValue(anchor);
-      jest
-        .spyOn(screen.getByRole('dialog'), 'getBoundingClientRect')
-        .mockReturnValue(
-          rect({ top: 0, left: 0, right: size.width, bottom: size.height })
-        );
+      vi.spyOn(
+        container.querySelector('.popover')!,
+        'getBoundingClientRect'
+      ).mockReturnValue(anchor);
+      vi.spyOn(
+        screen.getByRole('dialog'),
+        'getBoundingClientRect'
+      ).mockReturnValue(
+        rect({ top: 0, left: 0, right: size.width, bottom: size.height })
+      );
       act(() => {
         fireEvent(window, new Event('resize'));
+        vi.advanceTimersToNextFrame();
       });
     };
+
+    /** Runs a test on a right-to-left page. jsdom maps no `dir` to `direction`. */
+    const rightToLeft = (test: () => void) => {
+      const style = document.createElement('style');
+      style.textContent = '[dir="rtl"] { direction: rtl; }';
+      document.head.appendChild(style);
+      document.documentElement.setAttribute('dir', 'rtl');
+      try {
+        test();
+      } finally {
+        document.documentElement.removeAttribute('dir');
+        style.remove();
+      }
+    };
+
+    it('lines the default panel up with the right edge on a right-to-left page', () => {
+      rightToLeft(() => {
+        setViewport(1000, 1000);
+        const { container } = render(
+          <FilterPopover defaultOpen appendToBody />
+        );
+        measure(
+          container,
+          rect({ top: 100, bottom: 130, left: 900, right: 960 }),
+          { width: 200, height: 150 }
+        );
+        const dialog = screen.getByRole('dialog');
+        expect(dialog).toHaveClass('is-bottom-left', 'is-start-aligned');
+        // 960 - 200. Lined up on the left it would start at 900 and run
+        // past the 1000px viewport.
+        expect(dialog.style.left).toBe('760px');
+        expect(dialog.style.top).toBe('130px');
+      });
+    });
+
+    it('marks the default as start aligned, for the stylesheet to place', () => {
+      const { unmount } = render(<FilterPopover defaultOpen />);
+      expect(screen.getByRole('dialog')).toHaveClass(
+        'is-bottom-left',
+        'is-start-aligned'
+      );
+      unmount();
+      render(<FilterPopover defaultOpen position="bottom-left" />);
+      expect(screen.getByRole('dialog')).toHaveClass('is-bottom-left');
+      expect(screen.getByRole('dialog')).not.toHaveClass('is-start-aligned');
+    });
+
+    it('keeps a corner the caller names physical on a right-to-left page', () => {
+      rightToLeft(() => {
+        setViewport(1000, 1000);
+        const { container } = render(
+          <FilterPopover defaultOpen appendToBody position="bottom-left" />
+        );
+        measure(
+          container,
+          rect({ top: 100, bottom: 130, left: 400, right: 460 }),
+          { width: 200, height: 150 }
+        );
+        const dialog = screen.getByRole('dialog');
+        expect(dialog).toHaveClass('is-bottom-left');
+        expect(dialog).not.toHaveClass('is-start-aligned');
+        expect(dialog.style.left).toBe('400px');
+      });
+    });
+
+    it('follows its trigger as a scrolling element inside a shadow root scrolls', () => {
+      setViewport(1000, 1000);
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const shadow = host.attachShadow({ mode: 'open' });
+      const scroller = document.createElement('div');
+      const container = document.createElement('div');
+      scroller.appendChild(container);
+      shadow.appendChild(scroller);
+      render(<FilterPopover defaultOpen appendToBody />, { container });
+      measure(
+        container,
+        rect({ top: 100, bottom: 130, left: 400, right: 460 }),
+        { width: 200, height: 150 }
+      );
+      const dialog = screen.getByRole('dialog');
+      expect(dialog.style.top).toBe('130px');
+      vi.spyOn(
+        container.querySelector('.popover')!,
+        'getBoundingClientRect'
+      ).mockReturnValue(rect({ top: 40, bottom: 70, left: 400, right: 460 }));
+      act(() => {
+        fireEvent.scroll(scroller);
+        vi.advanceTimersToNextFrame();
+      });
+      expect(dialog.style.top).toBe('70px');
+      host.remove();
+    });
+
+    it('lines the default panel up with the left edge left to right', () => {
+      setViewport(1000, 1000);
+      const { container } = render(<FilterPopover defaultOpen appendToBody />);
+      measure(
+        container,
+        rect({ top: 100, bottom: 130, left: 400, right: 460 }),
+        { width: 200, height: 150 }
+      );
+      const dialog = screen.getByRole('dialog');
+      expect(dialog).toHaveClass('is-bottom-left');
+      expect(dialog.style.left).toBe('400px');
+    });
 
     it('opens below on the left by default, placed by CSS', () => {
       render(<FilterPopover defaultOpen />);
       const dialog = screen.getByRole('dialog');
       expect(dialog).toHaveClass('popover-content', 'is-bottom-left');
       expect(dialog).not.toHaveClass('is-portal');
-      expect(dialog).not.toHaveAttribute('style');
+      // No coordinates, only the shift its corner rules add, 0 here.
+      expect(dialog).toHaveAttribute('style', '--bulma-anchored-shift: 0px;');
     });
 
     it.each(['bottom-right', 'top-left', 'top-right'] as const)(
@@ -722,7 +920,11 @@ describe('Popover', () => {
         }
       );
       expect(screen.getByRole('dialog')).toHaveClass('is-top-left');
-      expect(screen.getByRole('dialog')).not.toHaveAttribute('style');
+      // No coordinates, only the shift its corner rules add, 0 here.
+      expect(screen.getByRole('dialog')).toHaveAttribute(
+        'style',
+        '--bulma-anchored-shift: 0px;'
+      );
     });
 
     it('portals into document.body with fixed coordinates at the trigger’s edge', () => {
@@ -779,7 +981,7 @@ describe('Popover', () => {
 
     it('renders nothing again when a scroll or resize changes nothing', () => {
       setViewport(1000, 1000);
-      const onRender = jest.fn();
+      const onRender = vi.fn();
       const { container } = render(
         <Profiler id="popover" onRender={onRender}>
           <FilterPopover defaultOpen appendToBody />
@@ -791,6 +993,7 @@ describe('Popover', () => {
       // equal state, so the steady state starts after one more event.
       act(() => {
         fireEvent.scroll(window);
+        vi.advanceTimersToNextFrame();
       });
       onRender.mockClear();
 
@@ -798,6 +1001,7 @@ describe('Popover', () => {
         fireEvent.scroll(window);
         fireEvent.scroll(window);
         fireEvent(window, new Event('resize'));
+        vi.advanceTimersToNextFrame();
       });
       expect(onRender).not.toHaveBeenCalled();
 
@@ -988,7 +1192,7 @@ describe('Popover', () => {
       expect(frame.queryByRole('dialog')).toBeNull();
     });
 
-    it('measures against the iframe’s viewport and follows its resizes', () => {
+    it('measures against the iframe’s viewport and follows its resizes', async () => {
       Object.defineProperty(frameWin, 'innerHeight', {
         configurable: true,
         value: 400,
@@ -999,14 +1203,17 @@ describe('Popover', () => {
       });
       renderInFrame(<FilterPopover defaultOpen position="auto" />);
       const dialog = within(frameDoc.body).getByRole('dialog');
-      jest
-        .spyOn(mount.querySelector('.popover')!, 'getBoundingClientRect')
-        .mockReturnValue(box({ top: 300, left: 20, w: 80, h: 30 }));
-      jest
-        .spyOn(dialog, 'getBoundingClientRect')
-        .mockReturnValue(box({ top: 0, left: 0, w: 200, h: 150 }));
-      act(() => {
+      vi.spyOn(
+        mount.querySelector('.popover')!,
+        'getBoundingClientRect'
+      ).mockReturnValue(box({ top: 300, left: 20, w: 80, h: 30 }));
+      vi.spyOn(dialog, 'getBoundingClientRect').mockReturnValue(
+        box({ top: 0, left: 0, w: 200, h: 150 })
+      );
+      await act(async () => {
         fireEvent(frameWin, new Event('resize'));
+        // The panel is measured again in the iframe's next frame.
+        await new Promise(resolve => frameWin.requestAnimationFrame(resolve));
       });
       // The page's own window is taller than this, so only the iframe's
       // height sends the panel above the trigger.
@@ -1045,9 +1252,7 @@ describe('Popover', () => {
       container.innerHTML = renderToString(ui);
       document.body.appendChild(container);
       const serverHtml = container.innerHTML;
-      const errorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       let root: ReturnType<typeof hydrateRoot> | undefined;
       await act(async () => {
         root = hydrateRoot(container, ui);

@@ -9,7 +9,7 @@
  * name**. Everything else here is about size; that one is about correctness, and it is the
  * reason the default keeps the whole table instead of a curated subset.
  */
-import { describe, expect, it, beforeAll } from '@jest/globals';
+import { describe, expect, it, beforeAll } from 'vitest';
 
 import { loadComponent } from '../data.js';
 import {
@@ -98,6 +98,26 @@ describe('groups', () => {
     }
   });
 
+  // A flex container's gap is spacing's prop, and flex lists it too (#1236).
+  it("show another group's props only where that group owns them", () => {
+    for (const name of GROUP_NAMES) {
+      for (const p of HELPER_GROUPS[name].shows ?? []) {
+        const owners = GROUP_NAMES.filter(g =>
+          HELPER_GROUPS[g].props.includes(p)
+        );
+        expect({ name, p, owners }).toEqual({
+          name,
+          p,
+          owners: [expect.not.stringMatching(new RegExp(`^${name}$`))],
+        });
+        expect(renderHelperGroup(doc, name)).toContain(`\`${p}\``);
+      }
+    }
+    expect(HELPER_GROUPS.flex.shows).toEqual(
+      expect.arrayContaining(['gap', 'columnGap', 'rowGap'])
+    );
+  });
+
   it('returns nothing for a group that does not exist', () => {
     expect(renderHelperGroup(doc, 'not-a-group')).toBe('');
   });
@@ -132,11 +152,11 @@ describe('resolveGroup', () => {
     ['breakpoint', 'responsive'],
     ['COLORS', 'color'],
     ['  spacing  ', 'spacing'],
-  ])('maps %p to %p', (input, expected) => {
+  ])('maps %j to %j', (input, expected) => {
     expect(resolveGroup(input)).toBe(expected);
   });
 
-  it.each(['', '   ', 'zzzz', 'quantum'])('gives up on %p', input => {
+  it.each(['', '   ', 'zzzz', 'quantum'])('gives up on %j', input => {
     expect(resolveGroup(input)).toBeNull();
   });
 });

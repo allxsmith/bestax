@@ -18,13 +18,13 @@ import type { ASTPath } from 'jscodeshift';
 import {
   BADGE_PROPS,
   RESPONSIVE_BREAKPOINTS,
+  resolveMapping,
   TOOLTIP_PROPS,
   UNIVERSAL_PROPS,
 } from './mapping.js';
 import {
   addAttr,
   addTodo,
-  buildJsxName,
   attributesOf,
   findAttr,
   jsxNameParts,
@@ -38,11 +38,16 @@ import {
 import {
   alignTarget,
   applyIconProps,
+  dropLinkAttrsForPlainTag,
+  FIELD_SCOPED,
+  flagDroppedHeading,
+  keepTitleLevel,
   makeStripModifierProps,
   makeStructuralHelpers,
   mergeClassName,
   modifierClass,
   parseIconClasses,
+  plainTag,
   restrictAsToTargets,
   type SpecialHandler,
   type SpecialResult,
@@ -119,19 +124,67 @@ const { replaceWithPlain, collapseOntoChild } = makeStructuralHelpers(
     )
 );
 
+/**
+ * Whether the element sits inside a Field or a Control, rbx's or bestax's,
+ * which tells the bestax inputs within whether to render a Field and a
+ * Control of their own. Each ancestor is read by binding, so a local that
+ * shadows one of them is neither.
+ */
+function insideFormScope(ctx: TransformContext, path: ASTPath<any>): boolean {
+  for (let up = path.parent; up; up = up.parent) {
+    if (up.node?.type !== 'JSXElement') continue;
+    const root = ctx.resolveElement?.(up)?.parts[0];
+    if (root === 'Field' || root === 'Control') return true;
+  }
+  return false;
+}
+
+/**
+ * The bestax components among the element's own children that render one
+ * way inside a `Field` and another outside one, by the names they migrate
+ * to. A child already in a Field or a Control of its own isn't one.
+ */
+function fieldScopedChildren(
+  ctx: TransformContext,
+  path: ASTPath<any>
+): string[] {
+  const names = new Set<string>();
+  (path.node.children ?? []).forEach((child: any, i: number) => {
+    if (child.type !== 'JSXElement') return;
+    const hit = ctx.resolveElement?.(path.get('children', i));
+    if (!hit) return;
+    // rbx's Select.Container folds onto the Select it holds.
+    const dotted = hit.parts.join('.');
+    const name =
+      hit.library === 'bestax'
+        ? dotted
+        : dotted === 'Select.Container'
+          ? 'Select'
+          : resolveMapping(hit.parts)?.target;
+    if (name && FIELD_SCOPED.has(name)) names.add(name);
+  });
+  return [...names];
+}
+
 const SPECIALS: Record<string, SpecialHandler> = {
   /**
    * rbx's `Heading` is Bulma's `.heading` label (small caps), not a title —
-   * bestax has no component for it, so it becomes a plain <p>.
+   * bestax has no component for it, so it becomes the plain element rbx
+   * rendered, a <p> unless `as` names another, and the TODO says Bulma v1 no
+   * longer styles the class.
    */
   heading(ctx, path, element) {
-    return replaceWithPlain(ctx, path, element, 'p', 'heading', 'Heading');
+    const tag = plainTag(ctx, path, element, 'as', 'p', 'Heading');
+    flagDroppedHeading(ctx, path, tag);
+    return replaceWithPlain(ctx, path, element, tag, 'heading', 'Heading');
   },
 
   /**
    * rbx folds title and subtitle into one component behind a `subtitle`
    * boolean; bestax splits them into `Title` and `SubTitle`. rbx also ignores
    * `spaced` when `subtitle` is set, so a subtitle never carries isSpaced.
+   * Both rendered an <h1> at every `size`, which bestax's turn into the
+   * heading the size names, so `keepTitleLevel` decides where the size goes.
    */
   title(ctx, path, element) {
     const subtitleAttr = findAttr(element, 'subtitle');
@@ -181,7 +234,14 @@ const SPECIALS: Record<string, SpecialHandler> = {
       ctx.dirty = true;
     }
 
-    return { target, handledProps: ['subtitle', 'spaced'] };
+    const sized = keepTitleLevel(ctx, path, element, {
+      where: 'Title',
+      target,
+      size: 'size',
+      tag: 'as',
+      level: 'h1',
+    });
+    return { target, handledProps: ['subtitle', 'spaced', ...sized] };
   },
 
   /**
@@ -291,10 +351,61 @@ const SPECIALS: Record<string, SpecialHandler> = {
   /**
    * rbx's `Loader` is Bulma's plain `.loader` spinner, which always renders.
    * bestax's `Loading` is a different thing — a dismissible overlay that
-   * returns null unless `active` — so this emits the element rbx did.
+   * returns null unless `active` — so this emits the element rbx did, a
+   * <div> unless `as` names another.
    */
   loader(ctx, path, element) {
-    return replaceWithPlain(ctx, path, element, 'div', 'loader', 'Loader');
+    const tag = plainTag(ctx, path, element, 'as', 'div', 'Loader');
+    return replaceWithPlain(ctx, path, element, tag, 'loader', 'Loader');
+  },
+
+  /**
+   * rbx's Fieldset is a bare <fieldset>, which Bulma's base styles strip of
+   * its border, margin and padding, while bestax's Fieldset draws a bordered
+   * box unless told otherwise. `variant="unstyled"` is the one that draws no
+   * box. `disabled` carries over as it is, and bestax's also passes it to
+   * the bestax inputs inside, which a plain <fieldset> can't reach.
+   *
+   * bestax's Fieldset also starts its own Field scope, which rbx's never
+   * did. Inside a Field or a Control that changes what an input placed
+   * straight in it renders: `<Field><Fieldset><Input /></Fieldset></Field>`
+   * would gain a `.field` and a `.control` of its own. There it stays the
+   * plain <fieldset> rbx rendered, which keeps the markup and, since every
+   * input rbx had is a native one, the `disabled` behavior too.
+   *
+   * Only a Field or a Control in the same file shows, though: one in another
+   * component that renders this one is out of sight. So where an input sits
+   * straight in a Fieldset that converts, an advisory TODO says what to do
+   * if one does.
+   */
+  fieldset(ctx, path, element) {
+    if (insideFormScope(ctx, path)) {
+      const tag = plainTag(ctx, path, element, 'as', 'fieldset', 'Fieldset');
+      return replaceWithPlain(ctx, path, element, tag, undefined, 'Fieldset');
+    }
+    if (!findAttr(element, 'variant')) {
+      // Before any spread, so a `variant` the spread carries still wins.
+      const attrs = (element.openingElement.attributes ??= []);
+      const spread = attrs.findIndex(
+        (attr: any) => attr.type === 'JSXSpreadAttribute'
+      );
+      attrs.splice(
+        spread === -1 ? attrs.length : spread,
+        0,
+        makeAttr(ctx.j, 'variant', 'unstyled')
+      );
+      ctx.dirty = true;
+    }
+    const scoped = fieldScopedChildren(ctx, path);
+    if (scoped.length > 0) {
+      addTodo(
+        ctx,
+        path,
+        'component:Fieldset',
+        `bestax's \`Fieldset\` starts its own Field scope, so ${scoped.map(name => `\`${name}\``).join(', ')} placed straight in it renders as it does outside any \`Field\`, with a \`.field\` of its own where it has one. That's right unless another component renders this \`Fieldset\` inside a \`Field\` or a \`Control\`, which the codemod can't see from here: there, render a plain \`<fieldset>\` instead, which leaves their scope alone, as the codemod does when it can see the \`Field\``
+      );
+    }
+    return {};
   },
 
   /** rbx's full-screen PageLoader is bestax's Loading with isFullPage. */
@@ -364,8 +475,12 @@ const SPECIALS: Record<string, SpecialHandler> = {
     return { handledProps: ['multiline'] };
   },
 
-  /** bestax has no Help component; Bulma's markup is a plain <p class="help">. */
+  /**
+   * bestax has no Help component; Bulma's markup is a plain <p class="help">,
+   * or the element `as` names.
+   */
   help(ctx, path, element) {
+    const tag = plainTag(ctx, path, element, 'as', 'p', 'Help');
     const className = modifierClass(
       ctx,
       path,
@@ -374,11 +489,15 @@ const SPECIALS: Record<string, SpecialHandler> = {
       'help',
       'Help'
     );
-    return replaceWithPlain(ctx, path, element, 'p', className, 'Help');
+    return replaceWithPlain(ctx, path, element, tag, className, 'Help');
   },
 
-  /** bestax has no standalone Label; Bulma's markup is <label class="label">. */
+  /**
+   * bestax has no standalone Label; Bulma's markup is <label class="label">,
+   * or the element `as` names.
+   */
   label(ctx, path, element) {
+    const tag = plainTag(ctx, path, element, 'as', 'label', 'Label');
     let className = modifierClass(ctx, path, element, 'size', 'label', 'Label');
     const disabledAttr = findAttr(element, 'disabled');
     if (disabledAttr) {
@@ -399,7 +518,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       }
       ctx.dirty = true;
     }
-    return replaceWithPlain(ctx, path, element, 'label', className, 'Label');
+    return replaceWithPlain(ctx, path, element, tag, className, 'Label');
   },
 
   /**
@@ -449,14 +568,8 @@ const SPECIALS: Record<string, SpecialHandler> = {
         'component:Select.Container',
         "bestax's `Select` renders a single `<select>`, so a container holding more than one has no direct equivalent; emitted the plain Bulma wrapper instead"
       );
-      return replaceWithPlain(
-        ctx,
-        path,
-        element,
-        'div',
-        cls,
-        'Select.Container'
-      );
+      const tag = plainTag(ctx, path, element, 'as', 'div', 'Select.Container');
+      return replaceWithPlain(ctx, path, element, tag, cls, 'Select.Container');
     }
 
     // A dynamic value must not simply disappear: rename it so the condition
@@ -541,19 +654,23 @@ const SPECIALS: Record<string, SpecialHandler> = {
     };
   },
 
-  /** rbx's Select.Option is a plain <option>. */
+  /** rbx's Select.Option is a plain <option>, or the element `as` names. */
   'plain-option'(ctx, path, element) {
+    const tag = plainTag(ctx, path, element, 'as', 'option', 'Select.Option');
     return replaceWithPlain(
       ctx,
       path,
       element,
-      'option',
+      tag,
       undefined,
       'Select.Option'
     );
   },
 
-  /** bestax Breadcrumb renders <ul>{children}</ul>; items are plain <li><a>. */
+  /**
+   * bestax Breadcrumb renders <ul>{children}</ul>; items are plain <li><a>.
+   * rbx's `as` named the element inside the <li>, an <a> by default.
+   */
   'breadcrumb-item'(ctx, path, element) {
     const j = ctx.j;
     const activeAttr = findAttr(element, 'active');
@@ -572,9 +689,11 @@ const SPECIALS: Record<string, SpecialHandler> = {
       removeAttr(element, activeAttr);
     }
     liClass = mergeClassName(ctx, path, element, liClass, 'Breadcrumb.Item');
-    // This handler builds its <a> by hand rather than going through
+    const tag = plainTag(ctx, path, element, 'as', 'a', 'Breadcrumb.Item');
+    dropLinkAttrsForPlainTag(ctx, path, element, tag, 'Breadcrumb.Item');
+    // This handler builds its inner element by hand rather than going through
     // replaceWithPlain, so it has to layer the helper-prop strip itself —
-    // otherwise rbx's badge*/tooltip* ride onto the intrinsic <a>.
+    // otherwise rbx's badge*/tooltip* ride onto the intrinsic element.
     const anchorAttrs = stripHelperComponentProps(
       ctx,
       path,
@@ -582,7 +701,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       'Breadcrumb.Item'
     );
     const children = element.children ?? [];
-    const anchor = plainElement(j, 'a', undefined, anchorAttrs, children);
+    const anchor = plainElement(j, tag, undefined, anchorAttrs, children);
     path.replace(plainElement(j, 'li', liClass, [], [anchor]));
     ctx.dirty = true;
     return { replaced: true };
@@ -840,9 +959,11 @@ const SPECIALS: Record<string, SpecialHandler> = {
 
   /**
    * rbx's Panel.Tab is one tab inside a Panel.Tab.Group; bestax's Panel.Tabs
-   * is the group and its children are plain anchors.
+   * is the group and its children are plain elements, an <a> unless `as`
+   * names another.
    */
   'panel-tab'(ctx, path, element) {
+    const tag = plainTag(ctx, path, element, 'as', 'a', 'Panel.Tab');
     const activeAttr = findAttr(element, 'active');
     let className: string | undefined;
     if (activeAttr) {
@@ -858,14 +979,16 @@ const SPECIALS: Record<string, SpecialHandler> = {
       }
       removeAttr(element, activeAttr);
     }
-    return replaceWithPlain(ctx, path, element, 'a', className, 'Panel.Tab');
+    return replaceWithPlain(ctx, path, element, tag, className, 'Panel.Tab');
   },
 
   /**
    * rbx's `Tab.Group` renders `div.tabs > ul > li`; bestax's `Tabs` renders
-   * only the `div.tabs` and leaves the `<ul>` to `Tabs.List`. Renaming
-   * straight across put the `<li>` items directly inside the div, which is
-   * not valid Bulma tabs markup. Wrap the children in a `Tabs.List`.
+   * only the `div.tabs`. Renaming straight across put the `<li>` items
+   * directly inside the div, which is not valid Bulma tabs markup, so the
+   * children go in a plain `<ul>`. Not a `Tabs.List`: it renders
+   * `role="tablist"`, which the migrated `Tabs.Item`s are not the tabs of
+   * (#1961). A `.List` the caller already put there is left alone.
    */
   'tab-group'(ctx, _path, element) {
     const children = element.children ?? [];
@@ -881,15 +1004,7 @@ const SPECIALS: Record<string, SpecialHandler> = {
       );
     if (solid.length === 0 || alreadyList) return { target: 'Tabs' };
 
-    const local = ctx.reserve('Tabs');
-    const listName = `${local}.List`;
-    element.children = [
-      ctx.j.jsxElement(
-        ctx.j.jsxOpeningElement(buildJsxName(ctx.j, listName), [], false),
-        ctx.j.jsxClosingElement(buildJsxName(ctx.j, listName)),
-        children
-      ),
-    ];
+    element.children = [plainElement(ctx.j, 'ul', undefined, [], children)];
     ctx.dirty = true;
     return { target: 'Tabs' };
   },

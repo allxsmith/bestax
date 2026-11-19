@@ -4,12 +4,23 @@
 
 @use "bulma/sass/utilities/initial-variables" as iv;
 @use "bulma/sass/utilities/css-variables" as cv;
+@use "bulma/sass/utilities/mixins" as mx;
+@use "../selected-row" as *;
+
+// Bulma's horizontal field: `.field-label` takes one part of the row and
+// `.field-body` five, after the label's `margin-inline-end`. Private, since
+// they restate Bulma's layout rather than set a look of their own.
+$-field-label-gap: 1.5rem;
+$-field-label-parts: 6;
 
 // Checkbox-specific SCSS variables
 $checkbox-size: 1.25em !default;
 $checkbox-border-width: 2px !default;
 $checkbox-radius: cv.getVar("radius-small") !default;
-$checkbox-border-color: cv.getVar("border") !default;
+// The border is all that shows of an unchecked box, so it takes `text-weak`,
+// which holds the 3:1 WCAG asks of a control's boundary (SC 1.4.11) on the
+// scheme's surfaces in light and dark. `border` falls well short of it.
+$checkbox-border-color: cv.getVar("text-weak") !default;
 $checkbox-background: transparent !default;
 $checkbox-check-color: cv.getVar("scheme-invert") !default;
 $checkbox-active-color: cv.getVar("primary") !default;
@@ -17,6 +28,12 @@ $checkbox-label-gap: 0.5em !default;
 $checkbox-focus-shadow-size: 0 0 0 0.125em !default;
 $checkbox-transition-duration: cv.getVar("duration") !default;
 $checkbox-indeterminate-color: cv.getVar("primary") !default;
+
+// The check mark's shape, used as a mask so the mark is painted with a
+// background color: `checkbox-check-color`, or a system color in forced
+// colors. Private, since it's the shape rather than a themable value; the
+// stroke's color only marks what the mask keeps.
+$-check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
 
 // Register CSS custom properties
 .#{iv.$class-prefix}styled-checkbox {
@@ -54,7 +71,7 @@ $checkbox-indeterminate-color: cv.getVar("primary") !default;
     height: 0;
 
     // Checked state
-    &:checked + .check {
+    &:checked + .#{iv.$class-prefix}check {
       background-color: cv.getVar("checkbox-active-color");
       border-color: cv.getVar("checkbox-active-color");
 
@@ -66,7 +83,7 @@ $checkbox-indeterminate-color: cv.getVar("primary") !default;
     }
 
     // Indeterminate state
-    &:indeterminate + .check {
+    &:indeterminate + .#{iv.$class-prefix}check {
       background-color: cv.getVar("checkbox-indeterminate-color");
       border-color: cv.getVar("checkbox-indeterminate-color");
 
@@ -88,25 +105,25 @@ $checkbox-indeterminate-color: cv.getVar("primary") !default;
     }
 
     // Focus-visible state (keyboard only)
-    &:focus-visible + .check {
+    &:focus-visible + .#{iv.$class-prefix}check {
       outline: 2px solid cv.getVar("checkbox-active-color");
       outline-offset: 2px;
     }
 
     // Disabled state
-    &:disabled + .check {
+    &:disabled + .#{iv.$class-prefix}check {
       opacity: 0.5;
       cursor: not-allowed;
     }
 
-    &:disabled ~ .control-label {
+    &:disabled ~ .#{iv.$class-prefix}control-label {
       opacity: 0.5;
       cursor: not-allowed;
     }
   }
 
   // Custom check indicator
-  .check {
+  .#{iv.$class-prefix}check {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -123,7 +140,8 @@ $checkbox-indeterminate-color: cv.getVar("primary") !default;
     transition-duration: cv.getVar("checkbox-transition-duration");
     transition-timing-function: ease;
 
-    // Checkmark via SVG background-image
+    // The check mark: the mask cuts the shape, the background color paints
+    // it, in the same color as the mixed state's dash.
     &::after {
       content: "";
       position: absolute;
@@ -134,16 +152,23 @@ $checkbox-indeterminate-color: cv.getVar("primary") !default;
       transition-property: opacity, transform;
       transition-duration: cv.getVar("checkbox-transition-duration");
       transition-timing-function: ease;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center;
+      background-color: cv.getVar("checkbox-check-color");
+      -webkit-mask-image: $-check-mark;
+      -webkit-mask-size: contain;
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-position: center;
+      mask-image: $-check-mark;
+      mask-size: contain;
+      mask-repeat: no-repeat;
+      mask-position: center;
     }
   }
 
-  // Label text
-  .control-label {
-    margin-left: cv.getVar("checkbox-label-gap");
+  // Label text. The gap is on the text's inline start, the side the box is
+  // on: the row mirrors on a right-to-left page, and a physical
+  // `margin-left` would stay on the far side and leave the text on the box.
+  .#{iv.$class-prefix}control-label {
+    margin-inline-start: cv.getVar("checkbox-label-gap");
     line-height: 1.5;
   }
 }
@@ -155,6 +180,32 @@ $checkbox-indeterminate-color: cv.getVar("primary") !default;
       (
         "checkbox-active-color": #{cv.getVar($name)},
         "checkbox-indeterminate-color": #{cv.getVar($name)},
+      )
+    );
+  }
+}
+
+// On Bulma's selected table row (`Tr isSelected`, or a cell with
+// `is-selected`), the row's fill is the same color a checked box fills and
+// borders with, so the box would vanish into it and leave its tick floating.
+// There the box takes the row's text color, and its tick and dash the row's
+// fill, so it reads as the row's text does. An unchecked box's border takes
+// the text color too. This outranks the color variants on purpose: any color
+// on that fill is a guess, and the row's own pair is the one Bulma made to
+// read.
+//
+// Only a Checkbox placed straight in one of those cells sits on the row's
+// fill, and cells with a color of their own are left out, so a box in a
+// menu, a nested table or a colored cell keeps its usual look. The mixin
+// names the cells, and Radio's rule reads the same list.
+@include extras-selected-table-cell {
+  > .#{iv.$class-prefix}styled-checkbox {
+    @include cv.register-vars(
+      (
+        "checkbox-border-color": #{cv.getVar("table-row-active-color")},
+        "checkbox-active-color": #{cv.getVar("table-row-active-color")},
+        "checkbox-indeterminate-color": #{cv.getVar("table-row-active-color")},
+        "checkbox-check-color": #{cv.getVar("table-row-active-background-color")},
       )
     );
   }
@@ -176,21 +227,68 @@ $checkbox-indeterminate-color: cv.getVar("primary") !default;
 // High Contrast Mode support
 @media (forced-colors: active) {
   .#{iv.$class-prefix}styled-checkbox {
-    .check {
+    .#{iv.$class-prefix}check {
       border-color: ButtonText;
     }
 
-    input[type="checkbox"]:checked + .check {
+    input[type="checkbox"]:checked + .#{iv.$class-prefix}check {
       background-color: Highlight;
       border-color: Highlight;
+
+      // Forced colors replaces the check color the mark is painted with, as
+      // it does any color that isn't a system one. Name HighlightText, the
+      // color made to read on Highlight. The mask is untouched there, so the
+      // shape stays.
+      &::after {
+        background-color: HighlightText;
+      }
     }
 
-    input[type="checkbox"]:focus-visible + .check {
+    // Forced colors repaints the mixed fill and its dash in the same color,
+    // which leaves an empty box. Draw the dash in system colors that keep it
+    // visible, checked or not.
+    input[type="checkbox"]:indeterminate + .#{iv.$class-prefix}check {
+      background-color: Canvas;
+
+      &::before {
+        background-color: CanvasText;
+      }
+    }
+
+    input[type="checkbox"]:focus-visible + .#{iv.$class-prefix}check {
       outline-color: Highlight;
     }
 
-    input[type="checkbox"]:disabled + .check {
+    // A disabled box is drawn in GrayText, so its usual opacity would only
+    // halve that. It and its label draw at full strength here, the label in
+    // GrayText too.
+    input[type="checkbox"]:disabled + .#{iv.$class-prefix}check {
       border-color: GrayText;
+      opacity: 1;
+    }
+
+    input[type="checkbox"]:disabled ~ .#{iv.$class-prefix}control-label {
+      color: GrayText;
+      opacity: 1;
+    }
+
+    // Checked, it fills with GrayText rather than the highlight, its mark in
+    // the page's color on it, and a mixed dash takes GrayText, so a disabled
+    // box doesn't draw as an enabled one.
+    input[type="checkbox"]:checked:disabled + .#{iv.$class-prefix}check {
+      background-color: GrayText;
+
+      &::after {
+        background-color: Canvas;
+      }
+    }
+
+    input[type="checkbox"]:indeterminate:disabled + .#{iv.$class-prefix}check {
+      background-color: Canvas;
+
+      &::before {
+        background-color: GrayText;
+      }
     }
   }
 }
@@ -198,8 +296,8 @@ $checkbox-indeterminate-color: cv.getVar("primary") !default;
 // Reduced motion
 @media (prefers-reduced-motion: reduce) {
   .#{iv.$class-prefix}styled-checkbox {
-    .check,
-    .check::after {
+    .#{iv.$class-prefix}check,
+    .#{iv.$class-prefix}check::after {
       transition: none;
     }
   }
@@ -212,6 +310,43 @@ $checkbox-indeterminate-color: cv.getVar("primary") !default;
   .#{iv.$class-prefix}field-body {
     .#{iv.$class-prefix}checkboxes {
       padding-top: 0.375em;
+    }
+  }
+}
+
+// `<Checkboxes as="fieldset">` renders a native fieldset: the group's own
+// `.field`, with its label as the legend, or the `.checkboxes` box itself inside
+// an outer `Field`. Bulma resets a fieldset's margin, border and padding but
+// keeps the browser's `min-inline-size: min-content`, which lets a long row
+// of choices push it out of its column.
+fieldset.#{iv.$class-prefix}checkboxes,
+fieldset.#{iv.$class-prefix}field:has(.#{iv.$class-prefix}checkboxes) {
+  min-inline-size: 0;
+}
+
+// Horizontal, the legend is the label column. The browser draws a
+// fieldset's legend above the content rather than beside it. A floated
+// legend escapes that, though not in a flex fieldset in every engine, so the
+// fieldset is a block here and the legend floats, taking the share of the
+// row Bulma's `.field-label` takes beside `.field-body` (one part in six of
+// what's left after its margin), and growing as that does for a word too
+// long to wrap. `.field-body`, a flex box, sits beside it. Below tablet the
+// row stacks, and the legend sits on top as it is. It applies only where the
+// fieldset's own legend is the label column and the body after it holds the
+// group, so a fieldset you lay out with a `div.field-label` keeps Bulma's
+// flex row whatever its body holds.
+@include mx.tablet {
+  fieldset.#{iv.$class-prefix}field.#{iv.$class-prefix}is-horizontal:has(
+      > legend.#{iv.$class-prefix}field-label
+        + .#{iv.$class-prefix}field-body
+        .#{iv.$class-prefix}checkboxes
+    ) {
+    display: flow-root;
+
+    > legend.#{iv.$class-prefix}field-label {
+      float: inline-start;
+      inline-size: calc((100% - #{$-field-label-gap}) / #{$-field-label-parts});
+      min-inline-size: min-content;
     }
   }
 }

@@ -5,7 +5,11 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useRadiosGroup } from './FormContext';
+import {
+  pickInRadiosGroup,
+  useFieldsetDisabled,
+  useRadiosGroup,
+} from './FormContext';
 
 /**
  * The values the Radio `color` prop accepts, as a readonly tuple.
@@ -52,6 +56,9 @@ export const radioSizes = ['small', 'normal', 'medium', 'large'] as const;
 
 /**
  * Props for the Radio component.
+ *
+ * @helperProps Helper props go on the outer `<label>`, with `className`. The
+ * other attributes go on the `<input>`.
  */
 export interface RadioProps
   extends
@@ -61,15 +68,24 @@ export interface RadioProps
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'> {
   /** Color of the radio button. */
-  color?: (typeof radioColors)[number];
+  color?: (typeof radioColors)[number] | undefined;
   /** Size of the radio button. */
-  size?: (typeof radioSizes)[number];
+  size?: (typeof radioSizes)[number] | undefined;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Whether the radio is disabled. */
-  disabled?: boolean;
-  /** Additional CSS classes to apply. */
-  className?: string;
+  disabled?: boolean | undefined;
+  /**
+   * Additional CSS classes, on the outer `<label>`. That's the element that
+   * declares the `--bulma-radio-*` variables, so a class is how to set one:
+   * `style` and the other input attributes go to the `<input>`. Name
+   * `.styled-radio` beside your class in the selector, so it beats the
+   * label's own declaration whatever order the stylesheets load in. A
+   * `color` prop declares the active color again on
+   * `.styled-radio.is-<color>`, which ties that selector, so leave `color`
+   * unset when a class sets it.
+   */
+  className?: string | undefined;
   /** The label/content for the radio. */
   children?: React.ReactNode;
 }
@@ -100,7 +116,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
       className,
       children,
       textColor,
-      disabled,
+      disabled: disabledProp,
       name,
       value,
       checked,
@@ -110,6 +126,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
     },
     ref
   ) => {
+    const disabled = useFieldsetDisabled(disabledProp);
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color: textColor,
       ...props,
@@ -120,15 +137,20 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
     const group = useRadiosGroup();
     const effectiveName = name ?? group?.name;
 
-    // Group-managed checked state — only when the group is in
-    // controlled/uncontrolled mode (group.value is defined) AND this Radio
-    // has a value to compare against. Local `checked` always wins.
-    const groupManaged = group?.value !== undefined && value !== undefined;
+    // Group-managed checked state — only when the group manages the selection
+    // (it was given `value`, `defaultValue` or `onChange`) AND this Radio has
+    // a value to compare against. Local `checked` always wins. A group given
+    // only `onChange` holds no value until its first change, and until then
+    // the radio shows its own `defaultChecked`, controlled all the same, so
+    // that change doesn't flip it from uncontrolled to controlled.
+    const groupManaged = group?.onChange !== undefined && value !== undefined;
     const effectiveChecked =
       checked !== undefined
         ? checked
         : groupManaged
-          ? group!.value === value
+          ? group!.value !== undefined
+            ? group!.value === value
+            : !!defaultChecked
           : undefined;
     // When the group manages checked, suppress local defaultChecked to avoid
     // the controlled/uncontrolled React warning.
@@ -139,11 +161,9 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
         // Local onChange always fires.
         onChange?.(e);
         // Dispatch to the group additionally — keeps group state in sync.
-        if (group?.onChange && value !== undefined) {
-          group.onChange(String(value));
-        }
+        pickInRadiosGroup(group, value, effectiveName);
       },
-      [onChange, group, value]
+      [onChange, group, value, effectiveName]
     );
 
     const mainClass = usePrefixedClassNames('styled-radio', 'radio', {

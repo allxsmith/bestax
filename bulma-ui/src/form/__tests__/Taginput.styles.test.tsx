@@ -8,12 +8,16 @@ import * as sass from 'sass';
 import fs from 'fs';
 import path from 'path';
 import type { ReactElement } from 'react';
-import { render } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 import { Taginput } from '../Taginput';
 import { Control } from '../Control';
 import { Field } from '../Field';
 import { Input } from '../Input';
 import { ConfigProvider } from '../../helpers/Config';
+import {
+  compilePartial,
+  declaredFor as declarationsFor,
+} from '../../__tests__/css-cascade';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 const NODE_MODULES = path.resolve(__dirname, '../../../../node_modules');
@@ -92,6 +96,112 @@ const wrappers: [string, (child: ReactElement) => ReactElement][] = [
     ),
   ],
 ];
+
+/** The values `property` takes in the rules of `css` that match `el`. */
+function declaredFor(css: string, el: Element, property: string): string[] {
+  const style = document.createElement('style');
+  style.textContent = css;
+  document.head.appendChild(style);
+  const out: string[] = [];
+  const walk = (rules: CSSRuleList) => {
+    for (const rule of Array.from(rules)) {
+      if (rule instanceof CSSStyleRule) {
+        const value = rule.style.getPropertyValue(property);
+        if (value && el.matches(rule.selectorText)) out.push(value);
+      } else if ('cssRules' in rule) {
+        walk((rule as CSSGroupingRule).cssRules);
+      }
+    }
+  };
+  try {
+    walk((style.sheet as CSSStyleSheet).cssRules);
+  } finally {
+    style.remove();
+  }
+  return out;
+}
+
+// Forced colors takes away the open list's shadow and the highlighted
+// suggestion's fill, so the partial gives them an edge and an outline there,
+// and nothing at rest (#2003).
+describe.each([
+  ['no prefix', ''],
+  ['a class prefix', 'bestax-'],
+])('the open suggestion list in forced colors, with %s', (_n, prefix) => {
+  const css = compilePartial('form/taginput', prefix);
+  const OUTLINE = ['outline', 'outline-offset'];
+  const FORCED = '@media (forced-colors: active)';
+
+  const openList = () => {
+    const { getByRole, getAllByRole } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <Taginput label="Tags" data={['Apple', 'Apricot', 'Avocado']} />
+      </ConfigProvider>
+    );
+    const input = getByRole('combobox');
+    fireEvent.change(input, { target: { value: 'A' } });
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    const options = getAllByRole('option');
+    // The arrow put the highlight on the first suggestion.
+    expect(input).toHaveAttribute('aria-activedescendant', options[0].id);
+    return { list: getByRole('listbox'), options };
+  };
+
+  it('outlines the highlighted suggestion, and only it', () => {
+    const {
+      options: [highlighted, other],
+    } = openList();
+    expect(declarationsFor(highlighted, css, OUTLINE)).toEqual({
+      atRest: [],
+      [FORCED]: ['outline: 2px solid Highlight', 'outline-offset: -2px'],
+    });
+    expect(declarationsFor(other, css, OUTLINE)).toEqual({ atRest: [] });
+  });
+
+  it('draws an edge around the open list', () => {
+    const { list } = openList();
+    expect(list).toHaveClass(`${prefix}dropdown-content`);
+    expect(declarationsFor(list, css, OUTLINE)).toEqual({
+      atRest: [],
+      [FORCED]: ['outline: 1px solid CanvasText', 'outline-offset: -1px'],
+    });
+  });
+});
+
+describe("a tag's remove button", () => {
+  // The button comes after the tag's text, so its gap from the text belongs
+  // on its inline start. A physical margin-left put the gap on the side away
+  // from the text on a right-to-left page, and the button landed on it.
+  it.each([
+    ['no prefix', ''],
+    ['a class prefix', 'bestax-'],
+  ])(
+    'keeps its gap on the text side in either direction with %s',
+    (_n, prefix) => {
+      const css = sass.compileString(
+        `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+       @use 'form/taginput';`,
+        OPTIONS
+      ).css;
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Taginput defaultValue={['alpha']} />
+        </ConfigProvider>
+      );
+      const button = container.querySelector(
+        `.${prefix}tag .${prefix}delete`
+      ) as HTMLElement;
+      expect(declaredFor(css, button, 'margin-inline-start')).toEqual([
+        '0.25rem',
+      ]);
+      expect(declaredFor(css, button, 'margin-inline-end')).toEqual([
+        '-0.25rem',
+      ]);
+      expect(declaredFor(css, button, 'margin-left')).toEqual([]);
+      expect(declaredFor(css, button, 'margin-right')).toEqual([]);
+    }
+  );
+});
 
 describe('a loading Control around a Taginput', () => {
   // Bulma's spinner keeps the default `auto`, with nothing for this rule to

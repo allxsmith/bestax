@@ -157,7 +157,7 @@ function App() {
                 <div role="status" className="status-region">
                   {count > 10 && (
                     <Notification color="info" isLight>
-                      You've clicked the button {count} times!
+                      You&apos;ve clicked the button {count} times!
                     </Notification>
                   )}
                 </div>

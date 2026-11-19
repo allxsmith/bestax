@@ -22,7 +22,7 @@
  * closure drifts on somebody else's release, and a gate that reds every open
  * PR when nothing is wrong gets deleted (#391, #525).
  */
-import { test } from 'node:test';
+import { test, vi } from 'vitest';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -129,11 +129,11 @@ function writeDoc(doc) {
  * as an annotation against a green test run (#723), so a test that drives
  * one captures the lines and asserts on them instead.
  */
-function captureConsole(t) {
+function captureConsole() {
   const lines = [];
   const push = (...args) => lines.push(args.join(' '));
-  t.mock.method(console, 'log', push);
-  t.mock.method(console, 'error', push);
+  vi.spyOn(console, 'log').mockImplementation(push);
+  vi.spyOn(console, 'error').mockImplementation(push);
   return lines;
 }
 
@@ -566,8 +566,8 @@ const cli = (spdx, cdx) => [
   VERSION,
 ];
 
-test('main returns 0 on a clean pair and 1 on a dirty one', t => {
-  const lines = captureConsole(t);
+test('main returns 0 on a clean pair and 1 on a dirty one', () => {
+  const lines = captureConsole();
   assert.equal(main(cli(writeDoc(healthySpdx()), writeDoc(healthyCdx()))), 0);
   assert.equal(lines.length, 1, 'a clean pair says one thing');
   assert.ok(
@@ -593,12 +593,12 @@ test('main returns 0 on a clean pair and 1 on a dirty one', t => {
   );
 });
 
-test('main fails when the two documents disagree, though each is clean alone', t => {
+test('main fails when the two documents disagree, though each is clean alone', () => {
   // The case two separate invocations could not catch: both documents satisfy
   // every per-document assertion and still describe different closures. This
   // is the shape a git dependency takes in CycloneDX, where nothing can
   // origin-check it.
-  const lines = captureConsole(t);
+  const lines = captureConsole();
   const c = healthyCdx();
   c.components.push(cdxDep('ghost-package', '9.9.9'));
   assert.deepEqual(inspect(healthySpdx(), TARGET), []);
@@ -611,13 +611,13 @@ test('main fails when the two documents disagree, though each is clean alone', t
   assert.ok(lines.some(l => l.includes('ghost-package@9.9.9')));
 });
 
-test('main rejects a document whose contents contradict its flag', t => {
+test('main rejects a document whose contents contradict its flag', () => {
   // The flags are a claim about each file; normalize() reads the format off
   // the document. Until those are compared the flags are decoration — the same
   // CycloneDX file passed twice satisfies every per-document assertion and
   // agrees with itself, while the release ships a `.spdx.json` that is not
   // SPDX. A `format:` typo on either sbom-action step produces exactly that.
-  const lines = captureConsole(t);
+  const lines = captureConsole();
   const cdx = writeDoc(healthyCdx());
   assert.equal(main(cli(cdx, cdx)), 1);
 
@@ -640,9 +640,9 @@ test('main rejects a document whose contents contradict its flag', t => {
   );
 });
 
-test('main separates usage and read errors from assertion failures', t => {
+test('main separates usage and read errors from assertion failures', () => {
   // Exit 2 must not be readable as "the SBOM is wrong".
-  const lines = captureConsole(t);
+  const lines = captureConsole();
   assert.equal(main([]), 2);
   assert.ok(lines[0].startsWith('::error::--spdx is required\nusage: '));
   assert.equal(main(cli('/nope/missing.json', writeDoc(healthyCdx()))), 2);
@@ -676,14 +676,14 @@ test('forLog neutralises every value read out of a document', () => {
   assert.ok(!forLog('x\ny').includes('\n'));
 });
 
-test('NO message path can emit a raw newline, swept exhaustively', t => {
+test('NO message path can emit a raw newline, swept exhaustively', () => {
   // Written as a sweep rather than a list because eyeballing the call sites is
   // exactly what missed `readDocument`'s parser message and `crossCheck`'s
   // identity list after a previous pass claimed the file was clean. Every
   // string-valued field a document can carry gets the payload, and every
   // problem string from both entry points is checked, along with the warnings
   // inspect() prints on the way.
-  const printed = captureConsole(t);
+  const printed = captureConsole();
   const EVIL = 'x\n::error::FORGED';
   const collect = [];
 

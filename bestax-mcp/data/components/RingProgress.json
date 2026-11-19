@@ -1,0 +1,250 @@
+{
+  "name": "RingProgress",
+  "kind": "component",
+  "category": "elements",
+  "slug": "elements/ringprogress",
+  "docsUrl": "https://bestax.io/docs/api/elements/ringprogress",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<RingProgress value={72} label=\"Upload\" color=\"success\">\n  72%\n</RingProgress>"
+    },
+    {
+      "title": "Out of Something Else",
+      "code": "<RingProgress\n  value={7}\n  max={10}\n  label=\"Weekly goal\"\n  aria-valuetext=\"7 of 10 tasks\"\n>\n  7/10\n</RingProgress>"
+    },
+    {
+      "title": "A Level, Not a Task",
+      "code": "<RingProgress isMeter value={64} label=\"Storage used\" color=\"info\" size=\"large\">\n  64%\n</RingProgress>"
+    },
+    {
+      "title": "Sections",
+      "code": "<>\n  <RingProgress\n    label=\"Storage\"\n    size=\"medium\"\n    sections={[\n      { value: 40, color: 'info', label: 'Documents' },\n      { value: 15, color: 'warning', label: 'Photos' },\n      { value: 15, color: 'danger', label: 'Video' },\n    ]}\n  >\n    70%\n  </RingProgress>\n  <Tags mt=\"3\">\n    <Tag color=\"info\">Documents 40%</Tag>\n    <Tag color=\"warning\">Photos 15%</Tag>\n    <Tag color=\"danger\">Video 15%</Tag>\n  </Tags>\n</>"
+    },
+    {
+      "title": "Colors",
+      "code": "<>\n  <RingProgress value={70} label=\"Primary\" color=\"primary\" mr=\"3\" />\n  <RingProgress value={70} label=\"Link\" color=\"link\" mr=\"3\" />\n  <RingProgress value={70} label=\"Info\" color=\"info\" mr=\"3\" />\n  <RingProgress value={70} label=\"Success\" color=\"success\" mr=\"3\" />\n  <RingProgress value={70} label=\"Warning\" color=\"warning\" mr=\"3\" />\n  <RingProgress value={70} label=\"Danger\" color=\"danger\" />\n</>"
+    },
+    {
+      "title": "Sizes and Rounded Ends",
+      "code": "<>\n  <RingProgress value={60} label=\"Small\" size=\"small\" isRounded mr=\"4\" />\n  <RingProgress value={60} label=\"Normal\" isRounded mr=\"4\" />\n  <RingProgress value={60} label=\"Medium\" size=\"medium\" isRounded mr=\"4\" />\n  <RingProgress value={60} label=\"Large\" size=\"large\" isRounded />\n</>"
+    },
+    {
+      "title": "A Value That Changes",
+      "code": "function example() {\n  const [value, setValue] = useState(20);\n  return (\n    <>\n      <RingProgress value={value} label=\"Upload\" color=\"success\" mb=\"3\">\n        {value}%\n      </RingProgress>\n      <Paragraph role=\"status\">\n        {value >= 100 ? 'Upload complete' : ''}\n      </Paragraph>\n      <Button size=\"small\" onClick={() => setValue(v => Math.min(100, v + 20))}>\n        Move it on\n      </Button>\n    </>\n  );\n}"
+    }
+  ],
+  "accessibility": "- **Roles:** `role=\"progressbar\"` by default, `role=\"meter\"` with `isMeter`, and `role=\"img\"` with\n  `sections`, on the ring itself, named by `label` (or `aria-label`, or `aria-labelledby` with a\n  visible heading's id). A development build warns when it has no name.\n- **Values:** a progressbar or a meter has `aria-valuenow`, `aria-valuemin` and `aria-valuemax`,\n  read as a percentage unless `aria-valuetext` says otherwise. With `sections`, use `label`, since\n  a name from `aria-labelledby` would replace the one that lists the values.\n- **The drawing and the middle are hidden** from assistive tech, which reads the value from the\n  ring, so nothing is heard twice.\n- **Contrast:** against the track, the `primary` and `link` arcs clear WCAG 1.4.11's 3:1 on a\n  light page and the `info`, `success`, `warning` and `danger` arcs on a dark one. The others fall\n  short in that scheme, as they do in Bulma's progress bar, so show the value as text in the middle\n  where it matters.\n- **Forced colors:** the arcs take the system's text color and the track its gray, and sections\n  get gaps between them, since they're one color there.\n- **Motion:** the arc doesn't slide under `prefers-reduced-motion: reduce`.\n- **Not live:** a changing value announces nothing on its own.",
+  "related": ["Loader", "Progress", "Tags", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/elements-ringprogress--default",
+  "summary": "The `RingProgress` component draws a value as a ring that fills as it grows, with anything you pass shown in the middle. It's a `progressbar` for a task moving toward done, or a `meter` with `isMeter` for a level within a range, named by `label`. With `sections` it draws several values around one ring and is an image whose name lists them. It has no state for work with no value: that's `Loader`.",
+  "import": "import { RingProgress } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/elements/RingProgress.tsx",
+  "rootClass": "ring-progress",
+  "parts": [
+    {
+      "path": "RingProgress",
+      "summary": "The `RingProgress` component draws a value as a ring that fills as it grows, with anything you pass shown in the middle. It's a `progressbar` for a task moving toward done, or a `meter` with `isMeter` for a level within a range, named by `label`. With `sections` it draws several values around one ring and is an image whose name lists them. It has no state for work with no value: that's `Loader`.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "default": null,
+          "description": "How far along it is, from 0 to `max`. Values outside that range are drawn, and read, at the nearest end. Ignored with `sections`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "default": "100",
+          "description": "The value that fills the ring.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "sections",
+          "type": "{ value: number; color?: RingProgressColor; label: string }[]",
+          "default": null,
+          "description": "Several values around one ring, in order clockwise from the top, each with its own color and label. The ring is then an image whose name writes them out, such as \"Storage: Documents 40%, Photos 15%\", since a screen reader can't take several values from one element. Inside a `LocaleProvider` with a `locale`, the shares are written as that locale writes a percentage. A total over `max` fills the ring and stops.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "default": null,
+          "description": "What it shows, such as \"Upload\" or \"Storage\". It names the ring, so it's read with the value. A development build warns when the ring has no name.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isMeter",
+          "type": "boolean",
+          "default": "false",
+          "description": "A level within a range, such as storage used or a score, rather than a task moving toward done: `role=\"meter\"` in place of `role=\"progressbar\"`. Ignored with `sections`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "RingProgressColor",
+          "default": null,
+          "description": "The arc's color, and the color of sections without one.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "The ring's size.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Rounds the ends of the arc.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "What sits in the middle of the ring, such as the value as text. It's hidden from assistive tech, which reads the value from the ring itself, so the value isn't heard twice. Say anything more, such as \"7 of 10 tasks\", in `aria-valuetext`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Ref forwarded to the root `<div>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "aria-labelledby",
+          "type": "string",
+          "default": null,
+          "description": "The id of a visible heading that names the ring, in place of `label`. With `sections`, use `label`, since a name from here replaces the one that lists the values.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "aria-valuetext",
+          "type": "string",
+          "default": null,
+          "description": "What a screen reader says for the value, such as \"7 of 10 tasks\". Without it, the value is read as a percentage.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": [
+        {
+          "name": "RingProgressColor",
+          "expansion": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
+          "summary": "The Bulma colors an arc takes, the ones `Progress` takes."
+        }
+      ]
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-ring-progress-size",
+      "sass": "$ring-progress-size",
+      "default": "5rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-ring-progress-thickness",
+      "sass": "$ring-progress-thickness",
+      "default": "10",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-ring-progress-track-color",
+      "sass": "$ring-progress-track-color",
+      "default": "var(--bulma-border-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-ring-progress-arc-color",
+      "sass": "$ring-progress-arc-color",
+      "default": "var(--bulma-primary)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-ring-progress-duration",
+      "sass": "$ring-progress-duration",
+      "default": "var(--bulma-duration)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-ring-progress-label-color",
+      "sass": "$ring-progress-label-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-ring-progress-label-weight",
+      "sass": "$ring-progress-label-weight",
+      "default": "var(--bulma-weight-semibold)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-ring-progress-label-size",
+      "sass": "$ring-progress-label-size",
+      "default": "calc(var(--bulma-ring-progress-size) / 5)",
+      "scope": "root"
+    }
+  ]
+}

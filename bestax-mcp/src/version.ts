@@ -14,8 +14,17 @@
  * Set BESTAX_MCP_NO_VERSION_CHECK=1 to skip this entirely, and
  * BESTAX_MCP_PROJECT_DIR to look somewhere other than the working directory.
  */
-import { readFile } from 'node:fs/promises';
-import { dirname, join, parse, resolve } from 'node:path';
+import { access, readFile } from 'node:fs/promises';
+import {
+  dirname,
+  isAbsolute,
+  join,
+  parse,
+  relative,
+  resolve,
+  sep,
+} from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { attributed } from './format.js';
 
@@ -77,6 +86,48 @@ function compare(indexed: string, installed: string): VersionInfo['drift'] {
 }
 
 /**
+ * The installed library's version: the one a walk up from `cwd` finds, else
+ * the one beside this server's own source when it runs from a checkout of
+ * the bestax repository (`checkoutVersion`).
+ */
+export async function findInstalledVersion(
+  cwd: string = projectDir()
+): Promise<string | null> {
+  return (await walkUp(cwd)) ?? (await checkoutVersion(cwd));
+}
+
+/** This package's directory, `dist/` or `src/` the level below it. */
+const SERVER_DIR = join(dirname(fileURLToPath(import.meta.url)), '..');
+
+/**
+ * The library a checkout of the bestax repository holds, for this server run
+ * from that checkout's own source. Started at the repository's root, say, the
+ * walk finds nothing, since the library is a workspace package there and no
+ * `node_modules` on the way up holds it, and every answer said no install was
+ * found (#1236). Only when this package sits inside the working directory,
+ * which has a manifest of its own (so `/` or a home directory never counts),
+ * and under no `node_modules`: an installed server, in npx's cache or a
+ * project's dependencies, says nothing about the project with its copy.
+ * `server` is a parameter so the tests can stand one up.
+ */
+export async function checkoutVersion(
+  cwd: string,
+  server: string = SERVER_DIR
+): Promise<string | null> {
+  const from = relative(resolve(cwd), resolve(server));
+  if (from === '..' || from.startsWith(`..${sep}`) || isAbsolute(from)) {
+    return null;
+  }
+  if (resolve(server).split(sep).includes('node_modules')) return null;
+  try {
+    await access(join(cwd, 'package.json'));
+  } catch {
+    return null;
+  }
+  return walkUp(server);
+}
+
+/**
  * Walk up from `cwd` looking for the package in a node_modules directory.
  *
  * Deliberately a filesystem walk rather than `createRequire(cwd).resolve`:
@@ -84,9 +135,7 @@ function compare(indexed: string, installed: string): VersionInfo['drift'] {
  * through a symlink, and `resolve` from a directory that is not itself a
  * package can throw for reasons that have nothing to do with the answer.
  */
-export async function findInstalledVersion(
-  cwd: string = projectDir()
-): Promise<string | null> {
+async function walkUp(cwd: string): Promise<string | null> {
   let dir = cwd;
   const { root } = parse(dir);
   for (;;) {

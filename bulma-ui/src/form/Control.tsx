@@ -22,9 +22,15 @@ export interface ControlBaseProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
-  /** Adds left icon container. */
+  /**
+   * Adds left icon container.
+   * Over a `TextArea` the icon covers the text.
+   */
   hasIconsLeft?: boolean;
-  /** Adds right icon container. */
+  /**
+   * Adds right icon container.
+   * Over a `TextArea` the icon covers the text.
+   */
   hasIconsRight?: boolean;
   /**
    * Shows a loading spinner inside the control.
@@ -32,20 +38,30 @@ export interface ControlBaseProps
    * drawn (with bestax's CSS loaded).
    * The spinner sits at the right edge, where a right icon also sits, and the
    * two overlap; leave the right icon out while loading.
+   * The spinner is only drawn, so a screen reader hears nothing of it. Say
+   * that the field is loading in text that describes the input, select or
+   * textarea inside, such as its `message`, or text tied to that control
+   * with `aria-describedby`, which a screen reader reads when the control
+   * takes focus.
+   * A load that starts while the user is in the field, such as a search as
+   * they type, isn't reliably heard without a live region, such as a
+   * `role="status"` element.
    */
   isLoading?: boolean;
   /** Makes the control expand to fill available space. */
   isExpanded?: boolean;
   /** Sets the control size. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Sets text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Bulma color for the control. */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
    * Icon props for left icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph.
+   * Over a `TextArea` the icon covers the text.
    * Bulma gives control icons `pointer-events: none`, so a click lands on
    * the input and a clickable node placed here never receives one. Put a button beside the input
    * in its own addon `Control` instead.
@@ -53,21 +69,28 @@ export interface ControlBaseProps
   iconLeft?: IconProps | React.ReactNode;
   /**
    * Icon props for right icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph.
+   * Over a `TextArea` the icon covers the text.
    * Bulma gives control icons `pointer-events: none`, so a click lands on
    * the input and a clickable node placed here never receives one. Put a button beside the input
    * in its own addon `Control` instead.
    */
   iconRight?: IconProps | React.ReactNode;
-  /** Shortcut for left icon name. */
+  /**
+   * Shortcut for left icon name.
+   * Over a `TextArea` the icon covers the text.
+   */
   iconLeftName?: string;
   /** Shortcut for left icon size. */
   iconLeftSize?: 'small' | 'medium' | 'large';
-  /** Shortcut for right icon name. */
+  /**
+   * Shortcut for right icon name.
+   * Over a `TextArea` the icon covers the text.
+   */
   iconRightName?: string;
   /** Shortcut for right icon size. */
   iconRightSize?: 'small' | 'medium' | 'large';
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Content inside the control. */
   children?: React.ReactNode;
 }
@@ -76,7 +99,7 @@ export interface ControlBaseProps
 type ControlProps =
   | ({
       /** Element type for the control (`div` by default). */
-      as?: 'div';
+      as?: 'div' | undefined;
     } & ControlBaseProps & {
         /** Ref for the control element. */
         ref?: React.Ref<HTMLDivElement>;
@@ -135,13 +158,6 @@ export const Control = React.forwardRef<
     const Component = (as === 'p' ? 'p' : 'div') as 'div' | 'p';
     const { classPrefix } = useConfig();
 
-    // Remove textColor/bgColor from props before spreading
-    const {
-      textColor: _ignoredTextColor,
-      bgColor: _ignoredBgColor,
-      ...restProps
-    } = props as Record<string, unknown>;
-
     const safeTextColor = allowedColors.includes(
       textColor as (typeof allowedColors)[number]
     )
@@ -157,7 +173,7 @@ export const Control = React.forwardRef<
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color: safeTextColor,
       backgroundColor: safeBgColor,
-      ...restProps,
+      ...(props as Record<string, unknown>),
     });
 
     // Prepare icon props for the shortcut. A truthiness test (not `!== undefined`)
@@ -192,15 +208,9 @@ export const Control = React.forwardRef<
     });
     const controlClass = classNames(mainClass, bulmaHelperClasses, className);
 
-    // --- FIX: Spread both restProps (for data-testid, etc) AND rest (from useBulmaClasses) ---
     return (
       <ControlProvider value={true}>
-        <Component
-          className={controlClass}
-          ref={ref as typeof ref}
-          {...restProps}
-          {...rest}
-        >
+        <Component className={controlClass} ref={ref as typeof ref} {...rest}>
           <ControlLoadingProvider value={!!isLoading}>
             {children}
           </ControlLoadingProvider>

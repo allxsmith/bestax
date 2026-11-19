@@ -9,17 +9,28 @@
  *
  * The planner is imported from bestax-migrate's source, a test-only reach
  * across packages: a copy of it here would only agree with itself.
+ *
+ * The one thing this server does keep a copy of, the helper that writes a
+ * tag with its article ("an <a>", "a <ul>"), is held here to bestax-migrate's
+ * over every element name, so a lookup and a TODO say a tag the same way.
  */
 
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { describe, expect, it } from '@jest/globals';
-import { ROOTS } from '../../../bestax-migrate/src/sources/bulma-classes/class-map.js';
+import { describe, expect, it } from 'vitest';
+import { aTag as migrateTag } from '../../../bestax-migrate/src/sources/_shared/articles.js';
+import {
+  PLACED,
+  ROOTS,
+  WRAPPERS,
+  type RootEntry,
+} from '../../../bestax-migrate/src/sources/bulma-classes/class-map.js';
+import { readGlyph } from '../../../bestax-migrate/src/sources/bulma-classes/glyph.js';
 import {
   plan,
   type ElementFacts,
 } from '../../../bestax-migrate/src/sources/bulma-classes/plan.js';
-import { lookupClasses, type BulmaClassTable } from '../bulma-classes.js';
+import { aTag, lookupClasses, type BulmaClassTable } from '../bulma-classes.js';
 import { DATA_DIR } from '../data.js';
 
 const table: BulmaClassTable = JSON.parse(
@@ -33,13 +44,28 @@ type Outcome =
       as: string | undefined;
       props: string[];
       className: string[];
+      /** It renders the glyph of the <i> it holds from props. */
+      glyph: boolean;
+      /** And takes Font Awesome's own `aria-hidden` up off that <i>. */
+      moves: boolean;
     }
   | { kind: 'wrong-tag' | 'markup' };
 
 const propText = (prop: string, value: string | true | undefined) =>
   value === true || value === undefined ? prop : `${prop}=${value}`;
 
-function planned(tag: string, tokens: string[]): Outcome {
+/**
+ * How the <i> inside a root that needs element children is written: as a
+ * real glyph, hidden on the `.icon` as `Icon` hides it, or as Font Awesome
+ * writes it, hidden on the <i> instead.
+ */
+type Glyph = 'on-icon' | 'on-i';
+
+function planned(
+  tag: string,
+  tokens: string[],
+  hidden: Glyph = 'on-icon'
+): Outcome {
   // Attributes decide some refusals, and the lookup leaves those to the
   // codemod: give the element the ones its roots render by default
   // (`Delete`'s `type` and `aria-label`, and on a tag a root writes one on,
@@ -103,14 +129,22 @@ function planned(tag: string, tokens: string[]): Outcome {
       };
     }
     // One that needs element children gets one, which the lookup can't see.
+    // For one that reads a glyph it is a real one, whose classes become
+    // props, which the lookup states as a condition: with no classes the
+    // planner would keep it as a child, and agree with a lookup that never
+    // said so. Font Awesome's own markup hides the <i> instead of the
+    // element, which moves its `aria-hidden` up.
     if (
       entry?.status === 'mapped' &&
       entry.needsElementChildren &&
       !soleChild
     ) {
+      const onI = entry.readsGlyph && hidden === 'on-i';
+      if (onI) attributes.delete('aria-hidden');
       soleChild = {
         tag: 'i',
-        attributes: new Map(),
+        ...(entry.readsGlyph && { tokens: ['fas', 'fa-home'] }),
+        attributes: new Map(onI ? [['aria-hidden', 'true']] : []),
         hasSpread: false,
         isEmpty: true,
       };
@@ -227,6 +261,8 @@ function planned(tag: string, tokens: string[]): Outcome {
         .map(([name, value]) => propText(name, value))
         .sort(),
       className: (className?.split(' ') ?? []).sort(),
+      glyph: result.conversion.glyph !== undefined,
+      moves: result.conversion.movesHidden === true,
     };
   }
   return result.todos.some(todo => todo.rule.startsWith('tag:'))
@@ -234,7 +270,11 @@ function planned(tag: string, tokens: string[]): Outcome {
     : { kind: 'markup' };
 }
 
-function looked(tag: string, tokens: string[]): Outcome {
+function looked(
+  tag: string,
+  tokens: string[],
+  hidden: Glyph = 'on-icon'
+): Outcome {
   const { element, rows } = lookupClasses(table, tokens.join(' '), tag);
   if (element.kind === 'component') {
     return {
@@ -255,6 +295,13 @@ function looked(tag: string, tokens: string[]): Outcome {
         .filter(({ verdict }) => verdict.kind === 'class')
         .map(({ token }) => token)
         .sort(),
+      // What it says the codemod does with a glyph <i>, and with one hidden
+      // the way Font Awesome hides it, beside nothing but the element's
+      // classes.
+      glyph: element.readsGlyph !== undefined,
+      moves:
+        hidden === 'on-i' &&
+        (element.readsGlyph?.hiddenMovesBeside.length ?? 0) > 0,
     };
   }
   return { kind: element.kind === 'wrong-tag' ? 'wrong-tag' : 'markup' };
@@ -289,16 +336,22 @@ const others = [
   'box',
   'column',
   'is-disabled',
-  'has-text-primary-dark',
+  'marginless',
+  'is-64x64',
+  'has-text-primary-30-invert',
+  'is-palette-primary',
   'is-12-touch',
   'toString',
 ];
 
-function compare(cases: Array<[tag: string, tokens: string[]]>): string[] {
+function compare(
+  cases: Array<[tag: string, tokens: string[]]>,
+  hidden: Glyph = 'on-icon'
+): string[] {
   const mismatches: string[] = [];
   for (const [tag, tokens] of cases) {
-    const want = planned(tag, tokens);
-    const got = looked(tag, tokens);
+    const want = planned(tag, tokens, hidden);
+    const got = looked(tag, tokens, hidden);
     if (JSON.stringify(want) !== JSON.stringify(got)) {
       mismatches.push(
         `<${tag} className="${tokens.join(' ')}">: planner ${JSON.stringify(want)}, lookup ${JSON.stringify(got)}`
@@ -339,6 +392,28 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
     expect(compare(cases)).toEqual([]);
   });
 
+  it('on each modifier that converts only beside another, with and without it', () => {
+    const cases = mapped.flatMap(([root, entry]) =>
+      Object.entries(entry.modifiers).flatMap(([token, { beside }]) => {
+        if (!beside) return [];
+        const siblings = Object.entries(entry.modifiers)
+          .filter(([other, modifier]) => other !== token && modifier.beside)
+          .map(([other]) => other);
+        return [
+          [root, token],
+          [root, beside, token],
+          [root, token, beside],
+          // Two values for one prop: the first keeps it.
+          ...siblings.map(other => [root, beside, token, other]),
+        ].map(tokens => [entry.tag!, tokens] as [string, string[]]);
+      })
+    );
+    expect(cases.length).toBeGreaterThan(0);
+    expect(compare(cases)).toEqual([]);
+  });
+
+  // This sweep and the one with no tag are the longest here, and a loaded
+  // machine has run each past the config's 30s, so they get longer.
   it('on each root with each helper, and on the plain tags bestax wraps', () => {
     const cases: Array<[string, string[]]> = [];
     for (const [root, entry] of mapped) {
@@ -348,7 +423,7 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
       for (const helper of helpers) cases.push([tag, [helper]]);
     }
     expect(compare(cases)).toEqual([]);
-  });
+  }, 90_000);
 
   it('on every pair of the helpers whose props drop or rewrite each other', () => {
     const beside = Object.entries(table.helpers)
@@ -375,10 +450,169 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
     );
   });
 
+  it("on each root beside another root, on each one's tags", () => {
+    // Two of them with a class that picks the tag their component renders
+    // with no `as`, which is the tag a root's fit is read against.
+    const seconds = [
+      ['box'],
+      ['content'],
+      ['container'],
+      ['columns'],
+      ['image'],
+      ['image', 'is-16by9'],
+      ['title', 'is-3'],
+    ];
+    const cases = mapped.flatMap(([root, entry]) =>
+      seconds
+        // The planner is given one element inside, so not the <img> of an
+        // `.image` beside a root that reads the element inside it too.
+        .filter(
+          second =>
+            !second.includes(root) &&
+            !(
+              table.roots[second[0]].absorbs &&
+              (entry.absorbs || entry.readsGlyph)
+            )
+        )
+        .flatMap(second => {
+          const other = table.roots[second[0]];
+          const tags = new Set([
+            entry.tag!,
+            other.tag!,
+            ...(Array.isArray(other.as) ? other.as : []),
+          ]);
+          return [...tags].flatMap(tag => [
+            [tag, [root, ...second]] as [string, string[]],
+            [tag, [...second, root]] as [string, string[]],
+          ]);
+        })
+    );
+    expect(cases.length).toBeGreaterThan(400);
+    expect(compare(cases)).toEqual([]);
+  });
+
+  it('on a removed helper beside a class for its prop or another, in either order', () => {
+    const cases: Array<[string, string[]]> = [];
+    for (const [token, v1] of Object.entries(table.replaced)) {
+      const prop = table.helpers[v1].write.prop;
+      const besides = Object.entries(table.helpers)
+        .filter(
+          ([other, helper]) =>
+            helper.group === 'spacing' &&
+            !Object.hasOwn(table.replaced, other) &&
+            helper.write.prop.startsWith(prop)
+        )
+        .map(([other]) => other);
+      for (const other of besides) {
+        for (const pair of [
+          [token, other],
+          [other, token],
+        ]) {
+          cases.push(['p', pair], ['div', ['box', ...pair]]);
+        }
+      }
+      cases.push(['div', ['table-container', token]]);
+    }
+    expect(cases.length).toBeGreaterThan(100);
+    expect(compare(cases)).toEqual([]);
+  });
+
   // With no tag, the lookup answers for the tag the component renders on its
   // own. The planner needs a tag, so it runs on that one: a heading's on <p>,
   // where its size is exact, and classes with no root on <p>, whose
   // Paragraph takes the same color props the no-tag answer names.
+  it("on a root that reads a glyph, with Font Awesome's aria-hidden on its <i>", () => {
+    const reads = mapped.filter(([, entry]) => entry.readsGlyph !== null);
+    expect(reads.length).toBeGreaterThan(0);
+    const cases = reads.flatMap(([root, entry]) => [
+      ...TAGS.map(tag => [tag, [root]] as [string, string[]]),
+      ...Object.keys(entry.modifiers).map(
+        token => [entry.tag!, [root, token]] as [string, string[]]
+      ),
+      ...helpers.map(
+        helper => [entry.tag!, [root, helper]] as [string, string[]]
+      ),
+    ]);
+    expect(compare(cases, 'on-i')).toEqual([]);
+    // The planner did move it, so the agreement above is about the move.
+    const [root, entry] = reads[0];
+    expect(planned(entry.tag!, [root], 'on-i')).toMatchObject({
+      glyph: true,
+      moves: true,
+    });
+  });
+
+  // The lookup names a component to write by hand for these (#1236), and the
+  // codemod leaves each as it was: the two must still agree on that.
+  it("on markup the lookup answers by hand: a bare glyph <i>, a table part, a class of bestax's own", () => {
+    const cases: Array<[string, string[]]> = [
+      ['i', ['fas', 'fa-moon', 'fa-lg']],
+      ['i', ['fa', 'fa-github']],
+      ['i', ['mdi', 'mdi-home', 'mt-2']],
+      ...Object.keys(table.byHand).flatMap((tag): Array<[string, string[]]> => [
+        [tag, ['has-text-centered']],
+        [tag, ['p-2', 'is-flex', 'is-justify-content-center']],
+      ]),
+      ...Object.keys(table.ownClasses).map((token): [string, string[]] => [
+        'div',
+        [token],
+      ]),
+      ['a', ['button', 'is-facebook']],
+      ['span', ['icon', 'is-left']],
+      ['span', ['icon', 'is-small', 'is-right']],
+    ];
+    expect(compare(cases)).toEqual([]);
+    expect(looked('span', ['icon', 'is-left'])).toMatchObject({
+      kind: 'component',
+      target: 'Icon',
+      className: ['is-left'],
+    });
+  });
+
+  it('answers as a glyph every bare <i> whose classes the codemod reads as one', () => {
+    const styles = [
+      'fas',
+      'far',
+      'fab',
+      'fal',
+      'fad',
+      'fat',
+      'fa',
+      'fa-solid',
+      'fa-regular',
+      'fa-brands',
+      'fa-light',
+      'fa-thin',
+      'fa-duotone',
+    ];
+    const features = [[], ['fa-lg'], ['fa-fw', 'fa-spin']];
+    const combos = [
+      ...styles.flatMap(style =>
+        features.map(rest => [style, 'fa-house', ...rest])
+      ),
+      ...[[], ['mdi-24px'], ['mdi-spin', 'mdi-dark']].map(rest => [
+        'mdi',
+        'mdi-home',
+        ...rest,
+      ]),
+    ];
+    const read = combos.filter(tokens =>
+      readGlyph({
+        tag: 'i',
+        tokens,
+        attributes: new Map(),
+        hasSpread: false,
+        isEmpty: true,
+      })
+    );
+    expect(read.length).toBeGreaterThan(30);
+    const missed = read.filter(
+      tokens =>
+        lookupClasses(table, tokens.join(' '), 'i').element.kind !== 'glyph'
+    );
+    expect(missed).toEqual([]);
+  });
+
   it('on a `.file` whose name slot is-empty marks, which File renders itself', () => {
     const cases: Array<[string, string[]]> = [
       ['div', ['file', 'has-name', 'is-empty']],
@@ -389,6 +623,88 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
     expect(compare(cases)).toEqual([]);
   });
 
+  it('on a root with two classes that each pick its tag, in either order', () => {
+    // No root has two classes that pick a tag through different props, so
+    // this one is made up, on both sides: the planner's table and the
+    // lookup's. Whichever comes first converts, and the other stays a class.
+    const modifiers = {
+      'is-a': { writes: [{ prop: 'a' }], rendersTag: 'section' },
+      'is-b': { writes: [{ prop: 'b' }], rendersTag: 'aside' },
+    };
+    const as = ['div', 'section', 'aside'];
+    const roots = ROOTS as Record<string, RootEntry>;
+    roots['x-retag'] = {
+      status: 'mapped',
+      target: 'X',
+      tag: 'div',
+      as,
+      modifiers,
+      ownProps: ['as', 'a', 'b'],
+    };
+    table.roots['x-retag'] = {
+      ...table.roots.box,
+      target: 'X',
+      as,
+      modifiers,
+    };
+    try {
+      const cases = as.flatMap((tag): Array<[string, string[]]> => [
+        [tag, ['x-retag', 'is-a', 'is-b']],
+        [tag, ['x-retag', 'is-b', 'is-a']],
+      ]);
+      expect(compare(cases)).toEqual([]);
+      expect(looked('section', ['x-retag', 'is-a', 'is-b'])).toMatchObject({
+        as: undefined,
+        className: ['is-b'],
+      });
+    } finally {
+      delete roots['x-retag'];
+      delete table.roots['x-retag'];
+    }
+  });
+
+  it('names the tag a class picks on a root that reaches any tag through `as`', () => {
+    // No root that reaches any tag has a class that picks one, so this one is
+    // made up, on both sides, as above.
+    const modifiers = {
+      'is-a': { writes: [{ prop: 'a' }], rendersTag: 'figure' },
+    };
+    const roots = ROOTS as Record<string, RootEntry>;
+    roots['x-retag-any'] = {
+      status: 'mapped',
+      target: 'X',
+      tag: 'div',
+      as: 'any',
+      modifiers,
+      ownProps: ['as', 'a'],
+    };
+    table.roots['x-retag-any'] = {
+      ...table.roots.box,
+      target: 'X',
+      as: 'any',
+      modifiers,
+    };
+    try {
+      const cases = ['figure', 'div', 'span'].flatMap(
+        (tag): Array<[string, string[]]> => [
+          [tag, ['x-retag-any', 'is-a']],
+          [tag, ['x-retag-any']],
+        ]
+      );
+      expect(compare(cases)).toEqual([]);
+      expect(lookupClasses(table, 'x-retag-any is-a').element).toMatchObject({
+        renders: '<figure> with these classes, or any tag through `as`',
+      });
+      expect(lookupClasses(table, 'x-retag-any').element).toMatchObject({
+        renders: '<div>, or any tag through `as`',
+      });
+    } finally {
+      delete roots['x-retag-any'];
+      delete table.roots['x-retag-any'];
+    }
+  });
+
+  // Its timeout is longer than the config's, as the helper sweep's is.
   it('with no tag, on the tag the component renders by itself', () => {
     const mismatches: string[] = [];
     const check = (tag: string, tokens: string[]) => {
@@ -439,7 +755,7 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
     expect({ count: mismatches.length, first: mismatches.slice(0, 5) }).toEqual(
       { count: 0, first: [] }
     );
-  });
+  }, 90_000);
 
   it('on seeded mixes of roots, modifiers, helpers and other classes', () => {
     const next = random(744);
@@ -469,5 +785,147 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
     expect({ count: mismatches.length, first: mismatches.slice(0, 5) }).toEqual(
       { count: 0, first: [] }
     );
+  });
+});
+
+/**
+ * The HTML elements, by the living standard's names, beside the ones the
+ * class table reaches and the ones an article is easy to get wrong for.
+ */
+const ELEMENTS = [
+  'a',
+  'abbr',
+  'address',
+  'area',
+  'article',
+  'aside',
+  'audio',
+  'b',
+  'base',
+  'bdi',
+  'bdo',
+  'blockquote',
+  'body',
+  'br',
+  'button',
+  'canvas',
+  'caption',
+  'cite',
+  'code',
+  'col',
+  'colgroup',
+  'data',
+  'datalist',
+  'dd',
+  'del',
+  'details',
+  'dfn',
+  'dialog',
+  'div',
+  'dl',
+  'dt',
+  'em',
+  'embed',
+  'fieldset',
+  'figcaption',
+  'figure',
+  'footer',
+  'form',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'head',
+  'header',
+  'hgroup',
+  'hr',
+  'html',
+  'i',
+  'iframe',
+  'img',
+  'input',
+  'ins',
+  'kbd',
+  'label',
+  'legend',
+  'li',
+  'link',
+  'main',
+  'map',
+  'mark',
+  'menu',
+  'meta',
+  'meter',
+  'nav',
+  'noscript',
+  'object',
+  'ol',
+  'optgroup',
+  'option',
+  'output',
+  'p',
+  'picture',
+  'pre',
+  'progress',
+  'q',
+  'rp',
+  'rt',
+  'ruby',
+  's',
+  'samp',
+  'script',
+  'search',
+  'section',
+  'select',
+  'slot',
+  'small',
+  'source',
+  'span',
+  'strong',
+  'style',
+  'sub',
+  'summary',
+  'sup',
+  'table',
+  'tbody',
+  'td',
+  'template',
+  'textarea',
+  'tfoot',
+  'th',
+  'thead',
+  'time',
+  'title',
+  'tr',
+  'track',
+  'u',
+  'ul',
+  'var',
+  'video',
+  'wbr',
+];
+
+describe('the article helper', () => {
+  it("says every element the way bestax-migrate's TODOs do", () => {
+    const reached = [
+      ...Object.values(ROOTS).flatMap(entry => [
+        ...(entry.tag ? [entry.tag] : []),
+        ...(Array.isArray(entry.as) ? entry.as : []),
+        ...(entry.absorbs ? [entry.absorbs.tag] : []),
+        ...(entry.parent ? [entry.parent.tag] : []),
+      ]),
+      ...Object.values(PLACED).flatMap(entry => (entry.tag ? [entry.tag] : [])),
+      ...Object.keys(WRAPPERS),
+    ];
+    const names = [...new Set([...ELEMENTS, ...reached])].sort();
+    // The table reaches only elements on the list, so the list is the whole
+    // of what either copy is asked about.
+    expect(reached.filter(tag => !ELEMENTS.includes(tag))).toEqual([]);
+    const differ = names
+      .map(tag => ({ tag, migrate: migrateTag(tag), mcp: aTag(tag) }))
+      .filter(({ migrate, mcp }) => migrate !== mcp);
+    expect(differ).toEqual([]);
   });
 });

@@ -1,0 +1,685 @@
+/* The alternate band the carousel this replaces sat on, so the page keeps its rhythm. */
+.section {
+  --card: #fff;
+  --card-border: #e3e8ee;
+  --heading: #14171c;
+  --text: #525a66;
+  --kicker: #1e6b99;
+  --kicker-bg: rgba(30, 107, 153, 0.09);
+  --mono: var(--ifm-font-family-monospace);
+
+  padding: 5rem 0 5.5rem;
+  background: var(--ifm-color-emphasis-100);
+}
+
+[data-theme='dark'] .section {
+  --card: #202833;
+  --card-border: rgba(255, 255, 255, 0.08);
+  --heading: #f2f4f7;
+  --text: #a9b2be;
+  --kicker: #6baed6;
+  --kicker-bg: rgba(107, 174, 214, 0.12);
+
+  background: #1e2936;
+}
+
+.head {
+  max-width: 760px;
+  margin: 0 auto 2.5rem;
+  text-align: center;
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--kicker-bg);
+  color: var(--kicker);
+  font: 600 12.5px/1 var(--mono);
+}
+
+.title {
+  margin: 1rem 0 0.75rem;
+  font-size: clamp(30px, 3vw, 44px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--heading);
+}
+
+.lede {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.quickStart {
+  display: inline-block;
+  margin-top: 1rem;
+  font-weight: 600;
+}
+
+/* --- The run: terminal on the left, files and browser on the right ------- */
+
+.stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: stretch;
+}
+
+.terminal {
+  display: flex;
+  flex-direction: column;
+  min-height: 470px;
+  overflow: hidden;
+  border: 1px solid rgba(107, 174, 214, 0.2);
+  border-radius: 16px;
+  background: #0b1220;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  padding: 0 14px;
+  border-bottom: 1px solid rgba(107, 174, 214, 0.12);
+  color: #6f8aa8;
+  font: 500 12px/1 var(--mono);
+}
+
+.replay {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid rgba(107, 174, 214, 0.25);
+  border-radius: 8px;
+  background: none;
+  color: #9fb6cf;
+  font: 500 12px/1 var(--mono);
+  cursor: pointer;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
+}
+
+.replay:hover {
+  border-color: #6baed6;
+  color: #fff;
+}
+
+.replay:focus-visible {
+  outline: 2px solid #6baed6;
+  outline-offset: 2px;
+}
+
+.replay svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.lines {
+  flex: 1;
+  padding: 16px 18px 18px;
+  color: #d7e3f0;
+  font: 500 13px/1.75 var(--mono);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.line {
+  display: block;
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.25s,
+    transform 0.35s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.line.on {
+  opacity: 1;
+  transform: none;
+}
+
+.prompt {
+  color: #6baed6;
+}
+
+.rule {
+  color: #2f4a6b;
+}
+
+.banner {
+  color: #7fd1e8;
+}
+
+.question {
+  color: #7ee2b8;
+}
+
+.dim {
+  color: #5f7a99;
+}
+
+.answer {
+  display: inline-block;
+  color: #6baed6;
+  font-weight: 700;
+  animation: pick 0.45s cubic-bezier(0.3, 1.7, 0.5, 1);
+}
+
+@keyframes pick {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+.ok {
+  color: #7ee2b8;
+}
+
+.caret {
+  display: inline-block;
+  width: 0.55em;
+  height: 1.05em;
+  margin-left: 1px;
+  vertical-align: -0.18em;
+  background: #6baed6;
+  animation: blink 1.05s steps(1) infinite;
+}
+
+@keyframes blink {
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.side {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 20px;
+}
+
+.files {
+  overflow: hidden;
+  border: 1px solid rgba(107, 174, 214, 0.16);
+  border-radius: 16px;
+  background: #0f141d;
+}
+
+.tree {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px 18px;
+  min-height: 150px;
+  margin: 0;
+  padding: 12px 16px 14px;
+  list-style: none;
+  color: #9fb0c4;
+  font: 500 12.5px/1.7 var(--mono);
+}
+
+.file {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  opacity: 0;
+  transform: translateX(-8px);
+  transition:
+    opacity 0.25s,
+    transform 0.35s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+
+.file.on {
+  opacity: 1;
+  transform: none;
+}
+
+.file svg {
+  flex: none;
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+}
+
+.folder {
+  color: #82aaff;
+}
+
+.aiFile {
+  color: #f4bf4f;
+}
+
+.browser {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(107, 174, 214, 0.2);
+  border-radius: 16px;
+  background: #f5f7fa;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+  opacity: 0.4;
+  transform: translateY(10px) scale(0.98);
+  transition:
+    opacity 0.45s,
+    transform 0.6s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+/* Two classes, not one: the production minifier merges rules with the same
+   declarations and can hoist a lone .live above .browser, which then wins. */
+.browser.live {
+  opacity: 1;
+  transform: none;
+}
+
+.url {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 12px;
+  border-bottom: 1px solid #d9dfe6;
+  background: #e9edf2;
+}
+
+.url span {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 7px;
+  background: #fff;
+  color: #52606d;
+  font: 500 12px/1 var(--mono);
+}
+
+.page {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  text-align: center;
+  color: #363a43;
+}
+
+.waiting {
+  color: #5f6b78;
+  font: 500 13px/1 var(--mono);
+}
+
+/* --- The starter app, drawn small ----------------------------------------- */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.logos {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logos svg {
+  width: 40px;
+  height: 40px;
+}
+
+.logos span {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #e3e8ee;
+  color: #4b5563;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.appTitle {
+  margin: 0;
+  color: #1c2128;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.appCards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.appCard {
+  padding: 10px 8px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.04);
+  color: #363a43;
+  font-size: 12px;
+  font-weight: 700;
+  animation: cardPop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) backwards;
+}
+
+.appCard span {
+  display: block;
+  height: 5px;
+  margin-top: 5px;
+  border-radius: 3px;
+  background: #e1e6ec;
+}
+
+@keyframes cardPop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.9);
+  }
+}
+
+.appButtons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.appPrimary,
+.appInfo,
+.appWarning {
+  height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.appPrimary:active,
+.appInfo:active,
+.appWarning:active:enabled {
+  transform: scale(0.95);
+}
+
+.appPrimary:focus-visible,
+.appInfo:focus-visible,
+.appWarning:focus-visible {
+  outline: 2px solid #1e6b99;
+  outline-offset: 2px;
+}
+
+.appPrimary {
+  background: #1e6b99;
+  color: #fff;
+}
+
+.appInfo {
+  background: #66d1ff;
+  color: #0a2f40;
+}
+
+.appWarning {
+  background: #ffb70f;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+/* Bulma's disabled button: faded, and no press. */
+.appWarning:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.status {
+  width: 100%;
+  max-width: 420px;
+}
+
+/* Empty, a region stays mounted so what lands in it is announced, but it
+   takes no room in the column. */
+.status:empty {
+  position: absolute;
+}
+
+.appNote {
+  width: 100%;
+  max-width: 420px;
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: 7px;
+  font-size: 12.5px;
+  line-height: 1.35;
+  text-align: left;
+  animation: cardPop 0.4s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.appNoteSuccess {
+  background: #effaf5;
+  color: #257953;
+}
+
+.appNoteInfo {
+  background: #eff8ff;
+  color: #1d5d8a;
+}
+
+/*
+ * The browser frame and the starter app in it follow the site's color mode,
+ * whether the device picked it or the navbar toggle did. The terminal and the
+ * file tree stay dark either way: they're a terminal and an editor pane.
+ */
+[data-theme='dark'] .browser {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: #14161a;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+[data-theme='dark'] .url {
+  border-bottom-color: #2b2f38;
+  background: #1c1f25;
+}
+
+[data-theme='dark'] .url span {
+  background: #262a32;
+  color: #a6adb8;
+}
+
+[data-theme='dark'] .page {
+  color: #d7dbe3;
+}
+
+[data-theme='dark'] .waiting {
+  color: #7f8a99;
+}
+
+[data-theme='dark'] .logos span {
+  background: #262a32;
+  color: #c3c8d1;
+}
+
+[data-theme='dark'] .appTitle {
+  color: #f2f4f7;
+}
+
+[data-theme='dark'] .appCard {
+  background: #1c1f25;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
+  color: #d7dbe3;
+}
+
+[data-theme='dark'] .appCard span {
+  background: #2b2f38;
+}
+
+[data-theme='dark'] .appNoteSuccess {
+  background: #12291e;
+  color: #6fd3a0;
+}
+
+[data-theme='dark'] .appNoteInfo {
+  background: #10263a;
+  color: #7cc4ef;
+}
+
+/* --- Tools around the scaffold ----------------------------------------------- */
+
+.tools {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tools li {
+  display: flex;
+}
+
+.tool,
+.tool:visited {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  background: var(--card);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    transform 0.3s cubic-bezier(0.3, 1.5, 0.5, 1),
+    border-color 0.2s;
+}
+
+.tool:hover {
+  border-color: #3590c3;
+  color: inherit;
+  text-decoration: none;
+  transform: translateY(-4px);
+}
+
+.tool:focus-visible {
+  outline: 2px solid #3590c3;
+  outline-offset: 3px;
+}
+
+.toolIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: var(--kicker-bg);
+  color: var(--kicker);
+}
+
+.toolIcon svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.45s cubic-bezier(0.3, 1.7, 0.5, 1);
+}
+
+.tool:hover .toolIcon svg {
+  transform: rotate(-8deg) scale(1.12);
+}
+
+.toolTitle {
+  margin: 6px 0 0;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--heading);
+}
+
+.toolText {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.toolCta {
+  margin-top: auto;
+  padding-top: 6px;
+  color: var(--kicker);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+/* --- Smaller screens ------------------------------------------------------------ */
+
+@media (max-width: 996px) {
+  .stage {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .terminal {
+    min-height: 0;
+  }
+
+  .tools {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .section {
+    padding: 3.5rem 0 4rem;
+  }
+
+  .lines {
+    padding: 14px;
+    font-size: 11.5px;
+  }
+
+  .tree,
+  .appCards,
+  .tools {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .line,
+  .file,
+  .browser {
+    transition: none;
+  }
+
+  .answer,
+  .caret,
+  .appCard,
+  .appNote {
+    animation: none;
+  }
+}

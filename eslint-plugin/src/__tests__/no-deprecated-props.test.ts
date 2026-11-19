@@ -131,6 +131,19 @@ ruleTester.run('no-deprecated-props', rule, {
       errors: [{ messageId: 'deprecated' }],
     },
     {
+      // `selected` held a value and `onSelect` takes a callback, so its note
+      // mentions `onSelect` without naming it as the replacement, and no
+      // rename is offered: `onSelect="Banana"` would throw on the first pick.
+      code: imported('Autocomplete', '<Autocomplete selected="Banana" />'),
+      output: null,
+      errors: [{ messageId: 'deprecated' }],
+    },
+    {
+      code: imported('Autocomplete', '<Autocomplete dropdown />'),
+      output: null,
+      errors: [{ messageId: 'deprecated' }],
+    },
+    {
       // A note naming TWO replacements parses to no single one, so no fix is
       // offered. It must still read as a deprecation, not as a prop that was
       // retired for never having worked.

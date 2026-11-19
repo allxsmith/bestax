@@ -87,6 +87,8 @@ export const GENERATED_EXEMPT = new Set(['helpers']);
  */
 // <generated:scss-sources>
 export const SCSS_SOURCES = {
+  Affix: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_affix.scss' }],
+  AppFrame: [{ pkg: 'repo', path: 'bulma-ui/src/scss/layout/_appframe.scss' }],
   Autocomplete: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_autocomplete.scss' },
   ],
@@ -100,12 +102,21 @@ export const SCSS_SOURCES = {
   Breadcrumb: [{ pkg: 'bulma', path: 'sass/components/breadcrumb.scss' }],
   Button: [{ pkg: 'bulma', path: 'sass/elements/button.scss' }],
   Buttons: [],
+  Calendar: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_dateinput.scss' }],
   Card: [{ pkg: 'bulma', path: 'sass/components/card.scss' }],
   Carousel: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_carousel.scss' },
   ],
+  Cascader: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_cascader.scss' },
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
+  ],
   Cell: [],
+  Center: [],
   Checkbox: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_checkbox.scss' }],
+  CheckboxCard: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_checkboxcard.scss' },
+  ],
   Checkboxes: [],
   ClientOnly: [],
   Code: [{ pkg: 'bulma', path: 'sass/base/generic.scss' }],
@@ -113,8 +124,26 @@ export const SCSS_SOURCES = {
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_collapse.scss' },
   ],
   Collapses: [],
+  ColorInput: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_colorinput.scss' },
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
+  ],
+  ColorInputBase: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_colorinput.scss' },
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
+  ],
+  ColorPicker: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_colorpicker.scss' },
+  ],
+  ColorSwatch: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/elements/_colorswatch.scss' },
+  ],
   Column: [{ pkg: 'bulma', path: 'sass/grid/columns.scss' }],
   Columns: [],
+  Combobox: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_combobox.scss' }],
+  Command: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_command.scss' },
+  ],
   Config: [],
   Container: [],
   Content: [{ pkg: 'bulma', path: 'sass/elements/content.scss' }],
@@ -124,6 +153,10 @@ export const SCSS_SOURCES = {
   Control: [
     { pkg: 'bulma', path: 'sass/form/shared.scss' },
     { pkg: 'bulma', path: 'sass/utilities/controls.scss' },
+  ],
+  CopyButton: [],
+  DataTable: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_datatable.scss' },
   ],
   DateInput: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_dateinput.scss' },
@@ -162,25 +195,46 @@ export const SCSS_SOURCES = {
     { pkg: 'bulma', path: 'sass/form/shared.scss' },
   ],
   Delete: [{ pkg: 'bulma', path: 'sass/utilities/mixins.scss' }],
+  DescriptionList: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/elements/_descriptionlist.scss' },
+  ],
   Dialog: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_dialog.scss' }],
   Divider: [],
   Dropdown: [{ pkg: 'bulma', path: 'sass/components/dropdown.scss' }],
+  Dropzone: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_dropzone.scss' }],
   Emphasis: [],
+  EmptyState: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_emptystate.scss' },
+  ],
   Field: [{ pkg: 'bulma', path: 'sass/form/tools.scss' }],
+  Fieldset: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_fieldset.scss' }],
   Figure: [],
   File: [{ pkg: 'bulma', path: 'sass/form/file.scss' }],
+  Flex: [],
+  FloatButton: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_floatbutton.scss' },
+  ],
+  FloatButtons: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_floatbutton.scss' },
+  ],
   Footer: [{ pkg: 'bulma', path: 'sass/layout/footer.scss' }],
   Grid: [{ pkg: 'bulma', path: 'sass/grid/grid.scss' }],
+  Group: [{ pkg: 'repo', path: 'bulma-ui/src/scss/layout/_stack.scss' }],
   Hero: [{ pkg: 'bulma', path: 'sass/layout/hero.scss' }],
   HoverCard: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_hovercard.scss' },
   ],
   Icon: [{ pkg: 'bulma', path: 'sass/elements/icon.scss' }],
+  IconButton: [],
   IconText: [{ pkg: 'bulma', path: 'sass/elements/icon.scss' }],
   Image: [],
   Input: [{ pkg: 'bulma', path: 'sass/form/shared.scss' }],
   InputBase: [{ pkg: 'bulma', path: 'sass/form/shared.scss' }],
+  Kbd: [{ pkg: 'repo', path: 'bulma-ui/src/scss/elements/_kbd.scss' }],
   Level: [{ pkg: 'bulma', path: 'sass/layout/level.scss' }],
+  Lightbox: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_lightbox.scss' },
+  ],
   Link: [],
   LinkButton: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/elements/_linkbutton.scss' },
@@ -190,8 +244,12 @@ export const SCSS_SOURCES = {
   Loading: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_loading.scss' },
   ],
+  LocaleProvider: [],
   Media: [{ pkg: 'bulma', path: 'sass/layout/media.scss' }],
-  Menu: [{ pkg: 'bulma', path: 'sass/components/menu.scss' }],
+  Menu: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_menu.scss' },
+    { pkg: 'bulma', path: 'sass/components/menu.scss' },
+  ],
   Message: [{ pkg: 'bulma', path: 'sass/components/message.scss' }],
   Modal: [{ pkg: 'bulma', path: 'sass/components/modal.scss' }],
   Navbar: [{ pkg: 'bulma', path: 'sass/components/navbar.scss' }],
@@ -199,13 +257,26 @@ export const SCSS_SOURCES = {
     { pkg: 'repo', path: 'bulma-ui/src/scss/elements/_notification.scss' },
     { pkg: 'bulma', path: 'sass/elements/notification.scss' },
   ],
+  NumberFormatter: [],
   Numberinput: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_numberinput.scss' },
   ],
   OrderedList: [],
   Pagination: [{ pkg: 'bulma', path: 'sass/components/pagination.scss' }],
-  Panel: [{ pkg: 'bulma', path: 'sass/components/panel.scss' }],
+  Panel: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_panel.scss' },
+    { pkg: 'bulma', path: 'sass/components/panel.scss' },
+  ],
   Paragraph: [],
+  PasswordInput: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_passwordinput.scss' },
+    { pkg: 'bulma', path: 'sass/form/shared.scss' },
+  ],
+  PasswordInputBase: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_passwordinput.scss' },
+    { pkg: 'bulma', path: 'sass/form/shared.scss' },
+  ],
+  PinInput: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_pininput.scss' }],
   Popover: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_popover.scss' },
   ],
@@ -213,9 +284,16 @@ export const SCSS_SOURCES = {
   Pre: [{ pkg: 'bulma', path: 'sass/base/generic.scss' }],
   Progress: [{ pkg: 'bulma', path: 'sass/elements/progress.scss' }],
   Radio: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_radio.scss' }],
+  RadioCard: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_radiocard.scss' }],
   Radios: [],
   Rate: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_rate.scss' }],
   Reveal: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_reveal.scss' }],
+  RingProgress: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/elements/_ringprogress.scss' },
+  ],
+  ScrollArea: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_scrollarea.scss' },
+  ],
   Section: [{ pkg: 'bulma', path: 'sass/layout/section.scss' }],
   SegmentedControl: [],
   Select: [
@@ -232,11 +310,18 @@ export const SCSS_SOURCES = {
   Skeleton: [{ pkg: 'bulma', path: 'sass/base/skeleton.scss' }],
   Slider: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_slider.scss' }],
   Span: [],
+  Splitter: [{ pkg: 'repo', path: 'bulma-ui/src/scss/layout/_splitter.scss' }],
+  Stack: [{ pkg: 'repo', path: 'bulma-ui/src/scss/layout/_stack.scss' }],
+  Stat: [{ pkg: 'repo', path: 'bulma-ui/src/scss/elements/_stat.scss' }],
+  Stats: [],
   Steps: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_steps.scss' }],
   Strong: [{ pkg: 'bulma', path: 'sass/base/generic.scss' }],
   SubTitle: [{ pkg: 'bulma', path: 'sass/elements/title.scss' }],
   Switch: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_switch.scss' }],
   Table: [{ pkg: 'bulma', path: 'sass/elements/table.scss' }],
+  TableOfContents: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_tableofcontents.scss' },
+  ],
   Tabs: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_tabs.scss' },
     { pkg: 'bulma', path: 'sass/components/tabs.scss' },
@@ -268,13 +353,24 @@ export const SCSS_SOURCES = {
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_timeinput.scss' },
     { pkg: 'bulma', path: 'sass/form/shared.scss' },
   ],
+  Timeline: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_timeline.scss' },
+  ],
   Title: [{ pkg: 'bulma', path: 'sass/elements/title.scss' }],
   Toast: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_toast.scss' }],
   ToggleButton: [],
   Tooltip: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_tooltip.scss' },
   ],
+  Tour: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_tour.scss' }],
   Tr: [],
+  TreeSelect: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_treeselect.scss' },
+  ],
+  TreeView: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_treeview.scss' },
+  ],
   UnorderedList: [],
 };
 // </generated:scss-sources>
@@ -301,7 +397,17 @@ export const SCSS_SOURCES = {
  * missing from this map doesn't mean it renders an element of its own.
  */
 export const RENDERS_ELEMENT_OF = {
+  Calendar: 'DateInput', // each month on show is the pickers' `.dateinput`
+  CheckboxCard: 'Card', // its label is a `.card.checkbox-card`
+  CopyButton: 'Button', // renders a `.button` through Button, or IconButton's
+  Dropzone: 'File', // its zone is a `.file.is-boxed.is-fullwidth`
+  FloatButton: 'Button', // renders `.button.float-button` through IconButton
+  IconButton: 'Button', // renders `.button.icon-button` through Button
+  Lightbox: 'Modal', // its viewer is a `.modal.lightbox`
   LinkButton: 'Button', // renders `.button.link-button` through Button
+  PinInput: 'Input', // each of its boxes is an `.input.pin-input-box`
+  RadioCard: 'Card', // its label is a `.card.radio-card`
+  TableOfContents: 'Menu', // its nav is a `.menu.table-of-contents`
   ToggleButton: 'Button', // renders a `.button` through Button
 };
 
@@ -315,15 +421,53 @@ export const IMPORT_COMPANIONS = {
   Columns: ['Columns', 'Column'],
   Avatars: ['Avatars', 'Avatar'],
   Breadcrumb: ['Breadcrumb', 'Icon'],
+  Card: [
+    'Card',
+    'CardHeader',
+    'CardHeaderTitle',
+    'CardHeaderIcon',
+    'CardImage',
+    'CardContent',
+    'CardFooter',
+    'CardFooterItem',
+  ],
   Carousel: ['Carousel', 'CarouselItem'],
   Collapses: ['Collapses', 'Collapse'],
+  DataTable: ['DataTable', 'useDataTable'],
   Dialog: ['Dialog', 'DialogContainer', 'dialog'],
   Dropdown: ['Dropdown', 'Button', 'Field', 'Control', 'Span'],
+  FloatButtons: ['FloatButtons', 'FloatButton'],
+  Message: ['Message', 'MessageHeader', 'MessageBody'],
+  Modal: [
+    'Modal',
+    'ModalBackground',
+    'ModalContent',
+    'ModalClose',
+    'ModalCard',
+    'ModalCardHead',
+    'ModalCardTitle',
+    'ModalCardBody',
+    'ModalCardFoot',
+  ],
+  SegmentedControl: ['SegmentedControl', 'SegmentedControlSegment'],
+  Sidebar: [
+    'Sidebar',
+    'SidebarHeader',
+    'SidebarTitle',
+    'SidebarClose',
+    'SidebarBody',
+    'SidebarFooter',
+  ],
+  TableOfContents: ['TableOfContents', 'useScrollSpy'],
   Toast: ['Toast', 'ToastContainer', 'toast'],
+  Tour: ['Tour', 'useTour'],
+  Figure: ['Figure', 'FigureCaption'],
   ListItem: ['ListItem', 'UnorderedList', 'OrderedList'],
   Notification: ['Notification', 'NotificationContainer', 'notification'],
+  NumberFormatter: ['NumberFormatter', 'useNumberFormat'],
   OrderedList: ['OrderedList', 'ListItem'],
   Pre: ['Pre', 'Code'],
+  Stats: ['Stats', 'Stat'],
   Table: ['Table', 'Thead', 'Tbody', 'Tfoot', 'Tr', 'Th', 'Td'],
   UnorderedList: ['UnorderedList', 'ListItem'],
   Checkbox: ['Checkboxes', 'Checkbox'],
@@ -336,5 +480,6 @@ export const IMPORT_COMPANIONS = {
   Select: ['Select', 'Field', 'Control'],
   TextArea: ['TextArea', 'Field', 'Control'],
   Grid: ['Grid', 'Cell'],
+  AppFrame: ['AppFrame', 'useAppFrame'],
 };
 // </generated:import-companions>

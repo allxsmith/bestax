@@ -8,7 +8,8 @@ import React, {
   useState,
 } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
-import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useFieldHelperClasses } from '../helpers/useFieldHelperClasses';
 import {
   DateRangeValue,
   DayOfWeek,
@@ -27,17 +28,30 @@ import {
 import {
   canCloseRange,
   clampDate,
+  fitPage,
   floorMin,
   isSameDay,
   isWithin,
+  monthFromIndex,
+  monthIndex,
+  pageHolding,
+  pageMonthCount,
   startOfDay,
 } from './_pickerInternals/dateUtils';
 import { Calendar, CALENDAR_FOCUSED_CELL } from './_pickerInternals/Calendar';
 import { PickerPopover } from './_pickerInternals/PickerPopover';
 import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker';
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
+import {
+  hasOwnDayNames,
+  usePickerFirstDayOfWeek,
+  usePickerLocale,
+  usePickerLocaleScope,
+} from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
 import { useAutoLabelledBy } from './useAutoLabelId';
+import { splitControlState } from './useFieldMessage';
+import { useFieldsetDisabled } from './FormContext';
 import { Icon } from '../elements/Icon';
 
 export type { DateRangeValue };
@@ -53,7 +67,16 @@ const today = (): Date => startOfDay(new Date());
 /**
  * Props for the raw DateRangeInput base. Use the higher-level
  * `DateRangeInput` for Field/Control composition; `DateRangeInputBase` is the
- * two inputs and the popover only.
+ * two inputs and the popover only. `aria-invalid` and `aria-errormessage`,
+ * which report the inputs' state, go on both `<input>`s, so they mark the
+ * range as a whole, and inline, where there are none, on the root.
+ *
+ * @helperProps Helper props go on the root `.daterangeinput` `<div>`, with
+ * `className` and the other attributes, except that the background helpers
+ * go on the `.input` `<div>` that draws the field around the two `<input>`s,
+ * since Bulma's `.input` sets its own background. The text helpers go on the
+ * root and on both `<input>`s too, which take no alignment or case from
+ * around them. Inline they all go on the root.
  */
 export interface DateRangeInputBaseProps
   extends
@@ -66,9 +89,9 @@ export interface DateRangeInputBaseProps
    * Controlled range, start first. Either end may be `null`, and
    * `[null, null]` is empty.
    */
-  value?: DateRangeValue;
+  value?: DateRangeValue | undefined;
   /** Initial range for uncontrolled usage. */
-  defaultValue?: DateRangeValue;
+  defaultValue?: DateRangeValue | undefined;
   /**
    * Fired when the range changes, with the start first. Typing commits one
    * end at a time, so a range half typed arrives as `[start, null]`. The
@@ -76,7 +99,7 @@ export interface DateRangeInputBaseProps
    * inside the calendar and its second commits both ends in one call. The
    * range stays ordered, so the end is never before the start.
    */
-  onChange?: (range: DateRangeValue) => void;
+  onChange?: ((range: DateRangeValue) => void) | undefined;
   /** Fired when the popover opens. */
   onOpen?: () => void;
   /** Fired when the popover closes. */
@@ -85,15 +108,23 @@ export interface DateRangeInputBaseProps
    * Earliest selectable date, for either end. A `min` before year 1 is raised
    * to 1 January of year 1, where the range starts without one too.
    */
-  min?: Date;
+  min?: Date | undefined;
   /** Latest selectable date, for either end. */
-  max?: Date;
-  /** Disable both inputs and the launcher. */
-  disabled?: boolean;
-  /** Make both inputs read-only and keep the popover closed. */
-  readOnly?: boolean;
+  max?: Date | undefined;
+  /**
+   * Disable both inputs and the launcher, or an `inline` calendar's days and
+   * header buttons. The hidden inputs still submit the range, in every mode,
+   * where a disabled input submits nothing.
+   */
+  disabled?: boolean | undefined;
+  /**
+   * Make both inputs read-only and keep the popover closed. An `inline`
+   * calendar still moves through the dates by key and by its header, but a
+   * click, Enter or Space picks nothing.
+   */
+  readOnly?: boolean | undefined;
   /** Placeholder text, shown in both inputs while they are empty. */
-  placeholder?: string;
+  placeholder?: string | undefined;
   /**
    * Token format string or `Intl.DateTimeFormat` options, used by both
    * inputs.
@@ -105,11 +136,25 @@ export interface DateRangeInputBaseProps
    * Enter and leaving an input call it only if the user changed its text.
    */
   parse?: (s: string) => Date | null;
-  /** BCP-47 locale tag for day/month names and Intl formatting. */
+  /**
+   * BCP-47 locale tag for day/month names, the digits the calendar numbers
+   * its days and years in, and Intl formatting. Unset, it is the `locale` of
+   * a `LocaleProvider` around the picker, and with neither, `Intl` uses the
+   * runtime's own locale and the calendar numbers its days and years in plain
+   * digits. On a server render that locale is the server's, so an `inline`
+   * calendar rendered there names its days in the server's language and the
+   * browser's own render names them in the browser's: give it a locale, here
+   * or through a `LocaleProvider`, where the two can differ.
+   */
   locale?: string;
   /**
    * Render the calendar inline, with no inputs and no popover. The hidden
    * form inputs still carry the range.
+   * On a server-rendered page it marks today once the page hydrates, by
+   * the browser's clock rather than the server's. With no `value` or
+   * `defaultValue` it opens on the month the clock reads, and around the end
+   * of a month the server's clock and the browser's can read different
+   * months, so give it a date both render the same.
    */
   inline?: boolean;
   /**
@@ -122,7 +167,7 @@ export interface DateRangeInputBaseProps
   /** Allow segmented keyboard typing in both inputs. `false` makes the field picker-only. */
   editable?: boolean;
   /** Whether the calendar popover exists. `false` makes the field input-only. */
-  popover?: boolean;
+  popover?: boolean | undefined;
   /**
    * Open the popover when focus arrives in the field. Moving focus between
    * the two inputs, or back from the launcher, leaves it closed, and so does
@@ -135,20 +180,34 @@ export interface DateRangeInputBaseProps
    * marks the start, never closes it.
    */
   closeOnSelect?: boolean;
-  /** Popover anchor position relative to the field. */
+  /**
+   * Where the popover opens against the field. Left out, it opens below and
+   * lines up with the field's start edge, which is its right edge when the
+   * picker reads right to left. A corner you pass stays physical, so
+   * `bottom-left` lines up the left edges either way.
+   * A panel that would run past the viewport's left or right edge keeps
+   * its corner and moves sideways, just far enough to fit or, wider than
+   * the viewport, to the edge its text starts from.
+   * @defaultValue 'bottom-left'
+   */
   position?: PickerPosition;
   /**
    * Render the popover through a portal, into the `portalContainer` a
-   * `ConfigProvider` sets, `document.body` by default.
+   * `ConfigProvider` sets, else the overlay it's in that takes its popups,
+   * such as a `Modal`, else `document.body`.
    */
   appendToBody?: boolean;
   /**
    * Bulma color modifier for the field, also carried by the calendar, where it
-   * colors the range's ends and the band between them.
+   * colors the range's ends and the band between them. Forced colors
+   * (Windows' contrast themes) replaces both, so there every day of a picked
+   * range is drawn in the system's highlight colors instead, whatever the
+   * color, which needs bestax's CSS.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Size variant. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Render the field with rounded corners. */
   isRounded?: boolean;
   /**
@@ -168,14 +227,52 @@ export interface DateRangeInputBaseProps
    * between, so off, a span too long to walk is refused as well.
    */
   allowDisabledInRange?: boolean;
-  /** Day the week starts on (0 = Sunday). */
+  /**
+   * Day the week starts on (0 = Sunday). Unset inside a `LocaleProvider`,
+   * it is the first day of the week in the picker's locale, its own `locale`
+   * or else the provider's, such as Monday for `"de"`. Elsewhere, with no
+   * locale from either, or with seven `dayNames` of your own, it is Sunday:
+   * set it with `dayNames` to start the week on another day.
+   * @defaultValue 0
+   */
   firstDayOfWeek?: DayOfWeek;
-  /** Override the 7 day-name labels (in calendar order, post-rotation). */
+  /**
+   * Override the 7 day-name labels (in calendar order, post-rotation). They
+   * are shown exactly as given, from the first column, so they have to start
+   * on the day the week does. With them, an unset `firstDayOfWeek` stays
+   * Sunday even inside a `LocaleProvider`, so names written Sunday first keep
+   * matching their columns; to start on the locale's day, set
+   * `firstDayOfWeek` too and list the names from that day. They also name
+   * the columns for assistive technology. Without them each column is named
+   * by its full weekday in the picker's locale, which a server-rendered
+   * calendar adds once the page hydrates.
+   */
   dayNames?: string[];
-  /** Override the 12 month-name labels. */
+  /**
+   * Override the 12 month-name labels. With them the day grid's heading
+   * reads the name, a space and the year, whatever order the locale writes
+   * a month and its year in.
+   */
   monthNames?: string[];
   /** Show dimmed dates from adjacent months in the grid. */
   nearbyMonthDays?: boolean;
+  /**
+   * How many months the calendar shows side by side, in the popover and
+   * `inline`, so a range that crosses a month's end shows both its ends.
+   * They wrap to a column where the width runs out, one previous and next
+   * pair moves them all by this many, and the arrow keys cross from one
+   * month into the next. They start with the range's start as the first
+   * month, or an end with no start as the last, and a start typed into the
+   * field that isn't on show brings in months with it as the first, an end
+   * with it as the last. `min` and `max` win: the months stay inside them
+   * where they leave room for all of them.
+   * The popover takes the months' width rather than the field's, up to the
+   * window's width less 2rem, so from a field far from the window's left edge
+   * it can reach past the right one: set `position="auto"`, which lines the
+   * popover up with the field's right edge when it doesn't fit to the right.
+   * @defaultValue 1
+   */
+  monthsToShow?: number;
   /** Decorative left icon glyph for the wrapping `Control` (shown by default). Set `''` to hide. */
   iconLeftName?: string;
   /**
@@ -200,21 +297,21 @@ export interface DateRangeInputBaseProps
    * named `name[start]` and `name[end]`, in every mode. The visible inputs
    * carry no name.
    */
-  name?: string;
+  name?: string | undefined;
   /** Name of the hidden input carrying the start, in place of `name[start]`. */
   startName?: string;
   /** Name of the hidden input carrying the end, in place of `name[end]`. */
   endName?: string;
   /** Form id the hidden inputs belong to. */
-  form?: string;
+  form?: string | undefined;
   /**
    * Mark both visible inputs required, so a form won't submit with either
    * end empty. An `inline` calendar has no visible input, so it is not
    * checked there.
    */
-  required?: boolean;
+  required?: boolean | undefined;
   /** Id of the start input. The end input takes `${id}-end`. */
-  id?: string;
+  id?: React.HTMLAttributes<HTMLElement>['id'];
 }
 
 /**
@@ -242,19 +339,19 @@ export const DateRangeInputBase = forwardRef<
     onClose,
     min,
     max,
-    disabled,
+    disabled: disabledProp,
     readOnly,
     placeholder,
     format,
     parse,
-    locale,
+    locale: localeProp,
     inline = false,
     mobileNative = 'auto',
     editable = true,
     popover = true,
     openOnFocus = true,
     closeOnSelect = true,
-    position = 'bottom-left',
+    position,
     appendToBody = false,
     color,
     size,
@@ -262,10 +359,11 @@ export const DateRangeInputBase = forwardRef<
     shouldDisableDate,
     unselectableDates,
     allowDisabledInRange = false,
-    firstDayOfWeek = 0,
+    firstDayOfWeek: firstDayOfWeekProp,
     dayNames,
     monthNames,
     nearbyMonthDays = true,
+    monthsToShow = 1,
     iconLeftName: _iconLeftName,
     triggerIcon: triggerIconProp,
     triggerIconName = 'chevron-down',
@@ -281,6 +379,18 @@ export const DateRangeInputBase = forwardRef<
     onFocusCapture,
     ...rest
   } = props;
+  // A LocaleProvider around the picker sets its default locale and, through
+  // that locale, the day its week starts on.
+  const locale = usePickerLocale(localeProp);
+  // Its own language and direction, which its root and a portaled panel
+  // carry inside a provider.
+  const localeScope = usePickerLocaleScope(localeProp, props.dir);
+  const firstDayOfWeek = usePickerFirstDayOfWeek(
+    firstDayOfWeekProp,
+    locale,
+    hasOwnDayNames(dayNames)
+  );
+  const disabled = useFieldsetDisabled(disabledProp);
   // The launcher gives way to the loading spinner of a Control this sits in.
   const controlLoading = useControlLoading();
   const triggerIcon = triggerIconProp ?? !controlLoading;
@@ -307,6 +417,54 @@ export const DateRangeInputBase = forwardRef<
     setFocusedDate(prev => clampDate(prev, lowerBound, max));
   }, [lowerBound, max]);
 
+  // With several months the picker holds the first month on show, as
+  // `Calendar` does. A move the calendar makes brings its page through
+  // `onMonthChange`. The page stays inside the bounds and the count as they
+  // change, and holds the focused day, brought in the way the calendar's keys
+  // bring it when focus moves off the page some other way.
+  const monthCount = pageMonthCount(monthsToShow);
+  // It starts with the range's start as the first month, or with an end
+  // that has no start as the last, so the range runs from or up to it.
+  const [pageStart, setPageStart] = useState(() =>
+    fitPage(
+      monthIndex(focusedDate) - (!start && end ? monthCount - 1 : 0),
+      monthCount,
+      lowerBound,
+      max
+    )
+  );
+  const shownPage = pageHolding(
+    focusedDate,
+    fitPage(pageStart, monthCount, lowerBound, max),
+    monthCount,
+    lowerBound,
+    max
+  );
+  if (monthCount > 1 && shownPage !== pageStart) setPageStart(shownPage);
+  const handleMonthChange = useCallback(
+    (month: Date) => setPageStart(monthIndex(month)),
+    []
+  );
+  // A day typed into the field that isn't on show brings in months with a
+  // start as the first, so the range runs on from it, and an end as the last,
+  // so the range runs up to it.
+  const showTypedDay = useCallback(
+    (d: Date, place: 'first' | 'last') => {
+      if (monthCount < 2) return;
+      setPageStart(page =>
+        pageHolding(
+          d,
+          fitPage(page, monthCount, lowerBound, max),
+          monthCount,
+          lowerBound,
+          max,
+          place
+        )
+      );
+    },
+    [monthCount, lowerBound, max]
+  );
+
   const [open, setOpenState] = useState(false);
   const [startText, setStartText] = useState(() =>
     start ? formatDate(start, resolvedFormat, locale) : ''
@@ -328,7 +486,21 @@ export const DateRangeInputBase = forwardRef<
   const reactId = useId();
   const popoverId = id ? `${id}-popover` : `picker-${reactId}`;
 
-  const { bulmaHelperClasses, rest: cleanRest } = useBulmaClasses(rest);
+  // Both inputs take `aria-invalid` and `aria-errormessage`, which report
+  // their state, and the group the rest (#2063), as the other pickers'
+  // inputs do (#2002). Inline, with no input, the group keeps them.
+  const { control: controlState, rest: groupRest } = splitControlState(rest);
+  // The field takes the background helpers, since Bulma's `.input` sets its
+  // own background. The text helpers stay on the root, which the popover and
+  // the separator take them from, and go on both inputs too, since an input
+  // takes no alignment or case from around it. The root keeps the rest.
+  const {
+    bulmaHelperClasses,
+    backgroundClasses,
+    textClasses,
+    otherClasses,
+    rest: cleanRest,
+  } = useFieldHelperClasses(groupRest);
   // Two inputs can't share a labeled Field's `for`, so inside one the group
   // points `aria-labelledby` at that Field's label, as `DateRangeInput`
   // does, in every mode. A name the caller gave the group wins, and so does
@@ -436,9 +608,12 @@ export const DateRangeInputBase = forwardRef<
         !end ||
         canCloseRange(next, end, constraints, allowDisabledInRange);
       commitRange([next, keepsEnd ? end : null]);
-      if (next) setFocusedDate(next);
+      if (next) {
+        setFocusedDate(next);
+        showTypedDay(next, 'first');
+      }
     },
-    [end, constraints, allowDisabledInRange, commitRange]
+    [end, constraints, allowDisabledInRange, commitRange, showTypedDay]
   );
   // Every digit typed into the start commits, so a start passes through
   // values on its way to the one being typed. The first digits of a year make
@@ -453,9 +628,12 @@ export const DateRangeInputBase = forwardRef<
   const commitEnd = useCallback(
     (next: Date | null) => {
       commitRange([start, next]);
-      if (next) setFocusedDate(next);
+      if (next) {
+        setFocusedDate(next);
+        showTypedDay(next, 'last');
+      }
     },
-    [start, commitRange]
+    [start, commitRange, showTypedDay]
   );
 
   const handleRangeSelect = useCallback(
@@ -604,20 +782,27 @@ export const DateRangeInputBase = forwardRef<
     return (
       <div
         aria-labelledby={ariaLabelledBy}
+        {...localeScope.rootAttrs}
         {...cleanRest}
         ref={containerRef}
         role="group"
-        className={classNames(containerClass, bulmaHelperClasses, className)}
+        className={classNames(
+          containerClass,
+          otherClasses,
+          textClasses,
+          className
+        )}
         onFocus={onFocus}
         onFocusCapture={onFocusCapture}
       >
-        <div className={fieldClass}>
+        <div className={classNames(fieldClass, backgroundClasses)}>
           <input
             ref={combinedRef}
             type="date"
             id={id}
             aria-label={t.rangeStart}
-            className={inputClass}
+            {...controlState}
+            className={classNames(inputClass, textClasses)}
             value={isoDay(start)}
             onChange={nativeChange(commitStart, isBlockedDay)}
             min={minIso}
@@ -632,7 +817,8 @@ export const DateRangeInputBase = forwardRef<
             type="date"
             id={id ? `${id}-end` : undefined}
             aria-label={t.rangeEnd}
-            className={inputClass}
+            {...controlState}
+            className={classNames(inputClass, textClasses)}
             value={isoDay(end)}
             onChange={nativeChange(commitEnd, isBlockedEnd)}
             min={start ? isoDay(start) : minIso}
@@ -663,6 +849,10 @@ export const DateRangeInputBase = forwardRef<
       dayNames={dayNames}
       monthNames={monthNames}
       nearbyMonthDays={nearbyMonthDays}
+      // One month is the pickers' own calendar, which holds no month.
+      month={monthCount > 1 ? monthFromIndex(shownPage) : undefined}
+      monthsToShow={monthCount}
+      onMonthChange={handleMonthChange}
       color={color}
       size={size}
       // The popover panel takes `popoverId`, so the calendar inside it takes
@@ -670,6 +860,8 @@ export const DateRangeInputBase = forwardRef<
       id={inline ? popoverId : `${popoverId}-cal`}
       autoFocusCell={open}
       labels={labels}
+      disabled={disabled}
+      readOnly={readOnly}
     />
   );
 
@@ -677,7 +869,9 @@ export const DateRangeInputBase = forwardRef<
     return (
       <div
         aria-labelledby={ariaLabelledBy}
+        {...localeScope.rootAttrs}
         {...cleanRest}
+        {...controlState}
         ref={containerRef}
         role="group"
         className={classNames(containerClass, bulmaHelperClasses, className)}
@@ -716,24 +910,34 @@ export const DateRangeInputBase = forwardRef<
     'aria-expanded': open,
     'aria-controls': popoverId,
     autoComplete: 'off',
-    className: inputClass,
+    className: classNames(inputClass, textClasses),
     placeholder,
     disabled,
     readOnly: inputReadOnly,
     required,
+    ...controlState,
   };
 
   return (
     <div
       aria-labelledby={ariaLabelledBy}
+      {...localeScope.rootAttrs}
       {...cleanRest}
       ref={containerRef}
       role="group"
-      className={classNames(containerClass, bulmaHelperClasses, className)}
+      className={classNames(
+        containerClass,
+        otherClasses,
+        textClasses,
+        className
+      )}
       onFocus={handleFocus}
       onFocusCapture={handleFocusCapture}
     >
-      <div className={fieldClass} onMouseDown={handleFieldMouseDown}>
+      <div
+        className={classNames(fieldClass, backgroundClasses)}
+        onMouseDown={handleFieldMouseDown}
+      >
         <input
           {...comboboxProps}
           ref={combinedRef}
@@ -770,6 +974,7 @@ export const DateRangeInputBase = forwardRef<
       )}
       {popover && (
         <PickerPopover
+          localeScope={localeScope.panel}
           isOpen={open}
           onClose={handlePopoverClose}
           anchorRef={containerRef}

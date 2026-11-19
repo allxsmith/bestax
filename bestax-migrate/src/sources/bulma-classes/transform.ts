@@ -4,7 +4,10 @@
  * Unlike the library sources there is no import to anchor on: a file is in
  * scope when a lowercase JSX element carries a `className` with a Bulma class
  * `class-map.ts` knows. Each such element goes through `plan()`, which
- * converts it only when the component renders exactly the same markup.
+ * converts it only when the component renders exactly the same markup, but
+ * for the exceptions it states (Font Awesome's hidden `<i>`, an icon in a
+ * link or button its own label names, Font Awesome 6's long name for a
+ * style, and a Bulma 0.9 helper v1 removed).
  *
  * Passes, in order:
  *   1. the shared stylesheet-import pass (a no-op under the default `keep`)
@@ -15,6 +18,9 @@
  *      Next.js server component (bestax's components are client components)
  *   4. TODOs in reading order; conversions innermost first
  *   5. write the bestax import, after the file's last import
+ *   6. settle the TODOs an earlier run wrote: one this run writes again keeps
+ *      its earlier copy, and one that asked for a re-run it no longer writes
+ *      goes (`settleTodos`)
  */
 
 import type { API, ASTPath, FileInfo } from 'jscodeshift';
@@ -45,6 +51,7 @@ import {
   placeBestaxImport,
   seedBestaxImport,
 } from '../_shared/bestax-import.js';
+import { glyphProps, type Glyph } from './glyph.js';
 import {
   fileContextTodo,
   plan,
@@ -59,7 +66,14 @@ import {
   type JsxRuntime,
   type ServerComponentRoot,
 } from './project.js';
-import { PLACED, placedFor, ROOTS, rootFor } from './class-map.js';
+import {
+  PLACED,
+  placedFor,
+  ROOTS,
+  rootFor,
+  WRAPPERS,
+  type RootEntry,
+} from './class-map.js';
 import { ruleId } from './rules.js';
 
 /**
@@ -159,18 +173,37 @@ function spliceClassName(
   attrs.splice(attrs.indexOf(classAttr), 1, ...replacement);
 }
 
-/** Put `props`, then what stays in `className`, where `className` was. */
+/**
+ * Put `lead`, then `props`, then what stays in `className`, where
+ * `className` was.
+ */
 function writeClassName(
   j: any,
   element: any,
   props: ReadonlyArray<readonly [string, string | true]>,
-  className: string | null
+  className: string | null,
+  lead: readonly any[] = []
 ): void {
-  const replacement = props.map(([name, value]) =>
-    makeAttr(j, name, value === true ? undefined : value)
-  );
+  const replacement = [
+    ...lead,
+    ...props.map(([name, value]) =>
+      makeAttr(j, name, value === true ? undefined : value)
+    ),
+  ];
   if (className) replacement.push(makeAttr(j, 'className', className));
   spliceClassName(element, replacement);
+}
+
+/** A glyph's props as JSX attributes, a list of features as an array. */
+function glyphAttributes(j: any, glyph: Glyph): any[] {
+  return glyphProps(glyph).map(([name, value]) =>
+    typeof value === 'string'
+      ? makeAttr(j, name, value)
+      : j.jsxAttribute(
+          j.jsxIdentifier(name),
+          j.jsxExpressionContainer(propValue(j, value, false))
+        )
+  );
 }
 
 /**
@@ -184,7 +217,8 @@ function writeJoined(
   j: any,
   element: any,
   conversion: Conversion,
-  joined: Joined
+  joined: Joined,
+  lead: readonly any[] = []
 ): boolean {
   const { call, statics, parts } = joined;
   const kept = new Set(conversion.className?.split(' ') ?? []);
@@ -239,6 +273,7 @@ function writeJoined(
   spliceClassName(
     element,
     [
+      ...lead,
       ...conversion.props.map(([name, value]) =>
         makeAttr(j, name, value === true ? undefined : value)
       ),
@@ -781,18 +816,31 @@ function childFacts(child: any): ChildFacts | undefined {
   };
 }
 
+/** A space React renders between elements: blank text, or `{" "}`. */
+function space(child: any): boolean {
+  const blank = (text: string) => /^[ \t\n\r]*$/.test(text);
+  if (child.type === 'JSXText') return blank(child.value);
+  return (
+    child.type === 'JSXExpressionContainer' &&
+    child.expression?.type === 'StringLiteral' &&
+    blank(child.expression.value)
+  );
+}
+
 /**
  * An element's children as plain HTML elements, when that is every one
- * React renders; undefined when one is anything else. `more` adds what else
- * is known of each.
+ * React renders but what `skip` passes over (whitespace React drops);
+ * undefined when one is anything else. `more` adds what else is known of
+ * each.
  */
 function childElementsOf(
   element: any,
-  more: (child: any) => Partial<ChildFacts> = () => ({})
+  more: (child: any) => Partial<ChildFacts> = () => ({}),
+  skip: (child: any) => boolean = dropped
 ): ChildFacts[] | undefined {
   const children: ChildFacts[] = [];
   for (const child of element.children ?? []) {
-    if (dropped(child)) continue;
+    if (skip(child)) continue;
     const found = child.type === 'JSXElement' ? childFacts(child) : undefined;
     if (!found) return undefined;
     children.push({ ...found, ...more(child) });
@@ -895,6 +943,116 @@ function staticContent(element: any): boolean {
   );
 }
 
+/** The static classes of a plain HTML element, or undefined. */
+function htmlTokens(element: any): string[] | undefined {
+  const name = element?.openingElement?.name;
+  if (name?.type !== 'JSXIdentifier' || !INTRINSIC.test(name.name)) {
+    return undefined;
+  }
+  const classAttr = findAttr(element, 'className');
+  const className = classAttr ? staticClassName(classAttr) : '';
+  return className === null
+    ? undefined
+    : className.split(/\s+/).filter(Boolean);
+}
+
+/**
+ * What an element inside a link or button is to its name: an icon, which
+ * names nothing; something that may name it in a way the codemod doesn't
+ * read (a component it doesn't know, a computed class, or one whose
+ * component builds its content from props); or markup whose own content
+ * counts.
+ */
+type ContentKind = 'icon' | 'opaque' | 'open';
+
+/** Whether a component builds content from props rather than children. */
+function buildsContent(entry: RootEntry | undefined): boolean {
+  return (
+    !!entry &&
+    (!!entry.buildsIcons ||
+      !!entry.buildsFile ||
+      entry.rendersText !== undefined ||
+      !!entry.countsChildren ||
+      !!entry.absorbs)
+  );
+}
+
+/**
+ * What names a link or button, as `ElementFacts.clickableAround` says, with
+ * `self` left out of its content: its own `aria-labelledby` or `aria-label`,
+ * written out and not empty, else static text in it that is not inside an
+ * icon or hidden, else nothing. Undefined when it can't be told: a name or
+ * content written as an expression, a `title`, or something inside that may
+ * name it some other way (`kindOf` says which, or an `alt`, an `<svg>` or a
+ * label of its own).
+ */
+function labelOf(
+  clickable: any,
+  self: any,
+  kindOf: (element: any) => ContentKind
+): NonNullable<ElementFacts['clickableAround']>['label'] {
+  if (findAttr(clickable, 'title')) return undefined;
+  for (const name of ['aria-labelledby', 'aria-label'] as const) {
+    const attr = findAttr(clickable, name);
+    if (!attr) continue;
+    const value = attributeValue(attr);
+    if (value === null) return undefined;
+    if (typeof value === 'string' && value.trim() !== '') return name;
+  }
+  let unsure = false;
+  const named = (node: any): boolean =>
+    (node.children ?? []).some((child: any) => {
+      if (child === self || dropped(child)) return false;
+      if (child.type === 'JSXText') {
+        return /\S/.test(jsxTextRenders(child.value));
+      }
+      if (child.type === 'JSXFragment') return named(child);
+      if (child.type !== 'JSXElement') {
+        if (isContent(child)) unsure = true;
+        return false;
+      }
+      const kind = kindOf(child);
+      if (kind === 'icon') return false;
+      if (kind === 'opaque') {
+        unsure = true;
+        return false;
+      }
+      const hidden = findAttr(child, 'aria-hidden');
+      if (hidden && attributeValue(hidden) === 'true') return false;
+      if (
+        ['alt', 'title', 'aria-label', 'aria-labelledby'].some(name =>
+          findAttr(child, name)
+        ) ||
+        child.openingElement.name.name === 'svg'
+      ) {
+        unsure = true;
+      }
+      return named(child);
+    });
+  if (named(clickable)) return 'text';
+  return unsure ? undefined : 'none';
+}
+
+/**
+ * Whether an <a> is a link, as `ElementFacts.clickableAround` says: true with
+ * an `href` written out as a string, false with neither an `href` nor a
+ * `role`, and undefined when that can't be told: an `href` written as an
+ * expression, which may render as none, a `role` of its own, or a spread,
+ * which may carry either.
+ */
+function linkOf(clickable: any): boolean | undefined {
+  if (
+    (clickable.openingElement.attributes ?? []).some(
+      (attr: any) => attr.type === 'JSXSpreadAttribute'
+    )
+  ) {
+    return undefined;
+  }
+  const href = findAttr(clickable, 'href');
+  if (href) return typeof attributeValue(href) === 'string' ? true : undefined;
+  return findAttr(clickable, 'role') ? undefined : false;
+}
+
 /**
  * An element's content as one prop value: its one element, or its text, or
  * a fragment of them all, each text written as the string it renders.
@@ -958,6 +1116,49 @@ function onlyChildOf(
     : undefined;
 }
 
+/**
+ * The rules of the gates that leave a whole file alone. Their TODO is about
+ * the file, though it sits on the first element that would convert, so no
+ * line of the file is where it came from.
+ */
+/**
+ * A `TODO(bestax-migrate)` line comment's message as a run compares it: the
+ * page's lines an HTML page's module adds after it left out, and a re-run it
+ * asks for on a named file read as any re-run. So a re-run on that module
+ * finds the TODOs it writes again in the ones the page's run wrote.
+ */
+export function todoKey(text: string): string {
+  return text
+    .replace(/^\s*TODO\(bestax-migrate\):\s*/, '')
+    .replace(/\s+\([^()]+\.html?:[\d, -]+\)$/, '')
+    .replace(/\bre-run on `[^`]+`/g, 're-run')
+    .trim();
+}
+
+function isTodoComment(comment: any): boolean {
+  return (
+    (comment.type === 'CommentLine' || comment.type === 'Line') &&
+    /^\s*TODO\(bestax-migrate\):/.test(comment.value)
+  );
+}
+
+/**
+ * The packages the library sources migrate from. A file that still imports
+ * one may hold that source's TODOs, which ask for a re-run of it, not of
+ * this one, so this one leaves every TODO there as it is. A new library
+ * source joins this list.
+ */
+export const LIBRARY_SOURCES =
+  /^(?:react-bulma-components|rbx|bloomer)(?:\/|$)/;
+
+export const FILE_RULES = [
+  'jsx-runtime',
+  'imports',
+  'styled-jsx',
+  'rsc',
+] as const;
+type FileRule = (typeof FILE_RULES)[number];
+
 export default function transform(
   fileInfo: FileInfo,
   api: API,
@@ -981,7 +1182,60 @@ export default function transform(
     overrides: new WeakMap<object, string>(),
     dirty: false,
   };
+  // The TODOs the file holds from an earlier run, and the messages this run
+  // writes, so a re-run can tell the ones it no longer writes.
+  const earlier = new Set<any>();
+  const written = new Set<string>();
+  root.find(j.Node).forEach((nodePath: any) => {
+    for (const comment of nodePath.node.comments ?? []) {
+      if (isTodoComment(comment)) earlier.add(comment);
+    }
+  });
+  const todo = (path: ASTPath<any>, rule: string, message: string): void => {
+    written.add(todoKey(message));
+    addTodo(ctx, path, rule, message);
+  };
+  /**
+   * A re-run's TODOs against the earlier run's: one it writes again keeps
+   * the earlier copy, which carries the page's lines when the file is a
+   * page's module. One it no longer writes that asked for a re-run, above
+   * JSX, is done (the element converts now, or changed), so it goes, unless
+   * the file still imports a library source, whose TODOs this one can't tell
+   * from its own.
+   */
+  const settleTodos = (): void => {
+    if (earlier.size === 0) return;
+    const library = root
+      .find(j.ImportDeclaration)
+      .some((importPath: any) =>
+        LIBRARY_SOURCES.test(String(importPath.node.source.value))
+      );
+    root.find(j.Node).forEach((nodePath: any) => {
+      const node = nodePath.node;
+      const comments: any[] | undefined = node.comments;
+      if (!comments?.some(isTodoComment)) return;
+      const holdsJsx = () =>
+        j(node).find(j.JSXElement).size() > 0 ||
+        j(node).find(j.JSXFragment).size() > 0;
+      const kept = comments.filter(comment => {
+        if (!isTodoComment(comment)) return true;
+        const key = todoKey(comment.value);
+        if (!earlier.has(comment)) {
+          return !comments.some(
+            other => earlier.has(other) && todoKey(other.value) === key
+          );
+        }
+        if (written.has(key) || library) return true;
+        return !(/\bre-run\b/.test(key) && holdsJsx());
+      });
+      if (kept.length !== comments.length) {
+        node.comments = kept;
+        ctx.dirty = true;
+      }
+    });
+  };
   const print = (): string | undefined => {
+    settleTodos();
     if (!ctx.dirty) return undefined;
     forgetJsxParens(j, root);
     reprintDirectives(j, root);
@@ -1198,6 +1452,128 @@ export default function transform(
     return reading;
   };
 
+  // A bestax component already in the file is read as the markup the table
+  // says it renders, so a TODO that reads what is around an element says the
+  // same once the elements around it have converted.
+  /** The table's entry for a bestax component, with its root class. */
+  const entryFor = (
+    target: string | undefined
+  ): { root: string; entry: RootEntry } | undefined => {
+    const root =
+      target &&
+      Object.keys(ROOTS).find(
+        key => ROOTS[key].status === 'mapped' && ROOTS[key].target === target
+      );
+    return root ? { root, entry: ROOTS[root] } : undefined;
+  };
+  /**
+   * The classes an element renders, as far as the file shows: a plain HTML
+   * element's static ones, or a bestax component's root class and the flags
+   * written out as `true` (`<Control hasIconsLeft>` as `control
+   * has-icons-left`).
+   */
+  const renderedTokens = (path: ASTPath<any>): string[] | undefined => {
+    const html = htmlTokens(path.node);
+    if (html) return html;
+    const found = entryFor(bestaxTarget(path.node, path));
+    if (!found) return undefined;
+    const flags = Object.entries(found.entry.modifiers ?? {})
+      .filter(([, modifier]) => {
+        const [write, ...more] = modifier.writes;
+        const attr =
+          write && more.length === 0 && write.value === undefined
+            ? findAttr(path.node, write.prop)
+            : undefined;
+        return attr && attributeValue(attr) === true;
+      })
+      .map(([token]) => token);
+    return [found.root, ...flags];
+  };
+  /**
+   * The tag an element renders: its own, or a bestax component's, from a
+   * static `as` or the table; an empty string for a bestax component whose
+   * tag the table doesn't give, and undefined for any other component.
+   */
+  const renderedTag = (path: ASTPath<any>): string | undefined => {
+    const name = path.node.openingElement.name;
+    if (name.type === 'JSXIdentifier' && INTRINSIC.test(name.name)) {
+      return name.name;
+    }
+    const target = bestaxTarget(path.node, path);
+    if (!target) return undefined;
+    const as = findAttr(path.node, 'as');
+    if (as) {
+      const value = attributeValue(as);
+      return typeof value === 'string' ? value : undefined;
+    }
+    return (
+      entryFor(target)?.entry.tag ??
+      Object.keys(WRAPPERS).find(tag => WRAPPERS[tag] === target) ??
+      ''
+    );
+  };
+  /**
+   * Where an element whose target renders a glyph sits: the classes the
+   * element directly around it renders, and the nearest <a> or <button>
+   * around it, reached through markup and bestax components only, since any
+   * other component between could render anything, with what names that and,
+   * for an <a>, whether it is a link.
+   */
+  const glyphPlace = (elementPath: ASTPath<any>): Partial<ElementFacts> => {
+    const parent = elementPath.parent;
+    const parentTokens =
+      parent?.node?.type === 'JSXElement' ? renderedTokens(parent) : undefined;
+    let clickable: ASTPath<any> | undefined;
+    let tag: string | undefined;
+    for (let up = elementPath.parent; up && !clickable; up = up.parent) {
+      if (up.node?.type !== 'JSXElement') continue;
+      tag = renderedTag(up);
+      if (tag === undefined) break;
+      if (tag === 'a' || tag === 'button') clickable = up;
+    }
+    const kindOf = (element: any): ContentKind => {
+      const tokens = htmlTokens(element);
+      const entries = tokens
+        ? tokens.map(token => rootFor(token)).filter(Boolean)
+        : [entryFor(bestaxTarget(element, clickable!))?.entry];
+      if (!tokens && !bestaxTarget(element, clickable!)) return 'opaque';
+      if (entries.some(entry => entry?.readsGlyph)) return 'icon';
+      return entries.some(buildsContent) ? 'opaque' : 'open';
+    };
+    const label =
+      clickable && labelOf(clickable.node, elementPath.node, kindOf);
+    const link = tag === 'a' && clickable ? linkOf(clickable.node) : undefined;
+    return {
+      ...(parentTokens && { parentTokens }),
+      ...(clickable && {
+        clickableAround: {
+          tag: tag!,
+          ...(label && { label }),
+          ...(link !== undefined && { link }),
+        },
+      }),
+    };
+  };
+
+  /**
+   * An element that goes with the one around it, which renders it from
+   * props, converts no more on its own, and nor does it when that one stays
+   * markup for a person: a re-run has to find the markup it found. Only its
+   * TODOs stay. It has a class to be found by, so it has been planned.
+   */
+  const forget = (node: any): void => {
+    const own: Plan = { conversion: null, todos: planned.get(node)!.todos };
+    planned.set(node, own);
+    readings.delete(node);
+    const at = elements.findIndex(found => found.path.node === node);
+    if (at === -1) return;
+    if (own.todos.length > 0) {
+      elements[at] = { ...elements[at], plan: own, converts: false };
+    } else {
+      elements.splice(at, 1);
+    }
+  };
+
   /** The element directly around this one, when this is its only child. */
   const holderOf = (elementPath: ASTPath<any>): any => {
     const up = elementPath.parent?.node;
@@ -1225,6 +1601,16 @@ export default function transform(
     const className = classAttr ? staticClassName(classAttr) : '';
     const surrounding = around(elementPath);
     const sole = soleChild(element);
+    const childElements = childElementsOf(element, readChild);
+    const spaced = childElements
+      ? undefined
+      : childElementsOf(element, undefined, space);
+    // A joiner call the codemod can read converts exactly: its fixed classes
+    // as for a static className, and each condition on a flag as its prop.
+    const joined =
+      className === null
+        ? readJoiner(classAttr.value, callee => isJoiner(callee, elementPath))
+        : undefined;
     const facts: ElementFacts = {
       tag: name.name,
       tokens:
@@ -1238,7 +1624,8 @@ export default function transform(
       childTargets: childTargets(elementPath),
       soleChildTarget: planned.get(sole)?.conversion?.target,
       soleChild: sole && childFacts(sole),
-      childElements: childElementsOf(element, readChild),
+      childElements,
+      ...(spaced && { spacedElements: spaced }),
       bestaxInside: bestaxInside.get(element) ?? [],
       bestaxAround: surrounding.bestax,
       componentsAround: surrounding.other,
@@ -1251,13 +1638,13 @@ export default function transform(
         holderOnlyChildOf: onlyChildOf(elementPath.parent, bestaxLocals),
       }),
       ...(textOf(element) !== undefined && { text: textOf(element) }),
+      // Any other computed className may carry classes its strings don't
+      // show (a variable, a call).
+      ...(className === null && !joined && { unreadClasses: true }),
     };
-    // A joiner call the codemod can read converts exactly: its fixed classes
-    // as for a static className, and each condition on a flag as its prop.
-    const joined =
-      className === null
-        ? readJoiner(classAttr.value, callee => isJoiner(callee, elementPath))
-        : undefined;
+    if (facts.tokens.some(token => rootFor(token)?.readsGlyph)) {
+      Object.assign(facts, glyphPlace(elementPath));
+    }
     let exact: Plan | undefined;
     if (joined) {
       exact = plan({
@@ -1273,6 +1660,7 @@ export default function transform(
     }
     let result = exact ?? plan(facts);
     const builds = result.conversion?.icons;
+    const glyphs = result.conversion?.glyph !== undefined;
     const converts = result.conversion !== null || result.fold !== undefined;
     const becomes = result.conversion?.target ?? result.fold?.target;
     if (className === null && !exact && becomes) {
@@ -1305,27 +1693,14 @@ export default function transform(
       inner.numbers.push(...result.fold.numbers);
     }
     if (builds) {
-      // A `.icon` the target builds from props goes with the element, so it
-      // doesn't convert on its own, and nor does it when a computed
-      // `className` leaves the element to a person: a re-run has to find
-      // the markup it found.
+      // A `.icon` the target builds from props goes with the element.
       const inside = (element.children ?? []).filter(
         (child: any) => !dropped(child)
       );
-      for (const icon of builds) {
-        const node = inside[icon.index];
-        const own: Plan = { conversion: null, todos: planned.get(node)!.todos };
-        planned.set(node, own);
-        readings.delete(node);
-        const at = elements.findIndex(found => found.path.node === node);
-        if (at === -1) continue;
-        if (own.todos.length > 0) {
-          elements[at] = { ...elements[at], plan: own, converts: false };
-        } else {
-          elements.splice(at, 1);
-        }
-      }
+      for (const icon of builds) forget(inside[icon.index]);
     }
+    // So does the <i> a glyph the target renders takes the place of.
+    if (glyphs) forget(sole);
     planned.set(element, result);
     if (result.conversion || result.fold || result.todos.length > 0) {
       elements.unshift({ path: elementPath, plan: result, converts });
@@ -1396,8 +1771,8 @@ export default function transform(
   // A gate speaks only when an element would convert: its TODO says what to
   // change so a re-run converts them, which is noise when a re-run could not.
   const converting = elements.some(element => element.converts);
-  const block = (rule: string, message: string): void => {
-    if (converting) addTodo(ctx, elements[0].path, rule, message);
+  const block = (rule: FileRule, message: string): void => {
+    if (converting) todo(elements[0].path, rule, message);
     for (const element of elements) {
       element.plan = { ...element.plan, conversion: null, fold: undefined };
     }
@@ -1454,8 +1829,12 @@ export default function transform(
   const bestaxImportState = seedBestaxImport(ctx, root);
 
   for (const { path: elementPath, plan: result } of elements) {
-    for (const todo of result.todos) {
-      addTodo(ctx, elementPath, todo.rule, todo.message);
+    // A fold's own TODOs too, in reading order, for a fold still on.
+    for (const { rule, message } of [
+      ...result.todos,
+      ...(result.fold?.todos ?? []),
+    ]) {
+      todo(elementPath, rule, message);
     }
   }
   for (const { path: elementPath, plan: result } of [...elements].reverse()) {
@@ -1515,16 +1894,14 @@ export default function transform(
       }
     }
     // A target that renders the element's children itself takes their place:
-    // they go, and so does the closing tag, their comments and its own moving
-    // to the name that stays.
+    // they go, and so does the closing tag, their comments (in their tags
+    // and attributes too: a glyph's <i> has a `className`) and its own
+    // moving to the name that stays.
     const gone = conversion.rendersChildren
       ? [
           ...(element.children ?? [])
             .filter((node: any) => node.type === 'JSXElement')
-            .flatMap((node: any) => [
-              ...(node.comments ?? []),
-              ...tagComments(node),
-            ]),
+            .flatMap((node: any) => commentsWithin(node)),
           ...[element.closingElement, element.closingElement?.name].flatMap(
             (node: any) => node?.comments ?? []
           ),
@@ -1537,9 +1914,11 @@ export default function transform(
       removeAttr(holder, findAttr(holder, name));
     }
     const joined = joins.get(element);
+    // A glyph the target renders goes first, as the planner wrote it.
+    const lead = conversion.glyph ? glyphAttributes(j, conversion.glyph) : [];
     if (!joined) {
-      writeClassName(j, element, conversion.props, conversion.className);
-    } else if (writeJoined(j, element, conversion, joined)) {
+      writeClassName(j, element, conversion.props, conversion.className, lead);
+    } else if (writeJoined(j, element, conversion, joined, lead)) {
       unjoined.add(joined.call.callee.name);
     }
     if (conversion.rendersChildren) {

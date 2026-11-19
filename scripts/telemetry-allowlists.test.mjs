@@ -8,7 +8,7 @@
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 
 import {
@@ -62,7 +62,7 @@ test('cssModes parses the cli shape and nulls when it stops matching', () => {
 
 test('an unparseable source declaration is reported, not skipped', async t => {
   const dir = mkdtempSync(join(tmpdir(), 'bestax-sources-'));
-  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  t.onTestFinished(() => rmSync(dir, { recursive: true, force: true }));
 
   mkdirSync(join(dir, 'good'));
   writeFileSync(

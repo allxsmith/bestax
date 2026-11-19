@@ -3,7 +3,7 @@
  * built markdown, llms.txt and llms-full.txt for the marker keyword, run on
  * temporary trees.
  */
-import { after, test } from 'node:test';
+import { afterAll, test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
   chmodSync,
@@ -18,7 +18,7 @@ import { dirname, join } from 'node:path';
 import { checkBuild } from './check-generated-markers.mjs';
 
 const temps = [];
-after(() => {
+afterAll(() => {
   for (const dir of temps) rmSync(dir, { recursive: true, force: true });
 });
 
@@ -162,9 +162,8 @@ test('a copy of static/ under build/docs is no twin', async () => {
 
 test(
   'an unreadable file is reported with the rest',
-  {
-    skip: process.getuid?.() === 0 && 'root reads any file',
-  },
+  // Root reads any file, mode or not.
+  { skip: process.getuid?.() === 0 },
   async () => {
     const root = site({ 'build/llms.txt': null });
     chmodSync(join(root, 'build/llms-full.txt'), 0o000);
@@ -179,9 +178,8 @@ test(
 
 test(
   'an unreadable directory is reported, and the walk carries on past it',
-  {
-    skip: process.getuid?.() === 0 && 'root reads any directory',
-  },
+  // Root reads any directory, mode or not.
+  { skip: process.getuid?.() === 0 },
   async () => {
     const root = site({
       'build/llms.txt': null,
@@ -205,9 +203,8 @@ test(
 
 test(
   'an unreadable build/docs is reported, with no claim about twins',
-  {
-    skip: process.getuid?.() === 0 && 'root reads any directory',
-  },
+  // Root reads any directory, mode or not.
+  { skip: process.getuid?.() === 0 },
   async () => {
     const root = site();
     const locked = join(root, 'build/docs');

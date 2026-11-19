@@ -11,7 +11,7 @@
  * structure `registry.npmjs.org/-/npm/v1/attestations/bestax-migrate@2.0.0`
  * returns, including the purl percent-encoding of the npm scope.
  */
-import { test } from 'node:test';
+import { test, vi } from 'vitest';
 import assert from 'node:assert/strict';
 import { mkdtemp, writeFile, mkdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -157,11 +157,11 @@ function stubFetch(handler) {
  * (#723), so a test that drives one captures the lines and asserts on them
  * instead.
  */
-function captureConsole(t) {
+function captureConsole() {
   const lines = [];
   const push = (...args) => lines.push(args.join(' '));
-  t.mock.method(console, 'log', push);
-  t.mock.method(console, 'error', push);
+  vi.spyOn(console, 'log').mockImplementation(push);
+  vi.spyOn(console, 'error').mockImplementation(push);
   return lines;
 }
 
@@ -577,8 +577,8 @@ test('main exits 0 when every package checks out', async () => {
   }
 });
 
-test('main exits 1 when a package was built somewhere else', async t => {
-  const lines = captureConsole(t);
+test('main exits 1 when a package was built somewhere else', async () => {
+  const lines = captureConsole();
   const dir = await fixtureTree();
   const bad = goodStatement();
   bad.predicate.buildDefinition.externalParameters.workflow.repository =
@@ -604,8 +604,8 @@ test('main exits 1 when a package was built somewhere else', async t => {
   assert.match(lines[at + 1], /^ {2}- .*someone-else\/evil/);
 });
 
-test('main exits 2 on bad usage, distinct from a failed verification', async t => {
-  const lines = captureConsole(t);
+test('main exits 2 on bad usage, distinct from a failed verification', async () => {
+  const lines = captureConsole();
   assert.equal(await main([]), 2);
   assert.deepEqual(lines, [
     '::error::verify-attestation: --dir <scratch-tree> is required',
@@ -821,10 +821,10 @@ test('checkRelease reports a rostered package missing from the tree', async () =
   );
 });
 
-test('main fails a release run whose tree holds the previous version, the #719 pass', async t => {
+test('main fails a release run whose tree holds the previous version, the #719 pass', async () => {
   // The shape #719 recorded: `latest` still resolved the previous version,
   // whose attestation is valid, and the verification passed on it.
-  const lines = captureConsole(t);
+  const lines = captureConsole();
   const dir = await fixtureTree({ version: '2.0.0' });
   const s = stubFetch(() => ({
     body: registryResponse(goodStatement({ version: '2.0.0' })),
@@ -861,8 +861,8 @@ test('main fails a release run whose tree holds the previous version, the #719 p
   assert.match(lines[at + 1], /^ {2}- the release is bestax-migrate@2\.0\.1/);
 });
 
-test('main passes a release run whose tree is that release, and says so', async t => {
-  const lines = captureConsole(t);
+test('main passes a release run whose tree is that release, and says so', async () => {
+  const lines = captureConsole();
   const dir = await fixtureTree({ version: '2.0.1' });
   const s = stubFetch(() => ({
     body: registryResponse(goodStatement({ version: '2.0.1' })),
@@ -890,8 +890,8 @@ test('main passes a release run whose tree is that release, and says so', async 
   );
 });
 
-test('main reports a bad attestation and a wrong release together', async t => {
-  const lines = captureConsole(t);
+test('main reports a bad attestation and a wrong release together', async () => {
+  const lines = captureConsole();
   const dir = await fixtureTree({ version: '2.0.0' });
   const bad = goodStatement({ version: '2.0.0' });
   bad.predicate.runDetails.builder.id = 'https://example.test/self-hosted';
@@ -925,8 +925,8 @@ test('main reports a bad attestation and a wrong release together', async t => {
   );
 });
 
-test('main refuses an unparsable release tag before fetching anything', async t => {
-  const lines = captureConsole(t);
+test('main refuses an unparsable release tag before fetching anything', async () => {
+  const lines = captureConsole();
   const dir = await fixtureTree();
   const s = stubFetch(() => ({ body: registryResponse(goodStatement()) }));
   try {
@@ -952,8 +952,8 @@ test('main refuses an unparsable release tag before fetching anything', async t 
   ]);
 });
 
-test('--print-spec prints the release spec alone, and fetches nothing', async t => {
-  const lines = captureConsole(t);
+test('--print-spec prints the release spec alone, and fetches nothing', async () => {
+  const lines = captureConsole();
   const dir = await fixtureTree({ version: '2.0.0' });
   const s = stubFetch(() => ({ body: '' }));
   try {
@@ -977,8 +977,8 @@ test('--print-spec prints the release spec alone, and fetches nothing', async t 
   assert.deepEqual(lines, ['bestax-migrate@2.0.1']);
 });
 
-test('--print-spec prints nothing when no release asked', async t => {
-  const lines = captureConsole(t);
+test('--print-spec prints nothing when no release asked', async () => {
+  const lines = captureConsole();
   const dir = await fixtureTree();
   const code = await main([
     '--dir',
@@ -994,10 +994,10 @@ test('--print-spec prints nothing when no release asked', async t => {
   assert.deepEqual(lines, []);
 });
 
-test('--print-spec fails a release event whose tag is empty, so the install step goes red', async t => {
+test('--print-spec fails a release event whose tag is empty, so the install step goes red', async () => {
   // Printing nothing here would skip the pin and leave the tree on `latest`,
   // the #719 shape, with the later assertion the only thing left to notice.
-  const lines = captureConsole(t);
+  const lines = captureConsole();
   const dir = await fixtureTree();
   const code = await main([
     '--dir',
@@ -1015,8 +1015,8 @@ test('--print-spec fails a release event whose tag is empty, so the install step
   ]);
 });
 
-test('main fails a release event whose tag is empty before fetching anything', async t => {
-  const lines = captureConsole(t);
+test('main fails a release event whose tag is empty before fetching anything', async () => {
+  const lines = captureConsole();
   const dir = await fixtureTree();
   const s = stubFetch(() => ({ body: registryResponse(goodStatement()) }));
   try {
@@ -1033,8 +1033,8 @@ test('main fails a release event whose tag is empty before fetching anything', a
   assert.ok(!lines.some(l => /check out/.test(l)), lines.join('\n'));
 });
 
-test('main fails a run whose event nobody classified', async t => {
-  const lines = captureConsole(t);
+test('main fails a run whose event nobody classified', async () => {
+  const lines = captureConsole();
   const dir = await fixtureTree();
   const code = await main(
     ['--dir', dir, '--event', 'push', '--release', '', 'bestax-migrate'],
@@ -1047,9 +1047,9 @@ test('main fails a run whose event nobody classified', async t => {
   );
 });
 
-test('--print-spec refuses a release for a package the roster does not install', async t => {
+test('--print-spec refuses a release for a package the roster does not install', async () => {
   // Otherwise a tag could put any package on npm into the tree.
-  const lines = captureConsole(t);
+  const lines = captureConsole();
   const dir = await fixtureTree();
   await writeFile(
     join(dir, 'package.json'),
@@ -1108,8 +1108,8 @@ async function awaitRun(tag, opts = {}) {
   );
 }
 
-test('--await-attestation waits out a lagging attestations route and says how long', async t => {
-  const lines = captureConsole(t);
+test('--await-attestation waits out a lagging attestations route and says how long', async () => {
+  const lines = captureConsole();
   let call = 0;
   const s = stubFetch(() => {
     call += 1;
@@ -1138,8 +1138,8 @@ test('--await-attestation waits out a lagging attestations route and says how lo
   ]);
 });
 
-test('--await-attestation spends the release budget, not the assertion one, before failing', async t => {
-  const lines = captureConsole(t);
+test('--await-attestation spends the release budget, not the assertion one, before failing', async () => {
+  const lines = captureConsole();
   const s = stubFetch(() => ({ status: 404, statusText: 'Not Found' }));
   try {
     assert.equal(await awaitRun('bestax-migrate@2.0.1'), 1);
@@ -1156,8 +1156,8 @@ test('--await-attestation spends the release budget, not the assertion one, befo
   );
 });
 
-test('--await-attestation does nothing on a run no release asked about', async t => {
-  const lines = captureConsole(t);
+test('--await-attestation does nothing on a run no release asked about', async () => {
+  const lines = captureConsole();
   const s = stubFetch(() => ({ status: 404 }));
   try {
     assert.equal(await awaitRun('', { event: 'schedule' }), 0);
@@ -1168,8 +1168,8 @@ test('--await-attestation does nothing on a run no release asked about', async t
   assert.deepEqual(lines, []);
 });
 
-test('--await-attestation is held to the roster, like the pin', async t => {
-  const lines = captureConsole(t);
+test('--await-attestation is held to the roster, like the pin', async () => {
+  const lines = captureConsole();
   const s = stubFetch(() => ({ status: 404 }));
   try {
     assert.equal(await awaitRun('left-pad@1.3.0'), 1);
@@ -1180,8 +1180,8 @@ test('--await-attestation is held to the roster, like the pin', async t => {
   assert.match(lines[0], /the release names "left-pad"/);
 });
 
-test('--await-attestation fails a release event whose tag is empty', async t => {
-  const lines = captureConsole(t);
+test('--await-attestation fails a release event whose tag is empty', async () => {
+  const lines = captureConsole();
   const s = stubFetch(() => ({ status: 404 }));
   try {
     assert.equal(await awaitRun(''), 1);
@@ -1192,11 +1192,11 @@ test('--await-attestation fails a release event whose tag is empty', async t => 
   assert.match(lines[0], /empty release tag/);
 });
 
-test('the assertion keeps its short budget on a release run', async t => {
+test('the assertion keeps its short budget on a release run', async () => {
   // The long wait belongs to the install step. Here the release has already
   // been waited for, so a route that stops answering fails at the short
   // budget rather than stalling the step a second time.
-  captureConsole(t);
+  captureConsole();
   const dir = await fixtureTree({ version: '2.0.1' });
   const s = stubFetch(() => ({ status: 404, statusText: 'Not Found' }));
   try {

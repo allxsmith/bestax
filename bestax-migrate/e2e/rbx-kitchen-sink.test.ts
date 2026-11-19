@@ -26,8 +26,8 @@ const packageRoot = path.join(
 const fixtureDir = path.join(packageRoot, 'fixtures', 'rbx-kitchen-sink');
 
 // One scratch directory PER PROCESS, not one shared path — see the comment in
-// kitchen-sink.test.ts for why (`pnpm all` runs two jest processes over this
-// file concurrently). BESTAX_E2E_KEEP=1 leaves it behind for inspection.
+// kitchen-sink.test.ts for why (two Vitest processes can run this file at
+// once). BESTAX_E2E_KEEP=1 leaves it behind for inspection.
 const tmpRoot = path.join(packageRoot, '.e2e-tmp');
 fs.mkdirSync(tmpRoot, { recursive: true });
 const tmpDir = fs.mkdtempSync(path.join(tmpRoot, 'rbx-kitchen-sink-'));
@@ -139,7 +139,8 @@ describe('rbx kitchen-sink e2e', () => {
     // rbx on Escape-to-close and scroll locking since #633, but still renders
     // inline unless `portal` is set. The markup migrates cleanly — this file
     // still typechecks — but that one behaviour differs, and nothing else
-    // would tell the user.
+    // would tell the user. The fixture's Modal is named, so it doesn't ask
+    // for a name (`name:Modal`).
     for (const [file, todos] of app.todosByFile) {
       if (file === 'leftovers.tsx') continue;
       const unexpected = todos.filter(t => t.rule !== 'component:Modal');
@@ -157,6 +158,18 @@ describe('rbx kitchen-sink e2e', () => {
     expect(migrated).toContain('<Navbar.Item ref={endRef}>');
     expect(migrated).toContain('<Navbar.Dropdown ref={moreRef}>');
     expect(migrated).not.toContain('innerRef');
+  });
+
+  it("turns rbx's bare Fieldset into bestax's unstyled one, outside a Field", () => {
+    const migrated = fs.readFileSync(
+      path.join(tmpDir, 'src', 'form.tsx'),
+      'utf8'
+    );
+    expect(migrated).toContain('<Fieldset disabled variant="unstyled">');
+    // Inside a Field it stays the plain fieldset rbx rendered, since bestax's
+    // would start a Field scope of its own there.
+    expect(migrated).toMatch(/<Field>\s*<fieldset disabled>/);
+    expect(migrated).not.toMatch(/from ["']rbx["']/);
   });
 
   it('adopts the bestax combined CSS bundle in App.tsx', () => {
@@ -232,19 +245,29 @@ describe('rbx kitchen-sink e2e', () => {
     expect(rules).toContain('component:Tile');
     expect(rules).toContain('component:List');
     expect(rules).toContain('component:Generic');
-    expect(rules).toContain('component:Fieldset');
     expect(rules).toContain('component:Numeric');
     expect(rules).toContain('component:Highlight');
     expect(rules).toContain('component:Icon');
     expect(rules).toContain('component:File.Label');
     expect(rules).toContain('component:Dropdown');
+    expect(rules).toContain('component:Heading');
     // The two `as`/`href` leftovers, which the fixture adds for these and
     // which nothing here asserted — so deleting them cost no coverage.
     expect(rules).toContain('prop:as');
     expect(rules).toContain('prop:href');
+    // A target that takes no textColor prop keeps a TODO.
+    expect(rules).toContain('prop:textColor');
     expect(rules).toContain('prop:target');
+    // A target that takes no background color prop keeps a TODO.
+    expect(rules).toContain('prop:backgroundColor');
     // A group size bestax does not take, or cannot be read, stays a TODO.
     expect(rules).toContain('prop:size');
+    // A Modal that nothing names, which bestax's dialog needs (#1941).
+    expect(rules).toContain('name:Modal');
+    // So does a Title size it cannot read, which bestax would turn into a level.
+    expect(
+      todos.some(t => t.rule === 'prop:size' && t.message.includes('textSize'))
+    ).toBe(true);
     expect(todos.length).toBeGreaterThanOrEqual(10);
     const migrated = fs.readFileSync(
       path.join(tmpDir, 'src', 'leftovers.tsx'),
@@ -282,9 +305,12 @@ describe('rbx kitchen-sink e2e', () => {
     // let `component:List` pass off the text of `component:List.Item`, and
     // the prop fallback matched any backticked occurrence of the word
     // anywhere in prose — so the guard could pass while the rule it was
-    // meant to pin went undocumented.
+    // meant to pin went undocumented. A `name:` rule is a token too: the
+    // backtick fallback below reads no colon.
     const tokens = new Set(
-      [...refs.matchAll(/(?:component|prop):[A-Za-z][\w.*]*/g)].map(m => m[0])
+      [...refs.matchAll(/(?:component|prop|name):[A-Za-z][\w.*]*/g)].map(
+        m => m[0]
+      )
     );
     // A prop rule may instead be written bare in a row that names the
     // component beside it (`| \`expanded\` on \`Field\` |`).

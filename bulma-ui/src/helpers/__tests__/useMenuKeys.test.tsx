@@ -1,18 +1,18 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import {
   enabledMenuItems,
   isEnabledMenuItem,
   MenuKeys,
+  type MenuKeysOptions,
   TYPEAHEAD_TIMEOUT,
   useMenuKeys,
 } from '../useMenuKeys';
 
 const advance = (ms: number) =>
   act(() => {
-    jest.advanceTimersByTime(ms);
+    vi.advanceTimersByTime(ms);
   });
 
 /** A `role="menu"` element with the hook's handler on it. */
@@ -20,17 +20,22 @@ const Menu = ({
   children,
   onKeyDown,
   onMenuKeys,
+  options,
+  dir,
 }: {
   children: React.ReactNode;
   onKeyDown?: (event: React.KeyboardEvent<HTMLElement>) => void;
   onMenuKeys?: (menuKeys: MenuKeys) => void;
+  options?: MenuKeysOptions;
+  dir?: string;
 }) => {
-  const menuKeys = useMenuKeys();
+  const menuKeys = useMenuKeys(options);
   onMenuKeys?.(menuKeys);
   return (
     <div
       role="menu"
       aria-label="Actions"
+      dir={dir}
       tabIndex={-1}
       onKeyDown={event => {
         onKeyDown?.(event);
@@ -46,12 +51,22 @@ const item = (name: string) => screen.getByRole('menuitem', { name });
 const press = (key: string, init: Partial<KeyboardEventInit> = {}) =>
   fireEvent.keyDown(document.activeElement!, { key, ...init });
 
+/**
+ * The timers the hook has pending. jsdom queues a zero-delay timer of its own
+ * whenever focus moves, to fire `selectionchange`, and the fake timers count
+ * it, so this runs the zero-delay ones first.
+ */
+const pendingTimers = () => {
+  advance(0);
+  return vi.getTimerCount();
+};
+
 beforeEach(() => {
-  jest.useFakeTimers();
+  vi.useFakeTimers();
 });
 
 afterEach(() => {
-  jest.useRealTimers();
+  vi.useRealTimers();
 });
 
 describe('useMenuKeys', () => {
@@ -157,11 +172,192 @@ describe('useMenuKeys', () => {
       }
       expect(item('Rename')).toHaveFocus();
     });
+
+    describe('from an item that turned disabled while it had focus', () => {
+      // `aria-disabled` keeps focus where `disabled` would drop it, as a
+      // loading item's does.
+      const Actions = ({
+        busy,
+        names = ['Open', 'Share', 'Archive', 'Delete'],
+      }: {
+        busy?: string;
+        names?: string[];
+      }) => (
+        <Menu>
+          {names.map(name => (
+            <button
+              key={name}
+              role="menuitem"
+              aria-disabled={busy === name ? 'true' : undefined}
+            >
+              {name}
+            </button>
+          ))}
+        </Menu>
+      );
+
+      it('moves down to the item after it and up to the one before it', () => {
+        const { rerender } = render(<Actions />);
+        item('Share').focus();
+        rerender(<Actions busy="Share" />);
+        press('ArrowDown');
+        expect(item('Archive')).toHaveFocus();
+        item('Share').focus();
+        press('ArrowUp');
+        expect(item('Open')).toHaveFocus();
+      });
+
+      it('wraps from the last item to the first', () => {
+        const { rerender } = render(<Actions />);
+        item('Delete').focus();
+        rerender(<Actions busy="Delete" />);
+        press('ArrowDown');
+        expect(item('Open')).toHaveFocus();
+      });
+
+      it('searches from the item after it', () => {
+        const names = ['Add', 'Share', 'Archive', 'Delete'];
+        const { rerender } = render(<Actions names={names} />);
+        item('Share').focus();
+        rerender(<Actions names={names} busy="Share" />);
+        press('a');
+        expect(item('Archive')).toHaveFocus();
+      });
+    });
+  });
+
+  describe('orientation and reverse', () => {
+    const Items = (props: { options?: MenuKeysOptions; dir?: string }) => (
+      <Menu {...props}>
+        <button role="menuitem">Note</button>
+        <button role="menuitem">Task</button>
+        <button role="menuitem">Event</button>
+      </Menu>
+    );
+
+    /** Presses `key` on the focused item and names the item focused after. */
+    const after = (key: string) => {
+      press(key);
+      return document.activeElement?.textContent;
+    };
+
+    it('moves down and up without options, and leaves Left and Right alone', () => {
+      render(<Items />);
+      item('Note').focus();
+      expect(press('ArrowRight')).toBe(true);
+      expect(press('ArrowLeft')).toBe(true);
+      expect(after('ArrowDown')).toBe('Task');
+      expect(after('ArrowUp')).toBe('Note');
+    });
+
+    it('moves up to the next item and down to the previous when reversed', () => {
+      render(<Items options={{ reverse: true }} />);
+      item('Note').focus();
+      expect(after('ArrowUp')).toBe('Task');
+      expect(after('ArrowUp')).toBe('Event');
+      expect(after('ArrowUp')).toBe('Note');
+      expect(after('ArrowDown')).toBe('Event');
+      expect(press('ArrowRight')).toBe(true);
+    });
+
+    it('starts from the first item on the forward arrow when reversed', () => {
+      render(<Items options={{ reverse: true }} />);
+      screen.getByRole('menu').focus();
+      expect(after('ArrowUp')).toBe('Note');
+      screen.getByRole('menu').focus();
+      expect(after('ArrowDown')).toBe('Event');
+    });
+
+    it('moves right and left when horizontal, leaving Down and Up alone', () => {
+      render(<Items options={{ orientation: 'horizontal' }} />);
+      item('Note').focus();
+      expect(press('ArrowDown')).toBe(true);
+      expect(press('ArrowUp')).toBe(true);
+      expect(document.activeElement).toBe(item('Note'));
+      expect(after('ArrowRight')).toBe('Task');
+      expect(after('ArrowLeft')).toBe('Note');
+      expect(after('ArrowLeft')).toBe('Event');
+    });
+
+    it('moves left to the next item when horizontal in right-to-left text', () => {
+      render(<Items options={{ orientation: 'horizontal' }} dir="rtl" />);
+      // jsdom computes no direction from dir, so the menu states it.
+      screen.getByRole('menu').style.direction = 'rtl';
+      item('Note').focus();
+      expect(after('ArrowLeft')).toBe('Task');
+      expect(after('ArrowRight')).toBe('Note');
+    });
+
+    it('swaps the horizontal arrows when reversed, in either direction', () => {
+      const { unmount } = render(
+        <Items options={{ orientation: 'horizontal', reverse: true }} />
+      );
+      item('Note').focus();
+      expect(after('ArrowLeft')).toBe('Task');
+      expect(after('ArrowRight')).toBe('Note');
+      unmount();
+      render(<Items options={{ orientation: 'horizontal', reverse: true }} />);
+      screen.getByRole('menu').style.direction = 'rtl';
+      item('Note').focus();
+      expect(after('ArrowRight')).toBe('Task');
+      expect(after('ArrowLeft')).toBe('Note');
+    });
+
+    it('reads the writing direction when the key arrives', () => {
+      render(<Items options={{ orientation: 'horizontal' }} />);
+      item('Note').focus();
+      expect(after('ArrowRight')).toBe('Task');
+      screen.getByRole('menu').style.direction = 'rtl';
+      expect(after('ArrowRight')).toBe('Note');
+    });
+
+    it('reads a physical horizontal menu’s arrows as they point, in right-to-left text too', () => {
+      render(<Items options={{ orientation: 'horizontal', physical: true }} />);
+      screen.getByRole('menu').style.direction = 'rtl';
+      item('Note').focus();
+      expect(after('ArrowRight')).toBe('Task');
+      expect(after('ArrowLeft')).toBe('Note');
+      expect(press('ArrowDown')).toBe(true);
+    });
+
+    it('reverses a physical horizontal menu by the screen alone', () => {
+      const { unmount } = render(
+        <Items
+          options={{ orientation: 'horizontal', physical: true, reverse: true }}
+        />
+      );
+      item('Note').focus();
+      expect(after('ArrowLeft')).toBe('Task');
+      unmount();
+      render(
+        <Items
+          options={{ orientation: 'horizontal', physical: true, reverse: true }}
+        />
+      );
+      screen.getByRole('menu').style.direction = 'rtl';
+      item('Note').focus();
+      expect(after('ArrowLeft')).toBe('Task');
+      expect(after('ArrowRight')).toBe('Note');
+    });
+
+    it('keeps vertical arrows as they are when physical', () => {
+      render(<Items options={{ physical: true }} />);
+      item('Note').focus();
+      expect(after('ArrowDown')).toBe('Task');
+      expect(after('ArrowUp')).toBe('Note');
+    });
+
+    it('keeps Home and End on the first and last items in the DOM', () => {
+      render(<Items options={{ orientation: 'horizontal', reverse: true }} />);
+      item('Task').focus();
+      expect(after('Home')).toBe('Note');
+      expect(after('End')).toBe('Event');
+    });
   });
 
   describe('activating', () => {
     it('clicks an item the browser does not, on Enter and on Space', () => {
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       render(
         <Menu>
           <div role="menuitem" tabIndex={0} onClick={onClick}>
@@ -181,7 +377,7 @@ describe('useMenuKeys', () => {
     });
 
     it('leaves a button’s keys and a link’s Enter to the browser, and clicks a link on Space', () => {
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       render(
         <Menu>
           <button role="menuitem" onClick={onClick}>
@@ -203,7 +399,7 @@ describe('useMenuKeys', () => {
     });
 
     it('activates once for a held key, without the page scrolling on the repeats', () => {
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       render(
         <Menu>
           <div role="menuitemcheckbox" tabIndex={0} onClick={onClick}>
@@ -232,7 +428,7 @@ describe('useMenuKeys', () => {
     });
 
     it('leaves a key an item’s own handler claimed', () => {
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       render(
         <Menu>
           <div
@@ -252,7 +448,7 @@ describe('useMenuKeys', () => {
     });
 
     it('activates nothing with focus on the menu itself', () => {
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       render(
         <Menu>
           <div role="menuitem" tabIndex={0} onClick={onClick}>
@@ -383,7 +579,7 @@ describe('useMenuKeys', () => {
       item('Rename').focus();
       press('s');
       unmount();
-      expect(jest.getTimerCount()).toBe(0);
+      expect(pendingTimers()).toBe(0);
     });
 
     it('starts a new search after reset, and clears its timer', () => {
@@ -396,9 +592,9 @@ describe('useMenuKeys', () => {
       );
       item('Rename').focus();
       press('r');
-      expect(jest.getTimerCount()).toBe(1);
+      expect(pendingTimers()).toBe(1);
       act(() => menuKeys!.reset());
-      expect(jest.getTimerCount()).toBe(0);
+      expect(pendingTimers()).toBe(0);
       // Without the reset, this would search for "rd", which matches nothing.
       press('d');
       expect(item('Duplicate')).toHaveFocus();
@@ -420,7 +616,7 @@ describe('useMenuKeys', () => {
 
   describe('what has focus', () => {
     /** A menu with a field among its items, as a free-form menu can have. */
-    const WithField = ({ onClick = jest.fn() }) => (
+    const WithField = ({ onClick = vi.fn() }) => (
       <Menu>
         <button role="menuitem" onClick={onClick}>
           Rename
@@ -437,7 +633,7 @@ describe('useMenuKeys', () => {
     const field = () => screen.getByRole('textbox', { name: 'Filter' });
 
     it('leaves the keys of a field inside the menu to it', () => {
-      const onClick = jest.fn();
+      const onClick = vi.fn();
       render(<WithField onClick={onClick} />);
       field().focus();
       for (const key of [
@@ -454,7 +650,7 @@ describe('useMenuKeys', () => {
         expect(field()).toHaveFocus();
       }
       expect(onClick).not.toHaveBeenCalled();
-      expect(jest.getTimerCount()).toBe(0);
+      expect(pendingTimers()).toBe(0);
     });
 
     it('still moves from the menu itself, and from a disabled item that has focus', () => {
@@ -499,6 +695,124 @@ describe('useMenuKeys', () => {
         fireEvent.keyDown(screen.getByRole('menu'), { key: 'ArrowDown' })
       ).toBe(true);
       expect(screen.getByRole('button', { name: 'Elsewhere' })).toHaveFocus();
+    });
+  });
+
+  describe('a list of another kind, disabled items reachable', () => {
+    /** A listbox with the hook's handler on it, its options reaching disabled ones. */
+    const List = ({ onPick }: { onPick: (name: string) => void }) => {
+      const keys = useMenuKeys({
+        itemSelector: '[role="option"]',
+        disabledReachable: true,
+      });
+      return (
+        <ul role="listbox" aria-label="Places" onKeyDown={keys.onKeyDown}>
+          {['Asia', 'Europe', 'Oceania'].map(name => (
+            <li
+              key={name}
+              role="option"
+              aria-selected={false}
+              aria-disabled={name === 'Europe' || undefined}
+              tabIndex={-1}
+              onClick={() => onPick(name)}
+            >
+              {name}
+            </li>
+          ))}
+          <li role="menuitem" tabIndex={-1}>
+            Not an option
+          </li>
+        </ul>
+      );
+    };
+    const option = (name: string) => screen.getByRole('option', { name });
+
+    it('moves through its options, disabled ones included, and only them', () => {
+      render(<List onPick={() => {}} />);
+      option('Asia').focus();
+      press('ArrowDown');
+      expect(option('Europe')).toHaveFocus();
+      press('End');
+      expect(option('Oceania')).toHaveFocus();
+      press('ArrowDown');
+      expect(option('Asia')).toHaveFocus();
+      press('e');
+      expect(option('Europe')).toHaveFocus();
+    });
+
+    it('activates an enabled option, and never a disabled one', () => {
+      const onPick = vi.fn();
+      render(<List onPick={onPick} />);
+      option('Europe').focus();
+      expect(press('Enter')).toBe(false);
+      expect(press(' ')).toBe(false);
+      expect(onPick).not.toHaveBeenCalled();
+      option('Oceania').focus();
+      press('Enter');
+      expect(onPick).toHaveBeenCalledWith('Oceania');
+    });
+
+    it('lets Space join a search it can extend with spaceJoinsSearch, and act otherwise', () => {
+      const onPick = vi.fn();
+      const States = ({ joins }: { joins: boolean }) => {
+        const keys = useMenuKeys({
+          itemSelector: '[role="option"]',
+          spaceJoinsSearch: joins,
+        });
+        return (
+          <ul role="listbox" aria-label="States" onKeyDown={keys.onKeyDown}>
+            {['Newark', 'New York', 'New Hampshire'].map(name => (
+              <li
+                key={name}
+                role="option"
+                aria-selected={false}
+                tabIndex={-1}
+                onClick={() => onPick(name)}
+              >
+                {name}
+              </li>
+            ))}
+          </ul>
+        );
+      };
+      const { unmount } = render(<States joins />);
+      option('Newark').focus();
+      for (const key of ['n', 'e', 'w', ' ', 'h']) {
+        expect(press(key)).toBe(false);
+      }
+      expect(option('New Hampshire')).toHaveFocus();
+      expect(onPick).not.toHaveBeenCalled();
+      advance(TYPEAHEAD_TIMEOUT);
+      press(' ');
+      expect(onPick).toHaveBeenCalledWith('New Hampshire');
+      // A search no item can extend with a space leaves Space to act.
+      press('n');
+      expect(option('Newark')).toHaveFocus();
+      press(' ');
+      expect(onPick).toHaveBeenLastCalledWith('Newark');
+      advance(TYPEAHEAD_TIMEOUT);
+      // A key that moves focus ends the search, so Space acts on the item
+      // it reached.
+      for (const key of ['n', 'e', 'w', 'ArrowDown']) press(key);
+      expect(option('New Hampshire')).toHaveFocus();
+      press(' ');
+      expect(onPick).toHaveBeenLastCalledWith('New Hampshire');
+      unmount();
+      onPick.mockClear();
+      // Without it, Space acts on the focused item mid-search, as a menu's does.
+      render(<States joins={false} />);
+      option('Newark').focus();
+      press('n');
+      press(' ');
+      expect(onPick).toHaveBeenCalledWith('New York');
+    });
+
+    it('leaves a key alone on an item of another kind', () => {
+      render(<List onPick={() => {}} />);
+      const other = screen.getByRole('menuitem', { name: 'Not an option' });
+      other.focus();
+      expect(press('ArrowDown')).toBe(true);
+      expect(other).toHaveFocus();
     });
   });
 });

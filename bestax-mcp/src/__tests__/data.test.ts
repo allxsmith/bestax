@@ -1,10 +1,11 @@
 /**
  * Index loading, name resolution and the guards around skill file reads.
  */
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import {
   assertSchema,
+  documentedExport,
   loadCatalog,
   loadComponent,
   loadSkillFile,
@@ -65,12 +66,67 @@ describe('resolveName', () => {
     // A dot-path resolves to its root; the part is selected downstream.
     ['Navbar.Brand', 'Navbar'],
     ['navbar.brand', 'Navbar'],
-  ])('resolves %s to %s', async (input, expected) => {
+    // An export with no entry of its own resolves to the record documenting it.
+    ['InputBase', 'Input'],
+    ['<carouselitem />', 'Carousel'],
+    ['Thead', 'Table'],
+    // So does a hook, function or constant its import line gives (#1465).
+    ['useDataTable', 'DataTable'],
+    ['usedatatable', 'DataTable'],
+    ['toast', 'Toast'],
+    ['validColors', 'Valid value constants'],
+  ])('resolves %j to %j', async (input, expected) => {
     expect(await resolveName(input)).toBe(expected);
   });
 
   it('returns null for something that is not a component', async () => {
     expect(await resolveName('NotAThing')).toBeNull();
+  });
+});
+
+describe('documentedExport', () => {
+  it('names the part an export documented elsewhere is, spelled as the index spells it', async () => {
+    expect(await documentedExport('inputbase')).toMatchObject({
+      name: 'InputBase',
+      entry: { component: 'Input', path: 'InputBase', standalone: 'base' },
+    });
+    expect(await documentedExport('Thead')).toMatchObject({
+      entry: { component: 'Table', path: 'Table.Thead' },
+    });
+  });
+
+  it('names the section of a name that is no part, with no path', async () => {
+    const found = await documentedExport('useDataTable');
+    expect(found).toMatchObject({
+      name: 'useDataTable',
+      entry: { component: 'DataTable', section: 'The useDataTable Hook' },
+    });
+    expect(found?.entry).not.toHaveProperty('path');
+  });
+
+  it('is null for a component with an entry of its own, and for a dot-path', async () => {
+    expect(await documentedExport('Input')).toBeNull();
+    expect(await documentedExport('Table.Thead')).toBeNull();
+  });
+
+  // The function `toast` and the component `Toast` differ only in letter case, so
+  // a name spelled as the index spells it wins, and a catalog entry wins in any
+  // other letter case (#1465).
+  it('never shadows a catalog entry', async () => {
+    const catalog = await loadCatalog();
+    const entries = new Map(
+      catalog.components.map(c => [c.name.toLowerCase(), c.name])
+    );
+    const twins = Object.keys(catalog.documentedWith).filter(n =>
+      entries.has(n.toLowerCase())
+    );
+    expect(twins).toEqual(expect.arrayContaining(['toast']));
+    for (const name of twins) {
+      const entry = entries.get(name.toLowerCase())!;
+      expect(await documentedExport(entry)).toBeNull();
+      expect(await documentedExport(entry.toUpperCase())).toBeNull();
+      expect(await documentedExport(name)).toMatchObject({ name });
+    }
   });
 });
 

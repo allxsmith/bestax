@@ -16,20 +16,20 @@ import 'material-icons/iconfont/material-icons.css';
 import 'material-symbols/index.css';
 
 // Import raw CSS for shadow DOM processing
-import rawBulmaStyles from '!!raw-loader!bulma/css/bulma.min.css';
+// The stylesheet an app installs: Bulma compiled with bestax's configuration,
+// its primary color among it, plus the extras. Loading it rather than stock
+// Bulma and extras.css means a preview shows exactly what
+// `import '@allxsmith/bestax-bulma/bestax.css'` gives the reader.
+import rawBestaxStyles from '!!raw-loader!@allxsmith/bestax-bulma/dist/bestax.css';
 import rawFontAwesomeStyles from '!!raw-loader!@fortawesome/fontawesome-free/css/all.min.css';
 import rawMDIStyles from '!!raw-loader!@mdi/font/css/materialdesignicons.min.css';
 // Note: ionicons now uses web components, no raw CSS needed
 import rawMaterialIconsStyles from '!!raw-loader!material-icons/iconfont/material-icons.css';
 import rawMaterialSymbolsStyles from '!!raw-loader!material-symbols/index.css';
-import rawExtrasStyles from '!!raw-loader!@allxsmith/bestax-bulma/dist/extras.css';
 // Docs-only Skill Example styles (ProfileCard) — not part of the shipped CSS bundle.
 import rawProfileCardStyles from '!!raw-loader!@site/src/components/SkillExamples/profilecard.css';
-
-/** Custom properties only reach the preview when scoped to the shadow host. */
-function toHost(rawStyles) {
-  return rawStyles.replace(/:root/g, ':host');
-}
+import { importedStylesheets } from '@site/src/theme/CodeBlock/sandbox/moduleLines.mjs';
+import { preprocessBulmaStyles, toHost } from './hostStyles.mjs';
 
 /**
  * Drops `@font-face` from a sheet bound for a shadow root.
@@ -55,25 +55,6 @@ function toHost(rawStyles) {
  */
 function stripFontFace(rawStyles) {
   return rawStyles.replace(/@font-face\s*{[^}]*}/g, '');
-}
-
-// Enhanced preprocessing function for better CSS variable handling
-function preprocessBulmaStyles(rawStyles) {
-  let processedStyles = toHost(rawStyles);
-
-  // Handle dark mode variables more comprehensively with nested group matching
-  processedStyles = processedStyles.replace(
-    /@media\s*\(prefers-color-scheme:\s*dark\)\s*\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}/g,
-    ':host(.dark) { $1 }'
-  );
-
-  // Handle light mode variables
-  processedStyles = processedStyles.replace(
-    /@media\s*\(prefers-color-scheme:\s*light\)\s*\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}/g,
-    ':host(.light) { $1 }'
-  );
-
-  return processedStyles;
 }
 
 /**
@@ -122,28 +103,11 @@ ${declarations(colorModeVars.dark)}
   :host(.light), :host {
 ${declarations(colorModeVars.light)}
   }
-
-  /* bestax primary override (#1e6b99) — the previews load stock Bulma
-     (turquoise), so re-point the primary CSS variables to match the library.
-     Bulma emits the full palette under :root (-> :host) AND the inner
-     .theme-light / .theme-dark / [data-theme] wrapper, so override all of
-     them. The h/s/l-derived light/dark/soft variants cascade automatically. */
-  :host(.dark), :host(.light), :host,
-  .theme-light, .theme-dark,
-  [data-theme='light'], [data-theme='dark'] {
-    --bulma-primary-h: 202deg !important;
-    --bulma-primary-s: 67% !important;
-    --bulma-primary-l: 36% !important;
-    --bulma-primary-rgb: 30, 107, 153 !important;
-    /* Stock Bulma bakes a dark invert-l for turquoise; the new darker blue
-       needs a light foreground, matching the rebuilt library's value. */
-    --bulma-primary-invert-l: var(--bulma-primary-100-l) !important;
-  }
 `;
 
 // Preprocess: Replace :root with :host for Shadow DOM compatibility
 // Also handle color mode classes instead of media queries
-export const bulmaStyles = preprocessBulmaStyles(rawBulmaStyles);
+export const bestaxStyles = preprocessBulmaStyles(rawBestaxStyles);
 
 export const fontAwesomeStyles = stripFontFace(toHost(rawFontAwesomeStyles));
 
@@ -158,8 +122,6 @@ export const materialIconsStyles = stripFontFace(
 export const materialSymbolsStyles = stripFontFace(
   toHost(rawMaterialSymbolsStyles)
 );
-
-export const extrasStyles = toHost(rawExtrasStyles);
 
 // Docs-only Skill Example (ProfileCard) styles for the shadow-DOM live previews.
 export const profileCardStyles = toHost(rawProfileCardStyles);
@@ -181,17 +143,40 @@ export const ioniconStyles = `
   }
 `;
 
+// Overlays an example opens cover the docs navbar, as they would a Bulma
+// navbar in an app. Each keeps its own layer on top of the navbar's, so their
+// order among themselves stays the library's, and where the library puts one
+// in the page's flow (a wide AppFrame's column, a static Sidebar) its own,
+// more specific rule still wins. Popovers, hover cards and menus are anchored
+// to the page and left alone, to scroll under the sticky navbar with what they
+// belong to. Something an example portals from inside one of these overlays,
+// such as an `appendToBody` panel or a toast, then sits under it, so give it a
+// `portalContainer` inside the overlay. Bulma declares `--bulma-modal-z` on
+// `.modal` itself, so that's where this sets it, and coming after bestax.css
+// is what wins.
+export const overlayLayerStyles = `
+  .modal { --bulma-modal-z: calc(var(--ifm-z-index-fixed, 200) + 40); }
+  .sidebar-background { z-index: calc(var(--ifm-z-index-fixed, 200) + 39); }
+  .sidebar { z-index: calc(var(--ifm-z-index-fixed, 200) + 40); }
+  .loading.is-full-page { z-index: calc(var(--ifm-z-index-fixed, 200) + 70); }
+  .app-frame-backdrop { z-index: calc(var(--ifm-z-index-fixed, 200) + 39); }
+  .app-frame-nav { z-index: calc(var(--ifm-z-index-fixed, 200) + 40); }
+  .app-frame-skip-link:focus {
+    z-index: calc(var(--ifm-z-index-fixed, 200) + 40);
+  }
+`;
+
 // Ordered as the sheets should cascade inside a shadow root.
 export const shadowStyleSheets = [
   materialIconsStyles,
-  bulmaStyles,
+  bestaxStyles,
   fontAwesomeStyles,
   mdiStyles,
   ioniconStyles,
   materialSymbolsStyles,
-  extrasStyles,
   profileCardStyles,
   colorModeStyles,
+  overlayLayerStyles,
 ];
 
 /** True when the browser supports constructable stylesheets. */
@@ -200,6 +185,81 @@ export function supportsConstructableStyleSheets() {
     typeof CSSStyleSheet !== 'undefined' &&
     typeof CSSStyleSheet.prototype.replaceSync === 'function'
   );
+}
+
+/** The prefixed build's text, fetched when a preview first needs it. */
+const loadPrefixed = () =>
+  import('!!raw-loader!@allxsmith/bestax-bulma/dist/versions/bestax-prefixed.css');
+
+/**
+ * The library's other builds an example can import, keyed by each path the
+ * library exports it under. The previews load bestax.css, and the prefixed
+ * build's classes match nothing in it, so an example that imports it gets that
+ * sheet too, after bestax.css. That adds a build's rules rather than swapping
+ * bestax.css out, so it suits a build whose classes bestax.css doesn't have,
+ * not one that shares them and leaves some out (no-helpers, no-dark-mode).
+ * Each is fetched and parsed the first time a preview on the page
+ * needs it, and goes into that preview's shadow root only, so other previews
+ * and other pages don't carry it. Any other stylesheet an example imports is
+ * dropped, as the import lines are.
+ */
+const FENCE_STYLESHEETS = {
+  '@allxsmith/bestax-bulma/versions/bestax-prefixed.css': loadPrefixed,
+  '@allxsmith/bestax-bulma/dist/versions/bestax-prefixed.css': loadPrefixed,
+};
+
+/** Each FENCE_STYLESHEETS loader a preview has called, as it loads. */
+const fenceStyles = new Map();
+
+/**
+ * The FENCE_STYLESHEETS entries `code` imports, in its order, one path per
+ * build.
+ *
+ * @param {string} code
+ * @returns {string[]}
+ */
+export function fenceStylesheetsIn(code) {
+  const loaders = new Set();
+  return importedStylesheets(code).filter(path => {
+    const load = Object.prototype.hasOwnProperty.call(FENCE_STYLESHEETS, path)
+      ? FENCE_STYLESHEETS[path]
+      : null;
+    if (!load || loaders.has(load)) return false;
+    loaders.add(load);
+    return true;
+  });
+}
+
+/**
+ * Loads one FENCE_STYLESHEETS entry, readied for a shadow root like
+ * bestax.css. Resolves to one parsed sheet that every preview importing it
+ * shares, or, where constructable stylesheets don't exist, to its text for a
+ * `<style>` element. A failed load is forgotten, so the next preview to ask
+ * loads it again.
+ *
+ * @param {string} path
+ * @returns {Promise<{ css: string | null, sheet: CSSStyleSheet | null }>}
+ */
+export function loadFenceStylesheet(path) {
+  const load = FENCE_STYLESHEETS[path];
+  if (!fenceStyles.has(load)) {
+    const loading = load()
+      .then(({ default: raw }) => {
+        const css = preprocessBulmaStyles(raw);
+        if (!supportsConstructableStyleSheets()) {
+          return { css, sheet: null };
+        }
+        const sheet = new CSSStyleSheet();
+        sheet.replaceSync(css);
+        return { css: null, sheet };
+      })
+      .catch(error => {
+        fenceStyles.delete(load);
+        throw error;
+      });
+    fenceStyles.set(load, loading);
+  }
+  return fenceStyles.get(load);
 }
 
 let sharedStyleSheets = null;

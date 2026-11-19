@@ -2,25 +2,14 @@
 // DateTimeInput passed `color` in, and no rule read it. A class reaching the
 // DOM proves nothing about the stylesheet, so these compile the real SCSS and
 // check what it does, the way TimeInput.styles.test.tsx does for the wheels.
-import * as sass from 'sass';
-import path from 'path';
 import type { ReactElement } from 'react';
 import { fireEvent, render } from '@testing-library/react';
+import { compileScss, compileSheet } from '../../__tests__/compile-scss';
 import { DateInput } from '../DateInput';
 import { DateTimeInput } from '../DateTimeInput';
 import { DateRangeInput } from '../DateRangeInput';
 import { ConfigProvider } from '../../helpers/Config';
-
-const SCSS = path.resolve(__dirname, '../../scss');
-const NODE_MODULES = path.resolve(__dirname, '../../../../node_modules');
-const OPTIONS = {
-  loadPaths: [SCSS, NODE_MODULES],
-  quietDeps: true,
-  logger: sass.Logger.silent,
-};
-
-const compile = (file: string) =>
-  sass.compile(path.resolve(SCSS, file), OPTIONS).css;
+import { cascade, compilePartial } from '../../__tests__/css-cascade';
 
 const colors = [
   'primary',
@@ -80,10 +69,14 @@ const inject = (css: string) => {
 };
 
 let sheet: CSSStyleSheet;
+let dateinputCss = '';
 
+// A hook keeps Vitest's 10s default rather than `testTimeout`, and
+// sass-embedded's start can take longer than that on a loaded machine.
 beforeAll(() => {
-  sheet = inject(compile('form/_dateinput.scss')).sheet as CSSStyleSheet;
-});
+  dateinputCss = compileSheet('form/_dateinput.scss');
+  sheet = inject(dateinputCss).sheet as CSSStyleSheet;
+}, 30_000);
 
 afterAll(() => {
   for (const el of sheets) el.remove();
@@ -118,14 +111,41 @@ describe.each(pickers)('%s calendar colour styles', (_name, picker) => {
   });
 });
 
+describe('calendar month chevrons', () => {
+  const flipped = (el: Element) =>
+    getComputedStyle(el).transform === 'scaleX(-1)';
+
+  it('mirrors the glyphs right to left and leaves them alone left to right', () => {
+    const { container } = render(
+      <>
+        <div dir="rtl">
+          <DateInput inline />
+        </div>
+        <div dir="ltr">
+          <DateInput inline />
+        </div>
+      </>
+    );
+    const [rtl, ltr] = Array.from(container.children);
+    for (const nav of ['.dateinput-nav-prev', '.dateinput-nav-next']) {
+      const button = rtl.querySelector(nav)!;
+      // Once: the glyph turns, and the button around it doesn't.
+      expect(flipped(button.querySelector('svg')!)).toBe(true);
+      expect(flipped(button)).toBe(false);
+      expect(flipped(ltr.querySelector(`${nav} svg`)!)).toBe(false);
+    }
+    // The month label's caret points down. It is not one of these.
+    expect(dateinputCss).not.toContain('.dateinput-month-caret:dir(rtl)');
+  });
+});
+
 describe('calendar colour styles under a class prefix', () => {
   it('matches the prefixed modifier the calendar emits', () => {
     inject(
-      sass.compileString(
+      compileScss(
         `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: 'bestax-');
-         @use 'form/dateinput';`,
-        OPTIONS
-      ).css
+         @use 'form/dateinput';`
+      )
     );
     const { container } = render(
       <ConfigProvider classPrefix="bestax-">
@@ -135,6 +155,123 @@ describe('calendar colour styles under a class prefix', () => {
     const root = calendarRoot(container, 'bestax-');
     expect(root).toHaveClass('bestax-is-danger');
     expect(computedAccents(root)).toEqual(accents('danger'));
+  });
+});
+
+// A disabled calendar turns off the month button with the arrows beside it,
+// and it reads as off only if the stylesheet dims it as it dims them.
+describe('calendar header while disabled', () => {
+  const look = (el: Element) => {
+    const style = getComputedStyle(el);
+    return `${style.opacity}/${style.cursor}`;
+  };
+  const header = (container: Element, prefix = '') =>
+    ['month-trigger', 'nav-prev', 'nav-next'].map(part =>
+      container.querySelector(`.${prefix}dateinput-${part}`)!
+    );
+
+  it('dims the month button as it dims the arrows', () => {
+    const { container } = render(
+      <>
+        <div>
+          <DateInput inline disabled />
+        </div>
+        <div>
+          <DateInput inline />
+        </div>
+      </>
+    );
+    const [off, on] = Array.from(container.children);
+    for (const button of header(off)) {
+      expect(button).toBeDisabled();
+      expect(look(button)).toBe('0.4/not-allowed');
+    }
+    expect(look(header(on)[0])).toBe('1/pointer');
+  });
+
+  it('dims it under a class prefix too', () => {
+    inject(
+      compileScss(
+        `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: 'bestax-');
+         @use 'form/dateinput';`
+      )
+    );
+    const { container } = render(
+      <ConfigProvider classPrefix="bestax-">
+        <DateInput inline disabled />
+      </ConfigProvider>
+    );
+    for (const button of header(container, 'bestax-')) {
+      expect(look(button)).toBe('0.4/not-allowed');
+    }
+  });
+});
+
+// In forced colors a disabled part is drawn in GrayText, which its disabled
+// opacity would only fade, so there it draws at full strength in GrayText
+// (#2049). jsdom evaluates no media query, so these resolve the partial's
+// rules with the shared cascade, on a forced-colors page and on any other.
+describe.each([
+  ['no prefix', ''],
+  ['a class prefix', 'bestax-'],
+])('a disabled calendar in forced colors, with %s', (_name, prefix) => {
+  const css = compilePartial('form/dateinput', prefix);
+  const resolve = (el: Element, property: string, forcedColors: boolean) =>
+    cascade(
+      el,
+      css,
+      [property],
+      (style, p) => style.getPropertyValue(p) || undefined,
+      { forcedColors }
+    );
+
+  /** A disabled month or year cell, which the calendar shows in its other views. */
+  const cell = (part: string) => {
+    const el = document.createElement('button');
+    el.className = `${prefix}${part}`;
+    el.disabled = true;
+    return el;
+  };
+
+  it('draws the header, the days, the months and the years at full strength in GrayText', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <DateInput inline disabled />
+      </ConfigProvider>
+    );
+    const header = ['month-trigger', 'nav-prev', 'nav-next'].map(part =>
+      container.querySelector(`.${prefix}dateinput-${part}`)!
+    );
+    const day = container.querySelector(`.${prefix}dateinput-cell`)!;
+    expect(day).toBeDisabled();
+    expect(day).toHaveClass(`${prefix}is-disabled`);
+    const parts = [
+      ...header,
+      day,
+      cell('dateinput-month-cell'),
+      cell('dateinput-year-cell'),
+    ];
+    for (const part of parts) {
+      expect(part).toBeDisabled();
+      expect(resolve(part, 'opacity', false)).toMatch(/^0\.\d+$/);
+      expect(resolve(part, 'opacity', true)).toBe('1');
+      expect(resolve(part, 'color', true)).toBe('graytext');
+    }
+  });
+
+  it('keeps a picked disabled day filled with GrayText and its number in Canvas', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <DateInput inline disabled defaultValue={new Date(2026, 10, 12)} />
+      </ConfigProvider>
+    );
+    const picked = container.querySelector(
+      `.${prefix}dateinput-cell.${prefix}is-selected`
+    )!;
+    expect(picked).toBeDisabled();
+    expect(resolve(picked, 'opacity', true)).toBe('1');
+    expect(resolve(picked, 'background-color', true)).toBe('graytext');
+    expect(resolve(picked, 'color', true)).toBe('canvas');
   });
 });
 
@@ -208,7 +345,8 @@ describe('day grid layout', () => {
     expect(week.gridTemplateColumns).toBe('repeat(7, 1fr)');
     const grid = getComputedStyle(container.querySelector('.dateinput-grid')!);
     expect(grid.display).toBe('grid');
-    expect(grid.gridTemplateColumns).toBe('');
+    // `none`, the initial value: the grid sets no columns of its own.
+    expect(grid.gridTemplateColumns).toBe('none');
     expect(week.gap).toBe(grid.gap);
   });
 });
@@ -218,7 +356,7 @@ describe('calendar variables', () => {
     const set = setProperties(sheet.cssRules);
     expect(set).toContain('--bulma-dateinput-focus-ring-color');
 
-    const shipped = compile('bestax.scss');
+    const shipped = compileSheet('bestax.scss');
     const unread = set.filter(
       name => !new RegExp(`var\\(\\s*${name}\\s*[,)]`).test(shipped)
     );
@@ -230,7 +368,7 @@ describe('calendar variables', () => {
     // `color` says, which is how the focus rings stayed primary. Custom
     // properties are where the colours are meant to be named.
     const direct = new RegExp(`var\\(--bulma-(?:${colors.join('|')})\\b`);
-    const offenders = compile('form/_dateinput.scss')
+    const offenders = compileSheet('form/_dateinput.scss')
       .split('\n')
       .map(line => line.trim())
       .filter(line => !line.startsWith('--') && direct.test(line));
@@ -247,10 +385,10 @@ describe('calendar variables', () => {
 describe('day text on the calendar backgrounds', () => {
   // Today is October 17th 2026 throughout, and every render reads it again.
   beforeEach(() => {
-    jest.useFakeTimers({ now: new Date(2026, 9, 17, 12) });
+    vi.useFakeTimers({ now: new Date(2026, 9, 17, 12) });
   });
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   // October on show, with a range from the 12th to November 2nd, whose last
@@ -283,21 +421,21 @@ describe('day text on the calendar backgrounds', () => {
     const { container } = render(<DateInput inline />);
     const vars = getComputedStyle(calendarRoot(container));
     const read = (name: string) => vars.getPropertyValue(name).trim();
-    expect(read('--bulma-dateinput-cell-hover-bg')).toBe(
-      'hsla(0, 0%, 50%, 0.13)'
-    );
+    // jsdom drops the optional spaces in a custom property's value, the
+    // ones after each comma here.
+    expect(read('--bulma-dateinput-cell-hover-bg')).toBe('hsla(0,0%,50%,0.13)');
     expect(read('--bulma-dateinput-cell-range-bg')).toBe(
-      'color-mix(in srgb, var(--bulma-dateinput-cell-selected-bg) 18%, transparent)'
+      'color-mix(in srgb,var(--bulma-dateinput-cell-selected-bg) 18%,transparent)'
     );
     expect(read('--bulma-dateinput-cell-range-preview-bg')).toBe(
-      'color-mix(in srgb, var(--bulma-dateinput-cell-selected-bg) 9%, transparent)'
+      'color-mix(in srgb,var(--bulma-dateinput-cell-selected-bg) 9%,transparent)'
     );
   });
 
   it('reads a day that is both today and a nearby month as the nearby month, in a band too', () => {
     // November 3rd is today, and October's grid ends on November's first
     // days, inside a range from October 20th to November 10th.
-    jest.setSystemTime(new Date(2026, 10, 3, 12));
+    vi.setSystemTime(new Date(2026, 10, 3, 12));
     const { container } = render(
       <DateRangeInput
         inline
@@ -319,11 +457,12 @@ describe('day text on the calendar backgrounds', () => {
 
   it('reads a nearby month halfway between text-weak and text', () => {
     const { container } = render(<DateInput inline />);
+    // Without the spaces after the commas, as jsdom writes a custom property.
     expect(
       getComputedStyle(calendarRoot(container))
         .getPropertyValue('--bulma-dateinput-cell-other-month-color')
         .trim()
-    ).toBe('color-mix(in srgb, var(--bulma-text-weak), var(--bulma-text))');
+    ).toBe('color-mix(in srgb,var(--bulma-text-weak),var(--bulma-text))');
   });
 
   it("gives a selected day from a nearby month the selected value's colour", () => {

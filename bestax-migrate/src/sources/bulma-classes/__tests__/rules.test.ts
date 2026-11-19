@@ -25,6 +25,8 @@ describe('ruleId', () => {
     expect(ruleId('tag', 'Section')).toBe('tag:Section');
     expect(ruleId('attr', 'size')).toBe('attr:size');
     expect(ruleId('legacy', 'tile')).toBe('legacy:tile');
+    expect(ruleId('legacy', 'is-marginless')).toBe('legacy:is-marginless');
+    expect(ruleId('modifier', 'image')).toBe('modifier:image');
   });
 
   it("drops an app's own class name, keeping only the kind", () => {
@@ -65,7 +67,8 @@ describe('every refusal the planner can produce', () => {
     const rules = new Set<string>();
     const messages = new Set<string>();
     const collect = (input: ElementFacts) => {
-      for (const todo of plan(input).todos) {
+      const planned = plan(input);
+      for (const todo of [...planned.todos, ...(planned.fold?.todos ?? [])]) {
         rules.add(todo.rule);
         messages.add(todo.message);
       }
@@ -74,6 +77,21 @@ describe('every refusal the planner can produce', () => {
     for (const [root, entry] of Object.entries(ROOTS)) {
       collect(facts('div', [root], []));
       collect(facts('div', [root, 'box'], []));
+      // A fold that goes through, onto a target with and without a name.
+      if (entry.status === 'fold' && entry.target) {
+        const onto = (attributes: Array<[string, string | true | null]>) =>
+          facts(entry.tag!, [root], [], {
+            soleChildTarget: entry.target,
+            soleChild: {
+              tag: 'table',
+              attributes: new Map(attributes),
+              hasSpread: false,
+              isEmpty: false,
+            },
+          });
+        collect(onto([]));
+        for (const name of entry.namedFrom ?? []) collect(onto([[name, 'x']]));
+      }
       if (entry.status !== 'mapped') continue;
       const names = new Set([
         ...(entry.ownProps ?? []),
@@ -216,6 +234,11 @@ describe('every refusal the planner can produce', () => {
       collect(item([], [child({ tokens: null })]));
       collect(item([], [child({ tokens: [] })]));
       collect(item([], [child({ tokens: ['box'] })]));
+      // Each class the child may carry, bare, so one that converts only
+      // beside an attribute is refused without it.
+      for (const token of Object.keys(spec.modifiers ?? {})) {
+        collect(item([], [child({ tokens: [token] })]));
+      }
       collect(item([], [child()], { hasSpread: true }));
       collect(item([], [child()], { emptyClass: true }));
       collect(item([['ref', null]], [child()], { hasRef: true }));
@@ -226,7 +249,16 @@ describe('every refusal the planner can produce', () => {
         }
       }
     }
-    for (const token of ['tile', 'toString', 'constructor', '__proto__']) {
+    for (const token of [
+      'tile',
+      'is-marginless',
+      'is-paddingless',
+      'is-64x64',
+      'is-4by3',
+      'toString',
+      'constructor',
+      '__proto__',
+    ]) {
       collect(facts('div', [token], []));
     }
     expect(rules.size).toBeGreaterThan(0);

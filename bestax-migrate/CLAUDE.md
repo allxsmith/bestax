@@ -82,6 +82,14 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   skips the manifest step. The CLI reads a source's
   `packageName` (defaulting to its `name`) as the import to look for; `null` means the source
   has no package, so no file is ever "still importing" it.
+  A source with `htmlExtensions` (bulma-classes) also reads HTML pages: a page named on the
+  command line always, a folder walk's only when `-e` lists its extension, exactly as for every
+  other file (`html`, `htm`; React repos are full of `.html`
+  nobody wants converted), and a walk without it hands each page it skipped to the source's
+  `excludedHtml`, which reports the Bulma ones. `transformHtml` returns the module and where
+  it goes; the CLI writes it there and never touches the page. A source without HTML support
+  refuses a named page or an `-e` that lists `html` or `htm` rather than parsing HTML as
+  JavaScript.
 - `src/sources/react-bulma-components/` (and `rbx/`, same shape): `transform.ts`
   (orchestration: imports + css → per-element special/rename/responsive/props → import
   rewrite), `mapping.ts` (data), `specials.ts` (structural handlers), `responsive.ts`
@@ -99,23 +107,112 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   inside it in, a conversion, a fold into its only child (a `fold` wrapper such as
   `.table-container`) or a TODO out; an entry that `absorbs` its only child (`.select`'s
   `<select>`) converts together with it, written in the child's place, and one that
-  `countsChildren` (`.skeleton-lines`) writes their count and drops them, one that `buildsIcons`
-  (`.icon-text`) takes its `.icon`s and the texts beside them as props, one that `buildsFile`
-  (`.file`) takes its whole tree as props, inside a `Field` only, and one with a
+  `countsChildren` (`.skeleton-lines`) writes their count and drops them, one that `readsGlyph`
+  (`.icon`) takes the bare glyph `<i>` it holds as props (`glyph.ts`) and drops it, one that
+  `buildsIcons` (`.icon-text`) takes its `.icon`s and the texts beside them as props, one that
+  `buildsFile` (`.file`) takes its whole tree as props, inside a `Field` only, and one with a
   `parent` (`.pagination-link`) takes the place of the bare `<li>` its target renders too; an entry
   with `wrapsChildren` converts only beside one of its parts, so `transform.ts` plans children
   before their parents; and an element with no class to go by, a menu list's `<li>`, is found
   by the list around it and planned as the `PLACED` entry for that list), `rules.ts` (rule ids from a closed
   vocabulary, since the input is the app's own class strings and telemetry must never carry
   them), `project.ts` (what one file cannot show: which packages are Next.js App Router
-  projects, and which render JSX through a runtime other than React, read once per run from
-  every package.json the run touches) and `transform.ts` (finds the elements, reads a
+  projects, which render JSX through a runtime other than React, and which are TypeScript, for
+  the extension of the module an HTML page becomes, and which depend on Next.js, where that
+  module imports no stylesheet, read once per run from every package.json the run touches, and
+  the folders the run starts from, where an `index.html` with pages beside it is `HomePage`) and `transform.ts` (finds the elements, reads a
   `className` a `clsx` or `classnames` call builds when it can read every argument, applies the
   plans, writes the import after the file's last one). The fixture render test runs the real
   `clsx` and `classnames`, which is why they are dev dependencies. An element converts only when the component renders the same markup; the render
   tests in `e2e/bulma-classes-*.test.ts` hold every entry to that, and
   `e2e/bulma-classes-props.test.ts` to the component's props type, which can be narrower than
-  what it renders.
+  what it renders. An exception is deliberate (#1148): Font Awesome's own
+  `<i aria-hidden="true">`, alone in a `.icon` that carries nothing assistive tech reads,
+  converts to `Icon`, which writes that attribute on the `.icon` instead, because the glyph is
+  hidden either way. The `.icon` may carry only what is on a whitelist (`hiddenMovesBeside`
+  in its `readsGlyph` entry, which the MCP index carries too), checked by name whatever the
+  value: a `title` or description would be hidden with
+  it, and beside a `role` or `tabIndex` `Icon` writes no `aria-hidden` at all, so an expression
+  there must refuse too. The planner marks it `movesHidden`, and the render tests compare it
+  through `e2e/support/hidden-glyph.ts`, which moves the attribute up in that one shape, behind
+  the same whitelist, and leaves every other difference to fail.
+  Widen it only with the same care: a new exception is a claim that the page is unchanged for
+  everyone who reads it, which identical markup proves and a normalization only asserts.
+  A second exception (#1231) adds the attribute rather than moving it: a `.icon` around a bare
+  glyph `<i>`, carrying no `aria-hidden` and nothing else off that whitelist, in a `<button>` or
+  a link (an `<a>` with an `href` written out) that its own `aria-label` or `aria-labelledby`
+  names, converts to `Icon`, which writes `aria-hidden` on it. The label is what assistive tech
+  reads for the control in place of what it holds, so the icon is decoration there. An `<a>`
+  with no `href` has no role, and ARIA lets nothing name it, so its TODO asks for an `href` or a
+  `<button>` first. The planner marks it `addsHidden`, and the render tests restate the attribute
+  through `withLabelledGlyphsHidden` in the same file, only where the nearest `<a>` or `<button>`
+  around the `.icon` names itself. A third (#1232) changes a class: Font Awesome 6's long name
+  for a style (`fa-brands`) reads as the bestax-icons skill's `variant` (`brands`), which `Icon`
+  renders as the short name (`fab`). The two draw the same in Font Awesome 6, and in 7 too, but
+  that 7's short names also set the classic family, so beside `fa-sharp` the long name stays as
+  written. Font Awesome 5 and older have no long names. `glyph.ts` marks it `longStyle`, and the render tests restate
+  the short name (`e2e/support/font-awesome-styles.ts`). The glyph's props are otherwise the
+  skill's spelling: no `library` for Font Awesome, `Icon`'s default (like every conversion, this
+  takes `ConfigProvider` as unset), and no attribute `Icon` renders by itself with that value
+  (`aria-hidden="true"` with no name, `role="img"` beside one). Font Awesome 4's `fa` stays
+  `variant="fa"`: that version reads no other style, and some of its names mean another glyph
+  in later ones.
+  Another deliberate exception (#1167) changes a class rather than moving an attribute:
+  Bulma 0.9's `is-marginless` and `is-paddingless`, which v1 removed, style nothing under v1, so
+  wherever the element converts they become the v1 helper that does their job (`REPLACED_IN_V1`:
+  `m="0"`, which renders `m-0`). That one does change the page under v1, to the spacing its
+  author meant, which is why it is limited to classes v1 removed. Where the class stays, it
+  gets a `legacy:` TODO. The render tests compare those elements with the v1 class restated in
+  the raw markup (`withV1Classes` in `e2e/support/render-module.ts`), only where the converted
+  element has it in the old one's place.
+  One more (#1870) adds two attributes and changes behavior on purpose: a loading `.button`
+  converts to `Button isLoading`, which writes `aria-busy="true"` and `aria-disabled="true"` and
+  drops a click while it loads, from the keyboard too, where Bulma's spinner stops only a
+  pointer. A migrated app gets the library's loading button, which is the point of converting
+  it. The render tests restate the two attributes on the raw side (`withLoadingButtonsBusy` in
+  the same file), both together, only on a loading `.button` that sets neither, where the
+  converted element has them. One that sets either keeps `is-loading` as a class (the class
+  map's `overridesAttrs`, #2040), since `isLoading` would write over it, so it renders as
+  written.
+- The bulma-classes HTML input is `bulma-classes/html.ts`: parse the page, drop its scripts
+  (each a report), emit its body as JSX with `pageDisplayOf` (an element's inline display, else
+  the displays `display.ts` says Bulma's classes give it across viewports, else its tag's; a
+  box `display.ts`'s `OUT_OF_FLOW` lists counts as no box, and where the cases differ the one
+  kept is the one that keeps every run any of them would), wrap it in a module, run
+  `transform.ts` on that module **unchanged**, at the path the module goes to so the rsc and
+  jsx-runtime gates apply, then `finishModule` (numbers on plain elements, the import's blank
+  line). What a component can't carry becomes a TODO line plus a report entry under the
+  `html-*` rules in `html-rules.ts`, kept apart from `rules.ts` because none of it is about a
+  Bulma class; an id carries only a fixed name, never the page's text, and falls back to the
+  bare kind. Report entries name the page and its line, the planner's mapped back through the
+  emitter's line map. `html-assets.ts` says what each stylesheet and script the page loads is,
+  from its URL, and each extension's message names the bestax component only where reading it
+  showed one does the extension's job. Under `--css bestax` or `--css bulma` the page's Bulma
+  `<link>` becomes `import 'bulma/css/bulma.min.css'` in the module before the transform runs,
+  so the shared stylesheet pass retargets it exactly as in a JSX file, and the CLI reads the
+  module for `bulmaReferenced` as it reads a JSX file's output, so the manifest step agrees.
+  Not in a Next.js app (its Pages Router takes a global stylesheet only in `pages/_app`), and
+  not for a `<link media>`, which an import can't stand for. A local file is read only inside
+  the page's folder, and a `<script src>` only when its type is JavaScript.
+  The page converts once (`html-file:exists` after that), so each re-run the transform's TODOs
+  ask for names the module ("re-run on `index.tsx`"), in the report and in the module's
+  comments, where they also carry the page's lines. A re-run on the module keeps the earlier copy
+  of a TODO it writes again, page lines and all, and drops one it no longer writes that asked for
+  a re-run (`settleTodos` in `transform.ts`). It drops none in a file that still imports a library
+  source (`LIBRARY_SOURCES`), whose own TODOs ask for a re-run of that source.
+  `display.ts` is held to `bulma.css` by `e2e/bulma-classes-display.test.ts`, both tables and
+  the out-of-flow list.
+- `src/sources/_shared/html/` turns HTML into JSX source, library-agnostic: `parse.ts` (parse5,
+  as a document or a fragment), `attributes.ts` (attribute to prop by `property-information`,
+  plus what React needs written by hand; numbers stay strings for the planner, and
+  `numberLiteral` writes them as numbers afterwards), `style.ts`, `text.ts` (escaping and
+  comments), `whitespace.ts` (which whitespace renders, laid out the CSS way, each element's
+  display coming from a `displayOf` hook that defaults to the HTML UA stylesheet) and `emit.ts`
+  (the JSX on the source's own lines, a map from its lines back to the HTML's, and a report of
+  what it could not write as it was). It never decides what a report becomes: the caller turns
+  each into a TODO or a rule id. `e2e/html-converter-round-trip.test.ts` renders what it writes
+  and compares the DOM with the page's, and `e2e/html-attributes-react.test.ts` holds
+  `REACT_UNKNOWN` to React.
 - `src/telemetry-core.ts` is a byte-for-byte copy of
   `create-bestax/src/telemetry-core.ts` — never edit it here; edit the
   create-bestax original and copy it over (`check:conformance
@@ -128,12 +225,27 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
 - Fixture pairs: `__testfixtures__/<case>.input.tsx` → `.output.tsx`, exact-match. To
   update outputs after changing the transform, regenerate them by running the built
   transform over the inputs and reviewing the diff — do not hand-edit drift in.
+  The HTML input's pairs are `bulma-classes/__testfixtures__/html/<case>.input.html` →
+  `<case>.output.tsx`, regenerated the same way from the built `convertPage`
+  (`dist/sources/bulma-classes/html.js`), each converted as `<case>.html` so its component is
+  named from the case.
+- The HTML input has e2es of its own. `e2e/bulma-classes-html-render.test.ts` wants one DOM
+  from the page's body as parse5 builds it, the module before the planner rendered, and the
+  module after it rendered, so the page matching the first module proves the converter and the
+  modules matching each other prove the planner. It normalizes with `e2e/support/dom-canonical.ts`, the round-trip test's normalizer,
+  given the converter's own display hook. `e2e/bulma-classes-html-kitchen-sink.test.ts` converts
+  `fixtures/bulma-classes-html/` under `--css keep` and `--css bestax`, asserts each page's rules
+  exactly, typechecks the output (`pages/leftovers.html` holds every pattern a component can't
+  carry, its own script beside it in `pages/js/`, and its module stays out of the typecheck;
+  `pages/contact.html` holds what the converter leaves out so a module compiles, and is checked),
+  and wants `html-file:exists` alone on a second run. Both kitchen sinks hold every rule they
+  emit to the skill's references through `e2e/support/skill-rules.ts`.
 - Kitchen sink e2e (`e2e/kitchen-sink.test.ts`): copies `fixtures/kitchen-sink` to a
   `mkdtemp`'d dir under `.e2e-tmp/`, migrates it, and runs `tsc --noEmit` on the output
   against the built bulma-ui (`turbo` orders the build; see `bestax-migrate#test` in root
-  turbo.json). The scratch dir is **per process, never a fixed path**: `pnpm all` runs
-  `test` and `test:coverage` in one turbo invocation, so two jest processes run this file
-  concurrently and a shared path lets them clobber each other's rmSync/cpSync — the suite
+  turbo.json). The scratch dir is **per process, never a fixed path**: two Vitest processes
+  can run this file at once (`pnpm test` beside `pnpm test:coverage`, or a watch run beside
+  `pnpm all`), and a shared path lets them clobber each other's rmSync/cpSync — the suite
   then fails as though the codemod had not run. `BESTAX_E2E_KEEP=1` leaves the dir behind.
   `src/leftovers.tsx` holds every intentionally-unsupported pattern — excluded from the
   typecheck, asserted via TODO rules instead. New unsupported patterns go there; new
@@ -145,10 +257,11 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   first hook.
 - Fixtures and `.e2e-tmp` are excluded from tsc/eslint/prettier at both root and package
   level (root `eslint.config.js` + both `.prettierignore`s) — keep them that way.
-- Real-world corpus, one script per source, both fetching a pinned SHA as text only into
-  `.e2e-tmp/` and failing on any crash or unknown-component TODO. Deliberately NOT in CI
-  (no third-party fetches in the pipeline); run them before releases and after mapping
-  changes, and eyeball the before/after diffs they write:
+- Real-world corpus scripts. The ones that fetch read a pinned SHA as text only into
+  `.e2e-tmp/`; all of them fail on any crash, and the library sources' on an
+  unknown-component TODO too. Deliberately NOT in CI (no third-party fetches in the
+  pipeline); run them before releases and after mapping changes, and eyeball the
+  before/after diffs they write:
   - `validate:corpus` — react-bulma-components' own MIT Storybook stories →
     `.e2e-tmp/corpus-out/`.
   - `validate:corpus:rbx` — rbx's own MIT docs. rbx used **docz**, not Storybook, so the
@@ -161,14 +274,31 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   - `validate:corpus:bulma-classes` — this repo's own stories, which mix components with raw
     Bulma markup; `--dir <path>` points it at any app's source instead. Nothing is fetched.
     Output lands in `.e2e-tmp/corpus-out-bulma-classes/`.
+  - `validate:corpus:templates` — the HTML input over the awesome-bulma-templates repos, each
+    fetched at the commit pinned in `scripts/lib/corpus-templates.mjs` (the one home of those
+    pins, checked for shape only, so a moved pin is compared with its port issue by hand) and
+    converted by the CLI with `--css bestax` in a scratch package where every page becomes
+    `.tsx`. It needs the network, which is why it stays out of CI with the others, and it
+    refuses to start until bestax-bulma is built, since tsc reads it for every module. It
+    also fails on a module that no longer parses, on one tsc could not read, and on a rule the
+    skill's references don't document (the kitchen sinks' check), and it lists the modules'
+    `tsc` diagnostics without failing on them. `report.md` and `report.json` in
+    `.e2e-tmp/corpus-templates/` are deterministic, so the reports from before and after a
+    change to the HTML input or the class table diff line by line: that diff is how such a
+    change is measured. A page's classes are counted from its DOM, so a refused page keeps
+    its count. `e2e/corpus-templates.test.ts` tests the script's offline half.
 
   The corpus is the only check that sees breadth; the kitchen-sink e2e is the only one that
   sees bestax's _real_ prop names. Both are needed — the rbx e2e's typecheck caught
   mapping errors that 254 clean Playgrounds had not.
 
+- An element `bulma-classes` leaves as markup, with a class it converts elsewhere, gets a TODO:
+  the ESLint plugin's `no-bulma-component-class` tells the app it converts, so a silent one makes
+  that message false. `scripts/eslint-plugin-codemod-output.test.mjs` lints this package's build
+  output with the rule's build and fails on one.
 - After editing a test file, check the total test count did not drop: a range replacement
   between two non-adjacent `describe` blocks deleted 868 lines on #613 and the suite stayed green
-  at 699 instead of 781. Compare the `Tests:` line from `pnpm test` (bare `jest` miscounts on ESM).
+  at 699 instead of 781. Compare the `Tests` line from `pnpm test`.
 
 ## Releases
 

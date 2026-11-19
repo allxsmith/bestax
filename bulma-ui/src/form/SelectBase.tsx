@@ -1,10 +1,13 @@
 import React, { forwardRef } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useFieldLabelTarget } from './FormContext';
+import { useFieldLabelTarget, useFieldsetDisabled } from './FormContext';
 
 /**
  * Props for the Select component.
+ *
+ * @helperProps Helper props go on the `.select` wrapper `<div>`, with
+ * `className`. The other attributes go on the `<select>`.
  */
 export interface SelectBaseProps
   extends
@@ -21,15 +24,21 @@ export interface SelectBaseProps
     | 'black'
     | 'dark'
     | 'light'
-    | 'white';
+    | 'white'
+    | undefined;
   /** Size modifier for the select. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Rounded select corners. */
   isRounded?: boolean;
   /**
    * Replaces the chevron with a loading spinner.
    * Under `prefers-reduced-motion: reduce` the spinner stops and stays
    * drawn (with bestax's CSS loaded).
+   * The spinner is only drawn, so a screen reader hears nothing of it. Say
+   * that the select is loading in text you tie to it with
+   * `aria-describedby`, which a screen reader reads when it takes focus.
+   * A load that starts while the user is in the field isn't reliably heard
+   * without a live region, such as a `role="status"` element.
    */
   isLoading?: boolean;
   /** Applies Bulma's is-active modifier. */
@@ -43,11 +52,11 @@ export interface SelectBaseProps
   /** Makes the select span the full width of parent. @deprecated Use `isFullwidth` instead — `isFullwidth` wins if both are set. */
   isFullWidth?: boolean;
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Disables the select. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Allows multiple selections. */
-  multiple?: boolean;
+  multiple?: boolean | undefined;
   /** Number of visible options in multiselect. */
   multipleSize?: number;
   /** `<option>` elements. */
@@ -75,7 +84,7 @@ export const SelectBase = forwardRef<HTMLSelectElement, SelectBaseProps>(
       isFullwidth,
       isFullWidth,
       className,
-      disabled,
+      disabled: disabledProp,
       children,
       multiple,
       multipleSize,
@@ -83,6 +92,7 @@ export const SelectBase = forwardRef<HTMLSelectElement, SelectBaseProps>(
     },
     ref
   ) => {
+    const disabled = useFieldsetDisabled(disabledProp);
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color,
       ...props,

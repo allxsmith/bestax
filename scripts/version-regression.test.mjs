@@ -8,7 +8,7 @@
  * history rather than every tag in the repository, is asserted in the check's
  * own docblock and exercised by running it on this repo.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 
 import { dirname, join } from 'node:path';

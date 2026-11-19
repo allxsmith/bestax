@@ -20,6 +20,8 @@ import {
   Input,
   Media,
   MenuLink,
+  Modal,
+  ModalContent,
   Nav,
   NavItem,
   NavLeft,
@@ -74,6 +76,11 @@ export const Leftovers = ({
       </DropdownMenu>
     </Dropdown>
 
+    {/* the open modal is a dialog, and nothing names this one */}
+    <Modal isActive>
+      <ModalContent>unnamed</ModalContent>
+    </Modal>
+
     {/* bestax narrows `as` on these, and a <span> is not in either union */}
     <Media tag="span">span media</Media>
     <MenuLink href="/x" tag="span">
@@ -101,6 +108,9 @@ export const Leftovers = ({
     <Title isSize={3} isFullWidth>
       Wide
     </Title>
+
+    {/* bestax's Subtitle renders the heading its size names, and this one is unreadable */}
+    <Subtitle isSize={dim === "x" ? 4 : 5}>a dynamic size</Subtitle>
 
     {/* the render prop, and Font Awesome 4 classes */}
     <Button render={go} isLink isColor="info">

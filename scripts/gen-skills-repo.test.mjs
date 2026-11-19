@@ -9,10 +9,8 @@
  * fixture, including small git repositories for the input gate. The shared
  * tracked-file helpers themselves are tested in skills-roster.test.mjs, next
  * to the rest of scripts/lib/skills.mjs.
- *
- * `.mjs` and `node --test` rather than jest, matching the other root scripts.
  */
-import { after, test } from 'node:test';
+import { afterAll, test } from 'vitest';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -87,6 +85,7 @@ import {
   isSkillRefusal,
   readSkillNames,
 } from './lib/skills.mjs';
+import { tarball } from './lib/tar-fixture.mjs';
 
 const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const repoText = rel => fs.readFileSync(path.join(REPO, rel), 'utf8');
@@ -98,7 +97,7 @@ function tempDir() {
   temps.push(dir);
   return dir;
 }
-after(() => {
+afterAll(() => {
   for (const dir of temps) fs.rmSync(dir, { recursive: true, force: true });
 });
 
@@ -558,40 +557,6 @@ test('a run joins the shared concurrency group on the condition generate runs on
   assert.equal(jobs.get('publish').get('needs'), 'generate');
   assert.equal(jobs.get('publish').get('if'), null);
 });
-
-/**
- * A ustar archive of `entries`, built here so a test can hold members that
- * tar would not write from a real tree, such as `../` names.
- */
-function tarball(entries) {
-  const blocks = [];
-  for (const {
-    name,
-    type = '0',
-    body = '',
-    mode = 0o644,
-    link = '',
-  } of entries) {
-    const data = Buffer.from(body);
-    const header = Buffer.alloc(512);
-    const put = (offset, size, text) => header.write(text, offset, size);
-    put(0, 100, name);
-    put(100, 8, `${mode.toString(8).padStart(7, '0')}\0`);
-    put(108, 8, '0000000\0');
-    put(116, 8, '0000000\0');
-    put(124, 12, `${data.length.toString(8).padStart(11, '0')}\0`);
-    put(136, 12, '00000000000\0');
-    put(148, 8, ' '.repeat(8));
-    put(156, 1, type);
-    put(157, 100, link);
-    put(257, 8, 'ustar\u000000');
-    const sum = header.reduce((total, byte) => total + byte, 0);
-    put(148, 8, `${sum.toString(8).padStart(6, '0')}\0 `);
-    blocks.push(header, data, Buffer.alloc(-data.length & 511));
-  }
-  blocks.push(Buffer.alloc(1024));
-  return Buffer.concat(blocks);
-}
 
 /** The `run:` script of the publish step named `name`. */
 const publishScript = name =>

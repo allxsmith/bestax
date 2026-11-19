@@ -6,10 +6,13 @@
  *                  [--telemetry|--no-telemetry]
  *
  * Walks the given files/directories, routes each file by type (JS/TSX →
- * jscodeshift transform, .scss/.sass → the source's stylesheet transform),
+ * jscodeshift transform, .scss/.sass → the source's stylesheet transform,
+ * .html/.htm → a new module beside the page, for a source that reads HTML),
  * updates the nearest package.json (unless --no-deps), writes results back
  * (unless --dry), and prints the run report. TODO annotations are expected
- * output — the exit code is 0 whenever the run itself succeeds.
+ * output, and leave the exit code at 0. A file that fails to parse or
+ * transform makes it 1, once every other file has been migrated: see
+ * `EXIT_CODES`.
  */
 
 import fs from 'node:fs';
@@ -22,7 +25,13 @@ import { Reporter } from './report.js';
 import { runTransform } from './runner.js';
 import { getSource, sourceNames } from './sources/registry.js';
 import { reportMigrateRun, type MigrateRunStats } from './telemetry.js';
-import type { CssMode, MigrationSource } from './types.js';
+import type {
+  CssMode,
+  HtmlResult,
+  HtmlTransform,
+  MigrationSource,
+  TodoCollector,
+} from './types.js';
 
 const SKIP_DIRS = new Set([
   'node_modules',
@@ -37,17 +46,45 @@ const STYLE_EXTENSIONS = new Set(['scss', 'sass']);
 const CSS_MODES: CssMode[] = ['bestax', 'bulma', 'keep'];
 
 /**
+ * The exit codes, for `--help` and the README's "Exit codes", which says the
+ * same. Commander exits 1 on a command line it refuses, and so does the bin
+ * entry on a Node older than it supports.
+ */
+const EXIT_CODES = [
+  'Exit codes:',
+  '  0    the run finished; TODO(bestax-migrate) comments are expected output',
+  '  1    a file could not be parsed or transformed (each is marked ✖ and',
+  '       listed in the report, and the other files are still migrated), or',
+  '       the command was refused before the run',
+  '  130  Ctrl-C at the telemetry question, after the run',
+].join('\n');
+
+/** HTML pages, which only a source with `htmlExtensions` reads. */
+const HTML_EXTENSIONS = ['html', 'htm'];
+
+/**
  * Component formats the codemod cannot parse (no jscodeshift grammar) but
  * that can still import the source library — flagged, never rewritten.
  */
 const UNSUPPORTED_EXTENSIONS = ['astro', 'vue', 'svelte', 'mdx'];
 
+function extensionOf(file: string): string {
+  return path.extname(file).replace(/^\./, '');
+}
+
+/**
+ * The files to migrate: those with one of `extensions` in the folders walked,
+ * and every file named, whose extension is one of those or of `named`. A
+ * named HTML page is the only use there is for naming one, while a walk meets
+ * HTML nobody wants converted (Vite's `index.html`, `public/`).
+ */
 export function collectFiles(
   targets: string[],
-  extensions: string[]
+  extensions: string[],
+  named: readonly string[] = []
 ): string[] {
   const files: string[] = [];
-  const visit = (target: string) => {
+  const visit = (target: string, isNamed: boolean) => {
     const stat = fs.statSync(target, { throwIfNoEntry: false });
     if (!stat) {
       throw new Error(`no such file or directory: ${target}`);
@@ -55,13 +92,19 @@ export function collectFiles(
     if (stat.isDirectory()) {
       if (SKIP_DIRS.has(path.basename(target))) return;
       for (const entry of fs.readdirSync(target).sort()) {
-        visit(path.join(target, entry));
+        visit(path.join(target, entry), false);
       }
-    } else if (extensions.includes(path.extname(target).replace(/^\./, ''))) {
+      return;
+    }
+    const extension = extensionOf(target);
+    if (
+      extensions.includes(extension) ||
+      (isNamed && named.includes(extension))
+    ) {
       files.push(target);
     }
   };
-  for (const target of targets) visit(target);
+  for (const target of targets) visit(target, true);
   return files;
 }
 
@@ -246,9 +289,34 @@ function migrateFiles(
   const pkg = sourcePackage(source);
   const sourceImportRe = pkg === null ? null : makeSourceImportRe(pkg);
   for (const file of files) {
+    // Outside the failure handling on purpose: a file the run can't read at
+    // all stops it here, before the manifest pass, which could not tell
+    // whether that file still imports the source.
     const sourceText = fs.readFileSync(file, 'utf8');
     const collector = reporter.startFile();
-    const extension = path.extname(file).replace(/^\./, '');
+    const extension = extensionOf(file);
+    if (source.transformHtml && source.htmlExtensions?.includes(extension)) {
+      const page = migrateHtmlPage(
+        source.transformHtml,
+        file,
+        sourceText,
+        collector,
+        io,
+        { ...options, project }
+      );
+      if ('error' in page) {
+        reporter.failFile(file, page.error, collector.entries);
+        continue;
+      }
+      const written = page.written;
+      // The module is what the app will import from, as a JSX file's output
+      // is: one that imports bulma/… needs `bulma` declared.
+      if (written !== null && /['"](?:~?bulma\/)/.test(written)) {
+        bulmaReferenced = true;
+      }
+      reporter.finishFile(file, written !== null, collector.entries);
+      continue;
+    }
     let output: string | null;
     try {
       if (STYLE_EXTENSIONS.has(extension)) {
@@ -265,14 +333,15 @@ function migrateFiles(
         }).output;
       }
     } catch (error) {
-      io.error(chalk.red(`✖ ${file}: ${(error as Error).message}`));
+      const message = (error as Error).message;
+      io.error(chalk.red(`✖ ${file}: ${message}`));
       // Read the signals off the ORIGINAL text before bailing. A parse
       // failure in the only file importing the source library would
       // otherwise let the manifest pass remove the package with no warning —
       // the file still imports it, we just couldn't rewrite it.
       if (/['"](?:~?bulma\/)/.test(sourceText)) bulmaReferenced = true;
       if (importsSource(sourceImportRe, sourceText)) sourceStillImported = true;
-      reporter.finishFile(file, false, collector.entries);
+      reporter.failFile(file, message, collector.entries);
       continue;
     }
     if (/['"](?:~?bulma\/)/.test(output ?? sourceText)) {
@@ -288,6 +357,69 @@ function migrateFiles(
     reporter.finishFile(file, output !== null, collector.entries);
   }
   return { bulmaReferenced, sourceStillImported };
+}
+
+/**
+ * One HTML page: its module is written beside it (never over a file already
+ * there; the source checks), and the page itself is left as it was. Returns
+ * the module, null when there is none to write, or why the page failed.
+ */
+function migrateHtmlPage(
+  transformHtml: HtmlTransform,
+  file: string,
+  sourceText: string,
+  collector: TodoCollector,
+  io: CliIo,
+  options: RunOptions & { project: object }
+): { written: string | null } | { error: string } {
+  let result: HtmlResult;
+  try {
+    result = transformHtml(file, sourceText, collector, {
+      ...options.project,
+      cssMode: options.cssMode,
+    });
+  } catch (error) {
+    const message = (error as Error).message;
+    io.error(chalk.red(`✖ ${file}: ${message}`));
+    return { error: message };
+  }
+  if (result.output === null) return { written: null };
+  if (options.print) io.log(result.output);
+  if (options.dry) {
+    io.log(chalk.yellow(`Would write ${result.outputPath} from ${file}.`));
+  } else {
+    fs.writeFileSync(result.outputPath, result.output);
+    io.log(chalk.green(`Wrote ${result.outputPath} from ${file}.`));
+  }
+  return { written: result.output };
+}
+
+/**
+ * HTML pages a folder walk found but `--extensions` left out, reported when
+ * they carry what the source would convert, so a run over a folder of pages
+ * that `--extensions` leaves out doesn't just say nothing happened.
+ */
+function reportExcludedHtml(
+  source: MigrationSource,
+  targets: string[],
+  reporter: Reporter,
+  extensions: string[]
+): void {
+  const left = (source.htmlExtensions ?? []).filter(
+    ext => !extensions.includes(ext)
+  );
+  const find = source.excludedHtml;
+  if (left.length === 0 || !find) return;
+  const folders = targets.filter(target =>
+    fs.statSync(target, { throwIfNoEntry: false })?.isDirectory()
+  );
+  for (const file of collectFiles(folders, left)) {
+    const entry = find(file, fs.readFileSync(file, 'utf8'));
+    if (!entry) continue;
+    const collector = reporter.startFile();
+    collector.add(entry);
+    reporter.finishFile(file, false, collector.entries);
+  }
 }
 
 /**
@@ -369,6 +501,7 @@ function migrateDependencies(
   for (const pkgPath of findPackageJsons(targets)) {
     const collector = reporter.startFile();
     let changed = false;
+    let failure: string | undefined;
     try {
       const raw = fs.readFileSync(pkgPath, 'utf8');
       const pkg = JSON.parse(raw);
@@ -387,7 +520,12 @@ function migrateDependencies(
         }
       }
     } catch (error) {
-      io.error(chalk.red(`✖ ${pkgPath}: ${(error as Error).message}`));
+      failure = (error as Error).message;
+      io.error(chalk.red(`✖ ${pkgPath}: ${failure}`));
+    }
+    if (failure !== undefined) {
+      reporter.failFile(pkgPath, failure, collector.entries);
+      continue;
     }
     reporter.finishFile(pkgPath, changed, collector.entries);
     if (changed) {
@@ -518,10 +656,14 @@ export function createCLI(
       'dry run — report what would change without writing',
       false
     )
-    .option('-p, --print', 'print transformed sources to stdout', false)
+    .option(
+      '-p, --print',
+      'print transformed sources to stdout (still writes them unless --dry)',
+      false
+    )
     .option(
       '-e, --extensions <list>',
-      'comma-separated file extensions to include',
+      'comma-separated file extensions to include in a folder (html for HTML pages)',
       'js,jsx,ts,tsx,scss,sass'
     )
     .option(
@@ -534,6 +676,7 @@ export function createCLI(
       'enable anonymous usage telemetry (https://bestax.io/docs/guides/telemetry)'
     )
     .option('--no-telemetry', 'disable anonymous usage telemetry')
+    .addHelpText('after', `\n${EXIT_CODES}`)
     .action(async (sourceName: string, targets: string[], options) => {
       const source = getSource(sourceName);
       if (!source) {
@@ -557,9 +700,29 @@ export function createCLI(
         .map(ext => ext.trim())
         .filter(Boolean);
 
+      const htmlExtensions = source.htmlExtensions ?? [];
+      if (htmlExtensions.length === 0) {
+        const asked = [
+          ...extensions.filter(ext => HTML_EXTENSIONS.includes(ext)),
+          ...targets.filter(target =>
+            HTML_EXTENSIONS.includes(extensionOf(target))
+          ),
+        ];
+        if (asked.length > 0) {
+          const readers = sourceNames().filter(
+            name => (getSource(name)?.htmlExtensions?.length ?? 0) > 0
+          );
+          io.error(
+            `${chalk.red('The ' + source.name + ' source reads no HTML pages')} (${asked.join(', ')}). HTML pages convert with: ${readers.join(', ')}`
+          );
+          program.error('', { exitCode: 1 });
+          return;
+        }
+      }
+
       let files: string[];
       try {
-        files = collectFiles(targets, extensions);
+        files = collectFiles(targets, extensions, htmlExtensions);
       } catch (error) {
         io.error(chalk.red((error as Error).message));
         program.error('', { exitCode: 1 });
@@ -583,6 +746,7 @@ export function createCLI(
         runOptions,
         project
       );
+      reportExcludedHtml(source, targets, reporter, extensions);
       const unsupportedImports = reportUnsupportedFiles(
         source,
         targets,
@@ -602,6 +766,17 @@ export function createCLI(
       io.log(
         reporter.render(source.label + (runOptions.dry ? ' (dry run)' : ''))
       );
+
+      // A file that failed leaves the migration unfinished, whatever the
+      // rest did, so the exit code says so: a script or CI step that runs
+      // the codemod must not read it as success. Every other file has been
+      // migrated by now. Not `program.error`, which exits at once and could
+      // cut the report short on its way down a pipe. The run is not a
+      // successful one, so it ends here, with no nudge and no telemetry.
+      if (reporter.failures.length > 0) {
+        process.exitCode = 1;
+        return;
+      }
 
       displayStarNudge(io);
 

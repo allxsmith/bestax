@@ -6,7 +6,7 @@ export function Repositories() {
         <a className="is-active">All</a>
         <a>Public</a>
       </p>
-      <a className="panel-block is-active" href="/bulma">
+      <a className="panel-block is-active" href="/bulma" aria-current="page">
         <span className="panel-icon">
           <i className="fas fa-book" aria-hidden="true"></i>
         </span>
@@ -20,5 +20,28 @@ export function Repositories() {
         remember me
       </label>
     </nav>
+  );
+}
+
+export function Program() {
+  return (
+    <section className="panel is-info" aria-labelledby="program">
+      <p className="panel-heading" id="program">
+        Program
+      </p>
+      <div className="panel-block">
+        <table className="table is-fullwidth">
+          <tbody>
+            <tr>
+              <td>9:00</td>
+              <td>Grand Opening</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <label className="panel-block" htmlFor="remember">
+        Remember me
+      </label>
+    </section>
   );
 }

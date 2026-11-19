@@ -1,5 +1,5 @@
 // Pin the React family to a single major across every workspace manifest, so
-// `npm install` resolves a consistent tree for the React 18/19 compatibility
+// `pnpm install` resolves a consistent tree for the React 18/19 compatibility
 // matrix (see .github/workflows/ci.yml). Usage: node .github/scripts/pin-react.mjs 18
 import { readFileSync, writeFileSync } from 'node:fs';
 
@@ -25,12 +25,19 @@ const pkgs = ['react', 'react-dom'];
 for (const file of manifests) {
   const json = JSON.parse(readFileSync(file, 'utf8'));
   let changed = false;
-  for (const section of sections) {
-    for (const name of pkgs) {
-      if (json[section]?.[name]) {
-        json[section][name] = `^${major}`;
-        changed = true;
-      }
+  for (const name of pkgs) {
+    const targets = sections.filter(section => json[section]?.[name]);
+    // A package that declares React only as a peer (bulma-ui) gets it as a
+    // devDependency too. Without one, the install keeps the lockfile's
+    // resolution of the peer, which the peer range still admits, and the
+    // package goes on testing the other major (#1099). The job's tree is
+    // never committed.
+    if (targets.length === 0 && json.peerDependencies?.[name]) {
+      targets.push('devDependencies');
+    }
+    for (const section of targets) {
+      json[section] = { ...json[section], [name]: `^${major}` };
+      changed = true;
     }
   }
   if (changed) {

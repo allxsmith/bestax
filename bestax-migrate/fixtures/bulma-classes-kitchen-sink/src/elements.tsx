@@ -4,8 +4,8 @@ export function Elements() {
   const [count, setCount] = useState(0);
   return (
     <div className="box">
-      <h2 className="title is-3 is-spaced">Elements</h2>
-      <h3 className="subtitle is-5">Every element that converts</h3>
+      <h2 className="title is-2 is-spaced">Elements</h2>
+      <h3 className="subtitle is-3">Every element that converts</h3>
       <div className="buttons are-medium is-right">
         <button
           className="button is-primary is-rounded"

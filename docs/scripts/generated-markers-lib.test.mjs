@@ -2,7 +2,7 @@
  * Guards on generated-markers-lib.mjs, the marker strip behind the README
  * that scripts/gen-skills-repo.mjs publishes.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
   MARKER_LINE,

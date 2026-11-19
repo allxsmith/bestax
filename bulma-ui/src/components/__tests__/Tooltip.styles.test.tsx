@@ -53,13 +53,36 @@ const rulesFor = (selector: string) =>
       rule.selectorText.split(',').some(part => part.trim() === selector)
   );
 
+/**
+ * Every style rule in the compiled sheet, with the at-rules it sits in
+ * (`@media (forced-colors: active)`), outermost first. jsdom evaluates no
+ * media query, so a forced-colors rule is read here rather than computed.
+ */
+const allRules = () => {
+  const out: { rule: CSSStyleRule; within: string[] }[] = [];
+  const walk = (list: CSSRuleList, within: string[]) => {
+    for (const rule of Array.from(list)) {
+      if (rule instanceof CSSStyleRule) {
+        out.push({ rule, within });
+      } else if ('cssRules' in rule) {
+        walk((rule as CSSGroupingRule).cssRules, [
+          ...within,
+          rule.cssText.split('{')[0].trim(),
+        ]);
+      }
+    }
+  };
+  walk(styleEl.sheet!.cssRules, []);
+  return out;
+};
+
 /** Shows it the way the pointer does, so it is open rather than only active. */
 const hoverOpen = () => {
-  const event = new MouseEvent('pointerover', { bubbles: true });
-  Object.defineProperty(event, 'pointerType', { value: 'mouse' });
-  fireEvent(screen.getByRole('button', { name: 'Trigger' }), event);
+  fireEvent.pointerOver(screen.getByRole('button', { name: 'Trigger' }), {
+    pointerType: 'mouse',
+  });
   act(() => {
-    jest.runOnlyPendingTimers();
+    vi.runOnlyPendingTimers();
   });
 };
 
@@ -69,6 +92,17 @@ const registered = (selector: string, name: string) =>
     .map(rule => rule.style.getPropertyValue(`--bulma-${name}`))
     .find(Boolean);
 
+/**
+ * `value` as a rule declaring it for `property` reads back. jsdom works a
+ * calc() of plain lengths out, as browsers do, so `calc(5px + 4px)` is
+ * `calc(9px)`.
+ */
+const declared = (property: string, value: string) => {
+  const style = document.createElement('div').style;
+  style.setProperty(property, value);
+  return style.getPropertyValue(property);
+};
+
 const bridge = (selector: string) => {
   const rules = rulesFor(`${selector}::after`);
   expect(rules.length).toBeGreaterThan(0);
@@ -77,11 +111,11 @@ const bridge = (selector: string) => {
 };
 
 beforeEach(() => {
-  jest.useFakeTimers();
+  vi.useFakeTimers();
 });
 
 afterEach(() => {
-  jest.useRealTimers();
+  vi.useRealTimers();
 });
 
 describe('Tooltip styles under a class prefix', () => {
@@ -150,8 +184,8 @@ describe('Tooltip styles under a class prefix', () => {
     (_, selector, edge) => {
       const at = bridge(selector);
       expect(at(edge)).toBe('100%');
-      expect(at('left')).toBe('0');
-      expect(at('right')).toBe('0');
+      expect(at('left')).toBe('0px');
+      expect(at('right')).toBe('0px');
       expect(at('width')).toBeUndefined();
     }
   );
@@ -164,8 +198,8 @@ describe('Tooltip styles under a class prefix', () => {
     (position, edge) => {
       const at = bridge(`.bestax-tooltip.bestax-is-open.bestax-is-${position}`);
       expect(at(edge)).toBe('100%');
-      expect(at('top')).toBe('0');
-      expect(at('bottom')).toBe('0');
+      expect(at('top')).toBe('0px');
+      expect(at('bottom')).toBe('0px');
       expect(at('height')).toBeUndefined();
     }
   );
@@ -195,7 +229,7 @@ describe('Tooltip styles under a class prefix', () => {
         '.bestax-tooltip-content',
         'tooltip-arrow-margin'
       );
-      const gap = `calc(${arrow} + ${margin})`;
+      const gap = declared('height', `calc(${arrow} + ${margin})`);
       const open = `.bestax-tooltip.bestax-is-open${size}`;
       expect(bridge(`${open}.bestax-is-top`)('height')).toBe(gap);
       expect(bridge(`${open}.bestax-is-bottom`)('height')).toBe(gap);
@@ -209,5 +243,110 @@ describe('Tooltip styles under a class prefix', () => {
     expect(getComputedStyle(content()).top).toBe(
       'calc(100% + var(--bulma-tooltip-arrow-size) + var(--bulma-tooltip-arrow-margin))'
     );
+  });
+
+  // A label wider than the box used to run out of it, light text on the page
+  // (#1909). jsdom lays nothing out, so this reads what the box is told to
+  // do; a browser sizes `max-content` to the text's one line, which is what
+  // an absolutely placed `nowrap` box took, until `max-width` wraps it.
+  it('sizes the box to its text, wrapping a label wider than the max width inside it', () => {
+    renderPrefixed();
+    const style = getComputedStyle(content());
+    expect(style.width).toBe('max-content');
+    expect(style.whiteSpace).toBe('normal');
+    expect(style.overflowWrap).toBe('break-word');
+    expect(style.maxWidth).toBe('var(--bulma-tooltip-max-width)');
+    // It sets no alignment of its own, as before, so rich content with its
+    // own line breaks lines up as it did.
+    expect(style.textAlign).toBe('start');
+  });
+
+  it('keeps a multiline tooltip at its own width, its text centered', () => {
+    renderPrefixed({ multiline: true });
+    const style = getComputedStyle(content());
+    expect(style.width).toBe('var(--bulma-tooltip-multiline-width)');
+    expect(style.textAlign).toBe('center');
+  });
+
+  describe('in forced colors', () => {
+    /** The declarations of the one forced-colors rule for `selector`. */
+    const forcedRule = (selector: string) => {
+      const found = allRules().filter(
+        ({ rule, within }) =>
+          within.length === 1 &&
+          within[0] === '@media (forced-colors: active)' &&
+          rule.selectorText === selector
+      );
+      expect(found).toHaveLength(1);
+      return found[0].rule.style;
+    };
+
+    // A system color is compared without its case.
+    it('outlines the box in the system text color', () => {
+      const box = forcedRule('.bestax-tooltip-content');
+      expect(box.getPropertyValue('outline').toLowerCase()).toBe(
+        '1px solid canvastext'
+      );
+    });
+
+    // Forced colors paints every side of the arrow's border, which makes it a
+    // square. Opting out keeps its transparent sides, and the side that points
+    // takes the background variable.
+    it('opts the arrow out and points it in the system text color', () => {
+      const arrow = forcedRule('.bestax-tooltip-content::before');
+      expect(arrow.getPropertyValue('forced-color-adjust')).toBe('none');
+      expect(
+        arrow
+          .getPropertyValue('--bulma-tooltip-background')
+          .trim()
+          .toLowerCase()
+      ).toBe('canvastext');
+    });
+  });
+});
+
+// The same rules in the default build, with no class prefix (#1909).
+describe('Tooltip box width in the default build', () => {
+  let plainSheet: HTMLStyleElement;
+
+  beforeAll(() => {
+    plainSheet = document.createElement('style');
+    plainSheet.textContent = sass.compileString(
+      `@use 'bulma/sass/utilities/initial-variables';
+       @use 'components/tooltip';`,
+      {
+        loadPaths: [SCSS, NODE_MODULES],
+        quietDeps: true,
+        logger: sass.Logger.silent,
+      }
+    ).css;
+    document.head.appendChild(plainSheet);
+  });
+
+  afterAll(() => {
+    plainSheet.remove();
+  });
+
+  it('sizes the box to its text, wrapping inside the max width', () => {
+    render(
+      <Tooltip label="Tip">
+        <button>Trigger</button>
+      </Tooltip>
+    );
+    const style = getComputedStyle(content());
+    expect(style.width).toBe('max-content');
+    expect(style.whiteSpace).toBe('normal');
+    expect(style.overflowWrap).toBe('break-word');
+  });
+
+  it('keeps a multiline tooltip at its own width, its text centered', () => {
+    render(
+      <Tooltip label="Tip" multiline>
+        <button>Trigger</button>
+      </Tooltip>
+    );
+    const style = getComputedStyle(content());
+    expect(style.width).toBe('var(--bulma-tooltip-multiline-width)');
+    expect(style.textAlign).toBe('center');
   });
 });

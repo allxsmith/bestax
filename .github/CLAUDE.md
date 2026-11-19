@@ -341,8 +341,8 @@ writing the trigger string at all.
 ### 9. Logic worth testing does not belong in YAML
 
 Shell embedded in a workflow step cannot be unit-tested without extracting it first. Put
-non-trivial parsing in `scripts/*.mjs` with a `node --test` sibling — root `pnpm test` runs
-`node --test "scripts/*.test.mjs"` (the glob is quoted so Node expands it, not the shell).
+non-trivial parsing in `scripts/*.mjs` with a test sibling — root `pnpm test` runs every
+`scripts/*.test.mjs`.
 Three extractions exist. The two from #454: the scan-verdict parser
 (`scripts/parse-scan-verdict.mjs`, called by `ai-scan.yml`) and the publish sanitizer
 (`scripts/sanitize-repro-draft.mjs`, called by `claude-repro.yml`) — their test siblings pin
@@ -549,11 +549,12 @@ jobs (`ci.yml`, `deploy.yml`, `test-deploy.yml`, `visual-regression.yml`, `story
 - **Enforcing and asserted** — every `ai-scan` job (`gate`, `scan`, `label`), every
   `ai-triage` job (`gate`, `triage`, `publish`, `cleanup`), `claude-repro` (`author` **only**),
   `deploy-worker` (`deploy`), `supply-chain` (`consumer-sbom` and `sign-sbom`),
-  `security-txt-expiry` (`check`), `auto-close-duplicates` (`auto-close`), `claude` (`claude`),
+  `security-txt-expiry` (`check`), `create-vite-drift` (`check`), `auto-close-duplicates`
+  (`auto-close`), `claude` (`claude`),
   `claude-implement` (`implement`), `bestaxbot-reply` (`respond`), `claude-review` (`review`),
   `claude-pr-loop` (`fix` and `verify`), `mcp-registry` (`publish`), `codemod-registry`
   (`validate` and `publish`), `review-converged` (`sync`), `skills-publish` (`relay`, `generate`
-  and `publish`). The command below lists them, and
+  and `publish`), `templates-publish` (`generate` and `publish`). The command below lists them, and
   `grep -rn "disable-sudo-and-containers: true" .github/workflows/` lists the jobs that set
   `disable-sudo-and-containers`.
 - **Audit, deliberately, pending a measured allowlist** — none, as of #578. That issue closed the
@@ -626,10 +627,10 @@ bounding it ("What the agent allows beyond the list" says what reaches past a jo
 included), and it does nothing about what a session does with an allow-listed host (see I1).
 Widening an allowlist remains a security change under rule 2, and `sign-sbom`'s list is still
 assembled by reading the actions rather than from a measured run.
-So are `mcp-registry`'s `publish` list, `codemod-registry`'s `validate` and `publish` lists and
-`skills-publish`'s `relay`, `generate` and `publish` lists, which no run had exercised when they
-were written.
-The codemod-registry and skills-publish comments give the reason for each host.
+So are `mcp-registry`'s `publish` list, `codemod-registry`'s `validate` and `publish` lists,
+`skills-publish`'s `relay`, `generate` and `publish` lists and `templates-publish`'s `generate`
+and `publish` lists, which no run had exercised when they were written.
+The codemod-registry, skills-publish and templates-publish comments give the reason for each host.
 
 Verify rather than assume, on any run: the assertion step passes, and harden-runner's post-step
 prints the effective `EgressPolicy:`.
@@ -803,6 +804,45 @@ Two things about reading its output, both learned assembling the #578 lists:
 
 Then resolve every host before it goes in the list, per the rule above.
 
+#### When the agent drops a job's first connections
+
+On some hosted runners the agent drops a step's connection to a host the job allows. The agent
+admitted one address for the host and the step's own DNS lookup returned another, so the agent log
+reads `ip address dropped` and the step gets `connection refused`. It shows at the start of a job,
+and a later re-resolution (`refreshDNSEntries`, above) can admit the address. The upstream report is
+step-security/harden-runner#708, and #1258 has this repo's runs.
+
+The cost here was a misread. The checks that re-verify the triggering user's live role read a failed
+call as role `none`, so a dropped run logged that the user lacked access and skipped its work as if
+they were untrusted. Each check now calls `lookup_role`. Its waits add up to 95 seconds and each
+call is capped at 10 seconds, so at worst it takes 155 seconds before it fails the step with an
+`::error::` that says the API call failed. `scripts/role-lookup.test.mjs` computes that worst case
+from the function, and a step that calls it needs a timeout longer than that.
+
+- An answer from the API, `read` and `none` included, is handled as before.
+- A 404, which the endpoint returns for a renamed or deleted account, reads as `none`.
+- A rate limit (403 or 429) is retried like a dropped connection.
+- Any other 4xx fails the step at once, since a retry won't change it.
+
+`scripts/role-lookup.test.mjs` runs each check against a stub `gh`, holds the copies of
+`lookup_role` equal, and checks each step's timeout against the worst case. The copies stay inline:
+each one runs before any checkout, and rule 1 keeps security steps in the workflow.
+
+In the deep review the steps after the role check read the API the same way. The dedupe step's read
+of the reviews is the job's first call on an ai-loop `opened` event, since the role check calls
+nothing there. The focus step reads the comments and looks up each steer author's role. A failure
+there stops the run rather than picking a review mode. A missing steer, or an author misread as
+untrusted, can pick the wrong one, such as a verify pass where a full review was asked for.
+
+What it does not cover:
+
+- A later step's host can be dropped the same way: a checkout of `github.com`, the npm registry, the
+  model API. The retries cover only the GitHub API reads above.
+- On those runners a job can also sit in the runner's post-job cleanup, every step finished, until
+  its `timeout-minutes` ends it. No step timeout reaches that. Where the job's own timeout is long,
+  the role lookup, the deep review's dedupe and focus steps, and the checkout carry short step
+  timeouts, so that a step which hangs fails on its own. The job timeouts are unchanged.
+
 ## Review checklist for a workflow change
 
 - [ ] Does any allowlist grow? If yes, name the credential in that job and justify each entry.
@@ -877,3 +917,9 @@ mark a deliberate exception with `bestax:count-ok` on the same line and say why.
   environment, which admits `main` only. The generator runs in one job and the key sits in
   another, which runs no repository code. The workflow's header gives the triggers, that split,
   why a release reaches it through a dispatch, and why the environment has no required reviewer.
+- **The templates mirror.** `templates-publish.yml` pushes the tree
+  `scripts/gen-templates-repo.mjs` generates to allxsmith/bestax-templates, which StackBlitz
+  opens the ported templates from, in the same two-job shape as `skills-publish.yml`: a deploy
+  key held in the `templates-publish` environment, which admits `main` only, and a key job that
+  runs no repository code. It has no release trigger and no relay. Its header points to
+  `skills-publish.yml` wherever the reasoning is the same.

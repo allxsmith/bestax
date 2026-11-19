@@ -233,17 +233,45 @@ function SplitButton() {
 
 ## Accessibility
 
-- The dropdown root is a `<div class="dropdown">` with ARIA roles/attributes for menu and trigger.
-- The trigger button uses `aria-haspopup`, `aria-controls`, and `aria-expanded`.
-- Menu items are focusable and use `role="menuitem"`. An item given `role="menuitemcheckbox"` or `role="menuitemradio"` stays in the arrow-key order.
-- The items are the only focusable things inside `role="menu"`. A click between them, on a divider say, focuses the menu itself, so the arrow keys still reach the items from there.
+- The trigger is a `<button>` with `aria-haspopup="true"` and `aria-expanded`, and its
+  `aria-controls` points at the menu, with or without an `id` on the Dropdown.
+- The menu is `role="menu"`, and `aria-labelledby` names it after the trigger, so a screen
+  reader moving into it hears the trigger's label. That makes the `label` the menu's name too,
+  so a trigger that shows only an icon needs text a screen reader can read, as in the
+  [split button](#split-button).
+- Each item is `role="menuitem"`. An item given `role="menuitemcheckbox"` or
+  `role="menuitemradio"` stays in the arrow-key order.
+- `Dropdown.Item active` sets `aria-current="true"`, so the current item isn't only a color. An
+  `aria-current` you pass wins: a menu of pages can say `"page"`, and `aria-current={false}`
+  turns it off, as on an item that says its state with `aria-checked`.
+- **Forced colors:** Bulma draws `Dropdown.Divider` as a background color, which forced colors
+  (Windows' contrast themes) paints in the menu's own color, so bestax's styles draw it in the
+  system's text color there. Forced colors also replaces the fill and text color Bulma marks an
+  `active` item with, so bestax's styles mark it with a bar in the system's highlight color along
+  its start edge, as `Menu` does, and every item keeps the bar's width so no label moves. Forced
+  colors also drops the shadow Bulma draws the open menu's box with, so bestax's styles give the
+  box an edge in the system's text color. Those rules ship in `bestax.css` and `extras.css`, not
+  in Bulma's own stylesheet.
+- A click between items, on a divider say, focuses the menu itself, so the arrow keys still
+  reach the items from there.
 - `Dropdown.Item as="button"` defaults to `type="button"`, so a menu item inside a form doesn't
   submit it. Pass `type="submit"` or `type="reset"` and yours is used instead; any other value
   renders `type="button"`.
-- Clicking outside closes the dropdown in most cases.
+- Pressing outside an open menu closes it.
+- On a `hoverable` Dropdown, <kbd>Escape</kbd> puts away a menu the pointer is showing, so it can
+  be dismissed without moving the pointer, as
+  [WCAG 1.4.13](https://www.w3.org/WAI/WCAG22/Understanding/content-on-hover-or-focus.html) asks.
+  It stays away until the pointer leaves the Dropdown. With focus on the trigger, the key is used
+  there (`preventDefault()`), so a `Modal` around the Dropdown waits for the next one. With focus
+  elsewhere on the page, the key goes on to what has focus too, as a tooltip's does.
+- A click the browser dispatches with no pointer behind it (`detail` 0), as a screen reader's
+  browse mode can send when you activate the trigger, opens the menu and focuses its first enabled
+  item, as <kbd>Enter</kbd> does. A pointer's click on the trigger, and a script's `click()`, open
+  it and move no focus into it.
 
-`Dropdown` implements the [WAI-ARIA Menu Button pattern](https://www.w3.org/WAI/ARIA/apg/patterns/menu-button/)
-out of the box:
+The keyboard follows the [WAI-ARIA Menu Button pattern](https://www.w3.org/WAI/ARIA/apg/patterns/menu-button/).
+Unlike the pattern's menu items, each item is also a tab stop, so <kbd>Tab</kbd> from the
+trigger of a `hoverable` menu the pointer holds open goes through its items.
 
 - On the trigger: <kbd>ArrowDown</kbd> or <kbd>Enter</kbd>/<kbd>Space</kbd> open the menu and
   focus the first item; <kbd>ArrowUp</kbd> opens the menu and focuses the last item;
@@ -252,8 +280,11 @@ out of the box:
   <kbd>Enter</kbd>/<kbd>Space</kbd> close it.
 - Inside the menu: <kbd>ArrowDown</kbd>/<kbd>ArrowUp</kbd> move between items and wrap around;
   <kbd>Home</kbd>/<kbd>End</kbd> jump to the first/last item; <kbd>Escape</kbd> closes the menu
-  and returns focus to the trigger; <kbd>Tab</kbd> closes the menu and lets focus continue
-  naturally.
+  and returns focus to the trigger.
+- <kbd>Tab</kbd> in an open menu closes it and moves focus to the next tab stop after the
+  Dropdown, and <kbd>Shift</kbd>+<kbd>Tab</kbd> closes it and focuses the trigger. Inside a
+  focus trap, such as a `Modal`'s, a Dropdown with nothing after it sends Tab to the trap's
+  first stop, as Tab from the trap's last stop does.
 - Typing a letter moves to the next item whose text starts with it, and typing it again cycles
   through the items that do. Letters typed in quick succession add up to one search, so
   <kbd>d</kbd> then <kbd>u</kbd> lands on "Duplicate" past "Download". Text hidden with
@@ -268,14 +299,20 @@ out of the box:
   as it does for <kbd>Escape</kbd>. An item whose `onClick` moves focus somewhere else keeps
   it there.
 - Disabled items (a `Dropdown.Item` rendered with a native `disabled` attribute or
-  `aria-disabled="true"`) and dividers are skipped by the arrow keys and by typing.
+  `aria-disabled="true"`) and dividers are skipped by the arrow keys and by typing. An item that
+  turns disabled while it has focus, such as one whose action is loading, keeps its place: the
+  arrows and typing go on from where it sits. An `as="button"` item given `disabled` loses focus
+  to the page instead, as any disabled button does.
 - For a panel built around fields, [`Popover`](./popover.md) fits better: `role="menu"` owns
   menu items, and the default `closeOnClick` shuts the menu on a click anywhere in it, a field
   included. Anything focusable you put in the menu anyway that isn't an item (a field, a
   button, a checkbox, a link without a menu-item role) keeps its own keys, so its arrows,
   <kbd>Home</kbd>, <kbd>End</kbd> and letters don't move to the items. A field needs
   `closeOnClick={false}`, or a click into it closes the menu. <kbd>Escape</kbd> and
-  <kbd>Tab</kbd> still close the menu from any of them.
+  <kbd>Tab</kbd> still close the menu from any of them, except an <kbd>Escape</kbd> the
+  control used itself by calling `preventDefault()` in its `onKeyDown`, such as an Autocomplete
+  closing its list or a date picker closing its calendar.
+  The next <kbd>Escape</kbd> closes the menu.
 
 ---
 
@@ -284,7 +321,7 @@ out of the box:
 - [`Button`](../elements/button.md): Use Bulma/Bestax buttons as triggers if needed.
 - [`Popover`](./popover.md): A panel of interactive content, such as a form, rather than a menu of actions.
 - [`ContextMenu`](./contextmenu.md): The same items in a menu that opens where you right-click an element, or long press it, rather than from a button.
-- [Helper Props](../helpers/usebulmaclasses.md): All Bulma utility helpers can be used.
+- [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing and other utilities.
 
 ---
 
@@ -294,7 +331,7 @@ out of the box:
 - [Storybook: Dropdown Stories](https://bestax.io/storybook/?path=/story/components-dropdown--default)
 
 :::tip Pro Tip
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Dropdown />`, `<Dropdown.Item />`, and `<Dropdown.Divider />` for utility-based styling.
+You can use [Bulma helper props](../helpers/usebulmaclasses.md) with `<Dropdown />` and `<Dropdown.Item />` for utility-based styling.
 :::
 
 ---
@@ -305,22 +342,22 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Dropd
 
 <!-- bestax:generated props -->
 
-| Prop             | Type                                                   | Default | Description                                                                   |
-| ---------------- | ------------------------------------------------------ | ------- | ----------------------------------------------------------------------------- |
-| `label`          | `React.ReactNode`                                      | —       | The dropdown button/trigger content.                                          |
-| `children`       | `React.ReactNode`                                      | —       | Dropdown menu items and dividers.                                             |
-| `className`      | `string`                                               | —       | Additional CSS classes for root.                                              |
-| `menuClassName`  | `string`                                               | —       | Additional CSS classes for the dropdown menu.                                 |
-| `active`         | `boolean`                                              | —       | Whether the dropdown is open (controlled).                                    |
-| `up`             | `boolean`                                              | `false` | Dropdown menu opens upward.                                                   |
-| `right`          | `boolean`                                              | `false` | Menu is right-aligned.                                                        |
-| `hoverable`      | `boolean`                                              | `false` | Open on hover instead of click.                                               |
-| `disabled`       | `boolean`                                              | `false` | Disables the dropdown trigger.                                                |
-| `onActiveChange` | `(active: boolean) => void`                            | —       | Callback when dropdown active state changes.                                  |
-| `closeOnClick`   | `boolean`                                              | `true`  | Close dropdown when a menu item is clicked, or activated with Enter or Space. |
-| `id`             | `string`                                               | —       | Root element ID (for aria-controls, etc).                                     |
-| `ref`            | `React.Ref<HTMLDivElement>`                            | —       | Ref forwarded to the root dropdown element.                                   |
-| `...`            | All standard `<div>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                             |
+| Prop             | Type                                                   | Default | Description                                                                                                                                                                                        |
+| ---------------- | ------------------------------------------------------ | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`          | `React.ReactNode`                                      | —       | **Required.** The dropdown button/trigger content.                                                                                                                                                 |
+| `children`       | `React.ReactNode`                                      | —       | **Required.** Dropdown menu items and dividers.                                                                                                                                                    |
+| `className`      | `string`                                               | —       | Additional CSS classes for root.                                                                                                                                                                   |
+| `menuClassName`  | `string`                                               | —       | Additional CSS classes for the dropdown menu.                                                                                                                                                      |
+| `active`         | `boolean`                                              | —       | Whether the dropdown is open (controlled).                                                                                                                                                         |
+| `up`             | `boolean`                                              | `false` | Dropdown menu opens upward.                                                                                                                                                                        |
+| `right`          | `boolean`                                              | `false` | Menu is right-aligned.                                                                                                                                                                             |
+| `hoverable`      | `boolean`                                              | `false` | Open on hover instead of click. Escape puts away a menu the pointer is showing, and it stays away until the pointer leaves the Dropdown.                                                           |
+| `disabled`       | `boolean`                                              | `false` | Disables the dropdown trigger.                                                                                                                                                                     |
+| `onActiveChange` | `(active: boolean) => void`                            | —       | Callback when dropdown active state changes.                                                                                                                                                       |
+| `closeOnClick`   | `boolean`                                              | `true`  | Close dropdown when a menu item is clicked, or activated with Enter or Space.                                                                                                                      |
+| `id`             | `React.HTMLAttributes<HTMLElement>['id']`              | —       | Root element ID. The trigger gets `<id>-trigger` and the menu `<id>-menu`, which the trigger's `aria-controls` and the menu's `aria-labelledby` point at. Without one, both ids come from `useId`. |
+| `ref`            | `React.Ref<HTMLDivElement>`                            | —       | Ref forwarded to the root dropdown element.                                                                                                                                                        |
+| `...`            | All standard `<div>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                  |
 
 **Subcomponents:**
 
@@ -329,14 +366,14 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Dropd
 
 ### Dropdown.Item
 
-| Prop        | Type                                                                   | Default | Description                                                                                                                                                                      |
-| ----------- | ---------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `as`        | `'a'` \| `'div'` \| `'button'`                                         | `'a'`   | The element type to render. `'button'` renders `type="button"` unless you pass `type="submit"` or `type="reset"`, so an item inside a form does not submit it.                   |
-| `active`    | `boolean`                                                              | `false` | Whether the item is active.                                                                                                                                                      |
-| `className` | `string`                                                               | —       | Additional CSS classes.                                                                                                                                                          |
-| `disabled`  | `boolean`                                                              | `false` | Marks the item as disabled; disabled items are skipped during keyboard navigation. Use with `as="button"` for a native disabled control, or pair with `aria-disabled` on a link. |
-| `children`  | `React.ReactNode`                                                      | —       | Item content.                                                                                                                                                                    |
-| `...`       | Remaining props of the element selected by `as` and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                |
+| Prop        | Type                                                                   | Default | Description                                                                                                                                                                                                                                                                                                                                        |
+| ----------- | ---------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `as`        | `'a'` \| `'div'` \| `'button'`                                         | `'a'`   | The element type to render. `'button'` renders `type="button"` unless you pass `type="submit"` or `type="reset"`, so an item inside a form does not submit it.                                                                                                                                                                                     |
+| `active`    | `boolean`                                                              | `false` | Marks the item as the current one. It adds Bulma's `is-active` class, and `aria-current="true"`, so assistive tech can tell which item is current too. An `aria-current` you pass wins, `false` and `undefined` included, so an item that says its state another way, such as a `menuitemradio` with `aria-checked`, takes `aria-current={false}`. |
+| `className` | `string`                                                               | —       | Additional CSS classes.                                                                                                                                                                                                                                                                                                                            |
+| `disabled`  | `boolean`                                                              | `false` | Marks the item as disabled; disabled items are skipped during keyboard navigation. Use with `as="button"` for a native disabled control, or pair with `aria-disabled` on a link.                                                                                                                                                                   |
+| `children`  | `React.ReactNode`                                                      | —       | Item content.                                                                                                                                                                                                                                                                                                                                      |
+| `...`       | Remaining props of the element selected by `as` and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                  |
 
 <!-- /bestax:generated props -->
 

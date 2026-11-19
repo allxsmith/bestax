@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useFieldLabelTarget } from './FormContext';
+import { useFieldLabelTarget, useFieldsetDisabled } from './FormContext';
 
 /**
  * Props for the Input component.
@@ -21,9 +21,10 @@ export interface InputBaseProps
     | 'black'
     | 'dark'
     | 'light'
-    | 'white';
+    | 'white'
+    | undefined;
   /** Size modifier for the input. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Rounded input corners. */
   isRounded?: boolean;
   /** Styles the input as static text. It stays editable; add `readOnly` to stop edits. */
@@ -38,11 +39,11 @@ export interface InputBaseProps
    */
   isLoading?: boolean;
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Disabled input. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Read-only input. */
-  readOnly?: boolean;
+  readOnly?: boolean | undefined;
 }
 
 /**
@@ -64,12 +65,13 @@ export const InputBase = forwardRef<HTMLInputElement, InputBaseProps>(
       isFocused,
       isLoading,
       className,
-      disabled,
+      disabled: disabledProp,
       readOnly,
       ...props
     },
     ref
   ) => {
+    const disabled = useFieldsetDisabled(disabledProp);
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color,
       ...props,

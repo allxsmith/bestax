@@ -176,6 +176,73 @@ describe('bloomer plain-element handlers', () => {
     expect(output).toContain('<li><a>x</a></li>');
   });
 
+  it('keeps a TabList the plain <ul> bloomer rendered, with no tab list role', () => {
+    // bestax's Tabs.List renders role="tablist", and the Tabs.Items inside
+    // aren't tabs (#1961).
+    const { output, rules } = migrate(
+      dyn(
+        'Tabs, TabList, Tab',
+        '<Tabs><TabList><Tab isActive><a href="#a">A</a></Tab></TabList></Tabs>'
+      )
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain(
+      '<Tabs><ul><Tabs.Item active><a href="#a">A</a></Tabs.Item></ul></Tabs>'
+    );
+    expect(output).not.toContain('Tabs.List');
+  });
+
+  it('names a TabList alignment, which Bulma reads on the Tabs', () => {
+    const { output, rules } = migrate(
+      dyn('TabList', '<TabList isAlign="centered" className="x">y</TabList>')
+    );
+    expect(rules).toEqual(['prop:isAlign']);
+    expect(jsx(output)).toContain('<ul className="x">y</ul>');
+  });
+
+  it('turns a literal TabList helper into its class, and drops a false one', () => {
+    const { output, rules } = migrate(
+      dyn(
+        'TabList',
+        '<TabList isPulled="right" isMarginless isClearfix={false} isDisplay={false} className="x">y</TabList>'
+      )
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain('<ul className="is-pulled-right m-0 x">y</ul>');
+  });
+
+  it('drops any other TabList helper with the plain-element TODO', () => {
+    // A dynamic value, a responsive object, or a bare boolean on a helper
+    // that takes a value has no one class to stand for.
+    for (const helper of [
+      'isPulled={p.s}',
+      'isHidden={{ mobile: true }}',
+      'isPulled',
+    ]) {
+      const { output, rules } = migrate(
+        dyn('TabList', `<TabList ${helper}>y</TabList>`)
+      );
+      expect([helper, rules]).toEqual([helper, ['plain-element']]);
+      expect(jsx(output)).toContain('<ul>y</ul>');
+    }
+  });
+
+  it('keeps a dynamic TabList className where it was', () => {
+    const alone = migrate(
+      dyn('TabList', '<TabList {...p.a} className={p.cls} id="t">y</TabList>')
+    );
+    expect(alone.rules).toEqual([]);
+    expect(alone.output).toContain(
+      '<ul {...p.a} className={p.cls} id="t">y</ul>'
+    );
+    // Beside a helper's class, the two are merged by hand.
+    const merged = migrate(
+      dyn('TabList', '<TabList className={p.cls} isMarginless>y</TabList>')
+    );
+    expect(merged.rules).toEqual(['prop:className']);
+    expect(jsx(merged.output)).toContain('<ul className={p.cls}>y</ul>');
+  });
+
   it('renders HeroVideo without the transparent modifier', () => {
     const { output } = migrate(
       dyn('HeroVideo', '<HeroVideo><video /></HeroVideo>')
@@ -755,16 +822,17 @@ describe('bloomer navigation handlers', () => {
       dyn('PanelBlock', '<PanelBlock href="" isActive>x</PanelBlock>')
     );
     expect(rules).toEqual([]);
-    expect(output).toContain('<div className="panel-block is-active">x</div>');
+    expect(output).toContain('<Panel.Block active as="div">x</Panel.Block>');
   });
 
-  it('keeps a PanelBlock without href as the plain block bloomer rendered', () => {
-    const plain = migrate(
+  it('keeps a PanelBlock without href on the tag bloomer rendered', () => {
+    // bestax's `Panel.Block` renders a <div> or a <label> through `as`.
+    const div = migrate(
       dyn('PanelBlock', '<PanelBlock isActive isWrapped>x</PanelBlock>')
     );
-    expect(plain.rules).toEqual([]);
-    expect(plain.output).toContain(
-      '<div className="panel-block is-active is-wrapped">x</div>'
+    expect(div.rules).toEqual([]);
+    expect(div.output).toContain(
+      '<Panel.Block active as="div" className="is-wrapped">x</Panel.Block>'
     );
     const label = migrate(
       dyn(
@@ -772,8 +840,35 @@ describe('bloomer navigation handlers', () => {
         '<PanelBlock tag="label" isActive={p.on}>x</PanelBlock>'
       )
     );
-    expect(label.rules).toEqual(['prop:isActive']);
-    expect(label.output).toContain('<label className="panel-block">x</label>');
+    expect(label.rules).toEqual([]);
+    expect(label.output).toContain(
+      '<Panel.Block active={p.on} as="label">x</Panel.Block>'
+    );
+    // An <a> with no `href` is the component's own default.
+    const bare = migrate(
+      dyn('PanelBlock', '<PanelBlock tag="a">x</PanelBlock>')
+    );
+    expect(bare.rules).toEqual([]);
+    expect(bare.output).toContain('<Panel.Block>x</Panel.Block>');
+    // Any other tag, or one only known at runtime, stays the plain block.
+    const span = migrate(
+      dyn('PanelBlock', '<PanelBlock tag="span" isActive>x</PanelBlock>')
+    );
+    expect(span.rules).toEqual([]);
+    expect(span.output).toContain(
+      '<span className="panel-block is-active">x</span>'
+    );
+    const dynamic = migrate(
+      dyn('PanelBlock', '<PanelBlock tag={p.tag}>x</PanelBlock>')
+    );
+    expect(dynamic.rules).toEqual(['prop:tag']);
+    expect(dynamic.output).toContain('<div className="panel-block">x</div>');
+    // bloomer took no `as`, so one here is a stray attribute, and the block
+    // keeps it as the plain element did rather than gaining a second `as`.
+    const stray = migrate(
+      dyn('PanelBlock', '<PanelBlock as="p">x</PanelBlock>')
+    );
+    expect(stray.output).not.toContain('Panel.Block');
     const anchor = migrate(
       dyn('PanelBlock', '<PanelBlock href="/x" isWrapped>x</PanelBlock>')
     );
@@ -876,9 +971,66 @@ describe('bloomer navigation handlers', () => {
 
   it('keeps Subtitle an <h2> unless told otherwise', () => {
     const bare = migrate(dyn('Subtitle', '<Subtitle isSize={4}>x</Subtitle>'));
-    expect(bare.output).toContain('<SubTitle size={4} as="h2">x</SubTitle>');
+    expect(bare.output).toContain(
+      '<SubTitle textSize="4" as="h2">x</SubTitle>'
+    );
     const tagged = migrate(dyn('Subtitle', '<Subtitle tag="p">x</Subtitle>'));
     expect(tagged.output).toContain('<SubTitle as="p">x</SubTitle>');
+  });
+
+  // bestax renders the heading `size` names, so a size the codemod cannot
+  // read cannot be moved to `textSize` either.
+  it('flags a dynamic Title size unless the element is a <p>', () => {
+    const heading = migrate(dyn('Title', '<Title isSize={p.n}>x</Title>'));
+    expect(heading.rules).toEqual(['prop:isSize']);
+    expect(heading.todos[0].message).toContain('textSize');
+    expect(jsx(heading.output)).toContain('<Title size={p.n}>x</Title>');
+    const sub = migrate(dyn('Subtitle', '<Subtitle isSize={p.n}>x</Subtitle>'));
+    expect(sub.rules).toEqual(['prop:isSize']);
+    expect(jsx(sub.output)).toContain(
+      '<SubTitle size={p.n} as="h2">x</SubTitle>'
+    );
+    const para = migrate(dyn('Title', '<Title isSize={p.n} tag="p">x</Title>'));
+    expect(para.rules).toEqual([]);
+    expect(para.output).toContain('<Title size={p.n} as="p">x</Title>');
+  });
+
+  it('moves the size to textSize when it cannot see the element', () => {
+    const tag = migrate(dyn('Title', '<Title isSize={1} tag={p.t}>x</Title>'));
+    expect(tag.rules).toEqual([]);
+    expect(tag.output).toContain('<Title textSize="1" as={p.t}>x</Title>');
+  });
+
+  // A `tag` inside a spread never becomes bestax's `as`, so the element is
+  // the one the written props decide, for the size and for `as` alike.
+  it('reads the element past a spread, which cannot carry `as`', () => {
+    const sized = migrate(
+      dyn('Subtitle', '<Subtitle {...p} isSize={2}>x</Subtitle>')
+    );
+    expect(sized.output).toContain('<SubTitle {...p} size={2}>x</SubTitle>');
+    const bare = migrate(dyn('Subtitle', '<Subtitle {...p}>x</Subtitle>'));
+    expect(bare.output).toContain('<SubTitle {...p} as="h2">x</SubTitle>');
+  });
+
+  // bestax ignores a size outside 1 to 6, so the level is safe and the TODO
+  // is about the class that goes, not about a heading.
+  it('flags a literal size Bulma has no class for', () => {
+    const { output, rules, todos } = migrate(
+      dyn('Title', '<Title isSize={8}>x</Title>')
+    );
+    expect(rules).toEqual(['prop:isSize']);
+    expect(todos[0].message).toContain('renders no size class');
+    expect(todos[0].message).not.toContain('heading');
+    expect(jsx(output)).toContain('<Title size={8}>x</Title>');
+  });
+
+  it('flags a bare isSize, which no size prop takes', () => {
+    const heading = migrate(dyn('Title', '<Title isSize>x</Title>'));
+    expect(heading.rules).toEqual(['prop:isSize']);
+    expect(heading.todos[0].message).toContain('renders no size class');
+    expect(jsx(heading.output)).toContain('<Title size>x</Title>');
+    const para = migrate(dyn('Title', '<Title isSize tag="p">x</Title>'));
+    expect(para.rules).toEqual(['prop:isSize']);
   });
 
   it('keeps a Page it cannot fold as a plain list item', () => {

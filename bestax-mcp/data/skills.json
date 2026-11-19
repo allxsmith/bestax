@@ -6,31 +6,27 @@
       "promptName": "custom-component",
       "dir": "bestax-custom-component",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 12181 },
+        { "id": "api", "file": "references/api.md" },
         {
           "id": "component-catalog",
-          "file": "references/component-catalog.md",
-          "bytes": 19629
+          "file": "references/component-catalog.md"
         },
         {
           "id": "library-contributor",
-          "file": "references/library-contributor.md",
-          "bytes": 21340
+          "file": "references/library-contributor.md"
         },
-        { "id": "patterns", "file": "references/patterns.md", "bytes": 4601 }
+        { "id": "patterns", "file": "references/patterns.md" }
       ],
-      "examples": [
-        { "id": "stat-card", "file": "examples/stat-card.tsx", "bytes": 3734 }
-      ]
+      "examples": [{ "id": "stat-card", "file": "examples/stat-card.tsx" }]
     },
     {
       "name": "bestax-form",
-      "description": "Build forms with @allxsmith/bestax-bulma — Field/Control/Label/Help composition, inputs, selects, checkboxes, radios, switches, and advanced controls (Autocomplete, Slider, Numberinput, Rate, Taginput, File, date/time). There is no form/validation library; this skill shows the components and the validate-it-yourself error pattern. Use when building a form, wiring inputs to state, or showing validation/error state.",
+      "description": "Build forms with @allxsmith/bestax-bulma — Field/Control/Label/Help composition, inputs, selects, checkboxes, radios, switches, and advanced controls (Autocomplete, Combobox, TreeSelect, Cascader, Slider, Numberinput, PinInput, Rate, Taginput, File, date/time, Calendar). There is no form/validation library; this skill shows the components and the validate-it-yourself error pattern. Use when building a form, wiring inputs to state, or showing validation/error state.",
       "promptName": "form",
       "dir": "bestax-form",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 13008 },
-        { "id": "patterns", "file": "references/patterns.md", "bytes": 7509 }
+        { "id": "api", "file": "references/api.md" },
+        { "id": "patterns", "file": "references/patterns.md" }
       ],
       "examples": []
     },
@@ -40,15 +36,9 @@
       "promptName": "icons",
       "dir": "bestax-icons",
       "references": [
-        {
-          "id": "icon-libraries",
-          "file": "references/icon-libraries.md",
-          "bytes": 9166
-        }
+        { "id": "icon-libraries", "file": "references/icon-libraries.md" }
       ],
-      "examples": [
-        { "id": "icon-usage", "file": "examples/icon-usage.tsx", "bytes": 2774 }
-      ]
+      "examples": [{ "id": "icon-usage", "file": "examples/icon-usage.tsx" }]
     },
     {
       "name": "bestax-layout-scaffold",
@@ -56,99 +46,62 @@
       "promptName": "layout-scaffold",
       "dir": "bestax-layout-scaffold",
       "references": [
-        {
-          "id": "archetypes",
-          "file": "references/archetypes.md",
-          "bytes": 8276
-        },
-        {
-          "id": "layout-components",
-          "file": "references/layout-components.md",
-          "bytes": 15575
-        }
+        { "id": "archetypes", "file": "references/archetypes.md" },
+        { "id": "layout-components", "file": "references/layout-components.md" }
       ],
       "examples": [
-        { "id": "app-shell", "file": "examples/app-shell.tsx", "bytes": 2758 },
-        { "id": "card-grid", "file": "examples/card-grid.tsx", "bytes": 2673 },
-        { "id": "centered", "file": "examples/centered.tsx", "bytes": 1416 },
-        {
-          "id": "content-page",
-          "file": "examples/content-page.tsx",
-          "bytes": 2694
-        },
-        { "id": "landing", "file": "examples/landing.tsx", "bytes": 3903 }
+        { "id": "app-shell", "file": "examples/app-shell.tsx" },
+        { "id": "card-grid", "file": "examples/card-grid.tsx" },
+        { "id": "centered", "file": "examples/centered.tsx" },
+        { "id": "content-page", "file": "examples/content-page.tsx" },
+        { "id": "landing", "file": "examples/landing.tsx" }
       ]
     },
     {
       "name": "bestax-migrate",
-      "description": "Migrate an existing React app to @allxsmith/bestax-bulma on Bulma v1, from raw Bulma CSS classes on plain JSX (className=\"button is-primary\") or from an unmaintained React Bulma library (react-bulma-components v4, rbx v2, bloomer 0.6). Run the bestax-migrate codemod, then resolve every TODO(bestax-migrate) comment it leaves using the per-source mapping references. Use when a React app styles its markup with Bulma classes and wants bestax components instead, when a repo imports react-bulma-components, rbx or bloomer, when TODO(bestax-migrate) comments are present in a codebase, or when asked to convert Bulma classNames to bestax-bulma.",
+      "description": "Migrate an existing React app to @allxsmith/bestax-bulma on Bulma v1, from raw Bulma CSS classes on plain JSX (className=\"button is-primary\") or in static HTML pages and templates styled with Bulma, or from an unmaintained React Bulma library (react-bulma-components v4, rbx v2, bloomer 0.6). Run the bestax-migrate codemod, then resolve every TODO(bestax-migrate) comment it leaves using the per-source mapping references. Use when a React app styles its markup with Bulma classes and wants bestax components instead, when static HTML pages or templates styled with Bulma should become React components, when a repo imports react-bulma-components, rbx or bloomer, when TODO(bestax-migrate) comments are present in a codebase, or when asked to convert Bulma classNames to bestax-bulma.",
       "promptName": "migrate",
       "dir": "bestax-migrate",
       "references": [
         {
           "id": "bloomer-component-map",
-          "file": "references/bloomer/component-map.md",
-          "bytes": 12033
+          "file": "references/bloomer/component-map.md"
         },
-        {
-          "id": "bloomer-prop-map",
-          "file": "references/bloomer/prop-map.md",
-          "bytes": 24605
-        },
+        { "id": "bloomer-prop-map", "file": "references/bloomer/prop-map.md" },
         {
           "id": "bloomer-unmappables",
-          "file": "references/bloomer/unmappables.md",
-          "bytes": 16955
+          "file": "references/bloomer/unmappables.md"
         },
         {
           "id": "bulma-classes-component-map",
-          "file": "references/bulma-classes/component-map.md",
-          "bytes": 24617
+          "file": "references/bulma-classes/component-map.md"
         },
         {
           "id": "bulma-classes-prop-map",
-          "file": "references/bulma-classes/prop-map.md",
-          "bytes": 35312
+          "file": "references/bulma-classes/prop-map.md"
         },
         {
           "id": "bulma-classes-unmappables",
-          "file": "references/bulma-classes/unmappables.md",
-          "bytes": 23915
+          "file": "references/bulma-classes/unmappables.md"
         },
-        {
-          "id": "css-migration",
-          "file": "references/css-migration.md",
-          "bytes": 9122
-        },
+        { "id": "css-migration", "file": "references/css-migration.md" },
         {
           "id": "rbx-component-map",
-          "file": "references/rbx/component-map.md",
-          "bytes": 13557
+          "file": "references/rbx/component-map.md"
         },
-        {
-          "id": "rbx-prop-map",
-          "file": "references/rbx/prop-map.md",
-          "bytes": 12370
-        },
-        {
-          "id": "rbx-unmappables",
-          "file": "references/rbx/unmappables.md",
-          "bytes": 14336
-        },
+        { "id": "rbx-prop-map", "file": "references/rbx/prop-map.md" },
+        { "id": "rbx-unmappables", "file": "references/rbx/unmappables.md" },
         {
           "id": "react-bulma-components-component-map",
-          "file": "references/react-bulma-components/component-map.md",
-          "bytes": 14012
+          "file": "references/react-bulma-components/component-map.md"
         },
         {
           "id": "react-bulma-components-prop-map",
-          "file": "references/react-bulma-components/prop-map.md",
-          "bytes": 7334
+          "file": "references/react-bulma-components/prop-map.md"
         },
         {
           "id": "react-bulma-components-unmappables",
-          "file": "references/react-bulma-components/unmappables.md",
-          "bytes": 12232
+          "file": "references/react-bulma-components/unmappables.md"
         }
       ],
       "examples": []
@@ -159,11 +112,7 @@
       "promptName": "optimize",
       "dir": "bestax-optimize",
       "references": [
-        {
-          "id": "modular-build",
-          "file": "references/modular-build.md",
-          "bytes": 10291
-        }
+        { "id": "modular-build", "file": "references/modular-build.md" }
       ],
       "examples": []
     },
@@ -173,24 +122,15 @@
       "promptName": "theming",
       "dir": "bestax-theming",
       "references": [
-        {
-          "id": "css-variables",
-          "file": "references/css-variables.md",
-          "bytes": 33044
-        },
+        { "id": "css-variables", "file": "references/css-variables.md" },
         {
           "id": "themeable-components",
-          "file": "references/themeable-components.md",
-          "bytes": 22573
+          "file": "references/themeable-components.md"
         }
       ],
       "examples": [
-        { "id": "dark-mode", "file": "examples/dark-mode.tsx", "bytes": 1242 },
-        {
-          "id": "theme-config",
-          "file": "examples/theme-config.tsx",
-          "bytes": 2096
-        }
+        { "id": "dark-mode", "file": "examples/dark-mode.tsx" },
+        { "id": "theme-config", "file": "examples/theme-config.tsx" }
       ]
     }
   ]

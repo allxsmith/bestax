@@ -1,7 +1,8 @@
 /**
  * Run reporting: collects per-file results and prints the end-of-run summary.
  * TODO annotations are expected output, not failures — the CLI exits 0 when
- * files were transformed and TODOs remain.
+ * files were transformed and TODOs remain. A file that could not be parsed or
+ * transformed is a failure, and the CLI exits 1 for it.
  */
 
 import chalk from 'chalk';
@@ -25,12 +26,21 @@ export class Reporter {
     this.results.push({ file, changed, todos });
   }
 
+  /** A file that could not be parsed or transformed, and why. */
+  failFile(file: string, error: string, todos: TodoEntry[]): void {
+    this.results.push({ file, changed: false, todos, error });
+  }
+
   get files(): FileResult[] {
     return this.results;
   }
 
   get changedCount(): number {
     return this.results.filter(r => r.changed).length;
+  }
+
+  get failures(): FileResult[] {
+    return this.results.filter(r => r.error !== undefined);
   }
 
   get todos(): TodoEntry[] {
@@ -54,11 +64,22 @@ export class Reporter {
     const lines: string[] = [];
     lines.push('');
     lines.push(chalk.bold(`bestax-migrate — ${label}`));
+    const failures = this.failures;
     lines.push(
       `${this.results.length} file(s) scanned, ` +
         `${chalk.green(String(this.changedCount))} transformed, ` +
+        (failures.length > 0
+          ? `${chalk.red(String(failures.length))} failed, `
+          : '') +
         `${chalk.yellow(String(this.todos.length))} TODO(s) left`
     );
+    if (failures.length > 0) {
+      lines.push('');
+      lines.push(chalk.red(`  failed (${failures.length})`));
+      for (const { file, error } of failures) {
+        lines.push(`    ${file} — ${error}`);
+      }
+    }
     for (const { rule, entries } of this.todosByRule()) {
       lines.push('');
       lines.push(chalk.yellow(`  ${rule} (${entries.length})`));
@@ -75,6 +96,14 @@ export class Reporter {
       );
       lines.push(
         'or let the bestax-migrate skill walk them: https://bestax.io/docs/skills/intro'
+      );
+    }
+    if (failures.length > 0) {
+      lines.push('');
+      lines.push(
+        chalk.red(
+          `${failures.length} file(s) failed and were left as they were: fix each one and run the codemod on it again.`
+        )
       );
     }
     lines.push('');

@@ -4,14 +4,69 @@
 // for users who ask for less motion. Each ring stays drawn, so the loading
 // state is still visible.
 //
+// It hides everything inside a loading button, where Bulma hides only the
+// label.
+//
+// It rings a loading button that has keyboard focus, or `isFocused`'s class.
+// Bulma's `is-loading` takes away the shadow that shows a focused button,
+// which leaves a colored one only a 1px border in the focus color on its own
+// fill, and an outlined or text one nothing at all.
+//
+// And it keeps each ring open in forced colors (Windows' contrast themes).
+// Bulma leaves two sides of the ring `transparent`, and forced colors paints
+// those in the text color like any other border, so the ring closes, and a
+// closed ring turning looks like one standing still. `Canvas`, the page's
+// own color, is a system color, which forced colors leaves alone.
+//
 // These rules override stock Bulma, and Bulma's CSS can land on either side
 // of this partial: `versions/bestax-no-dark-mode.scss` emits the extras first,
 // an app can link `extras.css` ahead of its own Bulma, and a component can
 // re-spin a ring with a more specific selector (`.autocomplete .loader`).
 // `!important` is what wins in every one of those cases, whatever the order
 // or specificity, so the override does not depend on where this file lands.
+//
+// Bulma's rings come from its `%loader` placeholder, but a module can't add
+// to what another module's `@extend` reaches, and `extras.css` is built
+// without Bulma at all, so each ring is named here.
 
 @use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+
+// Bulma hides a loading button's label with a transparent text color, which
+// only reaches what inherits it. A child with a color of its own, a `Tag`, an
+// `Icon`'s plate or an SVG's `fill`, would show through the spinner, so every
+// child is hidden outright. Opacity keeps each one's box, so the button keeps
+// its size, and keeps it in the accessibility tree, so the button keeps its
+// name. The spinner is the button's own `::after`, which this doesn't reach.
+.#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading > * {
+  opacity: 0 !important;
+}
+
+// Opacity doesn't take anything out of the tab order, though, and a button
+// rendered as a `<div>` or a `<span>` can hold a link. A child that has focus,
+// or holds it, comes back while it does, so focus is never on something
+// nobody can see.
+.#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading > :focus-within {
+  opacity: 1 !important;
+}
+
+// Bulma's focus outline, in its focus color, style, width and offset, the
+// one `_button.scss` gives a ghost or static button, from the keyboard or
+// from `isFocused`. Two classes and the state outrank the `outline: none` Bulma's
+// control mixin sets on a focused button, whichever stylesheet loads first.
+// The forced colors block below rings it in the system's colors instead, and
+// wins there by coming later in this file with the same selector.
+.#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading:focus-visible,
+.#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading.#{iv.$class-prefix}is-focused {
+  outline-color: hsl(
+    #{cv.getVar("focus-h")},
+    #{cv.getVar("focus-s")},
+    #{cv.getVar("focus-l")}
+  );
+  outline-offset: cv.getVar("focus-offset");
+  outline-style: cv.getVar("focus-style");
+  outline-width: cv.getVar("focus-width");
+}
 
 @media (prefers-reduced-motion: reduce) {
   .#{iv.$class-prefix}loader,
@@ -19,5 +74,96 @@
   .#{iv.$class-prefix}control.#{iv.$class-prefix}is-loading::after,
   .#{iv.$class-prefix}select.#{iv.$class-prefix}is-loading::after {
     animation: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}loader,
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading::after,
+  .#{iv.$class-prefix}control.#{iv.$class-prefix}is-loading::after,
+  .#{iv.$class-prefix}select.#{iv.$class-prefix}is-loading::after {
+    border-top-color: Canvas !important;
+    border-right-color: Canvas !important;
+  }
+
+  // Bulma hides a loading button's label with a transparent text color, and
+  // Chrome's forced colors paints that in the theme's text color, so the
+  // label would show through the spinner. With forcing off on the button,
+  // the label stays transparent, and the button names its own colors, all of
+  // them system ones the theme picks. They're the ones the browser gives the
+  // element when it's idle: the page's own colors for most elements, a
+  // button's for a `<button>`, a link's for a link, and no surface for a
+  // variant that has none, as below. So a button doesn't change look when it
+  // starts loading, unless it's selected: `_button.scss` draws a selected
+  // button in Highlight while it's idle, and skips a loading one, which
+  // takes a button's colors here like any other. Forcing off reaches everything inside too, which the
+  // rule at the top already hides. It also stops the browser recoloring the
+  // border to show focus, so a focused one gets an outline, and so does one
+  // with `is-focused`.
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading {
+    forced-color-adjust: none;
+    background-color: Canvas !important;
+    border-color: CanvasText !important;
+    color: transparent !important;
+
+    &:focus-visible,
+    &.#{iv.$class-prefix}is-focused {
+      outline: 2px solid CanvasText;
+      outline-offset: 2px;
+    }
+
+    // The ring stays out of forcing with the button, so it's drawn in the
+    // button's own border color, and its open sides are transparent onto the
+    // button's surface rather than the rule above's Canvas, which can be a
+    // different color from the surface. Left to forcing, Firefox drew it in
+    // the label's transparent color.
+    &::after {
+      border-color: inherit !important;
+      border-top-color: transparent !important;
+      border-right-color: transparent !important;
+    }
+  }
+
+  button.#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading {
+    background-color: ButtonFace !important;
+    border-color: ButtonText !important;
+
+    &:focus-visible,
+    &.#{iv.$class-prefix}is-focused {
+      outline-color: ButtonText;
+    }
+  }
+
+  a[href].#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading {
+    border-color: LinkText !important;
+
+    &:focus-visible,
+    &.#{iv.$class-prefix}is-focused {
+      outline-color: LinkText;
+    }
+  }
+
+  // A variant with no surface of its own shows the page through it, so its
+  // border, and the ring drawn in it, take the page's text color, even on a
+  // `<button>`: `ButtonText` is only promised to read against `ButtonFace`.
+  // A link keeps `LinkText`, which the theme sets against the page.
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}is-ghost.#{iv.$class-prefix}is-loading,
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}is-text.#{iv.$class-prefix}is-loading,
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}is-outlined.#{iv.$class-prefix}is-loading {
+    background-color: transparent !important;
+    border-color: CanvasText !important;
+
+    &:focus-visible,
+    &.#{iv.$class-prefix}is-focused {
+      outline-color: CanvasText;
+    }
+  }
+
+  // Forcing off also drops the gray the browser gives a disabled control, so
+  // a disabled one names it, which `:disabled` matches inside a disabled
+  // `<fieldset>` too. It can't take focus, so it needs no outline, and it
+  // comes last to win over the variants above, which it ties with.
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading:disabled {
+    border-color: GrayText !important;
   }
 }

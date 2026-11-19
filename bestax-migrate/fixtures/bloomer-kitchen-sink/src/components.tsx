@@ -118,18 +118,18 @@ export const Components = ({ open }: { open: boolean }) => (
       <MessageHeader>Hello</MessageHeader>
       <MessageBody>World</MessageBody>
     </Message>
-    <Modal isActive={open}>
+    <Modal isActive={open} aria-labelledby="modal-title">
       <ModalBackground />
       <ModalCard>
         <ModalCardHeader>
-          <ModalCardTitle>Modal title</ModalCardTitle>
+          <ModalCardTitle id="modal-title">Modal title</ModalCardTitle>
         </ModalCardHeader>
         <ModalCardBody>Content</ModalCardBody>
         <ModalCardFooter>Footer</ModalCardFooter>
       </ModalCard>
       <ModalClose isSize="large" />
     </Modal>
-    <Modal isActive>
+    <Modal isActive aria-label="Plain">
       <ModalBackground />
       <ModalContent>Plain</ModalContent>
     </Modal>

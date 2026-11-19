@@ -1,86 +1,71 @@
-// App shell with sidebar — fixed top Navbar + a narrow Menu column beside the
-// main content. The admin/dashboard default.
+// App shell with sidebar: an AppFrame with a Navbar across the top, a Menu
+// column down the side, and the page. The admin/dashboard default.
 //
-// A fixed-top navbar needs the `has-navbar-fixed-top` class on <html> so the page
-// is padded below it — Bulma requires this and the library does NOT add it for
-// you. In a real app set it statically in index.html; the useEffect below is the
-// fallback for a conditionally-mounted navbar (and keeps this file self-contained).
-// The columns sit side by side on tablet and up, and stack (menu above
-// content) on mobile.
+// AppFrame lays the page out and keeps the header and the menu column in view
+// while the page scrolls, so the Navbar is not `fixed` and <html> needs no
+// `has-navbar-fixed-top`. Below the desktop breakpoint the menu becomes a drawer
+// that AppFrame.Burger opens; from desktop up the burger collapses the column.
+// The frame renders the page's <main>, so it goes at the top of the app, not
+// inside a <main> of its own.
+//
+// Bulma hides `Navbar.Menu` below desktop until it's active, so the links it
+// would hold go in the menu column as well, here under "Account".
 //
 // `ConfigProvider` wraps the shell once at the root to set the app-wide icon
 // library (so <Icon> needs no `library` prop) and, optionally, a class prefix.
-import { useEffect, useState } from 'react';
 import {
+  AppFrame,
   ConfigProvider,
   Navbar,
   Menu,
-  Container,
-  Columns,
-  Column,
   Section,
   Title,
   Box,
 } from '@allxsmith/bestax-bulma';
 
 export default function AdminShell() {
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  useEffect(() => {
-    document.documentElement.classList.add('has-navbar-fixed-top');
-    return () => {
-      document.documentElement.classList.remove('has-navbar-fixed-top');
-    };
-  }, []);
-
   return (
     <ConfigProvider iconLibrary="fa">
-      <Navbar fixed="top" color="dark">
-        <Navbar.Brand>
-          <Navbar.Item href="#">Acme Admin</Navbar.Item>
-          <Navbar.Burger
-            active={menuOpen}
-            onClick={() => setMenuOpen(open => !open)}
-            aria-label="menu"
-            aria-expanded={menuOpen}
-          />
-        </Navbar.Brand>
-        <Navbar.Menu active={menuOpen}>
-          <Navbar.End>
-            <Navbar.Item href="#">Docs</Navbar.Item>
-            <Navbar.Item href="#">Account</Navbar.Item>
-          </Navbar.End>
-        </Navbar.Menu>
-      </Navbar>
+      <AppFrame>
+        <AppFrame.Header>
+          <Navbar color="dark" aria-label="Site">
+            <Navbar.Brand>
+              <Navbar.Item href="#">Acme Admin</Navbar.Item>
+              <AppFrame.Burger />
+            </Navbar.Brand>
+          </Navbar>
+        </AppFrame.Header>
 
-      <Container fluid>
-        <Columns>
-          <Column size={3} sizeWidescreen={2}>
-            <Menu>
-              <Menu.Label>General</Menu.Label>
-              <Menu.List>
-                <Menu.Item active href="#">
-                  Dashboard
-                </Menu.Item>
-                <Menu.Item href="#">Customers</Menu.Item>
-                <Menu.Item href="#">Orders</Menu.Item>
-              </Menu.List>
-              <Menu.Label>Admin</Menu.Label>
-              <Menu.List>
-                <Menu.Item href="#">Team</Menu.Item>
-                <Menu.Item href="#">Settings</Menu.Item>
-              </Menu.List>
-            </Menu>
-          </Column>
+        <AppFrame.Nav>
+          <Menu>
+            <Menu.Label>General</Menu.Label>
+            <Menu.List>
+              <Menu.Item active href="#">
+                Dashboard
+              </Menu.Item>
+              <Menu.Item href="#">Customers</Menu.Item>
+              <Menu.Item href="#">Orders</Menu.Item>
+            </Menu.List>
+            <Menu.Label>Admin</Menu.Label>
+            <Menu.List>
+              <Menu.Item href="#">Team</Menu.Item>
+              <Menu.Item href="#">Settings</Menu.Item>
+            </Menu.List>
+            <Menu.Label>Account</Menu.Label>
+            <Menu.List>
+              <Menu.Item href="#">Docs</Menu.Item>
+              <Menu.Item href="#">Profile</Menu.Item>
+            </Menu.List>
+          </Menu>
+        </AppFrame.Nav>
 
-          <Column>
-            <Section>
-              <Title size="3">Dashboard</Title>
-              <Box>Main content area — drop dashboard widgets here.</Box>
-            </Section>
-          </Column>
-        </Columns>
-      </Container>
+        <AppFrame.Main>
+          <Section>
+            <Title size="3">Dashboard</Title>
+            <Box>Main content area: drop dashboard widgets here.</Box>
+          </Section>
+        </AppFrame.Main>
+      </AppFrame>
     </ConfigProvider>
   );
 }

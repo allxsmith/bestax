@@ -49,7 +49,7 @@ describe('Numberinput', () => {
 
   describe('Value Changes', () => {
     it('increments value when + button clicked', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={5} onChange={handleChange} />);
 
       const incrementBtn = screen.getByRole('button', { name: /increase/i });
@@ -59,7 +59,7 @@ describe('Numberinput', () => {
     });
 
     it('decrements value when - button clicked', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={5} onChange={handleChange} />);
 
       const decrementBtn = screen.getByRole('button', { name: /decrease/i });
@@ -69,7 +69,7 @@ describe('Numberinput', () => {
     });
 
     it('respects step value when incrementing', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={10} step={5} onChange={handleChange} />);
 
       const incrementBtn = screen.getByRole('button', { name: /increase/i });
@@ -79,7 +79,7 @@ describe('Numberinput', () => {
     });
 
     it('respects step value when decrementing', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={10} step={5} onChange={handleChange} />);
 
       const decrementBtn = screen.getByRole('button', { name: /decrease/i });
@@ -89,7 +89,7 @@ describe('Numberinput', () => {
     });
 
     it('calls onChange when input value changes', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={5} onChange={handleChange} />);
 
       const input = screen.getByRole('spinbutton');
@@ -111,7 +111,7 @@ describe('Numberinput', () => {
 
   describe('Min/Max Constraints', () => {
     it('clamps value to min', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={1} min={0} onChange={handleChange} />);
 
       const decrementBtn = screen.getByRole('button', { name: /decrease/i });
@@ -121,7 +121,7 @@ describe('Numberinput', () => {
     });
 
     it('clamps value to max', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={9} max={10} onChange={handleChange} />);
 
       const incrementBtn = screen.getByRole('button', { name: /increase/i });
@@ -156,7 +156,7 @@ describe('Numberinput', () => {
     });
 
     it('clamps below-min value during decrement (covers if-true min branch)', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       // step=2, value=1, min=0 -> decrement gives -1 -> clamp to 0.
       render(
         <Numberinput value={1} min={0} step={2} onChange={handleChange} />
@@ -167,7 +167,7 @@ describe('Numberinput', () => {
     });
 
     it('clamps above-max value during increment (covers if-true max branch)', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       // step=2, value=9, max=10 -> increment gives 11 -> clamp to 10.
       render(
         <Numberinput value={9} max={10} step={2} onChange={handleChange} />
@@ -178,7 +178,7 @@ describe('Numberinput', () => {
     });
 
     it('decrement falls back to 0 when value is undefined (covers ?? falsy branch)', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       // No defaultValue, no value -> internal currentValue is undefined.
       // Decrement should treat it as 0 - 1 = -1.
       render(<Numberinput onChange={handleChange} />);
@@ -386,7 +386,7 @@ describe('Numberinput', () => {
     });
 
     it('increments via stepper up button', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Numberinput value={5} variant="stepper" onChange={handleChange} />
       );
@@ -398,7 +398,7 @@ describe('Numberinput', () => {
     });
 
     it('decrements via stepper down button', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Numberinput value={5} variant="stepper" onChange={handleChange} />
       );
@@ -487,6 +487,18 @@ describe('Numberinput', () => {
       expect(input).toHaveAttribute('readonly');
     });
 
+    // #1978: the documented behavior, that only typing stops.
+    it('still steps with the arrow keys and the buttons when not editable', async () => {
+      const user = userEvent.setup();
+      render(<Numberinput label="Seats" defaultValue={5} editable={false} />);
+      const input = screen.getByRole('spinbutton', { name: 'Seats' });
+      input.focus();
+      await user.keyboard('{ArrowUp}');
+      expect(input).toHaveValue(6);
+      await user.click(screen.getByRole('button', { name: 'Decrease value' }));
+      expect(input).toHaveValue(5);
+    });
+
     it('allows typing by default', () => {
       render(<Numberinput defaultValue={5} />);
       const input = screen.getByRole('spinbutton');
@@ -496,7 +508,7 @@ describe('Numberinput', () => {
 
   describe('Keyboard Support', () => {
     it('increments on ArrowUp', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={5} onChange={handleChange} />);
 
       const input = screen.getByRole('spinbutton');
@@ -506,7 +518,7 @@ describe('Numberinput', () => {
     });
 
     it('decrements on ArrowDown', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={5} onChange={handleChange} />);
 
       const input = screen.getByRole('spinbutton');
@@ -516,7 +528,7 @@ describe('Numberinput', () => {
     });
 
     it('respects step on keyboard navigation', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={10} step={5} onChange={handleChange} />);
 
       const input = screen.getByRole('spinbutton');
@@ -526,7 +538,7 @@ describe('Numberinput', () => {
     });
 
     it('supports keyboard in stepper variant', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Numberinput value={5} variant="stepper" onChange={handleChange} />
       );
@@ -567,12 +579,88 @@ describe('Numberinput', () => {
       ).toBeInTheDocument();
     });
 
-    it('buttons have tabIndex -1 to keep focus on input', () => {
+    it('buttons have tabIndex -1, out of the Tab order', () => {
       render(<Numberinput defaultValue={5} />);
       const buttons = screen.getAllByRole('button');
       buttons.forEach(button => {
         expect(button).toHaveAttribute('tabindex', '-1');
       });
+    });
+
+    // #1971: tabIndex -1 keeps a button out of the Tab order, but a click
+    // still focused it, so the arrow keys stopped working, and a button that
+    // disabled at a limit took focus with it.
+    it.each(['plusminus', 'stepper'] as const)(
+      'keeps focus in the input when a %s button is clicked',
+      async variant => {
+        const user = userEvent.setup();
+        render(
+          <Numberinput
+            label="Quantity"
+            defaultValue={8}
+            max={10}
+            variant={variant}
+          />
+        );
+        const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+        const increase = screen.getByRole('button', { name: 'Increase value' });
+        input.focus();
+        await user.click(increase);
+        expect(input).toHaveFocus();
+        await user.click(increase);
+        expect(increase).toBeDisabled();
+        expect(input).toHaveFocus();
+        await user.keyboard('{ArrowDown}');
+        expect(input).toHaveValue(9);
+        await user.click(
+          screen.getByRole('button', { name: 'Decrease value' })
+        );
+        expect(input).toHaveFocus();
+      }
+    );
+
+    it('cancels the mouse down on every button', () => {
+      render(<Numberinput defaultValue={5} />);
+      render(<Numberinput defaultValue={5} variant="stepper" />);
+      for (const button of screen.getAllByRole('button')) {
+        expect(fireEvent.mouseDown(button)).toBe(false);
+      }
+    });
+
+    // #1975: the buttons' names can be translated.
+    it.each(['plusminus', 'stepper'] as const)(
+      'names the %s buttons from labels',
+      variant => {
+        render(
+          <Numberinput
+            variant={variant}
+            labels={{ increase: 'Augmenter', decrease: 'Diminuer' }}
+          />
+        );
+        expect(
+          screen.getByRole('button', { name: 'Augmenter' })
+        ).toBeInTheDocument();
+        expect(
+          screen.getByRole('button', { name: 'Diminuer' })
+        ).toBeInTheDocument();
+      }
+    );
+
+    it('keeps the English name for a label left out or empty', () => {
+      render(<Numberinput labels={{ increase: 'Augmenter' }} />);
+      render(<Numberinput labels={{ decrease: 'Diminuer' }} />);
+      render(
+        <Numberinput
+          variant="stepper"
+          labels={{ increase: '', decrease: '' }}
+        />
+      );
+      expect(
+        screen.getAllByRole('button', { name: 'Decrease value' })
+      ).toHaveLength(2);
+      expect(
+        screen.getAllByRole('button', { name: 'Increase value' })
+      ).toHaveLength(2);
     });
 
     it('stepper buttons have tabIndex -1', () => {
@@ -581,6 +669,350 @@ describe('Numberinput', () => {
       buttons.forEach(button => {
         expect(button).toHaveAttribute('tabindex', '-1');
       });
+    });
+  });
+
+  // #1976: deleting the last digit put the value straight back, so the
+  // field could never be cleared to type a new number.
+  describe('Editing', () => {
+    it('empties on Backspace and takes a new number', async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      render(
+        <Numberinput label="Quantity" defaultValue={8} onChange={onChange} />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.click(input);
+      await user.keyboard('{End}{Backspace}');
+      expect(input).toHaveValue(null);
+      expect(onChange).not.toHaveBeenCalled();
+      await user.keyboard('3');
+      expect(input).toHaveValue(3);
+      expect(onChange).toHaveBeenLastCalledWith(3);
+    });
+
+    it('takes a number typed over a selected one', async () => {
+      const user = userEvent.setup();
+      render(<Numberinput label="Quantity" defaultValue={8} />);
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.tripleClick(input);
+      await user.keyboard('5');
+      expect(input).toHaveValue(5);
+    });
+
+    it('puts the last value back when left empty', async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      const onBlur = vi.fn();
+      render(
+        <Numberinput
+          label="Quantity"
+          value={8}
+          onChange={onChange}
+          onBlur={onBlur}
+        />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.click(input);
+      await user.clear(input);
+      expect(input).toHaveValue(null);
+      await user.tab();
+      expect(input).toHaveValue(8);
+      expect(onChange).not.toHaveBeenCalled();
+      expect(onBlur).toHaveBeenCalledTimes(1);
+    });
+
+    it('submits the last value when Enter is pressed in an emptied field', async () => {
+      const user = userEvent.setup();
+      let submitted: FormDataEntryValue | null = null;
+      render(
+        <form
+          onSubmit={event => {
+            event.preventDefault();
+            submitted = new FormData(event.currentTarget).get('qty');
+          }}
+        >
+          <Numberinput label="Quantity" name="qty" defaultValue={8} />
+          <button type="submit">Save</button>
+        </form>
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.click(input);
+      await user.clear(input);
+      await user.keyboard('{Enter}');
+      expect(submitted).toBe('8');
+      expect(input).toHaveValue(8);
+    });
+
+    it('shows a new value set from outside over a draft', async () => {
+      const user = userEvent.setup();
+      const { rerender } = render(
+        <Numberinput label="Quantity" value={8} onChange={() => {}} />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.click(input);
+      await user.clear(input);
+      expect(input).toHaveValue(null);
+      rerender(<Numberinput label="Quantity" value={20} onChange={() => {}} />);
+      expect(input).toHaveValue(20);
+    });
+
+    it('keeps a value set from outside after it changes back', async () => {
+      const user = userEvent.setup();
+      const { rerender } = render(
+        <Numberinput label="Quantity" value={8} onChange={() => {}} />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.click(input);
+      await user.clear(input);
+      rerender(<Numberinput label="Quantity" value={20} onChange={() => {}} />);
+      rerender(<Numberinput label="Quantity" value={8} onChange={() => {}} />);
+      expect(input).toHaveValue(8);
+      expect(input).toHaveAttribute('aria-valuenow', '8');
+    });
+
+    it("puts the last value back on Enter beside a caller's onKeyDown", async () => {
+      const user = userEvent.setup();
+      const onKeyDown = vi.fn();
+      render(
+        <Numberinput label="Quantity" defaultValue={8} onKeyDown={onKeyDown} />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.click(input);
+      await user.clear(input);
+      expect(input).not.toHaveAttribute('aria-valuenow');
+      await user.keyboard('{Enter}');
+      expect(input).toHaveValue(8);
+      expect(onKeyDown).toHaveBeenCalled();
+    });
+
+    it("gives a caller's onBlur the value it puts back", async () => {
+      const user = userEvent.setup();
+      let seen = '';
+      render(
+        <Numberinput
+          label="Quantity"
+          defaultValue={8}
+          onBlur={event => {
+            seen = event.target.value;
+          }}
+        />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.click(input);
+      await user.clear(input);
+      await user.tab();
+      expect(seen).toBe('8');
+    });
+
+    it('waits for a number after a lone minus sign', async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      render(
+        <Numberinput label="Change" defaultValue={3} onChange={onChange} />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Change' });
+      await user.tripleClick(input);
+      await user.keyboard('-');
+      expect(onChange).not.toHaveBeenCalled();
+      await user.keyboard('5');
+      expect(onChange).toHaveBeenLastCalledWith(-5);
+      expect(input).toHaveValue(-5);
+    });
+
+    it('steps from the last value while empty', async () => {
+      const user = userEvent.setup();
+      render(<Numberinput label="Quantity" defaultValue={8} />);
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.click(input);
+      await user.clear(input);
+      await user.keyboard('{ArrowUp}');
+      expect(input).toHaveValue(9);
+    });
+
+    // #2110: each keystroke was clamped, so with `min` 10 the `2` of `25`
+    // became 10 and the `5` made it 105, clamped to 100.
+    it('takes a number typed digit by digit through one below min', async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      render(
+        <Numberinput
+          label="Quantity"
+          min={10}
+          max={100}
+          defaultValue={50}
+          onChange={onChange}
+        />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.tripleClick(input);
+      await user.keyboard('2');
+      expect(input).toHaveValue(2);
+      expect(onChange).not.toHaveBeenCalled();
+      await user.keyboard('5');
+      expect(input).toHaveValue(25);
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenLastCalledWith(25);
+    });
+
+    it('clamps a number outside min and max when the field is left', async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      let seen = '';
+      render(
+        <Numberinput
+          label="Quantity"
+          min={0}
+          max={100}
+          defaultValue={50}
+          onChange={onChange}
+          onBlur={event => {
+            seen = event.target.value;
+          }}
+        />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.tripleClick(input);
+      await user.keyboard('150');
+      expect(input).toHaveValue(150);
+      expect(onChange).toHaveBeenLastCalledWith(15);
+      await user.tab();
+      expect(input).toHaveValue(100);
+      expect(onChange).toHaveBeenLastCalledWith(100);
+      expect(seen).toBe('100');
+    });
+
+    it('submits the clamped value when Enter is pressed over a number out of range', async () => {
+      const user = userEvent.setup();
+      let submitted: FormDataEntryValue | null = null;
+      render(
+        <form
+          onSubmit={event => {
+            event.preventDefault();
+            submitted = new FormData(event.currentTarget).get('qty');
+          }}
+        >
+          <Numberinput label="Quantity" name="qty" min={10} defaultValue={50} />
+          <button type="submit">Save</button>
+        </form>
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.tripleClick(input);
+      await user.keyboard('2{Enter}');
+      expect(submitted).toBe('10');
+      expect(input).toHaveValue(10);
+    });
+
+    it('judges the buttons from a number typed outside min and max', async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      render(
+        <Numberinput
+          label="Quantity"
+          min={10}
+          max={100}
+          defaultValue={100}
+          onChange={onChange}
+        />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      const increase = screen.getByRole('button', { name: 'Increase value' });
+      const decrease = screen.getByRole('button', { name: 'Decrease value' });
+      expect(increase).toBeDisabled();
+      await user.tripleClick(input);
+      await user.keyboard('5');
+      expect(increase).toBeEnabled();
+      expect(decrease).toBeDisabled();
+      await user.click(increase);
+      expect(input).toHaveValue(10);
+      expect(onChange).toHaveBeenLastCalledWith(10);
+    });
+
+    it('steps from a number typed outside min and max as a native input does', async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      render(
+        <Numberinput
+          label="Quantity"
+          min={10}
+          max={100}
+          defaultValue={50}
+          onChange={onChange}
+        />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.tripleClick(input);
+      await user.keyboard('2{ArrowDown}');
+      expect(input).toHaveValue(2);
+      expect(onChange).not.toHaveBeenCalled();
+      await user.keyboard('{ArrowUp}');
+      expect(input).toHaveValue(10);
+      expect(onChange).toHaveBeenLastCalledWith(10);
+      await user.tripleClick(input);
+      // The 12 on the way is in range, so it's reported as it's typed.
+      await user.keyboard('120{ArrowUp}');
+      expect(input).toHaveValue(120);
+      expect(onChange).toHaveBeenLastCalledWith(12);
+      await user.keyboard('{ArrowDown}');
+      expect(input).toHaveValue(100);
+      expect(onChange).toHaveBeenLastCalledWith(100);
+    });
+
+    it('lands an exponential step from far outside on the nearest bound', async () => {
+      const user = userEvent.setup();
+      render(
+        <Numberinput
+          label="Quantity"
+          min={0}
+          max={100}
+          defaultValue={50}
+          exponential
+        />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.tripleClick(input);
+      await user.keyboard('5000{ArrowDown}');
+      expect(input).toHaveValue(100);
+    });
+
+    it('steps from a typed number that a new max brings into range', async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      const { rerender } = render(
+        <Numberinput
+          label="Quantity"
+          max={100}
+          defaultValue={50}
+          onChange={onChange}
+        />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      await user.tripleClick(input);
+      await user.keyboard('120');
+      rerender(
+        <Numberinput
+          label="Quantity"
+          max={200}
+          defaultValue={50}
+          onChange={onChange}
+        />
+      );
+      await user.keyboard('{ArrowUp}');
+      expect(input).toHaveValue(121);
+      expect(onChange).toHaveBeenLastCalledWith(121);
+    });
+
+    it('shows a value set from outside over a number out of range', () => {
+      const { rerender } = render(
+        <Numberinput label="Quantity" min={10} value={50} onChange={() => {}} />
+      );
+      const input = screen.getByRole('spinbutton', { name: 'Quantity' });
+      fireEvent.change(input, { target: { value: '2' } });
+      expect(input).toHaveValue(2);
+      rerender(
+        <Numberinput label="Quantity" min={10} value={30} onChange={() => {}} />
+      );
+      expect(input).toHaveValue(30);
     });
   });
 
@@ -601,7 +1033,7 @@ describe('Numberinput', () => {
 
   describe('Decimal Values', () => {
     it('handles decimal step values', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={1} step={0.5} onChange={handleChange} />);
 
       const incrementBtn = screen.getByRole('button', { name: /increase/i });
@@ -611,7 +1043,7 @@ describe('Numberinput', () => {
     });
 
     it('handles decimal input values', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={1} onChange={handleChange} />);
 
       const input = screen.getByRole('spinbutton');
@@ -658,7 +1090,7 @@ describe('Numberinput', () => {
 
   describe('Exponential Step', () => {
     it('uses normal step when exponential is false', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={10} step={1} onChange={handleChange} />);
 
       const incrementBtn = screen.getByRole('button', { name: /increase/i });
@@ -668,7 +1100,7 @@ describe('Numberinput', () => {
     });
 
     it('scales step with value magnitude when exponential is true', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Numberinput value={10} step={1} exponential onChange={handleChange} />
       );
@@ -681,7 +1113,7 @@ describe('Numberinput', () => {
     });
 
     it('uses minimum step of 1 at value 0 when exponential', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Numberinput value={0} step={1} exponential onChange={handleChange} />
       );
@@ -694,7 +1126,7 @@ describe('Numberinput', () => {
     });
 
     it('scales step with negative value magnitude when exponential', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(
         <Numberinput value={-5} step={1} exponential onChange={handleChange} />
       );
@@ -740,7 +1172,7 @@ describe('Numberinput', () => {
     });
 
     it('still functions in bare mode (increment/decrement)', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={5} bare onChange={handleChange} />);
 
       const incrementBtn = screen.getByRole('button', { name: /increase/i });
@@ -944,7 +1376,7 @@ describe('Numberinput', () => {
 
   describe('Combined Ref Callback', () => {
     it('invokes function refs with the input node', () => {
-      const refFn = jest.fn();
+      const refFn = vi.fn();
       render(<Numberinput defaultValue={5} ref={refFn} />);
       expect(refFn).toHaveBeenCalled();
       const lastCallArg = refFn.mock.calls[refFn.mock.calls.length - 1][0];
@@ -963,7 +1395,7 @@ describe('Numberinput', () => {
     });
 
     it('uses exponential step when currentValue is undefined', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput step={1} exponential onChange={handleChange} />);
       const incrementBtn = screen.getByRole('button', { name: /increase/i });
       await userEvent.click(incrementBtn);
@@ -972,7 +1404,7 @@ describe('Numberinput', () => {
     });
 
     it('does not clamp value when no min/max is set', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={5} onChange={handleChange} />);
       const decrementBtn = screen.getByRole('button', { name: /decrease/i });
       await userEvent.click(decrementBtn);
@@ -981,7 +1413,7 @@ describe('Numberinput', () => {
     });
 
     it('does not clamp when min is set but value is above min', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={10} min={0} onChange={handleChange} />);
       const decrementBtn = screen.getByRole('button', { name: /decrease/i });
       await userEvent.click(decrementBtn);
@@ -989,7 +1421,7 @@ describe('Numberinput', () => {
     });
 
     it('does not clamp when max is set but value is below max', async () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={1} max={10} onChange={handleChange} />);
       const incrementBtn = screen.getByRole('button', { name: /increase/i });
       await userEvent.click(incrementBtn);
@@ -997,7 +1429,7 @@ describe('Numberinput', () => {
     });
 
     it('ignores keys other than ArrowUp/ArrowDown', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={5} onChange={handleChange} />);
       const input = screen.getByRole('spinbutton');
       fireEvent.keyDown(input, { key: 'Enter' });
@@ -1008,7 +1440,7 @@ describe('Numberinput', () => {
 
   describe('Integration', () => {
     it('handles negative values', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={-5} onChange={handleChange} />);
 
       const incrementBtn = screen.getByRole('button', { name: /increase/i });
@@ -1024,7 +1456,7 @@ describe('Numberinput', () => {
     });
 
     it('ignores NaN input', () => {
-      const handleChange = jest.fn();
+      const handleChange = vi.fn();
       render(<Numberinput value={5} onChange={handleChange} />);
 
       const input = screen.getByRole('spinbutton');

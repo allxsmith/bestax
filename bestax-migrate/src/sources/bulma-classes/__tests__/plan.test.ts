@@ -4,6 +4,7 @@
  * which elements convert, which refuse, and what they say.
  */
 
+import { ROOTS, type Modifier, type RootEntry } from '../class-map.js';
 import { plan, type ChildFacts, type ElementFacts } from '../plan.js';
 
 function facts(
@@ -49,6 +50,35 @@ describe('plan', () => {
     });
   });
 
+  it("makes a button's is-loading isLoading only where it sets no busy state of its own", () => {
+    // `isLoading` writes aria-busy="true" and aria-disabled="true" over any
+    // value the element sets (#2040), so beside either one the class stays a
+    // class, which renders the element as written.
+    expect(plan(facts('button', 'button is-loading'))).toMatchObject({
+      conversion: { props: [['isLoading', true]], className: null },
+      todos: [],
+    });
+    for (const own of [
+      { 'aria-busy': 'true' },
+      { 'aria-disabled': 'false' },
+      { 'aria-disabled': null },
+    ]) {
+      expect(plan(facts('button', 'button is-loading', own))).toMatchObject({
+        conversion: { props: [], className: 'is-loading' },
+        todos: [],
+      });
+    }
+    // Under a condition too: beside one, it stays in the call.
+    const conditional = (attributes: Record<string, string>) =>
+      plan(
+        facts('button', 'button', attributes, {
+          conditional: [['is-loading']],
+        })
+      ).conversion?.conditional;
+    expect(conditional({})).toEqual([['isLoading', 'is-loading']]);
+    expect(conditional({ 'aria-busy': 'true' })).toBeUndefined();
+  });
+
   it('refuses a tag the target cannot render', () => {
     const result = plan(facts('div', 'section'));
     expect(result.conversion).toBeNull();
@@ -92,6 +122,71 @@ describe('plan', () => {
         drop: [],
         numbers: [],
       });
+    });
+
+    it('names `textSize` for a size it keeps as a class, as the MCP lookup does', () => {
+      expect(plan(facts('h1', 'title is-3'))).toEqual({
+        conversion: {
+          target: 'Title',
+          props: [],
+          className: 'is-3',
+          drop: [],
+          numbers: [],
+        },
+        todos: [
+          {
+            rule: 'modifier:title',
+            message:
+              '`.is-3` stays in its `className`, which renders the same: bestax `Title` renders it exactly only on an <h3> or a <p>, as `size="3"`; on this <h1>, write `textSize="3"` in its place, which sizes it the same and keeps the <h1>, though `textSize` renders a Bulma helper class, which is `!important`: check the page\'s own CSS sets no size on it',
+          },
+        ],
+      });
+      expect(plan(facts('h2', 'subtitle is-5')).todos).toEqual([
+        {
+          rule: 'modifier:subtitle',
+          message: expect.stringContaining(
+            'bestax `SubTitle` renders it exactly only on an <h5> or a <p>, as `size="5"`; on this <h2>, write `textSize="5"` in its place'
+          ),
+        },
+      ]);
+    });
+
+    it('names `textSize` on every heading but the one a size names', () => {
+      for (const root of ['title', 'subtitle']) {
+        for (const size of ['1', '2', '3', '4', '5', '6']) {
+          for (const level of ['1', '2', '3', '4', '5', '6']) {
+            const todos = plan(facts(`h${level}`, `${root} is-${size}`)).todos;
+            expect({ root, size, level, todos }).toEqual({
+              root,
+              size,
+              level,
+              todos:
+                size === level
+                  ? []
+                  : [
+                      {
+                        rule: `modifier:${root}`,
+                        message: expect.stringContaining(
+                          `write \`textSize="${size}"\` in its place`
+                        ),
+                      },
+                    ],
+            });
+          }
+        }
+      }
+    });
+
+    it('names no `textSize` that another class writes, or that would size it differently', () => {
+      // `is-size-2` writes `textSize` already, and wins as a helper.
+      expect(plan(facts('h1', 'title is-3 is-size-2')).todos).toEqual([]);
+      // With two sizes, `textSize` in place of one would change which shows.
+      expect(plan(facts('h1', 'title is-3 is-4')).todos).toEqual([]);
+      expect(plan(facts('h3', 'title is-3 is-4')).todos).toEqual([]);
+      // A size a condition adds isn't one the element always carries.
+      expect(
+        plan({ ...facts('h1', 'title'), conditional: [['is-3']] }).todos
+      ).toEqual([]);
     });
   });
 
@@ -182,6 +277,48 @@ describe('plan', () => {
       ]);
     });
 
+    it('refuses a tag the target cannot render before anything else', () => {
+      // Each would otherwise ask for work (attributes added, renamed or
+      // dropped, a child moved) that a re-run then refuses on the tag.
+      const cases: Array<
+        [
+          string,
+          string,
+          string,
+          Record<string, string | true | null>,
+          Partial<ElementFacts>,
+        ]
+      > = [
+        ['Navbar', 'div', 'navbar', {}, {}],
+        ['Delete', 'a', 'delete', {}, {}],
+        ['Breadcrumb', 'div', 'breadcrumb', {}, {}],
+        ['Pagination', 'div', 'pagination', {}, {}],
+        ['Card.Header.Icon', 'div', 'card-header-icon', {}, {}],
+        ['Pagination.Link', 'div', 'pagination-link', {}, {}],
+        // Not only a missing default: a prop it reads, or a spread.
+        ['Delete', 'a', 'delete', { size: 'x' }, {}],
+        ['Delete', 'a', 'delete', {}, { hasSpread: true }],
+        ['Navbar', 'div', 'navbar', { role: null }, {}],
+      ];
+      for (const [target, tag, className, attributes, extra] of cases) {
+        const result = plan(facts(tag, className, attributes, extra));
+        expect({
+          element: `<${tag} class="${className}">`,
+          rules: result.todos.map(todo => todo.rule),
+        }).toEqual({
+          element: `<${tag} class="${className}">`,
+          rules: [`tag:${target}`],
+        });
+      }
+      // On the tag it renders, the same element is told what it lacks.
+      expect(plan(facts('nav', 'navbar')).todos.map(t => t.rule)).toEqual([
+        'defaults:Navbar',
+      ]);
+      expect(plan(facts('button', 'delete')).todos.map(t => t.rule)).toEqual([
+        'defaults:Delete',
+      ]);
+    });
+
     it('refuses dangerouslySetInnerHTML', () => {
       expect(
         plan(facts('div', 'content', { dangerouslySetInnerHTML: null })).todos
@@ -212,6 +349,83 @@ describe('plan', () => {
         drop: [],
         numbers: [],
       });
+    });
+
+    it("writes a color shade as its color and its shade, through the target's own props", () => {
+      expect(
+        plan(facts('div', 'box has-text-primary-on-scheme')).conversion?.props
+      ).toEqual([
+        ['textColor', 'primary'],
+        ['colorShade', 'on-scheme'],
+      ]);
+      expect(
+        plan(facts('p', 'has-background-info-light has-text-link-30'))
+          .conversion?.props
+      ).toEqual([
+        ['bgColor', 'info'],
+        ['backgroundColorShade', 'light'],
+        ['textColor', 'link'],
+        ['colorShade', '30'],
+      ]);
+      expect(
+        plan(facts('table', 'table has-text-danger-invert')).conversion?.props
+      ).toEqual([
+        ['color', 'danger'],
+        ['colorShade', 'invert'],
+      ]);
+      expect(
+        plan(facts('span', 'tag has-background-warning-05')).conversion?.props
+      ).toEqual([
+        ['backgroundColor', 'warning'],
+        ['backgroundColorShade', '05'],
+      ]);
+    });
+
+    it('keeps a second color or shade for the same prop, and a shade the target has no prop for', () => {
+      expect(
+        plan(facts('p', 'has-text-primary-30 has-text-info-40')).conversion
+      ).toEqual({
+        target: 'Paragraph',
+        props: [
+          ['textColor', 'primary'],
+          ['colorShade', '30'],
+        ],
+        className: 'has-text-info-40',
+        drop: [],
+        numbers: [],
+      });
+      expect(
+        plan(facts('p', 'has-text-primary has-text-info-30')).conversion
+      ).toEqual({
+        target: 'Paragraph',
+        props: [['textColor', 'primary']],
+        className: 'has-text-info-30',
+        drop: [],
+        numbers: [],
+      });
+      expect(
+        plan(facts('span', 'tag has-text-info-dark')).conversion?.className
+      ).toBe('has-text-info-dark');
+    });
+
+    it('leaves a shade that one color and one shade cannot write as a class', () => {
+      for (const token of [
+        'has-text-primary-30-invert',
+        'has-text-primary-100',
+        'has-background-link-light-invert',
+        'has-text-text-30',
+        'is-palette-primary',
+        'is-bold',
+        'is-soft',
+      ]) {
+        expect(plan(facts('p', token))).toEqual({
+          conversion: null,
+          todos: [],
+        });
+        expect(plan(facts('div', `box ${token}`)).conversion?.className).toBe(
+          token
+        );
+      }
     });
 
     it('keeps a base display beside a per-viewport one', () => {
@@ -414,6 +628,335 @@ describe('plan', () => {
         todos: [],
       });
     });
+
+    it('keeps a helper with no prop as a class, and still converts the element', () => {
+      // `marginless` has `m-0`'s rule, and bestax renders that as `m-0`.
+      for (const helper of ['marginless', 'paddingless']) {
+        expect(plan(facts('p', `has-text-centered ${helper}`))).toEqual({
+          conversion: {
+            target: 'Paragraph',
+            props: [['textAlign', 'centered']],
+            className: helper,
+            drop: [],
+            numbers: [],
+          },
+          todos: [],
+        });
+        expect(plan(facts('p', helper))).toEqual({
+          conversion: null,
+          todos: [],
+        });
+      }
+    });
+  });
+
+  describe('a Bulma 0.9 helper v1 removed', () => {
+    it('converts as the v1 helper that replaced it, with nothing left to say', () => {
+      expect(plan(facts('p', 'is-marginless intro'))).toEqual({
+        conversion: {
+          target: 'Paragraph',
+          props: [['m', '0']],
+          className: 'intro',
+          drop: [],
+          numbers: [],
+        },
+        todos: [],
+      });
+      expect(plan(facts('div', 'hero-body is-paddingless'))).toEqual({
+        conversion: {
+          target: 'Hero.Body',
+          props: [['p', '0']],
+          className: null,
+          drop: [],
+          numbers: [],
+        },
+        todos: [],
+      });
+    });
+
+    it('leaves the prop to a live class for it, in either order, and stays with its TODO', () => {
+      const legacy = (token: string) => ({
+        rule: `legacy:${token}`,
+        message: expect.stringContaining('Bulma v1 removed'),
+      });
+      for (const [removed, live, prop, value] of [
+        ['is-paddingless', 'p-2', 'p', '2'],
+        ['is-marginless', 'm-0', 'm', '0'],
+      ]) {
+        for (const order of [
+          `box ${removed} ${live}`,
+          `box ${live} ${removed}`,
+        ]) {
+          expect({ order, plan: plan(facts('div', order)) }).toEqual({
+            order,
+            plan: {
+              conversion: {
+                target: 'Box',
+                props: [[prop, value]],
+                className: removed,
+                drop: [],
+                numbers: [],
+              },
+              todos: [legacy(removed)],
+            },
+          });
+        }
+      }
+    });
+
+    it('converts beside a class for another prop, such as an axis, in either order', () => {
+      // `px-2` and `p-0` both render: v1 puts `px-2` after `p-0`, so the
+      // axis keeps its sides.
+      for (const order of ['px-2 is-paddingless', 'is-paddingless px-2']) {
+        expect({ order, plan: plan(facts('p', order)) }).toEqual({
+          order,
+          plan: {
+            conversion: {
+              target: 'Paragraph',
+              props: [
+                ['px', '2'],
+                ['p', '0'],
+              ],
+              className: null,
+              drop: [],
+              numbers: [],
+            },
+            todos: [],
+          },
+        });
+      }
+    });
+
+    it('says what replaced it wherever it stays a class', () => {
+      const legacy = (token: string) => ({
+        rule: `legacy:${token}`,
+        message: expect.stringContaining('Bulma v1 removed'),
+      });
+      // No component for the tag.
+      expect(plan(facts('div', 'is-marginless'))).toEqual({
+        conversion: null,
+        todos: [legacy('is-marginless')],
+      });
+      // A prop another class already wrote.
+      expect(plan(facts('div', 'box p-2 is-paddingless'))).toEqual({
+        conversion: {
+          target: 'Box',
+          props: [['p', '2']],
+          className: 'is-paddingless',
+          drop: [],
+          numbers: [],
+        },
+        todos: [legacy('is-paddingless')],
+      });
+      // A family left as markup, and an element that refuses.
+      expect(plan(facts('div', 'message is-marginless')).todos).toEqual([
+        { rule: 'family:message', message: expect.any(String) },
+        legacy('is-marginless'),
+      ]);
+      expect(
+        plan(facts('div', 'box is-marginless', {}, { hasSpread: true })).todos
+      ).toEqual([
+        { rule: 'spread:Box', message: expect.any(String) },
+        legacy('is-marginless'),
+      ]);
+      // Added under a condition, which stays in the call.
+      const conditional = plan({
+        ...facts('div', 'box'),
+        conditional: [['is-marginless']],
+      });
+      expect(conditional.conversion?.target).toBe('Box');
+      expect(conditional.todos).toEqual([legacy('is-marginless')]);
+      expect(plan(facts('div', 'is-marginless')).todos[0].message).toContain(
+        '`m="0"`'
+      );
+    });
+  });
+
+  describe('an `.image` modifier away from its `.image`', () => {
+    const stray = {
+      rule: 'modifier:image',
+      message: expect.stringContaining('styles nothing'),
+    };
+
+    it('flags the size or ratio, which styles nothing there', () => {
+      expect(plan(facts('figure', 'is-64x64'))).toEqual({
+        conversion: null,
+        todos: [stray],
+      });
+      // The element still converts on what it does carry.
+      expect(plan(facts('figure', 'is-4by3 mx-auto'))).toEqual({
+        conversion: {
+          target: 'Figure',
+          props: [['mx', 'auto']],
+          className: 'is-4by3',
+          drop: [],
+          numbers: [],
+        },
+        todos: [stray],
+      });
+      expect(plan(facts('div', 'card-image is-square')).todos).toEqual([stray]);
+      expect(plan(facts('figure', 'is-64x64')).todos[0].message).toContain(
+        'add `image`, which bestax `Image` renders, then re-run'
+      );
+    });
+
+    it('promises no re-run on an element that converts anyway, which a re-run finds a component', () => {
+      for (const [tag, classes] of [
+        ['figure', 'is-4by3 mx-auto'],
+        ['div', 'card-image is-square'],
+      ]) {
+        const { conversion, todos } = plan(facts(tag, classes));
+        expect({ tag, converts: conversion !== null }).toEqual({
+          tag,
+          converts: true,
+        });
+        expect(todos[0].message).toContain(
+          'if this element is the image, convert it to bestax `Image` by hand, and otherwise drop the class'
+        );
+        expect(todos[0].message).not.toContain('re-run');
+      }
+    });
+
+    it('promises a re-run only on a tag `Image` renders', () => {
+      for (const tag of ['div', 'figure', 'p']) {
+        expect({
+          tag,
+          message: plan(facts(tag, 'is-64x64')).todos[0].message,
+        }).toEqual({ tag, message: expect.stringContaining('then re-run') });
+      }
+      for (const tag of ['span', 'a', 'img']) {
+        const [todo] = plan(facts(tag, 'is-64x64')).todos;
+        expect({ tag, rule: todo.rule }).toEqual({
+          tag,
+          rule: 'modifier:image',
+        });
+        expect(todo.message).toContain(
+          `bestax \`Image\` renders <div>, <figure>, <p>, not ${tag === 'span' ? 'a' : 'an'} <${tag}>, so the element stays markup`
+        );
+        expect(todo.message).not.toContain('re-run');
+        // Following it: the element is then refused on its tag, as said.
+        expect(
+          plan(facts(tag, 'image is-64x64')).todos.map(found => found.rule)
+        ).toEqual(['tag:Image']);
+      }
+    });
+
+    it("claims nothing of a className it doesn't read whole", () => {
+      // A variable or a call may carry `.image`, and the remedy drops a class.
+      expect(
+        plan(facts('figure', 'is-64x64', {}, { unreadClasses: true })).todos
+      ).toEqual([]);
+      expect(
+        plan(facts('figure', 'is-4by3 mx-auto', {}, { unreadClasses: true }))
+          .todos
+      ).toEqual([]);
+    });
+
+    it('says nothing on an `.image`, or of a class for the element inside one', () => {
+      expect(
+        plan(facts('figure', 'image is-64x64', {}, { hasChildren: false }))
+          .todos
+      ).toEqual([{ rule: 'children:Image', message: expect.any(String) }]);
+      expect(
+        plan({ ...facts('figure', 'is-16by9'), conditional: [['image']] }).todos
+      ).toEqual([]);
+      expect(plan(facts('iframe', 'has-ratio')).todos).toEqual([]);
+      // A page's own size, which Bulma has no rule for at all.
+      expect(plan(facts('figure', 'is-256x256')).todos).toEqual([]);
+    });
+  });
+
+  describe('a second color on an element that converts', () => {
+    it('says which class `color` took, and that the other stays', () => {
+      expect(
+        plan(facts('button', 'button is-black is-light is-primary'))
+      ).toEqual({
+        conversion: {
+          target: 'Button',
+          props: [
+            ['color', 'black'],
+            ['isLight', true],
+          ],
+          className: 'is-primary',
+          drop: [],
+          numbers: [],
+        },
+        todos: [
+          {
+            rule: 'modifier:button',
+            message:
+              '`.is-primary` is a second color on this element, and bestax `Button` takes one `color`: `color="black"` here, from `.is-black`, which comes first, so `.is-primary` stays in its `className`, which renders the same; two colors on one element look the way Bulma\'s stylesheet settles them, whatever order they\'re written in, so check what the page shows, write the color you want as `color`, and drop the other class',
+          },
+        ],
+      });
+      expect(plan(facts('a', 'button is-black is-link')).todos).toEqual([
+        {
+          rule: 'modifier:button',
+          message: expect.stringContaining(
+            '`.is-link` is a second color on this element, and bestax `Button` takes one `color`: `color="black"` here, from `.is-black`'
+          ),
+        },
+      ]);
+    });
+
+    it('flags each other color, on every root that takes one', () => {
+      const checked: string[] = [];
+      for (const [root, entry] of Object.entries(ROOTS)) {
+        const colors = Object.entries(entry.modifiers ?? {})
+          .filter(([, modifier]) =>
+            modifier.writes.some(write => write.prop === 'color')
+          )
+          .map(([token]) => token);
+        if (colors.length < 3) continue;
+        const [first, second, third] = colors;
+        const result = plan(
+          facts(entry.tag!, `${root} ${first} ${second} ${third}`, {
+            ...entry.defaults,
+          })
+        );
+        if (!result.conversion) continue;
+        checked.push(root);
+        expect({ root, className: result.conversion.className }).toEqual({
+          root,
+          className: `${second} ${third}`,
+        });
+        expect({
+          root,
+          todos: result.todos.map(todo => [
+            todo.rule,
+            /^`\.(\S+)` is a second color/.exec(todo.message)?.[1],
+          ]),
+        }).toEqual({
+          root,
+          todos: [
+            [`modifier:${root}`, second],
+            [`modifier:${root}`, third],
+          ],
+        });
+      }
+      // The roots the skill's `modifier:<root>` recipe names.
+      expect(checked.sort()).toEqual([
+        'button',
+        'hero',
+        'navbar',
+        'notification',
+        'progress',
+        'tag',
+      ]);
+    });
+
+    it('says nothing of one color, or of a color a condition adds', () => {
+      expect(plan(facts('button', 'button is-primary is-light')).todos).toEqual(
+        []
+      );
+      // A state the page asks for on purpose, which stays in the call.
+      expect(
+        plan({
+          ...facts('button', 'button is-primary'),
+          conditional: [['is-danger']],
+        }).todos
+      ).toEqual([]);
+    });
   });
 
   describe('roots', () => {
@@ -425,6 +968,228 @@ describe('plan', () => {
         drop: [],
         numbers: [],
       });
+    });
+
+    it('says the other root stays a class, which one won and why', () => {
+      expect(plan(facts('div', 'columns box')).todos).toEqual([
+        {
+          rule: 'second-component:Box',
+          message:
+            "`.box` is bestax `Box`'s class too, and an element converts to one component: `Columns` here, since the codemod ranks `.columns` first, putting layout and parts ahead of surfaces, so `.box` stays in its `className`, which renders the same; to use `Box`, give it an element of its own around or inside this one and drop the class, then check the layout, since two elements space differently from one",
+        },
+      ]);
+      // One for each, and for one a condition adds, which stays in the call.
+      expect(
+        plan({ ...facts('div', 'columns content box'), conditional: [['box']] })
+          .todos
+      ).toEqual([
+        { rule: 'second-component:Content', message: expect.any(String) },
+        { rule: 'second-component:Box', message: expect.any(String) },
+      ]);
+      // A root a condition adds was never in the running, whatever its rank
+      // or place: the planner picks from the classes the element always has.
+      expect(
+        plan({ ...facts('div', 'box'), conditional: [['columns']] }).todos
+      ).toEqual([
+        {
+          rule: 'second-component:Columns',
+          message: expect.stringContaining(
+            '`Box` here, since `.columns` is there only when its condition holds, and the codemod picks from the classes the element always carries'
+          ),
+        },
+      ]);
+      // Between two roots the table doesn't rank, the first on the element.
+      const both = plan(facts('p', 'panel-heading menu-label'));
+      expect(both.conversion?.target).toBe('Panel.Heading');
+      expect(both.todos).toEqual([
+        {
+          rule: 'second-component:Menu.Label',
+          message: expect.stringContaining(
+            'since `.panel-heading` comes first on the element'
+          ),
+        },
+      ]);
+    });
+
+    it('picks a root whose target renders the tag over one ranked ahead of it', () => {
+      // Around an element written out, which Image renders as given.
+      const inside = {
+        tag: 'iframe',
+        attributes: new Map(),
+        hasSpread: false,
+        isEmpty: true,
+      };
+      const result = plan(
+        facts('figure', 'image is-128x128 container', {}, { soleChild: inside })
+      );
+      expect(result.conversion).toEqual({
+        target: 'Image',
+        props: [
+          ['as', 'figure'],
+          ['size', '128x128'],
+        ],
+        className: 'container',
+        drop: [],
+        numbers: [],
+      });
+      // `.container` gets its own advice: on a sized image it centers it.
+      expect(result.todos).toEqual([
+        {
+          rule: 'second-component:Container',
+          message: expect.stringContaining(
+            '`Image` here, since `Container` renders <div>, <main>, <section>, <article>, <aside>, <header>, <footer>, <nav>, not a <figure>, so `.container` stays in its `className`, which renders the same; where it is only there to center this element, `mx="auto"` centers it, and otherwise wrap the element in a `Container`'
+          ),
+        },
+      ]);
+      // On a tag both render, the table's ranking decides as before.
+      expect(
+        plan(
+          facts('div', 'image is-128x128 container', {}, { soleChild: inside })
+        ).conversion?.target
+      ).toBe('Container');
+    });
+
+    it('picks the root whose own tag it is over one that reaches it through `as`', () => {
+      // `Container` reaches a <section> through `as`, and it is `Hero`'s own.
+      const hero = plan(facts('section', 'container hero is-primary'));
+      expect(hero.conversion).toMatchObject({
+        target: 'Hero',
+        props: [['color', 'primary']],
+        className: 'container',
+      });
+      expect(hero.todos).toEqual([
+        {
+          rule: 'second-component:Container',
+          message: expect.stringContaining(
+            "`Hero` here, since a <section> is `Hero`'s own element, and `Container` renders one only through `as`"
+          ),
+        },
+      ]);
+      // The other way round on a <div>, `Container`'s own.
+      const div = plan(facts('div', 'hero container'));
+      expect(div.conversion).toMatchObject({
+        target: 'Container',
+        className: 'hero',
+      });
+      expect(div.todos).toEqual([
+        {
+          rule: 'second-component:Hero',
+          message: expect.stringContaining(
+            "since a <div> is `Container`'s own element, and `Hero` renders one only through `as`"
+          ),
+        },
+      ]);
+      // Two that reach it only through `as`: the table's ranking.
+      expect(plan(facts('main', 'hero container')).conversion).toMatchObject({
+        target: 'Container',
+        props: [['as', 'main']],
+      });
+    });
+
+    it('fits a root to the tag its classes make it render, not its own', () => {
+      const img = {
+        tag: 'img',
+        attributes: new Map([['src', 'a.png']]),
+        hasSpread: false,
+        isEmpty: true,
+      };
+      const second = (tag: string, className: string) => {
+        const result = plan(facts(tag, className, {}, { soleChild: img }));
+        return {
+          conversion: result.conversion && {
+            target: result.conversion.target,
+            props: result.conversion.props,
+            className: result.conversion.className,
+          },
+          why: result.todos
+            .filter(todo => todo.rule.startsWith('second-component:'))
+            .map(todo => /here, (since .*?), so `\./.exec(todo.message)?.[1]),
+        };
+      };
+      // A ratio puts `Image` on a <figure>, so it reaches a <div> only
+      // through `as`, as `Media.Left` and `Hero` do, and the table's ranking
+      // decides.
+      expect(second('div', 'media-left image is-1by1')).toEqual({
+        conversion: {
+          target: 'Media.Left',
+          props: [['as', 'div']],
+          className: 'image is-1by1',
+        },
+        why: [
+          'since the codemod ranks `.media-left` first, putting layout and parts ahead of surfaces',
+        ],
+      });
+      expect(second('div', 'hero image is-16by9').conversion).toEqual({
+        target: 'Hero',
+        props: [['as', 'div']],
+        className: 'image is-16by9',
+      });
+      // And on a <figure> it is what `Image` renders with no `as`, which
+      // `Navbar.Item` reaches only through it.
+      expect(second('figure', 'navbar-item image is-16by9')).toEqual({
+        conversion: {
+          target: 'Image',
+          props: [['size', '16by9']],
+          className: 'navbar-item',
+        },
+        why: [
+          'since `Image` renders a <figure> with these classes and no `as`, and `Navbar.Item` renders one only through `as`',
+        ],
+      });
+      // A fixed size keeps `Image` on its own <div>.
+      expect(second('div', 'media-left image is-64x64')).toEqual({
+        conversion: {
+          target: 'Image',
+          props: [['size', '64x64']],
+          className: 'media-left',
+        },
+        why: [
+          "since a <div> is `Image`'s own element, and `Media.Left` renders one only through `as`",
+        ],
+      });
+      // Both render a <figure> with no `as`: the table's ranking.
+      expect(second('figure', 'media-left image is-1by1')).toEqual({
+        conversion: {
+          target: 'Media.Left',
+          props: [],
+          className: 'image is-1by1',
+        },
+        why: [
+          'since the codemod ranks `.media-left` first, putting layout and parts ahead of surfaces',
+        ],
+      });
+      // A heading's size picks its tag the same way.
+      expect(second('h3', 'navbar-item title is-3')).toEqual({
+        conversion: {
+          target: 'Title',
+          props: [['size', '3']],
+          className: 'navbar-item',
+        },
+        why: [
+          'since `Title` renders an <h3> with these classes and no `as`, and `Navbar.Item` renders one only through `as`',
+        ],
+      });
+    });
+
+    it('takes no class of a glyph inside an `.icon` for a second root', () => {
+      const glyph = {
+        tag: 'i',
+        tokens: ['fas', 'fa-home'],
+        attributes: new Map([['aria-hidden', 'true']]),
+        hasSpread: false,
+        isEmpty: true,
+      };
+      const result = plan(facts('span', 'icon', {}, { soleChild: glyph }));
+      expect(result.conversion?.target).toBe('Icon');
+      expect(
+        result.todos.filter(todo => todo.rule.startsWith('second-component'))
+      ).toEqual([]);
+    });
+
+    it('leaves the second root to a refusal when none renders the tag', () => {
+      expect(plan(facts('span', 'container box')).todos).toEqual([
+        { rule: 'tag:Container', message: expect.any(String) },
+      ]);
     });
 
     it('flags the outermost class of a family it does not convert', () => {
@@ -441,6 +1206,44 @@ describe('plan', () => {
     it('flags a Bulma 0.9 class v1 removed', () => {
       expect(plan(facts('div', 'tile is-ancestor')).todos).toEqual([
         { rule: 'legacy:tile', message: expect.stringContaining('Grid') },
+      ]);
+    });
+
+    // `.heading` and `.number` were Bulma 0.9 elements of their own, and
+    // `is-variable` turned on a `.columns`' gap: each stays where it is,
+    // converted or not, and says it styles nothing now.
+    it('flags the 0.9 label, badge and gap switch where they stay', () => {
+      expect(plan(facts('p', 'heading'))).toEqual({
+        conversion: null,
+        todos: [
+          {
+            rule: 'legacy:heading',
+            message: expect.stringContaining('textTransform="uppercase"'),
+          },
+        ],
+      });
+      const label = plan(facts('span', 'heading has-text-grey'));
+      expect(label.conversion).toMatchObject({
+        target: 'Span',
+        className: 'heading',
+      });
+      expect(label.todos.map(todo => todo.rule)).toEqual(['legacy:heading']);
+      expect(plan(facts('span', 'number')).todos).toEqual([
+        {
+          rule: 'legacy:number',
+          message: expect.stringContaining('a rule of your own'),
+        },
+      ]);
+      const columns = plan(facts('div', 'columns is-variable is-2'));
+      expect(columns.conversion).toMatchObject({
+        target: 'Columns',
+        className: 'is-variable',
+      });
+      expect(columns.todos).toEqual([
+        {
+          rule: 'legacy:is-variable',
+          message: expect.stringContaining('`gap` prop'),
+        },
       ]);
     });
 
@@ -582,14 +1385,36 @@ describe('plan', () => {
         props: [
           ['color', 'primary'],
           ['fixed', 'top'],
+          ['hasShadow', true],
         ],
-        className: 'has-shadow',
+        className: null,
         drop: [],
         numbers: [],
       });
       expect(plan(facts('nav', 'navbar')).todos.map(todo => todo.rule)).toEqual(
         ['defaults:Navbar']
       );
+    });
+
+    it('writes is-spaced and has-shadow as their flags, under a condition too', () => {
+      expect(
+        plan(
+          facts('nav', 'navbar is-transparent is-spaced has-shadow', bulmaNav)
+        ).conversion?.props
+      ).toEqual([
+        ['transparent', true],
+        ['isSpaced', true],
+        ['hasShadow', true],
+      ]);
+      const { conversion } = plan(
+        facts('nav', 'navbar', bulmaNav, {
+          conditional: [['is-spaced'], ['has-shadow']],
+        })
+      );
+      expect(conversion?.conditional).toEqual([
+        ['isSpaced', 'is-spaced'],
+        ['hasShadow', 'has-shadow'],
+      ]);
     });
 
     it('keeps helper classes on a part that takes no helper props', () => {
@@ -625,6 +1450,39 @@ describe('plan', () => {
         expect(conversion?.props).toContainEqual(['textColor', 'white']);
         expect(conversion?.className).toBeNull();
       }
+    });
+
+    it("makes an item's is-active active only beside an aria-current of its own", () => {
+      // `active` writes aria-current="page" unless the item has its own.
+      // Without one the class stays a class, which renders the same.
+      expect(
+        plan(facts('a', 'navbar-item is-active', { 'aria-current': 'page' }))
+      ).toMatchObject({
+        conversion: { props: [['active', true]], className: null },
+        todos: [],
+      });
+      expect(plan(facts('a', 'navbar-item is-active'))).toMatchObject({
+        conversion: { props: [], className: 'is-active' },
+        todos: [],
+      });
+      // A `.has-dropdown` container too, where the class opens the dropdown.
+      expect(
+        plan(facts('div', 'navbar-item has-dropdown is-active')).conversion
+      ).toMatchObject({
+        props: [['as', 'div']],
+        className: 'has-dropdown is-active',
+      });
+      // Under a condition too: without one, it stays in the call.
+      const conditional = (attributes: Record<string, string>) =>
+        plan(
+          facts('a', 'navbar-item', attributes, {
+            conditional: [['is-active']],
+          })
+        ).conversion?.conditional;
+      expect(conditional({ 'aria-current': 'page' })).toEqual([
+        ['active', 'is-active'],
+      ]);
+      expect(conditional({})).toBeUndefined();
     });
 
     it('leaves the burger and the dropdown trigger to a person', () => {
@@ -689,6 +1547,514 @@ describe('plan', () => {
           t => t.rule
         )
       ).toEqual(['children:Icon']);
+    });
+
+    describe('.icon around a glyph', () => {
+      const glyph = (
+        tokens: string[],
+        attributes: Record<string, string> = {}
+      ) => ({
+        tag: 'i',
+        tokens,
+        attributes: new Map(Object.entries(attributes)),
+        hasSpread: false,
+        isEmpty: true,
+      });
+      const hidden = { 'aria-hidden': 'true' };
+
+      it('writes the glyph it reads as props, in place of the <i>', () => {
+        expect(
+          plan(
+            facts('span', 'icon is-small is-left', hidden, {
+              soleChild: glyph(['fab', 'fa-github', 'fa-lg']),
+            })
+          ).conversion
+        ).toEqual({
+          target: 'Icon',
+          props: [['size', 'small']],
+          className: 'is-left',
+          // `Icon` writes it on an icon with no name, as the skill leaves it.
+          drop: ['aria-hidden'],
+          numbers: [],
+          rendersChildren: true,
+          glyph: {
+            library: 'fa',
+            name: 'github',
+            variant: 'brands',
+            features: ['fa-lg'],
+          },
+        });
+        // Font Awesome 4's `fa` reads as itself, which `Icon` renders as
+        // written.
+        expect(
+          plan(
+            facts('span', 'icon', hidden, {
+              soleChild: glyph(['fa', 'fa-envelope']),
+            })
+          ).conversion?.glyph
+        ).toEqual({ library: 'fa', name: 'envelope', variant: 'fa' });
+      });
+
+      it('leaves out only what Icon renders by itself, with the same value', () => {
+        const i = glyph(['fas', 'fa-home']);
+        const drop = (attributes: Record<string, string | true | null>) =>
+          plan(facts('span', 'icon', attributes, { soleChild: i })).conversion
+            ?.drop;
+        expect(drop({ 'aria-hidden': 'true' })).toEqual(['aria-hidden']);
+        expect(drop({ 'aria-hidden': true })).toEqual(['aria-hidden']);
+        expect(drop({ 'aria-label': 'Home', role: 'img' })).toEqual(['role']);
+        expect(drop({ 'aria-labelledby': 'x', role: 'img' })).toEqual(['role']);
+        // Beside a tabIndex Icon hides nothing, so the attribute is the
+        // element's own; and any other value is too.
+        expect(drop({ 'aria-hidden': 'true', tabIndex: '0' })).toEqual([]);
+        // An expression there may stop Icon's own at run time, so it stays.
+        expect(drop({ 'aria-hidden': 'true', tabIndex: null })).toEqual([]);
+        expect(drop({ 'aria-hidden': 'true', role: null })).toEqual([]);
+        expect(drop({ 'aria-hidden': 'false' })).toEqual([]);
+        expect(drop({ 'aria-label': 'Home', role: 'presentation' })).toEqual(
+          []
+        );
+        // A name as an expression may render as none, which Icon would hide.
+        expect(drop({ 'aria-label': null, role: 'img' })).toEqual([]);
+      });
+
+      it('keeps an <i> it reads no glyph from as its child', () => {
+        const kept = plan(
+          facts('span', 'icon', hidden, {
+            soleChild: glyph(['fas', 'fa-home'], { id: 'x' }),
+          })
+        ).conversion;
+        expect(kept?.target).toBe('Icon');
+        expect(kept?.glyph).toBeUndefined();
+        expect(kept?.rendersChildren).toBeUndefined();
+      });
+
+      describe('the TODO an unhidden one gets', () => {
+        const todo = (
+          className: string,
+          inner: ReturnType<typeof glyph>,
+          extra: Partial<ElementFacts> = {},
+          attributes: Record<string, string> = {}
+        ) => {
+          const { todos } = plan(
+            facts('span', className, attributes, { soleChild: inner, ...extra })
+          );
+          expect(todos.map(t => t.rule)).toEqual(['defaults:Icon']);
+          return todos[0].message;
+        };
+        const control = { parentTokens: ['control', 'has-icons-left'] };
+
+        it("moves up the aria-hidden Font Awesome's own markup puts on a bare <i>", () => {
+          const fa = glyph(['fa-solid', 'fa-envelope'], hidden);
+          const moved = plan(
+            facts(
+              'span',
+              'icon is-medium is-left',
+              {},
+              {
+                soleChild: fa,
+                ...control,
+              }
+            )
+          );
+          expect(moved).toEqual({
+            conversion: {
+              target: 'Icon',
+              props: [['size', 'medium']],
+              className: 'is-left',
+              drop: [],
+              numbers: [],
+              rendersChildren: true,
+              glyph: { library: 'fa', name: 'envelope', longStyle: 'fa-solid' },
+              movesHidden: true,
+            },
+            todos: [],
+          });
+          // So does JSX's own spelling of it.
+          expect(
+            plan(
+              facts(
+                'span',
+                'icon',
+                {},
+                {
+                  soleChild: {
+                    ...fa,
+                    attributes: new Map([['aria-hidden', true]]),
+                  },
+                }
+              )
+            ).conversion?.movesHidden
+          ).toBe(true);
+        });
+
+        it('keeps it off a .icon that carries anything assistive tech reads, in any spelling', () => {
+          const fa = glyph(['fas', 'fa-home'], hidden);
+          // Written out, a tabIndex keeps Icon from hiding anything, so the
+          // <i> stays its child, hidden itself, and nothing moves.
+          const kept = plan(
+            facts('span', 'icon', { tabIndex: '0' }, { soleChild: fa })
+          ).conversion;
+          expect(kept?.target).toBe('Icon');
+          expect(kept?.movesHidden).toBeUndefined();
+          expect(kept?.glyph).toBeUndefined();
+          const { todos } = plan(
+            facts('span', 'icon', { tabIndex: null }, { soleChild: fa })
+          );
+          expect(todos).toEqual([
+            {
+              rule: 'defaults:Icon',
+              message:
+                'bestax `Icon` takes Font Awesome\'s `aria-hidden` up off a bare <i> like this one only onto a `.icon` that carries nothing assistive tech reads, and this one carries `tabIndex`, which the move would hide, or, beside a `role` or `tabIndex`, leave with no `aria-hidden` at all; if the icon means something, give the `.icon` an `aria-label` and `role="img"`, and if it is decoration, drop `tabIndex`, then re-run',
+            },
+          ]);
+          for (const attributes of [
+            { role: null },
+            { title: 'Home' },
+            { 'aria-describedby': 'tip' },
+            { 'aria-description': 'Home' },
+          ]) {
+            const [name] = Object.keys(attributes);
+            const result = plan(
+              facts('span', 'icon', attributes, { soleChild: fa })
+            );
+            expect(result.conversion).toBeNull();
+            expect(result.todos[0].message).toContain(
+              `this one carries \`${name}\``
+            );
+          }
+          // What it doesn't read rides along.
+          expect(
+            plan(
+              facts(
+                'span',
+                'icon',
+                { id: 'x', 'data-test': 'y', style: null },
+                {
+                  soleChild: fa,
+                }
+              )
+            ).conversion?.movesHidden
+          ).toBe(true);
+        });
+
+        it('gives no advice on a tag Icon cannot render, only the tag', () => {
+          // Each would ask for work a re-run then refuses on the tag.
+          const tagOnly = (
+            label: string,
+            inner: ReturnType<typeof glyph>,
+            extra: Partial<ElementFacts> = {},
+            attributes: Record<string, string | null> = {}
+          ) => {
+            const result = plan(
+              facts('div', 'icon', attributes, { soleChild: inner, ...extra })
+            );
+            expect({
+              label,
+              conversion: result.conversion,
+              rules: result.todos.map(t => t.rule),
+            }).toEqual({ label, conversion: null, rules: ['tag:Icon'] });
+          };
+          const fa = glyph(['fab', 'fa-github', 'fa-lg']);
+          tagOnly('an unhidden glyph', fa);
+          tagOnly('in a named link', fa, {
+            clickableAround: { tag: 'a', label: 'aria-label' },
+          });
+          tagOnly('in an icon-only link', fa, {
+            clickableAround: { tag: 'a', label: 'none' },
+          });
+          tagOnly('in a .control with icons', glyph(['fas', 'fa-envelope']), {
+            parentTokens: ['control', 'has-icons-left'],
+          });
+          tagOnly(
+            "Font Awesome's own hidden <i>",
+            glyph(['fas', 'fa-home'], hidden)
+          );
+          tagOnly(
+            'a hidden <i> beside a title',
+            glyph(['fas', 'fa-home'], hidden),
+            {},
+            { title: 'Home' }
+          );
+          tagOnly('a name as an expression', fa, {}, { 'aria-label': null });
+          // On the <span> it renders, the same element gets the advice.
+          expect(
+            plan(
+              facts(
+                'span',
+                'icon',
+                {},
+                {
+                  soleChild: fa,
+                  clickableAround: { tag: 'a', label: 'none' },
+                }
+              )
+            ).todos[0].message
+          ).toMatch(/^nothing names the <a> around this `\.icon`/);
+        });
+
+        it('says to move it up by hand off any other <i>', () => {
+          // One that carries more stays the icon's child, so no glyph is
+          // promised.
+          expect(
+            todo('icon', glyph(['fas', 'fa-moon'], { ...hidden, id: 'x' }))
+          ).toBe(
+            'bestax `Icon` writes `aria-hidden="true"` on the `.icon`, and takes it from the <i> inside only when that <i> is empty, carries nothing else and names a glyph it renders from props, which this one doesn\'t; the `.icon` holds nothing else, so the attribute hides the same glyph there: move it up onto the `.icon`, then re-run'
+          );
+          expect(todo('icon', glyph(['material-icons'], hidden))).toMatch(
+            /which this one doesn't; .* move it up onto the `\.icon`/
+          );
+        });
+
+        it('names Control’s prop only for a bare icon on the side its .control has icons', () => {
+          const fa = glyph(['fas', 'fa-check']);
+          expect(
+            todo('icon is-small is-right', fa, {
+              parentTokens: ['control', 'has-icons-right'],
+            })
+          ).toMatch(
+            /give that `Control` `iconRight=\{\{ name: "check", size: "small" \}\}`/
+          );
+          // Its flags and features, as an object holds them.
+          expect(
+            todo(
+              'icon is-left is-clearfix',
+              glyph(['fas', 'fa-spinner', 'fa-spin', 'fa-fw']),
+              control
+            )
+          ).toMatch(
+            /`Icon` with `name="spinner" features=\{\["fa-spin", "fa-fw"\]\}`; .*`iconLeft=\{\{ name: "spinner", features: \["fa-spin", "fa-fw"\], clearfix: true \}\}`/
+          );
+          const none = [
+            todo('icon is-left', fa, {
+              parentTokens: ['control', 'has-icons-right'],
+            }),
+            todo('icon is-left', fa, { parentTokens: ['has-icons-left'] }),
+            todo('icon is-left', fa),
+            todo('icon is-left my-icon', fa, control),
+            todo('icon is-left', fa, control, { id: 'x' }),
+            todo('icon', fa, { ...control, conditional: [['is-left']] }),
+          ];
+          for (const message of none) expect(message).not.toMatch(/Control/);
+        });
+
+        it("points Font Awesome's script-drawn <svg> at the <i> it was drawn from", () => {
+          const svg = {
+            tag: 'svg',
+            tokens: ['svg-inline--fa', 'fa-search', 'fa-w-16'],
+            attributes: new Map([
+              ['aria-hidden', 'true'],
+              ['data-prefix', 'fa'],
+              ['data-icon', 'search'],
+            ]),
+            hasSpread: false,
+            isEmpty: false,
+          };
+          expect(todo('icon is-small is-left', svg, control)).toBe(
+            'this `.icon` holds the <svg> Font Awesome\'s script draws in place of an <i>, and bestax `Icon` writes `aria-hidden="true"` on the `.icon`, which this one doesn\'t carry; add it, then re-run, and this converts to `Icon` around the <svg> as it is; or write `Icon` with `name="search"` in its place, which renders the <i> the script draws from, and shows only where Font Awesome\'s stylesheet or script is loaded; or, since the `.control` around it has `has-icons-left`, drop this `.icon` and give that `Control` `iconLeft={{ name: "search", size: "small" }}`, which it renders after its children as a `.icon.is-left` around the glyph\'s <i>, hidden the way `Icon` hides it'
+          );
+        });
+
+        it('converts an icon in a link or <button> its own label names, hidden there', () => {
+          const fa = glyph(['fab', 'fa-github', 'fa-lg']);
+          for (const clickableAround of [
+            { tag: 'a', label: 'aria-label', link: true },
+            { tag: 'a', label: 'aria-labelledby', link: true },
+            { tag: 'button', label: 'aria-label' },
+          ] as const) {
+            expect(
+              plan(
+                facts('span', 'icon', {}, { soleChild: fa, clickableAround })
+              )
+            ).toEqual({
+              conversion: {
+                target: 'Icon',
+                props: [],
+                className: null,
+                drop: [],
+                numbers: [],
+                rendersChildren: true,
+                glyph: {
+                  library: 'fa',
+                  name: 'github',
+                  variant: 'brands',
+                  features: ['fa-lg'],
+                },
+                addsHidden: true,
+              },
+              todos: [],
+            });
+          }
+          // Beside what assistive tech doesn't read, too.
+          expect(
+            plan(
+              facts(
+                'span',
+                'icon is-small',
+                { id: 'x', 'data-test': 'y', style: null },
+                {
+                  soleChild: fa,
+                  clickableAround: { tag: 'button', label: 'aria-label' },
+                }
+              )
+            ).conversion?.addsHidden
+          ).toBe(true);
+        });
+
+        it('keeps the TODO for an icon in a labelled control in any other shape', () => {
+          const fa = glyph(['fab', 'fa-github', 'fa-lg']);
+          const named = { tag: 'button', label: 'aria-label' } as const;
+          const kept = (
+            label: string,
+            inner: ReturnType<typeof glyph> | ChildFacts,
+            around: NonNullable<ElementFacts['clickableAround']>,
+            attributes: Record<string, string | null> = {}
+          ) => {
+            const result = plan(
+              facts('span', 'icon', attributes, {
+                soleChild: inner,
+                clickableAround: around,
+              })
+            );
+            expect({
+              label,
+              conversion: result.conversion,
+              rules: result.todos.map(t => t.rule),
+            }).toEqual({ label, conversion: null, rules: ['defaults:Icon'] });
+          };
+          // What the attribute would hide with the icon.
+          kept('a title', fa, named, { title: 'GitHub' });
+          kept('a description', fa, named, { 'aria-describedby': 'x' });
+          kept('a role as an expression', fa, named, { role: null });
+          kept('a name as an expression', fa, named, { 'aria-label': null });
+          // What isn't a glyph Icon renders from props.
+          kept(
+            'an <i> with an id',
+            glyph(['fab', 'fa-github'], { id: 'x' }),
+            named
+          );
+          kept('another icon font', glyph(['material-icons']), named);
+          kept(
+            "Font Awesome's script-drawn <svg>",
+            {
+              tag: 'svg',
+              tokens: ['svg-inline--fa', 'fa-github'],
+              attributes: new Map(),
+              hasSpread: false,
+              isEmpty: false,
+            },
+            named
+          );
+          // A control named by its text, whose name the icon's glyph could
+          // join, or one whose name or link can't be told from here.
+          kept('a name from its text', fa, { tag: 'button', label: 'text' });
+          kept('a name that cannot be told', fa, { tag: 'button' });
+          kept('an <a> that may be no link', fa, {
+            tag: 'a',
+            label: 'aria-label',
+          });
+          kept('an <a> that is no link', fa, {
+            tag: 'a',
+            label: 'aria-label',
+            link: false,
+          });
+        });
+
+        it('says an <a> with no href is no link, which nothing names', () => {
+          const fa = glyph(['fab', 'fa-github', 'fa-lg']);
+          expect(
+            todo('icon', fa, {
+              clickableAround: { tag: 'a', label: 'aria-label', link: false },
+            })
+          ).toBe(
+            'this `.icon` sits in an <a> with no `href`, which is no link and has no role, so ARIA lets nothing name it and its `aria-label` names nothing; give the <a> an `href`, or make it a <button>, then re-run, and this converts to `Icon` with `name="github" variant="brands" features="fa-lg"`, which hides the icon with `aria-hidden="true"`'
+          );
+          // One that would carry what the attribute hides needs it by hand.
+          expect(
+            todo(
+              'icon',
+              fa,
+              {
+                clickableAround: { tag: 'a', label: 'aria-label', link: false },
+              },
+              { title: 'GitHub' }
+            )
+          ).toMatch(
+            /make it a <button>, then add `aria-hidden="true"` here, which bestax `Icon` writes on an icon with no name of its own, and re-run, and this converts/
+          );
+        });
+
+        it('calls an icon in a link or button its label names decoration', () => {
+          const fa = glyph(['fab', 'fa-github', 'fa-lg']);
+          // An <a> whose href is an expression may render as none.
+          expect(
+            todo('icon', fa, {
+              clickableAround: { tag: 'a', label: 'aria-label' },
+            })
+          ).toBe(
+            'this `.icon` sits in an <a> that its `aria-label` names, so the icon is decoration there, and bestax `Icon` writes `aria-hidden="true"` on an icon with no name of its own, which this one doesn\'t carry; add it, then re-run, and this converts to `Icon` with `name="github" variant="brands" features="fa-lg"`'
+          );
+          expect(
+            todo('icon', fa, {
+              clickableAround: { tag: 'button', label: 'text' },
+            })
+          ).toMatch(
+            /^this `\.icon` sits in a <button> that its own text names/
+          );
+          expect(
+            todo('icon', fa, {
+              clickableAround: { tag: 'a', label: 'aria-labelledby' },
+            })
+          ).toMatch(/^this `\.icon` sits in an <a> that its `aria-labelledby`/);
+        });
+
+        it('says to name a link or button its icons alone fill', () => {
+          const fa = glyph(['fab', 'fa-twitter', 'fa-lg']);
+          const lead =
+            "nothing names the <a> around this `.icon`: it has no `aria-label` and no text outside its icons, and a font icon's glyph is no name a screen reader can read; give the <a>";
+          // Once named, a link's icon converts as it is.
+          expect(
+            todo('icon', fa, {
+              clickableAround: { tag: 'a', label: 'none', link: true },
+            })
+          ).toBe(
+            `${lead} an \`aria-label\` that says what it does, then re-run, and this converts to \`Icon\` with \`name="twitter" variant="brands" features="fa-lg"\`, which hides the icon with \`aria-hidden="true"\``
+          );
+          // One with no href needs one first, or to be a <button>.
+          expect(
+            todo('icon', fa, {
+              clickableAround: { tag: 'a', label: 'none', link: false },
+            })
+          ).toBe(
+            `${lead} an \`href\`, or make it a <button>, and give it an \`aria-label\` that says what it does, then re-run, and this converts to \`Icon\` with \`name="twitter" variant="brands" features="fa-lg"\`, which hides the icon with \`aria-hidden="true"\``
+          );
+          // One whose href can't be told from here needs the attribute too.
+          expect(
+            todo('icon', fa, { clickableAround: { tag: 'a', label: 'none' } })
+          ).toBe(
+            `${lead} an \`aria-label\` that says what it does, then add \`aria-hidden="true"\` here, which bestax \`Icon\` writes on an icon with no name of its own, and re-run, and this converts to \`Icon\` with \`name="twitter" variant="brands" features="fa-lg"\``
+          );
+        });
+
+        it('says what a re-run converts to anywhere else', () => {
+          const fa = glyph(['fas', 'fa-user']);
+          const usual =
+            'bestax `Icon` renders `aria-hidden="true"` when the element does not set it; add it here if that is what you want, then re-run';
+          expect(todo('icon', fa)).toBe(
+            `${usual}, and this converts to \`Icon\` with \`name="user"\``
+          );
+          // A link or button whose label can't be told from here.
+          expect(todo('icon', fa, { clickableAround: { tag: 'a' } })).toBe(
+            `${usual}, and this converts to \`Icon\` with \`name="user"\``
+          );
+          // An <i> it reads no glyph from: no promise.
+          expect(
+            todo('icon', glyph(['fas', 'fa-user'], { id: 'x' }), {
+              clickableAround: { tag: 'a', label: 'none' },
+            })
+          ).toBe(usual);
+        });
+      });
     });
 
     describe('.icon with a name', () => {
@@ -756,7 +2122,7 @@ describe('plan', () => {
         const half = icon({ 'aria-label': null, 'aria-hidden': 'false' });
         expect(half.todos.map(t => t.rule)).toEqual(['defaults:Icon']);
         expect(half.todos[0].message).toBe(
-          'bestax `Icon` renders `role="img"` when it has a name and `aria-hidden="true"` when it has none, and this element\'s `aria-label` is an expression that may render as either; set `role` here to what you want, then re-run'
+          'bestax `Icon` renders `role="img"` when it has a name and `aria-hidden="true"` when it has none, and this element\'s `aria-label` is an expression that may render as either; set `role` here to what you want and re-run, or convert it by hand'
         );
         // A name written out settles it, whatever the other one is.
         expect(
@@ -778,15 +2144,58 @@ describe('plan', () => {
         'Panel.Heading'
       );
       expect(
-        plan(facts('a', 'panel-block is-active')).conversion
+        plan(facts('a', 'panel-block is-active', { 'aria-current': 'page' }))
+          .conversion
       ).toMatchObject({ target: 'Panel.Block', props: [['active', true]] });
     });
 
-    it('leaves a block on another tag as markup with no TODO', () => {
-      // bestax renders those as Panel.CheckboxBlock, InputBlock or ButtonBlock.
+    it("makes a block's is-active active only beside an aria-current of its own", () => {
+      // `active` writes aria-current="page" unless the block has its own.
+      // Without one the class stays a class, which renders the same.
+      expect(
+        plan(facts('a', 'panel-block is-active', { 'aria-current': 'false' }))
+      ).toMatchObject({
+        conversion: { props: [['active', true]], className: null },
+        todos: [],
+      });
+      expect(plan(facts('a', 'panel-block is-active'))).toMatchObject({
+        conversion: { props: [], className: 'is-active' },
+        todos: [],
+      });
+      // Under a condition too: without one, it stays in the call.
+      const conditional = (attributes: Record<string, string>) =>
+        plan(
+          facts('a', 'panel-block', attributes, {
+            conditional: [['is-active']],
+          })
+        ).conversion?.conditional;
+      expect(conditional({ 'aria-current': 'page' })).toEqual([
+        ['active', 'is-active'],
+      ]);
+      expect(conditional({})).toBeUndefined();
+    });
+
+    it('converts the root and a block on the tags their `as` takes', () => {
+      for (const tag of ['article', 'section', 'aside', 'div']) {
+        expect(plan(facts(tag, 'panel')).conversion).toMatchObject({
+          target: 'Panel',
+          props: [['as', tag]],
+        });
+      }
       for (const tag of ['label', 'div']) {
-        expect(plan(facts(tag, 'panel-block'))).toEqual({
-          conversion: null,
+        expect(
+          plan(facts(tag, 'panel-block is-active', { 'aria-current': 'false' }))
+        ).toEqual({
+          conversion: {
+            target: 'Panel.Block',
+            props: [
+              ['as', tag],
+              ['active', true],
+            ],
+            className: null,
+            drop: [],
+            numbers: [],
+          },
           todos: [],
         });
       }
@@ -794,6 +2203,113 @@ describe('plan', () => {
       expect(
         plan(facts('span', 'panel-block')).todos.map(todo => todo.rule)
       ).toEqual(['tag:Panel.Block']);
+      expect(plan(facts('ul', 'panel')).todos.map(todo => todo.rule)).toEqual([
+        'tag:Panel',
+      ]);
+    });
+
+    it("keeps a block's anchor and label attributes to their own tags", () => {
+      // bestax drops each set on the other tags (`STRIP_FROM_NON_ANCHOR` and
+      // `STRIP_FROM_NON_LABEL` in Panel.tsx), where it did nothing anyway.
+      expect(
+        plan(facts('a', 'panel-block', { href: '#' })).conversion?.props
+      ).toEqual([]);
+      expect(
+        plan(facts('label', 'panel-block', { htmlFor: 'x' })).conversion?.props
+      ).toEqual([['as', 'label']]);
+      for (const [tag, attr] of [
+        ['div', 'href'],
+        ['label', 'rel'],
+        ['div', 'htmlFor'],
+        ['a', 'form'],
+      ]) {
+        const [todo] = plan(facts(tag, 'panel-block', { [attr]: 'x' })).todos;
+        expect(todo.rule).toBe('drops:Panel.Block');
+        expect(todo.message).toContain('remove it, then re-run');
+      }
+    });
+
+    it('refuses a tag it does not render before any attribute it drops', () => {
+      // On a <button>, `type` picks submit or button, and removing it would
+      // not unlock a conversion: the tag is the reason, and the only one.
+      expect(
+        plan(facts('button', 'panel-block', { type: 'submit' })).todos.map(
+          todo => todo.rule
+        )
+      ).toEqual(['tag:Panel.Block']);
+      expect(
+        plan(facts('span', 'level-item', { href: '#' })).todos.map(
+          todo => todo.rule
+        )
+      ).toEqual(['tag:Level.Item']);
+    });
+  });
+
+  describe('Hero and Container', () => {
+    it('converts on the landmark tags their `as` takes', () => {
+      const cases: Array<[string, string, string]> = [
+        ['main', 'hero', 'Hero'],
+        ['footer', 'hero', 'Hero'],
+        ['header', 'hero-head', 'Hero.Head'],
+        ['nav', 'hero-head', 'Hero.Head'],
+        ['footer', 'hero-foot', 'Hero.Foot'],
+        ['nav', 'hero-foot', 'Hero.Foot'],
+        ['main', 'container', 'Container'],
+        ['footer', 'container', 'Container'],
+        ['section', 'container', 'Container'],
+      ];
+      for (const [tag, className, target] of cases) {
+        expect(plan(facts(tag, className)).conversion).toMatchObject({
+          target,
+          props: [['as', tag]],
+        });
+      }
+      // Their default tags convert with no `as`.
+      expect(plan(facts('section', 'hero')).conversion?.props).toEqual([]);
+      expect(plan(facts('div', 'hero-foot')).conversion?.props).toEqual([]);
+    });
+
+    it('still refuses a tag outside them', () => {
+      const cases: Array<[string, string, string]> = [
+        ['figure', 'container', 'tag:Container'],
+        ['nav', 'hero', 'tag:Hero'],
+        ['footer', 'hero-head', 'tag:Hero.Head'],
+        ['header', 'hero-foot', 'tag:Hero.Foot'],
+        ['main', 'hero-body', 'tag:Hero.Body'],
+      ];
+      for (const [tag, className, rule] of cases) {
+        expect(
+          plan(facts(tag, className)).todos.map(todo => todo.rule)
+        ).toEqual([rule]);
+      }
+    });
+  });
+
+  describe('Level', () => {
+    it('converts on the tags its `as` takes', () => {
+      for (const tag of ['div', 'header', 'footer']) {
+        expect(plan(facts(tag, 'level is-mobile')).conversion).toMatchObject({
+          target: 'Level',
+          props: [
+            ['as', tag],
+            ['isMobile', true],
+          ],
+        });
+      }
+      // Its default tag converts with no `as`.
+      expect(plan(facts('nav', 'level')).conversion?.props).toEqual([]);
+      // Reaching a <div> through `as` beats a class whose component can't.
+      expect(plan(facts('div', 'section level')).conversion?.target).toBe(
+        'Level'
+      );
+    });
+
+    it('still refuses a tag outside them', () => {
+      for (const tag of ['section', 'aside']) {
+        expect(plan(facts(tag, 'level')).todos.map(todo => todo.rule)).toEqual([
+          'tag:Level',
+        ]);
+      }
     });
   });
 
@@ -815,6 +2331,16 @@ describe('plan', () => {
           facts('header', 'modal-card-head', {}, { bestaxAround: ['Modal'] })
         ).conversion?.target
       ).toBe('Modal.Card.Head');
+    });
+
+    // The root stays markup, and the `Modal` it's rebuilt with is a dialog
+    // while it's open, so its TODO says to name it (#1941).
+    it("asks for the rebuilt root's name", () => {
+      const [todo] = plan(facts('div', 'modal')).todos;
+      expect(todo.rule).toBe('family:modal');
+      expect(todo.message).toContain(
+        'keeping or adding a name for the dialog it becomes: an `aria-label`, or an `aria-labelledby` pointing at the `id` of its title'
+      );
     });
   });
 
@@ -847,10 +2373,116 @@ describe('plan', () => {
       ]);
       // An <iframe> is the same: it stays as written.
       const iframe = { ...img({ src: 'v' }), tag: 'iframe' };
+      const framed = plan(
+        facts('figure', 'image is-16by9', {}, { soleChild: iframe })
+      ).conversion;
+      expect(framed?.absorbs).toBeUndefined();
+      expect(framed?.props).toEqual([['size', '16by9']]);
+      expect(framed?.className).toBeNull();
+    });
+
+    it('lets one class pick the tag, and keeps a second as a class', () => {
+      // No root has two classes that pick a tag through different props, so
+      // this one is made up, to show the order of the two decides nothing
+      // but which one converts.
+      const roots = ROOTS as Record<string, RootEntry>;
+      roots['x-retag'] = {
+        status: 'mapped',
+        target: 'X',
+        tag: 'div',
+        as: ['div', 'section', 'aside'],
+        modifiers: {
+          'is-a': { writes: [{ prop: 'a' }], rendersTag: 'section' },
+          'is-b': { writes: [{ prop: 'b' }], rendersTag: 'aside' },
+        },
+        ownProps: ['as', 'a', 'b'],
+      };
+      try {
+        expect(
+          plan(facts('section', 'x-retag is-a is-b')).conversion
+        ).toMatchObject({ props: [['a', true]], className: 'is-b' });
+        expect(
+          plan(facts('section', 'x-retag is-b is-a')).conversion
+        ).toMatchObject({
+          props: [
+            ['as', 'section'],
+            ['b', true],
+          ],
+          className: 'is-a',
+        });
+      } finally {
+        delete roots['x-retag'];
+      }
+    });
+
+    it('writes a ratio as `size`, with `as` only off the <figure> it renders', () => {
+      const ratio = (tag: string) =>
+        plan(facts(tag, 'image is-4by3', {}, { soleChild: img({ src: 'a' }) }))
+          .conversion;
+      expect(ratio('figure')).toMatchObject({
+        target: 'Image',
+        props: [['size', '4by3']],
+        className: null,
+      });
+      expect(ratio('figure')?.absorbs).toBeDefined();
+      expect(ratio('div')?.props).toEqual([
+        ['as', 'div'],
+        ['size', '4by3'],
+      ]);
+      expect(ratio('p')?.props).toEqual([
+        ['as', 'p'],
+        ['size', '4by3'],
+      ]);
+      // A fixed size renders the root's own <div>, so a <figure> keeps `as`.
       expect(
-        plan(facts('figure', 'image is-16by9', {}, { soleChild: iframe }))
-          .conversion?.className
-      ).toBe('is-16by9');
+        plan(
+          facts(
+            'figure',
+            'image is-square',
+            {},
+            { soleChild: img({ src: 'a' }) }
+          )
+        ).conversion?.props
+      ).toEqual([
+        ['as', 'figure'],
+        ['size', 'square'],
+      ]);
+    });
+
+    it('keeps a second size as a class, and the tag the first one renders', () => {
+      const both = plan(
+        facts(
+          'div',
+          'image is-128x128 is-16by9',
+          {},
+          { soleChild: img({ src: 'a' }) }
+        )
+      ).conversion;
+      expect(both?.props).toEqual([['size', '128x128']]);
+      expect(both?.className).toBe('is-16by9');
+      const ratioFirst = plan(
+        facts(
+          'figure',
+          'image is-16by9 is-128x128',
+          {},
+          { soleChild: img({ src: 'a' }) }
+        )
+      ).conversion;
+      expect(ratioFirst?.props).toEqual([['size', '16by9']]);
+      expect(ratioFirst?.className).toBe('is-128x128');
+    });
+
+    it('leaves a ratio a condition adds in the joiner, on the tag written out', () => {
+      const { conversion } = plan(
+        facts(
+          'figure',
+          'image',
+          {},
+          { soleChild: img({ src: 'a' }), conditional: [['is-16by9']] }
+        )
+      );
+      expect(conversion?.props).toEqual([['as', 'figure']]);
+      expect(conversion?.conditional).toBeUndefined();
     });
 
     it("keeps it as markup around children it can't tell are never empty", () => {
@@ -925,12 +2557,10 @@ describe('plan', () => {
         icons: [
           {
             index: 0,
-            props: [
-              ['library', 'fa'],
-              ['name', 'home'],
-            ],
+            props: [['name', 'home']],
             className: null,
-            drop: [],
+            // The `.icon`'s `aria-hidden`, which `Icon` writes by itself.
+            drop: ['aria-hidden'],
             numbers: [],
             text: 'Home',
           },
@@ -960,12 +2590,12 @@ describe('plan', () => {
         {
           index: 0,
           props: [
-            ['library', 'fa'],
             ['name', 'bell'],
             ['variant', 'regular'],
             ['features', ['fa-lg', 'fa-fw']],
           ],
           className: null,
+          // Beside a tabIndex `Icon` hides nothing, so this one is its own.
           drop: [],
           numbers: ['tabIndex'],
           text: 'a',
@@ -978,17 +2608,14 @@ describe('plan', () => {
             ['size', 'small'],
           ],
           className: 'my-icon',
-          drop: [],
+          drop: ['aria-hidden'],
           numbers: [],
         },
         {
           index: 3,
-          props: [
-            ['library', 'fa'],
-            ['name', 'home'],
-          ],
+          props: [['name', 'home']],
           className: null,
-          drop: [],
+          drop: ['aria-hidden'],
           numbers: [],
           text: 'b',
         },
@@ -1370,7 +2997,7 @@ describe('plan', () => {
         facts(
           'a',
           className,
-          { tabIndex: '0', ...attributes },
+          { tabIndex: '0', href: '#1', ...attributes },
           { soleChildOf: li(), ...extra }
         )
       );
@@ -1440,7 +3067,7 @@ describe('plan', () => {
           facts(
             'a',
             'pagination-link',
-            { tabIndex: '0', ...attributes },
+            { tabIndex: '0', href: '#1', ...attributes },
             { soleChildOf: li(), conditional: [['is-current']] }
           )
         ).conversion?.conditional;
@@ -1448,6 +3075,63 @@ describe('plan', () => {
         ['active', 'is-current'],
       ]);
       expect(conditional({})).toBeUndefined();
+    });
+
+    // Without an `href` a link is a button, and writes `role="button"` (#1919).
+    it('converts a link with no href only beside the role it writes then', () => {
+      for (const root of [
+        'pagination-link',
+        'pagination-previous',
+        'pagination-next',
+      ]) {
+        const without = (attributes: Record<string, string | null>) =>
+          plan(
+            facts(
+              'a',
+              root,
+              { tabIndex: '0', ...attributes },
+              root === 'pagination-link' ? { soleChildOf: li() } : {}
+            )
+          );
+        expect(without({ role: 'button' }).conversion).not.toBeNull();
+        expect(without({}).todos).toEqual([
+          {
+            rule: expect.stringMatching(/^defaults:/),
+            message: expect.stringContaining(
+              'renders `role="button"` when the element does not set it'
+            ),
+          },
+        ]);
+        // An href written as an expression may render as none.
+        expect(without({ href: null }).todos).toEqual([
+          {
+            rule: expect.stringMatching(/^defaults:/),
+            message: expect.stringContaining(
+              'renders `tabIndex="0"` when it has an `href` and `tabIndex="0"` and `role="button"` when it has none'
+            ),
+          },
+        ]);
+        // tabIndex is the same with an href or without, so a missing one
+        // gets the plain TODO.
+        const noTab = plan(
+          facts(
+            'a',
+            root,
+            { href: null, role: 'button' },
+            root === 'pagination-link' ? { soleChildOf: li() } : {}
+          )
+        );
+        expect(noTab.todos.map(todo => todo.message)).toEqual([
+          expect.stringContaining(
+            'renders `tabIndex="0"` when the element does not set it'
+          ),
+        ]);
+        // A role of its own settles it, and the target keeps that role.
+        expect(without({ href: null, role: 'link' }).conversion).not.toBeNull();
+        expect(without({ href: '#2' }).conversion).not.toBeNull();
+        // An empty href is still an href, and the target keeps it a link.
+        expect(without({ href: '' }).conversion).not.toBeNull();
+      }
     });
 
     it('converts an ellipsis holding exactly its own text, and nothing else on it', () => {
@@ -1493,6 +3177,22 @@ describe('plan', () => {
       );
       expect(plan(facts('ul', 'menu-list')).conversion?.target).toBe(
         'Menu.List'
+      );
+    });
+
+    it('keeps a list with a role of its own as markup, since Menu.List writes role="list"', () => {
+      // Written after its props, for Safari. No role, or `list`, is the same
+      // list; any other role would be lost.
+      const list = (attributes: Record<string, string | null>) =>
+        plan(facts('ul', 'menu-list', attributes));
+      expect(list({ role: 'list' }).conversion?.target).toBe('Menu.List');
+      for (const role of ['menu', 'note', null]) {
+        const { conversion, todos } = list({ role });
+        expect(conversion).toBeNull();
+        expect(todos.map(todo => todo.rule)).toEqual(['attr:role']);
+      }
+      expect(list({ role: 'menu' }).todos[0].message).toBe(
+        'bestax `Menu.List` keeps a <ul>\'s `role` only as `list`, and writes `role="list"` in place of anything else, so this one converts only with no `role` or as one of those; keep this element as markup'
       );
     });
 
@@ -1545,12 +3245,48 @@ describe('plan', () => {
       const rules = (result: ReturnType<typeof plan>) =>
         result.todos.map(todo => todo.rule);
 
+      it('says a component class on the <li> stays a class', () => {
+        expect(item('box', {}, [link()]).todos).toEqual([
+          {
+            rule: 'second-component:Box',
+            message: expect.stringContaining(
+              '`Menu.Item` here, since an item of a list converts by where it sits'
+            ),
+          },
+        ]);
+        // One a condition adds says so, there as anywhere.
+        expect(
+          plan({
+            ...facts(
+              'li',
+              '',
+              {},
+              {
+                itemOf: 'menu-list',
+                childElements: [link()],
+              }
+            ),
+            conditional: [['box']],
+          }).todos
+        ).toEqual([
+          {
+            rule: 'second-component:Box',
+            message: expect.stringContaining(
+              '`Menu.Item` here, since `.box` is there only when its condition holds'
+            ),
+          },
+        ]);
+      });
+
       it('converts the <li> and its <a> together, with a nested list after', () => {
         expect(
           item('my-item mt-2', { key: null, tabIndex: '0' }, [
             link({
               tokens: ['is-active'],
-              attributes: new Map([['href', '/team']]),
+              attributes: new Map([
+                ['href', '/team'],
+                ['aria-current', 'page'],
+              ]),
             }),
             nested,
           ]).conversion
@@ -1569,6 +3305,27 @@ describe('plan', () => {
             after: 'Menu.List',
           },
         });
+      });
+
+      it('makes is-active active only beside an aria-current of its own', () => {
+        // `active` writes aria-current="page" on the <a> unless it has one,
+        // and the class can't stay a class on an <a> Menu.Item renders.
+        const active = (attributes: Array<[string, string | null]>) =>
+          item('', {}, [
+            link({ tokens: ['is-active'], attributes: new Map(attributes) }),
+          ]);
+        for (const value of ['page', 'location', null]) {
+          expect(
+            active([['aria-current', value]]).conversion?.absorbs?.props
+          ).toEqual([['active', true]]);
+        }
+        const bare = active([['href', '/team']]);
+        expect(bare.conversion).toBeNull();
+        expect(rules(bare)).toEqual(['attr:aria-current']);
+        // The TODO says how to make it convert.
+        expect(bare.todos[0].message).toContain(
+          'If this is the current page, add `aria-current="page"` to the <a>, then re-run'
+        );
       });
 
       it('keeps it as markup with an empty class, which it would lose', () => {
@@ -1638,15 +3395,136 @@ describe('plan', () => {
       });
     });
 
-    it('keeps the addon and group variants as classes', () => {
-      expect(
-        plan(facts('div', 'field has-addons has-addons-centered')).conversion
-      ).toEqual({
+    it('writes an addon or group layout with the class it renders beside', () => {
+      const field = (className: string) =>
+        plan(facts('div', className)).conversion;
+      expect(field('field has-addons has-addons-centered')).toEqual({
         target: 'Field',
-        props: [['hasAddons', true]],
-        className: 'has-addons-centered',
+        props: [['hasAddons', 'centered']],
+        className: null,
         drop: [],
         numbers: [],
+      });
+      // In either order, and beside the field's other classes.
+      expect(field('field has-addons-right mt-2 has-addons')).toEqual({
+        target: 'Field',
+        props: [
+          ['hasAddons', 'right'],
+          ['mt', '2'],
+        ],
+        className: null,
+        drop: [],
+        numbers: [],
+      });
+      for (const layout of ['centered', 'right', 'multiline']) {
+        expect(field(`field is-grouped is-grouped-${layout}`)).toEqual({
+          target: 'Field',
+          props: [['grouped', layout]],
+          className: null,
+          drop: [],
+          numbers: [],
+        });
+      }
+    });
+
+    it('writes a layout pair first, and a removed helper after a live one', () => {
+      // The pair claims its prop ahead of its base wherever they're written,
+      // and a removed 0.9 helper claims after every live class, so the two
+      // orders compose.
+      expect(
+        plan(
+          facts('div', 'field is-marginless has-addons m-2 has-addons-right')
+        ).conversion
+      ).toMatchObject({
+        props: [
+          ['hasAddons', 'right'],
+          ['m', '2'],
+        ],
+        className: 'is-marginless',
+      });
+    });
+
+    it('keeps a layout class without the class its value renders beside', () => {
+      const field = (className: string) =>
+        plan(facts('div', className)).conversion;
+      // `hasAddons="centered"` would add `has-addons`.
+      expect(field('field has-addons-centered')).toMatchObject({
+        props: [],
+        className: 'has-addons-centered',
+      });
+      expect(field('field is-grouped-multiline has-addons')).toMatchObject({
+        props: [['hasAddons', true]],
+        className: 'is-grouped-multiline',
+      });
+      // A second layout for the same prop stays a class beside the first.
+      expect(
+        field('field has-addons has-addons-centered has-addons-right')
+      ).toMatchObject({
+        props: [['hasAddons', 'centered']],
+        className: 'has-addons-right',
+      });
+    });
+
+    describe('a layout class beside its base, behind every modifier gate', () => {
+      // No entry carries `tagIn` or `needsAttr` beside `beside` yet, so the
+      // table is lent two that do, for this block only.
+      const modifiers = ROOTS.field.modifiers as Record<string, Modifier>;
+      beforeAll(() => {
+        modifiers['test-on-p'] = {
+          writes: [{ prop: 'hasAddons', value: 'right' }],
+          beside: 'has-addons',
+          tagIn: ['p'],
+        };
+        modifiers['test-needs'] = {
+          writes: [{ prop: 'hasAddons', value: 'centered' }],
+          beside: 'has-addons',
+          needsAttr: { name: 'data-test', value: 'x' },
+        };
+      });
+      afterAll(() => {
+        delete modifiers['test-on-p'];
+        delete modifiers['test-needs'];
+      });
+
+      it('stays a class off its tags, or without its attribute', () => {
+        const field = (
+          className: string,
+          attributes: Record<string, string> = {}
+        ) => plan(facts('div', className, attributes)).conversion;
+        expect(field('field has-addons test-on-p')).toMatchObject({
+          props: [['hasAddons', true]],
+          className: 'test-on-p',
+        });
+        expect(field('field has-addons test-needs')).toMatchObject({
+          props: [['hasAddons', true]],
+          className: 'test-needs',
+        });
+        expect(
+          field('field has-addons test-needs', { 'data-test': 'x' })
+        ).toMatchObject({
+          props: [['hasAddons', 'centered']],
+          className: null,
+        });
+      });
+    });
+
+    it('keeps a layout class a condition adds in the call', () => {
+      // Only a flag takes its condition as its value.
+      expect(
+        plan({
+          ...facts('div', 'field is-grouped'),
+          conditional: [['is-grouped-centered']],
+        }).conversion
+      ).toMatchObject({ props: [['grouped', true]], className: null });
+      expect(
+        plan({
+          ...facts('div', 'field has-addons-centered'),
+          conditional: [['has-addons']],
+        }).conversion
+      ).toMatchObject({
+        props: [],
+        className: 'has-addons-centered',
+        conditional: [['hasAddons', 'has-addons']],
       });
     });
 
@@ -1684,6 +3562,86 @@ describe('plan', () => {
         },
       ]);
       expect(input([]).conversion?.target).toBe('InputBase');
+    });
+
+    it('sends a label beside the <select> to the convenience Select', () => {
+      const child = (
+        tag: string,
+        tokens?: string[],
+        attributes: Record<string, string> = {}
+      ): ChildFacts => ({
+        tag,
+        ...(tokens ? { tokens } : {}),
+        attributes: new Map(Object.entries(attributes)),
+        hasSpread: false,
+        isEmpty: false,
+      });
+      const select = (childElements: ChildFacts[]) =>
+        plan(facts('div', 'select is-small', {}, { childElements })).todos;
+      const label = child('label', ['is-sr-only'], { htmlFor: 'lang' });
+      const own = child('select', undefined, { id: 'lang' });
+      expect(select([label, own])).toEqual([
+        {
+          rule: 'children:SelectBase',
+          message:
+            "bestax `SelectBase` renders the <select> inside `.select` itself, so this element converts only around a single <select>, with nothing else beside it; the <label> beside it goes on bestax's `Select` instead, which renders `.select` inside a `Field` and a `Control`: the label's text as `label`, its classes as `labelProps={{ className: 'is-sr-only' }}`, and `Select` points the label at the <select>'s `id` itself, so convert the two by hand",
+        },
+      ]);
+      // A label with no class has none to pass, and one after the select counts.
+      expect(select([own, child('label')])[0].message).toContain(
+        "the label's text as `label`, and `Select` points"
+      );
+      // So does one with a space rendered between them.
+      expect(
+        plan(facts('div', 'select', {}, { spacedElements: [label, own] }))
+          .todos[0].message
+      ).toContain("goes on bestax's `Select` instead");
+      // A computed className is named, not dropped: it may be what hides it.
+      const computed = { ...label, tokens: null };
+      expect(select([computed, own])[0].message).toContain(
+        'its `className`, which is computed, as `labelProps={{ className: … }}` with the same expression'
+      );
+      // So is a spread, which can carry a className of its own.
+      expect(select([{ ...label, hasSpread: true }, own])[0].message).toContain(
+        "its classes as `labelProps={{ className: 'is-sr-only' }}`, what its spread carries in `labelProps` too, since it can set a `className` of its own"
+      );
+      // Inside a Field, Select drops its label, so the label stays the page's.
+      const inside = (extra: Partial<ElementFacts>) =>
+        plan(
+          facts('div', 'select', {}, { childElements: [label, own], ...extra })
+        ).todos[0].message;
+      const keep =
+        "so move the <label> out beside `.select`, its `htmlFor` on the <select>'s `id`, or give the <select> an `aria-label` in its place, then re-run";
+      for (const extra of [
+        { classesAround: ['control', 'field'] },
+        { bestaxAround: ['Field'] },
+      ]) {
+        const message = inside(extra);
+        expect(message).toContain(
+          "inside a `Field` bestax's `Select` renders no label of its own and drops `label` and `labelProps`"
+        );
+        expect(message).toContain(keep);
+        expect(message).not.toContain('goes on bestax');
+      }
+      // In a bare Control, Select would nest its label's .field inside it.
+      for (const extra of [
+        { classesAround: ['control'] },
+        { bestaxAround: ['Control'] },
+      ]) {
+        const message = inside(extra);
+        expect(message).toContain(
+          "inside a `Control` with no `Field` around it, bestax's `Select` renders its label in a `.field` of its own inside the `.control`"
+        );
+        expect(message).toContain(keep);
+      }
+      // Anything else beside the select is just in the way.
+      for (const children of [
+        [child('span'), own],
+        [label, child('label'), own],
+        [label, child('span')],
+      ]) {
+        expect(select(children)[0].message).toMatch(/nothing else beside it$/);
+      }
     });
   });
 

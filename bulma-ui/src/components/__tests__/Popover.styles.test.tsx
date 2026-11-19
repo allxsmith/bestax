@@ -7,6 +7,7 @@ import * as sass from 'sass';
 import path from 'path';
 import type { ComponentProps } from 'react';
 import { render, screen } from '@testing-library/react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { Popover } from '../Popover';
 import { ConfigProvider } from '../../helpers/Config';
 
@@ -55,12 +56,56 @@ describe('Popover styles under a class prefix', () => {
     );
   });
 
+  it('puts the default panel at the right edge right to left, and a named corner where it says', () => {
+    // jsdom maps no `dir` to `direction`, which the placement reads.
+    const rtl = document.createElement('style');
+    rtl.textContent = '[dir="rtl"] { direction: rtl; }';
+    document.head.appendChild(rtl);
+    document.documentElement.setAttribute('dir', 'rtl');
+    try {
+      const { unmount } = renderPrefixed();
+      const byDefault = getComputedStyle(screen.getByRole('dialog'));
+      expect(byDefault.right).toBe('calc(-1 * var(--bulma-anchored-shift))');
+      expect(byDefault.left).not.toBe('var(--bulma-anchored-shift)');
+      unmount();
+      renderPrefixed({ position: 'bottom-left' });
+      const named = getComputedStyle(screen.getByRole('dialog'));
+      expect(named.left).toBe('var(--bulma-anchored-shift)');
+      expect(named.right).not.toBe('calc(-1 * var(--bulma-anchored-shift))');
+    } finally {
+      document.documentElement.removeAttribute('dir');
+      rtl.remove();
+    }
+  });
+
+  it('puts a panel open on first paint at the right edge right to left, before any effect', () => {
+    // Server markup, so no effect has read the direction: the stylesheet
+    // alone has to place it.
+    const page = document.createElement('div');
+    page.setAttribute('dir', 'rtl');
+    page.innerHTML = renderToStaticMarkup(
+      <ConfigProvider classPrefix="bestax-">
+        <Popover trigger={<button>Open</button>} ariaLabel="Panel" defaultOpen>
+          Content
+        </Popover>
+      </ConfigProvider>
+    );
+    document.body.appendChild(page);
+    try {
+      const style = getComputedStyle(page.querySelector('[role="dialog"]')!);
+      expect(style.right).toBe('calc(-1 * var(--bulma-anchored-shift))');
+      expect(style.left).not.toBe('var(--bulma-anchored-shift)');
+    } finally {
+      page.remove();
+    }
+  });
+
   it('places an inline panel below the trigger, the gap from the offset variable', () => {
     renderPrefixed();
     const style = getComputedStyle(screen.getByRole('dialog'));
     expect(style.position).toBe('absolute');
     expect(style.top).toBe('100%');
-    expect(style.left).toBe('0px');
+    expect(style.left).toBe('var(--bulma-anchored-shift)');
     expect(style.marginTop).toBe('var(--bulma-popover-offset)');
   });
 
@@ -75,7 +120,7 @@ describe('Popover styles under a class prefix', () => {
     renderPrefixed({ position: 'top-right' });
     const style = getComputedStyle(screen.getByRole('dialog'));
     expect(style.bottom).toBe('100%');
-    expect(style.right).toBe('0px');
+    expect(style.right).toBe('calc(-1 * var(--bulma-anchored-shift))');
     expect(style.marginBottom).toBe('var(--bulma-popover-offset)');
   });
 

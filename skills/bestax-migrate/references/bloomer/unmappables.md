@@ -62,14 +62,38 @@ and `isSize={n}` becomes a column span:
 bloomer's `Modal` was an inert shell: `isActive` toggled the class and nothing else. bestax's
 `Modal` closes on Escape (calling `onClose`), locks body scroll, and traps focus **by default**,
 and renders inline unless `portal` is set. So every conversion changes behaviour, and every one
-is flagged. Pass `onClose` to get the close-on-Escape and background behaviour:
+is flagged. Pass `onClose` for Escape and `Modal.Close` to close it. `Modal.Background` doesn't
+call `onClose` on its own, so give it the same handler as `onClick` for the background to close
+it too. The open modal is a dialog, so give it a name with `aria-label`, or `aria-labelledby`
+pointing at its title (`name:Modal`):
 
 ```jsx
-<Modal active={open} onClose={() => setOpen(false)}>
+<Modal active={open} onClose={() => setOpen(false)} aria-label="Edit profile">
+  <Modal.Background onClick={() => setOpen(false)} />
 ```
 
 or keep bloomer's inert behaviour with `closeOnEscape={false} lockScroll={false}`. Add
 `portal` if the modal must escape a transformed ancestor.
+
+## `name:Modal`: a modal with no name
+
+A converted `Modal` with no `aria-label` or `aria-labelledby`, and no spread that could hold one.
+bestax's `Modal` is a dialog while it's open, and a dialog with no name is announced as just
+"dialog". Only the legacy form's `modalCardTitle` names it for you, and the
+codemod never writes that. Give the `Modal` an `aria-label`, as above, or point `aria-labelledby`
+at the `id` of its title, such as its `Modal.Card.Title` when it has one:
+
+```jsx
+<Modal active={open} onClose={close} aria-labelledby="terms-title">
+  <Modal.Background onClick={close} />
+  <Modal.Card>
+    <Modal.Card.Head>
+      <Modal.Card.Title id="terms-title">Terms</Modal.Card.Title>
+    </Modal.Card.Head>
+    <Modal.Card.Body>…</Modal.Card.Body>
+  </Modal.Card>
+</Modal>
+```
 
 ## `component:Dropdown` and its parts
 
@@ -197,12 +221,28 @@ covers the common "render as a router link" case.
 
 ## `component:Heading` — Bulma v1 dropped `.heading`
 
-bloomer's `Heading` is Bulma's small-caps label. It becomes the plain `<p className="heading">`
-bloomer rendered, but Bulma v1 no longer ships styles for that class, so restyle it:
+bloomer's `Heading` is Bulma 0.9's small uppercase label, and bestax has no component for it. It
+becomes the plain `<p className="heading">` bloomer rendered (or the element its `tag` named), but
+Bulma v1 has no rule for that class, so the label renders as body text. Restyle it with helper
+props, as a small, uppercase, semibold `Paragraph`:
 
 ```jsx
-<Heading>Label</Heading>
-<Title as="p" size={6} textTransform="uppercase" textWeight="semibold">Label</Title>
+<Heading>Followers</Heading>
+<Paragraph textSize="7" textTransform="uppercase" textWeight="semibold" mb="1">
+  Followers
+</Paragraph>
+```
+
+Or keep the class and give it a rule of your own. Bulma 0.9's was:
+
+```css
+.heading {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
 ```
 
 ## `prop:isFullWidth` — not a universal helper in bestax
@@ -222,7 +262,7 @@ instead of leaving a TODO: `Hero isBold` → `className="is-bold"`, `isHalfHeigh
 isFlexible` → `is-flexible`, `NavbarDropdown`/`NavbarDivider` `isBoxed` → `is-boxed`. The same
 goes for a universal helper on a part that takes no helper props (`Pagination.Previous`/`Next`/
 `Ellipsis`, `Navbar.Dropdown`/`DropdownMenu`/`Divider`, `Panel.Heading`/`Tabs`/`Block`,
-`Tabs.List`/`Item`, `Message.Header`/`Body`, the `Modal` parts): `isPulled="right"` →
+`Tabs.Item`, `Message.Header`/`Body`, the `Modal` parts): `isPulled="right"` →
 `is-pulled-right`, `isMarginless` → `m-0`, `isHidden="mobile"` → `is-hidden-mobile`. A dynamic
 value, or a dynamic `className` the class cannot be spliced into, is flagged with the class to add.
 
@@ -274,6 +314,24 @@ prop conditionally:
 counterpart in bestax (only `isNarrowTouch`) — Bulma keeps the `is-*-touch` classes, so use
 `className`.
 
+## `prop:isSize` on `Title` and `Subtitle`: a size the codemod cannot carry
+
+bloomer's `Title` and `Subtitle` kept their element at every size. bestax's render the heading
+their `size` names, so a literal `isSize` moves to `textSize` to keep the level (see "Title and
+Subtitle sizes" in the prop map). A dynamic one cannot move, because `textSize` takes a string,
+so it becomes `size`. Pass it to `textSize` yourself:
+
+```jsx
+<Subtitle isSize={compact ? 5 : 4}>Report</Subtitle>
+<SubTitle textSize={compact ? '5' : '4'} as="h2">Report</SubTitle>
+```
+
+A literal outside 1 to 7 has no Bulma class, and bestax renders none for it either: drop it, or set
+a `textSize` from `'1'` to `'7'`.
+
+A dynamic size beside `tag="p"` is not flagged, since bestax never turns a `<p>` into a
+heading.
+
 ## `value-reference` — a component used as a value
 
 `const Wrapped = Box` and `{ Subtitle }` are rewritten to the bestax binding (`Hero.Foot`,
@@ -297,7 +355,8 @@ does not know. Convert either to a named import from `'bloomer'` and re-run the 
 ## `plain-element` — helper props on markup that became plain HTML
 
 When a component becomes plain markup (`Help`, `Label`, `PanelTab`, …), bloomer's helper props
-on it have no home and are dropped with this flag. Re-apply them as classes
+on it have no home and are dropped with this flag. On the `<ul>` a `TabList` becomes, a helper whose
+literal value names one class becomes that class instead, as on the parts that take none. Re-apply them as classes
 (`className="is-pulled-right"`), or wrap the element in a bestax `Box`/`Block` that takes them.
 
 ## Dynamic values
@@ -305,3 +364,19 @@ on it have no home and are dropped with this flag. Re-apply them as classes
 Any prop whose value the codemod cannot read — `isColor={c}`, `isNext={n}`, `hasIcons={sides}`,
 `tag={t}`, `isTransparent={t}`, `isFullHeight={f}`, `isNormal={n}` — is either renamed as-is (when the rename is unconditional) or flagged with the
 specific prop to set. The comment names it.
+
+## `prop:display-base` — a base display beside a per-viewport one
+
+bestax leaves a base `display` out once any per-viewport display prop (`displayMobile` and the rest)
+is set, so the codemod keeps the base value as the class it stood for, in `className`, where the
+`display` attribute was (`is-flex`, `is-hidden` for `none`). With a flex base and no per-viewport
+flex display, the flex container props (`justifyContent`, `alignItems` and the rest) render only
+beside a flex `display` prop, so they move into `className` too (`is-justify-content-center`), and a
+container value bestax doesn't take stays where it was. This TODO, whose message starts "bestax
+leaves `display` out beside a per-viewport display prop", is the case where nothing moves, because a
+per-viewport display, the base value, the `className` or a container prop is dynamic, or the element takes a spread, which could hold any of them:
+
+```jsx
+<Box className={cls} display="flex" displayMobile="block" />
+<Box className={`is-flex ${cls}`} displayMobile="block" />
+```

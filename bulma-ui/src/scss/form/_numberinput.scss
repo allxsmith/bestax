@@ -174,3 +174,19 @@ $numberinput-rounded-button-size: 2.5em !default;
   @include cv.register-vars(("numberinput-rounded-button-size": 3.5em));
   font-size: cv.getVar("size-large");
 }
+
+// In forced colors a disabled Numberinput isn't faded as a whole, and a
+// stepper button disabled at a limit draws at full strength in GrayText, the
+// system's color for a disabled control, since their usual opacity would only
+// fade what forced colors draws.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}numberinput.#{iv.$class-prefix}is-disabled {
+    opacity: 1;
+  }
+
+  .#{iv.$class-prefix}numberinput.#{iv.$class-prefix}is-stepper
+    .#{iv.$class-prefix}numberinput-stepper-button:disabled {
+    color: GrayText;
+    opacity: 1;
+  }
+}

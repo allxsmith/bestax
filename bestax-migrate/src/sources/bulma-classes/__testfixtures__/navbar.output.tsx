@@ -23,7 +23,9 @@ export function SiteNavbar() {
       </Navbar.Brand>
       <Navbar.Menu id="navbarBasicExample">
         <Navbar.Start>
-          <Navbar.Item>Home</Navbar.Item>
+          <Navbar.Item active aria-current="page">
+            Home
+          </Navbar.Item>
           <Navbar.Item>Documentation</Navbar.Item>
           <Navbar.Item as="div" className="has-dropdown is-hoverable">
             <a className="navbar-link">More</a>
@@ -53,12 +55,17 @@ export function SiteNavbar() {
 
 export function DarkNavbar() {
   return (
-    <Navbar color="dark" role="navigation" aria-label="main navigation">
+    <Navbar
+      color="dark"
+      isSpaced
+      hasShadow
+      role="navigation"
+      aria-label="main navigation">
       <Navbar.Menu textColor="light">
         <Navbar.Start textWeight="bold">
           <Navbar.Item as="div" className="has-dropdown is-hoverable">
             <Navbar.DropdownMenu>
-              <Navbar.Item>About</Navbar.Item>
+              <Navbar.Item className="is-active">About</Navbar.Item>
               <Navbar.Divider className="my-0 site-divider" />
               <Navbar.Item>Jobs</Navbar.Item>
             </Navbar.DropdownMenu>

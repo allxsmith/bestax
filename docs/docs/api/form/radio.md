@@ -87,7 +87,7 @@ Use the `disabled` prop to render radios that cannot be selected. This is helpfu
 
 ### List of Radios (Grouped with the `Radios` Wrapper)
 
-Render a list of radios using the `Radios` wrapper component. This is useful for grouping related radio buttons together, especially when they share the same `name` prop. In this example, all radios are disabled.
+Render a list of radios using the `Radios` wrapper component, which groups related radio buttons under one `name`, its own or one it generates. In this example, all radios are disabled.
 
 ```tsx live
 <Radios>
@@ -138,12 +138,40 @@ function example() {
 }
 ```
 
+### Circle Size
+
+The circle is `--bulma-radio-size` across, `1.25em` by default, so it grows with the label's font size and the `size` prop. It doesn't go below 24px, whatever that variable says: the stylesheet gives the circle a `min-width` and `min-height` of 24px, the minimum size WCAG 2.2 sets for a target (2.5.8, Target Size (Minimum)), so a circle with no label text beside it is still easy to hit. With Bulma's default font sizes, `1.25em` comes out under 24px at the default and `small` sizes, so those two circles are both 24px.
+
+For a smaller circle, lower the floor along with the size, on a class you pass through `className`. Name `.styled-radio` beside your class in each selector, so the rules win whatever order the stylesheets load in, and use `.bestax-styled-radio` and `.bestax-check` under the prefixed flavor:
+
+```css
+.styled-radio.compact-radio {
+  --bulma-radio-size: 20px;
+}
+
+.styled-radio.compact-radio .check {
+  min-width: 0;
+  min-height: 0;
+}
+```
+
+```tsx
+<Radio name="plan" value="basic" className="compact-radio">
+  Basic
+</Radio>
+```
+
+Keep the label text inside the `Radio` when you shrink the circle. The whole label is the click target, so it stays easy to hit when the circle alone is small.
+
 ---
 
 ## Accessibility
 
 - Each `Radio` is rendered as a `<label>` wrapping an `<input type="radio">` and the label text, for optimal accessibility.
-- Use the same `name` prop for a group of radios to ensure only one can be selected.
+- Radios that share a `name` are one group: only one can be checked, and the arrow keys move between them. Inside `Radios` they take the group's `name`, or one it generates when you give it none. Outside one, give each the same `name`.
+- The circle is at least 24px across, the minimum size WCAG 2.2 sets for a target (2.5.8), whatever `--bulma-radio-size` says. [Circle Size](#circle-size) shows how to make it smaller, and why to keep the label text inside the `Radio` when you do.
+- An unchecked radio shows only its ring, `--bulma-radio-border-color`. It defaults to `--bulma-text-weak`, which holds the 3:1 contrast WCAG asks of a control's boundary (non-text contrast) on Bulma's page and card surfaces in light and dark. Set a replacement on a class you pass through `className`, since `style` goes to the `<input>`, naming the label's class too (`.styled-radio.my-radio`) so load order can't undo it, and hold it to 3:1 as well.
+- In forced colors (Windows contrast themes), the circle and the dot take system colors. A disabled radio, its dot and its label draw in the system's color for disabled text there, at full strength rather than dimmed.
 
 ---
 
@@ -166,16 +194,16 @@ function example() {
 
 <!-- bestax:generated props -->
 
-| Prop        | Type                                                                            | Default | Description                                       |
-| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
-| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Color of the radio button.                        |
-| `size`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size of the radio button.                         |
-| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper.                                |
-| `disabled`  | `boolean`                                                                       | `false` | Whether the radio is disabled.                    |
-| `className` | `string`                                                                        | —       | Additional CSS classes to apply.                  |
-| `children`  | `React.ReactNode`                                                               | —       | The label/content for the radio.                  |
-| `ref`       | `React.Ref<HTMLInputElement>`                                                   | —       | Forwarded to the underlying element.              |
-| `...`       | All standard `<input>` attributes and Bulma helper props                        | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                                                                            | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ----------- | ------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Color of the radio button.                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `size`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —       | Size of the radio button.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `disabled`  | `boolean`                                                                       | `false` | Whether the radio is disabled.                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `className` | `string`                                                                        | —       | Additional CSS classes, on the outer `<label>`. That's the element that declares the `--bulma-radio-*` variables, so a class is how to set one: `style` and the other input attributes go to the `<input>`. Name `.styled-radio` beside your class in the selector, so it beats the label's own declaration whatever order the stylesheets load in. A `color` prop declares the active color again on `.styled-radio.is-<color>`, which ties that selector, so leave `color` unset when a class sets it. |
+| `children`  | `React.ReactNode`                                                               | —       | The label/content for the radio.                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `ref`       | `React.Ref<HTMLInputElement>`                                                   | —       | Forwarded to the underlying element.                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `...`       | All standard `<input>` attributes and Bulma helper props                        | —       | Helper props go on the outer `<label>`, with `className`. The other attributes go on the `<input>`. See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                    |
 
 <!-- /bestax:generated props -->
 
@@ -187,16 +215,20 @@ function example() {
 
 `Radio` registers these variables on its own `.styled-radio` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
 
-| CSS Variable                        | Sass Variable                | Default                    |
-| ----------------------------------- | ---------------------------- | -------------------------- |
-| `--bulma-radio-size`                | `$radio-size`                | `1.25em`                   |
-| `--bulma-radio-border-width`        | `$radio-border-width`        | `2px`                      |
-| `--bulma-radio-border-color`        | `$radio-border-color`        | `var(--bulma-border)`      |
-| `--bulma-radio-background`          | `$radio-background`          | `transparent`              |
-| `--bulma-radio-dot-color`           | `$radio-dot-color`           | `var(--bulma-scheme-main)` |
-| `--bulma-radio-active-color`        | `$radio-active-color`        | `var(--bulma-primary)`     |
-| `--bulma-radio-label-gap`           | `$radio-label-gap`           | `0.5em`                    |
-| `--bulma-radio-focus-shadow-size`   | `$radio-focus-shadow-size`   | `0 0 0 0.125em`            |
-| `--bulma-radio-transition-duration` | `$radio-transition-duration` | `var(--bulma-duration)`    |
+| CSS Variable                        | Sass Variable                | Default                           |
+| ----------------------------------- | ---------------------------- | --------------------------------- |
+| `--bulma-radio-size`                | `$radio-size`                | `1.25em`                          |
+| `--bulma-radio-border-width`        | `$radio-border-width`        | `2px`                             |
+| `--bulma-radio-border-color`        | `$radio-border-color`        | `var(--bulma-text-weak)`          |
+| `--bulma-radio-background`          | `$radio-background`          | `transparent`                     |
+| `--bulma-radio-dot-color`           | `$radio-dot-color`           | `var(--bulma-radio-active-color)` |
+| `--bulma-radio-active-color`        | `$radio-active-color`        | `var(--bulma-primary)`            |
+| `--bulma-radio-label-gap`           | `$radio-label-gap`           | `0.5em`                           |
+| `--bulma-radio-focus-shadow-size`   | `$radio-focus-shadow-size`   | `0 0 0 0.125em`                   |
+| `--bulma-radio-transition-duration` | `$radio-transition-duration` | `var(--bulma-duration)`           |
 
 <!-- /bestax:generated cssvars -->
+
+`--bulma-radio-size` has a floor: the circle doesn't render smaller than 24px, whatever the variable says. [Circle Size](#circle-size) says why, and how to go below it.
+
+**Focus shadow size:** `--bulma-radio-focus-shadow-size` (`$radio-focus-shadow-size`) is registered, and nothing reads it, so setting it changes nothing. The keyboard focus ring is a `2px` outline in `--bulma-radio-active-color`, with no shadow for a size to apply to. It stays registered so a Sass build that configures it keeps compiling.

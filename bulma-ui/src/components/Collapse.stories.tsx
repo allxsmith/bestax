@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import { Collapse } from './Collapse';
 import { Collapses } from './Collapses';
 import { Card } from './Card';
@@ -9,7 +9,6 @@ import { Box } from '../elements/Box';
 import { Notification } from '../elements/Notification';
 import { Block } from '../elements/Block';
 import { Button } from '../elements/Button';
-import { LinkButton } from '../elements/LinkButton';
 import { Title } from '../elements/Title';
 import { Paragraph } from '../elements/Paragraph';
 import { Span } from '../elements/Span';
@@ -60,7 +59,8 @@ const meta: Meta<typeof Collapse> = {
       description: 'Whether to show a border around the collapse',
     },
     trigger: {
-      description: 'The clickable trigger element',
+      description:
+        'What the clickable header shows: text or layout, nothing interactive, since the header is already a button',
     },
     children: {
       description: 'The collapsible content',
@@ -71,7 +71,8 @@ const meta: Meta<typeof Collapse> = {
 export default meta;
 type Story = StoryObj<typeof Collapse>;
 
-// Simple trigger component
+// Simple trigger content: text and a chevron. The trigger is already a
+// button, so nothing interactive goes in it.
 const SimpleTrigger = ({
   text,
   isOpen,
@@ -79,20 +80,27 @@ const SimpleTrigger = ({
   text: string;
   isOpen?: boolean;
 }) => (
-  <LinkButton display="flex" alignItems="center">
+  <Span display="flex" alignItems="center" textColor="link">
     <Span
       className="collapse-trigger-icon"
       style={{
         display: 'inline-flex',
         marginRight: '0.5rem',
-        transition: 'transform 0.3s',
         transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
       }}
     >
       <Icon name="chevron-right" variant="solid" />
     </Span>
     {text}
-  </LinkButton>
+  </Span>
+);
+
+// A card header's icon, spaced as Card.Header.Icon spaces it, but not a
+// button: the Collapse trigger around it is the button.
+const HeaderIcon = ({ children }: { children: ReactNode }) => (
+  <Span display="flex" alignItems="center" px="4" py="3">
+    {children}
+  </Span>
 );
 
 /**
@@ -283,12 +291,12 @@ export const Accordion: Story = {
             trigger={
               <Card.Header>
                 <Card.Header.Title>{item.title}</Card.Header.Title>
-                <Card.Header.Icon aria-label="toggle">
+                <HeaderIcon>
                   <Icon
                     name={openIndex === index ? 'minus' : 'plus'}
                     variant="solid"
                   />
-                </Card.Header.Icon>
+                </HeaderIcon>
               </Card.Header>
             }
           >
@@ -315,9 +323,9 @@ export const CardStyle: Story = {
         trigger={
           <Card.Header>
             <Card.Header.Title>Card Collapse</Card.Header.Title>
-            <Card.Header.Icon aria-label="toggle">
+            <HeaderIcon>
               <Icon name={isOpen ? 'angle-up' : 'angle-down'} variant="solid" />
-            </Card.Header.Icon>
+            </HeaderIcon>
           </Card.Header>
         }
         onOpen={() => setIsOpen(true)}
@@ -373,41 +381,36 @@ export const RichContent: Story = {
 };
 
 /**
- * Collapse with a ghost-styled trigger.
+ * Collapse with a semibold trigger, styled with helper props.
  */
-export const GhostTrigger: Story = {
-  render: function GhostTriggerCollapse() {
+export const SemiboldTrigger: Story = {
+  render: function SemiboldTriggerCollapse() {
     const [isOpen, setIsOpen] = useState(false);
     return (
       <Collapse
         trigger={
-          <LinkButton
-            variant="ghost"
-            display="flex"
-            alignItems="center"
-            textWeight="semibold"
-          >
+          <Span display="flex" alignItems="center" textWeight="semibold">
             <Span
               className="collapse-trigger-icon"
               style={{
                 display: 'inline-flex',
                 marginRight: '0.5rem',
-                transition: 'transform 0.3s',
                 transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
               }}
             >
               <Icon name="chevron-right" variant="solid" />
             </Span>
-            Ghost trigger style
-          </LinkButton>
+            Semibold trigger style
+          </Span>
         }
         onOpen={() => setIsOpen(true)}
         onClose={() => setIsOpen(false)}
       >
         <Block mt="4">
           <Paragraph>
-            This collapse uses a ghost-styled LinkButton as the trigger, which
-            shows a subtle hover background instead of appearing as plain text.
+            This trigger is semibold text with a chevron. The trigger is already
+            a button, so it holds text rather than a Button or a LinkButton,
+            which would be a second tab stop inside it.
           </Paragraph>
         </Block>
       </Collapse>
@@ -451,14 +454,14 @@ export const FAQExample: Story = {
               trigger={
                 <Card.Header>
                   <Card.Header.Title>{faq.question}</Card.Header.Title>
-                  <Card.Header.Icon aria-label="toggle">
+                  <HeaderIcon>
                     <Icon
                       name={
                         open.includes(index) ? 'chevron-up' : 'chevron-down'
                       }
                       variant="solid"
                     />
-                  </Card.Header.Icon>
+                  </HeaderIcon>
                 </Card.Header>
               }
             >
@@ -488,12 +491,12 @@ export const Nested: Story = {
         trigger={
           <Card.Header onClick={() => setOuterOpen(!outerOpen)}>
             <Card.Header.Title>Outer Collapse</Card.Header.Title>
-            <Card.Header.Icon aria-label="toggle">
+            <HeaderIcon>
               <Icon
                 name={outerOpen ? 'angle-up' : 'angle-down'}
                 variant="solid"
               />
-            </Card.Header.Icon>
+            </HeaderIcon>
           </Card.Header>
         }
         onOpen={() => setOuterOpen(true)}
@@ -508,12 +511,12 @@ export const Nested: Story = {
             trigger={
               <Card.Header onClick={() => setInnerOpen(!innerOpen)}>
                 <Card.Header.Title>Inner Collapse</Card.Header.Title>
-                <Card.Header.Icon aria-label="toggle">
+                <HeaderIcon>
                   <Icon
                     name={innerOpen ? 'angle-up' : 'angle-down'}
                     variant="solid"
                   />
-                </Card.Header.Icon>
+                </HeaderIcon>
               </Card.Header>
             }
             onOpen={() => setInnerOpen(true)}
@@ -536,6 +539,9 @@ export const Nested: Story = {
  */
 export const PanelCollapse: Story = {
   render: function PanelCollapseExample() {
+    // The heading sits in the Collapse's trigger, a button, so it can't be a
+    // heading itself, but the panel still takes its name from it.
+    const headingId = useId();
     const [isOpen, setIsOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('all');
     const [searchValue, setSearchValue] = useState('');
@@ -552,15 +558,13 @@ export const PanelCollapse: Story = {
     ];
 
     return (
-      <Panel color="primary">
+      <Panel color="primary" aria-labelledby={headingId}>
         <Collapse
           open={isOpen}
+          onOpenChange={setIsOpen}
           animation="slide"
           trigger={
-            <Panel.Heading
-              style={{ cursor: 'pointer' }}
-              onClick={() => setIsOpen(!isOpen)}
-            >
+            <Panel.Heading id={headingId} style={{ cursor: 'pointer' }}>
               <span
                 style={{
                   display: 'flex',
@@ -579,7 +583,7 @@ export const PanelCollapse: Story = {
           }
         >
           <Panel.InputBlock
-            placeholder="Search"
+            placeholder="Search projects"
             value={searchValue}
             onChange={e => setSearchValue(e.target.value)}
           />
@@ -587,15 +591,22 @@ export const PanelCollapse: Story = {
             {tabs.map(tab => (
               <a
                 key={tab}
+                href={`#${tab.toLowerCase()}`}
                 className={activeTab === tab.toLowerCase() ? 'is-active' : ''}
-                onClick={() => setActiveTab(tab.toLowerCase())}
+                aria-current={
+                  activeTab === tab.toLowerCase() ? 'true' : undefined
+                }
+                onClick={e => {
+                  e.preventDefault();
+                  setActiveTab(tab.toLowerCase());
+                }}
               >
                 {tab}
               </a>
             ))}
           </Panel.Tabs>
           {projects.map(project => (
-            <Panel.Block key={project.name}>
+            <Panel.Block key={project.name} href={`#${project.name}`}>
               <Panel.Icon name={project.icon} variant="solid" />
               {project.name}
             </Panel.Block>

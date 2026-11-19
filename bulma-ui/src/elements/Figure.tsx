@@ -15,7 +15,7 @@ export interface FigureCaptionProps
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Text color (Bulma color, 'inherit', or 'current'). */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color (Bulma color, 'inherit', or 'current'). */
@@ -34,7 +34,7 @@ export interface FigureCaptionProps
  * @param {FigureCaptionProps} props - Props for the FigureCaption component.
  * @returns {JSX.Element} The rendered figcaption element.
  */
-const FigureCaption: React.FC<FigureCaptionProps> = ({
+export const FigureCaption: React.FC<FigureCaptionProps> = ({
   className,
   textColor,
   bgColor,
@@ -69,7 +69,7 @@ export interface FigureProps
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color helper. */

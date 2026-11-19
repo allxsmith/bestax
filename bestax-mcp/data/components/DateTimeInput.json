@@ -138,39 +138,39 @@
       "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <DateTimeInput label=\"Disabled\" disabled />\n  <DateTimeInput label=\"Read only\" readOnly defaultValue={new Date()} />\n  <DateTimeInput label=\"Loading\" isLoading />\n</Block>"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › Default (with label)",
       "code": "<DateTimeInput label=\"When\" placeholder=\"YYYY-MM-DD HH:MM\" />"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › With Field Wrapper",
       "code": "function example() {\n  return (\n    <Field horizontal label=\"When\" labelProps={{ htmlFor: 'when-field' }}>\n      <Field.Body>\n        <Field>\n          <DateTimeInput id=\"when-field\" placeholder=\"YYYY-MM-DD HH:MM\" />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › With Field and Control Wrappers",
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"When\"\n      labelProps={{ htmlFor: 'when-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"calendar-alt\">\n            <DateTimeInput\n              id=\"when-field-control\"\n              placeholder=\"YYYY-MM-DD HH:MM\"\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
-      "title": "Manual Keyboard Entry",
+      "title": "Manual Keyboard Entry › Basic",
       "code": "function example() {\n  return (\n    <DateTimeInput\n      label=\"Type across date and time\"\n      defaultValue={new Date(2024, 5, 7, 13, 45)}\n      openOnFocus={false}\n    />\n  );\n}"
     },
     {
-      "title": "Manual Keyboard Entry",
+      "title": "Manual Keyboard Entry › Controlled with live value",
       "code": "function example() {\n  const [v, setV] = useState<Date | null>(() => new Date(2024, 5, 7, 13, 45));\n  return (\n    <Block>\n      <DateTimeInput\n        label=\"Arrow or type — value updates live\"\n        value={v}\n        onChange={setV}\n        openOnFocus={false}\n      />\n      <Paragraph mt=\"2\">Selected: {v ? v.toString() : '—'}</Paragraph>\n    </Block>\n  );\n}"
     },
     {
-      "title": "Manual Keyboard Entry",
+      "title": "Manual Keyboard Entry › Free-form fallback",
       "code": "function example() {\n  return (\n    <DateTimeInput\n      label=\"Free-form (Intl format)\"\n      format={{ dateStyle: 'medium', timeStyle: 'short' }}\n      defaultValue={new Date(2024, 5, 7, 13, 45)}\n      openOnFocus={false}\n    />\n  );\n}"
     },
     {
-      "title": "Picker vs Input Modes",
+      "title": "Picker vs Input Modes › Picker only",
       "code": "<DateTimeInput label=\"Picker only\" editable={false} defaultValue={new Date()} />"
     },
     {
-      "title": "Picker vs Input Modes",
+      "title": "Picker vs Input Modes › Input only",
       "code": "<DateTimeInput label=\"Input only\" popover={false} defaultValue={new Date()} />"
     }
   ],
-  "accessibility": "- Trigger uses `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls`.\n- Popover panel has `role=\"dialog\"` with an accessible name. Opening it puts focus on the focused date.\n- Closing the popover with `Escape`, the ✓ button or `Enter` on a time wheel returns focus to the input, whether the input or the launcher opened it. Under `openOnFocus` that returning focus leaves the popover closed; focusing or clicking the input again opens it. Closing it commits nothing by itself: an empty field stays empty, and leaving afterwards commits only what you typed, so seconds the display leaves out are kept.\n- Calendar uses `role=\"grid\"`; cells expose `aria-selected`, `aria-disabled`, and `aria-current=\"date\"`.\n- Roving `tabindex` keeps a single day focusable at a time, and focus moves with it, inline as in the popover. When the focused date is disabled, that cell is the nearest enabled day of the month.\n- Each time wheel uses `role=\"spinbutton\"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`. The values drawn above and below are click targets hidden from assistive technology, which reads the value from the spinbutton.\n- In a 12-hour picker, AM/PM is one of those wheels, reading `AM` or `PM`. Its accessible name is `AM/PM` unless `labels.ampm` sets another.\n- The footer's confirm button exposes an accessible label (`Done`); the Reset button reverts your edits to the value the popover opened with.\n- Tab order walks from the calendar to the footer (Reset / ✓), and from the time wheels to the footer while they are open.",
+  "accessibility": "- Trigger uses `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls`.\n- Popover panel has `role=\"dialog\"` with an accessible name. Opening it puts focus on the focused date.\n- An `inline` picker has no input for its `label` to name, so its root is a `role=\"group\"` the `label` names through `aria-labelledby` and its `message` describes. A labeled `Field` around it names it the same way, unless the `Field` is `grouped` or `hasAddons`, or a label is wired by hand with `labelProps.htmlFor`. An `aria-label` or `aria-labelledby` you give it names it instead. With no name it stays a plain `div`, and its grid and its wheels inside keep their own names.\n- Closing the popover with `Escape`, the ✓ button or `Enter` on a time wheel returns focus to the input, whether the input or the launcher opened it. Under `openOnFocus` that returning focus leaves the popover closed; focusing or clicking the input again opens it. Closing it commits nothing by itself: an empty field stays empty, and leaving afterwards commits only what you typed, so seconds the display leaves out are kept.\n- Calendar uses `role=\"grid\"`. Its first row holds the weekday names as `role=\"columnheader\"`s, each named by the full weekday in the picker's locale, so a screen reader can name the weekday as focus moves to another column. A server-rendered calendar adds those full names once the page hydrates, and with `dayNames` the columns are named by the names you give instead. Each day keeps its number as its name.\n- Cells expose `aria-selected`, `aria-disabled`, and `aria-current=\"date\"` for today. On a server-rendered page, today gets it once the page hydrates, so the reader's clock decides which day.\n- In forced colors (Windows' contrast themes), the fill that marks the selected day, and the year the header's year list is on, is replaced, so bestax's styles draw it in the system's highlight colors there, or in the system's color for a disabled control when it's disabled.\n- In forced colors, a disabled day, month or year, a disabled month or arrow button in the header, a disabled Time, Reset or ✓ button in the footer, and a disabled launcher draw in the system's color for a disabled control, at full strength rather than faded.\n- Roving `tabindex` keeps a single day focusable at a time, and focus moves with it, inline as in the popover. When the focused date is disabled, that cell is the nearest enabled day of the month.\n- Closing the year list opened from the header, with a pick or `Escape`, puts focus back on the grid's tab stop, inline as in the popover.\n- A `disabled` inline panel puts `aria-disabled=\"true\"` on its grid and disables every button in it. A `readOnly` one puts `aria-readonly=\"true\"` there instead, and keeps its tab stop and keys.\n- Each time wheel uses `role=\"spinbutton\"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`, whose text is the number as the wheel shows it, in the picker's locale's digits when it has a locale. The values drawn above and below are click targets hidden from assistive technology, which reads the value from the spinbutton.\n- In a 12-hour picker, AM/PM is one of those wheels, reading `AM` or `PM`, or the picker's locale's words for them when it has a locale, and it widens to fit a longer word. Its accessible name is `AM/PM` unless `labels.ampm` sets another.\n- In forced colors (Windows' contrast themes), the time wheels' band is drawn in the system's highlight color, since its fill is replaced there, and the values keep the system's text color.\n- The footer's confirm button exposes an accessible label (`Done`); the Reset button reverts your edits to the value the popover opened with, or on an `inline` picker, to the one described under [Inline](https://bestax.io/docs/api/form/datetime/datetimeinput#inline).\n- Tab order walks from the calendar to the footer (Reset / ✓), and from the time wheels to the footer while they are open.\n- On a right-to-left page the launcher sits at the end of the line and the calendar icon at the start. The time wheels keep `dir=\"ltr\"`.\n- A panel that would run past the left or right edge of the screen, as on a phone with the\n  field mid-row, keeps its corner and moves sideways just far enough to fit, or, wider than\n  the screen, to the edge its text starts from.\n- The `message` describes the input through `aria-describedby`, so a screen reader reads it when the input takes focus. Ids you pass in `aria-describedby` go on the container with the other attributes, except on a phone's native input, which lists them first. An `inline` picker has no input, so there the message describes the picker's group, when something names it.\n- `aria-invalid` and `aria-errormessage` go on the input, while the other attributes you pass go on the container, so a screen reader hears the input is invalid when it takes focus. An `inline` picker has no input, and they stay on its container.\n- The input takes its name from `label`, from a labeled `Field` that isn't `grouped` or `hasAddons` around a `DateTimeInputBase` with no `id` of its own, or from a `<label htmlFor>` of your own pointing at the `id` you give it. `aria-label` and `aria-labelledby` go on the container with the other attributes you pass, so they don't name the input, except on the native input `mobileNative` renders, which takes them itself. An `inline` picker has no input to name.\n- An `autoComplete` you give goes on the field. Without one the text field turns autocomplete off, since the browser's own suggestions would cover the panel. A date and time that autofill writes commits when it reads in the token `format` (the default one when `format` is `Intl` options) or through your `parse`. One it can't read, or that `min`, `max` or a blocked day or time rules out, isn't committed, as with typing: the field shows it as written, and submits it under a `name`, until focus next leaves the field.",
   "related": ["DateInput", "Input", "TimeInput"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-datetimeinput",
   "summary": "The `DateTimeInput` combines a calendar and a time **wheel spinner** in a single popover — an iOS-style layout.",
@@ -187,7 +187,7 @@
           "name": "label",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Field label. Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired in `inline` mode (no visible input to label). Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here.",
+          "description": "Field label. Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. In `inline` mode, where there's no input, it names the picker instead, which is then a `role=\"group\"`, through `aria-labelledby`, unless `labelProps.htmlFor` wires it by hand. An `aria-label` or `aria-labelledby` you set names the picker over it, and an `aria-labelledby` key counts even when undefined. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here. Inline, that `Field`'s label names the picker's group whatever the `id`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -322,7 +322,7 @@
           "name": "message",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Help/validation text below the input.",
+          "description": "Help or validation text under the input. It describes the input through `aria-describedby`; inline, with no input, it describes the picker's group when something names it.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -421,7 +421,7 @@
           "name": "disabled",
           "type": "boolean",
           "default": "false",
-          "description": "Disable the input.",
+          "description": "Disable the input. An `inline` panel disables its days, header buttons, Time, Reset and ✓, but its hidden input still submits the value, where a disabled input submits nothing.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -430,7 +430,7 @@
           "name": "readOnly",
           "type": "boolean",
           "default": "false",
-          "description": "Read-only input.",
+          "description": "Read-only input. An `inline` panel still moves through the dates by key and by its header, but a click, Enter or Space picks nothing, and Time and Reset are disabled, so the time can't change either.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -466,7 +466,7 @@
           "name": "locale",
           "type": "string",
           "default": null,
-          "description": "BCP-47 locale tag.",
+          "description": "BCP-47 locale tag for day/month names, the digits the calendar and the time wheels write their numbers in, the words a 12-hour wheel shows for AM and PM, and Intl formatting. Unset, it is the `locale` of a `LocaleProvider` around the picker, and with neither, `Intl` uses the runtime's own locale and the calendar and the wheels keep plain digits and AM and PM. On a server render that locale is the server's, so an `inline` calendar rendered there names its days in the server's language and the browser's own render names them in the browser's: give it a locale, here or through a `LocaleProvider`, where the two can differ.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -475,7 +475,7 @@
           "name": "inline",
           "type": "boolean",
           "default": "false",
-          "description": "Render the panel inline (no popover).",
+          "description": "Render the panel inline (no popover). On a server-rendered page it marks today once the page hydrates, by the browser's clock rather than the server's. With no `value` or `defaultValue` it opens on the month the clock reads, and around the end of a month the server's clock and the browser's can read different months, so give it a date both render the same. Reset in its footer goes back to the value it mounted with, or, when controlled, to the latest `value` the parent set other than an echo of `onChange`. The ✓ beside it has no popover to close. Inline, the root is a `role=\"group\"` when something names it: a labeled `Field` around it that isn't `grouped` or `hasAddons` and has no `labelProps.htmlFor`, or an `aria-label` or `aria-labelledby` you give it. The `message` of a wrapper around it describes it then.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -529,7 +529,7 @@
           "name": "position",
           "type": "'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | 'auto'",
           "default": "'bottom-left'",
-          "description": "Popover anchor position.",
+          "description": "Where the popover opens against the field. Left out, it opens below and lines up with the field's start edge, which is its right edge when the picker reads right to left. A corner you pass stays physical, so `bottom-left` lines up the left edges either way. A panel that would run past the viewport's left or right edge keeps its corner and moves sideways, just far enough to fit or, wider than the viewport, to the edge its text starts from.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -538,7 +538,7 @@
           "name": "appendToBody",
           "type": "boolean",
           "default": "false",
-          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, `document.body` by default.",
+          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, else the overlay it's in that takes its popups, such as a `Modal`, else `document.body`.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -547,7 +547,7 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Bulma color modifier for the input, also carried by the calendar and the time wheels, where it colors the selected date and the selection band. Today's date and the calendar's keyboard focus ring take the color's `-on-scheme` variant, which Bulma adjusts to contrast with the background, so pale colors stay readable. A focused wheel's ring is drawn inside the band in the color's `-invert`, like the selected value, so it shows on the fill. Unset, they use their `--bulma-dateinput-*` and `--bulma-timeinput-wheel-*` variables, which follow `primary` by default. The footer's time pill and Done button do not follow `color`.",
+          "description": "Bulma color modifier for the input, also carried by the calendar and the time wheels, where it colors the selected date and the selection band. Today's date and the calendar's keyboard focus ring take the color's `-on-scheme` variant, which Bulma adjusts to contrast with the background, so pale colors stay readable. A focused wheel's ring is drawn inside the band in the color's `-invert`, like the selected value, so it shows on the fill. Unset, they use their `--bulma-dateinput-*` and `--bulma-timeinput-wheel-*` variables, which follow `primary` by default. The footer's time pill and Done button do not follow `color`. Forced colors (Windows' contrast themes) replaces the calendar's fill and the wheels' band, so there the selected date is drawn in the system's highlight colors and the band in its highlight color instead, whatever the color, which needs bestax's CSS.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -592,7 +592,7 @@
           "name": "firstDayOfWeek",
           "type": "0 | 1 | 2 | 3 | 4 | 5 | 6",
           "default": "0",
-          "description": "Day the calendar week starts on.",
+          "description": "Day the week starts on (0 = Sunday). Unset inside a `LocaleProvider`, it is the first day of the week in the picker's locale, its own `locale` or else the provider's, such as Monday for `\"de\"`. Elsewhere, with no locale from either, or with seven `dayNames` of your own, it is Sunday: set it with `dayNames` to start the week on another day.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -601,7 +601,7 @@
           "name": "dayNames",
           "type": "string[]",
           "default": null,
-          "description": "Override the 7 day-name labels.",
+          "description": "Override the 7 day-name labels (in calendar order, post-rotation). They are shown exactly as given, from the first column, so they have to start on the day the week does. With them, an unset `firstDayOfWeek` stays Sunday even inside a `LocaleProvider`, so names written Sunday first keep matching their columns; to start on the locale's day, set `firstDayOfWeek` too and list the names from that day. They also name the columns for assistive technology. Without them each column is named by its full weekday in the picker's locale, which a server-rendered calendar adds once the page hydrates.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -610,7 +610,7 @@
           "name": "monthNames",
           "type": "string[]",
           "default": null,
-          "description": "Override the 12 month-name labels.",
+          "description": "Override the 12 month-name labels. With them the day grid's heading reads the name, a space and the year, whatever order the locale writes a month and its year in.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -762,6 +762,15 @@
           "deprecated": false
         },
         {
+          "name": "autoComplete",
+          "type": "string",
+          "default": "off",
+          "description": "An autofill token for the field. On the text field it's `off` unless you give one, since the browser's own suggestions would cover the calendar. The native input on touch devices takes yours too, and the browser's default without one, and an `inline` picker, with no field, takes none. A date and time that autofill writes commits when it reads in the token `format` (the default one when `format` is `Intl` options) or through your `parse`. One it can't read, or that `min`, `max` or a blocked day or time rules out, isn't committed, as with typing: the field shows it as written, and submits it under a `name`, until focus next leaves the field.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
           "name": "required",
           "type": "boolean",
           "default": "false",
@@ -772,7 +781,416 @@
         }
       ],
       "catchAll": "All standard <input> attributes and Bulma helper props",
+      "helperPropsNote": "Helper props go on the `.datetimeinput-container` `<div>`, with `className` and the other attributes, except that the background helpers go on the `<input>`, and the text helpers on both, since Bulma's `.input` sets its own background and font, and the popover inside the `<div>` takes the text ones. Inline they all go on the `<div>`, and on the native mobile input, on the `<input>`. Among the other attributes, `aria-label`, `aria-labelledby` and `aria-describedby` go on the `<div>` too, so they don't name or describe the `<input>`, except the native one `mobileNative` renders. Name it with `DateTimeInput`'s `label`; with a labeled `Field` that isn't `grouped` or `hasAddons`, if you give it no `id`; or with an `id` and a `<label htmlFor>` of your own. Describe it with `DateTimeInput`'s `message`: `DateTimeInputBase` on its own has no way to describe it. Inline there is no `<input>` to name.",
       "types": []
+    },
+    {
+      "path": "DateTimeInputBase",
+      "summary": "Raw DateTimeInput — combined input + calendar + time spinner without Field/Control wrapping. Use `DateTimeInput` for the convenience wrapper.",
+      "component": null,
+      "props": [
+        {
+          "name": "value",
+          "type": "Date | null",
+          "default": null,
+          "description": "Controlled selected date-time.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "Date | null",
+          "default": null,
+          "description": "Initial value for uncontrolled usage.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(d: Date | null) => void",
+          "default": null,
+          "description": "Fired when either the date or time portion changes. Picking a day keeps the value's whole time of day, down to seconds and milliseconds the field doesn't show, and `min` and `max` judge the picked day at that time. An empty field's day is picked at midnight.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onOpen",
+          "type": "() => void",
+          "default": null,
+          "description": "Fired when the popover opens.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "default": null,
+          "description": "Fired when the popover closes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "min",
+          "type": "Date",
+          "default": null,
+          "description": "Lower bound for the combined date-time. A `min` before year 1 is raised to midnight on 1 January of year 1, where the range starts without one too: HTML's datetime-local input holds no earlier year, so the calendar, the time wheels and typing stop there.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "max",
+          "type": "Date",
+          "default": null,
+          "description": "Upper bound for the combined date-time.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disable the input. An `inline` panel disables its days, header buttons, Time, Reset and ✓, but its hidden input still submits the value, where a disabled input submits nothing.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "default": "false",
+          "description": "Read-only input. An `inline` panel still moves through the dates by key and by its header, but a click, Enter or Space picks nothing, and Time and Reset are disabled, so the time can't change either.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": null,
+          "description": "Placeholder text.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "format",
+          "type": "Intl.DateTimeFormatOptions | string",
+          "default": "'YYYY-MM-DD HH:mm'",
+          "description": "Token format string or `Intl.DateTimeFormat` options. Default `'YYYY-MM-DD HH:mm'`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "parse",
+          "type": "(s: string) => Date | null",
+          "default": null,
+          "description": "Custom parser. Enter and leaving the field call it only if the user changed the text, so focus passing through commits nothing and the value keeps what the format leaves out, such as seconds.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "default": null,
+          "description": "BCP-47 locale tag for day/month names, the digits the calendar and the time wheels write their numbers in, the words a 12-hour wheel shows for AM and PM, and Intl formatting. Unset, it is the `locale` of a `LocaleProvider` around the picker, and with neither, `Intl` uses the runtime's own locale and the calendar and the wheels keep plain digits and AM and PM. On a server render that locale is the server's, so an `inline` calendar rendered there names its days in the server's language and the browser's own render names them in the browser's: give it a locale, here or through a `LocaleProvider`, where the two can differ.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "inline",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the panel inline (no popover). On a server-rendered page it marks today once the page hydrates, by the browser's clock rather than the server's. With no `value` or `defaultValue` it opens on the month the clock reads, and around the end of a month the server's clock and the browser's can read different months, so give it a date both render the same. Reset in its footer goes back to the value it mounted with, or, when controlled, to the latest `value` the parent set other than an echo of `onChange`. The ✓ beside it has no popover to close. Inline, the root is a `role=\"group\"` when something names it: a labeled `Field` around it that isn't `grouped` or `hasAddons` and has no `labelProps.htmlFor`, or an `aria-label` or `aria-labelledby` you give it. The `message` of a wrapper around it describes it then.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "mobileNative",
+          "type": "boolean | 'auto'",
+          "default": "'auto'",
+          "description": "Use `<input type=\"datetime-local\">` on coarse-pointer devices.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "editable",
+          "type": "boolean",
+          "default": "true",
+          "description": "Allow segmented keyboard typing (type the date-time directly across all segments). `false` makes the field picker-only.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "popover",
+          "type": "boolean",
+          "default": "true",
+          "description": "Whether the calendar + time popover exists. `false` makes the field input-only (segmented typing with no popover). Default `true`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "openOnFocus",
+          "type": "boolean",
+          "default": "true",
+          "description": "Open the popover on focus. Default `true`. Focus that a closing popover hands back to the input leaves it closed. Dismissing it commits nothing: an empty field stays empty, and leaving afterwards commits only what was typed since. With it off, the launcher or Alt+ArrowDown opens it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnSelect",
+          "type": "boolean",
+          "default": "false",
+          "description": "Off by default — users typically tweak both halves before committing.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | 'auto'",
+          "default": "'bottom-left'",
+          "description": "Where the popover opens against the field. Left out, it opens below and lines up with the field's start edge, which is its right edge when the picker reads right to left. A corner you pass stays physical, so `bottom-left` lines up the left edges either way. A panel that would run past the viewport's left or right edge keeps its corner and moves sideways, just far enough to fit or, wider than the viewport, to the edge its text starts from.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "appendToBody",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, else the overlay it's in that takes its popups, such as a `Modal`, else `document.body`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier for the input, also carried by the calendar and the time wheels, where it colors the selected date and the selection band. Today's date and the calendar's keyboard focus ring take the color's `-on-scheme` variant, which Bulma adjusts to contrast with the background, so pale colors stay readable. A focused wheel's ring is drawn inside the band in the color's `-invert`, like the selected value, so it shows on the fill. Unset, they use their `--bulma-dateinput-*` and `--bulma-timeinput-wheel-*` variables, which follow `primary` by default. The footer's time pill and Done button do not follow `color`. Forced colors (Windows' contrast themes) replaces the calendar's fill and the wheels' band, so there the selected date is drawn in the system's highlight colors and the band in its highlight color instead, whatever the color, which needs bestax's CSS.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size variant.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Rounded input corners.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "shouldDisableDate",
+          "type": "(d: Date) => boolean",
+          "default": null,
+          "description": "Disable specific dates. Blocked dates are also rejected during manual typing (the predicate receives the full candidate date-time — prefer day-based checks).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "unselectableDates",
+          "type": "Date[]",
+          "default": null,
+          "description": "Convenience array of disabled dates, matched by calendar day; also rejected by manual typing.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "firstDayOfWeek",
+          "type": "0 | 1 | 2 | 3 | 4 | 5 | 6",
+          "default": "0",
+          "description": "Day the week starts on (0 = Sunday). Unset inside a `LocaleProvider`, it is the first day of the week in the picker's locale, its own `locale` or else the provider's, such as Monday for `\"de\"`. Elsewhere, with no locale from either, or with seven `dayNames` of your own, it is Sunday: set it with `dayNames` to start the week on another day.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "dayNames",
+          "type": "string[]",
+          "default": null,
+          "description": "Override the 7 day-name labels (in calendar order, post-rotation). They are shown exactly as given, from the first column, so they have to start on the day the week does. With them, an unset `firstDayOfWeek` stays Sunday even inside a `LocaleProvider`, so names written Sunday first keep matching their columns; to start on the locale's day, set `firstDayOfWeek` too and list the names from that day. They also name the columns for assistive technology. Without them each column is named by its full weekday in the picker's locale, which a server-rendered calendar adds once the page hydrates.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "monthNames",
+          "type": "string[]",
+          "default": null,
+          "description": "Override the 12 month-name labels. With them the day grid's heading reads the name, a space and the year, whatever order the locale writes a month and its year in.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "nearbyMonthDays",
+          "type": "boolean",
+          "default": "true",
+          "description": "Show dimmed dates from adjacent months.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hourFormat",
+          "type": "'12' | '24'",
+          "default": "'24'",
+          "description": "Time format.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "enableSeconds",
+          "type": "boolean",
+          "default": "false",
+          "description": "Show seconds column. Note: iOS Safari's native datetime-local picker UI does not include a seconds wheel; pass `mobileNative={false}` if you need one on iOS.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "incrementHours",
+          "type": "number",
+          "default": "1",
+          "description": "Hour step.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "incrementMinutes",
+          "type": "number",
+          "default": "1",
+          "description": "Step between minute-wheel values (`1` = every minute, iOS-style).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "incrementSeconds",
+          "type": "number",
+          "default": "1",
+          "description": "Step between second-wheel values (only with `enableSeconds`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "unselectableTimes",
+          "type": "(d: Date) => boolean",
+          "default": null,
+          "description": "Block specific times. Blocked times are also rejected during manual typing.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconLeftName",
+          "type": "string",
+          "default": null,
+          "description": "Decorative left icon glyph for the wrapping `Control` (shown by default). Set `''` to hide.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "triggerIcon",
+          "type": "boolean",
+          "default": "true",
+          "description": "Show a clickable launcher button on the right that toggles the popover. Hidden by default while a `Control` it sits in shows its `isLoading` spinner, which shares that right edge.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "triggerIconName",
+          "type": "string",
+          "default": "'chevron-down'",
+          "description": "Glyph for the right launcher button.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "audioTick",
+          "type": "boolean",
+          "default": "false",
+          "description": "Play a short audible tick on each time-wheel crossing. Default `false`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "haptics",
+          "type": "boolean",
+          "default": "false",
+          "description": "Auto-route tactile feedback per wheel tick (vibrate on Android, audio thunk on iOS). Default `false`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "PickerLabels",
+          "default": null,
+          "description": "Optional translatable string overrides. In a 12-hour picker, `ampm` names the AM/PM column, `'AM/PM'` by default.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Forwarded to the underlying element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <input> attributes and Bulma helper props",
+      "helperPropsNote": "Helper props go on the `.datetimeinput-container` `<div>`, with `className` and the other attributes, except that the background helpers go on the `<input>`, and the text helpers on both, since Bulma's `.input` sets its own background and font, and the popover inside the `<div>` takes the text ones. Inline they all go on the `<div>`, and on the native mobile input, on the `<input>`. Among the other attributes, `aria-label`, `aria-labelledby` and `aria-describedby` go on the `<div>` too, so they don't name or describe the `<input>`, except the native one `mobileNative` renders. Name it with `DateTimeInput`'s `label`; with a labeled `Field` that isn't `grouped` or `hasAddons`, if you give it no `id`; or with an `id` and a `<label htmlFor>` of your own. Describe it with `DateTimeInput`'s `message`: `DateTimeInputBase` on its own has no way to describe it. Inline there is no `<input>` to name.",
+      "types": [],
+      "standalone": "base"
     }
   ],
   "cssVars": [
@@ -879,6 +1297,24 @@
       "scope": "element"
     },
     {
+      "css": "--bulma-dateinput-cell-content-color",
+      "sass": "$dateinput-cell-content-color",
+      "default": "color-mix(in srgb, var(--bulma-text-weak), var(--bulma-text))",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-content-size",
+      "sass": "$dateinput-cell-content-size",
+      "default": "var(--bulma-size-7)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-content-loading-opacity",
+      "sass": "$dateinput-cell-content-loading-opacity",
+      "default": "0.4",
+      "scope": "element"
+    },
+    {
       "css": "--bulma-datetimeinput-gap",
       "sass": "$datetimeinput-gap",
       "default": "0.75rem",
@@ -972,6 +1408,12 @@
       "css": "--bulma-picker-popover-animation-duration",
       "sass": "$picker-popover-animation-duration",
       "default": "0.15s",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-months-max-width",
+      "sass": "$picker-popover-months-max-width",
+      "default": "calc(100vw - 2rem)",
       "scope": "element"
     },
     {

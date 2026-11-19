@@ -40,8 +40,15 @@ class strings you have to remember. The `bulma-classes` codemod moves that marku
 
 bestax renders Bulma's own classes, so the page renders the same. The codemod converts an
 element only when the component renders **the markup the element did**: same tag, same
-classes, same attributes, with only the order of the classes free to change. Everything else
-stays as you wrote it, with a `TODO(bestax-migrate)` comment when there's a decision to make.
+classes, same attributes, with only the order of the classes free to change. The exceptions are
+deliberate. Font Awesome's own `<i aria-hidden="true">` in a `.icon` that carries nothing else
+assistive tech reads becomes `Icon`, which puts that attribute on the `.icon` instead, and the
+glyph is hidden either way. Such a `.icon` around a bare glyph, in a link or button its own
+`aria-label` names, becomes `Icon` too, which hides it, since the label is what a screen reader
+reads there. Font Awesome 6's long style names (`fa-brands`) become `Icon`'s `variant`
+(`brands`), which renders the short name (`fab`), the same style. Bulma 0.9's
+`is-marginless` and `is-paddingless`, which style nothing under v1, become `m="0"` and `p="0"`. And a loading `.button` becomes `Button isLoading`, which also tells a screen reader it's busy and drops a click while it loads, from the keyboard too, where Bulma's spinner stops only the pointer. Everything else stays as you wrote it, with a `TODO(bestax-migrate)`
+comment when there's a decision to make.
 
 ## Run the codemod
 
@@ -75,24 +82,36 @@ stock stylesheet.
   but its close button, `pagination` and its list, links and ellipses, `panel` and its
   heading, tabs and blocks, `tabs`, `icon`, `icon-text`, `file` inside a `field`, `delete`, `progress`, `skeleton-block`, `footer` and
   `table` become their bestax components, with their modifier classes as props (`is-primary` →
-  `color="primary"`, `is-half` → `size="half"`).
+  `color="primary"`, `is-half` → `size="half"`). A component whose `as` takes the element's tag
+  converts on it, so `<main className="hero">` becomes `<Hero as="main">` and
+  `<section className="panel">` becomes `<Panel as="section">`.
 - **Helper classes** become helper props on those components (`mt-4` → `mt="4"`,
   `has-text-centered` → `textAlign="centered"`, `is-position-sticky` → `pos="sticky"`), and on
-  the plain tags bestax wraps: `<p>` becomes `Paragraph`, `<span>` becomes `Span`, and so on.
+  the plain tags bestax wraps: `<p>` becomes `Paragraph`, `<span>` becomes `Span`, and so on. A
+  color shade becomes its color and its shade (`has-text-primary-on-scheme` →
+  `textColor="primary" colorShade="on-scheme"`). Bulma 0.9's `is-marginless` and
+  `is-paddingless` style nothing under v1, so they become `m="0"` and `p="0"`, which render v1's
+  `m-0` and `p-0`.
 - **Wrappers a component renders itself** fold into it: a `.table-container` around a table
   becomes `<Table isResponsive>`, and a `.fixed-grid` around a grid becomes
   `<Grid isFixed fixedCols={3}>`, as long as the wrapper holds nothing else and carries nothing
-  of its own.
+  of its own. A table that writes no `aria-label` or `aria-labelledby`, and spreads no props that
+  could, gets a TODO asking for one, since `Table isResponsive` names its scrolling container from
+  them.
 - **An element a component renders inside itself** converts with it: a `.select` and its
   `<select>` become one `SelectBase` with the `<select>`'s attributes, a `.breadcrumb` and its
   `<ul>` become one `Breadcrumb` around the same `<li>`s, and an `.image` and its `<img>` become
-  one `<Image size="64x64" src="…" alt="…" />`. An `.image` around anything else converts too, with
-  its children kept as they are.
+  one `<Image size="64x64" src="…" alt="…" />`, a ratio such as `is-16by9` included. A ratio
+  renders the same markup only on a bestax-bulma whose `Image` puts nothing but the ratio class on
+  its container. An older one adds `has-ratio` there too, which styles nothing unless that
+  `.image` sits inside another ratio `.image`, so upgrade bestax-bulma along with the migration. An `.image` around anything else converts too, with its children kept as they are.
 - **Children a component renders itself** go: a `.skeleton-lines` holding bare, empty `<div>`s
   becomes `<Skeleton variant="lines" lines={5} />`, which renders those `<div>`s from the count.
 - **Classes added under a condition** in a `clsx` or `classnames` call: a flag becomes its prop,
   set to the condition (`clsx('button', busy && 'is-loading')` → `<Button isLoading={busy}>`), and
-  whatever else the call adds stays in it.
+  whatever else the call adds stays in it. A flag whose prop writes over an attribute the element
+  sets stays in the call too, the way it stays a class when written out: `is-loading` beside the
+  button's own `aria-busy` or `aria-disabled`.
 - **Your own classes** stay in `className`, which every bestax component passes through.
 
 The full tables, class by class, are in the migrate skill's
@@ -104,9 +123,22 @@ A couple of results look odd until you see why:
 
 - `<h2 className="title is-4">` becomes `<Title as="h2" className="is-4">`, not
   `<Title size="4">`. bestax picks the heading tag from `size`, so `size="4"` would render an
-  `<h4>`.
+  `<h4>`. To write it as a prop, `textSize="4"` keeps the `<h2>` and sizes it the same, with
+  Bulma's `is-size-4`, and the TODO on the element says so (`modifier:title`).
+- A second color stays in `className` with a TODO: `<button className="button is-black is-primary">`
+  becomes `<Button color="black" className="is-primary">` and gets `modifier:button`, since a
+  component takes one `color`, and Bulma's stylesheet, not the order of the classes, decides how
+  the two look together.
 - `<div className="is-flex mt-4">` doesn't change at all. bestax has no plain `<div>` component,
   and the classes are valid Bulma, so there is nothing to do and nothing to flag.
+- An element with two component classes becomes one component, and the other class stays in
+  `className` with a TODO naming its component: `<div className="columns box">` becomes
+  `<Columns className="box">` and gets `second-component:Box`. The one whose component fits the
+  element's tag best wins, a tag it renders with no `as` before one it reaches through `as`, so
+  `<section className="hero container">` becomes a `Hero` and `<figure className="image container">`
+  an `Image`; between equals, the layout class wins. The tag it renders with no `as` is the one
+  the classes give it: a ratio puts `Image` on a `<figure>`, so `<div className="media-left image is-1by1">`
+  becomes a `Media.Left`, which reaches a `<div>` through `as` just as that `Image` would.
 - A `.card` converts when an element written directly inside it is, or becomes, one of its
   parts. `Card` puts anything else inside a `.card-content` of its own, so a card whose text
   sits straight inside it stays markup (`children:Card`). Bulma's own example card converts
@@ -116,16 +148,39 @@ A couple of results look odd until you see why:
   (`family:navbar-burger`, `family:navbar-link`), and a `.has-dropdown` item becomes a
   `Navbar.Item` that keeps the class. Switching those to `Navbar.Burger` and `Navbar.Dropdown`
   is how the navbar gets bestax's toggle and keyboard handling, and it's a change you make by
-  hand.
+  hand. `is-active` on a `.navbar-item` becomes `active` only beside an `aria-current` of its
+  own, since `active` writes `aria-current="page"` otherwise; without one the class stays.
+  `is-active` on `.navbar-menu` is the open menu, and becomes `active` either way.
+  `is-active` on a `.panel-block` is the same: it becomes `active` only beside an
+  `aria-current` of its own, and stays a class without one.
 - A `.menu` converts with its labels and lists, and with the items in a list: a `<li>` holding
   an `<a>`, and at most a bare nested `<ul>`, becomes a `Menu.Item`, found by where it sits.
   `Menu.Item` renders the `<li>` and the `<a>` together and splits its props between them, so an
-  item whose attributes sit anywhere else stays as written.
+  item whose attributes sit anywhere else stays as written. An `is-active` link converts only
+  beside an `aria-current` of its own, since `active` writes `aria-current="page"` otherwise. Add
+  `aria-current="page"` to the link that marks the page you're on and re-run, and that item
+  converts too (`attr:aria-current`).
+- A `.icon` around a bare Font Awesome or Material Design Icons `<i>` becomes
+  `<Icon name="home" />`, the `<i>`'s style and other classes read as `variant` and `features`,
+  spelled as the [Icon API](/docs/api/elements/icon) writes them: `library` only for a
+  library other than Font Awesome, and none of the attributes `Icon` renders by itself. `Icon`
+  hides a decorative icon with `aria-hidden="true"` on the `.icon` itself, so Font Awesome's own
+  `aria-hidden` on the `<i>` moves up there, unless the `.icon` carries something assistive tech
+  reads, such as a `title`, a `role` or a `tabIndex`. An icon in a link or button its own
+  `aria-label` names is decoration there, and converts hidden the same way. Any other icon hidden
+  nowhere stays markup (`defaults:Icon`), and the TODO says what to do: add the attribute to an
+  icon whose link or button is named by its text, give an `<a>` with no `href` one (or make it a
+  `<button>`), or name an icon-only link first, then re-run.
 - A form converts piece by piece into `Field`, `Control`, `InputBase`, `TextAreaBase` and
   `SelectBase`, not into `Input`, `TextArea` or `Select`: those render a `.field` and a
   `.control` of their own, and the markup already has them. The `.label` and `.help` stay as
   written, and so does an input's or a select's color class (`is-danger`), since bestax's
-  `color` also sets the text color.
+  `color` also sets the text color. A `<label>` inside a `.select`, beside its `<select>`, keeps
+  the `.select` as markup (`children:SelectBase`): `Select` is the component that takes it, as
+  `label` with its classes in `labelProps`, and you convert that one by hand. Inside a `.field`,
+  `Select` drops its label, and inside a bare `.control` it nests the label's `.field` there, so
+  move the `<label>` out beside the `.select` instead, or give the `<select>` an `aria-label`,
+  and re-run.
 
 ## What it leaves for you
 
@@ -163,14 +218,19 @@ rule. The ones you'll see most:
 | `family:<class>`         | Rebuild that block from the component's docs page, parts and all                                       |
 | `tag:<Target>`           | Change the tag if you want the component, or keep the markup                                           |
 | `defaults:Delete`        | Add `type="button"` and a real `aria-label` to the `.delete` button, then re-run                       |
+| `defaults:Icon`          | Put `aria-hidden="true"` on a decorative `.icon`, or name an icon-only link, then re-run               |
 | `ref:<Target>`           | Keep the element; the component won't pass the ref through                                             |
 | `rsc`                    | Add `'use client'` if the file can be a client component, then re-run                                  |
 | `legacy:tile`            | Rebuild tiles with [Grid and Cell](/docs/api/grid); see the [Bulma 0.9 → 1 guide](./bulma-0-9-to-1.md) |
+| `legacy:heading`         | Restyle the label with helper props, or give `.heading` a rule of your own                             |
+| `legacy:number`          | Give `.number` a rule of your own if the element needs Bulma 0.9's badge                               |
+| `legacy:is-variable`     | Drop the class; v1's `is-0` to `is-8` set the gap without it                                           |
 
 Every rule, with a recipe, is in the skill's
 [unmappables reference](https://github.com/allxsmith/bestax/blob/main/skills/bestax-migrate/references/bulma-classes/unmappables.md).
 It is safe to re-run the codemod after fixing some of them: converted elements are components
-now, and a TODO it already wrote is never written twice.
+now, a TODO it already wrote is never written twice, and one that asked for a re-run goes once it
+no longer applies.
 
 :::tip Let an agent do the follow-up
 The `bestax-migrate` Agent Skill runs the codemod and works through the TODOs from the same
@@ -190,7 +250,8 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
    from Bulma 0.9, read the [Bulma 0.9 → 1 guide](./bulma-0-9-to-1.md) for the styling changes
    that aren't code. One deliberate difference in `bestax.css`: its `$primary` is bestax blue
    rather than Bulma's turquoise. Keep the stock look with `--css bulma`, or set your own with
-   the `--bulma-primary-*` CSS variables.
+   the `--bulma-primary-*` CSS variables, `--bulma-primary-invert-l` among them: bestax's build
+   fixes the text on a primary surface for its dark blue, so a light primary needs it set too.
 3. **PurgeCSS**: if your build runs it, the report says so. A converted element's classes now
    come from bestax's code, some of them built from props at runtime, so PurgeCSS has to scan
    bestax and safelist those patterns; [Optimizing CSS](../optimizing-css.md) has the config.
@@ -201,6 +262,126 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
 6. **Keep it that way**: the [ESLint plugin](../eslint-plugin.md)'s opt-in
    `no-bulma-component-class` rule reports a plain element styled with a Bulma class bestax
    has a component for, which keeps raw Bulma markup from creeping back in.
+
+## From an HTML page
+
+A lot of Bulma lives in plain HTML: a template, a static site you're moving into React, a
+page someone mocked up. The same source converts those pages too:
+
+```bash
+# One page
+pnpm dlx bestax-migrate bulma-classes src/pages/login/index.html --dry
+
+# Every page in a folder
+pnpm dlx bestax-migrate bulma-classes -e html src/pages/
+```
+
+A page you name always converts. A folder walk takes a page only when `-e` lists its extension
+(`-e html`, or `-e html,htm` for `.htm` pages too), because most
+`.html` files in a React project aren't pages to convert (Vite's `index.html`, `public/`), and
+a walk without it lists the Bulma pages it skipped (`html-file:not-included`) so the run doesn't
+look like it did nothing.
+
+### What it writes
+
+Each page becomes a React module beside it: `login/index.html` writes `login/index.tsx`, or
+`.jsx` when the package has no `tsconfig.json` and doesn't depend on TypeScript. The module's
+default export is a component named after the file, or after its folder for an `index.html`,
+with `Page` on the end so `hero.html` can't shadow bestax's `Hero`. The `index.html` in the folder
+the run starts from, with other pages beside it, is the site's home page, so it becomes
+`HomePage`, unless a page beside it would be `HomePage` too (`home.html`), when it keeps its
+folder's name. One in a folder below keeps its folder's name, so `docs/index.html` is `DocsPage`.
+This page:
+
+```html
+<section class="hero is-fullheight">
+  <div class="hero-body">
+    <div class="container">
+      <div class="columns is-centered">
+        <div class="column is-4">
+          <div class="box">
+            <h1 class="title has-text-centered">Please log in</h1>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+```
+
+becomes:
+
+```tsx
+import {
+  Box,
+  Column,
+  Columns,
+  Container,
+  Hero,
+  Title,
+} from '@allxsmith/bestax-bulma';
+
+export default function LoginPage() {
+  return (
+    <Hero size="fullheight">
+      <Hero.Body>
+        <Container>
+          <Columns isCentered>
+            <Column size="4">
+              <Box>
+                <Title textAlign="centered">Please log in</Title>
+              </Box>
+            </Column>
+          </Columns>
+        </Container>
+      </Hero.Body>
+    </Hero>
+  );
+}
+```
+
+The page's `<body>` is read the way a browser builds it, written as JSX (`class` as
+`className`, `for` as `htmlFor`, a `style` string as an object, comments as JSX comments), and
+then converted exactly as the same markup written by hand would be, with every rule above. The
+page itself is never changed, and an existing module is never overwritten
+(`html-file:exists`), so running it on the page again changes nothing. A re-run that a TODO asks
+for goes on the module, and each TODO from the page names it. A page with no Bulma component class
+writes nothing, and a server template (`{{`, `{%`, `<?php`, `<%`) is refused
+(`html-file:template-syntax`) rather than read as HTML. `--dry` says what it would write, and
+`--print` prints the module, which it still writes unless `--dry` is set too.
+
+### What a component can't carry
+
+A component renders into the app's own document, so the page's `<head>` doesn't come with it,
+and neither do its scripts. Each of those becomes a `TODO(bestax-migrate)` line, the ones about
+the whole page above the component and the rest above its `return`, and every report entry
+names the `.html` file and the line it came from:
+
+| Rule                                      | What it covers                                                                                                                                     | What to do                                                                                                                         |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `html-head:<tag>`                         | `<title>`, `<meta>` (a Content Security Policy apart, as `html-head:csp`), `<link>`, `<style>`, `<base>`                                           | App-wide ones go in the app's `index.html`, a page's own where the app sets each page's head; write the app's own policy           |
+| `html-asset:<kind>`                       | each stylesheet and script the page loads: Bulma's own, Font Awesome, a Bulma extension, jQuery, a web font, and any other                         | `--css bestax` and `--css bulma` import Bulma's in the module; load the rest once for the app, or use the component the TODO names |
+| `html-script:<pattern>`                   | inline scripts and the page's own script files: a burger, a modal, a dismiss button, a carousel, a theme toggle, JSON-LD, the rest                 | Port the code into the component; the TODO names the bestax component for the usual patterns                                       |
+| `html-extension:<name>`                   | a Bulma extension's own markup: the elements bulma-carousel's script makes carousels of, and its `is-covered` images                               | Render a `Carousel` in the place of each; give `is-covered` images `object-fit: cover` in the app's stylesheet                     |
+| `html-document:<name>`                    | classes and attributes on `<html>` and `<body>`, such as `has-navbar-fixed-top`, `data-theme` and `lang`                                           | Put them on the app's own `<html>`, where the first paint has the scheme; `Theme colorMode` drives a light/dark toggle             |
+| `html-event:<attribute>`                  | `onclick="…"` and its kind, which React can't take as a string                                                                                     | Port the code into the handler the TODO names (`onClick`)                                                                          |
+| `html-element:<kind>`, `html-attr:<kind>` | custom and obsolete elements, attributes JSX can't write, React has no prop for or the element ignores, stray characters, styles React can't apply | Replace them with current markup, or declare a custom element for TypeScript                                                       |
+| `html-url:<kind>`                         | `javascript:` URLs, relative URLs, which resolve against the address a component renders at, and ones whose target isn't beside the page           | Move the code into a handler; copy a file into `public/` and point at it from the site root, or import it; fix or drop a dead link |
+| `html-parse:<code>`                       | markup the browser repaired, once per kind of error, and each duplicate attribute on its own, naming the copy kept and the one dropped             | Check that part of the page renders as meant                                                                                       |
+
+The page's `.html` stays as it was, so a dropped script's code is still there to port, and the
+TODO gives its lines. Every rule, with a recipe, is in the skill's
+[unmappables reference](https://github.com/allxsmith/bestax/blob/main/skills/bestax-migrate/references/bulma-classes/unmappables.md).
+
+### Whitespace
+
+JSX keeps a space only where it's written, so the converter decides which whitespace in the page
+renders and writes `{" "}` where it does. Whitespace beside a block, flex or grid box renders
+nothing and is dropped, which is also what lets a wrapper fold into the component inside it. A
+box's display comes from its tag, its inline `style`, and the display Bulma's own classes give it.
+The limit is the page's own CSS: a class of yours that turns a block into an inline box (or the
+reverse) is something the converter can't see, so check a spot where words now run together or
+gain a space.
 
 ## Coming from a library instead?
 

@@ -5,13 +5,16 @@ export function Sidebar({
 }: {
   pages?: string[];
 }) {
+  // TODO(bestax-migrate): bestax `Menu.Item` renders the <a> inside the <li> itself, and the `active` its `is-active` becomes renders `aria-current="page"` on it too, so it converts only beside an `aria-current` of its own. If this is the current page, add `aria-current="page"` to the <a>, then re-run; if not, keep this element as markup
   // TODO(bestax-migrate): bestax `Menu.Item` renders the <a> inside the <li> itself, and the <ul> after it as a `Menu.List`, which this converts only bare and holding its items, as Bulma nests one; keep this element as markup, or convert it by hand
   // TODO(bestax-migrate): bestax `Menu.List` renders `.menu-list` only when no other `Menu.List` is around it, and this element sits inside another `.menu-list`, so it would lose the class; keep it as markup
   return (
     <Menu mt="4">
       <Menu.Label textWeight="bold">General</Menu.Label>
       <Menu.List>
-        <Menu.Item active>Dashboard</Menu.Item>
+        <li>
+          <a className="is-active">Dashboard</a>
+        </li>
         <Menu.Item>
           Team
           <Menu.List>

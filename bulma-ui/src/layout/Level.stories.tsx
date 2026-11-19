@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import Level from './Level';
+import { Paragraph } from '../elements/Paragraph';
 import { Title } from '../elements/Title';
+import { SubTitle } from '../elements/SubTitle';
 import { Button } from '../elements/Button';
 import Field from '../form/Field';
 import Control from '../form/Control';
@@ -19,9 +21,9 @@ export const Default: StoryObj<typeof Level> = {
     <Level>
       <Level.Left>
         <Level.Item>
-          <Title as="p" size="5" className="subtitle">
+          <SubTitle as="p" size="5">
             <strong>Favorite Posts</strong>
-          </Title>
+          </SubTitle>
         </Level.Item>
         <Level.Item>
           <Field hasAddons>
@@ -39,16 +41,16 @@ export const Default: StoryObj<typeof Level> = {
           <strong>All</strong>
         </Level.Item>
         <Level.Item as="p">
-          <a>Published</a>
+          <a href="#published">Published</a>
         </Level.Item>
         <Level.Item as="p">
-          <a>Drafts</a>
+          <a href="#drafts">Drafts</a>
         </Level.Item>
         <Level.Item as="p">
-          <a>Deleted</a>
+          <a href="#deleted">Deleted</a>
         </Level.Item>
         <Level.Item as="p">
-          <Button color="success" as="a">
+          <Button color="success" as="a" href="#new-post">
             New
           </Button>
         </Level.Item>
@@ -60,29 +62,57 @@ export const Default: StoryObj<typeof Level> = {
 // Centered Level
 export const CenteredLevel: StoryObj<typeof Level> = {
   render: () => (
-    <Level>
+    <Level as="div">
       <Level.Item hasTextCentered>
         <div>
-          <p className="heading">Posts</p>
+          <Paragraph
+            textSize="7"
+            textTransform="uppercase"
+            textWeight="semibold"
+            mb="1"
+          >
+            Posts
+          </Paragraph>
           <Title as="p">1,234</Title>
         </div>
       </Level.Item>
       <Level.Item hasTextCentered>
         <div>
-          <p className="heading">Following</p>
-          <Title as="p">6789</Title>
+          <Paragraph
+            textSize="7"
+            textTransform="uppercase"
+            textWeight="semibold"
+            mb="1"
+          >
+            Following
+          </Paragraph>
+          <Title as="p">6,789</Title>
         </div>
       </Level.Item>
       <Level.Item hasTextCentered>
         <div>
-          <p className="heading">Followers</p>
+          <Paragraph
+            textSize="7"
+            textTransform="uppercase"
+            textWeight="semibold"
+            mb="1"
+          >
+            Followers
+          </Paragraph>
           <Title as="p">123K</Title>
         </div>
       </Level.Item>
       <Level.Item hasTextCentered>
         <div>
-          <p className="heading">Likes</p>
-          <Title as="p">9876</Title>
+          <Paragraph
+            textSize="7"
+            textTransform="uppercase"
+            textWeight="semibold"
+            mb="1"
+          >
+            Likes
+          </Paragraph>
+          <Title as="p">9,876</Title>
         </div>
       </Level.Item>
     </Level>
@@ -94,19 +124,27 @@ export const LevelCenteredMenu: StoryObj<typeof Level> = {
   render: () => (
     <Level>
       <Level.Item as="p" hasTextCentered>
-        <a className="link is-info">Getting Started</a>
+        <a href="#getting-started" className="link is-info">
+          Getting Started
+        </a>
       </Level.Item>
       <Level.Item as="p" hasTextCentered>
-        <a className="link is-info">APIs</a>
+        <a href="#apis" className="link is-info">
+          APIs
+        </a>
       </Level.Item>
       <Level.Item as="p" hasTextCentered>
         <img src="/img/bestax-type.svg" alt="Bestax" style={{ height: 30 }} />
       </Level.Item>
       <Level.Item as="p" hasTextCentered>
-        <a className="link is-info">Versions</a>
+        <a href="#versions" className="link is-info">
+          Versions
+        </a>
       </Level.Item>
       <Level.Item as="p" hasTextCentered>
-        <a className="link is-info">FAQ</a>
+        <a href="#faq" className="link is-info">
+          FAQ
+        </a>
       </Level.Item>
     </Level>
   ),
@@ -115,29 +153,44 @@ export const LevelCenteredMenu: StoryObj<typeof Level> = {
 // Mobile Level
 export const MobileLevel: StoryObj<typeof Level> = {
   render: () => (
-    <Level isMobile>
+    <Level as="div" isMobile>
       <Level.Item hasTextCentered>
         <div>
-          <p className="heading">Posts</p>
+          <Paragraph
+            textSize="7"
+            textTransform="uppercase"
+            textWeight="semibold"
+            mb="1"
+          >
+            Posts
+          </Paragraph>
           <Title as="p">1,234</Title>
         </div>
       </Level.Item>
       <Level.Item hasTextCentered>
         <div>
-          <p className="heading">Following</p>
-          <Title as="p">4567</Title>
+          <Paragraph
+            textSize="7"
+            textTransform="uppercase"
+            textWeight="semibold"
+            mb="1"
+          >
+            Following
+          </Paragraph>
+          <Title as="p">4,567</Title>
         </div>
       </Level.Item>
       <Level.Item hasTextCentered>
         <div>
-          <p className="heading">Followers</p>
+          <Paragraph
+            textSize="7"
+            textTransform="uppercase"
+            textWeight="semibold"
+            mb="1"
+          >
+            Followers
+          </Paragraph>
           <Title as="p">123K</Title>
-        </div>
-      </Level.Item>
-      <Level.Item hasTextCentered>
-        <div>
-          <p className="heading">Likes</p>
-          <Title as="p">9876</Title>
         </div>
       </Level.Item>
     </Level>
@@ -150,17 +203,17 @@ export const CompoundUsage: StoryObj<typeof Level> = {
     <Level>
       <Level.Left>
         <Level.Item>
-          <Title as="p" size="5" className="subtitle">
+          <SubTitle as="p" size="5">
             <strong>All Posts</strong>
-          </Title>
+          </SubTitle>
         </Level.Item>
       </Level.Left>
       <Level.Right>
         <Level.Item as="p">
-          <a>Published</a>
+          <a href="#published">Published</a>
         </Level.Item>
         <Level.Item as="p">
-          <Button color="success" as="a">
+          <Button color="success" as="a" href="#new-post">
             New
           </Button>
         </Level.Item>

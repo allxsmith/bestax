@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
+import { isElementOf } from '../helpers/elementType';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { warnDeprecatedColorProp } from '../helpers/colorDeprecations';
 import { Icon } from '../elements/Icon';
@@ -123,7 +124,7 @@ export interface TabsProps
   /** Tab alignment. */
   align?: 'centered' | 'right' | 'left';
   /** Tab size. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Tabs expand to fill the horizontal space. */
   isFullwidth?: boolean;
   /** Tabs expand to fill the horizontal space. @deprecated Use `isFullwidth` instead — `isFullwidth` wins if both are set. */
@@ -154,9 +155,10 @@ export interface TabsProps
     | 'black'
     | 'dark'
     | 'light'
-    | 'white';
+    | 'white'
+    | undefined;
   /** Controlled active tab index. */
-  value?: number;
+  value?: number | undefined;
   /**
    * Callback when active tab changes. Called with the tab's `index` when a
    * `Tabs.Tab` is activated: clicked, or Enter or Space pressed on it.
@@ -164,9 +166,9 @@ export interface TabsProps
    * activation is manual: focus moves freely and the selected tab changes
    * only when the user picks one.
    */
-  onChange?: (index: number) => void;
+  onChange?: ((index: number) => void) | undefined;
   /** Initial active tab index (uncontrolled). */
-  defaultValue?: number;
+  defaultValue?: number | undefined;
   /**
    * Renders tabs vertically. With a `Tabs.Content`, the tab list is also
    * marked `aria-orientation="vertical"` and ArrowUp and ArrowDown move focus
@@ -174,12 +176,16 @@ export interface TabsProps
    * horizontally on mobile).
    */
   vertical?: boolean;
-  /** Side placement when `vertical` is true. */
+  /**
+   * Side placement when `vertical` is true. The row follows the page's
+   * direction, so on a right-to-left page `left` puts the tabs at the right,
+   * where the line starts, and `right` puts them at the left.
+   */
   side?: 'left' | 'right';
   /** Makes tabs take up the full width equally. */
   expanded?: boolean;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Tab list and tab items. */
   children?: React.ReactNode;
 }
@@ -281,9 +287,7 @@ const TabsComponent: React.FC<TabsProps> = ({
 
   // Check if children include TabsContent
   const childArray = React.Children.toArray(children);
-  const hasContent = childArray.some(
-    child => React.isValidElement(child) && child.type === TabsContent
-  );
+  const hasContent = childArray.some(child => isElementOf(child, TabsContent));
 
   const contextValue: TabsContextValue = {
     activeTab,
@@ -329,7 +333,7 @@ const TabsComponent: React.FC<TabsProps> = ({
     const listChildren: React.ReactNode[] = [];
     const contentChildren: React.ReactNode[] = [];
     childArray.forEach(child => {
-      if (React.isValidElement(child) && child.type === TabsContent) {
+      if (isElementOf(child, TabsContent)) {
         contentChildren.push(child);
       } else {
         listChildren.push(child);
@@ -356,7 +360,7 @@ const TabsComponent: React.FC<TabsProps> = ({
     const listChildren: React.ReactNode[] = [];
     const contentChildren: React.ReactNode[] = [];
     childArray.forEach(child => {
-      if (React.isValidElement(child) && child.type === TabsContent) {
+      if (isElementOf(child, TabsContent)) {
         contentChildren.push(child);
       } else {
         listChildren.push(child);
@@ -398,13 +402,13 @@ const TabsComponent: React.FC<TabsProps> = ({
  */
 export interface TabListProps extends React.HTMLAttributes<HTMLUListElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Tab elements. */
   children?: React.ReactNode;
 }
 
 /**
- * The `<ul>` container for tab items.
+ * The `<ul role="tablist">` that holds the `Tabs.Tab`s. Navigation built from `Tabs.Item`s goes in a plain `<ul>` instead.
  *
  * @function
  * @param {TabListProps} props - Props for the TabList component.
@@ -445,7 +449,7 @@ export interface TabProps extends Omit<
   React.LiHTMLAttributes<HTMLLIElement>,
   'onClick'
 > {
-  /** **Required.** Tab index for matching with content. */
+  /** Tab index for matching with content. */
   index: number;
   /**
    * Disables the tab. A disabled tab is marked `aria-disabled`, cannot be
@@ -453,7 +457,7 @@ export interface TabProps extends Omit<
    * the tab list's tab stop. The bestax extras styles also dim it and turn
    * off its hover.
    */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Icon name for the tab. */
   icon?: string;
   /** Icon library to use. */
@@ -465,7 +469,7 @@ export interface TabProps extends Omit<
   /** Additional icon modifiers. */
   iconFeatures?: string | string[];
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Tab label content. */
   children?: React.ReactNode;
 }
@@ -611,18 +615,22 @@ export const Tab: React.FC<TabProps> = ({
  * Props for the TabItem component (backward-compatible).
  */
 export interface TabItemProps extends React.LiHTMLAttributes<HTMLLIElement> {
-  /** Whether the tab is active. */
+  /**
+   * Marks the tab as the current one with Bulma's `is-active` class, and
+   * nothing else: no ARIA attribute says so. Put `aria-current="page"` on the
+   * link inside the current tab, so a screen reader announces it.
+   */
   active?: boolean;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Tab content. */
   children?: React.ReactNode;
   /** Click handler. */
-  onClick?: React.MouseEventHandler<HTMLLIElement>;
+  onClick?: React.MouseEventHandler<HTMLLIElement> | undefined;
 }
 
 /**
- * Each tab; accepts `active`, `onClick`, etc.
+ * A navigation tab: an `<li>` holding a link of your own, with an `href`. Put the items in a plain `<ul>`, and mark the current one with `active` and its link with `aria-current="page"`. For tabs that switch what's shown in place, use `Tabs.Tab` with `Tabs.Content`, which handle the selection and the keyboard.
  *
  * @function
  * @param {TabItemProps} props - Props for the TabItem component.
@@ -657,7 +665,7 @@ export const TabItem: React.FC<TabItemProps> = ({
  */
 export interface TabsContentProps extends React.HTMLAttributes<HTMLDivElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** TabContentItem elements. */
   children?: React.ReactNode;
 }
@@ -692,10 +700,10 @@ const TabsContentComponent: React.FC<TabsContentProps> = ({
  * @extraProp {number} [tabIndex] - The panel is not focusable by default. Pass `0` when it holds nothing focusable, so Tab moves from the tab list into it.
  */
 export interface TabContentItemProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** **Required.** Tab index for matching with content. */
+  /** Tab index for matching with content. */
   index: number;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Panel content. */
   children?: React.ReactNode;
 }

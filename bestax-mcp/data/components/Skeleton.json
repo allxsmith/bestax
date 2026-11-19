@@ -8,58 +8,58 @@
     { "title": "Default Skeleton", "code": "<Skeleton />" },
     {
       "title": "Skeleton Text",
-      "code": "<Skeleton>\n  \"Quando in rerum natura homines aequales creantur, ab ipso Creatore quibusdam\n  iuribus inalienabilibus donantur, inter quae sunt Vita, Libertas et quaerenda\n  felicitas. Quoties aliquod regimen haec iura destruere conatur, populus habet\n  potestatem tale regimen abrogare et novum constituere, quod iuribus suis\n  tutandis aptissimum videatur. Prudentia quidem dictat vetera regimina levibus\n  de causis non mutanda esse; sed cum diuturnus abusus ad despotismum vergit,\n  ius est, immo officium, talia regimina exuere et novas custodes securitatis\n  futurae constituere.\"\n</Skeleton>"
+      "code": "<Skeleton aria-hidden=\"true\">\n  \"Quando in rerum natura homines aequales creantur, ab ipso Creatore quibusdam\n  iuribus inalienabilibus donantur, inter quae sunt Vita, Libertas et quaerenda\n  felicitas. Quoties aliquod regimen haec iura destruere conatur, populus habet\n  potestatem tale regimen abrogare et novum constituere, quod iuribus suis\n  tutandis aptissimum videatur. Prudentia quidem dictat vetera regimina levibus\n  de causis non mutanda esse; sed cum diuturnus abusus ad despotismum vergit,\n  ius est, immo officium, talia regimina exuere et novas custodes securitatis\n  futurae constituere.\"\n</Skeleton>"
     },
     {
       "title": "Lines Skeleton",
       "code": "<Skeleton variant=\"lines\" lines={5} />"
     },
     {
-      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
-      "code": "<Button skeleton color=\"dark\">\n  Skeleton Button\n</Button>"
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx › Skeleton Button",
+      "code": "<Button skeleton tabIndex={-1} aria-hidden=\"true\" color=\"dark\">\n  Skeleton Button\n</Button>"
     },
     {
-      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
-      "code": "<Buttons>\n  <Button skeleton color=\"dark\">\n    Skeleton\n  </Button>\n  <Button skeleton color=\"dark\">\n    Skeleton\n  </Button>\n  <Button skeleton color=\"dark\">\n    Skeleton\n  </Button>\n</Buttons>"
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx › Skeleton Buttons Group",
+      "code": "<Buttons>\n  <Button skeleton tabIndex={-1} aria-hidden=\"true\" color=\"dark\">\n    Skeleton\n  </Button>\n  <Button skeleton tabIndex={-1} aria-hidden=\"true\" color=\"dark\">\n    Skeleton\n  </Button>\n  <Button skeleton tabIndex={-1} aria-hidden=\"true\" color=\"dark\">\n    Skeleton\n  </Button>\n</Buttons>"
     },
     {
-      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
-      "code": "<Icon name=\"star\" skeleton ariaLabel=\"Star icon skeleton\" size=\"medium\" />"
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx › Skeleton Icon",
+      "code": "<Icon name=\"star\" skeleton size=\"medium\" />"
     },
     {
-      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx › Skeleton Image",
       "code": "<Image skeleton src=\"/img/react-logo.png\" alt=\"Skeleton image\" size=\"128x128\" />"
     },
     {
-      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
-      "code": "<Media skeleton>\n  <Media.Left>\n    <Image\n      skeleton\n      as=\"p\"\n      size=\"64x64\"\n      src=\"https://bulma.io/assets/images/placeholders/128x128.png\"\n      alt=\"\"\n    />\n  </Media.Left>\n  <Media.Content>\n    <Content>\n      <Paragraph>\n        <Strong>Skeleton Name</Strong> <small>@skelly</small> <small>1m</small>\n        <br />\n        This is a skeleton media example.\n      </Paragraph>\n    </Content>\n  </Media.Content>\n</Media>"
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx › Skeleton Media",
+      "code": "<Media skeleton aria-hidden=\"true\">\n  <Media.Left>\n    <Image\n      skeleton\n      as=\"p\"\n      size=\"64x64\"\n      src=\"/img/carousel/carousel-banner-1-1by1.jpg\"\n      alt=\"\"\n    />\n  </Media.Left>\n  <Media.Content>\n    <Content>\n      <Paragraph>\n        <Strong>Skeleton Name</Strong> <small>@skelly</small> <small>1m</small>\n        <br />\n        This is a skeleton media example.\n      </Paragraph>\n    </Content>\n  </Media.Content>\n</Media>"
     },
     {
-      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
-      "code": "<Notification skeleton>Skeleton notification message.</Notification>"
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx › Skeleton Notification",
+      "code": "<Notification skeleton aria-hidden=\"true\">\n  Skeleton notification message.\n</Notification>"
     },
     {
-      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
-      "code": "<Tag skeleton size=\"medium\">\n  Skeleton Tag\n</Tag>"
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx › Skeleton Tag",
+      "code": "<Tag skeleton aria-hidden=\"true\" size=\"medium\">\n  Skeleton Tag\n</Tag>"
     },
     {
-      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
-      "code": "<Title skeleton size=\"2\">\n  Skeleton Title\n</Title>"
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx › Skeleton Title",
+      "code": "<Title skeleton aria-hidden=\"true\" size=\"2\">\n  Skeleton Title\n</Title>"
     },
     {
-      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
-      "code": "<SubTitle skeleton size=\"4\">\n  Skeleton SubTitle\n</SubTitle>"
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx › Skeleton SubTitle",
+      "code": "<SubTitle skeleton aria-hidden=\"true\" size=\"4\">\n  Skeleton SubTitle\n</SubTitle>"
     },
     {
-      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
-      "code": "<Input skeleton placeholder=\"Skeleton Input\" />"
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx › Skeleton Input",
+      "code": "<Input skeleton tabIndex={-1} aria-hidden=\"true\" placeholder=\"Skeleton Input\" />"
     },
     {
-      "title": "Skeleton Examples from useBulmaClasses.stories.tsx",
-      "code": "<TextArea skeleton placeholder=\"Skeleton TextArea\" rows={3} />"
+      "title": "Skeleton Examples from useBulmaClasses.stories.tsx › Skeleton TextArea",
+      "code": "<TextArea\n  skeleton\n  tabIndex={-1}\n  aria-hidden=\"true\"\n  placeholder=\"Skeleton TextArea\"\n  rows={3}\n/>"
     }
   ],
-  "accessibility": "- **Role:** Consider using `aria-busy=\"true\"` on container elements to indicate loading state.\n- **Label:** Optionally use `aria-label=\"Loading...\"` or similar for better screen reader support.\n- **Focus:** Skeletons should not be focusable and should be replaced with real content as soon as data is available.\n- **Reduced motion:** under `prefers-reduced-motion: reduce` the pulse stops and each shape stays\n  drawn in the skeleton color. That covers `Skeleton`, the `skeleton` prop and `hasSkeleton`. The\n  rule ships in bestax's stylesheets: `bestax.css` and its variants, or `extras.css` next to your\n  own Bulma, in either order.\n\n:::tip\nSkeleton loaders provide a visual cue for loading but should not block navigation or accessibility.\n:::",
+  "accessibility": "- **Its text is still read:** Bulma hides a skeleton's text with a transparent color, and a screen\n  reader reads it anyway, so `<Skeleton>Lorem ipsum</Skeleton>` reads \"Lorem ipsum\" and a `Title`\n  with the `skeleton` prop is still a heading. Give a skeleton that holds placeholder text\n  `aria-hidden=\"true\"`, whether it's a `Skeleton` or a component with the `skeleton` prop or\n  `hasSkeleton`, or leave the block empty. The `lines` variant holds no text.\n- **Controls still take the keyboard:** Bulma's skeleton stops the pointer and not the keyboard, so\n  a `Button` with the `skeleton` prop is still reached with Tab and pressed with Enter. Give a\n  skeleton control, and anything focusable inside a skeleton, `tabIndex={-1}` as well as\n  `aria-hidden=\"true\"`, so Tab passes it by and a screen reader skips it. Its look doesn't change,\n  where `disabled` would draw it faded.\n- **Say that it's loading:** `Skeleton` has no role, and ARIA doesn't allow a name on its `<div>`,\n  so don't give it an `aria-label`. Set `aria-busy=\"true\"` on the region it stands in for, and\n  remove it when the content arrives, swapping the skeleton for the content as soon as it's there.\n  To announce that loading started or finished, change the text of a live region that's already\n  on the page.\n- **Reduced motion:** under `prefers-reduced-motion: reduce` the pulse stops and each shape stays\n  drawn in the skeleton color. That covers `Skeleton`, the `skeleton` prop and `hasSkeleton`. The\n  rule ships in bestax's stylesheets: `bestax.css` and its variants, or `extras.css` next to your\n  own Bulma, in either order.\n- **Forced colors:** Bulma paints each shape as a background color, which a contrast theme\n  replaces with the page's color, and hides the text inside with a transparent color, which the\n  theme paints in its text color. In forced colors, bestax draws every shape in `GrayText`, the\n  theme's color for something unavailable, such as a disabled control, and turns the theme's\n  colors off on the skeleton so the text Bulma hides stays hidden. That reaches what's inside it\n  too, so anything there that Bulma draws in colors of its own, such as a control's edge and focus\n  ring or a link, keeps Bulma's colors rather than the theme's. That covers `Skeleton`, the\n  `skeleton` prop and `hasSkeleton`, and ships in the same stylesheets as the reduced-motion rule.\n\n:::tip\nSkeleton loaders provide a visual cue for loading but should not block navigation or accessibility.\n:::",
   "related": [
     "Button",
     "Buttons",
@@ -75,14 +75,14 @@
     "useBulmaClasses"
   ],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-skeleton--default",
-  "summary": "The `Skeleton` component provides a Bulma-styled skeleton loader for React applications, useful for indicating that content is loading.",
+  "summary": "The `Skeleton` component provides a Bulma-styled skeleton loader for React applications, useful for indicating that content is loading. In forced colors, with bestax's CSS loaded, its shapes are drawn in the theme's `GrayText` and the text Bulma hides in a block stays hidden, where Bulma's shapes would take the page's color and that text would show.",
   "import": "import { Skeleton } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/elements/Skeleton.tsx",
   "rootClass": "skeleton-lines",
   "parts": [
     {
       "path": "Skeleton",
-      "summary": "The `Skeleton` component provides a Bulma-styled skeleton loader for React applications, useful for indicating that content is loading.",
+      "summary": "The `Skeleton` component provides a Bulma-styled skeleton loader for React applications, useful for indicating that content is loading. In forced colors, with bestax's CSS loaded, its shapes are drawn in the theme's `GrayText` and the text Bulma hides in a block stays hidden, where Bulma's shapes would take the page's color and that text would show.",
       "component": null,
       "props": [
         {
@@ -116,7 +116,7 @@
           "name": "children",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Content inside the block (only for block variant).",
+          "description": "Content inside the block (only for block variant). Bulma hides it, but a screen reader still reads it, so give a block that holds placeholder text `aria-hidden=\"true\"`.",
           "required": false,
           "inherited": false,
           "deprecated": false

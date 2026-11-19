@@ -1,5 +1,4 @@
 import { renderHook } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import React from 'react';
 import { useOtherClasses, BulmaOtherProps } from '../useOtherClasses';
 import { ConfigProvider } from '../Config';
@@ -185,7 +184,7 @@ describe('useOtherClasses', () => {
     );
 
     it.each(combos)(
-      'writes one class per axis for %o',
+      'writes one class per axis for overflow $overflow, x $overflowX, y $overflowY',
       ({ overflow, overflowX, overflowY }) => {
         const classes = renderUseOtherClasses({
           overflow,

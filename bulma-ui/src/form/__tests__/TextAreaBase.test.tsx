@@ -65,7 +65,7 @@ describe('TextAreaBase', () => {
   });
 
   it('calls onChange handler', () => {
-    const handleChange = jest.fn();
+    const handleChange = vi.fn();
     render(<TextAreaBase onChange={handleChange} />);
     const textarea = screen.getByRole('textbox');
     fireEvent.change(textarea, { target: { value: 'test' } });

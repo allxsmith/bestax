@@ -70,23 +70,23 @@
       "code": "function example() {\n  const v = new Date();\n  v.setHours(11, 30, 0, 0);\n  return (\n    <TimeInput\n      label=\"Lunch hour rejected while typing\"\n      unselectableTimes={d => d.getHours() === 12}\n      defaultValue={v}\n      mobileNative={false}\n      openOnFocus={false}\n    />\n  );\n}"
     },
     {
-      "title": "Manual Keyboard Entry",
+      "title": "Manual Keyboard Entry › Basic",
       "code": "function example() {\n  const v = new Date();\n  v.setHours(13, 45, 0, 0);\n  return (\n    <TimeInput\n      label=\"Click in, then use arrow keys\"\n      defaultValue={v}\n      openOnFocus={false}\n    />\n  );\n}"
     },
     {
-      "title": "Manual Keyboard Entry",
+      "title": "Manual Keyboard Entry › Digit entry and auto-advance",
       "code": "function example() {\n  const v = new Date();\n  v.setHours(9, 0, 0, 0);\n  return (\n    <TimeInput\n      label=\"Type digits — auto-advance after each segment\"\n      defaultValue={v}\n      openOnFocus={false}\n    />\n  );\n}"
     },
     {
-      "title": "Manual Keyboard Entry",
+      "title": "Manual Keyboard Entry › Controlled with live value",
       "code": "function example() {\n  const [v, setV] = useState<Date | null>(() => {\n    const d = new Date();\n    d.setHours(13, 45, 0, 0);\n    return d;\n  });\n  return (\n    <Block>\n      <TimeInput\n        label=\"Arrow or type — value updates live\"\n        value={v}\n        onChange={setV}\n        openOnFocus={false}\n      />\n      <Paragraph mt=\"2\">Selected: {v ? v.toLocaleTimeString() : '—'}</Paragraph>\n    </Block>\n  );\n}"
     },
     {
-      "title": "Manual Keyboard Entry",
+      "title": "Manual Keyboard Entry › Free-form fallback",
       "code": "function example() {\n  const v = new Date();\n  v.setHours(13, 45, 0, 0);\n  return (\n    <TimeInput\n      label=\"Free-form (Intl format)\"\n      format={{ hour: '2-digit', minute: '2-digit' }}\n      defaultValue={v}\n      openOnFocus={false}\n    />\n  );\n}"
     },
     {
-      "title": "Manual Keyboard Entry",
+      "title": "Manual Keyboard Entry › 12-hour with seconds",
       "code": "function example() {\n  const v = new Date();\n  v.setHours(13, 45, 30, 0);\n  return (\n    <TimeInput\n      label=\"hh:mm:ss + AM/PM\"\n      hourFormat=\"12\"\n      enableSeconds\n      defaultValue={v}\n      openOnFocus={false}\n    />\n  );\n}"
     },
     {
@@ -110,11 +110,11 @@
       "code": "function example() {\n  const v = new Date();\n  v.setHours(8, 30, 0, 0);\n  return <TimeInput label=\"Inline\" inline defaultValue={v} />;\n}"
     },
     {
-      "title": "Mobile Native",
+      "title": "Mobile Native › Force native",
       "code": "<TimeInput label=\"Always native\" mobileNative={true} />"
     },
     {
-      "title": "Mobile Native",
+      "title": "Mobile Native › Force the custom wheel (even on mobile)",
       "code": "<TimeInput label=\"Always custom wheel\" mobileNative={false} />"
     },
     {
@@ -166,19 +166,19 @@
       "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <TimeInput label=\"Disabled\" disabled />\n  <TimeInput label=\"Read only\" readOnly defaultValue={new Date()} />\n  <TimeInput label=\"Loading\" isLoading />\n</Block>"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › Default (with label)",
       "code": "<TimeInput label=\"Time\" placeholder=\"HH:MM\" />"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › With Field Wrapper",
       "code": "function example() {\n  return (\n    <Field horizontal label=\"Time\" labelProps={{ htmlFor: 'time-field' }}>\n      <Field.Body>\n        <Field>\n          <TimeInput id=\"time-field\" placeholder=\"HH:MM\" />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
-      "title": "Context-Aware Rendering",
+      "title": "Context-Aware Rendering › With Field and Control Wrappers",
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Time\"\n      labelProps={{ htmlFor: 'time-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"clock\">\n            <TimeInput id=\"time-field-control\" placeholder=\"HH:MM\" />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
-  "accessibility": "- Trigger uses `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls`.\n- Popover panel has `role=\"dialog\"` with an accessible name.\n- Each spinner column has `role=\"spinbutton\"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`. The values drawn above and below are click targets hidden from assistive technology, which reads the value from the spinbutton.\n- In a 12-hour picker, AM/PM is one of those spinbutton columns rather than a toggle button. Its `aria-valuetext` reads `AM` or `PM`; `↑`, `PageUp` and `End` move it to PM, and `↓`, `PageDown` and `Home` move it to AM. It stops at either end instead of wrapping around. Its accessible name is `AM/PM` unless `labels.ampm` sets another.\n- Honors `prefers-reduced-motion`.",
+  "accessibility": "- Trigger uses `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls`.\n- Popover panel has `role=\"dialog\"` with an accessible name.\n- An `inline` picker has no input for its `label` to name, so its root is a `role=\"group\"` the `label` names through `aria-labelledby` and its `message` describes. A labeled `Field` around it names it the same way, unless the `Field` is `grouped` or `hasAddons`, or a label is wired by hand with `labelProps.htmlFor`. An `aria-label` or `aria-labelledby` you give it names it instead. With no name it stays a plain `div`, and its wheels inside keep their own names.\n- Each spinner column has `role=\"spinbutton\"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`, whose text is the number as the column shows it, in the picker's locale's digits when it has a locale. The values drawn above and below are click targets hidden from assistive technology, which reads the value from the spinbutton.\n- In a 12-hour picker, AM/PM is one of those spinbutton columns rather than a toggle button. Its `aria-valuetext` is `AM` or `PM`, or the picker's locale's words for them when it has a locale, and it widens to fit a longer word; `↑`, `PageUp` and `End` move it to PM, and `↓`, `PageDown` and `Home` move it to AM. It stops at either end instead of wrapping around. Its accessible name is `AM/PM` unless `labels.ampm` sets another.\n- A `readOnly` inline picker puts `aria-readonly=\"true\"` on each spinbutton and keeps them in the tab order.\n- A `disabled` inline picker puts `aria-disabled=\"true\"` on each spinbutton and takes them out of the tab order.\n- In forced colors (Windows' contrast themes), the band behind the picked values is replaced, so bestax's styles draw it in the system's highlight color there, and the focus ring inside it in the color made to read on it. The values keep the system's text color, so each reads on the band and off it as the wheel turns. When the picker is disabled, the band and the values take the system's color for a disabled control, at full opacity, as a value the picker blocks does.\n- Honors `prefers-reduced-motion`.\n- On a right-to-left page the launcher sits at the end of the line and the clock icon at the start. The wheels keep `dir=\"ltr\"`, so hours stay to the left of minutes.\n- In forced colors (Windows' contrast themes), a disabled launcher draws in the system's color for a disabled control, at full strength rather than faded.\n- A panel at a corner that would run past the left or right edge of the screen keeps its\n  corner and moves sideways just far enough to fit, or, wider than the screen, to the edge its\n  text starts from. On a narrow screen the panel in place is a sheet across the screen\n  instead, which fits as it is.\n- The `message` describes the input through `aria-describedby`, so a screen reader reads it when the input takes focus. Ids you pass in `aria-describedby` go on the container with the other attributes, except on a phone's native input, which lists them first. An `inline` picker has no input, so there the message describes the picker's group, when something names it.\n- `aria-invalid` and `aria-errormessage` go on the input, while the other attributes you pass go on the container, so a screen reader hears the input is invalid when it takes focus. An `inline` picker has no input, and they stay on its container.\n- The input takes its name from `label`, from a labeled `Field` that isn't `grouped` or `hasAddons` around a `TimeInputBase` with no `id` of its own, or from a `<label htmlFor>` of your own pointing at the `id` you give it. `aria-label` and `aria-labelledby` go on the container with the other attributes you pass, so they don't name the input, except on the native input `mobileNative` renders, which takes them itself. An `inline` picker has no input to name.\n- An `autoComplete` you give goes on the field. Without one the text field turns autocomplete off, since the browser's own suggestions would cover the panel. A time that autofill writes commits when it reads in the token `format` (the default one when `format` is `Intl` options) or through your `parse`. One it can't read, or that `min`, `max` or a blocked time rules out, isn't committed, as with typing: the field shows it as written, and submits it under a `name`, until focus next leaves the field.",
   "related": ["DateInput", "DateTimeInput", "Input"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-timeinput",
   "summary": "The `TimeInput` component is a form input that opens a popover spinner for time-of-day selection.",
@@ -195,7 +195,7 @@
           "name": "label",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Field label. Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired in `inline` mode (no visible input to label). Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here.",
+          "description": "Field label. Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. In `inline` mode, where there's no input, it names the picker instead, which is then a `role=\"group\"`, through `aria-labelledby`, unless `labelProps.htmlFor` wires it by hand. An `aria-label` or `aria-labelledby` you set names the picker over it, and an `aria-labelledby` key counts even when undefined. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here. Inline, that `Field`'s label names the picker's group whatever the `id`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -330,7 +330,7 @@
           "name": "message",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Help/validation text below the input.",
+          "description": "Help or validation text under the input. It describes the input through `aria-describedby`; inline, with no input, it describes the picker's group when something names it.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -429,7 +429,7 @@
           "name": "disabled",
           "type": "boolean",
           "default": "false",
-          "description": "Disable the input.",
+          "description": "Disable the input. An `inline` picker's wheels leave the tab order and carry `aria-disabled`, and nothing turns them.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -438,7 +438,7 @@
           "name": "readOnly",
           "type": "boolean",
           "default": "false",
-          "description": "Make the input read-only.",
+          "description": "Make the input read-only. An `inline` picker's wheels keep their tab stops and carry `aria-readonly`, but no key, scroll, drag or click turns them, so the time can't change.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -474,7 +474,7 @@
           "name": "locale",
           "type": "string",
           "default": null,
-          "description": "BCP-47 locale tag for Intl formatting.",
+          "description": "BCP-47 locale tag for Intl formatting, the digits the wheels write their hours, minutes and seconds in, and the words a 12-hour wheel shows for AM and PM. Unset, it is the `locale` of a `LocaleProvider` around the picker, and with neither, `Intl` uses the runtime's own locale and the wheels keep plain digits and AM and PM.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -483,7 +483,7 @@
           "name": "inline",
           "type": "boolean",
           "default": "false",
-          "description": "Render the spinner inline (no popover).",
+          "description": "Render the spinner inline (no popover). Inline, the root is a `role=\"group\"` when something names it: a labeled `Field` around it that isn't `grouped` or `hasAddons` and has no `labelProps.htmlFor`, or an `aria-label` or `aria-labelledby` you give it. The `message` of a wrapper around it describes it then.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -537,7 +537,7 @@
           "name": "position",
           "type": "'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | 'auto'",
           "default": "'bottom-left'",
-          "description": "Popover anchor position relative to the input.",
+          "description": "Where the popover opens against the field. Left out, it opens below and lines up with the field's start edge, which is its right edge when the picker reads right to left. A corner you pass stays physical, so `bottom-left` lines up the left edges either way. A panel that would run past the viewport's left or right edge keeps its corner and moves sideways, just far enough to fit or, wider than the viewport, to the edge its text starts from.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -546,7 +546,7 @@
           "name": "appendToBody",
           "type": "boolean",
           "default": "false",
-          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, `document.body` by default. On a narrow screen an in-place popover spans the bottom of the viewport, while a portaled one stays on its `position` corner.",
+          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, else the overlay it's in that takes its popups, such as a `Modal`, else `document.body`. On a narrow screen an in-place popover spans the bottom of the viewport, while a portaled one stays on its `position` corner.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -555,7 +555,7 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Bulma color modifier for the input, also carried by the wheels, where it colors the selection band. A focused wheel's keyboard focus ring is drawn inside the band in the color's `-invert`, like the selected value, so it shows on the fill. Unset, the wheels use `--bulma-timeinput-wheel-selected-bg`, which defaults to `primary`.",
+          "description": "Bulma color modifier for the input, also carried by the wheels, where it colors the selection band. A focused wheel's keyboard focus ring is drawn inside the band in the color's `-invert`, like the selected value, so it shows on the fill. Unset, the wheels use `--bulma-timeinput-wheel-selected-bg`, which defaults to `primary`. Forced colors (Windows' contrast themes) replaces the band, so there it's drawn in the system's highlight color instead, with the ring in the color made to read on it, or in its color for a disabled control while the picker is disabled, whatever the color, which needs bestax's CSS.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -698,6 +698,15 @@
           "deprecated": false
         },
         {
+          "name": "autoComplete",
+          "type": "string",
+          "default": "off",
+          "description": "An autofill token for the field. On the text field it's `off` unless you give one, since the browser's own suggestions would cover the wheels. The native input on touch devices takes yours too, and the browser's default without one, and an `inline` picker, with no field, takes none. A time that autofill writes commits when it reads in the token `format` (the default one when `format` is `Intl` options) or through your `parse`. One it can't read, or that `min`, `max` or a blocked time rules out, isn't committed, as with typing: the field shows it as written, and submits it under a `name`, until focus next leaves the field.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
           "name": "required",
           "type": "boolean",
           "default": "false",
@@ -726,7 +735,362 @@
         }
       ],
       "catchAll": "All standard <input> attributes and Bulma helper props",
+      "helperPropsNote": "Helper props go on the `.timeinput-container` `<div>`, with `className` and the other attributes, except that the background helpers go on the `<input>`, and the text helpers on both, since Bulma's `.input` sets its own background and font, and the popover inside the `<div>` takes the text ones. Inline they all go on the `<div>`, and on the native mobile input, on the `<input>`. Among the other attributes, `aria-label`, `aria-labelledby` and `aria-describedby` go on the `<div>` too, so they don't name or describe the `<input>`, except the native one `mobileNative` renders. Name it with `TimeInput`'s `label`; with a labeled `Field` that isn't `grouped` or `hasAddons`, if you give it no `id`; or with an `id` and a `<label htmlFor>` of your own. Describe it with `TimeInput`'s `message`: `TimeInputBase` on its own has no way to describe it. Inline there is no `<input>` to name.",
       "types": []
+    },
+    {
+      "path": "TimeInputBase",
+      "summary": "Raw TimeInput — input + popover spinner without Field/Control wrapping. Use `TimeInput` for the convenience wrapper.",
+      "component": null,
+      "props": [
+        {
+          "name": "value",
+          "type": "Date | null",
+          "default": null,
+          "description": "Controlled selected time (date portion is preserved).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "Date | null",
+          "default": null,
+          "description": "Initial value for uncontrolled usage.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(d: Date | null) => void",
+          "default": null,
+          "description": "Fired when the value changes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onOpen",
+          "type": "() => void",
+          "default": null,
+          "description": "Fired when the popover opens.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "default": null,
+          "description": "Fired when the popover closes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "min",
+          "type": "Date",
+          "default": null,
+          "description": "Earliest selectable time. A `min` before year 1 is raised to midnight on 1 January of year 1, and a `value` dated before then is out of range, so the wheels and typing change nothing on it, as in the date pickers.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "max",
+          "type": "Date",
+          "default": null,
+          "description": "Latest selectable time.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disable the input. An `inline` picker's wheels leave the tab order and carry `aria-disabled`, and nothing turns them.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "default": "false",
+          "description": "Make the input read-only. An `inline` picker's wheels keep their tab stops and carry `aria-readonly`, but no key, scroll, drag or click turns them, so the time can't change.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": null,
+          "description": "Placeholder text for the input.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "format",
+          "type": "Intl.DateTimeFormatOptions | string",
+          "default": "(see below)",
+          "description": "Token format string or `Intl.DateTimeFormat` options.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "parse",
+          "type": "(s: string) => Date | null",
+          "default": null,
+          "description": "Custom parser. Enter and leaving the field call it only if the user changed the text, so focus passing through commits nothing and the value keeps what the format leaves out, such as seconds and the date.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "default": null,
+          "description": "BCP-47 locale tag for Intl formatting, the digits the wheels write their hours, minutes and seconds in, and the words a 12-hour wheel shows for AM and PM. Unset, it is the `locale` of a `LocaleProvider` around the picker, and with neither, `Intl` uses the runtime's own locale and the wheels keep plain digits and AM and PM.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "inline",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the spinner inline (no popover). Inline, the root is a `role=\"group\"` when something names it: a labeled `Field` around it that isn't `grouped` or `hasAddons` and has no `labelProps.htmlFor`, or an `aria-label` or `aria-labelledby` you give it. The `message` of a wrapper around it describes it then.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "mobileNative",
+          "type": "boolean | 'auto'",
+          "default": "'auto'",
+          "description": "Use `<input type=\"time\">` on coarse-pointer + small-viewport devices.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "editable",
+          "type": "boolean",
+          "default": "true",
+          "description": "Allow segmented keyboard typing in the input (type the time directly, auto-advancing across segments). `false` makes the field picker-only.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "popover",
+          "type": "boolean",
+          "default": "true",
+          "description": "Whether the spinner popover exists. `false` makes the field input-only (segmented typing, no popover).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "openOnFocus",
+          "type": "boolean",
+          "default": "true",
+          "description": "Open the popover when the input is focused. Focus that a closing popover hands back to the input leaves it closed. Dismissing it commits nothing: an empty field stays empty, and leaving afterwards commits only what was typed since. With it off, the launcher or Alt+ArrowDown opens it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnSelect",
+          "type": "boolean",
+          "default": "false",
+          "description": "Close the popover after a time is selected (off by default).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | 'auto'",
+          "default": "'bottom-left'",
+          "description": "Where the popover opens against the field. Left out, it opens below and lines up with the field's start edge, which is its right edge when the picker reads right to left. A corner you pass stays physical, so `bottom-left` lines up the left edges either way. A panel that would run past the viewport's left or right edge keeps its corner and moves sideways, just far enough to fit or, wider than the viewport, to the edge its text starts from.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "appendToBody",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, else the overlay it's in that takes its popups, such as a `Modal`, else `document.body`. On a narrow screen an in-place popover spans the bottom of the viewport, while a portaled one stays on its `position` corner.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier for the input, also carried by the wheels, where it colors the selection band. A focused wheel's keyboard focus ring is drawn inside the band in the color's `-invert`, like the selected value, so it shows on the fill. Unset, the wheels use `--bulma-timeinput-wheel-selected-bg`, which defaults to `primary`. Forced colors (Windows' contrast themes) replaces the band, so there it's drawn in the system's highlight color instead, with the ring in the color made to read on it, or in its color for a disabled control while the picker is disabled, whatever the color, which needs bestax's CSS.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size variant.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the input with rounded corners.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hourFormat",
+          "type": "'12' | '24'",
+          "default": "'24'",
+          "description": "Hour format. `'12'` adds an AM/PM column to the wheels.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "enableSeconds",
+          "type": "boolean",
+          "default": "false",
+          "description": "Show a seconds column. Note: iOS Safari's native time picker UI does not include a seconds wheel; pass `mobileNative={false}` if you need one on iOS.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "incrementHours",
+          "type": "number",
+          "default": "1",
+          "description": "Hour step for the spinner.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "incrementMinutes",
+          "type": "number",
+          "default": "1",
+          "description": "Minute step. Combine with `min`/`max` for slot-style pickers.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "incrementSeconds",
+          "type": "number",
+          "default": "1",
+          "description": "Second step. Default `1`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "unselectableTimes",
+          "type": "(d: Date) => boolean",
+          "default": null,
+          "description": "Predicate returning `true` for times that should be skipped. Blocked times are also rejected during manual typing.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconLeftName",
+          "type": "string",
+          "default": null,
+          "description": "Decorative left icon glyph for the wrapping `Control` (shown by default). Set `''` to hide.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "triggerIcon",
+          "type": "boolean",
+          "default": "true",
+          "description": "Show a clickable launcher button on the right that toggles the popover. Hidden by default while a `Control` it sits in shows its `isLoading` spinner, which shares that right edge.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "triggerIconName",
+          "type": "string",
+          "default": "'chevron-down'",
+          "description": "Glyph for the right launcher button.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "PickerLabels",
+          "default": null,
+          "description": "Optional translatable string overrides. In a 12-hour picker, `ampm` names the AM/PM column, `'AM/PM'` by default.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "audioTick",
+          "type": "boolean",
+          "default": "false",
+          "description": "Play a short audible click on each wheel-item crossing. Substitute for haptic feedback on iOS Safari (which has no web haptic API as of May 2026); on Android, `navigator.vibrate(5)` fires automatically regardless.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "haptics",
+          "type": "boolean",
+          "default": "false",
+          "description": "Auto-route platform-appropriate feedback: vibrate on Android (already happening), audio thunk on iOS (where vibrate is unavailable). One switch instead of platform-sniffing on the consumer side. `audioTick={true}` always wins.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Forwarded to the underlying element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <input> attributes and Bulma helper props",
+      "helperPropsNote": "Helper props go on the `.timeinput-container` `<div>`, with `className` and the other attributes, except that the background helpers go on the `<input>`, and the text helpers on both, since Bulma's `.input` sets its own background and font, and the popover inside the `<div>` takes the text ones. Inline they all go on the `<div>`, and on the native mobile input, on the `<input>`. Among the other attributes, `aria-label`, `aria-labelledby` and `aria-describedby` go on the `<div>` too, so they don't name or describe the `<input>`, except the native one `mobileNative` renders. Name it with `TimeInput`'s `label`; with a labeled `Field` that isn't `grouped` or `hasAddons`, if you give it no `id`; or with an `id` and a `<label htmlFor>` of your own. Describe it with `TimeInput`'s `message`: `TimeInputBase` on its own has no way to describe it. Inline there is no `<input>` to name.",
+      "types": [],
+      "standalone": "base"
     }
   ],
   "cssVars": [
@@ -776,6 +1140,12 @@
       "css": "--bulma-picker-popover-animation-duration",
       "sass": "$picker-popover-animation-duration",
       "default": "0.15s",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-months-max-width",
+      "sass": "$picker-popover-months-max-width",
+      "default": "calc(100vw - 2rem)",
       "scope": "element"
     },
     {

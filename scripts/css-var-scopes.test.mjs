@@ -31,14 +31,17 @@
  * The API-page half reads the rows each page is rendered from
  * (`cssVarRows`), which `check:conformance` already holds the committed
  * pages to, and checks every row the page presents as global against the
- * stylesheet, and every other Bulma row the other way. The renderer half
+ * stylesheet, and every other Bulma row the other way. A global row from this
+ * repo's own SCSS is checked against the library's built extras,
+ * `bulma-ui/dist/extras.css`, by the same rule. The renderer half
  * checks that a row whose scope differs from the page's lead is always
  * marked, because a missing marker states the lead's scope for that row.
  */
+import { existsSync, readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { relative, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { before, describe, it } from 'node:test';
+import { beforeAll, describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 
 import {
@@ -66,6 +69,18 @@ const API_DIR = join(REPO, 'docs', 'docs', 'api');
 
 const homes = variableHomes(bulmaCss());
 const reaches = name => reachesFromAncestor(homes.get(name));
+
+const EXTRAS_CSS = join(REPO, 'bulma-ui', 'dist', 'extras.css');
+
+/** The library's own compiled extras, or an actionable failure. */
+function extrasCss() {
+  assert.ok(
+    existsSync(EXTRAS_CSS),
+    "bulma-ui/dist/extras.css is absent, so the rows from this repo's SCSS " +
+      'cannot be checked against it. Build first, or run `pnpm all`.'
+  );
+  return readFileSync(EXTRAS_CSS, 'utf8');
+}
 
 // --- the rule, pinned to what the browser does ------------------------------
 
@@ -178,22 +193,27 @@ async function pageRows() {
 
 describe('API pages say where each Bulma variable can be set', () => {
   let pages;
-  before(async () => {
+  beforeAll(async () => {
     pages = await pageRows();
   });
 
   it('call a variable global only when Bulma declares it on :root', () => {
     let checked = 0;
     const wrong = [];
+    // Read only once a page has a global row from this repo's SCSS.
+    let extrasHomes;
     for (const { page, rows } of pages) {
       for (const row of rows.filter(r => r.scope === 'global')) {
         checked++;
         if (row.pkg !== 'bulma') {
-          wrong.push(
-            `${page}: ${row.cssVar} comes from this repo's own SCSS, which ` +
-              'this check has no compiled copy of. Extend it to read the ' +
-              'built extras before calling one of those global.'
-          );
+          extrasHomes ??= variableHomes(extrasCss());
+          if (!extrasHomes.get(row.cssVar)?.onHost) {
+            wrong.push(
+              `${page}: ${row.cssVar} is presented as global, but the ` +
+                "library's compiled extras declare it only on component " +
+                'selectors, so a value set above never reaches it.'
+            );
+          }
         } else if (!homes.get(row.cssVar)?.onHost) {
           wrong.push(
             `${page}: ${row.cssVar} is presented as global (settable from ` +
@@ -260,6 +280,23 @@ describe('API pages say where each Bulma variable can be set', () => {
     }
     assert.ok(checked > 0, 'no page has a root or mixin Bulma row');
     assert.deepEqual(wrong, []);
+  });
+
+  it("say both of Combobox's homes, each with its own rule", () => {
+    // `.combobox` ties with a lone className class, and the portaled
+    // `.combobox-menu.is-portal` takes nothing from it, so the lead names
+    // both and doesn't say a lone class loses, as the compound lead does.
+    const { rootClass, rows } = pages.find(p =>
+      p.page.endsWith('/form/combobox.md')
+    );
+    assert.ok(rows.every(r => r.scope === 'root-and-element'));
+    const out = renderCssVarRows({ name: 'Combobox', rootClass }, rows, 'x');
+    const [lead] = out.trim().split('\n');
+    assert.match(lead, /on its own `\.combobox` element/);
+    assert.match(lead, /again on `\.combobox-menu\.is-portal`/);
+    assert.match(lead, /takes nothing from it/);
+    assert.doesNotMatch(lead, /lone class via `className` loses/);
+    assert.doesNotMatch(out, /‖/);
   });
 
   it("give Delete's mixin-declared variables their own scope", () => {
@@ -416,6 +453,20 @@ describe('a CSS variable table', () => {
         }),
       /mixin \(no place in the order\)/
     );
+  });
+
+  it('names every element a both-homes row is declared on again', () => {
+    const out = renderCssVarRows(
+      { name: 'Thing', rootClass: 'thing' },
+      [
+        { ...row('root-and-element', 'a'), alsoOn: ['.thing-a.is-x'] },
+        { ...row('root-and-element', 'b'), alsoOn: ['.thing-b.is-y'] },
+      ],
+      'theme.md'
+    );
+    assert.match(out, /again on `\.thing-a\.is-x` and `\.thing-b\.is-y`/);
+    const bare = renderCssVarRows(info, [row('root-and-element', 'a')], 'x');
+    assert.match(bare, /again on a constituent element/);
   });
 
   it('tells a reader to set mixin-declared variables on the element', () => {

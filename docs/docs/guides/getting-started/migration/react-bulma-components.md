@@ -14,7 +14,7 @@ mechanically.
 
 :::tip See how they compare
 For a capability-by-capability comparison of bestax against react-bulma-components and the other
-major React libraries (Mantine, MUI, Chakra, shadcn/ui, React-Bootstrap), see the latest edition of
+major React libraries (Ant Design, Mantine, MUI, Chakra, shadcn/ui, React-Bootstrap), see the latest edition of
 [**The State of React**](/blog/tags/state-of-react).
 :::
 
@@ -32,7 +32,7 @@ pnpm dlx bestax-migrate react-bulma-components src/
 ```
 
 (`npx bestax-migrate …` works the same.) Useful flags: `--print` echoes transformed files to
-stdout; `--extensions` controls which files are considered (default
+stdout, and still writes them unless `--dry` is set; `--extensions` controls which files are considered (default
 `js,jsx,ts,tsx,scss,sass`); `--css bestax|bulma|keep` picks the stylesheet target
 (default `bestax`); `--no-deps` skips the package.json update.
 
@@ -44,16 +44,23 @@ in place:
 - **Components** — all 32 components and their compound sub-components are mapped, e.g.
   `Form.Textarea` → `TextArea`, `Card.Footer.Item` → `Card.FooterItem`, `Hero.Footer` →
   `Hero.Foot`, `Panel.Header` → `Panel.Heading`, `Heading` → `Title`/`SubTitle` by prop value
-  (`subtitle={true}` → `SubTitle`, `subtitle={false}`/absent → `Title`, a dynamic `subtitle`/`heading`
-  value is left in place with a `TODO(bestax-migrate)`),
+  (`subtitle={true}` → `SubTitle`, `subtitle={false}`/absent → `Title`, and a truthy `heading` →
+  the plain element RBC rendered, an `<h1>` or a literal `renderAs`, with `className="heading"`
+  and its `size` and `weight` classes, plus a TODO, since Bulma v1 has no rule for `heading`; a
+  dynamic `subtitle`/`heading` value is left in place with a `TODO(bestax-migrate)`, and its
+  `size` becomes `textSize` wherever bestax's `size`, which picks the heading level, would change
+  the element RBC rendered),
   `Level.Side align="right"` → `Level.Right`, `Loader` → a plain `<div className="loader">`.
-- **Props** — `renderAs` → `as` (where supported), boolean modifiers gain their bestax prefixes
+- **Props** — `renderAs` → `as` (where supported, and the element itself where a component becomes
+  plain markup), boolean modifiers gain their bestax prefixes
   (`loading` → `isLoading`, `fullwidth` → `isFullwidth`), numeric spacing and text sizes become
   string unions (`textSize={4}` → `textSize="4"`), and values are remapped
   (`textAlign="center"` → `"centered"`, `state="hover"` → `isHovered`).
 - **Responsive objects** — `mobile={{ size: 4 }}` flattens to `sizeMobile={4}`,
-  `tablet={{ display: 'flex' }}` to `displayTablet="flex"`, and so on.
-- **Structure** — `Table.Container` folds into `isResponsive` on the `Table`, Navbar dropdown
+  `tablet={{ display: 'flex' }}` to `displayTablet="flex"`, and so on. A plain `display` beside
+  one stays its class (`display="flex" mobile={{ display: 'block' }}` → `className="is-flex"
+displayMobile="block"`), since bestax leaves `display` out beside a per-viewport display prop.
+- **Structure** — `Table.Container` folds into `isResponsive` on the `Table`, which takes the container's `aria-label` or `aria-labelledby` unless it has its own (a `Table` with neither gets a TODO asking for one), Navbar dropdown
   markup is restructured to bestax's `Navbar.Dropdown`/`Navbar.DropdownMenu` split, icon-font
   children become `<Icon name="…" library="…">` props, and `Menu.List title` becomes a
   `Menu.Label` sibling.
@@ -90,16 +97,20 @@ Anything without a safe automatic conversion is left in place with an inline com
 and the run ends with a summary of every TODO by file and line. TODOs are expected output, not
 errors. The recurring cases:
 
-| Flagged                                           | What to do                                                                                                             |
-| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `Element`, `Tile`                                 | No bestax equivalent — use a semantic component; `Tile` → the [Grid](../../../api/grid/grid.md) components             |
-| `Dropdown value/onChange`, `Dropdown.Item value`  | bestax Dropdown is compositional — own the selection state, `onClick` per item                                         |
-| `touch` / `untilWidescreen` / `{ only: true }`    | No bestax helper variants — use Bulma classes via `className`                                                          |
-| Dynamic prop values (`state={x}`, `textSize={n}`) | Convert at the source of the expression                                                                                |
-| `Pagination` extras (`showFirstLast`, `autoHide`) | bestax Pagination always shows the first and last pages; render conditionally instead of `autoHide`                    |
-| `Modal closeOnBlur/showClose`                     | the compound form renders only your children — add `Modal.Background`/`Modal.Close` yourself                           |
-| `renderAs` outside a narrowed `as`                | several bestax components render only certain tags — wrap the component in the element you wanted                      |
-| `href` beside a non-anchor `renderAs`             | bestax types `href` onto an `<a>` or a custom `as`, not another tag — drop the `renderAs` where the link was the point |
+| Flagged                                                                     | What to do                                                                                                                                   |
+| --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Element`, `Tile`                                                           | No bestax equivalent — use a semantic component; `Tile` → the [Grid](../../../api/grid/grid.md) components                                   |
+| `Dropdown value/onChange`, `Dropdown.Item value`                            | bestax Dropdown is compositional — own the selection state, `onClick` per item                                                               |
+| `Dropdown color`                                                            | it colored the trigger button, and bestax's Dropdown has no prop for that (its own `color` is the text color helper), so remove it           |
+| `touch` / `untilWidescreen` / `{ only: true }`                              | No bestax helper variants — use Bulma classes via `className`                                                                                |
+| Dynamic prop values (`state={x}`, `textSize={n}`)                           | Convert at the source of the expression                                                                                                      |
+| `Pagination` extras (`showFirstLast`, `autoHide`)                           | bestax Pagination always shows the first and last pages; render conditionally instead of `autoHide`                                          |
+| `Modal closeOnBlur/showClose`                                               | the compound form renders only your children — add `Modal.Background`/`Modal.Close` yourself                                                 |
+| A `Modal` with no name (`name:Modal`)                                       | bestax's `Modal` is a dialog while it's open: give it an `aria-label`, or point `aria-labelledby` at its title                               |
+| `renderAs` outside a narrowed `as`                                          | several bestax components render only certain tags — wrap the component in the element you wanted                                            |
+| `href` beside a non-anchor `renderAs`                                       | bestax types `href` onto an `<a>` or a custom `as`, not another tag — drop the `renderAs` where the link was the point                       |
+| `textColor` on `Tag`, `Tabs`, `Hero`, `Progress` and others                 | these take no `textColor` prop: move the color to a `has-text-*` class in `className` (on `Table`, `Menu` and `Dropdown` it becomes `color`) |
+| `backgroundColor` on `Notification`, `Table`, `Tabs`, `Checkbox` and others | these take no background color prop — move the color to a `has-background-*` class in `className`                                            |
 
 :::tip Let an agent do the follow-up
 The [`bestax-migrate` skill](/docs/skills/migrate) packages this whole workflow — codemod run,

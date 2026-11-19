@@ -1,11 +1,10 @@
 /**
  * The pnpm → npm/yarn/bun translation table.
  *
- * Lives in docs/scripts/ rather than beside the module because `docs` has no
- * jest config — `node --test "scripts/*.test.mjs"` is the only place a unit test
- * in this package actually runs in CI.
+ * Lives in docs/scripts/ rather than beside the module because that is the
+ * one place `docs/vitest.config.ts` looks for a unit test.
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
   PACKAGE_MANAGERS,

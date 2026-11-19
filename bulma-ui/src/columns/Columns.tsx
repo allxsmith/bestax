@@ -30,11 +30,12 @@ export interface ColumnsProps
       'color' | 'backgroundColor' | 'columnGap' | 'rowGap'
     > {
   /** Additional CSS classes for the columns container. */
-  className?: string;
+  className?: string | undefined;
   /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Bulma color modifier for all columns. */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color for all columns. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Horizontally center columns within the container. */
@@ -45,7 +46,13 @@ export interface ColumnsProps
   isMultiline?: boolean;
   /** Vertically center columns within the container. */
   isVCentered?: boolean;
-  /** Apply columns layout on mobile and up. */
+  /**
+   * Keeps the columns side by side on a phone too (Bulma's `is-mobile`).
+   * Without it they stack below tablet. A row that doesn't fit a 320px
+   * screen runs past its edge, where Bulma's default `overflow-x: hidden` on
+   * the page cuts it off (WCAG 1.4.10 Reflow), so keep it for a row that
+   * fits.
+   */
   isMobile?: boolean;
   /** Apply columns layout on desktop and up. */
   isDesktop?: boolean;

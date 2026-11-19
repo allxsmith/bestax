@@ -32,11 +32,67 @@ export function Landing() {
           <figure className="media-left">Avatar</figure>
           <div className="media-content">Body</div>
         </article>
+        <div className="columns box">
+          <div className="column">In a box</div>
+        </div>
+        <figure className="image is-128x128 container">
+          <img src="/avatar.png" alt="Centered" />
+        </figure>
       </div>
       <section className="hero is-primary is-small">
         <div className="hero-body">Hero</div>
       </section>
+      <section className="hero is-light container">
+        <div className="hero-body">A hero as wide as a container</div>
+      </section>
+      <main className="container hero">Neither one's own tag</main>
       <footer className="footer has-text-centered">Footer</footer>
     </section>
+  );
+}
+
+export function LoginPage() {
+  return (
+    <main className="hero is-fullheight is-dark">
+      <header className="hero-head">
+        <div className="container">Brand</div>
+      </header>
+      <div className="hero-body">
+        <section className="container has-text-centered">Sign in</section>
+      </div>
+      <footer className="hero-foot">
+        <nav className="container">Links</nav>
+      </footer>
+    </main>
+  );
+}
+
+export function SiteFooter() {
+  return (
+    <>
+      <footer className="hero is-small">
+        <nav className="hero-foot">
+          <aside className="container">Sitemap</aside>
+        </nav>
+      </footer>
+      <footer className="container">Copyright</footer>
+    </>
+  );
+}
+
+export function Stats() {
+  return (
+    <>
+      <div className="level is-mobile">
+        <div className="level-item has-text-centered">
+          <p className="title">1,234</p>
+        </div>
+      </div>
+      <header className="level">
+        <div className="level-left">
+          <p className="level-item">Posts</p>
+        </div>
+      </header>
+    </>
   );
 }

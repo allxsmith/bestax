@@ -54,7 +54,12 @@ export interface BulmaOtherProps {
    * container.
    */
   overlay?: boolean;
-  /** Interaction behavior (e.g., 'unselectable', 'clickable'). */
+  /**
+   * Interaction behavior: `unselectable` stops text selection
+   * (`is-unselectable`), and `clickable` shows the pointer cursor
+   * (`is-clickable`). It adds no role, no tab stop and no keyboard handling,
+   * so an element people click should be a `<button>` or a link.
+   */
   interaction?: (typeof validInteractions)[number];
   /** Cursor style (e.g., 'pointer', 'help'). */
   cursor?: (typeof validCursors)[number];
@@ -75,7 +80,11 @@ export interface BulmaOtherProps {
   shadow?: (typeof validShadows)[number];
   /** Responsive behavior (e.g., 'mobile', 'narrow'). */
   responsive?: (typeof validResponsives)[number];
-  /** Add Bulma skeleton class if true. */
+  /**
+   * Add Bulma skeleton class if true. A screen reader still reads the text
+   * it hides, and a control still takes the keyboard, so give a skeleton
+   * `aria-hidden="true"`, and a control `tabIndex={-1}` too.
+   */
   skeleton?: boolean;
   /** Applies clearfix to fix floating children if true. */
   clearfix?: boolean;

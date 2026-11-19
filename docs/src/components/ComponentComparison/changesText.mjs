@@ -1,8 +1,8 @@
 // The words around a "The State of React" changes table (Changes.js): its
 // legend note and the line that links the pull requests behind its
 // corrections. A published edition can't be edited, so these are pure
-// functions that run under `node --test` without the React side of the
-// component (comparison-changes-text.test.mjs).
+// functions a unit test runs without the React side of the component
+// (comparison-changes-text.test.mjs).
 
 /** The legend note, which explains the dashed cells only when there are some. */
 export function legendNote(hasCorrections) {

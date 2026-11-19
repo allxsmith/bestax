@@ -26,7 +26,6 @@ export function Elements() {
         <Heading subtitle size={4}>
           Every basic piece of the page
         </Heading>
-        <Heading heading>Stats</Heading>
         <Box>
           <Content size="small">
             <p>Rich text lives here.</p>
@@ -43,6 +42,9 @@ export function Elements() {
             <Button text state="active" submit>
               Plain
             </Button>
+            <Button color="info" colorVariant="light">
+              Light
+            </Button>
             <Button remove />
           </Button.Group>
         </Block>
@@ -50,8 +52,8 @@ export function Elements() {
           Heads up — something changed.
         </Notification>
         <Progress value={45} max={100} color="info" size="small" />
-        <Table.Container>
-          <Table size="fullwidth" striped bordered hoverable>
+        <Table.Container aria-label="Packages">
+          <Table size="fullwidth" striped bordered hoverable textColor="info">
             <thead>
               <tr>
                 <th>Package</th>

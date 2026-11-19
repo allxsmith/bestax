@@ -40,7 +40,7 @@ pnpm dlx bestax-migrate rbx src/
 ```
 
 (`npx bestax-migrate …` works the same.) Useful flags: `--print` echoes transformed files to
-stdout; `--extensions` controls which files are considered (default
+stdout, and still writes them unless `--dry` is set; `--extensions` controls which files are considered (default
 `js,jsx,ts,tsx,scss,sass`); `--css bestax|bulma|keep` picks the stylesheet target
 (default `bestax`); `--no-deps` skips the package.json update.
 
@@ -52,9 +52,16 @@ in place:
   pointer to bestax's `Theme` and `ConfigProvider`.
 - **Components** — every rbx export and its dot-notation compounds are mapped, e.g.
   `Card.Footer.Item` → `Card.FooterItem`, `Tag.Group` → `Tags`, `Column.Group` → `Columns`,
-  `Table.Cell` → `Table.Td`, `PageLoader` → `Loading` (with `isFullPage`), `Navbar.Dropdown` → `Navbar.DropdownMenu` (bestax's `Navbar.Dropdown` is the outer container,
+  `Table.Cell` → `Table.Td`, `PageLoader` → `Loading` (with `isFullPage`), `Fieldset` → `Fieldset`
+  (with `variant="unstyled"`, since rbx's drew no box; inside a `Field` or a `Control` in the same
+  component it stays the plain `<fieldset>` rbx rendered, where bestax's would start a Field scope
+  of its own, and an input placed straight in one it converts gets a TODO, since a `Field` in
+  another component can't be seen),
+  `Navbar.Dropdown` → `Navbar.DropdownMenu` (bestax's `Navbar.Dropdown` is the outer container,
   which `<Navbar.Item dropdown>` becomes), `Level.Item align="right"` →
   `Level.Right`, `Navbar.Segment align="end"` → `Navbar.End`, and `Title subtitle` → `SubTitle`.
+  A `Title` `size` becomes `textSize` wherever bestax's `size`, which picks the heading level,
+  would change the element rbx rendered.
 - **Props** — bare boolean modifiers gain their bestax prefixes (`outlined` → `isOutlined`,
   `rounded` → `isRounded`), `state="loading"` → `isLoading`, and the Bulma v1 spacing helpers
   replace the removed `is-*less` classes (`marginless` → `m="0"`, `radiusless` →
@@ -71,7 +78,10 @@ in place:
 - **Structure** — rbx's badge and tooltip _helper props_ become real wrapping components
   (`<Button tooltip="Hi" />` → `<Tooltip label="Hi"><Button /></Tooltip>`), `Select.Container`
   and `Image.Container` fold onto the component they wrap, and `Help`/`Label` become the plain
-  Bulma markup bestax expects.
+  Bulma markup bestax expects. A component that becomes plain markup is the element rbx rendered,
+  its default or the tag a literal `as` names. `Heading` becomes one with `className="heading"` and
+  a TODO: Bulma v1 has no rule for `.heading`, so restyle the label with helper props
+  (`<Paragraph textSize="7" textTransform="uppercase" textWeight="semibold" mb="1">`).
 - **Stylesheets** — Bulma 0.9-era `@import` lines become `@use "bulma/sass" with (…)`. The
   `bulma-badge` / `bulma-divider` / `bulma-pageloader` / `bulma-tooltip` CSS imports are kept,
   each with a TODO: bestax ships `Badge`, `Divider`, `Loading` and `Tooltip` with their own
@@ -87,15 +97,21 @@ the end of the run. Nothing is ever silently dropped or best-guessed.
 The ones you are most likely to see, in the order they show up when the codemod is run over
 rbx's own documentation examples:
 
-| What               | Why                                                                                                                         | What to do                                                                              |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `component:Icon`   | bestax's `Icon` takes a required `name`, which cannot be read out of an rbx `<FontAwesomeIcon icon={faHome} />` child       | `<Icon name="home" library="fa" variant="solid" />`                                     |
-| `component:Tile`   | Bulma v1 removed Tiles                                                                                                      | Use [Grid and Cell](/docs/api/grid); see the [Bulma 0.9 → 1 guide](./bulma-0-9-to-1.md) |
-| `component:File.*` | bestax's `<File>` renders the whole file-input structure from its own props                                                 | Drop the parts; set `label`, `hasName`, `isBoxed` on `<File>`                           |
-| `prop:as`          | rbx's `forwardRefAs` puts `as` on every component; bestax declares it on a smaller set, several narrowed to specific tags   | Restructure, or render the tag directly                                                 |
-| `prop:href`        | bestax gives an element the attributes of the tag `as` names, so `href` lives on an `<a>` or a custom `as`, not another tag | Set `as="a"` where the link was the point — an `href` on a `<span>` navigated nowhere   |
+| What                   | Why                                                                                                                          | What to do                                                                              |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `component:Icon`       | bestax's `Icon` takes a required `name`, which cannot be read out of an rbx `<FontAwesomeIcon icon={faHome} />` child        | `<Icon name="home" library="fa" variant="solid" />`                                     |
+| `component:Tile`       | Bulma v1 removed Tiles                                                                                                       | Use [Grid and Cell](/docs/api/grid); see the [Bulma 0.9 → 1 guide](./bulma-0-9-to-1.md) |
+| `component:File.*`     | bestax's `<File>` renders the whole file-input structure from its own props                                                  | Drop the parts; set `label`, `hasName`, `isBoxed` on `<File>`                           |
+| `prop:as`              | rbx's `forwardRefAs` puts `as` on every component; bestax declares it on a smaller set, several narrowed to specific tags    | Restructure, or render the tag directly                                                 |
+| `prop:href`            | bestax gives an element the attributes of the tag `as` names, so `href` lives on an `<a>` or a custom `as`, not another tag  | Set `as="a"` where the link was the point — an `href` on a `<span>` navigated nowhere   |
+| `prop:textColor`       | `Tag`, `Tabs`, `Hero`, `Progress` and others take no `textColor` prop (on `Table`, `Menu` and `Dropdown` it becomes `color`) | Move the color to a `has-text-*` class in `className`                                   |
+| `prop:backgroundColor` | `Notification`, `Table`, `Tabs`, `Checkbox` and others take no background color prop                                         | Move the color to a `has-background-*` class in `className`                             |
 
-`Generic`, `Tile`, `List`, `Fieldset`, `Numeric` and `Highlight` have no bestax counterpart, so
+A converted `Modal` with no `aria-label` or `aria-labelledby`, and no spread that could hold one,
+gets `name:Modal`: bestax's `Modal` is a dialog while it's open, so give it an `aria-label`, or
+point `aria-labelledby` at its title.
+
+`Generic`, `Tile`, `List`, `Numeric` and `Highlight` have no bestax counterpart, so
 their imports are kept (trimmed and TODO-annotated) — your app still runs while you migrate
 them by hand.
 

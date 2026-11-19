@@ -43,6 +43,11 @@ const meta: Meta<typeof Autocomplete> = {
       control: 'boolean',
       description: 'Show clear button',
     },
+    labels: {
+      control: 'object',
+      description:
+        'Accessible names in your language: clear names the clear button, suggestions the list when no label with an id does',
+    },
     openOnFocus: {
       control: 'boolean',
       description: 'Open dropdown when focused',
@@ -188,6 +193,25 @@ export const Clearable: Story = {
           data={fruits}
           placeholder="Search and clear..."
           clearable
+        />
+      </ResponsiveWrapper>
+    );
+  },
+};
+
+export const ClearButtonInAnotherLanguage: Story = {
+  render: function ClearButtonInAnotherLanguageExample() {
+    const [value, setValue] = useState('Pomme');
+    return (
+      <ResponsiveWrapper>
+        <Autocomplete
+          label="Fruit"
+          data={['Pomme', 'Poire', 'Prune']}
+          placeholder="Chercher un fruit"
+          value={value}
+          onInput={setValue}
+          clearable
+          labels={{ clear: 'Effacer' }}
         />
       </ResponsiveWrapper>
     );
@@ -402,7 +426,8 @@ export const EmptyState: Story = {
 };
 
 /**
- * With header and footer in dropdown.
+ * With header and footer in dropdown, around the options or, when nothing
+ * matches, the empty content.
  */
 export const HeaderFooter: Story = {
   render: function HeaderFooterExample() {
@@ -414,6 +439,7 @@ export const HeaderFooter: Story = {
           openOnFocus
           header={<Span>Popular Fruits</Span>}
           footer={<a href="#">View all fruits</a>}
+          empty="No fruits found"
         />
       </ResponsiveWrapper>
     );
@@ -702,9 +728,9 @@ export const WithName: Story = {
           placeholder="Search a city…"
         />
         <div style={{ marginTop: '1rem' }}>
-          <button type="submit" className="button is-primary">
+          <Button type="submit" color="primary">
             Submit
-          </button>
+          </Button>
         </div>
         {submitted && <pre style={{ marginTop: '1rem' }}>{submitted}</pre>}
       </form>

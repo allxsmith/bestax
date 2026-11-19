@@ -38,21 +38,25 @@
       "code": "function example() {\n  const [step, setStep] = useState(0);\n  const steps = ['Cart', 'Shipping', 'Payment', 'Confirm'];\n\n  return (\n    <Block>\n      <Steps\n        value={step}\n        items={steps.map((label, i) => ({ label, clickable: i <= step }))}\n        onStepClick={s => s <= step && setStep(s)}\n        color=\"primary\"\n      />\n      <Box mt=\"4\" p=\"4\">\n        <Title size=\"5\">{steps[step]}</Title>\n        <Paragraph>Content for the {steps[step]} step goes here.</Paragraph>\n      </Box>\n      <Buttons mt=\"4\">\n        <Button\n          onClick={() => setStep(Math.max(0, step - 1))}\n          disabled={step === 0}\n        >\n          Previous\n        </Button>\n        <Button\n          color=\"primary\"\n          onClick={() => setStep(Math.min(3, step + 1))}\n          disabled={step === 3}\n        >\n          {step === 2 ? 'Place Order' : 'Next'}\n        </Button>\n      </Buttons>\n    </Block>\n  );\n}"
     },
     {
+      "title": "Right-to-Left",
+      "code": "<div dir=\"rtl\" lang=\"ar\">\n  <Steps\n    value={1}\n    color=\"primary\"\n    completedLabel=\"مكتملة\"\n    upcomingLabel=\"قادمة\"\n    items={[{ label: 'الحساب' }, { label: 'الملف الشخصي' }, { label: 'تم' }]}\n  />\n  <Steps\n    value={1}\n    vertical\n    labelPosition=\"right\"\n    color=\"primary\"\n    completedLabel=\"مكتملة\"\n    upcomingLabel=\"قادمة\"\n    items={[{ label: 'الحساب' }, { label: 'الملف الشخصي' }, { label: 'تم' }]}\n  />\n</div>"
+    },
+    {
       "title": "Compound (dot-notation) usage",
       "code": "<Steps value={1}>\n  <Steps.Step label=\"Account\" />\n  <Steps.Step label=\"Profile\" />\n  <Steps.Step label=\"Complete\" />\n</Steps>"
     }
   ],
-  "accessibility": "- Steps use `aria-current=\"step\"` on the active step\n- Clickable steps are keyboard navigable with proper focus indicators\n- Use descriptive labels for each step\n- The step markers show completion state with checkmarks",
-  "related": ["Progress"],
+  "accessibility": "- The active step has `aria-current=\"step\"`, on its list item, or on its button when it's clickable\n- A clickable step stays a list item and puts its marker and label in a `<button type=\"button\">` inside it, so the list keeps its list items and assistive technology can count them. The button takes Tab, Enter and Space, and the focus ring goes around the whole step, which is what you can click\n- The list has `role=\"list\"`. That's the role a `<ul>` already has, set again for Safari, whose WebKit stops exposing a `<ul>` as a list once its markers are hidden, as they are here, unless the role is written out\n- Use descriptive labels for each step\n- A completed step's marker shows a check mark in place of its number\n- A completed step, and a step not reached yet, ends in a visually hidden \"completed\" or \"upcoming\", in the language `completedLabel` and `upcomingLabel` set. The words sit in the step's list item, after the step, and a clickable step's button also takes them as its description (`aria-describedby`). The button's accessible name stays the step's marker and label. A `Step` used on its own, outside `Steps`, says no words\n- In forced colors (Windows' contrast themes), the lines and a completed step's fill are drawn in the theme's text color, and the current step's marker gets an outline, so completed, current and upcoming steps still look different without color\n- Steps take Bulma's colors. On the page, a step with no `color`, and a step not reached yet, is drawn in `grey-light`, and a `color` draws the current and completed steps in that color, with a completed step's mark in the color's invert. On a light page, `grey-light` and some of the colors fall short of the 3:1 that WCAG asks of a graphic, and of the 4.5:1 a step's number needs. On a dark page, so does a current step's number in some colors. For more, set `--bulma-steps-default-color` to a color such as `var(--bulma-text-weak)` on a class you pass through `className`, with the steps' class in the selector (`.steps.my-steps`, `.bestax-steps.my-steps` under the prefixed flavor) so it wins whatever order the stylesheets load in. It wins over a colored `Notification`'s or `Hero`'s text color too, so leave it off steps you put on one. And pick a `color` that reads on your page\n- On a colored `Notification` or `Hero`, the labels take the surface's text color, which Bulma picks to read on it, as the surface's other text does. Steps with no `color` take it for their markers, numbers and lines too, and fill their markers with the surface's background. A `color` you set is kept on the markers and lines, so on a colored surface set one only if it stands out from the surface's color. Steps on a Box, a Card, a Message or a Modal inside the surface keep the page's look, since those are surfaces of their own, and steps in a Notification inside a Hero follow the Notification",
+  "related": ["Progress", "Timeline"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-steps",
-  "summary": "The `Steps` component provides a multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow.",
+  "summary": "The `Steps` component provides a multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow. Each step is a list item. The current one has `aria-current=\"step\"`, and a completed one, and one not reached yet, ends in a visually hidden \"completed\" or \"upcoming\", in the language `completedLabel` and `upcomingLabel` set. A clickable step's button takes those words as its description, so its accessible name stays its marker and its label.",
   "import": "import { Steps } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/components/Steps.tsx",
   "rootClass": "steps",
   "parts": [
     {
       "path": "Steps",
-      "summary": "The `Steps` component provides a multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow.",
+      "summary": "The `Steps` component provides a multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow. Each step is a list item. The current one has `aria-current=\"step\"`, and a completed one, and one not reached yet, ends in a visually hidden \"completed\" or \"upcoming\", in the language `completedLabel` and `upcomingLabel` set. A clickable step's button takes those words as its description, so its accessible name stays its marker and its label.",
       "component": null,
       "props": [
         {
@@ -86,7 +90,7 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Color variant.",
+          "description": "Color variant. The current and completed steps take the color, and a completed step's mark takes its invert. On a colored `Notification` or `Hero`, leave it off: the markers then take the surface's text color, as the labels do either way, while a color you set is kept even where it doesn't stand out from the surface's.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -131,7 +135,7 @@
           "name": "labelPosition",
           "type": "'bottom' | 'right' | 'left'",
           "default": "'bottom'",
-          "description": "Position of labels.",
+          "description": "Position of labels. `right` and `left` mean the end and the start of the line, so in a right-to-left page `right` puts each label to the left of its marker, and `left` to the right.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -177,6 +181,24 @@
           "type": "string",
           "default": null,
           "description": "Label for the next button.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "completedLabel",
+          "type": "string",
+          "default": "'completed'",
+          "description": "Read after a completed step, visually hidden, and as a clickable step's description. In your app's language. An empty string says nothing.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "upcomingLabel",
+          "type": "string",
+          "default": "'upcoming'",
+          "description": "Read after a step not reached yet, visually hidden, and as a clickable step's description. In your app's language. An empty string says nothing.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -250,7 +272,7 @@
           "name": "isCompleted",
           "type": "boolean",
           "default": "false",
-          "description": "Whether this step is completed",
+          "description": "Whether this step is completed. Inside `Steps` it's set from `value`, and a completed step ends in the words `completedLabel` sets, for assistive tech. A `Step` on its own says no words.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -259,7 +281,7 @@
           "name": "label",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Step label/title",
+          "description": "Step label/title, or pass it as `children`. On a `clickable` step it's rendered inside the step's `<button>`, so it has to be phrasing content, like text, a `<span>` or an icon, with no link, button or other control in it.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -277,7 +299,7 @@
           "name": "clickable",
           "type": "boolean",
           "default": "false",
-          "description": "Whether this step is clickable",
+          "description": "Whether this step is clickable. A clickable step puts its marker and label in a `<button type=\"button\">` inside the `<li>`, which calls `onClick`, and `aria-current` goes on that button. The `<li>` keeps the rest of the props.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -295,7 +317,7 @@
           "name": "stepNumber",
           "type": "number",
           "default": null,
-          "description": "Step number to display in marker (1-indexed)",
+          "description": "Step number to display in marker (1-indexed), written the way the `locale` of a `LocaleProvider` around it writes numbers.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -373,6 +395,12 @@
     {
       "css": "--bulma-steps-marker-background",
       "sass": "$steps-marker-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-steps-label-background",
+      "sass": "$steps-label-background",
       "default": "var(--bulma-scheme-main)",
       "scope": "root"
     },

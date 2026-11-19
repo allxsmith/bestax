@@ -6,6 +6,7 @@ import {
 } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useConfig } from '../helpers/Config';
+import { useScopedNumberFormat } from '../helpers/localeFormat';
 import {
   useInsideField,
   useInsideControl,
@@ -14,6 +15,7 @@ import {
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
+import { useFieldMessage } from './useFieldMessage';
 
 /**
  * Props for the File component.
@@ -23,6 +25,11 @@ import { useAutoLabelId } from './useAutoLabelId';
  * for them, nested in the `.control`, and warns in development. Wrap the
  * `Control` in a `Field` instead, and set the `label`, `horizontal` and class
  * name on that `Field`.
+ *
+ * @helperProps Helper props go on the `.file` wrapper `<div>`, with
+ * `className`. The other attributes go on the `<input>`.
+ * @extraProp {string} [accept] - File types the picker offers, as the native attribute takes them (`.pdf`, `image/*`, `application/pdf`). Browsers apply it in the picker only: a file dropped on the input lands whatever its type, so check `files` in `onChange` when the type matters.
+ * @extraProp {(event: React.ChangeEvent<HTMLInputElement>) => void} [onChange] - Called when the user picks files, or drops them on the input. With the extras stylesheet loaded, a drop does what a pick does: it replaces what was picked and fires `input` and `change`. A drop of several files lands only with `multiple`.
  */
 export interface FileProps
   extends
@@ -49,9 +56,10 @@ export interface FileProps
     | 'black'
     | 'dark'
     | 'light'
-    | 'white';
+    | 'white'
+    | undefined;
   /** Size modifier for the file input. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Boxed file input. */
   isBoxed?: boolean;
   /** Whether the file input expands to full width. */
@@ -84,7 +92,7 @@ export interface FileProps
    */
   iconRight?: React.ReactNode;
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Additional CSS classes for the `<input>`. */
   inputClassName?: string;
   /**
@@ -94,7 +102,8 @@ export interface FileProps
   fileName?: string;
   /**
    * Builds the text `hasName` shows when several files are picked, from their count, for
-   * localization. Default: `` `${count} files` ``. A single pick shows its file's name.
+   * localization. Default: `` `${count} files` ``, with the count written the way the `locale`
+   * of a `LocaleProvider` around it writes numbers. A single pick shows its file's name.
    */
   pickedFilesLabel?: (count: number) => string;
 }
@@ -170,11 +179,13 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
       );
       onChange?.(event);
     };
+    const formatNumber = useScopedNumberFormat();
     const pickedText =
       picked &&
       (picked.count === 1
         ? picked.firstName
-        : (pickedFilesLabel?.(picked.count) ?? `${picked.count} files`));
+        : (pickedFilesLabel?.(picked.count) ??
+          `${formatNumber ? formatNumber(picked.count) : picked.count} files`));
     const shownName = fileName ?? pickedText;
 
     const insideField = useInsideField();
@@ -228,10 +239,11 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
       className
     );
 
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+    const { messageEl, describedBy } = useFieldMessage(
+      message,
+      messageColor,
+      rest['aria-describedby'] as string | undefined
+    );
 
     const fileElement = (
       <div className={fileClass}>
@@ -246,6 +258,7 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
             id={controlId}
             onChange={handleChange}
             {...rest}
+            aria-describedby={describedBy}
           />
           <span className={usePrefixedClassNames('file-cta')}>
             {iconLeft && (

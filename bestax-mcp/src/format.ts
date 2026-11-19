@@ -213,6 +213,8 @@ export function table(headers: string[], rows: string[][]): string {
 function propRows(props: PropRow[]): string[][] {
   return props.map(p => {
     const notes = [
+      // The API pages mark a prop a caller must pass the same way.
+      p.required ? '**Required.**' : '',
       p.deprecated
         ? `**Deprecated.**${
             p.deprecationNote ? ` ${attributedLinks(p.deprecationNote)}` : ''
@@ -232,25 +234,62 @@ function propRows(props: PropRow[]): string[][] {
   });
 }
 
+export interface PartOptions {
+  heading?: boolean;
+  summary?: boolean;
+  /** The record the part belongs to, which a standalone part is documented with. */
+  owner?: string;
+  /**
+   * Whether a name has a catalog entry of its own. A sub exported standalone
+   * that has none (`Thead`) is answered with this very table, so pointing at
+   * `get_props` for it would only come back here.
+   */
+  hasEntry?: (name: string) => boolean;
+}
+
+/** What a standalone part is to the component it is documented with. */
+export function standaloneLine(part: Part, owner: string): string {
+  return (
+    `\`${part.path}\` is exported on its own and documented with \`${owner}\`` +
+    (part.standalone === 'base' ? ', which renders it.' : '.')
+  );
+}
+
 export function renderPart(
   part: Part,
-  { heading = true, summary = true } = {}
+  {
+    heading = true,
+    summary = true,
+    owner,
+    hasEntry = () => true,
+  }: PartOptions = {}
 ): string {
   const out: string[] = [];
   if (heading) out.push(`### ${part.path}`);
   if (summary && part.summary) out.push(attributedLinks(part.summary));
+  if (part.standalone && owner) out.push(standaloneLine(part, owner));
   if (part.component) {
     out.push(
-      `Also exported standalone as \`${part.component}\` — call \`get_props\` with that name for its full table.`
+      hasEntry(part.component)
+        ? `Also exported standalone as \`${part.component}\` — call \`get_props\` with that name for its full table.`
+        : `Also exported standalone as \`${part.component}\`, the same component, so this is its table.`
     );
   }
 
   const rows = [...propRows(part.props), ...propRows(part.extraProps)];
   if (part.catchAll) {
-    rows.push(['`...`', part.catchAll, '—', 'See `get_helper_props`.']);
+    // Where the helper props go, when that is not the element the attributes
+    // go to, which the catch-all alone cannot say (#1273).
+    const notes = [
+      part.helperPropsNote && attributedLinks(part.helperPropsNote),
+      'See `get_helper_props`.',
+    ];
+    rows.push(['`...`', part.catchAll, '—', notes.filter(Boolean).join(' ')]);
   }
   if (rows.length) {
     out.push(table(['Prop', 'Type', 'Default', 'Notes'], rows));
+  } else if (part.noProps) {
+    out.push('Takes no props, not even the standard HTML attributes.');
   } else if (!part.component) {
     out.push('No props of its own beyond the standard HTML attributes.');
   }
@@ -348,21 +387,133 @@ export function referencePointer(record: ComponentRecord): string {
  * `Navbar.Brand` with Navbar's own table and no word about the switch (#935).
  */
 export interface PartFocus {
-  /** The dot-path as asked. */
+  /** The dot-path, as the record it names a part of spells it. */
   wanted: string;
   /** The part it names, or null when it names none. */
   part: Part | null;
+  /**
+   * The dot-path as asked, when it ran through a static that is a component
+   * of its own: `Stats.Stat.Label`, for `Stat.Label` (#1480).
+   */
+  asked?: string;
+}
+
+/**
+ * What a dot-path that ran through a static that is a component of its own
+ * names: `Stats.Stat` is `Stat`, so `Stats.Stat.Label` is `Stat.Label`. Each
+ * step keeps the rest of the path, so the static is the path as asked less
+ * the segments after the component's name.
+ */
+export function throughLine(asked: string, path: string): string {
+  const [component, ...rest] = path.split('.');
+  const segments = asked.split('.');
+  const via = segments.slice(0, segments.length - rest.length).join('.');
+  return `\`${via}\` is \`${component}\`, so \`${asked}\` is \`${path}\`.`;
+}
+
+/**
+ * The import a part is used through: its record's, or one of its own for a
+ * standalone export that import leaves out (`Input`'s names no `InputBase`).
+ */
+export function importOf(record: ComponentRecord, part: Part | null): string {
+  if (!part?.standalone) return record.import;
+  const named = (record.import.match(/\{([^}]*)\}/)?.[1] ?? '')
+    .split(',')
+    .map(name => name.trim());
+  if (named.includes(part.path)) return record.import;
+  const from = record.import.match(/\bfrom\s+(['"][^'"]+['"])/)![1];
+  return `import { ${part.path} } from ${from};`;
+}
+
+/**
+ * A record's parts past the root, as the lines that list them: its
+ * sub-components, for a dot-path each, and the exports documented with it
+ * (`InputBase`), for a name each.
+ */
+export function partLists(record: ComponentRecord): string[] {
+  const rest = record.parts.slice(1);
+  const subs = rest.filter(p => !p.standalone);
+  const standalone = rest.filter(p => p.standalone);
+  const out: string[] = [];
+  if (subs.length) {
+    out.push(
+      `**Subcomponents:** ${subs.map(s => `\`${s.path}\``).join(', ')}. ` +
+        `Call \`get_props\` with a dot-path for any of them.`
+    );
+  }
+  if (standalone.length) {
+    const names = standalone.map(p =>
+      p.standalone === 'base'
+        ? `\`${p.path}\`, which it renders`
+        : `\`${p.path}\``
+    );
+    out.push(
+      `**Documented here too:** ${names.join('; ')}. Call \`get_props\` with ` +
+        `${standalone.length === 1 ? 'that name' : 'one of those names'} for its table.`
+    );
+  }
+  return out;
+}
+
+/**
+ * Where a name documented with a record but no part of it is (#1465): a hook,
+ * function or constant the record's import line gives beside it, such as
+ * `useDataTable`. It names the section of the page that documents it, when the
+ * index has one, and the call that returns that section, or the page itself.
+ */
+export function documentedLine(
+  name: string,
+  section: string | undefined,
+  record: ComponentRecord
+): string {
+  const inExamples =
+    section !== undefined &&
+    record.examples.some(
+      e => e.title === section || e.title.startsWith(`${section} › `)
+    );
+  const call = inExamples
+    ? `\`get_examples({ component: "${record.name}", query: ` +
+      `${JSON.stringify(section)} })\``
+    : record.doc
+      ? `\`get_component({ name: "${record.name}", include: ["reference"] })\``
+      : null;
+  return (
+    `\`${name}\` is documented with \`${record.name}\`` +
+    (section ? `, in the section "${section}"` : '') +
+    (call
+      ? `, which ${call} returns.`
+      : `, on its page: ${attributed(record.docsUrl)}.`)
+  );
 }
 
 export function renderComponent(
   record: ComponentRecord,
   include: string[],
-  focus?: PartFocus
+  focus?: PartFocus,
+  {
+    hasEntry,
+    lead,
+  }: Pick<PartOptions, 'hasEntry'> & {
+    /** A line for under the heading: what the name asked for is to the record. */
+    lead?: string;
+  } = {}
 ): string {
   const part =
     focus?.part && focus.part !== record.parts[0] ? focus.part : null;
   const out: string[] = [`# ${part ? part.path : record.name}`];
-  if (part) {
+  if (lead) out.push(lead);
+  if (focus?.asked) {
+    out.push(throughLine(focus.asked, focus.part?.path ?? focus.wanted));
+  }
+  if (part?.standalone) {
+    out.push(
+      `${standaloneLine(part, record.name)} The props are its own; any ` +
+        `examples, CSS variables and notes are \`${record.name}\`'s, and ` +
+        `\`get_component({ name: "${record.name}" })\` has \`${record.name}\`'s ` +
+        `own table.`
+    );
+    if (part.summary) out.push(attributedLinks(part.summary));
+  } else if (part) {
     out.push(
       `\`${part.path}\` is a part of \`${record.name}\`, used through the import ` +
         `below. The props are the part's own; any examples, CSS variables and ` +
@@ -385,7 +536,7 @@ export function renderComponent(
     }
     if (record.summary) out.push(attributedLinks(record.summary));
   }
-  out.push(`\`\`\`tsx\n${record.import}\n\`\`\``);
+  out.push(`\`\`\`tsx\n${importOf(record, part)}\n\`\`\``);
 
   // A page written as prose is opt-in, because useBulmaClasses' runs to tens of
   // thousands of characters. It used to be pushed unconditionally for every helper,
@@ -395,9 +546,9 @@ export function renderComponent(
     out.push(reference || renderHelperApi(record));
   } else {
     if (include.includes('props') && part) {
-      out.push(renderPart(part, { heading: false, summary: false }));
+      out.push(renderPart(part, { heading: false, summary: false, hasEntry }));
     } else if (include.includes('props')) {
-      const [root, ...subs] = record.parts;
+      const [root] = record.parts;
       // The root part's summary is the component's, already printed above; printed
       // again it doubled every answer's opening paragraph (#935).
       if (root) {
@@ -408,12 +559,7 @@ export function renderComponent(
           })
         );
       }
-      if (subs.length) {
-        out.push(
-          `**Subcomponents:** ${subs.map(s => `\`${s.path}\``).join(', ')}. ` +
-            `Call \`get_props\` with a dot-path for any of them.`
-        );
-      }
+      out.push(...partLists(record));
     }
     // A component documented in prose (Theme) keeps its page alongside the table.
     // The pointer speaks of "this table", so it goes only where one was printed:
@@ -493,6 +639,17 @@ export function renderCssVars(vars: CssVar[]): string {
       "Variables scoped `root` are declared on the component's own element — " +
         'override them there or via `className`; a value set on an ancestor ' +
         'is only inherited and loses to the component-level declaration.'
+    );
+  }
+  if (scopes.has('root-and-element')) {
+    notes.push(
+      "Variables scoped `root-and-element` are declared on the component's " +
+        'own element and again on one of its elements that takes nothing from ' +
+        "it, such as Combobox's portaled `.combobox-menu.is-portal`. Override " +
+        'them on the component with inline `style` or a `className` class ' +
+        'loaded after the library styles, and on that element too, with a ' +
+        'selector that matches it loaded after the library styles, or one ' +
+        'that exceeds it.'
     );
   }
   if (scopes.has('compound')) {

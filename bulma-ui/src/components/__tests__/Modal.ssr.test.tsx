@@ -1,5 +1,5 @@
 /**
- * @jest-environment node
+ * @vitest-environment node
  *
  * SSR coverage for Modal: a portal has no server-rendered counterpart, so on
  * the server `portal` must be ignored and the modal rendered inline. That is

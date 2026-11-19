@@ -134,6 +134,21 @@ describe('Radio', () => {
     expect(screen.getByTestId('my-radio')).toBeInTheDocument();
   });
 
+  it('puts className on the label and style on the input', () => {
+    // The label declares the --bulma-radio-* variables, so a class is what
+    // reaches them, as the className TSDoc says.
+    render(
+      <Radio className="ink-radio" style={{ color: 'red' }}>
+        Styled Radio
+      </Radio>
+    );
+    const input = screen.getByLabelText('Styled Radio');
+    const label = input.closest('label');
+    expect(label).toHaveClass('ink-radio');
+    expect(label).not.toHaveAttribute('style');
+    expect(input).toHaveAttribute('style', 'color: red;');
+  });
+
   describe('invalid color/size guards', () => {
     it('does not apply is-${color} when color is not in radioColors', () => {
       render(

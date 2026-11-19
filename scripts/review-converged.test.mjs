@@ -9,14 +9,11 @@
  * dry run and the re-read before each write are covered without the network,
  * and reads review-converged.yml so the names and the trigger it shares with
  * the script cannot drift apart.
- *
- * `.mjs` and `node --test` rather than jest: these are root-level scripts with
- * no package of their own, matching auto-close-duplicates.test.mjs.
  */
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { test } from 'node:test';
+import { test } from 'vitest';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import {

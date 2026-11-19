@@ -7,21 +7,24 @@
  * setter to a typed callback, and still render. The ESLint pass in
  * eslint-plugin-docs.test.mjs reads the same fences, but it checks the
  * plugin's rules, not the types. This compiles each fence as its own `.tsx`
- * module against the library's build, with the compiler options a new Vite
- * `react-ts` app starts with, and fails on any error. A `jsx` fence compiles
- * as `.tsx` too, since the site renders it the same way, so it is held to the
- * same types.
+ * module against the library's build, with the compiler options of the app
+ * `npm create bestax -t vite-ts` scaffolds, read from that template, and
+ * fails on any error. A `jsx` fence compiles as `.tsx` too, since the site
+ * renders it the same way, so it is held to the same types.
  *
- * Each fence is read the way the site runs it. `transformCode` in
- * `docs/src/theme/CodeBlock/index.js` drops a live fence's `import` and
- * `export default` lines, and react-live wraps what is left in `return (…)`, so
+ * Each fence is read the way the site runs it. The live editor drops a live
+ * fence's `import` and `export default` lines (`stripModuleLines`, in
+ * `docs/src/theme/CodeBlock/sandbox/moduleLines.mjs`), and react-live wraps
+ * what is left in `return (…)`, so
  * the fence is one expression: an element or a function. The module here
  * drops the same lines and exports that expression. An `import type` line
  * stays, since the site drops it only because types do not run, and it is how
  * an example names a library type. Every other name comes from what the site
- * puts in scope: `React`, `useState`, `useEffect`, every export of the
- * library, and the docs-only `ProfileCard`. A fence that uses something else,
- * such as a bare `useRef`, fails here as it would on the page.
+ * puts in scope (`docs/src/theme/CodeBlock/scope.js`): `React`, every export
+ * of the library, and the names listed in
+ * `docs/src/theme/CodeBlock/sandbox/scope-names.mjs`, which the header here
+ * binds too. A fence that uses something else, such as a bare `useRef`, fails
+ * here as it would on the page.
  *
  * Because the fence's own value imports are dropped, a missing or extra name
  * in one is not caught. Unused locals are, as the template's
@@ -31,14 +34,31 @@
  * one fence that is wrong on purpose. It holds only while the fence still has
  * a type error, so the marker goes when the mistake does, the way `nolint`
  * works for the ESLint pass.
+ *
+ * A second check compiles each fence the way its StackBlitz and CodeSandbox
+ * buttons write it: the `App.tsx` that `toExampleModule` in
+ * `docs/src/theme/CodeBlock/sandbox/example.mjs` makes, with only the imports
+ * the fence uses. The first check already holds the fence's own code to the
+ * types, so an error here is the converter's: an import it missed reports as
+ * a missing name and one it should not have written as unused. A fence using
+ * a docs-only name is skipped, since the page shows it no sandbox buttons, and
+ * so is a `notypecheck` fence.
  */
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import { fenceSpans, splitLines } from './lib/api-page.mjs';
+import { appCompilerOptions } from './lib/template-tsconfig.mjs';
+import { withoutCoverage } from './lib/without-coverage.mjs';
+import { toExampleModule } from '../docs/src/theme/CodeBlock/sandbox/example.mjs';
+import {
+  DOCS_ONLY_NAMES,
+  REACT_SCOPE_NAMES,
+} from '../docs/src/theme/CodeBlock/sandbox/scope-names.mjs';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 const LIBRARY = '@allxsmith/bestax-bulma';
@@ -50,39 +70,31 @@ const OPT_OUT = 'notypecheck';
  * string. These are the languages the ESLint pass reads as examples.
  */
 const LIVE_LANGS = new Set(['jsx', 'tsx']);
-const PROFILE_CARD = join(
+/** Where scope.js imports the docs-only components from. */
+const DOCS_ONLY_MODULE = join(
   REPO,
-  'docs/src/components/SkillExamples/ProfileCard.jsx'
+  'docs/src/components/SkillExamples/index.js'
 );
 /** "Declared but never read" and "all imports in a declaration are unused". */
 const UNUSED = new Set([6133, 6192]);
+/** A docs page's address, as the sandbox buttons pass one. */
+const SANDBOX_PAGE = 'https://bestax.io/docs/';
 
 /**
- * The `compilerOptions` of a new Vite `react-ts` app's `tsconfig.app.json`,
- * with `strict` spelled out (TypeScript 6 turns it on by default; earlier
- * versions do not) and `allowJs` added for the docs-only `ProfileCard`, which
- * is a `.jsx` file. `types` is empty because the template's `vite/client` only
- * declares asset imports, and the fences' imports are dropped.
+ * The compiler options the vite-ts template compiles `src/` with, changed
+ * only where this harness is not that app.
  */
-const VITE_REACT_TS = {
-  target: 'es2023',
-  lib: ['ES2023', 'DOM'],
-  module: 'esnext',
-  types: [],
-  skipLibCheck: true,
-  moduleResolution: 'bundler',
-  allowImportingTsExtensions: true,
-  verbatimModuleSyntax: true,
-  moduleDetection: 'force',
-  noEmit: true,
-  jsx: 'react-jsx',
-  strict: true,
-  noUnusedLocals: true,
-  noUnusedParameters: true,
-  erasableSyntaxOnly: true,
-  noFallthroughCasesInSwitch: true,
-  allowJs: true,
-};
+function fenceCompilerOptions() {
+  return {
+    ...appCompilerOptions(),
+    // The template's `vite/client` resolves from a scaffold's own install, not
+    // from the template in this repo, and it declares only asset imports, a
+    // kind of import no fence keeps.
+    types: [],
+    // The docs-only `ProfileCard` the live scope binds is a `.jsx` file.
+    allowJs: true,
+  };
+}
 
 /** The live fences in one markdown source, with their opening line index. */
 export function liveFences(src) {
@@ -108,11 +120,11 @@ export function liveFences(src) {
  * every line where it was, so a diagnostic's line maps straight back to the
  * page. Returns the source and how many header lines precede the body.
  */
-function asModule(body, { libraryNames, profileCard }) {
+function asModule(body, { libraryNames, docsOnlyModule }) {
   const header = [
-    "import React, { useEffect, useState } from 'react';",
+    `import React, { ${REACT_SCOPE_NAMES.join(', ')} } from 'react';`,
     `import { ${libraryNames.join(', ')} } from '${LIBRARY}';`,
-    `import { ProfileCard } from ${JSON.stringify(profileCard)};`,
+    `import { ${DOCS_ONLY_NAMES.join(', ')} } from ${JSON.stringify(docsOnlyModule)};`,
   ];
   const lines = body.map(line => {
     const trimmed = line.trim();
@@ -147,19 +159,59 @@ function loadTools() {
     'bulma-ui/dist is absent, so the docs examples cannot be type-checked ' +
       'against the library. Build first, or run `pnpm all`.'
   );
-  const ts = createRequire(join(REPO, 'package.json'))('typescript');
   const library = createRequire(join(LIBRARY_DIR, 'package.json'))(
     join(LIBRARY_DIR, 'dist', 'index.cjs')
   );
   const libraryNames = Object.keys(library).filter(name =>
     /^[A-Za-z_$][\w$]*$/.test(name)
   );
-  const { options, errors } = ts.convertCompilerOptionsFromJson(
-    VITE_REACT_TS,
-    LIBRARY_DIR
+  return {
+    options: fenceCompilerOptions(),
+    libraryNames,
+    docsOnlyModule: DOCS_ONLY_MODULE,
+  };
+}
+
+const CHILD = join(REPO, 'scripts', 'lib', 'typecheck-modules-child.mjs');
+
+/**
+ * One program over in-memory modules, keyed by file name, each module's
+ * `source` served as that file. Returns the problems with the program as a
+ * whole, and each module's diagnostics as `{ line, code, text }`, line from 0.
+ *
+ * The checker runs in a child with coverage off: under this suite's coverage
+ * it runs about three times slower, and it is TypeScript's code, not this
+ * repo's. typecheck-modules-child.mjs says more.
+ */
+function typecheck(options, modules) {
+  const run = spawnSync(process.execPath, [CHILD], {
+    input: JSON.stringify({
+      options,
+      modules: [...modules].map(([name, { source }]) => [name, source]),
+    }),
+    env: withoutCoverage(),
+    encoding: 'utf8',
+    maxBuffer: 256 * 1024 * 1024,
+  });
+  assert.equal(
+    run.status,
+    0,
+    `the type-check child failed:\n${run.stderr || run.error}`
   );
-  assert.deepEqual(errors, [], 'the compiler options did not parse');
-  return { ts, options, libraryNames, profileCard: PROFILE_CARD };
+  const { compiler, files } = JSON.parse(run.stdout);
+  return {
+    problems: compiler.map(text => `compiler: ${text}`),
+    files: new Map(Object.entries(files)),
+  };
+}
+
+/** A module path for one fence, in the library's directory. */
+function modulePath(prefix, file, fence) {
+  return join(
+    LIBRARY_DIR,
+    '.docs-fences',
+    `${prefix}${file.replace(/[^\w]/g, '_')}_L${fence.open + 1}.tsx`
+  );
 }
 
 /**
@@ -169,16 +221,11 @@ function loadTools() {
  * for an app that installed it.
  */
 export function checkPages(pages, tools) {
-  const { ts, options } = tools;
+  const { options } = tools;
   const modules = new Map();
   for (const { file, src } of pages) {
     for (const fence of liveFences(src)) {
-      const name = join(
-        LIBRARY_DIR,
-        '.docs-fences',
-        `${file.replace(/[^\w]/g, '_')}_L${fence.open + 1}.tsx`
-      );
-      modules.set(name, {
+      modules.set(modulePath('', file, fence), {
         file,
         fence,
         ...asModule(fence.body, tools),
@@ -186,40 +233,16 @@ export function checkPages(pages, tools) {
     }
   }
 
-  const host = ts.createCompilerHost(options);
-  const { getSourceFile, fileExists, readFile } = host;
-  host.fileExists = name => modules.has(name) || fileExists.call(host, name);
-  host.readFile = name =>
-    modules.get(name)?.source ?? readFile.call(host, name);
-  host.getSourceFile = (name, version, ...rest) =>
-    modules.has(name)
-      ? ts.createSourceFile(name, modules.get(name).source, version, true)
-      : getSourceFile.call(host, name, version, ...rest);
-  const program = ts.createProgram([...modules.keys()], options, host);
-
-  const problems = [];
-  const global = program.getGlobalDiagnostics();
-  for (const d of [...program.getOptionsDiagnostics(), ...global]) {
-    problems.push(
-      `compiler: ${ts.flattenDiagnosticMessageText(d.messageText, ' ')}`
-    );
-  }
+  const { problems, files } = typecheck(options, modules);
   // The header imports the whole scope, and most of it goes unused, so an
   // unused-import report there is expected. Anything else on the header means
-  // a name did not bind, such as `ProfileCard` after a move, and every fence
-  // using it would type it `any`. The header is the same in every module, so
-  // each such report is kept once.
+  // a name did not bind, such as a docs-only component after a move, and
+  // every fence using it would type it `any`. The header is the same in every
+  // module, so each such report is kept once.
   const scope = new Set();
   for (const [name, { file, fence, headerLines }] of modules) {
-    const sourceFile = program.getSourceFile(name);
     const found = [];
-    for (const d of [
-      ...program.getSyntacticDiagnostics(sourceFile),
-      ...program.getSemanticDiagnostics(sourceFile),
-    ]) {
-      const line = sourceFile.getLineAndCharacterOfPosition(d.start ?? 0).line;
-      const code = d.code;
-      const text = ts.flattenDiagnosticMessageText(d.messageText, ' ');
+    for (const { line, code, text } of files.get(name)) {
       if (line >= headerLines) found.push({ line, code, text });
       else if (!UNUSED.has(code)) scope.add(`scope: TS${code} ${text}`);
     }
@@ -239,6 +262,46 @@ export function checkPages(pages, tools) {
     }
   }
   problems.push(...scope);
+  return problems;
+}
+
+/**
+ * Type-check every live fence as its sandbox buttons would write it, and
+ * return one line per problem, naming the fence's opening line and the line
+ * of the generated `App.tsx`. Nothing is exempt: the converter writes every
+ * import, so an unused one is its mistake too.
+ */
+export function checkSandboxes(pages, tools) {
+  const { options } = tools;
+  const modules = new Map();
+  for (const { file, src } of pages) {
+    for (const fence of liveFences(src)) {
+      if (fence.optOut) continue;
+      const example = toExampleModule(fence.body.join('\n'), {
+        libraryExports: tools.libraryNames,
+        reactNames: REACT_SCOPE_NAMES,
+        docsOnlyNames: DOCS_ONLY_NAMES,
+        // A page address, as the buttons pass one, so the module checked is
+        // the one a sandbox gets, its site images pointed at the site.
+        sourceUrl: SANDBOX_PAGE,
+      });
+      if (!example) continue;
+      modules.set(modulePath('sandbox_', file, fence), {
+        file,
+        fence,
+        source: example.source,
+      });
+    }
+  }
+
+  const { problems, files } = typecheck(options, modules);
+  for (const [name, { file, fence }] of modules) {
+    for (const { line, code, text } of files.get(name)) {
+      problems.push(
+        `${file}:${fence.open + 1}: App.tsx line ${line + 1}: TS${code} ${text}`
+      );
+    }
+  }
   return problems;
 }
 
@@ -380,7 +443,7 @@ describe('the docs live examples type-check', () => {
     assert.deepEqual(about('fixture/imports.md'), []);
   });
 
-  it('binds the docs-only ProfileCard, as the live scope does', () => {
+  it('binds the docs-only components, as the live scope does', () => {
     assert.deepEqual(about('fixture/scope-only.md'), []);
     assert.deepEqual(
       problems.filter(p => p.startsWith('scope:')),
@@ -391,16 +454,16 @@ describe('the docs live examples type-check', () => {
   });
 
   it('reports a scope name that stops binding, once', () => {
-    const moved = join(dirname(PROFILE_CARD), 'Moved.jsx');
+    const moved = join(dirname(DOCS_ONLY_MODULE), 'Moved.js');
     const found = checkPages(
       [
         page('fixture/uses-it.md', '<ProfileCard name="Ada" />'),
         page('fixture/does-not.md', '<Box>Go</Box>'),
       ],
-      { ...tools, profileCard: moved }
+      { ...tools, docsOnlyModule: moved }
     );
     assert.equal(found.length, 1, found.join('\n'));
-    assert.match(found[0], /^scope: TS2307 Cannot find module '.*Moved\.jsx'/);
+    assert.match(found[0], /^scope: TS2307 Cannot find module '.*Moved\.js'/);
   });
 
   it(`holds a \`${OPT_OUT}\` fence only while it has an error`, () => {
@@ -415,8 +478,49 @@ describe('the docs live examples type-check', () => {
     assert.deepEqual(
       problems.filter(p => !p.startsWith('fixture/')),
       [],
-      'Fix the example so it compiles in a new Vite react-ts app. One that ' +
+      'Fix the example so it compiles in a new vite-ts scaffold. One that ' +
         `is wrong on purpose takes \`${OPT_OUT}\` in its info string.`
+    );
+  });
+});
+
+describe('every live example converts into a sandbox App.tsx that type-checks', () => {
+  const tools = loadTools();
+  const pages = docsPages();
+  const problems = checkSandboxes([...pages, ...FIXTURES], tools);
+  const about = file => problems.filter(p => p.startsWith(`${file}:`));
+
+  it('writes exactly the imports a fence uses, type imports included', () => {
+    assert.deepEqual(about('fixture/imports.md'), []);
+    assert.deepEqual(about('fixture/jsx-live.md').length, 1);
+  });
+
+  it('skips a docs-only example and a notypecheck one', () => {
+    assert.deepEqual(about('fixture/scope-only.md'), []);
+    assert.deepEqual(about('fixture/marked-and-wrong.md'), []);
+  });
+
+  it('reports what the converter gets wrong, at the fence', () => {
+    const found = checkSandboxes(
+      [page('fixture/bogus.md', '<Box><Bogus /></Box>')],
+      { ...tools, libraryNames: [...tools.libraryNames, 'Bogus'] }
+    );
+    assert.equal(found.length, 1, found.join('\n'));
+    // The module opens with the line naming its page and a blank one, as a
+    // sandbox's does, so the import is its third line.
+    assert.match(
+      found[0],
+      /^fixture\/bogus\.md:3: App\.tsx line 3: TS2305 .*'Bogus'/
+    );
+  });
+
+  it('every live example under docs/docs opens in a sandbox without a type error', () => {
+    assert.deepEqual(
+      problems.filter(p => !p.startsWith('fixture/')),
+      [],
+      'The sandbox converter (docs/src/theme/CodeBlock/sandbox/example.mjs) ' +
+        'wrote a module that does not compile, for a fence that does. Fix ' +
+        'the converter, not the fence.'
     );
   });
 });

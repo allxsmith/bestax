@@ -19,7 +19,7 @@ describe('tickHaptic', () => {
   });
 
   it('calls navigator.vibrate with a short duration when available', () => {
-    const spy = jest.fn();
+    const spy = vi.fn();
     Object.defineProperty(navigator, 'vibrate', {
       value: spy,
       configurable: true,

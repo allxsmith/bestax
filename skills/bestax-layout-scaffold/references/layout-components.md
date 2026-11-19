@@ -5,11 +5,16 @@ source-verified. Import everything from the package root:
 
 ```tsx
 import {
+  AppFrame,
   Container,
   Section,
   Hero,
   Footer,
   Level,
+  Stack,
+  Group,
+  Center,
+  Flex,
   Columns,
   Column,
   Grid,
@@ -33,17 +38,52 @@ Every component also accepts the shared Bulma helper props (`m`/`p` spacing, `te
 > equal-height cells for free; for proportional or per-breakpoint layouts use
 > `Columns` / `Column`.
 
+## AppFrame
+
+`<AppFrame>` is the frame an app's pages sit in, the app shell: a header across the top, a
+navigation column down the side, the page, and an aside and a footer when there are any, with a
+skip link first. The header and the column stick while the page scrolls. Below its breakpoint the
+nav is a modal drawer behind `AppFrame.Burger`; from it up the burger collapses the column. The
+parts are direct children, in this order: `AppFrame.Header` (`<header>`), `AppFrame.Nav`
+(`<nav>`), `AppFrame.Main` (`<main>`), `AppFrame.Aside` (`<aside>`), `AppFrame.Footer`
+(`<footer>`). `AppFrame.Burger` goes in the header's `Navbar.Brand`.
+
+| Prop                                                              | Type                                                                                                                                                                                                                                                                                                                                                                     |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `breakpoint`                                                      | `'tablet' \| 'desktop' \| 'widescreen'` (default `desktop`: a drawer below it)                                                                                                                                                                                                                                                                                           |
+| `navOpen` / `defaultNavOpen` / `onNavOpenChange(open)`            | the drawer, below the breakpoint                                                                                                                                                                                                                                                                                                                                         |
+| `navCollapsed` / `defaultNavCollapsed` / `onNavCollapsedChange()` | the column, from the breakpoint up                                                                                                                                                                                                                                                                                                                                       |
+| `skipLink`                                                        | `boolean` (default `true`)                                                                                                                                                                                                                                                                                                                                               |
+| `labels`                                                          | `{ skipLink?, nav?, closeNav?, burger? }`, for another language                                                                                                                                                                                                                                                                                                          |
+| `AppFrame.Nav`                                                    | `width?`, `overlay?`, `closeOnEscape?`, `closeOnClickOutside?`, `closeOnNavigate?`, `rail?` (collapses to a rail of icons: give each top-level `Menu.Item` and `Menu.Section` an `icon`), `resizable?` (a handle drags the width: `width`/`defaultWidth`/`onWidthChange(px)`, `minWidth?`, `maxWidth?`, a number in px or a px or rem string; `step?`, px per arrow key) |
+| `AppFrame.Aside`                                                  | `width?`, and an `aria-label` when the page has another aside                                                                                                                                                                                                                                                                                                            |
+
+Put it at the top of the app, never inside a `<main>` or a `Container as="main"`: it renders the
+page's `<main>`. Its `Navbar` is not `fixed` and needs no `has-navbar-fixed-top`. A control of
+your own reads and toggles the state with `useAppFrame()`, which is `null` outside a frame:
+`toggleNav()` does what the burger does, and `navId` is for its `aria-controls`. Have the control
+call `event.currentTarget.focus()` before `toggleNav()`, as the burger does: Safari, and Firefox on
+a Mac, don't focus a button on click, so without it a closing drawer has no opener to hand focus
+back to. A header taller than Bulma's navbar sets
+`--bulma-app-frame-header-height` on `:root`.
+With `AppFrame.Nav rail`, the collapsed column keeps its icons and shows each label in a tooltip,
+which the frame renders: don't wrap the items in a `Tooltip` of your own.
+
 ## Container
 
 `<Container>` centers and constrains page content.
 
 | Prop                              | Type                                    | Notes                                     |
 | --------------------------------- | --------------------------------------- | ----------------------------------------- |
+| `as`                              | `'div'` (default) or a landmark tag     | Renders that tag in place of the `div`.   |
 | `fluid`                           | `boolean`                               | Full width with a small gutter.           |
 | `widescreen` / `fullhd`           | `boolean`                               | Only constrain at that breakpoint and up. |
 | `breakpoint`                      | `'tablet' \| 'desktop' \| 'widescreen'` | Max-width breakpoint.                     |
 | `isMax`                           | `boolean`                               | Use the `is-max-*` width.                 |
 | `color` / `textColor` / `bgColor` | Bulma color                             | —                                         |
+
+`as` takes `'main' | 'section' | 'article' | 'aside' | 'header' | 'footer' | 'nav'`, so
+`<Container as="main">` renders `<main class="container">` with no wrapper.
 
 ## Section
 
@@ -63,12 +103,18 @@ Every component also accepts the shared Bulma helper props (`m`/`p` spacing, `te
 | `color`                | `primary \| link \| info \| success \| warning \| danger \| black \| white \| light \| dark` (CSS-backed). Also accepted but deprecated, no CSS, dev-warn: every other `validColors` member, plus `inherit` and `current` |
 | `size`                 | `'small' \| 'medium' \| 'large' \| 'fullheight' \| 'fullheight-with-navbar'`                                                                                                                                              |
 | `fullheightWithNavbar` | `boolean`                                                                                                                                                                                                                 |
+| `as`                   | `'section'` (default) \| `'div'` \| `'main'` \| `'header'` \| `'footer'` \| `'article'` \| `'aside'`                                                                                                                      |
 
 ```tsx
 <Hero color="primary" size="medium">
   <Hero.Body>…</Hero.Body>
 </Hero>
 ```
+
+`Hero.Head` takes `as="header"` or `as="nav"` and `Hero.Foot` `as="footer"` or `as="nav"` (both
+`div` by default), so a page that is all hero is `<Hero as="main">` with no wrapper. A `header` or
+`footer` is the page's banner or footer landmark only outside a `section`, `article`, `aside`,
+`nav` or `main`, so for that render the hero itself `as="div"`.
 
 ## Footer
 
@@ -84,11 +130,46 @@ Every component also accepts the shared Bulma helper props (`m`/`p` spacing, `te
 `<Level>` is a horizontal toolbar (left/right groups). Subcomponents: `Level.Left`, `Level.Right`,
 `Level.Item`.
 
-| Prop                         | Type                                  |
-| ---------------------------- | ------------------------------------- |
-| `Level.isMobile`             | `boolean` (keep horizontal on mobile) |
-| `Level.Item.as`              | `'div' \| 'p' \| 'a'`                 |
-| `Level.Item.hasTextCentered` | `boolean`                             |
+| Prop                         | Type                                                                                                                                                                                                                    |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Level.as`                   | `'nav'` (default) \| `'div'` \| `'header'` \| `'footer'`                                                                                                                                                                |
+| `Level.isMobile`             | `boolean` (keep its own items in a row on mobile, though the items inside `Level.Left` and `Level.Right` still stack; they never shrink, and Bulma cuts off what runs past a 320px screen, so only for a row that fits) |
+| `Level.Item.as`              | `'div' \| 'p' \| 'a'`                                                                                                                                                                                                   |
+| `Level.Item.hasTextCentered` | `boolean`                                                                                                                                                                                                               |
+
+A `nav` is a navigation landmark, so keep the default for a row of links. A row that isn't
+navigation takes `as="div"`, or `as="header"` when it opens a section and `as="footer"` when it
+closes one. A dashboard's row of key figures is `Stats`, not a `Level`.
+
+## Stack / Group / Center / Flex
+
+Flex containers for laying out any components, with no `display` prop to add. Each zeroes the
+top and bottom margins Bulma gives its direct children (Box, Notification, Card, Title, Field,
+Media), so `gap` is the only space between them: no `mb="0"` on the children, and a spacing
+helper such as `mt="2"` still adds to it. A `Columns` child keeps its own top and side margins and takes at the
+bottom the one Bulma gives the last Columns in a container (the column gap pulled back in, none
+when gapless), so its columns line up, and a `Pagination` child keeps its negative margins too. None draws a surface; put a `Box` or a `Card` inside or around. A `display` prop that isn't flex turns one
+off, as on any component.
+
+- `<Stack>`: a column, children stretched across it, `gap` Bulma's block spacing (1.5rem).
+- `<Group>`: a row that wraps, children centered on each other, `gap` half that (0.75rem). A
+  toolbar is `<Group justifyContent="space-between">`.
+- `<Center>`: centers its content on both axes, no gap. Give it a height (`aspectRatio`, or a
+  parent with one) to center vertically.
+- `<Flex>`: CSS's own defaults (a row, no wrap, no gap) and every flex container prop.
+
+| Prop                                                       | Type                                                                                                                                      |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `gap`, and on Flex `rowGap` / `columnGap`                  | `'0'`–`'8'` in half steps, or the number; whole step = 0.5rem                                                                             |
+| `alignItems`, `justifyContent`, `flexWrap`, `alignContent` | the flex helper values (`'center'`, `'space-between'`, `'wrap'`, …)                                                                       |
+| `Flex.flexDirection`                                       | `'row' \| 'row-reverse' \| 'column' \| 'column-reverse'`                                                                                  |
+| `Group.isFullwidth`                                        | `boolean` (children share the row equally)                                                                                                |
+| `Group.breakpoint`                                         | `'tablet' \| 'desktop' \| 'widescreen'` (a column below it)                                                                               |
+| `as`                                                       | `'div'` (default), `'main'`, `'section'`, `'article'`, `'aside'`, `'header'`, `'footer'`, `'nav'`, `'ul'`, `'ol'`, `'form'`, `'fieldset'` |
+
+Stack, Group and Center take no `flexDirection`: they never reorder. A Title and its SubTitle go
+in one element of their own inside a Stack, or the gap comes between them. For a grid of
+same-shaped items, use `Grid` / `Cell`.
 
 ## Columns / Column
 
@@ -97,15 +178,15 @@ The responsive grid. `Columns` is the row; `Column` is a cell (also reachable as
 
 **Columns**
 
-| Prop                                                                             | Type                                                       |
-| -------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| `isMultiline`                                                                    | `boolean` (wrap cells onto new rows)                       |
-| `isCentered`                                                                     | `boolean` (center the row)                                 |
-| `isVCentered`                                                                    | `boolean` (vertical centering — capital V)                 |
-| `isGapless`                                                                      | `boolean`                                                  |
-| `isMobile`                                                                       | `boolean` (stay side-by-side on mobile)                    |
-| `isDesktop`                                                                      | `boolean`                                                  |
-| `gap` / `gapMobile` / `gapTablet` / `gapDesktop` / `gapWidescreen` / `gapFullhd` | `0`–`8` whole steps (number or string), the columns gutter |
+| Prop                                                                             | Type                                                                                                               |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `isMultiline`                                                                    | `boolean` (wrap cells onto new rows)                                                                               |
+| `isCentered`                                                                     | `boolean` (center the row)                                                                                         |
+| `isVCentered`                                                                    | `boolean` (vertical centering — capital V)                                                                         |
+| `isGapless`                                                                      | `boolean`                                                                                                          |
+| `isMobile`                                                                       | `boolean` (stay side-by-side on mobile; Bulma cuts off what runs past a 320px screen, so only for a row that fits) |
+| `isDesktop`                                                                      | `boolean`                                                                                                          |
+| `gap` / `gapMobile` / `gapTablet` / `gapDesktop` / `gapWidescreen` / `gapFullhd` | `0`–`8` whole steps (number or string), the columns gutter                                                         |
 
 **Column**
 
@@ -226,20 +307,27 @@ flexDirection="column"` + `flexGrow="1"` pattern applies to `Cell` + `Card`.
 `Navbar.Burger`, `Navbar.Menu`, `Navbar.Start`, `Navbar.End`, `Navbar.Dropdown`,
 `Navbar.DropdownMenu`, `Navbar.Divider`.
 
-| Prop            | Type                                                                                                             |
-| --------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `fixed`         | `'top' \| 'bottom'`                                                                                              |
-| `transparent`   | `boolean`                                                                                                        |
-| `color`         | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'black' \| 'dark' \| 'light' \| 'white'` |
-| `Navbar.Item`   | `as?`, `active?`, `href`                                                                                         |
-| `Navbar.Burger` | `active?`, `onClick`                                                                                             |
-| `Navbar.Menu`   | `active?` (toggled open on mobile)                                                                               |
+| Prop            | Type                                                                                                                 |
+| --------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `fixed`         | `'top' \| 'bottom'`                                                                                                  |
+| `transparent`   | `boolean`                                                                                                            |
+| `isSpaced`      | `boolean` (Bulma's `is-spaced`, from desktop up)                                                                     |
+| `hasShadow`     | `boolean` (default `false`, unlike `Card`'s; Bulma's `has-shadow`)                                                   |
+| `color`         | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'black' \| 'dark' \| 'light' \| 'white'`     |
+| `Navbar.Item`   | `as?`, `active?` (the current page: `is-active` plus `aria-current="page"`; an `aria-current` you pass wins), `href` |
+| `Navbar.Burger` | `active?`, `onClick`                                                                                                 |
+| `Navbar.Menu`   | `active?` (toggled open on mobile)                                                                                   |
 
 The burger/menu is controlled state — toggle `Navbar.Burger active`/`onClick` and pass the same
 flag to `Navbar.Menu active`. **A `fixed="top"` navbar requires `has-navbar-fixed-top` on `<html>`**
 (Bulma offsets the page from it); the library adds no helper. Set it statically —
 `<html class="has-navbar-fixed-top">` in `index.html` — reserving a `classList.add` effect for
-a navbar that mounts conditionally.
+a navbar that mounts conditionally. **With `isSpaced`, add `has-spaced-navbar-fixed-top` too**
+(`<html class="has-navbar-fixed-top has-spaced-navbar-fixed-top">`): from desktop up the spaced
+navbar is taller than the plain class pads the page for, and there the spaced class pads it for
+the taller navbar, so with the plain class alone the top of the page sits under the navbar. A
+`fixed="bottom"` navbar takes `has-navbar-fixed-bottom`, and `has-spaced-navbar-fixed-bottom`
+beside it with `isSpaced`.
 
 **Routing:** in a routed app, don't use `href="#"` — render items as the router's link
 component. `Menu.Item as={Link} to="/x"` and `Navbar.Item as={Link} to="/x"` both compile
@@ -250,11 +338,13 @@ https://bestax.io/docs/guides/features/routing.
 
 ## Menu
 
-`<Menu>` is a vertical sidebar menu. Subcomponents: `Menu.Label`, `Menu.List`, `Menu.Item`.
+`<Menu>` is a vertical sidebar menu. Subcomponents: `Menu.Label`, `Menu.List`, `Menu.Item`,
+`Menu.Section`.
 
-| Prop        | Type                                                                                              |
-| ----------- | ------------------------------------------------------------------------------------------------- |
-| `Menu.Item` | `active?`, `href?`, `as?` (custom link component); nest a `Menu.List` inside an item for submenus |
+| Prop           | Type                                                                                                                                                                                                                                                                                            |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Menu.Item`    | `active?` (the current page: `is-active` plus `aria-current="page"`, so don't add your own), `href?`, `as?` (custom link component), `icon?` (an `Icon` name, or a node, before the label, hidden from assistive technology, so keep the label); nest a `Menu.List` inside an item for submenus |
+| `Menu.Section` | `label` (the heading, a `ReactNode`), `icon?` (an `Icon` name, or a node), `defaultOpen?`, or `open?` with `onOpenChange?(open)` to hold the state yourself, as `Collapse` does; its child is the group's `Menu.List`, and a closed section's links are out of reach                            |
 
 ```tsx
 <Menu>
@@ -268,20 +358,55 @@ https://bestax.io/docs/guides/features/routing.
 </Menu>
 ```
 
+`Menu.Label` is a `<p>`, which a screen reader reads as plain text that isn't a heading. To let
+screen reader users move between the groups by heading, give each label `role="heading"` and the
+`aria-level` that fits the headings already on the page.
+
+A sidebar whose groups of links open and close (a docs sidebar, an admin app's sections) puts each
+group's `Menu.List` in a `Menu.Section`. Its heading is a real button drawn like `Menu.Label`, with
+`aria-expanded` and a chevron, and its links stay ordinary links, each a tab stop. Open the
+section that holds the current page. A section goes directly in `Menu`, never inside a `Menu.Item`
+(it would render inside the item's link) or a `Menu.List` (it isn't a list item). Don't build this
+from `TreeView` (its items aren't links) or from a `Collapse` in a hand-written `<li>` (its trigger
+is a `div` with `role="button"`).
+
+```tsx
+<nav aria-label="Documentation">
+  <Menu>
+    <Menu.Section label="Getting started">
+      <Menu.List>
+        <Menu.Item href="/docs/install">Installation</Menu.Item>
+      </Menu.List>
+    </Menu.Section>
+    <Menu.Section label="Components" defaultOpen>
+      <Menu.List>
+        <Menu.Item href="/docs/button" active>
+          Button
+        </Menu.Item>
+        <Menu.Item href="/docs/card">Card</Menu.Item>
+      </Menu.List>
+    </Menu.Section>
+  </Menu>
+</nav>
+```
+
 ## Card
 
 `<Card>` for catalog/grid items. Use the props form (`header`, `image`, `footer`) or the compound
 subcomponents (`Card.Header` + `.Title`/`.Icon`, `Card.Image`, `Card.Content`, `Card.Footer`,
-`Card.FooterItem`).
+`Card.FooterItem`). Those parts are also named exports (`CardHeader`, `CardHeaderTitle`,
+`CardHeaderIcon`, `CardImage`, `CardContent`, `CardFooter`, `CardFooterItem`), the same
+components as the dotted names. A Next.js Server Component imports the parts by name, since a
+dotted name is `undefined` there.
 
-| Prop                            | Type                          |
-| ------------------------------- | ----------------------------- |
-| `header`                        | `ReactNode`                   |
-| `image`                         | `string` (URL) or `ReactNode` |
-| `imageAlt`                      | `string`                      |
-| `footer`                        | `ReactNode \| ReactNode[]`    |
-| `hasShadow`                     | `boolean` (default `true`)    |
-| `headerCentered` / `headerIcon` | `boolean` / `ReactNode`       |
+| Prop                            | Type                                                                                             |
+| ------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `header`                        | `ReactNode`                                                                                      |
+| `image`                         | `string` (URL) or `ReactNode`                                                                    |
+| `imageAlt`                      | `string` (default `"Card image"`): for an image URL, describe the picture, or `""` if decorative |
+| `footer`                        | `ReactNode \| ReactNode[]`                                                                       |
+| `hasShadow`                     | `boolean` (default `true`)                                                                       |
+| `headerCentered` / `headerIcon` | `boolean` / `ReactNode`                                                                          |
 
 `Card.Header.Title` and `Card.FooterItem` both take an `as` prop for Bulma's own card markup —
 `Card.Header.Title` renders `div` by default (`as="p"` or a heading `h2`-`h4` also work), and

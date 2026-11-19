@@ -14,10 +14,16 @@ export function Refusals() {
         A ref Box does not forward
       </div>
       <div className="section">A section on a div</div>
+      <button className="panel-block" type="submit">
+        A panel block on a button, whose type is not inert
+      </button>
       <div className="box" color="red">
         An attribute Box reads as a prop
       </div>
       <button className="delete"></button>
+      {/* On a tag the target can't render, the tag comes before what it lacks. */}
+      <div className="navbar">A navbar on a div, with no role or label</div>
+      <a className="delete" href="#close"></a>
       <div className={active ? 'box is-active' : 'box'}>A computed class</div>
       <div className="dropdown">
         <div className="dropdown-menu">A family converted later</div>
@@ -26,6 +32,8 @@ export function Refusals() {
         <p>Content Card would wrap in a part of its own</p>
       </div>
       <div className="tile is-ancestor">A Bulma 0.9 tile</div>
+      <div className="is-marginless">A Bulma 0.9 class on a plain div</div>
+      <figure className="is-64x64">An image size away from its image</figure>
     </div>
   );
 }

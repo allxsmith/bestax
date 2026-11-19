@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import Hero from './Hero';
 import { validColors, validSchemeColors } from '../helpers/useBulmaClasses';
@@ -8,7 +9,8 @@ import SubTitle from '../elements/SubTitle';
 import Container from '../layout/Container';
 import { Button } from '../elements/Button';
 import { Icon } from '../elements/Icon';
-import Image from '../elements/Image';
+import { Span } from '../elements/Span';
+import logo from '../../images/logo.svg';
 
 const meta: Meta<typeof Hero> = {
   title: 'Layout/Hero',
@@ -205,115 +207,148 @@ export const FullHeight: StoryObj<typeof Hero> = {
   ),
 };
 
+// The bestax logo and name, the brand the docs site's navbar shows. The name
+// takes the navbar item's color, which a hero sets to read on its own color.
+const BestaxBrand = () => (
+  <Navbar.Item href="#">
+    <img src={logo} alt="" width="28" height="28" />
+    <Span textWeight="bold" textSize="5">
+      Bestax
+    </Span>
+  </Navbar.Item>
+);
+
 // FullHeight with Navbar story
 export const FullHeightWithNavbar: StoryObj<typeof Hero> = {
   name: 'FullHeight with Navbar',
-  render: () => (
-    <>
-      <Navbar>
-        <Container>
-          <Navbar.Menu id="navMenu">
-            <Navbar.Start>
-              <Navbar.Item as="a">Getting Started</Navbar.Item>
-              <Navbar.Item as="a">APIs</Navbar.Item>
-              <Navbar.Item as="a">Blog</Navbar.Item>
-            </Navbar.Start>
-            <Navbar.End>
-              <Navbar.Item as="span">
-                <Button color="primary" isInverted as="a" mx="2">
-                  Github
-                </Button>
-              </Navbar.Item>
-            </Navbar.End>
-          </Navbar.Menu>
-        </Container>
-      </Navbar>
-      <Hero color="link" fullheightWithNavbar>
-        <Hero.Body>
-          <Container>
-            <Title>Fullheight with navbar</Title>
-          </Container>
-        </Hero.Body>
-      </Hero>
-    </>
-  ),
-};
-
-// FullHeight with Head, Body, Foot story
-export const FullHeightWithHeadBodyFoot: StoryObj<typeof Hero> = {
-  name: 'FullHeight with Head, Body, Foot',
-  render: () => (
-    <Hero color="primary" size="medium">
-      <Hero.Head>
+  render: function FullHeightWithNavbarExample() {
+    const [open, setOpen] = useState(false);
+    return (
+      <>
         <Navbar>
           <Container>
             <Navbar.Brand>
-              <Navbar.Item as="a">
-                <Image src="/img/bestax-type-white.svg" alt="Bestax" mx="2" />
-              </Navbar.Item>
-              <span className="navbar-burger" data-target="navbarMenuHeroA">
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-              </span>
+              <BestaxBrand />
+              <Navbar.Burger
+                active={open}
+                aria-controls="navMenu"
+                onClick={() => setOpen(o => !o)}
+              />
             </Navbar.Brand>
-            <Navbar.Menu id="navbarMenuHeroA">
-              <Navbar.End>
-                <Navbar.Item as="a" active>
+            <Navbar.Menu id="navMenu" active={open}>
+              <Navbar.Start>
+                <Navbar.Item as="a" href="#getting-started">
                   Getting Started
                 </Navbar.Item>
-                <Navbar.Item as="a">APIs</Navbar.Item>
-                <Navbar.Item as="a">Blog</Navbar.Item>
+                <Navbar.Item as="a" href="#apis">
+                  APIs
+                </Navbar.Item>
+                <Navbar.Item as="a" href="#blog">
+                  Blog
+                </Navbar.Item>
+              </Navbar.Start>
+              <Navbar.End>
                 <Navbar.Item as="span">
-                  <Button color="primary" isInverted as="a" mx="2">
-                    <Icon
-                      library="fa"
-                      name="github"
-                      variant="brands"
-                      ariaLabel="github"
-                    />
-                    <span>Github</span>
+                  <Button color="primary" as="a" href="#github" mx="2">
+                    Github
                   </Button>
                 </Navbar.Item>
               </Navbar.End>
             </Navbar.Menu>
           </Container>
         </Navbar>
-      </Hero.Head>
+        <Hero color="link" fullheightWithNavbar>
+          <Hero.Body>
+            <Container>
+              <Title>Fullheight with navbar</Title>
+            </Container>
+          </Hero.Body>
+        </Hero>
+      </>
+    );
+  },
+};
 
-      <Hero.Body>
-        <Container className="has-text-centered">
-          <Title>Bestax</Title>
-          <SubTitle>A Bulma Component Library</SubTitle>
-        </Container>
-      </Hero.Body>
+// FullHeight with Head, Body, Foot story
+export const FullHeightWithHeadBodyFoot: StoryObj<typeof Hero> = {
+  name: 'FullHeight with Head, Body, Foot',
+  render: function FullHeightWithHeadBodyFootExample() {
+    const [open, setOpen] = useState(false);
+    return (
+      <Hero color="primary" size="medium">
+        <Hero.Head>
+          <Navbar>
+            <Container>
+              <Navbar.Brand>
+                <BestaxBrand />
+                <Navbar.Burger
+                  active={open}
+                  aria-controls="navbarMenuHeroA"
+                  onClick={() => setOpen(o => !o)}
+                />
+              </Navbar.Brand>
+              <Navbar.Menu id="navbarMenuHeroA" active={open}>
+                <Navbar.End>
+                  <Navbar.Item as="a" href="#getting-started" active>
+                    Getting Started
+                  </Navbar.Item>
+                  <Navbar.Item as="a" href="#apis">
+                    APIs
+                  </Navbar.Item>
+                  <Navbar.Item as="a" href="#blog">
+                    Blog
+                  </Navbar.Item>
+                  <Navbar.Item as="span">
+                    <Button
+                      color="primary"
+                      isInverted
+                      as="a"
+                      href="#github"
+                      mx="2"
+                    >
+                      <Icon library="fa" name="github" variant="brands" />
+                      <span>Github</span>
+                    </Button>
+                  </Navbar.Item>
+                </Navbar.End>
+              </Navbar.Menu>
+            </Container>
+          </Navbar>
+        </Hero.Head>
 
-      <Hero.Foot>
-        <Tabs>
-          <Container>
-            <Tabs.List>
-              <Tabs.Item>
-                <a>Elements</a>
-              </Tabs.Item>
-              <Tabs.Item>
-                <a>Components</a>
-              </Tabs.Item>
-              <Tabs.Item>
-                <a>Columns</a>
-              </Tabs.Item>
-              <Tabs.Item>
-                <a>Grid</a>
-              </Tabs.Item>
-              <Tabs.Item>
-                <a>Layout</a>
-              </Tabs.Item>
-            </Tabs.List>
+        <Hero.Body>
+          <Container className="has-text-centered">
+            <Title>Bestax</Title>
+            <SubTitle>A Bulma Component Library</SubTitle>
           </Container>
-        </Tabs>
-      </Hero.Foot>
-    </Hero>
-  ),
+        </Hero.Body>
+
+        <Hero.Foot>
+          <Tabs>
+            <Container>
+              <ul>
+                <Tabs.Item>
+                  <a href="#elements">Elements</a>
+                </Tabs.Item>
+                <Tabs.Item>
+                  <a href="#components">Components</a>
+                </Tabs.Item>
+                <Tabs.Item>
+                  <a href="#columns">Columns</a>
+                </Tabs.Item>
+                <Tabs.Item>
+                  <a href="#grid">Grid</a>
+                </Tabs.Item>
+                <Tabs.Item>
+                  <a href="#layout">Layout</a>
+                </Tabs.Item>
+              </ul>
+            </Container>
+          </Tabs>
+        </Hero.Foot>
+      </Hero>
+    );
+  },
 };
 
 export const CompoundUsage: StoryObj<typeof Hero> = {
@@ -337,4 +372,35 @@ export const CompoundUsage: StoryObj<typeof Hero> = {
       </Hero.Foot>
     </Hero>
   ),
+};
+
+export const LandmarkTags: StoryObj<typeof Hero> = {
+  render: () => (
+    <Hero as="div" color="primary">
+      <Hero.Head as="header">
+        <Container pt="4" textAlign="centered">
+          <SubTitle size="6">Hero.Head as=&quot;header&quot;</SubTitle>
+        </Container>
+      </Hero.Head>
+      <Hero.Body>
+        <Container as="main" textAlign="centered">
+          <Title>Hero as=&quot;div&quot;</Title>
+          <SubTitle>Container as=&quot;main&quot;</SubTitle>
+        </Container>
+      </Hero.Body>
+      <Hero.Foot as="footer">
+        <Container pb="4" textAlign="centered">
+          <SubTitle size="6">Hero.Foot as=&quot;footer&quot;</SubTitle>
+        </Container>
+      </Hero.Foot>
+    </Hero>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Hero, Hero.Head, Hero.Foot and Container take an `as` prop, so a page can put them on landmarks the way Bulma templates do (`<main class="hero">`, `<footer class="hero-foot">`). A `header` or `footer` is a page landmark only outside a `section`, so this hero renders as a `div`.',
+      },
+    },
+  },
 };

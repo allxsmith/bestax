@@ -33,14 +33,20 @@ export interface BreadcrumbProps
     Omit<React.HTMLAttributes<HTMLElement>, 'color'>,
     Omit<BulmaClassesProps, 'backgroundColor' | 'color'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Alignment of the breadcrumb (`is-centered`, `is-right`). */
   alignment?: BreadcrumbAlignment;
   /** Type of separator between breadcrumb items. */
   separator?: BreadcrumbSeparator;
   /** Breadcrumb size. */
-  size?: BreadcrumbSize;
-  /** Breadcrumb items (`<li>`s with `<a>` or `<span>`). */
+  size?: BreadcrumbSize | undefined;
+  /**
+   * Breadcrumb items (`<li>`s with `<a>` or `<span>`). Mark the current
+   * page's item with Bulma's `is-active` class (with your class prefix, if
+   * you set one) and give its `<a>` or `<span>` `aria-current="page"`, which
+   * is what tells a screen reader it's the page you're on, since the class
+   * only styles it.
+   */
   children?: React.ReactNode;
 }
 

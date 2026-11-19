@@ -243,6 +243,20 @@ describe('Card Component', () => {
     expect(img).toHaveAttribute('alt', 'Card image');
   });
 
+  test('renders a decorative <img> with an empty alt when imageAlt is ""', () => {
+    render(
+      <Card image="img.png" imageAlt="">
+        Test
+      </Card>
+    );
+    // An empty alt takes the image out of the accessibility tree, so it has
+    // no img role to query by.
+    expect(screen.queryByRole('img')).toBeNull();
+    const img = document.querySelector('img');
+    expect(img).toHaveAttribute('src', 'img.png');
+    expect(img).toHaveAttribute('alt', '');
+  });
+
   test('renders <img> with provided alt if imageAlt is given', () => {
     render(
       <Card image="img.png" imageAlt="Custom Alt">
@@ -254,8 +268,10 @@ describe('Card Component', () => {
     expect(img).toHaveAttribute('alt', 'Custom Alt');
   });
 
-  test.each([undefined, null, false, '', 0, []])(
-    'renders no footer when footer is %p',
+  // Each value sits in a row of its own, since in a flat table Vitest titles `[]` as
+  // `undefined`.
+  test.each([[undefined], [null], [false], [''], [0], [[]]])(
+    'renders no footer when footer is %o',
     footer => {
       const { container } = render(<Card footer={footer}>Test</Card>);
       expect(container.querySelector('.card-footer')).toBeNull();
@@ -1053,9 +1069,7 @@ describe('Card - Advanced Integration Tests', () => {
 
   // Test 56: Error boundary compatibility
   test('handles errors gracefully in compound components', () => {
-    const consoleSpy = jest
-      .spyOn(console, 'error')
-      .mockImplementation(() => {});
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     const ThrowError = () => {
       throw new Error('Test error');
@@ -1260,10 +1274,10 @@ describe('Card - Advanced Integration Tests', () => {
 
   // Test 63: Event handling propagation
   test('handles click events properly in compound structure', () => {
-    const cardClick = jest.fn();
-    const headerClick = jest.fn();
-    const iconClick = jest.fn();
-    const footerClick = jest.fn();
+    const cardClick = vi.fn();
+    const headerClick = vi.fn();
+    const iconClick = vi.fn();
+    const footerClick = vi.fn();
 
     render(
       <Card data-testid="card" onClick={cardClick}>
@@ -1287,7 +1301,7 @@ describe('Card - Advanced Integration Tests', () => {
     expect(cardClick).toHaveBeenCalledTimes(1);
 
     // Reset mocks
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Click on footer should trigger footer and bubble up
     fireEvent.click(screen.getByTestId('footer'));

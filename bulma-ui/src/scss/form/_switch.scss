@@ -60,7 +60,7 @@ $switch-thin-circle-size: 1.25em !default;
     height: 0;
 
     // Checked state
-    &:checked + .check {
+    &:checked + .#{iv.$class-prefix}check {
       background-color: cv.getVar("switch-active-color");
       border-color: cv.getVar("switch-active-color");
 
@@ -72,30 +72,30 @@ $switch-thin-circle-size: 1.25em !default;
     }
 
     // Focus-visible state (keyboard only)
-    &:focus-visible + .check {
+    &:focus-visible + .#{iv.$class-prefix}check {
       outline: 2px solid cv.getVar("switch-active-color");
       outline-offset: 2px;
     }
 
     // Legacy focus state for older browsers
-    &:focus + .check {
+    &:focus + .#{iv.$class-prefix}check {
       box-shadow: cv.getVar("switch-focus-shadow");
     }
 
     // Disabled state
-    &:disabled + .check {
+    &:disabled + .#{iv.$class-prefix}check {
       opacity: 0.5;
       cursor: not-allowed;
     }
 
-    &:disabled ~ .control-label {
+    &:disabled ~ .#{iv.$class-prefix}control-label {
       opacity: 0.5;
       cursor: not-allowed;
     }
   }
 
   // Track (the pill-shaped background)
-  .check {
+  .#{iv.$class-prefix}check {
     display: inline-block;
     position: relative;
     width: cv.getVar("switch-width");
@@ -131,19 +131,23 @@ $switch-thin-circle-size: 1.25em !default;
     }
   }
 
-  // Label text
-  .control-label {
-    margin-left: cv.getVar("switch-label-gap");
+  // Label text. The gap is on the text's inline start, the side the track
+  // is on: the row mirrors on a right-to-left page, and a physical
+  // `margin-left` would stay on the far side and leave the text on the
+  // track.
+  .#{iv.$class-prefix}control-label {
+    margin-inline-start: cv.getVar("switch-label-gap");
     line-height: cv.getVar("switch-height");
   }
 
-  // RTL support
+  // Label first: the reversed row puts the track on the text's inline end,
+  // in either page direction, so the gap moves there.
   &.#{iv.$class-prefix}is-rtl {
     flex-direction: row-reverse;
 
-    .control-label {
-      margin-left: 0;
-      margin-right: cv.getVar("switch-label-gap");
+    .#{iv.$class-prefix}control-label {
+      margin-inline-start: 0;
+      margin-inline-end: cv.getVar("switch-label-gap");
     }
   }
 }
@@ -163,7 +167,7 @@ $switch-thin-circle-size: 1.25em !default;
 
 // Rounded variant (already rounded by default, but explicit class for consistency)
 .#{iv.$class-prefix}switch.#{iv.$class-prefix}is-rounded {
-  .check {
+  .#{iv.$class-prefix}check {
     border-radius: cv.getVar("switch-radius");
 
     &::before {
@@ -174,7 +178,7 @@ $switch-thin-circle-size: 1.25em !default;
 
 // Thin variant — MUI-style: colored circle, muted track
 .#{iv.$class-prefix}switch.#{iv.$class-prefix}is-thin {
-  .check {
+  .#{iv.$class-prefix}check {
     height: cv.getVar("switch-thin-height");
     background-color: color-mix(
       in srgb,
@@ -196,7 +200,7 @@ $switch-thin-circle-size: 1.25em !default;
   }
 
   // Checked: circle becomes active color, track becomes muted active color
-  input[type="checkbox"]:checked + .check {
+  input[type="checkbox"]:checked + .#{iv.$class-prefix}check {
     background-color: color-mix(
       in srgb,
       cv.getVar("switch-active-color") 50%,
@@ -218,7 +222,7 @@ $switch-thin-circle-size: 1.25em !default;
 
 // Outlined variant
 .#{iv.$class-prefix}switch.#{iv.$class-prefix}is-outlined {
-  .check {
+  .#{iv.$class-prefix}check {
     background-color: transparent;
     border-color: cv.getVar("switch-background");
 
@@ -227,7 +231,7 @@ $switch-thin-circle-size: 1.25em !default;
     }
   }
 
-  input[type="checkbox"]:checked + .check {
+  input[type="checkbox"]:checked + .#{iv.$class-prefix}check {
     background-color: transparent;
     border-color: cv.getVar("switch-active-color");
 
@@ -251,14 +255,14 @@ $switch-thin-circle-size: 1.25em !default;
 // Passive type variants (unchecked state color)
 @each $name in "primary", "link", "info", "success", "warning", "danger" {
   .#{iv.$class-prefix}switch.#{iv.$class-prefix}is-#{$name}-passive {
-    .check {
+    .#{iv.$class-prefix}check {
       background-color: cv.getVar($name);
       border-color: cv.getVar($name);
     }
 
     // Outlined passive: transparent background, colored border and circle
     &.#{iv.$class-prefix}is-outlined {
-      .check {
+      .#{iv.$class-prefix}check {
         background-color: transparent;
         border-color: cv.getVar($name);
 
@@ -270,9 +274,29 @@ $switch-thin-circle-size: 1.25em !default;
   }
 }
 
-// Light mode: use a soft grey circle instead of pure white
-@media (prefers-color-scheme: light) {
-  .#{iv.$class-prefix}switch {
+// The circle on each scheme: a soft grey on the light one rather than pure
+// white. It follows the OS, unless the switch or an ancestor pins a scheme
+// the way Bulma reads one, so each pin rule takes its selector from Bulma's
+// `bulma-theme` mixin (`[data-theme=dark], .theme-dark`, with the class prefix
+// in a prefixed build). `:where()` keeps each rule as light as `.switch`, so an
+// app's `.switch` rule that loads after them still wins, and the dark rule
+// comes last, so a dark pin on the switch or anywhere around it wins, even
+// with a light pin closer in.
+@mixin -circle-on-pin($scheme, $color) {
+  @include cv.bulma-theme($name: $scheme) {
+    @at-root :where(#{&}) .#{iv.$class-prefix}switch,
+      .#{iv.$class-prefix}switch:where(#{&}) {
+      @include cv.register-vars(
+        (
+          "switch-circle-color": #{$color},
+        )
+      );
+    }
+  }
+}
+
+.#{iv.$class-prefix}switch {
+  @media (prefers-color-scheme: light) {
     @include cv.register-vars(
       (
         "switch-circle-color": #{$switch-circle-color-light},
@@ -281,24 +305,90 @@ $switch-thin-circle-size: 1.25em !default;
   }
 }
 
+@include -circle-on-pin("light", $switch-circle-color-light);
+@include -circle-on-pin("dark", $switch-circle-color);
+
 // High Contrast Mode support
 @media (forced-colors: active) {
   .#{iv.$class-prefix}switch {
-    .check {
+    // Named on the input's state, which outranks the edge the thin, outlined
+    // and passive styles set, so every style's edge is ButtonText when off.
+    input[type="checkbox"]:not(:checked) + .#{iv.$class-prefix}check {
       border-color: ButtonText;
     }
 
-    input[type="checkbox"]:checked + .check {
+    input[type="checkbox"]:checked + .#{iv.$class-prefix}check {
       background-color: Highlight;
       border-color: Highlight;
     }
 
-    input[type="checkbox"]:focus-visible + .check {
+    input[type="checkbox"]:focus-visible + .#{iv.$class-prefix}check {
       outline-color: Highlight;
     }
 
-    input[type="checkbox"]:disabled + .check {
+    // A disabled track is drawn in GrayText, so its usual opacity would only
+    // halve that. It and its label draw at full strength here, the label in
+    // GrayText too.
+    input[type="checkbox"]:disabled + .#{iv.$class-prefix}check {
       border-color: GrayText;
+      opacity: 1;
+    }
+
+    input[type="checkbox"]:disabled ~ .#{iv.$class-prefix}control-label {
+      color: GrayText;
+      opacity: 1;
+    }
+
+    // The knob is painted from a variable, which forced colors repaints in
+    // the page's background, so it would vanish on the track, and a thin or
+    // outlined switch, whose track never fills, would look the same on and
+    // off. Off, it takes ButtonText, or GrayText when disabled.
+    input[type="checkbox"]:not(:checked) + .#{iv.$class-prefix}check::before {
+      background-color: ButtonText;
+    }
+
+    input[type="checkbox"]:disabled:not(:checked)
+      + .#{iv.$class-prefix}check::before {
+      background-color: GrayText;
+    }
+
+    // On, it's the color made to read on the default style's filled track.
+    input[type="checkbox"]:checked + .#{iv.$class-prefix}check::before {
+      background-color: HighlightText;
+    }
+
+    // On and disabled, the track fills with GrayText rather than the
+    // highlight, the knob in the page's color on it, so a disabled switch
+    // doesn't draw as an enabled one.
+    input[type="checkbox"]:checked:disabled + .#{iv.$class-prefix}check {
+      background-color: GrayText;
+
+      &::before {
+        background-color: Canvas;
+      }
+    }
+  }
+
+  // The thin and outlined tracks don't fill when on, since their own rules
+  // outrank the fill above, so the knob and the edge take the highlight. A
+  // disabled one's edge is gray, as the default style's is beside its fill.
+  .#{iv.$class-prefix}switch.#{iv.$class-prefix}is-thin,
+  .#{iv.$class-prefix}switch.#{iv.$class-prefix}is-outlined {
+    input[type="checkbox"]:checked + .#{iv.$class-prefix}check {
+      border-color: Highlight;
+
+      &::before {
+        background-color: Highlight;
+      }
+    }
+
+    input[type="checkbox"]:checked:disabled + .#{iv.$class-prefix}check {
+      background-color: transparent;
+      border-color: GrayText;
+
+      &::before {
+        background-color: GrayText;
+      }
     }
   }
 }
@@ -306,8 +396,8 @@ $switch-thin-circle-size: 1.25em !default;
 // Reduced motion
 @media (prefers-reduced-motion: reduce) {
   .#{iv.$class-prefix}switch {
-    .check,
-    .check::before {
+    .#{iv.$class-prefix}check,
+    .#{iv.$class-prefix}check::before {
       transition: none;
     }
   }

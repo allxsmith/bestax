@@ -173,9 +173,13 @@ $datetimeinput-time-overlay-blur: 3px !default;
   cursor: pointer;
   border-radius: cv.getVar('radius');
 
-  &:hover,
+  &:hover:not(:disabled),
   &:focus-visible {
     background-color: hsla(0, 0%, 50%, 0.12);
+  }
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
 }
 
@@ -201,5 +205,23 @@ $datetimeinput-time-overlay-blur: 3px !default;
   &:focus-visible {
     outline: 2px solid cv.getVar('primary');
     outline-offset: 2px;
+  }
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+// In forced colors a disabled footer button draws at full strength in
+// GrayText, the system's color for a disabled control, since its usual
+// opacity would only fade that.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}datetimeinput-footer-time,
+  .#{iv.$class-prefix}datetimeinput-footer-reset,
+  .#{iv.$class-prefix}datetimeinput-footer-done {
+    &:disabled {
+      color: GrayText;
+      opacity: 1;
+    }
   }
 }

@@ -6,7 +6,7 @@
  * mode and tokens but never "theme"), and a first-letter suggester answered
  * "Buton" with "Badge, Block, Box". The cases below pin the fixes.
  */
-import { describe, expect, it, beforeAll } from '@jest/globals';
+import { describe, expect, it, beforeAll } from 'vitest';
 
 import {
   loadCatalog,
@@ -16,7 +16,16 @@ import {
   type ComponentRecord,
   type Skill,
 } from '../data.js';
-import { ALIASES, searchAll, suggest, type HitKind } from '../search.js';
+import { EXTENSION_COMPONENTS } from '../../../bestax-migrate/src/sources/bulma-classes/html-assets.js';
+import {
+  ALIASES,
+  escapeRegExp,
+  searchAll,
+  skillSections,
+  suggest,
+  usesExport,
+  type HitKind,
+} from '../search.js';
 
 const ALL: HitKind[] = ['component', 'prop', 'example', 'css-var', 'skill'];
 
@@ -109,7 +118,9 @@ describe('ranking realistic queries', () => {
     ['date picker', 'DateInput'],
     ['datepicker', 'DateInput'],
     ['Date-Picker', 'DateInput'],
-    ['calendar', 'DateInput'],
+    ['calendar', 'Calendar'],
+    ['DateCalendar', 'Calendar'],
+    ['inline calendar with prices', 'Calendar'],
     ['time picker', 'TimeInput'],
     ['timepicker', 'TimeInput'],
     ['datetime picker', 'DateTimeInput'],
@@ -119,7 +130,7 @@ describe('ranking realistic queries', () => {
     ['select', 'Select'],
     ['toggle', 'Switch'],
     ['accordion', 'Collapses'],
-    ['combobox', 'Autocomplete'],
+    ['combobox', 'Combobox'],
     ['typeahead', 'Autocomplete'],
     ['star rating', 'Rate'],
     ['chips', 'Taginput'],
@@ -141,6 +152,11 @@ describe('ranking realistic queries', () => {
     ['a form with a date picker', 'DateInput'],
     // A component named outright outranks one an alias in the same query reaches.
     ['breadcrumbs with separators', 'Breadcrumb'],
+    // A compound name's first part is what sets it apart, so "tree" makes
+    // TreeView the subject, above its own examples, and "view" alone doesn't:
+    // it put TreeView above Reveal for "element that animates into view".
+    ['folder tree', 'TreeView'],
+    ['segmented control for view mode', 'SegmentedControl'],
   ])('"%s" puts %s first', (query, component) => {
     expect(top(query)).toEqual([`component:${component}`]);
   });
@@ -151,7 +167,7 @@ describe('ranking realistic queries', () => {
     // The components a query names outright and the one its alias reaches, with
     // neither crowding the other out.
     ['navbar with a dropdown menu', ['Dropdown', 'Menu', 'Navbar']],
-    ['modal with a calendar inside', ['DateInput', 'Modal']],
+    ['modal with a calendar inside', ['Calendar', 'Modal']],
   ])(
     '"%s" puts every component it names ahead of anything else',
     (query, names) => {
@@ -195,6 +211,308 @@ describe('ranking realistic queries', () => {
     for (const targets of Object.values(ALIASES)) {
       for (const name of targets) expect(names).toContain(name);
     }
+  });
+
+  // A page being ported names the extension it loads ("bulma-carousel"), and
+  // found only that component's CSS variables (#1236).
+  it('reaches the component for each Bulma extension bestax-migrate names one for', () => {
+    for (const [extension, says] of Object.entries(EXTENSION_COMPONENTS)) {
+      const named = says.match(/`([A-Z]\w*)`/)![1];
+      expect({
+        extension,
+        reaches: ALIASES[extension.replace(/-/g, '')],
+      }).toEqual({
+        extension,
+        reaches: expect.arrayContaining([named]),
+      });
+      expect(top(extension)).toEqual([`component:${named}`]);
+    }
+  });
+
+  it('finds an export documented with another component, below that component', () => {
+    expect(top('CarouselItem')).toEqual(['component:CarouselItem']);
+    const hits = searchAll('carousel', catalog, all, skills, ALL);
+    expect(hits[0].name).toBe('Carousel');
+    expect(hits.find(h => h.name === 'CarouselItem')).toMatchObject({
+      kind: 'component',
+      detail: expect.stringContaining('documented with Carousel'),
+      next: 'get_component({ name: "CarouselItem" })',
+    });
+    // A sub whose name repeats the query's words stays below its parent.
+    const names = searchAll('navbar item', catalog, all, skills, ALL).map(
+      h => h.name
+    );
+    expect(names.indexOf('Navbar')).toBeGreaterThanOrEqual(0);
+    expect(names.indexOf('NavbarItem')).toBeGreaterThan(
+      names.indexOf('Navbar')
+    );
+    expect(top('TreeViewItem')).toEqual(['component:TreeViewItem']);
+  });
+
+  it("leaves a base's props to the component that takes them too", () => {
+    const props = searchAll('isStatic', catalog, all, skills, ['prop']).map(
+      h => h.name
+    );
+    expect(props).toContain('Input.isStatic');
+    expect(props).not.toContain('InputBase.isStatic');
+  });
+});
+
+describe('searchAll over the helper props (#1273)', () => {
+  let helpers: ComponentRecord[];
+  beforeAll(async () => {
+    helpers = [await loadComponent('useBulmaClasses')];
+  });
+  const find = (query: string, kinds = ALL) =>
+    searchAll(query, catalog, helpers, skills, kinds);
+
+  it('names a helper prop and the group call that lists it', () => {
+    expect(find('margin top', ['prop'])[0]).toMatchObject({
+      kind: 'prop',
+      name: 'mt (helper prop)',
+      next: 'get_helper_props({ group: "spacing" })',
+    });
+  });
+
+  it('finds one by what its values do', () => {
+    expect(find('screen reader only', ['prop'])[0]).toMatchObject({
+      name: 'visibility (helper prop)',
+      next: 'get_helper_props({ group: "layout" })',
+    });
+  });
+
+  it('takes one word of three for a passing mention, and no hit', () => {
+    expect(
+      find('screen nothing nowhere', ['prop']).map(h => h.name)
+    ).not.toContain('visibility (helper prop)');
+  });
+
+  it('takes a short name in a sentence for a word, not the prop', () => {
+    // `my` is a helper prop, and "my" its whole name, worth a name's score.
+    expect(find('style my button', ['prop'])).toEqual([]);
+    expect(find('my', ['prop'])[0].name).toBe('my (helper prop)');
+  });
+
+  it("keeps a few of one group's props beside other kinds, and all alone", () => {
+    const count = (kinds: HitKind[]) =>
+      find('margin', kinds).filter(
+        h => h.next === 'get_helper_props({ group: "spacing" })'
+      ).length;
+    expect(count(ALL)).toBe(3);
+    expect(count(['prop'])).toBeGreaterThan(3);
+  });
+});
+
+describe('skillSections', () => {
+  const md = [
+    'Intro before any heading.',
+    '',
+    '## First',
+    'Body one.',
+    '```md',
+    '## not a heading, inside a fence',
+    '```',
+    '### Second',
+    '',
+    '#### Empty',
+    '## Third ##',
+    'Body three.',
+  ].join('\n');
+
+  it('splits at each heading outside a code fence, naming the text before the first by the document', () => {
+    expect(
+      skillSections('bestax-x', 'ref-id', md).map(s => [s.heading, s.text])
+    ).toEqual([
+      ['ref-id', 'Intro before any heading.'],
+      ['First', 'Body one.\n```md\n## not a heading, inside a fence\n```'],
+      ['Third', 'Body three.'],
+    ]);
+    expect(skillSections('bestax-x', undefined, md)[0].heading).toBe(
+      'bestax-x'
+    );
+  });
+
+  it('closes a fence only on a run of its own character, as long, with nothing after it', () => {
+    const fenced = [
+      '## Code',
+      '```md',
+      '```ts',
+      '## inside, under an info string',
+      '```',
+      '````',
+      '~~~~',
+      '```',
+      '## inside, past a tilde run and a shorter one',
+      '````',
+      '## After',
+      'Body.',
+    ].join('\n');
+    expect(
+      skillSections('bestax-x', undefined, fenced).map(s => s.heading)
+    ).toEqual(['Code', 'After']);
+  });
+
+  it('reads backticks with a backtick after them as a code span, not a fence', () => {
+    const span = '```a``` opens nothing\n## Heading\nBody.';
+    expect(
+      skillSections('bestax-x', undefined, span).map(s => s.heading)
+    ).toEqual(['bestax-x', 'Heading']);
+  });
+});
+
+describe('searchAll inside skill sections', () => {
+  const sections = [
+    ...skillSections(
+      'bestax-x',
+      'notes',
+      [
+        '## Extensions',
+        'Keep loading **bulma-social** for brand buttons.',
+        '## Unrelated',
+        'Nothing about social media here, or bulma.',
+      ].join('\n')
+    ),
+    ...skillSections('bestax-y', undefined, '## Buttons\nA button recipe.'),
+  ];
+  const find = (query: string, kinds = ALL) =>
+    searchAll(query, catalog, components, skills, kinds, sections);
+
+  it('finds the section holding every word, with the call that reads it', () => {
+    expect(find('bulma-social', ['skill'])).toEqual([
+      {
+        kind: 'skill',
+        name: 'bestax-x › notes › Extensions',
+        detail: 'Keep loading **bulma-social** for brand buttons.',
+        next: 'get_skill({ name: "bestax-x", reference: "notes" })',
+        score: expect.any(Number),
+      },
+    ]);
+    expect(find('button recipe', ['skill'])[0]).toMatchObject({
+      name: 'bestax-y › Buttons',
+      next: 'get_skill({ name: "bestax-y" })',
+    });
+  });
+
+  it('ranks a section below the component a query names', () => {
+    const hits = find('button');
+    expect(hits[0]).toMatchObject({ kind: 'component', name: 'Button' });
+    const section = hits.findIndex(h => h.name === 'bestax-y › Buttons');
+    expect(section).toBeGreaterThan(0);
+  });
+
+  it("quotes a link's text alone, since a cut URL would be half a link", () => {
+    const linked = skillSections(
+      'bestax-x',
+      'links',
+      '## Links\nSee [the routing guide](https://bestax.io/docs/guides/routing) for bulma-social.'
+    );
+    expect(
+      searchAll(
+        'bulma-social',
+        catalog,
+        components,
+        skills,
+        ['skill'],
+        linked
+      )[0].detail
+    ).toBe('See the routing guide for bulma-social.');
+  });
+
+  it('quotes the first line of prose when only the heading matches', () => {
+    const headed = skillSections(
+      'bestax-x',
+      'headed',
+      '## bulma-social icons\n```tsx\n<Icon />\n```\nLoad the stylesheet first.'
+    );
+    expect(
+      searchAll(
+        'bulma-social',
+        catalog,
+        components,
+        skills,
+        ['skill'],
+        headed
+      )[0].detail
+    ).toBe('Load the stylesheet first.');
+  });
+
+  it('quotes the heading when a matching section has no prose line', () => {
+    const bare = skillSections('bestax-x', 'bare', '## bulma-social\n```\n```');
+    expect(
+      searchAll('bulma-social', catalog, components, skills, ['skill'], bare)[0]
+        .detail
+    ).toBe('bulma-social');
+  });
+
+  it('returns no more than a few, however many match', () => {
+    const many = Array.from({ length: 10 }, (_, i) =>
+      skillSections('bestax-z', `r${i}`, `## S${i}\nbulma-social again`)
+    ).flat();
+    expect(
+      searchAll('bulma-social', catalog, components, skills, ['skill'], many)
+    ).toHaveLength(3);
+  });
+
+  it("keeps a few of one component's CSS variables beside other kinds, and all alone", () => {
+    const count = (kinds: HitKind[]) =>
+      searchAll('button', catalog, components, skills, kinds).filter(
+        h =>
+          h.kind === 'css-var' &&
+          h.next === 'get_css_variables({ component: "Button" })'
+      ).length;
+    expect(count(ALL)).toBe(3);
+    expect(count(['css-var'])).toBeGreaterThan(3);
+  });
+});
+
+describe('escapeRegExp', () => {
+  it('matches what it escapes literally, a backslash included', () => {
+    for (const input of ['a\\b', 'a\\.b', 'Navbar.Brand', '[x](y)*+?^$|{1}']) {
+      const re = new RegExp(`^${escapeRegExp(input)}$`);
+      expect(re.test(input)).toBe(true);
+    }
+    // Unescaped, `\b` is a word boundary and `.` any character.
+    expect(new RegExp(`^${escapeRegExp('a\\b')}$`).test('ab')).toBe(false);
+    expect(new RegExp(`^${escapeRegExp('a.b')}$`).test('axb')).toBe(false);
+  });
+});
+
+describe('usesExport', () => {
+  it('finds an export by its name or its dot-path, and not inside another name', () => {
+    expect(
+      usesExport(
+        '<CarouselItem>x</CarouselItem>',
+        'CarouselItem',
+        'CarouselItem'
+      )
+    ).toBe(true);
+    expect(
+      usesExport('<CarouselItems />', 'CarouselItem', 'CarouselItem')
+    ).toBe(false);
+    expect(
+      usesExport('<Foo.CarouselItem />', 'CarouselItem', 'CarouselItem')
+    ).toBe(false);
+    expect(
+      usesExport(
+        '<Dropdown.Item>a</Dropdown.Item>',
+        'DropdownItem',
+        'Dropdown.Item'
+      )
+    ).toBe(true);
+    expect(
+      usesExport('<Dropdown.Items />', 'DropdownItem', 'Dropdown.Item')
+    ).toBe(false);
+    // The dot in a path is a dot, not any character.
+    expect(usesExport('<DropdownxItem />', 'Other', 'Dropdown.Item')).toBe(
+      false
+    );
+  });
+
+  it('reads a backslash in a name as a backslash', () => {
+    expect(usesExport('<A\\B />', 'A\\B', 'A\\B')).toBe(true);
+    expect(usesExport('<AB />', 'A\\B', 'A\\B')).toBe(false);
+    expect(usesExport('<A.B\\C />', 'X', 'A.B\\C')).toBe(true);
+    expect(usesExport('<A.BC />', 'X', 'A.B\\C')).toBe(false);
   });
 });
 

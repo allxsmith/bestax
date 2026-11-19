@@ -4,23 +4,26 @@ import React, {
   useRef,
   useEffect,
   useCallback,
+  useId,
 } from 'react';
-import {
-  classNames,
-  usePrefixedClassNames,
-  prefixedClassNames,
-} from '../helpers/classNames';
+import { classNames, prefixedClassNames } from '../helpers/classNames';
 import { useConfig, useIconLibrary } from '../helpers/Config';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { isEventInside } from '../helpers/shadowDom';
+import { getActiveElementInTree, isEventInside } from '../helpers/shadowDom';
+import {
+  useLocaleMatcher,
+  useScopedNumberFormat,
+} from '../helpers/localeFormat';
 import {
   useInsideField,
   useInsideControl,
   rendersOwnField,
+  useFieldsetDisabled,
 } from './FormContext';
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
+import { splitControlState, useFieldMessage } from './useFieldMessage';
 import { Icon } from '../elements/Icon';
 
 /**
@@ -37,10 +40,40 @@ export interface TaginputItem {
 /** A tag can be either a TaginputItem object or a plain string. */
 export type TaginputTag = TaginputItem | string;
 
+/** The accessible names Taginput gives its parts, in your app's language. */
+export interface TaginputLabels {
+  /**
+   * Names the input when no label names it. An empty string counts as none.
+   * @defaultValue 'Add tag'
+   */
+  input?: string;
+  /**
+   * Names the suggestion list when no label with an id names the input. An
+   * empty string counts as none.
+   * @defaultValue 'Suggestions'
+   */
+  suggestions?: string;
+}
+
 type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
 
+// An IME that's composing owns every key: Enter confirms what it composed,
+// the arrows move through its candidates, and Escape cancels it. Safari can
+// say so with `keyCode` 229 rather than `isComposing` (#1102).
+const isComposing = (e: React.KeyboardEvent): boolean =>
+  e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229;
+
+// A press on a suggestion would take focus from the input, since a
+// suggestion can't hold it, and hand it to whatever focusable element is
+// around the Taginput, such as a Modal's, whose focus closes the list before
+// the click lands. Cancelling the press keeps focus in the input, as
+// Autocomplete's list does, and the click still adds the tag.
+const keepFocus = (e: React.MouseEvent) => e.preventDefault();
+
 /**
- * Props for the Taginput component.
+ * Props for the Taginput component. The other attributes go on the wrapper
+ * `<div>`, except `aria-invalid` and `aria-errormessage`, which report the
+ * input's state and go on the input.
  * Inside an outer `Field`, or a `Control` with no `Field` around it, it
  * renders no `Field` of its own. The exception is `label`, `message`,
  * `horizontal` or `fieldClassName` in that bare `Control`: it keeps a `Field`
@@ -55,22 +88,30 @@ export interface TaginputProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange' | 'defaultValue'>,
     Omit<BulmaClassesProps, 'color'>,
     FormFieldProps {
-  /** Field label. Automatically associated with the text input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired when the tag limit is reached (the input is not rendered). Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here; it then replaces the `aria-label="Add tag"` fallback too. */
+  /** Field label. Automatically associated with the text input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here; it then replaces the `aria-label="Add tag"` fallback (or `labels.input`) too. With `data`, the label naming the input also names the open suggestion list, through `aria-labelledby`, when it has an id: this label always does, and an outer `Field`'s does unless you wired it by hand without an `id` in its `labelProps`. Otherwise the list is named "Suggestions", or `labels.suggestions`. */
   label?: React.ReactNode;
-  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then). */
+  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then). With `data`, while the label names the input, the suggestion list's `aria-labelledby` points at it, through an `id` here when you give one and a generated one otherwise. */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
     [key: string]: unknown;
   };
   /** Applied to the inner text input (the labellable control), not the wrapper div. */
-  id?: string;
+  id?: React.HTMLAttributes<HTMLElement>['id'];
   /** The current tags (controlled). */
-  value?: TaginputTag[];
+  value?: TaginputTag[] | undefined;
   /** Default tags (uncontrolled). */
-  defaultValue?: TaginputTag[];
-  /** Autocomplete suggestions. */
-  data?: string[];
+  defaultValue?: TaginputTag[] | undefined;
+  /**
+   * Autocomplete suggestions. With `data` set, even to an empty array, the
+   * text input is a `role="combobox"` that controls the suggestion list and
+   * points `aria-activedescendant` at the highlighted suggestion. Without it
+   * there's no list, so the input stays a plain text field. The list shows
+   * the suggestions that contain what's typed, ignoring case, and inside a
+   * `LocaleProvider` with a `locale`, ignoring accents too where that
+   * language does, so "cafe" finds "Café".
+   */
+  data?: string[] | undefined;
   /** Placeholder text when no tags. */
-  placeholder?: string;
+  placeholder?: string | undefined;
   /** Object property to use as display field. */
   field?: string;
   /** Allow creating new tags not in suggestions. */
@@ -87,21 +128,35 @@ export interface TaginputProps
   closable?: boolean;
   /** Attach tags visually. */
   attached?: boolean;
-  /** Maximum number of tags allowed. */
+  /**
+   * Maximum number of tags allowed. At the limit the text input stays but
+   * turns read-only, so focus stays put and the label still names it. It
+   * takes no more tags and the suggestion list stays closed. Backspace (with
+   * `removeOnKeys`) or a tag's remove button makes room again. While the
+   * counter shows, it describes the input.
+   */
   maxTags?: number;
   /** Maximum length of input. */
   maxlength?: number;
   /** Whether the input is disabled. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Whether the input is read-only. */
   readonly?: boolean;
   /** Applies rounded corners to the tags. */
   rounded?: boolean;
   /** Truncates long tag text with ellipsis. */
   ellipsis?: boolean;
-  /** Shows a counter of the number of tags. */
+  /**
+   * Shows a counter of the number of tags, written the way the `locale` of
+   * a `LocaleProvider` around it writes numbers.
+   */
   hasCounter?: boolean;
-  /** Characters that split pasted text into tags. */
+  /**
+   * Characters that split pasted text into tags. Each part goes through the
+   * same checks as a typed tag, against the tags before it, the paste's own
+   * included, and adding stops at `maxTags`. `onChange` fires once for the
+   * whole paste, and `onAdd` once for each tag it adds.
+   */
   onPasteSeparators?: string[];
   /** Validation function called before adding a tag. */
   beforeAdding?: (tag: string) => boolean;
@@ -117,8 +172,16 @@ export interface TaginputProps
    * drawn (with bestax's CSS loaded).
    */
   loading?: boolean;
-  /** ARIA label for tag close buttons. */
+  /**
+   * Names each tag's remove button in place of "Remove" and the tag's text,
+   * the same name for every button, as for a translation. Each button is
+   * then described by its tag's text, so it still says which tag it
+   * removes, except with a `tagTemplate`, whose content is left as it
+   * renders.
+   */
   ariaCloseLabel?: string;
+  /** The accessible names it gives its parts, in your app's language. A `LocaleProvider` doesn't change them. */
+  labels?: TaginputLabels;
   /** Icon name for the input field. */
   icon?: string;
   /** Icon library to use. */
@@ -128,7 +191,8 @@ export interface TaginputProps
   /** Additional icon modifiers. */
   iconFeatures?: string | string[];
   /** Input color variant. */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Tag color variant. */
   tagColor?:
     | 'primary'
@@ -140,16 +204,20 @@ export interface TaginputProps
     | 'dark'
     | 'light';
   /** Size variant. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Form field name. When set, one hidden input per tag is rendered. */
-  name?: string;
+  name?: string | undefined;
   /** Optional id of the form the hidden inputs belong to. */
-  form?: string;
+  form?: string | undefined;
   /** Callback when tags change. */
-  onChange?: (tags: TaginputTag[]) => void;
+  onChange?: ((tags: TaginputTag[]) => void) | undefined;
   /** Callback when tag is added. */
   onAdd?: (tag: TaginputTag) => void;
-  /** Callback when tag is removed. */
+  /**
+   * Callback when tag is removed. When it's the last tag and its remove
+   * button had focus, focus has already moved to the remove button before
+   * it, or to the input, as it fires.
+   */
   onRemove?: (tag: TaginputTag, index: number) => void;
   /** Callback when typing in input. */
   onTyping?: (value: string) => void;
@@ -193,7 +261,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       fieldClassName,
       value: controlledValue,
       defaultValue = [],
-      data = [],
+      data: dataProp,
       placeholder,
       field = 'label',
       allowNew = true,
@@ -205,7 +273,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       attached = false,
       maxTags,
       maxlength,
-      disabled = false,
+      disabled: disabledProp,
       readonly = false,
       rounded = false,
       ellipsis = false,
@@ -217,6 +285,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       keepOpen = true,
       loading = false,
       ariaCloseLabel,
+      labels,
       icon,
       iconLibrary: iconLibraryProp,
       iconVariant,
@@ -237,6 +306,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     },
     ref
   ) => {
+    const disabled = useFieldsetDisabled(disabledProp);
     const insideField = useInsideField();
     const insideControl = useInsideControl();
     const ownField = rendersOwnField('Taginput', {
@@ -247,9 +317,15 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       horizontal,
       fieldClassName,
     });
-    const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+    // The input takes `aria-invalid` and `aria-errormessage`, which report
+    // its state, and the wrapper the rest (#2002).
+    const { control: controlState, rest: wrapperProps } =
+      splitControlState(props);
+    const { bulmaHelperClasses, rest } = useBulmaClasses(wrapperProps);
     const { classPrefix } = useConfig();
     const defaultIconLibrary = useIconLibrary();
+    const formatNumber = useScopedNumberFormat();
+    const matchText = useLocaleMatcher();
     const resolvedLibrary = iconLibraryProp || defaultIconLibrary || 'fa';
     const pcn = (
       ...args: (
@@ -271,19 +347,33 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     const [inputValue, setInputValue] = useState('');
     const [isActive, setIsActive] = useState(false);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
+    const baseId = useId();
+    const listboxId = `${baseId}-listbox`;
+    const counterId = `${baseId}-counter`;
+
+    // With `data` the input offers suggestions, so it's a combobox, even
+    // while none match. Without it there's never a list, so it stays a plain
+    // text field.
+    const hasSuggestions = dataProp !== undefined;
+    const data = dataProp ?? [];
 
     // Use controlled or internal tags
     const tags = controlledValue !== undefined ? controlledValue : internalTags;
 
     const isMaxReached = maxTags !== undefined && tags.length >= maxTags;
-    // At the tag limit the text input is not rendered, so there is nothing to
-    // wire a label to, its own or a surrounding Field's.
-    const { controlId, fieldLabelProps, labelled } = useAutoLabelId({
+    // The suggestion list points `aria-labelledby` at the label that names
+    // the input, so with suggestions it needs that label's id.
+    const {
+      controlId,
+      fieldLabelProps,
+      labelled,
+      labelId: listLabelId,
+    } = useAutoLabelId({
       label,
       id,
       labelProps,
-      rendersLabel: ownField && !isMaxReached,
-      hasInput: !isMaxReached,
+      rendersLabel: ownField,
+      needsLabelId: hasSuggestions,
     });
 
     // Get display value from tag
@@ -295,15 +385,28 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     };
 
     // Filter autocomplete data
-    const filteredData = data.filter(item => {
-      const displayValue = item.toLowerCase();
-      const matchesInput = displayValue.includes(inputValue.toLowerCase());
-      const notAlreadyAdded =
-        allowDuplicates ||
-        !tags.some(tag => getDisplayValue(tag).toLowerCase() === displayValue);
-      const hasInput = inputValue || (openOnFocus && isActive);
-      return matchesInput && notAlreadyAdded && hasInput;
-    });
+    // The suggestions the list shows while it's open (`active`) or not.
+    const suggestionsWhen = (active: boolean) =>
+      data.filter(item => {
+        const displayValue = item.toLowerCase();
+        const matchesInput = matchText
+          ? matchText(item, inputValue)
+          : displayValue.includes(inputValue.toLowerCase());
+        const notAlreadyAdded =
+          allowDuplicates ||
+          !tags.some(
+            tag => getDisplayValue(tag).toLowerCase() === displayValue
+          );
+        const hasInput = inputValue || (openOnFocus && active);
+        return matchesInput && notAlreadyAdded && hasInput;
+      });
+    const filteredData = suggestionsWhen(isActive);
+    // What an arrow key that opens the list lands in.
+    const openingSuggestions =
+      isActive || !openOnFocus ? filteredData : suggestionsWhen(true);
+    // At the tag limit the list stays closed, since it could only offer tags
+    // past the limit (#1087).
+    const listOpen = isActive && !isMaxReached && filteredData.length > 0;
 
     // keepFirst: auto-highlight first item when dropdown opens
     useEffect(() => {
@@ -323,47 +426,46 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       [controlledValue, onChange]
     );
 
-    // Add tag
-    const addTag = useCallback(
-      (value: string | TaginputTag) => {
+    // Add tags from text typed, pasted or picked from the list. Each one is
+    // checked against the tags before it, this batch's included, so a paste
+    // of several adds them all in one change (#1101). Only `createTag` turns
+    // text into an object.
+    const addTags = useCallback(
+      (values: string[]) => {
         if (disabled || readonly) return;
 
-        const tagValue = typeof value === 'string' ? value.trim() : value;
-        const displayValue =
-          typeof tagValue === 'string' ? tagValue : getDisplayValue(tagValue);
+        let next = tags;
+        const added: TaginputTag[] = [];
+        for (const value of values) {
+          // A paste can bring more tags than there's room for, and at the
+          // limit the read-only input still takes Enter.
+          if (maxTags !== undefined && next.length >= maxTags) break;
 
-        if (!displayValue) return;
+          const displayValue = value.trim();
+          if (!displayValue) continue;
+          const lower = displayValue.toLowerCase();
 
-        // Check max tags
-        if (maxTags && tags.length >= maxTags) return;
+          // Duplicates, data and the dropdown filter all compare
+          // case-insensitively.
+          if (
+            !allowDuplicates &&
+            next.some(tag => getDisplayValue(tag).toLowerCase() === lower)
+          )
+            continue;
 
-        // Check duplicates
-        if (!allowDuplicates) {
-          const exists = tags.some(
-            tag =>
-              getDisplayValue(tag).toLowerCase() === displayValue.toLowerCase()
-          );
-          if (exists) return;
+          // Without allowNew, only a suggestion can become a tag.
+          if (!allowNew && !data.some(d => d.toLowerCase() === lower)) continue;
+
+          if (beforeAdding && !beforeAdding(displayValue)) continue;
+
+          const tag = createTag ? createTag(displayValue) : displayValue;
+          next = [...next, tag];
+          added.push(tag);
         }
+        if (added.length === 0) return;
 
-        // Check if allowed (must be in data if allowNew is false). Compare
-        // case-insensitively, consistent with the dropdown filter and the
-        // duplicate check above.
-        if (
-          !allowNew &&
-          !data.some(d => d.toLowerCase() === displayValue.toLowerCase())
-        )
-          return;
-
-        // beforeAdding validation
-        if (beforeAdding && !beforeAdding(displayValue)) return;
-
-        // createTag transformation
-        const finalTag = createTag ? createTag(displayValue) : tagValue;
-
-        const newTags = [...tags, finalTag];
-        updateTags(newTags);
-        onAdd?.(finalTag);
+        updateTags(next);
+        added.forEach(tag => onAdd?.(tag));
         setInputValue('');
         if (!keepOpen) {
           setIsActive(false);
@@ -411,7 +513,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
         if (confirmKeys.includes(lastChar) && lastChar !== 'Enter') {
           const valueWithoutKey = newValue.slice(0, -1).trim();
           if (valueWithoutKey) {
-            addTag(valueWithoutKey);
+            addTags([valueWithoutKey]);
           }
           return;
         }
@@ -423,7 +525,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
           setIsActive(true);
         }
       },
-      [confirmKeys, addTag, onTyping, data.length]
+      [confirmKeys, addTags, onTyping, data.length]
     );
 
     // Handle paste
@@ -441,22 +543,16 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
 
         e.preventDefault();
 
-        // Build a regex from all separators
+        // Build a character class from all separators. A `-` is escaped
+        // too, since between two others it would make a range.
         const escapedSeparators = onPasteSeparators.map(s =>
-          s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+          s.replace(/[-.*+?^${}()|[\]\\]/g, '\\$&')
         );
         const regex = new RegExp(`[${escapedSeparators.join('')}]`);
 
-        const parts = pastedText
-          .split(regex)
-          .map(s => s.trim())
-          .filter(Boolean);
-
-        for (const part of parts) {
-          addTag(part);
-        }
+        addTags(pastedText.split(regex));
       },
-      [onPasteSeparators, addTag]
+      [onPasteSeparators, addTags]
     );
 
     // Handle focus
@@ -465,6 +561,31 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
         setIsActive(true);
       }
     }, [openOnFocus, data.length, disabled]);
+
+    // Focus moving from the input to another element closes the list, so it
+    // doesn't stay open over the field Tab moved to, or over anything else
+    // that took focus (#2004), unless it moved into the list itself. Focus
+    // going to no element, as when the window loses it, leaves the list to
+    // the press-outside check, and Tab closes it itself, in case it leaves
+    // for a frame.
+    const handleBlur = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
+      const next = e.relatedTarget as Node | null;
+      if (!next || dropdownRef.current?.contains(next)) return;
+      setIsActive(false);
+      setHighlightedIndex(-1);
+    }, []);
+
+    // Reaching the limit dismisses the list the way a click outside does, so
+    // making room later doesn't bring it back unasked. It's an effect, not a
+    // step in addTag, because a click on a suggestion also bubbles to the
+    // container, whose focus on the input reopens the list in that same
+    // event, and because a controlled value can reach the limit too.
+    useEffect(() => {
+      if (isMaxReached) {
+        setIsActive(false);
+        setHighlightedIndex(-1);
+      }
+    }, [isMaxReached]);
 
     // Handle click outside
     useEffect(() => {
@@ -485,15 +606,15 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     // Handle keyboard
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent) => {
-        if (disabled || readonly) return;
+        if (disabled || readonly || isComposing(e)) return;
 
         // Handle confirm keys
         if (confirmKeys.includes(e.key)) {
           e.preventDefault();
           if (highlightedIndex >= 0 && filteredData[highlightedIndex]) {
-            addTag(filteredData[highlightedIndex]);
+            addTags([filteredData[highlightedIndex]]);
           } else if (inputValue.trim()) {
-            addTag(inputValue);
+            addTags([inputValue]);
           }
           return;
         }
@@ -501,9 +622,17 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
         switch (e.key) {
           case 'ArrowDown':
             e.preventDefault();
+            // At the tag limit the list stays closed (#1087).
+            if (isMaxReached) break;
             if (!isActive && data.length > 0) {
+              // A closed list opens on its first suggestion, as
+              // Autocomplete's does (#2006). Alt+Down Arrow opens it with
+              // no highlight.
               setIsActive(true);
-            } else {
+              setHighlightedIndex(
+                e.altKey || openingSuggestions.length === 0 ? -1 : 0
+              );
+            } else if (!e.altKey) {
               setHighlightedIndex(prev =>
                 prev < filteredData.length - 1 ? prev + 1 : prev
               );
@@ -511,7 +640,18 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
             break;
           case 'ArrowUp':
             e.preventDefault();
-            setHighlightedIndex(prev => (prev > 0 ? prev - 1 : prev));
+            if (isMaxReached) break;
+            if (e.altKey) {
+              // Alt+Up Arrow closes the list, as the combobox pattern has it.
+              setIsActive(false);
+              setHighlightedIndex(-1);
+            } else if (!isActive && data.length > 0) {
+              // And Up Arrow opens it on its last.
+              setIsActive(true);
+              setHighlightedIndex(openingSuggestions.length - 1);
+            } else {
+              setHighlightedIndex(prev => (prev > 0 ? prev - 1 : prev));
+            }
             break;
           case 'Backspace':
             if (removeOnKeys && !inputValue && tags.length > 0) {
@@ -520,6 +660,15 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
             }
             break;
           case 'Escape':
+            // Closing the suggestions claims the key, so a Modal around the
+            // field stays open. With none showing, the key goes on to it.
+            if (listOpen) e.preventDefault();
+            setIsActive(false);
+            setHighlightedIndex(-1);
+            break;
+          case 'Tab':
+            // Tab moves on without picking, and the list doesn't stay open
+            // over where it lands.
             setIsActive(false);
             setHighlightedIndex(-1);
             break;
@@ -531,15 +680,30 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
         confirmKeys,
         highlightedIndex,
         filteredData,
-        addTag,
+        openingSuggestions,
+        isMaxReached,
+        addTags,
         inputValue,
         isActive,
+        listOpen,
         data.length,
         removeOnKeys,
         tags.length,
         removeTag,
       ]
     );
+
+    // A browser scrolls to what has focus, not to an active descendant, so
+    // the highlighted suggestion is brought into view here, as Autocomplete's
+    // is: an arrow key can open the list on its last suggestion.
+    useEffect(() => {
+      if (highlightedIndex < 0) return;
+      const option =
+        dropdownRef.current?.querySelectorAll('[role="option"]')[
+          highlightedIndex
+        ];
+      option?.scrollIntoView?.({ block: 'nearest' });
+    }, [highlightedIndex]);
 
     // Combined ref
     const combinedRef = useCallback(
@@ -594,24 +758,52 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     // Counter text
     const showCounter =
       hasCounter && (maxTags !== undefined || maxlength !== undefined);
+    const write = formatNumber ?? String;
     const counterText =
       maxTags !== undefined
-        ? `${tags.length} / ${maxTags}`
+        ? `${write(tags.length)} / ${write(maxTags)}`
         : maxlength !== undefined
-          ? `${inputValue.length} / ${maxlength}`
+          ? `${write(inputValue.length)} / ${write(maxlength)}`
           : '';
 
     const counterClasses = pcn('help', 'counter');
     const tagsClasses = pcn('tags');
+    // Whether each tag has its remove button.
+    const removable = closable && !disabled && !readonly;
     const dropdownMenuClasses = pcn('dropdown-menu', 'is-active');
     const dropdownContentClasses = pcn('dropdown-content');
     const iconRightClass = pcn('icon', 'is-right');
     const loaderClass = pcn('loader', 'is-loading');
 
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
+    // The other attributes go on the wrapper, so the input takes only the
+    // counter's and the message's ids.
+    const { messageEl, describedBy } = useFieldMessage(
+      message,
+      messageColor,
+      showCounter ? counterId : undefined
+    );
+
+    // The combobox controls its listbox and points at the highlighted option,
+    // the way Autocomplete's does. The listbox takes its name from the label
+    // that names the combobox, the one this renders or a surrounding Field's,
+    // and keeps a fallback name when no label names it or the one that does
+    // has no id to point at. While no suggestion matches there's no listbox,
+    // so the combobox is collapsed and points at nothing. It skips a
+    // highlighted suggestion that's blank once trimmed, since that one can't
+    // become a tag, and the option it points at is the one marked selected.
+    const optionId = (index: number) => `${listboxId}-${index}`;
+    const activeOptionId =
+      listOpen && filteredData[highlightedIndex]?.trim()
+        ? optionId(highlightedIndex)
+        : undefined;
+    const comboboxProps: React.InputHTMLAttributes<HTMLInputElement> = {
+      role: 'combobox',
+      'aria-expanded': listOpen,
+      'aria-controls': listOpen ? listboxId : undefined,
+      'aria-activedescendant': activeOptionId,
+      'aria-haspopup': 'listbox',
+      'aria-autocomplete': 'list',
+    };
 
     const taginputElement = (
       <div
@@ -633,51 +825,91 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
           <div className={tagsClasses}>
             {tags.map((tag, index) => {
               const displayVal = getDisplayValue(tag);
+              // With one name for every remove button, each is described
+              // by its tag's text, as Combobox's tags are (#2007), so the
+              // text takes an id then. A tagTemplate's content is left as it
+              // renders, since a span around it would change its spacing.
+              const tagTextId =
+                ariaCloseLabel && removable && !tagTemplate
+                  ? `${baseId}-tag-${index}`
+                  : undefined;
               return (
                 <span key={index} className={tagClasses}>
                   {tagTemplate ? (
                     tagTemplate(tag)
-                  ) : ellipsis ? (
-                    <span title={displayVal}>{displayVal}</span>
+                  ) : ellipsis || tagTextId ? (
+                    <span
+                      id={tagTextId}
+                      title={ellipsis ? displayVal : undefined}
+                    >
+                      {displayVal}
+                    </span>
                   ) : (
                     displayVal
                   )}
-                  {closable && !disabled && !readonly && (
+                  {removable && (
                     <button
                       type="button"
                       className={pcn('delete', 'is-small')}
                       onClick={e => {
                         e.stopPropagation();
+                        // The last tag's button goes with its tag, so when it
+                        // has focus, focus moves first to the button before
+                        // it, or to the input when no tag is left, rather
+                        // than dropping to the page (#2005). Another tag's
+                        // button stays, keyed by its place, and keeps focus.
+                        // It moves before the owner hears of the removal, so
+                        // focus the owner moves then stays where they put it.
+                        const button = e.currentTarget;
+                        if (
+                          index === tags.length - 1 &&
+                          getActiveElementInTree(button) === button
+                        ) {
+                          // Every tag ends in its remove button.
+                          const before = button.parentElement
+                            ?.previousElementSibling?.lastElementChild as
+                            HTMLElement | null | undefined;
+                          (before ?? inputRef.current)?.focus();
+                        }
                         removeTag(index);
                       }}
                       aria-label={ariaCloseLabel || `Remove ${displayVal}`}
+                      aria-describedby={tagTextId}
                     />
                   )}
                 </span>
               );
             })}
-            {!isMaxReached && (
-              <input
-                ref={combinedRef}
-                type="text"
-                className={inputClasses}
-                id={controlId}
-                value={inputValue}
-                placeholder={tags.length === 0 ? placeholder : undefined}
-                disabled={disabled}
-                readOnly={readonly}
-                maxLength={maxlength}
-                onChange={handleInputChange}
-                onFocus={handleFocus}
-                onKeyDown={handleKeyDown}
-                onPaste={handlePaste}
-                // Fallback name, dropped only when a rendered label actually
-                // targets this input, its own or a surrounding Field's
-                // (aria-label would win otherwise). A label pointing elsewhere
-                // keeps the fallback so the input is never nameless.
-                aria-label={labelled ? undefined : 'Add tag'}
-              />
-            )}
+            <input
+              ref={combinedRef}
+              type="text"
+              className={inputClasses}
+              id={controlId}
+              value={inputValue}
+              placeholder={tags.length === 0 ? placeholder : undefined}
+              disabled={disabled}
+              // Read-only at the tag limit rather than gone, so focus stays
+              // put and a label keeps naming it, and Backspace still makes
+              // room (#1103).
+              readOnly={readonly || isMaxReached}
+              maxLength={maxlength}
+              onChange={handleInputChange}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
+              onPaste={handlePaste}
+              {...(hasSuggestions && comboboxProps)}
+              // Fallback name, dropped only when a rendered label actually
+              // targets this input, its own or a surrounding Field's
+              // (aria-label would win otherwise). A label pointing elsewhere
+              // keeps the fallback so the input is never nameless.
+              aria-label={labelled ? undefined : labels?.input || 'Add tag'}
+              // The counter, while it shows, describes the input, so at the
+              // limit it says why the field takes no more, and then the
+              // message does.
+              aria-describedby={describedBy}
+              {...controlState}
+            />
           </div>
           {loading && (
             <span className={iconRightClass}>
@@ -686,23 +918,32 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
           )}
         </div>
 
-        {isActive && filteredData.length > 0 && (
-          <div className={dropdownMenuClasses}>
+        {listOpen && (
+          <div className={dropdownMenuClasses} onMouseDown={keepFocus}>
             <div
               ref={dropdownRef}
+              id={listboxId}
               className={dropdownContentClasses}
               role="listbox"
+              aria-labelledby={listLabelId}
+              aria-label={
+                listLabelId ? undefined : labels?.suggestions || 'Suggestions'
+              }
+              // It scrolls, and a browser can make a scroller a Tab stop of
+              // its own, which would take Tab from the input to the list.
+              tabIndex={-1}
             >
               {filteredData.map((item, index) => (
                 <a
                   key={index}
+                  id={optionId(index)}
                   className={pcn('dropdown-item', {
                     'is-active': index === highlightedIndex,
                   })}
-                  onClick={() => addTag(item)}
+                  onClick={() => addTags([item])}
                   onMouseEnter={() => setHighlightedIndex(index)}
                   role="option"
-                  aria-selected={index === highlightedIndex}
+                  aria-selected={optionId(index) === activeOptionId}
                 >
                   {item}
                 </a>
@@ -711,7 +952,11 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
           </div>
         )}
 
-        {showCounter && <small className={counterClasses}>{counterText}</small>}
+        {showCounter && (
+          <small id={counterId} className={counterClasses}>
+            {counterText}
+          </small>
+        )}
 
         {name &&
           tags.map((tag, i) => (

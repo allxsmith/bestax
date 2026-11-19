@@ -12,13 +12,15 @@
 @use '../variables';
 @use '../mixins';
 @use '../components/index' as components;
+@use '../layout/index' as layout;
 @use '../form/index' as form;
 @use '../elements/index' as elements;
 @use '../helpers/index' as helpers;
 
 @forward "bulma/sass/utilities";
 @forward "bulma/sass/base";
-@forward "bulma/sass/elements";
+// Table header cells align to the start of the line, as in bestax.scss.
+@forward "bulma/sass/elements" with ($table-cell-text-align: start !default);
 @forward "bulma/sass/form";
 @forward "bulma/sass/components";
 @forward "bulma/sass/grid";

@@ -167,7 +167,6 @@ export const HELPERLESS_TARGETS = new Set([
   'Panel.Heading',
   'Panel.Tabs',
   'Panel.Block',
-  'Tabs.List',
   'Tabs.Item',
   'Message.Header',
   'Message.Body',
@@ -333,13 +332,16 @@ export const MAPPING: Record<string, ComponentMapping> = {
   Tag: {
     status: 'mapped',
     target: 'Tag',
-    props: { isColor: color, isSize: size },
+    props: { isColor: color, isSize: size, tag: TAG_AS },
   },
   // bestax's `Title.size` accepts the numbers 1–6 as well as their string
-  // forms, so bloomer's numeric `isSize` carries over untouched.
+  // forms, but it also picks the heading level, which bloomer's `isSize`
+  // never did. The special keeps the level, moving the size to `textSize`
+  // where `size` would change it; `isSize: size` covers the rest.
   Title: {
     status: 'mapped',
     target: 'Title',
+    special: 'title',
     props: {
       hasTextColor: TEXT_COLOR_OK,
       isSize: size,
@@ -556,7 +558,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
   Level: {
     status: 'mapped',
     target: 'Level',
-    props: { hasTextColor: TEXT_COLOR_OK, isMobile: {} },
+    props: { hasTextColor: TEXT_COLOR_OK, isMobile: {}, tag: TAG_AS },
   },
   LevelItem: {
     status: 'mapped',
@@ -763,7 +765,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
   },
 
   // ---- panel --------------------------------------------------------------
-  Panel: { status: 'mapped', target: 'Panel' },
+  Panel: { status: 'mapped', target: 'Panel', props: { tag: TAG_AS } },
   PanelHeading: { status: 'mapped', target: 'Panel.Heading' },
   PanelTabs: { status: 'mapped', target: 'Panel.Tabs' },
   PanelTab: { status: 'mapped', special: 'panel-tab' },
@@ -794,15 +796,9 @@ export const MAPPING: Record<string, ComponentMapping> = {
       isFullWidth: FULLWIDTH,
     },
   },
-  TabList: {
-    status: 'mapped',
-    target: 'Tabs.List',
-    props: {
-      isAlign: {
-        todo: "Bulma aligns tabs on the `.tabs` container, not the list (bloomer's `is-center` on the <ul> did nothing); set `align` on the `<Tabs>` instead",
-      },
-    },
-  },
+  // A plain <ul>, as bloomer rendered: bestax's `Tabs.List` renders
+  // `role="tablist"`, which the `Tabs.Item`s inside are not the tabs of (#1961).
+  TabList: { status: 'mapped', special: 'tab-list' },
   // bestax's `Tabs.Tab` is the controlled API and requires an `index`;
   // `Tabs.Item` is the plain <li> that bloomer's Tab actually is.
   Tab: { status: 'mapped', target: 'Tabs.Item', props: { isActive: active } },
@@ -812,7 +808,11 @@ export const MAPPING: Record<string, ComponentMapping> = {
   Container: {
     status: 'mapped',
     target: 'Container',
-    props: { hasTextColor: TEXT_COLOR_OK, isFluid: { rename: 'fluid' } },
+    props: {
+      hasTextColor: TEXT_COLOR_OK,
+      isFluid: { rename: 'fluid' },
+      tag: TAG_AS,
+    },
   },
   Footer: {
     status: 'mapped',
@@ -833,12 +833,13 @@ export const MAPPING: Record<string, ComponentMapping> = {
       isFullHeight: { booleanToProp: { name: 'size', value: 'fullheight' } },
       isHalfHeight: { toClass: 'is-halfheight' },
       isBold: { toClass: 'is-bold' },
+      tag: TAG_AS,
     },
   },
   HeroHeader: {
     status: 'mapped',
     target: 'Hero.Head',
-    props: { hasTextColor: TEXT_COLOR_OK },
+    props: { hasTextColor: TEXT_COLOR_OK, tag: TAG_AS },
   },
   HeroBody: {
     status: 'mapped',
@@ -849,7 +850,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
   HeroFooter: {
     status: 'mapped',
     target: 'Hero.Foot',
-    props: { hasTextColor: TEXT_COLOR_OK },
+    props: { hasTextColor: TEXT_COLOR_OK, tag: TAG_AS },
   },
 
   // ---- the helper HOC -----------------------------------------------------

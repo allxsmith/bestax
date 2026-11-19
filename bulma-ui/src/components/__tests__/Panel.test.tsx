@@ -9,6 +9,8 @@ import Panel, {
   PanelButtonBlock,
 } from '../Panel';
 import { ConfigProvider } from '../../helpers/Config';
+import { Control } from '../../form/Control';
+import { Input } from '../../form/Input';
 
 describe('Panel', () => {
   it('renders panel nav with panel class', () => {
@@ -33,6 +35,42 @@ describe('Panel', () => {
       </Panel>
     );
     expect(screen.getByTestId('child')).toBeInTheDocument();
+  });
+
+  it('renders a <nav> by default', () => {
+    render(<Panel data-testid="panel" />);
+    expect(screen.getByTestId('panel').tagName).toBe('NAV');
+  });
+
+  it.each(['nav', 'article', 'section', 'aside', 'div'] as const)(
+    'renders a <%s>',
+    tag => {
+      render(
+        <Panel
+          as={tag}
+          color="info"
+          m="2"
+          aria-labelledby="panel-heading"
+          data-testid="panel"
+        />
+      );
+      const panel = screen.getByTestId('panel');
+      expect(panel.tagName).toBe(tag.toUpperCase());
+      expect(panel).toHaveClass('panel', 'is-info', 'm-2');
+      expect(panel).toHaveAttribute('aria-labelledby', 'panel-heading');
+      expect(panel).not.toHaveAttribute('as');
+    }
+  );
+
+  it('names a <section> panel by its heading', () => {
+    render(
+      <Panel as="section" aria-labelledby="program">
+        <Panel.Heading id="program">Program</Panel.Heading>
+      </Panel>
+    );
+    expect(screen.getByRole('region', { name: 'Program' })).toHaveClass(
+      'panel'
+    );
   });
 
   it('applies classPrefix when provided via ConfigProvider', () => {
@@ -124,6 +162,36 @@ describe('Panel.Heading', () => {
   });
 });
 
+// The heading is a paragraph to assistive tech, and the API page's fixes rely
+// on the heading and the panel passing these attributes through.
+describe('a heading tied to its panel', () => {
+  it('names the panel’s navigation landmark after its heading', () => {
+    render(
+      <Panel aria-labelledby="repos">
+        <Panel.Heading id="repos">Repositories</Panel.Heading>
+        <Panel.Block href="#bulma">bulma</Panel.Block>
+      </Panel>
+    );
+    expect(
+      screen.getByRole('navigation', { name: 'Repositories' })
+    ).toHaveClass('panel');
+  });
+
+  it('makes the heading a heading at the level it is given', () => {
+    render(
+      <Panel>
+        <Panel.Heading role="heading" aria-level={2}>
+          Repositories
+        </Panel.Heading>
+        <Panel.Block href="#bulma">bulma</Panel.Block>
+      </Panel>
+    );
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Repositories' })
+    ).toHaveClass('panel-heading');
+  });
+});
+
 describe('Panel.Tabs', () => {
   it('renders tabs', () => {
     render(
@@ -160,13 +228,97 @@ describe('Panel.Block', () => {
     expect(screen.getByTestId('block')).toHaveClass('is-active');
   });
 
+  // Bulma draws the active block as the selected one, so it says so to
+  // assistive tech too, as Menu.Item and Navbar.Item do.
+  describe('aria-current', () => {
+    it('active writes aria-current="page"', () => {
+      render(
+        <Panel>
+          <Panel.Block href="/bulma" active>
+            bulma
+          </Panel.Block>
+          <Panel.Block href="/marksheet">marksheet</Panel.Block>
+        </Panel>
+      );
+      const current = screen.getByRole('link', { current: 'page' });
+      expect(current).toHaveAccessibleName('bulma');
+      expect(current).toHaveClass('is-active');
+      expect(
+        screen.getByRole('link', { name: 'marksheet' })
+      ).not.toHaveAttribute('aria-current');
+    });
+
+    it('a block that is not active has none', () => {
+      render(
+        <Panel.Block href="/a" active={false}>
+          A
+        </Panel.Block>
+      );
+      expect(screen.getByRole('link', { name: 'A' })).not.toHaveAttribute(
+        'aria-current'
+      );
+    });
+
+    it('an aria-current the caller passes wins', () => {
+      render(
+        <>
+          <Panel.Block href="#intro" active aria-current="location">
+            Intro
+          </Panel.Block>
+          <Panel.Block
+            as="label"
+            active
+            aria-current={false}
+            data-testid="label"
+          >
+            <input type="checkbox" /> remember me
+          </Panel.Block>
+        </>
+      );
+      expect(screen.getByRole('link', { name: 'Intro' })).toHaveAttribute(
+        'aria-current',
+        'location'
+      );
+      expect(screen.getByTestId('label')).toHaveAttribute(
+        'aria-current',
+        'false'
+      );
+    });
+
+    it('a spread carrying aria-current: undefined wins too', () => {
+      const forwarded: { 'aria-current'?: 'page' | undefined } = {
+        'aria-current': undefined,
+      };
+      render(
+        <Panel.Block href="/b" active {...forwarded}>
+          B
+        </Panel.Block>
+      );
+      expect(screen.getByRole('link', { name: 'B' })).not.toHaveAttribute(
+        'aria-current'
+      );
+    });
+
+    it('reaches the element `as` renders', () => {
+      render(
+        <Panel.Block as="div" active data-testid="block">
+          Program
+        </Panel.Block>
+      );
+      expect(screen.getByTestId('block')).toHaveAttribute(
+        'aria-current',
+        'page'
+      );
+    });
+  });
+
   it('accepts custom className', () => {
     render(<Panel.Block className="custom-block" data-testid="block" />);
     expect(screen.getByTestId('block')).toHaveClass('custom-block');
   });
 
   it('calls onClick', () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(
       <Panel.Block data-testid="block" onClick={handleClick}>
         Clickable
@@ -174,6 +326,105 @@ describe('Panel.Block', () => {
     );
     fireEvent.click(screen.getByTestId('block'));
     expect(handleClick).toHaveBeenCalled();
+  });
+
+  it('renders an <a> by default, with its anchor attributes', () => {
+    render(
+      <Panel.Block
+        href="/docs"
+        target="_blank"
+        rel="noopener"
+        download="f"
+        data-testid="block"
+      >
+        Docs
+      </Panel.Block>
+    );
+    const block = screen.getByTestId('block');
+    expect(block.tagName).toBe('A');
+    expect(block).toHaveAttribute('href', '/docs');
+    expect(block).toHaveAttribute('target', '_blank');
+    expect(block).toHaveAttribute('rel', 'noopener');
+    expect(block).toHaveAttribute('download', 'f');
+  });
+
+  // The types keep each element's own attributes to it, so the tests below
+  // hand the others over through a loose spread, the way a plain-JS caller or
+  // an untyped props bag still can.
+  it('drops the label attributes from an <a>', () => {
+    const loose: object = { htmlFor: 'x', form: 'f' };
+    render(
+      <Panel.Block {...loose} data-testid="block">
+        Docs
+      </Panel.Block>
+    );
+    const block = screen.getByTestId('block');
+    expect(block).not.toHaveAttribute('for');
+    expect(block).not.toHaveAttribute('form');
+  });
+
+  it('renders a <div> without the anchor or label attributes', () => {
+    const loose: object = {
+      href: '/docs',
+      target: '_blank',
+      type: 'text/html',
+      htmlFor: 'x',
+      form: 'f',
+    };
+    render(
+      <Panel.Block
+        as="div"
+        active
+        {...loose}
+        rel="noopener"
+        className="custom-block"
+        aria-label="Program"
+        data-testid="block"
+      >
+        <table />
+      </Panel.Block>
+    );
+    const block = screen.getByTestId('block');
+    expect(block.tagName).toBe('DIV');
+    expect(block).toHaveClass('panel-block', 'is-active', 'custom-block');
+    expect(block).toHaveAttribute('aria-label', 'Program');
+    for (const attr of ['href', 'target', 'rel', 'type', 'for', 'form', 'as']) {
+      expect(block).not.toHaveAttribute(attr);
+    }
+    expect(block.querySelector('table')).toBeInTheDocument();
+  });
+
+  it('renders a <label> with its own attributes but not the anchor ones', () => {
+    const loose: object = { href: '/docs' };
+    render(
+      <Panel.Block
+        as="label"
+        htmlFor="remember"
+        {...loose}
+        rel="noopener"
+        data-testid="block"
+      >
+        Remember me
+      </Panel.Block>
+    );
+    const block = screen.getByTestId('block');
+    expect(block.tagName).toBe('LABEL');
+    expect(block).toHaveClass('panel-block');
+    expect(block).toHaveAttribute('for', 'remember');
+    expect(block).not.toHaveAttribute('href');
+    expect(block).not.toHaveAttribute('rel');
+  });
+
+  it('keeps the prefixed classes on another tag', () => {
+    render(
+      <ConfigProvider classPrefix="bestax-">
+        <Panel.Block as="div" active data-testid="block" />
+      </ConfigProvider>
+    );
+    expect(screen.getByTestId('block')).toHaveClass(
+      'bestax-panel-block',
+      'bestax-is-active'
+    );
   });
 });
 
@@ -260,7 +511,7 @@ describe('Panel.InputBlock', () => {
   });
 
   it('calls onChange when input changes', () => {
-    const handleChange = jest.fn();
+    const handleChange = vi.fn();
     render(
       <Panel.InputBlock onChange={handleChange} data-testid="input-block" />
     );
@@ -269,6 +520,97 @@ describe('Panel.InputBlock', () => {
     expect(handleChange).toHaveBeenCalled();
   });
 });
+
+// The field is named by its placeholder alone, and the API page's way to
+// give it a name of its own is a Panel.Block with a Control and an Input.
+describe('naming Panel.InputBlock’s field', () => {
+  // A browser names the field after its placeholder when nothing else does;
+  // Testing Library's name computation doesn't, so this checks the
+  // placeholder reaches the field.
+  it('puts its placeholder on the field', () => {
+    render(
+      <Panel>
+        <Panel.InputBlock placeholder="Search repositories" />
+      </Panel>
+    );
+    expect(screen.getByRole('textbox')).toHaveAttribute(
+      'placeholder',
+      'Search repositories'
+    );
+  });
+
+  // Where the label lands today, which names nothing on a div. Sending it to
+  // the field changes what a caller's aria-label does, so it waits for the
+  // next major (#1998).
+  it('puts an aria-label on the block, not on the field', () => {
+    const { container } = render(
+      <Panel>
+        <Panel.InputBlock aria-label="Search repositories" />
+      </Panel>
+    );
+    expect(screen.getByRole('textbox')).not.toHaveAttribute('aria-label');
+    expect(container.querySelector('div.panel-block')).toHaveAttribute(
+      'aria-label',
+      'Search repositories'
+    );
+  });
+
+  it('gives the field a name of its own through a Control and an Input', () => {
+    const { container } = render(
+      <Panel>
+        <Panel.Block as="div">
+          <Control iconLeftName="search">
+            <Input aria-label="Search repositories" placeholder="Search" />
+          </Control>
+        </Panel.Block>
+      </Panel>
+    );
+    const field = screen.getByRole('textbox', { name: 'Search repositories' });
+    expect(container.querySelector('div.panel-block')).toContainElement(field);
+  });
+});
+
+// A className adds to the block's own class, as on the other Panel parts,
+// rather than taking its place (#2132).
+describe.each([
+  ['no prefix', undefined],
+  ['a class prefix', 'bestax-'],
+])(
+  'a className on the input and checkbox blocks, with %s',
+  (_label, prefix) => {
+    const block = `${prefix ?? ''}panel-block`;
+
+    it('keeps Panel.InputBlock’s panel-block class', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Panel>
+            <Panel.InputBlock className="mb-2" placeholder="Search" />
+          </Panel>
+        </ConfigProvider>
+      );
+      const div = screen.getByRole('textbox').closest('div');
+      expect(div).toHaveClass(block, 'mb-2');
+      expect(container.querySelectorAll(`.${block}`)).toHaveLength(1);
+    });
+
+    it('keeps Panel.CheckboxBlock’s panel-block class', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Panel>
+            <Panel.CheckboxBlock className="mb-2">
+              remember me
+            </Panel.CheckboxBlock>
+          </Panel>
+        </ConfigProvider>
+      );
+      expect(screen.getByText('remember me').closest('label')).toHaveClass(
+        block,
+        'mb-2'
+      );
+      expect(container.querySelectorAll(`.${block}`)).toHaveLength(1);
+    });
+  }
+);
 
 describe('Panel.CheckboxBlock', () => {
   it('renders checkbox and label', () => {
@@ -286,7 +628,7 @@ describe('Panel.CheckboxBlock', () => {
   });
 
   it('calls onChange when checkbox changes', () => {
-    const handleChange = jest.fn();
+    const handleChange = vi.fn();
     render(
       <Panel.CheckboxBlock onChange={handleChange} data-testid="checkbox">
         remember me
@@ -319,7 +661,7 @@ describe('Panel.ButtonBlock', () => {
   });
 
   it('calls onClick when button clicked', () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(
       <Panel.ButtonBlock onClick={handleClick} data-testid="button">
         Click me

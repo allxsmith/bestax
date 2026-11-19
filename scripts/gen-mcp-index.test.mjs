@@ -12,27 +12,31 @@
  * Runs the real extraction (no fixtures): the contract worth testing is the one
  * against the actual library, and the TypeScript Program it needs is built once
  * and cached.
- *
- * `.mjs` and `node --test` rather than jest: these are root-level scripts with
- * no package of their own, matching how docs/scripts is covered.
  */
-import { test, before } from 'node:test';
+import { test, beforeAll } from 'vitest';
 import assert from 'node:assert/strict';
+import { statSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import {
   absoluteLinks,
   build,
+  bulmaClassTable,
   helperImport,
+  importedNames,
+  importSection,
   orderDeclarers,
   proseComponentInfo,
   readSkills,
   reportFailure,
+  sectionPurpose,
+  standaloneTables,
 } from './gen-mcp-index.mjs';
 import { sectionSpans } from './lib/api-page.mjs';
 import { RENDERS_ELEMENT_OF } from './lib/api-sources.mjs';
+import { barrelExports } from './lib/props-extract.mjs';
 import { failureText, skillRefusal, skillSlug } from './lib/skills.mjs';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -43,7 +47,7 @@ let missing;
 let skills;
 let bulmaClasses;
 
-before(async () => {
+beforeAll(async () => {
   ({ catalog, components, missing, skills, bulmaClasses } = await build());
 });
 
@@ -87,6 +91,49 @@ test('no markdown escaping leaks into props', () => {
   }
 });
 
+test('a prop says whether a caller must pass it (#1754)', () => {
+  const props = (name, path) =>
+    Object.fromEntries(
+      components
+        .get(name)
+        .parts.find(p => p.path === path)
+        .props.map(p => [p.name, p.required])
+    );
+  const dropdown = props('Dropdown', 'Dropdown');
+  assert.equal(dropdown.label, true);
+  assert.equal(dropdown.className, false);
+  // Required in every branch of a union props type, and only then: Combobox
+  // takes `data` in its data branches and not when built from parts.
+  assert.equal(props('TreeSelect', 'TreeSelect').data, true);
+  assert.equal(props('Combobox', 'Combobox').data, false);
+  // Structured descriptions carry no table markup for it.
+  const label = components
+    .get('Dropdown')
+    .parts[0].props.find(p => p.name === 'label');
+  assert.ok(!label.description.startsWith('**Required.**'), label.description);
+});
+
+test('no prop writes its own required mark into its TSDoc (#1754)', () => {
+  // The tables and the `required` field mark a required prop already, so a
+  // mark written by hand as well prints twice in its row. A required prop's
+  // description may not open with the word either, bold or not.
+  const marked = [];
+  for (const { parts } of components.values()) {
+    for (const part of parts) {
+      for (const p of [...part.props, ...part.extraProps]) {
+        const text = p.description ?? '';
+        if (
+          /\*\*Required\.?\*\*|\(required\)/i.test(text) ||
+          (p.required && /^\W*required\b/i.test(text))
+        ) {
+          marked.push(`${part.path} ${p.name}`);
+        }
+      }
+    }
+  }
+  assert.deepEqual(marked, []);
+});
+
 test('compound families keep every dot-path, including table-less subs', () => {
   const navbar = components.get('Navbar');
   const paths = navbar.parts.map(p => p.path);
@@ -120,6 +167,25 @@ test('helper pages ship as prose, not as an empty props table', () => {
   const trap = components.get('useFocusTrap');
   assert.match(trap.api, /function useFocusTrap\(/);
   assert.ok(trap.api.length < trap.doc.length / 4, 'api is the whole page');
+});
+
+test('the helper props page carries the helper props as rows, and only it (#1273)', () => {
+  const rows = components.get('useBulmaClasses').helperProps;
+  const visibility = rows.find(r => r.name === 'visibility');
+  assert.equal(visibility.type, "'hidden' | 'sr-only' | 'invisible'");
+  assert.match(visibility.description, /screen readers/);
+  for (const [name, record] of components) {
+    if (name !== 'useBulmaClasses') assert.equal(record.helperProps, undefined);
+  }
+});
+
+test('a part says where its helper props go when not with the rest (#1273)', () => {
+  const note = (name, path = name) =>
+    components.get(name).parts.find(p => p.path === path).helperPropsNote;
+  assert.match(note('Checkbox'), /outer `<label>`/);
+  assert.match(note('Select'), /`\.select` wrapper `<div>`/);
+  assert.match(note('Select', 'SelectBase'), /`\.select` wrapper `<div>`/);
+  assert.equal(note('Button'), undefined);
 });
 
 test('components documented on helpers pages get a props table (#933)', () => {
@@ -368,6 +434,13 @@ test('usage examples are harvested with their headings', () => {
   assert.ok(total > 500, `only ${total} examples across the library`);
 });
 
+test('an example under a `####` is titled by it after its `###` (#1236)', () => {
+  const titles = components.get('Carousel').examples.map(e => e.title);
+  assert.ok(titles.includes('Several Items in View'));
+  assert.ok(titles.includes('Several Items in View › Stepping and indicators'));
+  assert.ok(titles.includes('Several Items in View › Spacing between items'));
+});
+
 test('CSS variables are indexed back to their component', () => {
   const button = components.get('Button');
   assert.ok(button.cssVars.length > 0);
@@ -378,7 +451,11 @@ test('CSS variables are indexed back to their component', () => {
   assert.deepEqual(catalog.cssVarIndex['--bulma-button-h'], ['Button']);
   for (const v of button.cssVars) {
     assert.match(v.css, /^--/);
-    assert.ok(['root', 'compound', 'element', 'global'].includes(v.scope));
+    assert.ok(
+      ['root', 'root-and-element', 'compound', 'element', 'global'].includes(
+        v.scope
+      )
+    );
   }
 });
 
@@ -411,7 +488,9 @@ test('every CSS variable scope is one the server has advice for', () => {
   for (const [name, record] of components) {
     for (const v of record.cssVars) {
       assert.ok(
-        ['root', 'compound', 'element', 'global'].includes(v.scope),
+        ['root', 'root-and-element', 'compound', 'element', 'global'].includes(
+          v.scope
+        ),
         `${name}: ${v.css} has scope ${v.scope}`
       );
     }
@@ -620,7 +699,7 @@ function brokenStorybookLinks(text, ids) {
     ...text.matchAll(/https:\/\/bestax\.io\/storybook\/\?path=[^\s)"\\]+/g),
   ].map(m => m[0]);
   return {
-    count: urls.length,
+    urls,
     broken: urls.filter(url => {
       const id = url.match(/[?&]path=\/(?:story|docs)\/([^&#]+)/)?.[1];
       return !id || !ids.has(id);
@@ -640,10 +719,10 @@ test('every Storybook link in the index and the docs opens a story that exists',
   assert.ok(ids.has('elements-button--default'), 'story ids were not derived');
   const broken = [];
 
-  let inIndex = 0;
+  const inIndex = new Set();
   for (const [name, record] of components) {
     const found = brokenStorybookLinks(JSON.stringify(record), ids);
-    inIndex += found.count;
+    found.urls.forEach(url => inIndex.add(url));
     broken.push(...found.broken.map(url => `index ${name}: ${url}`));
   }
   // An extraction that broke would empty the field on every record at once, and
@@ -655,7 +734,7 @@ test('every Storybook link in the index and the docs opens a story that exists',
   );
 
   const docs = join(REPO, 'docs', 'docs');
-  let onPages = 0;
+  const onPages = new Set();
   for (const entry of await readdir(docs, {
     recursive: true,
     withFileTypes: true,
@@ -663,11 +742,19 @@ test('every Storybook link in the index and the docs opens a story that exists',
     if (!entry.isFile() || !/\.mdx?$/.test(entry.name)) continue;
     const file = join(entry.parentPath, entry.name);
     const found = brokenStorybookLinks(await readFile(file, 'utf8'), ids);
-    onPages += found.count;
+    found.urls.forEach(url => onPages.add(url));
     const page = file.slice(REPO.length + 1);
     broken.push(...found.broken.map(url => `${page}: ${url}`));
   }
-  assert.ok(onPages >= inIndex, 'the docs pages were not read');
+  // Each link in the index was copied from a page, so a page holds each one.
+  // Compared as sets: a helper's record carries its page's link twice, once as
+  // the record's `storybook` and once in the prose it keeps, so a count of
+  // links in the index outgrows the pages' count by one for each helper.
+  assert.deepEqual(
+    [...inIndex].filter(url => !onPages.has(url)),
+    [],
+    'the docs pages were not read'
+  );
 
   assert.deepEqual(broken, []);
 });
@@ -716,7 +803,8 @@ test('references nested one level per subject still reach the index', () => {
     const ref = migrate.references.find(r => r.id === id);
     assert.ok(ref, `${id} is not indexed`);
     assert.match(ref.file, /^references\/[^/]+\/[^/]+\.md$/);
-    assert.ok(ref.bytes > 0, `${id} indexed as empty`);
+    const source = join(REPO, 'skills', 'bestax-migrate', ref.file);
+    assert.ok(statSync(source).size > 0, `${id} is an empty file`);
   }
   // `id` is the lookup key behind bestax://skills/{name}/references/{ref},
   // so a slash in it would not resolve.
@@ -737,7 +825,7 @@ test('the skills manifest lists exactly what the sync scripts ship', async t => 
   const { tmpdir } = await import('node:os');
 
   const root = mkdtempSync(join(tmpdir(), 'bestax-mcp-skills-'));
-  t.after(() => rmSync(root, { recursive: true, force: true }));
+  t.onTestFinished(() => rmSync(root, { recursive: true, force: true }));
   const skillsDir = join(root, 'skills');
   const skill = join(skillsDir, 'bestax-form');
   mkdirSync(join(skill, 'references', 'sub'), { recursive: true });
@@ -791,7 +879,7 @@ test('the index refuses a symbolic link wherever the sync scripts do', async t =
   const { tmpdir } = await import('node:os');
 
   const root = mkdtempSync(join(tmpdir(), 'bestax-mcp-links-'));
-  t.after(() => rmSync(root, { recursive: true, force: true }));
+  t.onTestFinished(() => rmSync(root, { recursive: true, force: true }));
   const skillsDir = join(root, 'skills');
   const skill = join(skillsDir, 'bestax-form');
   mkdirSync(join(skill, 'references'), { recursive: true });
@@ -801,9 +889,7 @@ test('the index refuses a symbolic link wherever the sync scripts do', async t =
   );
   writeFileSync(join(skill, 'references', 'api.md'), '# api\n');
   const [form] = await readSkills(skillsDir);
-  assert.deepEqual(form.references, [
-    { id: 'api', file: 'references/api.md', bytes: 6 },
-  ]);
+  assert.deepEqual(form.references, [{ id: 'api', file: 'references/api.md' }]);
   assert.deepEqual(form.examples, []);
 
   const outside = join(root, 'outside');
@@ -875,6 +961,391 @@ test('output is deterministic and code-point sorted', () => {
   }
 });
 
+test('exports documented with a component reach the index as its parts (#1150, #1174)', () => {
+  const part = (component, path) =>
+    components.get(component).parts.find(p => p.path === path);
+  // The base a convenience component renders, which the class lookup names.
+  for (const name of ['Input', 'Select', 'TextArea', 'DateInput']) {
+    const base = part(name, `${name}Base`);
+    assert.equal(base?.standalone, 'base', `${name}Base is not in ${name}`);
+    assert.ok(base.props.length > 3, `${name}Base has no table`);
+  }
+  // What a page imports beside its component, which its import line names.
+  assert.equal(part('Carousel', 'CarouselItem')?.standalone, 'companion');
+  assert.deepEqual(
+    part('Toast', 'ToastContainer').props.map(p => [p.name, p.default]),
+    [
+      ['position', "'top-right'"],
+      ['hotkey', "['F8']"],
+      ['ariaLabel', "'Notifications'"],
+    ]
+  );
+  assert.equal(part('Dialog', 'DialogContainer').noProps, true);
+  // A name with a page of its own, or a part already, is no extra.
+  for (const name of ['Dropdown', 'Table', 'Columns', 'Card', 'Modal']) {
+    assert.ok(
+      components.get(name).parts.every(p => !p.standalone),
+      `${name} grew a standalone part`
+    );
+  }
+  // Neither makes a component compound.
+  const entry = name => catalog.components.find(c => c.name === name);
+  assert.equal(entry('Input').compound, false);
+  assert.equal(entry('Table').compound, true);
+});
+
+test('every export documented with a component is found by its name', () => {
+  const { documentedWith } = catalog;
+  assert.deepEqual(documentedWith.InputBase, {
+    component: 'Input',
+    path: 'InputBase',
+    purpose: documentedWith.InputBase.purpose,
+    standalone: 'base',
+  });
+  assert.equal(documentedWith.CarouselItem.component, 'Carousel');
+  // A sub exported standalone is its part, and a borrowed one goes to the
+  // component that declares it.
+  assert.deepEqual(
+    [documentedWith.Thead.component, documentedWith.Thead.path],
+    ['Table', 'Table.Thead']
+  );
+  assert.deepEqual(
+    [documentedWith.DropdownItem.component, documentedWith.DropdownItem.path],
+    ['Dropdown', 'Dropdown.Item']
+  );
+  // So is one declared beside its parent, which no part names, and one that
+  // is a compound itself, by the constant composing it.
+  for (const [name, component, path] of [
+    ['TreeViewItem', 'TreeView', 'TreeView.Item'],
+    ['NavbarItem', 'Navbar', 'Navbar.Item'],
+    ['MenuItem', 'Menu', 'Menu.Item'],
+    ['TabsContent', 'Tabs', 'Tabs.Content'],
+    // Also when the page imports it beside its parent.
+    ['CardHeader', 'Card', 'Card.Header'],
+    ['ModalCard', 'Modal', 'Modal.Card'],
+  ]) {
+    assert.deepEqual(
+      [documentedWith[name]?.component, documentedWith[name]?.path],
+      [component, path],
+      name
+    );
+  }
+  const titles = new Set(catalog.components.map(c => c.name));
+  for (const [name, { component, path }] of Object.entries(documentedWith)) {
+    assert.ok(!titles.has(name), `${name} has a catalog entry of its own`);
+    // One that is no part is a name the record's import line gives.
+    assert.ok(
+      path
+        ? components.get(component).parts.some(p => p.path === path)
+        : importedNames(components.get(component).import).includes(name),
+      `${name}: ${component} has no part ${path}`
+    );
+  }
+  const keys = Object.keys(documentedWith);
+  assert.deepEqual(
+    [...keys].sort((a, b) => (a < b ? -1 : 1)),
+    keys
+  );
+});
+
+// What an import line gives beside its component that is no part: a hook, a
+// function or a constant, with the section of the page that documents it (#1465).
+test('every name an import line gives is a catalog entry or documented with one', () => {
+  const { documentedWith } = catalog;
+  for (const [name, component, section] of [
+    ['useAppFrame', 'AppFrame', 'A Toggle of Your Own'],
+    ['useIsHydrated', 'ClientOnly', 'useIsHydrated'],
+    ['useConfig', 'ConfigProvider', 'useConfig'],
+    ['useDataTable', 'DataTable', 'The useDataTable Hook'],
+    ['useLocale', 'LocaleProvider', 'useLocale'],
+    ['useNumberFormat', 'NumberFormatter', 'The useNumberFormat Hook'],
+    ['useScrollSpy', 'TableOfContents', 'The useScrollSpy Hook'],
+    ['toast', 'Toast', 'Programmatic API'],
+    ['dialog', 'Dialog', 'Programmatic API'],
+    ['notification', 'Notification', 'Programmatic API'],
+    ['validColors', 'Valid value constants', undefined],
+  ]) {
+    const { purpose, ...where } = documentedWith[name];
+    assert.deepEqual(
+      where,
+      { component, ...(section ? { section } : {}) },
+      name
+    );
+    // What its section says first, and nothing for one with no section (#1579).
+    assert.equal(purpose === '', section === undefined, name);
+  }
+  assert.equal(
+    documentedWith.useDataTable.purpose,
+    '`useDataTable` takes the same columns, data and state options as ' +
+      '`DataTable` and returns the table.'
+  );
+  assert.equal(
+    documentedWith.toast.purpose,
+    'For showing toasts from anywhere in your app, use the programmatic API.'
+  );
+  // A hook its page documents but its import line leaves out is not one.
+  assert.equal(documentedWith.useClassPrefix, undefined);
+  const titles = new Set(catalog.components.map(c => c.name));
+  for (const [name, record] of components) {
+    for (const id of importedNames(record.import)) {
+      assert.ok(
+        titles.has(id) || Object.hasOwn(documentedWith, id),
+        `${name}'s import line gives ${id}, which nothing answers for`
+      );
+    }
+  }
+});
+
+test('importedNames reads the identifiers an import line gives', () => {
+  assert.deepEqual(
+    importedNames(
+      "import {\n  DataTable,\n  useDataTable,\n  type Row,\n} from '@allxsmith/bestax-bulma';"
+    ),
+    ['DataTable', 'useDataTable']
+  );
+  assert.deepEqual(importedNames("import Bestax from 'x';"), []);
+});
+
+test('importSection names a heading, else an example, else a section whose code calls it', () => {
+  const lines = [
+    '# Page',
+    '## Usage',
+    '```tsx',
+    '## useThing in a fence',
+    '```',
+    '### Using the toast',
+    '#### useThing, too deep',
+    '### The useThing Hook',
+  ];
+  assert.equal(importSection(lines, [], 'useThing'), 'The useThing Hook');
+  // A mention in an example's text is no call; a call and a method call are.
+  const examples = [
+    { title: 'Words', code: '<p>Raise a toast here</p>' },
+    { title: 'Calls', code: "toast.show({ message: 'Hi' })" },
+    { title: 'Hook', code: 'const frame = useFrame();' },
+  ];
+  assert.equal(importSection(['# Page'], examples, 'toast'), 'Calls');
+  assert.equal(importSection(['# Page'], examples, 'useFrame'), 'Hook');
+  assert.equal(importSection(lines, examples, 'dialog'), null);
+  // Else the first `##` section whose code calls it, not a `##` in a fence or
+  // code before the first heading.
+  const page = [
+    '```ts',
+    '## Not a heading',
+    'dialog.alert()',
+    '```',
+    '## Import',
+    '```tsx',
+    "import { Dialog, dialog } from '@allxsmith/bestax-bulma';",
+    '```',
+    '## Programmatic API',
+    '### Setup',
+    '```tsx',
+    "await dialog.confirm({ message: 'Sure?' });",
+    '```',
+  ];
+  assert.equal(importSection(page, examples, 'dialog'), 'Programmatic API');
+  // A `$` in a name is matched as itself.
+  assert.equal(importSection(['## The $store'], [], '$store'), 'The $store');
+});
+
+test('sectionPurpose reads the first sentence under the section', () => {
+  const lines = [
+    '## Usage',
+    '### The useThing Hook',
+    '',
+    '```tsx',
+    'useThing();',
+    '```',
+    '',
+    '`useThing` returns the thing the nearest provider holds, and',
+    'nothing outside one. It reads the context once.',
+    '',
+    'More prose.',
+    '### Empty',
+    '',
+    '```tsx',
+    'useOther();',
+    '```',
+    '### Passing It',
+    '',
+    'Pass it as the first argument:',
+    '#### Nested',
+    '',
+    'A deeper heading names its own sentence for an example title.',
+  ];
+  assert.equal(
+    sectionPurpose(lines, 'The useThing Hook'),
+    '`useThing` returns the thing the nearest provider holds, and nothing ' +
+      'outside one.'
+  );
+  // A section that opens with code alone, or names no heading, has none.
+  assert.equal(sectionPurpose(lines, 'Empty'), '');
+  assert.equal(sectionPurpose(lines, 'Not here'), '');
+  // A lead-in to code ends as a sentence, and an example title's last part
+  // names its heading.
+  assert.equal(
+    sectionPurpose(lines, 'Passing It'),
+    'Pass it as the first argument.'
+  );
+  assert.equal(
+    sectionPurpose(lines, 'Passing It › Nested'),
+    'A deeper heading names its own sentence for an example title.'
+  );
+  // A `####` title that repeats is read under the `###` the example names.
+  const repeated = [
+    '### First',
+    '#### Basic',
+    'The first basic section says this about the first heading.',
+    '### Second',
+    '#### Basic',
+    'The second basic section says this about the second heading.',
+  ];
+  assert.equal(
+    sectionPurpose(repeated, 'Second › Basic'),
+    'The second basic section says this about the second heading.'
+  );
+  assert.equal(sectionPurpose(repeated, 'Third › Basic'), '');
+});
+
+test('every component the barrel exports is a catalog entry or documented with one', () => {
+  // In any letter case, as the server resolves names.
+  const known = new Set(
+    [
+      ...catalog.components.map(c => c.name),
+      ...Object.keys(catalog.documentedWith),
+    ].map(name => name.toLowerCase())
+  );
+  const unanswered = [...barrelExports()].filter(
+    name => /^[A-Z]/.test(name) && !known.has(name.toLowerCase())
+  );
+  assert.deepEqual(unanswered, []);
+});
+
+test('a base its component does not render stops the build', () => {
+  const exported = new Map([
+    ['WidgetBase', { cat: 'form', mod: 'WidgetBase' }],
+  ]);
+  assert.throws(
+    () =>
+      standaloneTables(
+        'Widget',
+        { sourceFile: 'Widget.tsx', tables: [] },
+        new Set(),
+        {
+          exported,
+          source: () => 'export const Widget = () => <input />;',
+          extract: () => assert.fail('extracted a base it cannot document'),
+        }
+      ),
+    /Widget does not render <WidgetBase>/
+  );
+  const table = { path: 'WidgetBase', rows: [] };
+  assert.deepEqual(
+    standaloneTables(
+      'Widget',
+      { sourceFile: 'Widget.tsx', tables: [] },
+      new Set(),
+      {
+        exported,
+        source: () => 'export const Widget = () => <WidgetBase />;',
+        extract: () => ({ tables: [table] }),
+      }
+    ),
+    [{ table, role: 'base' }]
+  );
+});
+
+test('a part that takes no props at all says so, apart from one with an inline DOM type', () => {
+  const part = (component, path) =>
+    components.get(component).parts.find(p => p.path === path);
+  assert.equal(part('Dropdown', 'Dropdown.Divider').noProps, true);
+  assert.equal(part('ContextMenu', 'ContextMenu.Divider').noProps, true);
+  assert.equal(part('Navbar', 'Navbar.Divider').noProps, undefined);
+});
+
+test("the class table carries Bulma v1's classes and the 0.9 ones v1 removed (#1174)", () => {
+  const { vocabulary, removed } = bulmaClasses;
+  const v1 = new Set(vocabulary);
+  for (const token of [
+    'button',
+    'has-text-centered',
+    'is-128x128',
+    'is-gap-0.5',
+    'marginless',
+  ]) {
+    assert.ok(v1.has(token), `${token} is missing`);
+  }
+  for (const token of ['is-marginless', 'is-256x256', 'has-text-green']) {
+    assert.ok(!v1.has(token), `${token} reads as a v1 class`);
+  }
+  assert.ok(removed.includes('is-paddingless') && removed.includes('tile'));
+  assert.deepEqual(
+    removed.filter(token => v1.has(token)),
+    []
+  );
+  for (const list of [vocabulary, removed]) {
+    assert.deepEqual(
+      [...list].sort((a, b) => (a < b ? -1 : 1)),
+      list
+    );
+  }
+});
+
+test('the stylesheet walk the index shares reads the classes in selectors, and only there', async () => {
+  // bestax-migrate's vocabulary test reads Bulma with this walk too.
+  const { stylesheetClasses } = await import(
+    pathToFileURL(
+      join(REPO, 'bestax-migrate', 'e2e', 'support', 'bulma-stylesheet.ts')
+    ).href
+  );
+  const css = [
+    '@charset "UTF-8";',
+    '/* .commented { } */',
+    '.a, .b > .c:not(.d) { background: url("x.svg"); }',
+    '[data-x=".e"] .f { }',
+    '.is-gap-0\\.5 { gap: 0.5rem; }',
+    '@media screen and (min-width: 769px) { .g.h { color: red; } }',
+    '@font-face { font-family: "x"; }',
+  ].join('\n');
+  assert.deepEqual([...stylesheetClasses(css)].sort(), [
+    'a',
+    'b',
+    'c',
+    'd',
+    'f',
+    'g',
+    'h',
+    'is-gap-0.5',
+  ]);
+});
+
+test('the class table names what styles a class Bulma 1 lacks, and who renders a plain table tag (#1236)', async () => {
+  const { byHand, ownClasses, elsewhere, vocabulary } = bulmaClasses;
+  // The table parts, with the props their records list, read off those records.
+  assert.deepEqual(byHand.th, {
+    target: 'Table.Th',
+    props: ['isAligned', 'isNarrow', 'isVcentered', 'width', 'color'],
+  });
+  assert.equal(byHand.td.target, 'Table.Td');
+  assert.ok(!Object.hasOwn(byHand, 'div'));
+  // A root class of bestax's own, and none of Bulma's.
+  assert.equal(ownClasses.carousel, 'Carousel');
+  // Group renders `stack` too and sorts first, but Stack is its namesake.
+  assert.equal(ownClasses.stack, 'Stack');
+  const v1 = new Set(vocabulary);
+  assert.deepEqual(
+    Object.keys(ownClasses).filter(token => v1.has(token)),
+    []
+  );
+  for (const group of elsewhere) {
+    assert.doesNotThrow(() => new RegExp(group.match), group.why);
+    assert.equal(typeof group.glyph, 'boolean');
+  }
+  // A table part with no record stops the build, naming it.
+  await assert.rejects(bulmaClassTable(new Map()), /BY_HAND names Table\.\w+/);
+});
+
 test("the bulma-classes table is bestax-migrate's own, whole", () => {
   const { roots, helpers, passthrough, precedence, wrappers } = bulmaClasses;
   assert.equal(roots.button.target, 'Button');
@@ -900,6 +1371,9 @@ test("the bulma-classes table is bestax-migrate's own, whole", () => {
   // And a component that converts only beside one of its parts says which.
   assert.ok(roots.card.wrapsChildren.unless.includes('Card.Content'));
   assert.equal(roots.button.wrapsChildren, null);
+  // And a class with its own advice for an element another root converts.
+  assert.match(roots.container.onAnother, /mx="auto"/);
+  assert.equal(roots.box.onAnother, null);
   assert.deepEqual(helpers['mt-4'], {
     group: 'spacing',
     write: { prop: 'mt', value: '4' },

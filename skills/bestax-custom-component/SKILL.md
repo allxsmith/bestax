@@ -13,7 +13,7 @@ pieces in an app, or as a full library "extra" inside the bestax monorepo.
 
 - **The bestax monorepo** (the repo contains `bulma-ui/src/`) → follow
   `references/library-contributor.md` instead of this file: five-file layout, SCSS partial,
-  stories, jest tests, docs page, wiring.
+  stories, Vitest tests, docs page, wiring.
 - **An app depending on `@allxsmith/bestax-bulma`** (e.g. scaffolded by `npm create bestax`) →
   continue here. Everything below assumes public package imports and a plain Vite app.
 
@@ -63,6 +63,24 @@ Wrap it in the library's `ClientOnly` rather than checking `typeof window`: it r
 until the page has hydrated, so the server and client markup match. `references/api.md` has the
 details.
 
+A button that shows only an icon (Delete in a table row, Settings in a navbar) is `IconButton`:
+`<IconButton icon="trash" aria-label="Delete" />`, rather than a `Button` holding an `Icon`. The
+glyph goes in `icon` or as the one child (`<Icon name="trash" />`, or an SVG), not both. Its
+types require `aria-label`, or `aria-labelledby` in its place, so name the action, not the picture.
+It takes every `Button` prop, is `type="button"` unless you pass `submit` or `reset`, and
+`isRounded` makes it a circle. Several go in `Buttons`, where it's also `Buttons.IconButton`. For a
+description on hover, wrap it in `Tooltip`, which describes it and doesn't name it.
+
+A button that copies text (a share link, an API key, an install command) is `CopyButton`:
+`<CopyButton value={url} />`, rather than a `Button` calling `navigator.clipboard` yourself. It
+falls back to the copy command where the Clipboard API is missing, reports a failure rather than
+showing "Copied", reads "Copied" for `duration` ms (2000, and `0` keeps it, as on `Toast`), and
+announces each result in a status region it portals, so it can sit last in a `Control` or `Buttons`,
+where it's also `Buttons.CopyButton`. `showLabel={false}` makes it an icon-only `IconButton` named by
+`labels.copy`. Its callbacks are `onCopiedChange` and `onCopyError` (not `onCopy`/`onError`, which
+are DOM events), and an `onClick` that calls `preventDefault()` stops the copy. For a trigger of your
+own, use `useClipboard`.
+
 A button that turns something on or off and stays that way (Bold, Mute, Show archived) is
 `ToggleButton`: use it rather than `Button isActive`, which only draws a shade and sets no
 `aria-pressed`. It's always `type="button"`, holds its own state (`defaultPressed`) or takes
@@ -102,14 +120,18 @@ works, and the menu needs `aria-label`. Put the same items in a visible `Dropdow
 nothing tells a screen reader user a context menu is there, and on macOS only VoiceOver opens
 it from the keyboard.
 
-Building something else that floats (a command palette)? Render it through the library's
-`Portal` rather than `createPortal`: it renders nothing on the server and during hydration, so
-the server and client markup match. `references/api.md` has the details.
+A command palette, a search over things to do that opens on ⌘K or Ctrl+K, is
+`Command.Dialog`: `<Command.Dialog shortcut="mod+k" actions={[{ id, label, onSelect }]} />`, or
+built from parts for a server search. Don't hand-build one from `Portal`, `useFocusTrap` and a
+`keydown` listener. Inline, without the modal, it's `Command`.
 
-Building some other overlay that holds focus until it is dismissed (a command palette)? Use the
-library's `useFocusTrap` rather than a hand-rolled Tab handler: it finds the tab stops the
-browser visits and hands focus back on close. `references/api.md` has the signature and a worked
-panel.
+Building something else that floats? Render it through the library's `Portal` rather than
+`createPortal`: it renders nothing on the server and during hydration, so the server and client
+markup match. `references/api.md` has the details.
+
+Building some other overlay that holds focus until it is dismissed? Use the library's
+`useFocusTrap` rather than a hand-rolled Tab handler: it finds the tab stops the browser visits
+and hands focus back on close. `references/api.md` has the signature and a worked panel.
 
 ## The component spine
 
@@ -164,9 +186,12 @@ free. `references/api.md` documents the helpers.
 
 ## Styling ladder — use the lowest rung that works
 
-**Rung 1 — helper props only (default).** House rules: never `style={{}}`. Layout with
-`Block`/`Box` and `display="flex"`, `flexDirection`, `alignItems`, `justifyContent`, and space
-the children with `gap`. Before writing `style={{ … }}` anywhere, translate each declaration:
+**Rung 1 — helper props only (default).** House rules: never `style={{}}`. Lay children out
+with `Stack` (a column), `Group` (a row that wraps), `Center` or `Flex`, which are flex
+containers already and zero the margins Bulma gives their children, so `gap` is the only space;
+`alignItems`, `justifyContent` and the rest go straight on them. Don't reach for `Box` as a
+plain flex container: it's a padded, shadowed surface. Before writing `style={{ … }}` anywhere,
+translate each declaration:
 
 | Inline style you're about to write       | Helper props instead                                                                                                                                           |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -174,7 +199,7 @@ the children with `gap`. Before writing `style={{ … }}` anywhere, translate ea
 | `textAlign: 'center'`                    | `textAlign="centered"` (also `left`, `right`, `justified`)                                                                                                     |
 | `color: '#…'`                            | `textColor` with the nearest Bulma color: `primary`, `link`, `info`, `success`, `warning`, `danger`, `white`, `black`, `grey` (+ `grey-light`, `grey-dark`, …) |
 | `backgroundColor: '#…'`                  | `bgColor` (same palette)                                                                                                                                       |
-| `fontSize: …`                            | `textSize="1"`…`"7"` (`1` largest) — for headings use `Title`/`SubTitle` `size`                                                                                |
+| `fontSize: …`                            | `textSize="1"`…`"7"` (`1` largest). On `Title`/`SubTitle`, `as` sets the level and `size` picks it too, so an `<h3>` at size 4 is `as="h3" textSize="4"`       |
 | `fontWeight: …`                          | `textWeight`: `light`, `normal`, `medium`, `semibold`, `bold`                                                                                                  |
 | `textTransform`, italics                 | `textTransform`: `uppercase`, `lowercase`, `capitalized`, `italic`                                                                                             |
 | `display: 'flex'` + flex properties      | same-named props: `display="flex"`, `flexDirection`, `justifyContent`, `alignItems`, `flexWrap`                                                                |

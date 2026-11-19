@@ -1,20 +1,71 @@
-import { createRef } from 'react';
+import React, { createRef } from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { Modal } from '../Modal';
 import { Loading } from '../Loading';
 import { Sidebar } from '../Sidebar';
+import { Popover } from '../Popover';
 import { ConfigProvider } from '../../helpers/Config';
+import { inertProps } from '../../helpers/inertProps';
 
 afterEach(() => {
-  document.body.style.overflow = '';
+  document.documentElement.style.overflow = '';
 });
 
 const latin =
   'Quando in cursu rerum humanarum fit ut populus aliquis dissolvere vincula politica quae eum cum alio coniunxerunt, et inter potestates terrae, statum separatam et aequalem, ad quem Iura Naturae et Dei Naturalis eum ius habere concedunt, rationabile decus postulat ut causas separationis declarent.';
 
 describe('Modal', () => {
+  describe('data-testid', () => {
+    // Its two render paths: the legacy one its props build, and its parts.
+    const builds: [string, React.ReactElement<{ 'data-testid'?: string }>][] = [
+      ['its props', <Modal key="props" active portal={false} />],
+      [
+        'its parts',
+        <Modal key="parts" active portal={false}>
+          <Modal.Background />
+          <Modal.Content>Inside</Modal.Content>
+        </Modal>,
+      ],
+    ];
+
+    it.each(builds)(
+      'writes modal when built from %s without one',
+      (_, modal) => {
+        const { container } = render(modal);
+        expect(container.querySelector('.modal')).toHaveAttribute(
+          'data-testid',
+          'modal'
+        );
+      }
+    );
+
+    it.each(builds)(
+      'writes modal when built from %s and a wrapper forwards undefined',
+      (_, modal) => {
+        const { container } = render(
+          React.cloneElement(modal, { 'data-testid': undefined })
+        );
+        expect(container.querySelector('.modal')).toHaveAttribute(
+          'data-testid',
+          'modal'
+        );
+      }
+    );
+
+    it.each(builds)('keeps the caller’s when built from %s', (_, modal) => {
+      const { container } = render(
+        React.cloneElement(modal, { 'data-testid': 'billing-dialog' })
+      );
+      expect(container.querySelector('.modal')).toHaveAttribute(
+        'data-testid',
+        'billing-dialog'
+      );
+      expect(screen.queryByTestId('modal')).not.toBeInTheDocument();
+    });
+  });
+
   it('does not render as active by default', () => {
     const { container } = render(<Modal>{latin}</Modal>);
     expect(container.firstChild).not.toHaveClass('is-active');
@@ -53,7 +104,7 @@ describe('Modal', () => {
   });
 
   it('calls onClose when background is clicked', () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     render(
       <Modal active onClose={onClose}>
         {latin}
@@ -64,7 +115,7 @@ describe('Modal', () => {
   });
 
   it('calls onClose when close button in header is clicked', () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     render(
       <Modal active modalCardTitle="T" onClose={onClose}>
         {latin}
@@ -75,7 +126,7 @@ describe('Modal', () => {
   });
 
   it('calls onClose when floating close button is clicked', () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     render(
       <Modal active onClose={onClose}>
         {latin}
@@ -216,7 +267,7 @@ describe('Modal', () => {
     });
 
     it('renders Modal with compound Background component', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Modal isActive>
           <Modal.Background
@@ -234,7 +285,7 @@ describe('Modal', () => {
     });
 
     it('renders Modal.Card with compound components', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Modal isActive>
           <Modal.Background onClick={onClose} />
@@ -346,6 +397,67 @@ describe('Modal', () => {
       expect(screen.getByTestId('reset')).toHaveAttribute('type', 'reset');
     });
 
+    // The props form's close buttons are drawn as icons, so their name is all
+    // a screen reader says about them, and it was always English (#1934).
+    it.each([
+      ['the card header’s', { modalCardTitle: 'Modifier le profil' }],
+      ['the floating', {}],
+    ])('names %s close button by ariaCloseLabel', (_label, props) => {
+      render(
+        <Modal active onClose={() => {}} ariaCloseLabel="Fermer" {...props}>
+          Bonjour
+        </Modal>
+      );
+      expect(
+        screen.getByRole('button', { name: 'Fermer' })
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: 'close' })
+      ).not.toBeInTheDocument();
+    });
+
+    it.each([
+      ['no', undefined],
+      ['an empty', ''],
+    ])(
+      'names the close buttons "close" with %s ariaCloseLabel',
+      (_l, label) => {
+        render(
+          <>
+            <Modal
+              active
+              onClose={() => {}}
+              modalCardTitle="Card"
+              ariaCloseLabel={label}
+            >
+              Body
+            </Modal>
+            <Modal active onClose={() => {}} ariaCloseLabel={label}>
+              Body
+            </Modal>
+          </>
+        );
+        expect(screen.getAllByRole('button', { name: 'close' })).toHaveLength(
+          2
+        );
+      }
+    );
+
+    it('keeps ariaCloseLabel off the dialog itself', () => {
+      render(
+        <Modal
+          active
+          onClose={() => {}}
+          ariaCloseLabel="Fermer"
+          aria-label="Profil"
+        >
+          Bonjour
+        </Modal>
+      );
+      const dialog = screen.getByRole('dialog', { name: 'Profil' });
+      expect(dialog).not.toHaveAttribute('ariaCloseLabel');
+    });
+
     it('Modal.Close falls back to its name when given an empty aria-label', () => {
       // `''` names nothing, and the button is drawn as an icon, so an empty
       // label would leave it unnamed. It falls back like a missing one.
@@ -360,6 +472,180 @@ describe('Modal', () => {
       const loose: object = { type: 'text/html' };
       render(<Modal.Close data-testid="close-btn" {...loose} />);
       expect(screen.getByTestId('close-btn')).toHaveAttribute('type', 'button');
+    });
+
+    describe('closing from the parts', () => {
+      it('Modal.Close calls the modal onClose when it has no onClick', () => {
+        const onClose = vi.fn();
+        render(
+          <Modal isActive onClose={onClose}>
+            <Modal.Background />
+            <Modal.Card>
+              <Modal.Card.Head>
+                <Modal.Card.Title>Title</Modal.Card.Title>
+                <Modal.Close data-testid="head-close" />
+              </Modal.Card.Head>
+              <Modal.Card.Body>{latin}</Modal.Card.Body>
+            </Modal.Card>
+            <Modal.Close variant="floating" data-testid="floating-close" />
+          </Modal>
+        );
+        fireEvent.click(screen.getByTestId('head-close'));
+        expect(onClose).toHaveBeenCalledTimes(1);
+        expect(onClose).toHaveBeenCalledWith();
+        fireEvent.click(screen.getByTestId('floating-close'));
+        expect(onClose).toHaveBeenCalledTimes(2);
+      });
+
+      it('Modal.Close runs only its own onClick when given one', () => {
+        const onClose = vi.fn();
+        const onClick = vi.fn();
+        render(
+          <Modal isActive onClose={onClose}>
+            <Modal.Content>{latin}</Modal.Content>
+            <Modal.Close onClick={onClick} data-testid="close-btn" />
+          </Modal>
+        );
+        fireEvent.click(screen.getByTestId('close-btn'));
+        expect(onClick).toHaveBeenCalledTimes(1);
+        expect(onClose).not.toHaveBeenCalled();
+      });
+
+      it('Modal.Close wired with onClick={onClose} calls it once', () => {
+        const onClose = vi.fn();
+        render(
+          <Modal isActive onClose={onClose}>
+            <Modal.Content>{latin}</Modal.Content>
+            <Modal.Close onClick={onClose} data-testid="close-btn" />
+          </Modal>
+        );
+        fireEvent.click(screen.getByTestId('close-btn'));
+        expect(onClose).toHaveBeenCalledTimes(1);
+      });
+
+      it('Modal.Close does nothing on click without an onClose to call', () => {
+        render(
+          <>
+            <Modal isActive>
+              <Modal.Close data-testid="no-on-close" />
+            </Modal>
+            <Modal.Close data-testid="no-modal" />
+          </>
+        );
+        expect(() => {
+          fireEvent.click(screen.getByTestId('no-on-close'));
+          fireEvent.click(screen.getByTestId('no-modal'));
+        }).not.toThrow();
+      });
+
+      it('Modal.Close inside a nested modal closes only that modal', () => {
+        const outerClose = vi.fn();
+        const innerClose = vi.fn();
+        render(
+          <Modal isActive onClose={outerClose}>
+            <Modal.Content>
+              <Modal isActive onClose={innerClose}>
+                <Modal.Content>{latin}</Modal.Content>
+                <Modal.Close data-testid="inner-close" />
+              </Modal>
+            </Modal.Content>
+            <Modal.Close data-testid="outer-close" />
+          </Modal>
+        );
+        fireEvent.click(screen.getByTestId('inner-close'));
+        expect(innerClose).toHaveBeenCalledTimes(1);
+        expect(outerClose).not.toHaveBeenCalled();
+        fireEvent.click(screen.getByTestId('outer-close'));
+        expect(outerClose).toHaveBeenCalledTimes(1);
+        expect(innerClose).toHaveBeenCalledTimes(1);
+      });
+
+      it('Modal.Close inside the props form calls its onClose', () => {
+        // Wrapped, so the modal stays in the props form: a part as a direct
+        // child would select the compound form.
+        const onClose = vi.fn();
+        render(
+          <Modal active onClose={onClose} modalCardTitle="Title">
+            <div>
+              <Modal.Close data-testid="own-close" />
+            </div>
+          </Modal>
+        );
+        expect(screen.getByTestId('modal-body')).toContainElement(
+          screen.getByTestId('own-close')
+        );
+        fireEvent.click(screen.getByTestId('own-close'));
+        expect(onClose).toHaveBeenCalledTimes(1);
+      });
+
+      it('Modal.Close calls onClose from a portaled modal', () => {
+        const onClose = vi.fn();
+        render(
+          <Modal isActive onClose={onClose} portal>
+            <Modal.Content>{latin}</Modal.Content>
+            <Modal.Close data-testid="close-btn" />
+          </Modal>
+        );
+        fireEvent.click(screen.getByTestId('close-btn'));
+        expect(onClose).toHaveBeenCalledTimes(1);
+      });
+
+      it('Modal.Close calls the onClose of the latest render', () => {
+        const first = vi.fn();
+        const second = vi.fn();
+        const { rerender } = render(
+          <Modal isActive onClose={first}>
+            <Modal.Close data-testid="close-btn" />
+          </Modal>
+        );
+        rerender(
+          <Modal isActive onClose={second}>
+            <Modal.Close data-testid="close-btn" />
+          </Modal>
+        );
+        fireEvent.click(screen.getByTestId('close-btn'));
+        expect(first).not.toHaveBeenCalled();
+        expect(second).toHaveBeenCalledTimes(1);
+      });
+
+      it('Modal.Background leaves the modal open without an onClick', () => {
+        // A bare background is a static one, as rbx's was by default, and
+        // the rbx codemod writes it bare: it closes only once you wire it.
+        const onClose = vi.fn();
+        render(
+          <Modal isActive onClose={onClose}>
+            <Modal.Background data-testid="bg" />
+            <Modal.Content>{latin}</Modal.Content>
+          </Modal>
+        );
+        fireEvent.click(screen.getByTestId('bg'));
+        expect(onClose).not.toHaveBeenCalled();
+      });
+
+      it('Modal.Background wired with onClick={onClose} calls it once', () => {
+        const onClose = vi.fn();
+        render(
+          <Modal isActive onClose={onClose}>
+            <Modal.Background onClick={onClose} data-testid="bg" />
+            <Modal.Content>{latin}</Modal.Content>
+          </Modal>
+        );
+        fireEvent.click(screen.getByTestId('bg'));
+        expect(onClose).toHaveBeenCalledTimes(1);
+      });
+
+      it('Escape still calls onClose once in the compound form', () => {
+        const onClose = vi.fn();
+        render(
+          <Modal isActive onClose={onClose}>
+            <Modal.Background />
+            <Modal.Content>{latin}</Modal.Content>
+            <Modal.Close />
+          </Modal>
+        );
+        fireEvent.keyDown(window, { key: 'Escape' });
+        expect(onClose).toHaveBeenCalledTimes(1);
+      });
     });
 
     it('allows mixing compound components with custom classes', () => {
@@ -427,7 +713,7 @@ describe('Modal', () => {
     // matrix), so this does not branch on React.version.
     it('runs a forwarded callback ref cleanup on unmount instead of calling it with null', () => {
       const calls: (HTMLDivElement | null)[] = [];
-      const cleanup = jest.fn();
+      const cleanup = vi.fn();
       const callbackRef = (node: HTMLDivElement | null) => {
         calls.push(node);
         if (!node) return undefined;
@@ -453,7 +739,7 @@ describe('Modal', () => {
 
   describe('Escape key', () => {
     it('calls onClose on Escape by default when active', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Modal active onClose={onClose}>
           {latin}
@@ -464,14 +750,14 @@ describe('Modal', () => {
     });
 
     it('does not call onClose on Escape when inactive', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<Modal onClose={onClose}>{latin}</Modal>);
       fireEvent.keyDown(document, { key: 'Escape' });
       expect(onClose).not.toHaveBeenCalled();
     });
 
     it('does not call onClose on Escape when closeOnEscape is false', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Modal active onClose={onClose} closeOnEscape={false}>
           {latin}
@@ -482,7 +768,7 @@ describe('Modal', () => {
     });
 
     it('does not call onClose for non-Escape keys', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(
         <Modal active onClose={onClose}>
           {latin}
@@ -490,6 +776,45 @@ describe('Modal', () => {
       );
       fireEvent.keyDown(document, { key: 'Enter' });
       expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('leaves an Escape that content inside already used', () => {
+      const onClose = vi.fn();
+      render(
+        <Modal active onClose={onClose}>
+          <input
+            aria-label="Search"
+            onKeyDown={e => {
+              if (e.key === 'Escape') e.preventDefault();
+            }}
+          />
+          <button type="button">Done</button>
+        </Modal>
+      );
+      fireEvent.keyDown(screen.getByLabelText('Search'), { key: 'Escape' });
+      expect(onClose).not.toHaveBeenCalled();
+
+      fireEvent.keyDown(screen.getByText('Done'), { key: 'Escape' });
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('hears Escape after a document listener added once it was open', () => {
+      // A popup that opens inside the modal adds its listener after the
+      // modal's, and still gets the key first.
+      const onClose = vi.fn();
+      render(
+        <Modal active onClose={onClose}>
+          {latin}
+        </Modal>
+      );
+      const claim = (e: KeyboardEvent) => e.preventDefault();
+      document.addEventListener('keydown', claim);
+      try {
+        fireEvent.keyDown(document.body, { key: 'Escape' });
+        expect(onClose).not.toHaveBeenCalled();
+      } finally {
+        document.removeEventListener('keydown', claim);
+      }
     });
 
     it('tolerates a missing onClose prop on Escape', () => {
@@ -500,8 +825,8 @@ describe('Modal', () => {
     });
 
     it('closes only the topmost modal when several are open', () => {
-      const onCloseBackground = jest.fn();
-      const onCloseTop = jest.fn();
+      const onCloseBackground = vi.fn();
+      const onCloseTop = vi.fn();
       render(
         <>
           <Modal active onClose={onCloseBackground}>
@@ -519,8 +844,8 @@ describe('Modal', () => {
     });
 
     it('closes the next modal down once the topmost one has closed', () => {
-      const onCloseBackground = jest.fn();
-      const onCloseTop = jest.fn();
+      const onCloseBackground = vi.fn();
+      const onCloseTop = vi.fn();
       const { rerender } = render(
         <>
           <Modal active onClose={onCloseBackground}>
@@ -654,6 +979,32 @@ describe('Modal', () => {
       expect(middle).toHaveFocus();
     });
 
+    it('leaves a Tab that a later trap already used', () => {
+      // A portaled popup's own trap moves focus outside the modal's node and
+      // claims the key; the modal must not pull focus back.
+      const panel = document.createElement('button');
+      document.body.appendChild(panel);
+
+      render(
+        <Modal active>
+          <button type="button">First</button>
+          <button type="button">Last</button>
+        </Modal>
+      );
+      const trap = (e: KeyboardEvent) => {
+        e.preventDefault();
+        panel.focus();
+      };
+      document.addEventListener('keydown', trap);
+      try {
+        fireEvent.keyDown(document, { key: 'Tab' });
+        expect(panel).toHaveFocus();
+      } finally {
+        document.removeEventListener('keydown', trap);
+        document.body.removeChild(panel);
+      }
+    });
+
     it('focuses the modal root on Tab when nothing inside is focusable', () => {
       render(<Modal active>{latin}</Modal>);
       const modal = screen.getByTestId('modal');
@@ -685,6 +1036,117 @@ describe('Modal', () => {
 
       document.body.removeChild(outside);
     });
+
+    describe('past content Tab never lands on', () => {
+      // Counted as the modal's first or last stop, content the browser skips
+      // would leave Shift+Tab or Tab nothing to wrap from at the real end, so
+      // the browser would walk focus out of the modal.
+      const skipped: [string, React.ReactNode][] = [
+        [
+          'a closed inline Sidebar',
+          <Sidebar key="s" inline isOpen={false} aria-label="Tips">
+            <button type="button">Skipped</button>
+          </Sidebar>,
+        ],
+        [
+          'an inert subtree',
+          <div key="s" {...inertProps(true)}>
+            <button type="button">Skipped</button>
+          </div>,
+        ],
+        [
+          'content with display: none',
+          <div key="s" style={{ display: 'none' }}>
+            <button type="button">Skipped</button>
+          </div>,
+        ],
+      ];
+
+      it.each(skipped)(
+        'wraps Tab from the real last stop with %s after it',
+        (_, content) => {
+          render(
+            <Modal active aria-label="Edit item">
+              <button type="button">First</button>
+              <button type="button">Last</button>
+              {content}
+            </Modal>
+          );
+          const last = screen.getByText('Last');
+          act(() => last.focus());
+
+          expect(fireEvent.keyDown(last, { key: 'Tab' })).toBe(false);
+          expect(screen.getByText('First')).toHaveFocus();
+        }
+      );
+
+      it.each(skipped)(
+        'starts on, and wraps Shift+Tab from, the real first stop with %s before it',
+        (_, content) => {
+          render(
+            <Modal active aria-label="Edit item">
+              {content}
+              <button type="button">First</button>
+              <button type="button">Last</button>
+            </Modal>
+          );
+          const first = screen.getByText('First');
+          expect(first).toHaveFocus();
+
+          expect(fireEvent.keyDown(first, { key: 'Tab', shiftKey: true })).toBe(
+            false
+          );
+          expect(screen.getByText('Last')).toHaveFocus();
+        }
+      );
+
+      it('passes over an <object> that refuses focus, on open and when Tab comes in from outside', () => {
+        // Browsers won't focus an <object> with nothing to show (#1211), and
+        // jsdom can't tell, so focus() on one does nothing here.
+        const objectFocus = vi
+          .spyOn(HTMLObjectElement.prototype, 'focus')
+          .mockImplementation(() => {});
+        const outside = document.createElement('button');
+        document.body.appendChild(outside);
+        try {
+          render(
+            <Modal active aria-label="Preview">
+              <object data="missing.pdf" type="application/pdf">
+                Preview unavailable
+              </object>
+              <button type="button">First</button>
+              <button type="button">Last</button>
+            </Modal>
+          );
+          const first = screen.getByText('First');
+          expect(first).toHaveFocus();
+
+          act(() => outside.focus());
+          expect(fireEvent.keyDown(outside, { key: 'Tab' })).toBe(false);
+          expect(first).toHaveFocus();
+        } finally {
+          outside.remove();
+          objectFocus.mockRestore();
+        }
+      });
+
+      it('counts a closed details by its summary, not by what it hides', () => {
+        render(
+          <Modal active aria-label="Edit item">
+            <button type="button">First</button>
+            <details>
+              <summary>More</summary>
+              <button type="button">Skipped</button>
+            </details>
+          </Modal>
+        );
+        const summary = screen.getByText('More');
+        act(() => summary.focus());
+
+        expect(fireEvent.keyDown(summary, { key: 'Tab' })).toBe(false);
+        expect(screen.getByText('First')).toHaveFocus();
+      });
+    });
   });
 
   describe('Accessible name', () => {
@@ -699,6 +1161,56 @@ describe('Modal', () => {
         screen.getByTestId('modal').getAttribute('aria-labelledby') ?? '';
       expect(labelledBy).not.toBe('');
       expect(document.getElementById(labelledBy)).toHaveTextContent('Settings');
+    });
+
+    // Drawn as content, the modal renders no card head, so pointing
+    // aria-labelledby at the title's id named it nothing (#1947).
+    it('is named by a text title it draws as content, which still shows nowhere', () => {
+      render(
+        <Modal active type="content" modalCardTitle="Edit profile">
+          {latin}
+        </Modal>
+      );
+      const modal = screen.getByTestId('modal');
+      expect(screen.getByRole('dialog')).toHaveAccessibleName('Edit profile');
+      expect(modal).not.toHaveAttribute('aria-labelledby');
+      expect(screen.queryByText('Edit profile')).not.toBeInTheDocument();
+    });
+
+    it('points at nothing missing for a title that is not text, drawn as content', () => {
+      render(
+        <Modal active type="content" modalCardTitle={<em>Edit profile</em>}>
+          {latin}
+        </Modal>
+      );
+      const modal = screen.getByTestId('modal');
+      expect(modal).not.toHaveAttribute('aria-labelledby');
+      expect(modal).not.toHaveAttribute('aria-label');
+    });
+
+    it('names nothing for a blank title drawn as content', () => {
+      render(
+        <Modal active type="content" modalCardTitle=" ">
+          {latin}
+        </Modal>
+      );
+      expect(screen.getByTestId('modal')).not.toHaveAttribute('aria-label');
+    });
+
+    it('takes the name the caller gives a modal drawn as content', () => {
+      render(
+        <Modal
+          active
+          type="content"
+          modalCardTitle="Edit profile"
+          aria-label="Edit your profile"
+        >
+          {latin}
+        </Modal>
+      );
+      expect(screen.getByRole('dialog')).toHaveAccessibleName(
+        'Edit your profile'
+      );
     });
 
     it('has no aria-labelledby when there is no card title', () => {
@@ -729,25 +1241,25 @@ describe('Modal', () => {
   });
 
   describe('Scroll lock', () => {
-    it('locks body scroll while active by default', () => {
+    it('locks page scroll while active by default', () => {
       const { unmount } = render(<Modal active>{latin}</Modal>);
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
       unmount();
-      expect(document.body.style.overflow).toBe('');
+      expect(document.documentElement.style.overflow).toBe('');
     });
 
-    it('does not lock body scroll when inactive', () => {
+    it('does not lock page scroll when inactive', () => {
       render(<Modal>{latin}</Modal>);
-      expect(document.body.style.overflow).not.toBe('hidden');
+      expect(document.documentElement.style.overflow).not.toBe('hidden');
     });
 
-    it('does not lock body scroll when lockScroll is false', () => {
+    it('does not lock page scroll when lockScroll is false', () => {
       render(
         <Modal active lockScroll={false}>
           {latin}
         </Modal>
       );
-      expect(document.body.style.overflow).not.toBe('hidden');
+      expect(document.documentElement.style.overflow).not.toBe('hidden');
     });
 
     it('stays locked when an overlapping Loading closes first', () => {
@@ -759,10 +1271,10 @@ describe('Modal', () => {
       );
 
       const { rerender } = render(overlays(true));
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
 
       rerender(overlays(false));
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
     });
 
     it('stays locked when an overlapping Sidebar closes first', () => {
@@ -776,10 +1288,10 @@ describe('Modal', () => {
       );
 
       const { rerender } = render(overlays(true));
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
 
       rerender(overlays(false));
-      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overflow).toBe('hidden');
     });
   });
 
@@ -968,6 +1480,34 @@ describe('Modal', () => {
       document.body.removeChild(target);
     });
 
+    it('keeps holding Tab once a portal selector that matched nothing starts matching', () => {
+      // A selector that matches nothing puts the modal in document.body.
+      // The render after the target appears moves it there, which remounts
+      // the modal's nodes while every prop stays the same, so the trap has
+      // to find the new ones.
+      const ui = () => (
+        <Modal active portal="#late-target" aria-label="Edit item">
+          <button type="button">First</button>
+          <button type="button">Last</button>
+        </Modal>
+      );
+      const { rerender } = render(ui());
+      const target = document.createElement('div');
+      target.id = 'late-target';
+      document.body.appendChild(target);
+      try {
+        rerender(ui());
+        const last = screen.getByText('Last');
+        expect(target).toContainElement(last);
+        act(() => last.focus());
+
+        expect(fireEvent.keyDown(last, { key: 'Tab' })).toBe(false);
+        expect(screen.getByText('First')).toHaveFocus();
+      } finally {
+        target.remove();
+      }
+    });
+
     it('keeps focus in the modal across the hydration portal move, and restores it on close', async () => {
       // The move from inline to portal remounts the subtree, so the focus
       // effect has to re-run against the new nodes — otherwise focus is left
@@ -1019,9 +1559,7 @@ describe('Modal', () => {
       // The server renders inline, so the markup must be there to hydrate.
       expect(container.querySelector('[data-testid="modal"]')).not.toBeNull();
 
-      const errorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       let unmountRoot = () => {};
       await act(async () => {
         const root = hydrateRoot(container, modal);
@@ -1059,9 +1597,7 @@ describe('Modal', () => {
       container.innerHTML = renderToString(modal);
       document.body.appendChild(container);
 
-      const errorSpy = jest
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       let unmountRoot = () => {};
       await act(async () => {
         const root = hydrateRoot(container, modal);
@@ -1076,6 +1612,58 @@ describe('Modal', () => {
       expect(seen[seen.length - 1]).toBeNull();
       errorSpy.mockRestore();
       document.body.removeChild(container);
+    });
+  });
+
+  describe('Popups inside', () => {
+    // Outside the modal, its `aria-modal` hides a popup from screen readers.
+    const popup = (
+      <Popover
+        trigger={<button type="button">Filter</button>}
+        ariaLabel="Filters"
+        appendToBody
+        defaultOpen
+      >
+        <button type="button">Apply</button>
+      </Popover>
+    );
+    const panel = () => screen.getByRole('dialog', { name: 'Filters' });
+
+    it.each([
+      [
+        'props',
+        <Modal key="props" active>
+          {popup}
+        </Modal>,
+      ],
+      [
+        'compound',
+        <Modal key="compound" active aria-label="Edit">
+          <Modal.Background />
+          <Modal.Content>{popup}</Modal.Content>
+        </Modal>,
+      ],
+      [
+        'portaled',
+        <Modal key="portaled" active portal>
+          {popup}
+        </Modal>,
+      ],
+    ])('portal into the modal in the %s form', (_, modal) => {
+      render(modal);
+      expect(panel().parentElement).toBe(screen.getByTestId('modal'));
+    });
+
+    it("go into a ConfigProvider's portalContainer while it sets one", () => {
+      const target = document.createElement('section');
+      document.body.appendChild(target);
+      render(
+        <ConfigProvider portalContainer={target}>
+          <Modal active>{popup}</Modal>
+        </ConfigProvider>
+      );
+      expect(panel().parentElement).toBe(target);
+      target.remove();
     });
   });
 });

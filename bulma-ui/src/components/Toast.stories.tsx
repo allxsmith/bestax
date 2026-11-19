@@ -8,6 +8,7 @@ import {
   type ToastType,
 } from './Toast';
 import { Button } from '../elements/Button';
+import { Buttons } from '../elements/Buttons';
 
 const meta: Meta<typeof Toast> = {
   title: 'Components/Toast',
@@ -67,7 +68,8 @@ const meta: Meta<typeof Toast> = {
     },
     duration: {
       control: 'number',
-      description: 'Duration in ms before auto-close (0 = no auto-close)',
+      description:
+        'Duration in ms before auto-close (0 = no auto-close). It waits while focus is inside the toast.',
     },
     indefinite: {
       control: 'boolean',
@@ -79,11 +81,17 @@ const meta: Meta<typeof Toast> = {
     },
     dismissible: {
       control: 'boolean',
-      description: 'Whether clicking the toast dismisses it',
+      description:
+        'Whether clicking the toast (or outside it) dismisses it. With an onClick of your own, a click on it closes it only when you set dismissible yourself',
     },
     closable: {
       control: 'boolean',
       description: 'Show an explicit close (X) button',
+    },
+    ariaCloseLabel: {
+      control: 'text',
+      description:
+        'Names the close button, in place of "Close", for an app in another language',
     },
     rounded: {
       control: 'boolean',
@@ -149,7 +157,7 @@ export const Types: Story = {
 
     return (
       <div style={{ padding: '2rem' }}>
-        <div className="buttons">
+        <Buttons>
           {types.map(type => (
             <Button
               key={type}
@@ -160,7 +168,7 @@ export const Types: Story = {
               {type}
             </Button>
           ))}
-        </div>
+        </Buttons>
         {active && (
           <Toast
             message={`This is a ${active} toast`}
@@ -192,7 +200,7 @@ export const Positions: Story = {
 
     return (
       <div style={{ padding: '2rem' }}>
-        <div className="buttons">
+        <Buttons>
           {positions.map(pos => (
             <Button
               key={pos}
@@ -202,7 +210,7 @@ export const Positions: Story = {
               {pos}
             </Button>
           ))}
-        </div>
+        </Buttons>
         {activePosition && (
           <Toast
             message={`Toast at ${activePosition}`}
@@ -238,7 +246,7 @@ export const WithActionButton: Story = {
           The <code>actionType</code> prop colors the{' '}
           <strong>action button</strong>:
         </p>
-        <div className="buttons">
+        <Buttons>
           {types.map(t => (
             <Button
               key={t}
@@ -249,7 +257,7 @@ export const WithActionButton: Story = {
               actionType=&quot;{t}&quot;
             </Button>
           ))}
-        </div>
+        </Buttons>
         {current && (
           <Toast
             message={`Action button is ${current}-colored`}
@@ -408,7 +416,7 @@ export const NonDismissible: Story = {
     return (
       <div style={{ padding: '2rem' }}>
         <ToastContainer position="top-right" />
-        <div className="buttons">
+        <Buttons>
           <Button
             color="primary"
             onClick={() => {
@@ -437,7 +445,7 @@ export const NonDismissible: Story = {
           >
             Close Programmatically
           </Button>
-        </div>
+        </Buttons>
         <p className="mt-4 help">
           Click the toast — nothing happens. Use the button to close it via{' '}
           <code>toast.close(id)</code>.
@@ -455,7 +463,7 @@ export const ProgrammaticAPI: Story = {
     return (
       <div style={{ padding: '2rem' }}>
         <ToastContainer position="top-right" />
-        <div className="buttons">
+        <Buttons>
           <Button
             onClick={() =>
               toast.show({ message: 'Default toast', duration: 3000 })
@@ -507,8 +515,35 @@ export const ProgrammaticAPI: Story = {
           <Button color="danger" onClick={() => toast.closeAll()}>
             Close All
           </Button>
-        </div>
+        </Buttons>
       </div>
+    );
+  },
+};
+
+/**
+ * The container's hotkey, F8 by default, moves keyboard focus to the newest
+ * toast's first button, and the toast stays open while focus is in it.
+ */
+export const KeyboardHotkey: Story = {
+  render: function KeyboardHotkeyExample() {
+    return (
+      <>
+        <ToastContainer position="top-right" />
+        <Button
+          onClick={() =>
+            toast.show({
+              message: 'File moved to trash. Press F8 to reach Undo.',
+              actionText: 'Undo',
+              actionType: 'info',
+              duration: 5000,
+              onAction: () => toast.success('File restored'),
+            })
+          }
+        >
+          Delete file
+        </Button>
+      </>
     );
   },
 };
@@ -526,7 +561,7 @@ export const QueuedToasts: Story = {
         <p className="mb-4">
           Queued toasts display one at a time. Non-queued toasts stack normally.
         </p>
-        <div className="buttons">
+        <Buttons>
           <Button
             color="primary"
             onClick={() => {
@@ -577,7 +612,7 @@ export const QueuedToasts: Story = {
           <Button color="danger" onClick={() => toast.closeAll()}>
             Close All
           </Button>
-        </div>
+        </Buttons>
       </div>
     );
   },

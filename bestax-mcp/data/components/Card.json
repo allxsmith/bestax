@@ -7,7 +7,7 @@
   "examples": [
     {
       "title": "Default Card (Header, Image, Content, Footer)",
-      "code": "<Card\n  header=\"Card Header\"\n  image=\"https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80\"\n  imageAlt=\"Beautiful forest\"\n  footer={[\n    <Card.FooterItem key=\"save\">Save</Card.FooterItem>,\n    <Card.FooterItem key=\"cancel\">Cancel</Card.FooterItem>,\n  ]}\n>\n  Card content goes here.\n</Card>"
+      "code": "<Card\n  header=\"Card Header\"\n  image=\"/img/carousel/carousel-banner-1-4by3.jpg\"\n  imageAlt=\"Vibrant galaxy with purple and gold tones\"\n  footer={[\n    <Card.FooterItem key=\"save\">Save</Card.FooterItem>,\n    <Card.FooterItem key=\"cancel\">Cancel</Card.FooterItem>,\n  ]}\n>\n  Card content goes here.\n</Card>"
     },
     {
       "title": "With Header Only",
@@ -19,11 +19,11 @@
     },
     {
       "title": "With Image Only",
-      "code": "<Card\n  image=\"https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80\"\n  imageAlt=\"Beautiful forest\"\n/>"
+      "code": "<Card\n  image=\"/img/carousel/carousel-banner-1-4by3.jpg\"\n  imageAlt=\"Vibrant galaxy with purple and gold tones\"\n/>"
     },
     {
       "title": "With Image and Content",
-      "code": "<Card\n  image=\"https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80\"\n  imageAlt=\"Beautiful forest\"\n>\n  Quando in rerum natura cursu fit ut populus aliquis inter nationes terrae...\n</Card>"
+      "code": "<Card\n  image=\"/img/carousel/carousel-banner-1-4by3.jpg\"\n  imageAlt=\"Vibrant galaxy with purple and gold tones\"\n>\n  Quando in rerum natura cursu fit ut populus aliquis inter nationes terrae...\n</Card>"
     },
     {
       "title": "No Shadow",
@@ -39,34 +39,34 @@
     },
     {
       "title": "Interactive (Colors, Spacing, Alignment, Footer)",
-      "code": "<Card\n  header=\"Upgrade to Pro\"\n  headerIcon={\n    <button className=\"card-header-icon\">\n      <Icon library=\"fa\" name=\"bolt\" textColor=\"warning\" ariaLabel=\"Pro\" />\n    </button>\n  }\n  image=\"https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80\"\n  imageAlt=\"Dashboard analytics\"\n  m=\"3\"\n  textAlign=\"centered\"\n  hasShadow\n  footer={[\n    <Button key=\"upgrade\" color=\"success\">\n      Upgrade Now\n    </Button>,\n    <Button key=\"learn\" color=\"info\" isOutlined>\n      Learn More\n    </Button>,\n  ]}\n>\n  Unlock advanced analytics, priority support, and unlimited exports for your\n  team.\n</Card>"
+      "code": "<Card\n  header=\"Upgrade to Pro\"\n  headerIcon={\n    <button className=\"card-header-icon\">\n      <Icon library=\"fa\" name=\"bolt\" textColor=\"warning\" ariaLabel=\"Pro\" />\n    </button>\n  }\n  image=\"/img/carousel/carousel-banner-3-4by3.jpg\"\n  imageAlt=\"Starry night sky over mountain silhouettes\"\n  m=\"3\"\n  textAlign=\"centered\"\n  hasShadow\n  footer={[\n    <Button key=\"upgrade\" color=\"success\">\n      Upgrade Now\n    </Button>,\n    <Button key=\"learn\" color=\"info\" isOutlined>\n      Learn More\n    </Button>,\n  ]}\n>\n  Unlock advanced analytics, priority support, and unlimited exports for your\n  team.\n</Card>"
     },
     {
-      "title": "Compound (dot-notation) usage",
-      "code": "import { Icon, Image } from '@allxsmith/bestax-bulma';\n\n<Card>\n  <Card.Header>\n    <Card.Header.Title>Compound Component Card</Card.Header.Title>\n    <Card.Header.Icon aria-label=\"more options\">\n      <Icon name=\"angle-down\" variant=\"solid\" ariaLabel=\"expand\" />\n    </Card.Header.Icon>\n  </Card.Header>\n  <Card.Image>\n    <Image\n      src=\"https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80\"\n      alt=\"Beautiful forest\"\n      size=\"4by3\"\n    />\n  </Card.Image>\n  <Card.Content>\n    <Content>\n      This card is built using compound components for maximum flexibility.\n    </Content>\n  </Card.Content>\n  <Card.Footer>\n    <Card.FooterItem>\n      <Button color=\"primary\">Save</Button>\n    </Card.FooterItem>\n    <Card.FooterItem>\n      <Button>Cancel</Button>\n    </Card.FooterItem>\n  </Card.Footer>\n</Card>;"
+      "title": "Compound (dot-notation) usage › Complete Card with Compound Components",
+      "code": "import { Icon, Image } from '@allxsmith/bestax-bulma';\n\n<Card>\n  <Card.Header>\n    <Card.Header.Title>Compound Component Card</Card.Header.Title>\n    <Card.Header.Icon aria-label=\"more options\">\n      <Icon name=\"angle-down\" variant=\"solid\" ariaLabel=\"expand\" />\n    </Card.Header.Icon>\n  </Card.Header>\n  <Card.Image>\n    <Image\n      src=\"/img/carousel/carousel-banner-1-4by3.jpg\"\n      alt=\"Vibrant galaxy with purple and gold tones\"\n      size=\"4by3\"\n    />\n  </Card.Image>\n  <Card.Content>\n    <Content>\n      This card is built using compound components for maximum flexibility.\n    </Content>\n  </Card.Content>\n  <Card.Footer>\n    <Card.FooterItem>\n      <Button color=\"primary\">Save</Button>\n    </Card.FooterItem>\n    <Card.FooterItem>\n      <Button>Cancel</Button>\n    </Card.FooterItem>\n  </Card.Footer>\n</Card>;"
     },
     {
-      "title": "Compound (dot-notation) usage",
+      "title": "Compound (dot-notation) usage › Minimal Compound Card",
       "code": "<Card>\n  <Card.Header>\n    <Card.Header.Title>Simple Header</Card.Header.Title>\n  </Card.Header>\n  <Card.Content>\n    <Paragraph>Just some minimal content using compound components.</Paragraph>\n  </Card.Content>\n</Card>"
     },
     {
-      "title": "Compound (dot-notation) usage",
+      "title": "Compound (dot-notation) usage › Card Header with Icon",
       "code": "function ExpandableCard() {\n  const [isOpen, setIsOpen] = React.useState(true);\n\n  return (\n    <Card>\n      <Card.Header>\n        <Card.Header.Title>Expandable Card</Card.Header.Title>\n        <Card.Header.Icon\n          aria-label={isOpen ? 'collapse' : 'expand'}\n          onClick={() => setIsOpen(!isOpen)}\n        >\n          <Icon\n            library=\"fa\"\n            name={isOpen ? 'angle-up' : 'angle-down'}\n            ariaLabel={isOpen ? 'collapse' : 'expand'}\n          />\n        </Card.Header.Icon>\n      </Card.Header>\n      {isOpen && (\n        <Card.Content>\n          This card uses React state to toggle content visibility. Click the\n          icon in the header to expand or collapse this section.\n        </Card.Content>\n      )}\n    </Card>\n  );\n}"
     },
     {
-      "title": "Compound (dot-notation) usage",
-      "code": "<Card header=\"Prop-based header\" textColor=\"primary\" m=\"3\">\n  <Card.Content bgColor=\"light\">\n    <Paragraph>\n      You can mix prop-based and compound component approaches!\n    </Paragraph>\n  </Card.Content>\n  <Card.Footer>\n    <Card.FooterItem>Mixed approach example</Card.FooterItem>\n  </Card.Footer>\n</Card>"
+      "title": "Compound (dot-notation) usage › Mixed Approach",
+      "code": "<Card header=\"Prop-based header\" m=\"3\">\n  <Card.Content>\n    <Paragraph>You can mix the prop-based and compound approaches.</Paragraph>\n  </Card.Content>\n  <Card.Footer>\n    <Card.FooterItem as=\"a\" href=\"#save\">\n      Save\n    </Card.FooterItem>\n    <Card.FooterItem as=\"a\" href=\"#cancel\">\n      Cancel\n    </Card.FooterItem>\n  </Card.Footer>\n</Card>"
     },
     {
-      "title": "Compound (dot-notation) usage",
+      "title": "Compound (dot-notation) usage › Bulma's Own Markup (`p` Title, `a` Footer Items)",
       "code": "<Card>\n  <Card.Header>\n    <Card.Header.Title as=\"p\">Component</Card.Header.Title>\n  </Card.Header>\n  <Card.Content>Card content goes here.</Card.Content>\n  <Card.Footer>\n    <Card.FooterItem as=\"a\" href=\"#save\">\n      Save\n    </Card.FooterItem>\n    <Card.FooterItem as=\"a\" href=\"#edit\">\n      Edit\n    </Card.FooterItem>\n  </Card.Footer>\n</Card>"
     }
   ],
-  "accessibility": "- The card image uses an `alt` attribute for screen readers.\n- Use semantic content for the header, body, and footer as needed.",
+  "accessibility": "- **Image alternate text:** An image URL passed as `image` renders an `<img>` whose `alt` is `imageAlt`. Describe what the picture shows, or pass `imageAlt=\"\"` for a decorative image so screen readers skip it. Without `imageAlt`, the `alt` is \"Card image\", which tells a screen reader nothing about the picture. An image you render yourself, as a node in `image` or inside `Card.Image`, takes its own `alt`, and `imageAlt` doesn't reach it.\n- **Header and footer landmarks:** a card's header and footer are Bulma's `<header class=\"card-header\">` and `<footer class=\"card-footer\">`, which `header` or `headerIcon`, `footer`, `Card.Header` and `Card.Footer` render. Outside `<main>`, `<article>`, `<aside>`, `<nav>`, `<section>` and elements with one of their roles, a `<header>` is a banner landmark and a `<footer>` a content info landmark, so a screen reader that lists landmarks lists a banner for each card with a header and a content info for each card with a footer, beside the page's own. Inside one of them they aren't landmarks. Put cards in the page's `<main>`. For a card that can't be there, such as one portaled outside it, give the card `role=\"article\"`, or wrap it in an `<article>`, which scopes them the same way, or, built from the parts, pass `role=\"none\"` to its `Card.Header` and `Card.Footer`, which ARIA in HTML allows on both.\n- Use semantic content for the header, body, and footer as needed.\n- **Forced colors:** in Windows' contrast themes, which drop shadows and paint the card in the\n  page's own color, the card's edge is drawn as an outline in the system's text color, so a row of\n  cards still shows which image, text and actions belong together. While the card has keyboard\n  focus, the browser's focus ring shows in its place. The line under a card's header, from\n  `header`, `headerIcon` or `Card.Header`, is a shadow too, and is drawn as a one pixel line in\n  the same color inside the header, so nothing moves. CheckboxCard and RadioCard keep the edge they\n  draw themselves.",
   "related": ["Icon", "Image", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-card--default",
   "summary": "The `Card` component renders a Bulma-styled card with optional header, image, content, and footer.",
-  "import": "import { Card } from '@allxsmith/bestax-bulma';",
+  "import": "import { Card, CardHeader, CardHeaderTitle, CardHeaderIcon, CardImage, CardContent, CardFooter, CardFooterItem } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/components/Card.tsx",
   "rootClass": "card",
   "parts": [
@@ -126,7 +126,7 @@
           "name": "header",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Card header content, rendered inside `.card-header-title`.",
+          "description": "Card header content, rendered inside `.card-header-title`. The header is a `<header>`, which is a banner landmark outside `<main>`, the sectioning elements and their roles.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -144,7 +144,7 @@
           "name": "headerIcon",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Card header icon, rendered as a sibling to the header title.",
+          "description": "Card header icon, rendered as a sibling to the header title. Even with no `header`, it renders the card's `<header>`, a landmark where `header`'s is.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -153,7 +153,7 @@
           "name": "footer",
           "type": "React.ReactNode | React.ReactNode[]",
           "default": null,
-          "description": "Card footer content; each item is wrapped in `.card-footer-item`.",
+          "description": "Card footer content; each item is wrapped in `.card-footer-item`. The footer is a `<footer>`, which is a content info landmark outside `<main>`, the sectioning elements and their roles.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -162,7 +162,7 @@
           "name": "image",
           "type": "React.ReactNode | string",
           "default": null,
-          "description": "Card image node or image src string.",
+          "description": "Card image node or image src string. An image URL renders an `<img>` whose alternate text is `imageAlt`, or \"Card image\" without it.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -170,8 +170,8 @@
         {
           "name": "imageAlt",
           "type": "string",
-          "default": null,
-          "description": "Alternate text for the card image.",
+          "default": "'Card image'",
+          "description": "Alternate text for the `<img>` an image URL renders. Describe what the picture shows, or pass `\"\"` for a decorative one so screen readers skip it. Without it, the image's alternate text is \"Card image\", which tells a screen reader nothing about the picture. A node passed as `image` takes its own `alt`, and `imageAlt` doesn't reach it.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -263,7 +263,17 @@
           "deprecated": false
         }
       ],
-      "extraProps": [],
+      "extraProps": [
+        {
+          "name": "role",
+          "type": "React.AriaRole",
+          "default": null,
+          "description": "Its `<header>` is a banner landmark outside `<main>`, the sectioning elements and their roles. `role=\"none\"` drops the landmark.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
       "catchAll": "All standard HTML attributes and Bulma helper props",
       "types": []
     },
@@ -590,7 +600,17 @@
           "deprecated": false
         }
       ],
-      "extraProps": [],
+      "extraProps": [
+        {
+          "name": "role",
+          "type": "React.AriaRole",
+          "default": null,
+          "description": "Its `<footer>` is a content info landmark outside `<main>`, the sectioning elements and their roles. `role=\"none\"` drops the landmark.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
       "catchAll": "All standard HTML attributes and Bulma helper props",
       "types": []
     },

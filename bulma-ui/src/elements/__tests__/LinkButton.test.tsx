@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import { LinkButton } from '../LinkButton';
 import { ConfigProvider } from '../../helpers/Config';
 
@@ -59,14 +58,14 @@ describe('LinkButton Component', () => {
   });
 
   it('fires onClick when clicked', () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(<LinkButton onClick={handleClick}>Clickable</LinkButton>);
     fireEvent.click(screen.getByRole('button'));
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
 
   it('does not fire onClick when disabled', () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(
       <LinkButton onClick={handleClick} isDisabled disabled>
         Disabled
@@ -95,9 +94,17 @@ describe('LinkButton Component', () => {
   });
 
   it('passes through isLoading prop to Button', () => {
-    render(<LinkButton isLoading>Loading</LinkButton>);
+    const onClick = vi.fn();
+    render(
+      <LinkButton isLoading onClick={onClick}>
+        Loading
+      </LinkButton>
+    );
     const button = screen.getByRole('button');
     expect(button).toHaveClass('is-loading');
+    expect(button).toHaveAttribute('aria-busy', 'true');
+    fireEvent.click(button);
+    expect(onClick).not.toHaveBeenCalled();
   });
 
   it('merges custom className with link-button classes', () => {

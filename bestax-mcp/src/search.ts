@@ -11,6 +11,7 @@
  */
 import type { Catalog, ComponentRecord, Skill } from './data.js';
 import { attributedLinks } from './format.js';
+import { resolveGroup } from './helper-props.js';
 
 export type HitKind = 'component' | 'prop' | 'example' | 'css-var' | 'skill';
 
@@ -24,7 +25,36 @@ export interface Hit {
 }
 
 const norm = (s: string) => s.toLowerCase();
-const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * `s` as a RegExp source that matches it literally: every character a pattern
+ * reads specially is escaped, the backslash included.
+ */
+export const escapeRegExp = (s: string) =>
+  s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * Whether an example's code uses an export: by its name, or by the dot-path its
+ * part is (`<Dropdown.Item>` for `DropdownItem`). Each is matched as written,
+ * whatever characters it holds, and not as the start or end of a longer name.
+ */
+export function usesExport(code: string, name: string, path: string): boolean {
+  const named = new RegExp(`(?<![\\w$.])${escapeRegExp(name)}(?![\\w$])`);
+  const dotted = new RegExp(`<${escapeRegExp(path)}(?![\\w$.])`);
+  return named.test(code) || (path.includes('.') && dotted.test(code));
+}
+
+/**
+ * Whether an example's code calls an export that is no part of a component, a
+ * hook or a function: `useDataTable(`, or `toast.show(`. A mention is not a
+ * use, since `toast` and `notification` are words an example's text uses too.
+ * The generator finds a section with the same test (`importSection`).
+ */
+export function callsExport(code: string, name: string): boolean {
+  return new RegExp(`(?<![\\w$.])${escapeRegExp(name)}(?:\\.\\w+)?\\(`).test(
+    code
+  );
+}
 
 /**
  * A prefix of a term that survives common English inflection.
@@ -60,7 +90,7 @@ function wordInitialRe(stemmed: string): RegExp {
   let re = STEM_RE_CACHE.get(stemmed);
   if (!re) {
     if (STEM_RE_CACHE.size >= STEM_RE_CACHE_MAX) STEM_RE_CACHE.clear();
-    re = new RegExp(`\\b${escapeRe(stemmed)}`);
+    re = new RegExp(`\\b${escapeRegExp(stemmed)}`);
     STEM_RE_CACHE.set(stemmed, re);
   }
   return re;
@@ -123,6 +153,23 @@ const isName = (word: string, lowerName: string) =>
   word === lowerName || word === `${lowerName}s`;
 
 /**
+ * Whether a query names what sets a component apart: its whole name, or the
+ * first camelCase part of it. In a compound name the last part is the generic
+ * head noun and the first is the distinguishing word: TreeView is a tree kind
+ * of view, DateInput a date input, HoverCard a hover card. So "tree" or "date"
+ * makes the component the subject, and "view" or "input" alone doesn't: that
+ * "view" put TreeView above Reveal for "element that animates into view". For
+ * a one-part name, the first part is the whole name.
+ */
+function namesSubject(terms: string[], name: string): boolean {
+  const lowerName = norm(name);
+  const first = norm(name.split(/(?=[A-Z])/)[0]);
+  return terms.some(
+    t => isName(t, lowerName) || (t.length >= 3 && termHit(first, t) > 0)
+  );
+}
+
+/**
  * Score a haystack against the query terms.
  *
  * Whole-phrase and exact-name matches dominate; term coverage breaks ties. A
@@ -171,19 +218,58 @@ export const ALIASES: Readonly<Record<string, readonly string[]>> = {
   accordion: ['Collapses', 'Collapse'],
   autosuggest: ['Autocomplete'],
   avatargroup: ['Avatars'],
+  // The Bulma extensions bestax has a component for, by package: a page being
+  // ported names the one it loads (bestax-migrate's EXTENSION_COMPONENTS).
+  bulmaaccordion: ['Collapses', 'Collapse'],
+  bulmabadge: ['Badge'],
+  bulmacalendar: [
+    'DateInput',
+    'DateTimeInput',
+    'TimeInput',
+    'DateRangeInput',
+    // Its inline display mode, a calendar on the page.
+    'Calendar',
+  ],
+  bulmacarousel: ['Carousel'],
+  bulmacheckradio: ['Checkbox', 'Radio'],
+  bulmacollapsible: ['Collapse', 'Collapses'],
+  bulmapageloader: ['Loading'],
+  bulmaquickview: ['Sidebar'],
+  bulmaslider: ['Slider'],
+  bulmasteps: ['Steps'],
+  bulmaswitch: ['Switch'],
+  bulmatagsinput: ['Taginput'],
+  bulmatimeline: ['Timeline'],
+  bulmatoast: ['Toast'],
+  bulmatooltip: ['Tooltip'],
   buttongroup: ['Buttons'],
-  calendar: ['DateInput', 'DateTimeInput'],
+  // A calendar on the page, and then the pickers that open one.
+  calendar: ['Calendar', 'DateInput', 'DateTimeInput'],
   checkboxgroup: ['Checkboxes'],
   chip: ['Taginput'],
   chipinput: ['Taginput'],
   combobox: ['Autocomplete'],
   confirmdialog: ['Dialog'],
+  // Mantine, Chakra and Radix Themes call it DataList. HTML's `<datalist>` is
+  // input suggestions, which is Autocomplete.
+  datalist: ['DescriptionList', 'Autocomplete'],
+  // MUI's name for it.
+  datecalendar: ['Calendar'],
   datepicker: ['DateInput', 'DateTimeInput'],
   datetimepicker: ['DateTimeInput'],
+  definitionlist: ['DescriptionList'],
   drawer: ['Sidebar'],
   dropdownmenu: ['Dropdown'],
-  dropzone: ['File'],
-  fileupload: ['File'],
+  dropzone: ['Dropzone', 'File'],
+  // A tree on the page. TreeSelect's name says "tree" too, so without these
+  // the field ties the tree for them and sorts first.
+  filetree: ['TreeView'],
+  fileupload: ['Dropzone', 'File'],
+  foldertree: ['TreeView'],
+  // Chakra's and react-intl's names for it.
+  formatnumber: ['NumberFormatter'],
+  formattednumber: ['NumberFormatter'],
+  keyvalue: ['DescriptionList'],
   modaldialog: ['Modal', 'Dialog'],
   offcanvas: ['Sidebar'],
   pager: ['Pagination'],
@@ -198,7 +284,11 @@ export const ALIASES: Readonly<Record<string, readonly string[]>> = {
   snackbar: ['Toast'],
   spinbutton: ['Numberinput'],
   spinner: ['Loader'],
+  // Ant Design's Statistic, and Chakra's Stat.Group for a row of them.
+  statistic: ['Stat'],
+  statgroup: ['Stats'],
   stepper: ['Steps', 'Numberinput'],
+  summarylist: ['DescriptionList'],
   taggroup: ['Tags'],
   tagsinput: ['Taginput'],
   timepicker: ['TimeInput', 'DateTimeInput'],
@@ -270,6 +360,139 @@ export function aliasMatches(
 }
 
 /**
+ * A section of a skill's document, between one heading and the next: what a
+ * search reads inside the skills, whose recipes a skill's description never
+ * names ("bulma-social", "bulma-carousel", #1236).
+ */
+export interface SkillSection {
+  skill: string;
+  /** The reference id `get_skill` takes, or none for the skill's SKILL.md. */
+  reference?: string;
+  heading: string;
+  text: string;
+}
+
+/**
+ * The fence open after a line, given the one open before it. A run of three or
+ * more backticks or tildes opens one, and only a run of its own character, at
+ * least as long, with nothing after it closes it, so "```ts" inside a "```"
+ * fence is code. A backtick run with a backtick after it is a code span
+ * (```a```), which opens nothing.
+ */
+function fenceAfter(line: string, open: string | null): string | null {
+  const marker = line.match(/^\s*(`{3,}|~{3,})(.*)$/);
+  if (!marker) return open;
+  const [, run, after] = marker;
+  if (open === null) return run[0] === '`' && after.includes('`') ? null : run;
+  const closes =
+    run[0] === open[0] && run.length >= open.length && !after.trim();
+  return closes ? null : open;
+}
+
+/** A section's non-blank lines outside its fenced code, as they are written. */
+function proseLines(lines: string[]): string[] {
+  const out: string[] = [];
+  let fence: string | null = null;
+  for (const line of lines) {
+    const next = fenceAfter(line, fence);
+    if (fence === null && next === null && line.trim()) out.push(line);
+    fence = next;
+  }
+  return out;
+}
+
+/**
+ * A skill document's sections, split at each heading outside a code fence.
+ * The text before the first heading is a section under the document's name.
+ */
+export function skillSections(
+  skill: string,
+  reference: string | undefined,
+  markdown: string
+): SkillSection[] {
+  const out: SkillSection[] = [];
+  let heading = reference ?? skill;
+  let lines: string[] = [];
+  let fence: string | null = null;
+  const flush = () => {
+    const text = lines.join('\n').trim();
+    if (text) out.push({ skill, reference, heading, text });
+    lines = [];
+  };
+  for (const line of markdown.split('\n')) {
+    fence = fenceAfter(line, fence);
+    const title = fence === null ? line.match(/^#{1,6}\s+(.+?)\s*#*$/) : null;
+    if (title) {
+      flush();
+      heading = title[1];
+    } else {
+      lines.push(line);
+    }
+  }
+  flush();
+  return out;
+}
+
+/**
+ * What a section hit is worth beside the same match in a component's name or
+ * summary: less, since a skill section is long and shares words with most
+ * queries, so it ranks below what the query names outright. And how many a
+ * search returns, so a common word does not spend the whole limit on them.
+ */
+const SECTION_DISCOUNT = 10;
+const MAX_SECTIONS = 3;
+
+/**
+ * The words around the first place a section matches a query, for a hit's
+ * detail. A query can match the heading alone, and then the detail is the
+ * section's first line of prose, or its heading when it has none.
+ */
+function excerpt(section: SkillSection, terms: string[]): string {
+  const lines = section.text.split('\n').map(l => l.trim());
+  const line =
+    lines.find(l => terms.some(t => termHit(norm(l), t) > 0)) ??
+    proseLines(lines)[0] ??
+    section.heading;
+  // A link keeps its text alone: cut short, its URL would be half a link, and
+  // the call the hit names serves the section with its links whole.
+  const flat = line
+    .replace(/^[-*>|#\s]+/, '')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/\s+/g, ' ');
+  return flat.length > 160 ? `${flat.slice(0, 157)}…` : flat;
+}
+
+function sectionHits(
+  sections: readonly SkillSection[],
+  terms: string[],
+  q: string
+): Hit[] {
+  const hits: Hit[] = [];
+  for (const section of sections) {
+    const hay = `${section.heading}\n${section.text}`;
+    // Every word of the query, so a section that shares one common word with
+    // it is no hit.
+    const lower = norm(hay);
+    if (!terms.every(t => termHit(lower, t) > 0)) continue;
+    const s = score(hay, section.heading, terms, q) - SECTION_DISCOUNT;
+    if (s <= 0) continue;
+    const where = section.reference ? ` › ${section.reference}` : '';
+    hits.push({
+      kind: 'skill',
+      name: `${section.skill}${where} › ${section.heading}`,
+      detail: excerpt(section, terms),
+      next: section.reference
+        ? `get_skill({ name: "${section.skill}", reference: "${section.reference}" })`
+        : `get_skill({ name: "${section.skill}" })`,
+      score: s,
+    });
+  }
+  return hits
+    .sort((a, b) => b.score - a.score || (a.name < b.name ? -1 : 1))
+    .slice(0, MAX_SECTIONS);
+}
+
+/**
  * Added to a component that matches at all. Components are what a search is
  * usually for, and a prop or a CSS variable that mentions the same words, or
  * shares the component's name (`DateInput.popover` for "popover"), should not
@@ -277,12 +500,34 @@ export function aliasMatches(
  */
 const COMPONENT_BONUS = 30;
 
+/**
+ * How many of one component's CSS variables a search of more than one kind
+ * returns. Asked for CSS variables alone, it returns them all.
+ */
+const CSS_VARS_PER_COMPONENT = 3;
+
+/**
+ * How many helper props of one `get_helper_props` group a search of more than
+ * one kind returns: "margin" matches all seven margin props, and one call
+ * lists them.
+ */
+const HELPER_PROPS_PER_GROUP = 3;
+
+/** How many hits that share this one's next call a search keeps, or null for all. */
+const capPerCall = (h: Hit): number | null =>
+  h.kind === 'css-var'
+    ? CSS_VARS_PER_COMPONENT
+    : h.next.startsWith('get_helper_props(')
+      ? HELPER_PROPS_PER_GROUP
+      : null;
+
 export function searchAll(
   query: string,
   catalog: Catalog,
   components: ComponentRecord[],
   skills: Skill[],
-  kinds: HitKind[]
+  kinds: HitKind[],
+  sections: readonly SkillSection[] = []
 ): Hit[] {
   const terms = contentWords(norm(query.trim()).split(/\s+/).filter(Boolean));
   if (!terms.length) return [];
@@ -301,18 +546,15 @@ export function searchAll(
       const hay = `${c.name} ${c.purpose} ${c.category}`;
       const alias = aliased.get(c.name) ?? 0;
       const matched = score(hay, c.name, terms, q) + alias;
-      // The bonus is for a component the query is about: one it names, or one whose
-      // summary has most of its words. A summary that shares one word of two ("at a
-      // time" for "time picker") is the same passing mention a prop's description is,
-      // and one that misses a single word of a sentence ("spacing", where Block says
-      // "margin") is not.
-      const lowerName = norm(c.name);
+      // The bonus is for a component the query is about: one whose distinguishing
+      // word it names, or one whose summary has most of its words. A summary that
+      // shares one word of two ("at a time" for "time picker") is the same passing
+      // mention a prop's description is, and one that misses a single word of a
+      // sentence ("spacing", where Block says "margin") is not.
       const lowerHay = norm(hay);
       const covered = terms.filter(t => termHit(lowerHay, t) > 0).length;
       const about =
-        alias > 0 ||
-        terms.some(t => t.length >= 3 && termHit(lowerName, t) > 0) ||
-        covered * 2 > terms.length;
+        alias > 0 || namesSubject(terms, c.name) || covered * 2 > terms.length;
       const s = matched > 0 && about ? matched + COMPONENT_BONUS : matched;
       if (s > 0) {
         hits.push({
@@ -328,11 +570,36 @@ export function searchAll(
         });
       }
     }
+    // An export documented with another component (`InputBase`, `Thead`) is a
+    // component a query can name too, with none of the bonus, and below the
+    // component it is documented with whenever the query reaches that one as
+    // well: that component is usually what the query is about, and a sub's
+    // name repeats its words ("navbar with a dropdown menu" is about Navbar,
+    // not NavbarDropdownMenu).
+    const owners = new Map(hits.map(h => [h.name, h.score]));
+    for (const [name, entry] of Object.entries(catalog.documentedWith)) {
+      const owner = owners.get(entry.component);
+      const raw = score(`${name} ${entry.purpose}`, name, terms, q);
+      const s = owner === undefined ? raw : Math.min(raw, owner - 1);
+      if (s > 0) {
+        hits.push({
+          kind: 'component',
+          name,
+          detail:
+            `documented with ${entry.component}` +
+            (entry.purpose ? ` — ${attributedLinks(entry.purpose)}` : ''),
+          next: `get_component({ name: "${name}" })`,
+          score: s,
+        });
+      }
+    }
   }
 
   for (const record of components) {
     if (want('prop')) {
-      for (const part of record.parts) {
+      // A base's props are the ones its convenience component takes, which
+      // already answer for them.
+      for (const part of record.parts.filter(p => p.standalone !== 'base')) {
         for (const p of part.props) {
           const s = score(`${p.name} ${p.description}`, p.name, terms, q);
           if (s > 20) {
@@ -347,6 +614,32 @@ export function searchAll(
             });
           }
         }
+      }
+      // The helper props every component takes, on the page that documents
+      // them. One answers only a query that is about it, by most of its words,
+      // and then gets the bonus a component does, since it answers whatever
+      // the builder renders, where a component's prop with the same words
+      // answers for that one component: `visibility` for "screen reader only
+      // label", which only label props answered before (#1273). Short names
+      // are everyday words, and a passing one is no answer: "my" in "style my
+      // button" is no question about `my`.
+      for (const p of record.helperProps ?? []) {
+        const hay = `${p.name} ${p.type} ${p.description}`;
+        const lowerHay = norm(hay);
+        const covered = terms.filter(t => termHit(lowerHay, t) > 0).length;
+        if (covered * 2 <= terms.length) continue;
+        const group = resolveGroup(p.name);
+        hits.push({
+          kind: 'prop',
+          name: `${p.name} (helper prop)`,
+          detail: `${p.type}${
+            p.description ? ` — ${attributedLinks(p.description)}` : ''
+          }`,
+          next: group
+            ? `get_helper_props({ group: "${group}" })`
+            : 'get_helper_props()',
+          score: score(hay, p.name, terms, q) + COMPONENT_BONUS,
+        });
       }
     }
     if (want('example')) {
@@ -400,6 +693,7 @@ export function searchAll(
         });
       }
     }
+    hits.push(...sectionHits(sections, terms, q));
   }
 
   hits.sort(
@@ -410,10 +704,21 @@ export function searchAll(
   // name and the same next call: three "DateInput: Month and Year Pickers" rows for
   // "date picker", spending the limit on one answer. The best-scoring one stands.
   const seen = new Set<string>();
+  // And a component's CSS variables share a prefix and one next call, so a query
+  // that names the prefix ("bulma-carousel") matched every one of them and filled
+  // the limit, above the component and the skill's recipe (#1236). The best few stand.
+  // The same goes for the helper props one group call lists.
+  const perCall = new Map<string, number>();
   return hits.filter(h => {
     const key = `${h.kind}\u0000${h.name}`;
     if (seen.has(key)) return false;
     seen.add(key);
+    const cap = kinds.length > 1 ? capPerCall(h) : null;
+    if (cap !== null) {
+      const count = perCall.get(h.next) ?? 0;
+      if (count >= cap) return false;
+      perCall.set(h.next, count + 1);
+    }
     return true;
   });
 }

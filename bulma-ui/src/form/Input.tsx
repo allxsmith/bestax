@@ -1,5 +1,4 @@
 import React, { forwardRef } from 'react';
-import { usePrefixedClassNames } from '../helpers/classNames';
 import { Field, FieldProps } from './Field';
 import { Control, ControlBaseProps } from './Control';
 import { InputBase, InputBaseProps } from './InputBase';
@@ -10,6 +9,7 @@ import {
   rendersOwnControl,
 } from './FormContext';
 import { useAutoLabelId } from './useAutoLabelId';
+import { useFieldMessage } from './useFieldMessage';
 
 /**
  * Props for the Input component.
@@ -65,13 +65,23 @@ export interface InputProps extends InputBaseProps {
    * drawn (with bestax's CSS loaded).
    * The spinner sits at the right edge, where `iconRight` also sits, and the
    * two overlap; leave the right icon out while loading.
+   * The spinner is only drawn, so a screen reader hears nothing of it. Say
+   * that the field is loading in text that describes it, tied to it with
+   * `aria-describedby`, which a screen reader reads when the field takes
+   * focus.
+   * A load that starts while the user is in the field, such as a search as
+   * they type, isn't reliably heard without a live region, such as a
+   * `role="status"` element.
    */
   isLoading?: boolean;
   /** Expand the control. */
   isExpanded?: boolean;
   /** Control size. */
   controlSize?: ControlBaseProps['size'];
-  /** Help/validation message below the input. */
+  /**
+   * Help or validation text under the input. It describes the input through
+   * `aria-describedby`, after any ids you pass there.
+   */
   message?: React.ReactNode;
   /** Bulma color for the message. */
   messageColor?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
@@ -162,11 +172,20 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       labelProps,
       rendersLabel: ownField,
     });
-    const helpClass = usePrefixedClassNames('help', {
-      [`is-${messageColor}`]: !!messageColor,
-    });
+    const { messageEl, describedBy } = useFieldMessage(
+      message,
+      messageColor,
+      inputProps['aria-describedby']
+    );
 
-    let content = <InputBase ref={ref} {...inputProps} id={controlId} />;
+    let content = (
+      <InputBase
+        ref={ref}
+        {...inputProps}
+        id={controlId}
+        aria-describedby={describedBy}
+      />
+    );
 
     if (ownControl) {
       content = (
@@ -188,8 +207,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         </Control>
       );
     }
-
-    const messageEl = message ? <p className={helpClass}>{message}</p> : null;
 
     if (ownField) {
       return (

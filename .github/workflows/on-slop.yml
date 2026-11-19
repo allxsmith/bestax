@@ -29,6 +29,9 @@ jobs:
       pull-requests: write # comment, label, close
       issues: write # issue-comment API for the PR conversation
     steps:
+      # The role lookup retries, and an API error fails this step rather than
+      # reading as no access. "When the agent drops a job's first connections"
+      # under rule 10 in .github/CLAUDE.md says why (#1258).
       - name: Verify labeler has triage+ and close
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -37,10 +40,42 @@ jobs:
           SENDER: ${{ github.event.sender.login }}
         run: |
           set -euo pipefail
+          # lookup_role is hand-copied into every live-role check. It runs before
+          # any checkout, and rule 1 keeps security steps inline, so no shared script
+          # can hold it. scripts/role-lookup.test.mjs holds the copies equal.
+          lookup_role() {
+            local delay err status
+            err=$(mktemp)
+            for delay in 5 10 20 30 30 0; do
+              if ROLE=$(timeout 10 gh api "repos/$REPO/collaborators/$1/permission" \
+                --jq '.role_name' 2>"$err"); then
+                return 0
+              fi
+              cat "$err" >&2
+              status=$(grep -oE '\(HTTP [0-9]{3}\)' "$err" | tail -n 1 || true)
+              case "$status" in
+                # No such user: the login was renamed or deleted, so it has no access.
+                "(HTTP 404)")
+                  ROLE=none
+                  return 0 ;;
+                # A rate limit passes, so it is retried like a dropped connection.
+                "(HTTP 403)" | "(HTTP 429)") ;;
+                # Any other 4xx is GitHub's final answer, but not a role.
+                "(HTTP 4"*)
+                  echo "::error::GitHub refused the role lookup for $1 $status. That is not a role, and a retry won't change it, so the run stops here."
+                  exit 1 ;;
+              esac
+              if [ "$delay" -eq 0 ]; then
+                echo "::error::Could not look up $1's role because every GitHub API call failed (errors above). That is a network, egress or GitHub failure, not a permissions answer, so the run stops here. Re-run or re-trigger it to retry."
+                exit 1
+              fi
+              echo "Role lookup for $1 failed. Retrying in ${delay}s."
+              sleep "$delay"
+            done
+          }
           # GitHub already restricts labeling to triage+; re-verify defensively
           # so an automated/template label can never trigger an auto-close.
-          ROLE=$(gh api "repos/$REPO/collaborators/$SENDER/permission" \
-            --jq '.role_name' || echo none)
+          lookup_role "$SENDER"
           case "$ROLE" in
             admin|maintain|write|triage)
               echo "$SENDER has $ROLE access — closing PR #$PR as slop" ;;

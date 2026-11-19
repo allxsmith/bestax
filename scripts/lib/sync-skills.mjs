@@ -107,7 +107,7 @@ export async function syncSkills({
 
     // The freshness check is load-bearing, not an optimisation. Without it a
     // second and third caller would re-run the destructive copy below while
-    // the FIRST caller's jest is already reading the copy, and `rm` would
+    // the FIRST caller's test run is already reading the copy, and `rm` would
     // delete the tree out from under it. Skipping the work when it is already
     // done is what actually makes concurrent callers safe. The lock alone
     // would not.
@@ -261,15 +261,16 @@ async function acquireLock(lock, { staleMs, timeoutMs, pollMs }) {
 
 // Concurrency
 // -----------
-// `pnpm all` runs `turbo run build typecheck test test:coverage`, and
-// bestax-mcp's build, test and test:coverage scripts each invoke its sync. On
-// a cold turbo cache all three start within milliseconds of each other, and the
-// original implementation went straight to `rm -rf data/skills` followed by a
-// per-skill copy. Interleaving those produced a different error every run
-// (ENOENT on copyfile, EEXIST on mkdir, ENOTEMPTY on rmdir), which read as three
-// unrelated flakes rather than one race.
+// bestax-mcp's build, test and test:coverage scripts each invoke its sync, and
+// one turbo invocation can start more than one of them (`pnpm all` runs build
+// and test:coverage together). On a cold turbo cache they start within
+// milliseconds of each other, and the original implementation went straight
+// to `rm -rf data/skills` followed by a per-skill copy. Interleaving those
+// produced a different error every run (ENOENT on copyfile, EEXIST on mkdir,
+// ENOTEMPTY on rmdir), which read as three unrelated flakes rather than one
+// race.
 //
-// It stayed hidden because a warm cache means only one of the three actually
+// It stayed hidden because a warm cache means only one of them actually
 // executes. It surfaces reliably right after a merge, on a fresh clone, and in
 // CI, which is the worst possible time for it.
 //

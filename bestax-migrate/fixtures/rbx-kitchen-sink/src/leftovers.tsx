@@ -8,9 +8,9 @@ import {
   Button,
   Divider,
   Dropdown,
-  Fieldset,
   File,
   Generic,
+  Heading,
   Highlight,
   Icon,
   List,
@@ -18,15 +18,20 @@ import {
   Menu,
   Modal,
   Navbar,
+  Notification,
   Numeric,
   Tag,
   Tile,
+  Title,
 } from "rbx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHome } from "@fortawesome/free-solid-svg-icons";
 
 export const Leftovers = ({ where }: { where: "left" | "right" }) => (
   <Generic as="section">
+    {/* bestax's Notification takes no background color prop */}
+    <Notification backgroundColor="info">no background color prop</Notification>
+
     {/* Bulma v1 removed tiles outright. */}
     <Tile kind="ancestor">
       <Tile kind="parent" vertical size={4}>
@@ -50,7 +55,6 @@ export const Leftovers = ({ where }: { where: "left" | "right" }) => (
     </Navbar.Link>
 
     {/* no bestax equivalents */}
-    <Fieldset disabled>fields</Fieldset>
     <Numeric>{1000}</Numeric>
     <Highlight>{"const a = 1;"}</Highlight>
 
@@ -84,7 +88,7 @@ export const Leftovers = ({ where }: { where: "left" | "right" }) => (
       </Dropdown.Menu>
     </Dropdown>
 
-    {/* closeOnEsc renames; closeOnBlur is still yours to wire, and every conversion is flagged about the portal */}
+    {/* closeOnEsc renames; closeOnBlur is still yours to wire, every conversion is flagged about the portal, and nothing names this one */}
     <Modal active closeOnEsc closeOnBlur>
       <Modal.Content>body</Modal.Content>
     </Modal>
@@ -99,6 +103,17 @@ export const Leftovers = ({ where }: { where: "left" | "right" }) => (
     <Button.Group size={where === "left" ? "small" : "large"}>
       <Button>sized</Button>
     </Button.Group>
+
+    {/* Bulma v1 has no rule for the `.heading` label this rendered */}
+    <Heading>Followers</Heading>
+    {/* and the element it rendered, which the codemod can't read */}
+    <Heading as={where === "left" ? "h2" : "h3"}>Following</Heading>
+
+    {/* bestax's Tag takes no textColor prop */}
+    <Tag textColor="white">no text color prop</Tag>
+
+    {/* bestax's Title renders the heading its size names, and this one is unreadable */}
+    <Title size={where === "left" ? 3 : 4}>a dynamic size</Title>
 
     {/* dynamic values are never best-guessed */}
     <Generic as="div" textAlign={where === "left" ? "left" : "right"} />

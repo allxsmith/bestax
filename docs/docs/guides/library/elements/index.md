@@ -28,7 +28,7 @@ A simple container with vertical margin for grouping or spacing content sections
 
 ### Box
 
-A bordered, padded container with optional shadow, ideal for grouping or highlighting content. [View full documentation.](../../../api/elements/box.md)
+A padded container with rounded corners and an optional shadow, ideal for grouping or highlighting content. [View full documentation.](../../../api/elements/box.md)
 
 ```tsx live
 <Box>Default Box</Box>
@@ -146,6 +146,23 @@ An inline code (`<code>`) wrapper for short code snippets. [View full documentat
 
 ---
 
+### Kbd
+
+A key the reader presses, drawn as a keycap on a `<kbd>` that takes its colors and size from the text around it, with `Kbd.Group` for combinations. [View full documentation.](../../../api/elements/kbd.md)
+
+```tsx live
+<Paragraph>
+  Press <Kbd>Esc</Kbd> to close, or{' '}
+  <Kbd.Group>
+    <Kbd>Ctrl</Kbd>
+    <Kbd>S</Kbd>
+  </Kbd.Group>{' '}
+  to save.
+</Paragraph>
+```
+
+---
+
 ### Pre
 
 A preformatted text (`<pre>`) wrapper for code blocks. [View full documentation.](../../../api/elements/pre.md)
@@ -232,6 +249,33 @@ A button that stays pressed while something is on, such as Bold in an editor too
 <Buttons>
   <ToggleButton>Mute</ToggleButton>
   <ToggleButton defaultPressed>Show archived</ToggleButton>
+</Buttons>
+```
+
+---
+
+### IconButton
+
+A button that shows only an icon, such as Delete in a table row, with a name its types require and `isRounded` for a circle. [View full documentation.](../../../api/elements/iconbutton.md)
+
+```tsx live
+<Buttons>
+  <IconButton icon="pen" aria-label="Edit" />
+  <IconButton icon="trash" aria-label="Delete" color="danger" />
+  <IconButton icon="plus" aria-label="Add" color="primary" isRounded />
+</Buttons>
+```
+
+---
+
+### CopyButton
+
+A button that copies a piece of text, reads "Copied" for a moment after, and announces the result, falling back to the older copy command where the Clipboard API is missing. [View full documentation.](../../../api/elements/copybutton.md)
+
+```tsx live
+<Buttons>
+  <CopyButton value="https://bestax.io" />
+  <CopyButton value="https://bestax.io" showLabel={false} />
 </Buttons>
 ```
 
@@ -359,6 +403,71 @@ A highly composable, Bulma-styled table system with full support for Bulma's tab
 
 ---
 
+### DescriptionList
+
+Facts about one thing, each a label and its value, as HTML's description list: labels above their values on a phone and beside them from tablet up, lined up in one column. [View full documentation.](../../../api/elements/descriptionlist.md)
+
+```tsx live
+<DescriptionList>
+  <DescriptionList.Item label="Order" value="#1234" />
+  <DescriptionList.Item label="Placed on" value="14 October 2026" />
+  <DescriptionList.Item label="Total" value="$86.40" />
+</DescriptionList>
+```
+
+---
+
+### NumberFormatter
+
+A number written the way a locale writes it, such as a price, a percentage or a count, in a `<data>` element that keeps the number itself; `useNumberFormat` does the same for text outside JSX. [View full documentation.](../../../api/elements/numberformatter.md)
+
+```tsx live
+<NumberFormatter
+  value={8456.4}
+  locale="en-US"
+  format={{ style: 'currency', currency: 'USD' }}
+/>
+```
+
+---
+
+### Stat
+
+A figure with its name, and often a change and a note, as a label and its values in a description list; a change is written with its sign, so the direction is in the text as well as in the arrow and the color. [View full documentation.](../../../api/elements/stat.md)
+
+```tsx live
+<Stat
+  label="Revenue"
+  value={8456.4}
+  format={{ style: 'currency', currency: 'USD' }}
+  locale="en-US"
+  change={0.12}
+  description="since last month"
+/>
+```
+
+---
+
+### Stats
+
+A row of `Stat` components as one description list on Bulma's smart grid, the tiles wrapping as the row narrows. [View full documentation.](../../../api/elements/stats.md)
+
+```tsx live
+<Stats minCol={8} gap={4}>
+  <Stat label="New customers" value={1234} locale="en-US" change={-0.019} />
+  <Stat
+    label="Churn"
+    value={0.021}
+    format={{ style: 'percent', maximumFractionDigits: 1 }}
+    locale="en-US"
+    change={0.004}
+    changeColor="danger"
+  />
+</Stats>
+```
+
+---
+
 ### Tag
 
 A Bulma-styled label or badge, supporting color (with an `isLight` variant), size, rounded, hoverable, and delete variants. [View full documentation.](../../../api/elements/tag.md)
@@ -383,6 +492,16 @@ A container for grouping multiple `Tag` components, supporting add-ons and multi
 
 ---
 
+### ColorSwatch
+
+A color shown as a small chip, an image named by its label or by the color itself, with a checkerboard behind a see-through color. [View full documentation.](../../../api/elements/colorswatch.md)
+
+```tsx live
+<ColorSwatch color="#1e6b99" label="Brand blue" />
+```
+
+---
+
 ## Feedback
 
 ### Notification
@@ -401,6 +520,18 @@ A Bulma-styled progress bar for visualizing task completion, loading states, or 
 
 ```tsx live
 <Progress value={50} max={100} />
+```
+
+---
+
+### RingProgress
+
+A value drawn as a ring that fills as it grows, a progress bar or with `isMeter` a meter, and with `sections` several values around one ring. [View full documentation.](../../../api/elements/ringprogress.md)
+
+```tsx live
+<RingProgress value={72} label="Upload" color="success">
+  72%
+</RingProgress>
 ```
 
 ---
@@ -438,7 +569,7 @@ A Bulma-styled close/delete button for dismissing modals, notifications, tags, a
 ---
 
 :::tip
-For advanced customization, all elements support Bulma helper props for color, spacing, and accessibility. See the full documentation for each component for more details and advanced usage.
+See the full documentation for each component for more details and advanced usage.
 :::
 
 :::caution

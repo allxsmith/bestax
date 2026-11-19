@@ -771,9 +771,8 @@ export function renderCursorManifest(template, version) {
 }
 
 /**
- * The vendor-neutral Agent Plugins manifest, which Kiro and the
- * awesome-copilot catalog read, and which Codex, Copilot CLI, VS Code and
- * Grok Build prefer to `.claude-plugin/`. Its `version` is pluginVersion's,
+ * The vendor-neutral Agent Plugins manifest, which Kiro reads, and which
+ * Codex, Copilot CLI, VS Code and Grok Build prefer to `.claude-plugin/`. Its `version` is pluginVersion's,
  * for the catalogs that pin a release.
  *
  * `mcpServers` is not in the Agent Plugins schema. Its clients find

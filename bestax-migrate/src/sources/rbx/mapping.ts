@@ -23,7 +23,7 @@ const numeric: PropAction = { numberToString: true };
 
 /**
  * `as` is universal in rbx — `forwardRefAs` puts it on every component — but
- * bestax declares it on only ~16 components, several of them constrained to a
+ * bestax declares it on only some components, several of them constrained to a
  * narrow literal union (`Footer` is `'footer' | 'div'`). So the default is a
  * TODO, and the components that really do accept `as` opt in with `AS_OK` in
  * their own prop map, which runs first and wins.
@@ -42,7 +42,7 @@ const AS_TODO: PropAction = {
  * `'footer' | 'div'`, `Control` is `'div'`), so an `as={SomeComponent}` still
  * surfaces — as a type error the user can see, rather than a silent rewrite.
  */
-const AS_OK: PropAction = {};
+export const AS_OK: PropAction = {};
 
 /**
  * Helper props rbx mixes into every component via `HelpersProps`. Applied
@@ -145,7 +145,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
   },
   forwardRefAs: {
     status: 'todo',
-    todo: '`forwardRefAs` is rbx-internal and has no counterpart. bestax forwards a ref from the form controls, plus `Avatar`, `Button`, `Carousel`, `CarouselItem`, `Dialog`, `Dropdown`, `Link`, `LinkButton`, `Loader`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`, `Navbar.Item`, `Navbar.Link`, `SegmentedControl`, `SegmentedControl.Segment`, `Sidebar`, `Toast` and `ToggleButton` — pass `ref` directly on those, though not on the `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios` wrappers, which forward none. Mind the `Navbar.Dropdown` collision: your rbx `Navbar.Dropdown` is the menu and becomes `Navbar.DropdownMenu`, which forwards no ref, while bestax `Navbar.Dropdown` — the container your `<Navbar.Item dropdown>` becomes — does. The rest, `Box` included, forward no ref: React 18 drops it with a warning, React 19 leaves it wherever the rest props go, so put the ref on a wrapping element you control',
+    todo: '`forwardRefAs` is rbx-internal and has no counterpart. bestax forwards a ref from the form controls, plus `Affix`, `AppFrame`, `AppFrame.Aside`, `AppFrame.Burger`, `AppFrame.Footer`, `AppFrame.Header`, `AppFrame.Main`, `AppFrame.Nav`, `Avatar`, `Button`, `Carousel`, `CarouselItem`, `Center`, `ColorSwatch`, `Command`, `Command.Dialog`, `Command.Input`, `CopyButton`, `DataTable`, `DescriptionList`, `DescriptionList.Item`, `DescriptionList.Label`, `DescriptionList.Value`, `Dialog`, `Dropdown`, `EmptyState`, `Flex`, `FloatButton`, `FloatButton.BackToTop`, `FloatButton.SpeedDial`, `FloatButtons`, `Group`, `IconButton`, `Kbd`, `Kbd.Group`, `Lightbox`, `Lightbox.Trigger`, `Link`, `LinkButton`, `Loader`, `LocaleProvider`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`, `Navbar.Item`, `Navbar.Link`, `NumberFormatter`, `RingProgress`, `ScrollArea`, `SegmentedControl`, `SegmentedControl.Segment`, `Sidebar`, `Splitter`, `Splitter.Pane`, `Stack`, `Stat`, `Stat.Change`, `Stat.Description`, `Stat.Label`, `Stat.Value`, `Stats`, `TableOfContents`, `Timeline`, `Timeline.Item`, `Toast`, `ToggleButton`, `Tour`, `Tour.Back`, `Tour.Next`, `Tour.Skip`, `Tour.Step`, `TreeView` and `TreeView.Item` — pass `ref` directly on those, though not on the `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios` wrappers, which forward none. Mind the `Navbar.Dropdown` collision: your rbx `Navbar.Dropdown` is the menu and becomes `Navbar.DropdownMenu`, which forwards no ref, while bestax `Navbar.Dropdown` — the container your `<Navbar.Item dropdown>` becomes — does. The rest, `Box` included, forward no ref: React 18 drops it with a warning, React 19 leaves it wherever the rest props go, so put the ref on a wrapping element you control',
   },
 
   // ---- elements -----------------------------------------------------------
@@ -199,6 +199,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     status: 'mapped',
     target: 'Container',
     props: {
+      as: AS_OK,
       fluid: {},
       // bestax's ContainerBreakpoint is 'tablet' | 'desktop' | 'widescreen';
       // rbx accepts all six, so the other three are type errors if passed on.
@@ -247,7 +248,9 @@ export const MAPPING: Record<string, ComponentMapping> = {
       },
     },
   },
-  Heading: { status: 'mapped', special: 'heading' },
+  // rbx's Heading is Bulma's `.heading` label, whose styles Bulma v1 no
+  // longer ships — bestax has no component for it.
+  Heading: { status: 'partial', special: 'heading' },
   Highlight: {
     status: 'todo',
     todo: `\`Highlight\` (syntax-highlighted <pre>) has no bestax equivalent; use \`<Pre>\` plus your own highlighter (${DOCS}/api/elements/pre)`,
@@ -326,6 +329,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     status: 'mapped',
     target: 'Tag',
     props: {
+      as: AS_OK,
       color: {},
       size: {},
       rounded: { booleanToProp: { name: 'isRounded' } },
@@ -391,10 +395,10 @@ export const MAPPING: Record<string, ComponentMapping> = {
       Body: { status: 'mapped', target: 'Field.Body' },
     },
   },
-  Fieldset: {
-    status: 'todo',
-    todo: 'bestax has no `Fieldset` component; render a plain <fieldset> (its `disabled` attribute works natively)',
-  },
+  // rbx's Fieldset is a bare <fieldset>, and bestax's `unstyled` variant is
+  // the one that draws no box, so the special adds it. Inside a Field or a
+  // Control the special keeps the plain <fieldset> instead.
+  Fieldset: { status: 'mapped', target: 'Fieldset', special: 'fieldset' },
   File: {
     status: 'mapped',
     target: 'File',
@@ -548,6 +552,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     status: 'mapped',
     target: 'Level',
     props: {
+      as: AS_OK,
       breakpoint: {
         valueMap: { mobile: 'isMobile' },
         valueToProp: true,
@@ -751,10 +756,14 @@ export const MAPPING: Record<string, ComponentMapping> = {
   Panel: {
     status: 'mapped',
     target: 'Panel',
-    props: { color: {} },
+    props: { as: AS_OK, color: {} },
     subs: {
       Heading: { status: 'mapped', target: 'Panel.Heading' },
-      Block: { status: 'mapped', target: 'Panel.Block', props: { active: {} } },
+      Block: {
+        status: 'mapped',
+        target: 'Panel.Block',
+        props: { active: {}, as: AS_OK },
+      },
       Icon: { status: 'partial', target: 'Panel.Icon', special: 'icon' },
       Tab: {
         status: 'mapped',
@@ -843,6 +852,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     status: 'mapped',
     target: 'Hero',
     props: {
+      as: AS_OK,
       color: {},
       // rbx's five sizes are bestax's five, `fullheight-with-navbar`
       // included, and both render the one `is-<size>` class.
@@ -853,8 +863,8 @@ export const MAPPING: Record<string, ComponentMapping> = {
     },
     subs: {
       Body: { status: 'mapped', target: 'Hero.Body' },
-      Foot: { status: 'mapped', target: 'Hero.Foot' },
-      Head: { status: 'mapped', target: 'Hero.Head' },
+      Foot: { status: 'mapped', target: 'Hero.Foot', props: { as: AS_OK } },
+      Head: { status: 'mapped', target: 'Hero.Head', props: { as: AS_OK } },
     },
   },
   Section: { status: 'mapped', target: 'Section', props: { size: {} } },

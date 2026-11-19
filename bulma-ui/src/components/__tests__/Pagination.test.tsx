@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+import type { MockInstance } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Pagination, {
   PaginationLink,
@@ -5,15 +7,16 @@ import Pagination, {
   PaginationEllipsis,
   PaginationPrevious,
   PaginationNext,
+  type PaginationPreviousNextProps,
 } from '../Pagination';
 import { ConfigProvider } from '../../helpers/Config';
 import { resetColorDeprecationWarnings } from '../../helpers/colorDeprecations';
 
-let warnSpy: jest.SpyInstance;
+let warnSpy: MockInstance;
 
 beforeEach(() => {
   resetColorDeprecationWarnings();
-  warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 });
 
 afterEach(() => {
@@ -180,7 +183,7 @@ describe('Pagination.Link', () => {
   });
 
   it('calls onClick when not disabled', () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(
       <Pagination.List>
         <Pagination.Link data-testid="link" onClick={handleClick}>
@@ -193,7 +196,7 @@ describe('Pagination.Link', () => {
   });
 
   it('does not call onClick when disabled', () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(
       <Pagination.List>
         <Pagination.Link disabled data-testid="link" onClick={handleClick}>
@@ -227,6 +230,33 @@ describe('Pagination.Ellipsis', () => {
     expect(ellipsis).toHaveClass('pagination-ellipsis');
     expect(ellipsis).toHaveTextContent('…');
   });
+
+  // A className adds to the ellipsis's own class, as on the other Pagination
+  // parts, rather than taking its place (#2168).
+  it.each([
+    ['no prefix', undefined],
+    ['a class prefix', 'bestax-'],
+  ])(
+    'keeps its pagination-ellipsis class beside a className, with %s',
+    (_label, prefix) => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Pagination>
+            <Pagination.List>
+              <Pagination.Ellipsis className="has-text-grey" />
+            </Pagination.List>
+          </Pagination>
+        </ConfigProvider>
+      );
+      const classed = container.querySelectorAll('.has-text-grey');
+      expect(classed).toHaveLength(1);
+      expect(classed[0].tagName).toBe('SPAN');
+      expect(classed[0]).toHaveClass(
+        `${prefix ?? ''}pagination-ellipsis`,
+        'has-text-grey'
+      );
+    }
+  );
 });
 
 // Tests for Pagination.Previous and Pagination.Next
@@ -253,7 +283,7 @@ describe('Pagination.Previous', () => {
   });
 
   it('calls onClick when not disabled', () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(
       <Pagination.Previous data-testid="prev" onClick={handleClick}>
         Previous
@@ -264,7 +294,7 @@ describe('Pagination.Previous', () => {
   });
 
   it('does not call onClick when disabled', () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(
       <Pagination.Previous data-testid="prev" disabled onClick={handleClick}>
         Previous
@@ -296,7 +326,7 @@ describe('Pagination.Next', () => {
   });
 
   it('calls onClick when not disabled', () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(
       <Pagination.Next data-testid="next" onClick={handleClick}>
         Next
@@ -307,7 +337,7 @@ describe('Pagination.Next', () => {
   });
 
   it('does not call onClick when disabled', () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(
       <Pagination.Next data-testid="next" disabled onClick={handleClick}>
         Next
@@ -472,7 +502,7 @@ describe('Pagination from total', () => {
   });
 
   it('calls onPageChange, and leaves the page to its owner when controlled', () => {
-    const onPageChange = jest.fn();
+    const onPageChange = vi.fn();
     const { container } = render(
       <Pagination total={5} current={2} onPageChange={onPageChange} />
     );
@@ -489,7 +519,7 @@ describe('Pagination from total', () => {
   });
 
   it('keeps the page itself when no current is given', () => {
-    const onPageChange = jest.fn();
+    const onPageChange = vi.fn();
     const { container } = render(
       <Pagination total={5} onPageChange={onPageChange} />
     );
@@ -506,7 +536,7 @@ describe('Pagination from total', () => {
   });
 
   it('disables Previous on the first page and Next on the last', () => {
-    const onPageChange = jest.fn();
+    const onPageChange = vi.fn();
     const first = render(
       <Pagination total={3} current={1} onPageChange={onPageChange} />
     ).container;
@@ -524,7 +554,7 @@ describe('Pagination from total', () => {
   });
 
   it('disables every link with disabled', () => {
-    const onPageChange = jest.fn();
+    const onPageChange = vi.fn();
     const { container } = render(
       <Pagination total={5} current={3} disabled onPageChange={onPageChange} />
     );
@@ -539,7 +569,7 @@ describe('Pagination from total', () => {
   });
 
   it('lets Enter or Space choose a page, as the buttons its links are', () => {
-    const onPageChange = jest.fn();
+    const onPageChange = vi.fn();
     const { container } = render(
       <Pagination total={5} current={1} onPageChange={onPageChange} />
     );
@@ -553,7 +583,7 @@ describe('Pagination from total', () => {
   });
 
   it('makes each a real link with getPageHref', () => {
-    const onPageChange = jest.fn();
+    const onPageChange = vi.fn();
     const { container } = render(
       <Pagination
         total={5}
@@ -569,10 +599,11 @@ describe('Pagination from total', () => {
       'href',
       '?page=2'
     );
-    // A disabled end goes nowhere.
-    expect(container.querySelector('.pagination-previous')).not.toHaveAttribute(
-      'href'
-    );
+    // A disabled end goes nowhere, so it's a disabled button.
+    const previous = container.querySelector('.pagination-previous');
+    expect(previous).not.toHaveAttribute('href');
+    expect(previous).toHaveAttribute('role', 'button');
+    expect(previous).toHaveAttribute('aria-disabled', 'true');
     fireEvent.keyDown(three, { key: 'Enter' });
     expect(onPageChange).not.toHaveBeenCalled();
     fireEvent.click(three);
@@ -593,7 +624,7 @@ describe('Pagination from total', () => {
   });
 
   it('reads a current page that is no number as the first', () => {
-    const onPageChange = jest.fn();
+    const onPageChange = vi.fn();
     const { container } = render(
       <Pagination total={3} current={Number.NaN} onPageChange={onPageChange} />
     );
@@ -660,4 +691,134 @@ describe('Pagination from total', () => {
       'is-rounded'
     );
   });
+});
+
+// An <a> with no href is no link: it has no role, and the browser activates it
+// on no key, so a part with only an onClick took focus and then did nothing
+// from the keyboard (#1919). With no href the parts are buttons; with one they
+// stay links, as they were.
+describe('a part with no href', () => {
+  /** The props every part takes alike. */
+  type PartProps = Pick<
+    PaginationPreviousNextProps,
+    'href' | 'role' | 'disabled' | 'onClick' | 'onKeyDown'
+  >;
+  const PARTS: [string, (props: PartProps) => ReactNode][] = [
+    [
+      'Pagination.Link',
+      props => (
+        <Pagination.List>
+          <Pagination.Link {...props}>2</Pagination.Link>
+        </Pagination.List>
+      ),
+    ],
+    [
+      'Pagination.Previous',
+      props => <Pagination.Previous {...props}>Previous</Pagination.Previous>,
+    ],
+    [
+      'Pagination.Next',
+      props => <Pagination.Next {...props}>Next</Pagination.Next>,
+    ],
+  ];
+
+  it.each(PARTS)(
+    'makes %s a button that Enter and Space click',
+    (_name, part) => {
+      const onClick = vi.fn();
+      render(<Pagination>{part({ onClick })}</Pagination>);
+      const button = screen.getByRole('button');
+      expect(button.tagName).toBe('A');
+      expect(button).toHaveAttribute('tabindex', '0');
+      expect(fireEvent.keyDown(button, { key: 'Enter' })).toBe(false);
+      expect(fireEvent.keyDown(button, { key: ' ' })).toBe(false);
+      // Other keys, keys a modifier changes, and keys on something inside
+      // the part are left alone.
+      expect(fireEvent.keyDown(button, { key: 'a' })).toBe(true);
+      for (const modifier of ['altKey', 'ctrlKey', 'metaKey']) {
+        expect(
+          fireEvent.keyDown(button, { key: 'Enter', [modifier]: true })
+        ).toBe(true);
+      }
+      const inside = document.createElement('span');
+      button.appendChild(inside);
+      expect(fireEvent.keyDown(inside, { key: 'Enter' })).toBe(true);
+      expect(onClick).toHaveBeenCalledTimes(2);
+    }
+  );
+
+  it.each(PARTS)('leaves %s with an href a link, as it was', (_name, part) => {
+    const onClick = vi.fn();
+    render(<Pagination>{part({ href: '#2', onClick })}</Pagination>);
+    const link = screen.getByRole('link');
+    expect(link).not.toHaveAttribute('role');
+    // The browser follows a link on Enter by itself, so the part adds nothing.
+    expect(fireEvent.keyDown(link, { key: 'Enter' })).toBe(true);
+    expect(onClick).not.toHaveBeenCalled();
+  });
+
+  it.each(PARTS)(
+    'keeps a disabled %s from clicking on a key',
+    (_name, part) => {
+      const onClick = vi.fn();
+      render(<Pagination>{part({ onClick, disabled: true })}</Pagination>);
+      const button = screen.getByRole('button');
+      expect(button).toHaveAttribute('aria-disabled', 'true');
+      fireEvent.keyDown(button, { key: 'Enter' });
+      // Space doesn't scroll the page from it either.
+      expect(fireEvent.keyDown(button, { key: ' ' })).toBe(false);
+      fireEvent.click(button);
+      expect(onClick).not.toHaveBeenCalled();
+    }
+  );
+
+  // Code that already answers Enter in its own onKeyDown, as it had to,
+  // doesn't act twice.
+  it.each(PARTS)(
+    'leaves the keys to an onKeyDown %s is given',
+    (_name, part) => {
+      const onClick = vi.fn();
+      const onKeyDown = vi.fn();
+      render(<Pagination>{part({ onClick, onKeyDown })}</Pagination>);
+      const button = screen.getByRole('button');
+      fireEvent.keyDown(button, { key: 'Enter' });
+      fireEvent.keyDown(button, { key: ' ' });
+      expect(onKeyDown).toHaveBeenCalledTimes(2);
+      expect(onClick).not.toHaveBeenCalled();
+    }
+  );
+
+  // A wrapper that forwards a role it wasn't given passes `role={undefined}`.
+  it.each(PARTS)(
+    'makes %s a button when its role is undefined',
+    (_name, part) => {
+      const onClick = vi.fn();
+      render(<Pagination>{part({ role: undefined, onClick })}</Pagination>);
+      fireEvent.keyDown(screen.getByRole('button'), { key: 'Enter' });
+      expect(onClick).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  // JavaScript, or data typed loosely, can pass a null href, which React
+  // leaves off.
+  it.each(PARTS)('makes %s a button when its href is null', (_name, part) => {
+    const onClick = vi.fn();
+    const href = null as unknown as string;
+    render(<Pagination>{part({ href, onClick })}</Pagination>);
+    fireEvent.keyDown(screen.getByRole('button'), { key: 'Enter' });
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(PARTS)(
+    'lets a role %s is given win, and its keys with it',
+    (_name, part) => {
+      const onClick = vi.fn();
+      render(<Pagination>{part({ role: 'link', onClick })}</Pagination>);
+      const link = screen.getByRole('link');
+      expect(link).toHaveAttribute('role', 'link');
+      // A link doesn't answer Space, and the part doesn't make it.
+      expect(fireEvent.keyDown(link, { key: ' ' })).toBe(true);
+      expect(onClick).not.toHaveBeenCalled();
+    }
+  );
 });

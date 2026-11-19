@@ -44,7 +44,8 @@ import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
+import { withoutCoverage } from './lib/without-coverage.mjs';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 const PKG_DIR = join(REPO, 'bulma-ui');
@@ -52,14 +53,21 @@ const manifest = JSON.parse(
   readFileSync(join(PKG_DIR, 'package.json'), 'utf8')
 );
 
+/**
+ * The environment every `tsc` child runs in, with coverage off: the compiler
+ * runs about three times slower instrumented, none of its code being this
+ * repo's.
+ */
+const TSC_ENV = withoutCoverage();
+
 /** Absolute path for an export-map target such as `./dist/constants.cjs`. */
 const target = spec => resolve(PKG_DIR, spec);
 
 /**
  * These cases load built artifacts, so they need the build. They ASSERT that
  * rather than skipping: a guard against an entry point that silently exports
- * nothing must not itself be silenceable, and `node --test` exits 0 on a
- * skip. `pnpm all` and ci.yml both build before testing, and turbo's
+ * nothing must not itself be silenceable, and Vitest exits 0 on a skip.
+ * `pnpm all` and ci.yml both build before testing, and turbo's
  * `@allxsmith/eslint-plugin-bestax#test` edge builds `bulma-ui` for the
  * package suite too.
  */
@@ -275,8 +283,8 @@ describe('bulma-ui export map', () => {
     );
     // Same gap as the subpath, one package over: `moduleResolution: bundler`
     // accepts an extensionless relative import and `tsc` emits it verbatim,
-    // which Node ESM rejects — while jest's moduleNameMapper strips `.js` and
-    // so passes either spelling. Nothing else in the repo loads this file.
+    // which Node ESM rejects — while the test runner's resolver accepts either
+    // spelling. Nothing else in the repo loads this file.
     const plugin = await import(pathToFileURL(dist).href);
     const p = plugin.default;
     assert.equal(typeof p.meta?.version, 'string');
@@ -357,6 +365,7 @@ describe('bulma-ui export map', () => {
     );
     const run = spawnSync(process.execPath, [tsc, '-p', dir], {
       encoding: 'utf8',
+      env: TSC_ENV,
     });
     assert.equal(
       run.status,
@@ -530,6 +539,7 @@ describe('bulma-ui export map', () => {
       );
       return spawnSync(process.execPath, [tsc, '-p', dir], {
         encoding: 'utf8',
+        env: TSC_ENV,
       });
     };
 
@@ -617,6 +627,7 @@ describe('bulma-ui export map', () => {
     );
     const run = spawnSync(process.execPath, [tsc, '-p', dir], {
       encoding: 'utf8',
+      env: TSC_ENV,
     });
     assert.equal(
       run.status,
@@ -688,6 +699,7 @@ describe('bulma-ui export map', () => {
     );
     const run = spawnSync(process.execPath, [tsc, '-p', dir], {
       encoding: 'utf8',
+      env: TSC_ENV,
     });
     assert.equal(
       run.status,
@@ -934,6 +946,7 @@ describe('the declaration-extension guard', () => {
     );
     const compiled = spawnSync(process.execPath, [tsc, '-p', dir], {
       encoding: 'utf8',
+      env: TSC_ENV,
     });
     assert.equal(
       compiled.status,
@@ -1231,6 +1244,7 @@ describe('the declaration-extension guard', () => {
     );
     const compiled = spawnSync(process.execPath, [tsc, '-p', dir], {
       encoding: 'utf8',
+      env: TSC_ENV,
     });
     assert.equal(
       compiled.status,

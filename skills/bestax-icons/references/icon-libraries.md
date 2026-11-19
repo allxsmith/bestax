@@ -26,9 +26,22 @@ Set it once on `ConfigProvider` and omit `library` everywhere else.
 - **Variants** (`variant` → class): `solid` → `fas` (default), `regular` → `far`, `brands` →
   `fab`, `light` → `fal`, `duotone` → `fad`, `thin` → `fat`. The free package includes only
   solid, regular (partial), and brands — light/duotone/thin need a Font Awesome Pro kit.
+  Font Awesome 6's long class names (`fa-solid`, `fa-brands`, …) are the same styles, so write
+  them as these variants. Font Awesome 4's `fa` is `variant="fa"`, which `Icon` writes as given:
+  4 reads nothing else, and 5 and later read it as solid.
 - **Features:** Font Awesome utility classes — `'fa-lg'`, `'fa-2x'`…`'fa-10x'`, `'fa-spin'`,
   `'fa-pulse'`, `'fa-border'`, `'fa-fw'`, `'fa-flip-horizontal'`, `'fa-rotate-90'`.
 - Brand icons **require** `variant="brands"`: `<Icon name="github" variant="brands" />`.
+- **Older names:** 6 and 7 still read most of 5's names, many since renamed (`search` is
+  `magnifying-glass` now), and 4's through the v4 shims (`css/v4-shims.min.css`). Two kinds
+  draw something else:
+  - **4's brand glyphs under `fa`** (`fa fa-github`): 5 moved brands to a style of their own,
+    so without the shims they show a missing-glyph box. Write `variant="brands"`, and the
+    current name where 5 renamed one (4's `facebook` is `facebook-f`, `linkedin` is
+    `linkedin-in`, `youtube-play` is `youtube`).
+  - **5's handsets:** 6 turned them round. 5's `phone` and `phone-square` draw as 6's
+    `phone-flip` and `square-phone-flip`, and 5's `phone-alt` and `phone-square-alt` as `phone`
+    and `square-phone`, so write those names to keep a 5 page's look.
 
 ## Material Design Icons — `'mdi'`
 
@@ -140,7 +153,7 @@ Docs: https://bestax.io/docs/guides/getting-started/alternative-icons#making-the
 3. **The library's CSS/script is actually loaded** — the import in `main.tsx` (or the
    Ionicons script in `index.html`) must exist; bestax ships none of them.
 4. **Variant availability** — Font Awesome free has no `light`/`duotone`/`thin`; brand
-   glyphs need `variant="brands"`.
+   glyphs need `variant="brands"`, an old Font Awesome 4 one under `fa` included.
 
 ## IconText
 

@@ -7,23 +7,23 @@
   "examples": [
     {
       "title": "Basic Pagination",
-      "code": "<Pagination>\n  <Pagination.List>\n    <Pagination.Link>&laquo;</Pagination.Link>\n    <Pagination.Link active>1</Pagination.Link>\n    <Pagination.Link>2</Pagination.Link>\n    <Pagination.Link>3</Pagination.Link>\n    <Pagination.Ellipsis />\n    <Pagination.Link>10</Pagination.Link>\n    <Pagination.Link>&raquo;</Pagination.Link>\n  </Pagination.List>\n</Pagination>"
+      "code": "<Pagination>\n  <Pagination.List>\n    <Pagination.Link href=\"#previous\" aria-label=\"Previous page\">\n      &laquo;\n    </Pagination.Link>\n    <Pagination.Link active href=\"#page-1\">\n      1\n    </Pagination.Link>\n    <Pagination.Link href=\"#page-2\">2</Pagination.Link>\n    <Pagination.Link href=\"#page-3\">3</Pagination.Link>\n    <Pagination.Ellipsis />\n    <Pagination.Link href=\"#page-10\">10</Pagination.Link>\n    <Pagination.Link href=\"#next\" aria-label=\"Next page\">\n      &raquo;\n    </Pagination.Link>\n  </Pagination.List>\n</Pagination>"
     },
     {
       "title": "Sizes",
-      "code": "<>\n  <Pagination size=\"small\" mb=\"2\">\n    <Pagination.List>\n      <Pagination.Link>1</Pagination.Link>\n      <Pagination.Link active>2</Pagination.Link>\n      <Pagination.Link>3</Pagination.Link>\n    </Pagination.List>\n  </Pagination>\n  <Pagination size=\"medium\" mb=\"2\">\n    <Pagination.List>\n      <Pagination.Link>1</Pagination.Link>\n      <Pagination.Link active>2</Pagination.Link>\n      <Pagination.Link>3</Pagination.Link>\n    </Pagination.List>\n  </Pagination>\n  <Pagination size=\"large\">\n    <Pagination.List>\n      <Pagination.Link>1</Pagination.Link>\n      <Pagination.Link active>2</Pagination.Link>\n      <Pagination.Link>3</Pagination.Link>\n    </Pagination.List>\n  </Pagination>\n</>"
+      "code": "<>\n  <Pagination size=\"small\" mb=\"2\">\n    <Pagination.List>\n      <Pagination.Link href=\"#page-1\">1</Pagination.Link>\n      <Pagination.Link active href=\"#page-2\">\n        2\n      </Pagination.Link>\n      <Pagination.Link href=\"#page-3\">3</Pagination.Link>\n    </Pagination.List>\n  </Pagination>\n  <Pagination size=\"medium\" mb=\"2\">\n    <Pagination.List>\n      <Pagination.Link href=\"#page-1\">1</Pagination.Link>\n      <Pagination.Link active href=\"#page-2\">\n        2\n      </Pagination.Link>\n      <Pagination.Link href=\"#page-3\">3</Pagination.Link>\n    </Pagination.List>\n  </Pagination>\n  <Pagination size=\"large\">\n    <Pagination.List>\n      <Pagination.Link href=\"#page-1\">1</Pagination.Link>\n      <Pagination.Link active href=\"#page-2\">\n        2\n      </Pagination.Link>\n      <Pagination.Link href=\"#page-3\">3</Pagination.Link>\n    </Pagination.List>\n  </Pagination>\n</>"
     },
     {
       "title": "Alignment",
-      "code": "<>\n  <Pagination align=\"centered\" mb=\"2\">\n    <Pagination.List>\n      <Pagination.Link>1</Pagination.Link>\n      <Pagination.Link active>2</Pagination.Link>\n      <Pagination.Link>3</Pagination.Link>\n    </Pagination.List>\n  </Pagination>\n  <Pagination align=\"right\">\n    <Pagination.List>\n      <Pagination.Link>1</Pagination.Link>\n      <Pagination.Link active>2</Pagination.Link>\n      <Pagination.Link>3</Pagination.Link>\n    </Pagination.List>\n  </Pagination>\n</>"
+      "code": "<>\n  <Pagination align=\"centered\" mb=\"2\">\n    <Pagination.List>\n      <Pagination.Link href=\"#page-1\">1</Pagination.Link>\n      <Pagination.Link active href=\"#page-2\">\n        2\n      </Pagination.Link>\n      <Pagination.Link href=\"#page-3\">3</Pagination.Link>\n    </Pagination.List>\n  </Pagination>\n  <Pagination align=\"right\">\n    <Pagination.List>\n      <Pagination.Link href=\"#page-1\">1</Pagination.Link>\n      <Pagination.Link active href=\"#page-2\">\n        2\n      </Pagination.Link>\n      <Pagination.Link href=\"#page-3\">3</Pagination.Link>\n    </Pagination.List>\n  </Pagination>\n</>"
     },
     {
       "title": "Rounded",
-      "code": "<Pagination rounded>\n  <Pagination.List>\n    <Pagination.Link>1</Pagination.Link>\n    <Pagination.Link active>2</Pagination.Link>\n    <Pagination.Link>3</Pagination.Link>\n  </Pagination.List>\n</Pagination>"
+      "code": "<Pagination rounded>\n  <Pagination.List>\n    <Pagination.Link href=\"#page-1\">1</Pagination.Link>\n    <Pagination.Link active href=\"#page-2\">\n      2\n    </Pagination.Link>\n    <Pagination.Link href=\"#page-3\">3</Pagination.Link>\n  </Pagination.List>\n</Pagination>"
     },
     {
       "title": "With Disabled",
-      "code": "<Pagination>\n  <Pagination.List>\n    <Pagination.Link disabled>&laquo;</Pagination.Link>\n    <Pagination.Link active>1</Pagination.Link>\n    <Pagination.Link>2</Pagination.Link>\n    <Pagination.Link>3</Pagination.Link>\n    <Pagination.Ellipsis />\n    <Pagination.Link>10</Pagination.Link>\n    <Pagination.Link>&raquo;</Pagination.Link>\n  </Pagination.List>\n</Pagination>"
+      "code": "<Pagination>\n  <Pagination.List>\n    <Pagination.Link disabled aria-label=\"Previous page\">\n      &laquo;\n    </Pagination.Link>\n    <Pagination.Link active href=\"#page-1\">\n      1\n    </Pagination.Link>\n    <Pagination.Link href=\"#page-2\">2</Pagination.Link>\n    <Pagination.Link href=\"#page-3\">3</Pagination.Link>\n    <Pagination.Ellipsis />\n    <Pagination.Link href=\"#page-10\">10</Pagination.Link>\n    <Pagination.Link href=\"#next\" aria-label=\"Next page\">\n      &raquo;\n    </Pagination.Link>\n  </Pagination.List>\n</Pagination>"
     },
     {
       "title": "Controlled Pagination",
@@ -35,14 +35,14 @@
     },
     {
       "title": "Previous/Next with Pagination List",
-      "code": "<Pagination align=\"centered\">\n  <Pagination.Previous>Previous</Pagination.Previous>\n  <Pagination.Next>Next page</Pagination.Next>\n  <Pagination.List>\n    <Pagination.Link aria-label=\"Goto page 1\">1</Pagination.Link>\n    <Pagination.Ellipsis />\n    <Pagination.Link aria-label=\"Goto page 45\">45</Pagination.Link>\n    <Pagination.Link active aria-label=\"Page 46\">\n      46\n    </Pagination.Link>\n    <Pagination.Link aria-label=\"Goto page 47\">47</Pagination.Link>\n    <Pagination.Ellipsis />\n    <Pagination.Link aria-label=\"Goto page 86\">86</Pagination.Link>\n  </Pagination.List>\n</Pagination>"
+      "code": "<Pagination align=\"centered\">\n  <Pagination.Previous href=\"#previous\">Previous</Pagination.Previous>\n  <Pagination.Next href=\"#next\">Next page</Pagination.Next>\n  <Pagination.List>\n    <Pagination.Link aria-label=\"Goto page 1\" href=\"#page-1\">\n      1\n    </Pagination.Link>\n    <Pagination.Ellipsis />\n    <Pagination.Link aria-label=\"Goto page 45\" href=\"#page-45\">\n      45\n    </Pagination.Link>\n    <Pagination.Link active aria-label=\"Page 46\" href=\"#page-46\">\n      46\n    </Pagination.Link>\n    <Pagination.Link aria-label=\"Goto page 47\" href=\"#page-47\">\n      47\n    </Pagination.Link>\n    <Pagination.Ellipsis />\n    <Pagination.Link aria-label=\"Goto page 86\" href=\"#page-86\">\n      86\n    </Pagination.Link>\n  </Pagination.List>\n</Pagination>"
     },
     {
       "title": "Compound (dot-notation) usage",
-      "code": "<Pagination>\n  <Pagination.Previous>Previous</Pagination.Previous>\n  <Pagination.Next>Next page</Pagination.Next>\n  <Pagination.List>\n    <Pagination.Link active>1</Pagination.Link>\n    <Pagination.Link>2</Pagination.Link>\n    <Pagination.Ellipsis />\n    <Pagination.Link>10</Pagination.Link>\n  </Pagination.List>\n</Pagination>"
+      "code": "<Pagination>\n  <Pagination.Previous href=\"#previous\">Previous</Pagination.Previous>\n  <Pagination.Next href=\"#next\">Next page</Pagination.Next>\n  <Pagination.List>\n    <Pagination.Link active href=\"#page-1\">\n      1\n    </Pagination.Link>\n    <Pagination.Link href=\"#page-2\">2</Pagination.Link>\n    <Pagination.Ellipsis />\n    <Pagination.Link href=\"#page-10\">10</Pagination.Link>\n  </Pagination.List>\n</Pagination>"
     }
   ],
-  "accessibility": "- The root `Pagination` renders as a semantic `<nav role=\"navigation\" aria-label=\"pagination\">`.\n- Use `aria-label` on page links for better screen reader support.\n- Disabled and active states are handled with ARIA attributes and classes.\n- Rendered from `total`, each page's link is named for its page (\"Page 3\"; pass `getPageLabel` for your own words), and the current page's link carries `aria-current=\"page\"`. Without `getPageHref` the links have no `href`, so they carry `role=\"button\"` and choose a page with Enter or Space.\n\n:::note\nPagination links are rendered as `<a>` elements for accessibility and keyboard navigation.\n:::",
+  "accessibility": "- The root `Pagination` renders as a semantic `<nav role=\"navigation\" aria-label=\"pagination\">`.\n- Use `aria-label` on page links for better screen reader support.\n- Disabled and active states are handled with ARIA attributes and classes.\n- Rendered from `total`, each page's link is named for its page (\"Page 3\"; pass `getPageLabel` for your own words), and the current page's link carries `aria-current=\"page\"`. Without `getPageHref` the links have no `href`, so they carry `role=\"button\"` and choose a page with Enter or Space. With it, an end that goes nowhere has no `href` either, so it's a disabled button.\n- **Links and buttons:** `Pagination.Link`, `Pagination.Previous` and `Pagination.Next` render an `<a>`. Given an `href`, it's a link, and the browser follows it. Without one it's a button: it carries `role=\"button\"`, and Enter or Space clicks it, so an `onClick` works from the keyboard too, as in [Controlled Pagination](https://bestax.io/docs/api/components/pagination#controlled-pagination). A disabled one does nothing, a `role` you pass wins, and an `onKeyDown` you pass keeps the keys to itself.\n- **Focus ring:** the previous, next and page links show a focus ring for keyboard focus only, in Bulma's focus color, width, style and offset (`--bulma-focus-h`, `--bulma-focus-s`, `--bulma-focus-l`, `--bulma-focus-width`, `--bulma-focus-style`, `--bulma-focus-offset`). The current page is filled with the link color, which matches the focus color by default, so its ring takes the link's text color instead, inside the fill. It comes from the bestax extras (`extras.css`, or `bestax.css`, which includes them); with Bulma's CSS alone a focused link shows only its hover shade.\n- **Forced colors:** Bulma marks the current page with colors alone, which forced colors (Windows' contrast themes) replaces, so bestax's styles draw it in the system's highlight colors there instead. A link with Bulma's `is-current` or `is-selected` class gets them, so a [DataTable](https://bestax.io/docs/api/components/datatable)'s pager does too. A disabled control, such as Previous at the first page or a `Pagination.Link` with `disabled`, is drawn there in the system's color for a disabled control at full strength, since Bulma's half opacity would only fade it, and a disabled current page is filled with that color.\n\n:::note\nPagination's parts render `<a>` elements: links with an `href`, and buttons without one.\n:::",
   "related": ["Button", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-pagination--basic",
   "summary": "The `Pagination` component provides a flexible, composable Bulma pagination navigation for your Bulma React UI.",
@@ -188,7 +188,7 @@
           "name": "getPageHref",
           "type": "(page: number) => string",
           "default": null,
-          "description": "The `href` for a page's link, when rendering from `total`, making each one a real link (`page => '?page=' + page`). A click then calls `onPageChange` and the browser follows the link too. Without it the links have no `href`, act as buttons, and Enter or Space chooses a page.",
+          "description": "The `href` for a page's link, when rendering from `total`, making each one a real link (`page => '?page=' + page`). A click then calls `onPageChange` and the browser follows the link too. Without it the links have no `href`, act as buttons, and Enter or Space chooses a page. An end that goes nowhere, Previous on the first page and Next on the last, has no `href` either way, so it's a disabled button.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -197,7 +197,7 @@
           "name": "getPageLabel",
           "type": "(page: number) => string",
           "default": null,
-          "description": "The accessible name of a page's link, when rendering from `total`, since its content is only the number (`page => 'Page ' + page` by default).",
+          "description": "The accessible name of a page's link, when rendering from `total`, since its content is only the number (`page => 'Page ' + page` by default). Inside a `LocaleProvider` with a `locale`, the number on the link, and in the default name, is written the way that locale writes numbers, so the name still holds the text on screen.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -296,7 +296,17 @@
           "deprecated": false
         }
       ],
-      "extraProps": [],
+      "extraProps": [
+        {
+          "name": "href",
+          "type": "string",
+          "default": null,
+          "description": "Where the link goes. Without one it's a button: it renders `role=\"button\"`, and Enter or Space clicks it, so its `onClick` runs from the keyboard too. A `role` you pass wins, and an `onKeyDown` you pass keeps the keys to itself.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
       "catchAll": "All standard <a> attributes and Bulma helper props",
       "types": []
     },
@@ -361,9 +371,19 @@
       "path": "Pagination.Ellipsis",
       "summary": "Ellipsis separator.",
       "component": null,
-      "props": [],
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes, added to the ellipsis's own `pagination-ellipsis` class on its `<span>`. The part's other attributes go on the `<span>` too, though they're typed as the `<li>`'s.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
       "extraProps": [],
-      "catchAll": null,
+      "catchAll": "All standard <li> attributes",
       "types": []
     },
     {
@@ -399,7 +419,17 @@
           "deprecated": false
         }
       ],
-      "extraProps": [],
+      "extraProps": [
+        {
+          "name": "href",
+          "type": "string",
+          "default": null,
+          "description": "Where the link goes. Without one it's a button: it renders `role=\"button\"`, and Enter or Space clicks it, so its `onClick` runs from the keyboard too. A `role` you pass wins, and an `onKeyDown` you pass keeps the keys to itself.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
       "catchAll": "All standard <a> attributes",
       "types": []
     },
@@ -436,7 +466,17 @@
           "deprecated": false
         }
       ],
-      "extraProps": [],
+      "extraProps": [
+        {
+          "name": "href",
+          "type": "string",
+          "default": null,
+          "description": "Where the link goes. Without one it's a button: it renders `role=\"button\"`, and Enter or Space clicks it, so its `onClick` runs from the keyboard too. A `role` you pass wins, and an `onKeyDown` you pass keeps the keys to itself.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
       "catchAll": "All standard <a> attributes",
       "types": []
     }

@@ -19,7 +19,7 @@ export interface LoaderProps
       'color' | 'colorShade' | 'backgroundColor' | 'backgroundColorShade'
     > {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /**
    * Accessible name of the progress indicator. Name what is loading
    * (`"Saving row"`) when more than one loader can be on screen at once.
@@ -32,7 +32,8 @@ export interface LoaderProps
  *
  * The ring is `1em` square, so `textSize` scales it. It is exposed as an
  * indeterminate `progressbar` named by `ariaLabel`, and it stops spinning
- * under `prefers-reduced-motion: reduce` while staying drawn.
+ * under `prefers-reduced-motion: reduce` while staying drawn. In forced
+ * colors its two open sides take the page's color, so it stays open.
  *
  * @function
  * @param {LoaderProps} props - Props for the Loader component.

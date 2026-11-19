@@ -8,6 +8,7 @@ import * as sass from 'sass';
 import path from 'path';
 import type { ComponentProps } from 'react';
 import { render } from '@testing-library/react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { HoverCard } from '../HoverCard';
 import { ConfigProvider } from '../../helpers/Config';
 
@@ -61,7 +62,7 @@ describe('HoverCard styles under a class prefix', () => {
     const style = getComputedStyle(card());
     expect(style.position).toBe('absolute');
     expect(style.top).toBe('100%');
-    expect(style.left).toBe('0px');
+    expect(style.left).toBe('var(--bulma-anchored-shift)');
     expect(style.marginTop).toBe('var(--bulma-hover-card-offset)');
   });
 
@@ -69,7 +70,16 @@ describe('HoverCard styles under a class prefix', () => {
     renderPrefixed();
     const style = getComputedStyle(card());
     expect(style.pointerEvents).not.toBe('none');
-    expect(style.padding).toBe('var(--bulma-hover-card-padding)');
+    // jsdom computes no side of a shorthand that reads a variable, so the
+    // padding is read off the rules that match the card.
+    const padding = Array.from(styleEl.sheet!.cssRules)
+      .filter(
+        (rule): rule is CSSStyleRule =>
+          rule instanceof CSSStyleRule && card().matches(rule.selectorText)
+      )
+      .map(rule => rule.style.getPropertyValue('padding'))
+      .filter(Boolean);
+    expect(padding).toEqual(['var(--bulma-hover-card-padding)']);
     expect(style.zIndex).toBe('var(--bulma-hover-card-z-index)');
   });
 
@@ -81,11 +91,57 @@ describe('HoverCard styles under a class prefix', () => {
     expect(style.whiteSpace).toBe('normal');
   });
 
+  it('puts the default card at the right edge right to left, and a named corner where it says', () => {
+    // jsdom maps no `dir` to `direction`, which the placement reads.
+    const rtl = document.createElement('style');
+    rtl.textContent = '[dir="rtl"] { direction: rtl; }';
+    document.head.appendChild(rtl);
+    document.documentElement.setAttribute('dir', 'rtl');
+    try {
+      const { unmount } = renderPrefixed();
+      const byDefault = getComputedStyle(card());
+      expect(byDefault.right).toBe('calc(-1 * var(--bulma-anchored-shift))');
+      expect(byDefault.left).not.toBe('var(--bulma-anchored-shift)');
+      unmount();
+      renderPrefixed({ position: 'bottom-left' });
+      const named = getComputedStyle(card());
+      expect(named.left).toBe('var(--bulma-anchored-shift)');
+      expect(named.right).not.toBe('calc(-1 * var(--bulma-anchored-shift))');
+    } finally {
+      document.documentElement.removeAttribute('dir');
+      rtl.remove();
+    }
+  });
+
+  it('puts a card open on first paint at the right edge right to left, before any effect', () => {
+    // Server markup, so no effect has read the direction: the stylesheet
+    // alone has to place it.
+    const page = document.createElement('div');
+    page.setAttribute('dir', 'rtl');
+    page.innerHTML = renderToStaticMarkup(
+      <ConfigProvider classPrefix="bestax-">
+        <HoverCard trigger={<a href="#ada">Ada</a>} defaultOpen>
+          Content
+        </HoverCard>
+      </ConfigProvider>
+    );
+    document.body.appendChild(page);
+    try {
+      const style = getComputedStyle(
+        page.querySelector('.bestax-hover-card-content')!
+      );
+      expect(style.right).toBe('calc(-1 * var(--bulma-anchored-shift))');
+      expect(style.left).not.toBe('var(--bulma-anchored-shift)');
+    } finally {
+      page.remove();
+    }
+  });
+
   it('places an inline top-right card above the trigger, on its right edge', () => {
     renderPrefixed({ position: 'top-right' });
     const style = getComputedStyle(card());
     expect(style.bottom).toBe('100%');
-    expect(style.right).toBe('0px');
+    expect(style.right).toBe('calc(-1 * var(--bulma-anchored-shift))');
     expect(style.marginBottom).toBe('var(--bulma-hover-card-offset)');
   });
 

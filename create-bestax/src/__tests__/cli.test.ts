@@ -2,92 +2,96 @@ import {
   describe,
   it,
   expect,
-  jest,
+  vi,
   beforeEach,
   afterEach,
-} from '@jest/globals';
+  type MockedClass,
+  type MockedFunction,
+} from 'vitest';
 
 // Mock modules before imports
-jest.unstable_mockModule('fs-extra', () => ({
+vi.doMock('fs-extra', () => ({
   default: {
-    existsSync: jest.fn(),
-    readdirSync: jest.fn(),
-    emptyDir: jest.fn(),
-    ensureDir: jest.fn(),
-    copy: jest.fn(),
-    readJson: jest.fn(),
-    writeJson: jest.fn(),
-    readFile: jest.fn(),
-    writeFile: jest.fn(),
+    existsSync: vi.fn(),
+    readdirSync: vi.fn(),
+    emptyDir: vi.fn(),
+    ensureDir: vi.fn(),
+    copy: vi.fn(),
+    readJson: vi.fn(),
+    writeJson: vi.fn(),
+    readFile: vi.fn(),
+    writeFile: vi.fn(),
   },
-  existsSync: jest.fn(),
-  readdirSync: jest.fn(),
-  emptyDir: jest.fn(),
-  ensureDir: jest.fn(),
-  copy: jest.fn(),
-  readJson: jest.fn(),
-  writeJson: jest.fn(),
-  readFile: jest.fn(),
-  writeFile: jest.fn(),
+  existsSync: vi.fn(),
+  readdirSync: vi.fn(),
+  emptyDir: vi.fn(),
+  ensureDir: vi.fn(),
+  copy: vi.fn(),
+  readJson: vi.fn(),
+  writeJson: vi.fn(),
+  readFile: vi.fn(),
+  writeFile: vi.fn(),
 }));
 
-jest.unstable_mockModule('prompts', () => ({
-  default: jest.fn(),
+vi.doMock('prompts', () => ({
+  default: vi.fn(),
 }));
 
-jest.unstable_mockModule('chalk', () => ({
+vi.doMock('chalk', () => ({
   default: {
-    yellow: jest.fn((str: string) => str),
-    blue: jest.fn((str: string) => str),
-    cyan: jest.fn((str: string) => str),
-    magenta: jest.fn((str: string) => str),
-    green: jest.fn((str: string) => str),
-    red: jest.fn((str: string) => str),
-    dim: jest.fn((str: string) => str),
-    bold: jest.fn((str: string) => str),
-    gray: jest.fn((str: string) => str),
+    yellow: vi.fn((str: string) => str),
+    blue: vi.fn((str: string) => str),
+    cyan: vi.fn((str: string) => str),
+    magenta: vi.fn((str: string) => str),
+    green: vi.fn((str: string) => str),
+    red: vi.fn((str: string) => str),
+    dim: vi.fn((str: string) => str),
+    bold: vi.fn((str: string) => str),
+    gray: vi.fn((str: string) => str),
   },
 }));
 
 // Mock the display module
-jest.unstable_mockModule('../display.js', () => ({
-  displayHeader: jest.fn(),
-  displaySuccess: jest.fn(),
-  displayError: jest.fn(),
-  displayCancelled: jest.fn(),
+vi.doMock('../display.js', () => ({
+  displayHeader: vi.fn(),
+  displaySuccess: vi.fn(),
+  displayError: vi.fn(),
+  displayCancelled: vi.fn(),
 }));
 
 // Mock the file-system module
-jest.unstable_mockModule('../file-system.js', () => ({
-  checkDirectoryExists: jest.fn(),
-  isDirectoryEmpty: jest.fn(),
-  emptyDirectory: jest.fn(),
-  ensureDirectory: jest.fn(),
-  copyDirectory: jest.fn(),
-  updatePackageJson: jest.fn(),
+vi.doMock('../file-system.js', () => ({
+  checkDirectoryExists: vi.fn(),
+  isDirectoryEmpty: vi.fn(),
+  emptyDirectory: vi.fn(),
+  ensureDirectory: vi.fn(),
+  copyDirectory: vi.fn(),
+  updatePackageJson: vi.fn(),
 }));
 
 // Mock the prompts module
-jest.unstable_mockModule('../prompts.js', () => ({
-  promptProjectName: jest.fn(),
-  promptOverwriteDirectory: jest.fn(),
-  promptTemplate: jest.fn(),
-  promptBulmaFlavor: jest.fn(),
-  promptIconLibrary: jest.fn(),
+vi.doMock('../prompts.js', () => ({
+  promptProjectName: vi.fn(),
+  promptOverwriteDirectory: vi.fn(),
+  promptTemplate: vi.fn(),
+  promptBulmaFlavor: vi.fn(),
+  promptIconLibrary: vi.fn(),
 }));
 
 // Mock the project-creator module
-jest.unstable_mockModule('../project-creator.js', () => ({
-  ProjectCreator: jest.fn().mockImplementation(() => ({
-    create: jest.fn(),
-    getProjectName: jest.fn(),
-    checkExistingDirectory: jest.fn(),
-    getTemplatePath: jest.fn(),
-    copyTemplate: jest.fn(),
-    setupBulmaFlavor: jest.fn(),
-    setupIconLibrary: jest.fn(),
-    setupConfigProvider: jest.fn(),
-  })),
+vi.doMock('../project-creator.js', () => ({
+  ProjectCreator: vi.fn().mockImplementation(function () {
+    return {
+      create: vi.fn(),
+      getProjectName: vi.fn(),
+      checkExistingDirectory: vi.fn(),
+      getTemplatePath: vi.fn(),
+      copyTemplate: vi.fn(),
+      setupBulmaFlavor: vi.fn(),
+      setupIconLibrary: vi.fn(),
+      setupConfigProvider: vi.fn(),
+    };
+  }),
 }));
 
 // Import mocked modules - these need to be at the top level
@@ -116,9 +120,9 @@ const {
 const originalConsole = { ...console };
 
 beforeEach(() => {
-  console.log = jest.fn();
-  console.error = jest.fn();
-  jest.clearAllMocks();
+  console.log = vi.fn();
+  console.error = vi.fn();
+  vi.clearAllMocks();
 });
 
 afterEach(() => {
@@ -146,6 +150,18 @@ describe('cli', () => {
           flags: '-t, --template <template>',
         })
       );
+      expect(options).toContainEqual(
+        expect.objectContaining({
+          flags: '--lint <linter>',
+        })
+      );
+      for (const flags of [
+        '--immediate',
+        '--no-immediate',
+        '--no-interactive',
+      ]) {
+        expect(options).toContainEqual(expect.objectContaining({ flags }));
+      }
       expect(options).toContainEqual(
         expect.objectContaining({
           flags: '-b, --bulma <flavor>',
@@ -184,6 +200,16 @@ describe('cli', () => {
       expect(program.opts().overwrite).toBe(true);
     });
 
+    it('should take a path as the project directory and say so (#1154)', () => {
+      const program = createCLI();
+      const [projectDirectory] = program.registeredArguments;
+      expect(projectDirectory.name()).toBe('project-directory');
+      expect(projectDirectory.description).toContain('a name or a path');
+
+      program.parse(['/tmp/a/b/login', '-y'], { from: 'user' });
+      expect(program.args).toEqual(['/tmp/a/b/login']);
+    });
+
     it('should leave telemetry undefined when neither flag is given', () => {
       const program = createCLI();
       program.parse(['my-app', '-y'], { from: 'user' });
@@ -205,8 +231,14 @@ describe('cli', () => {
       const templateOption = program.options.find(opt =>
         opt.flags.includes('--template')
       );
-      expect(templateOption?.description).toContain('vite');
-      expect(templateOption?.description).toContain('vite-ts');
+      expect(templateOption?.description).toBe(
+        'template to use (vite, vite-ts, vite-compiler, vite-compiler-ts, react-router, react-router-ts, tanstack-router-ts, next, next-ts)'
+      );
+    });
+
+    it('lists every linter in the --lint help text', () => {
+      const lintOption = createCLI().options.find(opt => opt.long === '--lint');
+      expect(lintOption?.description).toBe('linter (oxlint, eslint)');
     });
 
     it('should have correct Bulma flavor options in help text', () => {
@@ -238,8 +270,8 @@ describe('cli', () => {
 
     beforeEach(() => {
       mockProjectCreator = new ProjectCreator();
-      (ProjectCreator as jest.MockedClass<typeof ProjectCreator>).mockClear();
-      process.exit = jest.fn() as unknown;
+      (ProjectCreator as MockedClass<typeof ProjectCreator>).mockClear();
+      process.exit = vi.fn() as unknown;
     });
 
     afterEach(() => {
@@ -281,9 +313,8 @@ describe('cli', () => {
       expect(ProjectCreator).toHaveBeenCalled();
 
       // Get the created instance
-      const instance = (
-        ProjectCreator as jest.MockedClass<typeof ProjectCreator>
-      ).mock.results[0]?.value;
+      const instance = (ProjectCreator as MockedClass<typeof ProjectCreator>)
+        .mock.results[0]?.value;
 
       // Verify create was called with correct arguments
       expect(instance.create).toHaveBeenCalledWith('my-project', {
@@ -292,6 +323,21 @@ describe('cli', () => {
         icon: 'fontawesome',
         yes: true,
       });
+    });
+
+    it.each([
+      [['--no-interactive'], { yes: true }],
+      [['--immediate'], { immediate: true }],
+      [['--no-immediate'], { immediate: false }],
+      [['-y', '--no-interactive'], { yes: true }],
+    ])('passes %j to create as %j', async (flags, expected) => {
+      mockProjectCreator.create.mockResolvedValue(undefined);
+
+      await createCLI().parseAsync(['node', 'create-bestax', 'app', ...flags]);
+
+      const instance = (ProjectCreator as MockedClass<typeof ProjectCreator>)
+        .mock.results[0]?.value;
+      expect(instance.create).toHaveBeenCalledWith('app', expected);
     });
 
     it('should handle no project name', async () => {
@@ -303,9 +349,8 @@ describe('cli', () => {
       await program.parseAsync(args);
 
       // Should call create with undefined project name
-      const instance = (
-        ProjectCreator as jest.MockedClass<typeof ProjectCreator>
-      ).mock.results[0]?.value;
+      const instance = (ProjectCreator as MockedClass<typeof ProjectCreator>)
+        .mock.results[0]?.value;
       expect(instance.create).toHaveBeenCalledWith(
         undefined,
         expect.any(Object)
@@ -325,9 +370,8 @@ describe('cli', () => {
       // Parse should not throw, but ProjectCreator.create should handle validation
       await program.parseAsync(args);
 
-      const instance = (
-        ProjectCreator as jest.MockedClass<typeof ProjectCreator>
-      ).mock.results[0]?.value;
+      const instance = (ProjectCreator as MockedClass<typeof ProjectCreator>)
+        .mock.results[0]?.value;
       expect(instance.create).toHaveBeenCalledWith('my-project', {
         template: 'invalid-template',
       });
@@ -345,9 +389,8 @@ describe('cli', () => {
 
       await program.parseAsync(args);
 
-      const instance = (
-        ProjectCreator as jest.MockedClass<typeof ProjectCreator>
-      ).mock.results[0]?.value;
+      const instance = (ProjectCreator as MockedClass<typeof ProjectCreator>)
+        .mock.results[0]?.value;
       expect(instance.create).toHaveBeenCalledWith('my-project', {
         bulma: 'invalid-flavor',
       });
@@ -365,9 +408,8 @@ describe('cli', () => {
 
       await program.parseAsync(args);
 
-      const instance = (
-        ProjectCreator as jest.MockedClass<typeof ProjectCreator>
-      ).mock.results[0]?.value;
+      const instance = (ProjectCreator as MockedClass<typeof ProjectCreator>)
+        .mock.results[0]?.value;
       expect(instance.create).toHaveBeenCalledWith('my-project', {
         icon: 'invalid-icon',
       });
@@ -379,9 +421,8 @@ describe('cli', () => {
 
       await program.parseAsync(args);
 
-      const instance = (
-        ProjectCreator as jest.MockedClass<typeof ProjectCreator>
-      ).mock.results[0]?.value;
+      const instance = (ProjectCreator as MockedClass<typeof ProjectCreator>)
+        .mock.results[0]?.value;
       expect(instance.create).toHaveBeenCalledWith('my-project', {
         yes: true,
       });
@@ -404,9 +445,8 @@ describe('cli', () => {
 
       await program.parseAsync(args);
 
-      const instance = (
-        ProjectCreator as jest.MockedClass<typeof ProjectCreator>
-      ).mock.results[0]?.value;
+      const instance = (ProjectCreator as MockedClass<typeof ProjectCreator>)
+        .mock.results[0]?.value;
       expect(instance.create).toHaveBeenCalledWith('test-app', {
         template: 'vite',
         bulma: 'complete',
@@ -449,10 +489,10 @@ describe('cli', () => {
     it('lets runCLI read the flags after it', async () => {
       const originalArgv = process.argv;
       const originalExit = process.exit;
-      process.exit = jest.fn(() => {
+      process.exit = vi.fn(() => {
         throw new Error('process.exit called');
       }) as unknown as typeof process.exit;
-      const stderr = jest
+      const stderr = vi
         .spyOn(process.stderr, 'write')
         .mockImplementation(() => true);
       process.argv = argvAfter('my-app', '--', '-t', 'vite-ts', '-y');
@@ -466,7 +506,7 @@ describe('cli', () => {
       }
 
       const instance = (
-        ProjectCreator as jest.MockedClass<typeof ProjectCreator>
+        ProjectCreator as MockedClass<typeof ProjectCreator>
       ).mock.results.at(-1)?.value;
       expect(instance.create).toHaveBeenCalledWith('my-app', {
         template: 'vite-ts',
@@ -486,10 +526,10 @@ describe('cli', () => {
       const originalArgv = process.argv;
       const originalExit = process.exit;
       process.argv = ['node', 'create-bestax', '--help'];
-      process.exit = jest.fn() as unknown;
+      process.exit = vi.fn() as unknown;
 
       // Capture the help output
-      const helpSpy = jest
+      const helpSpy = vi
         .spyOn(process.stdout, 'write')
         .mockImplementation(() => true);
 
@@ -508,21 +548,20 @@ describe('cli', () => {
   describe('CLI wrapper functions', () => {
     it('should call getProjectName through wrapper', async () => {
       const { getProjectName } = cliModule;
-      const mockGetProjectName = jest.fn().mockResolvedValue('test-project');
-      (
-        ProjectCreator as jest.MockedClass<typeof ProjectCreator>
-      ).mockImplementation(
-        () =>
-          ({
+      const mockGetProjectName = vi.fn().mockResolvedValue('test-project');
+      (ProjectCreator as MockedClass<typeof ProjectCreator>).mockImplementation(
+        function () {
+          return {
             getProjectName: mockGetProjectName,
-            create: jest.fn(),
-            checkExistingDirectory: jest.fn(),
-            getTemplatePath: jest.fn(),
-            copyTemplate: jest.fn(),
-            setupBulmaFlavor: jest.fn(),
-            setupIconLibrary: jest.fn(),
-            setupConfigProvider: jest.fn(),
-          }) as unknown
+            create: vi.fn(),
+            checkExistingDirectory: vi.fn(),
+            getTemplatePath: vi.fn(),
+            copyTemplate: vi.fn(),
+            setupBulmaFlavor: vi.fn(),
+            setupIconLibrary: vi.fn(),
+            setupConfigProvider: vi.fn(),
+          } as unknown;
+        }
       );
 
       const result = await getProjectName('my-project');
@@ -532,21 +571,20 @@ describe('cli', () => {
 
     it('should call checkExistingDirectory through wrapper', async () => {
       const { checkExistingDirectory } = cliModule;
-      const mockCheckExisting = jest.fn().mockResolvedValue(true);
-      (
-        ProjectCreator as jest.MockedClass<typeof ProjectCreator>
-      ).mockImplementation(
-        () =>
-          ({
+      const mockCheckExisting = vi.fn().mockResolvedValue(true);
+      (ProjectCreator as MockedClass<typeof ProjectCreator>).mockImplementation(
+        function () {
+          return {
             checkExistingDirectory: mockCheckExisting,
-            getProjectName: jest.fn(),
-            create: jest.fn(),
-            getTemplatePath: jest.fn(),
-            copyTemplate: jest.fn(),
-            setupBulmaFlavor: jest.fn(),
-            setupIconLibrary: jest.fn(),
-            setupConfigProvider: jest.fn(),
-          }) as unknown
+            getProjectName: vi.fn(),
+            create: vi.fn(),
+            getTemplatePath: vi.fn(),
+            copyTemplate: vi.fn(),
+            setupBulmaFlavor: vi.fn(),
+            setupIconLibrary: vi.fn(),
+            setupConfigProvider: vi.fn(),
+          } as unknown;
+        }
       );
 
       const result = await checkExistingDirectory('/path', 'dir');
@@ -556,21 +594,20 @@ describe('cli', () => {
 
     it('should call getTemplatePath through wrapper', () => {
       const { getTemplatePath } = cliModule;
-      const mockGetTemplate = jest.fn().mockReturnValue('/template/path');
-      (
-        ProjectCreator as jest.MockedClass<typeof ProjectCreator>
-      ).mockImplementation(
-        () =>
-          ({
+      const mockGetTemplate = vi.fn().mockReturnValue('/template/path');
+      (ProjectCreator as MockedClass<typeof ProjectCreator>).mockImplementation(
+        function () {
+          return {
             getTemplatePath: mockGetTemplate,
-            getProjectName: jest.fn(),
-            checkExistingDirectory: jest.fn(),
-            create: jest.fn(),
-            copyTemplate: jest.fn(),
-            setupBulmaFlavor: jest.fn(),
-            setupIconLibrary: jest.fn(),
-            setupConfigProvider: jest.fn(),
-          }) as unknown
+            getProjectName: vi.fn(),
+            checkExistingDirectory: vi.fn(),
+            create: vi.fn(),
+            copyTemplate: vi.fn(),
+            setupBulmaFlavor: vi.fn(),
+            setupIconLibrary: vi.fn(),
+            setupConfigProvider: vi.fn(),
+          } as unknown;
+        }
       );
 
       const result = getTemplatePath('vite');
@@ -581,7 +618,7 @@ describe('cli', () => {
     it('should call copyTemplate through wrapper', async () => {
       const { copyTemplate } = cliModule;
       (
-        fileSystem.copyDirectory as jest.MockedFunction<
+        fileSystem.copyDirectory as MockedFunction<
           typeof fileSystem.copyDirectory
         >
       ).mockResolvedValue(undefined);
@@ -592,21 +629,20 @@ describe('cli', () => {
 
     it('should call createProject through wrapper', async () => {
       const { createProject } = cliModule;
-      const mockCreate = jest.fn().mockResolvedValue(undefined);
-      (
-        ProjectCreator as jest.MockedClass<typeof ProjectCreator>
-      ).mockImplementation(
-        () =>
-          ({
+      const mockCreate = vi.fn().mockResolvedValue(undefined);
+      (ProjectCreator as MockedClass<typeof ProjectCreator>).mockImplementation(
+        function () {
+          return {
             create: mockCreate,
-            getProjectName: jest.fn(),
-            checkExistingDirectory: jest.fn(),
-            getTemplatePath: jest.fn(),
-            copyTemplate: jest.fn(),
-            setupBulmaFlavor: jest.fn(),
-            setupIconLibrary: jest.fn(),
-            setupConfigProvider: jest.fn(),
-          }) as unknown
+            getProjectName: vi.fn(),
+            checkExistingDirectory: vi.fn(),
+            getTemplatePath: vi.fn(),
+            copyTemplate: vi.fn(),
+            setupBulmaFlavor: vi.fn(),
+            setupIconLibrary: vi.fn(),
+            setupConfigProvider: vi.fn(),
+          } as unknown;
+        }
       );
 
       await createProject('my-project', { template: 'vite' });

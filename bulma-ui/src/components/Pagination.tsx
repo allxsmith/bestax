@@ -7,6 +7,7 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 import { warnDeprecatedColorProp } from '../helpers/colorDeprecations';
+import { useScopedNumberFormat } from '../helpers/localeFormat';
 
 /**
  * Props for the Pagination component.
@@ -34,13 +35,14 @@ export interface PaginationProps
     | 'black'
     | 'dark'
     | 'light'
-    | 'white';
+    | 'white'
+    | undefined;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Size modifier for the pagination. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Alignment for the pagination. */
   align?: 'centered' | 'right';
   /** Renders pagination with rounded corners. */
@@ -71,21 +73,26 @@ export interface PaginationProps
   /** The Next link's content, when rendering from `total`. */
   nextLabel?: React.ReactNode;
   /** Disables every link, when rendering from `total`. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /**
    * The `href` for a page's link, when rendering from `total`, making each
    * one a real link (`page => '?page=' + page`). A click then calls
    * `onPageChange` and the browser follows the link too. Without it the
    * links have no `href`, act as buttons, and Enter or Space chooses a page.
+   * An end that goes nowhere, Previous on the first page and Next on the
+   * last, has no `href` either way, so it's a disabled button.
    */
   getPageHref?: (page: number) => string;
   /**
    * The accessible name of a page's link, when rendering from `total`, since
    * its content is only the number (`page => 'Page ' + page` by default).
+   * Inside a `LocaleProvider` with a `locale`, the number on the link, and
+   * in the default name, is written the way that locale writes numbers, so
+   * the name still holds the text on screen.
    */
   getPageLabel?: (page: number) => string;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Custom pagination content (usually subcomponents). */
   children?: React.ReactNode;
 }
@@ -137,13 +144,48 @@ function pageItems(
 }
 
 /**
+ * The `role` and `onKeyDown` a part's `<a>` renders with, spread after the
+ * caller's props. With no `href` it's a button: `role="button"`, and Enter
+ * and Space clicking it, as a mouse click does, since an `<a>` without an
+ * `href` is no link and the browser activates it on no key. A `role` the
+ * caller gives it wins, and one that isn't `button` takes the keys with it.
+ * A caller that passes its own `onKeyDown` keeps the keys, as before, so
+ * code that already answers Enter there doesn't act twice. With an `href`
+ * it's a link, and the caller's role and handler are all it gets.
+ */
+function asButton(
+  href: string | undefined,
+  role: React.AriaRole | undefined,
+  onKeyDown: React.KeyboardEventHandler<HTMLAnchorElement> | undefined
+): Pick<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'role' | 'onKeyDown'> {
+  const button = href == null && (role ?? 'button') === 'button';
+  if (!button) return { role, onKeyDown };
+  return {
+    role: 'button',
+    onKeyDown:
+      onKeyDown ??
+      (e => {
+        // A key with a modifier, or on something inside the part, isn't
+        // the part's to answer. A disabled part's own click handler drops
+        // the click, and Space still mustn't scroll the page.
+        if (e.altKey || e.ctrlKey || e.metaKey) return;
+        if (e.target !== e.currentTarget) return;
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        e.preventDefault();
+        e.currentTarget.click();
+      }),
+  };
+}
+
+/**
  * Props for PaginationPrevious and PaginationNext components.
+ * @extraProp {string} [href] - Where the link goes. Without one it's a button: it renders `role="button"`, and Enter or Space clicks it, so its `onClick` runs from the keyboard too. A `role` you pass wins, and an `onKeyDown` you pass keeps the keys to itself.
  */
 export interface PaginationPreviousNextProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Whether previous/next is disabled. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Button content. */
   children?: React.ReactNode;
 }
@@ -158,6 +200,7 @@ export interface PaginationPreviousNextProps extends React.AnchorHTMLAttributes<
 export const PaginationPrevious: React.FC<PaginationPreviousNextProps> = ({
   className,
   disabled,
+  onKeyDown,
   children,
   ...props
 }) => (
@@ -171,6 +214,7 @@ export const PaginationPrevious: React.FC<PaginationPreviousNextProps> = ({
     aria-disabled={disabled}
     tabIndex={disabled ? -1 : 0}
     {...props}
+    {...asButton(props.href, props.role, onKeyDown)}
     onClick={
       disabled
         ? e => {
@@ -194,6 +238,7 @@ export const PaginationPrevious: React.FC<PaginationPreviousNextProps> = ({
 export const PaginationNext: React.FC<PaginationPreviousNextProps> = ({
   className,
   disabled,
+  onKeyDown,
   children,
   ...props
 }) => (
@@ -205,6 +250,7 @@ export const PaginationNext: React.FC<PaginationPreviousNextProps> = ({
     aria-disabled={disabled}
     tabIndex={disabled ? -1 : 0}
     {...props}
+    {...asButton(props.href, props.role, onKeyDown)}
     onClick={
       disabled
         ? e => {
@@ -259,6 +305,7 @@ const PaginationComponent: React.FC<PaginationProps> = ({
     backgroundColor: bgColor,
     ...props,
   });
+  const formatNumber = useScopedNumberFormat();
 
   // Generate Bulma classes with prefix
   const bulmaClasses = usePrefixedClassNames('pagination', {
@@ -292,20 +339,13 @@ const PaginationComponent: React.FC<PaginationProps> = ({
     };
     /**
      * What a link to `target` is given, beside what it renders. With no
-     * `getPageHref` it's a button; a link that's `off` goes nowhere.
+     * `getPageHref`, or when it's `off` and goes nowhere, it has no `href`,
+     * so the part makes it a button.
      */
     const linkTo = (target: number, off: boolean) => ({
       href: off || !getPageHref ? undefined : getPageHref(target),
-      role: getPageHref ? undefined : 'button',
       // A link that's off is disabled too, and the parts drop its clicks.
       onClick: () => choose(target),
-      onKeyDown: getPageHref
-        ? undefined
-        : (e: React.KeyboardEvent<HTMLAnchorElement>) => {
-            if (off || (e.key !== 'Enter' && e.key !== ' ')) return;
-            e.preventDefault();
-            choose(target);
-          },
     });
     const atStart = disabled || page <= 1;
     const atEnd = disabled || page >= pages;
@@ -323,21 +363,23 @@ const PaginationComponent: React.FC<PaginationProps> = ({
             page,
             whole(siblingCount, 1),
             whole(boundaryCount, 1)
-          ).map(item =>
-            typeof item === 'number' ? (
+          ).map(item => {
+            if (typeof item !== 'number') {
+              return <PaginationEllipsis key={item} />;
+            }
+            const shown = formatNumber ? formatNumber(item) : item;
+            return (
               <PaginationLink
                 key={item}
-                aria-label={getPageLabel ? getPageLabel(item) : `Page ${item}`}
+                aria-label={getPageLabel ? getPageLabel(item) : `Page ${shown}`}
                 active={item === page}
                 disabled={disabled}
                 {...linkTo(item, Boolean(disabled))}
               >
-                {item}
+                {shown}
               </PaginationLink>
-            ) : (
-              <PaginationEllipsis key={item} />
-            )
-          )}
+            );
+          })}
         </PaginationList>
       </>
     );
@@ -363,11 +405,12 @@ export interface PaginationListProps
     React.HTMLAttributes<HTMLUListElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Text color for the list. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Bulma color modifier for the list. */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color for the list. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** List items. */
@@ -409,15 +452,17 @@ export const PaginationList: React.FC<PaginationListProps> = ({
 
 /**
  * Props for the PaginationLink component.
+ * @extraProp {string} [href] - Where the link goes. Without one it's a button: it renders `role="button"`, and Enter or Space clicks it, so its `onClick` runs from the keyboard too. A `role` you pass wins, and an `onKeyDown` you pass keeps the keys to itself.
  */
 export interface PaginationLinkProps
   extends
     React.AnchorHTMLAttributes<HTMLAnchorElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Bulma color modifier. */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color. */
@@ -425,7 +470,7 @@ export interface PaginationLinkProps
   /** Whether the link is for the current page. */
   active?: boolean;
   /** Whether the link is disabled. */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
   /** Link content. */
   children?: React.ReactNode;
 }
@@ -444,6 +489,7 @@ export const PaginationLink: React.FC<PaginationLinkProps> = ({
   active,
   disabled,
   onClick,
+  onKeyDown,
   children,
   ...props
 }) => {
@@ -480,6 +526,7 @@ export const PaginationLink: React.FC<PaginationLinkProps> = ({
         tabIndex={disabled ? -1 : 0}
         onClick={handleClick}
         {...rest}
+        {...asButton(rest.href, rest.role, onKeyDown)}
       >
         {children}
       </a>
@@ -488,17 +535,36 @@ export const PaginationLink: React.FC<PaginationLinkProps> = ({
 };
 
 /**
+ * Props for the PaginationEllipsis component.
+ */
+export interface PaginationEllipsisProps extends React.LiHTMLAttributes<HTMLLIElement> {
+  /**
+   * Additional CSS classes, added to the ellipsis's own `pagination-ellipsis`
+   * class on its `<span>`. The part's other attributes go on the `<span>`
+   * too, though they're typed as the `<li>`'s.
+   */
+  className?: string | undefined;
+}
+
+/**
  * Ellipsis separator.
  *
  * @function
- * @param {React.LiHTMLAttributes<HTMLLIElement>} props - Standard li props.
+ * @param {PaginationEllipsisProps} props - Props for the PaginationEllipsis component.
  * @returns {JSX.Element} The rendered ellipsis.
  */
-export const PaginationEllipsis: React.FC<
-  React.LiHTMLAttributes<HTMLLIElement>
-> = props => (
+export const PaginationEllipsis: React.FC<PaginationEllipsisProps> = ({
+  className,
+  ...props
+}) => (
   <li>
-    <span className={usePrefixedClassNames('pagination-ellipsis')} {...props}>
+    <span
+      className={classNames(
+        usePrefixedClassNames('pagination-ellipsis'),
+        className
+      )}
+      {...props}
+    >
       &hellip;
     </span>
   </li>

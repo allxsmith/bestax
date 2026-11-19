@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import {
   UNSTYLED_MODIFIER_COLORS,
   resetColorDeprecationWarnings,
@@ -6,11 +7,11 @@ import {
 } from '../colorDeprecations';
 
 describe('colorDeprecations', () => {
-  let warnSpy: jest.SpyInstance;
+  let warnSpy: MockInstance;
 
   beforeEach(() => {
     resetColorDeprecationWarnings();
-    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   afterEach(() => {

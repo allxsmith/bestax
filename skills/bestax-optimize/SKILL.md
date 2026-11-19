@@ -73,7 +73,8 @@ recommending it, grep the app's source for helper props on bestax components:
 
 …and for raw Bulma helper classes in `className` strings (`is-*`, `has-*`, `m*-*`, `p*-*`,
 `is-size-*`, `is-hidden*`, `is-flex*`, `is-gap-*`). **Any hit → do not use `no-helpers`**; fall back to
-`no-dark-mode` or Lever 2. The bestax extras helpers (`is-cursor-*`, sizing) are dropped too.
+`no-dark-mode` or Lever 2. The bestax extras helpers (`is-cursor-*`, sizing, and the breakpoint `is-sr-only-*` that
+`visibilityTablet="sr-only"` and the like write) are dropped too.
 
 ## Lever 2 — modular Sass build
 
@@ -104,9 +105,13 @@ Create `src/styles.scss` — base + themes always come first:
 
 // One line per stock Bulma component the app imports…
 @use 'bulma/sass/elements/button';
-@use 'bulma/sass/components/navbar';
+@use 'bulma/sass/components/card';
+@use 'bulma/sass/components/modal'; // Dialog is drawn inside a Modal
 // …and per bestax extras component:
 @use '@allxsmith/bestax-bulma/scss/components/dialog';
+// …and bestax's partial for each stock component that has one:
+@use '@allxsmith/bestax-bulma/scss/elements/button' as bestax-button;
+@use '@allxsmith/bestax-bulma/scss/components/card' as bestax-card;
 // Helper categories only if the app uses those helper props:
 @use 'bulma/sass/helpers/spacing';
 ```

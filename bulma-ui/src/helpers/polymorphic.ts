@@ -104,7 +104,7 @@ export type PolymorphicProps<
         Exclude<keyof Own, Forwarded> | 'as'
       > & {
         /** The element or component to render. */
-        as?: T;
+        as?: T | undefined;
       }
   : never;
 
@@ -114,7 +114,7 @@ export type PolymorphicProps<
  * `forwardRef` cannot express a generic component, so the implementation is
  * cast to this. `displayName` is part of the type because the library sets it
  * on every `forwardRef` component, and `withSubComponents` constrains its base
- * to `{ displayName?: string }`.
+ * to `{ displayName?: string | undefined }`.
  *
  * The second, non-generic signature exists for type DERIVATION rather than for
  * calls. `React.ComponentProps<typeof Button>` infers from the last overload;
@@ -218,5 +218,33 @@ export interface ConstrainedPolymorphicComponentWithoutRef<
   // reason: without it `React.ComponentProps<typeof DropdownItem>` instantiates
   // at the constraint and collapses to `any`.
   (props: PolymorphicProps<Default, Own, Forwarded>): React.ReactElement | null;
+  displayName?: string;
+}
+
+/**
+ * `ConstrainedPolymorphicComponentWithoutRef` with a forwarded ref: the props
+ * and the ref both follow `as`, and `as` is one of `Allowed`.
+ *
+ * For a component whose `as` is a closed set of tags that don't share one
+ * prop surface. `Stack` renders a `<div>`, a `<form>`, an `<ol>` or a
+ * `<fieldset>` among others, which take different attributes (`action`,
+ * `start`, `disabled`) and give the ref a different element, so pinning them
+ * all to `HTMLAttributes<HTMLElement>` would refuse attributes that work.
+ */
+export interface ConstrainedPolymorphicComponent<
+  Own,
+  Allowed extends React.ElementType,
+  Default extends Allowed,
+  Forwarded extends keyof Own = never,
+> {
+  <T extends Allowed = Default>(
+    props: PolymorphicProps<T, Own, Forwarded> & { ref?: PolymorphicRef<T> }
+  ): React.ReactElement | null;
+  // The derivation overload `PolymorphicComponent` documents.
+  (
+    props: PolymorphicProps<Default, Own, Forwarded> & {
+      ref?: PolymorphicRef<Default>;
+    }
+  ): React.ReactElement | null;
   displayName?: string;
 }

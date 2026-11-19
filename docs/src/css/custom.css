@@ -39,12 +39,29 @@ pre.prism-code {
   margin-bottom: var(--ifm-leading);
 }
 
+/* Inside a code block the slot carries this spacing, so the preview adds none. */
+.live-preview-slot > .live-preview {
+  margin-bottom: 0;
+}
+
 /* Live previews mount only once they scroll near the viewport (see
    src/theme/CodeBlock/index.js). Reserve a little height while a slot is still
    empty so a page of deferred examples keeps a sensible scroll length; the
    rule stops applying the moment the preview mounts. */
 .live-preview-slot:empty {
   min-height: 6rem;
+}
+
+/* The preview is forced to Bulma's dark palette (see DeferredShadowPreview),
+   so the surface it paints on has to be dark too, or its light text lands on
+   the light page. The padding matches the sandboxes' #root. */
+.live-preview-slot {
+  background: #16171d;
+  border-radius: 0.5rem;
+  color: #e8e8ea;
+  color-scheme: dark;
+  margin-bottom: var(--ifm-leading);
+  padding: 1.5rem;
 }
 
 .live-editor {

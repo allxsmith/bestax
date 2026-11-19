@@ -68,7 +68,7 @@ const meta: Meta<typeof ToggleButton> = {
     isLoading: {
       control: 'boolean',
       description:
-        'Shows Bulma’s spinner in place of the label and holds the toggle: no clicks, no keys and no onPressedChange until it is cleared',
+        'Shows Bulma’s spinner in place of its content and holds the toggle: no clicks, no keys and no onPressedChange until it is cleared',
     },
     isDisabled: {
       control: 'boolean',

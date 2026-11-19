@@ -14,7 +14,7 @@ The `Tabs` component provides flexible and fully-featured Bulma tab navigation f
 
 <!-- /bestax:generated overview -->
 
-It supports alignment, size, boxed and toggle styles, rounded and fullwidth options, and can display icons or custom content in each tab. Build tabbed panels from `Tabs.Tab` and `Tabs.Content`, which keep the selected tab, show its panel and handle the keyboard, or build Bulma navigation from `Tabs.Item` with your own links inside. (The `color` prop is deprecated: Bulma ships no tabs color CSS, so it has never had a visual effect.)
+It supports alignment, size, boxed and toggle styles, rounded and fullwidth options, and can display icons or custom content in each tab. Build tabbed panels from `Tabs.Tab` and `Tabs.Content`, which keep the selected tab, show its panel and handle the keyboard, or build Bulma navigation from `Tabs.Item`s in a plain `<ul>`, with your own links inside. (The `color` prop is deprecated: Bulma ships no tabs color CSS, so it has never had a visual effect.)
 
 :::info
 Use `Tabs` for navigation, filtering, or switching between views. Combine with icons and Bulma helpers for advanced layouts.
@@ -65,21 +65,23 @@ Give each `Tabs.Tab` and `Tabs.Content.Item` the same `index` and `Tabs` shows t
 
 ### Centered Alignment
 
-This example demonstrates a tab navigation with centered alignment using the `align="centered"` prop. Compose your tabs with `Tabs.List` and `Tabs.Item`, and use the `active` prop to highlight the selected tab. This layout is ideal for main navigation or switching between views.
+This example demonstrates a tab navigation with centered alignment using the `align="centered"` prop. Compose navigation tabs from `Tabs.Item`s in a plain `<ul>`, each holding a link with an `href`. The `active` prop highlights the current tab with Bulma's `is-active` class and nothing more, so put `aria-current="page"` on its link too, which tells a screen reader the tab is the current page. `Tabs.List` is the tab list for `Tabs.Tab`, so it isn't used here. This layout is ideal for main navigation. To switch views in place, use `Tabs.Tab` with `Tabs.Content`, as in [Tab Panels](#tab-panels).
 
 ```tsx live
 <Tabs align="centered">
-  <Tabs.List>
+  <ul>
     <Tabs.Item active>
-      <a>Home</a>
+      <a href="#home" aria-current="page">
+        Home
+      </a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>Profile</a>
+      <a href="#profile">Profile</a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>Settings</a>
+      <a href="#settings">Settings</a>
     </Tabs.Item>
-  </Tabs.List>
+  </ul>
 </Tabs>
 ```
 
@@ -87,21 +89,23 @@ This example demonstrates a tab navigation with centered alignment using the `al
 
 ### Right Alignment
 
-This example shows how to align tabs to the right using the `align="right"` prop. The `active` prop marks the current tab, and you can add as many `Tabs.Item` components as needed for your navigation structure.
+This example shows how to align tabs to the right using the `align="right"` prop. The `active` prop and the link's `aria-current="page"` mark the current tab, and you can add as many `Tabs.Item` components as needed for your navigation structure.
 
 ```tsx live
 <Tabs align="right">
-  <Tabs.List>
+  <ul>
     <Tabs.Item>
-      <a>Home</a>
+      <a href="#home">Home</a>
     </Tabs.Item>
     <Tabs.Item active>
-      <a>Profile</a>
+      <a href="#profile" aria-current="page">
+        Profile
+      </a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>Settings</a>
+      <a href="#settings">Settings</a>
     </Tabs.Item>
-  </Tabs.List>
+  </ul>
 </Tabs>
 ```
 
@@ -113,32 +117,32 @@ This example demonstrates using icons in your tabs. Each tab can contain an icon
 
 ```tsx live
 <Tabs>
-  <Tabs.List>
+  <ul>
     <Tabs.Item active>
-      <a>
+      <a href="#pictures" aria-current="page">
         <Icon name="fas fa-image" size="small" aria-hidden="true" />
         <span>Pictures</span>
       </a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>
+      <a href="#music">
         <Icon name="fas fa-music" size="small" aria-hidden="true" />
         <span>Music</span>
       </a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>
+      <a href="#videos">
         <Icon name="fas fa-film" size="small" aria-hidden="true" />
         <span>Videos</span>
       </a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>
+      <a href="#documents">
         <Icon name="fas fa-file-alt" size="small" aria-hidden="true" />
         <span>Documents</span>
       </a>
     </Tabs.Item>
-  </Tabs.List>
+  </ul>
 </Tabs>
 ```
 
@@ -151,45 +155,51 @@ Easily adjust the size of your tabs using the `size` prop. This example shows th
 ```tsx live
 <>
   <Tabs size="small">
-    <Tabs.List>
+    <ul>
       <Tabs.Item active>
-        <a>Tab 1</a>
+        <a href="#tab-1" aria-current="page">
+          Tab 1
+        </a>
       </Tabs.Item>
       <Tabs.Item>
-        <a>Tab 2</a>
+        <a href="#tab-2">Tab 2</a>
       </Tabs.Item>
       <Tabs.Item>
-        <a>Tab 3</a>
+        <a href="#tab-3">Tab 3</a>
       </Tabs.Item>
-    </Tabs.List>
+    </ul>
   </Tabs>
 
   <Tabs size="medium">
-    <Tabs.List>
+    <ul>
       <Tabs.Item active>
-        <a>Tab 1</a>
+        <a href="#tab-1" aria-current="page">
+          Tab 1
+        </a>
       </Tabs.Item>
       <Tabs.Item>
-        <a>Tab 2</a>
+        <a href="#tab-2">Tab 2</a>
       </Tabs.Item>
       <Tabs.Item>
-        <a>Tab 3</a>
+        <a href="#tab-3">Tab 3</a>
       </Tabs.Item>
-    </Tabs.List>
+    </ul>
   </Tabs>
 
   <Tabs size="large">
-    <Tabs.List>
+    <ul>
       <Tabs.Item active>
-        <a>Tab 1</a>
+        <a href="#tab-1" aria-current="page">
+          Tab 1
+        </a>
       </Tabs.Item>
       <Tabs.Item>
-        <a>Tab 2</a>
+        <a href="#tab-2">Tab 2</a>
       </Tabs.Item>
       <Tabs.Item>
-        <a>Tab 3</a>
+        <a href="#tab-3">Tab 3</a>
       </Tabs.Item>
-    </Tabs.List>
+    </ul>
   </Tabs>
 </>
 ```
@@ -202,17 +212,19 @@ The boxed style gives your tabs a distinct, separated look. This example demonst
 
 ```tsx live
 <Tabs boxed>
-  <Tabs.List>
+  <ul>
     <Tabs.Item active>
-      <a>Overview</a>
+      <a href="#introduction" aria-current="page">
+        Introduction
+      </a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>Elements</a>
+      <a href="#elements">Elements</a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>Components</a>
+      <a href="#components">Components</a>
     </Tabs.Item>
-  </Tabs.List>
+  </ul>
 </Tabs>
 ```
 
@@ -220,21 +232,23 @@ The boxed style gives your tabs a distinct, separated look. This example demonst
 
 ### Toggle Tabs
 
-Toggle tabs are useful for binary views or filters, such as showing all items versus only active items. This example shows how to create toggle tabs using the `toggle` prop. The active tab indicates the current filter or view.
+Toggle tabs suit a few views or filters that each have their own address, such as all items, only active ones and only completed ones. This example shows how to create toggle tabs using the `toggle` prop. The active tab indicates the current filter or view.
 
 ```tsx live
 <Tabs toggle>
-  <Tabs.List>
+  <ul>
     <Tabs.Item active>
-      <a>All</a>
+      <a href="#all" aria-current="page">
+        All
+      </a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>Active</a>
+      <a href="#active">Active</a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>Completed</a>
+      <a href="#completed">Completed</a>
     </Tabs.Item>
-  </Tabs.List>
+  </ul>
 </Tabs>
 ```
 
@@ -246,17 +260,19 @@ Combine the toggle style with rounded corners for a pill-like appearance. This e
 
 ```tsx live
 <Tabs toggle rounded>
-  <Tabs.List>
+  <ul>
     <Tabs.Item active>
-      <a>All</a>
+      <a href="#all" aria-current="page">
+        All
+      </a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>Active</a>
+      <a href="#active">Active</a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>Completed</a>
+      <a href="#completed">Completed</a>
     </Tabs.Item>
-  </Tabs.List>
+  </ul>
 </Tabs>
 ```
 
@@ -268,20 +284,22 @@ Make your tabs span the entire width of their container with the `isFullwidth` p
 
 ```tsx live
 <Tabs isFullwidth>
-  <Tabs.List>
+  <ul>
     <Tabs.Item active>
-      <a>One</a>
+      <a href="#one" aria-current="page">
+        One
+      </a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>Two</a>
+      <a href="#two">Two</a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>Three</a>
+      <a href="#three">Three</a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>Four</a>
+      <a href="#four">Four</a>
     </Tabs.Item>
-  </Tabs.List>
+  </ul>
 </Tabs>
 ```
 
@@ -293,26 +311,26 @@ This example combines several features: centered alignment, boxed style, and ico
 
 ```tsx live
 <Tabs align="centered" boxed>
-  <Tabs.List>
+  <ul>
     <Tabs.Item active>
-      <a>
+      <a href="#home" aria-current="page">
         <Icon name="fas fa-home" size="small" aria-hidden="true" />
         <span>Home</span>
       </a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>
+      <a href="#profile">
         <Icon name="fas fa-user" size="small" aria-hidden="true" />
         <span>Profile</span>
       </a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>
+      <a href="#settings">
         <Icon name="fas fa-cog" size="small" aria-hidden="true" />
         <span>Settings</span>
       </a>
     </Tabs.Item>
-  </Tabs.List>
+  </ul>
 </Tabs>
 ```
 
@@ -324,26 +342,26 @@ Enhance your toggle tabs with icons for better visual communication. This exampl
 
 ```tsx live
 <Tabs toggle isFullwidth>
-  <Tabs.List>
+  <ul>
     <Tabs.Item active>
-      <a>
+      <a href="#list" aria-current="page">
         <Icon name="fas fa-list" size="small" aria-hidden="true" />
         <span>List</span>
       </a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>
+      <a href="#done">
         <Icon name="fas fa-check" size="small" aria-hidden="true" />
         <span>Done</span>
       </a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>
+      <a href="#removed">
         <Icon name="fas fa-times" size="small" aria-hidden="true" />
         <span>Removed</span>
       </a>
     </Tabs.Item>
-  </Tabs.List>
+  </ul>
 </Tabs>
 ```
 
@@ -355,26 +373,26 @@ This example features centered, boxed tabs in medium size, each with an icon. It
 
 ```tsx live
 <Tabs align="centered" boxed size="medium">
-  <Tabs.List>
+  <ul>
     <Tabs.Item active>
-      <a>
+      <a href="#favorites" aria-current="page">
         <Icon name="fas fa-star" size="small" aria-hidden="true" />
         <span>Favorites</span>
       </a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>
+      <a href="#recent">
         <Icon name="fas fa-clock" size="small" aria-hidden="true" />
         <span>Recent</span>
       </a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>
+      <a href="#archive">
         <Icon name="fas fa-archive" size="small" aria-hidden="true" />
         <span>Archive</span>
       </a>
     </Tabs.Item>
-  </Tabs.List>
+  </ul>
 </Tabs>
 ```
 
@@ -386,26 +404,26 @@ The final example showcases toggle tabs with fullwidth and large size, including
 
 ```tsx live
 <Tabs toggle isFullwidth size="large">
-  <Tabs.List>
+  <ul>
     <Tabs.Item active>
-      <a>
+      <a href="#launch" aria-current="page">
         <Icon name="fas fa-rocket" size="small" aria-hidden="true" />
         <span>Launch</span>
       </a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>
+      <a href="#alerts">
         <Icon name="fas fa-bell" size="small" aria-hidden="true" />
         <span>Alerts</span>
       </a>
     </Tabs.Item>
     <Tabs.Item>
-      <a>
+      <a href="#settings">
         <Icon name="fas fa-cogs" size="small" aria-hidden="true" />
         <span>Settings</span>
       </a>
     </Tabs.Item>
-  </Tabs.List>
+  </ul>
 </Tabs>
 ```
 
@@ -447,8 +465,10 @@ Tabs built from `Tabs.Tab` follow the [WAI-ARIA tabs pattern](https://www.w3.org
 - The arrow keys, `Home` and `End` skip disabled tabs. A disabled tab is marked `aria-disabled` and never takes the tab stop. When the selected tab is disabled, or no tab matches `value`, the enabled tab with the lowest `index` takes it, so the list can still be reached.
 - `Tabs.List` is the `tablist` (marked `aria-orientation="vertical"` in a `vertical` layout), each `Tabs.Tab` is a `tab` with `aria-selected`, and each `Tabs.Content.Item` is a `tabpanel`. A tab names its panel in `aria-controls` and a panel names its tab in `aria-labelledby`, so the panel is announced with the tab's label. The ids are generated, and when you pass your own `id` to a tab or a panel, the other side follows it.
 - Panels aren't focusable themselves. When a panel holds nothing focusable, pass it `tabIndex={0}` so `Tab` moves from the tab list into it.
-- The focus ring shows for keyboard focus only, drawn inside the tab in Bulma's focus color, width and style (`--bulma-focus-h`, `--bulma-focus-s`, `--bulma-focus-l`, `--bulma-focus-width`, `--bulma-focus-style`). A disabled tab is dimmed, with a not-allowed cursor and no hover. Both come from the bestax extras (`extras.css`, or `bestax.css`, which includes them), the same styles that show and hide the panels.
-- Built from `Tabs.Item` with links inside, as in most examples above, the tabs are Bulma navigation and none of this applies: each link is its own tab stop and keeps the browser's link behavior.
+- The focus ring shows for keyboard focus only, drawn inside the tab in Bulma's focus color, width and style (`--bulma-focus-h`, `--bulma-focus-s`, `--bulma-focus-l`, `--bulma-focus-width`, `--bulma-focus-style`). In a `toggle` row, a focused tab comes in front of the neighbors that overlap it, so none of them covers the ring's edge. A disabled tab is dimmed, with a not-allowed cursor and no hover. All of this comes from the bestax extras (`extras.css`, or `bestax.css`, which includes them), the same styles that show and hide the panels.
+- **Forced colors:** Bulma marks the active tab with colors alone, which forced colors (Windows' contrast themes) replaces, so bestax's styles draw a bar in the system's highlight color along the bottom of the active tab there, in every style, in a `vertical` layout and for a link in an active `Tabs.Item`. The tab and everything in it stay in the contrast theme's colors, and a disabled tab is drawn at full strength in the theme's color for something disabled, rather than dimmed. This comes from the bestax extras too.
+- On a right-to-left page a `vertical` layout mirrors: `side="left"` puts the tabs at the right, where the line starts, and `side="right"` at the left. The line between the tabs and the panel, and the selected tab's mark on it, stay on the side that faces the panel.
+- Built from `Tabs.Item`s with links inside, as in most examples above, the tabs are Bulma navigation, and the keys, roles and disabled look above don't apply. Give each link an `href`, so a keyboard reaches it and a screen reader offers it as a link, and put `aria-current="page"` on the current tab's link: `active` adds only Bulma's `is-active` class, which shows the current tab but doesn't announce it. Hold the items in a plain `<ul>` rather than `Tabs.List`, which marks its list as a tab list for `Tabs.Tab`. Each link is its own tab stop and keeps the browser's link behavior and Bulma's focus ring, in Bulma's focus color, width and style. For a link placed directly in the `Tabs.Item`, the bestax extras draw that ring inside the link, where the tab row would otherwise clip its top and bottom, and bring a focused `toggle` tab in front of the neighbors that overlap it. A selected `toggle` tab keeps the ring where Bulma draws it, so the row still clips its top and bottom there, except in forced colors, where it's drawn inside as well. The forced-colors bar applies to these tabs too.
 - Use clear text or icons with labels for each tab, and provide `aria-label` or screen-reader text for icon-only tabs.
 
 ---
@@ -456,7 +476,7 @@ Tabs built from `Tabs.Tab` follow the [WAI-ARIA tabs pattern](https://www.w3.org
 ## Related Components
 
 - [`Icon`](../elements/icon.md): Use for icons in tab labels.
-- [Helper Props](../helpers/usebulmaclasses.md): All Bulma utility helpers are supported.
+- [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing and other utilities.
 
 ---
 
@@ -466,7 +486,7 @@ Tabs built from `Tabs.Tab` follow the [WAI-ARIA tabs pattern](https://www.w3.org
 - [Storybook: Tabs Stories](https://bestax.io/storybook/?path=/story/components-tabs--alignment-centered)
 
 :::tip Pro Tip
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Tabs />` and its subcomponents for powerful utility-based styling.
+You can use [Bulma helper props](../helpers/usebulmaclasses.md) with `<Tabs />` for powerful utility-based styling.
 :::
 
 ---
@@ -490,7 +510,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Tabs 
 | `onChange`     | `(index: number) => void`                                                                                                          | —       | Callback when active tab changes. Called with the tab's `index` when a `Tabs.Tab` is activated: clicked, or Enter or Space pressed on it. Moving focus with the arrow keys, Home or End does not call it, because activation is manual: focus moves freely and the selected tab changes only when the user picks one.                         |
 | `defaultValue` | `number`                                                                                                                           | `0`     | Initial active tab index (uncontrolled).                                                                                                                                                                                                                                                                                                      |
 | `vertical`     | `boolean`                                                                                                                          | `false` | Renders tabs vertically. With a `Tabs.Content`, the tab list is also marked `aria-orientation="vertical"` and ArrowUp and ArrowDown move focus between tabs, alongside ArrowLeft and ArrowRight (the layout stacks horizontally on mobile).                                                                                                   |
-| `side`         | `'left'` \| `'right'`                                                                                                              | —       | Side placement when `vertical` is true.                                                                                                                                                                                                                                                                                                       |
+| `side`         | `'left'` \| `'right'`                                                                                                              | —       | Side placement when `vertical` is true. The row follows the page's direction, so on a right-to-left page `left` puts the tabs at the right, where the line starts, and `right` puts them at the left.                                                                                                                                         |
 | `expanded`     | `boolean`                                                                                                                          | `false` | Makes tabs take up the full width equally.                                                                                                                                                                                                                                                                                                    |
 | `className`    | `string`                                                                                                                           | —       | Additional CSS classes.                                                                                                                                                                                                                                                                                                                       |
 | `children`     | `React.ReactNode`                                                                                                                  | —       | Tab list and tab items.                                                                                                                                                                                                                                                                                                                       |
@@ -498,9 +518,9 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Tabs 
 
 **Subcomponents:**
 
-- `Tabs.List`: The `<ul>` container for tab items.
+- `Tabs.List`: The `<ul role="tablist">` that holds the `Tabs.Tab`s. Navigation built from `Tabs.Item`s goes in a plain `<ul>` instead.
 - `Tabs.Tab`: Individual tab button. Consumes Tabs context for active state management. Renders `<a>` internally — consumers provide only the label text/children. Inside a `Tabs` it takes part in the tab list's keyboard support and links to the `Tabs.Content.Item` with the same `index`.
-- `Tabs.Item`: Each tab; accepts `active`, `onClick`, etc.
+- `Tabs.Item`: A navigation tab: an `<li>` holding a link of your own, with an `href`. Put the items in a plain `<ul>`, and mark the current one with `active` and its link with `aria-current="page"`. For tabs that switch what's shown in place, use `Tabs.Tab` with `Tabs.Content`, which handle the selection and the keyboard.
 - `Tabs.Content`: Container for tab content panels. No custom props beyond `children` and standard `<div>` HTML attributes. Applies the `.tabs-content` class.
 - `Tabs.Content.Item`: Individual content panel. Shows/hides based on active tab from context.
 
@@ -531,13 +551,13 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Tabs 
 
 ### Tabs.Item
 
-| Prop        | Type                                     | Default | Description                |
-| ----------- | ---------------------------------------- | ------- | -------------------------- |
-| `active`    | `boolean`                                | `false` | Whether the tab is active. |
-| `className` | `string`                                 | —       | Additional CSS classes.    |
-| `children`  | `React.ReactNode`                        | —       | Tab content.               |
-| `onClick`   | `React.MouseEventHandler<HTMLLIElement>` | —       | Click handler.             |
-| `...`       | All standard `<li>` attributes           | —       |                            |
+| Prop        | Type                                     | Default | Description                                                                                                                                                                                                  |
+| ----------- | ---------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `active`    | `boolean`                                | `false` | Marks the tab as the current one with Bulma's `is-active` class, and nothing else: no ARIA attribute says so. Put `aria-current="page"` on the link inside the current tab, so a screen reader announces it. |
+| `className` | `string`                                 | —       | Additional CSS classes.                                                                                                                                                                                      |
+| `children`  | `React.ReactNode`                        | —       | Tab content.                                                                                                                                                                                                 |
+| `onClick`   | `React.MouseEventHandler<HTMLLIElement>` | —       | Click handler.                                                                                                                                                                                               |
+| `...`       | All standard `<li>` attributes           | —       |                                                                                                                                                                                                              |
 
 ### Tabs.Content
 

@@ -6,7 +6,7 @@ No form library — state is plain React, validation is a function, errors surfa
 `color` + `message` + `messageColor`.
 
 ```tsx
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import {
   Input,
   Select,
@@ -43,6 +43,7 @@ export function ProfileForm() {
     agree: false,
   });
   const [submitted, setSubmitted] = useState(false);
+  const agreeErrorId = useId();
 
   const errors = validate(values);
   const show = (k: keyof Values) => (submitted ? errors[k] : undefined);
@@ -61,9 +62,11 @@ export function ProfileForm() {
     >
       <Input
         label="Name"
+        autoComplete="name"
         value={values.name}
         onChange={e => set('name', e.target.value)}
         color={show('name') ? 'danger' : undefined}
+        aria-invalid={!!show('name')}
         message={show('name')}
         messageColor="danger"
       />
@@ -71,9 +74,11 @@ export function ProfileForm() {
       <Input
         label="Email"
         type="email"
+        autoComplete="email"
         value={values.email}
         onChange={e => set('email', e.target.value)}
         color={show('email') ? 'danger' : undefined}
+        aria-invalid={!!show('email')}
         message={show('email')}
         messageColor="danger"
         iconLeftName="envelope"
@@ -81,9 +86,11 @@ export function ProfileForm() {
 
       <Select
         label="Country"
+        autoComplete="country"
         value={values.country}
         onChange={e => set('country', e.target.value)}
         color={show('country') ? 'danger' : undefined}
+        aria-invalid={!!show('country')}
         message={show('country')}
         messageColor="danger"
       >
@@ -103,11 +110,17 @@ export function ProfileForm() {
         <Checkbox
           checked={values.agree}
           onChange={e => set('agree', e.target.checked)}
+          aria-invalid={!!show('agree')}
+          aria-describedby={show('agree') ? agreeErrorId : undefined}
         >
           {' '}
           I accept the terms
         </Checkbox>
-        {show('agree') && <p className="help is-danger">{show('agree')}</p>}
+        {show('agree') && (
+          <p id={agreeErrorId} className="help is-danger">
+            {show('agree')}
+          </p>
+        )}
       </Field>
 
       <Button color="primary" type="submit" mt="4">
@@ -123,7 +136,8 @@ Notes:
 - Validation runs every render as a pure function; `submitted` gates when errors are shown so the
   form isn't red before the user interacts. You could gate per-field on blur instead.
 - For the checkbox the convenience `message` prop isn't used; the help text is rendered manually
-  inside the `Field` — a good illustration of dropping to composition when needed.
+  inside the `Field` — a good illustration of dropping to composition when needed. It gets an `id`
+  the checkbox's `aria-describedby` points at, which `message` does for you on the inputs.
 
 ## Grouped controls and addons
 
@@ -131,7 +145,7 @@ Notes:
 // Search box: input + button attached.
 <Field hasAddons>
   <Control isExpanded>
-    <InputBase placeholder="Search" />
+    <InputBase placeholder="Search" aria-label="Search" />
   </Control>
   <Control>
     <Button color="primary">Search</Button>
@@ -141,33 +155,39 @@ Notes:
 // Two controls on one row.
 <Field grouped>
   <Control>
-    <InputBase placeholder="First" />
+    <InputBase placeholder="First" aria-label="First name" autoComplete="given-name" />
   </Control>
   <Control>
-    <InputBase placeholder="Last" />
+    <InputBase placeholder="Last" aria-label="Last name" autoComplete="family-name" />
   </Control>
 </Field>
 ```
 
+A `grouped` or `hasAddons` Field names none of the controls it holds, and a placeholder
+disappears once the user types, so each input above carries an `aria-label`. For a visible
+label instead, see the last item below.
+
+A show-password button is not an addon recipe: use `PasswordInput`, whose button sits inside
+the field. Never put it in `iconRight`, since Bulma gives control icons `pointer-events: none`
+and a click on one lands on the input.
+
 Recipes built on addons, each written out in full in the docs:
 
-- **Password reveal** ([docs](https://bestax.io/docs/api/form/input#password-reveal)): the
-  toggle is a `Button` in its own addon `Control`, never `iconRight`. Bulma gives control icons
-  `pointer-events: none`, so a click on one lands on the input. The button takes
-  `type="button"`, a fixed `aria-label` ("Show password") and `aria-pressed`, and switches the
-  input's `type` between `password` and `text`.
-- **Copy button** ([docs](https://bestax.io/docs/api/form/input#copy-button)): a read-only input
-  and a `Button` calling `navigator.clipboard.writeText`. The clipboard is missing outside secure
-  contexts and the write can be refused, so catch the failure, select the text, and say so in a
-  `role="alert"` region. Confirm success in a `role="status"` region. Mount both regions empty,
-  before their text arrives.
+- **Copy field** ([docs](https://bestax.io/docs/api/form/input#copy-button)): a read-only input
+  and a `CopyButton value={text}` in the second `Control`. It writes, falls back where the Clipboard
+  API is missing, reads "Copied" and announces the result itself, from a region it portals out of
+  the `Control`. For a failure, keep `labels.failedStatus` short and put the instruction ("the link is
+  selected, so copy it from the field") in a help line under the field that is the input's
+  `aria-describedby`, not another live region. Count failures in `onCopyError`, and focus and
+  select the input in an effect on that count, so focus arrives once the description is in the
+  page and a screen reader reads it with the field. `onCopiedChange` clears the count.
 - **Split button** ([docs](https://bestax.io/docs/api/components/dropdown#split-button)): a
   `Button` and a `Dropdown` in `Field hasAddons`, one `Control` each. `Buttons hasAddons` does
   not join the Dropdown's trigger. Keep the default color, since the trigger takes no `color`.
 - To label an addon row, put the label on an outer `Field` with `labelProps={{ htmlFor, id }}`
-  and a matching `id` on the input. The label's `id` names an `Autocomplete`'s suggestion list
-  or a range `Slider`'s thumbs, which point `aria-labelledby` at it. A label inside the
-  `hasAddons` field sits in the row beside the controls.
+  and a matching `id` on the input. The label's `id` names an `Autocomplete`'s or `Taginput`'s
+  suggestion list or a range `Slider`'s thumbs, which point `aria-labelledby` at it. A label
+  inside the `hasAddons` field sits in the row beside the controls.
 
 ## Horizontal field with explicit label/body
 
@@ -186,6 +206,7 @@ put a `<label className="label">` inside it with `htmlFor` pointing at the input
       <InputBase
         id="horizontal-email"
         type="email"
+        autoComplete="email"
         placeholder="you@example.com"
       />
     </Control>
@@ -210,6 +231,60 @@ const [city, setCity] = useState('');
   openOnFocus
 />;
 
+// Combobox: a value from a list. Given data, it filters by label, keeps the
+// value and shows its label in the field.
+const [country, setCountry] = useState<string | null>(null);
+<Combobox
+  label="Country"
+  data={['Canada', 'France', 'Japan']}
+  value={country}
+  onChange={setCountry}
+  empty="No countries match"
+/>;
+
+// Several values, shown as tags under the field; groups come from `group`.
+const [labels, setLabels] = useState<string[]>([]);
+<Combobox
+  label="Labels"
+  multiple
+  data={[
+    { value: 'bug', label: 'Bug', group: 'Type' },
+    { value: 'docs', label: 'Docs', group: 'Area' },
+  ]}
+  value={labels}
+  onChange={setLabels}
+/>;
+
+// From parts, when data doesn't fit (a server search, a "Create" item): you
+// filter, keep the value and set the text, and a pick calls onSelect.
+const countries = ['Canada', 'France', 'Japan'];
+const [choice, setChoice] = useState<string | null>(null);
+const [query, setQuery] = useState('');
+const term = query === choice ? '' : query.trim().toLowerCase();
+const matches = countries.filter(c => c.toLowerCase().includes(term));
+<Combobox
+  label="Country"
+  onSelect={picked => {
+    setChoice(picked);
+    setQuery(picked);
+  }}
+>
+  <Combobox.Input value={query} onChange={e => setQuery(e.target.value)} />
+  <Combobox.Menu>
+    {matches.length > 0 ? (
+      <Combobox.List>
+        {matches.map(c => (
+          <Combobox.Item key={c} value={c} checked={c === choice}>
+            {c}
+          </Combobox.Item>
+        ))}
+      </Combobox.List>
+    ) : (
+      <Combobox.Empty>No countries match</Combobox.Empty>
+    )}
+  </Combobox.Menu>
+</Combobox>;
+
 // Slider (single and dual thumb)
 const [volume, setVolume] = useState(50);
 <Slider value={volume} onChange={setVolume} min={0} max={100} tooltip="auto" />;
@@ -228,6 +303,20 @@ const [range, setRange] = useState<[number, number]>([20, 80]);
 // Numberinput
 const [qty, setQty] = useState(1);
 <Numberinput value={qty} onChange={setQty} min={1} max={10} step={1} />;
+
+// PinInput: a one-time code or PIN, a box per character, all in one input.
+// onComplete fires once each time a change fills the last box.
+const [code, setCode] = useState('');
+const verify = (otp: string) => {
+  // Send it to your server, then show the result with color and message.
+};
+<PinInput
+  label="Enter the 6-digit code"
+  name="otp"
+  value={code}
+  onChange={setCode}
+  onComplete={verify}
+/>;
 
 // Rate
 const [stars, setStars] = useState(3);

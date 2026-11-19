@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Carousel</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma-carousel@4.0.4/dist/css/bulma-carousel.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bulma-carousel@4.0.4/dist/js/bulma-carousel.min.js"></script>
+</head>
+<body>
+  <section class="section">
+    <div id="carousel-demo" class="carousel">
+      <div class="item-1">
+        <figure class="image is-16by9 is-covered"><img src="https://example.com/1.jpg" alt="One"></figure>
+      </div>
+      <div class="item-2">
+        <figure class="image is-16by9 is-covered"><img src="https://example.com/2.jpg" alt="Two"></figure>
+      </div>
+    </div>
+  </section>
+  <section class="section">
+    <h2 class="title">Testimonials</h2>
+    <div id="carousel-demo" class="carousel">
+      <div class="box">Great fruit</div>
+      <div class="box">Fast delivery</div>
+    </div>
+  </section>
+  <script>
+    bulmaCarousel.attach('#carousel-demo', { slidesToShow: 1 });
+  </script>
+</body>
+</html>

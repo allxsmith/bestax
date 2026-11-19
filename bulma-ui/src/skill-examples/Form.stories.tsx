@@ -1,4 +1,4 @@
-// Skills → Examples → Form: several realistic forms produced by following the
+// Skills → Form: several realistic forms produced by following the
 // bestax-form skill. Together they exercise every form component group.
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
@@ -82,35 +82,41 @@ export const Signup: Story = {
         >
           <Input
             label="Name"
+            autoComplete="name"
             value={name}
             onChange={e => setName(e.target.value)}
             color={show('name') ? 'danger' : undefined}
+            aria-invalid={!!show('name')}
             message={show('name')}
             messageColor="danger"
             iconLeftName="user"
           />
           <Input
             label="Email"
+            autoComplete="email"
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
             color={show('email') ? 'danger' : undefined}
+            aria-invalid={!!show('email')}
             message={show('email')}
             messageColor="danger"
             iconLeftName="envelope"
           />
           <Select
             label="Country"
+            autoComplete="country"
             value={country}
             onChange={e => setCountry(e.target.value)}
             color={show('country') ? 'danger' : undefined}
+            aria-invalid={!!show('country')}
             message={show('country')}
             messageColor="danger"
           >
             <option value="">Select…</option>
             <option value="us">United States</option>
             <option value="ca">Canada</option>
-            <option value="uk">United Kingdom</option>
+            <option value="gb">United Kingdom</option>
           </Select>
           <Button color="primary" type="submit">
             Create account
@@ -273,7 +279,12 @@ export const FilesScheduling: Story = {
           <Field label="Profile photo">
             <File hasName buttonLabel="Choose a file…" />
           </Field>
-          <DateInput label="Date of birth" value={date} onChange={setDate} />
+          <DateInput
+            label="Date of birth"
+            autoComplete="bday"
+            value={date}
+            onChange={setDate}
+          />
           <TimeInput
             label="Preferred contact time"
             value={time}

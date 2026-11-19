@@ -18,7 +18,7 @@ describe('inertProps', () => {
 
   it('renders the attribute without a warning on the React in use', () => {
     // CI runs this on both majors; each one warns on the other's spelling.
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const { container } = render(<div {...inertProps(true)} />);
     expect(container.firstChild).toHaveAttribute('inert');
     expect(errorSpy).not.toHaveBeenCalled();

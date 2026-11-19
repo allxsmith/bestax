@@ -49,6 +49,8 @@ import {
   mergeClass,
 } from '../_shared/props.js';
 import { enforcePolymorphicProps } from '../_shared/polymorphic.js';
+import { keepBaseDisplay } from '../_shared/display.js';
+import { askForModalName } from '../_shared/modal-name.js';
 import {
   bestaxValueLocals,
   buildBestaxImport,
@@ -459,9 +461,16 @@ export default function transform(
     }
     applyUniversalProps(ctx, path, element, handled, UNIVERSAL_PROPS);
 
+    // bestax leaves a base `display` out beside a per-viewport one, so it
+    // stays the class it stood for.
+    keepBaseDisplay(ctx, path, element);
+
     // Last: bestax's props follow `as`, so the element decides which of the
     // props just written it can actually take.
     enforcePolymorphicProps(ctx, path, element, target);
+
+    // Read off the attributes the element ends up with.
+    askForModalName(ctx, path, element, target);
   });
 
   // ---- 2b. Value references to bloomer components ---------------------------

@@ -38,11 +38,78 @@ function isComponentExport(value: unknown): value is AnyComponent {
 }
 
 const PROPS: Record<string, Record<string, unknown>> = {
+  // Every part, the drawer open and the column collapsed, so each class the
+  // frame emits is swept.
+  AppFrame: {
+    defaultNavOpen: true,
+    defaultNavCollapsed: true,
+    children: [
+      <Library.AppFrame.Header key="header">
+        <Library.AppFrame.Burger />
+      </Library.AppFrame.Header>,
+      <Library.AppFrame.Nav key="nav">Nav</Library.AppFrame.Nav>,
+      <Library.AppFrame.Main key="main">Main</Library.AppFrame.Main>,
+      <Library.AppFrame.Aside key="aside">Aside</Library.AppFrame.Aside>,
+      <Library.AppFrame.Footer key="footer">Footer</Library.AppFrame.Footer>,
+    ],
+  },
   Icon: { name: 'star' },
+  // Named, colored, sized and rounded, so every class it emits is swept.
+  IconButton: {
+    icon: 'trash',
+    'aria-label': 'Delete',
+    color: 'danger',
+    size: 'small',
+    isRounded: true,
+  },
   IconText: { children: 'Text', iconProps: { name: 'star' } },
+  // Named, colored and sized, with a pill beside it in a stack, so every
+  // class a float button and a stack emit is swept.
+  FloatButton: {
+    icon: 'pen',
+    'aria-label': 'Compose',
+    color: 'primary',
+    size: 'large',
+  },
+  FloatButtons: {
+    position: 'top-left',
+    children: [
+      <Library.FloatButton.BackToTop key="top" />,
+      <Library.FloatButton
+        key="pill"
+        aria-label="Compose"
+        icon="pen"
+        showLabel
+      />,
+    ],
+  },
+  // Open and sideways, so the menu, its actions and their tooltips are swept.
+  FloatButtonSpeedDial: {
+    'aria-label': 'Create',
+    icon: 'plus',
+    direction: 'left',
+    defaultOpen: true,
+    children: [
+      <Library.FloatButton key="note" aria-label="Note" icon="note-sticky" />,
+      <Library.FloatButton key="task" aria-label="Task" icon="check" />,
+    ],
+  },
+  // Colored and sized; its own test sweeps the icon-only form.
+  CopyButton: { value: 'https://bestax.io', color: 'primary', size: 'small' },
   Avatar: { name: 'Ada Lovelace' },
   Badge: { children: '9' },
   Steps: { items: [{ label: 'Step 1' }], hasNavigation: true },
+  // Two months, full width, a range across them and content in every day, so
+  // the frame's, the months' and the content's classes are swept.
+  Calendar: {
+    selectionMode: 'range',
+    monthsToShow: 2,
+    isFullwidth: true,
+    color: 'info',
+    size: 'small',
+    defaultValue: [new Date(2026, 10, 28), new Date(2026, 11, 2)],
+    dayTemplate: () => '•',
+  },
   Carousel: {
     children: [
       <Library.CarouselItem key="a">Slide A</Library.CarouselItem>,
@@ -51,9 +118,52 @@ const PROPS: Record<string, Record<string, unknown>> = {
   },
   Rate: { value: 2.5, showScore: true, text: 'Good' },
   Checkbox: { children: 'Accept' },
+  // Every part, alpha, a chosen swatch with its check and the disabled
+  // state, so each class it emits is swept.
+  ColorPicker: {
+    label: 'Brand',
+    alpha: true,
+    disabled: true,
+    swatches: ['#ffdd57'],
+    defaultValue: '#ffdd57',
+  },
+  // Sized, rounded and colored, so every class the field takes is swept.
+  ColorInput: {
+    label: 'Brand',
+    size: 'small',
+    isRounded: true,
+    color: 'info',
+    defaultValue: 'red',
+  },
+  // Sized and round, so every class it takes is swept.
+  ColorSwatch: { color: 'red', size: 'small', isRounded: true },
+  // Colored, with the indicator, a title, a description and more, so every
+  // class a card takes is swept.
+  CheckboxCard: {
+    color: 'success',
+    title: 'Backups',
+    description: 'Kept for 30 days',
+    children: '$5',
+  },
   Radio: { children: 'Choose' },
+  RadioCard: {
+    color: 'info',
+    title: 'Express',
+    description: 'Tomorrow',
+    children: '$12',
+  },
   Switch: { children: 'Enable' },
   Loading: { active: true, canCancel: true, children: 'Loading…' },
+  // Its helper classes, and the element it puts portaled content in.
+  LocaleProvider: {
+    locale: 'ar',
+    p: '2',
+    children: (
+      <Library.Portal>
+        <Library.Tag>Portaled</Library.Tag>
+      </Library.Portal>
+    ),
+  },
   Toast: {
     message: 'Saved',
     inline: true,
@@ -62,6 +172,249 @@ const PROPS: Record<string, Record<string, unknown>> = {
     actionText: 'Undo',
   },
   Taginput: { value: ['tag-one'] },
+  // It has no class of its own, so its helper classes are what's swept.
+  NumberFormatter: {
+    value: 1234.5,
+    textColor: 'primary',
+    bgColor: 'light',
+    textWeight: 'semibold',
+  },
+  // Vertical, with a collapsed pane, so every class it emits is swept.
+  Splitter: {
+    orientation: 'vertical',
+    children: [
+      <Library.Splitter.Pane key="a" label="A" collapsible defaultCollapsed>
+        A
+      </Library.Splitter.Pane>,
+      <Library.Splitter.Pane key="b" label="B">
+        B
+      </Library.Splitter.Pane>,
+    ],
+  },
+  // Full width with a breakpoint and the props that replace its defaults, so
+  // every class Group emits is swept. Stack, Center and Flex render the same
+  // `.stack` with one modifier each.
+  Group: {
+    isFullwidth: true,
+    breakpoint: 'tablet',
+    gap: '1',
+    alignItems: 'baseline',
+    flexWrap: 'nowrap',
+    children: 'Group',
+  },
+  Flex: { flexDirection: 'column', alignContent: 'center', rowGap: '2' },
+  // Every orientation class and dividers, with an item from its props and
+  // one from its parts, so each class the family emits is swept.
+  DescriptionList: {
+    orientation: 'vertical',
+    orientationMobile: 'vertical',
+    orientationTablet: 'horizontal',
+    orientationDesktop: 'vertical',
+    orientationWidescreen: 'horizontal',
+    orientationFullhd: 'vertical',
+    hasDividers: true,
+    children: [
+      <Library.DescriptionList.Item key="a" label="Order" value="#1234" />,
+      <Library.DescriptionList.Item key="b">
+        <Library.DescriptionList.Label>Tags</Library.DescriptionList.Label>
+        <Library.DescriptionList.Value>Gift</Library.DescriptionList.Value>
+      </Library.DescriptionList.Item>,
+    ],
+  },
+  DescriptionListItem: { label: 'Order', value: '#1234' },
+  // Sized, with every prop part and a change, so each class it emits is swept.
+  Stat: {
+    label: 'Revenue',
+    value: 8456.4,
+    change: 0.12,
+    description: 'since last month',
+    size: 'large',
+  },
+  // A row with a loading tile, a minimum width and a gap, so the grid's
+  // classes and the Skeleton's are swept.
+  Stats: {
+    minCol: 8,
+    gap: 4,
+    children: [
+      <Library.Stat key="a" label="Revenue" value={8456.4} change={-0.019} />,
+      <Library.Stat key="b" label="Churn" loading />,
+    ],
+  },
+  StatChange: { value: 0.12, color: 'danger' },
+  // Sized, colored and rounded, in sections, so every class it emits is swept.
+  RingProgress: {
+    label: 'Storage',
+    size: 'small',
+    color: 'info',
+    isRounded: true,
+    sections: [{ value: 40, color: 'warning', label: 'Photos' }],
+    children: '40%',
+  },
+  // Coloured and sized, with an icon, a hint, a message and a file in its
+  // list, so the zone's, the list's and the help lines' classes are swept.
+  Dropzone: {
+    label: 'Attachments',
+    multiple: true,
+    color: 'primary',
+    size: 'small',
+    icon: <span />,
+    hint: 'Any files',
+    message: 'Required',
+    messageColor: 'danger',
+    files: [new File(['%PDF'], 'report.pdf', { type: 'application/pdf' })],
+  },
+  // Filled, with a legend and a colored message, so the legend's and the
+  // help's classes are swept with the variant's.
+  Fieldset: {
+    legend: 'Shipping',
+    variant: 'filled',
+    message: 'We only ship within the EU.',
+    messageColor: 'info',
+    children: 'Fields',
+  },
+  // Open on an image with a caption, zoom and arrows, so every class the
+  // viewer and its trigger emit is swept.
+  Lightbox: {
+    items: [
+      { src: '/a.jpg', alt: 'A', caption: 'First' },
+      { src: '/b.jpg', alt: 'B' },
+    ],
+    defaultOpen: true,
+    children: (
+      <Library.Lightbox.Trigger index={0}>View</Library.Lightbox.Trigger>
+    ),
+  },
+  LightboxTrigger: { index: 0, children: 'View' },
+  // Sticky, with a nested entry, so each class it and its Menu parts emit is
+  // swept. Nothing is current in jsdom, which TableOfContents.test.tsx covers.
+  TableOfContents: {
+    isSticky: true,
+    items: [
+      {
+        id: 'usage',
+        label: 'Usage',
+        children: [{ id: 'props', label: 'Props' }],
+      },
+    ],
+  },
+  // Every modifier, so each class the frame takes is swept.
+  ScrollArea: {
+    'aria-label': 'Notes',
+    orientation: 'vertical',
+    showScrollbars: 'hover',
+    hasStableGutter: true,
+    hasFade: true,
+    children: 'Notes',
+  },
+  // The text toggle, with a left icon, a message, a color and a size, so the
+  // Field, the Control and every class the container takes are swept.
+  PasswordInput: {
+    label: 'Password',
+    variant: 'text',
+    iconLeftName: 'lock',
+    message: 'At least 15 characters',
+    messageColor: 'info',
+    color: 'primary',
+    size: 'small',
+  },
+  // The same, without the Field and Control.
+  PasswordInputBase: { variant: 'text', size: 'small', isRounded: true },
+  // Labeled, with a message, colored, sized, rounded and disabled, so the
+  // Field, the Control and every class a box takes are swept.
+  PinInput: {
+    label: 'Code',
+    message: 'Six digits',
+    defaultValue: '12',
+    color: 'primary',
+    size: 'small',
+    isRounded: true,
+    disabled: true,
+  },
+  // Open, sized, with a checked, a highlighted and a disabled option in a
+  // group and an empty message beside the list, so each class the Combobox
+  // family adds is swept.
+  Combobox: {
+    label: 'Produce',
+    size: 'small',
+    defaultOpen: true,
+    keepFirst: true,
+    children: [
+      <Library.Combobox.Input key="i" iconLeftName="search" />,
+      <Library.Combobox.Menu key="d">
+        <Library.Combobox.List>
+          <Library.Combobox.Group label="Fruit">
+            <Library.Combobox.Item value="apple" checked>
+              Apple
+            </Library.Combobox.Item>
+            <Library.Combobox.Item value="pear" disabled>
+              Pear
+            </Library.Combobox.Item>
+          </Library.Combobox.Group>
+        </Library.Combobox.List>
+        <Library.Combobox.Empty>Nothing else</Library.Combobox.Empty>
+      </Library.Combobox.Menu>,
+    ],
+  },
+  ComboboxItem: { value: 'apple', checked: true, children: 'Apple' },
+  ComboboxGroup: { label: 'Fruit' },
+  // A highlighted item with an icon, a description and a hint, a disabled
+  // one in a group, and an empty message beside the list, so each class the
+  // Command family adds is swept.
+  Command: {
+    label: 'Commands',
+    children: [
+      <Library.Command.Input key="i" />,
+      <Library.Command.List key="l">
+        <Library.Command.Group label="Files">
+          <Library.Command.Item
+            value="open"
+            icon={<svg />}
+            description="Open a file"
+            hint="O"
+          >
+            Open
+          </Library.Command.Item>
+          <Library.Command.Item value="close" disabled>
+            Close
+          </Library.Command.Item>
+        </Library.Command.Group>
+      </Library.Command.List>,
+      <Library.Command.Empty key="e">Nothing else</Library.Command.Empty>,
+    ],
+  },
+  CommandDialog: {
+    defaultOpen: true,
+    actions: [{ id: 'open', label: 'Open', group: 'Files' }],
+  },
+  CommandItem: {
+    value: 'open',
+    icon: <svg />,
+    description: 'Open a file',
+    hint: 'O',
+    children: 'Open',
+  },
+  CommandGroup: { label: 'Files' },
+  // Sorted, selectable, searched and paged, with a toolbar and a scroll
+  // area, so each class DataTable adds, and the parts it renders, are swept.
+  DataTable: {
+    caption: 'People',
+    columns: [
+      { id: 'name', header: 'Name', sortable: true, isRowHeader: true },
+      { id: 'role', header: 'Role', align: 'right' },
+    ],
+    data: [
+      { id: '1', name: 'Ada', role: 'Admin' },
+      { id: '2', name: 'Alan', role: 'Editor' },
+      { id: '3', name: 'Grace', role: 'Viewer' },
+    ],
+    selectionMode: 'multiple',
+    defaultSelected: ['1'],
+    defaultSort: [{ id: 'name', direction: 'ascending' }],
+    pageSize: 2,
+    hasSearch: true,
+    isResponsive: true,
+    toolbar: () => <Library.Button>Export</Library.Button>,
+  },
   TagInput: { value: ['tag-one'] },
   Modal: { active: true, children: 'Modal content' },
   Dialog: { isOpen: true, message: 'Are you sure?' },
@@ -117,6 +470,56 @@ const PROPS: Record<string, Record<string, unknown>> = {
   Breadcrumb: { items: [{ label: 'Home', href: '#' }] },
   Message: { children: 'Hello' },
   Notification: { children: 'Hello' },
+  // Every shorthand part, a size, a color and the left alignment, with the
+  // actions row as a child, so each class the EmptyState family adds is swept.
+  EmptyState: {
+    icon: 'folder-open',
+    title: 'No projects yet',
+    description: 'Projects you create show up here.',
+    size: 'small',
+    color: 'info',
+    variant: 'filled',
+    align: 'left',
+    children: (
+      <Library.EmptyState.Actions>
+        <Library.Button>New project</Library.Button>
+      </Library.EmptyState.Actions>
+    ),
+  },
+  EmptyStateActions: { children: <Library.Button>New project</Library.Button> },
+  EmptyStateDescription: { children: 'Projects you create show up here.' },
+  EmptyStateIndicator: { children: <Library.Icon name="folder-open" /> },
+  EmptyStateTitle: { children: 'No projects yet' },
+  // Progress, a pending item, a color, an icon marker and the alternate
+  // layout, so each class the Timeline family adds is swept.
+  Timeline: {
+    active: 0,
+    pending: 'Out for delivery',
+    align: 'alternate',
+    color: 'success',
+    children: [
+      <Library.Timeline.Item
+        key="placed"
+        title="Order placed"
+        time="12 October"
+        icon="box"
+        color="info"
+      />,
+      <Library.Timeline.Item key="shipped" title="Shipped" />,
+    ],
+  },
+  TimelineItem: { title: 'Shipped', time: '14 October', icon: 'truck' },
+  // A symbol with a label, so its two spans are swept, and in a group with a
+  // second key, so the separator is too.
+  Kbd: { label: 'Command', children: '⌘' },
+  KbdGroup: {
+    children: [
+      <Library.Kbd key="mod" label="Command">
+        ⌘
+      </Library.Kbd>,
+      <Library.Kbd key="k">K</Library.Kbd>,
+    ],
+  },
   // Pressed, so the fill and `is-selected` it adds are swept too.
   ToggleButton: { defaultPressed: true, children: 'Mute' },
   // Checked and sized, so the fill, `is-selected` and `are-small` are swept.
@@ -136,6 +539,100 @@ const PROPS: Record<string, Record<string, unknown>> = {
   Slider: {
     marks: [{ value: 50, label: '50' }],
     tooltip: 'always',
+  },
+  // Open on its second step, with a cover, so Back and the cover are swept
+  // with every part a step renders, the footer's parts among them. Its steps
+  // have no target, so the step is centered with no spotlight;
+  // Tour.test.tsx sweeps the spotlight under a prefix.
+  Tour: {
+    defaultOpen: true,
+    defaultValue: 1,
+    children: [
+      <Library.Tour.Step key="one" title="One">
+        One
+      </Library.Tour.Step>,
+      <Library.Tour.Step
+        key="two"
+        title="Two"
+        cover={<img src="cover.png" alt="" />}
+      >
+        Two
+      </Library.Tour.Step>,
+    ],
+  },
+  // Checked, clearable, coloured, sized, rounded and open in place, with a
+  // search box and a message, so the field's, the tags', the panel's and
+  // the tree's classes are swept together.
+  TreeSelect: {
+    label: 'Regions',
+    selectionMode: 'checkbox',
+    data: [
+      {
+        value: 'europe',
+        label: 'Europe',
+        icon: 'globe',
+        children: [{ value: 'france', label: 'France' }],
+      },
+    ],
+    defaultValue: ['france'],
+    defaultExpanded: ['europe'],
+    defaultOpen: true,
+    searchable: true,
+    clearable: true,
+    color: 'info',
+    size: 'small',
+    isRounded: true,
+    message: 'Pick some',
+    messageColor: 'danger',
+  },
+  // Picked, clearable, coloured, sized, rounded and open in place on the
+  // picked node's path, with an icon, a disabled item, a loading column and
+  // a search box, so the field's, the panel's, the columns' and the items'
+  // classes are swept together.
+  Cascader: {
+    label: 'City',
+    data: [
+      {
+        value: 'europe',
+        label: 'Europe',
+        icon: 'globe',
+        children: [
+          { value: 'berlin', label: 'Berlin' },
+          { value: 'paris', label: 'Paris', disabled: true },
+          {
+            value: 'later',
+            label: 'Later',
+            hasChildren: true,
+            isLoading: true,
+          },
+        ],
+      },
+    ],
+    defaultValue: 'berlin',
+    defaultOpen: true,
+    searchable: true,
+    clearable: true,
+    color: 'info',
+    size: 'small',
+    isRounded: true,
+    message: 'Pick one',
+    messageColor: 'danger',
+  },
+  // A checkbox tree, sized and open, with an icon, a disabled item and a
+  // checked one, so the box, the group and the modifiers are swept. An item
+  // renders nothing outside a tree, so TreeViewItem's classes are swept here.
+  TreeView: {
+    'aria-label': 'Files',
+    selectionMode: 'checkbox',
+    size: 'small',
+    defaultExpanded: ['src'],
+    defaultChecked: ['src/index.ts'],
+    children: (
+      <Library.TreeView.Item value="src" label="src" icon="folder">
+        <Library.TreeView.Item value="src/index.ts" label="index.ts" />
+        <Library.TreeView.Item value="src/old.ts" label="old.ts" disabled />
+      </Library.TreeView.Item>
+    ),
   },
 };
 

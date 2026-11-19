@@ -40,7 +40,7 @@ describe('Delete Component', () => {
   });
 
   it('calls onClick when clicked', () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(<Delete onClick={handleClick} />);
     const button = screen.getByRole('button', { name: /close/i });
     fireEvent.click(button);

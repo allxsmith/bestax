@@ -1,6 +1,6 @@
 ---
 name: bestax-form
-description: Build forms with @allxsmith/bestax-bulma — Field/Control/Label/Help composition, inputs, selects, checkboxes, radios, switches, and advanced controls (Autocomplete, Slider, Numberinput, Rate, Taginput, File, date/time). There is no form/validation library; this skill shows the components and the validate-it-yourself error pattern. Use when building a form, wiring inputs to state, or showing validation/error state.
+description: Build forms with @allxsmith/bestax-bulma — Field/Control/Label/Help composition, inputs, selects, checkboxes, radios, switches, and advanced controls (Autocomplete, Combobox, TreeSelect, Cascader, Slider, Numberinput, PinInput, Rate, Taginput, File, date/time, Calendar). There is no form/validation library; this skill shows the components and the validate-it-yourself error pattern. Use when building a form, wiring inputs to state, or showing validation/error state.
 license: MIT
 ---
 
@@ -11,8 +11,8 @@ This skill covers the form components in `@allxsmith/bestax-bulma` and how to co
 **Important:** bestax-bulma ships **no form/validation library** — there is no integration with
 formik, react-hook-form, yup, or zod, and no `useForm`-style hook. You own your form state with
 plain React (`useState` / `useReducer` or any library you choose) and feed validation results
-back via each input's own `color`, `message`, and `messageColor` props on the convenience inputs
-(`Input`, `Select`, `TextArea`, …). Always put validation state on the **input**: `Field` has no
+back via each input's own `color`, `message` and `messageColor` props on the convenience inputs
+(`Input`, `Select`, `TextArea`, …), and `aria-invalid` where it reaches the input (see below). Always put validation state on the **input**: `Field` has no
 `message`/`messageColor`, and although `FieldProps` types a `color`, `Field` discards it — it
 renders no class, so setting it looks right and does nothing. (`FieldLabel`/`FieldBody` do honor
 `color`, as the `has-text-*` helper.) See **Validation without a library** below.
@@ -45,12 +45,12 @@ using context (`useInsideField` / `useInsideControl`) to detect their surroundin
 
 ```tsx
 // Convenience: one line, auto-wrapped in Field + Control.
-<Input label="Email" type="email" placeholder="you@example.com" />
+<Input label="Email" type="email" autoComplete="email" placeholder="you@example.com" />
 
 // Explicit composition: full control over layout.
 <Field label="Email">
   <Control iconLeftName="envelope" hasIconsLeft>
-    <InputBase type="email" placeholder="you@example.com" />
+    <InputBase type="email" autoComplete="email" placeholder="you@example.com" />
   </Control>
 </Field>
 ```
@@ -65,7 +65,7 @@ using context (`useInsideField` / `useInsideControl`) to detect their surroundin
 ```tsx
 <Field hasAddons>
   <Control isExpanded>
-    <InputBase placeholder="Search" />
+    <InputBase placeholder="Search" aria-label="Search" />
   </Control>
   <Control>
     <Button color="primary">Go</Button>
@@ -73,49 +73,122 @@ using context (`useInsideField` / `useInsideControl`) to detect their surroundin
 </Field>
 ```
 
+A `grouped` or `hasAddons` Field names none of its controls, and a placeholder disappears once
+the user types, so give each input in the row an `aria-label`, or a visible label on an outer
+`Field` (`references/patterns.md`, "Grouped controls and addons").
+
+### Sections via Fieldset
+
+`Fieldset` groups several fields under one name: a native `<fieldset>` whose `legend` names the
+group. `variant` is `default` (bordered), `filled` or `unstyled`. `disabled` disables every
+control inside, the native ones and bestax's own widgets (`Rate`, the time wheels) alike, so it's
+also how to switch a whole form off while it saves. `message` describes the group; each input
+still carries its own error.
+
+```tsx
+<Fieldset legend="Shipping address" disabled={saving}>
+  <Input label="Street" name="street" autoComplete="shipping address-line1" />
+  <Input label="City" name="city" autoComplete="shipping address-level2" />
+</Fieldset>
+```
+
+Prefer it to a hand-written `<fieldset disabled>`, which the browser applies to native controls
+only: a `Rate` inside one keeps taking input while its value is dropped from the form.
+
 ## Component inventory
 
 All import from `@allxsmith/bestax-bulma`. Convenience components auto-wrap Field+Control;
 `*Base` components are the raw styled elements for explicit composition.
 
-| Component                                               | What it is                                                                |
-| ------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `Field`, `Field.Label`, `Field.Body`                    | Field container + horizontal label/body parts.                            |
-| `Control`                                               | Wraps one input; left/right icons, `isLoading`, `isExpanded`, `size`.     |
-| `Input` / `InputBase`                                   | Text input (convenience / raw).                                           |
-| `Select` / `SelectBase`                                 | Dropdown select.                                                          |
-| `TextArea` / `TextAreaBase`                             | Multiline text.                                                           |
-| `Checkbox` / `Checkboxes`                               | Single checkbox / managed group (array value).                            |
-| `Radio` / `Radios`                                      | Single radio / managed single-select group.                               |
-| `Switch`                                                | Toggle switch (`isRounded`, `isThin`, `isOutlined`, RTL).                 |
-| `File`                                                  | File upload input with label/message.                                     |
-| `Autocomplete`                                          | Input with filtered dropdown suggestions + keyboard nav.                  |
-| `Slider`                                                | Range slider; single/dual thumbs, steps, tooltips, vertical.              |
-| `Numberinput`                                           | Numeric input with increment/decrement, min/max, step, stepper.           |
-| `Rate`                                                  | Star rating; `max`, `precision` (half/quarter), custom icons, `disabled`. |
-| `Taginput`                                              | Tag/chip input; suggestions, confirm keys, closable tags.                 |
-| `DateInput` / `TimeInput` / `DateTimeInput` (+ `*Base`) | Date / time / datetime pickers; month or year via `granularity`.          |
-| `DateRangeInput` (+ `*Base`)                            | Start and end date: `[Date \| null, Date \| null]`, one calendar.         |
+| Component                                               | What it is                                                                 |
+| ------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `Field`, `Field.Label`, `Field.Body`                    | Field container + horizontal label/body parts.                             |
+| `Control`                                               | Wraps one input; left/right icons, `isLoading`, `isExpanded`, `size`.      |
+| `Fieldset`                                              | A section named by its `legend`; `disabled` switches off all of it.        |
+| `Input` / `InputBase`                                   | Text input (convenience / raw).                                            |
+| `Select` / `SelectBase`                                 | Dropdown select.                                                           |
+| `TextArea` / `TextAreaBase`                             | Multiline text.                                                            |
+| `Checkbox` / `Checkboxes`                               | Single checkbox / managed group (array value).                             |
+| `Radio` / `Radios`                                      | Single radio / managed single-select group.                                |
+| `CheckboxCard` / `RadioCard`                            | A checkbox or radio as a card with a title and a description.              |
+| `Switch`                                                | Toggle switch (`isRounded`, `isThin`, `isOutlined`, RTL).                  |
+| `File`                                                  | File upload input with label/message.                                      |
+| `Dropzone`                                              | Drop or pick files; checks `accept`/size/count, lists them, form-ready.    |
+| `Autocomplete`                                          | Free text with suggestions it filters for you, + keyboard nav.             |
+| `Combobox`                                              | A value from a list: `data` for a select, tags or groups, or parts.        |
+| `TreeSelect`                                            | A value, or checked values, from a tree: a field opening a `TreeView`.     |
+| `Cascader`                                              | A value at the end of a path, picked a column per level; shows the path.   |
+| `Slider`                                                | Range slider; single/dual thumbs, steps, tooltips, vertical.               |
+| `Numberinput`                                           | Numeric input with increment/decrement, min/max, step, stepper.            |
+| `PasswordInput` (+ `PasswordInputBase`)                 | A password with a show button inside: an eye, or the words Show and Hide.  |
+| `PinInput`                                              | A one-time code or PIN as a row of boxes, all in one real input.           |
+| `Rate`                                                  | Star rating; `max`, `precision` (half/quarter), custom icons, `disabled`.  |
+| `Taginput`                                              | Tag/chip input; suggestions, confirm keys, closable tags.                  |
+| `ColorInput` (+ `ColorInputBase`) / `ColorPicker`       | A color as a CSS string, HSL by default: a field with a popover / a panel. |
+| `DateInput` / `TimeInput` / `DateTimeInput` (+ `*Base`) | Date / time / datetime pickers; month or year via `granularity`.           |
+| `DateRangeInput` (+ `*Base`)                            | Start and end date: `[Date \| null, Date \| null]`, one calendar.          |
+| `Calendar`                                              | Months on the page that pick a day or a range, with content in each day.   |
 
 (`NumberInput` and `TagInput` also exist as deprecated aliases of `Numberinput`/`Taginput` —
 same components; prefer the lowercase-second-word spellings.)
+
+**Autocomplete or Combobox?** A field whose text is the value, with suggestions to help type it,
+is `Autocomplete`, which filters its `data` itself. A value picked from a list is `Combobox`. Given
+`data`, it filters by label, keeps the value (`value`/`onChange`) and shows the picks as tags with
+`multiple`, so a searchable select, a multi-select or a grouped list is one element. Build it from
+parts for a server search whose answer must show unfiltered, or a "Create" item: then it keeps no
+value and never sets the field's text, so you filter the items, keep the value and set the text in
+`onSelect`.
+
+**A value that lives in a tree is `TreeSelect`**, not a `Combobox` with indented labels. Give it
+the tree as `data` (nodes with `value`, `label` and `children`); it opens a panel holding a real
+`TreeView`. `selectionMode` is `'single'` (one value or `null`), `'checkbox'` (a check reaches the
+branch under it, and `checkedStrategy` reports the leaves, the topmost checked items or all of
+them) or `'checkbox-independent'` (each box is its own item's). `searchable` adds a search box.
+When the value is found by narrowing down, a city by its country, use `Cascader` on the same
+`data`: it opens a column per level, its value is the picked node's `value` (`onChange(value)`),
+the field shows the path, leaves only unless `parentsSelectable`, and `searchable` lists matching
+paths.
+
+**A verification code or a PIN is `PinInput`**, not a row of one-character `Input`s with focus
+moved by hand. It holds the code in one real input under a row of boxes, so a screen reader hears
+one field named by its `label`, and paste, autofill from a text message (`autoComplete` is
+`"one-time-code"`) and password managers work as they do on any input. Give it `length` (6 by
+default), `value`/`onChange` with the code as a string, and verify in `onComplete`, which fires
+once each time a change fills the last box. It takes digits unless `type="alphanumeric"`, turns a
+digit from any script (Arabic-Indic, Persian) into its ASCII digit, drops anything else typed or
+pasted, and `isMasked` shows dots for a PIN. A paste replaces the whole code. Its default `pattern`
+asks for the full length, so `required` rejects a partial code, not just an empty one. Say the
+length in the `label` ("Enter the 6-digit code") or the `message`: the boxes are hidden from a
+screen reader, and the `message` describes the input, so it's read on focus.
+
+**A password field is `PasswordInput`**, not an `Input type="password"` with a button you wire
+yourself. Its button sits inside the field at the right edge: an eye named "Show password" with
+`aria-pressed`, or with `variant="text"` the words "Show" and "Hide" and a name that follows them.
+It's in the tab order, a pointer press leaves focus in the field, and the password hides again
+when the form submits or resets or the page is left. The field defaults to `autoComplete="current-password"`; pass
+`"new-password"` on sign-up and change-password forms, and never `"off"`, which mostly withholds
+the hint password managers use. `visible`/`onVisibleChange` hold the state, so one button can
+show two fields. The right edge is the button's, so it takes no right icon. It doesn't score
+passwords: say the strength your app or server works out in words in `message`, as the docs'
+strength recipe does.
 
 ## Common props
 
 Across the convenience inputs (`Input`, `Select`, `TextArea`, and similar):
 
-| Prop                             | Type                                                                  | Purpose                                                                    |
-| -------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `color`                          | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'` | Visual state — use `'danger'` for errors, `'success'` for valid.           |
-| `size`                           | `'small' \| 'medium' \| 'large'`                                      | Input size.                                                                |
-| `value` / `onChange`             | controlled value + handler                                            | Standard React controlled inputs.                                          |
-| `defaultValue`                   | uncontrolled initial value                                            | When not controlling state.                                                |
-| `disabled`, `readOnly`           | `boolean`                                                             | Native states (`readOnly` on `*Base`).                                     |
-| `label`                          | `ReactNode`                                                           | Field label (convenience components; auto-associated via `htmlFor`).       |
-| `message`                        | `ReactNode`                                                           | Help / validation text rendered as `<p class="help">`.                     |
-| `messageColor`                   | a Bulma color                                                         | Colors the help text (`'danger'` for errors).                              |
-| `iconLeftName` / `iconRightName` | `string`                                                              | Icon shortcuts; pair with `hasIconsLeft/Right`.                            |
-| `isLoading`                      | `boolean`                                                             | Loading spinner on the Control; `Select` draws it in place of the chevron. |
+| Prop                             | Type                                                                  | Purpose                                                                                                        |
+| -------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `color`                          | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'` | Visual state — use `'danger'` for errors, `'success'` for valid.                                               |
+| `size`                           | `'small' \| 'medium' \| 'large'`                                      | Input size.                                                                                                    |
+| `value` / `onChange`             | controlled value + handler                                            | Standard React controlled inputs.                                                                              |
+| `defaultValue`                   | uncontrolled initial value                                            | When not controlling state.                                                                                    |
+| `disabled`, `readOnly`           | `boolean`                                                             | Native states (`readOnly` on `*Base`).                                                                         |
+| `label`                          | `ReactNode`                                                           | Field label (convenience components; auto-associated via `htmlFor`).                                           |
+| `message`                        | `ReactNode`                                                           | Help / validation text rendered as `<p class="help">`, which describes the control through `aria-describedby`. |
+| `messageColor`                   | a Bulma color                                                         | Colors the help text (`'danger'` for errors).                                                                  |
+| `iconLeftName` / `iconRightName` | `string`                                                              | Icon shortcuts; pair with `hasIconsLeft/Right`.                                                                |
+| `isLoading`                      | `boolean`                                                             | Loading spinner on the Control; `Select` draws it in place of the chevron.                                     |
 
 Plus the full Bulma **helper props** (`m`, `p`, `textColor`, `display`, …) on every component
 via `useBulmaClasses`.
@@ -126,40 +199,53 @@ spellings compile only where they historically existed: `isFullWidth` everywhere
 `Sidebar`, `fullwidth` on `Tabs` only, `fullWidth` on `Sidebar` only.
 
 **Labels.** Default to the convenience `label` prop, with `horizontal` for a side-by-side row.
-`Input`, `Select`, `TextArea`, `File`, `Numberinput`, `Slider`, `DateInput`, `TimeInput`,
-`DateTimeInput`, `Autocomplete` and `Taginput` then render the `Field` and the label and wire
-`htmlFor`/`id`, to your `id` when you pass one (`<Input label="Email" id="email" horizontal />`);
-an explicit `labelProps={{ htmlFor }}` wins. The group inputs (`Checkboxes`, `Radios`, `Rate`,
-`DateRangeInput`) name their `role="group"`/`"radiogroup"` wrapper through `aria-labelledby`
-instead. Inside a `Field` a convenience input drops its `label`, and an `inline` date/time picker
-or a `Taginput` at `maxTags` has no visible input to wire.
+`Input`, `Select`, `TextArea`, `File`, `Numberinput`, `PinInput`, `Slider`, `DateInput`,
+`TimeInput`, `DateTimeInput`, `Autocomplete` and `Taginput` then render the `Field` and the label
+and wire `htmlFor`/`id`, to your `id` when you pass one
+(`<Input label="Email" id="email" horizontal />`); an explicit `labelProps={{ htmlFor }}` wins. `Combobox` renders its `Field` and label too, and wires
+them to its field. Given `data`, its `id`, `aria-label` and `aria-labelledby` go to the field;
+built from parts, put them on `Combobox.Input`, since on the `Combobox` they land on its wrapper
+`div`. `DateInput`, `TimeInput` and `DateTimeInput` (and each `*Base`) put `aria-label`,
+`aria-labelledby` and `aria-describedby` on their wrapper `div`, not the field, except on the native
+input `mobileNative` renders: name the field with `label` (or a labeled `Field` around a `*Base`, or
+an `id` and your own `<label htmlFor>`) and describe it with the wrapper's `message`, since a
+`*Base` on its own can't describe its field. The group inputs (`Checkboxes`,
+`Radios`, `Rate`, `DateRangeInput`) name their
+`role="group"`/`"radiogroup"` wrapper through `aria-labelledby` instead. `Checkboxes` and `Radios`
+also take `as="fieldset"`, which renders their own `Field` as a native `<fieldset>` with the `label`
+as its `<legend>` (the label column when `horizontal`), named by the legend with no ids. Inside a
+`Field` a convenience input drops its `label`. An `inline` date/time picker has no input to wire,
+so its `label` names its root, a `role="group"`, through `aria-labelledby`.
 
 Composed, a labeled `Field` names the one control it holds: a composed `InputBase`/`SelectBase`/
 `TextAreaBase`, a composed `DateInputBase`/`TimeInputBase`/`DateTimeInputBase` that is not
 `inline`, or any input above takes its generated id, and a group (a composed `DateRangeInputBase`
-too, `inline` or not) points `aria-labelledby` at the label's own id. **A control with an `id` of
+too, `inline` or not, and an `inline` `DateInputBase`/`TimeInputBase`/`DateTimeInputBase`)
+points `aria-labelledby` at the label's own id. **A control with an `id` of
 its own never takes that id**, so `<Field label="Email"><Input id="email" /></Field>` renders a
 label that names nothing: leave the `id` off, or pass the same value as
 `labelProps={{ htmlFor: 'email' }}`. Wire it that way too where the association is skipped, in a
 `grouped`/`hasAddons` row and in a horizontal `Field` whose body holds an inner `Field` (a nested
 `Field` starts its own scope). For a group there, put `labelProps={{ id, htmlFor: undefined }}` on
 the outer `Field` and a matching `aria-labelledby` on the group; the `htmlFor: undefined` keeps an
-unmatched `for` out of server-rendered HTML.
+unmatched `for` out of server-rendered HTML. For a `Checkboxes` or `Radios` row on its own,
+`<Checkboxes as="fieldset" horizontal label="…">` needs none of that.
 
 A `range` `Slider` points the `for` at its low thumb and starts both thumbs' names with the label
 ("Price range Minimum value"); its `ariaLabel={[low, high]}` replaces those names outright, so
-leave it off when a label already names the Slider. Those thumbs and an `Autocomplete`'s
-suggestion list point `aria-labelledby` at the label's `id`, which a label wired by hand has only
-when you pass one, `labelProps={{ htmlFor, id }}`; without it they keep their fallback names
-("Minimum value"/"Maximum value", "Suggestions"). A `<label htmlFor>` you put in `Field.Label`
-yourself (`references/patterns.md`) names its control through the `for` alone, so label a row
-holding either with the `Field`'s `label` prop. An `aria-label` or `aria-labelledby` you give a
-group wins over any label, and a `Checkbox`, `Radio` or `Switch` takes nothing from a `Field` on
-its own: its children name it, and a `Field`'s label names one only when you wire it as you would
-any control with an `id` of its own, `labelProps={{ htmlFor }}` plus that control's `id`. A
-labeled `Field` whose `for` nothing takes (a group, a `Checkbox`, `Radio` or `Switch`, an input
-with an `id` of its own, your own markup) drops it once mounted, though server-rendered HTML keeps
-it. `labelProps={{ htmlFor: undefined }}` opts out of the association entirely.
+leave it off when a label already names the Slider. Those thumbs and an `Autocomplete`'s, a
+`Combobox`'s or a `Taginput`'s list point `aria-labelledby` at the label's `id`, which a label
+wired by hand has only when you pass one, `labelProps={{ htmlFor, id }}`; without it they keep their
+fallback names ("Minimum value"/"Maximum value", "Suggestions", which an `Autocomplete`'s or a
+`Taginput`'s `labels.suggestions` gives in your language). A `<label htmlFor>` you put in
+`Field.Label` yourself (`references/patterns.md`) names its control through the `for` alone, so
+label a row holding either with the `Field`'s `label` prop. An `aria-label` or `aria-labelledby`
+you give a group wins over any label, and a `Checkbox`, `Radio` or `Switch` takes nothing from a
+`Field` on its own: its children name it, and a `Field`'s label names one only when you wire it as
+you would any control with an `id` of its own, `labelProps={{ htmlFor }}` plus that control's
+`id`. A labeled `Field` whose `for` nothing takes (a group, a `Checkbox`, `Radio` or `Switch`, an
+input with an `id` of its own, your own markup) drops it once mounted, though server-rendered HTML
+keeps it. `labelProps={{ htmlFor: undefined }}` opts out of the association entirely.
 
 ## Convenience vs composed
 
@@ -182,7 +268,7 @@ it. `labelProps={{ htmlFor: undefined }}` opts out of the association entirely.
 ## Validation without a library
 
 There is no built-in validation. The pattern is: **own your state, compute errors yourself, and
-reflect them with `color` + `message` + `messageColor`.**
+reflect them with `color` + `message` + `messageColor` + `aria-invalid`.**
 
 ```tsx
 import { useState } from 'react';
@@ -209,10 +295,12 @@ function SignupForm() {
       <Input
         label="Email"
         type="email"
+        autoComplete="email"
         value={email}
         onChange={e => setEmail(e.target.value)}
         onBlur={() => setTouched(true)}
         color={error ? 'danger' : undefined}
+        aria-invalid={!!error}
         message={error}
         messageColor={error ? 'danger' : undefined}
         iconLeftName="envelope"
@@ -228,7 +316,30 @@ function SignupForm() {
 Rules of thumb:
 
 - Set `color="danger"` on the input **and** `messageColor="danger"` on the help text so both the
-  control and the message read as an error. Use `'success'` to signal a valid field.
+  control and the message look like an error, and `aria-invalid` on the input so a screen reader
+  hears it: the colors say nothing to one. The `message` describes the input through
+  `aria-describedby`, so the error is read when the field takes focus. Use `'success'` to signal a
+  valid field.
+- `aria-invalid` reaches the input on `Input`, `TextArea`, `Select`, `PasswordInput`,
+  `Numberinput`, `PinInput`, `File`, `ColorInput` and `Combobox.Input`. `DateInput`,
+  `TimeInput`, `DateTimeInput`, `Autocomplete`, `Taginput`, `TreeSelect`, `Cascader` and a
+  `Combobox` with `data` put their other attributes on a wrapper, and `aria-invalid` and
+  `aria-errormessage` on the input, as `DateRangeInput` does on both its inputs and
+  `ColorPicker.Input` on its field, which also takes the ones given to its `ColorPicker`.
+- A field that asks for the user's own details takes its `autoComplete` token (`name`,
+  `given-name`, `family-name`, `email`, `tel`, `address-line1`, `address-level2`, `postal-code`,
+  `country`, `new-password`, …; the full list is HTML's autofill field names), so the browser can
+  fill it and assistive tools can tell what it's for (WCAG 1.3.5). A one-line street field is
+  `address-line1`, since `street-address` is for a whole address in a `TextArea`. On a sign-in
+  form the identifier is `username`, even when it's an email, beside a `PasswordInput`, which
+  sets `current-password` itself. A form with two addresses puts `shipping` or `billing` in front
+  of each token, as the Fieldset above does. A date of birth in a `DateInput` takes `bday`, which
+  goes on its field.
+- A loading spinner (`isLoading`) is only drawn, so a screen reader hears nothing of it. While a
+  field loads, say so in its `message` too (`message="Loading countries…"`), or, on a field with
+  no `message` of its own, in text tied to it with `aria-describedby`: either is read when the
+  field takes focus. A load that starts while the user is in the field, such as a search as they
+  type, isn't reliably heard without a live region, such as a `role="status"` element.
 - Want a different validation library? Wire it up yourself — pass its `value`/`onChange`/error
   string into these props. bestax does not prescribe one.
 - For grouped controls, render the `<p class="help">` via the `message` prop of the convenience
@@ -239,9 +350,9 @@ multi-field form plus the advanced inputs.
 
 ## Reuse the shipped components
 
-bestax ships the whole form surface — Input, Select, TextArea, Checkbox(es), Radio(s), Switch,
-File, Autocomplete, Slider, Numberinput, Rate, Taginput, and the date/time inputs (see the
-inventory above). **Compose these; don't hand-roll raw `<input class="input">` markup or
+bestax ships the whole form surface — Input, Select, TextArea, Checkbox(es), Radio(s), Switch, File,
+Dropzone, Autocomplete, Combobox, TreeSelect, Cascader, Slider, Numberinput, PinInput, PasswordInput, Rate, Taginput, the date/time inputs, and
+Fieldset to group them (see the inventory above). **Compose these; don't hand-roll raw `<input class="input">` markup or
 reinvent a control.** If you think a control is missing, check `bulma-ui/src/index.ts` and
 `docs/docs/api/form/` first — it's probably already there under a different name.
 
@@ -283,7 +394,8 @@ for the expected classes/states, and say plainly that the visual pass is still o
       labeled individually (`aria-label`, `aria-labelledby`, or a `<label htmlFor>` matching
       each control's `id`).
 - [ ] Controlled inputs have both `value` and `onChange` (or use `defaultValue` uncontrolled).
-- [ ] Error state shows via `color="danger"` + `message` + `messageColor="danger"`.
+- [ ] Error state shows via `color="danger"` + `message` + `messageColor="danger"`, and
+      `aria-invalid` marks the control.
 - [ ] Grouped/addon layouts use explicit `Field` + `Control` composition.
 - [ ] No assumption of a built-in validation/form library — state is owned by the app.
 - [ ] Submit feedback is a `Toast` and any "are you sure?" is a `Dialog` — not a hand-placed

@@ -1,20 +1,20 @@
-import { describe, it, expect, jest } from '@jest/globals';
+import { describe, it, expect, vi } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 // Mock chalk
-jest.unstable_mockModule('chalk', () => ({
+vi.doMock('chalk', () => ({
   default: {
-    yellow: jest.fn((str: string) => str),
-    blue: jest.fn((str: string) => str),
-    cyan: jest.fn((str: string) => str),
-    magenta: jest.fn((str: string) => str),
-    green: jest.fn((str: string) => str),
-    red: jest.fn((str: string) => str),
-    dim: jest.fn((str: string) => str),
-    bold: jest.fn((str: string) => str),
-    gray: jest.fn((str: string) => str),
+    yellow: vi.fn((str: string) => str),
+    blue: vi.fn((str: string) => str),
+    cyan: vi.fn((str: string) => str),
+    magenta: vi.fn((str: string) => str),
+    green: vi.fn((str: string) => str),
+    red: vi.fn((str: string) => str),
+    dim: vi.fn((str: string) => str),
+    bold: vi.fn((str: string) => str),
+    gray: vi.fn((str: string) => str),
   },
 }));
 
@@ -34,11 +34,82 @@ const {
 describe('constants', () => {
   describe('TEMPLATES', () => {
     it('should have the correct templates defined', () => {
-      expect(TEMPLATES).toHaveLength(2);
-      expect(TEMPLATES[0].name).toBe('vite');
-      expect(TEMPLATES[0].display).toBe('Vite');
-      expect(TEMPLATES[1].name).toBe('vite-ts');
-      expect(TEMPLATES[1].display).toBe('Vite + TypeScript');
+      expect(
+        TEMPLATES.map(
+          ({
+            name,
+            display,
+            directory,
+            reactCompiler,
+            router,
+            framework,
+            starter,
+          }) => ({
+            name,
+            display,
+            directory,
+            reactCompiler,
+            router,
+            framework,
+            starter,
+          })
+        )
+      ).toEqual([
+        { name: 'vite', display: 'Vite', directory: 'vite' },
+        { name: 'vite-ts', display: 'Vite + TypeScript', directory: 'vite-ts' },
+        {
+          name: 'vite-compiler',
+          display: 'Vite + React Compiler',
+          directory: 'vite',
+          reactCompiler: true,
+        },
+        {
+          name: 'vite-compiler-ts',
+          display: 'Vite + TypeScript + React Compiler',
+          directory: 'vite-ts',
+          reactCompiler: true,
+        },
+        {
+          name: 'react-router',
+          display: 'React Router',
+          directory: 'vite',
+          router: 'react-router',
+        },
+        {
+          name: 'react-router-ts',
+          display: 'React Router + TypeScript',
+          directory: 'vite-ts',
+          router: 'react-router',
+        },
+        {
+          name: 'tanstack-router-ts',
+          display: 'TanStack Router + TypeScript',
+          directory: 'vite-ts',
+          router: 'tanstack-router',
+        },
+        {
+          name: 'next',
+          display: 'Next.js',
+          directory: 'next',
+          framework: 'next',
+          starter: 'vite',
+        },
+        {
+          name: 'next-ts',
+          display: 'Next.js + TypeScript',
+          directory: 'next-ts',
+          framework: 'next',
+          starter: 'vite-ts',
+        },
+      ]);
+    });
+
+    it('builds each TypeScript template from the TypeScript folder', () => {
+      for (const template of TEMPLATES) {
+        expect(template.directory.endsWith('-ts')).toBe(
+          template.name.endsWith('-ts')
+        );
+      }
     });
 
     it('should have color functions for each template', () => {
@@ -46,12 +117,6 @@ describe('constants', () => {
         expect(template.color).toBeDefined();
         expect(typeof template.color).toBe('function');
       });
-    });
-
-    it('should not include Next.js templates', () => {
-      const templateNames = TEMPLATES.map(t => t.name);
-      expect(templateNames).not.toContain('nextjs');
-      expect(templateNames).not.toContain('nextjs-ts');
     });
 
     it('should have correct display names', () => {
@@ -232,6 +297,71 @@ describe('constants', () => {
   });
 
   describe('CLAUDE_MD', () => {
+    it('describes the routing only for a router app, for its router', () => {
+      const routed = CLAUDE_MD('my-app', {
+        bulmaFlavor: 'complete',
+        iconLibrary: 'none',
+        router: 'react-router',
+      });
+      expect(routed).toContain('- Routing: React Router in data mode.');
+      expect(routed).toContain('<Navbar.Item as={Link} to="...">');
+      expect(routed).toContain(
+        'https://bestax.io/docs/guides/features/routing'
+      );
+
+      const tanstack = CLAUDE_MD('my-app', {
+        bulmaFlavor: 'complete',
+        iconLibrary: 'none',
+        router: 'tanstack-router',
+      });
+      expect(tanstack).toContain('- Routing: TanStack Router');
+      expect(tanstack).toContain('`NavbarLink`');
+      expect(tanstack).toContain('activeProps={{ active: true }}');
+      expect(
+        CLAUDE_MD('my-app', { bulmaFlavor: 'complete', iconLibrary: 'none' })
+      ).not.toContain('Routing:');
+    });
+
+    it("names the part exports a Next.js app's Server Components import", () => {
+      const next = CLAUDE_MD('my-app', {
+        bulmaFlavor: 'complete',
+        iconLibrary: 'none',
+        framework: 'next',
+      });
+      expect(next).toContain(
+        'their own export (`NavbarItem`, `SidebarHeader`, `FigureCaption`, `ListItem`)'
+      );
+      expect(next).toContain(
+        'Build a `Card` or `Modal` from its parts in a client component'
+      );
+      expect(next).toContain(
+        'https://bestax.io/docs/guides/getting-started/react-setups#nextjs-specific'
+      );
+      expect(next).not.toContain('`CardHeader`');
+      expect(next).not.toContain('have no such exports yet');
+      expect(
+        CLAUDE_MD('my-app', { bulmaFlavor: 'complete', iconLibrary: 'none' })
+      ).not.toContain('Server Component');
+    });
+
+    it("puts a Next.js app's named classes in the stylesheet every page loads", () => {
+      for (const bulmaFlavor of ['complete', 'no-helpers'] as const) {
+        const next = CLAUDE_MD('my-app', {
+          bulmaFlavor,
+          iconLibrary: 'none',
+          framework: 'next',
+        });
+        const vite = CLAUDE_MD('my-app', { bulmaFlavor, iconLibrary: 'none' });
+        const rule =
+          bulmaFlavor === 'complete'
+            ? (file: string) => `Add a named class to\n  ${file} and pass it`
+            : (file: string) => `Write a named class in ${file}, which loads`;
+        expect(next).toContain(rule('`src/index.css`'));
+        expect(next).not.toContain(rule('`src/App.css`'));
+        expect(vite).toContain(rule('`src/App.css`'));
+      }
+    });
+
     it('tells agents to customize the scaffolded title and README', () => {
       const content = CLAUDE_MD('my-app', {
         bulmaFlavor: 'complete',

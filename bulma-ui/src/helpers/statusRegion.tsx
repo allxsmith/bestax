@@ -79,7 +79,8 @@ export const visuallyHidden: React.CSSProperties = {
 };
 
 /**
- * Works out what a status region says. Each item is announced once. Its
+ * Works out what a status region says. Each item is announced once each time
+ * it appears, so one that goes and comes back is announced again. Its
  * announcement is written `announceDelay` after it appears, or after the last
  * item to join it when several appear in quick succession, alongside whatever
  * the region still says. Once written, it stays for `announcementLifetime`,
@@ -118,8 +119,8 @@ function useAnnouncements<Item extends { id: string }>(
   useEffect(() => {
     const announced = onScreenIdsRef.current;
     const appeared = items.filter(item => !announced.has(item.id));
-    // Items that have gone drop out here too. Ids are never reused, so
-    // forgetting them can't bring an old item back.
+    // Items that have gone drop out here too, so one that comes back has
+    // appeared again.
     onScreenIdsRef.current = new Set(items.map(item => item.id));
 
     const next: Announcement[] = [];
@@ -132,9 +133,15 @@ function useAnnouncements<Item extends { id: string }>(
       setAnnouncements(current => ({
         ...current,
         key: current.key + 1,
-        // Announcements still waiting go out with the new ones. What's
-        // already written stays put.
-        waiting: [...current.waiting, ...next],
+        // Announcements still waiting go out with the new ones, apart from
+        // one whose item came back before it was written, which the new one
+        // replaces. What's already written stays put.
+        waiting: [
+          ...current.waiting.filter(
+            waiting => !next.some(({ id }) => id === waiting.id)
+          ),
+          ...next,
+        ],
       }));
     }
   }, [items, describe]);
@@ -318,10 +325,10 @@ export interface StatusRegionProps<Item extends { id: string }> {
 }
 
 /**
- * A visually hidden, polite `status` live region that a programmatic
- * container announces its items through. The container renders it from the
- * moment it mounts, whether or not it has anything to show, so the region is
- * already in the page when an announcement is written into it.
+ * A visually hidden, polite `status` live region that a container announces
+ * its items through. The container renders it from the moment it mounts,
+ * whether or not it has anything to show, so the region is already in the
+ * page when an announcement is written into it.
  *
  * The announcements are this component's own state, so writing and clearing
  * them re-renders the region and leaves the container's items alone. Each one
@@ -342,7 +349,9 @@ export function StatusRegion<Item extends { id: string }>({
   // reads the whole region on every change. Each announcement is its own
   // node, and only additions are relevant by default, so with atomic off a
   // screen reader reads just what was written, and removing one announcement
-  // doesn't read out the ones still there.
+  // doesn't read out the ones still there. A node is keyed by its batch as
+  // well as its item, since an item that comes back can be written again
+  // while what it said before is still there.
   return (
     <div
       role="status"
@@ -351,7 +360,9 @@ export function StatusRegion<Item extends { id: string }>({
       style={visuallyHidden}
     >
       {announcements.map(announcement => (
-        <div key={announcement.id}>{announcement.text}</div>
+        <div key={`${announcement.batch}:${announcement.id}`}>
+          {announcement.text}
+        </div>
       ))}
     </div>
   );

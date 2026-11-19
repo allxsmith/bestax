@@ -12,6 +12,7 @@ const categories = [
       { name: 'Button', link: '/docs/api/elements/button' },
       { name: 'Buttons', link: '/docs/api/elements/buttons' },
       { name: 'Content', link: '/docs/api/elements/content' },
+      { name: 'CopyButton', link: '/docs/api/elements/copybutton' },
       { name: 'Delete', link: '/docs/api/elements/delete' },
       { name: 'Icon', link: '/docs/api/elements/icon' },
       { name: 'IconText', link: '/docs/api/elements/icontext' },

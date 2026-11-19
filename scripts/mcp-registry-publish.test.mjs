@@ -13,10 +13,8 @@
  * budget costs no time and the assertions are about what the policy spends,
  * not about how long it takes. The one subprocess is the script itself, run
  * with no arguments to check its entry point.
- *
- * `.mjs` and `node --test` rather than jest, matching the other root scripts.
  */
-import { after, test } from 'node:test';
+import { afterAll, onTestFinished, test, vi } from 'vitest';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -83,7 +81,7 @@ function fixture() {
 }
 
 const tempDirs = [];
-after(() => {
+afterAll(() => {
   for (const dir of tempDirs) fs.rmSync(dir, { recursive: true, force: true });
 });
 
@@ -557,16 +555,17 @@ test('without that last look the same run is exhausted', async () => {
   assert.equal(h.state.checks, 4);
 });
 
-test('the default wait is a real timer of the length asked for', async t => {
-  t.mock.timers.enable({ apis: ['setTimeout'] });
+test('the default wait is a real timer of the length asked for', async () => {
+  vi.useFakeTimers({ toFake: ['setTimeout'] });
+  onTestFinished(() => vi.useRealTimers());
   let done = false;
   const waiting = defaultSleep(SLEEP_SECONDS * 1000).then(() => {
     done = true;
   });
-  t.mock.timers.tick(SLEEP_SECONDS * 1000 - 1);
+  vi.advanceTimersByTime(SLEEP_SECONDS * 1000 - 1);
   await Promise.resolve();
   assert.equal(done, false);
-  t.mock.timers.tick(1);
+  vi.advanceTimersByTime(1);
   await waiting;
   assert.equal(done, true);
 });

@@ -83,7 +83,7 @@ jobs:
       # the agent reverts the firewall while the pre-step still exits 0, which is
       # how statsig.anthropic.com silently disabled the policy on #577 (rule 10).
       - name: Harden runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: block
           disable-sudo-and-containers: true
@@ -161,16 +161,54 @@ jobs:
       # Anyone with triage access or higher may start the loop; everyone
       # else (including issue authors whose template applied the label) is
       # a silent no-op that spends no Claude usage.
+      #
+      # The role lookup retries, and an API error fails this step rather than
+      # reading as no access. This step and the checkout carry short
+      # timeouts. "When the agent drops a job's first connections" under
+      # rule 10 in .github/CLAUDE.md says why (#1258).
       - name: Check labeler permission
         id: perm
+        timeout-minutes: 3
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           SENDER: ${{ github.event.sender.login }}
         run: |
           set -euo pipefail
-          ROLE=$(gh api "repos/$REPO/collaborators/$SENDER/permission" \
-            --jq '.role_name' || echo none)
+          # lookup_role is hand-copied into every live-role check. It runs before
+          # any checkout, and rule 1 keeps security steps inline, so no shared script
+          # can hold it. scripts/role-lookup.test.mjs holds the copies equal.
+          lookup_role() {
+            local delay err status
+            err=$(mktemp)
+            for delay in 5 10 20 30 30 0; do
+              if ROLE=$(timeout 10 gh api "repos/$REPO/collaborators/$1/permission" \
+                --jq '.role_name' 2>"$err"); then
+                return 0
+              fi
+              cat "$err" >&2
+              status=$(grep -oE '\(HTTP [0-9]{3}\)' "$err" | tail -n 1 || true)
+              case "$status" in
+                # No such user: the login was renamed or deleted, so it has no access.
+                "(HTTP 404)")
+                  ROLE=none
+                  return 0 ;;
+                # A rate limit passes, so it is retried like a dropped connection.
+                "(HTTP 403)" | "(HTTP 429)") ;;
+                # Any other 4xx is GitHub's final answer, but not a role.
+                "(HTTP 4"*)
+                  echo "::error::GitHub refused the role lookup for $1 $status. That is not a role, and a retry won't change it, so the run stops here."
+                  exit 1 ;;
+              esac
+              if [ "$delay" -eq 0 ]; then
+                echo "::error::Could not look up $1's role because every GitHub API call failed (errors above). That is a network, egress or GitHub failure, not a permissions answer, so the run stops here. Re-run or re-trigger it to retry."
+                exit 1
+              fi
+              echo "Role lookup for $1 failed. Retrying in ${delay}s."
+              sleep "$delay"
+            done
+          }
+          lookup_role "$SENDER"
           case "$ROLE" in
             admin|maintain|write|triage)
               echo "allowed=true" >> "$GITHUB_OUTPUT"
@@ -182,6 +220,7 @@ jobs:
 
       - name: Checkout code
         if: steps.perm.outputs.allowed == 'true'
+        timeout-minutes: 5
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
@@ -239,7 +278,7 @@ jobs:
           # the intermittent that reddens a block job weeks after a flip. Denied,
           # not allow-listed (#578).
           TURBO_TELEMETRY_DISABLED: '1'
-        uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
+        uses: anthropics/claude-code-action@d535f5172dec02b204866b393d6b20b9b2aaf98d # v1.0.266
         with:
           # Run GitHub operations as the bestaxbot machine account (like Bun's
           # robobun) so PRs are authored by bestaxbot, not the shared
@@ -297,7 +336,7 @@ jobs:
           claude_args: |
             --max-turns 250
             --model claude-sonnet-5
-            --disallowedTools "Edit(.github/**),MultiEdit(.github/**),Write(.github/**),Edit(pnpm-workspace.yaml),MultiEdit(pnpm-workspace.yaml),Write(pnpm-workspace.yaml),Edit(.npmrc),MultiEdit(.npmrc),Write(.npmrc),Edit(.coderabbit.yaml),MultiEdit(.coderabbit.yaml),Write(.coderabbit.yaml),Edit(turbo.json),MultiEdit(turbo.json),Write(turbo.json),Edit(**/jest.config.*),MultiEdit(**/jest.config.*),Write(**/jest.config.*),Edit(commitlint.config.js),MultiEdit(commitlint.config.js),Write(commitlint.config.js),Edit(**/release.config.*),MultiEdit(**/release.config.*),Write(**/release.config.*),Edit(scripts/check-conformance.mjs),MultiEdit(scripts/check-conformance.mjs),Write(scripts/check-conformance.mjs),Edit(scripts/conformance-baseline.json),MultiEdit(scripts/conformance-baseline.json),Write(scripts/conformance-baseline.json)"
+            --disallowedTools "Edit(.github/**),MultiEdit(.github/**),Write(.github/**),Edit(pnpm-workspace.yaml),MultiEdit(pnpm-workspace.yaml),Write(pnpm-workspace.yaml),Edit(.npmrc),MultiEdit(.npmrc),Write(.npmrc),Edit(.coderabbit.yaml),MultiEdit(.coderabbit.yaml),Write(.coderabbit.yaml),Edit(turbo.json),MultiEdit(turbo.json),Write(turbo.json),Edit(**/vitest.config.*),MultiEdit(**/vitest.config.*),Write(**/vitest.config.*),Edit(**/vitest.*.config.*),MultiEdit(**/vitest.*.config.*),Write(**/vitest.*.config.*),Edit(commitlint.config.js),MultiEdit(commitlint.config.js),Write(commitlint.config.js),Edit(**/release.config.*),MultiEdit(**/release.config.*),Write(**/release.config.*),Edit(scripts/check-conformance.mjs),MultiEdit(scripts/check-conformance.mjs),Write(scripts/check-conformance.mjs),Edit(scripts/conformance-baseline.json),MultiEdit(scripts/conformance-baseline.json),Write(scripts/conformance-baseline.json),Edit(scripts/coverage-floors.json),MultiEdit(scripts/coverage-floors.json),Write(scripts/coverage-floors.json),Edit(bulma-ui/.storybook/vitest.setup.ts),MultiEdit(bulma-ui/.storybook/vitest.setup.ts),Write(bulma-ui/.storybook/vitest.setup.ts),Edit(scripts/coverage-floors.mjs),MultiEdit(scripts/coverage-floors.mjs),Write(scripts/coverage-floors.mjs),Edit(bulma-ui/scripts/test-storybook-ci.mjs),MultiEdit(bulma-ui/scripts/test-storybook-ci.mjs),Write(bulma-ui/scripts/test-storybook-ci.mjs)"
             --allowedTools "Edit,MultiEdit,Write,Bash(pnpm install:*),Bash(pnpm run:*),Bash(pnpm gen:*),Bash(pnpm -w run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*),Bash(pnpm ls:*),Bash(pnpm why:*),Bash(node:*),Bash(rg:*),Bash(grep:*),Bash(cat:*),Bash(sed:*),Bash(awk:*),Bash(echo:*),Bash(printf:*),Bash(ls:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(find:*),Bash(git status:*),Bash(git diff:*),Bash(git fetch:*),Bash(git stash:*),Bash(git log:*),Bash(git show:*),Bash(git checkout:*),Bash(git switch:*),Bash(git branch:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git config:*),Bash(mkdir:*),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh pr create:*),Bash(gh pr view:*),Bash(gh pr edit:*),Bash(gh pr diff:*),Bash(gh pr checks:*)"
           prompt: |
             REPO: ${{ github.repository }}
@@ -320,7 +359,7 @@ jobs:
                will check).
             2. Implement the smallest complete change that resolves the
                issue, on the claude/* branch created for this task:
-               - bulma-ui changes need a matching Storybook story and Jest
+               - bulma-ui changes need a matching Storybook story and Vitest
                  tests; coverage must stay >= 99% (bulma-ui) / 95%
                  (create-bestax).
                - Public API changes need the matching docs/docs/api/... page
@@ -329,12 +368,16 @@ jobs:
                  `pnpm run gen:catalog` and commit the regenerated catalog.
                - Never add or upgrade dependencies. If the fix genuinely
                  requires one, stop and explain in an issue comment instead.
-               - Never touch .github/**, jest configs, commitlint/release
+               - Never touch .github/**, vitest configs, commitlint/release
                  configs, pnpm-workspace.yaml, .npmrc, .coderabbit.yaml, or
                  turbo.json (the loop's gate rejects PRs that do), and never
                  edit scripts/check-conformance.mjs or
                  scripts/conformance-baseline.json to get the conformance
-                 gate green.
+                 gate green. Never edit the coverage floors
+                 (scripts/coverage-floors.json, scripts/coverage-floors.mjs)
+                 or the Storybook smoke check
+                 (bulma-ui/.storybook/vitest.setup.ts,
+                 bulma-ui/scripts/test-storybook-ci.mjs) either.
                - REGRESSION-TEST GATE (bug fixes): if the issue reports a
                  BUG, FIRST write a test that reproduces it and FAILS against
                  the current code; run it and confirm it fails for the

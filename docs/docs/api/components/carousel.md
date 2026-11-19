@@ -14,7 +14,7 @@ The `Carousel` component provides an image/content slider with navigation arrows
 
 <!-- /bestax:generated overview -->
 
-It supports auto-play, drag navigation, and customizable styles.
+It supports auto-play, drag navigation, several items in view at once, and customizable styles.
 
 ---
 
@@ -37,7 +37,7 @@ import { Carousel, CarouselItem } from '@allxsmith/bestax-bulma';
 A simple carousel with colored slides using the Hero component.
 
 ```tsx live
-<Carousel indicatorStyle="dots">
+<Carousel ariaLabel="Highlights" indicatorStyle="dots">
   <CarouselItem>
     <Hero color="primary" size="medium">
       <Hero.Body textAlign="centered">
@@ -64,12 +64,106 @@ A simple carousel with colored slides using the Hero component.
 
 ---
 
+### Several Items in View
+
+`itemsToShow` puts several items in view at once, and the `itemsToShow<Viewport>` props change that count at Bulma's breakpoints, the way a `Column`'s `size<Viewport>` props change its width. Here it's one card on mobile, two from tablet up, and three from desktop up.
+
+```tsx live
+<Carousel
+  ariaLabel="Rooms"
+  itemsToShow={1}
+  itemsToShowTablet={2}
+  itemsToShowDesktop={3}
+>
+  {[
+    'Garden Room',
+    'Harbor Suite',
+    'Loft',
+    'Courtyard Twin',
+    'Terrace Room',
+    'Family Suite',
+  ].map(room => (
+    <CarouselItem key={room}>
+      <Card m="2">
+        <Card.Content>
+          <Title as="p" size="5">
+            {room}
+          </Title>
+          <SubTitle as="p" size="6">
+            Sleeps two
+          </SubTitle>
+        </Card.Content>
+      </Card>
+    </CarouselItem>
+  ))}
+</Carousel>
+```
+
+Which count applies:
+
+- `itemsToShowMobile` applies below Bulma's tablet breakpoint.
+- `itemsToShowTablet`, `itemsToShowDesktop`, `itemsToShowWidescreen` and `itemsToShowFullhd` each apply from their own breakpoint up, so `itemsToShowTablet` alone covers every width from tablet up. Where several apply, the widest one wins.
+- `itemsToShow` covers every width none of them reaches. It defaults to 1, one slide at a time.
+
+The counts are whole numbers: a fraction is rounded down, and anything below 1 counts as 1.
+
+The widths come from the stylesheet: `Carousel` writes each count prop as a CSS variable on its own element, and Bulma's breakpoint mixins pick the one for the viewport, so the first paint is right before any script runs, server rendering included. The arrows, the indicators and how far a step goes need the count too, so the component reads it from `matchMedia` on the same breakpoints once the page has hydrated, and uses `itemsToShow` until then. A Sass build that moves Bulma's breakpoints moves the widths with them, but not that reading, which follows Bulma's default breakpoints. The variables are the `--bulma-carousel-items-to-show*` rows under [CSS & Sass Variables](#css--sass-variables), and `--bulma-carousel-items-in-view` is the one the viewport picks. Set the counts with the props rather than with those variables, since the props also decide how far a step moves.
+
+#### Stepping and indicators
+
+`itemsToScroll` sets how many items one step moves, for an arrow, an arrow key, a swipe or an autoplay tick. It defaults to 1, and it's capped at the count in view, so a step never skips an item. A swipe moves one step however far it travels.
+
+The indicators mark the positions a step can land on, not the items. Without `repeat`, the last position is the last full view, so the last step can be shorter and the end of the track never shows empty space: with seven items, three in view and `itemsToScroll={3}`, the positions start at items 1, 4 and 5.
+
+```tsx live
+<Carousel
+  ariaLabel="Numbered items"
+  itemsToShow={3}
+  itemsToScroll={3}
+  repeat={false}
+>
+  {[1, 2, 3, 4, 5, 6, 7].map(n => (
+    <CarouselItem key={n}>
+      <Box m="2" textAlign="centered">
+        Item {n}
+      </Box>
+    </CarouselItem>
+  ))}
+</Carousel>
+```
+
+#### Spacing between items
+
+The cards above keep apart with their own margin. To space the items themselves, set `--bulma-carousel-item-gap` to a length on the carousel's own element, for instance through a class you give it. The gap goes only between items, not at the track's edges, and the item widths make room for it. It defaults to `0px`. Like the carousel's other variables, it's declared on `.carousel`, so a value set on an ancestor doesn't reach it.
+
+```css
+.carousel.room-gallery {
+  --bulma-carousel-item-gap: 1.5rem;
+}
+```
+
+```tsx
+<Carousel ariaLabel="Room gallery" className="room-gallery" itemsToShow={3}>
+  {/* items */}
+</Carousel>
+```
+
+#### How the rest of the props behave with several in view
+
+- **`repeat`** loops only when some item is out of view. It runs the view on past the last item into the first ones, so a view can show the end and the start side by side. Copies of a full view's worth of items sit at each end of the track (as many as the widest count any viewport sets), and whichever copy of an item is on screen is the one a screen reader or the keyboard reaches.
+- **Fewer children than the count in view** (or exactly as many): every item keeps its share of the width, so the cards stay the size they'd be in a full carousel, and nothing moves. No arrows or indicators render, and autoplay has nothing to do.
+- **A controlled `value`** is the index of the first item in view. One between two positions is shown as given, and the next step goes on from there. With `repeat`, a value past either end wraps around; without it, one that would leave empty space after the last item shows the last full view. Neither correction calls `onChange`.
+- **When the window's width changes the count**, the first item in view stays in view. Where the view can't start there any more (three in view can't start at the last item), it starts at the last full view instead.
+- **`autoplay`** moves one step per `interval`. Without `repeat` it stops at the last position.
+
+---
+
 ### Auto-playing Carousel
 
 Carousel that automatically advances slides.
 
 ```tsx live
-<Carousel autoplay interval={3000}>
+<Carousel ariaLabel="Status colors" autoplay interval={3000}>
   <CarouselItem>
     <Hero color="info" size="medium">
       <Hero.Body textAlign="centered">
@@ -133,7 +227,7 @@ function IndicatorExample() {
           Bars
         </Button>
       </Buttons>
-      <Carousel indicatorStyle={style}>
+      <Carousel ariaLabel="Indicator styles" indicatorStyle={style}>
         <CarouselItem>
           <Hero color="primary" size="medium">
             <Hero.Body textAlign="centered">
@@ -163,12 +257,98 @@ function IndicatorExample() {
 
 ---
 
+### Indicators Over the Slides
+
+`indicatorInside` moves the indicators from below the slides onto them, at the bottom edge, or the top one with `indicatorPosition="top"`. On its own it also turns on the overlay look, made for photos: light arrows, and light indicators on a dark gradient band. The look's colors are the `--bulma-carousel-overlay-*` variables, and `arrowColor` doesn't apply while it's on.
+
+```tsx live
+<Carousel ariaLabel="Indicators over the slides" indicatorInside>
+  <CarouselItem>
+    <Hero color="dark" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Slide 1</Title>
+      </Hero.Body>
+    </Hero>
+  </CarouselItem>
+  <CarouselItem>
+    <Hero color="link" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Slide 2</Title>
+      </Hero.Body>
+    </Hero>
+  </CarouselItem>
+  <CarouselItem>
+    <Hero color="primary" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Slide 3</Title>
+      </Hero.Body>
+    </Hero>
+  </CarouselItem>
+</Carousel>
+```
+
+`indicatorPosition="top"` only moves indicators over the slides. Below them it has no edge to move to, so leave it unset there.
+
+---
+
+### Plain Indicators Over the Slides
+
+`overlayControls` sets the overlay look apart from where the indicators sit. It follows `indicatorInside` unless you set it. On light slides, such as white cards, the band covers the bottom of each one, so `overlayControls={false}` keeps the indicators over the slides with the plain colors and no band.
+
+The arrows and the indicators sit over the edges of each slide, so give the slide's content room to clear them. Here each card centers its text, with space above and below it:
+
+```tsx live
+<Carousel ariaLabel="Featured rooms" indicatorInside overlayControls={false}>
+  {['Garden Room', 'Harbor Suite', 'Loft', 'Courtyard Twin'].map(room => (
+    <CarouselItem key={room}>
+      <Card m="2">
+        <Card.Content px="6" py="6" textAlign="centered">
+          <Title as="p" size="5" mt="5">
+            {room}
+          </Title>
+          <SubTitle as="p" size="6" mb="5">
+            Sleeps two
+          </SubTitle>
+        </Card.Content>
+      </Card>
+    </CarouselItem>
+  ))}
+</Carousel>
+```
+
+---
+
+### Overlay Arrows
+
+`overlayControls` without `indicatorInside` gives the arrows the overlay look and leaves the indicators below the slides. They keep their plain colors there, since they sit on the page rather than on the slides:
+
+```tsx live
+<Carousel ariaLabel="Overlay arrows" overlayControls>
+  <CarouselItem>
+    <Hero color="dark" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Slide 1</Title>
+      </Hero.Body>
+    </Hero>
+  </CarouselItem>
+  <CarouselItem>
+    <Hero color="link" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Slide 2</Title>
+      </Hero.Body>
+    </Hero>
+  </CarouselItem>
+</Carousel>
+```
+
+---
+
 ### Without Arrows
 
 Carousel with indicators only.
 
 ```tsx live
-<Carousel arrow={false}>
+<Carousel ariaLabel="Navigation without arrows" arrow={false}>
   <CarouselItem>
     <Hero color="primary" size="medium">
       <Hero.Body textAlign="centered">
@@ -193,7 +373,7 @@ Carousel with indicators only.
 Show arrows only when hovering over the carousel.
 
 ```tsx live
-<Carousel arrowHover>
+<Carousel ariaLabel="Arrows on hover" arrowHover>
   <CarouselItem>
     <Hero color="dark" size="medium">
       <Hero.Body textAlign="centered">
@@ -225,7 +405,7 @@ Show arrows only when hovering over the carousel.
 Remove the arrow button backgrounds to show just the icons.
 
 ```tsx live
-<Carousel arrowBackground={false}>
+<Carousel ariaLabel="Transparent arrows" arrowBackground={false}>
   <CarouselItem>
     <Hero color="primary" size="medium">
       <Hero.Body textAlign="centered">
@@ -258,6 +438,7 @@ Customize navigation arrows using the icon props. The Carousel uses the Icon com
 
 ```tsx live
 <Carousel
+  ariaLabel="Font Awesome arrows"
   iconPrev="chevron-left"
   iconNext="chevron-right"
   iconLibrary="fa"
@@ -290,7 +471,12 @@ Customize navigation arrows using the icon props. The Carousel uses the Icon com
 ### With Material Design Icons
 
 ```tsx live
-<Carousel iconPrev="arrow-left" iconNext="arrow-right" iconLibrary="mdi">
+<Carousel
+  ariaLabel="Material Design arrows"
+  iconPrev="arrow-left"
+  iconNext="arrow-right"
+  iconLibrary="mdi"
+>
   <CarouselItem>
     <Hero color="primary" size="medium">
       <Hero.Body textAlign="centered">
@@ -311,6 +497,48 @@ Customize navigation arrows using the icon props. The Carousel uses the Icon com
 :::tip Icon Libraries
 The icon props follow the same naming as the [Icon component](../elements/icon.md). See [Alternative Icon Libraries](../../guides/getting-started/alternative-icons.md) for setup instructions.
 :::
+
+---
+
+### In Another Language
+
+The arrows, the indicators and the items are named in English unless `labels` gives the words to use. `indicator` gets the place of the first item an indicator brings into view, and `item` gets an item's place and the number of items, each counting from 1. The role descriptions, "carousel" on the region and "slide" on each item, take `aria-roledescription` on the `Carousel` and on each `CarouselItem`.
+
+```tsx live
+<Carousel
+  lang="fr"
+  aria-roledescription="carrousel"
+  ariaLabel="Couleurs"
+  labels={{
+    previous: 'Diapositive précédente',
+    next: 'Diapositive suivante',
+    indicator: slide => `Aller à la diapositive ${slide}`,
+    item: (current, total) => `${current} sur ${total}`,
+  }}
+>
+  <CarouselItem aria-roledescription="diapositive">
+    <Hero color="primary" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Diapositive 1</Title>
+      </Hero.Body>
+    </Hero>
+  </CarouselItem>
+  <CarouselItem aria-roledescription="diapositive">
+    <Hero color="info" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Diapositive 2</Title>
+      </Hero.Body>
+    </Hero>
+  </CarouselItem>
+  <CarouselItem aria-roledescription="diapositive">
+    <Hero color="success" size="medium">
+      <Hero.Body textAlign="centered">
+        <Title as="p">Diapositive 3</Title>
+      </Hero.Body>
+    </Hero>
+  </CarouselItem>
+</Carousel>
+```
 
 ---
 
@@ -344,6 +572,7 @@ function ControlledExample() {
         </Button>
       </Buttons>
       <Carousel
+        ariaLabel="Controlled slides"
         value={currentSlide}
         onChange={setCurrentSlide}
         indicator={false}
@@ -383,7 +612,7 @@ function ControlledExample() {
 Carousel that stops at the first and last slides.
 
 ```tsx live
-<Carousel repeat={false}>
+<Carousel ariaLabel="Slides without repeat" repeat={false}>
   <CarouselItem>
     <Hero color="danger" size="medium">
       <Hero.Body textAlign="centered">
@@ -413,10 +642,22 @@ Carousel that stops at the first and last slides.
 ## Accessibility
 
 - Uses `role="region"` with `aria-roledescription="carousel"`
+- Name each carousel for what it shows with `ariaLabel`, such as "Featured products", and leave the word "carousel" out of it, since the role description already says it. Under a visible heading, pass `aria-labelledby` with the heading's id instead, which names it ahead of the `aria-label` the default still sets. The default, "Image carousel", is a placeholder: with the role description it says "carousel" twice, and every carousel left with it has the same name
+- Each item is a `group` with `aria-roledescription="slide"`, named for its place, such as "2 of 6". An item's own `aria-label` or `aria-labelledby` takes the place of that name
+- Items out of view are `aria-hidden` and `inert`, so screen readers skip them and nothing in them takes focus. With several in view, every item in view is exposed. The copies a loop adds at each end of the track follow the same rule, so where the view runs past the last item, the copies on screen are the ones exposed
+- The track is a polite live region, so what comes into view is announced, except while autoplay is moving it (`aria-live="off"`)
+- Autoplay waits while the pointer is over the carousel (with `pauseOnHover`) and while focus is anywhere inside it, on an item, an arrow or an indicator, so nothing moves while someone reads or works it. A browser that leaves focus on an arrow or an indicator a click pressed keeps it waiting until focus moves on. It's a pause, not a stop: once the pointer and focus leave, autoplay goes on
+- When the system asks for reduced motion, each step changes the view at once, with no slide, and a step past either end with `repeat` goes straight to the other end. The arrows and indicators change without a transition too. A drag still follows the pointer, since that's the user's own movement
+- When something else takes the item holding focus out of view (a swipe, a change of width that changes the count, a new controlled `value`, or the item's removal), focus moves to the first item in view rather than dropping to the page
 - Navigation arrows have `aria-label` for screen readers
-- Indicators use `role="tablist"` and `role="tab"` semantics
-- Keyboard navigation with arrow keys when focused
-- Previous/Next buttons are properly disabled at boundaries when not repeating
+- The arrows', the indicators' and the items' names are English unless `labels` gives the words in the page's language, and the role descriptions take `aria-roledescription` on the `Carousel` and on each `CarouselItem`
+- With `arrowBackground={false}`, an arrow with keyboard focus shows Bulma's focus outline, as a ghost `Button` does, in the overlay look too. With `arrowHover`, an arrow shows while keyboard focus is on it
+- Indicators use `role="tablist"` and `role="tab"` semantics, one for each position a step can land on
+- The indicators take Bulma's look: a resting dot, line or bar is filled in the border color and the current one in the primary color, and a circle is a ring in the border color, filled when current. A resting one falls short of the 3:1 against the page that WCAG asks of a graphic. For that, set `--bulma-carousel-indicator-border-color` to a color such as `var(--bulma-text-weak)` on a class you pass through `className`, with the carousel's class in the selector (`.carousel.my-carousel`, `.bestax-carousel.my-carousel` under the prefixed flavor) so it wins whatever order the stylesheets load in. It draws a ring at each resting indicator's edge, circles included, and leaves the current one, and the dots, lines and bars in the overlay look, as they are. Forced colors (Windows' contrast themes) replaces the fills, so there each indicator shows its ring in the buttons' text color and the current one is filled in it.
+- The Left and Right arrow keys move the carousel while focus is on its arrows or indicators, unless Alt, Ctrl or Meta is held, which leaves them to the browser. Inside an item they're left to the item's content, such as a field or a slider. On an indicator they move focus to the indicator beside it and bring its slide into view, as a click on it does
+- Previous/Next buttons are disabled at the ends when not repeating. When the one holding focus is disabled, focus moves to the current indicator, or to the other arrow when there are no indicators. When a focused arrow or indicator goes away, as an indicator does when a change of width leaves fewer positions, focus moves to the current indicator, an arrow that works, or the first item in view, rather than dropping to the page
+- In forced colors (Windows' contrast themes), a disabled arrow draws in the system's color for a disabled control, at full strength rather than faded, without `arrowHover`
+- On a right-to-left page the slides run from right to left. The previous arrow sits on the right, at the start of the line, and the next arrow on the left, and the built-in chevrons flip to match. An `iconPrev` or `iconNext` is drawn as you give it. <kbd>ArrowLeft</kbd> and a swipe to the right go to the next slide, the way the track moves.
 
 ---
 
@@ -443,43 +684,53 @@ Use the `pauseOnHover` prop (enabled by default) to let users interact with caro
 
 <!-- bestax:generated props -->
 
-| Prop                | Type                                                                       | Default            | Description                                                                                                                                |
-| ------------------- | -------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `value`             | `number`                                                                   | `0`                | Current active slide index (controlled).                                                                                                   |
-| `autoplay`          | `boolean`                                                                  | `false`            | Enable auto-play.                                                                                                                          |
-| `interval`          | `number`                                                                   | `5000`             | Auto-play interval in milliseconds. Default: 5000.                                                                                         |
-| `pauseOnHover`      | `boolean`                                                                  | `true`             | Pause auto-play on hover. Default: true.                                                                                                   |
-| `repeat`            | `boolean`                                                                  | `true`             | Loop back to first slide after last. Default: true.                                                                                        |
-| `hasDrag`           | `boolean`                                                                  | `true`             | Enable drag/swipe navigation. Default: true.                                                                                               |
-| `arrow`             | `boolean`                                                                  | `true`             | Show navigation arrows. Default: true. They render `type="button"`, so a carousel inside a form is not submitted by moving between slides. |
-| `arrowHover`        | `boolean`                                                                  | `false`            | Only show arrows on hover.                                                                                                                 |
-| `indicator`         | `boolean`                                                                  | `true`             | Show slide indicators. Default: true. They render `type="button"`, so a carousel inside a form is not submitted by picking a slide.        |
-| `indicatorInside`   | `boolean`                                                                  | `false`            | Position indicators inside carousel.                                                                                                       |
-| `indicatorPosition` | `'bottom'` \| `'top'`                                                      | `'bottom'`         | Indicator position. Default: 'bottom'.                                                                                                     |
-| `indicatorStyle`    | `'circles'` \| `'dots'` \| `'lines'` \| `'bars'`                           | `'dots'`           | Indicator style. Default: 'dots'.                                                                                                          |
-| `iconPrev`          | `string`                                                                   | —                  | Icon name for the previous arrow button.                                                                                                   |
-| `iconNext`          | `string`                                                                   | —                  | Icon name for the next arrow button.                                                                                                       |
-| `iconLibrary`       | `'fa'` \| `'mdi'` \| `'ion'` \| `'material-icons'` \| `'material-symbols'` | —                  | Icon library to use.                                                                                                                       |
-| `iconVariant`       | `string`                                                                   | —                  | Icon style variant (e.g., 'solid', 'outlined').                                                                                            |
-| `iconSize`          | `'small'` \| `'medium'` \| `'large'`                                       | —                  | Icon size modifier.                                                                                                                        |
-| `iconFeatures`      | `string` \| `string[]`                                                     | —                  | Additional icon modifiers.                                                                                                                 |
-| `arrowBackground`   | `boolean`                                                                  | `true`             | Show semi-transparent background on arrow buttons. Set to `false` for icon-only arrows.                                                    |
-| `arrowColor`        | `'light'` \| `'dark'`                                                      | —                  | Color theme for navigation arrows.                                                                                                         |
-| `ariaLabel`         | `string`                                                                   | `'Image carousel'` | Accessible label for the carousel region. Default: 'Image carousel'.                                                                       |
-| `onChange`          | `(value: number) => void`                                                  | —                  | Callback when slide changes.                                                                                                               |
-| `children`          | `React.ReactNode`                                                          | —                  | CarouselItem children.                                                                                                                     |
-| `className`         | `string`                                                                   | —                  | Additional CSS classes.                                                                                                                    |
-| `ref`               | `React.Ref<HTMLElement>`                                                   | —                  | Ref forwarded to the carousel element.                                                                                                     |
-| `...`               | All standard `<div>` attributes and Bulma helper props                     | —                  | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                          |
+| Prop                    | Type                                                                       | Default            | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ----------------------- | -------------------------------------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `value`                 | `number`                                                                   | `0`                | Index of the first item in view (controlled); with one item in view, the slide shown. A value between two of the positions a step lands on (see `itemsToScroll`) is shown as given, and the next step goes on from it. With `repeat`, a value past either end wraps around; without it, one that would leave empty space after the last item shows the last full view. Neither correction calls `onChange`. A value that takes the item holding focus out of view moves focus to the first item in view, as a swipe or a change of width does.                                                                                                                                                        |
+| `autoplay`              | `boolean`                                                                  | `false`            | Enable auto-play: one step (`itemsToScroll` items) per `interval`. Without `repeat` it stops at the last position. It waits while the pointer is over the carousel (see `pauseOnHover`) and while focus is anywhere inside it, on an item, an arrow or an indicator, so nothing moves while someone reads or works it. A browser that leaves focus on an arrow or an indicator a click pressed keeps it waiting until focus moves on.                                                                                                                                                                                                                                                                 |
+| `interval`              | `number`                                                                   | `5000`             | Auto-play interval in milliseconds. Default: 5000.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `pauseOnHover`          | `boolean`                                                                  | `true`             | Pause auto-play on hover. Default: true.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `repeat`                | `boolean`                                                                  | `true`             | Loop back to the first position after the last. Default: true. With several items in view, the view runs on past the last item into the first ones, so it can show the end and the start side by side. Only loops when some item is out of view. Without it, the arrows are disabled at the ends, and focus on the one disabled moves to the current indicator, or to the other arrow when there are no indicators.                                                                                                                                                                                                                                                                                   |
+| `hasDrag`               | `boolean`                                                                  | `true`             | Enable drag/swipe navigation. Default: true. A swipe moves one step, however far it travels. A swipe toward the start of the line goes on, so on a right-to-left page a swipe right brings the next slide in.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `itemsToShow`           | `number`                                                                   | `1`                | How many items are in view at once, at every width no `itemsToShow<Viewport>` prop covers. Those props read the way a `Column`'s `size<Viewport>` props do: `itemsToShowMobile` applies below Bulma's tablet breakpoint, each of the others from its own breakpoint up, and where several apply the widest one wins. A whole number, rounded down and at least 1. The widths come from the stylesheet, so they are right on the first paint; the arrows, indicators and steps use the count for the window's width once the page has hydrated, and this one until then. With this many children or fewer, every item keeps its share of the width, nothing moves, and no arrows or indicators render. |
+| `itemsToShowMobile`     | `number`                                                                   | —                  | Items in view at any width below Bulma's tablet breakpoint (769px), fractional ones included. Falls back to `itemsToShow`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `itemsToShowTablet`     | `number`                                                                   | —                  | Items in view from Bulma's tablet breakpoint (769px) up, until a wider viewport's prop takes over. Falls back to `itemsToShow`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `itemsToShowDesktop`    | `number`                                                                   | —                  | Items in view from Bulma's desktop breakpoint (1024px) up, until a wider viewport's prop takes over. Falls back to `itemsToShowTablet`, then `itemsToShow`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `itemsToShowWidescreen` | `number`                                                                   | —                  | Items in view from Bulma's widescreen breakpoint (1216px) up, until `itemsToShowFullhd` takes over. Falls back to `itemsToShowDesktop`, and on down to `itemsToShow`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `itemsToShowFullhd`     | `number`                                                                   | —                  | Items in view from Bulma's fullhd breakpoint (1408px) up. Falls back to `itemsToShowWidescreen`, and on down to `itemsToShow`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `itemsToScroll`         | `number`                                                                   | `1`                | How many items one step moves, for an arrow, an arrow key on an arrow, a swipe or an autoplay tick. A whole number, capped at the count in view so a step never skips an item. Without `repeat`, the last step stops at the last full view, so it can be shorter; with `repeat`, the step after the last position goes on to the first one. The indicators mark these positions, one per step rather than one per item. When the count in view changes with the window's width, the first item in view stays in view.                                                                                                                                                                                 |
+| `arrow`                 | `boolean`                                                                  | `true`             | Show navigation arrows. Default: true. They render `type="button"`, so a carousel inside a form is not submitted by moving between slides.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `arrowHover`            | `boolean`                                                                  | `false`            | Only show arrows on hover. An arrow also shows while keyboard focus is on it.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `indicator`             | `boolean`                                                                  | `true`             | Show slide indicators. Default: true. There is one for each position a step can land on (see `itemsToScroll`). They render `type="button"`, so a carousel inside a form is not submitted by picking a slide. Left and Right on an indicator move focus to the indicator beside it and bring its slide into view, as a click on it does, mirrored on a right-to-left page.                                                                                                                                                                                                                                                                                                                             |
+| `indicatorInside`       | `boolean`                                                                  | `false`            | Puts the indicators over the slides instead of below them, at the edge `indicatorPosition` names. It also turns on the overlay look unless `overlayControls` says otherwise, so on its own it gives the look made for photos: light arrows, and light indicators on a dark gradient band.                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `overlayControls`       | `boolean`                                                                  | `indicatorInside`  | The overlay look, made for photos. The arrows take the `--bulma-carousel-overlay-arrow-*` colors, and indicators over the slides take the `--bulma-carousel-overlay-indicator-*` colors on a dark gradient band. Indicators below the slides keep their plain colors, since they sit on the page. It follows `indicatorInside` unless you set it, so `overlayControls={false}` puts the indicators over the slides with the plain look, and `overlayControls` alone gives the arrows the overlay look with the indicators below. While it's on, `arrowColor` doesn't apply.                                                                                                                           |
+| `indicatorPosition`     | `'bottom'` \| `'top'`                                                      | `'bottom'`         | The edge of the slides `indicatorInside` puts the indicators on. Default: 'bottom'. Without `indicatorInside` they sit below the slides whatever this says, so leave it unset there.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `indicatorStyle`        | `'circles'` \| `'dots'` \| `'lines'` \| `'bars'`                           | `'dots'`           | Indicator style. Default: 'dots'.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `iconPrev`              | `string`                                                                   | —                  | Icon name for the previous arrow button. On a right-to-left page that button sits on the right and the built-in chevron flips to point there, but an icon you name is drawn as given, so pick one that points the way the page reads.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `iconNext`              | `string`                                                                   | —                  | Icon name for the next arrow button. On a right-to-left page it sits on the left, and an icon you name is drawn as given, as with `iconPrev`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `iconLibrary`           | `'fa'` \| `'mdi'` \| `'ion'` \| `'material-icons'` \| `'material-symbols'` | —                  | Icon library to use.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `iconVariant`           | `string`                                                                   | —                  | Icon style variant (e.g., 'solid', 'outlined').                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `iconSize`              | `'small'` \| `'medium'` \| `'large'`                                       | —                  | Icon size modifier.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `iconFeatures`          | `string` \| `string[]`                                                     | —                  | Additional icon modifiers.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `arrowBackground`       | `boolean`                                                                  | `true`             | Show semi-transparent background on arrow buttons. Set to `false` for icon-only arrows, which show Bulma's focus outline while they have keyboard focus, as a ghost `Button` does.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `arrowColor`            | `'light'` \| `'dark'`                                                      | —                  | Color theme for navigation arrows. Not applied while the overlay look is on (see `overlayControls`, which `indicatorInside` turns on), whose arrows take `--bulma-carousel-overlay-arrow-color`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `ariaLabel`             | `string`                                                                   | `'Image carousel'` | The carousel region's name. Name it for what it shows, such as "Featured products", and leave out the word "carousel", which the region's role description already says. Under a visible heading, `aria-labelledby` with the heading's id names it instead, ahead of the `aria-label` the default still sets. The default is a placeholder that says "carousel" twice with the role description, and is the same on every carousel left with it. Default: 'Image carousel'.                                                                                                                                                                                                                           |
+| `labels`                | `CarouselLabels`                                                           | —                  | The words it writes for its arrows, indicators and items, for another language.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `onChange`              | `(value: number) => void`                                                  | —                  | Called with the index of the first item in view when an arrow, an arrow key, an indicator, a swipe or autoplay moves the carousel.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `children`              | `React.ReactNode`                                                          | —                  | CarouselItem children.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `className`             | `string`                                                                   | —                  | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `ref`                   | `React.Ref<HTMLElement>`                                                   | —                  | Ref forwarded to the carousel element.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `...`                   | All standard `<div>` attributes and Bulma helper props                     | —                  | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 
 <!-- /bestax:generated props -->
 
 ### CarouselItem
 
-| Prop        | Type      | Default | Description                                      |
-| ----------- | --------- | ------- | ------------------------------------------------ |
-| `active`    | `boolean` | —       | Whether this item is active (set automatically). |
-| `className` | `string`  | —       | Additional CSS classes.                          |
+| Prop        | Type              | Default | Description                                                                                                                                                                                                                      |
+| ----------- | ----------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `active`    | `boolean`         | —       | Whether this item is in view. `Carousel` sets it on every item in view, so with several in view several are active.                                                                                                              |
+| `children`  | `React.ReactNode` | —       | The slide's content. An image in it is held to the slide's width at its own height, unless something sizes the image itself: a ratio `Image` fills its frame, and an `Avatar`'s photo its circle, as they do outside a carousel. |
+| `className` | `string`          | —       | Additional CSS classes.                                                                                                                                                                                                          |
 
 ---
 
@@ -509,6 +760,10 @@ Use the `pauseOnHover` prop (enabled by default) to let users interact with caro
 | `--bulma-carousel-indicator-background`                | `$carousel-indicator-background`                | `var(--bulma-border)`                                                                   |
 | `--bulma-carousel-indicator-background-hover`          | `$carousel-indicator-background-hover`          | `var(--bulma-border-hover)`                                                             |
 | `--bulma-carousel-indicator-background-active`         | `$carousel-indicator-background-active`         | `var(--bulma-primary)`                                                                  |
+| `--bulma-carousel-indicator-border-color`              | `$carousel-indicator-border-color`              | `transparent`                                                                           |
+| `--bulma-carousel-indicator-border-color-hover`        | `$carousel-indicator-border-color-hover`        | `var(--bulma-carousel-indicator-border-color)`                                          |
+| `--bulma-carousel-indicator-border-width`              | `$carousel-indicator-border-width`              | `2px`                                                                                   |
+| `--bulma-carousel-indicator-line-border-width`         | `$carousel-indicator-line-border-width`         | `1px`                                                                                   |
 | `--bulma-carousel-indicator-circle-size`               | `$carousel-indicator-circle-size`               | `12px`                                                                                  |
 | `--bulma-carousel-indicator-line-width`                | `$carousel-indicator-line-width`                | `30px`                                                                                  |
 | `--bulma-carousel-indicator-line-width-mobile`         | `$carousel-indicator-line-width-mobile`         | `20px`                                                                                  |
@@ -521,11 +776,21 @@ Use the `pauseOnHover` prop (enabled by default) to let users interact with caro
 | `--bulma-carousel-indicator-bar-height-mobile`         | `$carousel-indicator-bar-height-mobile`         | `4px`                                                                                   |
 | `--bulma-carousel-overlay-arrow-background`            | `$carousel-overlay-arrow-background`            | `hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.3)` |
 | `--bulma-carousel-overlay-arrow-background-hover`      | `$carousel-overlay-arrow-background-hover`      | `hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.5)` |
-| `--bulma-carousel-overlay-arrow-color`                 | `$carousel-overlay-arrow-color`                 | `var(--bulma-scheme-main)`                                                              |
-| `--bulma-carousel-overlay-indicator-background`        | `$carousel-overlay-indicator-background`        | `hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-main-l), 0.5)`   |
-| `--bulma-carousel-overlay-indicator-background-hover`  | `$carousel-overlay-indicator-background-hover`  | `hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-main-l), 0.8)`   |
-| `--bulma-carousel-overlay-indicator-background-active` | `$carousel-overlay-indicator-background-active` | `var(--bulma-scheme-main)`                                                              |
+| `--bulma-carousel-overlay-arrow-color`                 | `$carousel-overlay-arrow-color`                 | `var(--bulma-white)`                                                                    |
+| `--bulma-carousel-overlay-indicator-background`        | `$carousel-overlay-indicator-background`        | `hsla(var(--bulma-white-h), var(--bulma-white-s), var(--bulma-white-l), 0.5)`           |
+| `--bulma-carousel-overlay-indicator-background-hover`  | `$carousel-overlay-indicator-background-hover`  | `hsla(var(--bulma-white-h), var(--bulma-white-s), var(--bulma-white-l), 0.8)`           |
+| `--bulma-carousel-overlay-indicator-background-active` | `$carousel-overlay-indicator-background-active` | `var(--bulma-white)`                                                                    |
 | `--bulma-carousel-transition-duration`                 | `$carousel-transition-duration`                 | `var(--bulma-duration)`                                                                 |
 | `--bulma-carousel-fade-duration`                       | `$carousel-fade-duration`                       | `0.5s`                                                                                  |
+| `--bulma-carousel-item-gap`                            | `$carousel-item-gap`                            | `0px`                                                                                   |
+| `--bulma-carousel-items-to-show`                       | —                                               | `1`                                                                                     |
+| `--bulma-carousel-items-to-show-mobile`                | —                                               | `var(--bulma-carousel-items-to-show)`                                                   |
+| `--bulma-carousel-items-to-show-tablet`                | —                                               | `var(--bulma-carousel-items-to-show)`                                                   |
+| `--bulma-carousel-items-to-show-desktop`               | —                                               | `var(--bulma-carousel-items-to-show-tablet)`                                            |
+| `--bulma-carousel-items-to-show-widescreen`            | —                                               | `var(--bulma-carousel-items-to-show-desktop)`                                           |
+| `--bulma-carousel-items-to-show-fullhd`                | —                                               | `var(--bulma-carousel-items-to-show-widescreen)`                                        |
+| `--bulma-carousel-items-in-view`                       | —                                               | `var(--bulma-carousel-items-to-show-mobile)`                                            |
 
 <!-- /bestax:generated cssvars -->
+
+The `--bulma-carousel-overlay-*` variables color the arrows, and indicators over the slides, only while the overlay look is on: with `overlayControls`, which `indicatorInside` turns on unless you set it. Otherwise the colors come from the `--bulma-carousel-arrow-*` and `--bulma-carousel-indicator-*` variables, which set the sizes either way. The overlay colors stay light in either color scheme, since they sit on a dark tint. The dark band behind indicators over the slides isn't a variable: `overlayControls={false}` leaves it off, as [Plain Indicators Over the Slides](#plain-indicators-over-the-slides) shows.

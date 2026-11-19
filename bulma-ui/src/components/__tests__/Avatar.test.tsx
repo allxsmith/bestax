@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import React, { createRef } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Avatar } from '../Avatar';
@@ -205,10 +206,10 @@ describe('Avatar', () => {
   });
 
   it('falls back to initials when the image already failed before hydration', () => {
-    const completeSpy = jest
+    const completeSpy = vi
       .spyOn(HTMLImageElement.prototype, 'complete', 'get')
       .mockReturnValue(true);
-    const widthSpy = jest
+    const widthSpy = vi
       .spyOn(HTMLImageElement.prototype, 'naturalWidth', 'get')
       .mockReturnValue(0);
     render(<Avatar src="/broken.jpg" name="Ada Lovelace" />);
@@ -226,7 +227,7 @@ describe('Avatar', () => {
   });
 
   it('chains imageProps.onError before falling back', () => {
-    const onError = jest.fn();
+    const onError = vi.fn();
     render(
       <Avatar src="/broken.jpg" name="Ada Lovelace" imageProps={{ onError }} />
     );
@@ -683,11 +684,11 @@ describe('Link attributes on an as that cannot be a link (#733)', () => {
   // `<div href>` is invalid HTML. The drop stays, and development says so.
   // `rel` is the element's own attribute on every intrinsic `as`, so it is not
   // part of this warning.
-  let warnSpy: jest.SpyInstance;
+  let warnSpy: MockInstance;
 
   beforeEach(() => {
     resetDevWarnings();
-    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   afterEach(() => {

@@ -1,11 +1,12 @@
+import type { MockInstance } from 'vitest';
 import { resetDevWarnings, warnOnce } from '../devWarnings';
 
 describe('devWarnings', () => {
-  let warnSpy: jest.SpyInstance;
+  let warnSpy: MockInstance;
 
   beforeEach(() => {
     resetDevWarnings();
-    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   afterEach(() => {

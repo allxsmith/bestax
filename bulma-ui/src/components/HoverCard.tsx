@@ -9,9 +9,13 @@ import React, {
 } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { Portal } from '../helpers/portal';
+import { PopupPortal } from '../helpers/portal';
 import { useIsHydrated } from '../helpers/useIsHydrated';
-import { marginGap, useAnchoredPosition } from '../helpers/useAnchoredPosition';
+import {
+  anchoredStyle,
+  marginGap,
+  useAnchoredPosition,
+} from '../helpers/useAnchoredPosition';
 import { chain, useHoverOpen } from '../helpers/useHoverOpen';
 import { isTabbableKind } from '../helpers/useFocusTrap';
 import { isDev, warnOnce } from '../helpers/devWarnings';
@@ -64,7 +68,7 @@ export interface HoverCardProps
    * open, so a `Modal` around it doesn't close from the keyboard until the
    * card does.
    */
-  open?: boolean;
+  open?: boolean | undefined;
   /**
    * Initial open state when uncontrolled. A card that starts open stays open
    * until the pointer or focus has been and gone, or Escape closes it.
@@ -95,25 +99,31 @@ export interface HoverCardProps
    */
   closeDelay?: number;
   /**
-   * Where the card opens against the trigger.
+   * Where the card opens against the trigger. Left out, it opens below and
+   * lines up with the trigger's start edge, which is its right edge on a
+   * right-to-left page, so a trigger at the start of the line doesn't push
+   * the card off the screen. A corner you pass stays physical, so
+   * `bottom-left` lines up the left edges on either page.
+   * A panel that would run past the viewport's left or right edge keeps
+   * its corner and moves sideways, just far enough to fit or, wider than
+   * the viewport, to the edge its text starts from.
    * @defaultValue 'bottom-left'
    */
   position?: HoverCardPosition;
   /**
    * Render the card through `Portal`, into the `portalContainer` a
-   * `ConfigProvider` sets, `document.body` by default, fixed to the viewport,
-   * so an ancestor's `overflow`, `transform` or stacking context can't clip
-   * it. A trigger in running text needs it too, since the card's block
-   * content can't sit inside a `<p>`. The card then shows from the commit
-   * after hydration, never in server markup, and it sits in the Tab order
-   * where its container is. At the end of `<body>`, the default, Tab reaches
-   * it only after the rest of the page, and focus leaving the trigger on the
-   * way closes it, so keyboard users can open it, read it and close it with
-   * Escape, and whatever it links to has to be reachable from the page as
-   * well. It is measured against the trigger when it opens and on resize and
-   * scroll, so it doesn't follow content that changes size while it is open.
-   * Theming variables set on an ancestor of the trigger reach it only when its
-   * container is inside that ancestor.
+   * `ConfigProvider` sets, else the overlay it's in that takes its popups,
+   * such as a `Modal`, else `document.body`, fixed to the viewport, so an
+   * ancestor's `overflow`, `transform` or stacking context can't clip it. A
+   * trigger in running text needs it too, since the card's block content
+   * can't sit inside a `<p>`. The card then shows from the commit after
+   * hydration, never in server markup, and it sits in the Tab order where its
+   * container is. At the end of `<body>` or of an overlay, Tab reaches it
+   * only after the rest of the page or the overlay, and focus leaving the
+   * trigger on the way closes it, so keyboard users can open it, read it and
+   * close it with Escape, and whatever it links to has to be reachable from
+   * the page as well. Theming variables set on an ancestor of the trigger reach it only
+   * when its container is inside that ancestor.
    * @defaultValue false
    */
   appendToBody?: boolean;
@@ -163,7 +173,7 @@ export const HoverCard: React.FC<HoverCardProps> = ({
   onOpenChange,
   openDelay = 600,
   closeDelay = 300,
-  position = 'bottom-left',
+  position,
   appendToBody = false,
   openOnTap = false,
   className,
@@ -274,6 +284,9 @@ export const HoverCard: React.FC<HoverCardProps> = ({
   const cardClasses = classNames(
     usePrefixedClassNames('hover-card-content', {
       [`is-${resolved.position}`]: true,
+      // The default lines up with the trigger's inline start, so the
+      // stylesheet moves it to the right edge on a right-to-left page.
+      'is-start-aligned': position === undefined,
       'is-portal': appendToBody,
     }),
     contentClassName
@@ -298,24 +311,16 @@ export const HoverCard: React.FC<HoverCardProps> = ({
     >
       {clonedTrigger}
       {isOpen && (
-        <Portal disabled={!appendToBody}>
+        <PopupPortal disabled={!appendToBody}>
           <div
             ref={cardRef}
             id={cardId}
             className={cardClasses}
-            style={
-              appendToBody
-                ? {
-                    position: 'fixed',
-                    top: resolved.top,
-                    left: resolved.left,
-                  }
-                : undefined
-            }
+            style={anchoredStyle(resolved, appendToBody)}
           >
             {children}
           </div>
-        </Portal>
+        </PopupPortal>
       )}
     </span>
   );

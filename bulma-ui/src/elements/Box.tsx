@@ -17,7 +17,7 @@ export interface BoxProps
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
@@ -26,7 +26,8 @@ export interface BoxProps
    * `textColor`, which takes precedence when both are set; use `bgColor` for
    * a colored surface.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /**
    * Background color helper. `scheme-*` values render as a dark-mode-safe
    * inline `background-color: var(--bulma-scheme-*)` instead of a class. The
@@ -45,7 +46,7 @@ export interface BoxProps
 }
 
 /**
- * The `Box` component renders a bordered, padded container with an optional shadow using Bulma's `.box` class.
+ * The `Box` component renders a padded container with rounded corners and an optional shadow using Bulma's `.box` class.
  *
  * @function
  * @param {BoxProps} props - Props for the Box component.

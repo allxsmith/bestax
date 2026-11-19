@@ -8,7 +8,8 @@ import React, {
   useState,
 } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
-import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { useFieldHelperClasses } from '../helpers/useFieldHelperClasses';
 import {
   PickerPosition,
   DayOfWeek,
@@ -42,8 +43,20 @@ import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker'
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
 import { supportsInputType } from './_pickerInternals/nativeInputSupport';
 import type { SegmentKind } from './_pickerInternals/segmentMap';
+import {
+  hasOwnDayNames,
+  usePickerFirstDayOfWeek,
+  usePickerLocale,
+  usePickerLocaleScope,
+} from './_pickerInternals/useLocaleDefaults';
 import { useControlLoading } from './controlLoading';
-import { useFieldLabelTarget } from './FormContext';
+import { useFieldLabelTarget, useFieldsetDisabled } from './FormContext';
+import { useAutoLabelledBy } from './useAutoLabelId';
+import {
+  joinIds,
+  splitControlState,
+  useFieldMessageId,
+} from './useFieldMessage';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { Icon } from '../elements/Icon';
 
@@ -66,6 +79,26 @@ const SKIPPED_SEGMENTS: Record<
 /**
  * Props for the raw DateInput base. Use the higher-level `DateInput` for
  * Field/Control composition; `DateInputBase` is the input + popover only.
+ * `aria-invalid` and `aria-errormessage`, which report the input's state,
+ * go on the `<input>`, and inline, where there is none, on the `<div>`.
+ * `autoComplete` goes on the `<input>` too, the text field's `off` unless
+ * you give one, and inline nowhere.
+ *
+ * @helperProps Helper props go on the `.dateinput-container` `<div>`, with
+ * `className` and the other attributes, except that the background helpers
+ * go on the `<input>`, and the text helpers on both, since Bulma's `.input`
+ * sets its own background and font, and the popover inside the `<div>`
+ * takes the text ones. Inline they all go on the `<div>`, and on the native
+ * mobile input, on the `<input>`.
+ *
+ * Among the other attributes, `aria-label`, `aria-labelledby` and
+ * `aria-describedby` go on the `<div>` too, so they don't name or describe
+ * the `<input>`, except the native one `mobileNative` renders. Name it with
+ * `DateInput`'s `label`; with a labeled `Field` that isn't `grouped` or
+ * `hasAddons`, if you give it no `id`; or with an `id` and a
+ * `<label htmlFor>` of your own. Describe it with `DateInput`'s `message`:
+ * `DateInputBase` on its own has no way to describe it. Inline there is no
+ * `<input>` to name.
  */
 export interface DateInputBaseProps
   extends
@@ -83,14 +116,14 @@ export interface DateInputBaseProps
     >,
     Omit<BulmaClassesProps, 'color'> {
   /** Controlled selected date. */
-  value?: Date | null;
+  value?: Date | null | undefined;
   /** Initial date for uncontrolled usage. */
-  defaultValue?: Date | null;
+  defaultValue?: Date | null | undefined;
   /**
    * Fired when the value changes. A day picked in the calendar, by click or
    * by key, arrives at local midnight.
    */
-  onChange?: (d: Date | null) => void;
+  onChange?: ((d: Date | null) => void) | undefined;
   /** Fired when the popover opens. */
   onOpen?: () => void;
   /** Fired when the popover closes. */
@@ -100,15 +133,23 @@ export interface DateInputBaseProps
    * year 1, where the range starts without one too: HTML's date and month
    * inputs hold no earlier year, so the calendar and typing stop there.
    */
-  min?: Date;
+  min?: Date | undefined;
   /** Latest selectable date. */
-  max?: Date;
-  /** Disable the input. */
-  disabled?: boolean;
-  /** Make the input read-only. */
-  readOnly?: boolean;
+  max?: Date | undefined;
+  /**
+   * Disable the input. An `inline` calendar disables its days and header
+   * buttons, but its hidden input still submits the value, where a disabled
+   * input submits nothing.
+   */
+  disabled?: boolean | undefined;
+  /**
+   * Make the input read-only. An `inline` calendar still moves through the
+   * dates by key and by its header, but a click, Enter or Space picks
+   * nothing.
+   */
+  readOnly?: boolean | undefined;
   /** Placeholder text for the input. */
-  placeholder?: string;
+  placeholder?: string | undefined;
   /**
    * What the calendar shows and what a selection means: `'day'` shows the
    * day grid, `'month'` a grid of the focused year's months whose header
@@ -143,9 +184,29 @@ export interface DateInputBaseProps
    * format leaves out, such as the time of day.
    */
   parse?: (s: string) => Date | null;
-  /** BCP-47 locale tag for day/month names and Intl formatting. */
+  /**
+   * BCP-47 locale tag for day/month names, the digits the calendar numbers
+   * its days and years in, and Intl formatting. Unset, it is the `locale` of
+   * a `LocaleProvider` around the picker, and with neither, `Intl` uses the
+   * runtime's own locale and the calendar numbers its days and years in plain
+   * digits. On a server render that locale is the server's, so an `inline`
+   * calendar rendered there names its days in the server's language and the
+   * browser's own render names them in the browser's: give it a locale, here
+   * or through a `LocaleProvider`, where the two can differ.
+   */
   locale?: string;
-  /** Render the calendar inline (no popover). */
+  /**
+   * Render the calendar inline (no popover).
+   * On a server-rendered page it marks today once the page hydrates, by
+   * the browser's clock rather than the server's. With no `value` or
+   * `defaultValue` it opens on the month the clock reads, and around the end
+   * of a month the server's clock and the browser's can read different
+   * months, so give it a date both render the same.
+   * Inline, the root is a `role="group"` when something names it: a labeled
+   * `Field` around it that isn't `grouped` or `hasAddons` and has no
+   * `labelProps.htmlFor`, or an `aria-label` or `aria-labelledby` you give
+   * it. The `message` of a wrapper around it describes it then.
+   */
   inline?: boolean;
   /**
    * Use `<input type="date">` on coarse-pointer + small-viewport devices. At
@@ -160,7 +221,7 @@ export interface DateInputBaseProps
   /** Allow segmented keyboard typing in the input (type the date directly, auto-advancing across segments). `false` makes the field picker-only. */
   editable?: boolean;
   /** Whether the calendar popover exists. `false` makes the field input-only (segmented typing, no popover). */
-  popover?: boolean;
+  popover?: boolean | undefined;
   /**
    * Open the popover when the input is focused. Focus that a closing popover
    * hands back to the input leaves it closed. Dismissing it commits nothing:
@@ -170,11 +231,21 @@ export interface DateInputBaseProps
   openOnFocus?: boolean;
   /** Close the popover after a date is selected. */
   closeOnSelect?: boolean;
-  /** Popover anchor position relative to the input. */
+  /**
+   * Where the popover opens against the field. Left out, it opens below and
+   * lines up with the field's start edge, which is its right edge when the
+   * picker reads right to left. A corner you pass stays physical, so
+   * `bottom-left` lines up the left edges either way.
+   * A panel that would run past the viewport's left or right edge keeps
+   * its corner and moves sideways, just far enough to fit or, wider than
+   * the viewport, to the edge its text starts from.
+   * @defaultValue 'bottom-left'
+   */
   position?: PickerPosition;
   /**
    * Render the popover through a portal, into the `portalContainer` a
-   * `ConfigProvider` sets, `document.body` by default.
+   * `ConfigProvider` sets, else the overlay it's in that takes its popups,
+   * such as a `Modal`, else `document.body`.
    */
   appendToBody?: boolean;
   /**
@@ -183,22 +254,46 @@ export interface DateInputBaseProps
    * the color's `-on-scheme` variant, which Bulma adjusts to contrast with the
    * background, so pale colors stay readable. Unset, the calendar uses its
    * `--bulma-dateinput-*` variables, which follow `primary` the same way by
-   * default.
+   * default. Forced colors (Windows' contrast themes) replaces the fill, so
+   * there the selected date is drawn in the system's highlight colors instead,
+   * whatever the color, which needs bestax's CSS.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Size variant. */
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | undefined;
   /** Render the input with rounded corners. */
   isRounded?: boolean;
   /** Predicate to disable specific dates (e.g. weekends). Blocked dates are also rejected during manual typing. */
   shouldDisableDate?: (d: Date) => boolean;
   /** Convenience array of disabled dates; merged with `shouldDisableDate`. Matched by calendar day and also rejected during manual typing. */
   unselectableDates?: Date[];
-  /** Day the week starts on (0 = Sunday). */
+  /**
+   * Day the week starts on (0 = Sunday). Unset inside a `LocaleProvider`,
+   * it is the first day of the week in the picker's locale, its own `locale`
+   * or else the provider's, such as Monday for `"de"`. Elsewhere, with no
+   * locale from either, or with seven `dayNames` of your own, it is Sunday:
+   * set it with `dayNames` to start the week on another day.
+   * @defaultValue 0
+   */
   firstDayOfWeek?: DayOfWeek;
-  /** Override the 7 day-name labels (in calendar order, post-rotation). */
+  /**
+   * Override the 7 day-name labels (in calendar order, post-rotation). They
+   * are shown exactly as given, from the first column, so they have to start
+   * on the day the week does. With them, an unset `firstDayOfWeek` stays
+   * Sunday even inside a `LocaleProvider`, so names written Sunday first keep
+   * matching their columns; to start on the locale's day, set
+   * `firstDayOfWeek` too and list the names from that day. They also name
+   * the columns for assistive technology. Without them each column is named
+   * by its full weekday in the picker's locale, which a server-rendered
+   * calendar adds once the page hydrates.
+   */
   dayNames?: string[];
-  /** Override the 12 month-name labels. */
+  /**
+   * Override the 12 month-name labels. With them the day grid's heading
+   * reads the name, a space and the year, whatever order the locale writes
+   * a month and its year in.
+   */
   monthNames?: string[];
   /** Show dimmed dates from adjacent months in the grid. */
   nearbyMonthDays?: boolean;
@@ -235,33 +330,34 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       onClose,
       min,
       max,
-      disabled,
+      disabled: disabledProp,
       readOnly,
       placeholder,
       granularity = 'day',
       format,
       parse,
-      locale,
+      locale: localeProp,
       inline = false,
       mobileNative = 'auto',
       editable = true,
       popover = true,
       openOnFocus = true,
       closeOnSelect = true,
-      position = 'bottom-left',
+      position,
       appendToBody = false,
       color,
       size,
       isRounded,
       shouldDisableDate,
       unselectableDates,
-      firstDayOfWeek = 0,
+      firstDayOfWeek: firstDayOfWeekProp,
       dayNames,
       monthNames,
       nearbyMonthDays = true,
       className,
       name,
       form,
+      autoComplete,
       required,
       id: idProp,
       onFocus,
@@ -274,6 +370,18 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       labels,
       ...rest
     } = props;
+    // A LocaleProvider around the picker sets its default locale and, through
+    // that locale, the day its week starts on.
+    const locale = usePickerLocale(localeProp);
+    // Its own language and direction, which its root and a portaled panel
+    // carry inside a provider.
+    const localeScope = usePickerLocaleScope(localeProp, props.dir);
+    const firstDayOfWeek = usePickerFirstDayOfWeek(
+      firstDayOfWeekProp,
+      locale,
+      hasOwnDayNames(dayNames)
+    );
+    const disabled = useFieldsetDisabled(disabledProp);
     // Inside a labeled Field the input takes the id the label points at
     // when the caller set none, as InputBase does, and the popover's ids
     // follow it. Inline there is no input to name, so nothing takes the
@@ -318,7 +426,31 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     const reactId = useId();
     const popoverId = id ? `${id}-popover` : `picker-${reactId}`;
 
-    const { bulmaHelperClasses, rest: cleanRest } = useBulmaClasses(rest);
+    // The input takes `aria-invalid` and `aria-errormessage`, which report
+    // its state, and the container the rest (#2002). With no input, inline,
+    // the container keeps them, as before.
+    const { control: controlState, rest: containerRest } =
+      splitControlState(rest);
+    // The field takes the background and text helpers, since Bulma's `.input`
+    // sets its own background and font. The container keeps the rest, and the
+    // text helpers too where a popover inside it takes them.
+    const {
+      bulmaHelperClasses,
+      backgroundClasses,
+      textClasses,
+      otherClasses,
+      rest: cleanRest,
+    } = useFieldHelperClasses(containerRest);
+
+    // Inline there's no input for a label's `for` to name, so the picker is a
+    // group, as DateRangeInputBase is, when something names it: a labeled
+    // Field around it, or an `aria-label` or `aria-labelledby` you give it,
+    // which wins. The wrapper's message describes the group then.
+    const { ariaLabelledBy, named } = useAutoLabelledBy({
+      label: undefined,
+      rendersLabel: false,
+      callerProps: rest,
+    });
 
     const { shouldUseNative } = useNativeMobilePicker({
       force: mobileNative === 'auto' ? undefined : mobileNative,
@@ -518,13 +650,22 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       [ref]
     );
 
+    // The wrapper's message describes the input (#1963). The native input
+    // lists it after the caller's ids; the text input takes it alone, since
+    // the caller's attributes go on the container.
+    const messageId = useFieldMessageId();
+
     // Native mobile path renders <input type="date"> (type="month" for a
     // month picker).
     if (useNative) {
       return (
         <input
+          {...localeScope.rootAttrs}
           {...cleanRest}
           ref={combinedRef}
+          autoComplete={autoComplete}
+          aria-describedby={joinIds(cleanRest['aria-describedby'], messageId)}
+          {...controlState}
           type={isDayGranularity ? 'date' : 'month'}
           className={classNames(inputClass, bulmaHelperClasses, className)}
           value={value ? toIsoValue(value, granularity) : ''}
@@ -580,13 +721,25 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
         id={inline ? popoverId : `${popoverId}-cal`}
         autoFocusCell={open}
         labels={labels}
+        disabled={disabled}
+        readOnly={readOnly}
       />
     );
 
     if (inline) {
       return (
         <div
+          role={named ? 'group' : undefined}
+          aria-labelledby={ariaLabelledBy}
+          {...localeScope.rootAttrs}
           {...cleanRest}
+          {...(named && {
+            'aria-describedby': joinIds(
+              cleanRest['aria-describedby'],
+              messageId
+            ),
+          })}
+          {...controlState}
           ref={containerRef}
           className={classNames(containerClass, bulmaHelperClasses, className)}
         >
@@ -607,7 +760,13 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     return (
       <div
         ref={containerRef}
-        className={classNames(containerClass, bulmaHelperClasses, className)}
+        className={classNames(
+          containerClass,
+          otherClasses,
+          textClasses,
+          className
+        )}
+        {...localeScope.rootAttrs}
         {...cleanRest}
       >
         <input
@@ -617,8 +776,10 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
           aria-haspopup="dialog"
           aria-expanded={open}
           aria-controls={popoverId}
-          autoComplete="off"
-          className={inputClass}
+          autoComplete={autoComplete || 'off'}
+          aria-describedby={messageId}
+          {...controlState}
+          className={classNames(inputClass, textClasses, backgroundClasses)}
           value={text}
           placeholder={placeholder}
           disabled={disabled}
@@ -648,6 +809,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
         )}
         {popover && (
           <PickerPopover
+            localeScope={localeScope.panel}
             isOpen={open}
             onClose={handlePopoverClose}
             anchorRef={containerRef}

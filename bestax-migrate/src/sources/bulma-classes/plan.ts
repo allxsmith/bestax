@@ -7,7 +7,18 @@
  * renders exactly the markup the element did. Anything that would change the
  * markup is either left in `className` (a class with no prop here) or refuses
  * the whole element with a TODO (an attribute or tag the component would
- * render differently).
+ * render differently). The exceptions are on purpose. Font Awesome's own
+ * `<i aria-hidden="true">` alone in a `.icon` that carries nothing assistive
+ * tech reads (the table's `hiddenMovesBeside`) converts to `Icon`, which writes that attribute
+ * on the `.icon` instead (`movesHidden`), since the glyph is hidden either
+ * way. A `.icon` like it around a bare glyph, in a link or button its own
+ * `aria-label` or `aria-labelledby` names, converts too, and `Icon` writes
+ * the attribute it doesn't carry (`addsHidden`), since that label is what
+ * assistive tech reads for the control. Font Awesome 6's long name for a
+ * style is written as the bestax-icons skill's `variant`, which `Icon`
+ * renders as the short name, the same style (`glyph.ts`, `longStyle`). And a
+ * Bulma 0.9 helper v1 removed (`REPLACED_IN_V1`), which styles nothing under
+ * v1, converts as the v1 helper that does its job.
  */
 
 import {
@@ -17,15 +28,29 @@ import {
   inTagSet,
   legacyHint,
   modifierFor,
+  modifiesRoot,
   numberAttrsOf,
   placedFor,
   PRECEDENCE,
+  reachesTag,
+  replacedBy,
   rootFor,
+  rootItNeeds,
+  tagFit,
   WRAPPER_OWN_PROPS,
   wrapperFor,
+  type Absorbs,
+  type PropWrite,
   type RootEntry,
 } from './class-map.js';
-import { readGlyph } from './glyph.js';
+import {
+  glyphProps,
+  readDrawnGlyph,
+  readGlyph,
+  readHiddenGlyph,
+  type Glyph,
+} from './glyph.js';
+import { aTag } from '../_shared/articles.js';
 import { ruleId } from './rules.js';
 
 export interface ElementFacts {
@@ -76,6 +101,13 @@ export interface ElementFacts {
    * component). What an entry that `countsChildren` reads.
    */
   childElements?: readonly ChildFacts[];
+  /**
+   * The element's children as plain HTML elements, read as `childElements`
+   * is, when nothing else beside them renders but spaces (`{" "}` between
+   * them); left out when `childElements` is there. What the TODO on an
+   * element holding a <label> beside the child its target renders reads.
+   */
+  spacedElements?: readonly ChildFacts[];
   /** The bestax components already in the file inside this element. */
   bestaxInside?: readonly string[];
   /** The bestax components already in the file around this element. */
@@ -121,6 +153,40 @@ export interface ElementFacts {
    * The string the element's content renders, when it is one static text.
    */
   text?: string;
+  /**
+   * The element's `className` is computed in a way the codemod doesn't read
+   * whole (anything but a `clsx` or `classnames` call of parts it reads), so
+   * it may carry classes `tokens` doesn't hold.
+   */
+  unreadClasses?: boolean;
+  /**
+   * The classes the element directly around this one renders: its static
+   * ones, or for a bestax component already in the file, its root class and
+   * the flags written out as `true`, so a re-run reads the same. What an
+   * entry that `readsGlyph` reads to point at `Control`'s icon props.
+   */
+  parentTokens?: readonly string[];
+  /**
+   * The nearest <a> or <button> around this element, a bestax component that
+   * renders one included, and what names it: its own `aria-label` or
+   * `aria-labelledby`, written out, text in it outside every icon, or `none`
+   * when nothing does. `label` is left out when it can't be told from here (a
+   * name or content written as an expression, or a component the codemod
+   * doesn't know inside). What an entry that `readsGlyph` reads to say
+   * whether an icon is decoration there.
+   */
+  clickableAround?: {
+    tag: string;
+    label?: 'aria-label' | 'aria-labelledby' | 'text' | 'none';
+    /**
+     * For an <a>: true when it has an `href` written out as a string, so it
+     * is a link, and false when it has neither an `href` nor a `role`, so it
+     * has no role at all and ARIA lets nothing name it. Left out when that
+     * can't be told from here (an `href` written as an expression, or a
+     * `role` of its own).
+     */
+    link?: boolean;
+  };
 }
 
 export interface ChildFacts {
@@ -200,6 +266,29 @@ export interface Conversion {
    * they go, and the element closes itself.
    */
   rendersChildren?: true;
+  /**
+   * The glyph the target renders from props in place of the element's only
+   * child (`Icon`'s `<i>`), written before the props above. The child goes,
+   * as `rendersChildren`, which is set beside it, says.
+   */
+  glyph?: Glyph;
+  /**
+   * That child carried the `aria-hidden` the target writes on the element
+   * (Font Awesome's own `<i aria-hidden="true">`), so it moves up: a way a
+   * conversion's markup differs from the element's on purpose, since the
+   * glyph is hidden either way. The render tests compare it with the
+   * attribute moved up, and nothing else.
+   */
+  movesHidden?: true;
+  /**
+   * The element carried no `aria-hidden`, and sits in a link or a <button>
+   * its own `aria-label` or `aria-labelledby` names, which assistive tech
+   * reads in place of what the control holds: the target writes the
+   * attribute on it, a way a conversion's markup differs on purpose, since
+   * nothing assistive tech reads changes. The render tests compare it with
+   * the attribute restated, and nothing else.
+   */
+  addsHidden?: true;
   /**
    * The target renders the bare element around this one too: the component
    * takes that element's place, with its `key`.
@@ -295,6 +384,11 @@ export interface Plan {
     target: string;
     props: Array<[name: string, value: string | true]>;
     numbers: string[];
+    /**
+     * TODOs about the component the fold makes, written only once the fold
+     * is: a fold the transform calls off takes them with it.
+     */
+    todos?: Todo[];
   };
   todos: Todo[];
 }
@@ -328,19 +422,233 @@ function tagsItReaches(entry: RootEntry): string {
   return `only <${entry.tag}>`;
 }
 
+/**
+ * A TODO for each other component class on an element that converts
+ * (`columns box`). The class stays in `className`, which renders the same,
+ * but on a bestax component it is raw Bulma markup the lint rule reports, so
+ * each says which root won and why, and how to keep what the class does.
+ * `rendered` holds the tag the element's classes make each root's target
+ * render with no `as`, for the roots the planner picked from.
+ */
+function secondComponents(
+  carried: readonly string[],
+  fixed: readonly string[],
+  root: string | undefined,
+  target: string,
+  tag: string,
+  rendered: ReadonlyMap<string, string>
+): Todo[] {
+  return carried.flatMap(token => {
+    const other = rootFor(token);
+    if (token === root || other?.status !== 'mapped') return [];
+    const name = other.target!;
+    if (name === target) return [];
+    const fitsBetter =
+      root !== undefined &&
+      tagFit(rootFor(root)!, tag, rendered.get(root)) >
+        tagFit(other, tag, rendered.get(token));
+    // The tag is the target's own, or one the element's classes pick.
+    const fits =
+      root !== undefined && rootFor(root)!.tag === tag
+        ? `${aTag(tag)} is \`${target}\`'s own element`
+        : `\`${target}\` renders ${aTag(tag)} with these classes and no \`as\``;
+    const why = !fixed.includes(token)
+      ? `since \`.${token}\` is there only when its condition holds, and the codemod picks from the classes the element always carries`
+      : root === undefined
+        ? 'since an item of a list converts by where it sits'
+        : !reachesTag(other, tag, rendered.get(token))
+          ? `since \`${name}\` renders ${tagsItReaches(other)}, not ${aTag(tag)}`
+          : fitsBetter
+            ? `since ${fits}, and \`${name}\` renders one only through \`as\``
+            : precedence(root) < precedence(token)
+              ? `since the codemod ranks \`.${root}\` first, putting layout and parts ahead of surfaces`
+              : `since \`.${root}\` comes first on the element`;
+    const advice =
+      other.onAnother ??
+      `to use \`${name}\`, give it an element of its own around or inside this one and drop the class, then check the layout, since two elements space differently from one`;
+    return [
+      {
+        rule: ruleId('second-component', name),
+        message: `\`.${token}\` is bestax \`${name}\`'s class too, and an element converts to one component: \`${target}\` here, ${why}, so \`.${token}\` stays in its \`className\`, which renders the same; ${advice}`,
+      },
+    ];
+  });
+}
+
+/** A prop as a TODO writes it: `isLight`, `size="3"`, `minCol={8}`. */
+function propText(write: PropWrite): string {
+  if (write.value === undefined) return `\`${write.prop}\``;
+  return write.numeric
+    ? `\`${write.prop}={${write.value}}\``
+    : `\`${write.prop}="${write.value}"\``;
+}
+
+/** Whether a class is one of the root's colors, as its `color` prop. */
+function isColor(entry: RootEntry, token: string): boolean {
+  return (
+    modifierFor(entry, token)?.writes.some(write => write.prop === 'color') ??
+    false
+  );
+}
+
+/**
+ * A TODO for each other color class on an element that converts (`button
+ * is-black is-primary`). The component takes one `color`, the first class
+ * for it, and the other stays in `className`, which renders the same, but
+ * two colors on one element look the way Bulma's stylesheet settles them,
+ * whatever order they're written in, so each says which one `color` took.
+ * Only the classes the element always carries: one a condition adds is a
+ * state the page asks for on purpose.
+ */
+function secondColors(
+  entry: RootEntry,
+  root: string | undefined,
+  target: string,
+  tokens: readonly string[],
+  converted: ReadonlySet<string>,
+  writes: ReadonlyMap<string, string | true>
+): Todo[] {
+  const first = tokens.find(
+    token => converted.has(token) && isColor(entry, token)
+  );
+  const color = writes.get('color');
+  if (!root || !first || typeof color !== 'string') return [];
+  return tokens
+    .filter(token => !converted.has(token) && isColor(entry, token))
+    .map(token => ({
+      rule: ruleId('modifier', root),
+      message: `\`.${token}\` is a second color on this element, and bestax \`${target}\` takes one \`color\`: \`color="${color}"\` here, from \`.${first}\`, which comes first, so \`.${token}\` stays in its \`className\`, which renders the same; two colors on one element look the way Bulma's stylesheet settles them, whatever order they're written in, so check what the page shows, write the color you want as \`color\`, and drop the other class`,
+    }));
+}
+
+/**
+ * A TODO for a size class left in `className` off the tags it converts on
+ * (`is-3` on an <h1>, which `Title`'s `size="3"` would render as an <h3>),
+ * naming the prop that sizes the element the same and keeps its tag
+ * (`offTag`, `textSize`), as the MCP lookup names it. Only for the one size
+ * class on the element, and only while nothing else writes that prop (an
+ * `is-size-2` beside it): with two, the prop would size it differently.
+ */
+function offTagSizes(
+  entry: RootEntry,
+  root: string | undefined,
+  target: string,
+  tag: string,
+  tokens: readonly string[],
+  converted: ReadonlySet<string>,
+  writes: ReadonlyMap<string, string | true>
+): Todo[] {
+  const sizes = tokens.filter(token => modifierFor(entry, token)?.offTag);
+  if (!root || sizes.length !== 1 || converted.has(sizes[0])) return [];
+  const [token] = sizes;
+  const modifier = modifierFor(entry, token)!;
+  const off = modifier.offTag!;
+  const left =
+    entry.noHelpers ||
+    (entry.helpersLeftOut !== undefined &&
+      Object.hasOwn(entry.helpersLeftOut, off.prop));
+  if (left || writes.has(off.prop) || !modifier.tagIn) return [];
+  const on = modifier.tagIn.map(each => aTag(each)).join(' or ');
+  // The truth e2e holds the class the prop renders to the font size Bulma
+  // gives the class it stands in for.
+  return [
+    {
+      rule: ruleId('modifier', root),
+      message: `\`.${token}\` stays in its \`className\`, which renders the same: bestax \`${target}\` renders it exactly only on ${on}, as ${modifier.writes.map(propText).join(' ')}; on this <${tag}>, write ${propText(off)} in its place, which sizes it the same and keeps the <${tag}>, though \`${off.prop}\` renders a Bulma helper class, which is \`!important\`: check the page's own CSS sets no size on it`,
+    },
+  ];
+}
+
+/**
+ * Every class the element may carry: its fixed ones, and any a condition
+ * adds, which the element has to be right with as well as without.
+ */
+function carriedBy(facts: ElementFacts): string[] {
+  return [...new Set([...facts.tokens, ...(facts.conditional ?? []).flat()])];
+}
+
+/**
+ * What a TODO that promises a re-run says instead once its element converts:
+ * the next run plans no component, so the re-run would do nothing, and the
+ * fix is by hand.
+ */
+const BY_HAND = new WeakMap<Todo, string>();
+
 export function plan(facts: ElementFacts): Plan {
+  const planned = planElement(facts);
+  const result = planned.conversion
+    ? {
+        ...planned,
+        todos: planned.todos.map(todo => {
+          const byHand = BY_HAND.get(todo);
+          return byHand === undefined ? todo : { ...todo, message: byHand };
+        }),
+      }
+    : planned;
+  // A Bulma 0.9 helper v1 removed converts as the v1 helper that replaced
+  // it, and only one that stays a class gets the TODO naming that helper:
+  // where it converted, nothing is left to do.
+  const kept = new Set(result.conversion?.className?.split(' ') ?? []);
+  const stays = carriedBy(facts).filter(
+    token =>
+      replacedBy(token) &&
+      (!result.conversion || !facts.tokens.includes(token) || kept.has(token))
+  );
+  if (stays.length === 0) return result;
+  return {
+    ...result,
+    todos: [
+      ...result.todos,
+      ...stays.map(token => ({
+        rule: ruleId('legacy', token),
+        message: legacyHint(token)!,
+      })),
+    ],
+  };
+}
+
+function planElement(facts: ElementFacts): Plan {
   const todos: Todo[] = [];
   const { tag, tokens } = facts;
-  // Every class the element may carry: its fixed ones, and any a condition
-  // adds, which the element has to be right with as well as without.
-  const carried = [
-    ...new Set([...tokens, ...(facts.conditional ?? []).flat()]),
-  ];
+  const carried = carriedBy(facts);
   const mayCarry = (token: string) => carried.includes(token);
 
   for (const token of carried) {
-    const hint = legacyHint(token);
+    // One that converts says so only if it stays, which `plan` knows.
+    const hint = replacedBy(token) ? undefined : legacyHint(token);
     if (hint) todos.push({ rule: ruleId('legacy', token), message: hint });
+    // A modifier Bulma styles only on its own root does nothing on an element
+    // with no root it modifies. That's a claim about every class the element
+    // carries, and the remedy drops one, so it's made only when the codemod
+    // reads them all. A re-run converts the element only on a tag the root's
+    // target renders, so only there does the advice promise one.
+    const root = rootItNeeds(token);
+    if (
+      root &&
+      !facts.unreadClasses &&
+      !carried.some(other => {
+        const entry = rootFor(other);
+        return entry !== undefined && modifiesRoot(entry, token);
+      })
+    ) {
+      const needed = rootFor(root)!;
+      const article = /^[aeiou]/.test(root) ? 'an' : 'a';
+      const rerun = reachesTag(needed, tag);
+      const fix = rerun
+        ? `add \`${root}\`, which bestax \`${needed.target}\` renders, then re-run`
+        : `add \`${root}\` for Bulma to style it, though bestax \`${needed.target}\` renders ${tagsItReaches(needed)}, not ${aTag(tag)}, so the element stays markup`;
+      const says = (remedy: string) =>
+        `\`${token}\` is ${article} \`.${root}\` modifier, and Bulma styles it only on the element that carries \`.${root}\`, so on this one it styles nothing unless the project's own CSS gives it a rule; if this element is the ${root}, ${remedy}, and otherwise drop the class`;
+      const todo = { rule: ruleId('modifier', root), message: says(fix) };
+      // On an element that converts anyway, a re-run finds a component.
+      if (rerun) {
+        BY_HAND.set(
+          todo,
+          says(`convert it to bestax \`${needed.target}\` by hand`)
+        );
+      }
+      todos.push(todo);
+    }
   }
 
   // A family this source leaves as markup keeps its element as markup, even
@@ -366,11 +674,28 @@ export function plan(facts: ElementFacts): Plan {
     : tokens.find(token => rootFor(token)?.status === 'fold');
   if (wrapper) return planFold(facts, wrapper, todos);
 
-  const root = placed
-    ? undefined
+  // Of two roots, the one that fits the element's tag best wins (the tag the
+  // element's classes make its target render with no `as`, then one `as`
+  // reaches), and the table's precedence decides a tie. So an `Image` ratio,
+  // which puts it on a <figure>, fits a <div> only through `as`.
+  const roots = placed
+    ? []
     : tokens
         .filter(token => rootFor(token)?.status === 'mapped')
-        .sort((a, b) => precedence(a) - precedence(b))[0];
+        .sort((a, b) => precedence(a) - precedence(b));
+  const rendered = new Map(
+    roots.map(token => [
+      token,
+      rendersWith(rootFor(token)!, tokens, tag, token, facts.attributes),
+    ])
+  );
+  const fit = (token: string) =>
+    tagFit(rootFor(token)!, tag, rendered.get(token));
+  const root = roots.reduce<string | undefined>(
+    (best, token) =>
+      best === undefined || fit(token) > fit(best) ? token : best,
+    undefined
+  );
 
   let entry: RootEntry | null;
   if (placed) {
@@ -401,6 +726,27 @@ export function plan(facts: ElementFacts): Plan {
     conversion: null,
     todos: [...todos, { rule: ruleId(kind, token), message }],
   });
+
+  // ---- The tag, first ------------------------------------------------------
+  // On a tag the target can't render, the tag is the work that comes first:
+  // any other refusal would ask for work (an attribute added or dropped, a
+  // child moved) that a re-run then refuses on the tag anyway.
+  // What the classes write picks the tag the target renders with no `as`
+  // (`rendersWith`), as it did when the root was picked.
+  const renders =
+    (root && rendered.get(root)) ??
+    rendersWith(entry, tokens, tag, root, facts.attributes);
+  let as: string | undefined;
+  if (renders !== tag) {
+    if (!reachesTag(entry, tag, renders)) {
+      return refuse(
+        'tag',
+        target,
+        `bestax \`${target}\` renders ${tagsItReaches(entry)}, not ${aTag(tag)}; keep the markup, or change the tag and re-run`
+      );
+    }
+    as = tag;
+  }
 
   // ---- Refusals: the component would render something else ---------------
   if (facts.hasSpread) {
@@ -544,9 +890,10 @@ export function plan(facts: ElementFacts): Plan {
       );
     }
   }
-  // An attribute the target writes on this tag counts as one of its defaults.
+  // An attribute the target writes on this tag counts as one of its defaults,
+  // unless what it writes is the tag's own implicit role.
   const written = Object.entries(entry.writesAttr ?? {})
-    .filter(([, rule]) => rule.on.includes(tag))
+    .filter(([, rule]) => rule.on.includes(tag) && !rule.implicit)
     .map(([name, rule]): [string, string] => [name, rule.fallback]);
   const naming = namingOf(entry, attributes);
   // An attribute written out that stops the target's defaults, such as
@@ -562,10 +909,58 @@ export function plan(facts: ElementFacts): Plan {
       : naming === 'unsure'
         ? { ...unnamed, ...entry.namedDefaults!.defaults }
         : unnamed;
+  // Font Awesome's own markup hides the <i> rather than the element around
+  // it, and a target that renders the glyph from props writes the same
+  // `aria-hidden` on the element in its place: it moves up, and the glyph is
+  // hidden either way. A difference in markup a conversion makes on
+  // purpose; the render tests compare it with the attribute moved up. Only
+  // onto an element that carries nothing assistive tech reads, by name and
+  // whatever the value: an expression may render as anything.
+  const moved =
+    entry.readsGlyph &&
+    defaults['aria-hidden'] === 'true' &&
+    [...attributes.keys()].every(name => movesBeside(entry, name))
+      ? readHiddenGlyph(facts.soleChild)
+      : undefined;
+  // An icon in a link or <button> its own label names is decoration there:
+  // that label is what assistive tech reads for the control, in place of
+  // what it holds, so the `aria-hidden` the target writes changes nothing it
+  // reads. Another difference in markup a conversion makes on purpose, held
+  // to the same shape: a bare glyph the target renders from props, in an
+  // element that carries nothing else assistive tech reads. The render tests
+  // compare it with the attribute restated.
+  const decorates =
+    !moved &&
+    entry.readsGlyph &&
+    naming === 'unnamed' &&
+    defaults['aria-hidden'] === 'true' &&
+    !attributes.has('aria-hidden') &&
+    [...attributes.keys()].every(name => movesBeside(entry, name)) &&
+    namesItsContent(facts.clickableAround)
+      ? readGlyph(facts.soleChild)
+      : undefined;
   const missing = [...Object.entries(defaults), ...written].filter(
-    ([name]) => !attributes.has(name)
+    ([name]) =>
+      !attributes.has(name) && !((moved || decorates) && name === 'aria-hidden')
   );
   const drop: string[] = [];
+  // A target that renders a glyph from props is written the way the
+  // bestax-icons skill writes it, with no attribute it renders by itself
+  // with the same value (`aria-hidden="true"` with no name, `role="img"`
+  // beside one): the markup is the same without it.
+  // A `role` or `tabIndex` written as an expression may stop those
+  // defaults at run time, so the element keeps what it wrote.
+  const mayStop = entry.defaultsUnless?.some(
+    name => attributes.has(name) && attributes.get(name) === null
+  );
+  if (entry.readsGlyph && naming !== 'unsure' && !mayStop) {
+    for (const [name, value] of Object.entries(defaults)) {
+      const given = attributes.get(name);
+      if (given === value || (given === true && value === 'true')) {
+        drop.push(name);
+      }
+    }
+  }
   for (const name of entry.untypedAttrs ?? []) {
     if (!attributes.has(name)) continue;
     if (defaults[name] === attributes.get(name)) {
@@ -700,7 +1095,11 @@ export function plan(facts: ElementFacts): Plan {
       `bestax \`${target}\` renders this element's children itself, \`${counts.prop}\` bare, empty <${counts.tag}>s, so it converts only when its children are just that; keep it as markup`
     );
   }
-  if (missing.length > 0 && naming === 'unsure') {
+  // An attribute the target writes alike with a name and without one is no
+  // question of the name, so the plain TODO below asks for it.
+  const varies = ([name]: [string, string]) =>
+    entry.namedDefaults?.defaults[name] !== entry.defaults?.[name];
+  if (naming === 'unsure' && missing.some(varies)) {
     const list = (set: Readonly<Record<string, string>> = {}) =>
       Object.entries(set)
         .map(([name, value]) => `\`${name}="${value}"\``)
@@ -710,15 +1109,18 @@ export function plan(facts: ElementFacts): Plan {
     return refuse(
       'defaults',
       target,
-      `bestax \`${target}\` renders ${list(entry.namedDefaults!.defaults)} when it has a name and ${list(entry.defaults)} when it has none, and this element's \`${by}\` is an expression that may render as either; set ${add} here to what you want, then re-run`
+      `bestax \`${target}\` renders ${list(entry.namedDefaults!.defaults)} when it has ${entry.namedDefaults!.what ?? 'a name'} and ${list(entry.defaults)} when it has none, and this element's \`${by}\` is an expression that may render as either; set ${add} here to what you want and re-run, or convert it by hand`
     );
   }
   if (missing.length > 0) {
     const list = missing.map(([name, value]) => `\`${name}="${value}"\``);
+    const usual = `bestax \`${target}\` renders ${list.join(' and ')} when the element does not set ${missing.length === 1 ? 'it' : 'them'}; add ${missing.length === 1 ? 'it' : 'them'} here if that is what you want, then re-run`;
     return refuse(
       'defaults',
       target,
-      `bestax \`${target}\` renders ${list.join(' and ')} when the element does not set ${missing.length === 1 ? 'it' : 'them'}; add ${missing.length === 1 ? 'it' : 'them'} here if that is what you want, then re-run`
+      entry.readsGlyph && naming === 'unnamed'
+        ? hiddenAdvice(facts, entry, usual)
+        : usual
     );
   }
   for (const [name, rule] of Object.entries(entry.writesAttr ?? {})) {
@@ -728,7 +1130,7 @@ export function plan(facts: ElementFacts): Plan {
       return refuse(
         'attr',
         name,
-        `bestax \`${target}\` keeps a <${tag}>'s \`${name}\` only as ${orList(rule.keeps)}, and writes \`${name}="${rule.fallback}"\` in place of anything else, so this one converts only as one of those, written out; keep this element as markup`
+        `bestax \`${target}\` keeps ${aTag(tag)}'s \`${name}\` only as ${orList(rule.keeps)}, and writes \`${name}="${rule.fallback}"\` in place of anything else, so this one converts only ${rule.implicit ? `with no \`${name}\` or as one of those` : 'as one of those, written out'}; keep this element as markup`
       );
     }
   }
@@ -743,10 +1145,10 @@ export function plan(facts: ElementFacts): Plan {
         'drops',
         target,
         visible
-          ? `bestax \`${target}\` drops \`disabled\` on a <${tag}>, and Bulma styles a disabled \`.${rootLabel(facts.tokens)}\` on any tag, so converting would change how it looks; keep this element as markup`
+          ? `bestax \`${target}\` drops \`disabled\` on ${aTag(tag)}, and Bulma styles a disabled \`.${rootLabel(facts.tokens)}\` on any tag, so converting would change how it looks; keep this element as markup`
           : anchored
             ? `bestax \`${target}\` drops \`name\` on an <a>, where it still names the target of a \`#fragment\` link; keep this element as markup, or move the target to an \`id\`, then re-run`
-            : `bestax \`${target}\` drops \`${name}\` on a <${tag}>, where it does nothing anyway; remove it, then re-run`
+            : `bestax \`${target}\` drops \`${name}\` on ${aTag(tag)}, where it does nothing anyway; remove it, then re-run`
       );
     }
   }
@@ -756,26 +1158,6 @@ export function plan(facts: ElementFacts): Plan {
   const { writes, converted } = fromTokens;
   numbers.push(...fromTokens.numbers);
 
-  // ---- The tag ------------------------------------------------------------
-  let renders = entry.tag!;
-  if (entry.sizeDrivesTag && tag !== 'p' && writes.has('size')) {
-    renders = `h${writes.get('size')}`;
-  }
-  let as: string | undefined;
-  if (renders !== tag) {
-    const reachable = entry.as === 'any' || (entry.as?.includes(tag) ?? false);
-    if (!reachable) {
-      if (entry.otherTagsStay?.tags.includes(tag)) {
-        return { conversion: null, todos };
-      }
-      return refuse(
-        'tag',
-        target,
-        `bestax \`${target}\` renders ${tagsItReaches(entry)}, not a <${tag}>; keep the markup, or change the tag and re-run`
-      );
-    }
-    as = tag;
-  }
   // Last, since what the children are can change once a refusal leaves
   // them to convert on their own, and a re-run has to find the same reason.
   let icons: BuiltIcon[] | undefined;
@@ -844,6 +1226,7 @@ export function plan(facts: ElementFacts): Plan {
       !modifier!.onlyTrue &&
       (!modifier!.tagIn || modifier!.tagIn.includes(tag)) &&
       (!modifier!.needsAttr || attributes.has(modifier!.needsAttr.name)) &&
+      !modifier!.overridesAttrs?.some(name => attributes.has(name)) &&
       !writes.has(write.prop) &&
       !conditional.some(([prop]) => prop === write.prop);
     // Written as a prop, the condition is evaluated before any left in the
@@ -865,6 +1248,16 @@ export function plan(facts: ElementFacts): Plan {
       `bestax \`${target}\` writes a \`className\` it's given in place of \`.${root}\`, so this converts only with no other class; keep it as markup`
     );
   }
+  todos.push(...secondComponents(carried, tokens, root, target, tag, rendered));
+  todos.push(...secondColors(entry, root, target, tokens, converted, writes));
+  todos.push(
+    ...offTagSizes(entry, root, target, tag, tokens, converted, writes)
+  );
+  // A glyph the target renders from props takes the place of the only child.
+  const glyph =
+    moved ??
+    decorates ??
+    (entry.readsGlyph ? readGlyph(facts.soleChild) : undefined);
   return {
     conversion: {
       target,
@@ -873,9 +1266,12 @@ export function plan(facts: ElementFacts): Plan {
       drop,
       numbers,
       ...(absorbed ? { absorbs: absorbed } : {}),
-      ...(counts || entry.rendersText !== undefined
+      ...(counts || entry.rendersText !== undefined || glyph
         ? { rendersChildren: true as const }
         : {}),
+      ...(glyph ? { glyph } : {}),
+      ...(moved ? { movesHidden: true as const } : {}),
+      ...(decorates ? { addsHidden: true as const } : {}),
       ...(parent ? { replacesParent: true as const } : {}),
       ...(conditional.length > 0 ? { conditional } : {}),
       ...(icons ? { icons } : {}),
@@ -976,8 +1372,9 @@ function buildFile(
 /**
  * Whether the element names itself through one of `entry.namedDefaults.by`,
  * which picks the defaults its target renders: a string written out names
- * it unless empty, as a bare attribute does, and an expression may or may
- * not. An entry with no `namedDefaults` is never named.
+ * it unless empty (or even then, with `emptyCounts`), as a bare attribute
+ * does, and an expression may or may not. An entry with no `namedDefaults`
+ * is never named.
  */
 function namingOf(
   entry: RootEntry,
@@ -986,10 +1383,209 @@ function namingOf(
   const given = (entry.namedDefaults?.by ?? [])
     .filter(name => attributes.has(name))
     .map(name => attributes.get(name));
-  if (given.some(value => value === true || (value !== '' && value !== null))) {
+  const emptyCounts = entry.namedDefaults?.emptyCounts ?? false;
+  if (
+    given.some(
+      value =>
+        value === true || (value !== null && (value !== '' || emptyCounts))
+    )
+  ) {
     return 'named';
   }
   return given.includes(null) ? 'unsure' : 'unnamed';
+}
+
+/**
+ * Whether an element may carry `name` and still take Font Awesome's
+ * `aria-hidden` up off its <i>, by the table's `hiddenMovesBeside`, where a
+ * name ending in `*` stands for every attribute it starts.
+ */
+function movesBeside(entry: RootEntry, name: string): boolean {
+  return (entry.readsGlyph?.hiddenMovesBeside ?? []).some(allowed =>
+    allowed.endsWith('*')
+      ? name.startsWith(allowed.slice(0, -1))
+      : name === allowed
+  );
+}
+
+/**
+ * Whether the link or <button> around an element names itself with its own
+ * `aria-label` or `aria-labelledby`, which assistive tech reads for it in
+ * place of what it holds. An <a> counts only as a link: one with no `href`
+ * has no role, and ARIA lets nothing name it.
+ */
+function namesItsContent(around: ElementFacts['clickableAround']): boolean {
+  return (
+    (around?.label === 'aria-label' || around?.label === 'aria-labelledby') &&
+    (around.tag === 'button' || around.link === true)
+  );
+}
+
+/**
+ * What to do about an unnamed element whose target hides it with an
+ * `aria-hidden` it doesn't carry, and that renders a glyph from props
+ * (`Icon`), for its `defaults` TODO: from what it holds (Font Awesome's own
+ * `<i aria-hidden>`, the `<svg>` its script draws) and where it sits (a
+ * link or button its label names, or one nothing names). Each says what a
+ * re-run converts it to once the attribute is in place, when that's sure,
+ * and inside a `.control` with icons, the `Control` prop that renders it.
+ * `usual` is the message for anything else.
+ */
+function hiddenAdvice(
+  facts: ElementFacts,
+  entry: RootEntry,
+  usual: string
+): string {
+  const target = entry.target!;
+  const sole = facts.soleChild;
+  // Font Awesome's own markup hides the <i>, not the `.icon` around it.
+  const flag = sole?.attributes.get('aria-hidden');
+  const hiddenFont = sole?.tag === 'i' && (flag === 'true' || flag === true);
+  const drawn = readDrawnGlyph(sole);
+  // The element as a re-run would find it, the attribute in place (moved up
+  // off the <i> that carries it): the planner says what that converts to.
+  const attributes = new Map(facts.attributes).set('aria-hidden', 'true');
+  const retry = plan({
+    ...facts,
+    attributes,
+    ...(hiddenFont && {
+      soleChild: {
+        ...sole,
+        attributes: new Map(
+          [...sole.attributes].filter(([name]) => name !== 'aria-hidden')
+        ),
+      },
+    }),
+  }).conversion;
+  // Only where nothing in it converts on its own, which would change what a
+  // re-run finds: an <i> the glyph takes the place of, or an <svg>.
+  const outcome = retry?.glyph
+    ? `, and this converts to \`${target}\` with ${jsxProps(glyphProps(retry.glyph))}`
+    : retry && sole?.tag === 'svg'
+      ? `, and this converts to \`${target}\` around the <svg> as it is`
+      : '';
+  const hint = controlHint(facts, retry, retry?.glyph ?? drawn);
+  // A bare <i> naming a glyph moves it up by itself, onto an element that
+  // carries nothing else assistive tech reads, so this one carries more.
+  const exposed = readHiddenGlyph(sole)
+    ? [...facts.attributes.keys()].find(name => !movesBeside(entry, name))
+    : undefined;
+  if (exposed) {
+    return `bestax \`${target}\` takes Font Awesome's \`aria-hidden\` up off a bare <i> like this one only onto a \`.icon\` that carries nothing assistive tech reads, and this one carries \`${exposed}\`, which the move would hide, or, beside a \`role\` or \`tabIndex\`, leave with no \`aria-hidden\` at all; if the icon means something, give the \`.icon\` an \`aria-label\` and \`role="img"\`, and if it is decoration, drop \`${exposed}\`, then re-run`;
+  }
+  if (hiddenFont) {
+    // A bare <i> naming a glyph moves it up by itself, so this one isn't.
+    return `bestax \`${target}\` writes \`aria-hidden="true"\` on the \`.icon\`, and takes it from the <i> inside only when that <i> is empty, carries nothing else and names a glyph it renders from props, which this one doesn't; the \`.icon\` holds nothing else, so the attribute hides the same glyph there: move it up onto the \`.icon\`, then re-run${outcome}${hint}`;
+  }
+  if (drawn) {
+    return `this \`.icon\` holds the <svg> Font Awesome's script draws in place of an <i>, and bestax \`${target}\` writes \`aria-hidden="true"\` on the \`.icon\`, which this one doesn't carry; add it, then re-run${outcome}; or write \`${target}\` with ${jsxProps(glyphProps(drawn))} in its place, which renders the <i> the script draws from, and shows only where Font Awesome's stylesheet or script is loaded${hint}`;
+  }
+  const around = facts.clickableAround;
+  const label = around?.label;
+  const tag = around && aTag(around.tag);
+  // An <a> with no `href` and no `role` is no link, and has no role at all,
+  // so ARIA lets nothing name it: it needs an `href`, or to be a <button>,
+  // before a label does anything.
+  const unlinked = around?.tag === 'a' && around.link === false;
+  const hide = `add \`aria-hidden="true"\` here, which bestax \`${target}\` writes on an icon with no name of its own`;
+  // What a re-run converts this to once the control around it names itself
+  // and is a link, where an icon converts as it is (`namesItsContent`). Only
+  // from a control that isn't both yet, so the planner asks once.
+  const labelled = label === 'aria-label' || label === 'aria-labelledby';
+  const fixed =
+    around && (unlinked || label === 'none')
+      ? plan({
+          ...facts,
+          clickableAround: {
+            ...around,
+            ...(!labelled && { label: 'aria-label' as const }),
+            ...(unlinked && { link: true }),
+          },
+        }).conversion
+      : undefined;
+  const once = fixed?.glyph
+    ? `re-run, and this converts to \`${target}\` with ${jsxProps(glyphProps(fixed.glyph))}, which hides the icon with \`aria-hidden="true"\`${hint}`
+    : undefined;
+  if (unlinked && labelled) {
+    return `this \`.icon\` sits in an <a> with no \`href\`, which is no link and has no role, so ARIA lets nothing name it and its \`${label}\` names nothing; give the <a> an \`href\`, or make it a <button>, then ${once ?? `${hide}, and re-run${outcome}${hint}`}`;
+  }
+  if (label && label !== 'none') {
+    const by = label === 'text' ? 'its own text' : `its \`${label}\``;
+    return `this \`.icon\` sits in ${tag} that ${by} names, so the icon is decoration there, and bestax \`${target}\` writes \`aria-hidden="true"\` on an icon with no name of its own, which this one doesn't carry; add it, then re-run${outcome}${hint}`;
+  }
+  if (label === 'none' && readGlyph(sole)) {
+    const name = unlinked
+      ? 'an `href`, or make it a <button>, and give it an `aria-label` that says what it does'
+      : 'an `aria-label` that says what it does';
+    return `nothing names the <${around!.tag}> around this \`.icon\`: it has no \`aria-label\` and no text outside its icons, and a font icon's glyph is no name a screen reader can read; give the <${around!.tag}> ${name}, then ${once ?? `${hide}, and re-run${outcome}${hint}`}`;
+  }
+  return `${usual}${outcome}${hint}`;
+}
+
+/**
+ * Inside a `.control` with icons on this element's side, the `Control` prop
+ * that renders the element once it's hidden as `converted` is: given the
+ * glyph, the props its classes write and nothing else, since `Control`
+ * writes the side's own class over any `className` it's given. Empty when
+ * the element carries anything more: another class, an attribute of its own
+ * or a class a condition adds.
+ */
+function controlHint(
+  facts: ElementFacts,
+  converted: Conversion | null | undefined,
+  glyph: Glyph | undefined
+): string {
+  const side =
+    converted?.className === 'is-left'
+      ? 'Left'
+      : converted?.className === 'is-right'
+        ? 'Right'
+        : undefined;
+  const has = `has-icons-${side?.toLowerCase()}`;
+  if (
+    !glyph ||
+    !side ||
+    facts.conditional?.length ||
+    !facts.parentTokens?.includes('control') ||
+    !facts.parentTokens.includes(has) ||
+    facts.attributes.size > 0
+  ) {
+    return '';
+  }
+  const object = [...glyphProps(glyph), ...converted!.props]
+    .map(
+      ([name, value]) =>
+        `${name}: ${
+          value === true
+            ? 'true'
+            : converted!.numbers.includes(name)
+              ? String(Number(value))
+              : valueText(value)
+        }`
+    )
+    .join(', ');
+  return `; or, since the \`.control\` around it has \`${has}\`, drop this \`.icon\` and give that \`Control\` \`icon${side}={{ ${object} }}\`, which it renders after its children as a \`.icon.is-${side.toLowerCase()}\` around the glyph's <i>, hidden the way \`Icon\` hides it`;
+}
+
+/** A glyph's props as JSX attributes, for a message. */
+function jsxProps(
+  props: ReadonlyArray<readonly [string, string | readonly string[]]>
+): string {
+  const text = props
+    .map(([name, value]) =>
+      typeof value === 'string'
+        ? `${name}="${value}"`
+        : `${name}={${valueText(value)}}`
+    )
+    .join(' ');
+  return `\`${text}\``;
+}
+
+/** A prop's value as code, for a message: a list as an array of strings. */
+function valueText(value: string | readonly string[]): string {
+  return typeof value === 'string'
+    ? JSON.stringify(value)
+    : `[${value.map(item => JSON.stringify(item)).join(', ')}]`;
 }
 
 /**
@@ -1026,23 +1622,12 @@ function buildIcons(
           name === 'ref' ||
           (name.includes('-') && !name.startsWith('aria-'))
       );
-      const glyph = readGlyph(child.soleChild);
+      // The `.icon` read its glyph itself when it converted on its own.
+      const glyph = icon.glyph;
       if (!glyph || loose) return { why: shape };
-      const props: BuiltIcon['props'] = [
-        ['library', glyph.library],
-        ['name', glyph.name],
-      ];
-      if (glyph.variant) props.push(['variant', glyph.variant]);
-      const { features } = glyph;
-      if (features) {
-        props.push([
-          'features',
-          features.length === 1 ? features[0] : features,
-        ]);
-      }
       icons.push({
         index,
-        props: [...props, ...icon.props],
+        props: [...glyphProps(glyph), ...icon.props],
         className: icon.className,
         drop: icon.drop,
         numbers: icon.numbers,
@@ -1071,6 +1656,15 @@ function buildIcons(
  * base `display` beside a per-viewport one, a flex-container helper with no
  * flex `display`, `gapless` beside a `gap`) stays a class, as does one it
  * leaves out, and so does a modifier missing the attribute it needs.
+ *
+ * The first class to claim a prop keeps it, but a Bulma 0.9 class v1 removed
+ * claims one only after every other class has: whatever the order, a live
+ * class beside it for the same prop (`p-2 is-paddingless`) is what the page
+ * renders today and keeps the prop, and the removed one stays a class, with
+ * the TODO `plan` gives it. Beside a class for a different prop, such as an
+ * axis (`px-2 is-paddingless`), it still converts: the two render `px-2` and
+ * `p-0`, and v1's stylesheet puts every side and axis class after `p-0`, so
+ * the axis keeps its sides and `p-0` zeroes the rest.
  */
 function propsFrom(
   entry: RootEntry,
@@ -1082,8 +1676,11 @@ function propsFrom(
   writes: Map<string, string | true>;
   converted: Set<string>;
   numbers: string[];
+  /** The tag the one converted class with a `rendersTag` picks. */
+  rendersTag?: string;
 } {
   const numbers: string[] = [];
+  let rendersTag: string | undefined;
   // What the root itself needs comes first, so no class can take its prop.
   const writes = new Map<string, string | true>(
     (entry.writes ?? []).map(write => [write.prop, write.value ?? true])
@@ -1092,22 +1689,46 @@ function propsFrom(
   const sourceOf = new Map<string, string>();
   const groupOf = new Map<string, string>();
   const converted = new Set<string>(root ? [root] : []);
+  const claiming = [
+    ...tokens.filter(token => !replacedBy(token)),
+    ...tokens.filter(token => replacedBy(token)),
+  ];
 
-  for (const token of tokens) {
+  // A class that converts only beside another (`has-addons-centered`) goes
+  // first, so the value it writes takes the prop ahead of that one's flag and
+  // renders both classes. On its own it stays a class. Neither is ever a
+  // removed class, so the two orders compose.
+  const paired = (token: string) => {
+    const other = modifierFor(entry, token)?.beside;
+    return other !== undefined && tokens.includes(other);
+  };
+  for (const token of [
+    ...claiming.filter(paired),
+    ...claiming.filter(token => !paired(token)),
+  ]) {
     if (converted.has(token)) continue;
     const modifier = modifierFor(entry, token);
     if (modifier) {
+      if (modifier.beside && !paired(token)) continue;
       if (modifier.tagIn && !modifier.tagIn.includes(tag)) continue;
       if (modifier.needsAttr && !attributes.has(modifier.needsAttr.name)) {
         continue;
       }
+      if (modifier.overridesAttrs?.some(name => attributes.has(name))) {
+        continue;
+      }
       if (modifier.writes.some(write => writes.has(write.prop))) continue;
+      // Only one class picks the tag, as only one sets a prop: a second one
+      // stays a class, the way a second size does.
+      if (modifier.rendersTag && rendersTag) continue;
       for (const write of modifier.writes) {
         writes.set(write.prop, write.value ?? true);
         sourceOf.set(write.prop, token);
         if (write.numeric) numbers.push(write.prop);
       }
+      rendersTag ??= modifier.rendersTag;
       converted.add(token);
+      if (modifier.beside) converted.add(modifier.beside);
       continue;
     }
     const helper = entry.noHelpers ? undefined : HELPER_TOKENS.get(token);
@@ -1122,9 +1743,15 @@ function propsFrom(
     if (entry.helpersLeftOut && Object.hasOwn(entry.helpersLeftOut, prop)) {
       continue;
     }
+    // A shade renders its class only together with its color, so it
+    // converts only when both props are free: a shade beside a color or
+    // shade already written stays a class.
+    const also = helper.also;
+    if (also && writes.has(also.prop)) continue;
     writes.set(prop, helper.write.value ?? true);
     sourceOf.set(prop, token);
     groupOf.set(prop, helper.group);
+    if (also) writes.set(also.prop, also.value ?? true);
     converted.add(token);
   }
 
@@ -1162,7 +1789,80 @@ function propsFrom(
   ) {
     undo('overflow');
   }
-  return { writes, converted, numbers };
+  return { writes, converted, numbers, rendersTag };
+}
+
+/**
+ * The tag a root's target renders with the element's classes and no `as`,
+ * from what `propsFrom` takes them as: the one class with a `rendersTag`
+ * (`Image`'s ratio) its tag, else the heading Title's `size` names, which
+ * only `as="p"` overrides, else the root's own.
+ */
+function rendersWith(
+  entry: RootEntry,
+  tokens: readonly string[],
+  tag: string,
+  root: string | undefined,
+  attributes: ReadonlyMap<string, unknown>
+): string {
+  const picked = propsFrom(entry, tokens, tag, root, attributes);
+  if (picked.rendersTag) return picked.rendersTag;
+  const size = picked.writes.get('size');
+  return entry.sizeDrivesTag && tag !== 'p' && size !== undefined
+    ? `h${size}`
+    : entry.tag!;
+}
+
+/**
+ * For an element whose children are the child its target renders and one
+ * <label> beside it: where the label goes instead, when the table names a
+ * component that takes one (`Select`'s `label`). Empty otherwise.
+ *
+ * That component renders the label in a `Field` of its own, which it renders
+ * only outside one: inside a `Field` it drops `label` and `labelProps`, and
+ * inside a bare `Control` it nests a `.field` in the `.control`. So inside
+ * either the label stays a label of the page's, moved out beside the
+ * element, or the child takes an `aria-label` in its place.
+ */
+function labelBeside(
+  facts: ElementFacts,
+  spec: Absorbs,
+  where: string
+): string {
+  const children = facts.childElements ?? facts.spacedElements ?? [];
+  const label = children.find(child => child.tag === 'label');
+  if (
+    !spec.label ||
+    children.length !== 2 ||
+    !label ||
+    !children.some(child => child.tag === spec.tag)
+  ) {
+    return '';
+  }
+  const around = (name: string) =>
+    facts.bestaxAround?.includes(name) ||
+    facts.classesAround?.includes(name.toLowerCase());
+  const inForm = around('Field')
+    ? `inside a \`Field\` bestax's \`${spec.label}\` renders no label of its own and drops \`label\` and \`labelProps\``
+    : around('Control')
+      ? `inside a \`Control\` with no \`Field\` around it, bestax's \`${spec.label}\` renders its label in a \`.field\` of its own inside the \`.control\`, which Bulma's styles aren't written for`
+      : undefined;
+  if (inForm) {
+    return `; the <label> beside it can't stay inside the ${where} that bestax renders, and ${inForm}, so move the <label> out beside ${where}, its \`htmlFor\` on the <${spec.tag}>'s \`id\`, or give the <${spec.tag}> an \`aria-label\` in its place, then re-run`;
+  }
+  // A computed `className` (`null`) is one the codemod can't read, and it
+  // may be what hides the label, so it is named rather than left out. So is
+  // a spread, which can carry a `className` of its own.
+  const classes =
+    label.tokens === null
+      ? ', its `className`, which is computed, as `labelProps={{ className: … }}` with the same expression'
+      : label.tokens?.length
+        ? `, its classes as \`labelProps={{ className: '${label.tokens.join(' ')}' }}\``
+        : '';
+  const spread = label.hasSpread
+    ? ', what its spread carries in `labelProps` too, since it can set a `className` of its own'
+    : '';
+  return `; the <label> beside it goes on bestax's \`${spec.label}\` instead, which renders ${where} inside a \`Field\` and a \`Control\`: the label's text as \`label\`${classes}${spread}, and \`${spec.label}\` points the label at the <${spec.tag}>'s \`id\` itself, so convert the two by hand`;
 }
 
 type Refuse = (kind: string, token: string, message: string) => Plan;
@@ -1215,7 +1915,7 @@ function absorb(
       target,
       after
         ? `${itself}, and a \`${after.target}\` after it from among its children, so this element converts only around a single <${spec.tag}>, and at most one <${after.tag}> after it, with nothing else beside them`
-        : `${itself}, so this element converts only around a single <${spec.tag}>, with nothing else beside it`
+        : `${itself}, so this element converts only around a single <${spec.tag}>, with nothing else beside it${labelBeside(facts, spec, where)}`
     );
   }
   if (
@@ -1271,6 +1971,17 @@ function absorb(
         'attr',
         'className',
         `${itself}, with no class on it${allowed.length > 0 ? ` but ${orList(allowed)}` : ''}, so its \`${token}\` would be lost; keep this element as markup`
+      );
+    }
+    // The prop writes an attribute too, unless the child has its own, and
+    // the class can't stay a class on a child the target renders itself.
+    const needs = modifier.needsAttr;
+    if (needs && !child.attributes.has(needs.name)) {
+      const attr = `\`${needs.name}="${needs.value}"\``;
+      return refuse(
+        'attr',
+        needs.name,
+        `${itself}, and the ${andList(modifier.writes.map(write => write.prop))} its \`${token}\` becomes renders ${attr} on it too, so it converts only beside an \`${needs.name}\` of its own. If this is the current ${needs.value}, add ${attr} to the <${spec.tag}>, then re-run; if not, keep this element as markup`
       );
     }
     for (const write of modifier.writes) {
@@ -1436,7 +2147,7 @@ function planFold(facts: ElementFacts, wrapper: string, todos: Todo[]): Plan {
     return refuse(
       'tag',
       target,
-      `bestax ${renders} renders \`.${wrapper}\` on a <${entry.tag}>, not a <${facts.tag}>; keep the markup, or change the tag and re-run`
+      `bestax ${renders} renders \`.${wrapper}\` on ${aTag(entry.tag!)}, not ${aTag(facts.tag)}; keep the markup, or change the tag and re-run`
     );
   }
   if (facts.hasSpread) {
@@ -1493,5 +2204,30 @@ function planFold(facts: ElementFacts, wrapper: string, todos: Todo[]): Plan {
       `bestax ${renders} renders \`.${wrapper}\` itself, so this element converts only around a single element that becomes a \`${target}\`, with nothing else beside it`
     );
   }
-  return { conversion: null, fold: { target, props, numbers }, todos };
+  // What the fold renders takes its name from the target inside, so one with
+  // no name asks for one. A spread there could hold it.
+  const inner = facts.soleChild;
+  const names = entry.namedFrom ?? [];
+  const unnamed =
+    names.length > 0 &&
+    inner !== undefined &&
+    !inner.hasSpread &&
+    !names.some(name => inner.attributes.has(name));
+  return {
+    conversion: null,
+    fold: {
+      target,
+      props,
+      numbers,
+      ...(unnamed && {
+        todos: [
+          {
+            rule: ruleId('name', target),
+            message: `give this \`${target}\` a name in ${names.map(name => `\`${name}\``).join(' or ')}, such as an \`aria-labelledby\` pointing at a heading or at its caption's \`id\`: while it overflows, bestax ${renders} makes its \`.${wrapper}\` a region you can tab to, named by those alone`,
+          },
+        ],
+      }),
+    },
+    todos,
+  };
 }

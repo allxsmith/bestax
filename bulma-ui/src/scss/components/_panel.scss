@@ -1,0 +1,159 @@
+// Bestax Extras - Panel Styles
+// Bulma paints a panel's heading in the text color and writes its title in
+// `text-invert`, unless the panel has a color of its own. The dark scheme
+// lightens the text color but leaves `text-invert` near white, so on that
+// scheme a panel with no color has white text on a light gray heading.
+//
+// Text is chosen to read on the page background, so the page background
+// reads on text too. This gives the panel the scheme's own background
+// lightness as its `text-invert`, near white on the light scheme as before
+// and near black on the dark one. The heading is the only part of Bulma's
+// panel that reads `text-invert`. A colored panel takes the heading's text
+// from its own color's invert, so this leaves it as it is.
+//
+// Bulma declares `--bulma-text-invert-l` on the root and the panel's heading
+// variables on the panel, which resolve `var()` against the panel's own value,
+// so this reaches the heading whichever order Bulma's CSS and this partial
+// load in. Something inside a panel that reads `text-invert` itself, such as
+// the `has-text-text-invert` helper, gets the same value.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+@use 'bulma/sass/utilities/derived-variables' as dv;
+
+$panel-text-invert-l: cv.getVar('scheme-main-l') !default;
+
+.#{iv.$class-prefix}panel {
+  @include cv.register-vars(
+    (
+      'text-invert-l': #{$panel-text-invert-l},
+    )
+  );
+}
+
+// Bulma colors a panel's active block and active tab from
+// `--bulma-panel-block-active-color` and `--bulma-panel-tab-active-color`,
+// which read `--bulma-link-active`. Bulma never defines that, so their text
+// inherits the panel's. Panel's `color` puts the color's text helper on the
+// panel as well as its modifier, so in a colored Panel that text is the
+// color's own lightness on the page's background, which for many colors
+// doesn't read: a light panel's active block is near white on white. Bulma
+// draws the active block's icon and the active tab's underline in the color's
+// own lightness too, `--bulma-panel-color-l`, so a light panel's are near
+// white on white as well.
+//
+// This gives the active block and active tab of a panel with both classes a
+// fallback for those two variables, and the panel that same lightness as its
+// `--bulma-panel-color-l` for the icon and the underline. It's the color's
+// on-scheme lightness, the one Bulma picks for that color's text on the page,
+// so they read on the page on either scheme. A variable that reads an
+// undefined one has no value, so the fallback applies until either variable,
+// or `--bulma-link-active`, is given one, and a value of your own for them
+// still wins. `--bulma-panel-color-l` set through the panel's `style` does
+// too. A panel with the modifier alone, as Bulma writes one, inherits the
+// page's text and is left as it is. `text` is left out, since it isn't one of
+// Panel's colors.
+//
+// Bulma's on-scheme black is black on the dark scheme too, since Bulma only
+// ever steps a color darker than the dark page darker still. So black takes
+// Bulma's title text lightness, `--bulma-text-title-l`, which each scheme
+// sets to read on its page: near black on the light one and white on the
+// dark one.
+//
+// Each rule names the panel and its two color classes, which outranks Bulma's
+// `.panel` and `.panel.is-<color>`, where it declares the variables, and the
+// text rules add Bulma's selector for the block or tab, whichever stylesheet
+// loads first.
+@each $name, $color in dv.$colors {
+  @if $name != 'text' {
+    $panel: '.#{iv.$class-prefix}panel.#{iv.$class-prefix}is-#{$name}.#{iv.$class-prefix}#{iv.$helpers-has-prefix}text-#{$name}';
+    $lightness: cv.getVar($name, '', '-on-scheme-l');
+
+    @if $name == 'black' {
+      $lightness: cv.getVar('text-title-l');
+    }
+
+    $active: hsl(
+      #{cv.getVar($name, '', '-h')},
+      #{cv.getVar($name, '', '-s')},
+      #{$lightness}
+    );
+
+    #{$panel} {
+      @include cv.register-var('panel-color-l', #{$lightness});
+    }
+
+    #{$panel} .#{iv.$class-prefix}panel-block.#{iv.$class-prefix}is-active {
+      color: var(#{cv.buildVarName('panel-block-active-color')}, #{$active});
+    }
+
+    #{$panel} .#{iv.$class-prefix}panel-tabs a.#{iv.$class-prefix}is-active {
+      color: var(#{cv.buildVarName('panel-tab-active-color')}, #{$active});
+    }
+  }
+}
+
+// Forced colors (Windows' contrast themes): the active tab and the active
+// block. Bulma marks the active tab with a text and an underline color, and
+// the active block with a text and an icon color, and forced colors replaces
+// every one of those with the system's, so the active tab looks like every
+// other tab and the active block like every other block. This draws a bar in
+// Highlight, the system's color for a selection, which Menu and Tabs mark
+// their active item in too: along the bottom of the active tab, as Tabs draws
+// its, and down the start edge of the active block, where the blocks stack, as
+// Menu draws its. The bar is a pseudo-element's background, a system
+// color the browser keeps, rather than a fill, so the browser goes on adjusting
+// the tab or block and everything in it, its text, an icon and its focus ring,
+// to the user's colors. It sits in the item's padding, which Bulma gives both,
+// and positions the item for it. It reads the class Bulma highlights,
+// `is-active`, on a `Panel.Block` and on a tab link you write.
+//
+// The same block draws the panel's edge. Bulma draws it as a shadow and a
+// faint shadow ring, and sets the heading apart with a fill, and forced colors
+// drops the shadows and paints the fill in the page's own Canvas, so nothing
+// shows where a panel starts and ends. A one pixel outline in CanvasText,
+// which takes no room, draws the edge there, following the panel's rounded
+// corners, the way `_modal.scss` draws a modal card's. It sits outside the
+// panel, since the active block is positioned there and its hover fill would
+// paint over an outline drawn inside. A focused panel, such as a `section`
+// focused from a skip link, gets the browser's own focus ring back. A line in
+// CanvasText under a heading with rows below it stands in for its fill, the
+// way Bulma lines its rows but the last. Bulma sets no outline on a panel and
+// no border on its heading, so one class is enough wherever the two
+// stylesheets load. Outside forced colors none of this changes anything.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}panel {
+    outline: 1px solid CanvasText;
+
+    &:focus-visible {
+      outline: revert;
+    }
+  }
+
+  .#{iv.$class-prefix}panel-heading:not(:last-child) {
+    border-bottom: 1px solid CanvasText;
+  }
+
+  .#{iv.$class-prefix}panel-tabs a.#{iv.$class-prefix}is-active,
+  .#{iv.$class-prefix}panel-block.#{iv.$class-prefix}is-active {
+    position: relative;
+  }
+
+  .#{iv.$class-prefix}panel-tabs a.#{iv.$class-prefix}is-active::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0.75em;
+    bottom: 0;
+    height: 0.25em;
+    background-color: Highlight;
+  }
+
+  .#{iv.$class-prefix}panel-block.#{iv.$class-prefix}is-active::before {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: 0.25em;
+    background-color: Highlight;
+  }
+}

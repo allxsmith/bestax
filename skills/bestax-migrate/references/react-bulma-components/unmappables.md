@@ -43,6 +43,53 @@ https://bestax.io/docs/api/grid):
 
 Match the old proportions with `Cell` span props; tiles' `vertical` becomes grid flow.
 
+## `component:Heading` — Bulma v1 dropped `.heading`
+
+A `Heading` with a truthy `heading` is Bulma 0.9's small uppercase label, and bestax has no
+component for it. It becomes the plain element RBC rendered: an `<h1>`, or the tag a literal
+`renderAs` names, with `className="heading"`, plus `is-<size>` and `has-text-weight-<weight>` for
+a literal `size` and `weight` (`<Heading heading size={6} weight="bold">` becomes
+`<h1 className="heading is-6 has-text-weight-bold">`). Bulma v1 has no rule for `heading`, so that
+class styles nothing. The `<h1>` keeps the label in the page's heading outline, as RBC had it.
+
+Where the label isn't really a heading, restyle it with helper props, as a small, uppercase,
+semibold `Paragraph`:
+
+```jsx
+<Heading heading>Followers</Heading>
+<Paragraph textSize="7" textTransform="uppercase" textWeight="semibold" mb="1">
+  Followers
+</Paragraph>
+```
+
+Or keep the element and give the class a rule of your own. Bulma 0.9's was:
+
+```css
+.heading {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+```
+
+## `prop:renderAs` — an element the codemod can't read
+
+Where a component becomes plain markup, a literal `renderAs` names the element written. One the
+codemod can't read leaves the element RBC rendered by default, with this TODO, so render the tag
+you meant yourself.
+
+## `prop:size`, `prop:weight` on a `heading` label
+
+A `size` or `weight` the codemod can't read stays off the label's plain element, with a TODO. Add
+the classes RBC wrote for them by hand:
+
+```jsx
+<Heading heading size={size} weight={weight}>Tweets</Heading>
+<h1 className={`heading is-${size} has-text-weight-${weight}`}>Tweets</h1>
+```
+
 ## Controlled `Dropdown` (`value` / `onChange`, `Dropdown.Item value`)
 
 bestax `Dropdown` is compositional — you own the selection state:
@@ -58,6 +105,12 @@ const [choice, setChoice] = useState('a');
   </Dropdown.Item>
 </Dropdown>;
 ```
+
+## `Dropdown color` (`prop:color`)
+
+react-bulma-components gave a `Dropdown`'s `color` to its trigger button. bestax's `Dropdown` has no
+prop for its trigger's color, and its own `color` is the text color helper on the root, so the
+codemod leaves `color` with a TODO: remove it.
 
 ## `Pagination` extras (`showFirstLast`, `showPrevNext`, `autoHide`)
 
@@ -87,7 +140,7 @@ children, no compound child. A `Modal.Content` or `Modal.Card` child (which is w
 RBC modal has) selects the **compound** form, and that renders only the children you wrote:
 
 ```tsx
-<Modal active={show} onClose={close}>
+<Modal active={show} onClose={close} aria-label="Edit profile">
   <Modal.Background onClick={close} />
   <Modal.Content>…</Modal.Content>
   <Modal.Close variant="floating" onClick={close} />
@@ -95,7 +148,9 @@ RBC modal has) selects the **compound** form, and that renders only the children
 ```
 
 So `closeOnBlur` and `showClose={true}` mean "add those two children"; passing either as `false`
-means "drop the prop", since the compound form gives you neither unless you ask.
+means "drop the prop", since the compound form gives you neither unless you ask. The open modal
+is a dialog, so give it a name too, with `aria-label`, or `aria-labelledby` pointing at its title
+(`name:Modal`).
 
 ## `responsive` — `touch` / `untilWidescreen` / `untilFullhd` / `{ only: true }` breakpoints
 
@@ -131,10 +186,29 @@ bestax `Button` colors are the semantic set + `text`/`ghost`. For shades use
 
 ## `colorVariant` / Hero `gradient` / Hero `halfheight` (`prop:size`)
 
-- `colorVariant="light"` → `isLight` where supported (Button, Notification), otherwise a
-  shade: `bgColor="primary-90"`.
+- `colorVariant="light"` on a `Notification`, a `Tag` or a `Button` that stays one (not
+  `remove`, which becomes `Delete`) becomes `isLight`, unless a spread after it could override
+  it. Any other case is flagged: react-bulma-components rendered the value as the `is-light` or
+  `is-dark` class, so add that class to `className`, or use a shade such as
+  `bgColor="primary" backgroundColorShade="90"`.
 - Bulma v1 removed `is-bold` hero gradients — delete `gradient` or restyle with CSS.
 - `halfheight` has no bestax size; use `size="medium"` or a CSS height.
+
+## `prop:backgroundColor` — a component with no background color prop
+
+`backgroundColor` becomes `bgColor`, or stays `backgroundColor` on a component that takes only
+that. `Notification`, `Table` and its parts, `Tabs`, `Checkbox`, `Radio`, `Progress`, the
+`Modal.Card` parts and the other components that take neither keep it as written with a TODO:
+move the color to a `has-background-*` class in `className`.
+
+## `prop:textColor` — a component with no `textColor` prop
+
+`textColor` carries over as written, and becomes `color` on `Table` (and its `Thead`, `Tbody` and `Tfoot`), `Menu` and its parts, and `Dropdown` and its `Item`, whose `color` sets the
+text, when the value is one of bestax's color names. On the other components with no `textColor`,
+such as `Tag`, `Tabs`, `Hero`, `Progress`, `Breadcrumb`, `Input`, `Select`, `TextArea`, `File` and the `Modal.Card` parts, it stays with a TODO: move the color to a
+`has-text-*` class in `className`. On the components where it becomes `color`, it also stays with a
+TODO where the element already sets `color` or has a spread, or the value is dynamic, a shade or
+`text`: use `color` with `colorShade` for a shade, or the class.
 
 ## A size bestax doesn't take (`prop:size` on `Button.Group` and `Message`)
 
@@ -142,16 +216,68 @@ bestax `Button` colors are the semantic set + `text`/`ghost`. For shades use
 takes the value. Any other value, or one the codemod can't read, stays as written with a TODO
 that lists the sizes that component takes: use one of them, or drop the prop.
 
+## `prop:size` on `Heading`: a size the codemod cannot carry
+
+RBC's `Heading` rendered an `<h1>` at every size, subtitle or not. bestax's `Title` and
+`SubTitle` render the heading their `size` names unless `as="p"`, so a literal size moves to
+`textSize` to keep the level (see "`Heading` sizes" in the prop map). A dynamic one cannot move,
+because `textSize` takes a string, so it stays `size`. Pass it to `textSize` yourself:
+
+```jsx
+<Heading size={compact ? 5 : 4}>Report</Heading>
+<Title textSize={compact ? '5' : '4'}>Report</Title>
+```
+
+A literal outside 1 to 7 has no Bulma class, and bestax renders none for it either: drop it, or set
+a `textSize` from `'1'` to `'7'`.
+
+The same TODO marks a `Heading` that sets `size` and `textSize` both: drop `size` and let
+`textSize` set the font size.
+
+## `name:Table` — a responsive table with no name
+
+`Table.Container` folded into `isResponsive` on a `Table` with no `aria-label` and no
+`aria-labelledby`. While the table overflows, `Table isResponsive` makes its container a region you
+can tab to, named by those two alone, and a development build warns when it has neither. Look
+for a name the container carried in a TODO beside this one (`prop:aria-label`, or `prop:spread`
+for one in a spread). Otherwise give the `Table` an `aria-label`, or point `aria-labelledby` at a
+heading, or at its `<caption>`'s `id` when it has one.
+
+The container's `role` and `tabIndex` go with it (`prop:role`, `prop:tabIndex`): `Table isResponsive`
+writes them on its container itself while the table overflows. When the `Table` already names
+itself, with an attribute of its own or a `<caption>`, the container's name goes with the container
+too (`prop:aria-label`, `prop:aria-labelledby`), so check that the `Table`'s is the one you want.
+
+## `name:Modal`: a modal with no name
+
+A converted `Modal` with no `aria-label` or `aria-labelledby`, and no spread that could hold one.
+bestax's `Modal` is a dialog while it's open, and a dialog with no name is announced as just
+"dialog". Only the legacy form's `modalCardTitle` names it for you, and the
+codemod never writes that. Give the `Modal` an `aria-label`, or point `aria-labelledby` at the `id`
+of its title, such as its `Modal.Card.Title` when it has one:
+
+```tsx
+<Modal active={show} onClose={close} aria-labelledby="terms-title">
+  <Modal.Background onClick={close} />
+  <Modal.Card>
+    <Modal.Card.Head>
+      <Modal.Card.Title id="terms-title">Terms</Modal.Card.Title>
+    </Modal.Card.Head>
+    <Modal.Card.Body>…</Modal.Card.Body>
+  </Modal.Card>
+</Modal>
+```
+
 ## `domRef`
 
-bestax components don't take `domRef`, but many forward a plain `ref` — the form controls,
-plus `Avatar`, `Button`, `Carousel`, `CarouselItem`, `Dialog`, `Dropdown`, `Link`,
-`LinkButton`, `Loader`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`,
-`Navbar.Item`, `Navbar.Link`, `SegmentedControl`, `SegmentedControl.Segment`, `Sidebar`, `Toast`
-and `ToggleButton`. On those, rename `domRef` to `ref` and it works; do not restructure the
-markup. "The form controls" means the inputs themselves: the `Field`, `Field.Label`,
-`Field.Body`, `Checkboxes` and `Radios` wrappers around them forward nothing, and `Field` is a
-target this codemod emits.
+bestax components don't take `domRef`, but many forward a plain `ref` — the form controls, plus
+`Affix`, `AppFrame`, `AppFrame.Aside`, `AppFrame.Burger`, `AppFrame.Footer`, `AppFrame.Header`, `AppFrame.Main`, `AppFrame.Nav`, `Avatar`, `Button`, `Carousel`, `CarouselItem`, `Center`, `ColorSwatch`, `Command`, `Command.Dialog`, `Command.Input`, `CopyButton`, `DataTable`, `DescriptionList`, `DescriptionList.Item`, `DescriptionList.Label`, `DescriptionList.Value`, `Dialog`, `Dropdown`, `EmptyState`, `Flex`, `FloatButton`, `FloatButton.BackToTop`, `FloatButton.SpeedDial`, `FloatButtons`, `Group`, `IconButton`, `Kbd`,
+`Kbd.Group`, `Lightbox`, `Lightbox.Trigger`, `Link`, `LinkButton`, `Loader`, `LocaleProvider`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`,
+`Navbar.Dropdown`, `Navbar.Item`, `Navbar.Link`, `NumberFormatter`, `RingProgress`, `ScrollArea`, `SegmentedControl`, `SegmentedControl.Segment`,
+`Sidebar`, `Splitter`, `Splitter.Pane`, `Stack`, `Stat`, `Stat.Change`, `Stat.Description`, `Stat.Label`, `Stat.Value`, `Stats`, `TableOfContents`, `Timeline`, `Timeline.Item`, `Toast`, `ToggleButton`, `Tour`, `Tour.Back`, `Tour.Next`, `Tour.Skip`, `Tour.Step`, `TreeView` and `TreeView.Item`. On
+those, rename `domRef` to `ref` and it works; do not restructure the markup. "The form controls"
+means the inputs themselves: the `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios`
+wrappers around them forward nothing, and `Field` is a target this codemod emits.
 
 Everywhere else the rename is not enough, and the two React majors differ: React 18 drops the
 ref and logs "Function components cannot be given refs", while React 19 passes it through as
@@ -241,3 +367,19 @@ Where the codemod produced a plain element (`Form.Label` → `<label>`, `Breadcr
 `<li>`, `Table.Container` fallback `<div>`), Bulma helper props were dropped with a TODO.
 Re-express them as classes: `m={2}` → `className="m-2"`, `textAlign="center"` →
 `className="has-text-centered"`.
+
+## `prop:display-base` — a base display beside a per-viewport one
+
+bestax leaves a base `display` out once any per-viewport display prop (`displayMobile` and the rest)
+is set, so the codemod keeps the base value as the class it stood for, in `className`, where the
+`display` attribute was (`is-flex`, `is-hidden` for `none`). With a flex base and no per-viewport
+flex display, the flex container props (`justifyContent`, `alignItems` and the rest) render only
+beside a flex `display` prop, so they move into `className` too (`is-justify-content-center`), and a
+container value bestax doesn't take stays where it was. This TODO, whose message starts "bestax
+leaves `display` out beside a per-viewport display prop", is the case where nothing moves, because a
+per-viewport display, the base value, the `className` or a container prop is dynamic, or the element takes a spread, which could hold any of them:
+
+```jsx
+<Box className={cls} display="flex" displayMobile="block" />
+<Box className={`is-flex ${cls}`} displayMobile="block" />
+```

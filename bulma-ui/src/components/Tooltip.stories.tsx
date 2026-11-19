@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, userEvent, within } from 'storybook/test';
 import { Tooltip } from './Tooltip';
 import { Button } from '../elements/Button';
 import { Buttons } from '../elements/Buttons';
@@ -8,11 +10,14 @@ import { Content } from '../elements/Content';
 import { Icon } from '../elements/Icon';
 import { Paragraph } from '../elements/Paragraph';
 import { Field } from '../form/Field';
+import { Checkbox } from '../form/Checkbox';
 import { Control } from '../form/Control';
 import { Input } from '../form/Input';
 import { Columns } from '../columns/Columns';
 import { Column } from '../columns/Column';
 import { Grid } from '../grid/Grid';
+// Credits and licenses for the pictures: ../../images/LICENSE.md
+import lioness from '../../images/sample-lioness.jpg';
 
 const meta: Meta<typeof Tooltip> = {
   title: 'Components/Tooltip',
@@ -66,7 +71,8 @@ const meta: Meta<typeof Tooltip> = {
     },
     multiline: {
       control: 'boolean',
-      description: 'Allow tooltip to wrap to multiple lines',
+      description:
+        'Give the tooltip a fixed width, up to the max width, whatever its label length, with its text centered. Without it, the tooltip is as wide as its text, and wraps a label once the box reaches the max width',
     },
     animated: {
       control: 'boolean',
@@ -93,6 +99,16 @@ const meta: Meta<typeof Tooltip> = {
       control: 'boolean',
       description:
         'Show the tooltip with a tap on a touch screen; only for a trigger with no tap action of its own',
+    },
+    disabled: {
+      control: 'boolean',
+      description:
+        'Keep the tooltip closed, and its trigger unlinked from it, without remounting the trigger',
+    },
+    describesTrigger: {
+      control: 'boolean',
+      description:
+        "Make the tooltip its trigger's description; turn it off for one that only repeats the trigger's own name, such as an icon button's aria-label",
     },
   },
 };
@@ -189,7 +205,8 @@ export const Sizes: Story = {
 };
 
 /**
- * Multiline tooltip for longer content.
+ * A multiline tooltip: a fixed width with its text centered, whatever its
+ * label's length.
  */
 export const Multiline: Story = {
   render: () => (
@@ -199,6 +216,30 @@ export const Multiline: Story = {
         multiline
       >
         <Button>Hover for more info</Button>
+      </Tooltip>
+    </Box>
+  ),
+};
+
+/**
+ * A label that fits stays on a single line at its own width, and one too
+ * wide for the box at its maximum width wraps inside it. `multiline` sets a
+ * fixed width instead.
+ */
+export const LongLabel: Story = {
+  render: () => (
+    <Box p="6">
+      <Block>
+        <Tooltip label="Moves it to the trash" position="right" active>
+          <Button>Short label</Button>
+        </Tooltip>
+      </Block>
+      <Tooltip
+        label="Deletes the file and every version of it from the server"
+        position="right"
+        active
+      >
+        <Button>Long label</Button>
       </Tooltip>
     </Box>
   ),
@@ -215,6 +256,40 @@ export const AlwaysActive: Story = {
       </Tooltip>
     </Box>
   ),
+};
+
+/**
+ * A tooltip that applies only some of the time. `disabled` keeps it closed,
+ * and its trigger unlinked from it, while the trigger stays mounted, so one
+ * that has focus keeps it. Turned off again, it opens on the next hover or
+ * focus.
+ */
+export const Disabled: Story = {
+  render: function DisabledExample() {
+    const [disabled, setDisabled] = useState(true);
+    return (
+      <Box p="6">
+        <Block>
+          <Checkbox
+            checked={disabled}
+            onChange={e => setDisabled(e.target.checked)}
+          >
+            Disable the tooltip
+          </Checkbox>
+        </Block>
+        <Tooltip label="Saves a copy" disabled={disabled}>
+          <Button>Save</Button>
+        </Tooltip>
+      </Box>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const save = canvas.getByRole('button', { name: 'Save' });
+    await expect(save).not.toHaveAttribute('aria-describedby');
+    await userEvent.click(canvas.getByRole('checkbox'));
+    await expect(save).toHaveAttribute('aria-describedby');
+  },
 };
 
 /**
@@ -538,6 +613,33 @@ export const AutoPlacement: Story = {
 };
 
 /**
+ * Auto placement measures the tooltip. Seen on its own, with its triggers
+ * near the top of the window, a `multiline` one opens below, where there's
+ * room for all of it, rather than above, where its first lines would run off
+ * the screen, while a one-line one beside it still fits above.
+ */
+export const AutoPlacementTall: Story = {
+  parameters: {
+    layout: 'fullscreen',
+  },
+  render: () => (
+    <Buttons pt="6" px="4">
+      <Tooltip
+        label="A label long enough to wrap onto several lines inside the box at its maximum width"
+        position="auto"
+        multiline
+        active
+      >
+        <Button>Multiline</Button>
+      </Tooltip>
+      <Tooltip label="Fits above" position="auto" active>
+        <Button>One line</Button>
+      </Tooltip>
+    </Buttons>
+  ),
+};
+
+/**
  * Tooltip with different trigger elements. Each one takes focus, so keyboard
  * users can reach it: the icon, text and image through `tabIndex={0}`, and
  * the icon has a name of its own in `ariaLabel`.
@@ -561,8 +663,10 @@ export const DifferentTriggers: Story = {
       </Tooltip>
       <Tooltip label="Tooltip on image" cursor="pointer">
         <img
-          src="https://bulma.io/assets/images/placeholders/64x64.png"
-          alt="Example"
+          src={lioness}
+          alt="A lioness looking straight ahead"
+          width={64}
+          height={64}
           tabIndex={0}
         />
       </Tooltip>

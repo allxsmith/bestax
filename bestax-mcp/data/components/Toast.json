@@ -34,7 +34,7 @@
       "code": "function example() {\n  const [showToast, setShowToast] = useState(false);\n  return (\n    <Block>\n      <Button onClick={() => setShowToast(true)}>Show Indefinite Toast</Button>\n      {showToast && (\n        <Toast\n          inline\n          message=\"This won't auto-dismiss\"\n          indefinite\n          onClose={() => setShowToast(false)}\n        />\n      )}\n    </Block>\n  );\n}"
     }
   ],
-  "accessibility": "- Uses `role=\"alert\"` for screen reader announcement.\n- Has `aria-live=\"polite\"` for non-intrusive notifications.\n- The closable button has `aria-label=\"Close\"`.\n- `pauseOnHover` lets users keep the toast visible while reading.\n- `cancelable` (default `true`) supports Escape-key dismiss.",
+  "accessibility": "- Uses `role=\"alert\"` for screen reader announcement.\n- Has `aria-live=\"polite\"` for non-intrusive notifications.\n- The closable button is named \"Close\". Pass `ariaCloseLabel` to name it in your app's language.\n- `pauseOnHover` lets users keep the toast visible while reading.\n- A toast doesn't close on its timer while focus is inside it, on its action, cancel or close button, whatever `pauseOnHover` says, so a keyboard user who reaches it can use it. Once focus leaves, it gets its whole `duration` again.\n- When a toast shown through `toast` closes with focus inside it, as one does from its own buttons, focus moves to the first button of the next toast in its stack that stays and has one, or else of the one before it, or, with neither, back to where it was before it went into a toast, while that's still on the page, rather than dropping to the page. Focus anywhere else stays where it is. A `Toast` you render yourself leaves that to your `onClose`.\n- `ToastContainer`'s `hotkey`, F8 by default, moves focus to the newest toast's first button, or to the toast itself when it has none, so a keyboard or screen reader user reaches it before it closes. Each stack is a region named \"Notifications\" with the hotkey after it, such as \"Notifications (F8)\".\n- `cancelable` (default `true`) supports Escape-key dismiss. An Escape that closed a popup on the page, such as a Dropdown menu or a date picker's calendar, leaves the toast up.\n- A toast is a notification rather than a layer, so while a [Modal](https://bestax.io/docs/api/components/modal), [Dialog](https://bestax.io/docs/api/components/dialog), [Sidebar](https://bestax.io/docs/api/components/sidebar) or full-page [Loading](https://bestax.io/docs/api/components/loading) is open, Escape goes to that and the toast stays up. Once none is open, Escape dismisses the toast.\n- In forced colors (Windows' contrast themes), which drop the toast's shadow and paint its fill in the page's own color, the toast gets a one pixel edge in the system's text color, and the cancel button's text shows at full strength. A toast given a `tabIndex` shows the browser's focus ring in place of that edge while it has keyboard focus.",
   "related": ["Dialog"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-toast",
   "summary": "The `Toast` component provides brief notification messages with optional action and cancel buttons.",
@@ -51,8 +51,8 @@
           "name": "message",
           "type": "string",
           "default": null,
-          "description": "The message to display (required).",
-          "required": false,
+          "description": "The message to display.",
+          "required": true,
           "inherited": false,
           "deprecated": false
         },
@@ -87,7 +87,7 @@
           "name": "duration",
           "type": "number",
           "default": "2000",
-          "description": "Duration in ms before auto-close. `0` disables auto-close.",
+          "description": "Duration in ms before auto-close. `0` disables auto-close. The countdown waits while focus is inside the toast, on its action, cancel or close button, whatever `pauseOnHover` says, and once focus leaves, the toast gets its whole duration again.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -105,7 +105,7 @@
           "name": "dismissible",
           "type": "boolean",
           "default": "true",
-          "description": "Whether clicking the toast (or outside it) dismisses it.",
+          "description": "Whether clicking the toast (or outside it) dismisses it. A toast you give an `onClick` closes on a click on it only when you set `dismissible` yourself, and then after your `onClick` runs.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -115,6 +115,15 @@
           "type": "boolean",
           "default": "false",
           "description": "Show an explicit close (X) button. Default: false.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ariaCloseLabel",
+          "type": "string",
+          "default": null,
+          "description": "Names the close button `closable` shows, in place of \"Close\", for an app in another language. An empty one keeps that name.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -132,7 +141,7 @@
           "name": "pauseOnHover",
           "type": "boolean",
           "default": "false",
-          "description": "Pause auto-close timer on hover. Default: false.",
+          "description": "Pause auto-close timer on hover. Default: false. Focus inside the toast holds it open either way (see `duration`).",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -141,7 +150,7 @@
           "name": "cancelable",
           "type": "boolean",
           "default": "true",
-          "description": "Whether the toast can be dismissed with Escape. Default: true.",
+          "description": "Whether the toast can be dismissed with Escape. While a Modal, Dialog, Sidebar or full-page Loading is open, Escape goes to that overlay and the toast stays up, so Escape dismisses the toast once none is open. An Escape a popup on the page closed on, by calling `preventDefault()`, leaves it up too. Default: true.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -177,7 +186,7 @@
           "name": "onClose",
           "type": "() => void",
           "default": null,
-          "description": "Callback when toast closes.",
+          "description": "Callback when the toast closes itself: on its timer, from its buttons, on Escape when it's cancelable, or, when it's dismissible, on a click on it or outside it. Through `toast.show()`, it runs before the toast leaves the store, and not when the app closes the toast with `toast.close()` or `toast.closeAll()`, so cleanup that has to run however the toast goes, such as committing a delete, goes beside those calls too.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -186,7 +195,7 @@
           "name": "container",
           "type": "string | HTMLElement",
           "default": null,
-          "description": "CSS selector or DOM node to mount the toast into.",
+          "description": "CSS selector or DOM node to mount the toast into. Through `toast.show()`, a toast with one portals there in a box of its own, rather than joining `ToastContainer`'s stack for its position.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -195,7 +204,7 @@
           "name": "inline",
           "type": "boolean",
           "default": "false",
-          "description": "Renders inline instead of using a portal.",
+          "description": "Renders inline instead of using a portal. Without it, a toast renders inline on the server and while hydrating, moving into the portal once the client takes over, so hydration matches. Through `toast.show()`, a toast already renders inline in `ToastContainer`'s stack for its position, and `inline` keeps one with a `container` in that stack too.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -219,10 +228,57 @@
           "required": false,
           "inherited": false,
           "deprecated": false
+        },
+        {
+          "name": "onClick",
+          "type": "React.MouseEventHandler<HTMLDivElement>",
+          "default": null,
+          "description": "Called on a click on the toast. With `dismissible` left out, a toast with an `onClick` stays open on a click on it; with `dismissible` set to `true`, it closes after `onClick` runs.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
         }
       ],
       "catchAll": "All standard <div> attributes and Bulma helper props",
       "types": []
+    },
+    {
+      "path": "ToastContainer",
+      "summary": "Container component for rendering programmatic toasts. Place once at your app root to enable the toast API. A toast shown with a `position` appears there, and one shown without goes to the container's `position`. The toasts at one position stack in one `.toast-container`, with a gap between them, in the order they were shown, growing away from the edge of the screen. A toast shown with a `container` of its own, and not `inline`, portals there instead, in a box of its own. Each stack is a region named \"Notifications\", with its hotkey after it, \"Notifications (F8)\" by default. The hotkey moves keyboard focus to the newest toast's first button, or to the toast itself when it has none, so someone who can't reach a toast with a pointer gets there before it closes, and the toast stays open while focus is inside it. When a toast closes with focus inside it, focus moves to the first button of the next toast in its stack that stays and has one, or else of the one before it, or, with neither, back to where it was before it went into a toast, while that's still on the page. Focus anywhere else stays where it is.",
+      "component": null,
+      "props": [
+        {
+          "name": "position",
+          "type": "'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right'",
+          "default": "'top-right'",
+          "description": "Where a toast shown without a `position` of its own appears. Default: 'top-right'. When it changes, those toasts move without remounting, but one shown with its own `position` equal to the old or new value remounts and starts over as if it had just been shown.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hotkey",
+          "type": "readonly string[]",
+          "default": "['F8']",
+          "description": "The keys that move keyboard focus to the newest toast: modifier flags (`altKey`, `ctrlKey`, `metaKey`, `shiftKey`) and one key, by its code (`F8`, `KeyT`, `Digit1`, `Period`), held together with no other modifier. A key that types a character, with no Ctrl, Meta or Alt, doesn't count while someone is typing in a field. `[]` turns the hotkey off.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "default": "'Notifications'",
+          "description": "Names each stack's region, with the hotkey after it, for an app in another language. Default: `'Notifications'`, read as \"Notifications (F8)\".",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": null,
+      "types": [],
+      "standalone": "companion"
     }
   ],
   "cssVars": [

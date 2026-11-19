@@ -21,6 +21,8 @@ import {
 } from '@testing-library/react';
 import { Dropdown } from '../components/Dropdown';
 import { Taginput } from '../form/Taginput';
+import { PinInput } from '../form/PinInput';
+import { PasswordInput } from '../form/PasswordInput';
 import { Toast } from '../components/Toast';
 import { Carousel, CarouselItem } from '../components/Carousel';
 import { Modal } from '../components/Modal';
@@ -46,7 +48,7 @@ const renderInShadowRoot = (ui: React.ReactElement) => {
 
 describe('Dropdown in a shadow root', () => {
   test('pressing an item keeps the menu open, so the click that follows runs it', () => {
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     const { getByRole, getByTestId } = renderInShadowRoot(
       <Dropdown label="Menu">
         <Dropdown.Item onClick={onClick}>Archive</Dropdown.Item>
@@ -105,7 +107,7 @@ describe('Dropdown in a shadow root', () => {
   });
 
   test('Enter on an item runs it and hands focus back to the trigger', () => {
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     const { getByRole, getByText } = renderInShadowRoot(
       <Dropdown label="Menu" active>
         <Dropdown.Item onClick={onClick}>Archive</Dropdown.Item>
@@ -122,13 +124,39 @@ describe('Dropdown in a shadow root', () => {
   });
 });
 
+describe('PinInput in a shadow root', () => {
+  test('its boxes follow the caret, which React’s onSelect never reports there', () => {
+    // A browser fires `selectionchange` at the document when the caret moves,
+    // inside a shadow root too. jsdom doesn't, so it's fired here.
+    const { getByLabelText, container } = renderInShadowRoot(
+      <PinInput label="Code" defaultValue="1234" />
+    );
+    const input = getByLabelText('Code') as HTMLInputElement;
+    const focused = () =>
+      Array.from(container.querySelectorAll('.pin-input-box')).flatMap(
+        (box, i) => (box.classList.contains('is-focused') ? [i] : [])
+      );
+
+    act(() => input.focus());
+    expect(shadowRoot.activeElement).toBe(input);
+    // The empty box after the code, where the caret is.
+    expect(focused()).toEqual([4]);
+
+    act(() => {
+      input.setSelectionRange(1, 1);
+      document.dispatchEvent(new Event('selectionchange'));
+    });
+    expect(focused()).toEqual([1]);
+  });
+});
+
 describe('Taginput in a shadow root', () => {
   test('pressing a suggestion keeps the list open, so the click that follows adds it', () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     const { getByRole, queryByRole } = renderInShadowRoot(
       <Taginput data={['React', 'Vue']} onChange={onChange} />
     );
-    fireEvent.change(getByRole('textbox'), { target: { value: 'r' } });
+    fireEvent.change(getByRole('combobox'), { target: { value: 'r' } });
     const option = getByRole('option', { name: 'React' });
 
     fireEvent.mouseDown(option);
@@ -145,7 +173,7 @@ describe('Taginput in a shadow root', () => {
         <button type="button">Elsewhere</button>
       </>
     );
-    fireEvent.change(getByRole('textbox'), { target: { value: 'r' } });
+    fireEvent.change(getByRole('combobox'), { target: { value: 'r' } });
     expect(queryByRole('listbox')).toBeInTheDocument();
 
     fireEvent.mouseDown(getByRole('button', { name: 'Elsewhere' }));
@@ -155,21 +183,21 @@ describe('Taginput in a shadow root', () => {
 
 describe('Toast in a shadow root', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   // The click-outside listener attaches a frame after the toast shows.
   const attachListener = () =>
     act(() => {
-      jest.runOnlyPendingTimers();
+      vi.runOnlyPendingTimers();
     });
 
   test('a click inside the toast is not a click outside it', () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     // A caller's own `onClick` takes the place of the toast's dismiss on
     // click, so only the click-outside check decides whether this closes it.
     const { getByText } = renderInShadowRoot(
@@ -188,7 +216,7 @@ describe('Toast in a shadow root', () => {
   });
 
   test('a click outside the toast still closes it', () => {
-    const onClose = jest.fn();
+    const onClose = vi.fn();
     const { getByRole } = renderInShadowRoot(
       <>
         <Toast inline message="Saved" duration={0} onClose={onClose} />
@@ -210,7 +238,7 @@ describe('Carousel in a shadow root', () => {
   ];
 
   test('arrow keys turn the slides while focus is inside it', () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     const { getByLabelText } = renderInShadowRoot(
       <Carousel value={0} onChange={onChange}>
         {slides}
@@ -224,7 +252,7 @@ describe('Carousel in a shadow root', () => {
   });
 
   test('arrow keys leave it alone while focus is elsewhere in the shadow root', () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     const { getByRole } = renderInShadowRoot(
       <>
         <Carousel value={0} onChange={onChange}>
@@ -314,5 +342,31 @@ describe('Modal in a shadow root', () => {
 
     fireEvent.click(done);
     expect(shadowRoot.activeElement).toBe(opener);
+  });
+});
+
+describe('PasswordInput in a shadow root', () => {
+  test('hides again when its form submits or resets, though neither event leaves the root', () => {
+    const onVisibleChange = vi.fn();
+    const { getByLabelText, getByTestId } = renderInShadowRoot(
+      <form data-testid="form" onSubmit={event => event.preventDefault()}>
+        <PasswordInput
+          label="Password"
+          defaultVisible
+          onVisibleChange={onVisibleChange}
+        />
+      </form>
+    );
+    const field = getByLabelText('Password');
+    const toggle = field.nextElementSibling as HTMLButtonElement;
+    expect(field).toHaveAttribute('type', 'text');
+
+    fireEvent.submit(getByTestId('form'));
+    expect(field).toHaveAttribute('type', 'password');
+
+    fireEvent.click(toggle);
+    fireEvent.reset(getByTestId('form'));
+    expect(field).toHaveAttribute('type', 'password');
+    expect(onVisibleChange.mock.calls).toEqual([[false], [true], [false]]);
   });
 });

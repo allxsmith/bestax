@@ -2,13 +2,16 @@ import React, {
   forwardRef,
   useCallback,
   useEffect,
+  useId,
   useRef,
+  useState,
   useSyncExternalStore,
 } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useIsHydrated } from '../helpers/useIsHydrated';
-import { useConfig } from '../helpers/Config';
+import { PortalScope, usePortalProp } from '../helpers/portal';
+import { warnOnce } from '../helpers/devWarnings';
+import { hasText } from '../helpers/iconGlyph';
 import { Modal } from './Modal';
 
 /** Valid dialog type/color values. */
@@ -18,19 +21,32 @@ export type DialogType = 'default' | 'success' | 'danger' | 'warning' | 'info';
  * Props for the Dialog component.
  * @extraProp {string} [className] - Additional CSS classes.
  * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the dialog element.
+ * @extraProp {string} [aria-label] - The dialog's accessible name, for a dialog with no `title`. A development build warns about an open dialog with no title, `aria-label` or `aria-labelledby`.
  */
 export interface DialogProps
   extends
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'color'> {
-  /** Whether the dialog is open (required). */
+  /** Whether the dialog is open. */
   isOpen: boolean;
-  /** Dialog title. */
-  title?: string;
-  /** Dialog message/content (required). */
+  /**
+   * Dialog title, which names the dialog through `aria-labelledby` unless
+   * you pass an `aria-labelledby` of your own. A dialog with no title has no
+   * name unless you give it an `aria-label`, or an `aria-labelledby` pointing
+   * at text of yours, and a development build warns about one with none.
+   */
+  title?: string | undefined;
+  /**
+   * Dialog message/content, which describes the dialog through
+   * `aria-describedby` unless you pass an `aria-describedby` of your own.
+   */
   message: string | React.ReactNode;
-  /** The type/color of the dialog. Default: 'default'. */
-  type?: DialogType;
+  /**
+   * The type/color of the dialog. Default: 'default'. Its color and its
+   * built-in icon aren't announced, so say in the title or the message what
+   * kind of dialog it is when that matters, as for a destructive action.
+   */
+  type?: DialogType | undefined;
   /** Text for confirm button. Default: 'OK'. */
   confirmText?: string;
   /** Text for cancel button. Default: 'Cancel'. */
@@ -45,7 +61,11 @@ export interface DialogProps
   canCancel?: boolean;
   /** Focus cancel button instead of confirm. Default: false. */
   focusCancel?: boolean;
-  /** Custom icon to display. */
+  /**
+   * Custom icon to display beside the title, so only when there is one, in
+   * place of the type's built-in icon, which is hidden from assistive
+   * technology. Yours is rendered as you pass it.
+   */
   icon?: React.ReactNode;
   /**
    * Renders the dialog into a portal target instead of inline. Forwarded to
@@ -111,8 +131,36 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
     const dialogRef = useRef<HTMLDivElement>(null);
     // Cleanup returned by a consumer's callback ref on attach, held until detach.
     const consumerCleanupRef = useRef<(() => void) | null>(null);
+    // The box, as state, for the popups in the message to portal into. It's
+    // what carries `aria-modal`, rather than the Modal's root around it.
+    const [scopeNode, setScopeNode] = useState<HTMLDivElement | null>(null);
     const confirmRef = useRef<HTMLButtonElement>(null);
     const cancelRef = useRef<HTMLButtonElement>(null);
+    // Ids of its own for the title and the message, so another dialog open
+    // at the same time, or an element of the page's with the same id, can't
+    // take its name or its description.
+    const baseId = useId();
+    const titleId = `${baseId}-title`;
+    const messageId = `${baseId}-message`;
+
+    // An alertdialog needs a name: a label of the caller's own, or the title,
+    // unless an `aria-labelledby` the caller passed, which is spread over the
+    // title's, replaces it.
+    const named =
+      hasText(rest['aria-label']) ||
+      ('aria-labelledby' in rest
+        ? hasText(rest['aria-labelledby'])
+        : hasText(title));
+    useEffect(() => {
+      if (isOpen && !named) {
+        warnOnce(
+          'Dialog:unnamed',
+          '[bestax-bulma] A Dialog opened with no accessible name. Give it a ' +
+            'title, an aria-label or an aria-labelledby. dialog.alert and ' +
+            'dialog.confirm take a title or an aria-label in their options.'
+        );
+      }
+    }, [isOpen, named]);
 
     // Handle cancel
     const handleCancel = useCallback(() => {
@@ -137,11 +185,7 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
     // the Modal's subtree, these buttons included, so the focus effect below
     // has to re-run against the new nodes, exactly as the Modal's own focus
     // effect does, on the same inputs.
-    const isHydrated = useIsHydrated();
-    const isPortaled = Boolean(portal) && isHydrated;
-    const { portalContainer } = useConfig();
-    const defaultTarget =
-      isPortaled && portal === true ? portalContainer : undefined;
+    const { isPortaled, defaultTarget } = usePortalProp(portal);
 
     // Focus management — Dialog picks a specific button rather than the
     // Modal's default (first focusable/root); this effect runs after the
@@ -159,6 +203,7 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
       (node: HTMLDivElement | null) => {
         (dialogRef as React.MutableRefObject<HTMLDivElement | null>).current =
           node;
+        setScopeNode(node);
         if (typeof ref === 'function') {
           // React 19 lets a callback ref return a cleanup function and detaches by
           // running it instead of calling the ref with `null`; React 18 discards the
@@ -268,7 +313,8 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
       }
     };
 
-    const displayIcon = icon !== undefined ? icon : getDefaultIcon();
+    const builtInIcon = icon === undefined;
+    const displayIcon = builtInIcon ? getDefaultIcon() : icon;
 
     if (!isOpen) {
       return null;
@@ -282,47 +328,59 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
         portal={portal}
       >
         <Modal.Background onClick={handleBackgroundClick} />
-        <div
-          ref={combinedRef}
-          className={combinedClasses}
-          role="alertdialog"
-          aria-modal="true"
-          aria-labelledby={title ? 'dialog-title' : undefined}
-          aria-describedby="dialog-message"
-          {...rest}
-        >
-          {title && (
-            <div className={headerClass}>
-              {displayIcon && <span className={iconClass}>{displayIcon}</span>}
-              <h3 id="dialog-title" className={titleClass}>
-                {title}
-              </h3>
-            </div>
-          )}
-          <div id="dialog-message" className={bodyClass}>
-            {message}
-          </div>
-          <div className={footerClass}>
-            {showCancel && (
-              <button
-                ref={cancelRef}
-                type="button"
-                className={cancelButtonClass}
-                onClick={handleCancel}
-              >
-                {cancelText}
-              </button>
+        <PortalScope node={scopeNode}>
+          <div
+            ref={combinedRef}
+            className={combinedClasses}
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby={title ? titleId : undefined}
+            aria-describedby={messageId}
+            {...rest}
+          >
+            {title && (
+              <div className={headerClass}>
+                {displayIcon && (
+                  <span
+                    className={iconClass}
+                    // The built-in icon is hidden from assistive technology,
+                    // where an svg with no name reads as an unlabelled image.
+                    // A custom one is left as the caller passes it.
+                    aria-hidden={builtInIcon || undefined}
+                  >
+                    {displayIcon}
+                  </span>
+                )}
+                <h3 id={titleId} className={titleClass}>
+                  {title}
+                </h3>
+              </div>
             )}
-            <button
-              ref={confirmRef}
-              type="button"
-              className={confirmButtonClass}
-              onClick={handleConfirm}
-            >
-              {confirmText}
-            </button>
+            <div id={messageId} className={bodyClass}>
+              {message}
+            </div>
+            <div className={footerClass}>
+              {showCancel && (
+                <button
+                  ref={cancelRef}
+                  type="button"
+                  className={cancelButtonClass}
+                  onClick={handleCancel}
+                >
+                  {cancelText}
+                </button>
+              )}
+              <button
+                ref={confirmRef}
+                type="button"
+                className={confirmButtonClass}
+                onClick={handleConfirm}
+              >
+                {confirmText}
+              </button>
+            </div>
           </div>
-        </div>
+        </PortalScope>
       </Modal>
     );
   }
@@ -336,15 +394,28 @@ Dialog.displayName = 'Dialog';
  * Options for showing a programmatic alert dialog.
  */
 export interface AlertOptions {
-  /** Dialog title. */
+  /** Dialog title, which names the dialog. */
   title?: string;
+  /**
+   * The dialog's accessible name when it has no `title`. With a title, the
+   * title names it. A development build warns about a dialog with neither.
+   */
+  'aria-label'?: React.AriaAttributes['aria-label'];
   /** Dialog message/content. */
   message: string | React.ReactNode;
-  /** Dialog type/color. */
+  /**
+   * Dialog type/color. Its color and its built-in icon aren't announced, so
+   * say in the title or the message what kind of dialog it is when that
+   * matters, as for a destructive action.
+   */
   type?: DialogType;
   /** Text for the confirm button. */
   confirmText?: string;
-  /** Custom icon to display. */
+  /**
+   * Custom icon to display beside the title, so only when there is one, in
+   * place of the type's built-in icon, which is hidden from assistive
+   * technology. Yours is rendered as you pass it.
+   */
   icon?: React.ReactNode;
 }
 
@@ -398,7 +469,9 @@ const notifyDialogListeners = () => {
  */
 export const dialog = {
   /**
-   * Show an alert dialog. Returns a promise that resolves when closed.
+   * Show an alert dialog. Returns a promise that resolves when closed. A
+   * string is the message alone, which leaves the dialog without a name, so
+   * pass options with a `title` or an `aria-label` instead.
    */
   alert: (options: AlertOptions | string): Promise<void> => {
     return new Promise<void>(resolve => {
@@ -413,7 +486,9 @@ export const dialog = {
   },
 
   /**
-   * Show a confirm dialog. Returns a promise that resolves to true/false.
+   * Show a confirm dialog. Returns a promise that resolves to true/false. A
+   * string is the message alone, which leaves the dialog without a name, so
+   * pass options with a `title` or an `aria-label` instead.
    */
   confirm: (options: ConfirmOptions | string): Promise<boolean> => {
     return new Promise<boolean>(resolve => {
@@ -477,6 +552,7 @@ export const DialogContainer: React.FC = () => {
       confirmText={options.confirmText}
       cancelText={options.cancelText}
       icon={options.icon}
+      aria-label={options['aria-label']}
       showCancel={type === 'confirm'}
       focusCancel={options.focusCancel}
       onConfirm={() => dialog.close(type === 'confirm' ? true : undefined)}

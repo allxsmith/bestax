@@ -19,6 +19,8 @@ A Bulma-styled text input supporting color, size, rounded, static, and loading s
 ```tsx live
 <Input
   label="Email"
+  type="email"
+  autoComplete="email"
   placeholder="you@example.com"
   iconLeftName="envelope"
   message="We'll never share your email"
@@ -53,6 +55,22 @@ A Bulma-styled multi-line text input. Supports color, size, and fixed size. Also
 :::tip Escape hatch
 For complex layouts, use `TextAreaBase` with an explicit `Field` + `Control` wrapper.
 :::
+
+---
+
+### PasswordInput
+
+A password field with a button inside it that shows what was typed: an eye named "Show password", or with `variant="text"` the words "Show" and "Hide". It asks for `autocomplete="current-password"` and no spellcheck, and hides the password again when its form submits.
+
+```tsx live
+<PasswordInput
+  label="New password"
+  autoComplete="new-password"
+  message="At least 15 characters."
+/>
+```
+
+[View full documentation.](../../api/form/passwordinput)
 
 ---
 
@@ -91,6 +109,31 @@ function AutocompleteExample() {
 
 ---
 
+### PinInput
+
+A one-time code or a PIN, drawn as a row of boxes with a character in each. The code is in one real input under the boxes, so paste, autofill from a text message and screen readers treat it as one field, and `onComplete` gets the code once the last box fills.
+
+```tsx live
+function PinInputExample() {
+  const [code, setCode] = React.useState('');
+  return (
+    <div>
+      <PinInput
+        label="Verification code"
+        value={code}
+        onChange={setCode}
+        onComplete={full => setCode(full)}
+      />
+      <p className="mt-2">Code: {code || 'none yet'}</p>
+    </div>
+  );
+}
+```
+
+[View full documentation.](../../api/form/pininput)
+
+---
+
 ## Selection
 
 ### Checkbox
@@ -117,6 +160,29 @@ Wraps multiple `Checkbox` components in a vertical group for lists of boolean op
 ```
 
 [View full documentation.](../../api/form/checkboxes)
+
+---
+
+### CheckboxCard
+
+A checkbox drawn as a card, with a title and a description, that toggles wherever you click it. It joins a `Checkboxes` group as `Checkbox` does.
+
+```tsx live
+<Checkboxes label="Add-ons" name="extras" defaultValue={['backups']}>
+  <CheckboxCard
+    value="backups"
+    title="Daily backups"
+    description="Kept for 30 days."
+  />
+  <CheckboxCard
+    value="domain"
+    title="Custom domain"
+    description="Bring your own."
+  />
+</Checkboxes>
+```
+
+[View full documentation.](../../api/form/checkboxcard)
 
 ---
 
@@ -147,12 +213,31 @@ Groups multiple `Radio` components vertically for single-choice lists (e.g., RSV
 
 ---
 
+### RadioCard
+
+A radio button drawn as a card, with a title and a description, picked wherever you click it. The cards in a `Radios` group are one choice the arrow keys move through.
+
+```tsx live
+<Radios label="Plan" name="plan" defaultValue="pro">
+  <RadioCard
+    value="starter"
+    title="Starter"
+    description="One site, community support."
+  />
+  <RadioCard value="pro" title="Pro" description="Ten sites, email support." />
+</Radios>
+```
+
+[View full documentation.](../../api/form/radiocard)
+
+---
+
 ### Select
 
 A Bulma-styled dropdown for single or multiple selections. Supports color, size, rounded, loading, and multiselect. Accepts `label`, `iconLeftName`, and `message`/`messageColor` to auto-wrap with `Field` and `Control`.
 
 ```tsx live
-<Select label="Country" iconLeftName="globe">
+<Select autoComplete="country" label="Country" iconLeftName="globe">
   <option>United States</option>
   <option>Canada</option>
   <option>United Kingdom</option>
@@ -164,6 +249,85 @@ A Bulma-styled dropdown for single or multiple selections. Supports color, size,
 :::tip Escape hatch
 For complex layouts, use `SelectBase` with an explicit `Field` + `Control` wrapper.
 :::
+
+---
+
+### Combobox
+
+A text field with a list to pick from under it. Given `data`, it filters the list as you type and keeps the value, with the picks as tags when it takes several. Built from parts, it also covers a server search or a "Create" item, with the data in your hands. For free text with suggestions, `Autocomplete` is the simpler choice.
+
+```tsx live
+<form onSubmit={e => e.preventDefault()}>
+  <Combobox
+    label="Fruit"
+    placeholder="Pick a fruit"
+    data={['Apple', 'Banana', 'Cherry', 'Grape', 'Mango', 'Pear']}
+    empty="No fruit matches"
+  />
+  <Input label="Quantity" type="number" min={1} defaultValue={1} />
+  <Input label="Deliver on" type="date" />
+  <Button type="submit" color="primary">
+    Add to basket
+  </Button>
+</form>
+```
+
+[View full documentation.](../../api/form/combobox)
+
+---
+
+### TreeSelect
+
+A field whose options are a tree, such as a folder, a place or a team. It opens a panel holding a `TreeView`, picks one item or checks a branch at a time, and can search labels.
+
+```tsx live
+<TreeSelect
+  label="Save to"
+  searchable
+  data={[
+    {
+      value: 'docs',
+      label: 'Documents',
+      children: [
+        { value: 'invoices', label: 'Invoices' },
+        { value: 'contracts', label: 'Contracts' },
+      ],
+    },
+    { value: 'photos', label: 'Photos' },
+  ]}
+/>
+```
+
+[View full documentation.](../../api/form/treeselect)
+
+---
+
+### Cascader
+
+A field whose value sits at the end of a path, such as a city picked by continent, then country. It opens a column per level, shows the path in the field once it's shut, and takes the same `data` as `TreeSelect`.
+
+```tsx live
+<Cascader
+  label="City"
+  data={[
+    {
+      value: 'germany',
+      label: 'Germany',
+      children: [
+        { value: 'berlin', label: 'Berlin' },
+        { value: 'munich', label: 'Munich' },
+      ],
+    },
+    {
+      value: 'japan',
+      label: 'Japan',
+      children: [{ value: 'tokyo', label: 'Tokyo' }],
+    },
+  ]}
+/>
+```
+
+[View full documentation.](../../api/form/cascader)
 
 ---
 
@@ -335,6 +499,35 @@ function DateRangeInputExample() {
 
 ---
 
+### Calendar
+
+Months on the page, not behind an input. A click picks a day or a range, `dayTemplate` draws what's on each day, with `getDayLabel` saying it to a screen reader, and `month` with `onMonthChange` lets an app load each month's data as it comes up. It posts nothing with a form: use `DateInput inline` for that.
+
+```tsx live
+function CalendarExample() {
+  const [day, setDay] = React.useState<Date | null>(null);
+  const fare = (date: Date) => 60 + ((date.getDate() * 7) % 50);
+  return (
+    <div>
+      <Calendar
+        aria-label="Pick a departure day"
+        value={day}
+        onChange={setDay}
+        dayTemplate={date => `$${fare(date)}`}
+        getDayLabel={(date, label) => `${label}, $${fare(date)}`}
+      />
+      <p className="mt-2">
+        {day ? `${day.toDateString()}: $${fare(day)}` : 'Pick a day'}
+      </p>
+    </div>
+  );
+}
+```
+
+[View full documentation.](../../api/form/datetime/calendar)
+
+---
+
 ### TimeInput
 
 A time-of-day input that opens a popover wheel spinner, with segmented keyboard entry directly in the field. Supports 12/24-hour formats, optional seconds, custom increments, min/max bounds, and a native fallback on touch devices.
@@ -370,6 +563,40 @@ Combines the calendar and time wheels in a single popover with an iOS-style foot
 ```
 
 [View full documentation.](../../api/form/datetime/datetimeinput)
+
+---
+
+## Color
+
+### ColorInput
+
+A form field for a color: type it, or open a color picker from its launcher or its swatch. The value is a CSS color string, HSL by default, or empty, and the panel takes `alpha`, `swatches` and an eye dropper.
+
+```tsx live
+<ColorInput
+  label="Brand color"
+  defaultValue="hsl(202, 67%, 36%)"
+  swatches="bulma"
+/>
+```
+
+[View full documentation.](../../api/form/colorinput)
+
+---
+
+### ColorPicker
+
+A panel for choosing a color: drag in the square for saturation and brightness, pick the hue on the slider, or type a value. The value is a CSS color string, HSL by default, and `alpha` and `swatches` add transparency and preset colors.
+
+```tsx live
+<ColorPicker
+  label="Brand color"
+  defaultValue="hsl(202, 67%, 36%)"
+  swatches="bulma"
+/>
+```
+
+[View full documentation.](../../api/form/colorpicker)
 
 ---
 
@@ -426,6 +653,22 @@ A Bulma-styled file input with support for color, size, boxed/fullwidth/align st
 
 [View full documentation.](../../api/form/file)
 
+### Dropzone
+
+An area to drop files on or click to pick them, which checks each one against `accept`, `maxSize` and `maxFiles`, lists the chosen files with a remove button each, and says why it refused any. The input holds the files, so a form submits them under `name`. Use `File` instead for a single pick shown by its name.
+
+```tsx live
+<Dropzone
+  label="Attachments"
+  name="attachments"
+  multiple
+  maxFiles={5}
+  hint="Up to 5 files"
+/>
+```
+
+[View full documentation.](../../api/form/dropzone)
+
 ---
 
 ## Layout
@@ -436,7 +679,7 @@ A Bulma-styled form field container for labels, grouped controls, and horizontal
 
 ```tsx live
 <Field label="Email">
-  <Input placeholder="you@example.com" />
+  <Input type="email" autoComplete="email" placeholder="you@example.com" />
 </Field>
 ```
 
@@ -454,7 +697,7 @@ A Bulma-styled wrapper for form controls, providing consistent spacing, icon pla
 
 ```tsx live
 <Control>
-  <Input placeholder="Username" />
+  <Input autoComplete="username" placeholder="Username" />
 </Control>
 ```
 
@@ -465,6 +708,21 @@ An `Input` inside a `Control` renders no `Control` of its own, and no `Field` ei
 :::tip
 Wrap inputs, selects, or textareas in `Control` for proper Bulma styling and icon support.
 :::
+
+---
+
+### Fieldset
+
+A section of a form in a native `<fieldset>`, named by its legend, bordered, filled or unstyled, whose `disabled` switches off every control inside.
+
+```tsx live
+<Fieldset legend="Shipping address" message="We only ship within the EU.">
+  <Input label="Street" name="street" autoComplete="shipping address-line1" />
+  <Input label="City" name="city" autoComplete="shipping address-level2" />
+</Fieldset>
+```
+
+[View full documentation.](../../api/form/fieldset)
 
 ---
 

@@ -4,12 +4,230 @@ export interface Template {
   name: string;
   display: string;
   color: typeof chalk.yellow;
+  // The folder under templates/ the scaffold copies.
+  directory: string;
+  // Turn on the React Compiler in the copy, the way create-vite builds its
+  // react-compiler starters from its react ones (setupReactCompiler).
+  reactCompiler?: boolean;
+  // Add this router's pages and navbar to the copy (setupRouter).
+  router?: RouterName;
+  // What builds the app. A Next.js template has no index.html or src/main:
+  // its stylesheets, icons and provider go in src/app/layout, its title in
+  // that file's metadata.
+  framework?: 'vite' | 'next';
+  // The template folder whose starter page (src/App, src/App.css and
+  // src/index.css) the copy takes, so every template shows the same page,
+  // with NEXT_STARTER_EDITS applied.
+  starter?: string;
 }
 
+/** The routers a template can start with, each set up by ROUTER_SETUPS. */
+export type RouterName = 'react-router' | 'tanstack-router';
+
 export const TEMPLATES: Template[] = [
-  { name: 'vite', display: 'Vite', color: chalk.yellow },
-  { name: 'vite-ts', display: 'Vite + TypeScript', color: chalk.blue },
+  { name: 'vite', display: 'Vite', color: chalk.yellow, directory: 'vite' },
+  {
+    name: 'vite-ts',
+    display: 'Vite + TypeScript',
+    color: chalk.blue,
+    directory: 'vite-ts',
+  },
+  {
+    name: 'vite-compiler',
+    display: 'Vite + React Compiler',
+    color: chalk.yellow,
+    directory: 'vite',
+    reactCompiler: true,
+  },
+  {
+    name: 'vite-compiler-ts',
+    display: 'Vite + TypeScript + React Compiler',
+    color: chalk.blue,
+    directory: 'vite-ts',
+    reactCompiler: true,
+  },
+  {
+    name: 'react-router',
+    display: 'React Router',
+    color: chalk.yellow,
+    directory: 'vite',
+    router: 'react-router',
+  },
+  {
+    name: 'react-router-ts',
+    display: 'React Router + TypeScript',
+    color: chalk.blue,
+    directory: 'vite-ts',
+    router: 'react-router',
+  },
+  // TypeScript only: checking `to` against the routes is why people pick it.
+  {
+    name: 'tanstack-router-ts',
+    display: 'TanStack Router + TypeScript',
+    color: chalk.blue,
+    directory: 'vite-ts',
+    router: 'tanstack-router',
+  },
+  {
+    name: 'next',
+    display: 'Next.js',
+    color: chalk.yellow,
+    directory: 'next',
+    framework: 'next',
+    starter: 'vite',
+  },
+  {
+    name: 'next-ts',
+    display: 'Next.js + TypeScript',
+    color: chalk.blue,
+    directory: 'next-ts',
+    framework: 'next',
+    starter: 'vite-ts',
+  },
 ];
+
+// What a Next.js template changes in the Vite starter page it takes: it's a
+// client component, since it keeps state, and it names Next.js where the Vite
+// one names Vite. The Vite logo goes, since Next.js ships no square mark. Each
+// must match, so the starter page can't drift from the Vite one silently.
+export const NEXT_STARTER_EDITS: Array<[RegExp, string]> = [
+  [/^/, "'use client';\n\n"],
+  [
+    /\n[ \t]*<Column isNarrow>\n[ \t]*<Image src="\/vite\.svg" alt="Vite" size="128x128" \/>\n[ \t]*<\/Column>/,
+    '',
+  ],
+  [/Bestax \+ Vite \+ React/, 'Bestax + Next.js + React'],
+  [/Your Vite \+ Bestax setup/, 'Your Next.js + Bestax setup'],
+];
+
+// The packages create-next-app's ESLint setup adds, in place of oxlint.
+// eslint-config-next brings typescript-eslint, which can't load TypeScript 7,
+// so a TypeScript app stays on 6, as the Vite templates' --lint eslint does.
+export const NEXT_ESLINT_DEV_DEPENDENCIES: Record<string, string> = {
+  eslint: '^9.39.4',
+  'eslint-config-next': '^16.4.3',
+};
+
+/** The eslint.config.mjs create-next-app writes. */
+export const NEXT_ESLINT_CONFIG = (typescript: boolean): string =>
+  [
+    "import { defineConfig, globalIgnores } from 'eslint/config';",
+    "import nextVitals from 'eslint-config-next/core-web-vitals';",
+    ...(typescript
+      ? ["import nextTs from 'eslint-config-next/typescript';"]
+      : []),
+    '',
+    'const eslintConfig = defineConfig([',
+    '  ...nextVitals,',
+    ...(typescript ? ['  ...nextTs,'] : []),
+    '  // Override default ignores of eslint-config-next.',
+    '  globalIgnores([',
+    '    // Default ignores of eslint-config-next:',
+    "    '.next/**',",
+    "    'out/**',",
+    "    'build/**',",
+    "    'next-env.d.ts',",
+    '  ]),',
+    ']);',
+    '',
+    'export default eslintConfig;',
+    '',
+  ].join('\n');
+
+export interface RouterSetup {
+  // What a router template adds to its plain template's dependencies.
+  dependencies: Record<string, string>;
+  // The Node range the scaffold's engines field takes, when the router needs
+  // more than the plain template.
+  nodeEngine?: string;
+  // Where the entry file imports RouterProvider from.
+  providerModule: string;
+  // Appended to the scaffold's README.
+  readme: (ext: 'jsx' | 'tsx') => string;
+  // The routing line in the scaffold's CLAUDE.md.
+  claudeMd: string;
+}
+
+// How setupRouter lays each router over a plain template. Its files are in
+// templates/overlays/<router>/<directory>.
+export const ROUTER_SETUPS: Record<RouterName, RouterSetup> = {
+  'react-router': {
+    // 8.5.1 was inside the 3-day cooldown when this was written, so the floor
+    // is 8.5.0; installs still take the newest 8.x.
+    dependencies: { 'react-router': '^8.5.0' },
+    // React Router 8 needs Node 22.22 or later, past the templates' own floor.
+    nodeEngine: '>=22.22.0',
+    providerModule: 'react-router',
+    readme: ext => `
+## Routing
+
+[React Router](https://reactrouter.com) runs in data mode. The routes are in
+\`src/router.${ext}\`, where \`App\`, the starter page, is the home page and
+\`src/pages/About.${ext}\` is the second. \`src/Layout.${ext}\` holds the navbar every
+page shares. To add a page, write it in \`src/pages\`, add a route for it, and link
+to it from the navbar. The bestax routing guide
+(https://bestax.io/docs/guides/features/routing) covers links, buttons and
+active items.
+`,
+    claudeMd:
+      `- Routing: React Router in data mode. Routes are in \`src/router\`, pages in ` +
+      `\`src/pages\`, and the navbar every page shares in \`src/Layout\`. Link with ` +
+      `\`<Navbar.Item as={Link} to="...">\` and \`<Menu.Item as={Link} ...>\`, and set \`active\` ` +
+      `from \`useLocation\`, which also sets \`aria-current="page"\`, rather than using ` +
+      `\`NavLink\`, whose function \`className\` bypasses Bulma's \`is-active\` ` +
+      `(https://bestax.io/docs/guides/features/routing).`,
+  },
+  'tanstack-router': {
+    dependencies: { '@tanstack/react-router': '^1.170.46' },
+    providerModule: '@tanstack/react-router',
+    readme: () => `
+## Routing
+
+[TanStack Router](https://tanstack.com/router) runs with code-based routes, all
+in \`src/router.tsx\`, where \`App\`, the starter page, is the home page and
+\`src/pages/About.tsx\` is the second. \`src/Layout.tsx\` holds the navbar every
+page shares. Its items are \`NavbarLink\` (\`src/NavbarLink.tsx\`), \`Navbar.Item\`
+made into a TanStack link with \`createLink\`, so each \`to\` is checked against
+the routes. To add a page, write it in \`src/pages\`, add a route for it, and link
+to it from the navbar.
+`,
+    claudeMd:
+      `- Routing: TanStack Router with code-based routes, all in \`src/router.tsx\`, pages ` +
+      `in \`src/pages\`, and the navbar every page shares in \`src/Layout.tsx\`. Link ` +
+      `navbar items with \`NavbarLink\` (\`src/NavbarLink.tsx\`, \`Navbar.Item\` through ` +
+      `TanStack's \`createLink\`), not \`<Navbar.Item as={Link}>\`, which compiles but stops ` +
+      `checking \`to\` against the routes. Mark the current one with ` +
+      `\`activeProps={{ active: true }}\`; TanStack adds \`aria-current\` itself.`,
+  },
+};
+
+// The packages create-vite's react-compiler starters add to its react ones.
+// When create-vite moves them, these follow (create-bestax/CLAUDE.md).
+export const REACT_COMPILER_DEV_DEPENDENCIES: Record<string, string> = {
+  '@babel/core': '^7.29.7',
+  '@rolldown/plugin-babel': '^0.2.4',
+  'babel-plugin-react-compiler': '^1.0.0',
+};
+
+// What the TypeScript starter adds on top.
+export const REACT_COMPILER_TYPESCRIPT_DEV_DEPENDENCIES: Record<
+  string,
+  string
+> = {
+  '@types/babel__core': '^7.20.5',
+};
+
+// Appended to the README of a React Compiler scaffold, as create-vite does.
+export const REACT_COMPILER_README = `
+## React Compiler
+
+The React Compiler is turned on in \`vite.config\`, through Babel. See the
+[React Compiler docs](https://react.dev/learn/react-compiler) for what it does.
+
+It makes Vite's dev server and builds slower. plugin-react also has
+[experimental native support](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md#rust-react-compiler)
+for it, with \`compiler: true\` in its options in place of the Babel plugin.
+`;
 
 export const DEFAULT_PROJECT_NAME = 'my-bestax-app';
 export const MAX_PROJECT_NAME_LENGTH = 214;
@@ -29,9 +247,13 @@ export const MESSAGES = {
   PROJECT_NAME_INVALID_CHARS:
     'Project name can only contain letters, numbers, dots, dashes and underscores',
   PROJECT_NAME_DOT:
-    'Project name cannot start with a dot (names like "." or ".." would scaffold outside a new directory) — pass a directory name',
+    'Project name cannot start with a dot (".." would scaffold outside a new directory) — pass a directory name, or "." alone for the current directory',
   PROJECT_NAME_NO_PACKAGE_NAME:
     'Project name must contain a letter, number or dash (npm package names cannot start with "_" or ".")',
+  PROJECT_NAME_FROM_PATH: (message: string, name: string) =>
+    `${message} (the project name is "${name}", the last part of the path)`,
+  PROJECT_NAME_FROM_CWD: (message: string, name: string) =>
+    `${message} (the project name is "${name}", the current directory's name)`,
   PACKAGE_NAME_NORMALIZED: (name: string) =>
     `  package.json name: ${name} (npm package names are lower-case and cannot start with "_")`,
   OPERATION_CANCELLED: '✖ Operation cancelled',
@@ -43,7 +265,17 @@ export const MESSAGES = {
   DIRECTORY_NOT_EMPTY: (dir: string, entries: string[]) =>
     `Directory ${chalk.yellow(dir)} is not empty (${listEntries(entries)}). Remove existing files and continue?`,
   NOT_A_DIRECTORY: (dir: string) =>
-    `${dir} already exists and is not a directory, so nothing was written. Choose another project name.`,
+    `${dir} already exists and is not a directory, so nothing was written. Choose another project name or path.`,
+  // #310: the working directory, or a folder holding it, under another
+  // spelling than "." or "..", such as "../<its name>" or its absolute path.
+  // "." names the working directory, which is never emptied (#310), so it
+  // takes a scaffold only while it holds nothing.
+  CURRENT_DIRECTORY_NOT_EMPTY: (entries: string[]) =>
+    `The current directory is not empty (${listEntries(entries)}), so nothing was written.\n` +
+    '  "." scaffolds into it only while it is empty, and it is never emptied, even with --overwrite.',
+  DIRECTORY_HOLDS_CWD: (dir: string) =>
+    `Directory ${dir} is or holds the current directory, so it is never emptied, even with --overwrite, and nothing was written.\n` +
+    '  Choose a new or empty directory.',
   // Shown instead of the question above when it cannot be asked: under -y, or
   // without a terminal. -y never answers it (#945), so this must not suggest -y.
   DIRECTORY_NOT_EMPTY_REFUSED: (dir: string, entries: string[]) =>
@@ -56,6 +288,23 @@ export const MESSAGES = {
   TEMPLATE_NOT_FOUND: (template: string) => `Template not found at ${template}`,
   PROJECT_CREATED: '✔ Done! Project created successfully.',
   NEXT_STEPS: 'Next steps:',
+  INSTALLING: (pm: string) => `\n  Installing dependencies with ${pm}...\n`,
+  STARTING_DEV_SERVER: '\n  Starting the dev server...\n',
+  // cd is the step into the project, "cd <dir>, then ", or empty for ".".
+  INSTALL_FAILED: (pm: string, cd: string) =>
+    `${pm} install failed, so the dev server was not started. Fix what it reported, then ${cd}run ${pm} install and ${pm} run dev.`,
+  REACT_COMPILER_NOT_ADDED: (file: string) =>
+    `  Warning: ${file} is not shaped the way the scaffolder expects, so the React Compiler was not turned on in it. ` +
+    'Add it by hand (https://react.dev/learn/react-compiler).',
+  IONICONS_NOT_ADDED: (file: string, url: string) =>
+    `  Warning: ${file} is not shaped the way the scaffolder expects, so it does not load Ionicons. ` +
+    `Add <Script type="module" src="${url}" /> from next/script to its <body> by hand, or the icons will not render.`,
+  STARTER_NOT_ADAPTED: (starter: string, pattern: string) =>
+    `templates/${starter}'s starter page no longer matches ${pattern}, so the Next.js starter can't be made from it. ` +
+    'This is a bug in create-bestax: https://github.com/allxsmith/bestax/issues',
+  REACT_ROUTER_NOT_ADDED: (file: string) =>
+    `  Warning: ${file} is not shaped the way the scaffolder expects, so it still renders App rather than the router. ` +
+    'Render <RouterProvider router={router} /> from ./router there by hand.',
   HAPPY_CODING: 'Happy coding! 🎉',
   SKILLS_ADDED:
     '✔ Installed bestax AI skills into .claude/skills/ (+ CLAUDE.md, .claude/launch.json)',
@@ -99,9 +348,31 @@ export const LAUNCH_JSON =
     2
   ) + '\n';
 
+// The same for a Next.js app. `next dev` with an explicit --port fails when
+// the port is busy rather than moving to another, so it needs no flag of its
+// own for that.
+export const NEXT_LAUNCH_JSON =
+  JSON.stringify(
+    {
+      version: '0.0.1',
+      configurations: [
+        {
+          name: 'dev',
+          runtimeExecutable: 'npm',
+          runtimeArgs: ['run', 'dev', '--', '--port', '3000'],
+          port: 3000,
+        },
+      ],
+    },
+    null,
+    2
+  ) + '\n';
+
 export const PROMPTS = {
   PROJECT_NAME: 'Project name:',
   SELECT_FRAMEWORK: 'Select a framework:',
+  SELECT_LINTER: 'Which linter would you like to use?',
+  IMMEDIATE: (pm: string) => `Install with ${pm} and start the dev server now?`,
   SELECT_ICON_LIBRARY: 'Would you like to add an icon library?',
   SELECT_BULMA_FLAVOR: 'Which Bulma CSS flavor would you like to use?',
   INSTALL_SKILLS:
@@ -127,11 +398,18 @@ export const CONFIG_PROVIDER_ICON_VALUES: Record<string, string> = {
 export interface ClaudeMdOptions {
   bulmaFlavor: string;
   iconLibrary: string;
+  // The router the app starts with, for a router template.
+  router?: RouterName;
+  // What builds the app, `vite` when left out.
+  framework?: 'vite' | 'next';
 }
 
 // The house style opens with the inline-style table for a flavor that has the
-// helper classes, and with the named-class rule for one that does not.
-const HELPER_HOUSE_STYLE = `**Never inline \`style={{}}\`** — the components accept helper props that cover the common
+// helper classes, and with the named-class rule for one that does not. Each
+// names the stylesheet a named class goes in, which differs by framework.
+const helperHouseStyle = (
+  stylesheet: string
+): string => `**Never inline \`style={{}}\`** — the components accept helper props that cover the common
 cases. Before writing \`style\`, translate each declaration with this table:
 
 | Inline style you're about to write         | Helper props instead                                                                                                                       |
@@ -140,7 +418,7 @@ cases. Before writing \`style\`, translate each declaration with this table:
 | \`textAlign: 'center'\`                    | \`textAlign="centered"\` (also \`left\`, \`right\`, \`justified\`)                                                                          |
 | \`color: '#…'\`                            | \`textColor\` with the nearest Bulma color: \`primary\`, \`link\`, \`info\`, \`success\`, \`warning\`, \`danger\`, \`white\`, \`black\`, \`grey\` (+ \`grey-light\`, \`grey-dark\`, …) |
 | \`backgroundColor: '#…'\`                  | \`bgColor\` (same palette)                                                                                                                  |
-| \`fontSize: …\`                            | \`textSize="1"\`…\`"7"\` (\`1\` largest) — for headings use \`Title\`/\`SubTitle\` \`size\`                                                 |
+| \`fontSize: …\`                            | \`textSize="1"\`…\`"7"\` (\`1\` largest). On \`Title\`/\`SubTitle\`, \`as\` sets the level and \`size\` picks it too, so an \`<h3>\` at size 4 is \`as="h3" textSize="4"\` |
 | \`fontWeight: …\`                          | \`textWeight\`: \`light\`, \`normal\`, \`medium\`, \`semibold\`, \`bold\`                                                                   |
 | \`textTransform\`, italics                 | \`textTransform\`: \`uppercase\`, \`lowercase\`, \`capitalized\`, \`italic\`                                                                |
 | \`display: 'flex'\` + flex properties      | same-named props: \`display="flex"\`, \`flexDirection\`, \`justifyContent\`, \`alignItems\`, \`flexWrap\`                                   |
@@ -154,17 +432,27 @@ cases. Before writing \`style\`, translate each declaration with this table:
   \`Notification\` is the mixed case: it takes \`textColor\`, but its background comes from
   the semantic \`color\` prop, not \`bgColor\`.
 - No helper matches (e.g. \`maxWidth\`, a one-off gradient)? Add a named class to
-  \`src/App.css\` and pass it via \`className\` — still never inline \`style\`.`;
+  ${stylesheet} and pass it via \`className\` — still never inline \`style\`.`;
 
-const NO_HELPERS_HOUSE_STYLE = `**Never inline \`style={{}}\`**, and don't reach for helper props in its place either:
+const noHelpersHouseStyle = (
+  stylesheet: string
+): string => `**Never inline \`style={{}}\`**, and don't reach for helper props in its place either:
 this app's flavor leaves out Bulma's helper classes, so \`mt="4"\`, \`textAlign="centered"\` and \`flexGrow="1"\`
-render nothing. Write a named class in \`src/App.css\`, which loads after Bulma's CSS, and pass it via \`className\`.
+render nothing. Write a named class in ${stylesheet}, which loads after Bulma's CSS, and pass it via \`className\`.
 `;
 
 export const CLAUDE_MD = (
   projectName: string,
-  { bulmaFlavor, iconLibrary }: ClaudeMdOptions
+  { bulmaFlavor, iconLibrary, router, framework = 'vite' }: ClaudeMdOptions
 ): string => {
+  const next = framework === 'next';
+  // Where the app's <html> and <body> are, and its title.
+  const documentFile = next ? '`src/app/layout`' : '`index.html`';
+  // Where a named class reaches every page. A Vite app is one bundle, so the
+  // starter page's src/App.css does. The App Router splits CSS by route, and
+  // only the home page loads src/App.css, so a Next.js app's go in
+  // src/index.css, which the root layout loads on every page.
+  const stylesheet = next ? '`src/index.css`' : '`src/App.css`';
   const flavor = BULMA_FLAVORS.find(f => f.name === bulmaFlavor);
   const icon = ICON_LIBRARIES.find(lib => lib.name === iconLibrary);
   const setupLines = [
@@ -197,11 +485,35 @@ export const CLAUDE_MD = (
             ? ` The app is already wrapped in \`<ConfigProvider iconLibrary="${providerIconValue}">\` ` +
               `— extend that provider rather than adding a second one.`
             : '') +
-          (icon?.setupInstructions ? ` ${icon.setupInstructions}` : '')
+          (icon?.setupInstructions
+            ? // A Next.js app loads its stylesheets from its root layout,
+              // which is where the icon step wrote this library's import.
+              ` ${next ? icon.setupInstructions.replaceAll('`src/main.*`', '`src/app/layout.*`') : icon.setupInstructions}`
+            : '')
   );
+  if (router) {
+    setupLines.push(ROUTER_SETUPS[router].claudeMd);
+  }
+  if (next) {
+    setupLines.push(
+      `- Framework: the Next.js App Router. A page or component is a Server Component unless its ` +
+        `file starts with \`'use client'\`, and bestax components render from either. In a Server ` +
+        `Component, reach a component's parts by their own export (\`NavbarItem\`, ` +
+        `\`SidebarHeader\`, \`FigureCaption\`, \`ListItem\`), since \`Navbar.Item\` comes out ` +
+        `\`undefined\` there. Build a \`Card\` or \`Modal\` from its parts in a client component: ` +
+        `each lays out its parts by checking which part each child is, and that check can't ` +
+        `recognize a part written in a Server Component. A few other components do the same ` +
+        `(https://bestax.io/docs/guides/getting-started/react-setups#nextjs-specific). The dotted ` +
+        `names work in a client component. The starter page ` +
+        `(\`src/App\`) and the navbar (\`src/Navigation\`) keep state, so they're client components, ` +
+        `and the About page is a Server Component. Link with ` +
+        `\`<Navbar.Item as={NextLink} href="...">\`, with \`active\` from \`usePathname\`, which ` +
+        `also sets \`aria-current="page"\` (https://bestax.io/docs/guides/features/routing).`
+    );
+  }
   const houseStyleOpening = flavor?.noHelpers
-    ? NO_HELPERS_HOUSE_STYLE
-    : HELPER_HOUSE_STYLE;
+    ? noHelpersHouseStyle(stylesheet)
+    : helperHouseStyle(stylesheet);
   // The wrapper elements are only a way out where their helper props render.
   const utilityClassRule = flavor?.noHelpers
     ? `- Don't hand-write Bulma utility classes either: this flavor doesn't ship them, so a
@@ -222,7 +534,7 @@ ${setupLines.join('\n')}
 ${houseStyleOpening}
 ${utilityClassRule}
   The one exception: companion classes Bulma requires on \`<html>\`/\`<body>\` (e.g.
-  \`has-navbar-fixed-top\` with \`Navbar fixed="top"\`) are hand-added in \`index.html\` — no
+  \`has-navbar-fixed-top\` with \`Navbar fixed="top"\`) are hand-added in ${documentFile} — no
   component renders those elements.
 - Compound sub-parts (\`Modal.*\`, \`Tabs.*\`, \`Message.*\`) take \`className\` + HTML
   attributes and their own few props — no Bulma helper props, no \`as\`/\`href\`: nest a
@@ -239,7 +551,7 @@ ${utilityClassRule}
   \`bulmaHelperClasses\` it returns into \`className\`, and spread **its** \`rest\` (not the raw
   props) — the bestax-custom-component skill has the full template.
 - There is no test runner or Storybook in this app — don't assume one.
-- \`index.html\`'s \`<title>\` starts as the project name and \`README.md\` is stock template
+- ${next ? "The `title` in `src/app/layout`'s `metadata`" : "`index.html`'s `<title>`"} starts as the project name and \`README.md\` is stock template
   boilerplate — once this app has a real identity, set the title (and any meta tags) to match
   it and rewrite the README to describe *this* app, not the template.
 - Before adding a dependency, match the package manager to the app's lockfile
@@ -278,11 +590,19 @@ automatically when the task matches:
 Prefer the library's components and these skills over hand-written Bulma markup or custom CSS.
 Read skill \`references/\` files with absolute paths — the shell's cwd is not stable between commands.
 
-\`.claude/launch.json\` declares this app's dev server for Claude Code's browser preview
+${
+  next
+    ? `\`.claude/launch.json\` declares this app's dev server for Claude Code's browser preview
+(\`npm run dev -- --port 3000\`) — start it from there rather than rediscovering the command.
+\`next dev\` failing with \`EADDRINUSE\` means an orphaned dev server from an earlier session owns
+port 3000 — kill the listener (\`lsof -tiTCP:3000 -sTCP:LISTEN | xargs kill\`) and relaunch; don't
+move the app to another port.`
+    : `\`.claude/launch.json\` declares this app's dev server for Claude Code's browser preview
 (\`npm run dev\` on port 5173, \`--strictPort\`) — start it from there rather than rediscovering
 the command. \`--strictPort\` failing because 5173 is busy means an orphaned dev server from an
 earlier session owns the port — kill the listener (\`lsof -tiTCP:5173 -sTCP:LISTEN | xargs kill\`)
-and relaunch; don't move the app to another port.
+and relaunch; don't move the app to another port.`
+}
 
 ## Docs
 
@@ -334,7 +654,7 @@ export const ICON_LIBRARIES: IconLibrary[] = [
     display: 'Ionicons',
     color: chalk.green,
     // Note: ionicons doesn't need packageName or importStatement
-    // as it's loaded via CDN in index.html
+    // as it's loaded via CDN, from index.html or a Next.js app's layout
   },
   {
     name: 'material-icons',
@@ -359,7 +679,7 @@ export const ICON_LIBRARIES: IconLibrary[] = [
     // 0.x, so the caret holds the minor: this follows the newest minor
     // bestax-bulma's material-symbols peer range admits, not the newest
     // published one, or npm refuses the install as a peer conflict.
-    packageVersion: '^0.47.0',
+    packageVersion: '^0.48.0',
     // The package's bare import puts the outlined, rounded and sharp fonts
     // into the build. Outlined is the style Icon renders by default, so it is
     // the only one imported.
@@ -431,12 +751,93 @@ export const BULMA_FLAVORS: BulmaFlavor[] = [
   },
 ];
 
+export interface Linter {
+  name: string;
+  display: string;
+  description: string;
+  color: typeof chalk.yellow;
+}
+
+// The templates ship create-vite's default lint setup, Oxlint, and the
+// scaffolder writes create-vite's `--eslint` setup in its place for ESLint
+// (ProjectCreator.setupLinter).
+export const LINTERS: Linter[] = [
+  {
+    name: 'oxlint',
+    display: 'Oxlint (Recommended)',
+    description:
+      "create-vite's default, and TypeScript 7 for Vite + TypeScript",
+    color: chalk.green,
+  },
+  {
+    name: 'eslint',
+    display: 'ESLint',
+    description:
+      'with typescript-eslint, which keeps Vite + TypeScript on TypeScript 6',
+    color: chalk.blue,
+  },
+];
+
+// The packages create-vite's `--eslint` puts in place of oxlint. When
+// create-vite moves them, these follow (create-bestax/CLAUDE.md).
+export const ESLINT_DEV_DEPENDENCIES: Record<string, string> = {
+  '@eslint/js': '^10.0.1',
+  eslint: '^10.13.0',
+  'eslint-plugin-react-hooks': '^7.1.1',
+  'eslint-plugin-react-refresh': '^0.5.7',
+  globals: '^17.13.0',
+};
+
+// What `--eslint` adds for a TypeScript app. typescript-eslint loads
+// TypeScript's compiler API, which TypeScript 7.0 doesn't ship, and accepts
+// TypeScript below 6.1 only, so the app stays on TypeScript 6 (#394).
+export const ESLINT_TYPESCRIPT_DEV_DEPENDENCIES: Record<string, string> = {
+  typescript: '~6.0.3',
+  'typescript-eslint': '^8.72.0',
+};
+
+/** The eslint.config.js create-vite's `--eslint` writes. */
+export const ESLINT_CONFIG = (typescript: boolean): string =>
+  [
+    "import js from '@eslint/js';",
+    "import globals from 'globals';",
+    "import reactHooks from 'eslint-plugin-react-hooks';",
+    "import reactRefresh from 'eslint-plugin-react-refresh';",
+    ...(typescript ? ["import tseslint from 'typescript-eslint';"] : []),
+    "import { defineConfig, globalIgnores } from 'eslint/config';",
+    '',
+    'export default defineConfig([',
+    "  globalIgnores(['dist']),",
+    '  {',
+    typescript
+      ? "    files: ['**/*.{ts,tsx}'],"
+      : "    files: ['**/*.{js,jsx}'],",
+    '    extends: [',
+    '      js.configs.recommended,',
+    ...(typescript ? ['      tseslint.configs.recommended,'] : []),
+    '      reactHooks.configs.flat.recommended,',
+    '      reactRefresh.configs.vite,',
+    '    ],',
+    '    languageOptions: {',
+    '      globals: globals.browser,',
+    ...(typescript
+      ? []
+      : ['      parserOptions: { ecmaFeatures: { jsx: true } },']),
+    '    },',
+    '  },',
+    ']);',
+    '',
+  ].join('\n');
+
 // Sits above the stylesheet import in the templates' entry files, and the
 // scaffolder writes it back when it swaps in a flavor's stylesheet, so the
 // reason for the import order survives. The no-helpers classes depend on it.
+// It names src/index.css, the app's global stylesheet, rather than the starter
+// page's src/App.css, which loads after bestax's too but goes when a port
+// replaces the page (#1240).
 export const CSS_ORDER_COMMENT =
   "// Bestax's stylesheet loads before the app's own CSS, so a named class in\n" +
-  '// src/App.css wins over a Bulma rule of the same weight.';
+  '// src/index.css wins over a Bulma rule of the same weight.';
 
 export interface StarterClass {
   // The helper prop exactly as the starter App writes it.

@@ -17,14 +17,49 @@ export async function isDirectoryEmpty(targetPath: string): Promise<boolean> {
 }
 
 /**
- * Whether something other than a directory, such as a file, already sits at
- * targetPath. listDirectoryEntries cannot read one, so callers check first.
+ * What stands in the way of creating targetPath as a directory: the nearest
+ * of it and its parents that exists, when that is not a directory. That is a
+ * file at the target itself, or a file where a parent folder should be, as in
+ * `notes.txt/login` (#1154). null when the nearest existing entry is a
+ * directory. listDirectoryEntries cannot read a file, so callers check first.
+ *
+ * It never throws. throwIfNoEntry covers a missing entry, and a path under a
+ * file fails with ENOTDIR on some Node versions, so any failed stat moves on
+ * to the parent, where the file that caused it is found.
  */
-export async function existsAsNonDirectory(
+export async function findNonDirectoryInPath(
   targetPath: string
-): Promise<boolean> {
-  const stat = fs.statSync(targetPath, { throwIfNoEntry: false });
-  return stat !== undefined && !stat.isDirectory();
+): Promise<string | null> {
+  let current = path.resolve(targetPath);
+  for (;;) {
+    let stat: ReturnType<typeof fs.statSync>;
+    try {
+      stat = fs.statSync(current, { throwIfNoEntry: false });
+    } catch {
+      stat = undefined;
+    }
+    if (stat) {
+      return stat.isDirectory() ? null : current;
+    }
+    const parent = path.dirname(current);
+    if (parent === current) {
+      return null;
+    }
+    current = parent;
+  }
+}
+
+/**
+ * targetPath with its symbolic links resolved, so two spellings of one
+ * directory compare equal (macOS's /tmp is /private/tmp). Returned resolved
+ * but otherwise as given when that fails, as it does for a missing path.
+ */
+export async function realPath(targetPath: string): Promise<string> {
+  try {
+    return fs.realpathSync(targetPath);
+  } catch {
+    return path.resolve(targetPath);
+  }
 }
 
 /** A directory's top-level entries, sorted; none when it does not exist. */
@@ -78,15 +113,26 @@ export async function writeJsonFile(
   await fs.writeJson(filePath, data, { spaces });
 }
 
+/**
+ * Names the copied app's package and sets the given dependencies' ranges. One
+ * the template already lists keeps its place among the others.
+ */
 export async function updatePackageJson(
   targetPath: string,
-  projectName: string
+  projectName: string,
+  dependencies: Record<string, string> = {}
 ): Promise<void> {
   const packageJsonPath = path.join(targetPath, 'package.json');
 
   if (fs.existsSync(packageJsonPath)) {
     const packageJson = await fs.readJson(packageJsonPath);
     packageJson.name = projectName;
+    if (Object.keys(dependencies).length > 0) {
+      packageJson.dependencies = {
+        ...packageJson.dependencies,
+        ...dependencies,
+      };
+    }
     await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
   }
 }

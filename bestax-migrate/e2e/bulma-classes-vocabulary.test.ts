@@ -10,65 +10,32 @@
  * stylesheet has (or a Bulma 0.9 class it knows was removed).
  */
 
+import {
+  validColorShades,
+  validColors,
+} from '@allxsmith/bestax-bulma/constants';
 import fs from 'node:fs';
-import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   HELPER_TOKENS,
   LEGACY_09,
+  REMOVED_IN_V1,
+  REPLACED_IN_V1,
   ROOTS,
   passthroughReason,
 } from '../src/sources/bulma-classes/class-map.js';
-
-const packageRoot = path.join(
-  path.dirname(fileURLToPath(import.meta.url)),
-  '..'
-);
-
-/** Class names used in the stylesheet's selectors. */
-function stylesheetClasses(): Set<string> {
-  const library = fs.realpathSync(
-    path.join(packageRoot, 'node_modules', '@allxsmith', 'bestax-bulma')
-  );
-  const css = fs.readFileSync(
-    createRequire(path.join(library, 'package.json')).resolve(
-      'bulma/css/bulma.css'
-    ),
-    'utf8'
-  );
-  const classes = new Set<string>();
-  // Selectors are the text before each `{` that is not an at-rule; comments
-  // and declaration bodies (which hold URLs like `.svg`) never reach them.
-  let selector = '';
-  for (const char of css.replace(/\/\*[\s\S]*?\*\//g, '')) {
-    if (char === '{') {
-      if (!selector.trim().startsWith('@')) {
-        const bare = selector
-          .replace(/\[[^\]]*\]/g, '')
-          .replace(/"[^"]*"|'[^']*'/g, '');
-        // A name can carry an escaped character (`.is-gap-0\.5`), which the
-        // class itself spells plainly.
-        for (const match of bare.matchAll(/\.(-?[_a-zA-Z](?:[\w-]|\\.)*)/g)) {
-          classes.add(match[1].replace(/\\(.)/g, '$1'));
-        }
-      }
-      selector = '';
-    } else if (char === '}' || char === ';') {
-      selector = '';
-    } else {
-      selector += char;
-    }
-  }
-  return classes;
-}
+import {
+  bulmaStylesheet,
+  stylesheetClasses,
+} from './support/bulma-stylesheet.js';
 
 const modifiers = new Set(
   Object.values(ROOTS).flatMap(entry => Object.keys(entry.modifiers ?? {}))
 );
 
 describe("the table accounts for Bulma's stylesheet", () => {
-  const classes = stylesheetClasses();
+  const classes = stylesheetClasses(bulmaStylesheet());
 
   it('reads a stylesheet worth the name', () => {
     expect(classes.has('button')).toBe(true);
@@ -96,5 +63,83 @@ describe("the table accounts for Bulma's stylesheet", () => {
     expect(
       named.filter(token => !classes.has(token) && !LEGACY_09[token])
     ).toEqual([]);
+  });
+
+  // bestax renders `has-text-{color}-{shade}` for every color and shade its
+  // props take, and Bulma has a rule for some of them: each of those
+  // converts, as that color and that shade, or as the color of that name
+  // (`grey` and `light` render `has-text-grey-light`, which `grey-light` is).
+  it('converts every shade class it has that one color and one shade render', () => {
+    const rendered = validColors.flatMap(color =>
+      validColorShades.flatMap(shade =>
+        (
+          [
+            ['has-text', 'colorShade'],
+            ['has-background', 'backgroundColorShade'],
+          ] as const
+        ).map(([prefix, prop]) => ({
+          token: `${prefix}-${color}-${shade}`,
+          color,
+          also: { prop, value: shade },
+        }))
+      )
+    );
+    const shades = rendered.filter(({ token }) => classes.has(token));
+    expect(shades.length).toBeGreaterThan(400);
+    expect(
+      shades
+        .filter(({ token, color, also }) => {
+          const helper = HELPER_TOKENS.get(token);
+          const asShade =
+            helper?.write.value === color &&
+            JSON.stringify(helper.also) === JSON.stringify(also);
+          const asColor =
+            helper?.also === undefined &&
+            helper?.write.value === `${color}-${also.value}`;
+          return !asShade && !asColor;
+        })
+        .map(({ token }) => token)
+    ).toEqual([]);
+  });
+
+  it('has none of the classes it lists as removed, and flags only those', () => {
+    expect(REMOVED_IN_V1.filter(token => classes.has(token))).toEqual([]);
+    expect(
+      Object.keys(LEGACY_09).filter(token => !REMOVED_IN_V1.includes(token))
+    ).toEqual([]);
+  });
+
+  it('replaces a removed class only with a v1 one, and flags it where it stays', () => {
+    for (const [token, v1] of Object.entries(REPLACED_IN_V1)) {
+      expect({
+        token,
+        removed: REMOVED_IN_V1.includes(token),
+        hint: Object.hasOwn(LEGACY_09, token),
+        v1: classes.has(v1),
+      }).toEqual({ token, removed: true, hint: true, v1: true });
+    }
+  });
+
+  // `lookup_bulma_classes` calls a class missing from the MCP index's list one
+  // Bulma 1 has no rule for, ahead of its passthrough group, so a class read
+  // here and missing there would be misreported. The two read one walk, and
+  // this holds the Bulma each reads to the same one.
+  it('is the vocabulary the MCP index ships', () => {
+    const index = JSON.parse(
+      fs.readFileSync(
+        path.join(
+          path.dirname(fileURLToPath(import.meta.url)),
+          '..',
+          '..',
+          'bestax-mcp',
+          'data',
+          'bulma-classes.json'
+        ),
+        'utf8'
+      )
+    );
+    expect(index.vocabulary).toEqual(
+      [...classes].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))
+    );
   });
 });

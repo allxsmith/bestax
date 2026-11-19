@@ -29,16 +29,16 @@ const said = () =>
 
 const advance = (ms: number) =>
   act(() => {
-    jest.advanceTimersByTime(ms);
+    vi.advanceTimersByTime(ms);
   });
 
 describe('StatusRegion', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   it('renders an empty, polite status region that reads only what is added', () => {
@@ -174,6 +174,56 @@ describe('StatusRegion', () => {
     expect(said()).toEqual([]);
   });
 
+  it('announces an item again each time it comes back', () => {
+    const { rerender } = render(region([alpha]));
+    advance(announceDelay + announcementLifetime);
+    rerender(region([]));
+
+    rerender(region([alpha]));
+    advance(announceDelay);
+
+    expect(said()).toEqual(['Alpha']);
+  });
+
+  it('gives an item that comes back while it is still written a node of its own', () => {
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+    try {
+      const { rerender } = render(region([alpha]));
+      advance(announceDelay);
+      const first = screen.getByRole('status').firstElementChild;
+
+      advance(50);
+      rerender(region([]));
+      rerender(region([alpha]));
+      advance(announceDelay);
+
+      // The new one is added after the one still there, which keeps its node.
+      expect(said()).toEqual(['Alpha', 'Alpha']);
+      expect(screen.getByRole('status').firstElementChild).toBe(first);
+      expect(consoleError).not.toHaveBeenCalled();
+
+      // Each leaves when its own lifetime is up.
+      advance(announcementLifetime - announceDelay - 50);
+      expect(said()).toEqual(['Alpha']);
+      advance(announceDelay + 50);
+      expect(said()).toEqual([]);
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+
+  it('writes an item that comes back before its announcement is due once', () => {
+    const { rerender } = render(region([alpha]));
+    rerender(region([]));
+    rerender(region([alpha]));
+
+    advance(announceDelay);
+
+    expect(said()).toEqual(['Alpha']);
+  });
+
   it('keeps what it said for its whole lifetime while the next items wait, then adds them', () => {
     const { rerender } = render(region([alpha, bravo]));
     advance(announceDelay);
@@ -245,7 +295,7 @@ describe('StatusRegion', () => {
 
       act(() => {
         showNow([alpha, bravo]);
-        jest.advanceTimersByTime(1);
+        vi.advanceTimersByTime(1);
       });
       expect(said()).toEqual(['Alpha']);
 
@@ -260,7 +310,7 @@ describe('StatusRegion', () => {
 
       act(() => {
         showNow([alpha, bravo]);
-        jest.advanceTimersByTime(1);
+        vi.advanceTimersByTime(1);
       });
       advance(announceDelay);
 
@@ -273,7 +323,7 @@ describe('StatusRegion', () => {
 
       act(() => {
         showNow([alpha, bravo]);
-        jest.advanceTimersByTime(1);
+        vi.advanceTimersByTime(1);
       });
       expect(said()).toEqual([]);
 
@@ -300,16 +350,16 @@ describe('StatusRegion', () => {
   it('stops its timers when it unmounts', () => {
     // A write still waiting.
     const waiting = render(region([alpha]));
-    expect(jest.getTimerCount()).toBeGreaterThan(0);
+    expect(vi.getTimerCount()).toBeGreaterThan(0);
     waiting.unmount();
-    expect(jest.getTimerCount()).toBe(0);
+    expect(vi.getTimerCount()).toBe(0);
 
     // A clear still to come, which outlives the batch that started it.
     const written = render(region([bravo]));
     advance(announceDelay);
-    expect(jest.getTimerCount()).toBeGreaterThan(0);
+    expect(vi.getTimerCount()).toBeGreaterThan(0);
     written.unmount();
-    expect(jest.getTimerCount()).toBe(0);
+    expect(vi.getTimerCount()).toBe(0);
   });
 });
 

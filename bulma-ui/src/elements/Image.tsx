@@ -14,7 +14,7 @@ export interface ImageProps
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Text color helper for the container. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
@@ -23,10 +23,16 @@ export interface ImageProps
    * `textColor`, which takes precedence when both are set; use `bgColor` for
    * a colored surface.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color helper for the container. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Fixed size or aspect ratio modifier for the image container. */
+  /**
+   * Fixed size or aspect ratio modifier for the image container. A ratio
+   * (`16by9` and the rest) renders only its `is-<ratio>` class there. Bulma
+   * stretches an `<img>` inside to fill the ratio, but any other child, such
+   * as an `iframe`, fills it only with `className="has-ratio"` of its own.
+   */
   size?:
     | '16x16'
     | '24x24'
@@ -50,19 +56,20 @@ export interface ImageProps
     | '3by5'
     | '9by16'
     | '1by2'
-    | '1by3';
+    | '1by3'
+    | undefined;
   /** Renders the image with rounded corners. */
   isRounded?: boolean;
   /** Uses retina (2x) image source. */
   isRetina?: boolean;
   /** Image source URL. */
-  src?: string;
+  src?: string | undefined;
   /** Alternate text for the image. */
-  alt?: string;
+  alt?: string | undefined;
   /** Arbitrary content (e.g., iframe, custom HTML) inside the image container. */
   children?: React.ReactNode;
   /** Container element tag. Defaults to `'figure'` when using aspect-ratio sizes, `'div'` otherwise. */
-  as?: 'figure' | 'div' | 'p';
+  as?: 'figure' | 'div' | 'p' | undefined;
 }
 
 /**
@@ -96,23 +103,18 @@ export const Image: React.FC<ImageProps> = ({
     ...props,
   });
 
+  // Bulma reads `.has-ratio` only on a child of the ratio container, so the
+  // container carries just its `is-<ratio>` class.
   const bulmaClasses = usePrefixedClassNames('image', {
     [`is-${size}`]: size,
-    'has-ratio': size && typeof size === 'string' && size.includes('by'),
   });
 
   const imageClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
   // Default tag logic: if "as" is provided, use it.
-  // If not, use <figure> for aspect ratios or children, <div> otherwise.
-  let Tag: 'figure' | 'div' | 'p';
-  if (as) {
-    Tag = as;
-  } else if (size && typeof size === 'string' && size.includes('by')) {
-    Tag = 'figure';
-  } else {
-    Tag = 'div';
-  }
+  // If not, use <figure> for aspect ratios, <div> otherwise.
+  const Tag: 'figure' | 'div' | 'p' =
+    as ?? (size?.includes('by') ? 'figure' : 'div');
 
   const roundedClass = usePrefixedClassNames('is-rounded');
 

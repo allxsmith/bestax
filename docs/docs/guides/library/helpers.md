@@ -303,7 +303,7 @@ More examples and full property coverage are available in [usebulmaclasses.md](.
 Use the `interaction` prop.
 
 ```tsx live
-<Box interaction="clickable">Clickable Box</Box>
+<Box interaction="clickable">This box shows a pointer cursor.</Box>
 ```
 
 #### is-relative
@@ -413,6 +413,23 @@ A component that injects Bulma CSS variables for local or global theming. Wrap a
 A context provider for global settings like class prefix and icon library. Wrap your app in `<ConfigProvider>` to configure all bestax-bulma components at once — e.g. set `iconLibrary="fa"` once at the root so `<Icon name="check" />` needs no per-icon `library` prop.
 
 [View full documentation.](../../api/helpers/config) · [Configuration guide](../features/configuration)
+
+---
+
+## LocaleProvider
+
+Sets the language and writing direction for the part of the app inside it. Its wrapper carries `lang` and `dir`, the content the library portals keeps them, and the date pickers inside take its locale and start the week on that locale's first day.
+
+```tsx live
+<LocaleProvider locale="ar-EG">
+  <Buttons>
+    <Button color="primary">حفظ</Button>
+    <Button>إلغاء</Button>
+  </Buttons>
+</LocaleProvider>
+```
+
+[View full documentation.](../../api/helpers/localeprovider) · [Configuration guide](../features/configuration#locale-and-direction)
 
 ---
 

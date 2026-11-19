@@ -10,13 +10,15 @@ import {
 
 /**
  * Props for the UnorderedList component.
+ *
+ * @extraProp {React.AriaRole} [role='list'] - The list's role. It's `list`, the role a `<ul>` already has, written out because Safari stops treating a `<ul>` as a list once its bullets are hidden, and Bulma's reset hides them outside `Content`. A role you pass replaces it.
  */
 export interface UnorderedListProps
   extends
     React.HTMLAttributes<HTMLUListElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Additional CSS classes to apply. */
-  className?: string;
+  className?: string | undefined;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Background color helper. */
@@ -36,6 +38,7 @@ const UnorderedListComponent: React.FC<UnorderedListProps> = ({
   className,
   textColor,
   bgColor,
+  role,
   children,
   ...props
 }) => {
@@ -51,8 +54,14 @@ const UnorderedListComponent: React.FC<UnorderedListProps> = ({
   const bulmaClasses = usePrefixedClassNames();
   const listClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
+  // WebKit exposes a `<ul>` whose markers are hidden as a group, not a list,
+  // unless it has role="list", and Bulma's reset hides a `<ul>`'s bullets
+  // everywhere but `Content`. A role the caller writes is rendered as
+  // written, an empty one included, as it would be on a plain `<ul>`, so the
+  // bulma-classes codemod's conversion of one renders the same; only a role
+  // left out, or a spread carrying `role: undefined`, gets the list's own.
   return (
-    <ul className={listClasses || undefined} {...rest}>
+    <ul className={listClasses || undefined} role={role ?? 'list'} {...rest}>
       {children}
     </ul>
   );

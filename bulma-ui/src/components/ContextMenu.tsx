@@ -2,10 +2,13 @@ import React, { cloneElement, useEffect, useRef, useState } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
-import { Portal } from '../helpers/portal';
-import { useConfig } from '../helpers/Config';
+import { Portal, usePopupContainer } from '../helpers/portal';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
-import { getDeepestActiveElement, isEventInside } from '../helpers/shadowDom';
+import {
+  getDeepestActiveElement,
+  isEventInside,
+  shadowRootsAround,
+} from '../helpers/shadowDom';
 import { warnOnce } from '../helpers/devWarnings';
 import {
   useContextMenuTrigger,
@@ -75,7 +78,7 @@ export interface ContextMenuProps
    * Leave the trigger to the browser: a right-click shows the browser's own
    * menu, a long press does what it does anywhere, and an open menu closes.
    */
-  disabled?: boolean;
+  disabled?: boolean | undefined;
 }
 
 /** Where the menu goes once it's measured. */
@@ -129,14 +132,15 @@ function chain<E>(
  *
  * Shift+F10 and the context menu key open it too, where the browser fires
  * `contextmenu` for them, which Windows and Linux do. The menu is Dropdown's
- * markup, portaled into the `portalContainer` a `ConfigProvider` sets, or
- * the end of the trigger's own document's `<body>`, so it never has server
- * markup. It opens below and to the right of the point, flips above or to
+ * markup, portaled, so it never has server markup: into the
+ * `portalContainer` a `ConfigProvider` sets, else the overlay it's in that
+ * takes its popups, such as a `Modal`, where screen readers that honor its
+ * `aria-modal` reach it, else the end of the trigger's own document's
+ * `<body>`. It opens below and to the right of the point, flips above or to
  * the left where there's no room, moves in where it fits neither way, and
  * scrolls inside when it's taller than the viewport. It doesn't follow the
- * trigger, since scrolling closes it. Inside a `Modal` or a shadow root,
- * point `portalContainer` inside it, so screen readers that honor
- * `aria-modal` reach the menu and the shadow root's styles apply.
+ * trigger, since scrolling closes it. Inside a shadow root, point
+ * `portalContainer` inside it, so the shadow root's styles apply.
  *
  * Opening moves focus to the first enabled item. The arrow keys, Home, End
  * and typing move between items, and Enter and Space activate one. Escape,
@@ -171,7 +175,7 @@ const ContextMenuComponent: React.FC<ContextMenuProps> = ({
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
-  const { portalContainer } = useConfig();
+  const popupContainer = usePopupContainer();
   const [menu, setMenu] = useState<OpenMenu | null>(null);
   // Turning `disabled` on closes it.
   if (disabled && menu) setMenu(null);
@@ -182,6 +186,9 @@ const ContextMenuComponent: React.FC<ContextMenuProps> = ({
   const boxRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<Element | null>(null);
+  // The element it opened on, for the shadow roots a scroll that closes it
+  // can happen in.
+  const triggerRef = useRef<Element | null>(null);
   const reportedRef = useRef(false);
   const menuKeys = useMenuKeys();
   const named = Boolean(props['aria-label'] || props['aria-labelledby']);
@@ -191,15 +198,17 @@ const ContextMenuComponent: React.FC<ContextMenuProps> = ({
     onOpen: (point, triggerNode) => {
       const ownerDoc = triggerNode.ownerDocument;
       openerRef.current = getDeepestActiveElement(ownerDoc);
+      triggerRef.current = triggerNode;
       setMenu({ point, doc: ownerDoc });
     },
   });
 
   // Measured once per opening, before it paints, against what a fixed box
   // resolves against: the root element's client area, which leaves out a
-  // classic scrollbar. `useAnchoredPosition` and Tooltip read innerWidth and
-  // innerHeight, which count it. A menu pinned to the viewport's edge would
-  // sit under the scrollbar by that much, so this reads the narrower box.
+  // classic scrollbar, as `useAnchoredPosition` does but for the corner its
+  // `auto` picks. Tooltip reads innerWidth and innerHeight, which count it. A
+  // menu pinned to the viewport's edge would sit under the scrollbar by that
+  // much, so this reads the narrower box.
   useClientLayoutEffect(() => {
     const menuNode = menuRef.current;
     if (!menu || menu.placed || !menuNode) return;
@@ -261,8 +270,22 @@ const ContextMenuComponent: React.FC<ContextMenuProps> = ({
     const closeOutside = (event: Event) => {
       if (!isEventInside(event, box)) setMenu(null);
     };
-    doc.addEventListener('scroll', closeOutside, true);
-    return () => doc.removeEventListener('scroll', closeOutside, true);
+    // A scroll inside a shadow root doesn't reach the document, so the ones
+    // the element it opened on and the menu are rendered in are listened on
+    // too.
+    const scrolled = new Set<EventTarget>([
+      doc,
+      ...shadowRootsAround(triggerRef.current),
+      ...shadowRootsAround(box),
+    ]);
+    for (const target of scrolled) {
+      target.addEventListener('scroll', closeOutside, true);
+    }
+    return () => {
+      for (const target of scrolled) {
+        target.removeEventListener('scroll', closeOutside, true);
+      }
+    };
   }, [doc, isPlaced, menuKeys]);
 
   // Before paint, so what the caller does with it, such as highlighting the
@@ -348,7 +371,7 @@ const ContextMenuComponent: React.FC<ContextMenuProps> = ({
     <>
       {clonedTrigger}
       {menu && (
-        <Portal container={portalContainer || menu.doc.body}>
+        <Portal container={popupContainer || menu.doc.body}>
           <div
             ref={boxRef}
             className={boxClasses}

@@ -7,6 +7,7 @@ import {
   validSchemeColors,
 } from '../helpers/useBulmaClasses';
 import { mergeBulmaStyles } from '../helpers/mergeBulmaStyles';
+import { CONTAINER_BREAKPOINTS } from '../helpers/containerBreakpoints';
 
 /**
  * Bulma container breakpoints.
@@ -18,10 +19,27 @@ export type ContainerBreakpoint = 'tablet' | 'desktop' | 'widescreen';
  */
 export interface ContainerProps
   extends
-    React.HTMLAttributes<HTMLDivElement>,
+    React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /**
+   * HTML element to render (default: `div`). Bulma pages often put the
+   * container on a landmark, such as `<main class="container">` or
+   * `<footer class="container">`. A page has only one visible `main`, and a
+   * `section` is a `region` landmark only once it has an accessible name
+   * (`aria-label`, or `aria-labelledby` pointing at its heading).
+   */
+  as?:
+    | 'div'
+    | 'main'
+    | 'section'
+    | 'article'
+    | 'aside'
+    | 'header'
+    | 'footer'
+    | 'nav'
+    | undefined;
   /** Additional CSS classes. */
-  className?: string;
+  className?: string | undefined;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
@@ -30,7 +48,8 @@ export interface ContainerProps
    * `textColor`, which takes precedence when both are set; use `bgColor` for
    * a colored surface.
    */
-  color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
+  color?:
+    'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /**
    * Background color helper. `scheme-*` values render as a dark-mode-safe
    * inline `background-color: var(--bulma-scheme-*)` instead of a class. The
@@ -65,6 +84,7 @@ export interface ContainerProps
  * @see {@link https://bulma.io/documentation/layout/container/ | Bulma Container documentation}
  */
 export const Container: React.FC<ContainerProps> = ({
+  as: Tag = 'div',
   className,
   textColor,
   color,
@@ -85,14 +105,9 @@ export const Container: React.FC<ContainerProps> = ({
   });
 
   // Only allow isMax for supported breakpoints
-  const validMaxBreakpoints: ContainerBreakpoint[] = [
-    'tablet',
-    'desktop',
-    'widescreen',
-  ];
   let breakpointClass: string | undefined;
   if (breakpoint) {
-    if (isMax && validMaxBreakpoints.includes(breakpoint)) {
+    if (isMax && CONTAINER_BREAKPOINTS.includes(breakpoint)) {
       breakpointClass = `is-max-${breakpoint}`;
     } else if (!isMax) {
       breakpointClass = `is-${breakpoint}`;
@@ -116,13 +131,13 @@ export const Container: React.FC<ContainerProps> = ({
   );
 
   return (
-    <div
+    <Tag
       className={containerClasses}
       style={mergeBulmaStyles(bulmaHelperStyles, style)}
       {...rest}
     >
       {children}
-    </div>
+    </Tag>
   );
 };
 

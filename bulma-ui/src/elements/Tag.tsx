@@ -2,6 +2,13 @@ import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { buttonType } from '../helpers/buttonType';
+import {
+  type AnchorOnlyAttributes,
+  type ButtonOnlyAttributes,
+  ANCHOR_ONLY_ATTRS,
+  BUTTON_ONLY_ATTRS,
+  omitAttrs,
+} from '../helpers/anchorAttrs';
 
 const validTagColors = [
   'primary',
@@ -28,19 +35,71 @@ const validTagSizes = ['normal', 'medium', 'large'] as const;
 export type TagSize = (typeof validTagSizes)[number];
 
 /**
+ * The set withheld from a button Tag, a delete tag's included: the
+ * anchor-only attributes, minus
+ * `type` (a button takes one too, and its branch reads it), plus `rel` (React
+ * declares it on every element, so the derived set alone would not withhold
+ * it), as `Card.FooterItem` withholds them.
+ */
+const STRIP_FROM_BUTTON: Readonly<
+  Record<Exclude<keyof AnchorOnlyAttributes, 'type'> | 'rel', true>
+> = (() => {
+  const { type: _type, ...rest } = ANCHOR_ONLY_ATTRS;
+  return { ...rest, rel: true };
+})();
+
+/**
  * Props for the Tag component.
+ *
+ * The anchor and button attributes arrive at every `as`. A link tag withholds
+ * the button's (`BUTTON_ONLY_ATTRS`) and a button tag, a delete tag's
+ * included, the link's (`STRIP_FROM_BUTTON`). A span tag passes on what it's
+ * given, as it always has.
  */
 export interface TagProps
   extends
-    Omit<React.HTMLAttributes<HTMLSpanElement>, 'color'>,
+    AnchorOnlyAttributes,
+    ButtonOnlyAttributes,
+    Omit<
+      React.HTMLAttributes<
+        HTMLSpanElement | HTMLAnchorElement | HTMLButtonElement
+      >,
+      'color'
+    >,
     Omit<BulmaClassesProps, 'color'> {
+  /**
+   * Element to render (default `span`). A tag that does something, a filter
+   * someone clicks or a topic it links to, takes `button` or `a`, so a
+   * keyboard reaches it and a screen reader announces it as a button or a
+   * link. Bulma styles both, and bestax's stylesheets give a button tag the
+   * font and text a span takes from the text around it. A button renders
+   * `type="button"`
+   * unless you pass `submit` or `reset`. A link's attributes, such as `href`,
+   * need `as="a"`, and a button's, such as `disabled`, `as="button"`. With
+   * `isDelete`, the tag renders its delete button whatever this says.
+   */
+  as?: 'span' | 'a' | 'button' | undefined;
   /** Additional CSS classes to apply. */
-  className?: string;
-  /** Bulma color modifier for the tag. */
-  color?: TagColor;
+  className?: string | undefined;
+  /**
+   * Bulma color modifier for the tag.
+   *
+   * `light` takes the light color's own text from bestax's stylesheets. With
+   * Bulma's CSS alone, a light tag's text inherits the color around it, which
+   * on a dark page is hard to read.
+   */
+  color?: TagColor | undefined;
   /** Tag size. */
-  size?: TagSize;
-  /** Use the light color variant. */
+  size?: TagSize | undefined;
+  /**
+   * Use the light color variant. The light color has none, so
+   * `color="light"` with `isLight` looks the same as without it.
+   *
+   * `white`, `black` and `dark` with `isLight` keep Bulma's light
+   * background, and bestax's stylesheets give their text the lightness a
+   * light tag's text has. With Bulma's CSS alone, their text inherits the
+   * color around it, which on a dark page is hard to read.
+   */
   isLight?: boolean;
   /** Renders a rounded tag. */
   isRounded?: boolean;
@@ -50,9 +109,16 @@ export interface TagProps
    * "Delete tag" unless you pass an `aria-label`. An empty one, or a spread
    * carrying `'aria-label': undefined`, keeps that name rather than leaving
    * the button unnamed.
+   *
+   * "Delete tag" doesn't say which tag the button removes, so pass a name
+   * that does, such as `aria-label="Remove React"`.
    */
   isDelete?: boolean;
-  /** Adds hover effect to the tag. */
+  /**
+   * Adds Bulma's hover shade and pointer cursor. It's only a look: a span tag
+   * stays out of the keyboard's reach, so a tag that does something takes
+   * `as="button"` or `as="a"` instead.
+   */
   isHoverable?: boolean;
   /** Callback for delete tag/button. */
   onDelete?: () => void;
@@ -69,6 +135,7 @@ export interface TagProps
  * @see {@link https://bulma.io/documentation/elements/tag/ | Bulma Tag documentation}
  */
 export const Tag: React.FC<TagProps> = ({
+  as = 'span',
   className,
   color,
   size,
@@ -88,7 +155,9 @@ export const Tag: React.FC<TagProps> = ({
   const bulmaClasses = usePrefixedClassNames('tag', {
     [`is-${color}`]: color && validTagColors.includes(color),
     [`is-${size}`]: size && size !== 'normal' && validTagSizes.includes(size),
-    'is-light': isLight,
+    // The light color's own class is this key too, and this one comes later,
+    // so it has to set the class for `light` as well or it erases it.
+    'is-light': isLight || color === 'light',
     'is-rounded': isRounded,
     'is-delete': isDelete,
     'is-hoverable': isHoverable,
@@ -96,20 +165,45 @@ export const Tag: React.FC<TagProps> = ({
 
   const tagClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
+  if (as === 'a' && !isDelete) {
+    return (
+      <a className={tagClasses} {...omitAttrs(rest, BUTTON_ONLY_ATTRS)}>
+        {children}
+      </a>
+    );
+  }
+
+  // What a button takes, for a delete tag and a button tag alike.
+  const forwarded = omitAttrs(rest, STRIP_FROM_BUTTON);
+
   if (isDelete) {
     return (
       <button
         className={tagClasses}
         onClick={onDelete}
-        {...rest}
+        {...forwarded}
         // After the spread, reading through it: a key the spread carries with
         // no value would otherwise erase the default, leaving a nameless
         // button that submits the form around it. An empty label falls back
         // too: the button is drawn as an icon, so `''` would leave it unnamed.
         // A caller's own value still wins; `buttonType` says more.
-        aria-label={rest['aria-label'] || 'Delete tag'}
-        type={buttonType((rest as { type?: unknown }).type)}
+        aria-label={forwarded['aria-label'] || 'Delete tag'}
+        type={buttonType((forwarded as { type?: unknown }).type)}
       />
+    );
+  }
+
+  if (as === 'button') {
+    return (
+      <button
+        className={tagClasses}
+        {...forwarded}
+        // After the spread, so a `type` the spread carries with no value
+        // still gets `button`; `buttonType` says more.
+        type={buttonType((forwarded as { type?: unknown }).type)}
+      >
+        {children}
+      </button>
     );
   }
 
