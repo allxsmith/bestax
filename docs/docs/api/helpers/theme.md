@@ -299,7 +299,7 @@ function TypographyTheme() {
 
 ```tsx
 function RadiusTheme() {
-  // `radius` is the border radius helper, as on every component, so the radius scale goes through bulmaVars
+  // `radius` is the border radius helper, as on most components, so the radius scale goes through bulmaVars
   const radii = {
     '--bulma-radius-small': '6px',
     '--bulma-radius': '12px',
