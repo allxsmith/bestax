@@ -16,7 +16,8 @@ about a barrier.
 
 Our target is [WCAG 2.2](https://www.w3.org/TR/WCAG22/) Level AA, for the components in
 `@allxsmith/bestax-bulma` and for bestax.io. Section 508 and EN 301 549 both build on WCAG, so
-meeting it is most of meeting them.
+meeting it is most of meeting them. The [conformance report](./conformance-report.md) goes
+through WCAG, Section 508 and EN 301 549 criterion by criterion.
 
 ## What This Covers
 
@@ -38,8 +39,9 @@ but some things only the app can do:
 
 ## Where We Are
 
-Bestax partially meets WCAG 2.2 Level AA: parts of it aren't met yet. Known gaps are open issues
-with the
+Bestax partially meets WCAG 2.2 Level AA: parts of it aren't met yet. The
+[conformance report](./conformance-report.md) says which criteria and why. Known gaps are open
+issues with the
 [`accessibility` label](https://github.com/allxsmith/bestax/issues?q=is%3Aissue%20state%3Aopen%20label%3Aaccessibility),
 which is the up-to-date list.
 
