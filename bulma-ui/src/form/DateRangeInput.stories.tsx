@@ -167,10 +167,6 @@ export const SeveralMonths: Story = {
     </Block>
   ),
   parameters: {
-    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
-    a11y: {
-      config: { rules: [{ id: 'aria-required-children', enabled: false }] },
-    },
     docs: {
       description: {
         story:

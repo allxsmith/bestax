@@ -100,13 +100,6 @@ const A11Y_EXEMPT: Record<string, Record<string, Why>> = {
   'components/Avatar.stories.tsx#Clickable': {
     'label-content-name-mismatch': 2211,
   },
-  // A labeled Ionicon nests the web component's own image, which has no name
-  // until its SVG loads, so the check passes or fails on timing.
-  ...each(
-    'elements/Icon.stories.tsx',
-    ['IoniconExample', 'IoniconOutline', 'IoniconSharp'],
-    { 'role-img-alt': 2213 }
-  ),
   // A Link in running text differs from the text around it only by color.
   'components/Timeline.stories.tsx#CompoundUsage': {
     'link-in-text-block': 1858,
@@ -120,11 +113,9 @@ const A11Y_EXEMPT: Record<string, Record<string, Why>> = {
   'skill-examples/Overview.stories.tsx#Overview': {
     'link-in-text-block': 1858,
   },
-  // A calendar with several months can draw a week row with no days on show
-  // (#2190), its month cells show a short name (#2209), and a day with
+  // A calendar's month cells show a short name (#2209), and a day with
   // content is named in a different order from what it shows (#2210).
   'form/Calendar.stories.tsx#FullWidth': {
-    'aria-required-children': 2190,
     'label-content-name-mismatch': 2210,
   },
   'form/Calendar.stories.tsx#LoadingEachMonth': {
@@ -134,11 +125,6 @@ const A11Y_EXEMPT: Record<string, Record<string, Why>> = {
     'label-content-name-mismatch': 2209,
   },
   'form/Calendar.stories.tsx#Prices': { 'label-content-name-mismatch': 2210 },
-  'form/Calendar.stories.tsx#Range': { 'aria-required-children': 2190 },
-  'form/Calendar.stories.tsx#SeveralMonths': { 'aria-required-children': 2190 },
-  'form/DateRangeInput.stories.tsx#SeveralMonths': {
-    'aria-required-children': 2190,
-  },
   'form/DateInput.stories.tsx#InlineMonthPicker': {
     'label-content-name-mismatch': 2209,
   },

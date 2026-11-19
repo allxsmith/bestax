@@ -174,12 +174,6 @@ export const Default: Story = {
 };
 
 export const Range: Story = {
-  parameters: {
-    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
-    a11y: {
-      config: { rules: [{ id: 'aria-required-children', enabled: false }] },
-    },
-  },
   args: {
     'aria-label': 'Your stay',
     monthsToShow: 2,
@@ -213,12 +207,6 @@ export const Range: Story = {
 };
 
 export const SeveralMonths: Story = {
-  parameters: {
-    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
-    a11y: {
-      config: { rules: [{ id: 'aria-required-children', enabled: false }] },
-    },
-  },
   args: { monthsToShow: 3 },
 };
 
@@ -408,10 +396,7 @@ export const FullWidth: Story = {
     // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
     a11y: {
       config: {
-        rules: [
-          { id: 'aria-required-children', enabled: false },
-          { id: 'label-content-name-mismatch', enabled: false },
-        ],
+        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
       },
     },
   },
