@@ -65,7 +65,7 @@ export const warnDeprecatedColorProp = (
   warnOnce(
     `${component}:color-prop`,
     `[bestax-bulma] The ${component} "color" prop is deprecated: Bulma ` +
-      `ships no ${component.toLowerCase()} color CSS, so it has never had ` +
-      `a visual effect. It will be removed in the next major version. ${hint}`
+      `ships no ${component.toLowerCase()} color CSS, so it has no visual ` +
+      `effect. It will be removed in the next major version. ${hint}`
   );
 };

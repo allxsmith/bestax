@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import React, { Profiler } from 'react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
@@ -30,6 +31,7 @@ import { Input } from '../Input';
 import { Select } from '../Select';
 import { TextArea } from '../TextArea';
 import { ConfigProvider } from '../../helpers/Config';
+import { resetColorDeprecationWarnings } from '../../helpers/colorDeprecations';
 import { useFieldLabelId } from '../FormContext';
 
 /**
@@ -1652,5 +1654,35 @@ describe('a label over content that takes no for (#1004)', () => {
         await cleanup();
       }
     });
+  });
+});
+
+// Bulma ships no field color CSS, so the prop renders nothing; it warns in
+// development, as Tabs' and Pagination's do (#2238).
+describe('Field deprecated color prop', () => {
+  let warnSpy: MockInstance;
+
+  beforeEach(() => {
+    resetColorDeprecationWarnings();
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    warnSpy.mockRestore();
+  });
+
+  it('warns once in development when color is passed, and renders no class for it', () => {
+    const { container, rerender } = render(<Field color="primary">x</Field>);
+    rerender(<Field color="danger">x</Field>);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Field "color" prop is deprecated')
+    );
+    expect(container.querySelector('.field')?.className).toBe('field');
+  });
+
+  it('does not warn when color is omitted', () => {
+    render(<Field>x</Field>);
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 });

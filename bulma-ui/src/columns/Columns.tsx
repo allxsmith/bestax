@@ -1,5 +1,6 @@
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { warnDeprecatedColorProp } from '../helpers/colorDeprecations';
 import { withSubComponents } from '../helpers/withSubComponents';
 import {
   useBulmaClasses,
@@ -33,7 +34,13 @@ export interface ColumnsProps
   className?: string | undefined;
   /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Bulma color modifier for all columns. */
+  /**
+   * Renders no class: Bulma ships no columns color CSS for a modifier to
+   * match, and the prop doesn't reach the text color helper either. Passing
+   * it logs a console warning in development.
+   * @deprecated The prop renders nothing and will be removed in the next
+   * major version. Use `textColor` / `bgColor` instead.
+   */
   color?:
     'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color for all columns. */
@@ -106,7 +113,7 @@ export interface ColumnsProps
 const ColumnsComponent: React.FC<ColumnsProps> = ({
   className,
   textColor,
-  color: _fieldColor,
+  color,
   bgColor,
   isCentered,
   isGapless,
@@ -129,6 +136,11 @@ const ColumnsComponent: React.FC<ColumnsProps> = ({
   children,
   ...props
 }) => {
+  warnDeprecatedColorProp(
+    'Columns',
+    color,
+    'Use the textColor / bgColor props instead.'
+  );
   const resolvedGap = gap ?? gapSize;
   const resolvedGapMobile = gapMobile ?? gapSizeMobile;
   const resolvedGapTablet = gapTablet ?? gapSizeTablet;
