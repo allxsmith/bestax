@@ -90,7 +90,8 @@ interface IconBaseProps
    * this unset. A non-empty native `aria-label` or `aria-labelledby` passed instead also
    * counts as a name, and an explicit `role` or `aria-hidden` wins over both defaults. An
    * unnamed icon given a `role` or a `tabIndex` of its own isn't hidden, since hiding
-   * something focusable is a failure of its own.
+   * something focusable is a failure of its own, so give it a name. For Ionicons the
+   * `<ion-icon>` inside is always `aria-hidden`, so it adds no image of its own.
    */
   ariaLabel?: string;
   /** Inline style object. */
@@ -471,7 +472,11 @@ export const Icon: React.FC<IconProps> = ({
         style={style}
         {...rest}
       >
-        <ion-icon name={ionName} />
+        {/* Ionicons gives its element an image role, and no name, once it
+            hydrates. A named wrapper (role="img") or a hidden one already keeps
+            it from assistive technology, though axe still flags it; an unnamed
+            wrapper with a role of its own doesn't. Hidden always (#2213). */}
+        <ion-icon name={ionName} aria-hidden="true" />
       </span>
     );
   }
