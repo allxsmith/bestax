@@ -1,3 +1,11 @@
+## [1.18.83](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.82...bestax-mcp@1.18.83) (2026-11-19)
+
+
+### Bug Fixes
+
+* **bulma-ui:** deprecate the color prop that Cell, Grid, Columns, Column and Field drop ([241c956](https://github.com/allxsmith/bestax/commit/241c9569467c25719f3c490b48ab4730bf30292b)), closes [#2238](https://github.com/allxsmith/bestax/issues/2238)
+* **eslint-plugin:** flag the deprecated color prop on Cell, Grid, Columns, Column and Field ([bafbce8](https://github.com/allxsmith/bestax/commit/bafbce8a1373f754f77b787bcb2784d8dfbe6e61)), closes [#2238](https://github.com/allxsmith/bestax/issues/2238)
+
 ## [1.18.82](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.81...bestax-mcp@1.18.82) (2026-11-19)
 
 
