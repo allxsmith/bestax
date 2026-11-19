@@ -137,14 +137,14 @@
   "accessibility": "- Always provide a label. The `label` prop is automatically associated with the input (`htmlFor` plus a generated `id`, or your own `id` if you pass one), so clicking the label focuses the input and assistive technology announces it.\n- When composing with `Field` instead, the `Field`'s own `label` associates with the input automatically when the input sits directly in that labeled `Field` and has no `id` of its own. A nested unlabeled `Field` (as in horizontal multi-field layouts) starts its own scope. With an `id` of your own, or across a nested `Field`, the label names the input only when you pass that `id` as `labelProps={{ htmlFor }}`.\n- Use the correct input `type` for semantics (`text`, `email`, etc.).\n- **Help and errors:** the `message` describes the input through `aria-describedby`, after any ids you pass there, so a screen reader reads it when the input takes focus. A red `color` says nothing to a screen reader, so on an error also set `aria-invalid`, and put the error in the `message`.",
   "related": ["Control", "Field"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-input--default",
-  "summary": "The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static state, hover/focus/loading states, and all Bulma helper props.",
+  "summary": "The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static state, hover/focus/loading states, and Bulma helper props.",
   "import": "import { Input, Field, Control, Button, Select, Icon } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/form/Input.tsx",
   "rootClass": "input",
   "parts": [
     {
       "path": "Input",
-      "summary": "The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static state, hover/focus/loading states, and all Bulma helper props.",
+      "summary": "The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static state, hover/focus/loading states, and Bulma helper props.",
       "component": null,
       "props": [
         {
@@ -415,7 +415,7 @@
     },
     {
       "path": "InputBase",
-      "summary": "Bulma Input component with full Bulma helper class support.",
+      "summary": "Bulma Input component with Bulma helper class support.",
       "component": null,
       "props": [
         {

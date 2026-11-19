@@ -1,6 +1,6 @@
 # Bulma classes → bestax-bulma prop map
 
-Which class becomes which prop, per component, then the helper classes every component takes.
+Which class becomes which prop, per component, then the helper classes most components take.
 A class that becomes no prop stays in `className`. So does a second class for a prop already
 written (`is-small is-large` keeps `is-large`), so the element still renders both. A second
 color gets a `modifier:<root>` TODO (`modifier:button`), since only one of the two may show.
@@ -174,7 +174,7 @@ gutter (`is-<step>`), and it leaves the column and row gap helpers out.
 
 ## Helper classes
 
-These convert on every component above and on the plain-tag wrappers.
+These convert on the components above that take helper props, and on the plain-tag wrappers.
 
 Colors are `primary`, `link`, `info`, `success`, `warning`, `danger`, `black`, `black-bis`,
 `black-ter`, `grey-darker`, `grey-dark`, `grey`, `grey-light`, `grey-lighter`, `white`,

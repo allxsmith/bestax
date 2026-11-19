@@ -47,7 +47,7 @@ export interface InputBaseProps
 }
 
 /**
- * Bulma Input component with full Bulma helper class support.
+ * Bulma Input component with Bulma helper class support.
  *
  * @function
  * @param {InputBaseProps} props - Props for the Input component.

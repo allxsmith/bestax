@@ -14,7 +14,7 @@ The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma
 
 <!-- /bestax:generated overview -->
 
-It supports custom triggers, menu alignment, hover or click activation, right/up direction, disabled state, controlled/uncontrolled open state, menu dividers, and full Bulma/utility helper props. Use it for navigation menus, actions, or custom pop-up lists.
+It supports custom triggers, menu alignment, hover or click activation, right/up direction, disabled state, controlled/uncontrolled open state, menu dividers, and Bulma/utility helper props. Use it for navigation menus, actions, or custom pop-up lists.
 
 :::info
 Dropdowns can be fully controlled, used as hoverable, or triggered by click. Menu items and dividers are included.

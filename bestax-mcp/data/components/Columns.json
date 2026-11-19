@@ -106,10 +106,11 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Bulma color modifier for all columns.",
+          "description": "Renders no class: Bulma ships no columns color CSS for a modifier to match, and the prop doesn't reach the text color helper either. Passing it logs a console warning in development.",
           "required": false,
           "inherited": false,
-          "deprecated": false
+          "deprecated": true,
+          "deprecationNote": "The prop renders nothing and will be removed in the next major version. Use `textColor` / `bgColor` instead."
         },
         {
           "name": "bgColor",
@@ -331,10 +332,11 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Bulma color modifier for the column.",
+          "description": "Renders no class: Bulma ships no column color CSS for a modifier to match, and the prop doesn't reach the text color helper either. Passing it logs a console warning in development.",
           "required": false,
           "inherited": false,
-          "deprecated": false
+          "deprecated": true,
+          "deprecationNote": "The prop renders nothing and will be removed in the next major version. Use `textColor` / `bgColor` instead."
         },
         {
           "name": "bgColor",

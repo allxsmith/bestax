@@ -615,7 +615,7 @@ export function searchAll(
           }
         }
       }
-      // The helper props every component takes, on the page that documents
+      // The helper props most components take, on the page that documents
       // them. One answers only a query that is about it, by most of its words,
       // and then gets the bonus a component does, since it answers whatever
       // the builder renders, where a component's prop with the same words
