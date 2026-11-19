@@ -1,5 +1,6 @@
 import React, { useCallback, useId, useMemo, useRef, useState } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { warnDeprecatedColorProp } from '../helpers/colorDeprecations';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { elementType, isElementOf } from '../helpers/elementType';
 import {
@@ -43,7 +44,13 @@ export interface FieldProps
   };
   /** Text color for the field. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Bulma color for the field. */
+  /**
+   * Renders no class: Bulma ships no field color CSS for a modifier to
+   * match, and the prop doesn't reach the text color helper either. Passing
+   * it logs a console warning in development.
+   * @deprecated The prop renders nothing and will be removed in the next
+   * major version. Use `textColor` / `bgColor` instead.
+   */
   color?:
     'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color for the field. */
@@ -208,12 +215,17 @@ const FieldComponent: React.FC<FieldProps> = ({
   labelSize,
   labelProps,
   textColor,
-  color: _fieldColor,
+  color,
   bgColor,
   className,
   children,
   ...props
 }) => {
+  warnDeprecatedColorProp(
+    'Field',
+    color,
+    'Use the textColor / bgColor props instead.'
+  );
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
