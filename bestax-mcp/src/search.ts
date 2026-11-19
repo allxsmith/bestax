@@ -10,6 +10,7 @@
  * what it just found.
  */
 import type { Catalog, ComponentRecord, Skill } from './data.js';
+import { fenceAfter } from './fences.js';
 import { attributedLinks } from './format.js';
 import { resolveGroup } from './helper-props.js';
 
@@ -370,23 +371,6 @@ export interface SkillSection {
   reference?: string;
   heading: string;
   text: string;
-}
-
-/**
- * The fence open after a line, given the one open before it. A run of three or
- * more backticks or tildes opens one, and only a run of its own character, at
- * least as long, with nothing after it closes it, so "```ts" inside a "```"
- * fence is code. A backtick run with a backtick after it is a code span
- * (```a```), which opens nothing.
- */
-function fenceAfter(line: string, open: string | null): string | null {
-  const marker = line.match(/^\s*(`{3,}|~{3,})(.*)$/);
-  if (!marker) return open;
-  const [, run, after] = marker;
-  if (open === null) return run[0] === '`' && after.includes('`') ? null : run;
-  const closes =
-    run[0] === open[0] && run.length >= open.length && !after.trim();
-  return closes ? null : open;
 }
 
 /** A section's non-blank lines outside its fenced code, as they are written. */

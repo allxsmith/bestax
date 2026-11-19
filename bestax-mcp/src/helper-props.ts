@@ -18,6 +18,7 @@
  * call. What moves behind `group` is the prose and the live examples, which are re-fetchable
  * and which nothing breaks without.
  */
+import { sections } from './fences.js';
 
 /**
  * Markdown tables in the generated index are column-padded for human reading. That padding
@@ -218,9 +219,6 @@ export function resolveGroup(input: string): string | null {
   return null;
 }
 
-// scripts/gen-mcp-index.mjs notes a site image in each of these sections
-// (`SLICE`), so a change to where this splits changes that too.
-const sections = (doc: string) => doc.split(/\n(?=#{2,3} )/);
 const headingOf = (chunk: string) => chunk.split('\n')[0].trim();
 
 /** The `## Supported Props` table, reflowed, header rows plus the rows for `props`. */

@@ -12,6 +12,7 @@
 import { describe, expect, it, beforeAll } from 'vitest';
 
 import { loadComponent } from '../data.js';
+import { sections } from '../fences.js';
 import {
   GROUP_NAMES,
   HELPER_GROUPS,
@@ -29,9 +30,7 @@ let allProps: string[];
 beforeAll(async () => {
   const record = await loadComponent('useBulmaClasses');
   doc = record.doc ?? '';
-  const chunk = doc
-    .split(/\n(?=#{2,3} )/)
-    .find(c => c.startsWith('## Supported Props'));
+  const chunk = sections(doc).find(c => c.startsWith('## Supported Props'));
   allProps = (chunk ?? '')
     .split('\n')
     .filter(l => l.trim().startsWith('|'))
@@ -61,9 +60,7 @@ describe('the default answer', () => {
   // regex cannot see would be missing from both and still pass. Counting table rows is
   // independent of that regex and catches it.
   it('carries as many table rows as the index has, parsed or not', () => {
-    const chunk = doc
-      .split(/\n(?=#{2,3} )/)
-      .find(c => c.startsWith('## Supported Props'));
+    const chunk = sections(doc).find(c => c.startsWith('## Supported Props'));
     const sourceRows = (chunk ?? '')
       .split('\n')
       .filter(l => l.trim().startsWith('|')).length;
