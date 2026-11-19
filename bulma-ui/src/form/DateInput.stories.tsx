@@ -767,6 +767,12 @@ export const InlineMonthPicker: Story = {
     defaultValue: new Date(),
   },
   parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
+      },
+    },
     docs: {
       description: {
         story:

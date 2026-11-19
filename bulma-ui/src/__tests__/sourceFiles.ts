@@ -23,3 +23,19 @@ export function sourceFiles(dir: string): string[] {
   }
   return out;
 }
+
+/**
+ * Every story file under `dir`, by the extensions `.storybook/main.ts` loads
+ * stories from.
+ */
+export function storyFiles(dir: string): string[] {
+  const out: string[] = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...storyFiles(full));
+    else if (/\.stories\.(js|jsx|mjs|ts|tsx)$/.test(entry.name)) {
+      out.push(full);
+    }
+  }
+  return out;
+}

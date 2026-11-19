@@ -112,6 +112,10 @@ export const MaterialDesignIcon: Story = {
 };
 
 export const IoniconExample: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'role-img-alt', enabled: false }] } },
+  },
   args: {
     name: 'settings',
     library: 'ion',
@@ -181,6 +185,10 @@ export const FontAwesomeBrands: Story = {
 };
 
 export const IoniconOutline: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'role-img-alt', enabled: false }] } },
+  },
   args: {
     name: 'heart',
     library: 'ion',
@@ -190,6 +198,10 @@ export const IoniconOutline: Story = {
 };
 
 export const IoniconSharp: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'role-img-alt', enabled: false }] } },
+  },
   args: {
     name: 'settings',
     library: 'ion',

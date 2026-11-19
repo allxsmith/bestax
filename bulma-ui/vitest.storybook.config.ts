@@ -9,7 +9,8 @@ import { defineConfig } from 'vitest/config';
 // The Storybook smoke pass (#283), `pnpm test-storybook`: every story renders
 // in Chromium and runs its `play` function, and fails if the browser logged an
 // error while it did. STORYBOOK_THEME=dark runs the same pass in the dark
-// theme. What the pass checks beyond the render is in `.storybook/vitest.setup.ts`.
+// theme. What the pass checks beyond the render is in `.storybook/vitest.setup.ts`
+// (console errors) and `.storybook/preview.ts` (axe).
 const theme = process.env.STORYBOOK_THEME === 'dark' ? 'dark' : 'light';
 
 /**
