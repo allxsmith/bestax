@@ -63,7 +63,23 @@ export const DEPRECATED_PROPS: Readonly<
       note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
     },
   },
+  Cell: {
+    color: {
+      replacement: null,
+      note: 'The prop renders nothing and will be removed in the next major version. Use `textColor` / `bgColor` instead.',
+    },
+  },
+  Column: {
+    color: {
+      replacement: null,
+      note: 'The prop renders nothing and will be removed in the next major version. Use `textColor` / `bgColor` instead.',
+    },
+  },
   Columns: {
+    color: {
+      replacement: null,
+      note: 'The prop renders nothing and will be removed in the next major version. Use `textColor` / `bgColor` instead.',
+    },
     gapSize: {
       replacement: 'gap',
       note: 'Use `gap` instead — `gap` wins if both are set.',
@@ -89,16 +105,40 @@ export const DEPRECATED_PROPS: Readonly<
       note: 'Use `gapWidescreen` instead — `gapWidescreen` wins if both are set.',
     },
   },
+  'Columns.Column': {
+    color: {
+      replacement: null,
+      note: 'The prop renders nothing and will be removed in the next major version. Use `textColor` / `bgColor` instead.',
+    },
+  },
   CopyButton: {
     isFullWidth: {
       replacement: 'isFullwidth',
       note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
     },
   },
+  Field: {
+    color: {
+      replacement: null,
+      note: 'The prop renders nothing and will be removed in the next major version. Use `textColor` / `bgColor` instead.',
+    },
+  },
   File: {
     isFullWidth: {
       replacement: 'isFullwidth',
       note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
+    },
+  },
+  Grid: {
+    color: {
+      replacement: null,
+      note: 'The prop renders nothing and will be removed in the next major version. Use `textColor` / `bgColor` instead.',
+    },
+  },
+  'Grid.Cell': {
+    color: {
+      replacement: null,
+      note: 'The prop renders nothing and will be removed in the next major version. Use `textColor` / `bgColor` instead.',
     },
   },
   Icon: {
