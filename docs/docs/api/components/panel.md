@@ -243,7 +243,7 @@ Every subcomponent is exported by name (`PanelHeading`, `PanelBlock`, …) and a
 ## Related Components
 
 - [`Icon`](../elements/icon.md): For icons inside `Panel.Icon`.
-- [Helper Props](../helpers/usebulmaclasses.md): All Bulma utility helpers can be used.
+- [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing and other utilities.
 
 ---
 
@@ -253,7 +253,7 @@ Every subcomponent is exported by name (`PanelHeading`, `PanelBlock`, …) and a
 - [Storybook: Panel Stories](https://bestax.io/storybook/?path=/story/components-panel--revolutionary-war)
 
 :::tip Pro Tip
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Panel />` for powerful utility-based styling.
+You can use [Bulma helper props](../helpers/usebulmaclasses.md) with `<Panel />` and `Panel.Icon` for powerful utility-based styling.
 :::
 
 ---

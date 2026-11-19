@@ -593,7 +593,7 @@ intentionally kept simple.
 
 - [`Button`](../elements/button.md): For actions in Navbar.
 - [`Icon`](../elements/icon.md): For icons inside Navbar items.
-- [Helper Props](../helpers/usebulmaclasses.md): All Bulma utility helpers can be used.
+- [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing and other utilities.
 
 ---
 
@@ -603,7 +603,7 @@ intentionally kept simple.
 - [Storybook: Navbar Stories](https://bestax.io/storybook/?path=/story/components-navbar--default)
 
 :::tip Pro Tip
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navbar />` and its subcomponents for powerful utility-based styling.
+You can use [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navbar />` and its subcomponents, except `Navbar.Dropdown`, `Navbar.DropdownMenu` and `Navbar.Divider`, for powerful utility-based styling.
 :::
 
 ---

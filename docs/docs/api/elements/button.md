@@ -369,7 +369,7 @@ an icon, name it with `aria-label` yourself.
 - [Storybook: Button Stories](https://bestax.io/storybook/?path=/story/elements-button--default)
 
 :::tip Pro Tip
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Button />` for powerful utility-based styling.
+You can use [Bulma helper props](../helpers/usebulmaclasses.md) with `<Button />` for powerful utility-based styling.
 :::
 
 ---

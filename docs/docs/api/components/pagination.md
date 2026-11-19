@@ -304,7 +304,7 @@ Pagination's parts render `<a>` elements: links with an `href`, and buttons with
 
 ## Related Components
 
-- [Helper Props](../helpers/usebulmaclasses.md): All Bulma utility helpers can be used.
+- [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing and other utilities.
 - [`Button`](../elements/button.md): For custom page controls if needed.
 
 ---
@@ -315,7 +315,7 @@ Pagination's parts render `<a>` elements: links with an `href`, and buttons with
 - [Storybook: Pagination Stories](https://bestax.io/storybook/?path=/story/components-pagination--basic)
 
 :::tip Pro Tip
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Pagination />` and its subcomponents for utility-based styling.
+You can use [Bulma helper props](../helpers/usebulmaclasses.md) with `<Pagination />`, `Pagination.List` and `Pagination.Link` for utility-based styling.
 :::
 
 ---

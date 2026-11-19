@@ -468,7 +468,7 @@ You can combine the traditional prop-based API with compound components:
 
 The `Card` component also supports a compound component API for maximum flexibility. This allows you to compose cards with fine-grained control over each section.
 
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with every `Card` sub-part for utility-based styling — spacing (`m`, `p`), colors, flexbox (`display="flex"`, `flexGrow`), and more. Each sub-part also takes `color` (text color), `bgColor` (background), and `textColor` (wins over `color` when both are set).
+You can use [Bulma helper props](../helpers/usebulmaclasses.md) with every `Card` sub-part for utility-based styling — spacing (`m`, `p`), colors, flexbox (`display="flex"`, `flexGrow`), and more. Each sub-part also takes `color` (text color), `bgColor` (background), and `textColor` (wins over `color` when both are set).
 
 #### Card.Header
 

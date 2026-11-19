@@ -413,7 +413,7 @@ For router integrations, pass the correct `as` and `to`/`href` props to `Menu.It
   `Menu.Section` for groups that open and close.
 - [`Collapse`](./collapse.md): A panel of any content that opens and closes, whose open state
   works the way `Menu.Section`'s does.
-- [Helper Props](../helpers/usebulmaclasses.md): All Bulma utility helpers are supported.
+- [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing and other utilities.
 
 ---
 
@@ -424,7 +424,7 @@ For router integrations, pass the correct `as` and `to`/`href` props to `Menu.It
 - [APG: Disclosure Navigation Menu example](https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/examples/disclosure-navigation/)
 
 :::tip Pro Tip
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu />` and its subcomponents for powerful utility-based styling.
+You can use [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu />` and its subcomponents for powerful utility-based styling.
 :::
 
 ---

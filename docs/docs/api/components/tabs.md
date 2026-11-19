@@ -476,7 +476,7 @@ Tabs built from `Tabs.Tab` follow the [WAI-ARIA tabs pattern](https://www.w3.org
 ## Related Components
 
 - [`Icon`](../elements/icon.md): Use for icons in tab labels.
-- [Helper Props](../helpers/usebulmaclasses.md): All Bulma utility helpers are supported.
+- [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing and other utilities.
 
 ---
 
@@ -486,7 +486,7 @@ Tabs built from `Tabs.Tab` follow the [WAI-ARIA tabs pattern](https://www.w3.org
 - [Storybook: Tabs Stories](https://bestax.io/storybook/?path=/story/components-tabs--alignment-centered)
 
 :::tip Pro Tip
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Tabs />` and its subcomponents for powerful utility-based styling.
+You can use [Bulma helper props](../helpers/usebulmaclasses.md) with `<Tabs />` for powerful utility-based styling.
 :::
 
 ---
