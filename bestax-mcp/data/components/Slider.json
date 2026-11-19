@@ -19,11 +19,11 @@
     },
     {
       "title": "Size Variants",
-      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Block>\n    <Paragraph mb=\"1\">Small</Paragraph>\n    <Slider aria-label=\"Value\" defaultValue={50} size=\"small\" color=\"primary\" />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Normal</Paragraph>\n    <Slider aria-label=\"Value\" defaultValue={50} color=\"primary\" />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Medium</Paragraph>\n    <Slider\n      aria-label=\"Value\"\n      defaultValue={50}\n      size=\"medium\"\n      color=\"primary\"\n    />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Large</Paragraph>\n    <Slider aria-label=\"Value\" defaultValue={50} size=\"large\" color=\"primary\" />\n  </Block>\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Block>\n    <Slider label=\"Small\" defaultValue={50} size=\"small\" color=\"primary\" />\n  </Block>\n  <Block>\n    <Slider label=\"Normal\" defaultValue={50} color=\"primary\" />\n  </Block>\n  <Block>\n    <Slider label=\"Medium\" defaultValue={50} size=\"medium\" color=\"primary\" />\n  </Block>\n  <Block>\n    <Slider label=\"Large\" defaultValue={50} size=\"large\" color=\"primary\" />\n  </Block>\n</Block>"
     },
     {
       "title": "Rounded and Circle",
-      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Block>\n    <Paragraph mb=\"1\">Rounded</Paragraph>\n    <Slider\n      aria-label=\"Value\"\n      defaultValue={50}\n      isRounded\n      color=\"info\"\n      showOutput\n    />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Circle Thumb</Paragraph>\n    <Slider\n      aria-label=\"Value\"\n      defaultValue={50}\n      isCircle\n      color=\"success\"\n      showOutput\n    />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Both</Paragraph>\n    <Slider\n      aria-label=\"Value\"\n      defaultValue={50}\n      isRounded\n      isCircle\n      color=\"warning\"\n      showOutput\n    />\n  </Block>\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Block>\n    <Slider\n      label=\"Rounded\"\n      defaultValue={50}\n      isRounded\n      color=\"info\"\n      showOutput\n    />\n  </Block>\n  <Block>\n    <Slider\n      label=\"Circle Thumb\"\n      defaultValue={50}\n      isCircle\n      color=\"success\"\n      showOutput\n    />\n  </Block>\n  <Block>\n    <Slider\n      label=\"Both\"\n      defaultValue={50}\n      isRounded\n      isCircle\n      color=\"warning\"\n      showOutput\n    />\n  </Block>\n</Block>"
     },
     {
       "title": "Custom Range",

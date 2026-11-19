@@ -11,7 +11,7 @@
     },
     {
       "title": "With Min and Max",
-      "code": "function example() {\n  const [quantity, setQuantity] = useState(1);\n  return (\n    <Block>\n      <Paragraph mb=\"2\">Quantity (1-10):</Paragraph>\n      <Numberinput\n        aria-label=\"Quantity\"\n        value={quantity}\n        onChange={setQuantity}\n        min={1}\n        max={10}\n        color=\"primary\"\n      />\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const [quantity, setQuantity] = useState(1);\n  return (\n    <Block>\n      <Numberinput\n        label=\"Quantity (1-10)\"\n        value={quantity}\n        onChange={setQuantity}\n        min={1}\n        max={10}\n        color=\"primary\"\n      />\n    </Block>\n  );\n}"
     },
     {
       "title": "Color Variants",
@@ -23,7 +23,7 @@
     },
     {
       "title": "Controls Position",
-      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Block>\n    <Paragraph mb=\"1\">Both sides (default)</Paragraph>\n    <Numberinput\n      aria-label=\"Quantity\"\n      defaultValue={5}\n      controlsPosition=\"both\"\n      color=\"primary\"\n    />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Left only</Paragraph>\n    <Numberinput\n      aria-label=\"Quantity\"\n      defaultValue={5}\n      controlsPosition=\"left\"\n      color=\"info\"\n    />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Right only</Paragraph>\n    <Numberinput\n      aria-label=\"Quantity\"\n      defaultValue={5}\n      controlsPosition=\"right\"\n      color=\"success\"\n    />\n  </Block>\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Block>\n    <Numberinput\n      label=\"Both sides (default)\"\n      defaultValue={5}\n      controlsPosition=\"both\"\n      color=\"primary\"\n    />\n  </Block>\n  <Block>\n    <Numberinput\n      label=\"Left only\"\n      defaultValue={5}\n      controlsPosition=\"left\"\n      color=\"info\"\n    />\n  </Block>\n  <Block>\n    <Numberinput\n      label=\"Right only\"\n      defaultValue={5}\n      controlsPosition=\"right\"\n      color=\"success\"\n    />\n  </Block>\n</Block>"
     },
     {
       "title": "Rounded Buttons",
@@ -31,7 +31,7 @@
     },
     {
       "title": "Custom Step",
-      "code": "function example() {\n  const [value, setValue] = useState(0);\n  return (\n    <Block>\n      <Paragraph mb=\"2\">Step by 10:</Paragraph>\n      <Numberinput\n        aria-label=\"Quantity\"\n        value={value}\n        onChange={setValue}\n        step={10}\n        min={0}\n        max={100}\n        color=\"info\"\n      />\n      <Paragraph mt=\"2\">Value: {value}</Paragraph>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const [value, setValue] = useState(0);\n  return (\n    <Block>\n      <Numberinput\n        label=\"Step by 10\"\n        value={value}\n        onChange={setValue}\n        step={10}\n        min={0}\n        max={100}\n        color=\"info\"\n      />\n      <Paragraph mt=\"2\">Value: {value}</Paragraph>\n    </Block>\n  );\n}"
     },
     {
       "title": "Read-only Input",
