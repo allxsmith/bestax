@@ -1,3 +1,29 @@
+## [1.18.82](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.81...bestax-mcp@1.18.82) (2026-11-19)
+
+
+### Bug Fixes
+
+* **bulma-ui:** decide once which calendar days show, for the cells and the weeks ([5d44135](https://github.com/allxsmith/bestax/commit/5d4413582ba2d31a383f3462b470f9eeaca7b14d)), closes [#2190](https://github.com/allxsmith/bestax/issues/2190)
+* **bulma-ui:** hide a calendar week with no day on show from assistive technology ([4f5c9ea](https://github.com/allxsmith/bestax/commit/4f5c9ea89c3cec1652d30024ff421b6403ecb98a)), closes [#2190](https://github.com/allxsmith/bestax/issues/2190) [#2194](https://github.com/allxsmith/bestax/issues/2194)
+* **bulma-ui:** hide an Ionicon's inner element, which is an image with no name ([2b494eb](https://github.com/allxsmith/bestax/commit/2b494eb1a0423343b0191c6b0f32bc059e170dba)), closes [#2213](https://github.com/allxsmith/bestax/issues/2213)
+
+## [1.18.81](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.80...bestax-mcp@1.18.81) (2026-11-19)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** say most components take the helper props in get_helper_props ([720d434](https://github.com/allxsmith/bestax/commit/720d43481c6aac53d12b9f17dcffd2f9fbaed1b9)), closes [#2212](https://github.com/allxsmith/bestax/issues/2212)
+* **bulma-ui:** say Theme's radius and columnGap are helpers as on other components, not every one ([47b5b95](https://github.com/allxsmith/bestax/commit/47b5b95b57d24246a1633add3a3dff63af98259c)), closes [#2212](https://github.com/allxsmith/bestax/issues/2212)
+* **docs:** let Tab move focus out of the live code editors ([6bc22c5](https://github.com/allxsmith/bestax/commit/6bc22c545477ba6f7708841e41c7d9eac76ccdfe)), closes [#2177](https://github.com/allxsmith/bestax/issues/2177)
+
+## [1.18.80](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.79...bestax-mcp@1.18.80) (2026-11-19)
+
+
+### Bug Fixes
+
+* **bulma-ui:** keep Pagination.Ellipsis's pagination-ellipsis class beside a className ([0bfe043](https://github.com/allxsmith/bestax/commit/0bfe043bb986f1eda78dce32f8624884a226fa63)), closes [#2168](https://github.com/allxsmith/bestax/issues/2168)
+* **docs:** give no children row for another object's .children in the props tables ([f7c3e2a](https://github.com/allxsmith/bestax/commit/f7c3e2ab4c1a91bf6c62eb2fa5ca10788c61609d)), closes [#2125](https://github.com/allxsmith/bestax/issues/2125)
+
 ## [1.18.79](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.78...bestax-mcp@1.18.79) (2026-11-18)
 
 

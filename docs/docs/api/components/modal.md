@@ -422,7 +422,7 @@ Always provide an `onClose` handler for accessibility and to allow users to dism
 - [`Popover`](./popover.md): A non-modal panel anchored to its trigger, for content that shouldn't block the page.
 - [`Button`](../elements/button.md): Use for actions in modal footers.
 - [`Field`](../form/field.md), [`Input`](../form/input.md): For forms inside modals.
-- [Helper Props](../helpers/usebulmaclasses.md): All Bulma utility helpers can be used.
+- [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing and other utilities.
 
 ---
 
@@ -432,7 +432,7 @@ Always provide an `onClose` handler for accessibility and to allow users to dism
 - [Storybook: Modal Stories](https://bestax.io/storybook/?path=/story/components-modal--modal-card)
 
 :::tip Pro Tip
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Modal />` for powerful utility-based styling.
+You can use [Bulma helper props](../helpers/usebulmaclasses.md) with `<Modal />` for powerful utility-based styling.
 :::
 
 ---

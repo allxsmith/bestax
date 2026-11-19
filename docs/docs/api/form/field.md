@@ -14,7 +14,7 @@ The `Field` component is a Bulma-styled form field container.
 
 <!-- /bestax:generated overview -->
 
-It supports horizontal layouts, grouped controls, labels, label sizing, and all Bulma helper props for color, margin, and more. `Field` is the primary way to compose labeled, grouped, or horizontal layouts in your forms.
+It supports horizontal layouts, grouped controls, labels, label sizing, and Bulma helper props for color, margin, and more. `Field` is the primary way to compose labeled, grouped, or horizontal layouts in your forms.
 
 ---
 

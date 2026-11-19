@@ -669,8 +669,8 @@ function cssVarToProp(varName: string): string {
  * Prop names `cssVarToProp` would mint that are already helper props:
  * `--bulma-shadow` becomes `shadow`, `--bulma-radius` becomes `radius` and
  * `--bulma-column-gap` becomes `columnGap`. They stay out of
- * `bulmaVarPropMap`, so on Theme each is the helper prop it is on every other
- * component, and every one of those variables is still reachable through
+ * `bulmaVarPropMap`, so on Theme each is the helper prop it is on other
+ * components, and every one of those variables is still reachable through
  * `bulmaVars`.
  *
  * `radius` was missed here once and set `--bulma-radius` while typed as the
@@ -733,7 +733,7 @@ const radiusHelperVars: Record<
  * Only a string writes anything, because only a string ever set the variable
  * to something usable: an empty value or zero was dropped, and a boolean or
  * any other bare number is not a length. The helper ignores those too, the
- * way it does on every other component.
+ * way it does on other components.
  */
 const themeRadiusVar = (radius: unknown): string | undefined => {
   if (typeof radius !== 'string' || radius === '') {
@@ -746,7 +746,7 @@ const themeRadiusVar = (radius: unknown): string | undefined => {
     'Theme:radius-variable',
     `[bestax-bulma] <Theme radius="${radius}">: setting --bulma-radius ` +
       'through the radius prop is deprecated and will stop working in a ' +
-      'future major version. On Theme, as on every other component, radius ' +
+      'future major version. On Theme, as on other components, radius ' +
       `is the border radius helper ("${validRadii.join('", "')}"). Set the variable with ` +
       `bulmaVars={{ '--bulma-radius': '${radius}' }} instead.`
   );
@@ -779,8 +779,8 @@ const themeColumnGapVar = (columnGap: unknown): string | undefined => {
     'Theme:column-gap-variable',
     `[bestax-bulma] <Theme columnGap="${columnGap}">: setting ` +
       '--bulma-column-gap through the columnGap prop is deprecated and will ' +
-      'stop working in a future major version. On Theme, as on every other ' +
-      'component, columnGap is the column gap helper ' +
+      'stop working in a future major version. On Theme, as on other ' +
+      'components, columnGap is the column gap helper ' +
       `("${validGaps.join('", "')}"). Set the variable with ` +
       `bulmaVars={{ '--bulma-column-gap': '${columnGap}' }} instead.`
   );
@@ -1118,7 +1118,7 @@ export interface ThemeProps extends Omit<
    */
   bulmaVars?: BulmaVars;
   /**
-   * Border radius helper, as on every other component: `radiusless` adds
+   * Border radius helper, as on other components: `radiusless` adds
    * `is-radiusless` to the wrapper div. On a Theme it also sets
    * `--bulma-radius` to 0, so what is inside the Theme loses its radius too.
    * Under `isRoot` there is no wrapper for the class, and the variable is
@@ -1135,11 +1135,11 @@ export interface ThemeProps extends Omit<
    * variable for every value, so any other non-empty string still does, but
    * that route is deprecated and logs a warning in development. A number or
    * a boolean never produced a usable radius that way, and is now ignored as
-   * it is on every other component.
+   * it is on other components.
    */
   radius?: (typeof validRadii)[number];
   /**
-   * Column gap helper, as on every other component: a gap step adds
+   * Column gap helper, as on other components: a gap step adds
    * `is-column-gap-<step>` to the wrapper div, which spaces the wrapper's own
    * children when it is a flex or grid container. Under `isRoot` there is no
    * wrapper, so it does nothing, and says so in development.

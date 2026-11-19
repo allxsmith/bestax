@@ -1077,7 +1077,7 @@ Hover tooltips for displaying helpful information. Supports multiple positions a
 ---
 
 :::tip
-All components support Bulma helper props for color, spacing, and accessibility. See the full documentation for each component for more advanced usage and customization.
+See the full documentation for each component for more advanced usage and customization.
 :::
 
 :::info

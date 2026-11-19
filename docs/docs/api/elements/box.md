@@ -14,7 +14,7 @@ The `Box` component renders a padded container with rounded corners and an optio
 
 <!-- /bestax:generated overview -->
 
-It's useful for visually separating content, callouts, or emphasizing important UI elements. Supports all Bulma helper props for color, spacing, and more.
+It's useful for visually separating content, callouts, or emphasizing important UI elements. Supports Bulma helper props for color, spacing, and more.
 
 :::info
 By default, `Box` includes a subtle shadow. You can disable the shadow with `hasShadow={false}`.

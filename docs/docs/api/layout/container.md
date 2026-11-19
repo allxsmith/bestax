@@ -183,7 +183,7 @@ Bulma pages often put the container class on a landmark, such as `<main class="c
 - [Storybook: Container Stories](https://bestax.io/storybook/?path=/story/layout-container--default)
 
 :::tip Pro Tip
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Container />` for powerful utility-based styling.
+You can use [Bulma helper props](../helpers/usebulmaclasses.md) with `<Container />` for powerful utility-based styling.
 :::
 
 ---

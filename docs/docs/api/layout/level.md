@@ -292,7 +292,7 @@ For best accessibility, use semantic elements for headings/content within items,
 - [Storybook: Level Stories](https://bestax.io/storybook/?path=/story/layout-level--default)
 
 :::tip Pro Tip
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Level />`, `<Level.Left>`, `<Level.Right>`, and `<Level.Item>` for powerful utility-based styling.
+You can use [Bulma helper props](../helpers/usebulmaclasses.md) with `<Level />`, `<Level.Left>`, `<Level.Right>`, and `<Level.Item>` for powerful utility-based styling.
 :::
 
 ---

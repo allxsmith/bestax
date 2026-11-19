@@ -14,7 +14,7 @@ The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma
 
 <!-- /bestax:generated overview -->
 
-It supports custom triggers, menu alignment, hover or click activation, right/up direction, disabled state, controlled/uncontrolled open state, menu dividers, and full Bulma/utility helper props. Use it for navigation menus, actions, or custom pop-up lists.
+It supports custom triggers, menu alignment, hover or click activation, right/up direction, disabled state, controlled/uncontrolled open state, menu dividers, and Bulma/utility helper props. Use it for navigation menus, actions, or custom pop-up lists.
 
 :::info
 Dropdowns can be fully controlled, used as hoverable, or triggered by click. Menu items and dividers are included.
@@ -321,7 +321,7 @@ trigger of a `hoverable` menu the pointer holds open goes through its items.
 - [`Button`](../elements/button.md): Use Bulma/Bestax buttons as triggers if needed.
 - [`Popover`](./popover.md): A panel of interactive content, such as a form, rather than a menu of actions.
 - [`ContextMenu`](./contextmenu.md): The same items in a menu that opens where you right-click an element, or long press it, rather than from a button.
-- [Helper Props](../helpers/usebulmaclasses.md): All Bulma utility helpers can be used.
+- [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing and other utilities.
 
 ---
 
@@ -331,7 +331,7 @@ trigger of a `hoverable` menu the pointer holds open goes through its items.
 - [Storybook: Dropdown Stories](https://bestax.io/storybook/?path=/story/components-dropdown--default)
 
 :::tip Pro Tip
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Dropdown />`, `<Dropdown.Item />`, and `<Dropdown.Divider />` for utility-based styling.
+You can use [Bulma helper props](../helpers/usebulmaclasses.md) with `<Dropdown />` and `<Dropdown.Item />` for utility-based styling.
 :::
 
 ---
