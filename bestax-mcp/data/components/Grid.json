@@ -72,7 +72,7 @@
           "name": "gap",
           "type": "BulmaGapStep",
           "default": null,
-          "description": "Main gap for grid (Bulma `is-gap-X`), a whole or half step of Bulma's gap scale. The same values and class as the `gap` helper prop on every other component.",
+          "description": "Main gap for grid (Bulma `is-gap-X`), a whole or half step of Bulma's gap scale. The same values and class as the `gap` helper prop on other components.",
           "required": false,
           "inherited": false,
           "deprecated": false

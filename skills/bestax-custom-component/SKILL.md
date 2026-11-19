@@ -50,12 +50,13 @@ label — use that instead"_ or _"No `ProfileCard` exists; I'll build one compos
 
 Build from existing components before writing any CSS: `Box`, `Card`, `Title`, `SubTitle`,
 `Icon`, `Block`, `Content`, `Tag`, plus the shared Bulma helper props (spacing, color,
-typography, flexbox). Some compound sub-parts are the exception — `Modal.Card`, `Tabs.Tab`,
-`Message.Body` take **no Bulma helper props**, just `className` + HTML attributes
-plus their own few (`Tabs.Tab` requires `index={i}` and has built-in `disabled` and
-`icon`/`iconLibrary`/`iconVariant`/`iconSize`/`iconFeatures` — don't nest an `<Icon>` there) —
-so put helper props on the parent or on an element inside them, never invent them there.
-(`Card.*` sub-parts do take helper props, like `Table.*`/`Menu.*`/`Hero.*`.) Most "custom components" are a composition function — zero new styles.
+typography, flexbox). Some components and parts take **no Bulma helper props**, just
+`className` and HTML attributes plus their own few, so check one's props before passing a
+helper (the styling ladder below says where), and where it takes none, put helper props on a
+component around it or inside it that takes them, never invent them there.
+`Tabs.Tab` is one: it requires `index={i}` and has built-in `disabled` and
+`icon`/`iconLibrary`/`iconVariant`/`iconSize`/`iconFeatures`, so don't nest an `<Icon>` there.
+Most "custom components" are a composition function with zero new styles.
 See `examples/stat-card.tsx` for a complete worked example.
 
 Rendering something only the browser knows (the reader's time zone, a `localStorage` value)?
@@ -207,11 +208,9 @@ translate each declaration:
 | `display: 'none'`                        | `visibility="hidden"`, or responsive `display*` props (`displayMobile`, `displayTablet`, …)                                                                    |
 | `gap: '1rem'` (flex or grid)             | `gap="2"`, or one axis: `columnGap`, `rowGap`; gap scale: `1`=0.5rem, `2`=1rem, `4`=2rem, half steps (`"1.5"`)                                                 |
 
-Spacing, typography, and flex helpers are on every component; `textColor`/`bgColor` are on
-the content components you'll compose with (`Box`, `Block`, `Title`, `Content`, `Card`, …) —
-the ones with a semantic `color` variant (`Tag`, `Tabs`, `Panel`) take `color` instead.
-`Notification` is the mixed case: it takes `textColor`, but its background comes from the
-semantic `color` prop, not `bgColor`.
+Most components take the spacing, typography, and flex helpers, and many take the color
+ones, but not every component or part does, so check its props before passing one, on its API
+page or with the MCP server's `get_props`.
 
 A value with no helper equivalent (`maxWidth: 720`, a one-off gradient) moves you to rung 2 —
 a named class in a stylesheet — never to inline `style`.

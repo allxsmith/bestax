@@ -573,8 +573,8 @@ export const CustomShadow: Story = {
   ),
 };
 
-// Radius: `radius` on Theme is the border radius helper, as on every other
-// component, so a custom `--bulma-radius` goes through `bulmaVars`.
+// Radius: `radius` on Theme is the border radius helper, as on other
+// components, so a custom `--bulma-radius` goes through `bulmaVars`.
 // Notification and Tag declare their own radius from it, so a scoped override
 // reaches them; controls resolve theirs at :root and need an isRoot Theme.
 export const RadiusTheme: Story = {

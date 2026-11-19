@@ -92,8 +92,8 @@ export interface GridProps
   isFixed?: boolean;
   /**
    * Main gap for grid (Bulma `is-gap-X`), a whole or half step of Bulma's gap
-   * scale. The same values and class as the `gap` helper prop on every other
-   * component.
+   * scale. The same values and class as the `gap` helper prop on other
+   * components.
    */
   gap?: BulmaGapStep;
   /** Column gap for grid (`is-column-gap-X`), on the same scale as `gap`. */
