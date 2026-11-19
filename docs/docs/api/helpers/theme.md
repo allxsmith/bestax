@@ -539,7 +539,7 @@ typed API, so move it to `bulmaVars`:
 
 Some of those names are already helper props, so they cannot double as CSS-variable props:
 
-- `radius` is the border radius helper, as on every other component, so `<Theme radius="radiusless">`
+- `radius` is the border radius helper, as on other components, so `<Theme radius="radiusless">`
   adds `is-radiusless` to the wrapper. On a Theme it also sets `--bulma-radius` to `0`, so what
   is inside the Theme loses its radius too; under `isRoot` it writes that at `:root`, squaring
   everything on the page that takes its radius from it. The sizes (`small`, `normal`, `large`,
@@ -550,7 +550,7 @@ Some of those names are already helper props, so they cannot double as CSS-varia
   `--bulma-radius`, which is how the prop used to behave, but that route is deprecated and logs
   a warning in development.
 - `shadow` is the `shadowless` helper. Set `--bulma-shadow` through `bulmaVars`.
-- `columnGap` is the column gap helper, as on every other component, so `<Theme columnGap="2">`
+- `columnGap` is the column gap helper, as on other components, so `<Theme columnGap="2">`
   adds `is-column-gap-2` to the wrapper and sets no variable; under `isRoot` there is no wrapper,
   so it does nothing and warns in development. Set the columns gutter, `--bulma-column-gap`,
   through `bulmaVars`. Before the gap helpers, JavaScript could pass `columnGap` to set that

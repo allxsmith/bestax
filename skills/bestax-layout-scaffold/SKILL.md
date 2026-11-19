@@ -334,8 +334,8 @@ Look up the declaration you were about to inline. Most components take the spaci
 typography, and flex helpers below, and many take the color ones, but not every component or
 part does, so check its props before passing one, on its API page or with the MCP server's
 `get_props`. Where one doesn't (`Tabs.Tab`, for one), put the helper on a component around it
-that takes it, or on an element inside it: wrap its content in a `Span` with `textColor` when
-the one you're styling has no text color.
+or inside it that takes it: wrap its content in a `Span` with `textColor` when the one you're
+styling has no text color.
 
 | Inline style you're about to write       | Helper props instead                                                                                                                                           |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |

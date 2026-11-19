@@ -53,7 +53,7 @@ Build from existing components before writing any CSS: `Box`, `Card`, `Title`, `
 typography, flexbox). Some components and parts take **no Bulma helper props**, just
 `className` and HTML attributes plus their own few, so check one's props before passing a
 helper (the styling ladder below says where), and where it takes none, put helper props on a
-component around it that takes them or on an element inside it, never invent them there.
+component around it or inside it that takes them, never invent them there.
 `Tabs.Tab` is one: it requires `index={i}` and has built-in `disabled` and
 `icon`/`iconLibrary`/`iconVariant`/`iconSize`/`iconFeatures`, so don't nest an `<Icon>` there.
 Most "custom components" are a composition function with zero new styles.

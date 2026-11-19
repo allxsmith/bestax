@@ -189,7 +189,7 @@ The snippets below rebuild simplified components by hand purely to show how `use
 
 #### Columns
 
-`MyColumns` forwards all of its props to `useBulmaClasses` — the `textAlign` and `textTransform` helper props below flow through `props` into the hook (producing `has-text-centered is-uppercase`), while anything the hook doesn't recognize comes back in `rest` and lands on the `<div>`:
+`MyColumns` merges a caller's `className` with its own and forwards the rest of its props to `useBulmaClasses` — the `textAlign` and `textTransform` helper props below flow through `props` into the hook (producing `has-text-centered is-uppercase`), while anything the hook doesn't recognize comes back in `rest` and lands on the `<div>`:
 
 ```tsx live
 import type { BulmaClassesProps } from '@allxsmith/bestax-bulma';
@@ -197,11 +197,15 @@ import type { BulmaClassesProps } from '@allxsmith/bestax-bulma';
 function example() {
   function MyColumns({
     children,
+    className,
     ...props
   }: BulmaClassesProps & React.ComponentPropsWithoutRef<'div'>) {
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
     return (
-      <div className={classNames('columns', bulmaHelperClasses)} {...rest}>
+      <div
+        className={classNames('columns', bulmaHelperClasses, className)}
+        {...rest}
+      >
         {children}
       </div>
     );
