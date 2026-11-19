@@ -791,6 +791,63 @@ describe('get_examples', () => {
     expect(out.match(/```tsx/g)?.length).toBe(2);
   });
 
+  // An example that loads a picture from the docs site's `/img/` carries a
+  // note saying the path stands for the reader's own (#1737), printed with the
+  // code and kept out of `code`, which search reads.
+  describe("a site image's note", () => {
+    const noted = async () => {
+      const record = await loadComponent('Navbar');
+      const examples = record.examples.filter(e => e.note);
+      expect(examples.length).toBeGreaterThan(0);
+      return examples;
+    };
+
+    it('prints the note as the first line of the code', async () => {
+      const [example] = await noted();
+      const out = text(
+        await call('get_examples', {
+          component: 'Navbar',
+          query: example.title,
+        })
+      );
+      expect(out).toContain(
+        `\`\`\`tsx\n// ${example.note}\n${example.code}\n\`\`\``
+      );
+    });
+
+    // get_helper_props serves the helper props page a section at a time, so
+    // a group that shows a site image carries the note itself.
+    it('notes every helper props group that shows a site image', async () => {
+      const [{ note }] = await noted();
+      let shown = 0;
+      for (const group of GROUP_NAMES) {
+        const out = text(await call('get_helper_props', { group }));
+        if (!/["'`]\/img\//.test(out)) continue;
+        shown += 1;
+        expect(out).toContain(`> ${note}`);
+      }
+      expect(shown).toBeGreaterThan(0);
+    });
+
+    it("keeps the note's words out of search and the query filter", async () => {
+      const examples = await noted();
+      const filtered = text(
+        await call('get_examples', { component: 'Navbar', query: 'serves' })
+      );
+      expect(filtered).toContain('No Navbar examples match');
+      const found = text(
+        await call('search_bestax', {
+          query: 'serves',
+          kind: 'example',
+          limit: 30,
+        })
+      );
+      for (const e of examples) {
+        expect(found).not.toContain(`Navbar: ${e.title}`);
+      }
+    });
+  });
+
   // A dot-path goes on through a static that is a component of its own, as in
   // get_props, so `Stats.Stat.Label` has Stat's examples, not Stats' (#1578).
   describe('on a dot-path', () => {

@@ -16,8 +16,8 @@ import { fileURLToPath } from 'node:url';
 import {
   blankNonCode,
   toExampleModule,
-  withSiteImages,
 } from '../src/theme/CodeBlock/sandbox/example.mjs';
+import { withSiteImages } from '../src/theme/CodeBlock/sandbox/site-images.mjs';
 import {
   importedStylesheets,
   stripModuleLines,

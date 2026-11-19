@@ -27,6 +27,7 @@ import {
   helperImport,
   importedNames,
   importSection,
+  noteSiteImagesInSlices,
   orderDeclarers,
   proseComponentInfo,
   readSkills,
@@ -35,6 +36,10 @@ import {
   standaloneTables,
 } from './gen-mcp-index.mjs';
 import { sectionSpans } from './lib/api-page.mjs';
+import {
+  SITE_IMAGES_NOTE,
+  hasSiteImages,
+} from '../docs/src/theme/CodeBlock/sandbox/site-images.mjs';
 import { RENDERS_ELEMENT_OF } from './lib/api-sources.mjs';
 import { barrelExports } from './lib/props-extract.mjs';
 import { failureText, skillRefusal, skillSlug } from './lib/skills.mjs';
@@ -323,6 +328,78 @@ test('nothing the index ships carries a link that only resolves on its page', ()
 
 /** A markdown link's target, bare, in angle brackets, or before a title. */
 const LINK_TARGET = /\]\(\s*(<[^>]*>|[^)\s]+)/g;
+
+test("the index says a site image in its code stands for the reader's own (#1737)", () => {
+  // `/img/logo.svg` names a picture bestax.io serves, and once an agent copies
+  // the example into an app, a file that app does not have. The path stays,
+  // and the example carries a note, kept out of the code search reads.
+  const unnoted = [];
+  const once = text => text.split(SITE_IMAGES_NOTE).length === 2;
+  // The prose a record ships, a hook's API block or a whole page, is markdown
+  // whose examples are its `jsx` and `tsx` fences, and the server may serve it
+  // a `##` or `###` section at a time (`sections` in helper-props.ts). Each
+  // section the rule would note carries the note already.
+  const walk = (value, at) => {
+    if (typeof value === 'string') {
+      for (const part of value.split(/\n(?=#{2,3} )/)) {
+        if (
+          !part.includes(SITE_IMAGES_NOTE) &&
+          noteSiteImagesInSlices(part) !== part
+        ) {
+          unnoted.push(at);
+        }
+      }
+    } else if (Array.isArray(value)) {
+      value.forEach((v, i) => walk(v, `${at}[${i}]`));
+    } else if (value && typeof value === 'object') {
+      for (const [key, v] of Object.entries(value)) {
+        if (key !== 'examples') walk(v, `${at}.${key}`);
+      }
+    }
+  };
+  for (const [name, record] of components) {
+    record.examples.forEach((ex, i) => {
+      const noted = ex.note === SITE_IMAGES_NOTE;
+      if (
+        hasSiteImages(ex.code) !== noted ||
+        ex.code.includes(SITE_IMAGES_NOTE)
+      ) {
+        unnoted.push(`${name}.examples[${i}]`);
+      }
+    });
+    walk(record, name);
+  }
+  assert.deepEqual(unnoted, []);
+  assert.ok(
+    components
+      .get('Navbar')
+      .examples.some(ex => ex.note && ex.code.includes('src="/img/logo.svg"')),
+    'the path is kept as the page writes it'
+  );
+  const doc = components.get('useBulmaClasses').doc;
+  assert.ok(once(doc), 'a prose page carries the note once');
+  assert.match(doc, /src="\/img\/react-logo\.png"/);
+});
+
+test('each section the server may serve alone says what a site image stands for (#1737)', () => {
+  const image = ['```tsx', '<img src="/img/a.svg" alt="" />', '```'];
+  const md = [
+    '## Spacing',
+    '',
+    ...image,
+    '',
+    ...image,
+    '',
+    '### Visibility',
+    '',
+    ...image,
+  ].join('\n');
+  const parts = noteSiteImagesInSlices(md).split(/\n(?=#{2,3} )/);
+  assert.deepEqual(
+    parts.map(part => part.split(SITE_IMAGES_NOTE).length - 1),
+    [1, 1]
+  );
+});
 
 test('relative links resolve to the URL the docs site serves', () => {
   const md = [

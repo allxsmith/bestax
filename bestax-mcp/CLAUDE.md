@@ -15,6 +15,14 @@ extraction the API docs use — `scripts/lib/props-extract.mjs` in
 hand-written `## Usage` / `## Accessibility` sections of the API pages.
 
 - **Never hand-edit `data/`.** CI fails on staleness (`pnpm gen:mcp:check`).
+- An example's `/img/...` path names a picture bestax.io serves, and once an agent copies it, a
+  file the user's app does not have. The index keeps the path and gives each such example a
+  `note` saying it stands for the reader's own picture, which `renderExamples` prints as the
+  first line of its code. It is a field rather than a comment in `code` because search reads
+  `code`, and the note's words would match there. Each other string a record ships (a whole
+  page, a hook's API block) gets the same note above its first such `jsx` or `tsx` fence in each
+  `##` or `###` section, since `get_helper_props` serves a page a section at a time. The docs'
+  matcher decides which paths count (`docs/src/theme/CodeBlock/sandbox/site-images.mjs`).
 - `data/catalog.json` and `data/components/*.json` are **committed**.
 - `data/bulma-classes.json` is **committed** too, and comes from somewhere else:
   bestax-migrate's `src/sources/bulma-classes/class-map.ts`, which the generator
