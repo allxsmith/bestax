@@ -115,6 +115,14 @@ const STYLESHEET_READER = join(
   'support',
   'bulma-stylesheet.ts'
 );
+/**
+ * Where bestax-mcp's `get_helper_props` splits a guide into the sections it
+ * serves, outside fenced code, so the notes this adds land where it serves
+ * them (#2243).
+ */
+const { sections } = await importStripped(
+  join(REPO, 'bestax-mcp', 'src', 'fences.ts')
+);
 
 const PACKAGE = '@allxsmith/bestax-bulma';
 /** A name a page can document as a component: an exported identifier, capitalised. */
@@ -537,18 +545,12 @@ function awayFromPageIn(value, relPath, key = '') {
 }
 
 /**
- * Where the server may serve a record's markdown in parts: `get_helper_props`
- * slices a page at its `##` and `###` headings (`sections` in
- * bestax-mcp/src/helper-props.ts).
- */
-const SLICE = /\n(?=#{2,3} )/;
-
-/**
  * `noteSiteImagesInFences` over each part of `markdown` the server may serve
- * alone, so every such part that shows a site image says what it stands for.
+ * alone, the sections `get_helper_props` slices a guide into (`sections`), so
+ * every such part that shows a site image says what it stands for.
  */
 export function noteSiteImagesInSlices(markdown) {
-  return markdown.split(SLICE).map(noteSiteImagesInFences).join('\n');
+  return sections(markdown).map(noteSiteImagesInFences).join('\n');
 }
 
 /** Strip the frontmatter block, leaving the page body. */
@@ -929,14 +931,15 @@ function itemsOf(placed, token) {
   };
 }
 
-/** A TypeScript module of bestax-migrate's, loaded with node's type stripping. */
+/** A sibling package's TypeScript module, loaded with node's type stripping. */
 async function importStripped(file) {
   try {
     return await import(pathToFileURL(file).href);
   } catch (err) {
     throw new Error(
       `could not import ${relative(REPO, file)}: ${err.message}. ` +
-        `It is loaded with node's type stripping, which needs Node 22.18 or later.`,
+        `It is loaded with node's type stripping, which needs Node 22.18 or ` +
+        `later and erasable TypeScript, any relative import naming a .ts file.`,
       { cause: err }
     );
   }

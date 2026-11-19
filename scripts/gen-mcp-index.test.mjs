@@ -40,6 +40,7 @@ import {
   SITE_IMAGES_NOTE,
   hasSiteImages,
 } from '../docs/src/theme/CodeBlock/sandbox/site-images.mjs';
+import { sections } from '../bestax-mcp/src/fences.ts';
 import { RENDERS_ELEMENT_OF } from './lib/api-sources.mjs';
 import { barrelExports } from './lib/props-extract.mjs';
 import { failureText, skillRefusal, skillSlug } from './lib/skills.mjs';
@@ -337,11 +338,11 @@ test("the index says a site image in its code stands for the reader's own (#1737
   const once = text => text.split(SITE_IMAGES_NOTE).length === 2;
   // The prose a record ships, a hook's API block or a whole page, is markdown
   // whose examples are its `jsx` and `tsx` fences, and the server may serve it
-  // a `##` or `###` section at a time (`sections` in helper-props.ts). Each
-  // section the rule would note carries the note already.
+  // a `##` or `###` section at a time (`sections` in bestax-mcp's fences.ts).
+  // Each section the rule would note carries the note already.
   const walk = (value, at) => {
     if (typeof value === 'string') {
-      for (const part of value.split(/\n(?=#{2,3} )/)) {
+      for (const part of sections(value)) {
         if (
           !part.includes(SITE_IMAGES_NOTE) &&
           noteSiteImagesInSlices(part) !== part
@@ -394,10 +395,29 @@ test('each section the server may serve alone says what a site image stands for 
     '',
     ...image,
   ].join('\n');
-  const parts = noteSiteImagesInSlices(md).split(/\n(?=#{2,3} )/);
+  const parts = sections(noteSiteImagesInSlices(md));
   assert.deepEqual(
     parts.map(part => part.split(SITE_IMAGES_NOTE).length - 1),
     [1, 1]
+  );
+});
+
+test('a heading line inside an example does not split its section (#2243)', () => {
+  // The template literal's `## Title` is code. Split there, the example's
+  // picture would sit in a part with no fence around it, and go unnoted.
+  const md = [
+    '## Spacing',
+    '',
+    '```jsx live',
+    'const notes = `',
+    '## Title',
+    '`;',
+    '<img src="/img/a.svg" alt="" />',
+    '```',
+  ].join('\n');
+  assert.equal(
+    noteSiteImagesInSlices(md),
+    md.replace('```jsx', `> ${SITE_IMAGES_NOTE}\n\n\`\`\`jsx`)
   );
 });
 
