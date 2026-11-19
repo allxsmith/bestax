@@ -450,8 +450,8 @@ export async function createServer(
     return (
       `**Do not write inline \`style={{ … }}\`, and do not hand-write Bulma ` +
       `\`className\`s** (\`lookup_bulma_classes\` translates one you had in ` +
-      `mind). Spacing, colour, typography, flex and visibility are ` +
-      `props on every component. Translate the declaration you were about to ` +
+      `mind). Spacing, typography, flex and visibility are props on most ` +
+      `components, and colour on many. Translate the declaration you were about to ` +
       `inline using the table below; if nothing matches (\`maxWidth\`, a ` +
       `one-off gradient), add a named class to the project stylesheet and pass ` +
       `it via \`className\` — still never inline \`style\`.\n\n${section}\n\n---\n\n`
@@ -949,10 +949,11 @@ export async function createServer(
       title: 'Get helper props',
       annotations: READ_ONLY,
       description:
-        'The helper props every bestax component accepts — spacing, colour, ' +
-        'typography, flexbox, visibility — and their valid values. Call this ' +
-        'BEFORE writing an inline style or a utility class by hand; this ' +
-        'library expects those to be props.',
+        'The helper props bestax components accept (spacing, colour, ' +
+        'typography, flexbox, visibility) and their valid values. Most ' +
+        'components take them, so check one with get_props before passing a ' +
+        'helper. Call this BEFORE writing an inline style or a utility class ' +
+        'by hand; this library expects those to be props.',
       inputSchema: {
         group: z
           .string()

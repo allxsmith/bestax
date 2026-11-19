@@ -167,7 +167,7 @@ The `isRight` prop aligns the button group to the right edge of its container. T
 - For a set of toggles that each turn on and off on their own, use [`ToggleButton`](./togglebutton.md) in `Buttons hasAddons`, and give the `Buttons` `role="group"` and an `aria-label`. A set where only one can be on is a radio group, so use [`SegmentedControl`](../components/segmentedcontrol.md) for it, which draws the same `has-addons` row, or [`Radios`](../form/radios.md) when the choice is sent with a form.
 
 :::tip
-You can use all Bulma helper props (spacing, color, alignment) with `Buttons` for even more control.
+You can use Bulma helper props, spacing among them, with `Buttons` for even more control.
 :::
 
 ---

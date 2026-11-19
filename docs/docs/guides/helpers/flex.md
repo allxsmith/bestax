@@ -24,7 +24,7 @@ This page documents the bestax-bulma prop API for Bulma's flexbox helpers. For t
 
 :::tip
 
-All components in bestax-bulma have access to these flexbox properties through the `useBulmaClasses` hook. You can apply flexbox properties to any component in the library to create sophisticated responsive layouts.
+Most components in bestax-bulma take these flexbox properties through the `useBulmaClasses` hook, so check a component's props before passing one.
 
 :::
 

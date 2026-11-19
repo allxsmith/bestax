@@ -144,6 +144,47 @@ describe('Calendar', () => {
       for (const m of months) expect(m).toHaveClass('is-success', 'is-small');
     });
 
+    it('hides a week with no day on show from assistive technology (#2190)', () => {
+      // November 2026 fits in five weeks, so its sixth row is all December.
+      // With December on show beside it, those days are hidden there, and the
+      // row would be a row with no cells. It keeps its place for the layout.
+      const weeks = (grid: Element) =>
+        Array.from(grid.querySelectorAll(':scope > .dateinput-week'));
+      const { container } = render(
+        <Calendar monthsToShow={2} defaultMonth={NOV_2026} />
+      );
+      const [november, december] = Array.from(
+        container.querySelectorAll('[role="grid"]')
+      );
+      const novemberWeeks = weeks(november);
+      expect(novemberWeeks).toHaveLength(6);
+      const last = novemberWeeks[5];
+      expect(last).toHaveAttribute('aria-hidden', 'true');
+      for (const day of last.querySelectorAll('[role="gridcell"]')) {
+        expect(day).toHaveStyle({ visibility: 'hidden' });
+      }
+      for (const week of [...novemberWeeks.slice(0, 5), ...weeks(december)]) {
+        expect(week).not.toHaveAttribute('aria-hidden');
+      }
+
+      // On its own, November shows December's days dimmed in that row.
+      const { container: alone } = render(<Calendar defaultMonth={NOV_2026} />);
+      for (const week of weeks(alone.querySelector('[role="grid"]')!)) {
+        expect(week).not.toHaveAttribute('aria-hidden');
+      }
+
+      // With nearbyMonthDays off, those days are blank on a month alone too,
+      // as in a DateInput or DateTimeInput given nearbyMonthDays={false}.
+      const { container: bare } = render(
+        <Calendar defaultMonth={NOV_2026} nearbyMonthDays={false} />
+      );
+      const bareWeeks = weeks(bare.querySelector('[role="grid"]')!);
+      expect(bareWeeks[5]).toHaveAttribute('aria-hidden', 'true');
+      for (const week of bareWeeks.slice(0, 5)) {
+        expect(week).not.toHaveAttribute('aria-hidden');
+      }
+    });
+
     it('prefixes every class under a ConfigProvider classPrefix', () => {
       const { container } = render(
         <ConfigProvider classPrefix="bestax-">

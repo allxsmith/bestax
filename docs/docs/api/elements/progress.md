@@ -14,7 +14,7 @@ The `Progress` component displays a Bulma-styled progress bar.
 
 <!-- /bestax:generated overview -->
 
-It supports color and size modifiers, value/max attributes, custom content, and all Bulma helper props for spacing and layout.
+It supports color and size modifiers, value/max attributes, custom content, and Bulma helper props for spacing and layout.
 
 :::info
 Use `Progress` for visualizing task completion, loading states, or quantitative user feedback.

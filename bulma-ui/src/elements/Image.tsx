@@ -73,7 +73,7 @@ export interface ImageProps
 }
 
 /**
- * The `Image` component wraps images, iframes, or custom content in a Bulma-styled container, supporting fixed sizes, aspect ratios, rounded corners, retina images, and all Bulma helper props for color and spacing.
+ * The `Image` component wraps images, iframes, or custom content in a Bulma-styled container, supporting fixed sizes, aspect ratios, rounded corners, retina images, and Bulma helper props for color and spacing.
  *
  * @function
  * @param {ImageProps} props - Props for the Image component.
