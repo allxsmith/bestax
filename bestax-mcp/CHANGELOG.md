@@ -1,3 +1,12 @@
+## [1.18.81](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.80...bestax-mcp@1.18.81) (2026-11-19)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** say most components take the helper props in get_helper_props ([720d434](https://github.com/allxsmith/bestax/commit/720d43481c6aac53d12b9f17dcffd2f9fbaed1b9)), closes [#2212](https://github.com/allxsmith/bestax/issues/2212)
+* **bulma-ui:** say Theme's radius and columnGap are helpers as on other components, not every one ([47b5b95](https://github.com/allxsmith/bestax/commit/47b5b95b57d24246a1633add3a3dff63af98259c)), closes [#2212](https://github.com/allxsmith/bestax/issues/2212)
+* **docs:** let Tab move focus out of the live code editors ([6bc22c5](https://github.com/allxsmith/bestax/commit/6bc22c545477ba6f7708841e41c7d9eac76ccdfe)), closes [#2177](https://github.com/allxsmith/bestax/issues/2177)
+
 ## [1.18.80](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.79...bestax-mcp@1.18.80) (2026-11-19)
 
 
