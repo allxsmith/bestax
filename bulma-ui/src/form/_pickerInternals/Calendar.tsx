@@ -977,8 +977,9 @@ export const Calendar: React.FC<CalendarProps> = ({
     ? addMonths(focusedDate, 1)
     : clampDate(addYears(focusedDate, 1), min, max);
   const lastShownIndex = firstShownIndex + monthCount - 1;
-  // A nearby month's day shows dimmed, except where its own month is on show
-  // beside this one, so no day shows twice.
+  // A nearby month's day shows dimmed, unless nearbyMonthDays is off, or its
+  // own month is on show beside this one, so no day shows twice. Either way
+  // it's blank.
   const isDayShown = (cell: { date: Date; inCurrentMonth: boolean }) => {
     if (cell.inCurrentMonth) return true;
     const cellMonth = monthIndex(cell.date);

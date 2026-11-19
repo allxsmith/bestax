@@ -174,7 +174,7 @@ describe('Calendar', () => {
       }
 
       // With nearbyMonthDays off, those days are blank on a month alone too,
-      // the way DateInput and DateTimeInput show it.
+      // as in a DateInput or DateTimeInput given nearbyMonthDays={false}.
       const { container: bare } = render(
         <Calendar defaultMonth={NOV_2026} nearbyMonthDays={false} />
       );
