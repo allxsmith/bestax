@@ -198,10 +198,11 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Bulma color for the field.",
+          "description": "Renders no class: Bulma ships no field color CSS for a modifier to match, and the prop doesn't reach the text color helper either. Passing it logs a console warning in development.",
           "required": false,
           "inherited": false,
-          "deprecated": false
+          "deprecated": true,
+          "deprecationNote": "The prop renders nothing and will be removed in the next major version. Use `textColor` / `bgColor` instead."
         },
         {
           "name": "bgColor",

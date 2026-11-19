@@ -181,10 +181,11 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Bulma color modifier for the grid.",
+          "description": "Renders no class: Bulma ships no grid color CSS for a modifier to match, and the prop doesn't reach the text color helper either. Passing it logs a console warning in development.",
           "required": false,
           "inherited": false,
-          "deprecated": false
+          "deprecated": true,
+          "deprecationNote": "The prop renders nothing and will be removed in the next major version. Use `textColor` / `bgColor` instead."
         },
         {
           "name": "bgColor",
@@ -303,10 +304,11 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Bulma color modifier for the cell.",
+          "description": "Renders no class: Bulma ships no cell color CSS for a modifier to match, and the prop doesn't reach the text color helper either. Passing it logs a console warning in development.",
           "required": false,
           "inherited": false,
-          "deprecated": false
+          "deprecated": true,
+          "deprecationNote": "The prop renders nothing and will be removed in the next major version. Use `textColor` / `bgColor` instead."
         },
         {
           "name": "bgColor",
