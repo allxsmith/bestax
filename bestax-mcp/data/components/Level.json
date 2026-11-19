@@ -15,7 +15,8 @@
     },
     {
       "title": "Centered Level Menu",
-      "code": "<Level>\n  <Level.Item as=\"p\" hasTextCentered>\n    <Link href=\"#getting-started\" textColor=\"info\">\n      Getting Started\n    </Link>\n  </Level.Item>\n  <Level.Item as=\"p\" hasTextCentered>\n    <Link href=\"#apis\" textColor=\"info\">\n      APIs\n    </Link>\n  </Level.Item>\n  <Level.Item as=\"p\" hasTextCentered>\n    <img src=\"/img/bestax-type.svg\" alt=\"Bestax\" style={{ height: 30 }} />\n  </Level.Item>\n  <Level.Item as=\"p\" hasTextCentered>\n    <Link href=\"#versions\" textColor=\"info\">\n      Versions\n    </Link>\n  </Level.Item>\n  <Level.Item as=\"p\" hasTextCentered>\n    <Link href=\"#faq\" textColor=\"info\">\n      FAQ\n    </Link>\n  </Level.Item>\n</Level>"
+      "code": "<Level>\n  <Level.Item as=\"p\" hasTextCentered>\n    <Link href=\"#getting-started\" textColor=\"info\">\n      Getting Started\n    </Link>\n  </Level.Item>\n  <Level.Item as=\"p\" hasTextCentered>\n    <Link href=\"#apis\" textColor=\"info\">\n      APIs\n    </Link>\n  </Level.Item>\n  <Level.Item as=\"p\" hasTextCentered>\n    <img src=\"/img/bestax-type.svg\" alt=\"Bestax\" style={{ height: 30 }} />\n  </Level.Item>\n  <Level.Item as=\"p\" hasTextCentered>\n    <Link href=\"#versions\" textColor=\"info\">\n      Versions\n    </Link>\n  </Level.Item>\n  <Level.Item as=\"p\" hasTextCentered>\n    <Link href=\"#faq\" textColor=\"info\">\n      FAQ\n    </Link>\n  </Level.Item>\n</Level>",
+      "note": "A path under /img/ here stands for a picture your own app serves, such as a file in its public/img/ folder."
     },
     {
       "title": "Mobile Level",

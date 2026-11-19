@@ -69,6 +69,11 @@ import {
 } from './lib/api-catalog.mjs';
 import { docsRoute } from './lib/docs-url.mjs';
 import {
+  SITE_IMAGES_NOTE,
+  hasSiteImages,
+  noteSiteImagesInFences,
+} from '../docs/src/theme/CodeBlock/sandbox/site-images.mjs';
+import {
   barrelExports,
   exportedModules,
   extractComponent,
@@ -492,24 +497,58 @@ export function absoluteLinks(markdown, relPath) {
 }
 
 /**
- * A record with `absoluteLinks` applied to every string it carries but its
- * examples, which are code. Summaries come from TSDoc and purposes from
- * frontmatter, and both were written for the page too (`[Column](./column.md)`).
+ * A record made to read away from its page.
+ *
+ * `absoluteLinks` goes over every string but the examples, which are code.
+ * Summaries come from TSDoc and purposes from frontmatter, and both were
+ * written for the page too (`[Column](./column.md)`).
+ *
+ * An example's `/img/logo.svg` names a picture the docs site serves, and once
+ * an agent copies it into an app, a file that app does not have. So an example
+ * that uses one carries a `note` saying it stands for the reader's own, which
+ * the server prints as the first line of its code. It is a field rather than
+ * a comment in `code` because search reads `code`, for its scores, its
+ * previews and `get_examples`' query, and the note's words would match there.
+ * Each other string gets the note above its first such `jsx` or `tsx` fence in
+ * each part the server may serve alone (`noteSiteImagesInSlices`).
  */
-function withAbsoluteLinks(value, relPath, key = '') {
+function awayFromPage(record, relPath) {
+  return {
+    ...awayFromPageIn(record, relPath),
+    examples: record.examples.map(ex =>
+      hasSiteImages(ex.code) ? { ...ex, note: SITE_IMAGES_NOTE } : ex
+    ),
+  };
+}
+
+/** `awayFromPage` over one value, leaving any `examples` as they are. */
+function awayFromPageIn(value, relPath, key = '') {
   if (key === 'examples') return value;
-  if (typeof value === 'string') return absoluteLinks(value, relPath);
-  if (Array.isArray(value))
-    return value.map(v => withAbsoluteLinks(v, relPath));
+  if (typeof value === 'string') {
+    return noteSiteImagesInSlices(absoluteLinks(value, relPath));
+  }
+  if (Array.isArray(value)) return value.map(v => awayFromPageIn(v, relPath));
   if (value && typeof value === 'object') {
     return Object.fromEntries(
-      Object.entries(value).map(([k, v]) => [
-        k,
-        withAbsoluteLinks(v, relPath, k),
-      ])
+      Object.entries(value).map(([k, v]) => [k, awayFromPageIn(v, relPath, k)])
     );
   }
   return value;
+}
+
+/**
+ * Where the server may serve a record's markdown in parts: `get_helper_props`
+ * slices a page at its `##` and `###` headings (`sections` in
+ * bestax-mcp/src/helper-props.ts).
+ */
+const SLICE = /\n(?=#{2,3} )/;
+
+/**
+ * `noteSiteImagesInFences` over each part of `markdown` the server may serve
+ * alone, so every such part that shows a site image says what it stands for.
+ */
+export function noteSiteImagesInSlices(markdown) {
+  return markdown.split(SLICE).map(noteSiteImagesInFences).join('\n');
 }
 
 /** Strip the frontmatter block, leaving the page body. */
@@ -1184,7 +1223,7 @@ export async function build() {
         };
       }
 
-      record = withAbsoluteLinks(record, relPath);
+      record = awayFromPage(record, relPath);
       components.set(name, record);
       for (const id of importedNames(record.import)) {
         if (titles.has(id) || imported.has(id)) continue;

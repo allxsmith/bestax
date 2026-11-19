@@ -7,27 +7,33 @@
   "examples": [
     {
       "title": "Default Image",
-      "code": "<Image\n  src=\"/img/bestax-solar-system-3d.png\"\n  alt=\"Sample image\"\n  size=\"128x128\"\n/>"
+      "code": "<Image\n  src=\"/img/bestax-solar-system-3d.png\"\n  alt=\"Sample image\"\n  size=\"128x128\"\n/>",
+      "note": "A path under /img/ here stands for a picture your own app serves, such as a file in its public/img/ folder."
     },
     {
       "title": "Rounded Image",
-      "code": "<Image\n  src=\"/img/bestax-solar-system-3d.png\"\n  alt=\"Rounded image\"\n  size=\"128x128\"\n  isRounded\n/>"
+      "code": "<Image\n  src=\"/img/bestax-solar-system-3d.png\"\n  alt=\"Rounded image\"\n  size=\"128x128\"\n  isRounded\n/>",
+      "note": "A path under /img/ here stands for a picture your own app serves, such as a file in its public/img/ folder."
     },
     {
       "title": "Retina Image",
-      "code": "<Image\n  src=\"/img/bestax-solar-system-3d.png\"\n  alt=\"Retina image\"\n  size=\"128x128\"\n  isRetina\n/>"
+      "code": "<Image\n  src=\"/img/bestax-solar-system-3d.png\"\n  alt=\"Retina image\"\n  size=\"128x128\"\n  isRetina\n/>",
+      "note": "A path under /img/ here stands for a picture your own app serves, such as a file in its public/img/ folder."
     },
     {
       "title": "Aspect Ratio 16:9",
-      "code": "<Image\n  src=\"/img/bestax-solar-system-3d.png\"\n  alt=\"16:9 aspect ratio image\"\n  size=\"16by9\"\n/>"
+      "code": "<Image\n  src=\"/img/bestax-solar-system-3d.png\"\n  alt=\"16:9 aspect ratio image\"\n  size=\"16by9\"\n/>",
+      "note": "A path under /img/ here stands for a picture your own app serves, such as a file in its public/img/ folder."
     },
     {
       "title": "Aspect Ratio 4:3",
-      "code": "<Image\n  src=\"/img/bestax-solar-system-3d.png\"\n  alt=\"4:3 aspect ratio image\"\n  size=\"4by3\"\n/>"
+      "code": "<Image\n  src=\"/img/bestax-solar-system-3d.png\"\n  alt=\"4:3 aspect ratio image\"\n  size=\"4by3\"\n/>",
+      "note": "A path under /img/ here stands for a picture your own app serves, such as a file in its public/img/ folder."
     },
     {
       "title": "With Margin",
-      "code": "<Image\n  src=\"/img/bestax-solar-system-3d.png\"\n  alt=\"Image with margin\"\n  size=\"128x128\"\n  m=\"4\"\n/>"
+      "code": "<Image\n  src=\"/img/bestax-solar-system-3d.png\"\n  alt=\"Image with margin\"\n  size=\"128x128\"\n  m=\"4\"\n/>",
+      "note": "A path under /img/ here stands for a picture your own app serves, such as a file in its public/img/ folder."
     },
     {
       "title": "With Iframe",
@@ -39,7 +45,8 @@
     },
     {
       "title": "With Text Color and Background",
-      "code": "<Image\n  src=\"/img/bestax-solar-system-3d.png\"\n  alt=\"Image with text and background color\"\n  size=\"128x128\"\n  textColor=\"primary\"\n  bgColor=\"light\"\n/>"
+      "code": "<Image\n  src=\"/img/bestax-solar-system-3d.png\"\n  alt=\"Image with text and background color\"\n  size=\"128x128\"\n  textColor=\"primary\"\n  bgColor=\"light\"\n/>",
+      "note": "A path under /img/ here stands for a picture your own app serves, such as a file in its public/img/ folder."
     }
   ],
   "accessibility": "- **Alt Text:** Always provide a descriptive `alt` attribute for images.\n- **Aspect Ratios:** Maintains the correct aspect ratio for images, iframes, or any child.\n- **Custom Content:** When embedding iframes or custom children, ensure accessibility via proper ARIA labeling or content.\n\n:::warning\nDo not use `Image` for decorative images without `alt=\"\"`, unless purely presentational.\n:::",

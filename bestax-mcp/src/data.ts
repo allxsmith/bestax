@@ -113,6 +113,12 @@ export interface CssVar {
 export interface Example {
   title: string;
   code: string;
+  /**
+   * What the code leaves to the reader, printed as its first comment line: a
+   * picture from the docs site's `/img/`, which the reader's own app serves.
+   * Kept out of `code` so search, which reads `code`, never matches its words.
+   */
+  note?: string;
 }
 
 export interface ComponentRecord {
