@@ -17,7 +17,7 @@
  * it after a change reaches main. If Chromium is missing, install it once:
  * pnpm --filter @allxsmith/bestax-docs exec playwright install chromium
  */
-/* global document, innerHeight, localStorage, scrollTo -- page callbacks execute in the browser */
+/* global document, innerHeight, scrollTo -- page callbacks execute in the browser */
 import { spawn } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
