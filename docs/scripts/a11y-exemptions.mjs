@@ -102,7 +102,7 @@ export default [
     issue: 1917,
   })),
 
-  // Published posts keep their examples as they ran when posted.
+  // Published posts' examples, left as they went out for now.
   {
     rule: 'label',
     pages: [
@@ -110,7 +110,6 @@ export default [
       '/blog/extra-components',
       '/blog/v3-forms-release',
     ],
-    reason:
-      'A published post keeps the examples it went out with. The API pages these examples came from name their inputs.',
+    issue: 2229,
   },
 ];
