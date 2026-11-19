@@ -379,6 +379,13 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Pagin
 | `children`  | `React.ReactNode`                                                               | —       | List items.                                       |
 | `...`       | All standard `<ul>` attributes and Bulma helper props                           | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
 
+### Pagination.Ellipsis
+
+| Prop        | Type                           | Default | Description                                                                                                                                                                                |
+| ----------- | ------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `className` | `string`                       | —       | Additional CSS classes, added to the ellipsis's own `pagination-ellipsis` class on its `<span>`. The part's other attributes go on the `<span>` too, though they're typed as the `<li>`'s. |
+| `...`       | All standard `<li>` attributes | —       |                                                                                                                                                                                            |
+
 ### Pagination.Previous
 
 | Prop        | Type                          | Default | Description                                                                                                                                                                                                                          |
