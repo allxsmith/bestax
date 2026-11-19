@@ -1,3 +1,11 @@
+## [1.18.84](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.83...bestax-mcp@1.18.84) (2026-11-19)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** say an example's site image stands for the reader's own ([b4b91ce](https://github.com/allxsmith/bestax/commit/b4b91ce95abd1d7382ec10978ce03d42ae522d7d)), closes [#1737](https://github.com/allxsmith/bestax/issues/1737)
+* **docs:** say the .md twins' and llms-full.txt's site images stand for the reader's own ([d7d95a2](https://github.com/allxsmith/bestax/commit/d7d95a279b1d955440581928057867dd19b3f8b5)), closes [#1737](https://github.com/allxsmith/bestax/issues/1737)
+
 ## [1.18.83](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.82...bestax-mcp@1.18.83) (2026-11-19)
 
 
