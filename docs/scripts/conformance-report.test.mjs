@@ -177,13 +177,17 @@ describe('the conformance report', () => {
     ]).toEqual(EN_301_549);
   });
 
-  it('answers each row in the template’s terms', () => {
-    for (const { id, level } of rows()) {
-      expect({ id, level, known: LEVELS.includes(level) }).toEqual({
-        id,
-        level,
-        known: true,
-      });
+  it('answers each row in the template’s terms, each WCAG row for Web', () => {
+    for (const { id, level, section } of rows()) {
+      // A WCAG row answers for Web (the other parts are Not Applicable
+      // throughout, as the Notes say), and with a real answer.
+      const wcag = section.startsWith('Table');
+      const answer = wcag ? level.replace(/^Web: /, '') : level;
+      const known =
+        LEVELS.includes(answer) &&
+        (!wcag ||
+          (level.startsWith('Web: ') && answer !== 'See WCAG 2.x section'));
+      expect({ id, level, known }).toEqual({ id, level, known: true });
     }
   });
 
@@ -191,7 +195,8 @@ describe('the conformance report', () => {
     const short = rows().filter(
       row =>
         row.section.startsWith('Table') &&
-        (row.level === 'Partially Supports' || row.level === 'Does Not Support')
+        (row.level === 'Web: Partially Supports' ||
+          row.level === 'Web: Does Not Support')
     );
     expect(short.length).toBeGreaterThan(0);
     for (const { id, remarks } of short) {
