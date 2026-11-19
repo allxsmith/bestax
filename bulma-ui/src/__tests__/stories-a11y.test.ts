@@ -59,6 +59,7 @@ const A11Y_EXEMPT: Record<string, Record<string, Why>> = {
       'Testimonials',
       'TransparentArrows',
       'TransparentArrowsLight',
+      'WithImages',
     ],
     { 'target-size': 1926 }
   ),

@@ -272,6 +272,10 @@ export const Autoplay: Story = {
  * Carousel with images.
  */
 export const WithImages: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function WithImagesExample() {
     const images = [skye, fjord, fortEbey, kingsCanyon];
 
