@@ -141,8 +141,9 @@ as for a feature. CI catches some of these and not others, so a green run doesn'
   section is written by hand, and nothing checks it.
 - **Closed or opened a known accessibility gap:** update the rows it touches in
   `docs/docs/guides/accessibility/conformance-report.md`, in the same PR: the issue a row cites,
-  and its conformance level once no gap is left. `docs/scripts/conformance-report.test.mjs` holds
-  the report's shape, not whether what it says is still true.
+  its conformance level once no gap is left, and the report's version and date.
+  `docs/scripts/conformance-report.test.mjs` holds the report's shape, not whether what it says
+  is still true.
 - **Declared a prop on a props interface,** even one it already inherits, to give it TSDoc: keep
   the inherited type (see TSDoc in `bulma-ui/CLAUDE.md`). If the component is a target of
   bestax-migrate's bulma-classes class map, classify the prop there (`ownProps` or
