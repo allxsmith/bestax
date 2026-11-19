@@ -144,9 +144,9 @@ const A11Y_EXEMPT: Record<string, Record<string, Why>> = {
   },
   // The clear button is a 20px target beside the chevron.
   ...each('form/Cascader.stories.tsx', ['Controlled', 'RightToLeft'], {
-    'target-size': 2200,
+    'target-size': 2198,
   }),
-  'form/TreeSelect.stories.tsx#RightToLeft': { 'target-size': 2200 },
+  'form/TreeSelect.stories.tsx#RightToLeft': { 'target-size': 2198 },
   // The menu's scroll box can't take focus.
   ...each(
     'form/Combobox.stories.tsx',
