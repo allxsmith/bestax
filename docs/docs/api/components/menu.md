@@ -14,7 +14,7 @@ The `Menu` component provides Bulma's vertical navigation menu: a simple, access
 
 <!-- /bestax:generated overview -->
 
-It supports labels, nested menu lists, active states, custom links, sections that open and close, and all Bulma/utility helper props. Use it for dashboards, sidebars, admin panels, or any grouped navigation.
+It supports labels, nested menu lists, active states, custom links, sections that open and close, and Bulma/utility helper props. Use it for dashboards, sidebars, admin panels, or any grouped navigation.
 
 :::info
 Menu supports unlimited nesting and lets you use any link or router component via the `as` prop on `Menu.Item`.

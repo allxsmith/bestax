@@ -1,7 +1,7 @@
 ---
 title: Input
 sidebar_label: Input
-description: The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static state, hover/focus/loading states, and all Bulma helper props.
+description: The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static state, hover/focus/loading states, and Bulma helper props.
 ---
 
 # Input
@@ -10,7 +10,7 @@ description: The `Input` component provides a Bulma-styled text input, supportin
 
 <!-- bestax:generated overview -->
 
-The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static state, hover/focus/loading states, and all Bulma helper props.
+The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static state, hover/focus/loading states, and Bulma helper props.
 
 <!-- /bestax:generated overview -->
 

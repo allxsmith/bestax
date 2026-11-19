@@ -15,7 +15,7 @@ The `Columns` component provides Bulma's flexible, responsive grid container for
 
 <!-- /bestax:generated overview -->
 
-It supports wrapping, gap control, centering, vertical alignment, responsive breakpoints, and all Bulma/utility helper props. Use it as the parent for one or more `Column` children.
+It supports wrapping, gap control, centering, vertical alignment, responsive breakpoints, and Bulma/utility helper props. Use it as the parent for one or more `Column` children.
 
 ---
 

@@ -12,7 +12,7 @@ This page summarizes the Bulma-styled grid system in Bestax, with a brief descri
 
 ## Grid
 
-Provides Bulma's advanced CSS Grid layout for complex, modern layouts. Supports responsive and fixed grid modes, gap and min column controls, fixed column counts per breakpoint, and full color/background/utility helpers. Use with `Cell` for granular grid placement.
+Provides Bulma's advanced CSS Grid layout for complex, modern layouts. Supports responsive and fixed grid modes, gap and min column controls, fixed column counts per breakpoint, and color/background/utility helpers. Use with `Cell` for granular grid placement.
 
 :::info
 Use `Grid` for advanced layouts where you need more control than Columns can provide — and for
@@ -74,7 +74,7 @@ Setting very large gaps can cause layout issues on small screens. Test your grid
 
 ## Cell
 
-A single Bulma grid cell for use inside the `Grid` component. Supports all Bulma grid CSS classes for manual placement and spanning, color/background helpers, and all utility/HTML props.
+A single Bulma grid cell for use inside the `Grid` component. Supports all Bulma grid CSS classes for manual placement and spanning, color/background helpers, and utility/HTML props.
 
 **Manual Placement**
 
