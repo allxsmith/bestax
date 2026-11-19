@@ -36,7 +36,8 @@ export function parseArgs(argv) {
   const report = reports[0]?.slice('--report='.length);
   if (reports.length && !report) throw new Error('--report needs a file.');
   const unknown = argv.filter(
-    a => !a.startsWith('--theme') && !a.startsWith('--report=')
+    a =>
+      a !== '--theme' && !a.startsWith('--theme=') && !a.startsWith('--report=')
   );
   if (unknown.length) throw new Error(`Unknown argument: ${unknown[0]}`);
   return { theme, report };
@@ -73,19 +74,22 @@ export function appliesIn(exemption, theme) {
 }
 
 /**
- * The exemption that covers one element breaking one rule on one page in
- * this color mode, or undefined. An exemption that lists `targets` covers
- * only those elements, written exactly as axe writes them, so the same rule
- * failing anywhere else on the page still fails.
+ * Each page pattern of each exemption that covers one element breaking one
+ * rule on one page in this color mode, as `{ exemption, pattern }`. An
+ * exemption that lists `targets` covers only those elements, written exactly
+ * as the scan prints them, so the same rule failing anywhere else on the
+ * page still fails.
  */
-export function exemptionFor(exemptions, { rule, page, target }, theme) {
-  return exemptions.find(
-    e =>
-      e.rule === rule &&
-      appliesIn(e, theme) &&
-      e.pages.some(pattern => pageMatches(pattern, page)) &&
-      (!e.targets || e.targets.includes(target))
-  );
+export function coverFor(exemptions, { rule, page, target }, theme) {
+  const covers = [];
+  for (const exemption of exemptions) {
+    if (exemption.rule !== rule || !appliesIn(exemption, theme)) continue;
+    if (exemption.targets && !exemption.targets.includes(target)) continue;
+    for (const pattern of exemption.pages) {
+      if (pageMatches(pattern, page)) covers.push({ exemption, pattern });
+    }
+  }
+  return covers;
 }
 
 /**
@@ -121,28 +125,51 @@ export function invalidExemptions(exemptions) {
 }
 
 /**
- * Sorts a run's violations into what an exemption covers and what fails the
- * run, element by element, and finds the exemptions for this color mode
- * that covered nothing, which fail it too: the problem they were for is
- * gone, so they come out with the fix.
+ * Sorts a run's violations into what the exemptions cover and what fails the
+ * run, element by element, and finds each page pattern of an exemption for
+ * this color mode that covered nothing, which fails it too: the problem it
+ * was for is gone there, so it comes out with the fix. A run where pages
+ * failed to load can't tell a fixed page from an unread one, so it judges no
+ * exemption stale.
  *
  * @param violations `{ page, rule, help, targets }` for each rule a page broke
+ * @param pagesFailed whether any page failed to load in this run
  * @returns the violations left with only their uncovered elements, and the
- *   stale exemptions
+ *   stale `{ exemption, pattern }` pairs
  */
-export function judge(violations, exemptions, theme) {
-  const used = new Set();
+export function judge(violations, exemptions, theme, pagesFailed = false) {
+  const used = new Map(exemptions.map(e => [e, new Set()]));
   const failing = [];
   for (const v of violations) {
     const uncovered = v.targets.filter(target => {
-      const e = exemptionFor(exemptions, { ...v, target }, theme);
-      if (e) used.add(e);
-      return !e;
+      const covers = coverFor(exemptions, { ...v, target }, theme);
+      for (const { exemption, pattern } of covers) {
+        used.get(exemption).add(pattern);
+      }
+      return covers.length === 0;
     });
     if (uncovered.length) failing.push({ ...v, targets: uncovered });
   }
-  const stale = exemptions.filter(e => appliesIn(e, theme) && !used.has(e));
+  const stale = pagesFailed
+    ? []
+    : exemptions
+        .filter(e => appliesIn(e, theme))
+        .flatMap(e =>
+          e.pages
+            .filter(pattern => !used.get(e).has(pattern))
+            .map(pattern => ({ exemption: e, pattern }))
+        );
   return { failing, stale };
+}
+
+/**
+ * How the scan writes the element axe names: its selector, with the shadow
+ * roots it sits in joined by ` >>> ` and the frames by ` >> `.
+ */
+export function formatTarget(target) {
+  return target
+    .map(part => (Array.isArray(part) ? part.join(' >>> ') : part))
+    .join(' >> ');
 }
 
 /** The failing violations, one rule at a time, as the run prints them. */

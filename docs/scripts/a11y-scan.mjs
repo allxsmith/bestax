@@ -30,6 +30,7 @@ import exemptions from './a11y-exemptions.mjs';
 import {
   WCAG_TAGS,
   describeFailures,
+  formatTarget,
   invalidExemptions,
   judge,
   pagesFromSitemap,
@@ -79,8 +80,17 @@ async function serve(port) {
       '127.0.0.1',
       '--no-open',
     ],
-    { cwd: DOCS, stdio: ['ignore', 'ignore', 'inherit'] }
+    // In a process group of its own, so stop() reaches docusaurus and not
+    // only the pnpm that started it.
+    { cwd: DOCS, stdio: ['ignore', 'ignore', 'inherit'], detached: true }
   );
+  const stop = () => {
+    try {
+      process.kill(-child.pid);
+    } catch {
+      // Already gone.
+    }
+  };
   let exited = false;
   child.on('exit', () => (exited = true));
   const base = `http://127.0.0.1:${port}`;
@@ -88,13 +98,13 @@ async function serve(port) {
     if (exited)
       throw new Failure('`docusaurus serve` exited before it served.');
     try {
-      if ((await fetch(`${base}/`)).ok) return { child, base };
+      if ((await fetch(`${base}/`)).ok) return { stop, base };
     } catch {
       // Not listening yet.
     }
     await new Promise(resolve => setTimeout(resolve, 500));
   }
-  child.kill();
+  stop();
   throw new Failure('`docusaurus serve` did not answer within a minute.');
 }
 
@@ -113,7 +123,9 @@ async function check(context, base, path) {
       .catch(() => {});
     // A live example mounts only once it scrolls near the viewport (the
     // CodeBlock theme's DeferredShadowPreview), and renders into a shadow
-    // root, which axe reads. Scrolling down the page mounts them all.
+    // root, which axe reads. Scrolling down the page mounts every one that's
+    // on show. One in a closed tab or a closed <details> never mounts, and
+    // isn't waited for.
     await page.evaluate(async () => {
       for (let y = 0; y < document.body.scrollHeight; y += innerHeight) {
         scrollTo(0, y);
@@ -124,9 +136,11 @@ async function check(context, base, path) {
     await page
       .waitForFunction(
         () =>
-          [...document.querySelectorAll('.live-preview-slot')].every(
-            slot => slot.firstElementChild?.shadowRoot?.childElementCount > 0
-          ),
+          [...document.querySelectorAll('.live-preview-slot')]
+            .filter(slot => slot.checkVisibility())
+            .every(
+              slot => slot.firstElementChild?.shadowRoot?.childElementCount > 0
+            ),
         undefined,
         { timeout: EXAMPLES_TIMEOUT_MS }
       )
@@ -140,7 +154,7 @@ async function check(context, base, path) {
       page: path,
       rule: v.id,
       help: v.help,
-      targets: v.nodes.map(n => n.target.join(' ')),
+      targets: v.nodes.map(n => formatTarget(n.target)),
     }));
   } finally {
     await page.close();
@@ -158,9 +172,10 @@ async function main() {
     );
   }
   const pages = pagesFromSitemap(readFileSync(sitemap, 'utf8'));
-  const { child, base } = await serve(await freePort());
-  const browser = await chromium.launch();
+  const { stop, base } = await serve(await freePort());
+  let browser;
   try {
+    browser = await chromium.launch();
     const context = await browser.newContext({ colorScheme: theme });
     // The site keeps the reader's choice of color mode here and reads it
     // before the page paints.
@@ -190,21 +205,31 @@ async function main() {
     await Promise.all(Array.from({ length: TABS }, tab));
     if (report) writeFileSync(report, JSON.stringify(violations, null, 2));
 
-    const { failing, stale } = judge(violations, exemptions, theme);
+    const { failing, stale } = judge(
+      violations,
+      exemptions,
+      theme,
+      errors.length > 0
+    );
     console.log(
       `Checked ${pages.length} pages in ${theme} mode: ${failing.length} violations to fix, ${stale.length} stale exemptions, ${errors.length} pages that failed to load.`
     );
     for (const line of describeFailures(failing)) console.log(line);
-    for (const e of stale) {
+    for (const { exemption, pattern } of stale) {
       console.log(
-        `Stale exemption: ${e.rule} on ${e.pages.join(', ')} covered nothing in ${theme} mode. Remove it from a11y-exemptions.mjs.`
+        `Stale exemption: ${exemption.rule} on ${pattern} covered nothing in ${theme} mode. Remove that page from its entry in a11y-exemptions.mjs.`
       );
     }
     for (const error of errors) console.log(`Failed to load ${error}`);
+    if (errors.length) {
+      console.log(
+        'With pages that failed to load, no exemption is judged stale this run.'
+      );
+    }
     return failing.length || stale.length || errors.length ? 1 : 0;
   } finally {
-    await browser.close();
-    child.kill();
+    await browser?.close();
+    stop();
   }
 }
 

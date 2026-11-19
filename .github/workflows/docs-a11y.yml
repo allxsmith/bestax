@@ -19,7 +19,10 @@ on:
       - '.github/workflows/docs-a11y.yml'
   workflow_dispatch:
 
-# Read-only: the job builds and serves the site and reads nothing else.
+# Read-only: the job builds and serves the site and reads nothing else. It
+# holds no secret and runs code from main, or from a branch someone with
+# write access started it on, so like ci.yml's jobs it's one of the ordinary
+# build jobs .github/CLAUDE.md keeps outside harden-runner's rule 10.
 permissions:
   contents: read
 

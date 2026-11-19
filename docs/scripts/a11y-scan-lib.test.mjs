@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest';
 import exemptions from './a11y-exemptions.mjs';
 import {
   appliesIn,
+  coverFor,
   describeFailures,
-  exemptionFor,
+  formatTarget,
   invalidExemptions,
   judge,
   pageMatches,
@@ -40,6 +41,9 @@ describe('parseArgs', () => {
     expect(() => parseArgs(['--theme=light', '--all'])).toThrow(
       /Unknown argument: --all/
     );
+    expect(() => parseArgs(['--theme=light', '--themes=dark'])).toThrow(
+      /Unknown argument: --themes=dark/
+    );
   });
 });
 
@@ -71,6 +75,12 @@ describe('matching exemptions', () => {
     issue: 1,
   };
   const links = { rule: 'link-in-text-block', pages: ['/'], reason: 'why' };
+  const search = {
+    rule: 'label-content-name-mismatch',
+    pages: ['/*'],
+    targets: ['.DocSearch'],
+    issue: 2,
+  };
 
   it('matches a path, or a prefix ending in *', () => {
     expect(pageMatches('/docs/intro', '/docs/intro')).toBe(true);
@@ -85,52 +95,38 @@ describe('matching exemptions', () => {
     expect(appliesIn(links, 'light')).toBe(true);
   });
 
-  it('finds the exemption for an element breaking a rule on a page in a color mode', () => {
-    const list = [contrast, links];
+  it('finds every exemption and page pattern that covers an element', () => {
     const v = { rule: 'color-contrast', page: '/blog/x', target: 'a' };
-    expect(exemptionFor(list, v, 'dark')).toBe(contrast);
-    expect(exemptionFor(list, v, 'light')).toBeUndefined();
+    expect(coverFor([contrast, links], v, 'dark')).toEqual([
+      { exemption: contrast, pattern: '/blog/*' },
+    ]);
+    expect(coverFor([contrast, links], v, 'light')).toEqual([]);
     expect(
-      exemptionFor(
-        list,
-        { rule: 'link-in-text-block', page: '/', target: 'a' },
+      coverFor(
+        [contrast, links],
+        { rule: 'label', page: '/', target: 'a' },
         'light'
       )
-    ).toBe(links);
-    expect(
-      exemptionFor(list, { rule: 'label', page: '/', target: 'a' }, 'light')
-    ).toBeUndefined();
+    ).toEqual([]);
+    // Two that overlap both cover it.
+    const narrower = { ...contrast, pages: ['/blog/x'], issue: 3 };
+    expect(coverFor([contrast, narrower], v, 'dark')).toEqual([
+      { exemption: contrast, pattern: '/blog/*' },
+      { exemption: narrower, pattern: '/blog/x' },
+    ]);
   });
 
   it('covers only the elements an exemption lists, when it lists any', () => {
-    const search = {
-      rule: 'label-content-name-mismatch',
-      pages: ['/*'],
-      targets: ['.DocSearch'],
-      issue: 2,
-    };
     const v = target => ({
       rule: 'label-content-name-mismatch',
       page: '/docs/x',
       target,
     });
-    expect(exemptionFor([search], v('.DocSearch'), 'light')).toBe(search);
-    expect(exemptionFor([search], v('button.other'), 'light')).toBeUndefined();
+    expect(coverFor([search], v('.DocSearch'), 'light')).toHaveLength(1);
+    expect(coverFor([search], v('button.other'), 'light')).toEqual([]);
   });
 
-  it('fails what nothing covers, element by element, and the exemptions that covered nothing', () => {
-    const search = {
-      rule: 'label-content-name-mismatch',
-      pages: ['/*'],
-      targets: ['.DocSearch'],
-      issue: 2,
-    };
-    const list = [contrast, links, search];
-    const covered = {
-      rule: 'color-contrast',
-      page: '/docs/intro',
-      targets: ['a'],
-    };
+  it('fails what nothing covers, element by element', () => {
     const mixed = {
       rule: 'label-content-name-mismatch',
       page: '/docs/intro',
@@ -141,15 +137,45 @@ describe('matching exemptions', () => {
       page: '/docs/intro',
       targets: ['input'],
     };
-    const { failing, stale } = judge([covered, mixed, uncovered], list, 'dark');
+    const { failing } = judge([mixed, uncovered], [search], 'dark');
     expect(failing).toEqual([
       { ...mixed, targets: ['button.other'] },
       uncovered,
     ]);
-    // `links` applies in dark mode too and covered nothing.
-    expect(stale).toEqual([links]);
+  });
+
+  it('finds each page pattern that covered nothing, in the color modes it applies in', () => {
+    const covered = {
+      rule: 'color-contrast',
+      page: '/docs/intro',
+      targets: ['a'],
+    };
+    const { stale } = judge([covered], [contrast, links], 'dark');
+    // `/docs/intro` covered something; `/blog/*` and `links` didn't.
+    expect(stale).toEqual([
+      { exemption: contrast, pattern: '/blog/*' },
+      { exemption: links, pattern: '/' },
+    ]);
     // In light mode `contrast` doesn't apply, so it isn't stale there.
-    expect(judge([], list, 'light').stale).toEqual([links, search]);
+    expect(judge([], [contrast, links], 'light').stale).toEqual([
+      { exemption: links, pattern: '/' },
+    ]);
+  });
+
+  it('judges nothing stale when pages failed to load', () => {
+    expect(judge([], [contrast, links], 'dark', true).stale).toEqual([]);
+  });
+});
+
+describe('formatTarget', () => {
+  it('joins shadow roots with >>> and frames with >>', () => {
+    expect(formatTarget(['.DocSearch'])).toBe('.DocSearch');
+    expect(formatTarget([['.live-preview', 'button.button']])).toBe(
+      '.live-preview >>> button.button'
+    );
+    expect(formatTarget(['iframe', ['#host', 'input']])).toBe(
+      'iframe >> #host >>> input'
+    );
   });
 });
 
