@@ -1,7 +1,7 @@
 ---
 title: Image
 sidebar_label: Image
-description: The `Image` component wraps images, iframes, or custom content in a Bulma-styled container, supporting fixed sizes, aspect ratios, rounded corners, retina images, and all Bulma helper props for color and spacing.
+description: The `Image` component wraps images, iframes, or custom content in a Bulma-styled container, supporting fixed sizes, aspect ratios, rounded corners, retina images, and Bulma helper props for color and spacing.
 ---
 
 # Image
@@ -10,7 +10,7 @@ description: The `Image` component wraps images, iframes, or custom content in a
 
 <!-- bestax:generated overview -->
 
-The `Image` component wraps images, iframes, or custom content in a Bulma-styled container, supporting fixed sizes, aspect ratios, rounded corners, retina images, and all Bulma helper props for color and spacing.
+The `Image` component wraps images, iframes, or custom content in a Bulma-styled container, supporting fixed sizes, aspect ratios, rounded corners, retina images, and Bulma helper props for color and spacing.
 
 <!-- /bestax:generated overview -->
 

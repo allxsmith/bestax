@@ -353,7 +353,7 @@
     },
     {
       "path": "SelectBase",
-      "summary": "Bulma Select component with full Bulma helper class support.",
+      "summary": "Bulma Select component with Bulma helper class support.",
       "component": null,
       "props": [
         {

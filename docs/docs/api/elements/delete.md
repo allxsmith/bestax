@@ -14,7 +14,7 @@ The `Delete` component provides a Bulma-styled close/delete button for dismissin
 
 <!-- /bestax:generated overview -->
 
-It supports all Bulma size and color helpers, and includes accessibility best practices.
+It supports Bulma size and color helpers, and includes accessibility best practices.
 
 :::info
 This component is ideal for adding a visually consistent, accessible close button to any Bulma-styled element.

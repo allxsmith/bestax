@@ -190,8 +190,9 @@ Across the convenience inputs (`Input`, `Select`, `TextArea`, and similar):
 | `iconLeftName` / `iconRightName` | `string`                                                              | Icon shortcuts; pair with `hasIconsLeft/Right`.                                                                |
 | `isLoading`                      | `boolean`                                                             | Loading spinner on the Control; `Select` draws it in place of the chevron.                                     |
 
-Plus the full Bulma **helper props** (`m`, `p`, `textColor`, `display`, …) on every component
-via `useBulmaClasses`.
+Plus Bulma **helper props** (`m`, `p`, `display`, …) on most components via
+`useBulmaClasses`. Check a component's props before passing one, on its API page or with the
+MCP server's `get_props`.
 
 Full-width is `isFullwidth` on every component that supports it (`Button`, `LinkButton`,
 `Select`, `File`, `Table`, `Tabs`, `Sidebar`) — always write `isFullwidth`. The deprecated

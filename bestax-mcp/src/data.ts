@@ -145,7 +145,7 @@ export interface ComponentRecord {
   /** A hook's `## API` signature block, its answer to a props table. */
   api?: string | null;
   /**
-   * The helper props every component takes, with what each does, on the page
+   * The helper props most components take, with what each does, on the page
    * that documents them (useBulmaClasses), which search_bestax reads.
    */
   helperProps?: PropRow[];

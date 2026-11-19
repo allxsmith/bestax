@@ -343,13 +343,27 @@ const pendingStartOf = (range?: DateRangeValue): Date | null =>
 /**
  * The day grid's cells in rows of a week. A grid owns rows and rows own
  * cells, so assistive technology can walk the grid, and the selection it
- * reports, row by row.
+ * reports, row by row. A week with no day on show keeps its place, so months
+ * side by side line up, but is hidden from assistive technology, which would
+ * otherwise find a row with no cells in it (#2190).
+ *
+ * @param shown whether each day is on show, in the order of `days`
  */
-const inWeeks = (days: React.ReactElement[], className: string) => {
+const inWeeks = (
+  days: React.ReactElement[],
+  className: string,
+  shown: boolean[]
+) => {
   const rows: React.ReactElement[] = [];
   for (let i = 0; i < days.length; i += 7) {
+    const empty = !shown.slice(i, i + 7).some(Boolean);
     rows.push(
-      <div key={i} role="row" className={className}>
+      <div
+        key={i}
+        role="row"
+        className={className}
+        aria-hidden={empty || undefined}
+      >
         {days.slice(i, i + 7)}
       </div>
     );
@@ -963,6 +977,19 @@ export const Calendar: React.FC<CalendarProps> = ({
     ? addMonths(focusedDate, 1)
     : clampDate(addYears(focusedDate, 1), min, max);
   const lastShownIndex = firstShownIndex + monthCount - 1;
+  // A nearby month's day shows dimmed, unless nearbyMonthDays is off, or its
+  // own month is on show beside this one, so no day shows twice. Either way
+  // it's blank.
+  const isDayShown = (cell: { date: Date; inCurrentMonth: boolean }) => {
+    if (cell.inCurrentMonth) return true;
+    const cellMonth = monthIndex(cell.date);
+    return (
+      nearbyMonthDays &&
+      (cellMonth < firstShownIndex || cellMonth > lastShownIndex)
+    );
+  };
+  // Whether each month's days are on show, read by its cells and its weeks.
+  const shownDays = shownCells.map(cells => cells.map(isDayShown));
   const prevDisabled = isDayGranularity
     ? firstShownIndex <= monthIndex(min)
     : focusedYear <= min.getFullYear();
@@ -1457,13 +1484,7 @@ export const Calendar: React.FC<CalendarProps> = ({
             'is-disabled': disabled,
             'is-other-month': otherMonth,
           });
-          // A nearby month's day shows dimmed, except where its own month is
-          // on show beside this one, so no day shows twice.
-          const cellMonth = monthIndex(cell.date);
-          const display =
-            !otherMonth ||
-            (nearbyMonthDays &&
-              (cellMonth < firstShownIndex || cellMonth > lastShownIndex));
+          const display = shownDays[i][j];
           const fullName = fullNames?.[i][j];
           const content =
             display && dayContent
@@ -1523,7 +1544,8 @@ export const Calendar: React.FC<CalendarProps> = ({
             </button>
           );
         }),
-        weekClass
+        weekClass,
+        shownDays[i]
       )}
     </div>
   );

@@ -14,7 +14,7 @@ The `IconText` component provides a Bulma-styled horizontal arrangement of one o
 
 <!-- /bestax:generated overview -->
 
-Use it for icon-and-label patterns, ratings, button content, or any visual+text UI. Supports all Bulma helper props for spacing, color, and layout.
+Use it for icon-and-label patterns, ratings, button content, or any visual+text UI. Supports Bulma helper props for spacing, color, and layout.
 
 :::tip
 Use `IconText` to keep icons and text vertically aligned and spaced, as recommended by Bulma.

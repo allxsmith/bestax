@@ -22,7 +22,7 @@ This page documents the bestax-bulma prop API for Bulma's visibility helpers. Fo
 
 :::tip
 
-All components in bestax-bulma have access to these visibility properties through the `useBulmaClasses` hook. You can apply visibility properties to any component in the library.
+Most components in bestax-bulma take these visibility properties through the `useBulmaClasses` hook, so check a component's props before passing one.
 
 :::
 
