@@ -330,12 +330,12 @@ less wiring, not more.
 
 ## Inline style → helper prop mapping
 
-Look up the declaration you were about to inline. The spacing, typography, and flex helpers
-below are on every component; `textColor`/`bgColor` are on the content components you'll
-target (`Box`, `Block`, `Title`, `Content`, `Hero`, `Card`, …) — the ones with a semantic
-`color` variant (`Tag`, `Tabs`, `Panel`) take `color` instead; wrap content in a `Block` if
-you need a text color there. `Notification` is the mixed case: it takes `textColor`, but its
-background comes from the semantic `color` prop, not `bgColor`.
+Look up the declaration you were about to inline. Most components take the spacing,
+typography, and flex helpers below, and many take the color ones, but not every component or
+part does, so check its props before passing one, on its API page or with the MCP server's
+`get_props`. Where one doesn't (`Tabs.Tab`, for one), put the helper on a component around it
+that takes it, or on an element inside it: wrap its content in a `Span` with `textColor` when
+the one you're styling has no text color.
 
 | Inline style you're about to write       | Helper props instead                                                                                                                                           |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
