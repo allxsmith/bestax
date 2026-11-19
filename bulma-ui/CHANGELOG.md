@@ -1,3 +1,11 @@
+## [5.78.4](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.78.3...@allxsmith/bestax-bulma@5.78.4) (2026-11-19)
+
+
+### Bug Fixes
+
+* **bulma-ui:** keep Pagination.Ellipsis's pagination-ellipsis class beside a className ([0bfe043](https://github.com/allxsmith/bestax/commit/0bfe043bb986f1eda78dce32f8624884a226fa63)), closes [#2168](https://github.com/allxsmith/bestax/issues/2168)
+* **docs:** give no children row for another object's .children in the props tables ([f7c3e2a](https://github.com/allxsmith/bestax/commit/f7c3e2ab4c1a91bf6c62eb2fa5ca10788c61609d)), closes [#2125](https://github.com/allxsmith/bestax/issues/2125)
+
 ## [5.78.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.78.2...@allxsmith/bestax-bulma@5.78.3) (2026-11-18)
 
 
