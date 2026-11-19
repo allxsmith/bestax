@@ -76,6 +76,7 @@ pnpm docs                                                   # dev server (hot re
 # production build + preview:
 pnpm exec turbo run build --filter=@allxsmith/bestax-docs   # builds docs + bulma-ui dep
 pnpm --filter @allxsmith/bestax-docs run serve              # serves the built site
+pnpm --filter @allxsmith/bestax-docs run a11y --theme=light # axe on every built page, as docs-a11y.yml does
 ```
 
 The build also regenerates `/llms.txt` and `/llms-full.txt` under `docs/build/`.
