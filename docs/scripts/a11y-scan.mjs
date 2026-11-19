@@ -167,7 +167,7 @@ async function main() {
     await context.addInitScript(mode => {
       localStorage.setItem('theme', mode);
     }, theme);
-    // Only the site itself loads. Anything from another host (a YouTube
+    // Requests to any other host are aborted. What they'd load (a YouTube
     // player in an example, a font or image off a CDN) is someone else's
     // markup, and loading it would make the result depend on the network.
     await context.route(
