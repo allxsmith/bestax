@@ -991,6 +991,7 @@ function TimeInputFormDemo() {
 ## Accessibility
 
 - Trigger uses `role="combobox"` with `aria-haspopup="dialog"`, `aria-expanded`, and `aria-controls`.
+- In forced colors (Windows' contrast themes), a focused input that can't be typed in, with `readOnly` or `editable={false}`, draws an outline in Bulma's focus style and width, painted in a system color, since it shows no text caret and only its border's color would change there.
 - Popover panel has `role="dialog"` with an accessible name.
 - An `inline` picker has no input for its `label` to name, so its root is a `role="group"` the `label` names through `aria-labelledby` and its `message` describes. A labeled `Field` around it names it the same way, unless the `Field` is `grouped` or `hasAddons`, or a label is wired by hand with `labelProps.htmlFor`. An `aria-label` or `aria-labelledby` you give it names it instead. With no name it stays a plain `div`, and its wheels inside keep their own names.
 - Each spinner column has `role="spinbutton"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`, whose text is the number as the column shows it, in the picker's locale's digits when it has a locale. The values drawn above and below are click targets hidden from assistive technology, which reads the value from the spinbutton.

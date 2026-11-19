@@ -246,7 +246,7 @@ The button stays at the physical right in a right-to-left page, as Bulma's right
 - **Password managers and paste** work as on any password field, and `autocomplete` tells them what the field is for ([Identify Input Purpose](https://www.w3.org/WAI/WCAG22/Understanding/identify-input-purpose.html)). `spellcheck="false"` keeps a browser's spellcheck from reading the password once it shows.
 - **The `value` attribute:** a controlled field carries its value in its `value` attribute, as React writes it for any controlled input, where a CSS attribute selector can read it. An uncontrolled one, read with `FormData`, never puts what's typed there.
 - **Edge's own reveal button** is hidden on this input, so there's one eye, not two.
-- **Focus** shows as an outline around the button. **Forced colors:** the glyph and the words take the system's button text color, and a disabled button its gray.
+- **Focus** shows as an outline around the button. **Forced colors:** the glyph and the words take the system's button text color, and a disabled button its gray. A focused `readOnly` field draws an outline in Bulma's focus style and width, painted in a system color, since it shows no text caret and only its border's color would change there.
 - **Strings** come from `labels`, with English defaults.
 - **Help and errors:** the `message` describes the input through `aria-describedby`, after any ids you pass there, so a screen reader reads a rule such as "At least 15 characters" when the field takes focus. A red `color` says nothing to a screen reader, so on an error also set `aria-invalid`, and put the error in the `message`.
 
