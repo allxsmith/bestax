@@ -172,6 +172,17 @@ describe('Calendar', () => {
       for (const week of weeks(alone.querySelector('[role="grid"]')!)) {
         expect(week).not.toHaveAttribute('aria-hidden');
       }
+
+      // With nearbyMonthDays off, those days are blank on a month alone too,
+      // the way DateInput and DateTimeInput show it.
+      const { container: bare } = render(
+        <Calendar defaultMonth={NOV_2026} nearbyMonthDays={false} />
+      );
+      const bareWeeks = weeks(bare.querySelector('[role="grid"]')!);
+      expect(bareWeeks[5]).toHaveAttribute('aria-hidden', 'true');
+      for (const week of bareWeeks.slice(0, 5)) {
+        expect(week).not.toHaveAttribute('aria-hidden');
+      }
     });
 
     it('prefixes every class under a ConfigProvider classPrefix', () => {

@@ -987,6 +987,8 @@ export const Calendar: React.FC<CalendarProps> = ({
       (cellMonth < firstShownIndex || cellMonth > lastShownIndex)
     );
   };
+  // Whether each month's days are on show, read by its cells and its weeks.
+  const shownDays = shownCells.map(cells => cells.map(isDayShown));
   const prevDisabled = isDayGranularity
     ? firstShownIndex <= monthIndex(min)
     : focusedYear <= min.getFullYear();
@@ -1481,7 +1483,7 @@ export const Calendar: React.FC<CalendarProps> = ({
             'is-disabled': disabled,
             'is-other-month': otherMonth,
           });
-          const display = isDayShown(cell);
+          const display = shownDays[i][j];
           const fullName = fullNames?.[i][j];
           const content =
             display && dayContent
@@ -1542,7 +1544,7 @@ export const Calendar: React.FC<CalendarProps> = ({
           );
         }),
         weekClass,
-        shownCells[i].map(isDayShown)
+        shownDays[i]
       )}
     </div>
   );
