@@ -61,9 +61,8 @@ function example() {
   const [quantity, setQuantity] = useState(1);
   return (
     <Block>
-      <Paragraph mb="2">Quantity (1-10):</Paragraph>
       <Numberinput
-        aria-label="Quantity"
+        label="Quantity (1-10)"
         value={quantity}
         onChange={setQuantity}
         min={1}
@@ -130,27 +129,24 @@ Different positions for the +/- buttons.
 ```tsx live
 <Block display="flex" flexDirection="column">
   <Block>
-    <Paragraph mb="1">Both sides (default)</Paragraph>
     <Numberinput
-      aria-label="Quantity"
+      label="Both sides (default)"
       defaultValue={5}
       controlsPosition="both"
       color="primary"
     />
   </Block>
   <Block>
-    <Paragraph mb="1">Left only</Paragraph>
     <Numberinput
-      aria-label="Quantity"
+      label="Left only"
       defaultValue={5}
       controlsPosition="left"
       color="info"
     />
   </Block>
   <Block>
-    <Paragraph mb="1">Right only</Paragraph>
     <Numberinput
-      aria-label="Quantity"
+      label="Right only"
       defaultValue={5}
       controlsPosition="right"
       color="success"
@@ -185,9 +181,8 @@ function example() {
   const [value, setValue] = useState(0);
   return (
     <Block>
-      <Paragraph mb="2">Step by 10:</Paragraph>
       <Numberinput
-        aria-label="Quantity"
+        label="Step by 10"
         value={value}
         onChange={setValue}
         step={10}

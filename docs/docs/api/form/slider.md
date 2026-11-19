@@ -97,25 +97,16 @@ Sliders in different sizes.
 ```tsx live
 <Block display="flex" flexDirection="column">
   <Block>
-    <Paragraph mb="1">Small</Paragraph>
-    <Slider aria-label="Value" defaultValue={50} size="small" color="primary" />
+    <Slider label="Small" defaultValue={50} size="small" color="primary" />
   </Block>
   <Block>
-    <Paragraph mb="1">Normal</Paragraph>
-    <Slider aria-label="Value" defaultValue={50} color="primary" />
+    <Slider label="Normal" defaultValue={50} color="primary" />
   </Block>
   <Block>
-    <Paragraph mb="1">Medium</Paragraph>
-    <Slider
-      aria-label="Value"
-      defaultValue={50}
-      size="medium"
-      color="primary"
-    />
+    <Slider label="Medium" defaultValue={50} size="medium" color="primary" />
   </Block>
   <Block>
-    <Paragraph mb="1">Large</Paragraph>
-    <Slider aria-label="Value" defaultValue={50} size="large" color="primary" />
+    <Slider label="Large" defaultValue={50} size="large" color="primary" />
   </Block>
 </Block>
 ```
@@ -129,9 +120,8 @@ Slider with rounded track and circular thumb.
 ```tsx live
 <Block display="flex" flexDirection="column">
   <Block>
-    <Paragraph mb="1">Rounded</Paragraph>
     <Slider
-      aria-label="Value"
+      label="Rounded"
       defaultValue={50}
       isRounded
       color="info"
@@ -139,9 +129,8 @@ Slider with rounded track and circular thumb.
     />
   </Block>
   <Block>
-    <Paragraph mb="1">Circle Thumb</Paragraph>
     <Slider
-      aria-label="Value"
+      label="Circle Thumb"
       defaultValue={50}
       isCircle
       color="success"
@@ -149,9 +138,8 @@ Slider with rounded track and circular thumb.
     />
   </Block>
   <Block>
-    <Paragraph mb="1">Both</Paragraph>
     <Slider
-      aria-label="Value"
+      label="Both"
       defaultValue={50}
       isRounded
       isCircle
