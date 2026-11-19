@@ -282,9 +282,14 @@ describe('the axe check on the stories', () => {
     expect(found).toEqual(registered);
   });
 
-  it('gives every exemption an issue or a reason', () => {
+  it('gives every exemption one story, axe rules and an issue or a reason', () => {
     for (const [key, rules] of Object.entries(A11Y_EXEMPT)) {
+      // One story, never a file's meta, and only rules by their axe ids, so
+      // no entry can match the names the relaxations above give to anything
+      // else that weakens the check.
+      expect(key).toMatch(/^[\w/-]+\.stories\.(js|jsx|mjs|ts|tsx)#\w+$/);
       for (const [rule, why] of Object.entries(rules)) {
+        expect(rule).toMatch(/^[a-z][a-z0-9-]*$/);
         const ok =
           typeof why === 'number'
             ? Number.isInteger(why) && why > 0
