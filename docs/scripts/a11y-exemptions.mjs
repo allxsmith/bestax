@@ -58,12 +58,6 @@ export default [
     issue: 2198,
   },
   { rule: 'target-size', pages: ['/docs/api/form/slider'], issue: 2195 },
-  {
-    rule: 'aria-required-children',
-    pages: ['/docs/api/form/datetime/calendar'],
-    issue: 2190,
-  },
-  { rule: 'role-img-alt', pages: ['/docs/api/elements/icon'], issue: 2213 },
   // Label in name, in the examples.
   {
     rule: 'label-content-name-mismatch',
