@@ -55,7 +55,8 @@ together, and carry the
   against its WCAG A and AA rules. A violation fails the pull request unless the story's
   exemption names the open issue that tracks it, or the reason axe is wrong there.
 - **Every page of this site, after each change reaches `main`.** The same check runs on every
-  page of the built site, live examples included, in both color modes.
+  page of the built site in both color modes, including the live examples a page shows (one
+  inside a closed tab or a closed `<details>` isn't checked).
 - **Unit tests** pin the components' keyboard behavior, ARIA roles and states, and how they draw
   in forced colors (Windows' contrast themes) and with reduced motion.
 - **A simulated screen reader** checks what TreeView announces.
