@@ -1,3 +1,12 @@
+## [1.18.82](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.81...bestax-mcp@1.18.82) (2026-11-19)
+
+
+### Bug Fixes
+
+* **bulma-ui:** decide once which calendar days show, for the cells and the weeks ([5d44135](https://github.com/allxsmith/bestax/commit/5d4413582ba2d31a383f3462b470f9eeaca7b14d)), closes [#2190](https://github.com/allxsmith/bestax/issues/2190)
+* **bulma-ui:** hide a calendar week with no day on show from assistive technology ([4f5c9ea](https://github.com/allxsmith/bestax/commit/4f5c9ea89c3cec1652d30024ff421b6403ecb98a)), closes [#2190](https://github.com/allxsmith/bestax/issues/2190) [#2194](https://github.com/allxsmith/bestax/issues/2194)
+* **bulma-ui:** hide an Ionicon's inner element, which is an image with no name ([2b494eb](https://github.com/allxsmith/bestax/commit/2b494eb1a0423343b0191c6b0f32bc059e170dba)), closes [#2213](https://github.com/allxsmith/bestax/issues/2213)
+
 ## [1.18.81](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.80...bestax-mcp@1.18.81) (2026-11-19)
 
 
