@@ -1,0 +1,112 @@
+/**
+ * The docs site's axe exemptions (#2183), read by `a11y-scan.mjs`.
+ *
+ * Each entry covers one axe rule on the pages it names, in both color modes
+ * unless `themes` limits it, and says why: the open `issue` that will remove
+ * it, or the `reason` axe is wrong there or the markup isn't ours. A page
+ * pattern is a path, or a path prefix ending in `*`. With `targets`, an
+ * entry covers a violation only when every element axe names is one of
+ * those, written exactly as axe writes it. An entry that covers nothing in a
+ * run fails that run, so the fix that closes its issue removes it.
+ *
+ * @type {{ rule: string, pages: string[], targets?: string[], themes?: ('light' | 'dark')[], issue?: number, reason?: string }[]}
+ */
+export default [
+  // The footer, code highlighting and the homepage's hero and banner.
+  { rule: 'color-contrast', pages: ['/*'], issue: 2215 },
+  // DocSearch's button, in the navbar of every page.
+  {
+    rule: 'label-content-name-mismatch',
+    pages: ['/*'],
+    targets: ['.DocSearch'],
+    issue: 2216,
+  },
+  // Links in running text are marked by color alone.
+  { rule: 'link-in-text-block', pages: ['/*'], issue: 2217 },
+  // The blog's author social links.
+  { rule: 'target-size', pages: ['/blog*'], issue: 2218 },
+  // Wide tables that scroll without taking focus.
+  {
+    rule: 'scrollable-region-focusable',
+    pages: [
+      '/docs/api/components/modal',
+      '/docs/api/components/panel',
+      '/docs/api/components/tabs',
+      '/docs/api/helpers/usebulmaclasses',
+    ],
+    issue: 2219,
+  },
+
+  // The library's own open issues, showing in the live examples. Each has
+  // its stories exempt in bulma-ui's stories-a11y.test.ts too.
+  {
+    rule: 'target-size',
+    pages: ['/docs/api/components/carousel'],
+    issue: 1926,
+  },
+  {
+    rule: 'target-size',
+    pages: [
+      '/docs/api/elements/delete',
+      '/docs/api/form/cascader',
+      '/docs/api/form/treeselect',
+    ],
+    issue: 2200,
+  },
+  { rule: 'target-size', pages: ['/docs/api/form/slider'], issue: 2195 },
+  {
+    rule: 'aria-required-children',
+    pages: ['/docs/api/form/datetime/calendar'],
+    issue: 2190,
+  },
+  { rule: 'role-img-alt', pages: ['/docs/api/elements/icon'], issue: 2213 },
+  // Label in name, in the examples.
+  {
+    rule: 'label-content-name-mismatch',
+    pages: ['/docs/api/components/avatar'],
+    issue: 2211,
+  },
+  {
+    rule: 'label-content-name-mismatch',
+    pages: ['/docs/api/form/datetime/dateinput'],
+    issue: 2209,
+  },
+  {
+    rule: 'label-content-name-mismatch',
+    pages: ['/docs/api/form/datetime/calendar', '/docs/guides/library/form'],
+    issue: 2210,
+  },
+  {
+    rule: 'label-content-name-mismatch',
+    pages: ['/docs/api/components/treeview', '/docs/guides/library/components'],
+    reason:
+      "An expanded tree item contains its group of child items, as the ARIA tree pattern has it, so axe counts the children's text as text the item shows. bulma-ui's stories-a11y.test.ts exempts the TreeView stories for the same reason.",
+  },
+  {
+    rule: 'label-content-name-mismatch',
+    pages: ['/docs/api/components/command'],
+    reason:
+      "A Command option's name is its label, and its description and shortcut hint describe it, so axe counts text the option shows that its name leaves out on purpose. bulma-ui's stories-a11y.test.ts exempts the Command stories for the same reason.",
+  },
+  // Tabs.List calls Tabs.Item's links a tab list.
+  ...['aria-required-children', 'listitem'].map(rule => ({
+    rule,
+    pages: [
+      '/docs/guides/getting-started/migration/bulma-ui-2-to-3',
+      '/blog/2026/07/28/bulma-3-css-framework-ai-will-never-tell-you-about-it',
+    ],
+    issue: 1917,
+  })),
+
+  // Published posts keep their examples as they ran when posted.
+  {
+    rule: 'label',
+    pages: [
+      '/blog/2026/07/28/bulma-3-css-framework-ai-will-never-tell-you-about-it',
+      '/blog/extra-components',
+      '/blog/v3-forms-release',
+    ],
+    reason:
+      'A published post keeps the examples it went out with. The API pages these examples came from name their inputs.',
+  },
+];

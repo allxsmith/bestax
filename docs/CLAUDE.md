@@ -56,6 +56,14 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
 
 ## Conventions
 
+- **Every page goes through axe** after each change reaches `main`
+  (`.github/workflows/docs-a11y.yml`, one leg per color mode, not a PR check; start it by hand
+  to check a branch, or run `pnpm --filter @allxsmith/bestax-docs run a11y --theme=light` on a
+  built site). The scan
+  scrolls each page so its live examples mount, and checks those too. When it fails on a
+  page's own markup or an example's code, fix it there (name the input, give the image its
+  `alt`). An exemption goes in `scripts/a11y-exemptions.mjs` with the issue that removes it or
+  the reason axe is wrong, and the scan fails on an exemption that covers nothing.
 - API pages mirror `docs/api/components/avatar.md` (the house exemplar), not older siblings;
   `check:conformance` enforces the required sections. Frontmatter `title:` = the exported
   name, and the first `## Overview` sentence becomes its catalog one-liner (`gen:catalog`).
