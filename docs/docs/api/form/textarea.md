@@ -1,7 +1,7 @@
 ---
 title: TextArea
 sidebar_label: TextArea
-description: The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, hover/focus/loading states, fixed size, and all Bulma helper props.
+description: The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, hover/focus/loading states, fixed size, and Bulma helper props.
 ---
 
 # TextArea
@@ -10,7 +10,7 @@ description: The `TextArea` component provides a Bulma-styled multi-line text in
 
 <!-- bestax:generated overview -->
 
-The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, hover/focus/loading states, fixed size, and all Bulma helper props.
+The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, hover/focus/loading states, fixed size, and Bulma helper props.
 
 <!-- /bestax:generated overview -->
 

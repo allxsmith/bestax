@@ -15,7 +15,7 @@ The `Cell` component provides a single Bulma grid cell for use inside the [`Grid
 
 <!-- /bestax:generated overview -->
 
-It supports all Bulma grid CSS classes for manual placement and spanning, color/background helpers, and all utility/HTML props. Use `Cell` to control column/row start, end, and span within modern CSS grid layouts.
+It supports all Bulma grid CSS classes for manual placement and spanning, color/background helpers, and utility/HTML props. Use `Cell` to control column/row start, end, and span within modern CSS grid layouts.
 
 ---
 
@@ -201,7 +201,7 @@ The `rowSpan` prop allows a cell to span multiple rows. This is particularly use
 
 - Use `Cell` inside a `Grid` for proper Bulma grid layout.
 - You can combine all placement and span props for advanced grid arrangements.
-- All Bulma utility helper props and HTML `<div>` props are supported.
+- Bulma utility helper props and HTML `<div>` props are supported.
 
 ---
 

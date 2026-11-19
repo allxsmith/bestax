@@ -15,7 +15,7 @@ The `Grid` component provides Bulma's advanced CSS Grid layout for complex, mode
 
 <!-- /bestax:generated overview -->
 
-It supports both responsive and fixed grid modes, gap and min column controls, fixed column counts (per breakpoint), and full color/background/utility helpers. Use with the [`Cell`](./cell.md) component for granular grid placement.
+It supports both responsive and fixed grid modes, gap and min column controls, fixed column counts (per breakpoint), and color/background/utility helpers. Use with the [`Cell`](./cell.md) component for granular grid placement.
 
 ---
 
@@ -218,7 +218,7 @@ See [Cell documentation](./cell.md) for granular placement using `colStart`, `co
 
 - Use the `Cell` component as a child of `Grid` for individual cell placement and spanning.
 - Fixed grid mode (`isFixed`) enables a strict column layout and enables `fixedCols`/`fixedCols*` props.
-- All Bulma utility helper props are supported.
+- Bulma utility helper props are supported.
 
 ---
 
