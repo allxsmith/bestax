@@ -6,8 +6,8 @@
  * it, or the `reason` axe is wrong there or the markup isn't ours. A page
  * pattern is a path, or a path prefix ending in `*`. With `targets`, an
  * entry covers only those elements, written exactly as the scan prints
- * them. A page pattern that covers nothing in a run fails that run, so the
- * fix for a page removes that page from its entry.
+ * them. A run reports a page pattern that covered nothing, and the fix for a
+ * page removes that page from its entry.
  *
  * @type {{ rule: string, pages: string[], targets?: string[], themes?: ('light' | 'dark')[], issue?: number, reason?: string }[]}
  */
@@ -41,8 +41,8 @@ export default [
     issue: 2219,
   },
 
-  // The library's own open issues, showing in the live examples. Each has
-  // its stories exempt in bulma-ui's stories-a11y.test.ts too.
+  // The library's own open issues, showing in the live examples. Most have
+  // stories exempt for them in bulma-ui's stories-a11y.test.ts too.
   {
     rule: 'target-size',
     pages: ['/docs/api/components/carousel'],

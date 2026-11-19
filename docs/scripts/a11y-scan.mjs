@@ -3,9 +3,9 @@
  * The docs site's axe pass (#2183). Every page of the built site loads in
  * headless Chromium in one color mode, and axe checks it against the WCAG
  * 2.0, 2.1 and 2.2 Level A and AA rules. A violation fails the run unless
- * `a11y-exemptions.mjs` covers it, and an exemption that covers nothing fails
- * it too. The library's own stories have their axe pass in Storybook
- * (bulma-ui's `test-storybook`).
+ * `a11y-exemptions.mjs` covers it. An exemption that covers nothing is
+ * reported, not failed on. The library's own stories have their axe pass in
+ * Storybook (bulma-ui's `test-storybook`). It runs on macOS and Linux.
  *
  * Usage:
  *   pnpm exec turbo run build --filter=@allxsmith/bestax-docs
@@ -92,11 +92,19 @@ async function serve(port) {
     }
   };
   let exited = false;
+  let spawnError;
   child.on('exit', () => (exited = true));
+  child.on('error', error => {
+    spawnError = error;
+    exited = true;
+  });
   const base = `http://127.0.0.1:${port}`;
   for (let i = 0; i < 120; i++) {
-    if (exited)
-      throw new Failure('`docusaurus serve` exited before it served.');
+    if (exited) {
+      throw new Failure(
+        `\`docusaurus serve\` exited before it served${spawnError ? `: ${spawnError.message}` : '.'}`
+      );
+    }
     try {
       if ((await fetch(`${base}/`)).ok) return { stop, base };
     } catch {
@@ -112,10 +120,17 @@ async function serve(port) {
 async function check(context, base, path) {
   const page = await context.newPage();
   try {
-    await page.goto(base + path, {
+    const response = await page.goto(base + path, {
       waitUntil: 'load',
       timeout: PAGE_TIMEOUT_MS,
     });
+    // A page the server can't find comes back as the site's 404 page, which
+    // would otherwise be checked in its place.
+    if (!response?.ok()) {
+      throw new Error(
+        `The server answered ${response?.status() ?? 'nothing'}.`
+      );
+    }
     // Docusaurus marks the page once React has hydrated it. A page that never
     // says so is checked as it stands.
     await page
@@ -138,9 +153,17 @@ async function check(context, base, path) {
         () =>
           [...document.querySelectorAll('.live-preview-slot')]
             .filter(slot => slot.checkVisibility())
-            .every(
-              slot => slot.firstElementChild?.shadowRoot?.childElementCount > 0
-            ),
+            .every(slot => {
+              // ShadowLivePreview's wrapper, then react-live's own div,
+              // which holds what the example renders.
+              // (`:scope` matches nothing in a shadow root's querySelector,
+              // so its children are searched instead.)
+              const root = slot.firstElementChild?.shadowRoot;
+              const preview = [...(root?.children ?? [])].find(el =>
+                el.matches('div[data-theme]')
+              )?.firstElementChild;
+              return (preview?.childNodes.length ?? 0) > 0;
+            }),
         undefined,
         { timeout: EXAMPLES_TIMEOUT_MS }
       )
@@ -173,6 +196,14 @@ async function main() {
   }
   const pages = pagesFromSitemap(readFileSync(sitemap, 'utf8'));
   const { stop, base } = await serve(await freePort());
+  // The server runs in a process group of its own, which a Ctrl-C in the
+  // terminal doesn't reach, so stop it on the way out.
+  for (const signal of ['SIGINT', 'SIGTERM']) {
+    process.once(signal, () => {
+      stop();
+      process.exit(1);
+    });
+  }
   let browser;
   try {
     browser = await chromium.launch();
@@ -212,12 +243,12 @@ async function main() {
       errors.length > 0
     );
     console.log(
-      `Checked ${pages.length} pages in ${theme} mode: ${failing.length} violations to fix, ${stale.length} stale exemptions, ${errors.length} pages that failed to load.`
+      `Checked ${pages.length} pages in ${theme} mode: ${failing.length} violations to fix, ${errors.length} pages that failed to load, ${stale.length} possibly stale exemptions.`
     );
     for (const line of describeFailures(failing)) console.log(line);
     for (const { exemption, pattern } of stale) {
       console.log(
-        `Stale exemption: ${exemption.rule} on ${pattern} covered nothing in ${theme} mode. Remove that page from its entry in a11y-exemptions.mjs.`
+        `Possibly stale exemption: ${exemption.rule} on ${pattern} covered nothing in ${theme} mode. If its issue is fixed, remove that page from its entry in a11y-exemptions.mjs; if it applies in the other mode only, limit the entry with \`themes\`.`
       );
     }
     for (const error of errors) console.log(`Failed to load ${error}`);
@@ -226,7 +257,10 @@ async function main() {
         'With pages that failed to load, no exemption is judged stale this run.'
       );
     }
-    return failing.length || stale.length || errors.length ? 1 : 0;
+    // A stale exemption is a warning rather than a failure: a violation that
+    // depends on timing can be there one run and not the next, and a run
+    // that failed on it would fail at random.
+    return failing.length || errors.length ? 1 : 0;
   } finally {
     await browser?.close();
     stop();

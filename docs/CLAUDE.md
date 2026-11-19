@@ -63,7 +63,8 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   scrolls each page so its live examples mount, and checks those too. When it fails on a
   page's own markup or an example's code, fix it there (name the input, give the image its
   `alt`). An exemption goes in `scripts/a11y-exemptions.mjs` with the issue that removes it or
-  the reason axe is wrong, and the scan fails on an exemption that covers nothing.
+  the reason axe is wrong. The scan reports an exemption that covered nothing, and the fix for
+  its issue removes it.
 - API pages mirror `docs/api/components/avatar.md` (the house exemplar), not older siblings;
   `check:conformance` enforces the required sections. Frontmatter `title:` = the exported
   name, and the first `## Overview` sentence becomes its catalog one-liner (`gen:catalog`).

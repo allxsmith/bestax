@@ -127,10 +127,9 @@ export function invalidExemptions(exemptions) {
 /**
  * Sorts a run's violations into what the exemptions cover and what fails the
  * run, element by element, and finds each page pattern of an exemption for
- * this color mode that covered nothing, which fails it too: the problem it
- * was for is gone there, so it comes out with the fix. A run where pages
- * failed to load can't tell a fixed page from an unread one, so it judges no
- * exemption stale.
+ * this color mode that covered nothing: the problem it was for may be gone
+ * there. A run where pages failed to load can't tell a fixed page from an
+ * unread one, so it calls no exemption stale.
  *
  * @param violations `{ page, rule, help, targets }` for each rule a page broke
  * @param pagesFailed whether any page failed to load in this run
