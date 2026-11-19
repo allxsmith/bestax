@@ -11,23 +11,23 @@
     },
     {
       "title": "With Output Display",
-      "code": "function example() {\n  const [value, setValue] = useState(50);\n  return (\n    <Block>\n      <Slider value={value} onChange={setValue} showOutput color=\"primary\" />\n      <Paragraph mt=\"4\">Value: {value}</Paragraph>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const [value, setValue] = useState(50);\n  return (\n    <Block>\n      <Slider\n        aria-label=\"Value\"\n        value={value}\n        onChange={setValue}\n        showOutput\n        color=\"primary\"\n      />\n      <Paragraph mt=\"4\">Value: {value}</Paragraph>\n    </Block>\n  );\n}"
     },
     {
       "title": "Color Variants",
-      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Slider defaultValue={50} color=\"primary\" showOutput />\n  <Slider defaultValue={50} color=\"success\" showOutput />\n  <Slider defaultValue={50} color=\"info\" showOutput />\n  <Slider defaultValue={50} color=\"warning\" showOutput />\n  <Slider defaultValue={50} color=\"danger\" showOutput />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Slider aria-label=\"Value\" defaultValue={50} color=\"primary\" showOutput />\n  <Slider aria-label=\"Value\" defaultValue={50} color=\"success\" showOutput />\n  <Slider aria-label=\"Value\" defaultValue={50} color=\"info\" showOutput />\n  <Slider aria-label=\"Value\" defaultValue={50} color=\"warning\" showOutput />\n  <Slider aria-label=\"Value\" defaultValue={50} color=\"danger\" showOutput />\n</Block>"
     },
     {
       "title": "Size Variants",
-      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Block>\n    <Paragraph mb=\"1\">Small</Paragraph>\n    <Slider defaultValue={50} size=\"small\" color=\"primary\" />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Normal</Paragraph>\n    <Slider defaultValue={50} color=\"primary\" />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Medium</Paragraph>\n    <Slider defaultValue={50} size=\"medium\" color=\"primary\" />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Large</Paragraph>\n    <Slider defaultValue={50} size=\"large\" color=\"primary\" />\n  </Block>\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Block>\n    <Paragraph mb=\"1\">Small</Paragraph>\n    <Slider aria-label=\"Value\" defaultValue={50} size=\"small\" color=\"primary\" />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Normal</Paragraph>\n    <Slider aria-label=\"Value\" defaultValue={50} color=\"primary\" />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Medium</Paragraph>\n    <Slider\n      aria-label=\"Value\"\n      defaultValue={50}\n      size=\"medium\"\n      color=\"primary\"\n    />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Large</Paragraph>\n    <Slider aria-label=\"Value\" defaultValue={50} size=\"large\" color=\"primary\" />\n  </Block>\n</Block>"
     },
     {
       "title": "Rounded and Circle",
-      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Block>\n    <Paragraph mb=\"1\">Rounded</Paragraph>\n    <Slider defaultValue={50} isRounded color=\"info\" showOutput />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Circle Thumb</Paragraph>\n    <Slider defaultValue={50} isCircle color=\"success\" showOutput />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Both</Paragraph>\n    <Slider defaultValue={50} isRounded isCircle color=\"warning\" showOutput />\n  </Block>\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Block>\n    <Paragraph mb=\"1\">Rounded</Paragraph>\n    <Slider\n      aria-label=\"Value\"\n      defaultValue={50}\n      isRounded\n      color=\"info\"\n      showOutput\n    />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Circle Thumb</Paragraph>\n    <Slider\n      aria-label=\"Value\"\n      defaultValue={50}\n      isCircle\n      color=\"success\"\n      showOutput\n    />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Both</Paragraph>\n    <Slider\n      aria-label=\"Value\"\n      defaultValue={50}\n      isRounded\n      isCircle\n      color=\"warning\"\n      showOutput\n    />\n  </Block>\n</Block>"
     },
     {
       "title": "Custom Range",
-      "code": "function example() {\n  const [value, setValue] = useState(500);\n  return (\n    <Block>\n      <Slider\n        value={value}\n        onChange={setValue}\n        min={0}\n        max={1000}\n        step={50}\n        showOutput\n        color=\"primary\"\n      />\n      <Paragraph mt=\"4\">Value: ${value}</Paragraph>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const [value, setValue] = useState(500);\n  return (\n    <Block>\n      <Slider\n        aria-label=\"Value\"\n        value={value}\n        onChange={setValue}\n        min={0}\n        max={1000}\n        step={50}\n        showOutput\n        color=\"primary\"\n      />\n      <Paragraph mt=\"4\">Value: ${value}</Paragraph>\n    </Block>\n  );\n}"
     },
     {
       "title": "Range Slider",
@@ -39,11 +39,11 @@
     },
     {
       "title": "Custom Output Format",
-      "code": "function example() {\n  const [value, setValue] = useState(50);\n  return (\n    <Block>\n      <Slider\n        value={value}\n        onChange={setValue}\n        showOutput\n        color=\"success\"\n        formatOutput={v => `${v}%`}\n      />\n      <Paragraph mt=\"4\">Progress: {value}%</Paragraph>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const [value, setValue] = useState(50);\n  return (\n    <Block>\n      <Slider\n        aria-label=\"Value\"\n        value={value}\n        onChange={setValue}\n        showOutput\n        color=\"success\"\n        formatOutput={v => `${v}%`}\n      />\n      <Paragraph mt=\"4\">Progress: {value}%</Paragraph>\n    </Block>\n  );\n}"
     },
     {
       "title": "Disabled Slider",
-      "code": "<Slider defaultValue={30} disabled color=\"primary\" />"
+      "code": "<Slider aria-label=\"Value\" defaultValue={30} disabled color=\"primary\" />"
     },
     {
       "title": "Context-Aware Rendering › Default (with label)",
