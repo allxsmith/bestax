@@ -133,7 +133,7 @@ Sections help organize your document outline for screen readers and SEO.
 - [Storybook: Section Stories](https://bestax.io/storybook/?path=/story/layout-section--default)
 
 :::tip Pro Tip
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Section />` for powerful utility-based styling.
+You can use [Bulma helper props](../helpers/usebulmaclasses.md) with `<Section />` for powerful utility-based styling.
 :::
 
 ---

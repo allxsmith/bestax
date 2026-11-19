@@ -339,7 +339,7 @@ When using only icons or controls, provide `aria-label` or screen-reader-only co
 - [Storybook: Media Stories](https://bestax.io/storybook/?path=/story/layout-media--default)
 
 :::tip Pro Tip
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Media />` and its subcomponents for powerful utility-based styling.
+You can use [Bulma helper props](../helpers/usebulmaclasses.md) with `<Media />` and its subcomponents for powerful utility-based styling.
 :::
 
 ---

@@ -204,7 +204,7 @@ Always provide a visible or accessible way to dismiss important, interruptive me
 ## Related Components
 
 - [`Notification`](../elements/notification.md): For simpler, single-box notifications.
-- [Helper Props](../helpers/usebulmaclasses.md): All Bulma utility helpers can be used.
+- [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing and other utilities.
 
 ---
 
@@ -214,7 +214,7 @@ Always provide a visible or accessible way to dismiss important, interruptive me
 - [Storybook: Message Stories](https://bestax.io/storybook/?path=/story/components-message--primary)
 
 :::tip Pro Tip
-You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Message />` for powerful utility-based styling.
+You can use [Bulma helper props](../helpers/usebulmaclasses.md) with `<Message />` for powerful utility-based styling.
 :::
 
 ---
