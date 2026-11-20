@@ -42,7 +42,9 @@
 // fixed to the bottom, the way AppFrame does for its header. It's keyed on the
 // navbar rather than Bulma's `has-navbar-fixed-top`, which an app may leave
 // out or put on `<body>`, where scroll padding does nothing. `:where()` keeps
-// it at no weight, so an app's own value, and AppFrame's, still win.
+// it at no weight, so an app's own value, and AppFrame's, still win. From
+// the desktop breakpoint up a spaced navbar is taller by its padding above
+// and below, so the padding there adds it.
 //
 // A navbar in a colored hero: Bulma's hero sets the colors its navbar's
 // items take at rest, on hover and when active (`--bulma-navbar-item-color`,
@@ -96,6 +98,9 @@
 @use 'bulma/sass/utilities/mixins' as mx;
 @use '../variables' as *;
 @use '../color-classes' as *;
+
+// Bulma's default `$navbar-padding-vertical`, which its navbar module holds.
+$-navbar-padding-vertical: 1rem;
 
 // An active or selected link item or `.navbar-link`.
 $-current: ':is(a.#{iv.$class-prefix}navbar-item, .#{iv.$class-prefix}navbar-link):is(.#{iv.$class-prefix}is-active, .#{iv.$class-prefix}is-selected)';
@@ -194,6 +199,27 @@ $-current: ':is(a.#{iv.$class-prefix}navbar-item, .#{iv.$class-prefix}navbar-lin
 
 @include mx.desktop {
   @include -fixed-navbar('-desktop');
+
+  // A spaced navbar is taller by its padding above and below. Bulma
+  // registers that padding on `.navbar` only, so the page reads it where an
+  // app registers it on `:root`, and Bulma's default otherwise.
+  $spaced-height: calc(
+    #{cv.getVar('navbar-height')} +
+      var(#{cv.buildVarName('navbar-padding-vertical')}, #{$-navbar-padding-vertical}) *
+      2
+  );
+
+  @each $side in top, bottom {
+    $fixed: '.#{iv.$class-prefix}is-fixed-#{$side}';
+
+    :where(
+        html:has(
+            .#{iv.$class-prefix}navbar.#{iv.$class-prefix}is-spaced:is(#{$fixed}, #{$fixed}-desktop)
+          )
+      ) {
+      scroll-padding-#{$side}: $spaced-height;
+    }
+  }
 }
 
 // A navbar with no color of its own in a hero with one. The colors are
