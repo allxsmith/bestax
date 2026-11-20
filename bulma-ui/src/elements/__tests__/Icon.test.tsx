@@ -2,6 +2,29 @@ import { render, screen } from '@testing-library/react';
 import { Icon } from '../Icon';
 import { Button } from '../Button';
 import { ConfigProvider } from '../../helpers/Config';
+import { resetDevWarnings } from '../../helpers/devWarnings';
+
+// An Icon with a role of its own and no name warns in development (#2227), and
+// several tests here render one, so that warning is held for the tests that
+// read it. Any other warning still reaches the console.
+const UNNAMED = '<Icon> with a role or a tabIndex';
+beforeEach(() => {
+  resetDevWarnings();
+  const realWarn = console.warn;
+  vi.spyOn(console, 'warn').mockImplementation((...args: unknown[]) => {
+    if (!String(args[0]).includes(UNNAMED)) realWarn(...args);
+  });
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
+/** The warnings about an icon with a role or tab stop and no ariaLabel. */
+const unnamedWarnings = () =>
+  vi
+    .mocked(console.warn)
+    .mock.calls.filter(([message]) => String(message).includes(UNNAMED));
 
 /** The icon's container span: the first span on the page. */
 const iconSpan = () => document.body.querySelector('span') as HTMLElement;
@@ -765,5 +788,110 @@ describe('Icon', () => {
       expect(shown).toHaveAttribute('aria-hidden', 'false');
       expect(presentational).toHaveAttribute('role', 'presentation');
     });
+  });
+});
+
+describe('an unnamed Icon with a role of its own in development (#2227)', () => {
+  it('warns once about an icon whose ligature is all that names it', () => {
+    render(
+      <>
+        <Icon
+          name="rocket_launch"
+          library="material-icons"
+          role="button"
+          tabIndex={0}
+        />
+        <Icon name="trash" tabIndex={-1} />
+      </>
+    );
+    // Its glyph is what names it, which the warning says.
+    expect(screen.getByRole('button')).toHaveAccessibleName('rocket_launch');
+    expect(unnamedWarnings()).toEqual([
+      [expect.stringMatching(/no ariaLabel.*ligature's text/)],
+    ]);
+  });
+
+  it.each([
+    ['a tab stop alone', <Icon key="t" name="trash" tabIndex={0} />],
+    ['an image role', <Icon key="i" name="trash" role="img" />],
+    [
+      'a title, which its glyph outranks',
+      <Icon
+        key="title"
+        name="close"
+        library="material-icons"
+        role="button"
+        tabIndex={0}
+        title="Close dialog"
+      />,
+    ],
+    [
+      'children of its own',
+      <Icon key="c" role="button" tabIndex={0}>
+        <svg />
+      </Icon>,
+    ],
+  ])('warns about an icon with no ariaLabel and %s', (_how, icon) => {
+    render(icon);
+    expect(unnamedWarnings()).toHaveLength(1);
+  });
+
+  it('warns about a presentational ligature that names the button around it', () => {
+    render(
+      <Button>
+        <Icon name="delete" library="material-icons" role="none" />
+        <span>Remove</span>
+      </Button>
+    );
+    expect(screen.getByRole('button')).toHaveAccessibleName(/^delete/);
+    expect(unnamedWarnings()).toHaveLength(1);
+  });
+
+  it.each([
+    ['an ariaLabel', { ariaLabel: 'Delete' }],
+    ['an aria-label', { 'aria-label': 'Delete' }],
+  ])('stays quiet about an icon with a role named by %s', (_how, props) => {
+    render(<Icon name="trash" role="button" tabIndex={0} {...props} />);
+    expect(screen.getByRole('button')).toHaveAccessibleName('Delete');
+    expect(unnamedWarnings()).toEqual([]);
+  });
+
+  it('stays quiet about an icon named by aria-labelledby', () => {
+    render(
+      <>
+        <p id="trash-label">Delete</p>
+        <Icon
+          name="trash"
+          role="button"
+          tabIndex={0}
+          aria-labelledby="trash-label"
+        />
+      </>
+    );
+    expect(screen.getByRole('button')).toHaveAccessibleName('Delete');
+    expect(unnamedWarnings()).toEqual([]);
+  });
+
+  it('warns about a tab stop its caller hid, which is a failure of its own', () => {
+    render(<Icon name="trash" tabIndex={0} aria-hidden />);
+    expect(unnamedWarnings()).toHaveLength(1);
+  });
+
+  it('stays quiet about a decorative icon', () => {
+    render(<Icon name="trash" />);
+    expect(unnamedWarnings()).toEqual([]);
+  });
+
+  it('leaves the markup as it was', () => {
+    const { container } = render(
+      <>
+        <Icon name="rocket_launch" library="material-icons" role="button" />
+        <Icon role="button">
+          <svg />
+        </Icon>
+      </>
+    );
+    expect(container.querySelector('i')).not.toHaveAttribute('aria-hidden');
+    expect(container.querySelector('svg')?.parentElement).toHaveClass('icon');
   });
 });

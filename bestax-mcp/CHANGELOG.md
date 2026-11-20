@@ -1,3 +1,10 @@
+## [1.18.87](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.86...bestax-mcp@1.18.87) (2026-11-20)
+
+
+### Bug Fixes
+
+* **bulma-ui:** warn in development when an Icon with a role of its own has no name ([8dc17a6](https://github.com/allxsmith/bestax/commit/8dc17a6c8a5bacf436b83cdbd59e3d35a95539ca)), closes [#2265](https://github.com/allxsmith/bestax/issues/2265) [#2227](https://github.com/allxsmith/bestax/issues/2227)
+
 ## [1.18.86](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.85...bestax-mcp@1.18.86) (2026-11-20)
 
 
