@@ -1495,6 +1495,7 @@ export const Calendar: React.FC<CalendarProps> = ({
                   isOutsideMonth: otherMonth,
                 })
               : undefined;
+          const hasContent = rendersContent(content);
           return (
             <button
               key={cell.date.toISOString()}
@@ -1536,14 +1537,14 @@ export const Calendar: React.FC<CalendarProps> = ({
               {formatNumber(cell.date.getDate())}
               {/* Every day shown has the line, empty where the template
                   draws nothing, so the numbers line up along a row. The
-                  space before it draws nothing, and keeps the number and
-                  the content two words in the day's text, "2 3 left"
+                  space before content draws nothing, and keeps the number
+                  and the content two words in the day's text, "2 3 left"
                   rather than "23 left", for whatever reads that text. */}
               {display && dayContent && (
                 <>
-                  {' '}
+                  {hasContent && ' '}
                   <span className={cellContentClass}>
-                    {rendersContent(content) ? content : null}
+                    {hasContent ? content : null}
                   </span>
                 </>
               )}

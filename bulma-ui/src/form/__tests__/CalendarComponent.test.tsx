@@ -243,7 +243,7 @@ describe('Calendar', () => {
 
     it('builds the name with getDayLabel from the full date', () => {
       const getDayLabel = vi.fn((date: Date, label: string) =>
-        date.getDate() === 20 ? `${label}, 3 slots left` : label
+        date.getDate() === 20 ? `${date.getDate()}, 3 left, ${label}` : label
       );
       render(
         <Calendar
@@ -254,7 +254,7 @@ describe('Calendar', () => {
       );
       expect(
         screen.getByRole('gridcell', {
-          name: 'Friday, November 20, 2026, 3 slots left',
+          name: '20, 3 left, Friday, November 20, 2026',
         })
       ).toBeInTheDocument();
       expect(getDayLabel).toHaveBeenCalledWith(
@@ -366,15 +366,17 @@ describe('Calendar', () => {
 
     it("keeps the number and the content apart in a day's text (#2210)", () => {
       // Text that reads the day's content, such as axe's check that a name
-      // holds what a control shows, would otherwise find "203 left".
+      // holds what a control shows, would otherwise find "203 left". A day
+      // the template draws nothing for keeps its number alone.
       render(
         <Calendar
           locale="en-US"
           defaultMonth={NOV_2026}
-          dayTemplate={() => '3 left'}
+          dayTemplate={date => date.getDate() === 20 && '3 left'}
         />
       );
       expect(day('November 20, 2026').textContent).toBe('20 3 left');
+      expect(day('November 21, 2026').textContent).toBe('21');
     });
 
     it('draws no content line without dayTemplate', () => {
