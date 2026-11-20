@@ -338,9 +338,11 @@ Notes:
   exception, since `bulma/sass/components/modal` draws that one itself. Bulma draws the circle and
   cross as background colors, which forced colors (Windows' contrast themes) replaces, so they
   vanish there. The `delete` extras partial keeps them drawn in the system's button colors, and
-  the `Modal`'s floating close and `Tag isDelete` (`bulma/sass/elements/tag`) with them, so
-  include it (`as bestax-delete`) in any build that shows a close button. Its rules win over
-  Bulma's either way, so the order of the `@use` lines does not matter.
+  the `Modal`'s floating close and `Tag isDelete` (`bulma/sass/elements/tag`) with them. It also
+  gives the delete button and the floating close a target at least 24px square around the circle,
+  WCAG 2.5.8's minimum, where Bulma's is 20px or 16px small, so without it a press just beside
+  the circle misses. Include it (`as bestax-delete`) in any build that shows a close button. Its
+  rules win over Bulma's either way, so the order of the `@use` lines does not matter.
 - `Button` is stock Bulma too (`bulma/sass/elements/button`). Bulma shows a focused button with its
   border and a shadow, which a ghost button doesn't have and a static one doesn't show, and forced
   colors (Windows' contrast themes) drops the shadow and sets the border's color, so a focused

@@ -47,7 +47,7 @@ a `tag:<Target>` TODO instead of a conversion. A component's own `as` can take m
 | `.cell`                | `Cell`                | `<div>` only                                                                                     |
 | `.container`           | `Container`           | `<div>`, `<main>`, `<section>`, `<article>`, `<aside>`, `<header>`, `<footer>`, `<nav>` via `as` |
 | `.content`             | `Content`             | `<div>` only                                                                                     |
-| `.delete`              | `Delete`              | `<button>` only                                                                                  |
+| `.delete`              | `Delete`              | `<button>` only; `Delete` adds an empty, hidden `<span>` for its 24px target                     |
 | `.field`               | `Field`               | `<div>` only                                                                                     |
 | `.field-label`         | `Field.Label`         | `<div>` only                                                                                     |
 | `.field-body`          | `Field.Body`          | `<div>` only                                                                                     |

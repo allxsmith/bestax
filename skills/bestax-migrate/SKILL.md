@@ -144,8 +144,10 @@ code per the references, or deliberately keep the old markup with `className` st
   its own `aria-label` names, becomes `Icon` too, which hides it, since the label is what a
   screen reader reads there. Font Awesome 6's long style names (`fa-brands`) become the
   `bestax-icons` skill's `variant` (`brands`), which renders the short name (`fab`), the same
-  style. And Bulma 0.9's `is-marginless` and `is-paddingless`,
-  which style nothing under v1, become `m="0"` and `p="0"`. Everything else stays as written, with a
+  style. Bulma 0.9's `is-marginless` and `is-paddingless`,
+  which style nothing under v1, become `m="0"` and `p="0"`. And a `.delete` becomes `Delete`,
+  which holds an empty, hidden `<span>` that gives it a 24px target around the same circle.
+  Everything else stays as written, with a
   TODO when there is something to decide. Static class strings convert, and so does a `clsx` or
   `classnames` call of strings and conditional classes, where a condition on a flag becomes
   its prop (`isLoading={busy}`);
