@@ -651,8 +651,9 @@ A press in the list never takes focus from the field.
   `aria-haspopup="listbox"`, and the list is a `listbox` of `option`s, the ARIA 1.2 combobox the
   ARIA Authoring Practices describe. A group is a `group` named by its heading.
 - **Focus stays in the field:** the highlighted item is the field's `aria-activedescendant`, and
-  the only item that's `aria-selected`. When a key moves it, it's scrolled into view. A click on an
-  item keeps focus in the field too.
+  the only item that's `aria-selected`. When a key moves it, or it moves as the list opens or
+  changes, it's scrolled into view, with its group's heading when it's the group's first item.
+  A click on an item keeps focus in the field too.
 - **`aria-expanded`** is `true` while the list has an item in it, with `aria-controls` pointing
   at it, and `false` while only the empty message shows.
 - **Names:** `label` names the field and the list, and in `Command.Dialog` the dialog as well.
