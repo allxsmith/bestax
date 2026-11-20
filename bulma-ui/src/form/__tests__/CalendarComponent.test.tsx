@@ -364,6 +364,19 @@ describe('Calendar', () => {
       ).toBeEmptyDOMElement();
     });
 
+    it("keeps the number and the content apart in a day's text (#2210)", () => {
+      // Text that reads the day's content, such as axe's check that a name
+      // holds what a control shows, would otherwise find "203 left".
+      render(
+        <Calendar
+          locale="en-US"
+          defaultMonth={NOV_2026}
+          dayTemplate={() => '3 left'}
+        />
+      );
+      expect(day('November 20, 2026').textContent).toBe('20 3 left');
+    });
+
     it('draws no content line without dayTemplate', () => {
       const { container } = render(
         <Calendar locale="en-US" defaultMonth={NOV_2026} />
