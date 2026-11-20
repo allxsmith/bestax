@@ -552,12 +552,15 @@ function example() {
 - **A fixed navbar:** with `fixed="top"`, bestax's styles pad the page's scroll by
   `--bulma-navbar-height`, so the browser scrolls a control that takes focus, or an in-page link's
   target, to below the navbar rather than under it. `fixed="bottom"` pads the bottom of the page
-  the same way. The page's own padding, so its top doesn't start under the navbar, is still Bulma's
-  `has-navbar-fixed-top` on `<html>`. A `scroll-padding-top` of your own on `<html>`, or an
-  [`AppFrame`](../layout/appframe.md)'s, wins over it: set yours for a navbar taller than
-  `--bulma-navbar-height`, as a spaced one is from the desktop breakpoint up, or to `0` where your
-  anchor targets already carry a `scroll-margin-top`, which adds to it. This ships in `bestax.css`
-  and `extras.css`, not in Bulma's own stylesheet.
+  the same way, and a navbar fixed by Bulma's `is-fixed-top-touch` or `-desktop` classes (or the
+  bottom pair) in its `className` gets the same at that breakpoint, as it gets the margins that
+  keep it over the page while an overlay locks its scrolling. The page's own padding, so its top
+  doesn't start under the navbar, is still Bulma's `has-navbar-fixed-top` on `<html>`, or
+  `has-navbar-fixed-top-touch` or `-desktop` for a navbar fixed at one breakpoint. A
+  `scroll-padding-top` of your own on `<html>`, or an [`AppFrame`](../layout/appframe.md)'s, wins
+  over it: set yours for a navbar taller than `--bulma-navbar-height`, as a spaced one is from the
+  desktop breakpoint up, or to `0` where your anchor targets already carry a `scroll-margin-top`,
+  which adds to it. This ships in `bestax.css` and `extras.css`, not in Bulma's own stylesheet.
 - **Forced colors:** Bulma draws the burger's bars as a background color, which forced colors
   (Windows' contrast themes) replaces, so the burger would vanish there while it still works and
   takes focus. bestax's styles keep its bars visible in the system's button text color. That rule
