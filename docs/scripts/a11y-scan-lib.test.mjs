@@ -313,6 +313,14 @@ describe('settleAnimations', () => {
     ).toEqual({ timedOut: false });
   });
 
+  it('skips one with no effect, which has nothing to fade', async () => {
+    const bare = animation();
+    bare.effect = null;
+    expect(await settleAnimations(10_000, rootWith([bare]))).toEqual({
+      timedOut: false,
+    });
+  });
+
   it('waits again for an animation that starts as another ends', async () => {
     const first = animation();
     const second = animation();

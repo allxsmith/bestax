@@ -195,7 +195,8 @@ export async function settleAnimations(timeoutMs, doc = globalThis.document) {
       .filter(
         animation =>
           animation.playState === 'running' &&
-          animation.effect?.getComputedTiming().endTime !== Infinity &&
+          animation.effect &&
+          animation.effect.getComputedTiming().endTime !== Infinity &&
           animation.effect.getKeyframes().some(frame => 'opacity' in frame)
       );
     if (!running.length) return { timedOut: false };
