@@ -1,3 +1,13 @@
+## [1.18.85](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.84...bestax-mcp@1.18.85) (2026-11-20)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** note a guide's site images in the sections the server serves ([94f752e](https://github.com/allxsmith/bestax/commit/94f752ee19a4237226395596a8314e1e66e67495)), closes [#2243](https://github.com/allxsmith/bestax/issues/2243)
+* **bestax-mcp:** split a helper guide at headings outside fenced code ([7574840](https://github.com/allxsmith/bestax/commit/75748408b79b650db6f3628a536937c22c644991)), closes [#2243](https://github.com/allxsmith/bestax/issues/2243)
+* **docs:** name the install button with an aria-label built from its command ([b52e940](https://github.com/allxsmith/bestax/commit/b52e9405dc6da97b31af547b79575a17c645ab52))
+* **docs:** put the command the homepage's install button shows in its name ([217d80b](https://github.com/allxsmith/bestax/commit/217d80bf7af766eebacf386cf1a2da8011957f88))
+
 ## [1.18.84](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.83...bestax-mcp@1.18.84) (2026-11-19)
 
 
