@@ -336,6 +336,13 @@ describe('withDeleteTargets', () => {
         `<button class="delete is-small"><span class="is-sr-only">Close</span>${target}</button>`
       )
     ).toBe(true);
+    // A `>` in an attribute ahead of the class doesn't end the tag.
+    expect(
+      same(
+        '<button aria-label="Close > dialog" class="delete"></button>',
+        `<button aria-label="Close > dialog" class="delete">${target}</button>`
+      )
+    ).toBe(true);
     // One that already ends in it converts to the same markup, left as it is.
     expect(
       same(

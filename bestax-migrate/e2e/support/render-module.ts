@@ -255,12 +255,18 @@ export function withLoadingButtonsBusy(raw: string, converted: string): string {
 /** The hit area `Delete` writes as a delete button's last child, as `normalizeHtml` writes it. */
 const DELETE_TARGET = '<span aria-hidden="true" class="delete-target"></span>';
 
+/** A `<button>`'s opening tag, read the way `OPEN_TAG` reads one. */
+const BUTTON_OPEN = /^<button(?:\s+[^\s=>/]+(?:="[^"]*")?)*\s*>/;
+
 /** Each `<button>`, from its opening tag to the first `</button>` after it. */
-const BUTTON = /<button(?=[\s>/])[^>]*>[\s\S]*?<\/button>/g;
+const BUTTON = new RegExp(
+  `${BUTTON_OPEN.source.slice(1)}[\\s\\S]*?<\\/button>`,
+  'g'
+);
 
 /** Whether a `<button>` from `BUTTON` has Bulma's `delete` class. */
 const isDeleteButton = (button: string) =>
-  classesOf(button.slice(0, button.indexOf('>') + 1)).includes('delete');
+  classesOf(BUTTON_OPEN.exec(button)?.[0] ?? '').includes('delete');
 
 /**
  * `raw`, normalised, with the hit area `Delete` writes, an empty
