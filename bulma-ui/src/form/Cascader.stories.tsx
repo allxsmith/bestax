@@ -207,6 +207,10 @@ function ControlledExample() {
 }
 
 export const Controlled: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function Render() {
     return <ControlledExample />;
   },
@@ -281,6 +285,10 @@ export const Sizes: Story = {
 };
 
 export const RightToLeft: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function Render() {
     return (
       <LocaleProvider locale="ar" dir="rtl">

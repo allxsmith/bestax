@@ -201,6 +201,18 @@ either one is fixed.
   props; legacy inline styles exist, don't copy them. A story's picture comes from `images/`,
   credited in `images/LICENSE.md`. `check:conformance --only=image-hosts` fails on
   a story file with a URL on a placeholder or stock-photo host.
+- Every story is an axe test. The Storybook browser pass (`pnpm test-storybook`, and
+  `test-storybook:dark`) runs axe's WCAG A and AA rules on each story after its `play`
+  function, and a violation fails the story in CI. When it fails, fix the component, or the
+  story when it's the story's own markup (a demo input with no name). Relax a rule only in
+  that story's `parameters.a11y.config.rules`, with an entry in
+  `src/__tests__/stories-a11y.test.ts` naming the open issue that will remove it, or why axe
+  is wrong. That test fails on a relaxation with no entry, on a relaxation anywhere but a
+  story's own `config.rules`, and on an entry whose story no longer relaxes the rule. It can't
+  tell whether axe would still fail without the exemption, so the PR that fixes the issue
+  deletes the story's exemption and its entry. The same test pins the project-wide
+  setting in `.storybook/preview.ts`, where axe's `color-contrast` rule is off for every story
+  until #2188 settles Bulma's stock colors.
 - Must pass tests on **React 18 and 19** (CI matrix) — avoid single-major APIs.
 - Bundle size is part of the pitch (the READMEs sell the library as tree-shakeable), so check
   `pnpm bundle:stats` (writes `dist/stats.html`) when adding anything with real runtime weight.

@@ -85,7 +85,12 @@ The build also regenerates `/llms.txt` and `/llms-full.txt` under `docs/build/`.
 ```bash
 pnpm storybook                                              # dev server
 pnpm --filter @allxsmith/bestax-bulma run build-storybook   # static build -> bulma-ui/storybook-static
+pnpm --filter @allxsmith/bestax-bulma run test-storybook:ci # every story in Chromium, light then dark
 ```
+
+The last one is the pass CI runs. Each story fails if it logs a console error, or if axe finds
+a violation of a WCAG A or AA rule once the story has rendered and played. The dev server's
+Accessibility panel shows the same axe results for the story on screen.
 
 ### 6. Turbo directly (filters + caching)
 

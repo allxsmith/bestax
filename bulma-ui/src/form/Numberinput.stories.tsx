@@ -137,6 +137,7 @@ type Story = StoryObj<typeof Numberinput>;
  */
 export const Default: Story = {
   args: {
+    'aria-label': 'Quantity',
     defaultValue: 5,
   },
 };
@@ -146,6 +147,7 @@ export const Default: Story = {
  */
 export const Rounded: Story = {
   args: {
+    'aria-label': 'Quantity',
     defaultValue: 5,
     controlsRounded: true,
     color: 'primary',
@@ -158,6 +160,7 @@ export const Rounded: Story = {
  */
 export const Compact: Story = {
   args: {
+    'aria-label': 'Quantity',
     defaultValue: 5,
     compact: true,
     color: 'primary',
@@ -169,6 +172,7 @@ export const Compact: Story = {
  */
 export const CompactRounded: Story = {
   args: {
+    'aria-label': 'Quantity',
     defaultValue: 5,
     compact: true,
     controlsRounded: true,
@@ -181,6 +185,7 @@ export const CompactRounded: Story = {
  */
 export const CompactRoundedRight: Story = {
   args: {
+    'aria-label': 'Quantity',
     defaultValue: 5,
     compact: true,
     controlsRounded: true,
@@ -194,6 +199,7 @@ export const CompactRoundedRight: Story = {
  */
 export const ControlsLeft: Story = {
   args: {
+    'aria-label': 'Quantity',
     defaultValue: 5,
     controlsPosition: 'left',
     color: 'primary',
@@ -205,6 +211,7 @@ export const ControlsLeft: Story = {
  */
 export const ControlsRight: Story = {
   args: {
+    'aria-label': 'Quantity',
     defaultValue: 5,
     controlsPosition: 'right',
     color: 'primary',
@@ -217,6 +224,7 @@ export const ControlsRight: Story = {
  */
 export const Stepper: Story = {
   args: {
+    'aria-label': 'Quantity',
     defaultValue: 5,
     variant: 'stepper',
   },
@@ -230,19 +238,34 @@ export const StepperSizes: Story = {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <div>
         <p className="mb-2">Small</p>
-        <Numberinput defaultValue={5} variant="stepper" size="small" />
+        <Numberinput
+          aria-label="Quantity"
+          defaultValue={5}
+          variant="stepper"
+          size="small"
+        />
       </div>
       <div>
         <p className="mb-2">Default</p>
-        <Numberinput defaultValue={5} variant="stepper" />
+        <Numberinput aria-label="Quantity" defaultValue={5} variant="stepper" />
       </div>
       <div>
         <p className="mb-2">Medium</p>
-        <Numberinput defaultValue={5} variant="stepper" size="medium" />
+        <Numberinput
+          aria-label="Quantity"
+          defaultValue={5}
+          variant="stepper"
+          size="medium"
+        />
       </div>
       <div>
         <p className="mb-2">Large</p>
-        <Numberinput defaultValue={5} variant="stepper" size="large" />
+        <Numberinput
+          aria-label="Quantity"
+          defaultValue={5}
+          variant="stepper"
+          size="large"
+        />
       </div>
     </div>
   ),
@@ -258,6 +281,7 @@ export const WithMinMax: Story = {
     return (
       <div>
         <Numberinput
+          aria-label="Quantity"
           value={value}
           onChange={setValue}
           min={0}
@@ -278,19 +302,34 @@ export const Sizes: Story = {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <div>
         <p className="mb-2">Small</p>
-        <Numberinput defaultValue={5} size="small" color="primary" />
+        <Numberinput
+          aria-label="Quantity"
+          defaultValue={5}
+          size="small"
+          color="primary"
+        />
       </div>
       <div>
         <p className="mb-2">Default</p>
-        <Numberinput defaultValue={5} color="primary" />
+        <Numberinput aria-label="Quantity" defaultValue={5} color="primary" />
       </div>
       <div>
         <p className="mb-2">Medium</p>
-        <Numberinput defaultValue={5} size="medium" color="primary" />
+        <Numberinput
+          aria-label="Quantity"
+          defaultValue={5}
+          size="medium"
+          color="primary"
+        />
       </div>
       <div>
         <p className="mb-2">Large</p>
-        <Numberinput defaultValue={5} size="large" color="primary" />
+        <Numberinput
+          aria-label="Quantity"
+          defaultValue={5}
+          size="large"
+          color="primary"
+        />
       </div>
     </div>
   ),
@@ -318,7 +357,7 @@ export const Colors: Story = {
           <p className="mb-2" style={{ textTransform: 'capitalize' }}>
             {color}
           </p>
-          <Numberinput defaultValue={5} color={color} />
+          <Numberinput aria-label="Quantity" defaultValue={5} color={color} />
         </div>
       ))}
     </div>
@@ -330,6 +369,7 @@ export const Colors: Story = {
  */
 export const Disabled: Story = {
   args: {
+    'aria-label': 'Quantity',
     defaultValue: 5,
     disabled: true,
   },
@@ -394,6 +434,7 @@ export const QuantitySelector: Story = {
  */
 export const Loading: Story = {
   args: {
+    'aria-label': 'Quantity',
     defaultValue: 42,
     isLoading: true,
     color: 'primary',
@@ -469,6 +510,7 @@ export const DecimalStep: Story = {
     return (
       <div>
         <Numberinput
+          aria-label="Quantity"
           value={value}
           onChange={setValue}
           step={0.1}
@@ -490,6 +532,7 @@ export const MinimumStep: Story = {
     return (
       <div>
         <Numberinput
+          aria-label="Quantity"
           value={value}
           onChange={setValue}
           step={0.01}
@@ -514,6 +557,7 @@ export const Exponential: Story = {
     return (
       <div>
         <Numberinput
+          aria-label="Quantity"
           value={value}
           onChange={setValue}
           exponential
@@ -533,6 +577,7 @@ export const Exponential: Story = {
  */
 export const CompactExpanded: Story = {
   args: {
+    'aria-label': 'Quantity',
     defaultValue: 5,
     compact: true,
     controlsPosition: 'right',
@@ -552,7 +597,13 @@ export const WithAddons: Story = {
         <Control>
           <Button>Button</Button>
         </Control>
-        <Numberinput bare value={value} onChange={setValue} color="primary" />
+        <Numberinput
+          aria-label="Quantity"
+          bare
+          value={value}
+          onChange={setValue}
+          color="primary"
+        />
       </Field>
     );
   },
@@ -582,7 +633,13 @@ export const WithAddonsRight: Story = {
     const [value, setValue] = useState(5);
     return (
       <Field hasAddons>
-        <Numberinput bare value={value} onChange={setValue} color="primary" />
+        <Numberinput
+          aria-label="Quantity"
+          bare
+          value={value}
+          onChange={setValue}
+          color="primary"
+        />
         <Control>
           <Button>Button</Button>
         </Control>
@@ -634,6 +691,7 @@ export const WithAddonsSizes: Story = {
               <Button size="small">Button</Button>
             </Control>
             <Numberinput
+              aria-label="Quantity"
               bare
               size="small"
               value={small}
@@ -649,6 +707,7 @@ export const WithAddonsSizes: Story = {
               <Button>Button</Button>
             </Control>
             <Numberinput
+              aria-label="Quantity"
               bare
               value={normal}
               onChange={setNormal}
@@ -663,6 +722,7 @@ export const WithAddonsSizes: Story = {
               <Button size="medium">Button</Button>
             </Control>
             <Numberinput
+              aria-label="Quantity"
               bare
               size="medium"
               value={medium}
@@ -678,6 +738,7 @@ export const WithAddonsSizes: Story = {
               <Button size="large">Button</Button>
             </Control>
             <Numberinput
+              aria-label="Quantity"
               bare
               size="large"
               value={large}
@@ -699,15 +760,28 @@ export const ButtonCustomization: Story = {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <div>
         <p className="mb-2">Primary + Rounded</p>
-        <Numberinput defaultValue={5} color="primary" controlsRounded compact />
+        <Numberinput
+          aria-label="Quantity"
+          defaultValue={5}
+          color="primary"
+          controlsRounded
+          compact
+        />
       </div>
       <div>
         <p className="mb-2">Danger + Large</p>
-        <Numberinput defaultValue={5} color="danger" size="large" compact />
+        <Numberinput
+          aria-label="Quantity"
+          defaultValue={5}
+          color="danger"
+          size="large"
+          compact
+        />
       </div>
       <div>
         <p className="mb-2">Dark + Small + Rounded</p>
         <Numberinput
+          aria-label="Quantity"
           defaultValue={5}
           color="dark"
           size="small"
@@ -717,7 +791,13 @@ export const ButtonCustomization: Story = {
       </div>
       <div>
         <p className="mb-2">Light + Medium</p>
-        <Numberinput defaultValue={5} color="light" size="medium" compact />
+        <Numberinput
+          aria-label="Quantity"
+          defaultValue={5}
+          color="light"
+          size="medium"
+          compact
+        />
       </div>
     </div>
   ),
