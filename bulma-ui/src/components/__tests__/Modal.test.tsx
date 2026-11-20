@@ -355,6 +355,38 @@ describe('Modal', () => {
       expect(screen.getByTestId('close-btn')).toHaveClass('is-large');
     });
 
+    // Each variant gets a hit area at least 24px square (#2198): Bulma draws
+    // the delete one 20px across and a small floating one 16px.
+    it.each(['delete', 'floating'] as const)(
+      'gives the %s variant the hit area, after any children',
+      variant => {
+        render(
+          <Modal isActive>
+            <Modal.Close variant={variant} data-testid="close-btn">
+              <span>extra</span>
+            </Modal.Close>
+          </Modal>
+        );
+        const close = screen.getByTestId('close-btn');
+        expect(close.children).toHaveLength(2);
+        expect(close.children[0]).toHaveTextContent('extra');
+        expect(close.children[1]).toHaveClass('delete-target');
+        expect(close.children[1]).toHaveAttribute('aria-hidden', 'true');
+      }
+    );
+
+    it('keeps a Modal.Close given dangerouslySetInnerHTML working, with no hit area', () => {
+      // React refuses children beside it, so the hit area gives way.
+      render(
+        <Modal.Close
+          data-testid="close-btn"
+          // eslint-disable-next-line @eslint-react/dom-no-dangerously-set-innerhtml -- a fixed string
+          dangerouslySetInnerHTML={{ __html: '<b>x</b>' }}
+        />
+      );
+      expect(screen.getByTestId('close-btn').innerHTML).toBe('<b>x</b>');
+    });
+
     it('Modal.Close renders with custom size for floating variant', () => {
       render(
         <Modal isActive>
