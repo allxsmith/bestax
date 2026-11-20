@@ -597,7 +597,13 @@ export const RangeDefault: Story = {
 
     return (
       <div>
-        <Slider range value={value} onChange={setValue} color="primary" />
+        <Slider
+          range
+          aria-label="Price range"
+          value={value}
+          onChange={setValue}
+          color="primary"
+        />
         <p className="mt-4">
           Range: <strong>{value[0]}</strong> – <strong>{value[1]}</strong>
         </p>
@@ -621,6 +627,7 @@ export const RangeWithOutput: Story = {
       <div style={{ paddingTop: '2.5rem' }}>
         <Slider
           range
+          aria-label="Price range"
           value={value}
           onChange={setValue}
           showOutput
@@ -649,6 +656,7 @@ export const RangeMinDistance: Story = {
       <div style={{ paddingTop: '2.5rem' }}>
         <Slider
           range
+          aria-label="Price range"
           value={value}
           onChange={setValue}
           minDistance={10}
@@ -677,9 +685,9 @@ export const RangePriceFilter: Story = {
 
     return (
       <div style={{ maxWidth: '400px', paddingTop: '2.5rem' }}>
-        <label className="label">Price Filter</label>
         <Slider
           range
+          label="Price Filter"
           value={value}
           onChange={setValue}
           min={0}
@@ -962,6 +970,7 @@ export const RangeWithNames: Story = {
       >
         <Slider
           range
+          label="Price range"
           nameLow="priceMin"
           nameHigh="priceMax"
           defaultValue={[20, 80]}
