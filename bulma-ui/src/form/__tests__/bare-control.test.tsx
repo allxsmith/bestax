@@ -136,7 +136,12 @@ const wrappers: Wrapper[] = [
     ),
     root: '.radios',
   },
-  { name: 'Slider', render: p => <Slider {...p} />, root: '.slider' },
+  {
+    // Named, since an unnamed Slider warns of its own (#2201).
+    name: 'Slider',
+    render: p => <Slider aria-label="Volume" {...p} />,
+    root: '.slider',
+  },
   { name: 'PinInput', render: p => <PinInput {...p} />, root: '.pin-input' },
   { name: 'Rate', render: p => <Rate {...p} />, root: '.rate' },
   {

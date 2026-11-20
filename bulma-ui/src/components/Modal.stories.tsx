@@ -75,7 +75,10 @@ export const ModalCardTitleOnly: StoryObj<ModalProps> = {
 // modal-card with only footer
 export const ModalCardFooterOnly: StoryObj<ModalProps> = {
   render: () => (
-    <ControlledModal modalCardFoot={<Button color="success">Save</Button>}>
+    <ControlledModal
+      modalCardFoot={<Button color="success">Save</Button>}
+      aria-label="Save changes"
+    >
       {declarationLatin}
     </ControlledModal>
   ),
@@ -99,9 +102,9 @@ export const CloseLabel: StoryObj<ModalProps> = {
 // modal-content (no card title or foot)
 export const ModalContent: StoryObj<ModalProps> = {
   render: () => (
-    <ControlledModal>
+    <ControlledModal aria-labelledby="modal-content-title">
       <Box>
-        <Title as="h3" textSize="4">
+        <Title as="h3" textSize="4" id="modal-content-title">
           Custom Content
         </Title>
         <Paragraph>{declarationLatin}</Paragraph>
@@ -113,9 +116,12 @@ export const ModalContent: StoryObj<ModalProps> = {
 // Explicit type="content"
 export const ModalContentExplicit: StoryObj<ModalProps> = {
   render: () => (
-    <ControlledModal type="content">
+    <ControlledModal
+      type="content"
+      aria-labelledby="modal-content-explicit-title"
+    >
       <Box>
-        <Title as="h3" textSize="4">
+        <Title as="h3" textSize="4" id="modal-content-explicit-title">
           Explicit Content Modal
         </Title>
         <Paragraph>{declarationLatin}</Paragraph>
@@ -127,7 +133,9 @@ export const ModalContentExplicit: StoryObj<ModalProps> = {
 // Explicit type="card" (even if no title/footer)
 export const ModalCardExplicit: StoryObj<ModalProps> = {
   render: () => (
-    <ControlledModal type="card">{declarationLatin}</ControlledModal>
+    <ControlledModal type="card" aria-label="Card style example">
+      {declarationLatin}
+    </ControlledModal>
   ),
 };
 

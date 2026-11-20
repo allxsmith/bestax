@@ -15,7 +15,10 @@ import { Field } from '../Field';
 import { Input } from '../Input';
 import { ConfigProvider } from '../../helpers/Config';
 import {
+  cascade,
   compilePartial,
+  compileSource,
+  customProperty,
   declaredFor as declarationsFor,
 } from '../../__tests__/css-cascade';
 
@@ -165,6 +168,119 @@ describe.each([
       atRest: [],
       [FORCED]: ['outline: 1px solid CanvasText', 'outline-offset: -1px'],
     });
+  });
+});
+
+/**
+ * `value` with each of Bulma's input focus variables it reads replaced by the
+ * value `el` inherits from the rules of `css`, or by its fallback when no
+ * element up the tree declares it. Null when one has neither, since a browser
+ * then drops the whole declaration.
+ */
+function withInputFocus(
+  el: Element,
+  css: string,
+  value: string
+): string | null {
+  let invalid = false;
+  const resolved = value.replace(
+    /var\((--bulma-input-focus-[\w-]+)(?:,\s*(var\([^()]*\)))?\)/g,
+    (_m, name: string, fallback: string | undefined) => {
+      for (let node: Element | null = el; node; node = node.parentElement) {
+        const declared = customProperty(node, css, name);
+        if (declared) return declared;
+      }
+      if (fallback) return fallback;
+      invalid = true;
+      return '';
+    }
+  );
+  return invalid ? null : resolved;
+}
+
+// Bulma registers its input focus variables on `.control`, `.input`,
+// `.textarea` and `.select`, and the Taginput's box is none of them. It read
+// them alone, so outside a Control its focus ring's border and shadow were
+// dropped (#2189). It falls back to Bulma's global focus values, and a
+// wrapping Control's own values still win. The Bulma here sets its input
+// focus hue and alpha apart from the global ones, so the test can tell which
+// one the ring took.
+describe.each([
+  ['no prefix', ''],
+  ['a class prefix', 'bestax-'],
+])('the focus ring, with %s', (_n, prefix) => {
+  const css = compileSource(
+    `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+     @use 'bulma/sass/form/shared' with ($input-focus-h: 10deg, $input-focus-shadow-alpha: 0.5);
+     @use 'form/taginput';`
+  );
+
+  const GLOBAL_BORDER =
+    'hsl(var(--bulma-focus-h), var(--bulma-focus-s), var(--bulma-focus-l))';
+  const GLOBAL_SHADOW =
+    'var(--bulma-focus-shadow-size) hsla(var(--bulma-focus-h), ' +
+    'var(--bulma-focus-s), var(--bulma-focus-l), ' +
+    'var(--bulma-focus-shadow-alpha))';
+
+  /** The focused Taginput's box, rendered inside `wrap`. */
+  const focusedBox = (
+    wrap: (child: ReactElement) => ReactElement,
+    color?: 'primary'
+  ) => {
+    const { container, getByRole } = render(
+      <ConfigProvider classPrefix={prefix}>
+        {wrap(<Taginput label="Tags" color={color} />)}
+      </ConfigProvider>
+    );
+    getByRole('textbox').focus();
+    const box = container.querySelector(`.${prefix}taginput-container`)!;
+    expect(box.matches(':focus-within')).toBe(true);
+    return box;
+  };
+
+  /** The ring the box draws, with the input focus variables resolved. */
+  const ring = (box: Element) => {
+    const read = (property: string) => {
+      const value = cascade(
+        box,
+        css,
+        [property],
+        (style, p) => style.getPropertyValue(p) || undefined,
+        { forcedColors: false }
+      );
+      return value === undefined ? undefined : withInputFocus(box, css, value);
+    };
+    return { border: read('border-color'), shadow: read('box-shadow') };
+  };
+
+  it("draws Bulma's global focus ring outside a Control", () => {
+    expect(ring(focusedBox(child => child))).toEqual({
+      border: GLOBAL_BORDER,
+      shadow: GLOBAL_SHADOW,
+    });
+  });
+
+  it("takes a wrapping Control's input focus values", () => {
+    const box = focusedBox(child => (
+      <Field>
+        <Control>{child}</Control>
+      </Field>
+    ));
+    expect(box.closest(`.${prefix}control`)).not.toBeNull();
+    expect(ring(box)).toEqual({
+      border: 'hsl(10deg, var(--bulma-focus-s), var(--bulma-focus-l))',
+      shadow:
+        'var(--bulma-focus-shadow-size) hsla(10deg, var(--bulma-focus-s), ' +
+        'var(--bulma-focus-l), 0.5)',
+    });
+  });
+
+  it("keeps the shadow of a colored Taginput's ring outside a Control", () => {
+    expect(ring(focusedBox(child => child, 'primary')).shadow).toBe(
+      'var(--bulma-focus-shadow-size) hsla(var(--bulma-primary-h), ' +
+        'var(--bulma-primary-s), var(--bulma-primary-l), ' +
+        'var(--bulma-focus-shadow-alpha))'
+    );
   });
 });
 
