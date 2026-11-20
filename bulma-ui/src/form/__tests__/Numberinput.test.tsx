@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { Numberinput, NumberInput } from '../Numberinput';
 import { Field } from '../Field';
 import { Control } from '../Control';
+import { resetDevWarnings } from '../../helpers/devWarnings';
 
 describe('Numberinput', () => {
   describe('Rendering', () => {
@@ -1527,5 +1528,91 @@ describe('NumberInput deprecated alias', () => {
   it('renders via the alias', () => {
     const { container } = render(<NumberInput value={5} />);
     expect(container.querySelector('input[type="number"]')).toHaveValue(5);
+  });
+});
+
+describe('an unnamed Numberinput in development (#2201)', () => {
+  beforeEach(() => {
+    resetDevWarnings();
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  /** The warnings about a Numberinput with no name. */
+  const unnamedWarnings = () =>
+    vi
+      .mocked(console.warn)
+      .mock.calls.filter(([message]) =>
+        String(message).includes('<Numberinput> has no accessible name')
+      );
+
+  it.each([
+    ['plusminus', {}],
+    ['stepper', { variant: 'stepper' as const }],
+  ])('warns once about a %s Numberinput nothing names', (_variant, props) => {
+    render(
+      <>
+        <Numberinput defaultValue={1} {...props} />
+        <Numberinput defaultValue={2} {...props} />
+      </>
+    );
+    expect(screen.getAllByRole('spinbutton')[0]).toHaveAccessibleName('');
+    expect(unnamedWarnings()).toEqual([
+      [expect.stringMatching(/label, aria-label or aria-labelledby/)],
+    ]);
+  });
+
+  it.each([
+    ['its own label', () => <Numberinput label="Quantity" />],
+    ['an aria-label', () => <Numberinput aria-label="Quantity" />],
+    [
+      'an outer Field label',
+      () => (
+        <Field label="Quantity">
+          <Numberinput />
+        </Field>
+      ),
+    ],
+    [
+      'a Field label wired by hand in a row of addons',
+      () => (
+        <Field hasAddons label="Quantity" labelProps={{ htmlFor: 'qty' }}>
+          <Numberinput id="qty" />
+        </Field>
+      ),
+    ],
+    [
+      'a <label htmlFor> of its own',
+      () => (
+        <>
+          <label htmlFor="qty">Quantity</label>
+          <Numberinput id="qty" />
+        </>
+      ),
+    ],
+  ])('stays quiet about a Numberinput named by %s', (_how, element) => {
+    render(element());
+    expect(screen.getByRole('spinbutton')).toHaveAccessibleName('Quantity');
+    expect(unnamedWarnings()).toEqual([]);
+  });
+
+  it('says so when a bare Numberinput outside a Field drops its label', () => {
+    render(<Numberinput bare label="Quantity" />);
+    expect(screen.getByRole('spinbutton')).toHaveAccessibleName('');
+    expect(unnamedWarnings()).toEqual([
+      [expect.stringMatching(/bare plusminus Numberinput outside a Field/)],
+    ]);
+  });
+
+  it('stays quiet about a bare Numberinput with a placeholder', () => {
+    render(
+      <Field hasAddons>
+        <Numberinput bare placeholder="Enter a number" />
+      </Field>
+    );
+    expect(unnamedWarnings()).toEqual([]);
   });
 });

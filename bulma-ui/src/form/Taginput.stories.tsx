@@ -773,7 +773,7 @@ export const WithCallbacks: Story = {
 // ============================================================
 
 /**
- * Standalone with label — Taginput renders its own Field+Control wrapper automatically.
+ * Standalone with label: Taginput renders its own Field automatically, and no Control.
  */
 export const WithLabel: Story = {
   render: () => <Taginput label="Tags" />,
@@ -794,9 +794,9 @@ export const WithFieldWrapper: Story = {
 };
 
 /**
- * Full manual composition — Field+Control provided externally.
- * Taginput manages its own control internally, so the outer Control
- * simply provides context signaling.
+ * Full manual composition: Field and Control provided externally.
+ * Taginput renders no Control of its own, so this one is the only `.control`
+ * around it.
  */
 export const WithFieldControlWrapper: Story = {
   render: () => (
