@@ -16,6 +16,7 @@ import {
 import { withSubComponents } from '../helpers/withSubComponents';
 import { isElementOf } from '../helpers/elementType';
 import { buttonType } from '../helpers/buttonType';
+import { DeleteTarget } from '../helpers/deleteTarget';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -373,6 +374,7 @@ export const ModalClose: React.FC<ModalCloseProps> = ({
   size = 'large',
   variant = 'delete',
   onClick,
+  children,
   ...props
 }) => {
   const onClose = useContext(ModalCloseContext);
@@ -399,7 +401,10 @@ export const ModalClose: React.FC<ModalCloseProps> = ({
       // through that handler, so a caller already closing there, as with
       // `onClick={onClose}`, would otherwise close twice.
       onClick={onClick ?? (onClose && (() => onClose()))}
-    />
+    >
+      {children}
+      {variant === 'delete' && <DeleteTarget />}
+    </button>
   );
 };
 
@@ -704,7 +709,9 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
                     onClick={onClose}
                     type="button"
                     data-testid="modal-close"
-                  />
+                  >
+                    <DeleteTarget />
+                  </button>
                 )}
               </header>
             )}

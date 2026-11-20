@@ -352,6 +352,25 @@ describe('Modal', () => {
       expect(screen.getByTestId('close-btn')).toHaveClass('is-large');
     });
 
+    // A `.delete` gets a hit area at least 24px square (#2198), and the
+    // floating close, drawn larger, has no circle to grow past.
+    it('gives the delete variant the hit area, keeping children, and the floating one none', () => {
+      render(
+        <Modal isActive>
+          <Modal.Close data-testid="delete-close">
+            <span>extra</span>
+          </Modal.Close>
+          <Modal.Close variant="floating" data-testid="floating-close" />
+        </Modal>
+      );
+      const deleteClose = screen.getByTestId('delete-close');
+      expect(deleteClose.children).toHaveLength(2);
+      expect(deleteClose.children[0]).toHaveTextContent('extra');
+      expect(deleteClose.children[1]).toHaveClass('delete-target');
+      expect(deleteClose.children[1]).toHaveAttribute('aria-hidden', 'true');
+      expect(screen.getByTestId('floating-close')).toBeEmptyDOMElement();
+    });
+
     it('Modal.Close renders with custom size for floating variant', () => {
       render(
         <Modal isActive>

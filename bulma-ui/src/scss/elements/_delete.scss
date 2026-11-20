@@ -6,8 +6,7 @@
 // the buttons vanish, or their cross does, while they still work and still
 // take focus. This keeps them drawn there, in the system's button colors: the
 // circle in ButtonFace with a ButtonText edge, and the cross in ButtonText.
-// The floating close has no circle, so it gets only the cross. Outside forced
-// colors it changes nothing.
+// The floating close has no circle, so it gets only the cross.
 //
 // `.delete` is `Delete`, which every other close button bestax renders is
 // too, apart from the Modal's floating close (`.modal-close`), `Tag
@@ -22,10 +21,27 @@
 // Bulma's `is-disabled` too, and any of them inside a disabled `<fieldset>`.
 //
 // Bulma's CSS can land on either side of this partial, as it can for
-// `_loader.scss`, which says why, so each selector names its last class twice
-// to outrank Bulma's rule for the same element, wherever the two load.
+// `_loader.scss`, which says why, so each selector in the forced-colors block
+// names its last class twice to outrank Bulma's rule for the same element,
+// wherever the two load.
 
 @use 'bulma/sass/utilities/initial-variables' as iv;
+
+// The button's hit area. Bulma draws it 20px across, 16px small, under WCAG
+// 2.5.8's 24px minimum target, and its `::before` and `::after` are the cross,
+// so each `.delete` bestax renders holds an empty `.delete-target` for the
+// target: a transparent box at least 24px square, centred on the button, where
+// a press is a press on the button. Padding would grow the button too, and move
+// everything laid out around it. A bigger button covers the box whole. Bulma
+// sets nothing on this class, so it needs no doubled class.
+.#{iv.$class-prefix}delete > .#{iv.$class-prefix}delete-target {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 24px);
+  height: max(100%, 24px);
+  transform: translate(-50%, -50%);
+}
 
 @media (forced-colors: active) {
   .#{iv.$class-prefix}delete.#{iv.$class-prefix}delete,

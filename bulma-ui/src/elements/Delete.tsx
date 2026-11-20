@@ -6,6 +6,7 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 import { buttonType } from '../helpers/buttonType';
+import { DeleteTarget } from '../helpers/deleteTarget';
 
 /**
  * Props for the Delete component.
@@ -47,6 +48,11 @@ interface DeleteProps
  *
  * It renders `type="button"`, so a delete button inside a form does not submit it.
  *
+ * A transparent box inside it, at least 24px square and centred on it, takes its presses too, so a
+ * small one still meets WCAG 2.5.8's minimum target size while the circle stays as Bulma draws it.
+ * The box reaches past a circle smaller than 24px, so where two sit closer than 24px centre to
+ * centre their boxes overlap, and a press there goes to the later one.
+ *
  * @function
  * @param {DeleteProps} props - Props for the Delete component.
  * @returns {JSX.Element} The rendered delete button.
@@ -61,6 +67,7 @@ export const Delete: React.FC<DeleteProps> = ({
   size,
   ariaLabel,
   disabled = false,
+  children,
   ...props
 }) => {
   /**
@@ -92,6 +99,9 @@ export const Delete: React.FC<DeleteProps> = ({
       // own value still wins; `buttonType` says more.
       aria-label={rest['aria-label'] || ariaLabel || 'Close'}
       type={buttonType((rest as { type?: unknown }).type)}
-    />
+    >
+      {children}
+      <DeleteTarget />
+    </button>
   );
 };

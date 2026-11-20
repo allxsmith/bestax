@@ -15,6 +15,7 @@ import {
   type ParsedShortcut,
 } from '../helpers/shortcut';
 import { focusWithoutTabStop } from '../helpers/moveFocusOut';
+import { DeleteTarget } from '../helpers/deleteTarget';
 import { passFocusOn, useFocusOrigin } from '../helpers/focusHandOff';
 import {
   classNames,
@@ -421,7 +422,9 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
               handleClose();
             }}
             aria-label={ariaCloseLabel || 'Close'}
-          />
+          >
+            <DeleteTarget />
+          </button>
         )}
       </div>
     );

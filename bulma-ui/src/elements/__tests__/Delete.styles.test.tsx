@@ -325,6 +325,7 @@ const CLOSES: [string, string, () => ReactElement, typeof CIRCLE][] = [
     ),
     CIRCLE,
   ],
+  ['a Modal.Close', 'delete', () => <Modal.Close />, CIRCLE],
   [
     'a Modal’s floating close',
     'modal-close',
@@ -445,19 +446,23 @@ describe('every close button on a forced-colors page', () => {
   });
 });
 
+/** The rule for a close button's hit area, which applies outside forced colors. */
+const targetSelector = (prefix: string) =>
+  `.${prefix}delete > .${prefix}delete-target`;
+
 describe('the Delete partial', () => {
   it.each([
     ['no prefix', ''],
     ['a class prefix', 'bestax-'],
   ])(
-    'changes nothing outside forced colors, with %s, and names only prefixed classes',
+    'sets only the hit area outside forced colors, with %s, and names only prefixed classes',
     (_label, prefix) => {
       const rules = rulesOf(compile(prefix));
       expect(rules.length).toBeGreaterThan(0);
       for (const rule of rules) {
         expect([rule.selector, rule.context]).toEqual([
           rule.selector,
-          [FORCED],
+          rule.selector === targetSelector(prefix) ? [] : [FORCED],
         ]);
         for (const name of rule.selector.match(/\.[a-z][\w-]*/g) ?? []) {
           expect(name.startsWith(`.${prefix}`)).toBe(true);
@@ -465,6 +470,53 @@ describe('the Delete partial', () => {
       }
     }
   );
+
+  // Bulma's delete button is 20px across, 16px small, and WCAG 2.5.8 asks for
+  // a 24px target (#2198). Its cross is on its `::before` and `::after`, so
+  // the target is a span inside it, a transparent box centred on the button,
+  // which grows the hit area and leaves the circle and its layout alone.
+  it.each([
+    ['no prefix', ''],
+    ['a class prefix', 'bestax-'],
+  ])(
+    'gives a close button a hit area at least 24px square, centred on it, with %s',
+    (_label, prefix) => {
+      const outside = rulesOf(compile(prefix)).filter(
+        rule => rule.context.length === 0
+      );
+      expect(outside).toEqual([
+        {
+          context: [],
+          selector: targetSelector(prefix),
+          declarations: {
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            width: 'max(100%, 24px)',
+            height: 'max(100%, 24px)',
+            transform: 'translate(-50%, -50%)',
+          },
+        },
+      ]);
+    }
+  );
+
+  // Every `.delete` bestax renders carries the span the rule above reaches.
+  describe.each([
+    ['no prefix', ''],
+    ['a class prefix', 'bestax-'],
+  ])('with %s', (_label, prefix) => {
+    it.each(CLOSES.filter(([, className]) => className === 'delete'))(
+      'reaches the hit area inside %s',
+      (_name, className, ui) => {
+        const close = closeOf(ui, className, prefix);
+        const targets = close.querySelectorAll(`.${prefix}delete-target`);
+        expect(targets).toHaveLength(1);
+        expect(targets[0].matches(targetSelector(prefix))).toBe(true);
+        expect(targets[0]).toHaveAttribute('aria-hidden', 'true');
+      }
+    );
+  });
 
   it('is in the elements index, so bestax.css and extras.css carry it', () => {
     const index = fs.readFileSync(
