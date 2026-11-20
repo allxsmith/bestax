@@ -386,8 +386,8 @@ edge. A `position` you pass stays physical.
 - **Keys on the field:** a click, Enter, Space, Down or Alt+Down opens the panel, and with
   `searchable` a printable key opens it with that key in the search box.
 - **The clear button** is a [`Delete`](../elements/delete.md#accessibility) named "Clear", or
-  `labels.clear`. Its target is 24px square, though the circle is drawn smaller over the field,
-  so a press just beside the circle clears the field rather than opening the panel.
+  `labels.clear`. Its target is a box at least 24px square around the circle, over the field, so
+  a press just beside a small circle clears the field rather than opening the panel.
 - **The panel** is a non-modal `dialog`, named by the label or `labels.choose`. Focus moves into
   it as it opens: onto the picked node, its path open, or with nothing picked onto the first
   column's item on an open path, or its first enabled item, so a `defaultExpanded` path stays

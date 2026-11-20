@@ -515,8 +515,8 @@ field's right edge. A `position` you pass stays physical.
 - **Keys on the field:** a click, Enter, Space, Down or Alt+Down opens the panel, and with
   `searchable` a printable key opens it with that key in the search box.
 - **The clear button** is a [`Delete`](../elements/delete.md#accessibility) named "Clear", or
-  `labels.clear`. Its target is 24px square, though the circle is drawn smaller over the field,
-  so a press just beside the circle clears the field rather than opening the panel.
+  `labels.clear`. Its target is a box at least 24px square around the circle, over the field, so
+  a press just beside a small circle clears the field rather than opening the panel.
 - **The panel** is a non-modal `dialog`, named by the label or `labels.choose`. Focus moves into
   it as it opens: onto the picked item, its branch open, or onto the search box when
   `searchable`, or else onto the first item. It holds focus while it's open, as the date
@@ -533,7 +533,7 @@ field's right edge. A `position` you pass stays physical.
 - **The search box** is named "Search", or `labels.search`. When nothing matches, `empty` is said
   once through a polite status region, not again on every key.
 - **Each tag's button** is a `Delete` named "Remove" and the item's label, or `ariaCloseLabel`
-  described by the tag's label, with a 24px target around its smaller circle.
+  described by the tag's label, with a target at least 24px square around its circle.
 - **`required`** makes the field `aria-required`. A read-only field is left out of the browser's
   own check, so a hidden field over it carries `required`. When the browser stops a submit, it
   focuses that one and shows its message, which every browser takes down as it loses focus. So
