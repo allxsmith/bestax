@@ -140,9 +140,10 @@ interface CalendarBaseProps {
    */
   fullDateNames?: boolean;
   /**
-   * Builds a day's name from its full-date one, with `fullDateNames`.
+   * Builds a day's name from its full-date one, with `fullDateNames`, and
+   * the day's number as its cell shows it.
    */
-  getDayLabel?: (date: Date, label: string) => string;
+  getDayLabel?: (date: Date, label: string, shownNumber: string) => string;
   /** Draws content inside a day's button, under its number. */
   dayContent?: (date: Date, state: CalendarDayState) => React.ReactNode;
   /** Marks the day and month grids `aria-busy`, while their data loads. */
@@ -1496,6 +1497,8 @@ export const Calendar: React.FC<CalendarProps> = ({
                 })
               : undefined;
           const hasContent = rendersContent(content);
+          // The number as the day shows it, which its name can start with.
+          const shownNumber = formatNumber(cell.date.getDate());
           return (
             <button
               key={cell.date.toISOString()}
@@ -1508,7 +1511,7 @@ export const Calendar: React.FC<CalendarProps> = ({
               aria-describedby={describedBy}
               aria-label={
                 fullName !== undefined && getDayLabel
-                  ? getDayLabel(cell.date, fullName)
+                  ? getDayLabel(cell.date, fullName, shownNumber)
                   : fullName
               }
               data-focused={isFocused ? 'true' : undefined}
@@ -1534,12 +1537,13 @@ export const Calendar: React.FC<CalendarProps> = ({
               }}
               style={!display ? { visibility: 'hidden' } : undefined}
             >
-              {formatNumber(cell.date.getDate())}
+              {shownNumber}
               {/* Every day shown has the line, empty where the template
                   draws nothing, so the numbers line up along a row. The
-                  space before content draws nothing, and keeps the number
-                  and the content two words in the day's text, "2 3 left"
-                  rather than "23 left", for whatever reads that text. */}
+                  space before content keeps the number and the content
+                  two words in the day's text, "2 3 left" rather than
+                  "23 left", for whatever reads that text. The cell lays
+                  them out in a column, so the space isn't drawn. */}
               {display && dayContent && (
                 <>
                   {hasContent && ' '}

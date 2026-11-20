@@ -259,8 +259,41 @@ describe('Calendar', () => {
       ).toBeInTheDocument();
       expect(getDayLabel).toHaveBeenCalledWith(
         new Date(2026, 10, 20),
-        'Friday, November 20, 2026'
+        'Friday, November 20, 2026',
+        '20'
       );
+    });
+
+    it("hands getDayLabel the day's number as its cell shows it (#2210)", () => {
+      // In the grid's own digits, so a name can start with what the day
+      // shows: plain with no locale, Eastern Arabic in Egyptian Arabic.
+      for (const locale of [undefined, 'ar-EG']) {
+        const shown = new Map<number, string>();
+        const { container, unmount } = render(
+          <Calendar
+            locale={locale}
+            defaultMonth={NOV_2026}
+            getDayLabel={(date, label, shownNumber) => {
+              shown.set(date.getTime(), shownNumber);
+              return `${shownNumber}, ${label}`;
+            }}
+          />
+        );
+        const cells = container.querySelectorAll<HTMLElement>(
+          '[role="gridcell"]:not([style*="hidden"])'
+        );
+        expect(cells.length).toBeGreaterThan(27);
+        for (const cell of cells) {
+          const number = cell.firstChild?.textContent;
+          expect(cell.getAttribute('aria-label')).toMatch(
+            new RegExp(`^${number}, `)
+          );
+        }
+        expect(shown.get(new Date(2026, 10, 20).getTime())).toBe(
+          locale ? '٢٠' : '20'
+        );
+        unmount();
+      }
     });
 
     it('names days in the locale', () => {

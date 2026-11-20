@@ -106,19 +106,19 @@ interface CalendarBaseProps
   dayTemplate?: (date: Date, state: CalendarDayState) => React.ReactNode;
   /**
    * Returns a day's accessible name. `label` is the default, the full date
-   * in the Calendar's locale ("Tuesday, October 20, 2026"). When
-   * `dayTemplate` draws text, start the name with what the day shows, its
-   * number and then that text, and end it with `label`:
-   * `` (date, label) => `${date.getDate()}, 3 left, ${label}` ``. The
-   * number shows in the digits of the Calendar's locale, and in plain digits
-   * with none, so write it the way the day does. Someone using speech
-   * input says what they see, and a name with the day's words in another
-   * order, or in other words, may not match. On a server-rendered
-   * page the full-date names arrive once the page hydrates, as the pickers'
-   * full weekday names do, and until then a day is named by its number and
-   * the text `dayTemplate` draws.
+   * in the Calendar's locale ("Tuesday, October 20, 2026"), and
+   * `shownNumber` is the day's number as its cell shows it, in the grid's
+   * digits ("20", or "٢٠" in Egyptian Arabic). On a day `dayTemplate` draws
+   * text for, start the name with what the day shows, its number and then
+   * that text, and end it with `label`:
+   * `` (date, label, shownNumber) => `${shownNumber}, 3 left, ${label}` ``.
+   * Someone using speech input says what they see, and a name with the
+   * day's words in another order, or in other words, may not match. On a
+   * server-rendered page the full-date names arrive once the page hydrates,
+   * as the pickers' full weekday names do, and until then a day is named by
+   * its number and the text `dayTemplate` draws.
    */
-  getDayLabel?: (date: Date, label: string) => string;
+  getDayLabel?: (date: Date, label: string, shownNumber: string) => string;
   /**
    * The month's data is on its way. The grids are `aria-busy` and the day
    * content dims, while the days, their focus and the keys keep working.
