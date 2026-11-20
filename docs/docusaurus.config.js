@@ -299,6 +299,10 @@ const config = {
                 label: 'Security',
                 to: '/docs/guides/security',
               },
+              {
+                label: 'Accessibility',
+                to: '/docs/guides/accessibility',
+              },
             ],
           },
         ],
