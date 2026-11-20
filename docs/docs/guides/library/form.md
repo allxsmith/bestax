@@ -372,6 +372,7 @@ function NumberinputExample() {
   return (
     <div>
       <Numberinput
+        aria-label="Quantity"
         value={quantity}
         onChange={setQuantity}
         min={1}
@@ -398,6 +399,7 @@ function SliderExample() {
   return (
     <div>
       <Slider
+        aria-label="Value"
         value={value}
         onChange={setValue}
         min={0}
