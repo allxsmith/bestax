@@ -295,8 +295,8 @@ Notes:
 - `Lightbox`'s viewer is Bulma's modal, with Bulma buttons for its controls and a `Loader` for a
   slow image, so an app using it needs `bulma/sass/components/modal`,
   `bulma/sass/elements/button` and `bulma/sass/elements/loader` next to
-  `scss/components/lightbox`, and the `delete` partial below for its close button in forced
-  colors.
+  `scss/components/lightbox`, and the `delete` partial below for its close button's target and
+  forced colors.
 - `Loader` is stock Bulma styled by `bulma/sass/elements/loader`, and the `isLoading`
   spinners on `Button`, `Control` and `Select` are Bulma's too. The `loader` extras partial
   stops all of them under `prefers-reduced-motion: reduce`, hides everything inside a loading
@@ -505,7 +505,7 @@ Scaffolded with an icon library, the starter also needs `bulma/sass/elements/ico
 @use '@allxsmith/bestax-bulma/scss/components/card' as bestax-card; // the edge and header line in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/box' as bestax-box; // the edge in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/button' as bestax-button; // focus outline and edge in forced colors
-@use '@allxsmith/bestax-bulma/scss/elements/delete' as bestax-delete; // the close button in forced colors
+@use '@allxsmith/bestax-bulma/scss/elements/delete' as bestax-delete; // the close button's target, and in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/notification' as bestax-notification; // text clears the close button
 ```
 
