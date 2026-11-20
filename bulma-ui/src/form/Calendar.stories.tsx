@@ -224,8 +224,8 @@ export const Prices: Story = {
         value={day}
         onChange={setDay}
         dayTemplate={date => `$${priceOf(date)}`}
-        getDayLabel={(date, label) =>
-          `${date.getDate()}, $${priceOf(date)}, ${label}`
+        getDayLabel={(date, label, shownNumber) =>
+          `${shownNumber}, $${priceOf(date)}, ${label}`
         }
       />
     );
@@ -259,9 +259,9 @@ export const LoadingEachMonth: Story = {
         onChange={setDay}
         shouldDisableDate={date => slotsLeft(date) === 0}
         dayTemplate={date => slotsLeft(date) > 0 && `${slotsLeft(date)} left`}
-        getDayLabel={(date, label) =>
+        getDayLabel={(date, label, shownNumber) =>
           slotsLeft(date) > 0
-            ? `${date.getDate()}, ${slotsLeft(date)} left, ${label}`
+            ? `${shownNumber}, ${slotsLeft(date)} left, ${label}`
             : label
         }
       />
@@ -389,8 +389,8 @@ export const FullWidth: Story = {
         <Calendar
           {...args}
           dayTemplate={date => `$${priceOf(date)}`}
-          getDayLabel={(date, label) =>
-            `${date.getDate()}, $${priceOf(date)}, ${label}`
+          getDayLabel={(date, label, shownNumber) =>
+            `${shownNumber}, $${priceOf(date)}, ${label}`
           }
         />
       </Block>
