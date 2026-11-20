@@ -293,14 +293,14 @@ pickers' grid with no `Field`, label or hidden input, so a form that posts a dat
 `DateRangeInput`, reported once both ends are picked). `readOnly` reads days without picking
 them and `disabled` stops both. `dayTemplate(date, state)` draws short content under a day's
 number, and because a day's name is its full date, which a screen reader reads instead, pair it
-with `getDayLabel(date, label)` to say the same thing: the day's number and the words it draws
-first, then `label`, so speech input matches what shows. `month`/`defaultMonth`/`onMonthChange`
-hold the month on show, so load each month's data in `onMonthChange` and set `loading` while it
-arrives. `monthsToShow` sets months side by side, and `isFullwidth` stretches the days to the
-container. Name it with `aria-label` or `aria-labelledby`. On a server-rendered page give it a
-`month`, a `defaultMonth` or a picked `value`, since without one the first month comes from the
-clock, and a `locale` (or a `LocaleProvider` around it), since without one the month and weekday
-names come in the server's language on the server.
+with `getDayLabel(date, label)` to say the same thing: the day's number (in the locale's digits)
+and the words it draws first, then `label`, so speech input matches what shows.
+`month`/`defaultMonth`/`onMonthChange` hold the month on show, so load each month's data in
+`onMonthChange` and set `loading` while it arrives. `monthsToShow` sets months side by side, and
+`isFullwidth` stretches the days to the container. Name it with `aria-label` or `aria-labelledby`.
+On a server-rendered page give it a `month`, a `defaultMonth` or a picked `value`, since without one
+the first month comes from the clock, and a `locale` (or a `LocaleProvider` around it), since
+without one the month and weekday names come in the server's language on the server.
 
 ```tsx
 const [month, setMonth] = useState(new Date(2026, 10, 1));
