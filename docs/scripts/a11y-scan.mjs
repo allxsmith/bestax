@@ -35,6 +35,7 @@ import {
   judge,
   pagesFromSitemap,
   parseArgs,
+  settleAnimations,
 } from './a11y-scan-lib.mjs';
 
 const DOCS = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -48,6 +49,8 @@ const TABS = Math.min(8, availableParallelism());
 const PAGE_TIMEOUT_MS = 60_000;
 /** How long a page's live examples get to render once mounted. */
 const EXAMPLES_TIMEOUT_MS = 30_000;
+/** How long a page's animations get to end before axe checks it anyway. */
+const SETTLE_TIMEOUT_MS = 5_000;
 
 /** A failure the message explains, so it prints without a stack. */
 class Failure extends Error {}
@@ -170,6 +173,10 @@ async function check(context, base, path) {
       .catch(() => {
         throw new Error('Its live examples did not all render.');
       });
+    // Scrolling down the page holds back what it fades in: the homepage hero
+    // pauses its animations while scrolled out of view. So axe waits for them
+    // to end, rather than taking half-faded text for hidden.
+    await page.evaluate(settleAnimations, SETTLE_TIMEOUT_MS);
     const { violations } = await new AxeBuilder({ page })
       .withTags(WCAG_TAGS)
       .analyze();

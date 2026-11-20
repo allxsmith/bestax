@@ -162,6 +162,35 @@ export function judge(violations, exemptions, theme, pagesFailed = false) {
 }
 
 /**
+ * Waits, in the page, until every animation that will end has ended, or until
+ * `timeoutMs` has passed, and returns how many it waited for. That's a CSS
+ * animation with a finite count, or a transition; one that loops forever
+ * never ends and isn't waited for. axe takes text at zero opacity for hidden,
+ * so a check while an element is still fading in skips it (#2249). The scan
+ * runs this in the browser through `page.evaluate`, so it uses nothing from
+ * this module's scope. An animation the page holds paused (some pause theirs
+ * while scrolled out of view) is waited for only until the timeout.
+ */
+export async function settleAnimations(timeoutMs, doc = document) {
+  const ending = doc
+    .getAnimations()
+    .filter(
+      animation =>
+        animation.playState !== 'finished' &&
+        animation.effect?.getComputedTiming().endTime !== Infinity
+    );
+  let timer;
+  await Promise.race([
+    Promise.all(ending.map(animation => animation.finished.catch(() => {}))),
+    new Promise(resolve => {
+      timer = setTimeout(resolve, timeoutMs);
+    }),
+  ]);
+  clearTimeout(timer);
+  return ending.length;
+}
+
+/**
  * How the scan writes the element axe names: its selector, with the shadow
  * roots it sits in joined by ` >>> ` and the frames by ` >> `.
  */

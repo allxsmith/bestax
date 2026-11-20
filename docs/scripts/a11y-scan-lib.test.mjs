@@ -10,6 +10,7 @@ import {
   pageMatches,
   pagesFromSitemap,
   parseArgs,
+  settleAnimations,
 } from './a11y-scan-lib.mjs';
 
 describe('parseArgs', () => {
@@ -231,5 +232,60 @@ describe('describeFailures', () => {
       '  /b',
       '    #a',
     ]);
+  });
+});
+
+describe('settleAnimations', () => {
+  /** A stand-in for a Web Animations API animation. */
+  function animation({ endTime = 100, playState = 'running' } = {}) {
+    let end;
+    const finished = new Promise(resolve => {
+      end = resolve;
+    });
+    return {
+      playState,
+      effect: { getComputedTiming: () => ({ endTime }) },
+      finished,
+      end,
+    };
+  }
+  const documentWith = animations => ({ getAnimations: () => animations });
+
+  it('waits for the animations that will end, and not for one that loops', async () => {
+    const fade = animation();
+    const loop = animation({ endTime: Infinity });
+    let settled = false;
+    const waiting = settleAnimations(10_000, documentWith([fade, loop])).then(
+      count => {
+        settled = true;
+        return count;
+      }
+    );
+    await new Promise(resolve => setTimeout(resolve, 20));
+    expect(settled).toBe(false);
+    fade.end();
+    expect(await waiting).toBe(1);
+  });
+
+  it('counts none that have already finished', async () => {
+    expect(
+      await settleAnimations(
+        10_000,
+        documentWith([animation({ playState: 'finished' })])
+      )
+    ).toBe(0);
+  });
+
+  it('gives up on one that never ends once the timeout passes', async () => {
+    const paused = animation({ playState: 'paused' });
+    const start = Date.now();
+    expect(await settleAnimations(30, documentWith([paused]))).toBe(1);
+    expect(Date.now() - start).toBeGreaterThanOrEqual(25);
+  });
+
+  it('treats a cancelled animation as ended', async () => {
+    const cancelled = animation();
+    cancelled.finished = Promise.reject(new Error('AbortError'));
+    expect(await settleAnimations(10_000, documentWith([cancelled]))).toBe(1);
   });
 });
