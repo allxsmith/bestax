@@ -100,8 +100,9 @@ interface CalendarBaseProps
   /**
    * Draws content inside a day's button, under its number: a dot, a count,
    * a price. Phrasing content only, with nothing in it to click or focus.
-   * Say the same thing, in the same words, in `getDayLabel`: a day's name
-   * is its date, so a screen reader doesn't read what this draws.
+   * Say the same thing in `getDayLabel`, in the same words where this draws
+   * text: a day's name is its date, so a screen reader doesn't read what
+   * this draws.
    */
   dayTemplate?: (date: Date, state: CalendarDayState) => React.ReactNode;
   /**
