@@ -1405,7 +1405,7 @@ describe('Calendar', () => {
         expect(blank).not.toHaveAttribute('aria-selected');
         expect(blank.firstElementChild).toHaveAttribute(
           'class',
-          'dateinput-cell'
+          'dateinput-cell is-other-month'
         );
       }
       expect(

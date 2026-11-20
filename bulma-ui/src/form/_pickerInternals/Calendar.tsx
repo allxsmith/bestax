@@ -955,7 +955,12 @@ export const Calendar: React.FC<CalendarProps> = ({
   const monthsRowClass = usePrefixedClassNames('dateinput-months-row');
   const yearsGridClass = usePrefixedClassNames('dateinput-years-grid');
   const cellContentClass = usePrefixedClassNames('dateinput-cell-content');
-  const blankCellClass = usePrefixedClassNames('dateinput-cell');
+  // A blank day is always a nearby month's, so its hidden box says so, and
+  // selectors for the days on show skip it as they skipped the day.
+  const blankCellClass = usePrefixedClassNames(
+    'dateinput-cell',
+    'is-other-month'
+  );
   const monthsClass = usePrefixedClassNames('calendar-months');
 
   const focusedYear = focusedDate.getFullYear();
