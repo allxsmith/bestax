@@ -39,6 +39,7 @@ import {
   normalizeHtml,
   renderExports,
   withImplicitListRoles,
+  withDeleteTargets,
   withLoadingButtonsBusy,
   withV1Classes,
 } from './support/render-module.js';
@@ -97,11 +98,12 @@ function threeWays(file: string, source: string) {
     // Awesome's own `aria-hidden` moved up off the <i>, the one `Icon` writes
     // on an icon in a link or button its own label names, a Bulma 0.9 class
     // v1 removed written as the v1 class in its place, Font Awesome 6's long
-    // name for a style written as its short one, and the busy state a loading
-    // `Button` writes.
+    // name for a style written as its short one, the busy state a loading
+    // `Button` writes, and the hit area a `Delete` holds.
     restated: canonicalOf(
       moveGlyphHidden(
         [
+          withDeleteTargets,
           withV1Classes,
           withImplicitListRoles,
           withShortStyles,

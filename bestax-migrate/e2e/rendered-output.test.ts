@@ -19,6 +19,7 @@ import {
   normalizeHtml,
   renderExports,
   withImplicitListRoles,
+  withDeleteTargets,
   withLoadingButtonsBusy,
   withV1Classes,
 } from './support/render-module.js';
@@ -303,6 +304,85 @@ describe('withLoadingButtonsBusy', () => {
       [
         '<button class="button is-loading">x</button>',
         `<button ${busy} class="button">x</button>`,
+      ],
+    ]) {
+      expect({ raw, converted, same: same(raw, converted) }).toEqual({
+        raw,
+        converted,
+        same: false,
+      });
+    }
+  });
+});
+
+describe('withDeleteTargets', () => {
+  // `Delete` holds a hidden span for its 24px target (#2198).
+  const same = (raw: string, converted: string) =>
+    withDeleteTargets(raw, normalizeHtml(converted)) ===
+    normalizeHtml(converted);
+  const target = '<span aria-hidden="true" class="delete-target"></span>';
+
+  it('lets the hit area a Delete holds stand for a raw .delete with none', () => {
+    expect(
+      same(
+        '<button aria-label="Close" class="delete" type="button"></button>',
+        `<button aria-label="Close" class="delete" type="button">${target}</button>`
+      )
+    ).toBe(true);
+    // After what the button already holds.
+    expect(
+      same(
+        '<button class="delete is-small"><span class="is-sr-only">Close</span></button>',
+        `<button class="delete is-small"><span class="is-sr-only">Close</span>${target}</button>`
+      )
+    ).toBe(true);
+    // One that already ends in it converts to the same markup, left as it is.
+    expect(
+      same(
+        `<button class="delete">${target}</button>`,
+        `<button class="delete">${target}</button>`
+      )
+    ).toBe(true);
+    // Several, each paired with the delete button in the same place, beside
+    // a button that isn't one and a delete left as written.
+    expect(
+      same(
+        '<div class="notification"><button class="button">a</button><button class="delete"></button><button class="delete"></button></div>',
+        `<div class="notification"><button class="button">a</button><button class="delete">${target}</button><button class="delete"></button></div>`
+      )
+    ).toBe(true);
+  });
+
+  it('still tells a conversion that writes it anywhere else, or something else there', () => {
+    for (const [raw, converted] of [
+      // In a button that isn't a delete button.
+      [
+        '<button class="button">x</button>',
+        `<button class="button">x${target}</button>`,
+      ],
+      // A delete tag, which isn't one.
+      [
+        '<button class="tag is-delete"></button>',
+        `<button class="tag is-delete">${target}</button>`,
+      ],
+      // Ahead of what the button holds rather than after it.
+      [
+        '<button class="delete"><b>x</b></button>',
+        `<button class="delete">${target}<b>x</b></button>`,
+      ],
+      // Outside the button.
+      [
+        '<button class="delete"></button>',
+        `<button class="delete"></button>${target}`,
+      ],
+      // Another span, or the span with something more in it.
+      [
+        '<button class="delete"></button>',
+        '<button class="delete"><span class="delete-target"></span></button>',
+      ],
+      [
+        '<button class="delete"></button>',
+        '<button class="delete"><span aria-hidden="true" class="delete-target">x</span></button>',
       ],
     ]) {
       expect({ raw, converted, same: same(raw, converted) }).toEqual({

@@ -174,6 +174,14 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   converted element has them. One that sets either keeps `is-loading` as a class (the class
   map's `overridesAttrs`, #2040), since `isLoading` would write over it, so it renders as
   written.
+  Another (#2198) adds an element: a `.delete` converts to `Delete`, which holds an empty,
+  `aria-hidden` `<span class="delete-target">` as its last child, a transparent box at least 24px
+  square that takes the button's presses, where Bulma's circle is 20px, 16px small. It draws
+  nothing and assistive tech skips it, so the page looks and reads the same, and a migrated app
+  gets the larger target. The render tests restate the span on the raw side
+  (`withDeleteTargets` in the same file), only as the last child of a `.delete` `<button>` that
+  doesn't end in one, where the converted button does. It runs before the restatements that pair
+  every element in document order, since the span is an element they count.
 - The bulma-classes HTML input is `bulma-classes/html.ts`: parse the page, drop its scripts
   (each a report), emit its body as JSX with `pageDisplayOf` (an element's inline display, else
   the displays `display.ts` says Bulma's classes give it across viewports, else its tag's; a
