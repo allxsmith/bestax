@@ -19,7 +19,8 @@ first). Deploys to Cloudflare Pages from `docs/build/` via `.github/workflows/de
 
 ## The LLM docs pipeline (this site is machine-read)
 
-The build runs `docusaurus-plugin-llms` (configured in `docusaurus.config.js`), regenerating:
+The build runs `docusaurus-plugin-llms` (configured in `docusaurus.config.js`, through the wrapper
+described below), regenerating:
 
 - `/llms.txt` (curated index) and `/llms-full.txt` (full concatenation)
 - a per-page `.md` twin for every doc page (so `llms.txt` links resolve)
@@ -40,6 +41,15 @@ content is to reach an agent:
 Docusaurus's `<TabItem label="…">` is handled by the plugin itself: it writes the label as a
 bold line ahead of the tab's body, so a `<Tabs>` block keeps which option is which.
 
+A fence keeps its code, and with it a live example's `/img/...` paths, which name a file the
+reader's own app does not have once an agent copies the example there. So the plugin runs
+through `plugins/llms-site-images.js`, which, once the plugin has written its files, puts a note
+in the twins and `llms-full.txt` above the first `jsx` or `tsx` example on each page that uses
+one, saying the path stands for a picture the reader's app serves. The path is not pointed at
+bestax.io, for the reason `skills/CLAUDE.md` gives for a skill's pictures: an agent copies it
+into the user's app. `src/theme/CodeBlock/sandbox/site-images.mjs` holds the matcher, which the
+sandbox buttons and the MCP index share.
+
 The plugin also drops HTML comments outside code, and with them the `<!-- bestax:generated -->`
 markers, a source-control device no reader of the site needs. The rule: the keyword
 `bestax:generated` must never reach the built markdown or the llms files, so a docs page or blog
@@ -56,6 +66,15 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
 
 ## Conventions
 
+- **Every page goes through axe** after each change reaches `main`
+  (`.github/workflows/docs-a11y.yml`, one leg per color mode, not a PR check; start it by hand
+  to check a branch, or run `pnpm --filter @allxsmith/bestax-docs run a11y --theme=light` on a
+  built site). The scan
+  scrolls each page so its live examples mount, and checks those too. When it fails on a
+  page's own markup or an example's code, fix it there (name the input, give the image its
+  `alt`). An exemption goes in `scripts/a11y-exemptions.mjs` with the issue that removes it or
+  the reason axe is wrong. The scan reports an exemption that covered nothing, and the fix for
+  its issue removes it.
 - API pages mirror `docs/api/components/avatar.md` (the house exemplar), not older siblings;
   `check:conformance` enforces the required sections. Frontmatter `title:` = the exported
   name, and the first `## Overview` sentence becomes its catalog one-liner (`gen:catalog`).

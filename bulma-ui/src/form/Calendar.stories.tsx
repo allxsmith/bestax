@@ -214,6 +214,14 @@ export const SeveralMonths: Story = {
 const priceOf = (date: Date) => 60 + ((date.getDate() * 7) % 50);
 
 export const Prices: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
+      },
+    },
+  },
   args: { 'aria-label': 'Pick a departure day' },
   render: function PricesExample(args) {
     const [day, setDay] = useState<Date | null>(null);
@@ -235,6 +243,14 @@ const slotsLeft = (date: Date) =>
   date.getDay() === 0 || date.getDay() === 6 ? 0 : (date.getDate() % 5) + 1;
 
 export const LoadingEachMonth: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
+      },
+    },
+  },
   args: { 'aria-label': 'Book a slot' },
   render: function LoadingExample(args) {
     const [month, setMonth] = useState(new Date(2026, 10, 1));
@@ -324,6 +340,14 @@ export const MinMaxAndDisabledDays: Story = {
 };
 
 export const MonthAndYear: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
+      },
+    },
+  },
   render: function MonthAndYearExample(args) {
     return (
       <Columns>
@@ -368,6 +392,14 @@ export const ColorsAndSizes: Story = {
 };
 
 export const FullWidth: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
+      },
+    },
+  },
   args: { isFullwidth: true, monthsToShow: 2 },
   render: function FullWidthExample(args) {
     return (

@@ -37,7 +37,10 @@
  * `Promise.all` (docusaurus/core buildLocale.js), so declaring a plugin after
  * docusaurus-plugin-llms does NOT make it run after — it races, and on the
  * first attempt it ran first and found nothing. Chaining after
- * `docusaurus build` is the only ordering guarantee available.
+ * `docusaurus build` is the only way to run after every plugin.
+ * plugins/llms-site-images.js runs after docusaurus-plugin-llms alone, by
+ * wrapping its `postBuild`, which would not do here: this step reads the
+ * dev.to copies too.
  */
 import { readdirSync, existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';

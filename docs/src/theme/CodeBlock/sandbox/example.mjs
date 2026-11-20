@@ -12,6 +12,7 @@
  */
 import { transform } from 'sucrase';
 import { stripModuleLines } from './moduleLines.mjs';
+import { withSiteImages } from './site-images.mjs';
 
 const LIBRARY = '@allxsmith/bestax-bulma';
 
@@ -328,27 +329,6 @@ function importLine(defaultName, names, from) {
   if (line.length <= 80 || names.length === 0) return line;
   const head = defaultName ? `${defaultName}, ` : '';
   return `import ${head}{\n${names.map(name => `  ${name},`).join('\n')}\n} from '${from}';`;
-}
-
-/**
- * Points the example's images from the docs site's `static/img` at the site.
- * On the page a root-relative path such as `'/img/logo.svg'` resolves against
- * the site, and in a sandbox against the sandbox's own address, which has no
- * `img` folder, so the module writes the path resolved against `pageUrl`, as
- * the page resolved it. The buttons pass the page's address on the site the
- * docs build names (`siteConfig.url`), so an image a pull request adds shows in
- * its sandboxes once it's deployed there. A path counts where it opens a
- * string or a CSS `url(`, which is where the page's own examples write one,
- * so a regex literal or text that only mentions `/img/` is left as written.
- * The fence a reader copies keeps its path.
- *
- * @param {string} code
- * @param {string} pageUrl The docs page the example came from.
- * @returns {string}
- */
-export function withSiteImages(code, pageUrl) {
-  const images = new URL('/img/', pageUrl).href;
-  return code.replace(/(?<=['"`]|\burl\(\s*)\/img\//g, images);
 }
 
 /**

@@ -206,6 +206,7 @@ pnpm docs                                                   # dev server (hot re
 # production build + preview:
 pnpm exec turbo run build --filter=@allxsmith/bestax-docs   # builds docs + bulma-ui dep
 pnpm --filter @allxsmith/bestax-docs run serve              # serves the built site
+pnpm --filter @allxsmith/bestax-docs run a11y --theme=light # axe on every built page, as docs-a11y.yml does
 ```
 
 The build also regenerates `/llms.txt` and `/llms-full.txt` under `docs/build/`.
@@ -215,7 +216,15 @@ The build also regenerates `/llms.txt` and `/llms-full.txt` under `docs/build/`.
 ```bash
 pnpm storybook                                              # dev server
 pnpm --filter @allxsmith/bestax-bulma run build-storybook   # static build -> bulma-ui/storybook-static
+pnpm --filter @allxsmith/bestax-bulma run test-storybook:ci # every story in Chromium, light then dark
 ```
+
+The last one is the pass CI runs. Each story fails if it logs a console error, or if axe finds
+a violation of a WCAG A or AA rule once the story has rendered and played. Two limits: axe's
+color-contrast rule is off until #2188, and a story can turn a rule off in its own
+`parameters.a11y`, which `bulma-ui/src/__tests__/stories-a11y.test.ts` only allows with an
+issue or a reason (see "Stories" in `bulma-ui/CLAUDE.md`). The dev server's Accessibility panel
+shows the same axe results for the story on screen.
 
 ### 6. Turbo directly (filters + caching)
 

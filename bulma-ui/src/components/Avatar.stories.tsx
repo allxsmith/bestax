@@ -157,6 +157,14 @@ export const Sizes: Story = {
 };
 
 export const Clickable: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
+      },
+    },
+  },
   render: function ClickableExample() {
     return <Avatar name="Ada Lovelace" href="https://bestax.io" />;
   },

@@ -1,6 +1,6 @@
 ---
 title: Accessibility Statement
-sidebar_label: Statement
+sidebar_label: Accessibility
 sidebar_position: 1
 description: What Bestax aims for in accessibility, what it covers, how it's checked, what's known to fall short, and how to report a barrier.
 ---

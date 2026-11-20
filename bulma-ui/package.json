@@ -1,6 +1,6 @@
 {
   "name": "@allxsmith/bestax-bulma",
-  "version": "5.78.6",
+  "version": "5.78.7",
   "description": "Component library based on React, Bulma, with Agent Skills and MCP",
   "main": "dist/index.cjs",
   "module": "dist/index.esm.js",
@@ -52,6 +52,7 @@
     "@rollup/plugin-commonjs": "^29.0.3",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-typescript": "^12.3.1",
+    "@storybook/addon-a11y": "^10.6.7",
     "@storybook/addon-docs": "^10.6.6",
     "@storybook/addon-onboarding": "^10.6.6",
     "@storybook/addon-vitest": "^10.6.6",

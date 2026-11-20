@@ -96,6 +96,7 @@ type Story = StoryObj<typeof Slider>;
  */
 export const Default: Story = {
   args: {
+    'aria-label': 'Value',
     defaultValue: 50,
   },
 };
@@ -109,7 +110,13 @@ export const WithOutput: Story = {
 
     return (
       <div style={{ paddingTop: '2rem' }}>
-        <Slider value={value} onChange={setValue} showOutput color="primary" />
+        <Slider
+          aria-label="Value"
+          value={value}
+          onChange={setValue}
+          showOutput
+          color="primary"
+        />
         <p className="mt-4">
           Value: <strong>{value}</strong>
         </p>
@@ -131,7 +138,7 @@ export const Colors: Story = {
           <p className="mb-2" style={{ textTransform: 'capitalize' }}>
             {color}
           </p>
-          <Slider defaultValue={60} color={color} />
+          <Slider aria-label="Value" defaultValue={60} color={color} />
         </div>
       ))}
     </div>
@@ -146,19 +153,34 @@ export const Sizes: Story = {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div>
         <p className="mb-2">Small</p>
-        <Slider defaultValue={50} size="small" color="primary" />
+        <Slider
+          aria-label="Value"
+          defaultValue={50}
+          size="small"
+          color="primary"
+        />
       </div>
       <div>
         <p className="mb-2">Default</p>
-        <Slider defaultValue={50} color="primary" />
+        <Slider aria-label="Value" defaultValue={50} color="primary" />
       </div>
       <div>
         <p className="mb-2">Medium</p>
-        <Slider defaultValue={50} size="medium" color="primary" />
+        <Slider
+          aria-label="Value"
+          defaultValue={50}
+          size="medium"
+          color="primary"
+        />
       </div>
       <div>
         <p className="mb-2">Large</p>
-        <Slider defaultValue={50} size="large" color="primary" />
+        <Slider
+          aria-label="Value"
+          defaultValue={50}
+          size="large"
+          color="primary"
+        />
       </div>
     </div>
   ),
@@ -169,6 +191,7 @@ export const Sizes: Story = {
  */
 export const Rounded: Story = {
   args: {
+    'aria-label': 'Value',
     defaultValue: 50,
     isRounded: true,
     color: 'success',
@@ -180,6 +203,7 @@ export const Rounded: Story = {
  */
 export const Circle: Story = {
   args: {
+    'aria-label': 'Value',
     defaultValue: 50,
     isCircle: true,
     color: 'info',
@@ -191,6 +215,7 @@ export const Circle: Story = {
  */
 export const Disabled: Story = {
   args: {
+    'aria-label': 'Value',
     defaultValue: 30,
     disabled: true,
   },
@@ -206,6 +231,7 @@ export const CustomRange: Story = {
     return (
       <div style={{ paddingTop: '2rem' }}>
         <Slider
+          aria-label="Value"
           value={value}
           onChange={setValue}
           min={0}
@@ -232,6 +258,7 @@ export const FormattedOutput: Story = {
     return (
       <div style={{ paddingTop: '2rem' }}>
         <Slider
+          aria-label="Progress"
           value={value}
           onChange={setValue}
           showOutput
@@ -255,8 +282,8 @@ export const PriceRange: Story = {
 
     return (
       <div style={{ maxWidth: '400px', paddingTop: '2rem' }}>
-        <label className="label">Price Range</label>
         <Slider
+          label="Price Range"
           value={price}
           onChange={setPrice}
           min={0}
@@ -289,6 +316,7 @@ export const VolumeControl: Story = {
             <i className="fas fa-volume-up" />
           </span>
           <Slider
+            aria-label="Volume"
             value={volume}
             onChange={setVolume}
             showOutput
@@ -310,8 +338,7 @@ export const InField: Story = {
     const [value, setValue] = useState(50);
 
     return (
-      <Field>
-        <label className="label">Brightness</label>
+      <Field label="Brightness">
         <div style={{ paddingTop: '1rem' }}>
           <Slider
             value={value}
@@ -336,7 +363,12 @@ export const Controlled: Story = {
 
     return (
       <div>
-        <Slider value={value} onChange={setValue} color="primary" />
+        <Slider
+          aria-label="Value"
+          value={value}
+          onChange={setValue}
+          color="primary"
+        />
         <Buttons mt="4">
           <Button onClick={() => setValue(0)}>0</Button>
           <Button onClick={() => setValue(25)}>25</Button>
@@ -366,6 +398,7 @@ export const TooltipAlways: Story = {
     return (
       <div style={{ paddingTop: '2.5rem' }}>
         <Slider
+          aria-label="Value"
           value={value}
           onChange={setValue}
           tooltip="always"
@@ -390,6 +423,7 @@ export const TooltipHidden: Story = {
     return (
       <div>
         <Slider
+          aria-label="Value"
           value={value}
           onChange={setValue}
           tooltip="hidden"
@@ -413,6 +447,7 @@ export const CustomTooltipLabel: Story = {
     return (
       <div style={{ paddingTop: '2.5rem' }}>
         <Slider
+          aria-label="Temperature"
           value={value}
           onChange={setValue}
           tooltip="always"
@@ -438,6 +473,7 @@ export const RoundedThumb: Story = {
     return (
       <div style={{ paddingTop: '2.5rem' }}>
         <Slider
+          aria-label="Value"
           value={value}
           onChange={setValue}
           isCircle
@@ -459,6 +495,7 @@ export const Ticks: Story = {
     return (
       <div style={{ paddingTop: '2rem' }}>
         <Slider
+          aria-label="Value"
           value={value}
           onChange={setValue}
           min={0}
@@ -494,6 +531,7 @@ export const TicksCustomLabels: Story = {
     return (
       <div style={{ paddingBottom: '1rem' }}>
         <Slider
+          aria-label="Temperature"
           value={value}
           onChange={setValue}
           marks={marks}
@@ -526,8 +564,8 @@ export const TicksFan: Story = {
 
     return (
       <div style={{ paddingTop: '2rem', paddingBottom: '1rem' }}>
-        <label className="label">Fan Speed</label>
         <Slider
+          label="Fan Speed"
           value={value}
           onChange={setValue}
           min={0}
@@ -550,6 +588,10 @@ export const TicksFan: Story = {
  * Range slider with dual thumbs.
  */
 export const RangeDefault: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function RangeDefaultSlider() {
     const [value, setValue] = useState<[number, number]>([20, 80]);
 
@@ -568,6 +610,10 @@ export const RangeDefault: Story = {
  * Range slider with tooltip output.
  */
 export const RangeWithOutput: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function RangeWithOutputSlider() {
     const [value, setValue] = useState<[number, number]>([30, 70]);
 
@@ -592,6 +638,10 @@ export const RangeWithOutput: Story = {
  * Range slider with minimum distance between thumbs.
  */
 export const RangeMinDistance: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function RangeMinDistanceSlider() {
     const [value, setValue] = useState<[number, number]>([20, 60]);
 
@@ -618,6 +668,10 @@ export const RangeMinDistance: Story = {
  * Practical price filter with range slider.
  */
 export const RangePriceFilter: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function RangePriceFilterSlider() {
     const [value, setValue] = useState<[number, number]>([100, 400]);
 
@@ -655,6 +709,7 @@ export const Vertical: Story = {
     return (
       <div style={{ height: '250px', display: 'flex', gap: '2rem' }}>
         <Slider
+          aria-label="Value"
           value={value}
           onChange={setValue}
           orientation="vertical"
@@ -685,6 +740,7 @@ export const VerticalWithOutput: Story = {
         }}
       >
         <Slider
+          aria-label="Value"
           value={value}
           onChange={setValue}
           orientation="vertical"
@@ -709,8 +765,8 @@ export const NonLinearScale: Story = {
 
     return (
       <div style={{ paddingTop: '2.5rem' }}>
-        <label className="label">Exponential Scale</label>
         <Slider
+          label="Exponential Scale"
           value={value}
           onChange={setValue}
           min={0}
@@ -780,6 +836,10 @@ export const WithLabel: Story = {
  * thumbs read "Price range Minimum value" and "Price range Maximum value".
  */
 export const RangeWithLabel: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: () => <Slider range label="Price range" defaultValue={[20, 80]} />,
 };
 
@@ -788,6 +848,10 @@ export const RangeWithLabel: Story = {
  * way the Slider's own label does.
  */
 export const RangeInLabeledField: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: () => (
     <Field label="Price range">
       <Slider range defaultValue={[20, 80]} />
@@ -804,6 +868,10 @@ export const RangeInLabeledField: Story = {
  * default names.
  */
 export const RangeInHandWiredField: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: () => (
     <Field
       horizontal
@@ -878,6 +946,10 @@ export const RightToLeft: Story = {
  * submits as its own form field.
  */
 export const RangeWithNames: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function SliderForm() {
     const [submitted, setSubmitted] = useState<string>('');
     return (

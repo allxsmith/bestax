@@ -1,3 +1,19 @@
+## [1.18.84](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.83...bestax-mcp@1.18.84) (2026-11-19)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** say an example's site image stands for the reader's own ([b4b91ce](https://github.com/allxsmith/bestax/commit/b4b91ce95abd1d7382ec10978ce03d42ae522d7d)), closes [#1737](https://github.com/allxsmith/bestax/issues/1737)
+* **docs:** say the .md twins' and llms-full.txt's site images stand for the reader's own ([d7d95a2](https://github.com/allxsmith/bestax/commit/d7d95a279b1d955440581928057867dd19b3f8b5)), closes [#1737](https://github.com/allxsmith/bestax/issues/1737)
+
+## [1.18.83](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.82...bestax-mcp@1.18.83) (2026-11-19)
+
+
+### Bug Fixes
+
+* **bulma-ui:** deprecate the color prop that Cell, Grid, Columns, Column and Field drop ([241c956](https://github.com/allxsmith/bestax/commit/241c9569467c25719f3c490b48ab4730bf30292b)), closes [#2238](https://github.com/allxsmith/bestax/issues/2238)
+* **eslint-plugin:** flag the deprecated color prop on Cell, Grid, Columns, Column and Field ([bafbce8](https://github.com/allxsmith/bestax/commit/bafbce8a1373f754f77b787bcb2784d8dfbe6e61)), closes [#2238](https://github.com/allxsmith/bestax/issues/2238)
+
 ## [1.18.82](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.81...bestax-mcp@1.18.82) (2026-11-19)
 
 

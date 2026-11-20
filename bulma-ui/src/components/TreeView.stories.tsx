@@ -196,9 +196,26 @@ const meta: Meta<typeof TreeView> = {
 export default meta;
 type Story = StoryObj<typeof TreeView>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
+      },
+    },
+  },
+};
 
 export const FileBrowser: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
+      },
+    },
+  },
   render: function FileBrowserExample() {
     const [file, setFile] = useState<string | null>('src/components/Card.tsx');
     return (
@@ -232,6 +249,14 @@ export const FileBrowser: Story = {
 };
 
 export const Permissions: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
+      },
+    },
+  },
   render: function PermissionsExample() {
     const [checked, setChecked] = useState<string[]>(['projects/read']);
     return (
@@ -281,6 +306,14 @@ export const Permissions: Story = {
  * a product filed under Clothing isn't filed under every kind of clothing.
  */
 export const Categories: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
+      },
+    },
+  },
   render: function CategoriesExample() {
     const [checked, setChecked] = useState<string[]>([
       'clothing',
@@ -370,6 +403,14 @@ type Found = Folder[] | 'loading' | 'error';
  * fails the first time, so there's a Retry to press.
  */
 export const LazyFolders: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
+      },
+    },
+  },
   render: function LazyFoldersExample() {
     const [expanded, setExpanded] = useState<string[]>([]);
     const [found, setFound] = useState<Record<string, Found>>({});
@@ -455,6 +496,14 @@ export const LazyFolders: Story = {
 const OUTLINE = ['company', 'company/engineering', 'company/sales'];
 
 export const Outline: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
+      },
+    },
+  },
   render: function OutlineExample() {
     const [expanded, setExpanded] = useState<string[]>(['company']);
     return (
@@ -487,6 +536,14 @@ export const Outline: Story = {
 };
 
 export const Sizes: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
+      },
+    },
+  },
   render: () => (
     <Columns isMultiline>
       {([undefined, 'small', 'medium', 'large'] as const).map(size => (
@@ -511,6 +568,14 @@ export const Sizes: Story = {
 
 /** The same rows as a Bulma menu, for comparing the two. */
 export const BesideBulmaMenu: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
+      },
+    },
+  },
   render: () => (
     <Columns isMobile>
       <Column>
@@ -566,6 +631,14 @@ export const BesideBulmaMenu: Story = {
 
 /** A tree under a menu label, beside the menu's own navigation. */
 export const InAMenu: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
+      },
+    },
+  },
   render: () => (
     <Narrow>
       <Menu>
@@ -590,6 +663,14 @@ export const InAMenu: Story = {
 };
 
 export const RightToLeft: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
+      },
+    },
+  },
   render: () => (
     <Block dir="rtl">
       <Narrow>
@@ -608,6 +689,14 @@ export const RightToLeft: Story = {
 
 /** Depth, a disabled item and icons, in a checkbox tree. */
 export const DeepTree: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
+      },
+    },
+  },
   render: () => (
     <Narrow>
       <TreeView
@@ -639,6 +728,14 @@ export const DeepTree: Story = {
 };
 
 export const CompoundUsage: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
+      },
+    },
+  },
   render: () => (
     <Narrow>
       <TreeView
