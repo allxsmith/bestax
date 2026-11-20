@@ -377,6 +377,7 @@ describe('Modal', () => {
       render(
         <Modal.Close
           data-testid="close-btn"
+          // eslint-disable-next-line @eslint-react/dom-no-dangerously-set-innerhtml -- a fixed string
           dangerouslySetInnerHTML={{ __html: '<b>x</b>' }}
         />
       );

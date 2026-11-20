@@ -192,6 +192,7 @@ describe('Delete Component', () => {
 
     it('keeps a delete given dangerouslySetInnerHTML working, with no target', () => {
       // React refuses children beside it, so the hit area gives way.
+      // eslint-disable-next-line @eslint-react/dom-no-dangerously-set-innerhtml -- a fixed string
       render(<Delete dangerouslySetInnerHTML={{ __html: '<b>x</b>' }} />);
       expect(screen.getByRole('button').innerHTML).toBe('<b>x</b>');
     });
