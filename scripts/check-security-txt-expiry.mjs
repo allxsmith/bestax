@@ -381,9 +381,9 @@ export async function main(argv = process.argv.slice(2)) {
   }
 
   // No labels on purpose. There is no plain `security` label in this repo, and
-  // the nearest match — `needs-security-review` — is a refusal gate:
-  // claude-repro, claude-fix, @claude and @bestaxbot all decline an item
-  // carrying it until a maintainer clears it. Tagging an automated reminder
+  // the nearest match, `needs-security-review`, is a refusal gate: bestaxbot
+  // and @claude both decline an item carrying it until a maintainer clears
+  // it. Tagging an automated reminder
   // with that would wedge those entry points for no reason. Label it by hand
   // if a suitable one is ever added.
   const created = await api(`/repos/${opts.repo}/issues`, {
