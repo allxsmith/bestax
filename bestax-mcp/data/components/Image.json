@@ -49,7 +49,7 @@
       "note": "A path under /img/ here stands for a picture your own app serves, such as a file in its public/img/ folder."
     }
   ],
-  "accessibility": "- **Alt Text:** Always provide a descriptive `alt` attribute for images.\n- **Aspect Ratios:** Maintains the correct aspect ratio for images, iframes, or any child.\n- **Custom Content:** When embedding iframes or custom children, ensure accessibility via proper ARIA labeling or content.\n\n:::warning\nDo not use `Image` for decorative images without `alt=\"\"`, unless purely presentational.\n:::",
+  "accessibility": "- **Alt Text:** Give each image an `alt` that says what it shows, or `alt=\"\"` for a decorative one, which a screen reader then skips. A development build warns about an `<img>` with no `alt`.\n- **Aspect Ratios:** Maintains the correct aspect ratio for images, iframes, or any child.\n- **Custom Content:** When embedding iframes or custom children, ensure accessibility via proper ARIA labeling or content.\n\n:::warning\nDo not use `Image` for decorative images without `alt=\"\"`, unless purely presentational.\n:::",
   "related": ["Box", "Card", "Content", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-image--default",
   "summary": "The `Image` component wraps images, iframes, or custom content in a Bulma-styled container, supporting fixed sizes, aspect ratios, rounded corners, retina images, and Bulma helper props for color and spacing.",
@@ -140,7 +140,7 @@
           "name": "alt",
           "type": "string",
           "default": null,
-          "description": "Alternate text for the image.",
+          "description": "Alternate text for the image: what it shows, for a reader who can't see it. Pass `alt=\"\"` for a decorative image, which a screen reader then skips. Left unset, the `<img>` has no alt, and a development build warns.",
           "required": false,
           "inherited": false,
           "deprecated": false

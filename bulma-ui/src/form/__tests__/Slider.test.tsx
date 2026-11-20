@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { Slider } from '../Slider';
 import { Field } from '../Field';
 import { Control } from '../Control';
+import { resetDevWarnings } from '../../helpers/devWarnings';
 
 describe('Slider', () => {
   describe('rendering', () => {
@@ -2229,5 +2230,172 @@ describe('range Slider thumb names (#981)', () => {
     expect(
       screen.getByRole('slider', { name: 'Loudness' })
     ).not.toHaveAttribute('aria-labelledby');
+  });
+});
+
+describe('an unnamed Slider in development (#2201)', () => {
+  beforeEach(() => {
+    resetDevWarnings();
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  /** The warnings about a Slider with no name, or thumbs with only their own. */
+  const unnamedWarnings = () =>
+    vi
+      .mocked(console.warn)
+      .mock.calls.filter(([message]) =>
+        /<Slider> (has no accessible name|names a thumb only)/.test(
+          String(message)
+        )
+      );
+
+  it('warns once about a Slider nothing names, naming the fixes', () => {
+    render(
+      <>
+        <Slider defaultValue={50} />
+        <Slider defaultValue={20} />
+      </>
+    );
+    expect(screen.getAllByRole('slider')[0]).toHaveAccessibleName('');
+    expect(unnamedWarnings()).toEqual([
+      [expect.stringMatching(/label, aria-label or aria-labelledby/)],
+    ]);
+  });
+
+  it.each([
+    ['its own label', () => <Slider label="Volume" />],
+    ['ariaLabel', () => <Slider ariaLabel="Volume" />],
+    ['an aria-label', () => <Slider aria-label="Volume" />],
+    [
+      'an aria-labelledby',
+      () => (
+        <>
+          <p id="volume-heading">Volume</p>
+          <Slider aria-labelledby="volume-heading" />
+        </>
+      ),
+    ],
+    [
+      'an outer Field label',
+      () => (
+        <Field label="Volume">
+          <Slider />
+        </Field>
+      ),
+    ],
+    [
+      'a Field label wired by hand',
+      () => (
+        <Field label="Volume" labelProps={{ htmlFor: 'volume' }}>
+          <Slider id="volume" />
+        </Field>
+      ),
+    ],
+    [
+      'a <label htmlFor> of its own',
+      () => (
+        <>
+          <label htmlFor="volume">Volume</label>
+          <Slider id="volume" />
+        </>
+      ),
+    ],
+    [
+      'a <label> around it',
+      () => (
+        <label>
+          Volume
+          <Slider />
+        </label>
+      ),
+    ],
+  ])('stays quiet about a Slider named by %s', (_how, element) => {
+    render(element());
+    expect(screen.getByRole('slider')).toHaveAccessibleName('Volume');
+    expect(unnamedWarnings()).toEqual([]);
+  });
+
+  it('warns about a range Slider whose thumbs have only their own names', () => {
+    render(<Slider range defaultValue={[20, 80]} />);
+    expect(
+      screen.getByRole('slider', { name: 'Minimum value' })
+    ).toBeInTheDocument();
+    expect(unnamedWarnings()).toEqual([
+      [expect.stringMatching(/"Minimum value" or "Maximum value"/)],
+    ]);
+  });
+
+  it('warns about a range Slider that one ariaLabel entry leaves with its own name', () => {
+    render(<Slider range ariaLabel={['Lowest price', '']} />);
+    expect(
+      screen.getByRole('slider', { name: 'Maximum value' })
+    ).toBeInTheDocument();
+    expect(unnamedWarnings()).toHaveLength(1);
+  });
+
+  it.each([
+    ['its own label', () => <Slider range label="Price" />],
+    [
+      'an outer Field label',
+      () => (
+        <Field label="Price">
+          <Slider range />
+        </Field>
+      ),
+    ],
+    [
+      'a Field label wired by hand with an id',
+      () => (
+        <Field
+          label="Price"
+          labelProps={{ htmlFor: 'price', id: 'price-label' }}
+        >
+          <Slider range id="price" />
+        </Field>
+      ),
+    ],
+    ['an aria-label', () => <Slider range aria-label="Price" />],
+  ])('stays quiet about a range Slider named by %s', (_how, element) => {
+    render(element());
+    expect(
+      screen.getByRole('slider', { name: 'Price Minimum value' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('slider', { name: 'Price Maximum value' })
+    ).toBeInTheDocument();
+    expect(unnamedWarnings()).toEqual([]);
+  });
+
+  it('stays quiet about a range Slider whose ariaLabel names each thumb', () => {
+    render(<Slider range ariaLabel={['Lowest price', 'Highest price']} />);
+    expect(
+      screen.getByRole('slider', { name: 'Highest price' })
+    ).toBeInTheDocument();
+    expect(unnamedWarnings()).toEqual([]);
+  });
+
+  it.each([
+    ['an undefined aria-labelledby', { 'aria-labelledby': undefined }],
+    ['an empty aria-labelledby', { 'aria-labelledby': '' }],
+    ['an empty aria-label', { 'aria-label': '' }],
+  ])(
+    'warns about a range Slider that %s leaves with its own names',
+    (_how, props) => {
+      render(<Slider range {...props} />);
+      expect(
+        screen.getByRole('slider', { name: 'Minimum value' })
+      ).toBeInTheDocument();
+      expect(unnamedWarnings()).toHaveLength(1);
+    }
+  );
+
+  it('warns about a Slider with only a placeholder, which a range input ignores', () => {
+    render(<Slider placeholder="Volume" />);
+    expect(screen.getByRole('slider')).toHaveAccessibleName('');
+    expect(unnamedWarnings()).toHaveLength(1);
   });
 });

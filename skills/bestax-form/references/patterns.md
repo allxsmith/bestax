@@ -287,7 +287,14 @@ const matches = countries.filter(c => c.toLowerCase().includes(term));
 
 // Slider (single and dual thumb)
 const [volume, setVolume] = useState(50);
-<Slider value={volume} onChange={setVolume} min={0} max={100} tooltip="auto" />;
+<Slider
+  label="Volume"
+  value={volume}
+  onChange={setVolume}
+  min={0}
+  max={100}
+  tooltip="auto"
+/>;
 
 const [range, setRange] = useState<[number, number]>([20, 80]);
 // The label names both thumbs: "Price range Minimum value" / "... Maximum value".
@@ -302,7 +309,14 @@ const [range, setRange] = useState<[number, number]>([20, 80]);
 
 // Numberinput
 const [qty, setQty] = useState(1);
-<Numberinput value={qty} onChange={setQty} min={1} max={10} step={1} />;
+<Numberinput
+  label="Quantity"
+  value={qty}
+  onChange={setQty}
+  min={1}
+  max={10}
+  step={1}
+/>;
 
 // PinInput: a one-time code or PIN, a box per character, all in one input.
 // onComplete fires once each time a change fills the last box.
