@@ -21,7 +21,9 @@ hand-written `## Usage` / `## Accessibility` sections of the API pages.
   first line of its code. It is a field rather than a comment in `code` because search reads
   `code`, and the note's words would match there. Each other string a record ships (a whole
   page, a hook's API block) gets the same note above its first such `jsx` or `tsx` fence in each
-  `##` or `###` section, since `get_helper_props` serves a page a section at a time. The docs'
+  `##` or `###` section, since `get_helper_props` serves a page a section at a time. Both split
+  with `sections` in `src/fences.ts`, which the generator loads with node's type stripping, so
+  that file stays dependency-free and a change to it wants `pnpm gen` in the same PR. The docs'
   matcher decides which paths count (`docs/src/theme/CodeBlock/sandbox/site-images.mjs`).
 - `data/catalog.json` and `data/components/*.json` are **committed**.
 - `data/bulma-classes.json` is **committed** too, and comes from somewhere else:
