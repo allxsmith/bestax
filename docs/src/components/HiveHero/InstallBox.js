@@ -201,15 +201,17 @@ export default function InstallBox({ className, style }) {
         </span>
       </div>
       {/*
-        aria-label rather than the command text as the accessible name: the
-        name should say what activating this does, and the command is still
-        readable as content.
+        The name is the command with "Copy" before it. The verb says what
+        activating the button does, and the command is the text it shows, which
+        a voice-control user reads off the screen to click it (WCAG 2.5.3). It's
+        the chosen manager's whole command, so for the moment a switch spends
+        retyping the head, the name already holds the new one.
       */}
       <button
         type="button"
         className={styles.cmd}
         onClick={handleCopy}
-        aria-label={`Copy install command for ${manager}`}
+        aria-label={`Copy ${command}`}
         title={copied ? 'Copied!' : 'Click to copy'}
       >
         <span className={styles.prompt} aria-hidden="true">
