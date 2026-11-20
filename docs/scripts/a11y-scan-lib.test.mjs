@@ -236,56 +236,120 @@ describe('describeFailures', () => {
 });
 
 describe('settleAnimations', () => {
-  /** A stand-in for a Web Animations API animation. */
+  /**
+   * A stand-in for a Web Animations API animation, with `end()` and
+   * `cancel()` to move it on the way the browser would.
+   */
   function animation({ endTime = 100, playState = 'running' } = {}) {
-    let end;
-    const finished = new Promise(resolve => {
-      end = resolve;
-    });
-    return {
+    let resolve;
+    let reject;
+    const anim = {
       playState,
       effect: { getComputedTiming: () => ({ endTime }) },
-      finished,
-      end,
+      finished: new Promise((res, rej) => {
+        resolve = res;
+        reject = rej;
+      }),
+      end() {
+        anim.playState = 'finished';
+        resolve();
+      },
+      cancel() {
+        anim.playState = 'idle';
+        reject(new Error('AbortError'));
+      },
+    };
+    anim.finished.catch(() => {});
+    return anim;
+  }
+  /** A document (or shadow root) holding `animations` and `hosts`. */
+  function rootWith(animations, hosts = []) {
+    return {
+      // As a browser does, a cancelled animation drops out of the list.
+      getAnimations: () => animations.filter(a => a.playState !== 'idle'),
+      querySelectorAll: () => hosts,
     };
   }
-  const documentWith = animations => ({ getAnimations: () => animations });
+  const tick = ms => new Promise(resolve => setTimeout(resolve, ms));
+  /** Starts settling, and tracks whether it has finished. */
+  function settle(timeoutMs, doc) {
+    const state = { done: false };
+    state.result = settleAnimations(timeoutMs, doc).then(result => {
+      state.done = true;
+      return result;
+    });
+    return state;
+  }
 
-  it('waits for the animations that will end, and not for one that loops', async () => {
+  it('waits for a running animation that will end, and not for one that loops', async () => {
     const fade = animation();
-    const loop = animation({ endTime: Infinity });
-    let settled = false;
-    const waiting = settleAnimations(10_000, documentWith([fade, loop])).then(
-      count => {
-        settled = true;
-        return count;
-      }
+    const settling = settle(
+      10_000,
+      rootWith([fade, animation({ endTime: Infinity })])
     );
-    await new Promise(resolve => setTimeout(resolve, 20));
-    expect(settled).toBe(false);
+    await tick(20);
+    expect(settling.done).toBe(false);
     fade.end();
-    expect(await waiting).toBe(1);
+    expect(await settling.result).toEqual({ timedOut: false });
   });
 
-  it('counts none that have already finished', async () => {
+  it('leaves alone one that is paused or already finished', async () => {
     expect(
       await settleAnimations(
         10_000,
-        documentWith([animation({ playState: 'finished' })])
+        rootWith([
+          animation({ playState: 'paused' }),
+          animation({ playState: 'finished' }),
+        ])
       )
-    ).toBe(0);
+    ).toEqual({ timedOut: false });
   });
 
-  it('gives up on one that never ends once the timeout passes', async () => {
-    const paused = animation({ playState: 'paused' });
-    const start = Date.now();
-    expect(await settleAnimations(30, documentWith([paused]))).toBe(1);
-    expect(Date.now() - start).toBeGreaterThanOrEqual(25);
+  it('waits again for an animation that starts as another ends', async () => {
+    const first = animation();
+    const second = animation();
+    const animations = [first];
+    const settling = settle(10_000, rootWith(animations));
+    animations.push(second);
+    first.end();
+    await tick(20);
+    expect(settling.done).toBe(false);
+    second.end();
+    expect(await settling.result).toEqual({ timedOut: false });
+  });
+
+  it('waits for one inside a shadow root', async () => {
+    const fade = animation();
+    const settling = settle(
+      10_000,
+      rootWith([], [{ shadowRoot: rootWith([fade]) }, { shadowRoot: null }])
+    );
+    await tick(20);
+    expect(settling.done).toBe(false);
+    fade.end();
+    expect(await settling.result).toEqual({ timedOut: false });
   });
 
   it('treats a cancelled animation as ended', async () => {
-    const cancelled = animation();
-    cancelled.finished = Promise.reject(new Error('AbortError'));
-    expect(await settleAnimations(10_000, documentWith([cancelled]))).toBe(1);
+    const fade = animation();
+    const settling = settle(10_000, rootWith([fade]));
+    fade.cancel();
+    expect(await settling.result).toEqual({ timedOut: false });
+  });
+
+  it('says it timed out when a running animation outlasts the timeout', async () => {
+    const start = Date.now();
+    expect(await settleAnimations(30, rootWith([animation()]))).toEqual({
+      timedOut: true,
+    });
+    expect(Date.now() - start).toBeGreaterThanOrEqual(25);
+  });
+
+  it('works from its source alone, as page.evaluate sends it', async () => {
+    const isolated = new Function(`return ${settleAnimations}`)();
+    const fade = animation();
+    const settling = isolated(10_000, rootWith([fade]));
+    fade.end();
+    expect(await settling).toEqual({ timedOut: false });
   });
 });

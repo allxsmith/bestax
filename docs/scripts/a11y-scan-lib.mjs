@@ -1,7 +1,8 @@
 /**
  * The parts of the docs site's axe pass (`a11y-scan.mjs`) that need no
  * browser: reading its arguments and the sitemap, and matching what axe
- * reports against the exemptions in `a11y-exemptions.mjs`.
+ * reports against the exemptions in `a11y-exemptions.mjs`. Plus
+ * `settleAnimations`, which the pass runs inside the page.
  */
 
 /** The axe rules the pass runs: WCAG 2.0, 2.1 and 2.2, Level A and AA. */
@@ -162,32 +163,50 @@ export function judge(violations, exemptions, theme, pagesFailed = false) {
 }
 
 /**
- * Waits, in the page, until every animation that will end has ended, or until
- * `timeoutMs` has passed, and returns how many it waited for. That's a CSS
- * animation with a finite count, or a transition; one that loops forever
+ * Waits, in the page, until no animation that will end is still running, or
+ * until `timeoutMs` has passed, and says whether it ran out of time. That's a
+ * CSS animation with a finite count, or a transition; one that loops forever
  * never ends and isn't waited for. axe takes text at zero opacity for hidden,
- * so a check while an element is still fading in skips it (#2249). The scan
- * runs this in the browser through `page.evaluate`, so it uses nothing from
- * this module's scope. An animation the page holds paused (some pause theirs
- * while scrolled out of view) is waited for only until the timeout.
+ * so a check while an element is still fading in skips it (#2249).
+ *
+ * It looks again after each wait, since one animation can start another, and
+ * in open shadow roots too, where the live examples render: a document's
+ * `getAnimations()` leaves those out. A paused animation is left alone. It
+ * won't move while the page sits, and the scan has scrolled every part of
+ * the page into view once already.
+ *
+ * The scan runs it in the browser through `page.evaluate`, which sends it as
+ * source text, so it uses nothing from this module's scope. A test runs it
+ * from its source alone.
  */
-export async function settleAnimations(timeoutMs, doc = document) {
-  const ending = doc
-    .getAnimations()
-    .filter(
-      animation =>
-        animation.playState !== 'finished' &&
-        animation.effect?.getComputedTiming().endTime !== Infinity
-    );
-  let timer;
-  await Promise.race([
-    Promise.all(ending.map(animation => animation.finished.catch(() => {}))),
-    new Promise(resolve => {
-      timer = setTimeout(resolve, timeoutMs);
-    }),
-  ]);
-  clearTimeout(timer);
-  return ending.length;
+export async function settleAnimations(timeoutMs, doc = globalThis.document) {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    const roots = [doc];
+    for (let i = 0; i < roots.length; i++) {
+      for (const element of roots[i].querySelectorAll('*')) {
+        if (element.shadowRoot) roots.push(element.shadowRoot);
+      }
+    }
+    const running = roots
+      .flatMap(root => root.getAnimations())
+      .filter(
+        animation =>
+          animation.playState === 'running' &&
+          animation.effect?.getComputedTiming().endTime !== Infinity
+      );
+    if (!running.length) return { timedOut: false };
+    const left = deadline - Date.now();
+    if (left <= 0) return { timedOut: true };
+    let timer;
+    await Promise.race([
+      Promise.all(running.map(animation => animation.finished.catch(() => {}))),
+      new Promise(resolve => {
+        timer = setTimeout(resolve, left);
+      }),
+    ]);
+    clearTimeout(timer);
+  }
 }
 
 /**
