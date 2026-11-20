@@ -178,7 +178,7 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   `aria-hidden` `<span class="delete-target">` as its last child, a transparent box at least 24px
   square that takes the button's presses, where Bulma's circle is 20px, 16px small. It draws
   nothing and assistive tech skips it, so the page looks and reads the same, and a migrated app
-  gets the larger target. The render tests restate the span on the raw side
+  that loads bestax's stylesheet gets the larger target. The render tests restate the span on the raw side
   (`withDeleteTargets` in the same file), only as the last child of a `.delete` `<button>` that
   doesn't end in one, where the converted button does. It runs before the restatements that pair
   every element in document order, since the span is an element they count.
