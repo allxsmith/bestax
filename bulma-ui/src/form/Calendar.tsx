@@ -109,9 +109,11 @@ interface CalendarBaseProps
    * in the Calendar's locale ("Tuesday, October 20, 2026"). When
    * `dayTemplate` draws text, start the name with what the day shows, its
    * number and then that text, and end it with `label`:
-   * `` (date, label) => `${date.getDate()}, 3 left, ${label}` ``. Someone
-   * using speech input says what they see, and a name with the day's words
-   * in another order, or in other words, may not match. On a server-rendered
+   * `` (date, label) => `${date.getDate()}, 3 left, ${label}` ``. In a
+   * locale that writes other digits, the number shows in them, as
+   * `date.getDate().toLocaleString(locale)` writes it. Someone using speech
+   * input says what they see, and a name with the day's words in another
+   * order, or in other words, may not match. On a server-rendered
    * page the full-date names arrive once the page hydrates, as the pickers'
    * full weekday names do, and until then a day is named by its number and
    * the text `dayTemplate` draws.
