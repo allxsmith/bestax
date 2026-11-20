@@ -1,3 +1,11 @@
+## [1.18.86](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.85...bestax-mcp@1.18.86) (2026-11-20)
+
+
+### Bug Fixes
+
+* **bulma-ui:** draw Taginput's focus ring outside a Control ([d9be71e](https://github.com/allxsmith/bestax/commit/d9be71e43e5599ef0ac7728e4b85c9b7161b8b02)), closes [#2189](https://github.com/allxsmith/bestax/issues/2189)
+* **bulma-ui:** warn in development about an unnamed Modal, Slider, Numberinput or Image ([9339119](https://github.com/allxsmith/bestax/commit/9339119dbdb19079e9a3f08b0867f645e1e53ec8)), closes [#2201](https://github.com/allxsmith/bestax/issues/2201)
+
 ## [1.18.85](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.84...bestax-mcp@1.18.85) (2026-11-20)
 
 

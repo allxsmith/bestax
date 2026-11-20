@@ -37,3 +37,31 @@ export const warnOnce = (key: string, message: string): void => {
   warnedKeys.add(key);
   console.warn(message);
 };
+
+/** What a browser can take an element's name from, besides a `<label>`. */
+const NAMING_ATTRIBUTES = ['aria-label', 'aria-labelledby', 'title'];
+
+/**
+ * Warns, as `warnOnce` does, about an element that nothing names: no
+ * `<label>` of its own and none of `NAMING_ATTRIBUTES`. It reads the
+ * rendered element, so call it after mount, from an effect: a label outside
+ * the component can name an input, such as an outer `Field`'s or one wired
+ * by hand with `htmlFor`. A label or an `aria-labelledby` counts whatever
+ * it leads to, since reading the name it gives would misjudge one held in
+ * an image's `alt` or another element's `aria-label`.
+ */
+export const warnIfUnnamed = (
+  element: HTMLElement | null,
+  key: string,
+  message: string
+): void => {
+  if (!isDev() || !element || warnedKeys.has(key)) return;
+  // Undefined on an element that takes no label, such as a dialog's root.
+  const labels = (element as HTMLInputElement).labels;
+  const named =
+    (labels?.length ?? 0) > 0 ||
+    NAMING_ATTRIBUTES.some(
+      attribute => (element.getAttribute(attribute) ?? '').trim() !== ''
+    );
+  if (!named) warnOnce(key, message);
+};

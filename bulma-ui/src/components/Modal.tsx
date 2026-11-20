@@ -22,6 +22,7 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 import { useConfig } from '../helpers/Config';
+import { warnIfUnnamed } from '../helpers/devWarnings';
 import { useScrollLock } from '../helpers/scrollLock';
 import {
   getActiveElementInTree,
@@ -74,7 +75,8 @@ export interface ModalProps
    * `aria-labelledby`. With `type="content"` it isn't shown, and a title
    * that's a string still names the dialog, as its `aria-label`. Without one, give
    * the modal an `aria-label`, or an `aria-labelledby` pointing at a heading
-   * inside it. It's drawn in the card's `<header>`, which is a banner
+   * inside it: a development build warns about an open modal nothing names.
+   * It's drawn in the card's `<header>`, which is a banner
    * landmark unless the modal sits inside `<main>` or a sectioning element,
    * as it doesn't when `portal` renders it at the end of `<body>`. The props
    * form can't give the header a role, so point `portal` at an element
@@ -633,6 +635,22 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   // A test id the caller passes wins. It's written after `rest`, since a
   // spread carrying `data-testid: undefined` would otherwise erase the default.
   const testId = (rest as { 'data-testid'?: string })['data-testid'] ?? 'modal';
+
+  // In development, an open dialog that nothing names says so, read from
+  // the rendered root, where the title's attribute and the caller's land.
+  const needsName = resolvedRole === 'dialog' || resolvedRole === 'alertdialog';
+  useEffect(() => {
+    if (isModalActive && needsName) {
+      warnIfUnnamed(
+        modalRootRef.current,
+        'Modal:unnamed',
+        '[bestax-bulma] A Modal opened with no accessible name. Give it an ' +
+          'aria-label, an aria-labelledby pointing at a heading inside it, ' +
+          'or in the props form a modalCardTitle, which names a modal drawn ' +
+          'as content only when it is a string.'
+      );
+    }
+  }, [isModalActive, needsName]);
 
   let modalElement: React.ReactElement;
 
