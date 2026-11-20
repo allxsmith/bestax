@@ -95,15 +95,4 @@ export default [
     ],
     issue: 1917,
   })),
-
-  // Published posts' examples, left as they went out for now.
-  {
-    rule: 'label',
-    pages: [
-      '/blog/2026/07/28/bulma-3-css-framework-ai-will-never-tell-you-about-it',
-      '/blog/extra-components',
-      '/blog/v3-forms-release',
-    ],
-    issue: 2229,
-  },
 ];
