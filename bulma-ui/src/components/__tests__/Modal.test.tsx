@@ -352,23 +352,35 @@ describe('Modal', () => {
       expect(screen.getByTestId('close-btn')).toHaveClass('is-large');
     });
 
-    // A `.delete` gets a hit area at least 24px square (#2198), and the
-    // floating close, drawn larger, has no circle to grow past.
-    it('gives the delete variant the hit area, keeping children, and the floating one none', () => {
+    // Each variant gets a hit area at least 24px square (#2198): Bulma draws
+    // the delete one 20px across and a small floating one 16px.
+    it.each(['delete', 'floating'] as const)(
+      'gives the %s variant the hit area, after any children',
+      variant => {
+        render(
+          <Modal isActive>
+            <Modal.Close variant={variant} data-testid="close-btn">
+              <span>extra</span>
+            </Modal.Close>
+          </Modal>
+        );
+        const close = screen.getByTestId('close-btn');
+        expect(close.children).toHaveLength(2);
+        expect(close.children[0]).toHaveTextContent('extra');
+        expect(close.children[1]).toHaveClass('delete-target');
+        expect(close.children[1]).toHaveAttribute('aria-hidden', 'true');
+      }
+    );
+
+    it('keeps a Modal.Close given dangerouslySetInnerHTML working, with no hit area', () => {
+      // React refuses children beside it, so the hit area gives way.
       render(
-        <Modal isActive>
-          <Modal.Close data-testid="delete-close">
-            <span>extra</span>
-          </Modal.Close>
-          <Modal.Close variant="floating" data-testid="floating-close" />
-        </Modal>
+        <Modal.Close
+          data-testid="close-btn"
+          dangerouslySetInnerHTML={{ __html: '<b>x</b>' }}
+        />
       );
-      const deleteClose = screen.getByTestId('delete-close');
-      expect(deleteClose.children).toHaveLength(2);
-      expect(deleteClose.children[0]).toHaveTextContent('extra');
-      expect(deleteClose.children[1]).toHaveClass('delete-target');
-      expect(deleteClose.children[1]).toHaveAttribute('aria-hidden', 'true');
-      expect(screen.getByTestId('floating-close')).toBeEmptyDOMElement();
+      expect(screen.getByTestId('close-btn').innerHTML).toBe('<b>x</b>');
     });
 
     it('Modal.Close renders with custom size for floating variant', () => {

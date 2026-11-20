@@ -190,6 +190,12 @@ describe('Delete Component', () => {
       expect(handleClick).not.toHaveBeenCalled();
     });
 
+    it('keeps a delete given dangerouslySetInnerHTML working, with no target', () => {
+      // React refuses children beside it, so the hit area gives way.
+      render(<Delete dangerouslySetInnerHTML={{ __html: '<b>x</b>' }} />);
+      expect(screen.getByRole('button').innerHTML).toBe('<b>x</b>');
+    });
+
     it('keeps children a caller passes, ahead of the target', () => {
       render(
         <Delete>

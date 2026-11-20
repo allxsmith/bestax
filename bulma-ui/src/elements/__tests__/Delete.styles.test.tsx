@@ -448,7 +448,8 @@ describe('every close button on a forced-colors page', () => {
 
 /** The rule for a close button's hit area, which applies outside forced colors. */
 const targetSelector = (prefix: string) =>
-  `.${prefix}delete > .${prefix}delete-target`;
+  `.${prefix}delete > .${prefix}delete-target, ` +
+  `.${prefix}modal-close > .${prefix}delete-target`;
 
 describe('the Delete partial', () => {
   it.each([
@@ -471,10 +472,11 @@ describe('the Delete partial', () => {
     }
   );
 
-  // Bulma's delete button is 20px across, 16px small, and WCAG 2.5.8 asks for
-  // a 24px target (#2198). Its cross is on its `::before` and `::after`, so
-  // the target is a span inside it, a transparent box centred on the button,
-  // which grows the hit area and leaves the circle and its layout alone.
+  // Bulma's delete button is 20px across, 16px small, as is a small floating
+  // close, and WCAG 2.5.8 asks for a 24px target (#2198). Their cross is on
+  // their `::before` and `::after`, so the target is a span inside them, a
+  // transparent box centred on the button, which grows the hit area and
+  // leaves the circle and its layout alone.
   it.each([
     ['no prefix', ''],
     ['a class prefix', 'bestax-'],
@@ -501,12 +503,13 @@ describe('the Delete partial', () => {
     }
   );
 
-  // Every `.delete` bestax renders carries the span the rule above reaches.
+  // Every close button bestax draws with Bulma's delete mixin carries the
+  // span the rule above reaches. A delete tag draws a 2em square, 24px.
   describe.each([
     ['no prefix', ''],
     ['a class prefix', 'bestax-'],
   ])('with %s', (_label, prefix) => {
-    it.each(CLOSES.filter(([, className]) => className === 'delete'))(
+    it.each(CLOSES.filter(([, className]) => className !== 'is-delete'))(
       'reaches the hit area inside %s',
       (_name, className, ui) => {
         const close = closeOf(ui, className, prefix);

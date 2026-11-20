@@ -6,7 +6,7 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 import { buttonType } from '../helpers/buttonType';
-import { DeleteTarget } from '../helpers/deleteTarget';
+import { deleteContent } from '../helpers/deleteTarget';
 
 /**
  * Props for the Delete component.
@@ -67,7 +67,6 @@ export const Delete: React.FC<DeleteProps> = ({
   size,
   ariaLabel,
   disabled = false,
-  children,
   ...props
 }) => {
   /**
@@ -100,8 +99,7 @@ export const Delete: React.FC<DeleteProps> = ({
       aria-label={rest['aria-label'] || ariaLabel || 'Close'}
       type={buttonType((rest as { type?: unknown }).type)}
     >
-      {children}
-      <DeleteTarget />
+      {deleteContent(rest)}
     </button>
   );
 };
