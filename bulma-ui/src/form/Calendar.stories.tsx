@@ -214,14 +214,6 @@ export const SeveralMonths: Story = {
 const priceOf = (date: Date) => 60 + ((date.getDate() * 7) % 50);
 
 export const Prices: Story = {
-  parameters: {
-    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
-    a11y: {
-      config: {
-        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
-      },
-    },
-  },
   args: { 'aria-label': 'Pick a departure day' },
   render: function PricesExample(args) {
     const [day, setDay] = useState<Date | null>(null);
@@ -232,7 +224,9 @@ export const Prices: Story = {
         value={day}
         onChange={setDay}
         dayTemplate={date => `$${priceOf(date)}`}
-        getDayLabel={(date, label) => `${label}, $${priceOf(date)}`}
+        getDayLabel={(date, label) =>
+          `${date.getDate()}, $${priceOf(date)}, ${label}`
+        }
       />
     );
   },
@@ -243,14 +237,6 @@ const slotsLeft = (date: Date) =>
   date.getDay() === 0 || date.getDay() === 6 ? 0 : (date.getDate() % 5) + 1;
 
 export const LoadingEachMonth: Story = {
-  parameters: {
-    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
-    a11y: {
-      config: {
-        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
-      },
-    },
-  },
   args: { 'aria-label': 'Book a slot' },
   render: function LoadingExample(args) {
     const [month, setMonth] = useState(new Date(2026, 10, 1));
@@ -273,7 +259,11 @@ export const LoadingEachMonth: Story = {
         onChange={setDay}
         shouldDisableDate={date => slotsLeft(date) === 0}
         dayTemplate={date => slotsLeft(date) > 0 && `${slotsLeft(date)} left`}
-        getDayLabel={(date, label) => `${label}, ${slotsLeft(date)} slots left`}
+        getDayLabel={(date, label) =>
+          slotsLeft(date) > 0
+            ? `${date.getDate()}, ${slotsLeft(date)} left, ${label}`
+            : label
+        }
       />
     );
   },
@@ -392,14 +382,6 @@ export const ColorsAndSizes: Story = {
 };
 
 export const FullWidth: Story = {
-  parameters: {
-    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
-    a11y: {
-      config: {
-        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
-      },
-    },
-  },
   args: { isFullwidth: true, monthsToShow: 2 },
   render: function FullWidthExample(args) {
     return (
@@ -407,7 +389,9 @@ export const FullWidth: Story = {
         <Calendar
           {...args}
           dayTemplate={date => `$${priceOf(date)}`}
-          getDayLabel={(date, label) => `${label}, $${priceOf(date)}`}
+          getDayLabel={(date, label) =>
+            `${date.getDate()}, $${priceOf(date)}, ${label}`
+          }
         />
       </Block>
     );

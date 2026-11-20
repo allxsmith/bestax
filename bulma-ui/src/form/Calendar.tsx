@@ -100,14 +100,18 @@ interface CalendarBaseProps
   /**
    * Draws content inside a day's button, under its number: a dot, a count,
    * a price. Phrasing content only, with nothing in it to click or focus.
-   * Say the same thing in `getDayLabel`: a day's name is its date, so a
-   * screen reader doesn't read what this draws.
+   * Say the same thing, in the same words, in `getDayLabel`: a day's name
+   * is its date, so a screen reader doesn't read what this draws.
    */
   dayTemplate?: (date: Date, state: CalendarDayState) => React.ReactNode;
   /**
    * Returns a day's accessible name. `label` is the default, the full date
-   * in the Calendar's locale ("Tuesday, October 20, 2026"), so append to it:
-   * `` (date, label) => `${label}, 3 slots left` ``. On a server-rendered
+   * in the Calendar's locale ("Tuesday, October 20, 2026"). When
+   * `dayTemplate` draws text, start the name with what the day shows, its
+   * number and then that text, and end it with `label`:
+   * `` (date, label) => `${date.getDate()}, 3 left, ${label}` ``. Someone
+   * using speech input says what they see, and a name with the day's words
+   * in another order, or in other words, may not match. On a server-rendered
    * page the full-date names arrive once the page hydrates, as the pickers'
    * full weekday names do, and until then a day is named by its number and
    * the text `dayTemplate` draws.
