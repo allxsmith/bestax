@@ -8,6 +8,9 @@ import { Sidebar } from '../Sidebar';
 import { Popover } from '../Popover';
 import { ConfigProvider } from '../../helpers/Config';
 import { inertProps } from '../../helpers/inertProps';
+import { resetDevWarnings } from '../../helpers/devWarnings';
+import { Dialog } from '../Dialog';
+import { Lightbox } from '../Lightbox';
 
 afterEach(() => {
   document.documentElement.style.overflow = '';
@@ -1637,7 +1640,7 @@ describe('Modal', () => {
         </Modal>,
       ],
       [
-        'compound',
+        'the compound form',
         <Modal key="compound" active aria-label="Edit">
           <Modal.Background />
           <Modal.Content>{popup}</Modal.Content>
@@ -1665,5 +1668,183 @@ describe('Modal', () => {
       expect(panel().parentElement).toBe(target);
       target.remove();
     });
+  });
+});
+
+describe('an unnamed Modal in development (#2201)', () => {
+  beforeEach(() => {
+    resetDevWarnings();
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  /** The warnings about a modal with no name. */
+  const unnamedWarnings = () =>
+    vi
+      .mocked(console.warn)
+      .mock.calls.filter(([message]) =>
+        String(message).includes('A Modal opened with no accessible name')
+      );
+
+  it.each([
+    ['a content modal', () => <Modal isActive>Content</Modal>],
+    [
+      'a card with a footer only',
+      () => (
+        <Modal isActive modalCardFoot={<button type="button">Save</button>}>
+          Content
+        </Modal>
+      ),
+    ],
+    [
+      'a card forced with type',
+      () => (
+        <Modal isActive type="card">
+          Content
+        </Modal>
+      ),
+    ],
+    [
+      'content with a title that is not text',
+      () => (
+        <Modal isActive type="content" modalCardTitle={<b>Edit profile</b>}>
+          Content
+        </Modal>
+      ),
+    ],
+    [
+      'a card whose title an empty aria-labelledby replaces',
+      () => (
+        <Modal isActive modalCardTitle="Edit profile" aria-labelledby="">
+          Content
+        </Modal>
+      ),
+    ],
+    [
+      'content whose title an undefined aria-label replaces',
+      () => (
+        <Modal
+          isActive
+          type="content"
+          modalCardTitle="Edit profile"
+          aria-label={undefined}
+        >
+          Content
+        </Modal>
+      ),
+    ],
+    [
+      'the compound form',
+      () => (
+        <Modal isActive>
+          <Modal.Background />
+          <Modal.Content>Content</Modal.Content>
+        </Modal>
+      ),
+    ],
+  ])('warns once about %s, open with no name', (_kind, element) => {
+    render(
+      <>
+        {element()}
+        {element()}
+      </>
+    );
+    expect(screen.getAllByRole('dialog')[0]).toHaveAccessibleName('');
+    expect(unnamedWarnings()).toEqual([
+      [
+        expect.stringMatching(
+          /aria-label, an aria-labelledby .* modalCardTitle/
+        ),
+      ],
+    ]);
+  });
+
+  it.each([
+    [
+      'its card title',
+      () => (
+        <Modal isActive modalCardTitle="Edit profile">
+          Content
+        </Modal>
+      ),
+    ],
+    [
+      'its title drawn as content',
+      () => (
+        <Modal isActive type="content" modalCardTitle="Edit profile">
+          Content
+        </Modal>
+      ),
+    ],
+    [
+      'an aria-label',
+      () => (
+        <Modal isActive aria-label="Edit profile">
+          Content
+        </Modal>
+      ),
+    ],
+    [
+      'an aria-labelledby in the compound form',
+      () => (
+        <Modal isActive aria-labelledby="edit-title">
+          <Modal.Card>
+            <Modal.Card.Head>
+              <Modal.Card.Title id="edit-title">Edit profile</Modal.Card.Title>
+            </Modal.Card.Head>
+          </Modal.Card>
+        </Modal>
+      ),
+    ],
+  ])('stays quiet about a modal named by %s', (_how, element) => {
+    render(element());
+    expect(screen.getByRole('dialog')).toHaveAccessibleName('Edit profile');
+    expect(unnamedWarnings()).toEqual([]);
+  });
+
+  it('reads a portaled modal where it renders', () => {
+    render(
+      <>
+        <Modal isActive portal aria-label="Edit profile">
+          Content
+        </Modal>
+        <Modal isActive portal>
+          Content
+        </Modal>
+      </>
+    );
+    expect(screen.getByRole('dialog', { name: 'Edit profile' })).toBeTruthy();
+    expect(unnamedWarnings()).toHaveLength(1);
+  });
+
+  it('stays quiet while a modal with no name is closed', () => {
+    render(<Modal isActive={false}>Content</Modal>);
+    expect(unnamedWarnings()).toEqual([]);
+  });
+
+  it('warns about an open modal given another role that needs a name', () => {
+    render(
+      <Modal isActive role="alertdialog">
+        Content
+      </Modal>
+    );
+    expect(screen.getByRole('alertdialog')).toHaveAccessibleName('');
+    expect(unnamedWarnings()).toHaveLength(1);
+  });
+
+  it('leaves the naming to a component that takes the role from the modal', () => {
+    render(
+      <>
+        <Modal isActive role="presentation">
+          Content
+        </Modal>
+        <Dialog isOpen title="Saved" message="Your changes are saved." />
+        <Lightbox open items={[{ src: 'a.png', alt: 'A lioness' }]} />
+      </>
+    );
+    expect(unnamedWarnings()).toEqual([]);
   });
 });
