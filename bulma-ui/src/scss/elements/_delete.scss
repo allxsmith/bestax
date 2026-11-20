@@ -32,9 +32,10 @@
 // small too, and their `::before` and `::after` are the cross, so each of them
 // bestax renders holds an empty `.delete-target` for the target: a transparent
 // box at least 24px square, centred on the button, where a press is a press on
-// the button. Padding would grow the button too, and move everything laid out
-// around it. A bigger button covers the box whole. Bulma sets nothing on this
-// class, so it needs no doubled class.
+// the button, and where Bulma's hover shade shows. Padding would grow the
+// button too, and move everything laid out around it. A bigger button covers
+// the box whole. Bulma sets nothing on this class, so it needs no doubled
+// class.
 .#{iv.$class-prefix}delete > .#{iv.$class-prefix}delete-target,
 .#{iv.$class-prefix}modal-close > .#{iv.$class-prefix}delete-target {
   position: absolute;

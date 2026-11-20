@@ -368,6 +368,10 @@ export const ModalCard = withSubComponents(ModalCardComponent, {
  * - 'floating': For floating overlay close button, renders with 'modal-close' class
  *
  * The size prop only applies to the 'floating' variant.
+ *
+ * Either variant holds a transparent box at least 24px square, centred on it, that takes its
+ * presses too, as `Delete` does, unless it's given `dangerouslySetInnerHTML`, which React won't
+ * render beside the box.
  */
 export const ModalClose: React.FC<ModalCloseProps> = ({
   className,

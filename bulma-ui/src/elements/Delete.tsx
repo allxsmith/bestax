@@ -50,8 +50,9 @@ interface DeleteProps
  *
  * A transparent box inside it, at least 24px square and centred on it, takes its presses too, so a
  * small one still meets WCAG 2.5.8's minimum target size while the circle stays as Bulma draws it.
- * The box reaches past a circle smaller than 24px, so where two sit closer than 24px centre to
- * centre their boxes overlap, and a press there goes to the later one.
+ * The box reaches past a circle smaller than 24px, over whatever sits that close, so leave room
+ * around a small one. Given `dangerouslySetInnerHTML`, which React won't render beside children,
+ * the button goes without the box.
  *
  * @function
  * @param {DeleteProps} props - Props for the Delete component.
