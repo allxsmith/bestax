@@ -179,8 +179,9 @@ Notes:
   edge there from the desktop breakpoint up as a CanvasText outline, where Bulma's shadow is
   dropped, marks the active item there
   with a bar in the system's highlight color, where Bulma's colors for it are replaced, keeps a
-  `fixed` navbar in place while an overlay locks the page's scrolling, gives an active item's
-  text the invert of the link color it sits on, where Bulma's leaves it in the navbar's text
+  `fixed` navbar in place while an overlay locks the page's scrolling, pads the page's scroll by
+  a `fixed` navbar's height so a control that takes focus doesn't scroll under it, gives an
+  active item's text the invert of the link color it sits on, where Bulma's leaves it in the navbar's text
   color, draws a navbar in a colored `Hero` in the hero's colors, where Bulma's draws its active item and burger in the link
   color, and, in a build with a class prefix, draws a dropdown's active link row, other than a tab, as it draws without one,
   where Bulma's draws it as a plain row), so an app using `Navbar` needs both, in either order. `AppFrame.Burger` renders `Navbar.Burger`, so a build with one
