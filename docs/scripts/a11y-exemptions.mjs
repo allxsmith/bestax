@@ -66,13 +66,11 @@ export default [
   },
   {
     rule: 'label-content-name-mismatch',
-    pages: ['/docs/api/form/datetime/dateinput'],
+    pages: [
+      '/docs/api/form/datetime/calendar',
+      '/docs/api/form/datetime/dateinput',
+    ],
     issue: 2209,
-  },
-  {
-    rule: 'label-content-name-mismatch',
-    pages: ['/docs/api/form/datetime/calendar', '/docs/guides/library/form'],
-    issue: 2210,
   },
   {
     rule: 'label-content-name-mismatch',

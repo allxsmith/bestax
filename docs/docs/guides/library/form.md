@@ -516,7 +516,9 @@ function CalendarExample() {
         value={day}
         onChange={setDay}
         dayTemplate={date => `$${fare(date)}`}
-        getDayLabel={(date, label) => `${label}, $${fare(date)}`}
+        getDayLabel={(date, label) =>
+          `${date.getDate()}, $${fare(date)}, ${label}`
+        }
       />
       <p className="mt-2">
         {day ? `${day.toDateString()}: $${fare(day)}` : 'Pick a day'}
