@@ -17,7 +17,7 @@
  * it after a change reaches main. If Chromium is missing, install it once:
  * pnpm --filter @allxsmith/bestax-docs exec playwright install chromium
  */
-/* global document, innerHeight, scrollTo -- page callbacks execute in the browser */
+/* global document, innerHeight, requestAnimationFrame, scrollTo -- page callbacks execute in the browser */
 import { spawn } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
@@ -35,6 +35,7 @@ import {
   judge,
   pagesFromSitemap,
   parseArgs,
+  settleAnimations,
 } from './a11y-scan-lib.mjs';
 
 const DOCS = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -48,6 +49,8 @@ const TABS = Math.min(8, availableParallelism());
 const PAGE_TIMEOUT_MS = 60_000;
 /** How long a page's live examples get to render once mounted. */
 const EXAMPLES_TIMEOUT_MS = 30_000;
+/** How long a page's animations get to end before axe checks it anyway. */
+const SETTLE_TIMEOUT_MS = 5_000;
 
 /** A failure the message explains, so it prints without a stack. */
 class Failure extends Error {}
@@ -116,7 +119,10 @@ async function serve(port) {
   throw new Failure('`docusaurus serve` did not answer within a minute.');
 }
 
-/** Loads one page and returns axe's violations on it. */
+/**
+ * Loads one page and returns axe's violations on it, and whether it was still
+ * animating when axe checked it.
+ */
 async function check(context, base, path) {
   const page = await context.newPage();
   try {
@@ -170,15 +176,32 @@ async function check(context, base, path) {
       .catch(() => {
         throw new Error('Its live examples did not all render.');
       });
+    // Scrolling down the page holds back what it fades in: the homepage hero
+    // pauses its animations while scrolled out of view. So axe waits for the
+    // fades to end, rather than taking half-faded text for hidden. Two frames
+    // first, for the page to see it's back at the top and resume them.
+    await page.evaluate(
+      () =>
+        new Promise(resolve =>
+          requestAnimationFrame(() => requestAnimationFrame(resolve))
+        )
+    );
+    const { timedOut } = await page.evaluate(
+      settleAnimations,
+      SETTLE_TIMEOUT_MS
+    );
     const { violations } = await new AxeBuilder({ page })
       .withTags(WCAG_TAGS)
       .analyze();
-    return violations.map(v => ({
-      page: path,
-      rule: v.id,
-      help: v.help,
-      targets: v.nodes.map(n => formatTarget(n.target)),
-    }));
+    return {
+      violations: violations.map(v => ({
+        page: path,
+        rule: v.id,
+        help: v.help,
+        targets: v.nodes.map(n => formatTarget(n.target)),
+      })),
+      unsettled: timedOut,
+    };
   } finally {
     await page.close();
   }
@@ -222,12 +245,15 @@ async function main() {
     );
     const violations = [];
     const errors = [];
+    const unsettled = [];
     let next = 0;
     async function tab() {
       while (next < pages.length) {
         const path = pages[next++];
         try {
-          violations.push(...(await check(context, base, path)));
+          const result = await check(context, base, path);
+          violations.push(...result.violations);
+          if (result.unsettled) unsettled.push(path);
         } catch (error) {
           errors.push(`${path}: ${error.message.split('\n')[0]}`);
         }
@@ -249,6 +275,11 @@ async function main() {
     for (const { exemption, pattern } of stale) {
       console.log(
         `Possibly stale exemption: ${exemption.rule} on ${pattern} covered nothing in ${theme} mode. If its issue is fixed, remove that page from its entry in a11y-exemptions.mjs; if it applies in the other mode only, limit the entry with \`themes\`.`
+      );
+    }
+    for (const path of unsettled) {
+      console.log(
+        `Still fading in after ${SETTLE_TIMEOUT_MS / 1000}s: ${path}. axe checked it as it stood, so text still fading in may have been skipped.`
       );
     }
     for (const error of errors) console.log(`Failed to load ${error}`);

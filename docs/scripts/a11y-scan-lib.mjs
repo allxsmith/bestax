@@ -1,7 +1,8 @@
 /**
  * The parts of the docs site's axe pass (`a11y-scan.mjs`) that need no
  * browser: reading its arguments and the sitemap, and matching what axe
- * reports against the exemptions in `a11y-exemptions.mjs`.
+ * reports against the exemptions in `a11y-exemptions.mjs`. Plus
+ * `settleAnimations`, which the pass runs inside the page.
  */
 
 /** The axe rules the pass runs: WCAG 2.0, 2.1 and 2.2, Level A and AA. */
@@ -159,6 +160,57 @@ export function judge(violations, exemptions, theme, pagesFailed = false) {
             .map(pattern => ({ exemption: e, pattern }))
         );
   return { failing, stale };
+}
+
+/**
+ * Waits, in the page, until no animation that changes opacity and will end is
+ * still running, or until `timeoutMs` has passed, and says whether it ran out
+ * of time. axe takes text at zero opacity for hidden, and blends a partial
+ * opacity into color contrast, so a check while an element is still fading in
+ * skips it or measures it wrong (#2249). One that only moves or recolors an
+ * element (the homepage flips a tile every few seconds) hides nothing, and
+ * one that loops forever never ends, so neither is waited for.
+ *
+ * It looks again after each wait, since one animation can start another, and
+ * in open shadow roots too, where the live examples render: a document's
+ * `getAnimations()` leaves those out. A paused animation is left alone. It
+ * won't move while the page sits, and the scan has scrolled every part of
+ * the page into view once already.
+ *
+ * The scan runs it in the browser through `page.evaluate`, which sends it as
+ * source text, so it uses nothing from this module's scope. A test runs it
+ * from its source alone.
+ */
+export async function settleAnimations(timeoutMs, doc = globalThis.document) {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    const roots = [doc];
+    for (let i = 0; i < roots.length; i++) {
+      for (const element of roots[i].querySelectorAll('*')) {
+        if (element.shadowRoot) roots.push(element.shadowRoot);
+      }
+    }
+    const running = roots
+      .flatMap(root => root.getAnimations())
+      .filter(
+        animation =>
+          animation.playState === 'running' &&
+          animation.effect &&
+          animation.effect.getComputedTiming().endTime !== Infinity &&
+          animation.effect.getKeyframes().some(frame => 'opacity' in frame)
+      );
+    if (!running.length) return { timedOut: false };
+    const left = deadline - Date.now();
+    if (left <= 0) return { timedOut: true };
+    let timer;
+    await Promise.race([
+      Promise.all(running.map(animation => animation.finished.catch(() => {}))),
+      new Promise(resolve => {
+        timer = setTimeout(resolve, left);
+      }),
+    ]);
+    clearTimeout(timer);
+  }
 }
 
 /**
