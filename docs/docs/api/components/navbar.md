@@ -549,6 +549,13 @@ function example() {
   the dropdown, focus moves to the link, with the same exceptions as for an open one, such as focus
   that can't go back to the link, where the menu stays. Below the desktop breakpoint, where the menu always
   shows under the burger, Escape doesn't put it away, though it still closes an open one.
+- **A fixed navbar:** with `fixed="top"`, bestax's styles pad the page's scroll by the navbar's
+  height, `--bulma-navbar-height`, so a control that takes focus as <kbd>Shift</kbd>+<kbd>Tab</kbd>
+  moves up the page, or an in-page link's target, lands below the navbar rather than under it.
+  `fixed="bottom"` pads the bottom of the page the same way. A `scroll-padding-top` of your own on
+  `<html>`, or an [`AppFrame`](../layout/appframe.md)'s, still wins. A spaced navbar is taller than
+  that from the desktop breakpoint up, so there it pads less than the navbar covers. This ships in
+  `bestax.css` and `extras.css`, not in Bulma's own stylesheet.
 - **Forced colors:** Bulma draws the burger's bars as a background color, which forced colors
   (Windows' contrast themes) replaces, so the burger would vanish there while it still works and
   takes focus. bestax's styles keep its bars visible in the system's button text color. That rule
