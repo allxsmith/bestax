@@ -49,11 +49,11 @@ The default usage of the `Delete` component renders a Bulma-styled close button.
 The `size` prop allows you to adjust the button size. Use `size="small"`, `size="medium"`, or `size="large"` to match the context of your UI.
 
 ```tsx live
-<>
+<Group>
   <Delete size="small" />
   <Delete size="medium" />
   <Delete size="large" />
-</>
+</Group>
 ```
 
 ### Disabled
@@ -136,6 +136,7 @@ The `Delete` component can be placed in a message header for dismissible message
 - **Keyboard:** The button is focusable and supports keyboard activation.
 - **Forms:** It renders `type="button"`, so a delete button inside a form doesn't submit it.
 - **Disabled:** Uses both `disabled` and Bulma’s `is-disabled` for proper styling and accessibility.
+- **Target size:** Bulma draws the button 20px across, and 16px with `size="small"`, under WCAG 2.5.8's 24px minimum target size. A transparent box inside it, at least 24px square and centred on it, takes its presses too, so a press just beside the circle still reaches it, while the circle and everything around it stay as Bulma draws them. Where two sit closer than 24px centre to centre, their boxes overlap and the later one takes a press there, so give them room, as the sizes example above does. The other close and remove buttons bestax draws as a `.delete` have the same box. A `<button class="delete">` you write yourself doesn't, so render `Delete` instead.
 - **Forced colors:** Bulma draws the circle and the cross as background colors, which forced colors (Windows' contrast themes) replaces, so the button would vanish there while it still works and takes focus. bestax's styles keep it drawn in the system's button colors, with its focus ring in the system's highlight color, and a disabled one, or one inside a disabled `<fieldset>`, in the system's color for disabled controls. Every close button bestax renders is a `Delete`, apart from the [Modal](../components/modal.md)'s floating close, a [Tag](./tag.md) with `isDelete`, and the [Sidebar](../components/sidebar.md)'s `Sidebar.Close`, and those keep their crosses in the system's colors too.
 
 :::tip
@@ -174,6 +175,7 @@ For custom close actions, use the `onClick` prop.
 | `size`      | `'small'` \| `'medium'` \| `'large'`                                            | —         | Size modifier for the delete button.                                                                                                                                                                                                       |
 | `ariaLabel` | `string`                                                                        | `'Close'` | Accessible name for the button. An `aria-label` you pass takes precedence over it, unless it is empty or arrives as `undefined` through a spread. An empty `ariaLabel` falls back to the default too, so the button is never left unnamed. |
 | `disabled`  | `boolean`                                                                       | `false`   | Whether the button is disabled (default: false).                                                                                                                                                                                           |
+| `children`  | `React.ReactNode`                                                               | —         | Content rendered inside the component.                                                                                                                                                                                                     |
 | `...`       | All standard `<button>` attributes and Bulma helper props                       | —         | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                          |
 
 <!-- /bestax:generated props -->

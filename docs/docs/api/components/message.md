@@ -192,7 +192,7 @@ You can combine the traditional prop-based API with compound components. The hea
 ## Accessibility
 
 - The message is rendered as `<article class="message">`.
-- If `onClose` is provided, a close button is rendered, named "delete" unless `ariaCloseLabel` names it. It's drawn as an icon, so its name is all a screen reader says about it: in an app in another language, give it one in the page's language. An `aria-label` on `Message` names the `<article>`, not the button.
+- If `onClose` is provided, a close button is rendered, named "delete" unless `ariaCloseLabel` names it. It's drawn as an icon, so its name is all a screen reader says about it: in an app in another language, give it one in the page's language. An `aria-label` on `Message` names the `<article>`, not the button. It takes presses on a box 24px square around its circle, as [`Delete`](../elements/delete.md#accessibility) does.
 - For optimal accessibility, use clear and descriptive titles/content.
 
 :::note
