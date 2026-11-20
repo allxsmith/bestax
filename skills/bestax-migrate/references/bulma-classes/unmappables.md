@@ -850,7 +850,9 @@ The app's document has its own `<html>` and `<body>`, which a component can't re
   `has-navbar-fixed-bottom-touch`, `has-spaced-navbar-fixed-top` and
   `has-spaced-navbar-fixed-bottom` (`html-document:has-navbar-fixed-bottom` and so on): Bulma
   pads the page for a fixed navbar from it. Put the class on the `<html>` in `index.html`, since
-  bestax's `Navbar` adds none there, whatever its `fixed` says.
+  bestax's `Navbar` adds none there, whatever its `fixed` says. The `has-spaced-` pair pads only
+  where `--bulma-navbar-padding-vertical` is registered on `:root`, and sets the padding to 0
+  otherwise, in plain Bulma as in bestax, so register it there with the navbar's padding.
 - **`html-document:data-theme`**, **`html-document:theme-dark`**, **`html-document:theme-light`**:
   the page's color scheme. Put it on the `<html>` in `index.html`, where the first paint has it.
   For a scheme the visitor switches, `Theme colorMode` writes the choice only after that paint,
