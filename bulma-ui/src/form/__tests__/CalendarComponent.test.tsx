@@ -162,6 +162,7 @@ describe('Calendar', () => {
       expect(last).toHaveAttribute('aria-hidden', 'true');
       for (const day of last.querySelectorAll('[role="gridcell"]')) {
         expect(day.textContent).toBe('');
+        expect(day.firstElementChild).toHaveStyle({ visibility: 'hidden' });
       }
       for (const week of [...novemberWeeks.slice(0, 5), ...weeks(december)]) {
         expect(week).not.toHaveAttribute('aria-hidden');
@@ -1385,8 +1386,9 @@ describe('Calendar', () => {
     it('selects no blank day inside a range (#2194)', () => {
       // November 28 to December 3. December's first week starts with
       // November 29 and 30, which November shows, so December leaves them
-      // blank, and only the days on show are selected.
-      render(
+      // blank: cells that are neither selected nor drawn as part of the
+      // range, and only the days on show are selected.
+      const { container } = render(
         <Calendar
           locale="en-US"
           selectionMode="range"
@@ -1394,6 +1396,18 @@ describe('Calendar', () => {
           defaultValue={[new Date(2026, 10, 28), new Date(2026, 11, 3)]}
         />
       );
+      const [, december] = grids(container);
+      const firstWeek = december.querySelectorAll('[role="row"]')[1];
+      const [sunday, monday] = Array.from(
+        firstWeek.querySelectorAll<HTMLElement>('[role="gridcell"]')
+      );
+      for (const blank of [sunday, monday]) {
+        expect(blank).not.toHaveAttribute('aria-selected');
+        expect(blank.firstElementChild).toHaveAttribute(
+          'class',
+          'dateinput-cell'
+        );
+      }
       expect(
         screen
           .getAllByRole('gridcell', { selected: true })

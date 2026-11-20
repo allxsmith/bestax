@@ -955,6 +955,7 @@ export const Calendar: React.FC<CalendarProps> = ({
   const monthsRowClass = usePrefixedClassNames('dateinput-months-row');
   const yearsGridClass = usePrefixedClassNames('dateinput-years-grid');
   const cellContentClass = usePrefixedClassNames('dateinput-cell-content');
+  const blankCellClass = usePrefixedClassNames('dateinput-cell');
   const monthsClass = usePrefixedClassNames('calendar-months');
 
   const focusedYear = focusedDate.getFullYear();
@@ -1438,6 +1439,25 @@ export const Calendar: React.FC<CalendarProps> = ({
       </div>
       {inWeeks(
         shownCells[i].map((cell, j) => {
+          // A blank day is an empty cell that keeps its place in the week,
+          // so the days after it stay under their own weekday for assistive
+          // technology (#2194). The hidden box inside keeps a day's size. As
+          // a flex item it's a block, as a day is in its week's grid, so no
+          // line box adds to its height.
+          if (!shownDays[i][j]) {
+            return (
+              <div
+                key={cell.date.toISOString()}
+                role="gridcell"
+                style={{ display: 'flex' }}
+              >
+                <span
+                  className={blankCellClass}
+                  style={{ visibility: 'hidden' }}
+                />
+              </div>
+            );
+          }
           const unselectable = isDateUnselectable(cell.date);
           const disabled = calendarDisabled || unselectable;
           const time = cell.date.getTime();
@@ -1485,26 +1505,6 @@ export const Calendar: React.FC<CalendarProps> = ({
             'is-disabled': disabled,
             'is-other-month': otherMonth,
           });
-          // A blank day is an empty cell that keeps its place in the week,
-          // so the days after it stay under their own weekday for assistive
-          // technology (#2194). The hidden box inside keeps a day's size,
-          // laid out as a flex item, as a day is in its week, so no line box
-          // adds to its height.
-          if (!shownDays[i][j]) {
-            return (
-              <div
-                key={cell.date.toISOString()}
-                role="gridcell"
-                style={{ display: 'flex' }}
-              >
-                <span
-                  className={cellClass}
-                  aria-hidden="true"
-                  style={{ visibility: 'hidden' }}
-                />
-              </div>
-            );
-          }
           const fullName = fullNames?.[i][j];
           const content = dayContent
             ? dayContent(cell.date, {
