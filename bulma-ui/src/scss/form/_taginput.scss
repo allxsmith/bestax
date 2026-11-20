@@ -16,6 +16,16 @@ $taginput-tag-gap: 0.25rem !default;
 $taginput-dropdown-max-height: 200px !default;
 $taginput-transition-duration: cv.getVar("duration") !default;
 
+// The focus ring's values. Bulma registers its input focus variables on
+// `.control`, `.input`, `.textarea` and `.select`, and the Taginput's box is
+// none of them, so outside a Control nothing sets them. Bulma's global focus
+// values stand in there, and a wrapping Control's own values still win.
+$-focus-h: cv.getVarWithBackup("input-focus-h", "focus-h");
+$-focus-s: cv.getVarWithBackup("input-focus-s", "focus-s");
+$-focus-l: cv.getVarWithBackup("input-focus-l", "focus-l");
+$-focus-shadow-size: cv.getVarWithBackup("input-focus-shadow-size", "focus-shadow-size");
+$-focus-shadow-alpha: cv.getVarWithBackup("input-focus-shadow-alpha", "focus-shadow-alpha");
+
 // Register CSS custom properties
 .#{iv.$class-prefix}taginput {
   @include cv.register-vars(
@@ -60,8 +70,8 @@ $taginput-transition-duration: cv.getVar("duration") !default;
     }
 
     &:focus-within {
-      border-color: hsl(cv.getVar("input-focus-h"), cv.getVar("input-focus-s"), cv.getVar("input-focus-l"));
-      box-shadow: cv.getVar("input-focus-shadow-size") hsla(cv.getVar("input-focus-h"), cv.getVar("input-focus-s"), cv.getVar("input-focus-l"), cv.getVar("input-focus-shadow-alpha"));
+      border-color: hsl($-focus-h, $-focus-s, $-focus-l);
+      box-shadow: $-focus-shadow-size hsla($-focus-h, $-focus-s, $-focus-l, $-focus-shadow-alpha);
     }
 
     &.#{iv.$class-prefix}is-attached {
@@ -318,7 +328,7 @@ $taginput-transition-duration: cv.getVar("duration") !default;
   .#{iv.$class-prefix}taginput.#{iv.$class-prefix}is-#{$name} {
     .#{iv.$class-prefix}taginput-container:focus-within {
       border-color: cv.getVar($name);
-      box-shadow: cv.getVar("input-focus-shadow-size") hsla(cv.getVar("#{$name}-h"), cv.getVar("#{$name}-s"), cv.getVar("#{$name}-l"), cv.getVar("input-focus-shadow-alpha"));
+      box-shadow: $-focus-shadow-size hsla(cv.getVar("#{$name}-h"), cv.getVar("#{$name}-s"), cv.getVar("#{$name}-l"), $-focus-shadow-alpha);
     }
   }
 }

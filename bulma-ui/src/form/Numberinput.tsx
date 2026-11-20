@@ -1,8 +1,15 @@
-import React, { forwardRef, useState, useCallback, useRef } from 'react';
+import React, {
+  forwardRef,
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+} from 'react';
 import { flushSync } from 'react-dom';
 import type { JSX } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { warnIfUnnamed } from '../helpers/devWarnings';
 import {
   useFieldsetDisabled,
   useInsideField,
@@ -66,7 +73,7 @@ export interface NumberinputProps
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'>,
     FormFieldProps {
-  /** Field label. Automatically associated with the number input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here. Not rendered either by a plusminus `bare` Numberinput outside a `Field`. */
+  /** Field label. Automatically associated with the number input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here. Not rendered either by a plusminus `bare` Numberinput outside a `Field`. A development build warns about a Numberinput nothing names. */
   label?: React.ReactNode;
   /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then). */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
@@ -192,11 +199,11 @@ const ArrowDropDown = () => (
  *
  * @example
  * // Basic number input
- * <Numberinput defaultValue={5} min={0} max={100} />
+ * <Numberinput label="Quantity" defaultValue={5} min={0} max={100} />
  *
  * @example
  * // Stepper variant with color
- * <Numberinput variant="stepper" color="primary" step={10} />
+ * <Numberinput label="Quantity" variant="stepper" color="primary" step={10} />
  */
 export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
   (
@@ -437,6 +444,23 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
       messageColor,
       props['aria-describedby']
     );
+
+    // Read once it has mounted, since a label outside it, an outer Field's or
+    // a `<label htmlFor>` of the caller's, can name the input. A browser
+    // falls back on a number field's placeholder for its name, too.
+    useEffect(() => {
+      const input = inputRef.current as HTMLInputElement;
+      if (input.placeholder.trim() !== '') return;
+      warnIfUnnamed(
+        input,
+        'Numberinput:unnamed',
+        '[bestax-bulma] <Numberinput> has no accessible name. Pass label, ' +
+          'aria-label or aria-labelledby, or point a <label> at its input, ' +
+          'so a screen reader can say what the number is. A bare plusminus ' +
+          'Numberinput outside a Field renders no label, so name that one ' +
+          'another way.'
+      );
+    }, []);
 
     // Use combined ref
     const combinedRef = (node: HTMLInputElement | null) => {

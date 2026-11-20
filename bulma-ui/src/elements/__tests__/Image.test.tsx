@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { Image, ImageProps } from '../Image';
 import { ConfigProvider } from '../../helpers/Config';
+import { resetDevWarnings } from '../../helpers/devWarnings';
 
 describe('Image Component', () => {
   const defaultProps: ImageProps = {
@@ -268,5 +269,57 @@ describe('Image color text alias', () => {
     const figure = container.querySelector('.image');
     expect(figure).toHaveClass('has-text-danger');
     expect(figure).not.toHaveClass('has-text-primary');
+  });
+});
+
+describe('an Image with no alt in development (#2201)', () => {
+  beforeEach(() => {
+    resetDevWarnings();
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  /** The warnings about an image with no alt. */
+  const altWarnings = () =>
+    vi
+      .mocked(console.warn)
+      .mock.calls.filter(([message]) =>
+        String(message).includes('<Image> renders an <img> with no alt')
+      );
+
+  test('warns once about an image with no alt, naming both fixes', () => {
+    const { container } = render(
+      <>
+        <Image src="a.png" />
+        <Image src="b.png" />
+      </>
+    );
+    expect(container.querySelector('img')).not.toHaveAttribute('alt');
+    expect(altWarnings()).toEqual([
+      [expect.stringMatching(/alt text .* or alt="" when it is decorative/)],
+    ]);
+  });
+
+  test('stays quiet about an image with alt text', () => {
+    render(<Image src="a.png" alt="A lioness" />);
+    expect(altWarnings()).toEqual([]);
+  });
+
+  test('stays quiet about a decorative image with an empty alt', () => {
+    const { container } = render(<Image src="a.png" alt="" />);
+    expect(container.querySelector('img')).toHaveAttribute('alt', '');
+    expect(altWarnings()).toEqual([]);
+  });
+
+  test('stays quiet about content of its own, which renders no img', () => {
+    render(
+      <Image size="16by9">
+        <iframe className="has-ratio" title="A video" src="about:blank" />
+      </Image>
+    );
+    expect(altWarnings()).toEqual([]);
   });
 });
