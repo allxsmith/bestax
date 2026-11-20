@@ -510,6 +510,7 @@ function TaginputFormDemo() {
 - While the counter shows, it describes the input through `aria-describedby`, so a screen reader hears the count, like "3 / 3" at the limit.
 - Tags are keyboard navigable
 - Each tag's remove button is named "Remove" and the tag's text, the `field` of an object tag. With `ariaCloseLabel`, every button takes that one name, as for a translation, and is described by its tag's text, so it still says which tag it removes. With a `tagTemplate` it has the one name and no description
+- Each remove button is Bulma's small delete button, with a box at least 24px square around its circle that takes presses too, as [`Delete`](../elements/delete.md#accessibility) has.
 - When the last tag's remove button has focus and takes its tag off, as from the keyboard, focus first moves to the remove button before it, or to the input when no tag is left, so it doesn't drop to the page. Any other tag's remove button keeps focus
 - With `data`, the input is a `role="combobox"` with `aria-autocomplete="list"` and `aria-haspopup="listbox"`. Its `aria-expanded` is true only while the suggestion list is on screen, and while it is, `aria-controls` points at the list. While no suggestion matches there's no list, so it stays false. Without `data` there's never a list, so the input stays a plain text field
 - Focus stays in the input, which points `aria-activedescendant` at the highlighted suggestion as the arrow keys or the mouse move it

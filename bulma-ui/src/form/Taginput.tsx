@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { classNames, prefixedClassNames } from '../helpers/classNames';
 import { useConfig, useIconLibrary } from '../helpers/Config';
+import { DeleteTarget } from '../helpers/deleteTarget';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { getActiveElementInTree, isEventInside } from '../helpers/shadowDom';
 import {
@@ -875,7 +876,9 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
                       }}
                       aria-label={ariaCloseLabel || `Remove ${displayVal}`}
                       aria-describedby={tagTextId}
-                    />
+                    >
+                      <DeleteTarget />
+                    </button>
                   )}
                 </span>
               );

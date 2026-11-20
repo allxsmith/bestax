@@ -128,11 +128,6 @@ const A11Y_EXEMPT: Record<string, Record<string, Why>> = {
   'form/DateInput.stories.tsx#InlineMonthPicker': {
     'label-content-name-mismatch': 2209,
   },
-  // The clear button is a 20px target beside the chevron.
-  ...each('form/Cascader.stories.tsx', ['Controlled', 'RightToLeft'], {
-    'target-size': 2198,
-  }),
-  'form/TreeSelect.stories.tsx#RightToLeft': { 'target-size': 2198 },
   ...each(
     'form/Combobox.stories.tsx',
     [

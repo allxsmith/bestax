@@ -1,3 +1,28 @@
+## [1.18.88](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.87...bestax-mcp@1.18.88) (2026-11-20)
+
+
+### Bug Fixes
+
+* **bulma-ui:** give every delete button a 24px target, drawn as before ([16a61fc](https://github.com/allxsmith/bestax/commit/16a61fc7b016750418de41a7ec1bf896855666b8)), closes [#2198](https://github.com/allxsmith/bestax/issues/2198)
+* **bulma-ui:** give the floating close the target, and keep dangerouslySetInnerHTML working ([93a1805](https://github.com/allxsmith/bestax/commit/93a1805e99a2969152310dffc79fa6bba55318e8))
+* **bulma-ui:** keep a focused control clear of a fixed Navbar ([2fc3ebd](https://github.com/allxsmith/bestax/commit/2fc3ebd5225820a7a94e5fc71c2a7e165603b064)), closes [#2193](https://github.com/allxsmith/bestax/issues/2193)
+* **bulma-ui:** warn in development about an open Sidebar with no name ([eb243af](https://github.com/allxsmith/bestax/commit/eb243af9f17f230a7e74729ea5c9070e8b05f87c)), closes [#2261](https://github.com/allxsmith/bestax/issues/2261)
+
+## [1.18.87](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.86...bestax-mcp@1.18.87) (2026-11-20)
+
+
+### Bug Fixes
+
+* **bulma-ui:** warn in development when an Icon with a role of its own has no name ([8dc17a6](https://github.com/allxsmith/bestax/commit/8dc17a6c8a5bacf436b83cdbd59e3d35a95539ca)), closes [#2265](https://github.com/allxsmith/bestax/issues/2265) [#2227](https://github.com/allxsmith/bestax/issues/2227)
+
+## [1.18.86](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.85...bestax-mcp@1.18.86) (2026-11-20)
+
+
+### Bug Fixes
+
+* **bulma-ui:** draw Taginput's focus ring outside a Control ([d9be71e](https://github.com/allxsmith/bestax/commit/d9be71e43e5599ef0ac7728e4b85c9b7161b8b02)), closes [#2189](https://github.com/allxsmith/bestax/issues/2189)
+* **bulma-ui:** warn in development about an unnamed Modal, Slider, Numberinput or Image ([9339119](https://github.com/allxsmith/bestax/commit/9339119dbdb19079e9a3f08b0867f645e1e53ec8)), closes [#2201](https://github.com/allxsmith/bestax/issues/2201)
+
 ## [1.18.85](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.84...bestax-mcp@1.18.85) (2026-11-20)
 
 

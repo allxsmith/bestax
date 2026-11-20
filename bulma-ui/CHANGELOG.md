@@ -1,3 +1,34 @@
+## [5.78.10](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.78.9...@allxsmith/bestax-bulma@5.78.10) (2026-11-20)
+
+
+### Bug Fixes
+
+* **bulma-ui:** give every delete button a 24px target, drawn as before ([16a61fc](https://github.com/allxsmith/bestax/commit/16a61fc7b016750418de41a7ec1bf896855666b8)), closes [#2198](https://github.com/allxsmith/bestax/issues/2198)
+* **bulma-ui:** give the floating close the target, and keep dangerouslySetInnerHTML working ([93a1805](https://github.com/allxsmith/bestax/commit/93a1805e99a2969152310dffc79fa6bba55318e8))
+* **bulma-ui:** keep a focused control clear of a fixed Navbar ([2fc3ebd](https://github.com/allxsmith/bestax/commit/2fc3ebd5225820a7a94e5fc71c2a7e165603b064)), closes [#2193](https://github.com/allxsmith/bestax/issues/2193)
+* **bulma-ui:** warn in development about an open Sidebar with no name ([eb243af](https://github.com/allxsmith/bestax/commit/eb243af9f17f230a7e74729ea5c9070e8b05f87c)), closes [#2261](https://github.com/allxsmith/bestax/issues/2261)
+
+## [5.78.9](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.78.8...@allxsmith/bestax-bulma@5.78.9) (2026-11-20)
+
+
+### Bug Fixes
+
+* **bulma-ui:** warn in development when an Icon with a role of its own has no name ([8dc17a6](https://github.com/allxsmith/bestax/commit/8dc17a6c8a5bacf436b83cdbd59e3d35a95539ca)), closes [#2265](https://github.com/allxsmith/bestax/issues/2265) [#2227](https://github.com/allxsmith/bestax/issues/2227)
+
+## [5.78.8](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.78.7...@allxsmith/bestax-bulma@5.78.8) (2026-11-20)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** note a guide's site images in the sections the server serves ([94f752e](https://github.com/allxsmith/bestax/commit/94f752ee19a4237226395596a8314e1e66e67495)), closes [#2243](https://github.com/allxsmith/bestax/issues/2243)
+* **bestax-mcp:** say an example's site image stands for the reader's own ([b4b91ce](https://github.com/allxsmith/bestax/commit/b4b91ce95abd1d7382ec10978ce03d42ae522d7d)), closes [#1737](https://github.com/allxsmith/bestax/issues/1737)
+* **bestax-mcp:** split a helper guide at headings outside fenced code ([7574840](https://github.com/allxsmith/bestax/commit/75748408b79b650db6f3628a536937c22c644991)), closes [#2243](https://github.com/allxsmith/bestax/issues/2243)
+* **bulma-ui:** draw Taginput's focus ring outside a Control ([d9be71e](https://github.com/allxsmith/bestax/commit/d9be71e43e5599ef0ac7728e4b85c9b7161b8b02)), closes [#2189](https://github.com/allxsmith/bestax/issues/2189)
+* **bulma-ui:** warn in development about an unnamed Modal, Slider, Numberinput or Image ([9339119](https://github.com/allxsmith/bestax/commit/9339119dbdb19079e9a3f08b0867f645e1e53ec8)), closes [#2201](https://github.com/allxsmith/bestax/issues/2201)
+* **docs:** name the install button with an aria-label built from its command ([b52e940](https://github.com/allxsmith/bestax/commit/b52e9405dc6da97b31af547b79575a17c645ab52))
+* **docs:** put the command the homepage's install button shows in its name ([217d80b](https://github.com/allxsmith/bestax/commit/217d80bf7af766eebacf386cf1a2da8011957f88))
+* **docs:** say the .md twins' and llms-full.txt's site images stand for the reader's own ([d7d95a2](https://github.com/allxsmith/bestax/commit/d7d95a279b1d955440581928057867dd19b3f8b5)), closes [#1737](https://github.com/allxsmith/bestax/issues/1737)
+
 ## [5.78.7](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.78.6...@allxsmith/bestax-bulma@5.78.7) (2026-11-19)
 
 
