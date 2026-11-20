@@ -1,7 +1,7 @@
 import React from 'react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
-import { render, fireEvent, act } from '@testing-library/react';
+import { render, fireEvent, act, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Calendar, CalendarProps } from '../_pickerInternals/Calendar';
 import { makeDate } from '../_pickerInternals/dateUtils';
@@ -633,14 +633,60 @@ describe('Calendar', () => {
     expect(onFocusedDateChange).not.toHaveBeenCalled();
   });
 
-  it('hides other-month cells when nearbyMonthDays is false', () => {
+  it('leaves other-month days blank when nearbyMonthDays is false', () => {
     const { container } = render(<Harness nearbyMonthDays={false} />);
-    const hidden = Array.from(
-      container.querySelectorAll('[role="gridcell"]')
-    ).filter(c => (c as HTMLElement).style.visibility === 'hidden');
-    // June 2024 has 30 days in a 42-cell grid -> 12 hidden neighbours.
-    expect(hidden.length).toBe(12);
-    hidden.forEach(c => expect(c).toBeDisabled());
+    const blank = Array.from(
+      container.querySelectorAll<HTMLElement>('[role="gridcell"]')
+    ).filter(c => c.tagName !== 'BUTTON');
+    // June 2024 has 30 days in a 42-cell grid -> 12 blank neighbours, each
+    // an empty cell with no name and no tab stop, whose hidden box keeps a
+    // day's size.
+    expect(blank.length).toBe(12);
+    for (const c of blank) {
+      expect(c.textContent).toBe('');
+      expect(c).toHaveAccessibleName('');
+      expect(c).not.toHaveAttribute('tabindex');
+      expect(c).not.toHaveAttribute('aria-selected');
+      expect(c.firstElementChild).toHaveClass('dateinput-cell');
+      expect(c.firstElementChild).toHaveStyle({ visibility: 'hidden' });
+    }
+  });
+
+  it("keeps a blank day's place in its week, so the days after it keep their weekday (#2194)", () => {
+    // June 2024 starts on a Saturday. With nearbyMonthDays off the days
+    // before it are blank, and each is still a cell of its week, so June 1
+    // is the week's seventh cell, under Saturday.
+    const onSelect = vi.fn();
+    const onFocusedDateChange = vi.fn();
+    const { container } = render(
+      <Harness
+        locale="en-US"
+        nearbyMonthDays={false}
+        onSelect={onSelect}
+        onFocusedDateChange={onFocusedDateChange}
+      />
+    );
+    const [header, firstWeek] = Array.from(
+      container.querySelectorAll('[role="grid"] > [role="row"]')
+    );
+    const cells = within(firstWeek as HTMLElement).getAllByRole('gridcell');
+    expect(cells).toHaveLength(7);
+    expect(cells[6]).toHaveAccessibleName('1');
+    expect(
+      within(header as HTMLElement).getAllByRole('columnheader')[6]
+    ).toHaveAccessibleName('Saturday');
+    // A blank day takes no click, and focus never lands on one.
+    fireEvent.click(cells[0]);
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(onFocusedDateChange).not.toHaveBeenCalled();
+    const grid = container.querySelector('[role="grid"]')!;
+    (container.querySelector('[data-focused="true"]') as HTMLElement).focus();
+    for (const k of ['ArrowUp', 'ArrowUp', 'Home', 'ArrowLeft']) {
+      fireEvent.keyDown(grid, { key: k });
+      const focused = document.activeElement as HTMLElement;
+      expect(focused.tagName).toBe('BUTTON');
+      expect(focused).toHaveAttribute('role', 'gridcell');
+    }
   });
 
   it('marks unselectableDates entries as disabled', () => {
