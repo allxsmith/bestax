@@ -240,12 +240,19 @@ describe('settleAnimations', () => {
    * A stand-in for a Web Animations API animation, with `end()` and
    * `cancel()` to move it on the way the browser would.
    */
-  function animation({ endTime = 100, playState = 'running' } = {}) {
+  function animation({
+    endTime = 100,
+    playState = 'running',
+    property = 'opacity',
+  } = {}) {
     let resolve;
     let reject;
     const anim = {
       playState,
-      effect: { getComputedTiming: () => ({ endTime }) },
+      effect: {
+        getComputedTiming: () => ({ endTime }),
+        getKeyframes: () => [{ offset: 0, [property]: '0' }],
+      },
       finished: new Promise((res, rej) => {
         resolve = res;
         reject = rej;
@@ -293,13 +300,14 @@ describe('settleAnimations', () => {
     expect(await settling.result).toEqual({ timedOut: false });
   });
 
-  it('leaves alone one that is paused or already finished', async () => {
+  it('leaves alone one that is paused, already finished, or moves an element without fading it', async () => {
     expect(
       await settleAnimations(
         10_000,
         rootWith([
           animation({ playState: 'paused' }),
           animation({ playState: 'finished' }),
+          animation({ property: 'transform' }),
         ])
       )
     ).toEqual({ timedOut: false });

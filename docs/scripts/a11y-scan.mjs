@@ -177,8 +177,8 @@ async function check(context, base, path) {
         throw new Error('Its live examples did not all render.');
       });
     // Scrolling down the page holds back what it fades in: the homepage hero
-    // pauses its animations while scrolled out of view. So axe waits for them
-    // to end, rather than taking half-faded text for hidden. Two frames
+    // pauses its animations while scrolled out of view. So axe waits for the
+    // fades to end, rather than taking half-faded text for hidden. Two frames
     // first, for the page to see it's back at the top and resume them.
     await page.evaluate(
       () =>
@@ -279,7 +279,7 @@ async function main() {
     }
     for (const path of unsettled) {
       console.log(
-        `Still animating after ${SETTLE_TIMEOUT_MS / 1000}s: ${path}. axe checked it as it stood, so text still fading in may have been skipped.`
+        `Still fading in after ${SETTLE_TIMEOUT_MS / 1000}s: ${path}. axe checked it as it stood, so text still fading in may have been skipped.`
       );
     }
     for (const error of errors) console.log(`Failed to load ${error}`);

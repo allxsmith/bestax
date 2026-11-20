@@ -163,11 +163,13 @@ export function judge(violations, exemptions, theme, pagesFailed = false) {
 }
 
 /**
- * Waits, in the page, until no animation that will end is still running, or
- * until `timeoutMs` has passed, and says whether it ran out of time. That's a
- * CSS animation with a finite count, or a transition; one that loops forever
- * never ends and isn't waited for. axe takes text at zero opacity for hidden,
- * so a check while an element is still fading in skips it (#2249).
+ * Waits, in the page, until no animation that changes opacity and will end is
+ * still running, or until `timeoutMs` has passed, and says whether it ran out
+ * of time. axe takes text at zero opacity for hidden, and blends a partial
+ * opacity into color contrast, so a check while an element is still fading in
+ * skips it or measures it wrong (#2249). One that only moves or recolors an
+ * element (the homepage flips a tile every few seconds) hides nothing, and
+ * one that loops forever never ends, so neither is waited for.
  *
  * It looks again after each wait, since one animation can start another, and
  * in open shadow roots too, where the live examples render: a document's
@@ -193,7 +195,8 @@ export async function settleAnimations(timeoutMs, doc = globalThis.document) {
       .filter(
         animation =>
           animation.playState === 'running' &&
-          animation.effect?.getComputedTiming().endTime !== Infinity
+          animation.effect?.getComputedTiming().endTime !== Infinity &&
+          animation.effect.getKeyframes().some(frame => 'opacity' in frame)
       );
     if (!running.length) return { timedOut: false };
     const left = deadline - Date.now();
