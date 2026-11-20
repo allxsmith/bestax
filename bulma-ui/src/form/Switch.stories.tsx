@@ -233,6 +233,7 @@ export const Controlled: Story = {
  */
 export const NoLabel: Story = {
   args: {
+    'aria-label': 'Notifications',
     color: 'primary',
     defaultChecked: true,
   },

@@ -113,6 +113,12 @@ export interface CssVar {
 export interface Example {
   title: string;
   code: string;
+  /**
+   * What the code leaves to the reader, printed as its first comment line: a
+   * picture from the docs site's `/img/`, which the reader's own app serves.
+   * Kept out of `code` so search, which reads `code`, never matches its words.
+   */
+  note?: string;
 }
 
 export interface ComponentRecord {
@@ -145,7 +151,7 @@ export interface ComponentRecord {
   /** A hook's `## API` signature block, its answer to a props table. */
   api?: string | null;
   /**
-   * The helper props every component takes, with what each does, on the page
+   * The helper props most components take, with what each does, on the page
    * that documents them (useBulmaClasses), which search_bestax reads.
    */
   helperProps?: PropRow[];

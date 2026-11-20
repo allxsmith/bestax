@@ -14,7 +14,7 @@ The `Table` component and its subcomponents provide a highly composable, Bulma-s
 
 <!-- /bestax:generated overview -->
 
-You get full access to Bulma’s table features—borders, stripes, narrow cells, hover effects, responsive scroll, cell/row coloring, and more—using idiomatic React patterns. All Bulma helper props for spacing and color are supported.
+You get full access to Bulma’s table features—borders, stripes, narrow cells, hover effects, responsive scroll, cell/row coloring, and more—using idiomatic React patterns. Bulma helper props for spacing and text color are supported.
 
 :::info
 Use the full suite: `Table`, `Thead`, `Tbody`, `Tfoot`, `Tr`, `Th`, and `Td` for maximum flexibility and Bulma compatibility.

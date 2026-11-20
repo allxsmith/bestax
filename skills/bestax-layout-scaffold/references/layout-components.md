@@ -25,9 +25,10 @@ import {
 } from '@allxsmith/bestax-bulma';
 ```
 
-Every component also accepts the shared Bulma helper props (`m`/`p` spacing, `textAlign`,
-`textColor`, `bgColor`, etc.). Flex helpers take the standard CSS values spelled in full:
-`justifyContent="space-between"`, `alignItems="center"`.
+Most components also accept the shared Bulma helper props (`m`/`p` spacing, `textAlign`,
+`display`, etc.), so check a component's or part's props before passing one. Flex helpers
+take the standard CSS values spelled in full: `justifyContent="space-between"`,
+`alignItems="center"`.
 
 > **Use helper props, never inline `style`, for spacing / alignment / color.** `mt="4"` (= 1rem)
 > not `style={{ marginTop: '1rem' }}`; `textAlign="centered"` not `style={{ textAlign: 'center' }}`;
@@ -149,7 +150,7 @@ Media), so `gap` is the only space between them: no `mb="0"` on the children, an
 helper such as `mt="2"` still adds to it. A `Columns` child keeps its own top and side margins and takes at the
 bottom the one Bulma gives the last Columns in a container (the column gap pulled back in, none
 when gapless), so its columns line up, and a `Pagination` child keeps its negative margins too. None draws a surface; put a `Box` or a `Card` inside or around. A `display` prop that isn't flex turns one
-off, as on any component.
+off, as on any component that takes it.
 
 - `<Stack>`: a column, children stretched across it, `gap` Bulma's block spacing (1.5rem).
 - `<Group>`: a row that wraps, children centered on each other, `gap` half that (0.75rem). A
@@ -249,10 +250,10 @@ the column's auto height). Make the `Column` a flex container and let the card g
 </Columns>
 ```
 
-`display`, `flexDirection`, and `flexGrow` are helper props every component accepts;
-`flexGrow` takes a string (`"1"`). `Card.*` sub-parts accept helper props too, so pinning a
-footer inside a card is `<Card display="flex" flexDirection="column">` +
-`<Card.Content flexGrow="1">` — no `Box` swap needed.
+`display`, `flexDirection`, and `flexGrow` are helper props; `flexGrow` takes a string
+(`"1"`). `Card.*` sub-parts accept helper props too, so pinning a footer inside a card is
+`<Card display="flex" flexDirection="column">` + `<Card.Content flexGrow="1">` — no `Box` swap
+needed.
 
 ## Grid / Cell
 

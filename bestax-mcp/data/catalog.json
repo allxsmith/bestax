@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.78.4"
+    "version": "5.78.7"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -898,7 +898,7 @@
       "name": "Input",
       "kind": "component",
       "category": "form",
-      "purpose": "The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static state, hover/focus/loading states, and all Bulma…",
+      "purpose": "The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static state, hover/focus/loading states, and Bulma helper…",
       "slug": "form/input",
       "import": "import { Input, Field, Control, Button, Select, Icon } from '@allxsmith/bestax-bulma';",
       "compound": false,
@@ -1514,7 +1514,7 @@
       "name": "TextArea",
       "kind": "component",
       "category": "form",
-      "purpose": "The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, hover/focus/loading states, fixed size, and all Bulma helper…",
+      "purpose": "The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, hover/focus/loading states, fixed size, and Bulma helper props.",
       "slug": "form/textarea",
       "import": "import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';",
       "compound": false,
@@ -3743,7 +3743,7 @@
     "InputBase": {
       "component": "Input",
       "path": "InputBase",
-      "purpose": "Bulma Input component with full Bulma helper class support.",
+      "purpose": "Bulma Input component with Bulma helper class support.",
       "standalone": "base"
     },
     "KbdGroup": {
@@ -4006,7 +4006,7 @@
     "SelectBase": {
       "component": "Select",
       "path": "SelectBase",
-      "purpose": "Bulma Select component with full Bulma helper class support.",
+      "purpose": "Bulma Select component with Bulma helper class support.",
       "standalone": "base"
     },
     "SidebarBody": {
@@ -4102,7 +4102,7 @@
     "TextAreaBase": {
       "component": "TextArea",
       "path": "TextAreaBase",
-      "purpose": "Bulma TextArea component with full Bulma helper class support.",
+      "purpose": "Bulma TextArea component with Bulma helper class support.",
       "standalone": "base"
     },
     "Tfoot": {

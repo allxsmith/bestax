@@ -218,6 +218,8 @@ export function resolveGroup(input: string): string | null {
   return null;
 }
 
+// scripts/gen-mcp-index.mjs notes a site image in each of these sections
+// (`SLICE`), so a change to where this splits changes that too.
 const sections = (doc: string) => doc.split(/\n(?=#{2,3} )/);
 const headingOf = (chunk: string) => chunk.split('\n')[0].trim();
 

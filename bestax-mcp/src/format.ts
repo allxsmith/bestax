@@ -614,8 +614,18 @@ export function renderComponent(
 }
 
 export function renderExamples(examples: Example[]): string {
+  // Every line of a note is a comment, so the code stays code to paste.
+  const comment = (note: string) =>
+    note
+      .split('\n')
+      .map(line => `// ${line}\n`)
+      .join('');
   return examples
-    .map(e => `### ${e.title}\n\n\`\`\`tsx\n${e.code}\n\`\`\``)
+    .map(
+      e =>
+        `### ${e.title}\n\n\`\`\`tsx\n${e.note ? comment(e.note) : ''}` +
+        `${e.code}\n\`\`\``
+    )
     .join('\n\n');
 }
 

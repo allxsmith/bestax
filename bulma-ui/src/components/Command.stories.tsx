@@ -143,6 +143,12 @@ type Story = StoryObj<typeof Command>;
 
 export const Default: Story = {
   parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
+      },
+    },
     docs: {
       description: {
         story:
@@ -236,6 +242,12 @@ const fuzzy = (query: string, actions: CommandAction[]) => {
 
 export const CustomFilter: Story = {
   parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
+      },
+    },
     docs: {
       description: {
         story:
@@ -373,6 +385,12 @@ export const Pages: Story = {
 
 export const RightToLeft: Story = {
   parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
+      },
+    },
     docs: {
       description: {
         story:
@@ -417,6 +435,12 @@ export const RightToLeft: Story = {
 
 export const CompoundUsage: Story = {
   parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'label-content-name-mismatch', enabled: false }],
+      },
+    },
     docs: {
       description: {
         story:

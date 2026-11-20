@@ -15,8 +15,9 @@ This is the self-contained inventory of the color/size/variant props that matter
    from those unions in the next major (the `has-text-*`/`has-background-*` **helpers** do cover
    every one of them). On the `Hero` root, `inherit` and `current` are equally CSS-less and deprecated
    (its `Head`/`Body`/`Foot` sub-components keep them, as text helpers). `Pagination` and
-   `Tabs` ship no color CSS for **any** value — their entire `color`
-   prop is deprecated. Before relying on an unusual value, grep the shipped CSS:
+   `Tabs` ship no color CSS for **any** value, and `Columns`, `Column`, `Grid`, `Cell` and
+   `Field` drop their `color` without rendering anything — their entire `color` prop is
+   deprecated; use `textColor` there. Before relying on an unusual value, grep the shipped CSS:
    `node_modules/@allxsmith/bestax-bulma/dist/bestax.css` for e.g. `.progress.is-grey`.
 2. **Helper color props** (on most components, applied as utility classes):
    - `color` / `textColor` → `has-text-<color>` (text color)

@@ -288,6 +288,12 @@ const LABELS = [
 
 export const MultipleWithTags: Story = {
   parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'scrollable-region-focusable', enabled: false }],
+      },
+    },
     docs: {
       description: {
         story:
@@ -318,6 +324,12 @@ export const MultipleWithTags: Story = {
 
 export const SearchableSelect: Story = {
   parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'scrollable-region-focusable', enabled: false }],
+      },
+    },
     docs: {
       description: {
         story:
@@ -911,6 +923,12 @@ export const Inline: Story = {
 
 export const FlipsAbove: Story = {
   parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'scrollable-region-focusable', enabled: false }],
+      },
+    },
     layout: 'fullscreen',
     docs: {
       description: {
@@ -1014,6 +1032,12 @@ function ModalWithCombobox() {
 
 export const AppendToBodyInModal: Story = {
   parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [{ id: 'scrollable-region-focusable', enabled: false }],
+      },
+    },
     docs: {
       description: {
         story:

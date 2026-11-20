@@ -1,3 +1,37 @@
+## [1.18.84](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.83...bestax-mcp@1.18.84) (2026-11-19)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** say an example's site image stands for the reader's own ([b4b91ce](https://github.com/allxsmith/bestax/commit/b4b91ce95abd1d7382ec10978ce03d42ae522d7d)), closes [#1737](https://github.com/allxsmith/bestax/issues/1737)
+* **docs:** say the .md twins' and llms-full.txt's site images stand for the reader's own ([d7d95a2](https://github.com/allxsmith/bestax/commit/d7d95a279b1d955440581928057867dd19b3f8b5)), closes [#1737](https://github.com/allxsmith/bestax/issues/1737)
+
+## [1.18.83](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.82...bestax-mcp@1.18.83) (2026-11-19)
+
+
+### Bug Fixes
+
+* **bulma-ui:** deprecate the color prop that Cell, Grid, Columns, Column and Field drop ([241c956](https://github.com/allxsmith/bestax/commit/241c9569467c25719f3c490b48ab4730bf30292b)), closes [#2238](https://github.com/allxsmith/bestax/issues/2238)
+* **eslint-plugin:** flag the deprecated color prop on Cell, Grid, Columns, Column and Field ([bafbce8](https://github.com/allxsmith/bestax/commit/bafbce8a1373f754f77b787bcb2784d8dfbe6e61)), closes [#2238](https://github.com/allxsmith/bestax/issues/2238)
+
+## [1.18.82](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.81...bestax-mcp@1.18.82) (2026-11-19)
+
+
+### Bug Fixes
+
+* **bulma-ui:** decide once which calendar days show, for the cells and the weeks ([5d44135](https://github.com/allxsmith/bestax/commit/5d4413582ba2d31a383f3462b470f9eeaca7b14d)), closes [#2190](https://github.com/allxsmith/bestax/issues/2190)
+* **bulma-ui:** hide a calendar week with no day on show from assistive technology ([4f5c9ea](https://github.com/allxsmith/bestax/commit/4f5c9ea89c3cec1652d30024ff421b6403ecb98a)), closes [#2190](https://github.com/allxsmith/bestax/issues/2190) [#2194](https://github.com/allxsmith/bestax/issues/2194)
+* **bulma-ui:** hide an Ionicon's inner element, which is an image with no name ([2b494eb](https://github.com/allxsmith/bestax/commit/2b494eb1a0423343b0191c6b0f32bc059e170dba)), closes [#2213](https://github.com/allxsmith/bestax/issues/2213)
+
+## [1.18.81](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.80...bestax-mcp@1.18.81) (2026-11-19)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** say most components take the helper props in get_helper_props ([720d434](https://github.com/allxsmith/bestax/commit/720d43481c6aac53d12b9f17dcffd2f9fbaed1b9)), closes [#2212](https://github.com/allxsmith/bestax/issues/2212)
+* **bulma-ui:** say Theme's radius and columnGap are helpers as on other components, not every one ([47b5b95](https://github.com/allxsmith/bestax/commit/47b5b95b57d24246a1633add3a3dff63af98259c)), closes [#2212](https://github.com/allxsmith/bestax/issues/2212)
+* **docs:** let Tab move focus out of the live code editors ([6bc22c5](https://github.com/allxsmith/bestax/commit/6bc22c545477ba6f7708841e41c7d9eac76ccdfe)), closes [#2177](https://github.com/allxsmith/bestax/issues/2177)
+
 ## [1.18.80](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.79...bestax-mcp@1.18.80) (2026-11-19)
 
 

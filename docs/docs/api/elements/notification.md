@@ -14,7 +14,7 @@ The `Notification` component is a Bulma-styled alert/message area for providing 
 
 <!-- /bestax:generated overview -->
 
-It supports color themes, light variants, an optional close (delete) button, custom content, and all Bulma helper props for spacing, etc.
+It supports color themes, light variants, an optional close (delete) button, custom content, and Bulma helper props for spacing, etc.
 
 :::info
 Notifications are perfect for status updates, alerts, and dismissible feedback in your UI.

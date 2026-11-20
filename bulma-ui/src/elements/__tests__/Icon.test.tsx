@@ -297,6 +297,29 @@ describe('Icon', () => {
       expect(ionIcon).toHaveAttribute('name', 'heart-outline');
     });
 
+    it('hides the Ionicons element, so only the wrapper names the icon (#2213)', () => {
+      const { container } = render(
+        <>
+          <Icon name="settings" library="ion" ariaLabel="Settings" />
+          <Icon name="heart" library="ion" />
+          <Icon name="close" library="ion" role="button" tabIndex={0} />
+        </>
+      );
+      const [labeled, decorative, ownRole] = Array.from(
+        container.querySelectorAll<HTMLElement>('span.icon')
+      );
+      expect(labeled).toHaveAttribute('role', 'img');
+      expect(labeled).toHaveAttribute('aria-label', 'Settings');
+      expect(decorative).toHaveAttribute('aria-hidden', 'true');
+      // Neither named nor hidden, so only the inner element's own
+      // aria-hidden keeps an unnamed image out of it.
+      expect(ownRole).toHaveAttribute('role', 'button');
+      expect(ownRole).not.toHaveAttribute('aria-hidden');
+      for (const ionIcon of container.querySelectorAll('ion-icon')) {
+        expect(ionIcon).toHaveAttribute('aria-hidden', 'true');
+      }
+    });
+
     it('renders Ionicons with sharp variant', () => {
       const { container } = render(
         <Icon name="settings" library="ion" variant="sharp" />

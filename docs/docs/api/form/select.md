@@ -14,7 +14,7 @@ The `Select` component provides a Bulma-styled dropdown for selecting one or mor
 
 <!-- /bestax:generated overview -->
 
-It supports color, size, rounded corners, loading, hover/focus state, multiselect, fullwidth, icons, and all Bulma helper props.
+It supports color, size, rounded corners, loading, hover/focus state, multiselect, fullwidth, icons, and Bulma helper props.
 
 ---
 

@@ -59,7 +59,13 @@ function example() {
   const [value, setValue] = useState(50);
   return (
     <Block>
-      <Slider value={value} onChange={setValue} showOutput color="primary" />
+      <Slider
+        aria-label="Value"
+        value={value}
+        onChange={setValue}
+        showOutput
+        color="primary"
+      />
       <Paragraph mt="4">Value: {value}</Paragraph>
     </Block>
   );
@@ -74,11 +80,11 @@ Sliders with different color options.
 
 ```tsx live
 <Block display="flex" flexDirection="column">
-  <Slider defaultValue={50} color="primary" showOutput />
-  <Slider defaultValue={50} color="success" showOutput />
-  <Slider defaultValue={50} color="info" showOutput />
-  <Slider defaultValue={50} color="warning" showOutput />
-  <Slider defaultValue={50} color="danger" showOutput />
+  <Slider aria-label="Value" defaultValue={50} color="primary" showOutput />
+  <Slider aria-label="Value" defaultValue={50} color="success" showOutput />
+  <Slider aria-label="Value" defaultValue={50} color="info" showOutput />
+  <Slider aria-label="Value" defaultValue={50} color="warning" showOutput />
+  <Slider aria-label="Value" defaultValue={50} color="danger" showOutput />
 </Block>
 ```
 
@@ -91,20 +97,16 @@ Sliders in different sizes.
 ```tsx live
 <Block display="flex" flexDirection="column">
   <Block>
-    <Paragraph mb="1">Small</Paragraph>
-    <Slider defaultValue={50} size="small" color="primary" />
+    <Slider label="Small" defaultValue={50} size="small" color="primary" />
   </Block>
   <Block>
-    <Paragraph mb="1">Normal</Paragraph>
-    <Slider defaultValue={50} color="primary" />
+    <Slider label="Normal" defaultValue={50} color="primary" />
   </Block>
   <Block>
-    <Paragraph mb="1">Medium</Paragraph>
-    <Slider defaultValue={50} size="medium" color="primary" />
+    <Slider label="Medium" defaultValue={50} size="medium" color="primary" />
   </Block>
   <Block>
-    <Paragraph mb="1">Large</Paragraph>
-    <Slider defaultValue={50} size="large" color="primary" />
+    <Slider label="Large" defaultValue={50} size="large" color="primary" />
   </Block>
 </Block>
 ```
@@ -118,16 +120,32 @@ Slider with rounded track and circular thumb.
 ```tsx live
 <Block display="flex" flexDirection="column">
   <Block>
-    <Paragraph mb="1">Rounded</Paragraph>
-    <Slider defaultValue={50} isRounded color="info" showOutput />
+    <Slider
+      label="Rounded"
+      defaultValue={50}
+      isRounded
+      color="info"
+      showOutput
+    />
   </Block>
   <Block>
-    <Paragraph mb="1">Circle Thumb</Paragraph>
-    <Slider defaultValue={50} isCircle color="success" showOutput />
+    <Slider
+      label="Circle Thumb"
+      defaultValue={50}
+      isCircle
+      color="success"
+      showOutput
+    />
   </Block>
   <Block>
-    <Paragraph mb="1">Both</Paragraph>
-    <Slider defaultValue={50} isRounded isCircle color="warning" showOutput />
+    <Slider
+      label="Both"
+      defaultValue={50}
+      isRounded
+      isCircle
+      color="warning"
+      showOutput
+    />
   </Block>
 </Block>
 ```
@@ -144,6 +162,7 @@ function example() {
   return (
     <Block>
       <Slider
+        aria-label="Value"
         value={value}
         onChange={setValue}
         min={0}
@@ -211,6 +230,7 @@ function example() {
   return (
     <Block>
       <Slider
+        aria-label="Value"
         value={value}
         onChange={setValue}
         showOutput
@@ -230,7 +250,7 @@ function example() {
 A disabled slider that cannot be interacted with.
 
 ```tsx live
-<Slider defaultValue={30} disabled color="primary" />
+<Slider aria-label="Value" defaultValue={30} disabled color="primary" />
 ```
 
 ---

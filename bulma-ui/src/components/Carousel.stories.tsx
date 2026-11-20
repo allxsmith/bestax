@@ -190,6 +190,10 @@ const heroColors = [
  * Basic carousel with colored slides.
  */
 export const Default: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function DefaultExample() {
     return (
       <Block p="5">
@@ -214,6 +218,10 @@ export const Default: Story = {
  * arrow sits on the right and the built-in chevrons flip.
  */
 export const RightToLeft: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: () => (
     <LocaleProvider locale="ar" dir="rtl">
       <Block p="5">
@@ -231,6 +239,10 @@ export const RightToLeft: Story = {
  * Auto-playing carousel.
  */
 export const Autoplay: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function AutoplayExample() {
     return (
       <Block p="5">
@@ -260,6 +272,10 @@ export const Autoplay: Story = {
  * Carousel with images.
  */
 export const WithImages: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function WithImagesExample() {
     const images = [skye, fjord, fortEbey, kingsCanyon];
 
@@ -281,6 +297,10 @@ export const WithImages: Story = {
  * Different indicator styles.
  */
 export const IndicatorStyles: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function IndicatorStylesExample() {
     const styles: Array<'dots' | 'circles' | 'lines' | 'bars'> = [
       'dots',
@@ -322,6 +342,10 @@ export const IndicatorStyles: Story = {
  * Arrows visible only on hover.
  */
 export const ArrowOnHover: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function ArrowOnHoverExample() {
     return (
       <Block p="5">
@@ -348,6 +372,10 @@ export const ArrowOnHover: Story = {
  * Indicators positioned at top.
  */
 export const IndicatorTop: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function IndicatorTopExample() {
     return (
       <Block p="5">
@@ -374,6 +402,10 @@ export const IndicatorTop: Story = {
  * card centers its text between them, with room above and below it.
  */
 export const IndicatorInsidePlain: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function IndicatorInsidePlainExample() {
     const rooms = ['Garden Room', 'Harbor Suite', 'Loft', 'Courtyard Twin'];
     return (
@@ -404,6 +436,10 @@ export const IndicatorInsidePlain: Story = {
  * `overlayControls` without `indicatorInside`.
  */
 export const OverlayArrows: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function OverlayArrowsExample() {
     const images = [skye, fjord, fortEbey];
     return (
@@ -424,6 +460,10 @@ export const OverlayArrows: Story = {
  * No repeat - stops at first and last slide.
  */
 export const NoRepeat: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function NoRepeatExample() {
     return (
       <Block p="5">
@@ -450,6 +490,10 @@ export const NoRepeat: Story = {
  * Without navigation arrows.
  */
 export const NoArrows: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function NoArrowsExample() {
     return (
       <Block p="5">
@@ -503,6 +547,10 @@ export const NoIndicators: Story = {
  * and the role descriptions with `aria-roledescription`.
  */
 export const Labels: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function LabelsExample() {
     return (
       <Block p="5">
@@ -536,6 +584,10 @@ export const Labels: Story = {
  * Without drag/swipe navigation.
  */
 export const NoDrag: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function NoDragExample() {
     return (
       <Block p="5">
@@ -562,6 +614,10 @@ export const NoDrag: Story = {
  * Controlled carousel with external state.
  */
 export const Controlled: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function ControlledExample() {
     const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -602,6 +658,10 @@ export const Controlled: Story = {
  * whatever shape the photos are.
  */
 export const SeveralInView: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   args: {
     itemsToShow: 1,
     itemsToShowTablet: 2,
@@ -740,6 +800,10 @@ export const CardContent: Story = {
  * Testimonials carousel.
  */
 export const Testimonials: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function TestimonialsExample() {
     const testimonials = [
       {
@@ -798,6 +862,10 @@ export const Testimonials: Story = {
  * Carousel with Font Awesome icons.
  */
 export const FontAwesomeIcons: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function FontAwesomeIconsExample() {
     return (
       <Block p="5">
@@ -829,6 +897,10 @@ export const FontAwesomeIcons: Story = {
  * Carousel with Material Design Icons.
  */
 export const MaterialDesignIcons: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function MaterialDesignIconsExample() {
     return (
       <Block p="5">
@@ -859,6 +931,17 @@ export const MaterialDesignIcons: Story = {
  * Carousel with Material Symbols icons.
  */
 export const MaterialSymbols: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: {
+      config: {
+        rules: [
+          { id: 'target-size', enabled: false },
+          { id: 'label-content-name-mismatch', enabled: false },
+        ],
+      },
+    },
+  },
   render: function MaterialSymbolsExample() {
     return (
       <Block p="5">
@@ -890,6 +973,10 @@ export const MaterialSymbols: Story = {
  * Different icon sizes.
  */
 export const IconSizes: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function IconSizesExample() {
     const sizes: Array<'small' | 'medium' | 'large'> = [
       'small',
@@ -936,6 +1023,10 @@ export const IconSizes: Story = {
  * Different icon variants for Font Awesome.
  */
 export const IconVariants: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function IconVariantsExample() {
     return (
       <Block p="5">
@@ -997,6 +1088,10 @@ export const IconVariants: Story = {
  * Carousel with transparent arrow buttons (no background).
  */
 export const TransparentArrows: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function TransparentArrowsExample() {
     return (
       <Block p="5">
@@ -1023,6 +1118,10 @@ export const TransparentArrows: Story = {
  * Transparent arrows with light color for dark backgrounds.
  */
 export const TransparentArrowsLight: Story = {
+  parameters: {
+    // An axe exemption, with its reason in src/__tests__/stories-a11y.test.ts.
+    a11y: { config: { rules: [{ id: 'target-size', enabled: false }] } },
+  },
   render: function TransparentArrowsLightExample() {
     return (
       <Block p="5">

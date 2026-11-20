@@ -1,8 +1,8 @@
 # Reference: form component props
 
 All components import from `@allxsmith/bestax-bulma`. Source lives in `bulma-ui/src/form/`.
-Every component also accepts the full Bulma helper props (`m`, `p`, `textColor`, `display`, …)
-via `useBulmaClasses`.
+Most components also accept Bulma helper props (`m`, `p`, `display`, …) via
+`useBulmaClasses`, so check a component's props before passing one.
 
 ## Field — `form/Field.tsx`
 

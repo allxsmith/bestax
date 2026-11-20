@@ -61,8 +61,8 @@ function example() {
   const [quantity, setQuantity] = useState(1);
   return (
     <Block>
-      <Paragraph mb="2">Quantity (1-10):</Paragraph>
       <Numberinput
+        label="Quantity (1-10)"
         value={quantity}
         onChange={setQuantity}
         min={1}
@@ -82,11 +82,11 @@ Number inputs with different button colors.
 
 ```tsx live
 <Block display="flex" flexDirection="column">
-  <Numberinput defaultValue={5} color="primary" />
-  <Numberinput defaultValue={5} color="success" />
-  <Numberinput defaultValue={5} color="info" />
-  <Numberinput defaultValue={5} color="warning" />
-  <Numberinput defaultValue={5} color="danger" />
+  <Numberinput aria-label="Quantity" defaultValue={5} color="primary" />
+  <Numberinput aria-label="Quantity" defaultValue={5} color="success" />
+  <Numberinput aria-label="Quantity" defaultValue={5} color="info" />
+  <Numberinput aria-label="Quantity" defaultValue={5} color="warning" />
+  <Numberinput aria-label="Quantity" defaultValue={5} color="danger" />
 </Block>
 ```
 
@@ -98,10 +98,25 @@ Number inputs in different sizes.
 
 ```tsx live
 <Block display="flex" flexDirection="column">
-  <Numberinput defaultValue={5} size="small" color="primary" />
-  <Numberinput defaultValue={5} color="primary" />
-  <Numberinput defaultValue={5} size="medium" color="primary" />
-  <Numberinput defaultValue={5} size="large" color="primary" />
+  <Numberinput
+    aria-label="Quantity"
+    defaultValue={5}
+    size="small"
+    color="primary"
+  />
+  <Numberinput aria-label="Quantity" defaultValue={5} color="primary" />
+  <Numberinput
+    aria-label="Quantity"
+    defaultValue={5}
+    size="medium"
+    color="primary"
+  />
+  <Numberinput
+    aria-label="Quantity"
+    defaultValue={5}
+    size="large"
+    color="primary"
+  />
 </Block>
 ```
 
@@ -114,16 +129,28 @@ Different positions for the +/- buttons.
 ```tsx live
 <Block display="flex" flexDirection="column">
   <Block>
-    <Paragraph mb="1">Both sides (default)</Paragraph>
-    <Numberinput defaultValue={5} controlsPosition="both" color="primary" />
+    <Numberinput
+      label="Both sides (default)"
+      defaultValue={5}
+      controlsPosition="both"
+      color="primary"
+    />
   </Block>
   <Block>
-    <Paragraph mb="1">Left only</Paragraph>
-    <Numberinput defaultValue={5} controlsPosition="left" color="info" />
+    <Numberinput
+      label="Left only"
+      defaultValue={5}
+      controlsPosition="left"
+      color="info"
+    />
   </Block>
   <Block>
-    <Paragraph mb="1">Right only</Paragraph>
-    <Numberinput defaultValue={5} controlsPosition="right" color="success" />
+    <Numberinput
+      label="Right only"
+      defaultValue={5}
+      controlsPosition="right"
+      color="success"
+    />
   </Block>
 </Block>
 ```
@@ -135,7 +162,12 @@ Different positions for the +/- buttons.
 Number input with rounded +/- buttons.
 
 ```tsx live
-<Numberinput defaultValue={5} controlsRounded color="primary" />
+<Numberinput
+  aria-label="Quantity"
+  defaultValue={5}
+  controlsRounded
+  color="primary"
+/>
 ```
 
 ---
@@ -149,8 +181,8 @@ function example() {
   const [value, setValue] = useState(0);
   return (
     <Block>
-      <Paragraph mb="2">Step by 10:</Paragraph>
       <Numberinput
+        label="Step by 10"
         value={value}
         onChange={setValue}
         step={10}
@@ -209,7 +241,7 @@ read it in French.
 A disabled number input.
 
 ```tsx live
-<Numberinput defaultValue={5} disabled />
+<Numberinput aria-label="Quantity" defaultValue={5} disabled />
 ```
 
 ---

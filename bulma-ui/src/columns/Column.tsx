@@ -1,5 +1,6 @@
 import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
+import { warnDeprecatedColorProp } from '../helpers/colorDeprecations';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -45,7 +46,13 @@ export interface ColumnProps
   className?: string | undefined;
   /** Text color. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Bulma color modifier for the column. */
+  /**
+   * Renders no class: Bulma ships no column color CSS for a modifier to
+   * match, and the prop doesn't reach the text color helper either. Passing
+   * it logs a console warning in development.
+   * @deprecated The prop renders nothing and will be removed in the next
+   * major version. Use `textColor` / `bgColor` instead.
+   */
   color?:
     'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | undefined;
   /** Background color. */
@@ -107,7 +114,7 @@ export interface ColumnProps
 export const Column: React.FC<ColumnProps> = ({
   className,
   textColor,
-  color: _fieldColor,
+  color,
   bgColor,
   size,
   sizeMobile,
@@ -131,6 +138,11 @@ export const Column: React.FC<ColumnProps> = ({
   children,
   ...props
 }) => {
+  warnDeprecatedColorProp(
+    'Column',
+    color,
+    'Use the textColor / bgColor props instead.'
+  );
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
