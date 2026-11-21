@@ -40,8 +40,8 @@ but some things only the app can do:
 ## Where We Are
 
 Bestax partially meets WCAG 2.2 Level AA: parts of it aren't met yet. The
-[conformance report](./conformance-report.md) says which criteria and why. Known gaps are open
-issues with the
+[conformance report](./conformance-report.md) says which criteria and why, and names the gaps
+kept by design. The gaps still to fix are open issues with the
 [`accessibility` label](https://github.com/allxsmith/bestax/issues?q=is%3Aissue%20state%3Aopen%20label%3Aaccessibility),
 which is the up-to-date list.
 
