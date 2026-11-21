@@ -27,7 +27,7 @@
     },
     {
       "title": "Letting Tab Leave",
-      "code": "<Popover\n  trapFocus={false}\n  ariaLabel=\"Quick note\"\n  trigger={<Button>Add note</Button>}\n>\n  <Popover.Body>\n    <Input aria-label=\"Note\" placeholder=\"Type, then Tab onward\" />\n  </Popover.Body>\n</Popover>"
+      "code": "<Popover\n  trapFocus={false}\n  ariaLabel=\"Quick note\"\n  trigger={<Button>Add note</Button>}\n>\n  <Popover.Body>\n    <Input label=\"Note\" placeholder=\"Type, then Tab onward\" />\n  </Popover.Body>\n</Popover>"
     },
     {
       "title": "Triggers That Aren't Buttons",

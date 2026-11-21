@@ -47,7 +47,7 @@
     },
     {
       "title": "Form Addons › Currency Select + Input + Button",
-      "code": "<Field hasAddons>\n  <Control>\n    <Select aria-label=\"Currency\">\n      <option>$</option>\n      <option>£</option>\n      <option>€</option>\n    </Select>\n  </Control>\n  <Control isExpanded>\n    <Input type=\"text\" placeholder=\"Amount of money\" />\n  </Control>\n  <Control>\n    <Button>Transfer</Button>\n  </Control>\n</Field>"
+      "code": "<Field label=\"Amount\" labelProps={{ htmlFor: 'transfer-amount' }}>\n  <Field hasAddons>\n    <Control>\n      <Select aria-label=\"Currency\">\n        <option>$</option>\n        <option>£</option>\n        <option>€</option>\n      </Select>\n    </Control>\n    <Control isExpanded>\n      <Input id=\"transfer-amount\" type=\"text\" placeholder=\"Amount of money\" />\n    </Control>\n    <Control>\n      <Button>Transfer</Button>\n    </Control>\n  </Field>\n</Field>"
     },
     {
       "title": "Form Addons › Fullwidth Select + Button",

@@ -7,35 +7,35 @@
   "examples": [
     {
       "title": "Basic Taginput",
-      "code": "import type { TaginputTag } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  const [tags, setTags] = useState<TaginputTag[]>(['React', 'TypeScript']);\n\n  return (\n    <Block>\n      <Taginput value={tags} onChange={setTags} placeholder=\"Add a tag...\" />\n      <Paragraph mt=\"2\" textColor=\"grey\">\n        Tags: {tags.join(', ')}\n      </Paragraph>\n    </Block>\n  );\n}"
+      "code": "import type { TaginputTag } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  const [tags, setTags] = useState<TaginputTag[]>(['React', 'TypeScript']);\n\n  return (\n    <Block>\n      <Taginput\n        value={tags}\n        onChange={setTags}\n        label=\"Tags\"\n        placeholder=\"Add a tag...\"\n      />\n      <Paragraph mt=\"2\" textColor=\"grey\">\n        Tags: {tags.join(', ')}\n      </Paragraph>\n    </Block>\n  );\n}"
     },
     {
       "title": "With Autocomplete",
-      "code": "import type { TaginputTag } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  const [tags, setTags] = useState<TaginputTag[]>(['React']);\n  const suggestions = [\n    'React',\n    'Vue',\n    'Angular',\n    'Svelte',\n    'TypeScript',\n    'JavaScript',\n    'Python',\n    'Go',\n  ];\n\n  return (\n    <Taginput\n      value={tags}\n      onChange={setTags}\n      data={suggestions}\n      placeholder=\"Add frameworks...\"\n      openOnFocus\n    />\n  );\n}"
+      "code": "import type { TaginputTag } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  const [tags, setTags] = useState<TaginputTag[]>(['React']);\n  const suggestions = [\n    'React',\n    'Vue',\n    'Angular',\n    'Svelte',\n    'TypeScript',\n    'JavaScript',\n    'Python',\n    'Go',\n  ];\n\n  return (\n    <Taginput\n      label=\"Frameworks\"\n      value={tags}\n      onChange={setTags}\n      data={suggestions}\n      placeholder=\"Add frameworks...\"\n      openOnFocus\n    />\n  );\n}"
     },
     {
       "title": "Restrict to Suggestions",
-      "code": "import type { TaginputTag } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  const [tags, setTags] = useState<TaginputTag[]>([]);\n  const categories = [\n    'Bug',\n    'Feature',\n    'Documentation',\n    'Enhancement',\n    'Question',\n  ];\n\n  return (\n    <Block>\n      <Taginput\n        value={tags}\n        onChange={setTags}\n        data={categories}\n        allowNew={false}\n        placeholder=\"Select categories...\"\n        openOnFocus\n      />\n      <Paragraph mt=\"2\" textColor=\"grey\" textSize=\"7\">\n        Only predefined categories can be selected\n      </Paragraph>\n    </Block>\n  );\n}"
+      "code": "import type { TaginputTag } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  const [tags, setTags] = useState<TaginputTag[]>([]);\n  const categories = [\n    'Bug',\n    'Feature',\n    'Documentation',\n    'Enhancement',\n    'Question',\n  ];\n\n  return (\n    <Block>\n      <Taginput\n        label=\"Categories\"\n        value={tags}\n        onChange={setTags}\n        data={categories}\n        allowNew={false}\n        placeholder=\"Select categories...\"\n        openOnFocus\n      />\n      <Paragraph mt=\"2\" textColor=\"grey\" textSize=\"7\">\n        Only predefined categories can be selected\n      </Paragraph>\n    </Block>\n  );\n}"
     },
     {
       "title": "Tag Colors",
-      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Taginput\n    defaultValue={['Primary']}\n    tagColor=\"primary\"\n    placeholder=\"Primary tags...\"\n  />\n  <Taginput\n    defaultValue={['Success']}\n    tagColor=\"success\"\n    placeholder=\"Success tags...\"\n  />\n  <Taginput\n    defaultValue={['Info']}\n    tagColor=\"info\"\n    placeholder=\"Info tags...\"\n  />\n  <Taginput\n    defaultValue={['Warning']}\n    tagColor=\"warning\"\n    placeholder=\"Warning tags...\"\n  />\n  <Taginput\n    defaultValue={['Danger']}\n    tagColor=\"danger\"\n    placeholder=\"Danger tags...\"\n  />\n  <Taginput\n    defaultValue={['Dark']}\n    tagColor=\"dark\"\n    placeholder=\"Dark tags...\"\n  />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Taginput\n    label=\"Primary\"\n    defaultValue={['Primary']}\n    tagColor=\"primary\"\n    placeholder=\"Primary tags...\"\n  />\n  <Taginput\n    label=\"Success\"\n    defaultValue={['Success']}\n    tagColor=\"success\"\n    placeholder=\"Success tags...\"\n  />\n  <Taginput\n    label=\"Info\"\n    defaultValue={['Info']}\n    tagColor=\"info\"\n    placeholder=\"Info tags...\"\n  />\n  <Taginput\n    label=\"Warning\"\n    defaultValue={['Warning']}\n    tagColor=\"warning\"\n    placeholder=\"Warning tags...\"\n  />\n  <Taginput\n    label=\"Danger\"\n    defaultValue={['Danger']}\n    tagColor=\"danger\"\n    placeholder=\"Danger tags...\"\n  />\n  <Taginput\n    label=\"Dark\"\n    defaultValue={['Dark']}\n    tagColor=\"dark\"\n    placeholder=\"Dark tags...\"\n  />\n</Block>"
     },
     {
       "title": "Size Variants",
-      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Taginput\n    defaultValue={['Small']}\n    size=\"small\"\n    tagColor=\"primary\"\n    placeholder=\"Small...\"\n  />\n  <Taginput\n    defaultValue={['Normal']}\n    tagColor=\"primary\"\n    placeholder=\"Normal...\"\n  />\n  <Taginput\n    defaultValue={['Medium']}\n    size=\"medium\"\n    tagColor=\"primary\"\n    placeholder=\"Medium...\"\n  />\n  <Taginput\n    defaultValue={['Large']}\n    size=\"large\"\n    tagColor=\"primary\"\n    placeholder=\"Large...\"\n  />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Taginput\n    label=\"Small\"\n    defaultValue={['Small']}\n    size=\"small\"\n    tagColor=\"primary\"\n    placeholder=\"Small...\"\n  />\n  <Taginput\n    label=\"Normal\"\n    defaultValue={['Normal']}\n    tagColor=\"primary\"\n    placeholder=\"Normal...\"\n  />\n  <Taginput\n    label=\"Medium\"\n    defaultValue={['Medium']}\n    size=\"medium\"\n    tagColor=\"primary\"\n    placeholder=\"Medium...\"\n  />\n  <Taginput\n    label=\"Large\"\n    defaultValue={['Large']}\n    size=\"large\"\n    tagColor=\"primary\"\n    placeholder=\"Large...\"\n  />\n</Block>"
     },
     {
       "title": "Maximum Tags",
-      "code": "import type { TaginputTag } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  const [tags, setTags] = useState<TaginputTag[]>(['One', 'Two']);\n\n  return (\n    <Block>\n      <Taginput\n        value={tags}\n        onChange={setTags}\n        maxTags={3}\n        tagColor=\"info\"\n        placeholder=\"Max 3 tags...\"\n      />\n      <Paragraph mt=\"2\" textColor=\"grey\" textSize=\"7\">\n        {3 - tags.length} tags remaining\n      </Paragraph>\n    </Block>\n  );\n}"
+      "code": "import type { TaginputTag } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  const [tags, setTags] = useState<TaginputTag[]>(['One', 'Two']);\n\n  return (\n    <Block>\n      <Taginput\n        label=\"Tags\"\n        value={tags}\n        onChange={setTags}\n        maxTags={3}\n        tagColor=\"info\"\n        placeholder=\"Max 3 tags...\"\n      />\n      <Paragraph mt=\"2\" textColor=\"grey\" textSize=\"7\">\n        {3 - tags.length} tags remaining\n      </Paragraph>\n    </Block>\n  );\n}"
     },
     {
       "title": "Allow Duplicates",
-      "code": "import type { TaginputTag } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  const [tags, setTags] = useState<TaginputTag[]>(['Tag']);\n\n  return (\n    <Taginput\n      value={tags}\n      onChange={setTags}\n      allowDuplicates\n      tagColor=\"warning\"\n      placeholder=\"Duplicates allowed...\"\n    />\n  );\n}"
+      "code": "import type { TaginputTag } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  const [tags, setTags] = useState<TaginputTag[]>(['Tag']);\n\n  return (\n    <Taginput\n      label=\"Tags\"\n      value={tags}\n      onChange={setTags}\n      allowDuplicates\n      tagColor=\"warning\"\n      placeholder=\"Duplicates allowed...\"\n    />\n  );\n}"
     },
     {
       "title": "Custom Confirm Keys",
-      "code": "import type { TaginputTag } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  const [tags, setTags] = useState<TaginputTag[]>([]);\n\n  return (\n    <Block>\n      <Taginput\n        value={tags}\n        onChange={setTags}\n        confirmKeys={['Enter', 'Tab', ' ']}\n        tagColor=\"success\"\n        placeholder=\"Press Enter, Tab, or Space...\"\n      />\n      <Paragraph mt=\"2\" textColor=\"grey\" textSize=\"7\">\n        Space also creates a new tag\n      </Paragraph>\n    </Block>\n  );\n}"
+      "code": "import type { TaginputTag } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  const [tags, setTags] = useState<TaginputTag[]>([]);\n\n  return (\n    <Block>\n      <Taginput\n        label=\"Tags\"\n        value={tags}\n        onChange={setTags}\n        confirmKeys={['Enter', 'Tab', ' ']}\n        tagColor=\"success\"\n        placeholder=\"Press Enter, Tab, or Space...\"\n      />\n      <Paragraph mt=\"2\" textColor=\"grey\" textSize=\"7\">\n        Space also creates a new tag\n      </Paragraph>\n    </Block>\n  );\n}"
     },
     {
       "title": "Read-only and Disabled",
@@ -43,7 +43,7 @@
     },
     {
       "title": "Non-closable Tags",
-      "code": "<Taginput\n  defaultValue={['Fixed', 'Tags']}\n  closable={false}\n  tagColor=\"primary\"\n  placeholder=\"Cannot remove tags...\"\n/>"
+      "code": "<Taginput\n  label=\"Tags\"\n  defaultValue={['Fixed', 'Tags']}\n  closable={false}\n  tagColor=\"primary\"\n  placeholder=\"Cannot remove tags...\"\n/>"
     },
     {
       "title": "Names in Another Language",
