@@ -93,6 +93,7 @@ function AutocompleteExample() {
   return (
     <div>
       <Autocomplete
+        label="Fruit"
         data={fruits}
         placeholder="Search fruit..."
         onSelect={item => setSelected(typeof item === 'string' ? item : null)}
@@ -627,6 +628,7 @@ function TaginputExample() {
   return (
     <div>
       <Taginput
+        label="Frameworks"
         value={tags}
         onChange={setTags}
         data={suggestions}
@@ -698,9 +700,11 @@ Use `Field` to group and label form controls for accessibility and layout.
 A Bulma-styled wrapper for form controls, providing consistent spacing, icon placement, and loading indicators.
 
 ```tsx live
-<Control>
-  <Input autoComplete="username" placeholder="Username" />
-</Control>
+<Field label="Username">
+  <Control>
+    <Input autoComplete="username" placeholder="Username" />
+  </Control>
+</Field>
 ```
 
 An `Input` inside a `Control` renders no `Control` of its own, and no `Field` either, so it stays the `Control`'s own child. Its Control-level props, such as `isLoading` and the icon props, belong on that `Control`: given to the `Input` there, they do nothing and warn in development. To give it a `label`, `message`, `horizontal` layout or `fieldClassName`, wrap the `Control` in a `Field` and set the `label`, `horizontal` and class name on that `Field`. Without that `Field`, any of those props makes the `Input` render its own `Field` inside the `Control`, and it warns in development.

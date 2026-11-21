@@ -293,20 +293,22 @@ For multi-control rows like select + input + button, drop down to manual `Field`
 A common pattern: a small select acting as a unit picker (currency, country code), an expanded input, and a submit button.
 
 ```tsx live
-<Field hasAddons>
-  <Control>
-    <Select aria-label="Currency">
-      <option>$</option>
-      <option>£</option>
-      <option>€</option>
-    </Select>
-  </Control>
-  <Control isExpanded>
-    <Input type="text" placeholder="Amount of money" />
-  </Control>
-  <Control>
-    <Button>Transfer</Button>
-  </Control>
+<Field label="Amount" labelProps={{ htmlFor: 'transfer-amount' }}>
+  <Field hasAddons>
+    <Control>
+      <Select aria-label="Currency">
+        <option>$</option>
+        <option>£</option>
+        <option>€</option>
+      </Select>
+    </Control>
+    <Control isExpanded>
+      <Input id="transfer-amount" type="text" placeholder="Amount of money" />
+    </Control>
+    <Control>
+      <Button>Transfer</Button>
+    </Control>
+  </Field>
 </Field>
 ```
 

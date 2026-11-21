@@ -52,6 +52,7 @@ function example() {
   return (
     <Block>
       <Autocomplete
+        label="Fruit"
         data={fruits}
         placeholder="Search fruit..."
         onSelect={item => setSelected(typeof item === 'string' ? item : null)}
@@ -81,6 +82,7 @@ function example() {
 
   return (
     <Autocomplete
+      label="Country"
       data={countries}
       placeholder="Select a country..."
       openOnFocus
@@ -100,7 +102,12 @@ function example() {
   const options = ['Option 1', 'Option 2', 'Option 3', 'Option 4'];
 
   return (
-    <Autocomplete data={options} placeholder="Search options..." clearable />
+    <Autocomplete
+      data={options}
+      label="Option"
+      placeholder="Search options..."
+      clearable
+    />
   );
 }
 ```
@@ -139,23 +146,27 @@ Autocomplete with different colors and sizes.
 ```tsx live
 <Block display="flex" flexDirection="column">
   <Autocomplete
+    label="Primary Small"
     data={['Apple', 'Banana', 'Cherry']}
     placeholder="Primary small"
     color="primary"
     size="small"
   />
   <Autocomplete
+    label="Info Normal"
     data={['Apple', 'Banana', 'Cherry']}
     placeholder="Info normal"
     color="info"
   />
   <Autocomplete
+    label="Success Medium"
     data={['Apple', 'Banana', 'Cherry']}
     placeholder="Success medium"
     color="success"
     size="medium"
   />
   <Autocomplete
+    label="Danger Large"
     data={['Apple', 'Banana', 'Cherry']}
     placeholder="Danger large"
     color="danger"
@@ -182,6 +193,7 @@ function example() {
   return (
     <Block>
       <Autocomplete
+        label="User"
         data={users}
         field="label"
         placeholder="Search users..."
@@ -220,6 +232,7 @@ function example() {
 
   return (
     <Autocomplete
+      label="User"
       data={users}
       field="label"
       placeholder="Search users..."
@@ -254,6 +267,7 @@ function example() {
 
   return (
     <Autocomplete
+      label="Fruit"
       data={options}
       placeholder="Try searching 'xyz'..."
       empty={
@@ -274,7 +288,7 @@ function example() {
 Autocomplete showing loading indicator.
 
 ```tsx live
-<Autocomplete data={[]} placeholder="Loading..." loading />
+<Autocomplete data={[]} label="Fruit" placeholder="Loading..." loading />
 ```
 
 ---
@@ -295,7 +309,12 @@ function example() {
   ];
 
   return (
-    <Autocomplete data={fruits} placeholder="Type to filter..." keepFirst />
+    <Autocomplete
+      data={fruits}
+      label="Fruit"
+      placeholder="Type to filter..."
+      keepFirst
+    />
   );
 }
 ```
@@ -426,6 +445,7 @@ function AutocompleteFormDemo() {
       }}
     >
       <Autocomplete
+        label="City"
         name="city"
         data={['New York', 'London', 'Paris', 'Tokyo', 'Sydney']}
         placeholder="Search a city…"

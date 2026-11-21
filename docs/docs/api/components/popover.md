@@ -179,7 +179,7 @@ is dismissed. Focus still moves in on open and back to the trigger on close.
   trigger={<Button>Add note</Button>}
 >
   <Popover.Body>
-    <Input aria-label="Note" placeholder="Type, then Tab onward" />
+    <Input label="Note" placeholder="Type, then Tab onward" />
   </Popover.Body>
 </Popover>
 ```
