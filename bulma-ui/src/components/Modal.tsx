@@ -16,6 +16,7 @@ import {
 import { withSubComponents } from '../helpers/withSubComponents';
 import { isElementOf } from '../helpers/elementType';
 import { buttonType } from '../helpers/buttonType';
+import { DeleteTarget, deleteContent } from '../helpers/deleteTarget';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -369,6 +370,10 @@ export const ModalCard = withSubComponents(ModalCardComponent, {
  * - 'floating': For floating overlay close button, renders with 'modal-close' class
  *
  * The size prop only applies to the 'floating' variant.
+ *
+ * Either variant holds a transparent box at least 24px square, centred on it, that takes its
+ * presses too, as `Delete` does, unless it's given `dangerouslySetInnerHTML`, which React won't
+ * render beside the box.
  */
 export const ModalClose: React.FC<ModalCloseProps> = ({
   className,
@@ -401,7 +406,9 @@ export const ModalClose: React.FC<ModalCloseProps> = ({
       // through that handler, so a caller already closing there, as with
       // `onClick={onClose}`, would otherwise close twice.
       onClick={onClick ?? (onClose && (() => onClose()))}
-    />
+    >
+      {deleteContent(props)}
+    </button>
   );
 };
 
@@ -722,7 +729,9 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
                     onClick={onClose}
                     type="button"
                     data-testid="modal-close"
-                  />
+                  >
+                    <DeleteTarget />
+                  </button>
                 )}
               </header>
             )}
@@ -760,7 +769,9 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
             onClick={onClose}
             type="button"
             data-testid="modal-close-float"
-          />
+          >
+            <DeleteTarget />
+          </button>
         )}
       </div>
     );

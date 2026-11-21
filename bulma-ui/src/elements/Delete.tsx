@@ -6,6 +6,7 @@ import {
   validColors,
 } from '../helpers/useBulmaClasses';
 import { buttonType } from '../helpers/buttonType';
+import { deleteContent } from '../helpers/deleteTarget';
 
 /**
  * Props for the Delete component.
@@ -46,6 +47,13 @@ interface DeleteProps
  * The `Delete` component provides a Bulma-styled close/delete button for dismissing modals, notifications, tags, messages, and more.
  *
  * It renders `type="button"`, so a delete button inside a form does not submit it.
+ *
+ * A transparent box inside it, which bestax's styles make at least 24px square and centre on it,
+ * takes its presses too, so a small one still meets WCAG 2.5.8's minimum target size while the
+ * circle stays as Bulma draws it. Under Bulma's own CSS alone the box does nothing.
+ * The box reaches past a circle smaller than 24px, over whatever sits that close, so leave room
+ * around a small one. Given `dangerouslySetInnerHTML`, which React won't render beside children,
+ * the button goes without the box.
  *
  * @function
  * @param {DeleteProps} props - Props for the Delete component.
@@ -92,6 +100,8 @@ export const Delete: React.FC<DeleteProps> = ({
       // own value still wins; `buttonType` says more.
       aria-label={rest['aria-label'] || ariaLabel || 'Close'}
       type={buttonType((rest as { type?: unknown }).type)}
-    />
+    >
+      {deleteContent(rest)}
+    </button>
   );
 };

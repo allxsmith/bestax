@@ -297,8 +297,8 @@ Notes:
 - `Lightbox`'s viewer is Bulma's modal, with Bulma buttons for its controls and a `Loader` for a
   slow image, so an app using it needs `bulma/sass/components/modal`,
   `bulma/sass/elements/button` and `bulma/sass/elements/loader` next to
-  `scss/components/lightbox`, and the `delete` partial below for its close button in forced
-  colors.
+  `scss/components/lightbox`, and the `delete` partial below for its close button's target and
+  forced colors.
 - `Loader` is stock Bulma styled by `bulma/sass/elements/loader`, and the `isLoading`
   spinners on `Button`, `Control` and `Select` are Bulma's too. The `loader` extras partial
   stops all of them under `prefers-reduced-motion: reduce`, hides everything inside a loading
@@ -340,9 +340,11 @@ Notes:
   exception, since `bulma/sass/components/modal` draws that one itself. Bulma draws the circle and
   cross as background colors, which forced colors (Windows' contrast themes) replaces, so they
   vanish there. The `delete` extras partial keeps them drawn in the system's button colors, and
-  the `Modal`'s floating close and `Tag isDelete` (`bulma/sass/elements/tag`) with them, so
-  include it (`as bestax-delete`) in any build that shows a close button. Its rules win over
-  Bulma's either way, so the order of the `@use` lines does not matter.
+  the `Modal`'s floating close and `Tag isDelete` (`bulma/sass/elements/tag`) with them. It also
+  gives the delete button and the floating close a target at least 24px square around the circle,
+  WCAG 2.5.8's minimum, where Bulma's is 20px or 16px small, so without it a press just beside
+  the circle misses. Include it (`as bestax-delete`) in any build that shows a close button. Its
+  rules win over Bulma's either way, so the order of the `@use` lines does not matter.
 - `Button` is stock Bulma too (`bulma/sass/elements/button`). Bulma shows a focused button with its
   border and a shadow, which a ghost button doesn't have and a static one doesn't show, and forced
   colors (Windows' contrast themes) drops the shadow and sets the border's color, so a focused
@@ -505,7 +507,7 @@ Scaffolded with an icon library, the starter also needs `bulma/sass/elements/ico
 @use '@allxsmith/bestax-bulma/scss/components/card' as bestax-card; // the edge and header line in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/box' as bestax-box; // the edge in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/button' as bestax-button; // focus outline and edge in forced colors
-@use '@allxsmith/bestax-bulma/scss/elements/delete' as bestax-delete; // the close button in forced colors
+@use '@allxsmith/bestax-bulma/scss/elements/delete' as bestax-delete; // the close button's target, and in forced colors
 @use '@allxsmith/bestax-bulma/scss/elements/notification' as bestax-notification; // text clears the close button
 ```
 

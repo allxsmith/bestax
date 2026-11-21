@@ -828,7 +828,8 @@ and a click in the field opens the list. A press in the list never takes focus f
 - **Tags,** with `multiple` and `data`: the field's `aria-describedby` points at the tags' labels,
   since its own text is the search, so focusing it reads the picks. Each tag's button is named
   "Remove" and the item's label, or `ariaCloseLabel` with the label as its description, and
-  taking a tag off puts focus back in the field, which then reads the picks that are left.
+  taking a tag off puts focus back in the field, which then reads the picks that are left. The
+  button is a small [`Delete`](../elements/delete.md#accessibility), with a target at least 24px square around its circle.
 - **No counts are announced,** for the reasons in [A Result Count](#a-result-count).
 - **Enter and Escape:** Enter submits the form when nothing is highlighted, and Escape only stops
   at the Combobox when it closed a panel that was on screen.

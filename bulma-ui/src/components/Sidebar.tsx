@@ -9,6 +9,7 @@ import { useOverlayEscape, useOverlayStack } from '../helpers/overlayStack';
 import { trapTab } from '../helpers/useFocusTrap';
 import { useOverlayFocus } from '../helpers/useOverlayFocus';
 import { inertProps } from '../helpers/inertProps';
+import { isDev, warnIfUnnamed } from '../helpers/devWarnings';
 
 /** Position of the sidebar relative to the viewport. */
 export type SidebarPosition = 'left' | 'right';
@@ -17,7 +18,7 @@ export type SidebarPosition = 'left' | 'right';
  * Props for the Sidebar component.
  * @extraProp {string} [className] - Additional CSS classes.
  * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the sidebar element.
- * @extraProp {string} [aria-labelledby] - Names the sidebar, a `role="dialog"` that nothing else names: point it at the `id` of its `Sidebar.Title`. With no visible title, pass an `aria-label` instead.
+ * @extraProp {string} [aria-labelledby] - Names the sidebar, a `role="dialog"` that nothing else names: point it at the `id` of its `Sidebar.Title`. With no visible title, pass an `aria-label` instead. A development build warns, once per page, about an open sidebar with no `aria-label`, `aria-labelledby` or `title`, and doesn't check what an `aria-labelledby` points at.
  */
 export interface SidebarProps
   extends
@@ -216,6 +217,24 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
       // In place it's `false`, which no portal target is.
       remountKey: isPortaled ? defaultTarget : false,
     });
+
+    // In development, an open sidebar that nothing names says so, read from
+    // the rendered aside: its role, which a caller's `role` replaces, and
+    // the caller's aria-label or aria-labelledby.
+    useEffect(() => {
+      if (!isOpen || !isDev()) return;
+      const aside = sidebarRef.current;
+      const role = aside?.getAttribute('role')?.trim().split(/\s+/)[0];
+      if (role === 'dialog' || role === 'alertdialog') {
+        warnIfUnnamed(
+          aside,
+          'Sidebar:unnamed',
+          '[bestax-bulma] A Sidebar opened with no accessible name. Give it ' +
+            'an aria-labelledby pointing at the id of its Sidebar.Title, or ' +
+            'an aria-label.'
+        );
+      }
+    }, [isOpen]);
 
     // Use combined ref
     const combinedRef = useCallback(
