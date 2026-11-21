@@ -48,15 +48,6 @@ export default [
     pages: ['/docs/api/components/carousel'],
     issue: 1926,
   },
-  {
-    rule: 'target-size',
-    pages: [
-      '/docs/api/elements/delete',
-      '/docs/api/form/cascader',
-      '/docs/api/form/treeselect',
-    ],
-    issue: 2198,
-  },
   { rule: 'target-size', pages: ['/docs/api/form/slider'], issue: 2195 },
   // Label in name, in the examples.
   {

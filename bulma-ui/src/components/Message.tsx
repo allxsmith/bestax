@@ -5,6 +5,7 @@ import {
   prefixedClassNames,
 } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
+import { DeleteTarget } from '../helpers/deleteTarget';
 import { isElementOf } from '../helpers/elementType';
 import {
   useBulmaClasses,
@@ -120,7 +121,9 @@ const MessageComponent: React.FC<MessageProps> = ({
               onClick={onClose}
               type="button"
               data-testid="message-close"
-            />
+            >
+              <DeleteTarget />
+            </button>
           )}
         </div>
       )}
