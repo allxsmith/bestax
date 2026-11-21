@@ -14,6 +14,13 @@
  * could replace it. So an editor imported that way without it fails here, as
  * does the attribute's removal from the one every live fence renders through
  * (`docs/src/theme/CodeBlock/index.js`).
+ *
+ * That editor also needs a focus ring and a name (#2180). react-live puts
+ * `outline: none` inline on its editable `<pre>` and passes it no role or name
+ * of ours, so both go on a wrapper of our own: each editor in that file must
+ * sit inside a JSX element with `className="live-editor"`, `role="group"`
+ * and an `aria-label`, and `docs/src/css/custom.css` must give
+ * `.live-editor:focus-within` an outline.
  */
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
@@ -25,6 +32,8 @@ import ts from 'typescript';
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 const DOCS_SRC = join(REPO, 'docs', 'src');
 const CODE_BLOCK = join(DOCS_SRC, 'theme', 'CodeBlock', 'index.js');
+const CUSTOM_CSS = join(DOCS_SRC, 'css', 'custom.css');
+const RING_CLASS = 'live-editor';
 const EDITORS = new Set(['LiveEditor', 'Editor']);
 
 const SCRIPT_KIND = {
@@ -106,6 +115,34 @@ const tabModeIsFocus = element => {
   );
 };
 
+/** Whether a JSX element's `className` is the literal `name`. */
+const hasClassName = (opening, name) =>
+  opening.attributes.properties.some(
+    attribute =>
+      ts.isJsxAttribute(attribute) &&
+      attribute.name.getText() === 'className' &&
+      attribute.initializer !== undefined &&
+      ts.isStringLiteral(attribute.initializer) &&
+      attribute.initializer.text === name
+  );
+
+/** The opening tag of the JSX element with the class `name` around a node. */
+const wrapperOf = (node, name) => {
+  for (let up = node.parent; up; up = up.parent) {
+    if (ts.isJsxElement(up) && hasClassName(up.openingElement, name)) {
+      return up.openingElement;
+    }
+  }
+  return undefined;
+};
+
+/** A JSX element's attribute `name`, if it has one. */
+const attributeOf = (opening, name) =>
+  opening.attributes.properties.find(
+    attribute =>
+      ts.isJsxAttribute(attribute) && attribute.name.getText() === name
+  );
+
 /** Every editor element in docs/src, with where it is and whether it passes. */
 const editorElements = () =>
   sourcesUnder(DOCS_SRC).flatMap(file => {
@@ -123,6 +160,7 @@ const editorElements = () =>
         );
         found.push({
           file,
+          node,
           where: `${relative(REPO, file)}:${line + 1}`,
           passes: tabModeIsFocus(node),
         });
@@ -155,6 +193,64 @@ describe('docs live code editors', () => {
       'These react-live editors catch Tab to indent, so a keyboard user ' +
         'cannot leave them (WCAG 2.1.2). Give each `tabMode="focus"`, ' +
         'after any spread props.'
+    );
+  });
+
+  it('draws a focus ring around each one in the code block', () => {
+    const outside = editors
+      .filter(
+        editor =>
+          editor.file === CODE_BLOCK && !wrapperOf(editor.node, RING_CLASS)
+      )
+      .map(editor => editor.where);
+    assert.deepEqual(
+      outside,
+      [],
+      `These editors aren't inside an element with className="${RING_CLASS}", ` +
+        "which draws the focus ring react-live's inline `outline: none` " +
+        'takes away (WCAG 2.4.7).'
+    );
+    const rule = new RegExp(
+      `\\.${RING_CLASS}:focus-within\\s*\\{([^}]*)\\}`
+    ).exec(readFileSync(CUSTOM_CSS, 'utf8'))?.[1];
+    assert.match(
+      rule ?? '',
+      /(^|;)\s*outline\s*:(?!\s*(?:none|0)\b)[^;]+/,
+      `${relative(REPO, CUSTOM_CSS)} needs a .${RING_CLASS}:focus-within rule ` +
+        'with an outline, so the editor shows where focus is (WCAG 2.4.7).'
+    );
+  });
+
+  it('names the group around each one in the code block', () => {
+    const unnamed = editors
+      .filter(editor => editor.file === CODE_BLOCK)
+      .filter(editor => {
+        const wrapper = wrapperOf(editor.node, RING_CLASS);
+        const role = wrapper && attributeOf(wrapper, 'role')?.initializer;
+        const label =
+          wrapper && attributeOf(wrapper, 'aria-label')?.initializer;
+        const named =
+          label !== undefined &&
+          (ts.isStringLiteral(label)
+            ? label.text.trim() !== ''
+            : ts.isJsxExpression(label) &&
+              label.expression !== undefined &&
+              label.expression.getText() !== 'undefined');
+        return !(
+          role !== undefined &&
+          ts.isStringLiteral(role) &&
+          role.text === 'group' &&
+          named
+        );
+      })
+      .map(editor => editor.where);
+    assert.deepEqual(
+      unnamed,
+      [],
+      `These editors' className="${RING_CLASS}" wrappers need ` +
+        '`role="group"` and an `aria-label` naming the example\'s code, the ' +
+        "name a screen reader gives on the way in, since react-live's " +
+        'editable <pre> takes no role or name of ours (WCAG 4.1.2).'
     );
   });
 });
