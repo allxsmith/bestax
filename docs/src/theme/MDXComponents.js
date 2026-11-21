@@ -1,5 +1,6 @@
 import MDXComponents from '@theme-original/MDXComponents';
 import PackageManagerTabs from '@site/src/components/PackageManagerTabs';
+import MarkdownTable from '@site/src/components/MarkdownTable';
 
 /**
  * Make PackageManagerTabs available to every docs page without an import.
@@ -12,8 +13,12 @@ import PackageManagerTabs from '@site/src/components/PackageManagerTabs';
  * Forgetting a global registration is a loud failure — MDX throws "Expected
  * component `X` to be defined" during the SSR prerender, naming the file — so
  * this trades no safety for the reduced churn.
+ *
+ * `table` replaces the element a Markdown table renders, so one that scrolls
+ * can take focus (see MarkdownTable).
  */
 export default {
   ...MDXComponents,
   PackageManagerTabs,
+  table: MarkdownTable,
 };
