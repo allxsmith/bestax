@@ -113,18 +113,10 @@ const A11Y_EXEMPT: Record<string, Record<string, Why>> = {
   'skill-examples/Overview.stories.tsx#Overview': {
     'link-in-text-block': 1858,
   },
-  // A calendar's month cells show a short name (#2209), and a day with
-  // content is named in a different order from what it shows (#2210).
-  'form/Calendar.stories.tsx#FullWidth': {
-    'label-content-name-mismatch': 2210,
-  },
-  'form/Calendar.stories.tsx#LoadingEachMonth': {
-    'label-content-name-mismatch': 2210,
-  },
+  // A calendar's month cells show a short name (#2209).
   'form/Calendar.stories.tsx#MonthAndYear': {
     'label-content-name-mismatch': 2209,
   },
-  'form/Calendar.stories.tsx#Prices': { 'label-content-name-mismatch': 2210 },
   'form/DateInput.stories.tsx#InlineMonthPicker': {
     'label-content-name-mismatch': 2209,
   },
