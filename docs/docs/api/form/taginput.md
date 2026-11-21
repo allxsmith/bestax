@@ -311,14 +311,18 @@ Display modes for tags.
 
 ```tsx live
 <Block display="flex" flexDirection="column">
-  <Block>
-    <Paragraph mb="1">Read-only:</Paragraph>
-    <Taginput defaultValue={['React', 'TypeScript']} readonly tagColor="info" />
-  </Block>
-  <Block>
-    <Paragraph mb="1">Disabled:</Paragraph>
-    <Taginput defaultValue={['React', 'TypeScript']} disabled tagColor="info" />
-  </Block>
+  <Taginput
+    label="Read-only"
+    defaultValue={['React', 'TypeScript']}
+    readonly
+    tagColor="info"
+  />
+  <Taginput
+    label="Disabled"
+    defaultValue={['React', 'TypeScript']}
+    disabled
+    tagColor="info"
+  />
 </Block>
 ```
 

@@ -582,7 +582,7 @@ function example() {
           <Combobox
             inline
             size="small"
-            label="Search people"
+            label="Assignee"
             onSelect={name => {
               setAssignee(name);
               setQuery('');
