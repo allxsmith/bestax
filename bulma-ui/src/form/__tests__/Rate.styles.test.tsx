@@ -2,7 +2,8 @@
 // `.rate-star-fill`. It took the item's own color before, the empty star's
 // gray, so 3.5 stars showed as 3 and a gray half. Right to left it fills from
 // its right. These read the partial's rules, with no prefix and under one,
-// the way RingProgress's are read.
+// the way RingProgress's are read, and some resolve what a rendered Rate gets
+// from them.
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { Rate } from '../Rate';
@@ -146,8 +147,8 @@ describe.each([
 
   // An `iconName` half star kept the active color in its filled part while
   // the pointer previewed a value, beside full stars in the hover color
-  // (#2012). These render the real Rate and resolve the winning color with
-  // the shared cascade, on a page in forced colors and on one that isn't.
+  // (#2012). The color is resolved on a rendered Rate with the shared
+  // cascade, on a page in forced colors and on one that isn't.
   describe('an iconName half star’s filled part', () => {
     // jsdom puts no element under the pointer, so `:hover` reads as a class
     // the test sets, which ranks as `:hover` does.
