@@ -3,7 +3,11 @@
 // gray, so 3.5 stars showed as 3 and a gray half. Right to left it fills from
 // its right. These read the partial's rules, with no prefix and under one,
 // the way RingProgress's are read.
-import { compilePartial, rulesOf } from '../../__tests__/css-cascade';
+import React from 'react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { Rate } from '../Rate';
+import { ConfigProvider } from '../../helpers/Config';
+import { cascade, compilePartial, rulesOf } from '../../__tests__/css-cascade';
 
 describe.each([
   ['no prefix', ''],
@@ -35,7 +39,7 @@ describe.each([
     const still = nested.find(
       ({ rule, within }) =>
         within === '@media (prefers-reduced-motion: reduce)' &&
-        rule.selectorText === fill
+        rule.selectorText.split(/,\s*/).includes(fill)
     )?.rule;
     expect(still?.style.getPropertyValue('transition')).toBe('none');
   });
@@ -86,11 +90,9 @@ describe.each([
       )?.rule;
     // The filled part takes a filled star's color. It outranks the layer's
     // own color, a rule of one class, and the back layer keeps the star's.
-    expect(
-      forced(`${p('rate')} ${p('rate-icon-fg')}`)?.style.getPropertyValue(
-        'color'
-      )
-    ).toBe('highlight');
+    const fg = forced(`${p('rate')} ${p('rate-icon-fg')}`)?.style;
+    expect(fg?.getPropertyValue('color')).toBe('highlight');
+    expect(fg?.getPropertyPriority('color')).toBe('important');
     expect(declared(p('rate-icon-fg'), 'color')).toBe(
       'var(--bulma-rate-color-active)'
     );
@@ -139,5 +141,91 @@ describe.each([
     const fill = forced(`${disabled} ${p('rate-star-fill')}`)?.style;
     expect(fill?.getPropertyValue('fill')).toBe('canvastext');
     expect(fill?.getPropertyPriority('fill')).toBe('important');
+  });
+
+  // An `iconName` half star kept the active color in its filled part while
+  // the pointer previewed a value, beside full stars in the hover color
+  // (#2012). These render the real Rate and resolve the winning color with
+  // the shared cascade, on a page in forced colors and on one that isn't.
+  describe('an iconName half star’s filled part', () => {
+    const css = compilePartial('form/rate', prefix);
+    // jsdom puts no element under the pointer, so `:hover` reads as a class
+    // the test sets, which ranks as `:hover` does.
+    const POINTER = 'test-pointer';
+    const hovered = css.split(':hover').join(`.${POINTER}`);
+    const colorOf = (el: Element, sheet: string, forcedColors: boolean) =>
+      cascade(
+        el,
+        sheet,
+        ['color'],
+        (style, property) => style.getPropertyValue(property) || undefined,
+        { forcedColors }
+      );
+    const renderRate = (props: React.ComponentProps<typeof Rate>) =>
+      render(
+        <ConfigProvider classPrefix={prefix}>
+          <Rate
+            iconName="star"
+            iconLibrary="fa"
+            iconVariant="solid"
+            precision={0.5}
+            {...props}
+          />
+        </ConfigProvider>
+      ).container;
+
+    it('takes the hover color while the pointer previews a value, and the highlight in forced colors', () => {
+      const container = renderRate({ defaultValue: 0 });
+      const stars = screen.getAllByRole('radio');
+      stars.forEach((star, index) => {
+        star.getBoundingClientRect = () =>
+          ({ left: index * 20, width: 20 }) as DOMRect;
+      });
+      // The left half of the third star.
+      fireEvent.mouseEnter(stars[2]);
+      fireEvent.mouseMove(stars[2], { clientX: 45 });
+      expect(stars[2]).toHaveClass(`${prefix}is-hovered`);
+      const fg = container.querySelector(p('rate-icon-fg'))!;
+      expect(stars[2]).toContainElement(fg as HTMLElement);
+      expect(colorOf(fg, css, false)).toBe('var(--bulma-rate-color-hover)');
+      expect(colorOf(fg, css, true)).toBe('highlight');
+    });
+
+    it('takes the hover color under the pointer, and the highlight in forced colors', () => {
+      const fg = renderRate({ defaultValue: 2.5 }).querySelector(
+        p('rate-icon-fg')
+      )!;
+      fg.closest(p('rate-item'))!.classList.add(POINTER);
+      expect(colorOf(fg, hovered, false)).toBe('var(--bulma-rate-color-hover)');
+      expect(colorOf(fg, hovered, true)).toBe('highlight');
+    });
+
+    it('keeps the active color at rest, and the highlight in forced colors', () => {
+      const fg = renderRate({ defaultValue: 2.5 }).querySelector(
+        p('rate-icon-fg')
+      )!;
+      expect(colorOf(fg, css, false)).toBe('var(--bulma-rate-color-active)');
+      expect(colorOf(fg, css, true)).toBe('highlight');
+    });
+
+    it('keeps the text color while disabled in forced colors', () => {
+      const fg = renderRate({
+        defaultValue: 2.5,
+        disabled: true,
+      }).querySelector(p('rate-icon-fg'))!;
+      expect(colorOf(fg, css, true)).toBe('canvastext');
+    });
+
+    it('fades its color as the star’s fades, unless motion is reduced', () => {
+      expect(declared(p('rate-icon-fg'), 'transition')).toBe(
+        'color var(--bulma-rate-transition-duration) ease'
+      );
+      const still = nested.find(
+        ({ rule, within }) =>
+          within === '@media (prefers-reduced-motion: reduce)' &&
+          rule.selectorText.split(/,\s*/).includes(p('rate-icon-fg'))
+      )?.rule;
+      expect(still?.style.getPropertyValue('transition')).toBe('none');
+    });
   });
 });
