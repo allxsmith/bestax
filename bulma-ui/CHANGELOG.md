@@ -1,3 +1,16 @@
+## [5.79.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.79.0...@allxsmith/bestax-bulma@5.79.1) (2026-11-21)
+
+
+### Bug Fixes
+
+* **bulma-ui:** count a Slider's last step as max within a millionth of a step ([a817778](https://github.com/allxsmith/bestax/commit/a81777888133ff42a255a16196a7d20b61fa7f9b))
+* **bulma-ui:** deprecate the color prop on Pagination's and Field's parts ([878e265](https://github.com/allxsmith/bestax/commit/878e265c159c13af0ddd01e6d1c73f56b04c2a6f)), closes [#2240](https://github.com/allxsmith/bestax/issues/2240)
+* **bulma-ui:** draw a Slider's last step tick when max is a little past it ([f696dcd](https://github.com/allxsmith/bestax/commit/f696dcd3c46bdbd78e72a8aa94956eb08fef6841)), closes [#2109](https://github.com/allxsmith/bestax/issues/2109)
+* **bulma-ui:** skip a Slider's last tick when it sits at the end of the track ([6f908ee](https://github.com/allxsmith/bestax/commit/6f908eec1c97123acb771b71f44c432cb8d2273c))
+* **bulma-ui:** skip the end tick when a Slider's max is a float's error past a step ([644defa](https://github.com/allxsmith/bestax/commit/644defa48ee1ecd4e7a117ab98c81aaf47ecc27a))
+* **docs:** stop the homepage form-controls demo moving keyboard focus ([6f66b5a](https://github.com/allxsmith/bestax/commit/6f66b5a03d87a352391ad03a212d93fa392b9557))
+* **eslint-plugin:** flag the deprecated color prop on Pagination's and Field's parts ([488798b](https://github.com/allxsmith/bestax/commit/488798b684b08a7301592e8d5906e2fe8dfb3d73)), closes [#2240](https://github.com/allxsmith/bestax/issues/2240)
+
 # [5.79.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.78.10...@allxsmith/bestax-bulma@5.79.0) (2026-11-21)
 
 
