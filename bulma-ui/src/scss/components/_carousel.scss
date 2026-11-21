@@ -437,18 +437,19 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
   // shows while keyboard focus is on it, so the focus can be seen. A
   // disabled arrow hides and shows with the others, faded as it is without
   // the variant. The rule that hides it ties the disabled `.button` rule
-  // above, so it comes after it.
+  // above, so it comes after it, and the focus rule ties it, so that comes
+  // after both.
   &.#{iv.$class-prefix}has-arrow-hover {
     .#{iv.$class-prefix}carousel-arrow {
       opacity: 0;
 
-      &:focus-visible {
-        opacity: 1;
-      }
-
       &:disabled,
       &.#{iv.$class-prefix}is-disabled {
         opacity: 0;
+      }
+
+      &:focus-visible {
+        opacity: 1;
       }
     }
 

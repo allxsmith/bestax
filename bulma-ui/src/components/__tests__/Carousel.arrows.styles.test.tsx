@@ -19,9 +19,6 @@ const focused = (css: string) =>
 /** `css` as it applies to an element under the pointer. */
 const hovered = (css: string) => css.split(':hover').join('');
 
-/** The class that stands for `:hover` where its rank matters. */
-const POINTER = 'test-pointer';
-
 const declared = (style: CSSStyleDeclaration, property: string) =>
   style.getPropertyValue(property).replace(/\s+/g, ' ').trim() || undefined;
 
@@ -83,13 +80,22 @@ describe.each([
 
   describe.each(orders)('with %s', (_order, css) => {
     /**
-     * `css` as it applies with the pointer over `elements`. jsdom puts none
-     * under it, so `:hover` reads as a class set on them, which ranks as
-     * `:hover` does.
+     * Runs `check` on `css` as it applies with `elements` in `state`. jsdom
+     * puts no element in a state, so while `check` runs the pseudo-class
+     * reads as a class set on them, which ranks as the pseudo-class does.
      */
-    const pointerOn = (...elements: Element[]) => {
-      elements.forEach(el => el.classList.add(POINTER));
-      return css.split(':hover').join(`.${POINTER}`);
+    const inState = (
+      state: ':hover' | ':focus-visible',
+      elements: Element[],
+      check: (sheet: string) => void
+    ) => {
+      const stand = `test-${state.slice(1)}`;
+      elements.forEach(el => el.classList.add(stand));
+      try {
+        check(css.split(state).join(`.${stand}`));
+      } finally {
+        elements.forEach(el => el.classList.remove(stand));
+      }
     };
 
     it.each(TRANSPARENT)(
@@ -164,19 +170,24 @@ describe.each([
         // The pointer over the carousel, then over the disabled arrow, which
         // puts it over the carousel too.
         for (const pointed of [[carousel], [carousel, prev]]) {
-          const sheet = pointerOn(...pointed);
-          expect(value(prev, sheet, 'opacity', false)).toBe(
-            'var(--bulma-carousel-arrow-disabled-opacity)'
-          );
-          // GrayText marks it in forced colors, at full strength, as without
-          // arrowHover (#2049).
-          expect(value(prev, sheet, 'opacity', true)).toBe('1');
-          expect(value(prev, sheet, 'color', true)).toBe('graytext');
-          // The arrow that works shows as before.
-          expect(value(next, sheet, 'opacity', false)).toBe('1');
-          pointed.forEach(el => el.classList.remove(POINTER));
+          inState(':hover', pointed, sheet => {
+            expect(value(prev, sheet, 'opacity', false)).toBe(
+              'var(--bulma-carousel-arrow-disabled-opacity)'
+            );
+            // GrayText marks it in forced colors, at full strength, as
+            // without arrowHover (#2049).
+            expect(value(prev, sheet, 'opacity', true)).toBe('1');
+            expect(value(prev, sheet, 'color', true)).toBe('graytext');
+            // The arrow that works shows as before.
+            expect(value(next, sheet, 'opacity', false)).toBe('1');
+          });
         }
       }
+      // Marked by the class alone it can take focus, and shows while it has
+      // it, as any arrowHover arrow does.
+      inState(':focus-visible', [prev], sheet => {
+        expect(value(prev, sheet, 'opacity', false)).toBe('1');
+      });
     });
 
     it("leaves an arrow with its background Bulma's focus shadow", () => {
