@@ -14,7 +14,8 @@ describe.each([
   ['a prefix', 'bestax-'],
 ])('Rate’s partly filled star with %s', (_name, prefix) => {
   const p = (name: string) => `.${prefix}${name}`;
-  const { rules, nested } = rulesOf(compilePartial('form/rate', prefix));
+  const css = compilePartial('form/rate', prefix);
+  const { rules, nested } = rulesOf(css);
   /** The declaration of `property` in a rule whose list has `selector`. */
   const declared = (selector: string, property: string) =>
     rules
@@ -148,7 +149,6 @@ describe.each([
   // (#2012). These render the real Rate and resolve the winning color with
   // the shared cascade, on a page in forced colors and on one that isn't.
   describe('an iconName half star’s filled part', () => {
-    const css = compilePartial('form/rate', prefix);
     // jsdom puts no element under the pointer, so `:hover` reads as a class
     // the test sets, which ranks as `:hover` does.
     const POINTER = 'test-pointer';
@@ -181,9 +181,9 @@ describe.each([
         star.getBoundingClientRect = () =>
           ({ left: index * 20, width: 20 }) as DOMRect;
       });
-      // The left half of the third star.
+      // Inside the third star's left half, which previews 2.5.
       fireEvent.mouseEnter(stars[2]);
-      fireEvent.mouseMove(stars[2], { clientX: 45 });
+      fireEvent.mouseMove(stars[2], { clientX: 48 });
       expect(stars[2]).toHaveClass(`${prefix}is-hovered`);
       const fg = container.querySelector(p('rate-icon-fg'))!;
       expect(stars[2]).toContainElement(fg as HTMLElement);
