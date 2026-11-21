@@ -16,11 +16,13 @@
  * docusaurus.config.js can't reach it.
  *
  * Apart from formatting, the `keyboardShortcuts` passed to that hook is the
- * only change from the theme's file. scripts/docs-search-shortcuts.test.mjs
- * fails once a Docusaurus upgrade changes the theme's SearchBar. Then eject it
- * again, apply the change and update the hash the test names, or, if the
- * theme now passes `keyboardShortcuts` from the `algolia` block through to
- * the hook, set it there and delete this folder.
+ * only change from the theme's files, which are under Docusaurus's MIT license
+ * (https://github.com/facebook/docusaurus/blob/main/LICENSE), the license the
+ * notice above names. scripts/docs-search-shortcuts.test.mjs fails once a
+ * Docusaurus upgrade changes the theme's SearchBar. Then eject it again, apply
+ * the change and update the hash the test names. Or, if the theme now passes
+ * `keyboardShortcuts` from the `algolia` block through to the hook, set it
+ * there, delete this folder and change the test to check the setting there.
  */
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';

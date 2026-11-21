@@ -17,9 +17,9 @@
  * fails here, as does the ejected SearchBar's.
  *
  * An ejected component doesn't follow the theme when Docusaurus is upgraded,
- * so this also fails once the installed theme's SearchBar is no longer the
- * file the copy was ejected from, or once the copy and the theme load
- * different installs of the theme or of `@docsearch/react`.
+ * so this also fails once the installed theme's SearchBar files are no
+ * longer the ones the copy was ejected from, or once the copy and the theme
+ * load different installs of the theme or of `@docsearch/react`.
  */
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
@@ -41,10 +41,11 @@ const MODULES = new Set([
   '@docsearch/core',
   '@docsearch/core/useDocSearchKeyboardEvents',
 ]);
-// The SHA-256 of the theme's `lib/theme/SearchBar/index.js` the copy was
-// ejected from.
+// The files the eject copied from the theme's `lib/theme/SearchBar`, and the
+// SHA-256 of them as they were, each name followed by a NUL and its bytes.
+const EJECTED_FILES = ['index.js', 'styles.css'];
 const EJECTED_FROM =
-  '0fe30dcb603307a500d96d6a4e951cd625054231ae3a2dbbcb99f1f918c3ba52';
+  'b3af0ebdd58ea2b1d37c328669614cefab0b6e09721335f445cc0f5a1c66f777';
 
 const SCRIPT_KIND = {
   '.js': ts.ScriptKind.JSX,
@@ -196,9 +197,11 @@ describe('docs search shortcuts', () => {
 
   it("was ejected from the theme's SearchBar as installed", () => {
     const upstream = join(dirname(themeFromDocs()), 'theme', 'SearchBar');
-    const installed = createHash('sha256')
-      .update(readFileSync(join(upstream, 'index.js')))
-      .digest('hex');
+    const hash = createHash('sha256');
+    for (const file of EJECTED_FILES) {
+      hash.update(`${file}\0`).update(readFileSync(join(upstream, file)));
+    }
+    const installed = hash.digest('hex');
     assert.equal(
       installed,
       EJECTED_FROM,
@@ -208,7 +211,8 @@ describe('docs search shortcuts', () => {
         "`keyboardShortcuts: { '/': false }` to the hook again, and set " +
         `EJECTED_FROM to ${installed}. If the theme now passes ` +
         '`keyboardShortcuts` from the `algolia` block through to the hook, ' +
-        'set it there and delete the copy instead.'
+        'set it there, delete the copy and change this test to check the ' +
+        'setting there instead.'
     );
   });
 
@@ -225,7 +229,8 @@ describe('docs search shortcuts', () => {
       resolveFrom(themeFromDocs(), '@docsearch/react'),
       `The docs package and ${THEME} resolve different @docsearch/react ` +
         'installs, so the ejected SearchBar loads another DocSearch from the ' +
-        "theme's. Give the docs package a range the theme's install meets."
+        "theme's. Run `pnpm dedupe`, or give the docs package a range " +
+        "that resolves to the theme's install."
     );
   });
 });
