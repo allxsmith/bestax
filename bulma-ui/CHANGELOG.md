@@ -1,3 +1,35 @@
+# [5.79.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.78.10...@allxsmith/bestax-bulma@5.79.0) (2026-11-21)
+
+
+### Bug Fixes
+
+* **bulma-ui:** add the space before a calendar day's content only when it has some ([f015782](https://github.com/allxsmith/bestax/commit/f015782128ffc2fdd1b32d1601318c5a13f3bb3d)), closes [#2210](https://github.com/allxsmith/bestax/issues/2210)
+* **bulma-ui:** keep a calendar day's number and content two words in its text ([41e607b](https://github.com/allxsmith/bestax/commit/41e607b6e52678f666818306fae01e82c1c71fe8)), closes [#2210](https://github.com/allxsmith/bestax/issues/2210)
+* **bulma-ui:** preview an iconName Rate's half star in the hover color ([c999e77](https://github.com/allxsmith/bestax/commit/c999e775e35ae5d04538eecf9284ca3e8f81e2b1)), closes [#2012](https://github.com/allxsmith/bestax/issues/2012)
+* **docs:** let the keyboard reach a wide Markdown table that scrolls sideways ([0173852](https://github.com/allxsmith/bestax/commit/01738521587f2de71bec7ef742163f113ff7874c))
+
+
+### Features
+
+* **bulma-ui:** hand getDayLabel the day's number as its cell shows it ([b9a64b3](https://github.com/allxsmith/bestax/commit/b9a64b37ec97d3abb529692667367b5f2aea3505)), closes [#2210](https://github.com/allxsmith/bestax/issues/2210)
+
+## [5.78.10](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.78.9...@allxsmith/bestax-bulma@5.78.10) (2026-11-20)
+
+
+### Bug Fixes
+
+* **bulma-ui:** give every delete button a 24px target, drawn as before ([16a61fc](https://github.com/allxsmith/bestax/commit/16a61fc7b016750418de41a7ec1bf896855666b8)), closes [#2198](https://github.com/allxsmith/bestax/issues/2198)
+* **bulma-ui:** give the floating close the target, and keep dangerouslySetInnerHTML working ([93a1805](https://github.com/allxsmith/bestax/commit/93a1805e99a2969152310dffc79fa6bba55318e8))
+* **bulma-ui:** keep a focused control clear of a fixed Navbar ([2fc3ebd](https://github.com/allxsmith/bestax/commit/2fc3ebd5225820a7a94e5fc71c2a7e165603b064)), closes [#2193](https://github.com/allxsmith/bestax/issues/2193)
+* **bulma-ui:** warn in development about an open Sidebar with no name ([eb243af](https://github.com/allxsmith/bestax/commit/eb243af9f17f230a7e74729ea5c9070e8b05f87c)), closes [#2261](https://github.com/allxsmith/bestax/issues/2261)
+
+## [5.78.9](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.78.8...@allxsmith/bestax-bulma@5.78.9) (2026-11-20)
+
+
+### Bug Fixes
+
+* **bulma-ui:** warn in development when an Icon with a role of its own has no name ([8dc17a6](https://github.com/allxsmith/bestax/commit/8dc17a6c8a5bacf436b83cdbd59e3d35a95539ca)), closes [#2265](https://github.com/allxsmith/bestax/issues/2265) [#2227](https://github.com/allxsmith/bestax/issues/2227)
+
 ## [5.78.8](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.78.7...@allxsmith/bestax-bulma@5.78.8) (2026-11-20)
 
 

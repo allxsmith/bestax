@@ -350,7 +350,7 @@ toast.closeAll();
 
 - Uses `role="alert"` for screen reader announcement.
 - Has `aria-live="polite"` for non-intrusive notifications.
-- The closable button is named "Close". Pass `ariaCloseLabel` to name it in your app's language.
+- The closable button is named "Close". Pass `ariaCloseLabel` to name it in your app's language. It's Bulma's small delete button, with a box at least 24px square around its circle that takes presses too, as [`Delete`](../elements/delete.md#accessibility) has.
 - `pauseOnHover` lets users keep the toast visible while reading.
 - A toast doesn't close on its timer while focus is inside it, on its action, cancel or close button, whatever `pauseOnHover` says, so a keyboard user who reaches it can use it. Once focus leaves, it gets its whole `duration` again.
 - When a toast shown through `toast` closes with focus inside it, as one does from its own buttons, focus moves to the first button of the next toast in its stack that stays and has one, or else of the one before it, or, with neither, back to where it was before it went into a toast, while that's still on the page, rather than dropping to the page. Focus anywhere else stays where it is. A `Toast` you render yourself leaves that to your `onClose`.
