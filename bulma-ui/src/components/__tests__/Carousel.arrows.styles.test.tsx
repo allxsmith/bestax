@@ -79,6 +79,25 @@ describe.each([
   };
 
   describe.each(orders)('with %s', (_order, css) => {
+    /**
+     * Runs `check` on `css` as it applies with `elements` in `state`. jsdom
+     * puts no element in a state, so while `check` runs the pseudo-class
+     * reads as a class set on them, which ranks as the pseudo-class does.
+     */
+    const inState = (
+      state: ':hover' | ':focus-visible',
+      elements: Element[],
+      check: (sheet: string) => void
+    ) => {
+      const stand = `test-${state.slice(1)}`;
+      elements.forEach(el => el.classList.add(stand));
+      try {
+        check(css.split(state).join(`.${stand}`));
+      } finally {
+        elements.forEach(el => el.classList.remove(stand));
+      }
+    };
+
     it.each(TRANSPARENT)(
       "gives a focused transparent arrow Bulma's focus outline, %s, and nothing new at rest",
       (_look, props) => {
@@ -125,15 +144,53 @@ describe.each([
       ).toBe('graytext');
     });
 
-    it('leaves a disabled arrowHover arrow as it was in forced colors', () => {
-      // Whether it shows at rest is #2145, so it keeps its fade there.
+    // A disabled arrowHover arrow showed faded at rest, where the others
+    // hide, and unfaded under the pointer, like an enabled one (#2145).
+    it('hides a disabled arrowHover arrow at rest and shows it disabled under the pointer', () => {
       const prev = nextArrow({ repeat: false, arrowHover: true }, 'prev');
       expect(prev).toBeDisabled();
-      for (const forcedColors of [false, true]) {
-        expect(
-          cascade(prev, css, ['opacity'], declared, { forcedColors })
-        ).toBe('var(--bulma-carousel-arrow-disabled-opacity)');
+      const carousel = prev.closest(`.${prefix}carousel`)!;
+      const next = carousel.querySelector(
+        `.${prefix}carousel-arrow.${prefix}is-next`
+      )!;
+      const value = (
+        el: Element,
+        sheet: string,
+        property: string,
+        forcedColors: boolean
+      ) => cascade(el, sheet, [property], declared, { forcedColors });
+      // Disabled as it renders, with the attribute and `is-disabled`, then
+      // with the class alone.
+      for (const attribute of [true, false]) {
+        if (!attribute) prev.removeAttribute('disabled');
+        expect(prev).toHaveClass(`${prefix}is-disabled`);
+        for (const forcedColors of [false, true]) {
+          expect(value(prev, css, 'opacity', forcedColors)).toBe('0');
+        }
+        // It keeps GrayText while it fades out as the pointer leaves.
+        expect(value(prev, css, 'color', true)).toBe('graytext');
+        // The pointer over the carousel, then over the disabled arrow, which
+        // puts it over the carousel too.
+        for (const pointed of [[carousel], [carousel, prev]]) {
+          inState(':hover', pointed, sheet => {
+            expect(value(prev, sheet, 'opacity', false)).toBe(
+              'var(--bulma-carousel-arrow-disabled-opacity)'
+            );
+            // GrayText marks it in forced colors, at full strength, as
+            // without arrowHover (#2049).
+            expect(value(prev, sheet, 'opacity', true)).toBe('1');
+            expect(value(prev, sheet, 'color', true)).toBe('graytext');
+            // The arrow that works shows as before.
+            expect(value(next, sheet, 'opacity', false)).toBe('1');
+          });
+        }
       }
+      // Marked by the class alone it can take focus, and shows while it has
+      // it, as any arrowHover arrow does.
+      expect(prev).not.toHaveAttribute('disabled');
+      inState(':focus-visible', [prev], sheet => {
+        expect(value(prev, sheet, 'opacity', false)).toBe('1');
+      });
     });
 
     it("leaves an arrow with its background Bulma's focus shadow", () => {

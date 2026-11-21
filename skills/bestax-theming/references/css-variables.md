@@ -409,8 +409,8 @@ the class prefix in a prefixed build) keeps what's inside it on the light scheme
 `--bulma-carousel-overlay-indicator-background-active`,
 `--bulma-carousel-overlay-indicator-background-hover`, `--bulma-carousel-transition-duration`
 
-In forced colors `--bulma-carousel-arrow-disabled-opacity` doesn't apply without `arrowHover`: a
-disabled arrow draws at full strength in the system's color for a disabled control.
+In forced colors `--bulma-carousel-arrow-disabled-opacity` doesn't apply: a disabled arrow draws
+at full strength in the system's color for a disabled control, with `arrowHover` under the pointer.
 
 `--bulma-carousel-item-gap` (a length, default `0px`) is the space between items in view; set it
 on the carousel's own element through a class. The `--bulma-carousel-items-to-show*` variables
