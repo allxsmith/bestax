@@ -261,7 +261,7 @@ function stepFrom(
   // number they keep as it is. Next to a max written with more digits, the
   // fifteen can round a hair above it, as Chromium and WebKit hold it: with
   // a max and step of 0.7 + 0.1, 0.7999999999999999, they hold 0.8.
-  return Number.isInteger(top) ? top : Number(top.toPrecision(15));
+  return kept(top);
 }
 
 /**
@@ -275,12 +275,19 @@ function highestStep(min: number, max: number, step: number): number {
 }
 
 /**
+ * `value` as browsers keep a number: a fraction to fifteen significant
+ * digits, and a whole number as it is.
+ */
+function kept(value: number): number {
+  return Number.isInteger(value) ? value : Number(value.toPrecision(15));
+}
+
+/**
  * `a + b`, with a fraction kept to the fifteen significant digits browsers
  * keep, so a float's error, as in 0.2 + 0.1, doesn't move it across a step.
  */
 function addKept(a: number, b: number): number {
-  const sum = a + b;
-  return Number.isInteger(sum) ? sum : Number(sum.toPrecision(15));
+  return kept(a + b);
 }
 
 /**
@@ -332,7 +339,7 @@ function getTickPositions(
     // so there are no ticks at the endpoints. `max` is compared as browsers
     // keep a fraction, to fifteen significant digits, so one a float's error
     // above the last step, as 0.1 + 0.2 is above 0.3, counts as on it.
-    const last = top < addKept(max, 0) ? count : count - 1;
+    const last = top < kept(max) ? count : count - 1;
     for (let i = 1; i <= last; i++) {
       positions.push({ value: min + i * step });
     }
