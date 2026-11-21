@@ -15,11 +15,12 @@
  * one to `useDocSearchKeyboardEvents`, so the `algolia` block in
  * docusaurus.config.js can't reach it.
  *
- * Apart from formatting, `KEYBOARD_SHORTCUTS` and the three places it's passed
- * are the only changes from the theme's file. On a Docusaurus upgrade, eject
- * the new SearchBar and apply them again, or delete this folder once the
- * theme passes `keyboardShortcuts` from the `algolia` block through to the
- * hook, and set it there.
+ * Apart from formatting, the `keyboardShortcuts` passed to that hook is the
+ * only change from the theme's file. scripts/docs-search-shortcuts.test.mjs
+ * fails once the installed theme is a different version from the one named
+ * above. Then eject the new SearchBar, apply the change again and update the
+ * version here, or, if the theme now passes `keyboardShortcuts` from the
+ * `algolia` block through to the hook, set it there and delete this folder.
  */
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -41,9 +42,6 @@ import {
 import Translate from '@docusaurus/Translate';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import translations from '@theme/SearchTranslations';
-// The bare `/` key is off. Ctrl/Cmd+K stays on: it takes a modifier, so 2.1.4
-// doesn't cover it.
-const KEYBOARD_SHORTCUTS = { '/': false };
 let DocSearchModal = null;
 function importDocSearchModalIfNeeded() {
   if (DocSearchModal) {
@@ -188,7 +186,9 @@ function DocSearch({ externalUrlRegex, ...props }) {
     searchButtonRef,
     isAskAiActive: isAskAiActive ?? false,
     onAskAiToggle: onAskAiToggle ?? (() => {}),
-    keyboardShortcuts: KEYBOARD_SHORTCUTS,
+    // The bare `/` key is off. Ctrl/Cmd+K stays on: it takes a modifier, so
+    // 2.1.4 doesn't cover it.
+    keyboardShortcuts: { '/': false },
   });
   return (
     <>
@@ -210,7 +210,6 @@ function DocSearch({ externalUrlRegex, ...props }) {
         onClick={openModal}
         ref={searchButtonRef}
         translations={props.translations?.button ?? translations.button}
-        keyboardShortcuts={KEYBOARD_SHORTCUTS}
       />
 
       {isOpen &&
@@ -232,7 +231,6 @@ function DocSearch({ externalUrlRegex, ...props }) {
             {...props}
             translations={props.translations?.modal ?? translations.modal}
             searchParameters={searchParameters}
-            keyboardShortcuts={KEYBOARD_SHORTCUTS}
             {...extraAskAiProps}
           />,
           searchContainer.current
