@@ -434,7 +434,10 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
   }
 
   // Arrow hover variant: the arrows show under the pointer, and an arrow
-  // shows while keyboard focus is on it, so the focus can be seen.
+  // shows while keyboard focus is on it, so the focus can be seen. A
+  // disabled arrow hides and shows with the others, faded as it is without
+  // the variant. The rule that hides it ties the disabled `.button` rule
+  // above, so it comes after it.
   &.#{iv.$class-prefix}has-arrow-hover {
     .#{iv.$class-prefix}carousel-arrow {
       opacity: 0;
@@ -442,11 +445,21 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
       &:focus-visible {
         opacity: 1;
       }
+
+      &:disabled,
+      &.#{iv.$class-prefix}is-disabled {
+        opacity: 0;
+      }
     }
 
     &:hover {
       .#{iv.$class-prefix}carousel-arrow {
         opacity: 1;
+
+        &:disabled,
+        &.#{iv.$class-prefix}is-disabled {
+          opacity: cv.getVar("carousel-arrow-disabled-opacity");
+        }
       }
     }
   }
@@ -764,9 +777,11 @@ $carousel-indicator-line-radius: cv.getVar("radius-small") !default;
   }
 
   // A disabled arrow is drawn in GrayText, so its usual opacity would only
-  // fade that. It draws at full strength here. With `arrowHover` it's left as
-  // it is (#2145).
+  // fade that. It draws at full strength here, and with `arrowHover` under
+  // the pointer, where the arrows show.
   .#{iv.$class-prefix}carousel:not(.#{iv.$class-prefix}has-arrow-hover)
+    .#{iv.$class-prefix}carousel-arrow.#{iv.$class-prefix}button,
+  .#{iv.$class-prefix}carousel.#{iv.$class-prefix}has-arrow-hover:hover
     .#{iv.$class-prefix}carousel-arrow.#{iv.$class-prefix}button {
     &:disabled,
     &.#{iv.$class-prefix}is-disabled {
