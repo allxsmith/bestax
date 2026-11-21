@@ -271,30 +271,32 @@ function example() {
         setSearched(query);
       }}
     >
-      <Field hasAddons>
-        <Control isExpanded>
-          <Input
-            type="search"
-            aria-label="Search the docs"
-            value={query}
-            onChange={event => setQuery(event.target.value)}
-          />
-        </Control>
-        <Control>
-          <IconButton
-            icon="xmark"
-            aria-label="Clear"
-            onClick={() => setQuery('')}
-          />
-        </Control>
-        <Control>
-          <IconButton
-            type="submit"
-            color="primary"
-            icon="magnifying-glass"
-            aria-label="Search"
-          />
-        </Control>
+      <Field label="Search the docs" labelProps={{ htmlFor: 'docs-search' }}>
+        <Field hasAddons>
+          <Control isExpanded>
+            <Input
+              id="docs-search"
+              type="search"
+              value={query}
+              onChange={event => setQuery(event.target.value)}
+            />
+          </Control>
+          <Control>
+            <IconButton
+              icon="xmark"
+              aria-label="Clear"
+              onClick={() => setQuery('')}
+            />
+          </Control>
+          <Control>
+            <IconButton
+              type="submit"
+              color="primary"
+              icon="magnifying-glass"
+              aria-label="Search"
+            />
+          </Control>
+        </Field>
       </Field>
       <Paragraph>
         {searched ? `Searched for ${searched}.` : 'No search yet.'}

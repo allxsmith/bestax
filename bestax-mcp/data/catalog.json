@@ -727,7 +727,7 @@
       "import": "import { Field } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 41,
-      "exampleCount": 23
+      "exampleCount": 22
     },
     {
       "name": "Fieldset",

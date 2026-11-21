@@ -582,6 +582,7 @@ function example() {
           <Combobox
             inline
             size="small"
+            label="Assignee"
             onSelect={name => {
               setAssignee(name);
               setQuery('');
@@ -589,14 +590,13 @@ function example() {
             }}
           >
             <Combobox.Input
-              aria-label="Search people"
               placeholder="Search people"
               iconLeftName="search"
               value={query}
               onChange={e => setQuery(e.target.value)}
             />
             {matches.length > 0 ? (
-              <Combobox.List aria-label="People">
+              <Combobox.List>
                 {matches.map(p => (
                   <Combobox.Item key={p} value={p} checked={p === assignee}>
                     {p}
@@ -627,8 +627,8 @@ function example() {
 }
 ```
 
-With no `label`, the field takes an `aria-label` and the list takes one of its own. Without one, the
-list is named "Suggestions".
+The `label` names the field and the list. Built from parts with no `label`, give `Combobox.Input`
+an `aria-label` and the list one of its own, or the list is named "Suggestions".
 
 ### A Result Count
 

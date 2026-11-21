@@ -234,7 +234,7 @@ You can use the `Field` component to create horizontal layouts for static and ed
 This example demonstrates adding icons to an `Input` within a `Field`. The `hasIconsLeft` and `hasIconsRight` props add icons to the left and right of the input, respectively.
 
 ```tsx live
-<Field>
+<Field label="With Icons">
   <Control
     hasIconsLeft
     hasIconsRight
@@ -455,15 +455,21 @@ This example demonstrates the versatility of the `TextArea` component used withi
 
 ### Grouped Controls
 
-This example demonstrates using the `Field` component to create a group of controls. The `grouped` prop is used on the `Field`, and each control is placed inside a `Control` component.
+This example demonstrates using the `Field` component to create a group of controls. The `grouped` prop is used on the `Field`, and each control is placed inside a `Control` component. A `grouped` Field names none of the controls it holds, so each `Control` here holds a `<label>` with the `label` class, its `htmlFor` pointing at the input's `id`.
 
 ```tsx live
 <Field grouped>
   <Control>
-    <Input placeholder="First" />
+    <label className="label" htmlFor="grouped-first">
+      First
+    </label>
+    <Input id="grouped-first" placeholder="First input" />
   </Control>
   <Control>
-    <Input placeholder="Second" />
+    <label className="label" htmlFor="grouped-second">
+      Second
+    </label>
+    <Input id="grouped-second" placeholder="Second input" />
   </Control>
 </Field>
 ```
@@ -473,54 +479,6 @@ This example demonstrates using the `Field` component to create a group of contr
 ### Addons (Input and Button)
 
 Set `hasAddons` to join controls into one row with no gap between them, such as an input and the button that sends it. Put each one in a `Control` of its own, and give the input's `Control` the `isExpanded` prop so it fills the row. For a row of buttons alone, [`Buttons hasAddons`](../elements/buttons.md) joins them with less markup.
-
-```tsx live
-<Field hasAddons>
-  <Control isExpanded>
-    <Input
-      autoComplete="email"
-      type="email"
-      placeholder="you@example.com"
-      aria-label="Email address"
-    />
-  </Control>
-  <Control>
-    <Button color="primary">Notify me</Button>
-  </Control>
-</Field>
-```
-
----
-
-### Addons (Centered and Right)
-
-`hasAddons="centered"` centers the joined row and `hasAddons="right"` moves it to the end of the line. Each keeps the controls joined, rendering Bulma's `has-addons` class alongside `has-addons-centered` or `has-addons-right`. Leave `isExpanded` off here, since an expanded control fills the row and leaves nothing to align.
-
-```tsx live
-<>
-  <Field hasAddons="centered">
-    <Control>
-      <Input placeholder="Search the docs" aria-label="Search the docs" />
-    </Control>
-    <Control>
-      <Button color="info">Search</Button>
-    </Control>
-  </Field>
-
-  <Field hasAddons="right">
-    <Control>
-      <Input placeholder="Coupon code" aria-label="Coupon code" />
-    </Control>
-    <Control>
-      <Button>Apply</Button>
-    </Control>
-  </Field>
-</>
-```
-
----
-
-### Addons (With a Label)
 
 A `hasAddons` Field lays out everything it holds in its row, a `label` included, so a visible label goes on an outer `Field` instead. Wire it to the input with `labelProps={{ htmlFor }}` and a matching `id`, since a `Field` nested inside a labeled one starts its own scope, so nothing in the row takes the outer label's generated id.
 
@@ -540,6 +498,46 @@ A `hasAddons` Field lays out everything it holds in its row, a `label` included,
     </Control>
   </Field>
 </Field>
+```
+
+---
+
+### Addons (Centered and Right)
+
+`hasAddons="centered"` centers the joined row and `hasAddons="right"` moves it to the end of the line. Each keeps the controls joined, rendering Bulma's `has-addons` class alongside `has-addons-centered` or `has-addons-right`. Leave `isExpanded` off here, since an expanded control fills the row and leaves nothing to align. `textAlign` on the outer `Field` lines its label up with the row.
+
+```tsx live
+<>
+  <Field
+    label="Search the docs"
+    labelProps={{ htmlFor: 'addons-search' }}
+    textAlign="centered"
+  >
+    <Field hasAddons="centered">
+      <Control>
+        <Input id="addons-search" placeholder="Search the docs" />
+      </Control>
+      <Control>
+        <Button color="info">Search</Button>
+      </Control>
+    </Field>
+  </Field>
+
+  <Field
+    label="Coupon code"
+    labelProps={{ htmlFor: 'addons-coupon' }}
+    textAlign="right"
+  >
+    <Field hasAddons="right">
+      <Control>
+        <Input id="addons-coupon" placeholder="Coupon code" />
+      </Control>
+      <Control>
+        <Button>Apply</Button>
+      </Control>
+    </Field>
+  </Field>
+</>
 ```
 
 ---
@@ -576,7 +574,7 @@ Alongside the existing `Field.Label` and `Field.Body` statics, `Control` is now 
 - An `Autocomplete`, a `Combobox` or a `Taginput` points its open list's `aria-labelledby` at the label the same way, so under a label of "Country" the list announces as "Country" rather than its fallback name, "Suggestions". A label you wire by hand needs an `id` in `labelProps` for this too, as in `labelProps={{ htmlFor: 'country', id: 'country-label' }}`.
 - A group (`Radios`, `Checkboxes`, `Rate`, `DateRangeInput`, or a composed `DateRangeInputBase`, `inline` or not) can't take a `for`, so the label gets an id (yours from `labelProps.id`, otherwise a generated one) and the group points `aria-labelledby` at it. An `aria-label` or `aria-labelledby` you set on the group wins over the Field's label, as it does over a group's own `label`.
 - Association is skipped for `grouped`/`hasAddons` fields (they hold several controls), and a `Field` nested inside a labeled one starts its own scope. A horizontal Field wraps its children in a `Field.Body` of its own and keeps the association, but the pattern with an inner `Field` in that body needs it wired by hand. A label you wire by hand names the control its `for` points at in a `grouped` or `hasAddons` field too, and with an `id` in `labelProps` it names a range `Slider`'s thumbs and an `Autocomplete`'s, a `Combobox`'s or a `Taginput`'s list there as well. No group points at it on its own.
-- An input in a `hasAddons` row still needs a name of its own. For a visible label, put it on an outer `Field` and wire it by hand, as in [Addons (With a Label)](#addons-with-a-label). Without one, give the input an `aria-label`, as the other addon examples do. A placeholder disappears once the reader starts typing, so it doesn't stand in for either.
+- An input in a `hasAddons` row still needs a name of its own, and a placeholder disappears once the reader starts typing, so it doesn't stand in for one. Put a visible label on an outer `Field` and wire it by hand, as in [Addons (Input and Button)](#addons-input-and-button). An `aria-label` names the input for assistive technology only, with nothing on screen.
 - Two controls in one plain labeled Field would both adopt its id. Give each an `id` of its own and label it individually.
 - Once a labeled Field's content has mounted, its label keeps the generated `for` only while one of the inputs above holds the id, and drops it over anything else: a group, a `Checkbox`, `Radio` or `Switch`, an `inline` picker, an inner `Field`, an input with an `id` of its own, markup of your own, or nothing at all. A server render, and the first render while hydrating, still write the `for`, so hydration matches, and an input that mounts later puts it back. A `for` you set with `labelProps={{ htmlFor }}` always stays. `Checkbox`, `Radio` and `Switch` take nothing from the label on their own: each is named by its own children, so put the text there, and the label names one only when you wire it as you would any control with an `id` of its own, `labelProps={{ htmlFor }}` plus that control's `id`. Where you point content at the label by hand, as with a group in an inner `Field`, `labelProps={{ id }}` is enough in the browser, and `labelProps={{ id, htmlFor: undefined }}` keeps the `for` out of server-rendered HTML too.
 - Grouped/horizontal layouts use Bulma’s grid for layout.
