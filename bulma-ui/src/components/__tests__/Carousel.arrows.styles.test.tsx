@@ -19,6 +19,9 @@ const focused = (css: string) =>
 /** `css` as it applies to an element under the pointer. */
 const hovered = (css: string) => css.split(':hover').join('');
 
+/** The class that stands for `:hover` where its rank matters. */
+const POINTER = 'test-pointer';
+
 const declared = (style: CSSStyleDeclaration, property: string) =>
   style.getPropertyValue(property).replace(/\s+/g, ' ').trim() || undefined;
 
@@ -85,8 +88,8 @@ describe.each([
      * `:hover` does.
      */
     const pointerOn = (...elements: Element[]) => {
-      elements.forEach(el => el.classList.add('test-pointer'));
-      return css.split(':hover').join('.test-pointer');
+      elements.forEach(el => el.classList.add(POINTER));
+      return css.split(':hover').join(`.${POINTER}`);
     };
 
     it.each(TRANSPARENT)(
@@ -150,21 +153,29 @@ describe.each([
         property: string,
         forcedColors: boolean
       ) => cascade(el, sheet, [property], declared, { forcedColors });
-      for (const forcedColors of [false, true]) {
-        expect(value(prev, css, 'opacity', forcedColors)).toBe('0');
-      }
-      // The pointer over the carousel, then over the disabled arrow itself.
-      for (const pointed of [[], [prev]]) {
-        const sheet = pointerOn(carousel, ...pointed);
-        expect(value(prev, sheet, 'opacity', false)).toBe(
-          'var(--bulma-carousel-arrow-disabled-opacity)'
-        );
-        // GrayText marks it in forced colors, at full strength, as without
-        // arrowHover (#2049).
-        expect(value(prev, sheet, 'opacity', true)).toBe('1');
-        expect(value(prev, sheet, 'color', true)).toBe('graytext');
-        // The arrow that works shows as before.
-        expect(value(next, sheet, 'opacity', false)).toBe('1');
+      // Disabled as it renders, with the attribute and `is-disabled`, then
+      // with the class alone.
+      for (const attribute of [true, false]) {
+        if (!attribute) prev.removeAttribute('disabled');
+        expect(prev).toHaveClass(`${prefix}is-disabled`);
+        for (const forcedColors of [false, true]) {
+          expect(value(prev, css, 'opacity', forcedColors)).toBe('0');
+        }
+        // The pointer over the carousel, then over the disabled arrow, which
+        // puts it over the carousel too.
+        for (const pointed of [[carousel], [carousel, prev]]) {
+          const sheet = pointerOn(...pointed);
+          expect(value(prev, sheet, 'opacity', false)).toBe(
+            'var(--bulma-carousel-arrow-disabled-opacity)'
+          );
+          // GrayText marks it in forced colors, at full strength, as without
+          // arrowHover (#2049).
+          expect(value(prev, sheet, 'opacity', true)).toBe('1');
+          expect(value(prev, sheet, 'color', true)).toBe('graytext');
+          // The arrow that works shows as before.
+          expect(value(next, sheet, 'opacity', false)).toBe('1');
+          pointed.forEach(el => el.classList.remove(POINTER));
+        }
       }
     });
 
