@@ -64,10 +64,6 @@ pre.prism-code {
   padding: 1.5rem;
 }
 
-.live-editor {
-  font-family: var(--ifm-font-family-monospace);
-}
-
 /* The live editor's focus ring, in the site's focus color. react-live puts
    `outline: none` inline on its <pre>, so the wrapper draws it, inset because
    the example window clips what overflows it. */

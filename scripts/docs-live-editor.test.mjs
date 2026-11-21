@@ -15,12 +15,12 @@
  * does the attribute's removal from the one every live fence renders through
  * (`docs/src/theme/CodeBlock/index.js`).
  *
- * That editor also needs a focus ring and a name (#2180). react-live puts
+ * Each editor also needs a focus ring and a name (#2180). react-live puts
  * `outline: none` inline on its editable `<pre>` and passes it no role or name
- * of ours, so both go on a wrapper of our own: each editor in that file must
- * sit inside a JSX element with `className="live-editor"`, `role="group"`
- * and an `aria-label`, and `docs/src/css/custom.css` must give
- * `.live-editor:focus-within` an outline.
+ * of ours, so both go on a wrapper of our own: each editor must sit right
+ * inside a JSX element with `className="live-editor"`, `role="group"` and an
+ * `aria-label` that is always some text, and `docs/src/css/custom.css` must
+ * give `.live-editor:focus-within` an outline that isn't `none` or `0`.
  */
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
@@ -126,14 +126,36 @@ const hasClassName = (opening, name) =>
       attribute.initializer.text === name
   );
 
-/** The opening tag of the JSX element with the class `name` around a node. */
+/**
+ * The opening tag of the JSX element right around an element, if it has the
+ * class `name`.
+ */
 const wrapperOf = (node, name) => {
-  for (let up = node.parent; up; up = up.parent) {
-    if (ts.isJsxElement(up) && hasClassName(up.openingElement, name)) {
-      return up.openingElement;
-    }
+  let up = node.parent;
+  while (up && !ts.isJsxElement(up)) up = up.parent;
+  return up &&
+    up.openingElement !== node &&
+    hasClassName(up.openingElement, name)
+    ? up.openingElement
+    : undefined;
+};
+
+/**
+ * Whether an expression is always a non-empty string: a non-empty literal, a
+ * template with text of its own, or a condition between two of those.
+ */
+const alwaysText = node => {
+  if (ts.isParenthesizedExpression(node)) return alwaysText(node.expression);
+  if (ts.isStringLiteralLike(node)) return node.text.trim() !== '';
+  if (ts.isTemplateExpression(node)) {
+    return [node.head, ...node.templateSpans.map(span => span.literal)].some(
+      part => part.text.trim() !== ''
+    );
   }
-  return undefined;
+  if (ts.isConditionalExpression(node)) {
+    return alwaysText(node.whenTrue) && alwaysText(node.whenFalse);
+  }
+  return false;
 };
 
 /** A JSX element's attribute `name`, if it has one. */
@@ -196,17 +218,14 @@ describe('docs live code editors', () => {
     );
   });
 
-  it('draws a focus ring around each one in the code block', () => {
+  it('draws a focus ring around each one', () => {
     const outside = editors
-      .filter(
-        editor =>
-          editor.file === CODE_BLOCK && !wrapperOf(editor.node, RING_CLASS)
-      )
+      .filter(editor => !wrapperOf(editor.node, RING_CLASS))
       .map(editor => editor.where);
     assert.deepEqual(
       outside,
       [],
-      `These editors aren't inside an element with className="${RING_CLASS}", ` +
+      `These editors aren't right inside an element with className="${RING_CLASS}", ` +
         "which draws the focus ring react-live's inline `outline: none` " +
         'takes away (WCAG 2.4.7).'
     );
@@ -221,21 +240,16 @@ describe('docs live code editors', () => {
     );
   });
 
-  it('names the group around each one in the code block', () => {
+  it('names the group around each one', () => {
     const unnamed = editors
-      .filter(editor => editor.file === CODE_BLOCK)
       .filter(editor => {
         const wrapper = wrapperOf(editor.node, RING_CLASS);
         const role = wrapper && attributeOf(wrapper, 'role')?.initializer;
         const label =
           wrapper && attributeOf(wrapper, 'aria-label')?.initializer;
-        const named =
-          label !== undefined &&
-          (ts.isStringLiteral(label)
-            ? label.text.trim() !== ''
-            : ts.isJsxExpression(label) &&
-              label.expression !== undefined &&
-              label.expression.getText() !== 'undefined');
+        const expression =
+          label && ts.isJsxExpression(label) ? label.expression : label;
+        const named = expression !== undefined && alwaysText(expression);
         return !(
           role !== undefined &&
           ts.isStringLiteral(role) &&
@@ -248,7 +262,7 @@ describe('docs live code editors', () => {
       unnamed,
       [],
       `These editors' className="${RING_CLASS}" wrappers need ` +
-        '`role="group"` and an `aria-label` naming the example\'s code, the ' +
+        '`role="group"` and an `aria-label` that is always some text, the ' +
         "name a screen reader gives on the way in, since react-live's " +
         'editable <pre> takes no role or name of ours (WCAG 4.1.2).'
     );
