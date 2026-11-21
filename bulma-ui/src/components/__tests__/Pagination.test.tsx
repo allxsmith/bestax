@@ -7,6 +7,7 @@ import Pagination, {
   PaginationEllipsis,
   PaginationPrevious,
   PaginationNext,
+  type PaginationLinkProps,
   type PaginationPreviousNextProps,
 } from '../Pagination';
 import { ConfigProvider } from '../../helpers/Config';
@@ -390,6 +391,71 @@ describe('Pagination deprecated color prop', () => {
 
   it('does not warn when color is omitted', () => {
     render(<Pagination />);
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+});
+
+// A part's color renders the text color helper in textColor's place. It's
+// deprecated, and warns in development; what it renders is unchanged (#2240).
+describe('Pagination parts deprecated color prop', () => {
+  type PartColors = Pick<PaginationLinkProps, 'color' | 'textColor'>;
+  const parts: [string, (props: PartColors) => ReactNode][] = [
+    [
+      'Pagination.List',
+      props => <Pagination.List data-testid="part" {...props} />,
+    ],
+    [
+      'Pagination.Link',
+      props => (
+        <Pagination.Link data-testid="part" {...props}>
+          1
+        </Pagination.Link>
+      ),
+    ],
+  ];
+
+  it.each(parts)(
+    '%s warns once in development when color is passed',
+    (name, renderPart) => {
+      const { rerender } = render(renderPart({ color: 'primary' }));
+      rerender(renderPart({ color: 'danger' }));
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      const message = warnSpy.mock.calls[0][0] as string;
+      expect(message).toContain(`${name} "color" prop is deprecated`);
+      expect(message).toContain('renders the text color helper');
+      expect(message).toContain('Use the textColor prop instead');
+    }
+  );
+
+  it.each(parts)(
+    '%s still renders color as the text color helper, over textColor',
+    (_name, renderPart) => {
+      render(renderPart({ color: 'primary', textColor: 'danger' }));
+      const part = screen.getByTestId('part');
+      expect(part).toHaveClass('has-text-primary');
+      expect(part).not.toHaveClass('has-text-danger');
+      expect(part).not.toHaveClass('is-primary');
+    }
+  );
+
+  it.each(parts)(
+    '%s warns for a color key with no value, which still drops textColor',
+    (name, renderPart) => {
+      render(renderPart({ color: undefined, textColor: 'danger' }));
+      expect(screen.getByTestId('part')).not.toHaveClass('has-text-danger');
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining(`${name} "color" prop is deprecated`)
+      );
+    }
+  );
+
+  it('does not warn when color is omitted', () => {
+    render(
+      <Pagination.List textColor="danger">
+        <Pagination.Link textColor="danger">1</Pagination.Link>
+      </Pagination.List>
+    );
     expect(warnSpy).not.toHaveBeenCalled();
   });
 });
