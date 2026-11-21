@@ -39,7 +39,7 @@
     },
     {
       "title": "Read-only and Disabled",
-      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Block>\n    <Paragraph mb=\"1\">Read-only:</Paragraph>\n    <Taginput defaultValue={['React', 'TypeScript']} readonly tagColor=\"info\" />\n  </Block>\n  <Block>\n    <Paragraph mb=\"1\">Disabled:</Paragraph>\n    <Taginput defaultValue={['React', 'TypeScript']} disabled tagColor=\"info\" />\n  </Block>\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <Taginput\n    label=\"Read-only\"\n    defaultValue={['React', 'TypeScript']}\n    readonly\n    tagColor=\"info\"\n  />\n  <Taginput\n    label=\"Disabled\"\n    defaultValue={['React', 'TypeScript']}\n    disabled\n    tagColor=\"info\"\n  />\n</Block>"
     },
     {
       "title": "Non-closable Tags",
