@@ -730,6 +730,68 @@ describe('Slider', () => {
       expect((ticks[2] as HTMLElement).style.insetInlineStart).toBe('75%');
       expect((ticks[0] as HTMLElement).style.left).toBe('');
     });
+
+    // The ticks were counted to max, rounded, so with max less than half a
+    // step past the last step, the count rounded down and that step, where
+    // the thumb can stop, had no tick (#2109).
+    describe('with max off the step grid', () => {
+      const tickValues = (container: HTMLElement, min: number, max: number) =>
+        [...container.querySelectorAll('.slider-tick')].map(
+          tick =>
+            min +
+            (parseFloat((tick as HTMLElement).style.insetInlineStart) / 100) *
+              (max - min)
+        );
+
+      it.each([
+        // max less than half a step past the last step
+        [0, 10, 3, [3, 6, 9]],
+        [5, 25, 6, [11, 17, 23]],
+        [0, 1, 0.3, [0.3, 0.6, 0.9]],
+        // half a step or more past it, which already drew the last tick
+        [0, 11, 3, [3, 6, 9]],
+        [0, 10, 4, [4, 8]],
+      ])(
+        'draws a tick at every step up to the last (min %s, max %s, step %s)',
+        (min, max, step, expected) => {
+          const { container } = render(
+            <Slider aria-label="Ticks" min={min} max={max} step={step} ticks />
+          );
+          const values = tickValues(container, min, max);
+          expect(values).toHaveLength(expected.length);
+          values.forEach((value, i) => expect(value).toBeCloseTo(expected[i]));
+        }
+      );
+
+      it('draws the last step on a range slider too', () => {
+        const { container } = render(
+          <Slider range min={0} max={10} step={3} ticks />
+        );
+        const values = tickValues(container, 0, 10);
+        expect(values).toHaveLength(3);
+        values.forEach((value, i) => expect(value).toBeCloseTo([3, 6, 9][i]));
+      });
+
+      it.each([
+        // max on the grid, though step * 3 is 0.30000000000000004
+        [0, 0.3, 0.1, 2],
+        // max a hair under the step: browsers hold the step as 0.8, above it
+        [0, 0.7 + 0.1, 0.7 + 0.1, 0],
+      ])(
+        'leaves out the tick at max when the last step is max (min %s, max %s, step %s)',
+        (min, max, step, count) => {
+          const { container } = render(
+            <Slider aria-label="Ticks" min={min} max={max} step={step} ticks />
+          );
+          expect(container.querySelectorAll('.slider-tick')).toHaveLength(
+            count
+          );
+          expect(
+            container.querySelector('.slider-tick.is-endpoint')
+          ).not.toBeInTheDocument();
+        }
+      );
+    });
   });
 
   describe('marks', () => {

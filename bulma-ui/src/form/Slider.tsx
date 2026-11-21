@@ -315,7 +315,11 @@ function getTickPositions(
   if (marks && marks.length > 0) return marks;
   if (!ticks) return [];
   const positions: SliderMark[] = [];
-  const count = Math.round((max - min) / step);
+  // Counted up to the highest step the slider holds rather than to `max`, so
+  // when `max` falls between two steps the last one still gets its tick
+  // (#2109).
+  const top = highestStep(min, max, step);
+  const count = Math.round((top - min) / step);
   if (count > 100) {
     // Cap at 100 ticks to prevent perf issues
     const tickStep = (max - min) / 100;
@@ -324,8 +328,10 @@ function getTickPositions(
       positions.push({ value: min + i * tickStep });
     }
   } else {
-    // Skip first (i=0) and last (i=count) — no ticks at endpoints
-    for (let i = 1; i < count; i++) {
+    // Skip first (i=0), and the last step (i=count) only when it is `max`,
+    // so there are no ticks at the endpoints
+    const last = top < max ? count : count - 1;
+    for (let i = 1; i <= last; i++) {
       positions.push({ value: min + i * step });
     }
   }
