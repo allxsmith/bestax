@@ -36,6 +36,14 @@
 // this needs no weight over Bulma's rules. `:where()` keeps it at none, so a
 // margin an app gives its navbar still wins.
 //
+// The window scrolls a focused control, or an in-page link's target, to its
+// edge, which puts it under a fixed navbar. Scroll padding the navbar's height
+// on the page keeps it in view below a navbar fixed to the top, or above one
+// fixed to the bottom, the way AppFrame does for its header. It's keyed on the
+// navbar rather than Bulma's `has-navbar-fixed-top`, which an app may leave
+// out or put on `<body>`, where scroll padding does nothing. `:where()` keeps
+// it at no weight, so an app's own value, and AppFrame's, still win.
+//
 // A navbar in a colored hero: Bulma's hero sets the colors its navbar's
 // items take at rest, on hover and when active (`--bulma-navbar-item-color`,
 // `-item-hover-background-color`, `-item-hover-color`,
@@ -162,6 +170,14 @@ $-current: ':is(a.#{iv.$class-prefix}navbar-item, .#{iv.$class-prefix}navbar-lin
   ) {
   margin-left: $extras-scroll-lock-offset-left;
   margin-right: $extras-scroll-lock-offset-right;
+}
+
+:where(html:has(.#{iv.$class-prefix}navbar.#{iv.$class-prefix}is-fixed-top)) {
+  scroll-padding-top: cv.getVar('navbar-height');
+}
+
+:where(html:has(.#{iv.$class-prefix}navbar.#{iv.$class-prefix}is-fixed-bottom)) {
+  scroll-padding-bottom: cv.getVar('navbar-height');
 }
 
 // A navbar with no color of its own in a hero with one. The colors are

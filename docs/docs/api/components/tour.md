@@ -546,7 +546,8 @@ non-modal without it:
   tour. The key presses the button as a click does, so a Next or Back given `type="submit"`
   submits its form.
 - Skip and the close button always end the tour, so a modal step is never a keyboard trap, and
-  <kbd>Escape</kbd> does too unless `closeOnEscape={false}`. A Modal or Dialog opened from a step
+  <kbd>Escape</kbd> does too unless `closeOnEscape={false}`. The close button is a
+  [`Delete`](../elements/delete.md#accessibility), with a target at least 24px square around its circle. A Modal or Dialog opened from a step
   takes Escape and Tab until it closes.
 - The scroll to a target is the only motion: the spotlight and the step move with the target
   rather than glide after it, and under `prefers-reduced-motion: reduce` the scroll is instant.
