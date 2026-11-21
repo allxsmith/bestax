@@ -346,7 +346,7 @@ const pendingStartOf = (range?: DateRangeValue): Date | null =>
  * cells, so assistive technology can walk the grid, and the selection it
  * reports, row by row. A week with no day on show keeps its place, so months
  * side by side line up, but is hidden from assistive technology, which would
- * otherwise find a row with no cells in it (#2190).
+ * otherwise find a row of empty cells (#2190).
  *
  * @param shown whether each day is on show, in the order of `days`
  */
@@ -955,6 +955,12 @@ export const Calendar: React.FC<CalendarProps> = ({
   const monthsRowClass = usePrefixedClassNames('dateinput-months-row');
   const yearsGridClass = usePrefixedClassNames('dateinput-years-grid');
   const cellContentClass = usePrefixedClassNames('dateinput-cell-content');
+  // A blank day is always a nearby month's, so its hidden box says so, and
+  // selectors for the days on show skip it as they skipped the day.
+  const blankCellClass = usePrefixedClassNames(
+    'dateinput-cell',
+    'is-other-month'
+  );
   const monthsClass = usePrefixedClassNames('calendar-months');
 
   const focusedYear = focusedDate.getFullYear();
@@ -1438,6 +1444,25 @@ export const Calendar: React.FC<CalendarProps> = ({
       </div>
       {inWeeks(
         shownCells[i].map((cell, j) => {
+          // A blank day is an empty cell that keeps its place in the week,
+          // so the days after it stay under their own weekday for assistive
+          // technology (#2194). The hidden box inside keeps a day's size. As
+          // a flex item it's a block, as a day is in its week's grid, so no
+          // line box adds to its height.
+          if (!shownDays[i][j]) {
+            return (
+              <div
+                key={cell.date.toISOString()}
+                role="gridcell"
+                style={{ display: 'flex' }}
+              >
+                <span
+                  className={blankCellClass}
+                  style={{ visibility: 'hidden' }}
+                />
+              </div>
+            );
+          }
           const unselectable = isDateUnselectable(cell.date);
           const disabled = calendarDisabled || unselectable;
           const time = cell.date.getTime();
@@ -1485,17 +1510,15 @@ export const Calendar: React.FC<CalendarProps> = ({
             'is-disabled': disabled,
             'is-other-month': otherMonth,
           });
-          const display = shownDays[i][j];
           const fullName = fullNames?.[i][j];
-          const content =
-            display && dayContent
-              ? dayContent(cell.date, {
-                  isToday,
-                  isSelected,
-                  isDisabled: disabled,
-                  isOutsideMonth: otherMonth,
-                })
-              : undefined;
+          const content = dayContent
+            ? dayContent(cell.date, {
+                isToday,
+                isSelected,
+                isDisabled: disabled,
+                isOutsideMonth: otherMonth,
+              })
+            : undefined;
           const hasContent = rendersContent(content);
           // The number as the day shows it, which its name can start with.
           const shownNumber = formatNumber(cell.date.getDate());
@@ -1515,7 +1538,7 @@ export const Calendar: React.FC<CalendarProps> = ({
                   : fullName
               }
               data-focused={isFocused ? 'true' : undefined}
-              disabled={disabled || !display}
+              disabled={disabled}
               className={cellClass}
               onFocus={() => {
                 // Reached by Tab while the focused day is disabled, or
@@ -1535,7 +1558,6 @@ export const Calendar: React.FC<CalendarProps> = ({
                 if (rangeMode) pickRangeDay(cell.date);
                 else onSelect?.(cell.date);
               }}
-              style={!display ? { visibility: 'hidden' } : undefined}
             >
               {shownNumber}
               {/* Every day shown has the line, empty where the template
@@ -1544,7 +1566,7 @@ export const Calendar: React.FC<CalendarProps> = ({
                   two words in the day's text, "2 3 left" rather than
                   "23 left", for whatever reads that text. The cell lays
                   them out in a column, so the space isn't drawn. */}
-              {display && dayContent && (
+              {dayContent && (
                 <>
                   {hasContent && ' '}
                   <span className={cellContentClass}>
