@@ -1,3 +1,18 @@
+## [1.18.89](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.88...bestax-mcp@1.18.89) (2026-11-21)
+
+
+### Bug Fixes
+
+* **bulma-ui:** add the space before a calendar day's content only when it has some ([f015782](https://github.com/allxsmith/bestax/commit/f015782128ffc2fdd1b32d1601318c5a13f3bb3d)), closes [#2210](https://github.com/allxsmith/bestax/issues/2210)
+* **bulma-ui:** keep a calendar day's number and content two words in its text ([41e607b](https://github.com/allxsmith/bestax/commit/41e607b6e52678f666818306fae01e82c1c71fe8)), closes [#2210](https://github.com/allxsmith/bestax/issues/2210)
+* **bulma-ui:** preview an iconName Rate's half star in the hover color ([c999e77](https://github.com/allxsmith/bestax/commit/c999e775e35ae5d04538eecf9284ca3e8f81e2b1)), closes [#2012](https://github.com/allxsmith/bestax/issues/2012)
+* **docs:** let the keyboard reach a wide Markdown table that scrolls sideways ([0173852](https://github.com/allxsmith/bestax/commit/01738521587f2de71bec7ef742163f113ff7874c))
+
+
+### Features
+
+* **bulma-ui:** hand getDayLabel the day's number as its cell shows it ([b9a64b3](https://github.com/allxsmith/bestax/commit/b9a64b37ec97d3abb529692667367b5f2aea3505)), closes [#2210](https://github.com/allxsmith/bestax/issues/2210)
+
 ## [1.18.88](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.18.87...bestax-mcp@1.18.88) (2026-11-20)
 
 
