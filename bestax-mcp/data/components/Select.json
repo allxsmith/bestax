@@ -51,7 +51,7 @@
     },
     {
       "title": "Form Addons › Fullwidth Select + Button",
-      "code": "<Field hasAddons>\n  <Control isExpanded>\n    <Select autoComplete=\"country\" isFullwidth aria-label=\"Country\">\n      <option>United States</option>\n      <option>United Kingdom</option>\n      <option>Canada</option>\n      <option>France</option>\n      <option>Germany</option>\n    </Select>\n  </Control>\n  <Control>\n    <Button color=\"primary\">Choose</Button>\n  </Control>\n</Field>"
+      "code": "<Field label=\"Country\" labelProps={{ htmlFor: 'fullwidth-country' }}>\n  <Field hasAddons>\n    <Control isExpanded>\n      <Select autoComplete=\"country\" id=\"fullwidth-country\" isFullwidth>\n        <option>United States</option>\n        <option>United Kingdom</option>\n        <option>Canada</option>\n        <option>France</option>\n        <option>Germany</option>\n      </Select>\n    </Control>\n    <Control>\n      <Button color=\"primary\">Choose</Button>\n    </Control>\n  </Field>\n</Field>"
     },
     {
       "title": "Horizontal — Select in Narrow Field",

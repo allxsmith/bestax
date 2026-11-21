@@ -79,7 +79,7 @@
     },
     {
       "title": "Grouped Controls",
-      "code": "<Field grouped>\n  <Control>\n    <Field label=\"First\">\n      <Input placeholder=\"First input\" />\n    </Field>\n  </Control>\n  <Control>\n    <Field label=\"Second\">\n      <Input placeholder=\"Second input\" />\n    </Field>\n  </Control>\n</Field>"
+      "code": "<Field grouped>\n  <Control>\n    <label className=\"label\" htmlFor=\"grouped-first\">\n      First\n    </label>\n    <Input id=\"grouped-first\" placeholder=\"First input\" />\n  </Control>\n  <Control>\n    <label className=\"label\" htmlFor=\"grouped-second\">\n      Second\n    </label>\n    <Input id=\"grouped-second\" placeholder=\"Second input\" />\n  </Control>\n</Field>"
     },
     {
       "title": "Addons (Input and Button)",
