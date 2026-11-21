@@ -95,47 +95,45 @@ const isEditorTag = (tag, { named, namespaces }) =>
     EDITORS.has(tag.name.text));
 
 /**
- * Whether an element's `tabMode` is `"focus"`. In JSX the last attribute or
- * spread to set a prop wins, so the last one that could set `tabMode` must be
- * the literal `tabMode="focus"`.
+ * The value an element gives attribute `name`: the expression inside `{}`, or
+ * the string literal. In JSX the last attribute or spread to set a prop wins,
+ * so a spread after it, or no attribute at all, gives undefined.
  */
-const tabModeIsFocus = element => {
-  const last = element.attributes.properties.findLast(
+const valueOf = (opening, name) => {
+  const last = opening.attributes.properties.findLast(
     attribute =>
-      ts.isJsxSpreadAttribute(attribute) ||
-      attribute.name.getText() === 'tabMode'
+      ts.isJsxSpreadAttribute(attribute) || attribute.name.getText() === name
   );
-  if (last === undefined || ts.isJsxSpreadAttribute(last)) return false;
+  if (last === undefined || ts.isJsxSpreadAttribute(last)) return undefined;
   const value = last.initializer;
-  const literal = value && ts.isJsxExpression(value) ? value.expression : value;
+  return value && ts.isJsxExpression(value) ? value.expression : value;
+};
+
+/** Whether an element's attribute `name` is the string `text`. */
+const isText = (opening, name, text) => {
+  const value = valueOf(opening, name);
   return (
-    literal !== undefined &&
-    ts.isStringLiteralLike(literal) &&
-    literal.text === 'focus'
+    value !== undefined && ts.isStringLiteralLike(value) && value.text === text
   );
 };
 
-/** Whether a JSX element's `className` is the literal `name`. */
-const hasClassName = (opening, name) =>
-  opening.attributes.properties.some(
-    attribute =>
-      ts.isJsxAttribute(attribute) &&
-      attribute.name.getText() === 'className' &&
-      attribute.initializer !== undefined &&
-      ts.isStringLiteral(attribute.initializer) &&
-      attribute.initializer.text === name
-  );
+/**
+ * Whether an element's `tabMode` is `"focus"`: the last attribute or spread
+ * that could set it must be the literal `tabMode="focus"`.
+ */
+const tabModeIsFocus = element => isText(element, 'tabMode', 'focus');
 
 /**
- * The opening tag of the JSX element right around an element, if it has the
- * class `name`.
+ * The opening tag of the JSX element an editor is a direct child of, if that
+ * element has the class `name`. An editor passed as a prop, or inside an
+ * expression, has none.
  */
 const wrapperOf = (node, name) => {
-  let up = node.parent;
-  while (up && !ts.isJsxElement(up)) up = up.parent;
+  const element = ts.isJsxOpeningElement(node) ? node.parent : node;
+  const up = element.parent;
   return up &&
-    up.openingElement !== node &&
-    hasClassName(up.openingElement, name)
+    ts.isJsxElement(up) &&
+    isText(up.openingElement, 'className', name)
     ? up.openingElement
     : undefined;
 };
@@ -157,13 +155,6 @@ const alwaysText = node => {
   }
   return false;
 };
-
-/** A JSX element's attribute `name`, if it has one. */
-const attributeOf = (opening, name) =>
-  opening.attributes.properties.find(
-    attribute =>
-      ts.isJsxAttribute(attribute) && attribute.name.getText() === name
-  );
 
 /** Every editor element in docs/src, with where it is and whether it passes. */
 const editorElements = () =>
@@ -242,21 +233,19 @@ describe('docs live code editors', () => {
 
   it('names the group around each one', () => {
     const unnamed = editors
-      .filter(editor => {
-        const wrapper = wrapperOf(editor.node, RING_CLASS);
-        const role = wrapper && attributeOf(wrapper, 'role')?.initializer;
-        const label =
-          wrapper && attributeOf(wrapper, 'aria-label')?.initializer;
-        const expression =
-          label && ts.isJsxExpression(label) ? label.expression : label;
-        const named = expression !== undefined && alwaysText(expression);
-        return !(
-          role !== undefined &&
-          ts.isStringLiteral(role) &&
-          role.text === 'group' &&
-          named
-        );
-      })
+      .map(editor => ({
+        ...editor,
+        wrapper: wrapperOf(editor.node, RING_CLASS),
+      }))
+      .filter(
+        ({ wrapper }) =>
+          wrapper !== undefined &&
+          !(
+            isText(wrapper, 'role', 'group') &&
+            valueOf(wrapper, 'aria-label') !== undefined &&
+            alwaysText(valueOf(wrapper, 'aria-label'))
+          )
+      )
       .map(editor => editor.where);
     assert.deepEqual(
       unnamed,
