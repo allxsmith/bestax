@@ -55,6 +55,14 @@ export const warnUnstyledColor = (
   );
 };
 
+/** Warns once that `component`'s `color` prop is deprecated, and why. */
+const warnColorProp = (component: string, reason: string, hint: string) =>
+  warnOnce(
+    `${component}:color-prop`,
+    `[bestax-bulma] The ${component} "color" prop is deprecated: ${reason}. ` +
+      `It will be removed in the next major version. ${hint}`
+  );
+
 /** Dev warning for a `color` prop that has no shipped CSS for any value. */
 export const warnDeprecatedColorProp = (
   component: string,
@@ -62,10 +70,29 @@ export const warnDeprecatedColorProp = (
   hint: string
 ): void => {
   if (value === undefined) return;
-  warnOnce(
-    `${component}:color-prop`,
-    `[bestax-bulma] The ${component} "color" prop is deprecated: Bulma ` +
-      `ships no ${component.toLowerCase()} color CSS, so it has no visual ` +
-      `effect. It will be removed in the next major version. ${hint}`
+  warnColorProp(
+    component,
+    `Bulma ships no ${component.toLowerCase()} color CSS, so it has no ` +
+      'visual effect',
+    hint
+  );
+};
+
+/**
+ * Dev warning for a deprecated `color` prop that renders the text color
+ * helper in `textColor`'s place, rather than a modifier. It takes the part's
+ * props, since a `color` key takes that place even with an undefined value.
+ */
+export const warnTextHelperColorProp = (
+  component: string,
+  props: { color?: string | undefined }
+): void => {
+  if (!('color' in props)) return;
+  warnColorProp(
+    component,
+    'it renders the text color helper (has-text-<color>), not a modifier, ' +
+      'in place of textColor, and passed as undefined it still keeps ' +
+      'textColor from rendering',
+    'Use the textColor prop instead.'
   );
 };
