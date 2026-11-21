@@ -751,6 +751,8 @@ describe('Slider', () => {
         // half a step or more past it, which already drew the last tick
         [0, 11, 3, [3, 6, 9]],
         [0, 10, 4, [4, 8]],
+        // a little past it, but further than a float's error
+        [0, 10.01, 1, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]],
       ])(
         'draws a tick at every step up to the last (min %s, max %s, step %s)',
         (min, max, step, expected) => {
@@ -785,6 +787,12 @@ describe('Slider', () => {
         [-0.3, 0, 0.1, 2],
         // max a hair under the step: browsers hold the step as 0.8, above it
         [0, 0.7 + 0.1, 0.7 + 0.1, 0],
+        // max worked out from min and step, where the float's error is
+        // small next to min but not next to the track
+        [1.1, 1.1 + 3 * 0.1, 0.1, 2],
+        [-99.8, -99.8 + 4 * 0.1, 0.1, 3],
+        // a few units in the last place from -109.1 + 28 / 3
+        [-109.1, -99.76666666666664, 1 / 3, 27],
       ])(
         'leaves out the tick at max when the last step is max (min %s, max %s, step %s)',
         (min, max, step, count) => {

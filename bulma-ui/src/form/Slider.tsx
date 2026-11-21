@@ -335,12 +335,12 @@ function getTickPositions(
       positions.push({ value: min + i * tickStep });
     }
   } else {
-    // Skip first (i=0), and the last step (i=count) only when it is at the
-    // end of the track, so there are no ticks at the endpoints. Its place
-    // along the track is kept to fifteen significant digits, so a last step
-    // a float's error from `max`, as when `max` or `min` is worked out as
-    // 0.1 + 0.2, counts as at the end.
-    const last = kept((top - min) / (max - min)) < 1 ? count : count - 1;
+    // Skip first (i=0), and the last step (i=count) when it is `max`, so
+    // there are no ticks at the endpoints. A last step within a millionth of
+    // a step of `max` counts as `max`: the gap is a float's error, as when
+    // `max` or `min` is worked out as `min + 3 * step` or 0.1 + 0.2, and a
+    // tick there would sit at the end of the track anyway.
+    const last = max - top > step / 1e6 ? count : count - 1;
     for (let i = 1; i <= last; i++) {
       positions.push({ value: min + i * step });
     }
