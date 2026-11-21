@@ -1,3 +1,12 @@
+## [5.79.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.79.1...@allxsmith/bestax-bulma@5.79.2) (2026-11-21)
+
+
+### Bug Fixes
+
+* **bulma-ui:** bring a group's heading into view with its first option in Combobox and Command ([dffbf27](https://github.com/allxsmith/bestax/commit/dffbf2716884a3cc22ac8af39fcb9bdce24e4803)), closes [#2268](https://github.com/allxsmith/bestax/issues/2268)
+* **bulma-ui:** give a small or thin Switch a 24px target without changing its look ([0acc9f6](https://github.com/allxsmith/bestax/commit/0acc9f6905ff9611a8e681659ad850c23aea9514)), closes [#1972](https://github.com/allxsmith/bestax/issues/1972)
+* **bulma-ui:** pad the page and keep the margins for a navbar fixed at one breakpoint ([93ec20a](https://github.com/allxsmith/bestax/commit/93ec20a0cdc7383be9175aa43235c46a6aecfc09)), closes [#2259](https://github.com/allxsmith/bestax/issues/2259)
+
 ## [5.79.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.79.0...@allxsmith/bestax-bulma@5.79.1) (2026-11-21)
 
 
