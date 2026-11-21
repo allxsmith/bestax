@@ -120,6 +120,10 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   is wrong on purpose takes `notypecheck` in its info string (` ```tsx live notypecheck `),
   which also changes nothing on the page. It holds only while the fence still has a type
   error, so it goes when the mistake does, the way `nolint` does.
+- **The navbar search is an ejected copy** of `@docusaurus/theme-search-algolia`'s SearchBar
+  (`src/theme/SearchBar`), so that it doesn't open on a bare `/` (#2223). A Docusaurus upgrade
+  doesn't reach it: its header says what to redo, and `scripts/docs-search-shortcuts.test.mjs`
+  fails if the copy or its shortcut setting goes.
 - **Live examples render in a shadow root**, and the preview
   (`src/theme/CodeBlock/ShadowLivePreview.js`) wraps each one in a `ConfigProvider` whose
   `portalContainer` is an element inside that root, so what an example portals keeps the

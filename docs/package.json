@@ -23,10 +23,12 @@
   },
   "dependencies": {
     "@allxsmith/bestax-bulma": "workspace:*",
+    "@docsearch/react": "^4.6.3",
     "@docusaurus/core": "^3.10.2",
     "@docusaurus/preset-classic": "^3.10.2",
     "@docusaurus/theme-common": "^3.10.2",
     "@docusaurus/theme-live-codeblock": "^3.10.2",
+    "@docusaurus/theme-search-algolia": "^3.10.2",
     "@fontsource/poppins": "^5.3.0",
     "@fortawesome/fontawesome-free": "^7.3.1",
     "@mdi/font": "^7.4.47",
