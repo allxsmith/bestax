@@ -775,6 +775,9 @@ describe('Slider', () => {
       it.each([
         // max on the grid, though step * 3 is 0.30000000000000004
         [0, 0.3, 0.1, 2],
+        // max a float's error above the last step
+        [0, 0.1 + 0.2, 0.1, 2],
+        [0, 1.0000000000000002, 0.1, 9],
         // max a hair under the step: browsers hold the step as 0.8, above it
         [0, 0.7 + 0.1, 0.7 + 0.1, 0],
       ])(

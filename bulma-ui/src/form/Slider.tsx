@@ -329,8 +329,10 @@ function getTickPositions(
     }
   } else {
     // Skip first (i=0), and the last step (i=count) only when it is `max`,
-    // so there are no ticks at the endpoints
-    const last = top < max ? count : count - 1;
+    // so there are no ticks at the endpoints. `max` is compared as browsers
+    // keep a fraction, to fifteen significant digits, so one a float's error
+    // above the last step, as 0.1 + 0.2 is above 0.3, counts as on it.
+    const last = top < addKept(max, 0) ? count : count - 1;
     for (let i = 1; i <= last; i++) {
       positions.push({ value: min + i * step });
     }
