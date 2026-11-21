@@ -2,8 +2,9 @@
  * Holds the Accessibility Conformance Report (#2185) to the parts of the
  * VPAT® 2.5Rev International Edition it has to keep: a row for every WCAG 2.2
  * Level A and AA criterion and every Section 508 and EN 301 549 row the report
- * answers, each exactly once, an answer in the template's terms, an issue cited
- * by every WCAG row that falls short, and a link for every issue cited.
+ * answers, each exactly once, an answer in the template's terms, a reason on
+ * every WCAG row that falls short (an issue cited, or a gap kept by design, in
+ * the phrase the Notes define), and a link for every issue cited.
  */
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
@@ -128,6 +129,21 @@ const EN_301_549 = [
   '12.2.4',
 ];
 
+/**
+ * The phrase a row's remarks use for a gap kept on purpose, which has no open
+ * issue to cite. The Notes define it, quoted.
+ */
+const BY_DESIGN = 'by design';
+const BY_DESIGN_PATTERN = new RegExp(`\\b${BY_DESIGN}\\b`, 'i');
+
+/**
+ * Whether a row that falls short says why: it cites an open issue as a
+ * reference link (`[#123]`), or it names a gap kept by design.
+ */
+function explainsShortfall(remarks) {
+  return /\[#\d+\]/.test(remarks) || BY_DESIGN_PATTERN.test(remarks);
+}
+
 const LEVELS = [
   'Supports',
   'Partially Supports',
@@ -191,7 +207,7 @@ describe('the conformance report', () => {
     }
   });
 
-  it('cites an issue on every WCAG row that falls short', () => {
+  it('gives a reason on every WCAG row that falls short', () => {
     const short = rows().filter(
       row =>
         row.section.startsWith('Table') &&
@@ -200,11 +216,29 @@ describe('the conformance report', () => {
     );
     expect(short.length).toBeGreaterThan(0);
     for (const { id, remarks } of short) {
-      expect({ id, cites: /\[#\d+\]/.test(remarks) }).toEqual({
+      expect({ id, explained: explainsShortfall(remarks) }).toEqual({
         id,
-        cites: true,
+        explained: true,
       });
     }
+  });
+
+  it('takes a cited issue or a gap kept by design as the reason, and nothing else', () => {
+    expect(explainsShortfall('A gap ([#123], next major).')).toBe(true);
+    expect(explainsShortfall('A gap, by design.')).toBe(true);
+    expect(explainsShortfall('By design, the small size stays.')).toBe(true);
+    expect(explainsShortfall('A gap no issue tracks.')).toBe(false);
+    expect(explainsShortfall('A gap, see #123.')).toBe(false);
+    expect(explainsShortfall('A gap designed by hand.')).toBe(false);
+  });
+
+  it('defines the by-design phrase in its Notes', () => {
+    const start = REPORT.indexOf('**Notes:**');
+    const end = REPORT.indexOf('**Evaluation Methods Used:**');
+    expect(start).toBeGreaterThan(-1);
+    expect(end).toBeGreaterThan(start);
+    const notes = REPORT.slice(start, end);
+    expect(notes).toContain(`"${BY_DESIGN}"`);
   });
 
   it('links every issue it cites, and cites every issue it links', () => {
