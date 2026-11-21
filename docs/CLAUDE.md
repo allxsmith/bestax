@@ -122,8 +122,8 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   error, so it goes when the mistake does, the way `nolint` does.
 - **The navbar search is an ejected copy** of `@docusaurus/theme-search-algolia`'s SearchBar
   (`src/theme/SearchBar`), so that it doesn't open on a bare `/` (#2223). A Docusaurus upgrade
-  doesn't reach it, so `scripts/docs-search-shortcuts.test.mjs` fails once the installed theme
-  is a different version from the copy's, and the copy's header says what to redo.
+  doesn't reach it, so `scripts/docs-search-shortcuts.test.mjs` fails once an upgrade changes
+  the theme's SearchBar, and the copy's header says what to redo.
 - **Live examples render in a shadow root**, and the preview
   (`src/theme/CodeBlock/ShadowLivePreview.js`) wraps each one in a `ConfigProvider` whose
   `portalContainer` is an element inside that root, so what an example portals keeps the

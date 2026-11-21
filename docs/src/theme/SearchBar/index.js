@@ -17,10 +17,10 @@
  *
  * Apart from formatting, the `keyboardShortcuts` passed to that hook is the
  * only change from the theme's file. scripts/docs-search-shortcuts.test.mjs
- * fails once the installed theme is a different version from the one named
- * above. Then eject the new SearchBar, apply the change again and update the
- * version here, or, if the theme now passes `keyboardShortcuts` from the
- * `algolia` block through to the hook, set it there and delete this folder.
+ * fails once a Docusaurus upgrade changes the theme's SearchBar. Then eject it
+ * again, apply the change and update the hash the test names, or, if the
+ * theme now passes `keyboardShortcuts` from the `algolia` block through to
+ * the hook, set it there and delete this folder.
  */
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';

@@ -9,19 +9,20 @@
  * SearchBar (`docs/src/theme/SearchBar/index.js`) to pass `{ '/': false }`.
  *
  * This reads the source under `docs/src` and finds each call to
- * `useDocSearchKeyboardEvents` imported from `@docsearch/react` or its
- * `useDocSearchKeyboardEvents` entry, by name, alias or namespace. Each
- * call's options must set `keyboardShortcuts` to an object literal whose
- * `'/'` is the literal `false`, with no spread after either that could
- * change it. So the option's removal fails here, as does the ejected
- * SearchBar's.
+ * `useDocSearchKeyboardEvents` imported from `@docsearch/react`,
+ * `@docsearch/core` or either's `useDocSearchKeyboardEvents` entry, by name,
+ * alias or namespace. Each call's options must set `keyboardShortcuts` to an
+ * object literal whose `'/'` is the literal `false`, with no spread or
+ * computed key after either that could change it. So the option's removal
+ * fails here, as does the ejected SearchBar's.
  *
  * An ejected component doesn't follow the theme when Docusaurus is upgraded,
- * so this also fails once the installed theme is a different version from
- * the one the SearchBar's header names, or once the copy and the theme load
+ * so this also fails once the installed theme's SearchBar is no longer the
+ * file the copy was ejected from, or once the copy and the theme load
  * different installs of the theme or of `@docsearch/react`.
  */
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, extname, join, relative } from 'node:path';
@@ -37,7 +38,13 @@ const HOOK = 'useDocSearchKeyboardEvents';
 const MODULES = new Set([
   '@docsearch/react',
   '@docsearch/react/useDocSearchKeyboardEvents',
+  '@docsearch/core',
+  '@docsearch/core/useDocSearchKeyboardEvents',
 ]);
+// The SHA-256 of the theme's `lib/theme/SearchBar/index.js` the copy was
+// ejected from.
+const EJECTED_FROM =
+  '0fe30dcb603307a500d96d6a4e951cd625054231ae3a2dbbcb99f1f918c3ba52';
 
 const SCRIPT_KIND = {
   '.js': ts.ScriptKind.JSX,
@@ -105,13 +112,16 @@ const propertyName = property =>
     : undefined;
 
 /**
- * The value an object literal gives `key`. The last property or spread that
- * could set it wins, so a spread after it, or a shorthand, gives none.
+ * The value an object literal gives `key`. The last property, spread or
+ * computed key that could set it wins, so a spread or computed key after it,
+ * or a shorthand, gives none.
  */
 const valueOf = (object, key) => {
   const last = object.properties.findLast(
     property =>
-      ts.isSpreadAssignment(property) || propertyName(property) === key
+      ts.isSpreadAssignment(property) ||
+      (property.name && ts.isComputedPropertyName(property.name)) ||
+      propertyName(property) === key
   );
   return last && ts.isPropertyAssignment(last) ? last.initializer : undefined;
 };
@@ -184,21 +194,21 @@ describe('docs search shortcuts', () => {
     );
   });
 
-  it('was ejected from the theme version installed', () => {
-    const named = /@docusaurus\/theme-search-algolia (\d+\.\d+\.\d+\S*)/.exec(
-      readFileSync(SEARCH_BAR, 'utf8')
-    )?.[1];
-    const { version } = JSON.parse(
-      readFileSync(join(dirname(themeFromDocs()), '..', 'package.json'), 'utf8')
-    );
+  it("was ejected from the theme's SearchBar as installed", () => {
+    const upstream = join(dirname(themeFromDocs()), 'theme', 'SearchBar');
+    const installed = createHash('sha256')
+      .update(readFileSync(join(upstream, 'index.js')))
+      .digest('hex');
     assert.equal(
-      named,
-      version,
-      `${relative(REPO, SEARCH_BAR)} was ejected from ${THEME} ${named}, ` +
-        `and ${version} is installed. Eject the new SearchBar, pass ` +
-        "`keyboardShortcuts: { '/': false }` to the hook again and update " +
-        'the version in its header, or set the option in the `algolia` ' +
-        'block and delete the copy if the theme now passes it through.'
+      installed,
+      EJECTED_FROM,
+      `The installed ${THEME}'s SearchBar (${upstream}) isn't the file ` +
+        `${relative(REPO, SEARCH_BAR)} was ejected from. Eject it again ` +
+        "(the copy's header has the command), pass " +
+        "`keyboardShortcuts: { '/': false }` to the hook again, and set " +
+        `EJECTED_FROM to ${installed}. If the theme now passes ` +
+        '`keyboardShortcuts` from the `algolia` block through to the hook, ' +
+        'set it there and delete the copy instead.'
     );
   });
 
