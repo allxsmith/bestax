@@ -275,12 +275,20 @@ $slider-vertical-height: 200px !default;
 // We overlay the ticks on the input by matching its position exactly.
 // The input is the first child in flow; ticks overlay it via the same
 // padding offset, then each tick centers itself on the track midpoint.
+// That's matched to the default track, whose bottom edge is the top padding,
+// half the thumb and its height down. The input sits on the line's baseline,
+// so a size's track keeps that bottom edge and grows or shrinks upward from
+// it, and the ticks go up half its height from there, which the sizes set as
+// `--slider-size-track-height`. A range slider and a vertical one place
+// theirs below.
 .#{iv.$class-prefix}slider-ticks {
   position: absolute;
   left: 0;
   right: 0;
-  // Match the input's track center: top padding + half thumb size + half track height.
-  top: calc(0.5rem + cv.getVar("slider-thumb-size") / 2 + cv.getVar("slider-track-height") / 2);
+  top: calc(
+    0.5rem + cv.getVar("slider-thumb-size") / 2 + cv.getVar("slider-track-height") -
+      var(--slider-size-track-height, #{cv.getVar("slider-track-height")}) / 2
+  );
   height: 0;
   pointer-events: none;
 }
@@ -379,6 +387,12 @@ $slider-vertical-height: 200px !default;
     &::-moz-range-thumb {
       pointer-events: auto;
     }
+  }
+
+  // The track is centered in the slider, so its ticks are too. They hung
+  // below it, placed for the single slider's track (#2101).
+  .#{iv.$class-prefix}slider-ticks {
+    top: 50%;
   }
 
   // Ensure the wrapper has enough height for thumbs
@@ -494,8 +508,11 @@ $slider-vertical-height: 200px !default;
   }
 }
 
-// Sizes
+// Sizes. Each tells the ticks its track's height, which a single slider's
+// ticks are placed by (see Ticks, above).
 .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-small {
+  --slider-size-track-height: #{cv.getVar("slider-track-height-small")};
+
   .#{iv.$class-prefix}slider-input {
     height: cv.getVar("slider-track-height-small");
 
@@ -512,6 +529,8 @@ $slider-vertical-height: 200px !default;
 }
 
 .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-medium {
+  --slider-size-track-height: #{cv.getVar("slider-track-height-medium")};
+
   .#{iv.$class-prefix}slider-input {
     height: cv.getVar("slider-track-height-medium");
 
@@ -528,6 +547,8 @@ $slider-vertical-height: 200px !default;
 }
 
 .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-large {
+  --slider-size-track-height: #{cv.getVar("slider-track-height-large")};
+
   .#{iv.$class-prefix}slider-input {
     height: cv.getVar("slider-track-height-large");
 
@@ -718,14 +739,13 @@ $slider-vertical-height: 200px !default;
   // across the track's band, sets it apart from the track and from the fill
   // alike. It's half the line's width, so close ticks still leave most of
   // the track showing, and the band is the default track's height, centered
-  // on the tick as the ticks are centered on that track. Forced colors drops
+  // on the tick as the tick is centered on the track. Forced colors drops
   // a gradient, so the tick opts out and paints its line from its color,
   // GrayText while disabled, and its label goes back to the user's palette.
-  // A horizontal range slider's ticks hang below its track (#2101), so they
-  // keep the plain line; its `:not()` goes once they cross it.
-  .#{iv.$class-prefix}slider:not(.#{iv.$class-prefix}is-range)
-    .#{iv.$class-prefix}slider-tick:not(.#{iv.$class-prefix}is-endpoint),
-  .#{iv.$class-prefix}slider.#{iv.$class-prefix}is-vertical
+  // A range slider's ticks cross its track too, so every slider gets it.
+  // `has-ticks`, on every slider that draws a tick, weighs it as much as the
+  // disabled line's rule above, which it follows, so it's drawn there too.
+  .#{iv.$class-prefix}slider.#{iv.$class-prefix}has-ticks
     .#{iv.$class-prefix}slider-tick:not(.#{iv.$class-prefix}is-endpoint) {
     forced-color-adjust: none;
     background:

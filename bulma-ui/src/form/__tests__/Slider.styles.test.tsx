@@ -256,6 +256,93 @@ describe('Slider in the cascade', () => {
   });
 });
 
+// A range slider's ticks were placed for a single slider's track, so they hung
+// below the range track (#2101), and a single slider of another size had its
+// ticks placed for the default track, a pixel or two off its own. jsdom works
+// out no layout, so this reads where the cascade puts the ticks: a range
+// slider's at the middle, where its track is centred, and a single slider's
+// up half its own track from the default track's bottom edge.
+describe.each([
+  ['no prefix', ''],
+  ['a class prefix', 'bestax-'],
+])('Slider ticks on the track, with %s', (_label, prefix) => {
+  let sheet: HTMLStyleElement;
+  beforeAll(() => {
+    sheet = document.createElement('style');
+    sheet.textContent = sass.compileString(
+      `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+       @use 'form/slider';`,
+      {
+        loadPaths: [SCSS, NODE_MODULES],
+        quietDeps: true,
+        logger: sass.Logger.silent,
+      }
+    ).css;
+    document.head.appendChild(sheet);
+  });
+  afterAll(() => sheet.remove());
+
+  const ticksOf = (ui: ReactElement) => {
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>{ui}</ConfigProvider>
+    );
+    return {
+      slider: container.querySelector(`.${prefix}slider`) as HTMLElement,
+      ticks: container.querySelector(`.${prefix}slider-ticks`) as HTMLElement,
+    };
+  };
+
+  it.each([
+    ['default', undefined],
+    ['small', 'small'],
+    ['medium', 'medium'],
+    ['large', 'large'],
+  ] as const)(
+    'centres a %s range slider’s ticks on its track',
+    (_name, size) => {
+      const { ticks } = ticksOf(
+        <Slider range ticks step={10} defaultValue={[20, 70]} size={size} />
+      );
+      expect(getComputedStyle(ticks).top).toBe('50%');
+    }
+  );
+
+  it('leaves a vertical range slider’s ticks along its track', () => {
+    const { ticks } = ticksOf(
+      <Slider range ticks step={10} orientation="vertical" />
+    );
+    expect(getComputedStyle(ticks).top).toBe('0px');
+  });
+
+  it('places a single slider’s ticks half its track up from the default track’s bottom edge', () => {
+    const { ticks } = ticksOf(<Slider ticks step={10} />);
+    expect(getComputedStyle(ticks).top.replace(/\s+/g, ' ')).toBe(
+      'calc(0.5rem + var(--bulma-slider-thumb-size) / 2 + var(--bulma-slider-track-height) - var(--slider-size-track-height, var(--bulma-slider-track-height)) / 2)'
+    );
+  });
+
+  it.each([
+    ['default', undefined, ''],
+    ['small', 'small', 'var(--bulma-slider-track-height-small)'],
+    ['medium', 'medium', 'var(--bulma-slider-track-height-medium)'],
+    ['large', 'large', 'var(--bulma-slider-track-height-large)'],
+  ] as const)(
+    'gives the ticks a %s single slider’s own track height',
+    (_name, size, height) => {
+      const { slider, ticks } = ticksOf(<Slider ticks step={10} size={size} />);
+      expect(
+        getComputedStyle(slider).getPropertyValue('--slider-size-track-height')
+      ).toBe(height);
+      // The input the track is drawn on takes the same height.
+      const input = slider.querySelector(`.${prefix}slider-input`)!;
+      expect(getComputedStyle(input).height).toBe(
+        height || 'var(--bulma-slider-track-height)'
+      );
+      expect(ticks).toBeInTheDocument();
+    }
+  );
+});
+
 // Forced colors turns the value bubble's fill into the page's and paints every
 // side of its arrow, which then draws as a square (#1502). jsdom evaluates no
 // media query, so the rules are read off the compiled sheet, with no prefix
@@ -341,7 +428,7 @@ describe.each([
       .map(({ rule }) => rule.selectorText.split(/\s*,\s*/).join(', '));
     const track = `${p('slider')}${p('is-range')} ${p('slider-track')}`;
     const line = `${p('slider-tick')}:not(${p('is-endpoint')})`;
-    const ticks = `${p('slider')}:not(${p('is-range')}) ${line}, ${p('slider')}${p('is-vertical')} ${line}`;
+    const ticks = `${p('slider')}${p('has-ticks')} ${line}`;
     expect(optedOut).toEqual([
       `${p('slider-input')}, ${track}`,
       ticks,
@@ -501,12 +588,12 @@ describe.each([
     // The track is drawn in CanvasText, which most contrast themes make the
     // same color as ButtonText, the line's, so the line merged into the track
     // where it crossed it (#2032). A Canvas hairline, half the line's width
-    // and the track's height, now runs down its middle. Every slider but a
-    // horizontal range one gets it, since that one's ticks hang below its
-    // track (#2101). jsdom drops a gradient, so it's read from the compiled
-    // sheet, with its whitespace collapsed.
+    // and the track's height, now runs down its middle. Every slider with
+    // ticks gets it, a range one too since its ticks cross its track
+    // (#2101). jsdom drops a gradient, so it's read from the compiled sheet,
+    // with its whitespace collapsed.
     const line = `${p('slider-tick')}:not(${p('is-endpoint')})`;
-    const across = `${p('slider')}:not(${p('is-range')}) ${line}`;
+    const across = `${p('slider')}${p('has-ticks')} ${line}`;
     const vertical = `${p('slider')}${p('is-vertical')} ${line}`;
     const flat = compiled.replace(/\s+/g, ' ');
     const block = (selector: string) => {
@@ -515,15 +602,15 @@ describe.each([
       return flat.slice(at, flat.indexOf('}', at));
     };
     const band = 'var(--bulma-slider-track-height)';
-    expect(block(`${across}, ${vertical}`)).toContain(
+    expect(block(across)).toContain(
       `background: linear-gradient(Canvas, Canvas) center/50% ${band} no-repeat, currentColor;`
     );
     expect(block(vertical)).toContain(`background-size: ${band} 50%;`);
+    // No slider is left out of it, the range one included.
+    expect(flat).not.toContain(`:not(${p('is-range')}) ${line}`);
     // Forced colors drops a gradient unless the tick opts out. The line is
     // painted from the tick's color, ButtonText, or GrayText while disabled.
-    expect(
-      values(`${across}, ${vertical}`, 'forced-color-adjust', [FORCED])
-    ).toEqual(['none']);
+    expect(values(across, 'forced-color-adjust', [FORCED])).toEqual(['none']);
     expect(
       values(p('slider-tick'), 'color', [FORCED]).map(v => v.toLowerCase())
     ).toEqual(['buttontext']);
@@ -548,7 +635,7 @@ describe.each([
     const label = p('slider-tick-label');
     expect(
       values(
-        `${p('slider')}:not(${p('is-range')}) ${line} ${label}, ${p('slider')}${p('is-vertical')} ${line} ${label}`,
+        `${p('slider')}${p('has-ticks')} ${line} ${label}`,
         'forced-color-adjust',
         [FORCED]
       )
@@ -563,9 +650,7 @@ describe.each([
           r.within.join() === FORCED &&
           oneLine(r.rule.selectorText) === selector
       );
-    const hairline = at(
-      `${p('slider')}:not(${p('is-range')}) ${line}, ${p('slider')}${p('is-vertical')} ${line}`
-    );
+    const hairline = at(`${p('slider')}${p('has-ticks')} ${line}`);
     const plain = at(`${p('slider')}${p('is-disabled')} ${line}`);
     expect(plain).toBeGreaterThan(-1);
     expect(hairline).toBeGreaterThan(plain);
