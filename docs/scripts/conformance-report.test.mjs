@@ -233,10 +233,11 @@ describe('the conformance report', () => {
   });
 
   it('defines the by-design phrase in its Notes', () => {
-    const notes = REPORT.slice(
-      REPORT.indexOf('**Notes:**'),
-      REPORT.indexOf('**Evaluation Methods Used:**')
-    );
+    const start = REPORT.indexOf('**Notes:**');
+    const end = REPORT.indexOf('**Evaluation Methods Used:**');
+    expect(start).toBeGreaterThan(-1);
+    expect(end).toBeGreaterThan(start);
+    const notes = REPORT.slice(start, end);
     expect(notes).toContain(`"${BY_DESIGN}"`);
   });
 
