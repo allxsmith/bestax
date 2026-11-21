@@ -167,6 +167,8 @@ describe.each([
         for (const forcedColors of [false, true]) {
           expect(value(prev, css, 'opacity', forcedColors)).toBe('0');
         }
+        // It keeps GrayText while it fades out as the pointer leaves.
+        expect(value(prev, css, 'color', true)).toBe('graytext');
         // The pointer over the carousel, then over the disabled arrow, which
         // puts it over the carousel too.
         for (const pointed of [[carousel], [carousel, prev]]) {
@@ -185,6 +187,7 @@ describe.each([
       }
       // Marked by the class alone it can take focus, and shows while it has
       // it, as any arrowHover arrow does.
+      expect(prev).not.toHaveAttribute('disabled');
       inState(':focus-visible', [prev], sheet => {
         expect(value(prev, sheet, 'opacity', false)).toBe('1');
       });
