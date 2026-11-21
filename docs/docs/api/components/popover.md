@@ -213,7 +213,7 @@ composed from the single `Popover` import.
 <Popover trigger={<Button>Rename</Button>}>
   <Popover.Header>Rename file</Popover.Header>
   <Popover.Body>
-    <Input aria-label="File name" defaultValue="report.pdf" />
+    <Input label="File name" defaultValue="report.pdf" />
   </Popover.Body>
   <Popover.Footer>
     <Popover.Close>Cancel</Popover.Close>

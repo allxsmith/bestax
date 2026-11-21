@@ -627,8 +627,8 @@ function example() {
 }
 ```
 
-The `label` names the field and the list. With no `label`, give the field an `aria-label` and the
-list one of its own, or the list is named "Suggestions".
+The `label` names the field and the list. Built from parts with no `label`, give `Combobox.Input`
+an `aria-label` and the list one of its own, or the list is named "Suggestions".
 
 ### A Result Count
 

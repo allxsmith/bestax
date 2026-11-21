@@ -455,19 +455,21 @@ This example demonstrates the versatility of the `TextArea` component used withi
 
 ### Grouped Controls
 
-This example demonstrates using the `Field` component to create a group of controls. The `grouped` prop is used on the `Field`, and each control is placed inside a `Control` component. A `grouped` Field names none of the controls it holds, so each `Control` here holds a labeled `Field` of its own.
+This example demonstrates using the `Field` component to create a group of controls. The `grouped` prop is used on the `Field`, and each control is placed inside a `Control` component. A `grouped` Field names none of the controls it holds, so each `Control` here holds a `<label>` with the `label` class, its `htmlFor` pointing at the input's `id`.
 
 ```tsx live
 <Field grouped>
   <Control>
-    <Field label="First">
-      <Input placeholder="First input" />
-    </Field>
+    <label className="label" htmlFor="grouped-first">
+      First
+    </label>
+    <Input id="grouped-first" placeholder="First input" />
   </Control>
   <Control>
-    <Field label="Second">
-      <Input placeholder="Second input" />
-    </Field>
+    <label className="label" htmlFor="grouped-second">
+      Second
+    </label>
+    <Input id="grouped-second" placeholder="Second input" />
   </Control>
 </Field>
 ```

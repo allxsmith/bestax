@@ -317,19 +317,21 @@ A common pattern: a small select acting as a unit picker (currency, country code
 Use `isFullwidth` on the Select with `isExpanded` on its Control to make the dropdown grow to fill the row.
 
 ```tsx live
-<Field hasAddons>
-  <Control isExpanded>
-    <Select autoComplete="country" isFullwidth aria-label="Country">
-      <option>United States</option>
-      <option>United Kingdom</option>
-      <option>Canada</option>
-      <option>France</option>
-      <option>Germany</option>
-    </Select>
-  </Control>
-  <Control>
-    <Button color="primary">Choose</Button>
-  </Control>
+<Field label="Country" labelProps={{ htmlFor: 'fullwidth-country' }}>
+  <Field hasAddons>
+    <Control isExpanded>
+      <Select autoComplete="country" id="fullwidth-country" isFullwidth>
+        <option>United States</option>
+        <option>United Kingdom</option>
+        <option>Canada</option>
+        <option>France</option>
+        <option>Germany</option>
+      </Select>
+    </Control>
+    <Control>
+      <Button color="primary">Choose</Button>
+    </Control>
+  </Field>
 </Field>
 ```
 
