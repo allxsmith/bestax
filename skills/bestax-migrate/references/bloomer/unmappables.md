@@ -265,6 +265,8 @@ goes for a universal helper on a part that takes no helper props (`Pagination.Pr
 `Tabs.Item`, `Message.Header`/`Body`, the `Modal` parts): `isPulled="right"` →
 `is-pulled-right`, `isMarginless` → `m-0`, `isHidden="mobile"` → `is-hidden-mobile`. A dynamic
 value, or a dynamic `className` the class cannot be spliced into, is flagged with the class to add.
+`PageEllipsis` gets these classes only where the project gets bestax-bulma 5.78.4 or later, as the
+prop map says, and a TODO naming that release otherwise.
 
 ## Props with no counterpart
 
