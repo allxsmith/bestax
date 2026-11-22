@@ -111,7 +111,9 @@ Notes:
   its own with `as`, the way the notes below do. The name changes nothing in the compiled CSS.
 - Extras `Tabs` **extends** stock Bulma tabs (it shows only the selected `Tabs.Content` panel,
   lays out the vertical variant, draws a `Tabs.Tab`'s focus ring and a disabled tab's look, moves
-  Bulma's focus ring inside most `Tabs.Item` links, brings a focused toggle tab in front of its
+  Bulma's focus ring inside a link that is a `Tabs.Item`'s own child, in the tab's text color on a
+  selected toggle tab,
+  brings a focused toggle tab in front of its
   neighbors, and keeps the active tab marked in forced colors, where Bulma's colors for it are
   replaced), so an app using `Tabs` needs both:
 

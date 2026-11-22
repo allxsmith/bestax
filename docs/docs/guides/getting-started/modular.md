@@ -200,7 +200,7 @@ Some partials adjust a stock Bulma component rather than add one of bestax's.
 
 - `components/pagination` draws the page links' keyboard focus ring, which Bulma's own styles turn off, keeps the current page marked in forced colors (Windows' contrast themes), and draws a disabled control there at full strength in the system's disabled color, where Bulma's half opacity would fade it, so a build that uses `bulma/sass/components/pagination`, for a `Pagination` or a `DataTable`'s pager, wants it too.
 
-- `components/tabs` shows only a `Tabs.Content`'s selected panel and lays out vertical tabs, draws a `Tabs.Tab`'s keyboard focus ring and a disabled tab's look, moves Bulma's focus ring inside most `Tabs.Item` links, where the tab row clips it, brings a focused toggle tab in front of its neighbors, and keeps the active tab marked in forced colors, so a build that uses `bulma/sass/components/tabs` for a `Tabs` needs it too.
+- `components/tabs` shows only a `Tabs.Content`'s selected panel and lays out vertical tabs, draws a `Tabs.Tab`'s keyboard focus ring and a disabled tab's look, moves Bulma's focus ring inside a link that is a `Tabs.Item`'s own child, where the tab row clips it, in the tab's text color on a selected toggle tab, brings a focused toggle tab in front of its neighbors, and keeps the active tab marked in forced colors, so a build that uses `bulma/sass/components/tabs` for a `Tabs` needs it too.
 
 - `components/menu` keeps a menu's active item marked in forced colors, draws `Menu.Section`'s heading and chevron, and starts each item's text at the right on a right-to-left page, so a build that uses `bulma/sass/components/menu`, for a `Menu` or a `TableOfContents`, wants it too.
 
