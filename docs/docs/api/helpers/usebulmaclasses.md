@@ -545,6 +545,14 @@ Apply `textTransform` to a Content tag with a paragraph of the Declaration of In
       </p>
     </Content>
   </Box>
+  <Box>
+    <Content textTransform="underlined">
+      <p>
+        We hold these truths to be self-evident, that all men are created
+        equal...
+      </p>
+    </Content>
+  </Box>
 </>
 ```
 
@@ -1065,7 +1073,7 @@ Below is the full list of supported props, derived from the `BulmaClassesProps` 
 | `gapless`              | `true`                                                                                                                                                                                                                                                                             | `is-gapless`                                                                                                |
 | `textSize`             | `'1'..'7'`                                                                                                                                                                                                                                                                         | `is-size-3`                                                                                                 |
 | `textAlign`            | `'centered'`, `'justified'`, `'left'`, `'right'`                                                                                                                                                                                                                                   | `has-text-centered`                                                                                         |
-| `textTransform`        | `'capitalized'`, `'lowercase'`, `'uppercase'`, `'italic'`                                                                                                                                                                                                                          | `is-uppercase`, `is-italic`                                                                                 |
+| `textTransform`        | `'capitalized'`, `'lowercase'`, `'uppercase'`, `'italic'`, `'underlined'`                                                                                                                                                                                                          | `is-uppercase`, `is-italic`                                                                                 |
 | `textWeight`           | `'light'`, `'normal'`, `'medium'`, `'semibold'`, `'bold'`                                                                                                                                                                                                                          | `has-text-weight-bold`                                                                                      |
 | `fontFamily`           | `'sans-serif'`, `'monospace'`, `'primary'`, `'secondary'`, `'code'`                                                                                                                                                                                                                | `is-family-monospace`                                                                                       |
 | `display`              | `'block'`, `'flex'`, `'inline'`, `'inline-block'`, `'inline-flex'`, `'grid'`, `'none'`                                                                                                                                                                                             | `is-flex`, `is-inline-block`, `is-grid`, `is-hidden`                                                        |
@@ -1312,7 +1320,8 @@ export type BulmaGapStep =
 export interface BulmaTypographyProps {
   textSize?: '1' | '2' | '3' | '4' | '5' | '6' | '7';
   textAlign?: 'centered' | 'justified' | 'left' | 'right';
-  textTransform?: 'capitalized' | 'lowercase' | 'uppercase' | 'italic';
+  textTransform?:
+    'capitalized' | 'lowercase' | 'uppercase' | 'italic' | 'underlined';
   textWeight?: 'light' | 'normal' | 'medium' | 'semibold' | 'bold';
   fontFamily?: 'sans-serif' | 'monospace' | 'primary' | 'secondary' | 'code';
   viewport?: BulmaViewportProps;
