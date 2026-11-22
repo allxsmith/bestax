@@ -5,6 +5,11 @@
 // has to outrank.
 import * as sass from 'sass';
 import path from 'path';
+import type { ReactElement } from 'react';
+import { render } from '@testing-library/react';
+import { FloatButton } from '../FloatButton';
+import { ConfigProvider } from '../../helpers/Config';
+import { bulmaCss, cascade, compileSource } from '../../__tests__/css-cascade';
 
 const SCSS = path.resolve(__dirname, '../../scss');
 const NODE_MODULES = path.resolve(__dirname, '../../../../node_modules');
@@ -117,7 +122,7 @@ describe('FloatButton styles', () => {
 
   it('gives a float button its shadow, except where Bulma’s focus ring or disabled look takes over', () => {
     const selector =
-      '.button.float-button:not(:focus-visible):not(.is-focused):not([disabled])';
+      '.button.float-button:not(:focus-visible):not(.is-focused):not([disabled]):not(.is-disabled[aria-disabled=true])';
     expect(find(PLAIN, selector)).toEqual({
       'box-shadow': 'var(--bulma-float-button-shadow)',
     });
@@ -321,5 +326,81 @@ describe('FloatButton styles', () => {
     expect(PREFIXED.map(r => r.declarations)).toEqual(
       PLAIN.map(r => r.declarations)
     );
+  });
+});
+
+// A link with `isDisabled` has `is-disabled` and no `disabled` attribute, and
+// it keeps Bulma's flat disabled look as a disabled `<button>` does (#1898).
+// These resolve the shadow across Bulma's CSS and the button and float button
+// partials, in either order and under a class prefix.
+describe('a disabled float button', () => {
+  describe.each([
+    ['no prefix', '', 'bulma.css'],
+    ['a class prefix', 'bulma-', 'versions/bulma-prefixed.css'],
+  ])('with %s', (_name, prefix, bulmaFile) => {
+    const partials = compileSource(
+      `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+       @use 'elements/button';
+       @use 'components/floatbutton';`
+    );
+    const bulma = bulmaCss(bulmaFile);
+    const inPrefix = (ui: ReactElement) =>
+      render(<ConfigProvider classPrefix={prefix}>{ui}</ConfigProvider>);
+
+    describe.each([
+      ['Bulma first', bulma + partials],
+      ['the partials first', partials + bulma],
+    ])('and %s', (_order, css) => {
+      const shadow = (el: Element) =>
+        cascade(
+          el,
+          css,
+          ['box-shadow'],
+          (style, p) => style.getPropertyValue(p).trim() || undefined,
+          { forcedColors: false }
+        );
+
+      it('draws a disabled link as flat as a disabled button', () => {
+        const { getByRole } = inPrefix(
+          <div>
+            <FloatButton isDisabled aria-label="New" icon="plus" />
+            <FloatButton
+              as="a"
+              href="#new"
+              isDisabled
+              aria-label="New"
+              icon="plus"
+            />
+          </div>
+        );
+        const button = getByRole('button', { name: 'New' });
+        const link = getByRole('link', { name: 'New' });
+        expect(shadow(button)).toBe('var(--bulma-button-disabled-shadow)');
+        expect(shadow(link)).toBe(shadow(button));
+      });
+
+      it('lifts a button whose disabled a caller turned off, which works', () => {
+        const { getByRole } = inPrefix(
+          <FloatButton
+            isDisabled
+            disabled={false}
+            aria-label="New"
+            icon="plus"
+          />
+        );
+        const button = getByRole('button', { name: 'New' });
+        expect(button).not.toHaveAttribute('disabled');
+        expect(shadow(button)).toBe('var(--bulma-float-button-shadow)');
+      });
+
+      it('lifts an enabled link', () => {
+        const { getByRole } = inPrefix(
+          <FloatButton as="a" href="#new" aria-label="New" icon="plus" />
+        );
+        expect(shadow(getByRole('link', { name: 'New' }))).toBe(
+          'var(--bulma-float-button-shadow)'
+        );
+      });
+    });
   });
 });
