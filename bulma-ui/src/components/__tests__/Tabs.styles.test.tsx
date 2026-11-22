@@ -229,16 +229,21 @@ const linked = (prefix: string, bulmaFile: string, after: boolean) => {
 
 // Bulma draws a link's focus ring just outside it, where the tab row's
 // overflow clips its top and bottom (#1944). The partial moves a Tabs.Item
-// link's ring inside it, except on a selected toggle tab outside forced
-// colors (#1945), and brings a focused toggle tab in front of the neighbours
-// that overlap it, a hovered one included, which Bulma raises to 2.
+// link's ring inside it, draws a selected toggle tab's ring in the tab's text
+// colour a ring width further in, as a Tabs.Tab's (#1945), and brings a
+// focused toggle tab in front of the neighbours that overlap it, a hovered
+// one included, which Bulma raises to 2.
 describe.each(ORDERS)(
   'a focused tab’s ring, with %s',
   (_order, prefix, bulmaFile, after) => {
     const css = linked(prefix, bulmaFile, after);
     const page = plainPage(css);
+    /** Bulma's CSS alone, for what the partial leaves to it. */
+    const bulmaPage = plainPage(bulmaCss(bulmaFile));
     const INSET = 'calc(-1 * var(--bulma-focus-width))';
     const OUTSIDE = 'var(--bulma-focus-offset)';
+    /** A selected toggle tab's, inside the band of its fill. */
+    const FURTHER_IN = 'calc(-2 * var(--bulma-focus-width))';
 
     /** Two Tabs.Item links, the first selected. */
     const renderLinks = (props: Partial<TabsProps>) => {
@@ -293,10 +298,11 @@ describe.each(ORDERS)(
       ['plain', {}],
       ['toggle', { toggle: true }],
     ] as [string, Partial<TabsProps>][])(
-      'leaves the ring’s colour, style and width to Bulma in the %s style',
+      'leaves the ring’s colour, style and width to Bulma in the %s style, but on a selected toggle tab',
       (_style, props) => {
         const partial = partialFor(prefix);
-        for (const link of renderLinks(props)) {
+        const links = renderLinks(props);
+        for (const link of props.toggle ? links.slice(1) : links) {
           focusVisibly(link);
           for (const sheet of [plainPage(partial), forcedPage(partial)]) {
             expect(
@@ -324,31 +330,60 @@ describe.each(ORDERS)(
     });
 
     // Its fill is the link colour, which the focus colour matches by default,
-    // so a ring inside it wouldn't show (#1945).
-    it('leaves Bulma’s ring on a selected toggle tab’s link', () => {
+    // so a ring inside it takes the tab's text colour instead, a ring width
+    // further in, as on a Tabs.Tab (#1945).
+    it('draws a selected toggle tab’s link ring in its text colour, a ring width further in', () => {
       const [home] = renderLinks({ toggle: true });
       focusVisibly(home);
-      expect(valueOf(home, page, 'outline-offset')).toBe(OUTSIDE);
+      expect(valueOf(home, page, 'outline-color')?.toLowerCase()).toBe(
+        'currentcolor'
+      );
+      expect(valueOf(home, page, 'outline-offset')).toBe(FURTHER_IN);
+      // Its width and style stay Bulma's.
+      expect(valueOf(home, page, 'outline-width')).toBe(
+        'var(--bulma-focus-width)'
+      );
+      expect(valueOf(home, page, 'outline-style')).toBe(
+        'var(--bulma-focus-style)'
+      );
+      // The partial sets its colour and offset and nothing else, with forced
+      // colors or without.
+      const partial = partialFor(prefix);
+      for (const sheet of [plainPage(partial), forcedPage(partial)]) {
+        expect(outlineOf(home, sheet).sort()).toEqual([
+          'outline-color',
+          'outline-offset',
+        ]);
+      }
     });
 
-    it('leaves a link deeper inside a tab to Bulma', () => {
-      render(
-        <ConfigProvider classPrefix={prefix}>
-          <Tabs>
-            <Tabs.List>
-              <Tabs.Item>
-                <span>
-                  <a href="/help">Help</a>
-                </span>
-              </Tabs.Item>
-            </Tabs.List>
-          </Tabs>
-        </ConfigProvider>
-      );
-      const help = screen.getByRole('link', { name: 'Help' });
-      focusVisibly(help);
-      expect(valueOf(help, page, 'outline-offset')).toBe(OUTSIDE);
-    });
+    it.each([
+      ['a tab', {}, false],
+      ['a selected toggle tab', { toggle: true }, true],
+    ] as [string, Partial<TabsProps>, boolean][])(
+      'leaves a link deeper inside %s to Bulma',
+      (_tab, props, active) => {
+        render(
+          <ConfigProvider classPrefix={prefix}>
+            <Tabs {...props}>
+              <Tabs.List>
+                <Tabs.Item active={active}>
+                  <span>
+                    <a href="/help">Help</a>
+                  </span>
+                </Tabs.Item>
+              </Tabs.List>
+            </Tabs>
+          </ConfigProvider>
+        );
+        const help = screen.getByRole('link', { name: 'Help' });
+        focusVisibly(help);
+        expect(valueOf(help, page, 'outline-offset')).toBe(OUTSIDE);
+        expect(valueOf(help, page, 'outline-color')?.toLowerCase()).not.toBe(
+          'currentcolor'
+        );
+      }
+    );
 
     it.each([
       ['plain', {}],
@@ -366,7 +401,7 @@ describe.each(ORDERS)(
                 <Tabs.Item>
                   <a href="/more">More</a>
                   <ul>
-                    <li>
+                    <li className={`${prefix}is-active`}>
                       <a href="/nested">Nested</a>
                     </li>
                   </ul>
@@ -375,10 +410,17 @@ describe.each(ORDERS)(
             </Tabs>
           </ConfigProvider>
         );
+        // Its list item is marked active, as a selected tab's is.
         const nested = screen.getByRole('link', { name: 'Nested' });
         focusVisibly(nested);
         expect(valueOf(nested, page, 'outline-offset')).toBe(OUTSIDE);
-        expect(valueOf(nested, page, 'z-index')).toBeUndefined();
+        expect(valueOf(nested, page, 'outline-color')?.toLowerCase()).not.toBe(
+          'currentcolor'
+        );
+        // Bulma stacks it as a selected tab's link; the partial adds nothing.
+        expect(valueOf(nested, page, 'z-index')).toBe(
+          valueOf(nested, bulmaPage, 'z-index')
+        );
         // The tab's own link, beside it, still gets the ring inside.
         const more = screen.getByRole('link', { name: 'More' });
         focusVisibly(more);
@@ -416,13 +458,18 @@ describe.each(ORDERS)(
         expect(valueOf(profile, page, 'z-index')).toBe(
           style === 'toggle' ? '3' : undefined
         );
+        const home = screen.getByRole('link', { name: 'Home' });
+        focusVisibly(home);
+        expect(valueOf(home, page, 'outline-offset')).toBe(
+          style === 'toggle' ? FURTHER_IN : INSET
+        );
       }
     );
 
-    it('draws it inside a selected toggle tab’s link with forced colors, which draw no fill', () => {
+    it('keeps a selected toggle tab’s link ring inside it with forced colors, as a Tabs.Tab’s', () => {
       const [home] = renderLinks({ toggle: true });
       focusVisibly(home);
-      expect(valueOf(home, forcedPage(css), 'outline-offset')).toBe(INSET);
+      expect(valueOf(home, forcedPage(css), 'outline-offset')).toBe(FURTHER_IN);
     });
 
     it('brings a focused Tabs.Tab in a toggle row in front of its neighbours, selected or not', () => {
@@ -649,7 +696,6 @@ describe('the active tab on a forced-colors page', () => {
       `${active} a::after`,
       `${p('tabs')}${p('tabs')} ${disabled} > a`,
       `${p('tabs')} ${disabled}${p('is-active')} > a::after`,
-      `${p('tabs')}${p('is-toggle')} li${p('is-active')} > a:focus-visible`,
     ]);
     // Nothing outside the block, at the top level or in another at-rule,
     // draws a pseudo-element or a system color.
